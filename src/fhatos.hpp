@@ -11,11 +11,12 @@
  *                                    A Dogturd Stynx Production
  */
 
+// Arduino programming framework
 #include <Arduino.h>
-#include <ArduinoJson.h>
 
 // C++ standard template library common data structures
 #include <deque>
+#include <exception>
 #include <functional>
 #include <list>
 #include <map>
@@ -24,6 +25,9 @@
 
 namespace fhatos {
 
+////////////////////
+/// LAMBDA TYPES ///
+////////////////////
 typedef void (*VoidPtr)(void);
 typedef std::function<void(void)> Void0;
 template <typename A> using Consumer = std::function<void(A)>;
@@ -36,14 +40,27 @@ template <typename A, typename B, typename C>
 using BiFunction = std::function<C(A, B)>;
 template <typename A, typename B, typename C, typename D>
 using TriFunction = std::function<D(A, B, C)>;
+
+///////////////////////
+/// CONTAINER TYPES ///
+///////////////////////
 template <typename K, typename V> using Map = std::map<K, V>;
 template <typename A> using List = std::list<A>;
 template <typename A> using Queue = std::queue<A>;
 template <typename A> using Deque = std::deque<A>;
-// template <typename A> using Set = std::set<A>;
+template <typename A> using Set = std::set<A>;
 template <typename A, typename B> using Pair = std::pair<A, B>;
 template <typename A> using Option = std::optional<A>;
 
-} // namespace fhat
+///////////////////////
+/// EXCEPTION TYPES ///
+///////////////////////
+template <char *WHAT> class ferror : public std::exception {
+
+public:
+  const char *what() const throw() { return WHAT; }
+};
+
+} // namespace fhatos
 
 #endif
