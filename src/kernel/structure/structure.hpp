@@ -79,26 +79,28 @@ protected:
   std::shared_ptr<const char[]> characters;
   std::shared_ptr<const fURI> parent;
 
+private:
+    fURI() {
+        this->parent = std::shared_ptr<const fURI>(this);;
+        this->characters = std::shared_ptr<const char[]>("");
+    }
+
 public:
-  fURI(const char *furiCharacters) {
-    this->parent = std::shared_ptr<fURI>(fURI::root());
+  fURI(const char *furiCharacters) : fURI() {
     this->characters = std::shared_ptr<const char[]>(furiCharacters);
   }
   fURI(const fURI *parent, const char *extension) {
     this->parent = std::shared_ptr<const fURI>(parent);
     this->characters = std::shared_ptr<const char[]>(extension);
   }
-  ~fURI() {
+  fURI(const StringSumHelper &shelper) : fURI(shelper.c_str()){};
+ // ~fURI() {
     // delete characters;
     // delete parent;
-  }
-  static fURI *root() {
-    static fURI *root = new fURI("");
-    return nullptr;
-  }
+  //}
   const fURI extend(const char *segments) const { return fURI(this, segments); }
-  uint8_t length() const;
-  bool empty() const { return 0 == this->length(); }
+  // uint8_t length() const { return __private_fhatos::split(this->c_str(),"/")}
+  bool empty() const { return 0 == this->toString().length(); }
   virtual bool matches(const fURI &pattern) const {
     return __private_fhatos::match(this->c_str(), pattern.c_str());
   }
@@ -113,7 +115,7 @@ public:
   }
 
   const char *c_str() const {
-    return this->parent->empty() ? this->characters.get()
+    return this->parent.get() != this ? this->characters.get()
                                  : (std::string(this->parent->c_str()) +
                                     std::string(this->characters.get()))
                                        .c_str();
@@ -121,6 +123,9 @@ public:
   String toString() const { return String(this->c_str()); }
   bool equals(const fURI &other) const {
     return this->toString().equals(other.toString());
+  }
+  fURI operator/(const char *cstr) const {
+    return fURI(this->toString() + "/" + cstr);
   }
 };
 

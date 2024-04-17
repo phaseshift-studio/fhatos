@@ -1,27 +1,39 @@
 #ifndef fhatos_kernel__test_structure_hpp
 #define fhatos_kernel__test_structure_hpp
 
-#include <unity.h>
+#include <../test_fhatos.hpp>
 //
-#include <fhatos.hpp>
 #include <kernel/structure/structure.hpp>
 
 using namespace fhatos::kernel;
 
 void test_true() { TEST_ASSERT_TRUE(true); }
 
-void RUN_UNITY_TESTS() {
-  UNITY_BEGIN();
-  RUN_TEST(test_true);
-  UNITY_END();
+void test_furi_equals() {
+  // TEST_ASSERT_TRUE(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
 }
 
-void setup() {
-  Serial.begin(FOS_SERIAL_BAUDRATE);
-  delay(2000);
-  RUN_UNITY_TESTS();
+void test_furi_match() {
+  // TEST_ASSERT_TRUE(fURI("127.0.0.1").matches(fURI("127.0.0.1")));
+  // TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("+")));
+  // TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("#")));
+  // TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("127.0.0.1/#")));
+
+  ////
+  // TEST_ASSERT_FALSE(ID("127.0.0.1").matches(fURI("127.0.0.2")));
+  // TEST_ASSERT_FALSE(ID("127.0.0.1").matches(fURI("127.0.0.1/+")));
 }
 
-void loop() {}
+RUN_TESTS(
+    //
+    RUN_TEST(test_true);
+    //
+    RUN_TEST(test_furi_equals);
+    //
+    RUN_TEST(test_furi_match);
+    //
+);
+
+SETUP_AND_LOOP()
 
 #endif
