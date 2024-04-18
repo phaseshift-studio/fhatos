@@ -90,12 +90,21 @@ void test_furi_match() {
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.1/#/b")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.1/+/b")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.1/+/+")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/a/+/c")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/a/+/#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c/d").matches(fURI("127.0.0.1/a/+/#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/#/x/v")));
   // TODO: ?? TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("127.0.0.1/#")));
   //// FALSE
   TEST_ASSERT_FALSE(ID("127.0.0.1").matches(fURI("127.0.0.2")));
   TEST_ASSERT_FALSE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.2/?/b")));
   TEST_ASSERT_FALSE(ID("127.0.0.1").matches(fURI("127.0.0.1/+")));
   TEST_ASSERT_FALSE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/+/+")));
+}
+
+void test_id_construction() {
+  TEST_ASSERT_EXCEPTION(ID("127.0.0.1/#"));
+  TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), ID("127.0.0.1/a/b/c"));
 }
 
 RUN_TESTS(                              //
@@ -107,6 +116,7 @@ RUN_TESTS(                              //
     RUN_TEST(test_furi_extend);         //
     RUN_TEST(test_furi_slash_operator); //
     RUN_TEST(test_furi_match);          //
+    RUN_TEST(test_id_construction);     //
 );
 
 SETUP_AND_LOOP()

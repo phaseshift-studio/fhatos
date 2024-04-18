@@ -11,13 +11,11 @@
  *                                    A Dogturd Stynx Production
  */
 
-
 #ifndef ESP32
 #ifndef ESP8266
 #error FhatOS requires ESP32 or ESP8266 architectures
 #endif
 #endif
-
 
 // Arduino programming framework
 #include <Arduino.h>
@@ -63,10 +61,17 @@ template <typename A> using Option = std::optional<A>;
 ///////////////////////
 /// EXCEPTION TYPES ///
 ///////////////////////
-template <char *WHAT> class ferror : public std::exception {
+class fError : public std::exception {
+
+protected:
+  const char *__message;
 
 public:
-  const char *what() const throw() { return WHAT; }
+  fError(const char *message) { this->__message = message; };
+  const char *
+  what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
+    return this->__message;
+  }
 };
 
 } // namespace fhatos

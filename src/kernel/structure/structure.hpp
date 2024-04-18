@@ -84,6 +84,7 @@ protected:
   uint8_t __length;
 
 public:
+  fURI(){};
   fURI(const char *furiCharacters) {
     this->__segments = new char *[20];
     this->__length =
@@ -139,12 +140,13 @@ public:
 class ID : public fURI {
 
 public:
+  ID(){};
   ID(const char *furiCharacters) : fURI(furiCharacters) {
     if (strchr(furiCharacters, '#')) {
-      // throw ferror<"IDs can not contain pattern symbols: #">;
+      throw fError("IDs can not contain pattern symbols: #");
     } else if (strchr(furiCharacters, '+')) {
+      throw fError("IDs can not contain pattern symbols: +");
     }
-    // throw ferror<"IDs can not contain pattern symbols: +">;
   }
 };
 
@@ -158,6 +160,15 @@ class Pattern : public fURI {
                                    this->toString().c_str());
   }
 };
+
+class IDed {
+  IDed(const ID id) { this->__id = id; }
+  const ID id() const { return this->__id; }
+
+protected:
+  ID __id;
+};
+
 } // namespace fhatos::kernel
 
 #endif

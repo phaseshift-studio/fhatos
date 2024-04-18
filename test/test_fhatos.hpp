@@ -39,4 +39,12 @@
 #define TEST_ASSERT_EQUAL_CHAR_FURI(x, y)                                      \
   TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
 
+#define TEST_ASSERT_EXCEPTION(x)                                               \
+  try {                                                                        \
+    x;                                                                         \
+    TEST_ASSERT(false);                                                        \
+  } catch (fhatos::fError e) {                                                 \
+    TEST_ASSERT(true);                                                         \
+  }
+
 #endif
