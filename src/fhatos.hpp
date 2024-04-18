@@ -11,6 +11,14 @@
  *                                    A Dogturd Stynx Production
  */
 
+
+#ifndef ESP32
+#ifndef ESP8266
+#error FhatOS requires ESP32 or ESP8266 architectures
+#endif
+#endif
+
+
 // Arduino programming framework
 #include <Arduino.h>
 

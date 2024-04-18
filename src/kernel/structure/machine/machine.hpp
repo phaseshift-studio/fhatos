@@ -1,9 +1,7 @@
 #ifndef fhatos_kernel__machine_hpp
 #define fhatos_kernel__machine_hpp
 
-namespace fhatos {
-
-namespace kernel {
+namespace fhatos::kernel {
 
 template <typename MACHINE> class Machine {
 
@@ -16,7 +14,6 @@ public:
     return &machine;
   }
 };
-} // namespace kernel
-} // namespace fhatos
+} // namespace fhatos::kernel
 
 #endif

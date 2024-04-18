@@ -6,14 +6,19 @@
 
 namespace __private_fhatos {
 
-static int split(const char *text, const char *deliminator, char **&result) {
+static int split(const char *text, const char *deliminator, char **&result,
+                 uint8_t offset = 0) {
   char *copy = (char *)malloc(strlen(text) + 1);
   char *token;
   strcpy(copy, text);
-  int i = 0;
+  int i = offset;
   while ((token = strsep(&copy, deliminator)) != nullptr) {
-    result[i] = (char *)malloc(strlen(token) + 1);
-    strcpy(result[i++], token);
+    if (strlen(token) > 0) {
+      result[i] = (char *)malloc(strlen(token) + 1);
+      strcpy(result[i], token);
+      result[i][strlen(token)] = '\0';
+      i++;
+    }
   }
   delete copy;
   copy = nullptr;
@@ -70,63 +75,65 @@ static const String getLocationComponent(const String &furi) {
 ///// fURI/ID/Pattern /////
 ///////////////////////////
 
-namespace fhatos {
-namespace kernel {
+namespace fhatos::kernel {
 
 class fURI {
 
 protected:
-  std::shared_ptr<const char[]> characters;
-  std::shared_ptr<const fURI> parent;
-
-private:
-    fURI() {
-        this->parent = std::shared_ptr<const fURI>(this);;
-        this->characters = std::shared_ptr<const char[]>("");
-    }
+  char **__segments;
+  uint8_t __length;
 
 public:
-  fURI(const char *furiCharacters) : fURI() {
-    this->characters = std::shared_ptr<const char[]>(furiCharacters);
-  }
+  fURI(const char *furiCharacters) {
+    this->__segments = new char *[20];
+    this->__length =
+        __private_fhatos::split(furiCharacters, "/", this->__segments);
+  };
   fURI(const fURI *parent, const char *extension) {
-    this->parent = std::shared_ptr<const fURI>(parent);
-    this->characters = std::shared_ptr<const char[]>(extension);
-  }
+    String temp = parent->toString();
+    temp = temp + "/" + extension;
+    if (temp.endsWith("/"))
+      temp = temp.substring(0, temp.length() - 1);
+    this->__segments = new char *[20];
+    this->__length =
+        __private_fhatos::split(temp.c_str(), "/", this->__segments);
+  };
   fURI(const StringSumHelper &shelper) : fURI(shelper.c_str()){};
- // ~fURI() {
-    // delete characters;
-    // delete parent;
-  //}
+  ~fURI() { delete[] this->__segments; }
   const fURI extend(const char *segments) const { return fURI(this, segments); }
-  // uint8_t length() const { return __private_fhatos::split(this->c_str(),"/")}
-  bool empty() const { return 0 == this->toString().length(); }
+  uint8_t length() const { return this->__length; }
+  bool empty() const { return 0 == this->__length; }
   virtual bool matches(const fURI &pattern) const {
-    return __private_fhatos::match(this->c_str(), pattern.c_str());
+    return __private_fhatos::match(this->toString().c_str(),
+                                   pattern.toString().c_str());
   }
-  bool parentOf(const fURI &furi) const;
-  bool childOf(const fURI &furi) const { return furi.parentOf(*this); }
+  // bool parentOf(const fURI &furi) const;
+  // bool childOf(const fURI &furi) const { return furi.parentOf(*this); }
   String segment(const uint8_t index) const {
-    return String(__private_fhatos::getIdComponent(this->c_str(), index));
+    return (index < this->__length) ? String(this->__segments[index])
+                                    : String();
   }
-  fURI location() const { return fURI(this->segment(0).c_str()); }
-  virtual bool colocated(const fURI &furi) const {
-    return furi.location().equals(this->location());
+  String location() const { return String(this->__segments[0]); }
+  virtual bool colocated(const fURI &other) const {
+    return strcmp(__segments[0], other.__segments[0]) == 0;
   }
-
-  const char *c_str() const {
-    return this->parent.get() != this ? this->characters.get()
-                                 : (std::string(this->parent->c_str()) +
-                                    std::string(this->characters.get()))
-                                       .c_str();
+  String toString() const {
+    String temp;
+    for (uint8_t i = 0; i < this->__length; i++) {
+      temp = temp + this->segment(i) + "/";
+    }
+    return temp.endsWith("/") ? temp.substring(0, temp.length() - 1) : temp;
   }
-  String toString() const { return String(this->c_str()); }
   bool equals(const fURI &other) const {
-    return this->toString().equals(other.toString());
+    if (this->__length != other.__length)
+      return false;
+    for (uint8_t i = 0; i < this->__length; i++) {
+      if (strcmp(this->__segments[i], other.__segments[i]) != 0)
+        return false;
+    }
+    return true;
   }
-  fURI operator/(const char *cstr) const {
-    return fURI(this->toString() + "/" + cstr);
-  }
+  const fURI operator/(const char *cstr) const { return this->extend(cstr); }
 };
 
 class ID : public fURI {
@@ -138,21 +145,19 @@ public:
     } else if (strchr(furiCharacters, '+')) {
     }
     // throw ferror<"IDs can not contain pattern symbols: +">;
-    // fURI::fURI(furiCharacters);
   }
 };
 
 class Pattern : public fURI {
   virtual bool colocated(const fURI &furi) const override {
-    return furi.location().toString().equals("#") ||
-           -1 != furi.location().toString().indexOf("+") ||
+    return furi.location().equals("#") || -1 != furi.location().indexOf("+") ||
            fURI::colocated(furi);
   }
   virtual bool matches(const fURI &pattern) const override {
-    return __private_fhatos::match(pattern.c_str(), this->c_str());
+    return __private_fhatos::match(pattern.toString().c_str(),
+                                   this->toString().c_str());
   }
 };
-} // namespace kernel
-} // namespace fhatos
+} // namespace fhatos::kernel
 
 #endif

@@ -1,9 +1,10 @@
 #ifndef fhatos_kernel__actor_hpp
 #define fhatos_kernel__actor_hpp
 
-namespace fhatos {
-namespace kernel {
+namespace fhatos::kernel {
 template <typename MESSAGE> class Actor {};
-} // namespace kernel
-} // namespace fhatos
+
+
+
+} // namespace fhatos::kernel
 #endif
