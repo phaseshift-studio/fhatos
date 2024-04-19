@@ -135,12 +135,15 @@ public:
     return true;
   }
   const fURI operator/(const char *cstr) const { return this->extend(cstr); }
+  bool operator<(const fURI furi) const {
+    return this->toString() < furi.toString();
+  }
 };
 
 class ID : public fURI {
 
 public:
-  ID(){};
+  ID() : fURI(){};
   ID(const char *furiCharacters) : fURI(furiCharacters) {
     if (strchr(furiCharacters, '#')) {
       throw fError("IDs can not contain pattern symbols: #");
@@ -151,6 +154,9 @@ public:
 };
 
 class Pattern : public fURI {
+public:
+  Pattern() : fURI(){};
+  Pattern(const char *furiCharacters) : fURI(furiCharacters){};
   virtual bool colocated(const fURI &furi) const override {
     return furi.location().equals("#") || -1 != furi.location().indexOf("+") ||
            fURI::colocated(furi);
@@ -163,7 +169,7 @@ class Pattern : public fURI {
 
 class IDed {
 public:
-  IDed(const ID id) { this->__id = id; }
+  IDed(const ID& id) { this->__id = id; }
   const ID id() const { return this->__id; }
 
 protected:

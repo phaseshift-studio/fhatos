@@ -7,9 +7,9 @@
 
 namespace fhatos::kernel {
 template <typename TASK, typename MESSAGE, typename BROKER, typename M>
-class Actor : public IDed, public Messenger<MESSAGE> {
+class Actor : public Messenger<Pair<Subscription<MESSAGE>,MESSAGE>> {
 public:
-  Actor(const ID &id) : IDed(id) {}
+  Actor(const ID &id) : Messenger<Pair<Subscription<MESSAGE>,MESSAGE>>(id) {}
   virtual RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                   const OnRecvFunction<MESSAGE> onRecv,
                                   const QoS qos = QoS::_1) {
@@ -39,23 +39,21 @@ public:
     const RESPONSE_CODE __rc =
         BROKER::singleton()->unsubscribeSource(this->id());
     if (__rc) {
-   //   LOG(ERROR, "Actor %s stop error: %s\n", this->id().c_str(),
-   //       RESPONSE_CODE_STR(__rc).c_str());
+      //   LOG(ERROR, "Actor %s stop error: %s\n", this->id().c_str(),
+      //       RESPONSE_CODE_STR(__rc).c_str());
     }
-  //  Task<T>::stop();
+    //  Task<T>::stop();
   }
 
-  virtual void start() override {
+  virtual void start() override {}
 
-  }
-
-  virtual void loop()  {
+  virtual void loop() {
     //  const long clock = millis();
     //  while ((millis() - clock) < MAX_LOOP_MILLISECONDS) {
-    Option<Pair<MESSAGE, Subscription<MESSAGE>>> pair = this->inbox.pop_front();
+    Option<Pair<Subscription<MESSAGE>,MESSAGE>> pair = this->inbox.pop_front();
     if (pair.has_value()) {
-      //LOG_RECEIVE(INFO, pair->first, pair->second);
-      pair->second.execute(pair->first);
+      // LOG_RECEIVE(INFO, pair->first, pair->second);
+      pair->first.execute(pair->second);
     } // else
     // break;
     //   }
@@ -75,7 +73,7 @@ public:
         this->pop();
     if (mail.empty())
       return false;
-    mail.get().first.execute(mail.get().second);
+    mail->first.execute(mail->second);
     return true;
   }
   /*virtual void loop()  {
@@ -84,13 +82,15 @@ public:
   }*/
 
 protected:
-  MutexDeque<Pair<MESSAGE, Subscription<MESSAGE>>> inbox;
+  MutexDeque<Pair<Subscription<MESSAGE>,MESSAGE>> inbox;
   const Pattern makeTopic(const Pattern &relativeTopic) {
-    return relativeTopic.empty() ? Pattern(this->id())
-                                   : (relativeTopic.toString().startsWith(F("/"))
-                                          ? Pattern((this->id().toString() + F("/") +
-                                                    relativeTopic.toString().substring(1)).c_str())
-                                          : relativeTopic);
+    return relativeTopic.empty()
+               ? Pattern(this->id())
+               : (relativeTopic.toString().startsWith(F("/"))
+                      ? Pattern((this->id().toString() + F("/") +
+                                 relativeTopic.toString().substring(1))
+                                    .c_str())
+                      : relativeTopic);
   }
 };
 

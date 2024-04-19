@@ -3,6 +3,7 @@
 
 #include <../../../test_fhatos.hpp>
 //
+#include <unity.h>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/structure/structure.hpp>
 

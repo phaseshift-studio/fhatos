@@ -38,7 +38,11 @@ template <typename M> struct Message {
   }
 };
 
-struct StringMessage : public Message<String> {
+struct StringMessage {
+      const ID source;
+  const ID target;
+  const String payload;
+  const bool retain;
   static const String fromBytes(const byte *bytes, const int length) {
     return String((char *)bytes);
   }
@@ -105,7 +109,7 @@ using OnRecvFunction = std::function<void(const MESSAGE &)>;
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
 template <typename MESSAGE> struct Subscription {
-  Messenger<Pair<MESSAGE, Subscription<MESSAGE>>> *actor;
+  Messenger<Pair<Subscription<MESSAGE>,MESSAGE>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos;
@@ -159,7 +163,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 template <class MESSAGE> class Broker : public IDed {
 
 public:
-  Broker(ID &id) : IDed(id){};
+  Broker(const ID& id) : IDed(id){};
   virtual RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
   virtual RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;
