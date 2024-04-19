@@ -1,7 +1,7 @@
 #ifndef fhatos_kernel__test_local_broker_hpp
 #define fhatos_kernel__test_local_broker_hpp
 
-#include <../../../../../test_fhatos.hpp>
+#include <test_fhatos.hpp>
 //
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/broker/local_broker/local_broker.hpp>

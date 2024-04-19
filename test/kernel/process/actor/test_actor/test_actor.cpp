@@ -1,7 +1,7 @@
 #ifndef fhatos_kernel__test_actor_hpp
 #define fhatos_kernel__test_actor_hpp
 
-#include <../../../test_fhatos.hpp>
+#include <test_fhatos.hpp>
 //
 #include <unity.h>
 #include <kernel/process/actor/actor.hpp>

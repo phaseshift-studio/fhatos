@@ -1,7 +1,7 @@
 #ifndef fhatos_kernel__test_structure_hpp
 #define fhatos_kernel__test_structure_hpp
 
-#include <../test_fhatos.hpp>
+#include <test_fhatos.hpp>
 //
 #include <kernel/structure/structure.hpp>
 
