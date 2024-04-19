@@ -2,15 +2,14 @@
 #define fhatos_kernel__messenger_hpp
 
 #include <fhatos.hpp>
-///
-#include <kernel/process/actor/broker/broker.hpp>
 
-namespace fatpig {
+namespace fhatos::kernel {
 
 template <typename MESSAGE> class Messenger {
 
 public:
-  virtual bool receive(const MESSAGE &message);
+  virtual bool push(const MESSAGE &message);
+  virtual Option<MESSAGE> pop();
   virtual uint16_t mailboxSize() const;
 };
 } // namespace fatpig

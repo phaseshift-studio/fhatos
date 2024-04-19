@@ -6,7 +6,7 @@
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 
 namespace fhatos::kernel {
-template <typename TASK, typename MESSAGE, typename BROKER>
+template <typename TASK, typename MESSAGE, typename BROKER, typename M>
 class Actor : public IDed, public Messenger<MESSAGE> {
 public:
   Actor(const ID &id) : IDed(id) {}
@@ -39,26 +39,37 @@ public:
     const RESPONSE_CODE __rc =
         BROKER::singleton()->unsubscribeSource(this->id());
     if (__rc) {
-      LOG(ERROR, "Actor %s stop error: %s\n", this->id().c_str(),
-          RESPONSE_CODE_STR(__rc).c_str());
+   //   LOG(ERROR, "Actor %s stop error: %s\n", this->id().c_str(),
+   //       RESPONSE_CODE_STR(__rc).c_str());
     }
-    Task<T>::stop();
+  //  Task<T>::stop();
   }
 
-  virtual void loop() override {
+  virtual void start() override {
+
+  }
+
+  virtual void loop()  {
     //  const long clock = millis();
     //  while ((millis() - clock) < MAX_LOOP_MILLISECONDS) {
     Option<Pair<MESSAGE, Subscription<MESSAGE>>> pair = this->inbox.pop_front();
     if (pair.has_value()) {
-      LOG_RECEIVE(INFO, pair->first, pair->second);
+      //LOG_RECEIVE(INFO, pair->first, pair->second);
       pair->second.execute(pair->first);
     } // else
     // break;
     //   }
   }
 
-  virtual const Option<Pair<Subcription<MESSAGE>, Message<MESSAGE>>> pop();
-  virtual bool push(const Pair<Subscription<MESSAGE>, Message<MESSAGE>> &mail);
+  virtual const Option<Pair<Subscription<MESSAGE>, Message<MESSAGE>>>
+  pop() override {
+    return this->inbox.pop_front();
+  }
+  virtual bool
+  push(const Pair<Subscription<MESSAGE>, Message<MESSAGE>> &mail) override {
+    this->inbox.push_back(mail);
+    return true;
+  }
   virtual bool next() {
     const Option<Pair<Subscription<MESSAGE>, Message<MESSAGE>>> &mail =
         this->pop();
@@ -67,18 +78,18 @@ public:
     mail.get().first.execute(mail.get().second);
     return true;
   }
-  virtual void loop() override {
+  /*virtual void loop()  {
     while (this->next()) {
     }
-  }
+  }*/
 
 protected:
   MutexDeque<Pair<MESSAGE, Subscription<MESSAGE>>> inbox;
   const Pattern makeTopic(const Pattern &relativeTopic) {
-    return relativeTopic.isEmpty() ? Pattern(this->id())
-                                   : (relativeTopic.startsWith(F("/"))
-                                          ? Pattern(this->id() + F("/") +
-                                                    relativeTopic.substring(1))
+    return relativeTopic.empty() ? Pattern(this->id())
+                                   : (relativeTopic.toString().startsWith(F("/"))
+                                          ? Pattern((this->id().toString() + F("/") +
+                                                    relativeTopic.toString().substring(1)).c_str())
                                           : relativeTopic);
   }
 };

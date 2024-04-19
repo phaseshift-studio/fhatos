@@ -9,7 +9,7 @@
 
 #define FULL_DRAIN_INBOX_SIZE 10
 
-namespace fatpig {
+namespace fhatos::kernel {
 
 template <class MESSAGE> class LocalBroker : public Broker<MESSAGE> {
 

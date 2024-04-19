@@ -4,9 +4,7 @@
 #include <fhatos.hpp>
 #include <freertos/queue.h>
 
-namespace fhatos {
-
-namespace kernel {
+namespace fhatos::kernel {
 
 class Mutex {
 #if defined(ESP32)
@@ -35,7 +33,6 @@ public:
 #endif
   }
 };
-} // namespace kernel
-} // namespace fhatos
+} // namespace fhatos::kernel
 
 #endif

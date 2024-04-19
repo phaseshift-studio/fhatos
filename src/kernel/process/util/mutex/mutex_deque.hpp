@@ -3,8 +3,9 @@
 
 #include <fhatos.hpp>
 ////
+#include <kernel/process/util/mutex/mutex.hpp>
 
-namespace fatpig {
+namespace fhatos::kernel {
 template <typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 250>
 class MutexDeque {
 
@@ -14,9 +15,9 @@ protected:
 
 private:
   template <typename A = void *>
-  A lockSwitch(const bool withMutex, Func0<A> function) const {
+  A lockSwitch(const bool withMutex, Supplier<A> function) const {
     if (withMutex)
-      return mutex.execute(function);
+      return mutex.lockUnlock(function);
     else {
       A temp = function();
       return temp;
@@ -50,19 +51,19 @@ public:
       return true;
     });
   }
-  bool push_back(const T& t, const bool withMutex = true) {
+  bool push_back(const T &t, const bool withMutex = true) {
     return lockSwitch<bool>(withMutex, [this, t]() {
       deque.push_back(t);
       return true;
     });
   }
-   SIZE_TYPE size(const bool withMutex = true) const {
+  SIZE_TYPE size(const bool withMutex = true) const {
     return lockSwitch<SIZE_TYPE>(withMutex, [this]() { return deque.size(); });
   }
-   bool empty(const bool withMutex = true) const {
+  bool empty(const bool withMutex = true) const {
     return lockSwitch<bool>(withMutex, [this]() { return deque.empty(); });
   }
 };
-} // namespace fatpig
+} // namespace fhatos::kernel
 
 #endif

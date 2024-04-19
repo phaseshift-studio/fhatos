@@ -7,6 +7,8 @@
 #include <kernel/structure/structure.hpp>
 // #include FP_THREAD_LIBRARY
 
+#define RETAIN_MESSAGE true
+
 namespace fhatos::kernel {
 
 //////////////////////////////////////////////
@@ -30,8 +32,8 @@ template <typename M> struct Message {
   }
   const String toString() const {
     char temp[100];
-    sprintf(temp, "[%s]=%s=>[%s]", source.c_str(), payloadString(),
-            target.c_str());
+    sprintf(temp, "[%s]=%s=>[%s]", source.toString().c_str(), payloadString(),
+            target.toString().c_str());
     return temp;
   }
 };
@@ -103,12 +105,12 @@ using OnRecvFunction = std::function<void(const MESSAGE &)>;
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
 template <typename MESSAGE> struct Subscription {
-  Messageable<Pair<MESSAGE, Subscription<MESSAGE>>> *actor;
+  Messenger<Pair<MESSAGE, Subscription<MESSAGE>>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos;
   const OnRecvFunction<MESSAGE> onRecv;
-  bool match(const ID &target) { return this->pattern.match(target); }
+  bool match(const ID &target) { return this->pattern.matches(target); }
   void execute(const MESSAGE message) { onRecv(message); }
 };
 
