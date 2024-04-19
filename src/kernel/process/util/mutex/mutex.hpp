@@ -26,9 +26,9 @@ public:
       if (pdTRUE == xSemaphoreGive(this->xmutex))
         return t;
       else
-        throw ferror<"Unable to unlock mutex">;
+        throw fError("Unable to unlock mutex: %i", __LINE__);
     } else {
-      throw ferror<"Unable to lock mutex">;
+      throw fError("Unable to lock mutex: %i", __LINE__);
     }
 #elif defined(ESP8266)
     return T(criticalFunction());

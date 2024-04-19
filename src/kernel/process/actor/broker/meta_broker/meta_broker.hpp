@@ -1,0 +1,4 @@
+#ifndef fhatos_kernel__meta_broker_hpp
+#define fhatos_kernel__meta_broker_hpp
+
+#endif

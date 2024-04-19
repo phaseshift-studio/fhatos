@@ -162,6 +162,7 @@ class Pattern : public fURI {
 };
 
 class IDed {
+public:
   IDed(const ID id) { this->__id = id; }
   const ID id() const { return this->__id; }
 

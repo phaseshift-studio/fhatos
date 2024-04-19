@@ -19,6 +19,7 @@
 
 // Arduino programming framework
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 // C++ standard template library common data structures
 #include <deque>
@@ -26,6 +27,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <optional>
 #include <queue>
 #include <set>
 
@@ -50,13 +52,13 @@ using TriFunction = std::function<D(A, B, C)>;
 ///////////////////////
 /// CONTAINER TYPES ///
 ///////////////////////
-template <typename K, typename V> using Map = std::map<K, V>;
+template <typename A> using Option = std::optional<A>;
 template <typename A> using List = std::list<A>;
+template <typename A> using Set = std::set<A>;
 template <typename A> using Queue = std::queue<A>;
 template <typename A> using Deque = std::deque<A>;
-template <typename A> using Set = std::set<A>;
-template <typename A, typename B> using Pair = std::pair<A, B>;
-template <typename A> using Option = std::optional<A>;
+template <typename K, typename V> using Pair = std::pair<K, V>;
+template <typename K, typename V> using Map = std::map<K, V>;
 
 ///////////////////////
 /// EXCEPTION TYPES ///
@@ -64,10 +66,29 @@ template <typename A> using Option = std::optional<A>;
 class fError : public std::exception {
 
 protected:
-  const char *__message;
+  char *__message;
 
 public:
-  fError(const char *message) { this->__message = message; };
+  fError(const char *format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    char temp[64];
+    __message = temp;
+    size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+    va_end(arg);
+    if (len > sizeof(temp) - 1) {
+      __message = new (std::nothrow) char[len + 1];
+      if (!__message) {
+        return;
+      }
+      va_start(arg, format);
+      vsnprintf(__message, len + 1, format, arg);
+      va_end(arg);
+    }
+    if (__message != temp) {
+      delete[] __message;
+    }
+  };
   const char *
   what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
     return this->__message;
