@@ -3,17 +3,19 @@
 
 #include <test_fhatos.hpp>
 //
-#include <unity.h>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/structure/structure.hpp>
+#include <unity.h>
 
-using namespace fhatos::kernel;
+namespace fhatos::kernel {
 
 void test_true() { TEST_ASSERT_TRUE(true); }
 
 RUN_TESTS(               //
     RUN_TEST(test_true); //
 );
+
+} // namespace fhatos::kernel
 
 SETUP_AND_LOOP()
 

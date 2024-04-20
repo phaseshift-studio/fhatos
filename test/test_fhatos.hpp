@@ -14,16 +14,9 @@
   void setup() {                                                               \
     Serial.begin(FOS_SERIAL_BAUDRATE);                                         \
     delay(2000);                                                               \
-    RUN_UNITY_TESTS();                                                         \
+    fhatos::kernel::RUN_UNITY_TESTS();                                         \
   }                                                                            \
   void loop() {}
-
-#define RUN_TESTS(x)                                                           \
-  void RUN_UNITY_TESTS() {                                                     \
-    UNITY_BEGIN();                                                             \
-    x;                                                                         \
-    UNITY_END();                                                               \
-  }
 
 #define TEST_MESSAGE(format, ...)                                              \
   Serial.printf("  line %i", __LINE__);                                        \
@@ -34,7 +27,9 @@
   TEST_MESSAGE("\t%s =?= %s", (x).toString().c_str(), (y).toString().c_str()); \
   TEST_ASSERT_TRUE((x).equals(y));
 
-#define TEST_ASSERT_NOT_EQUAL_FURI(x, y) TEST_ASSERT_FALSE((x).equals(y))
+#define TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                       \
+  TEST_MESSAGE("\t%s !=?= %s", (x).toString().c_str(), (y).toString().c_str()); \
+  TEST_ASSERT_FALSE((x).equals(y))
 
 #define TEST_ASSERT_EQUAL_CHAR_FURI(x, y)                                      \
   TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
@@ -46,5 +41,14 @@
   } catch (fhatos::fError e) {                                                 \
     TEST_ASSERT(true);                                                         \
   }
+
+namespace fhatos::kernel {
+#define RUN_TESTS(x)                                                           \
+  void RUN_UNITY_TESTS() {                                                     \
+    UNITY_BEGIN();                                                             \
+    x;                                                                         \
+    UNITY_END();                                                               \
+  }
+} // namespace fhatos::kernel
 
 #endif

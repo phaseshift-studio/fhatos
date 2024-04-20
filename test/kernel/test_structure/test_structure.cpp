@@ -5,7 +5,7 @@
 //
 #include <kernel/structure/structure.hpp>
 
-using namespace fhatos::kernel;
+namespace fhatos::kernel {
 
 void test_true() { TEST_ASSERT_TRUE(true); }
 
@@ -22,6 +22,7 @@ void test_furi_equals() {
   /// FALSE
   TEST_ASSERT_FALSE(fURI("127.0.0.1").equals(fURI("127.1.1.2")));
   TEST_ASSERT_FALSE(fURI("127.0.0.1/a").equals(fURI("127.0.0.1/b")));
+  TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a/b"));
 }
 
 void test_furi_length() {
@@ -70,6 +71,8 @@ void test_furi_extend() {
   //// FALSE
   TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"),
                              fURI("127.0.0.1").extend("a").extend("b"));
+  TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("127.0.0.1").extend("b"));
 }
 
 void test_furi_slash_operator() {
@@ -118,6 +121,8 @@ RUN_TESTS(                              //
     RUN_TEST(test_furi_match);          //
     RUN_TEST(test_id_construction);     //
 );
+
+} // namespace fhatos::kernel
 
 SETUP_AND_LOOP()
 
