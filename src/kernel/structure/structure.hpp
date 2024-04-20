@@ -4,6 +4,8 @@
 #include <fhatos.hpp>
 #include <memory>
 
+#define FOS_MAX_FURI_SEGMENT_LENGTH 10
+
 namespace __private_fhatos {
 
 static int split(const char *text, const char *deliminator, char **&result,
@@ -31,8 +33,8 @@ static bool match(const char *id_cstr, const char *pattern_cstr) {
     return strcmp(id_cstr, pattern_cstr) == 0;
   if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
     return true;
-  char **idParts = new char *[20];
-  char **patternParts = new char *[20];
+  char **idParts = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
+  char **patternParts = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
   int idLength = split(id_cstr, "/", idParts);
   if (id_cstr[strlen(id_cstr) - 1] == '/')
     idLength++;
@@ -59,7 +61,7 @@ static bool match(const char *id_cstr, const char *pattern_cstr) {
 }
 
 static char *getIdComponent(const char *id, const uint8_t component) {
-  char **idParts = new char *[20];
+  char **idParts = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
   const uint8_t count = split(id, "/", idParts);
   char *result = component < count ? idParts[component] : NULL;
   delete idParts;
@@ -75,6 +77,8 @@ static const String getLocationComponent(const String &furi) {
 ///// fURI/ID/Pattern /////
 ///////////////////////////
 
+// furi://coil@127.0.0.1/devices/device/property
+
 namespace fhatos::kernel {
 
 class fURI {
@@ -86,7 +90,7 @@ protected:
 public:
   fURI(){};
   fURI(const char *furiCharacters) {
-    this->__segments = new char *[20];
+    this->__segments = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
     this->__length =
         __private_fhatos::split(furiCharacters, "/", this->__segments);
   };
@@ -95,7 +99,7 @@ public:
     temp = temp + "/" + extension;
     if (temp.endsWith("/"))
       temp = temp.substring(0, temp.length() - 1);
-    this->__segments = new char *[20];
+    this->__segments = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
     this->__length =
         __private_fhatos::split(temp.c_str(), "/", this->__segments);
   };
@@ -114,7 +118,24 @@ public:
     return (index < this->__length) ? String(this->__segments[index])
                                     : String();
   }
-  String location() const { return String(this->__segments[0]); }
+  Option<Pair<String, String>> user_password() const {
+    const int i = this->authority().indexOf("@");
+    if (i < 0)
+      return Option<Pair<String, String>>();
+    String userpass = this->authority().substring(0, i);
+    const int j = userpass.indexOf(":");
+    if (j < 0)
+      return Option<Pair<String, String>>(std::make_pair(userpass, ""));
+    return Option<Pair<String, String>>(
+        std::make_pair(userpass.substring(0, j), userpass.substring(j + 1)));
+  }
+  String host() const {
+    String temp = String(this->__segments[0]);
+    int i = temp.indexOf("@");
+    return i < 0 ? temp : temp.substring(i + 1);
+  }
+  String authority() const { return String(this->__segments[0]); }
+
   virtual bool colocated(const fURI &other) const {
     return strcmp(__segments[0], other.__segments[0]) == 0;
   }
@@ -158,7 +179,7 @@ public:
   Pattern() : fURI(){};
   Pattern(const char *furiCharacters) : fURI(furiCharacters){};
   virtual bool colocated(const fURI &furi) const override {
-    return furi.location().equals("#") || -1 != furi.location().indexOf("+") ||
+    return furi.authority().equals("#") || -1 != furi.authority().indexOf("+") ||
            fURI::colocated(furi);
   }
   virtual bool matches(const fURI &pattern) const override {
@@ -180,5 +201,7 @@ protected:
 };
 
 } // namespace fhatos::kernel
+
+#undef FOS_MAX_FURI_SEGMENT_LENGTH
 
 #endif

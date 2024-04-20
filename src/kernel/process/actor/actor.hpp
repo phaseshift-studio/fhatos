@@ -2,14 +2,14 @@
 #define fhatos_kernel__actor_hpp
 
 #include <kernel/process/actor/broker/broker.hpp>
-#include <kernel/process/actor/messenger.hpp>
+#include <kernel/process/actor/message_box.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 
 namespace fhatos::kernel {
 template <typename TASK, typename MESSAGE, typename BROKER, typename M>
-class Actor : public Messenger<Pair<Subscription<MESSAGE>,MESSAGE>> {
+class Actor : public MessageBox<Pair<Subscription<MESSAGE>,MESSAGE>> {
 public:
-  Actor(const ID &id) : Messenger<Pair<Subscription<MESSAGE>,MESSAGE>>(id) {}
+  Actor(const ID &id) : MessageBox<Pair<Subscription<MESSAGE>,MESSAGE>>(id) {}
   virtual RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                   const OnRecvFunction<MESSAGE> onRecv,
                                   const QoS qos = QoS::_1) {

@@ -37,20 +37,20 @@ public:
       // LOG(INFO, "Initializing thread pool (!rthreads:%i!!)\n",
       //    Scheduler->__THREADS.size());
       // HANDLE FIBERS
-      const BaseType_t result = xTaskCreatePinnedToCore(
-          __FIBER_FUNCTION,      // Function that should be called
-          "Master fiber thread", // Name of the task (for debugging)
-          10000,                 // Stack size (bytes)
-          &__FIBERS,             // Parameter to pass
+      const BaseType_t fiberResult = xTaskCreatePinnedToCore(
+          __FIBER_FUNCTION, // Function that should be called
+          "fibers",         // Name of the task (for debugging)
+          10000,            // Stack size (bytes)
+          &__FIBERS,        // Parameter to pass
           CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
           NULL,                                   // Task handle
           tskNO_AFFINITY);                        // Processor core
-      // LOG(result == pdPASS ? INFO : ERROR,
+      // LOG(fiberResult == pdPASS ? INFO : ERROR,
       //    "!MThreading master lean task!!\n");
 
       // HANDLE THREADS
       for (const auto &thread : this->__THREADS) {
-        const BaseType_t result = xTaskCreatePinnedToCore(
+        const BaseType_t threadResult = xTaskCreatePinnedToCore(
             __THREAD_FUNCTION,               // Function that should be called
             thread->id().segment(1).c_str(), // Name of the task (for debugging)
             10000,                           // Stack size (bytes)
@@ -58,7 +58,7 @@ public:
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             &(thread->handle),                      // Task handle
             tskNO_AFFINITY);                        // Processor core
-        // LOG(result == pdPASS ? INFO : ERROR, "!MThreading %s %s!!\n",
+        // LOG(threadResult == pdPASS ? INFO : ERROR, "!MThreading %s %s!!\n",
         //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
       }
       /*LOG(INFO, "!B[Scheduler Configuration]!!\n");

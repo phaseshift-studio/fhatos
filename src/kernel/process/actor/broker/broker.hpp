@@ -1,9 +1,8 @@
 #ifndef fhatos_kernel__broker_hpp
 #define fhatos_kernel__broker_hpp
 
-// #include "core/io/mqtt/mqtt_client.hpp"
 #include <fhatos.hpp>
-#include <kernel/process/actor/messenger.hpp>
+#include <kernel/process/actor/message_box.hpp>
 #include <kernel/structure/structure.hpp>
 // #include FP_THREAD_LIBRARY
 
@@ -39,7 +38,7 @@ template <typename M> struct Message {
 };
 
 struct StringMessage {
-      const ID source;
+  const ID source;
   const ID target;
   const String payload;
   const bool retain;
@@ -109,7 +108,7 @@ using OnRecvFunction = std::function<void(const MESSAGE &)>;
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
 template <typename MESSAGE> struct Subscription {
-  Messenger<Pair<Subscription<MESSAGE>,MESSAGE>> *actor;
+  MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos;
@@ -163,7 +162,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 template <class MESSAGE> class Broker : public IDed {
 
 public:
-  Broker(const ID& id) : IDed(id){};
+  Broker(const ID &id) : IDed(id){};
   virtual RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
   virtual RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;

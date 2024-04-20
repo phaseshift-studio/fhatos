@@ -10,10 +10,7 @@
 
 namespace fhatos::kernel {
 
-void test_true() { TEST_ASSERT_TRUE(true); }
-
-void test_subscribe() {
-}
+void test_subscribe() {}
 
 void test_publish() {
   LocalBroker<StringMessage> *broker = LocalBroker<StringMessage>::singleton();
@@ -26,7 +23,6 @@ void test_publish() {
 };
 
 RUN_TESTS(                  //
-    RUN_TEST(test_true);    //
     RUN_TEST(test_publish); //
 );
 

@@ -7,8 +7,6 @@
 
 namespace fhatos::kernel {
 
-void test_true() { TEST_ASSERT_TRUE(true); }
-
 void test_furi_equals() {
   /// TRUE
   TEST_ASSERT_TRUE(fURI("").equals(fURI("")));
@@ -38,6 +36,32 @@ void test_furi_length() {
   TEST_ASSERT_EQUAL_INT(fURI("127.0.0.1/a///b///c").length(), 4);
 }
 
+void test_furi_user_password() {
+  TEST_ASSERT_EQUAL_STRING(
+      "fhat", fURI("fhat@127.0.0.1/a/b").user_password()->first.c_str());
+  TEST_ASSERT_EQUAL_STRING(
+      "", fURI("fhat@127.0.0.1/a/b").user_password()->second.c_str());
+  TEST_ASSERT_EQUAL_STRING(
+      "fhat", fURI("fhat:pig@127.0.0.1/a/b").user_password()->first.c_str());
+  TEST_ASSERT_EQUAL_STRING(
+      "pig", fURI("fhat:pig@127.0.0.1/a/b").user_password()->second.c_str());
+  TEST_ASSERT_EQUAL_STRING(
+      "", fURI(":pig@127.0.0.1/a/b").user_password()->first.c_str());
+  TEST_ASSERT_EQUAL_STRING(
+      "pig", fURI(":pig@127.0.0.1/a/b").user_password()->second.c_str());
+
+  ///
+  TEST_ASSERT_FALSE(fURI("127.0.0.1/a/b").user_password().has_value());
+}
+
+void test_furi_host() {
+  TEST_ASSERT_EQUAL_STRING("127.0.0.1", fURI("127.0.0.1/a/b").host().c_str());
+  TEST_ASSERT_EQUAL_STRING("127.0.0.1",
+                           fURI("fhat@127.0.0.1/a/b").host().c_str());
+  TEST_ASSERT_EQUAL_STRING("127.0.0.1",
+                           fURI("fhat:pig@127.0.0.1/a/b").host().c_str());
+}
+
 void test_furi_segment() {
   TEST_ASSERT_EQUAL_STRING(fURI("127.0.0.1/a/b/c").segment(0).c_str(),
                            "127.0.0.1");
@@ -48,15 +72,20 @@ void test_furi_segment() {
                            "c");
 }
 
-void test_furi_location() {
-  TEST_ASSERT_EQUAL_STRING("127.0.0.1", fURI("127.0.0.1").location().c_str());
-  TEST_ASSERT_EQUAL_STRING("127.0.0.1", fURI("127.0.0.1/a").location().c_str());
+void test_furi_authority() {
+  TEST_ASSERT_EQUAL_STRING("127.0.0.1", fURI("127.0.0.1").authority().c_str());
   TEST_ASSERT_EQUAL_STRING("127.0.0.1",
-                           fURI("127.0.0.1/a/b").location().c_str());
+                           fURI("127.0.0.1/a").authority().c_str());
   TEST_ASSERT_EQUAL_STRING("127.0.0.1",
-                           fURI("127.0.0.1/a/b/c").location().c_str());
-  TEST_ASSERT_EQUAL_STRING(fURI("127.0.0.1/a/b/c").location().c_str(),
-                           fURI("127.0.0.1/d/e").location().c_str());
+                           fURI("127.0.0.1/a/b").authority().c_str());
+  TEST_ASSERT_EQUAL_STRING("127.0.0.1",
+                           fURI("127.0.0.1/a/b/c").authority().c_str());
+  TEST_ASSERT_EQUAL_STRING(fURI("127.0.0.1/a/b/c").authority().c_str(),
+                           fURI("127.0.0.1/d/e").authority().c_str());
+  TEST_ASSERT_EQUAL_STRING("fat@127.0.0.1",
+                           fURI("fat@127.0.0.1/a/b/c").authority().c_str());
+  TEST_ASSERT_EQUAL_STRING("fat:pig@127.0.0.1",
+                           fURI("fat:pig@127.0.0.1/a/b/c").authority().c_str());
 }
 
 void test_furi_extend() {
@@ -86,17 +115,19 @@ void test_furi_slash_operator() {
 
 void test_furi_match() {
   //// TRUE
-  TEST_ASSERT_TRUE(fURI("127.0.0.1/a").matches(fURI("127.0.0.1/a")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("+")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("#")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(fURI("127.0.0.1/#")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.1/#/b")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.1/+/b")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.1/+/+")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/a/+/c")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/a/+/#")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c/d").matches(fURI("127.0.0.1/a/+/#")));
-  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/#/x/v")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(fURI("127.0.0.1/a")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(ID("127.0.0.1/a")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(Pattern("127.0.0.1/a")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1").matches(Pattern("+")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1").matches(Pattern("#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(Pattern("127.0.0.1/#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/#/b")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/+/b")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/+/+")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(Pattern("127.0.0.1/a/+/c")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(Pattern("127.0.0.1/a/+/#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c/d").matches(Pattern("127.0.0.1/a/+/#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/a/b/c").matches(Pattern("127.0.0.1/#/x/v")));
   // TODO: ?? TEST_ASSERT_TRUE(ID("127.0.0.1").matches(fURI("127.0.0.1/#")));
   //// FALSE
   TEST_ASSERT_FALSE(ID("127.0.0.1").matches(fURI("127.0.0.2")));
@@ -111,11 +142,12 @@ void test_id_construction() {
 }
 
 RUN_TESTS(                              //
-    RUN_TEST(test_true);                //
     RUN_TEST(test_furi_equals);         //
     RUN_TEST(test_furi_length);         //
+    RUN_TEST(test_furi_user_password);  //
+    RUN_TEST(test_furi_host);           //
     RUN_TEST(test_furi_segment);        //
-    RUN_TEST(test_furi_location);       //
+    RUN_TEST(test_furi_authority);      //
     RUN_TEST(test_furi_extend);         //
     RUN_TEST(test_furi_slash_operator); //
     RUN_TEST(test_furi_match);          //

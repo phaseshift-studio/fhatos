@@ -4,7 +4,6 @@
 #include <fhatos.hpp>
 //
 #include <kernel/process/actor/broker/broker.hpp>
-#include <kernel/process/actor/messenger.hpp>
 #include <kernel/process/util/mutex/mutex.hpp>
 
 #define FULL_DRAIN_INBOX_SIZE 10
