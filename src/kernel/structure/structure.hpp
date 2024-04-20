@@ -169,8 +169,11 @@ public:
 
 class IDed {
 public:
-  IDed(const ID& id) { this->__id = id; }
+  IDed(const ID &id) { this->__id = id; }
   const ID id() const { return this->__id; }
+  const bool equals(const IDed &other) const {
+    return this->id().equals(other.id());
+  }
 
 protected:
   ID __id;

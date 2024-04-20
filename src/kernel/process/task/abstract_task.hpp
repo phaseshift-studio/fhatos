@@ -7,10 +7,11 @@
 
 namespace fhatos::kernel {
 
-template <typename TASK> class Task : public TASK {
+template <typename TASK> class AbstractTask : public IDed, public TASK {
 
 public:
-  Task(const ID id) : TASK(id) {}
+  AbstractTask(const ID id) : IDed(id), TASK() {}
+  virtual void setup();
   virtual void start();
   virtual void stop();
   virtual bool running();
@@ -18,6 +19,12 @@ public:
   virtual void delay(const uint16_t milliseconds);
   virtual void yield();
 };
+
+struct Thread {};
+
+struct Coroutine {};
+
+struct Fiber {};
 
 } // namespace fhatos::kernel
 
