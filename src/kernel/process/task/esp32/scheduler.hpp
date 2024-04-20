@@ -22,11 +22,13 @@ public:
   }
 
   bool addThread(Thread *thread) {
+    thread->setup();
     __THREADS.push_back(thread);
     return true;
   }
 
   bool addFiber(Fiber *fiber) {
+    fiber->setup();
     __FIBERS.push_back(fiber);
     return true;
   }

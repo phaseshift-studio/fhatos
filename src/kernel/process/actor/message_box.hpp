@@ -6,10 +6,10 @@
 
 namespace fhatos::kernel {
 
-template <typename T> class MessageBox : public IDed {
+template <typename T> class MessageBox  {
 
 public:
-  MessageBox(const ID& id) : IDed(id) {};
+  MessageBox() {};
   virtual bool push(const T &message);
   virtual Option<T> pop();
   virtual uint16_t size() const;

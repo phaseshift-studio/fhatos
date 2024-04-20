@@ -31,7 +31,6 @@ public:
          this->isLean() ? "lean" : "", this->id().c_str(),
          Scheduler->__THREADS.size());*/
     if (this->running()) {
-      Scheduler::singleton()->addFiber(this);
       this->start();
     }
   }
