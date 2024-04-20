@@ -3,56 +3,63 @@
 
 #include <fhatos.hpp>
 #include <kernel/process/task/abstract_scheduler.hpp>
-#include <kernel/process/task/esp32/task.hpp>
+#include <kernel/process/task/esp32/fiber.hpp>
+#include <kernel/process/task/esp32/thread.hpp>
+#include <kernel/process/task/task.hpp>
 #include <kernel/structure/structure.hpp>
 
 namespace fhatos::kernel {
 
-class Scheduler {
+class Scheduler : AbstractScheduler<Thread, Fiber> {
+
+protected:
+  bool initialized = false;
 
 public:
   static Scheduler *singleton() {
     static Scheduler scheduler = Scheduler();
     return &scheduler;
   }
-  static void init() {
-    static bool initialized = false;
+
+  bool addThread(Thread *thread) {
+    __THREADS.push_back(thread);
+    return true;
+  }
+
+  bool addFiber(Fiber *fiber) {
+    __FIBERS.push_back(fiber);
+    return true;
+  }
+
+  void setup() {
     if (!initialized) {
       initialized = true;
       // LOG(INFO, "Initializing thread pool (!rthreads:%i!!)\n",
       //    Scheduler->__THREADS.size());
-      for (const auto &vptr_task : Scheduler::singleton()->__THREADS) {
-        Task<Thread> *task = (Task<Thread> *)vptr_task;
-        if (true) { // task->isLean()) {
-          if (Scheduler::singleton()->FIBER_THREAD) {
-            Scheduler::singleton()->__FIBERS->push_back(task);
-            //   LOG(INFO, "!MVirtual Threading %s %s!!\n",
-            //      Helper::typeName(xthread).c_str(), xthread->id().c_str());
-          } else {
-            Scheduler::singleton()->__FIBERS = new List<void *>{task};
-            const BaseType_t result = xTaskCreatePinnedToCore(
-                __FIBER_FUNCTION,      // Function that should be called
-                "Master fiber thread", // Name of the task (for debugging)
-                10000,                 // Stack size (bytes)
-                Scheduler::singleton()->__FIBERS,       // Parameter to pass
-                CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                NULL,                                   // Task handle
-                tskNO_AFFINITY);                        // Processor core
-            // LOG(result == pdPASS ? INFO : ERROR,
-            //    "!MThreading master lean task!!\n");
-          }
-        } else {
-          const BaseType_t result = xTaskCreatePinnedToCore(
-              __THREAD_FUNCTION,             // Function that should be called
-              task->id().segment(1).c_str(), // Name of the task (for debugging)
-              10000,                         // Stack size (bytes)
-              task,                          // Parameter to pass
-              CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-              &(task->handle),                        // Task handle
-              tskNO_AFFINITY);                        // Processor core
-          // LOG(result == pdPASS ? INFO : ERROR, "!MThreading %s %s!!\n",
-          //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
-        }
+      // HANDLE FIBERS
+      const BaseType_t result = xTaskCreatePinnedToCore(
+          __FIBER_FUNCTION,      // Function that should be called
+          "Master fiber thread", // Name of the task (for debugging)
+          10000,                 // Stack size (bytes)
+          &__FIBERS,             // Parameter to pass
+          CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+          NULL,                                   // Task handle
+          tskNO_AFFINITY);                        // Processor core
+      // LOG(result == pdPASS ? INFO : ERROR,
+      //    "!MThreading master lean task!!\n");
+
+      // HANDLE THREADS
+      for (const auto &thread : this->__THREADS) {
+        const BaseType_t result = xTaskCreatePinnedToCore(
+            __THREAD_FUNCTION,               // Function that should be called
+            thread->id().segment(1).c_str(), // Name of the task (for debugging)
+            10000,                           // Stack size (bytes)
+            thread,                          // Parameter to pass
+            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+            &(thread->handle),                      // Task handle
+            tskNO_AFFINITY);                        // Processor core
+        // LOG(result == pdPASS ? INFO : ERROR, "!MThreading %s %s!!\n",
+        //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
       }
       /*LOG(INFO, "!B[Scheduler Configuration]!!\n");
       LOG(INFO,
@@ -68,20 +75,22 @@ public:
     }
   }
 
+  void loop() {}
+
 private:
   Scheduler(){};
   TaskHandle_t *FIBER_THREAD = nullptr;
-  List<void *> *__FIBERS;
-  List<void *> __THREADS;
-  static void removeTask(Task<Thread> *task) {
-    Scheduler::singleton()->__THREADS.remove_if([task](void *tempTask) {
-      return task->equals(*(Task<Thread> *)tempTask);
-    });
+  static List<Fiber *> __FIBERS;
+  static List<Thread *> __THREADS;
+
+  static void removeTask(Thread *thread) {
+    Scheduler::singleton()->__THREADS.remove_if(
+        [thread](Thread *tempThread) { return thread->equals(*tempThread); });
   }
   static void __FIBER_FUNCTION(void *vptr_fibers) {
-    List<Task<Fiber> *> *fibers = (List<Task<Fiber> *> *)vptr_fibers;
+    List<Fiber *> *fibers = (List<Fiber *> *)vptr_fibers;
     while (!fibers->empty()) {
-      fibers->remove_if([](Task<Fiber> *fiber) {
+      fibers->remove_if([](Fiber *fiber) {
         if (!fiber->running()) {
           // LOG(INFO, "!MDisconnecting lean thread %s %s!!\n",
           //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
@@ -91,7 +100,7 @@ private:
           return false;
         }
       });
-      for (const auto &fiber : *fibers) {
+      for (Fiber *fiber : *fibers) {
         fiber->loop();
         vTaskDelay(1); // feeds the watchdog for the task
         fiber->yield();
@@ -103,7 +112,7 @@ private:
   }
   ////////////////////////////////////////////
   static void __THREAD_FUNCTION(void *vptr_thread) {
-    Task<Thread> *thread = (Task<Thread> *)vptr_thread;
+    Thread *thread = (Thread *)vptr_thread;
     while (thread->running()) {
       thread->loop();
       vTaskDelay(1); // feeds the watchdog for the task

@@ -1,22 +1,23 @@
-#ifndef fhatos_kernel__task_hpp
-#define fhatos_kernel__task_hpp
+#ifndef fhatos_kernel__fiber_hpp
+#define fhatos_kernel__fiber_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/task/abstract_scheduler.hpp>
-#include <kernel/process/task/abstract_task.hpp>
+#include <kernel/process/task/esp32/scheduler.hpp>
+#include <kernel/process/task/task.hpp>
 #include <kernel/structure/structure.hpp>
 //
 
 namespace fhatos::kernel {
 
-template <typename TASK> class Task : public AbstractTask<TASK> {
+class Fiber : public Task {
 
 protected:
   bool __running = true;
 
 public:
   TaskHandle_t handle;
-  Task(const ID id) : AbstractTask<TASK>(id) {}
+  Fiber(const ID &id) : Task(id) {}
 
   virtual void delay(const uint64_t milliseconds) override {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
@@ -30,7 +31,7 @@ public:
          this->isLean() ? "lean" : "", this->id().c_str(),
          Scheduler->__THREADS.size());*/
     if (this->running()) {
-      Scheduler->__THREADS.push_back(this);
+      Scheduler::singleton()->addFiber(this);
       this->start();
     }
   }
@@ -38,7 +39,6 @@ public:
   virtual void stop() override { this->__running = false; }
 
   virtual bool running() override { return this->__running; }
-
 };
 } // namespace fhatos::kernel
 
