@@ -6,14 +6,11 @@
 
 namespace fhatos::kernel {
 
-template <typename T> class MessageBox  {
-
-public:
-  MessageBox() {};
+template <typename T> struct MessageBox {
   virtual bool push(const T &message);
   virtual Option<T> pop();
   virtual uint16_t size() const;
 };
-} // namespace fatpig
+} // namespace fhatos::kernel
 
 #endif
