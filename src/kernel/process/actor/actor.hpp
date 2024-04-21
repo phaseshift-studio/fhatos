@@ -11,7 +11,7 @@ class Actor : public TASK,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:
   Actor(const ID &id) : TASK(id) {}
-  virtual RESPONSE_CODE subscribe(const Pattern &relativePattern,
+  virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                   const OnRecvFunction<MESSAGE> onRecv,
                                   const QoS qos = QoS::_1) {
     return BROKER::singleton()->subscribe(
@@ -22,12 +22,19 @@ public:
                               .onRecv = onRecv});
   }
 
-  virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern = F("")) {
+  virtual const RESPONSE_CODE unsubscribe(const Pattern &relativePattern = F("")) {
     return BROKER::singleton()->unsubscribe(
         this->id(), Pattern(this->makeTopic(relativePattern)));
   }
 
-  virtual RESPONSE_CODE publish(const ID &relativeTarget, const M &message,
+  const RESPONSE_CODE publish(const IDed &target, const M &message,
+                        const bool retain = RETAIN_MESSAGE) {
+    return BROKER::singleton()->publish(MESSAGE{.source = this->id(),
+                                                .target = target.id(),
+                                                .payload = message,
+                                                .retain = retain});
+  }
+  virtual const RESPONSE_CODE publish(const ID &relativeTarget, const M &message,
                                 const bool retain = RETAIN_MESSAGE) {
     return BROKER::singleton()->publish(
         MESSAGE{.source = this->id(),

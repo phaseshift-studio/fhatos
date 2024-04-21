@@ -27,7 +27,7 @@ public:
 
   LocalBroker(const ID &id = ID("broker/local")) : Broker<MESSAGE>(id) {}
 
-  virtual RESPONSE_CODE publish(const MESSAGE &message) override {
+  virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
     for (const Subscription<MESSAGE> &subscription : __SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
@@ -51,7 +51,7 @@ public:
     return __rc;
   }
 
-  virtual RESPONSE_CODE
+  virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::OK;
     for (const auto &sub : __SUBSCRIPTIONS) {
@@ -83,7 +83,7 @@ public:
     return __rc;
   }
 
-  virtual RESPONSE_CODE unsubscribe(const ID &source,
+  virtual const RESPONSE_CODE unsubscribe(const ID &source,
                                     const Pattern &pattern) override {
     RESPONSE_CODE __rc;
     try {
@@ -105,7 +105,7 @@ public:
     return __rc;
   }
 
-  virtual RESPONSE_CODE unsubscribeSource(const ID &source) override {
+  virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
     const uint16_t size = __SUBSCRIPTIONS.size();
     List<Subscription<MESSAGE>> __COPY =
         List<Subscription<MESSAGE>>(__SUBSCRIPTIONS);
