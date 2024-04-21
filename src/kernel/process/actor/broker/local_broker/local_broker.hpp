@@ -20,25 +20,25 @@ protected:
   Mutex __MUTEX_RETAIN;
 
 public:
-   static LocalBroker *singleton() {
+  static LocalBroker *singleton() {
     static LocalBroker singleton = LocalBroker();
     return &singleton;
   }
 
-  LocalBroker(const ID& id = ID("broker/local")) : Broker<MESSAGE>(id) {}
+  LocalBroker(const ID &id = ID("broker/local")) : Broker<MESSAGE>(id) {}
 
   virtual RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
     for (const Subscription<MESSAGE> &subscription : __SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
-          subscription.actor->push({subscription,message});
+          subscription.actor->push({subscription, message});
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
-    //      LOG_EXCEPTION(e);
+          LOG_EXCEPTION(e);
           __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
         }
-       // LOG_PUBLISH(__rc ? ERROR : INFO, message);
+        LOG_PUBLISH(__rc ? ERROR : INFO, message);
       }
     }
     if (message.retain) {
@@ -63,21 +63,21 @@ public:
     }
     if (!__rc) {
       try {
-        __rc =
-            __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, subscription]() {
+        __rc = __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
+            [this, subscription]() {
               __SUBSCRIPTIONS.push_back(subscription);
               return RESPONSE_CODE::OK;
             });
       } catch (const std::runtime_error &e) {
-      //  LOG_EXCEPTION(e);
+        LOG_EXCEPTION(e);
         __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
       }
     }
-  //  LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
+    LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
     ///// deliver retains
     for (const Pair<ID, MESSAGE> &retain : __RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
-        subscription.actor->push({subscription,retain.second});
+        subscription.actor->push({subscription, retain.second});
       }
     }
     return __rc;
@@ -88,7 +88,7 @@ public:
     RESPONSE_CODE __rc;
     try {
       __rc = __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, source,
-                                                          pattern]() {
+                                                             pattern]() {
         const uint16_t size = __SUBSCRIPTIONS.size();
         __SUBSCRIPTIONS.remove_if(
             [source, pattern](const Subscription<MESSAGE> &sub) {
@@ -98,12 +98,10 @@ public:
                                              : RESPONSE_CODE::NO_SUBSCRIPTION;
       });
     } catch (const std::runtime_error &e) {
-     // LOG_EXCEPTION(e);
+      LOG_EXCEPTION(e);
       __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
     };
-
-  //  LOG(__rc ? ERROR : INFO, "[!B%s!!] =!munsubscribe!!=> [!B%s!!]\n",
-   //     source.c_str(), pattern.c_str());
+    LOG_UNSUBSCRIBE(__rc ? ERROR : INFO, source, pattern);
     return __rc;
   }
 
@@ -120,6 +118,6 @@ public:
                                          : RESPONSE_CODE::NO_SUBSCRIPTION;
   }
 };
-} // namespace fatpig
+} // namespace fhatos::kernel
 
 #endif

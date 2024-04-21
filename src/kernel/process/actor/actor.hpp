@@ -7,33 +7,31 @@
 
 namespace fhatos::kernel {
 template <typename TASK, typename MESSAGE, typename BROKER, typename M>
-class Actor : public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>>,
-              public TASK {
+class Actor : public TASK,
+              public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:
-  Actor(const ID &id)
-      : MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>>(), TASK(id) {}
+  Actor(const ID &id) : TASK(id) {}
   virtual RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                   const OnRecvFunction<MESSAGE> onRecv,
                                   const QoS qos = QoS::_1) {
-    return BROKER::singleton()->subscribe(Subscription<MESSAGE>{
-        .actor = this,
-        .source = this->id(),
-        .pattern = Pattern(makeTopic(relativePattern).toString().c_str()),
-        .qos = qos,
-        .onRecv = onRecv});
+    return BROKER::singleton()->subscribe(
+        Subscription<MESSAGE>{.actor = this,
+                              .source = this->id(),
+                              .pattern = Pattern(makeTopic(relativePattern)),
+                              .qos = qos,
+                              .onRecv = onRecv});
   }
 
   virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern = F("")) {
     return BROKER::singleton()->unsubscribe(
-        this->id(),
-        Pattern(this->makeTopic(relativePattern).toString().c_str()));
+        this->id(), Pattern(this->makeTopic(relativePattern)));
   }
 
   virtual RESPONSE_CODE publish(const ID &relativeTarget, const M &message,
                                 const bool retain = RETAIN_MESSAGE) {
     return BROKER::singleton()->publish(
         MESSAGE{.source = this->id(),
-                .target = ID(makeTopic(relativeTarget).toString().c_str()),
+                .target = ID(makeTopic(relativeTarget)),
                 .payload = message,
                 .retain = retain});
   }
@@ -42,10 +40,10 @@ public:
     const RESPONSE_CODE __rc =
         BROKER::singleton()->unsubscribeSource(this->id());
     if (__rc) {
-      //   LOG(ERROR, "Actor %s stop error: %s\n", this->id().c_str(),
-      //       RESPONSE_CODE_STR(__rc).c_str());
+      LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(),
+          RESPONSE_CODE_STR(__rc).c_str());
     }
-    //  Task<T>::stop();
+    TASK::stop();
   }
 
   virtual void start() override {}
@@ -53,10 +51,15 @@ public:
   virtual void loop() {
     //  const long clock = millis();
     //  while ((millis() - clock) < MAX_LOOP_MILLISECONDS) {
-    Option<Pair<Subscription<MESSAGE>, MESSAGE>> pair = this->inbox.pop_front();
-    if (pair.has_value()) {
-      // LOG_RECEIVE(INFO, pair->first, pair->second);
-      pair->first.execute(pair->second);
+    while (true) {
+      Option<Pair<Subscription<MESSAGE>, MESSAGE>> pair =
+          this->inbox.pop_front();
+      if (pair.has_value()) {
+        LOG_RECEIVE(INFO, pair->second, pair->first);
+        pair->first.execute(pair->second);
+      } else {
+        break;
+      }
     } // else
     // break;
     //   }
@@ -86,14 +89,13 @@ public:
 
 protected:
   MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE>> inbox;
-  const fURI makeTopic(const fURI &relativeTopic) {
+  const String makeTopic(const fURI &relativeTopic) {
     return relativeTopic.empty()
-               ? fURI(this->id().toString().c_str())
+               ? this->id().toString()
                : (relativeTopic.toString().startsWith(F("/"))
-                      ? fURI((this->id().toString() + F("/") +
-                              relativeTopic.toString().substring(1))
-                                 .c_str())
-                      : relativeTopic);
+                      ? (this->id().toString() + F("/") +
+                         relativeTopic.toString().substring(1))
+                      : relativeTopic.toString());
   }
 };
 

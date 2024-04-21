@@ -88,7 +88,9 @@ protected:
   uint8_t __length;
 
 public:
-  fURI(){};
+  fURI() {}
+  fURI(const fURI &furi) : fURI(furi.toString().c_str()){};
+  fURI(const String &furiString) : fURI(furiString.c_str()){};
   fURI(const char *furiCharacters) {
     this->__segments = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
     this->__length =
@@ -161,10 +163,13 @@ public:
   }
 };
 
+
 class ID : public fURI {
 
 public:
   ID() : fURI(){};
+  ID(const ID &id) : fURI(id){};
+  ID(const String &furiString) : fURI(furiString){};
   ID(const char *furiCharacters) : fURI(furiCharacters) {
     if (strchr(furiCharacters, '#')) {
       throw fError("IDs can not contain pattern symbols: #");
@@ -177,10 +182,13 @@ public:
 class Pattern : public fURI {
 public:
   Pattern() : fURI(){};
+  Pattern(const ID& id) : Pattern(id.toString()) {};
+  Pattern(const Pattern &id) : fURI(id){};
+  Pattern(const String &furiString) : fURI(furiString){};
   Pattern(const char *furiCharacters) : fURI(furiCharacters){};
   virtual bool colocated(const fURI &furi) const override {
-    return furi.authority().equals("#") || -1 != furi.authority().indexOf("+") ||
-           fURI::colocated(furi);
+    return furi.authority().equals("#") ||
+           -1 != furi.authority().indexOf("+") || fURI::colocated(furi);
   }
   virtual bool matches(const fURI &pattern) const override {
     return __private_fhatos::match(pattern.toString().c_str(),
@@ -190,14 +198,14 @@ public:
 
 class IDed {
 public:
-  IDed(const ID &id) { this->__id = id; }
-  const ID id() const { return this->__id; }
+  IDed(const ID &id) { this->__id = new ID(id); }
+  const ID id() const { return *__id; }
   const bool equals(const IDed &other) const {
     return this->id().equals(other.id());
   }
 
 protected:
-  ID __id;
+  ID *__id;
 };
 
 } // namespace fhatos::kernel
