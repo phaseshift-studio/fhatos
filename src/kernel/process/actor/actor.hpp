@@ -2,11 +2,12 @@
 #define fhatos_kernel__actor_hpp
 
 #include <kernel/process/actor/broker/broker.hpp>
+#include <kernel/process/actor/broker/local_broker/local_broker.hpp>
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 
 namespace fhatos::kernel {
-template <typename TASK, typename MESSAGE, typename BROKER, typename M>
+template <typename TASK, typename MESSAGE = StringMessage, typename BROKER = LocalBroker<MESSAGE>, typename M = String>
 class Actor : public TASK,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:

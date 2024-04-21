@@ -4,6 +4,7 @@
 #include <test_fhatos.hpp>
 //
 #include <kernel/process/actor/actor.hpp>
+#include <kernel/process/actor/actor_monoid.hpp>
 #include <kernel/process/actor/broker/broker.hpp>
 #include <kernel/process/actor/broker/local_broker/local_broker.hpp>
 #include <kernel/process/task/esp32/scheduler.hpp>
@@ -118,9 +119,20 @@ void test_message_retain() {
   delete actor2;
 }
 
+void test_actor_monoid() {
+  auto *actor1 = new Actor<Thread>("actor1@127.0.0.1");
+  auto *actor2 = new Actor<Thread>("actor2@127.0.0.1");
+  auto *monoid1 = new ActorMonoid<Actor<Thread>, StringMessage, String>(actor1);
+  auto *monoid2 = new ActorMonoid<Actor<Thread>, StringMessage, String>(actor2);
+
+  *monoid2 <std::make_pair(actor2->id(), [](StringMessage message) {});
+  *monoid1 > "ping" > actor2;
+}
+
 RUN_TESTS(                              //
     RUN_TEST(test_actor_communication); //
     RUN_TEST(test_message_retain);      //
+    RUN_TEST(test_actor_monoid);        //
 );
 
 } // namespace fhatos::kernel
