@@ -4,6 +4,7 @@
 #include <test_fhatos.hpp>
 //
 #include <kernel/structure/structure.hpp>
+#include <unity.h>
 
 namespace fhatos::kernel {
 

@@ -28,7 +28,8 @@
   TEST_ASSERT_TRUE((x).equals(y));
 
 #define TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                       \
-  TEST_MESSAGE("\t%s !=?= %s", (x).toString().c_str(), (y).toString().c_str()); \
+  TEST_MESSAGE("\t%s !=?= %s", (x).toString().c_str(),                         \
+               (y).toString().c_str());                                        \
   TEST_ASSERT_FALSE((x).equals(y))
 
 #define TEST_ASSERT_EQUAL_CHAR_FURI(x, y)                                      \
@@ -38,7 +39,7 @@
   try {                                                                        \
     x;                                                                         \
     TEST_ASSERT(false);                                                        \
-  } catch (fhatos::fError e) {                                                 \
+  } catch (fhatos::kernel::fError e) {                                         \
     TEST_ASSERT(true);                                                         \
   }
 
