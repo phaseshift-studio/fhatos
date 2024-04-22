@@ -7,25 +7,24 @@
 
 namespace fhatos::kernel {
 
-template <typename ACTOR, typename MESSAGE, typename PAYLOAD>
-class ActorMonoid {
+template <typename ACTOR, typename MESSAGE> class ActorMonoid {
 
 protected:
-  PAYLOAD *payload;
+  MESSAGE *message;
   ACTOR *actor;
 
 public:
   ActorMonoid(ACTOR *actor) { this->actor = actor; }
-  ActorMonoid<ACTOR, MESSAGE, PAYLOAD> operator>(PAYLOAD payload) {
-    this->payload = &payload;
+  ActorMonoid<ACTOR, MESSAGE> operator>(MESSAGE message) {
+    this->message = &message;
     return *this;
   }
-  ActorMonoid<ACTOR, MESSAGE, PAYLOAD> operator>(ACTOR *other) {
-    this->actor->publish(*other, *this->payload, false);
-    payload = nullptr;
+  ActorMonoid<ACTOR, MESSAGE> operator>(ACTOR *other) {
+    this->actor->publish(*other, this->message->payload, false);
+    this->message = nullptr;
     return *this;
   }
-  ActorMonoid<ACTOR, MESSAGE, PAYLOAD>
+  ActorMonoid<ACTOR, MESSAGE>
   operator<(Pair<Pattern, OnRecvFunction<MESSAGE>> pair) {
     this->actor->subscribe(pair.first, pair.second);
     return *this;

@@ -17,10 +17,10 @@ namespace fhatos::kernel {
 void test_actor_communication() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
   auto *actor1 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>, String>(
+      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
           "actor1@127.0.0.1");
   auto *actor2 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>, String>(
+      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
           "actor2@127.0.0.1");
 
   TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
@@ -65,10 +65,10 @@ void test_actor_communication() {
 void test_message_retain() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
   auto *actor1 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>, String>(
+      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
           "actor1@127.0.0.1");
   auto *actor2 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>, String>(
+      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
           "actor2@127.0.0.1");
 
   TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
@@ -122,8 +122,8 @@ void test_message_retain() {
 void test_actor_monoid() {
   auto *actor1 = new Actor<Thread>("actor1@127.0.0.1");
   auto *actor2 = new Actor<Thread>("actor2@127.0.0.1");
-  auto *monoid1 = new ActorMonoid<Actor<Thread>, StringMessage, String>(actor1);
-  auto *monoid2 = new ActorMonoid<Actor<Thread>, StringMessage, String>(actor2);
+  auto *monoid1 = new ActorMonoid<Actor<Thread>, StringMessage>(actor1);
+  auto *monoid2 = new ActorMonoid<Actor<Thread>, StringMessage>(actor2);
 
   *monoid2 <std::make_pair(actor2->id(), [](StringMessage message) {});
   *monoid1 > "ping" > actor2;

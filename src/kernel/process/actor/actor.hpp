@@ -7,7 +7,7 @@
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 
 namespace fhatos::kernel {
-template <typename TASK, typename MESSAGE = StringMessage, typename BROKER = LocalBroker<MESSAGE>, typename M = String>
+template <typename TASK, typename MESSAGE = StringMessage, typename BROKER = LocalBroker<MESSAGE>>
 class Actor : public TASK,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:
@@ -28,19 +28,19 @@ public:
         this->id(), Pattern(this->makeTopic(relativePattern)));
   }
 
-  const RESPONSE_CODE publish(const IDed &target, const M &message,
+  const RESPONSE_CODE publish(const IDed &target, const MESSAGE &message,
                         const bool retain = RETAIN_MESSAGE) {
     return BROKER::singleton()->publish(MESSAGE{.source = this->id(),
                                                 .target = target.id(),
-                                                .payload = message,
+                                                .payload = message.payload,
                                                 .retain = retain});
   }
-  virtual const RESPONSE_CODE publish(const ID &relativeTarget, const M &message,
+  virtual const RESPONSE_CODE publish(const ID &relativeTarget, const MESSAGE &message,
                                 const bool retain = RETAIN_MESSAGE) {
     return BROKER::singleton()->publish(
         MESSAGE{.source = this->id(),
                 .target = ID(makeTopic(relativeTarget)),
-                .payload = message,
+                .payload = message.payload,
                 .retain = retain});
   }
 

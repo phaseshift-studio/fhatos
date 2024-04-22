@@ -42,6 +42,13 @@ struct StringMessage {
   const ID target;
   const String payload;
   const bool retain;
+  StringMessage(const String& payload)
+      : StringMessage(payload.c_str()){};
+  StringMessage(const char *payload)
+      : source(ID()), target(ID()), payload(String(payload)), retain(false){};
+  StringMessage(const ID &source, const ID &target, const String &payload,
+                const bool retain)
+      : source(source), target(target), payload(payload), retain(retain){};
   static const String fromBytes(const byte *bytes, const int length) {
     return String((char *)bytes);
   }
@@ -167,7 +174,7 @@ public:
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
-                                    const Pattern &pattern) FP_OK_RESULT;
+                                          const Pattern &pattern) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
   // virtual ID *adjacent(const ID &source) { return nullptr; }
   // virtual RESPONSE_CODE call(const ID &source, const ID &target)

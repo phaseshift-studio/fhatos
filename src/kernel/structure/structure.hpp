@@ -167,7 +167,7 @@ public:
 class ID : public fURI {
 
 public:
-  ID() : fURI(){};
+  ID() : fURI(""){};
   ID(const ID &id) : fURI(id){};
   ID(const String &furiString) : fURI(furiString){};
   ID(const char *furiCharacters) : fURI(furiCharacters) {
@@ -181,8 +181,8 @@ public:
 
 class Pattern : public fURI {
 public:
-  Pattern() : fURI(){};
-  Pattern(const ID& id) : Pattern(id.toString()) {};
+  Pattern() : fURI(""){};
+  Pattern(const ID& id) : Pattern(id.toString()) {}
   Pattern(const Pattern &id) : fURI(id){};
   Pattern(const String &furiString) : fURI(furiString){};
   Pattern(const char *furiCharacters) : fURI(furiCharacters){};
