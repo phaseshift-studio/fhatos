@@ -42,14 +42,14 @@ public:
       // this->xmqtt->setBufferSize(maxPacketSize);
       this->xmqtt->setSocketTimeout(1000); // may be too excessive
       this->xmqtt->setKeepAlive(1000);     // may be too excessive
-      this->recvFunction = [this](const char *topic, const byte *payload,
+      this->recvFunction = [this](const char *target, const byte *payload,
                                   const int length) {
         ((char *)payload)[length] = '\0';
-        LOG(INFO, "[!B%s!!] <=!mreceive!!= !B%s!!\n", topic, (char *)payload);
+        LOG(INFO, "[!B%s!!] <=!mreceive!!= !B%s!!\n", target, (char *)payload);
         for (const Subscription<MESSAGE> &sub : __SUBSCRIPTIONS) {
-          if (ID(topic).matches(sub.pattern)) {
+          if (ID(target).matches(sub.pattern)) {
             sub.onRecv(MESSAGE{.source = ID("unknown"),
-                               .target = topic,
+                               .target = target,
                                .payload = String((char *)payload),
                                .retain = true});
           }

@@ -1,24 +1,28 @@
 #ifndef fhatos_kernel__actor_hpp
 #define fhatos_kernel__actor_hpp
 
-#include <kernel/process/actor/router/router.hpp>
-#include <kernel/process/actor/router/local_router/local_router.hpp>
-#include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
-#include <kernel/process/actor/router/meta_router/meta_router.hpp>
-#include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
+#include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/message_box.hpp>
+#include <kernel/process/actor/router/local_router/local_router.hpp>
+#include <kernel/process/actor/router/meta_router/meta_router.hpp>
+#include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
+#include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
+#include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos::kernel {
-template <typename TASK, typename MESSAGE = StringMessage, typename ROUTER = MqttRouter<MESSAGE,MQTT<Thread,MESSAGE>>>
-class Actor : public TASK,
+template <typename PROCESS, typename MESSAGE = StringMessage,
+          typename ROUTER = MqttRouter<MESSAGE, MQTT<Thread, MESSAGE>>>
+class Actor : public PROCESS,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:
-  Actor(const ID &id) : TASK(id) {}
+  Actor(const ID &id) : PROCESS(id) {
+    //this->inbox = new MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE>>();
+  }
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
-                                  const OnRecvFunction<MESSAGE> onRecv,
-                                  const QoS qos = QoS::_1) {
+                                        const OnRecvFunction<MESSAGE> onRecv,
+                                        const QoS qos = QoS::_1) {
     return ROUTER::singleton()->subscribe(
         Subscription<MESSAGE>{.actor = this,
                               .source = this->id(),
@@ -27,26 +31,30 @@ public:
                               .onRecv = onRecv});
   }
 
-  virtual const RESPONSE_CODE unsubscribe(const Pattern &relativePattern = F("")) {
+  virtual const RESPONSE_CODE
+  unsubscribe(const Pattern &relativePattern = F("")) {
     return ROUTER::singleton()->unsubscribe(
         this->id(), Pattern(this->makeTopic(relativePattern)));
   }
 
   const RESPONSE_CODE publish(const IDed &target, const MESSAGE &message,
-                        const bool retain = RETAIN_MESSAGE) {
+                              const bool retain = RETAIN_MESSAGE) {
     return ROUTER::singleton()->publish(MESSAGE{.source = this->id(),
                                                 .target = target.id(),
                                                 .payload = message.payload,
                                                 .retain = retain});
   }
-  virtual const RESPONSE_CODE publish(const ID &relativeTarget, const MESSAGE &message,
-                                const bool retain = RETAIN_MESSAGE) {
+  virtual const RESPONSE_CODE publish(const ID &relativeTarget,
+                                      const MESSAGE &message,
+                                      const bool retain = RETAIN_MESSAGE) {
     return ROUTER::singleton()->publish(
         MESSAGE{.source = this->id(),
                 .target = ID(makeTopic(relativeTarget)),
                 .payload = message.payload,
                 .retain = retain});
   }
+
+  virtual void setup() override { PROCESS::setup(); }
 
   virtual void stop() override {
     const RESPONSE_CODE __rc =
@@ -55,10 +63,8 @@ public:
       LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(),
           RESPONSE_CODE_STR(__rc).c_str());
     }
-    TASK::stop();
+    PROCESS::stop();
   }
-
-  virtual void start() override {}
 
   virtual void loop() {
     //  const long clock = millis();
@@ -92,10 +98,6 @@ public:
     mail->first.execute(mail->second);
     return true;
   }
-  /*virtual void loop()  {
-    while (this->next()) {
-    }
-  }*/
 
   virtual uint16_t size() const override { return inbox.size(); }
 

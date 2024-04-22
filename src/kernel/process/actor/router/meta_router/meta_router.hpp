@@ -16,7 +16,7 @@ class MetaRouter : public Router<MESSAGE> {
 
 protected:
   Router<MESSAGE> *select(const ID &target) {
-    return this->id().isLocal(target)
+    return false && this->id().isLocal(target)
                ? (Router<MESSAGE> *)LOCAL_ROUTER::singleton()
                : (Router<MESSAGE> *)REMOTE_ROUTER::singleton();
   }
@@ -30,21 +30,21 @@ public:
   MetaRouter(const ID &id = WIFI::idFromIP("meta"))
       : Router<MESSAGE>(id) {}
 
-  virtual RESPONSE_CODE publish(const MESSAGE &message) override {
+  virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     return this->select(message.target)->publish(message);
   }
 
-  virtual RESPONSE_CODE
+  virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) override {
     return this->select(subscription.pattern)->subscribe(subscription);
   }
 
-  virtual RESPONSE_CODE unsubscribe(const ID &source,
+  virtual const RESPONSE_CODE unsubscribe(const ID &source,
                                     const Pattern &pattern) override {
     return this->select(pattern)->unsubscribe(source, pattern);
   }
 
-  virtual RESPONSE_CODE unsubscribeSource(const ID &source) override {
+  virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
     const RESPONSE_CODE local =
         LOCAL_ROUTER::singleton()->unsubscribeSource(source);
     const RESPONSE_CODE remote =

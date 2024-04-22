@@ -11,7 +11,6 @@ class Coroutine : public Process {
 public:
   Coroutine(const ID &id) : Process(id) {}
   virtual void setup(){};
-  virtual void start() { __running = true; };
   virtual void stop() { __running = false; };
   virtual bool running() { return __running; }
   void loop() override {}

@@ -79,9 +79,6 @@ public:
   void setup() {
     if (!initialized) {
       initialized = true;
-      for (const auto &kernel : __KERNELS) {
-        kernel->start();
-      }
       LOG(INFO, "Initializing thread pool (!rthreads:%i!!)\n",
           __THREADS.size());
       // HANDLE FIBERS
@@ -94,7 +91,7 @@ public:
           NULL,                                   // Task handle
           tskNO_AFFINITY);                        // Processor core
       LOG(fiberResult == pdPASS ? INFO : ERROR,
-          "!MThreading master lean task!!\n");
+          "!MThreading master fiber process!!\n");
 
       // HANDLE THREADS
       for (const auto &thread : __THREADS) {
@@ -140,14 +137,10 @@ private:
   //////////////////////////////////////////////////////
   static void __FIBER_FUNCTION(void *vptr_fibers) {
     List<Fiber *> *fibers = (List<Fiber *> *)vptr_fibers;
-    for ( Fiber *fiber : *fibers) {
-      fiber->start();
-    }
     while (!fibers->empty()) {
       fibers->remove_if([](Fiber *fiber) {
         if (!fiber->running()) {
-          // LOG(INFO, "!MDisconnecting lean thread %s %s!!\n",
-          //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
+           LOG(INFO, "!MStopping fiber %s!!\n",fiber->id().toString().c_str());
           fiber->stop();
           return true;
         } else {
@@ -169,7 +162,6 @@ private:
   //////////////////////////////////////////////////////
   static void __THREAD_FUNCTION(void *vptr_thread) {
     Thread *thread = (Thread *)vptr_thread;
-    thread->start();
     while (thread->running()) {
       thread->loop();
       vTaskDelay(1); // feeds the watchdog for the task

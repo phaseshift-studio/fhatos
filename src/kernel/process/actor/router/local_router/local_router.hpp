@@ -29,10 +29,11 @@ public:
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
-    for (const Subscription<MESSAGE> &subscription : __SUBSCRIPTIONS) {
+    for (const auto & subscription : __SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
           subscription.actor->push({subscription, message});
+          //TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
           LOG_EXCEPTION(e);
@@ -84,7 +85,7 @@ public:
   }
 
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
-                                    const Pattern &pattern) override {
+                                          const Pattern &pattern) override {
     RESPONSE_CODE __rc;
     try {
       __rc = __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, source,

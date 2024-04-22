@@ -37,15 +37,16 @@ protected:
   const char *passwords;
 
 public:
- static ID idFromIP(const String user, const String path = "") {
-  if(!WIFI::singleton()->running())
-    WIFI::singleton()->start();
+  static ID idFromIP(const String user, const String path = "") {
+    if (!WIFI::singleton()->running())
+      WIFI::singleton()->setup();
     return ID((user + "@" + WIFI::singleton()->ip().toString() +
-              (path.isEmpty() ? "" : ("/" + path))).c_str());
+               (path.isEmpty() ? "" : ("/" + path)))
+                  .c_str());
   }
- static WIFI *singleton(const ID &id = ID("name@wifi"),
-                                const char *ssids = STR(WIFI_SSID),
-                                const char *passwords = STR(WIFI_PASS)) {
+  static WIFI *singleton(const ID &id = ID("name@wifi"),
+                         const char *ssids = STR(WIFI_SSID),
+                         const char *passwords = STR(WIFI_PASS)) {
     static WIFI singleton = WIFI(id, ssids, passwords);
     return &singleton;
   }
@@ -56,9 +57,9 @@ public:
 
   bool reconnect() { return WiFi.reconnect(); }
 
-  void start() override { 
+  void setup() override {
+    KernelProcess::setup();
     this->setStation();
-    KernelProcess::start();
   }
 
   void stop() override {
@@ -128,8 +129,8 @@ private:
       attempts++;
       if (multi.run() == WL_CONNECTED) {
         this->__id = *(new ID(WIFI::idFromIP("wifi").toString().c_str()));
-         WiFi.hostname(this->id().user().value());
-        const bool mdnsStatus =   MDNS.begin(this->id().user().value());
+        WiFi.hostname(this->id().user().value());
+        const bool mdnsStatus = MDNS.begin(this->id().user().value());
         LOG(INFO,
             "\tID             : %s\n"
             "\tStatus         : %s\n"
@@ -153,7 +154,7 @@ private:
             WiFi.dnsIP().toString().c_str(), WiFi.channel());
         if (!mdnsStatus) {
           LOG_TASK(ERROR, this, "Unable to create mDNS hostname %s\n",
-                  this->id().user()->c_str());
+                   this->id().user()->c_str());
         }
         LOG(INFO, "\tConnection attempts: %i\n", attempts);
         attempts = 100;
@@ -161,11 +162,11 @@ private:
     }
     if (attempts != 100) {
       LOG_TASK(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
-              attempts);
+               attempts);
     }
     return this;
   }
 };
-}
+} // namespace fhatos::kernel
 
 #endif

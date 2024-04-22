@@ -18,19 +18,19 @@ public:
   Fiber(const ID &id) : Process(id) {}
 
   virtual void delay(const uint64_t milliseconds) override {
-    vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+    // delay to next fiber
+     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
   }
 
-  virtual void yield() override { taskYIELD(); }
+  virtual void yield() override {
+    // yield to next fiber
+  }
 
   virtual void setup() override {
     /*LOG(this->isEnabled() ? INFO : ERROR,
          "Scheduler starting %s thread %s (!rthreads:%i!!)\n",
          this->isLean() ? "lean" : "", this->id().c_str(),
          Scheduler->__THREADS.size());*/
-    if (this->running()) {
-      this->start();
-    }
   }
 
   virtual void stop() override { this->__running = false; }

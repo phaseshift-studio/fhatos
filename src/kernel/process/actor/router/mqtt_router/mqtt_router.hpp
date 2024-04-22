@@ -6,13 +6,12 @@
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
 #include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos::kernel {
 
 template <class MESSAGE, class MQTT_CLIENT = MQTT<Thread, MESSAGE>>
-class MqttRouter : public Router<MESSAGE>, public Coroutine {
+class MqttRouter : public Router<MESSAGE> {
 
 public:
   inline static MqttRouter *singleton() {
@@ -21,11 +20,11 @@ public:
   }
 
   MqttRouter(const ID id = WIFI::idFromIP("mqttrouter"))
-      : Router<MESSAGE>(id),Coroutine(id) {}
+      : Router<MESSAGE>(id) {}
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
-    MQTT_CLIENT::singleton()->publish(message.target, message.payload);
-    return RESPONSE_CODE::OK;
+    return MQTT_CLIENT::singleton()->publish(message.target, message.payload)
+        ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;
   }
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) override {
@@ -33,8 +32,8 @@ public:
                subscription.source, subscription.pattern,
                (uint8_t)subscription.qos,
                RecvFunction([subscription](const char *topic,
-                                                const byte *payload,
-                                                const int length) {
+                                           const byte *payload,
+                                           const int length) {
                  subscription.actor->push(
                      {subscription,
                       MESSAGE{.source = "unknown",
@@ -46,15 +45,15 @@ public:
                : RESPONSE_CODE::REPEAT_SUBSCRIPTION;
   }
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
-                                    const Pattern &pattern) override {
+                                          const Pattern &pattern) override {
     return MQTT_CLIENT::singleton()->unsubscribe(source, pattern)
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::NO_SUBSCRIPTION;
   }
   virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
-    //return MQTT_CLIENT::singleton()->unsubscribeSource(source)
-      //         ? RESPONSE_CODE::OK
-            return RESPONSE_CODE::ROUTER_ERROR;
+    // return MQTT_CLIENT::singleton()->unsubscribeSource(source)
+    //          ? RESPONSE_CODE::OK
+    return RESPONSE_CODE::ROUTER_ERROR;
   }
 };
 

@@ -167,13 +167,17 @@ public:
   bool operator<(const fURI furi) const {
     return this->toString() < furi.toString();
   }
+
+  const bool isLocal(const fURI &other) const {
+    return this->host().equals(other.host());
+  }
 };
 
 class ID : public fURI {
 
 public:
   ID() : fURI(""){};
-  ID(const ID &id) : fURI(id){};
+  ID(const fURI &id) : ID(id.toString()){};
   ID(const String &furiString) : fURI(furiString){};
   ID(const char *furiCharacters) : fURI(furiCharacters) {
     if (strchr(furiCharacters, '#')) {
@@ -187,8 +191,7 @@ public:
 class Pattern : public fURI {
 public:
   Pattern() : fURI(""){};
-  Pattern(const ID &id) : Pattern(id.toString()) {}
-  Pattern(const Pattern &id) : fURI(id){};
+  Pattern(const fURI &fURI) : Pattern(fURI.toString()) {}
   Pattern(const String &furiString) : fURI(furiString){};
   Pattern(const char *furiCharacters) : fURI(furiCharacters){};
   virtual bool colocated(const fURI &furi) const override {
