@@ -1,5 +1,4 @@
 #include <fhatos.hpp>
-#include <kernel/util/ansi.hpp>
 
 void setup() {
   Serial.begin(9600);
