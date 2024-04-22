@@ -1,13 +1,13 @@
 #ifndef fhatos_kernel__actor_hpp
 #define fhatos_kernel__actor_hpp
 
-#include <kernel/process/actor/broker/broker.hpp>
-#include <kernel/process/actor/broker/local_broker/local_broker.hpp>
+#include <kernel/process/actor/router/router.hpp>
+#include <kernel/process/actor/router/local_router/local_router.hpp>
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 
 namespace fhatos::kernel {
-template <typename TASK, typename MESSAGE = StringMessage, typename BROKER = LocalBroker<MESSAGE>>
+template <typename TASK, typename MESSAGE = StringMessage, typename ROUTER = LocalRouter<MESSAGE>>
 class Actor : public TASK,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:
@@ -15,7 +15,7 @@ public:
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                   const OnRecvFunction<MESSAGE> onRecv,
                                   const QoS qos = QoS::_1) {
-    return BROKER::singleton()->subscribe(
+    return ROUTER::singleton()->subscribe(
         Subscription<MESSAGE>{.actor = this,
                               .source = this->id(),
                               .pattern = Pattern(makeTopic(relativePattern)),
@@ -24,20 +24,20 @@ public:
   }
 
   virtual const RESPONSE_CODE unsubscribe(const Pattern &relativePattern = F("")) {
-    return BROKER::singleton()->unsubscribe(
+    return ROUTER::singleton()->unsubscribe(
         this->id(), Pattern(this->makeTopic(relativePattern)));
   }
 
   const RESPONSE_CODE publish(const IDed &target, const MESSAGE &message,
                         const bool retain = RETAIN_MESSAGE) {
-    return BROKER::singleton()->publish(MESSAGE{.source = this->id(),
+    return ROUTER::singleton()->publish(MESSAGE{.source = this->id(),
                                                 .target = target.id(),
                                                 .payload = message.payload,
                                                 .retain = retain});
   }
   virtual const RESPONSE_CODE publish(const ID &relativeTarget, const MESSAGE &message,
                                 const bool retain = RETAIN_MESSAGE) {
-    return BROKER::singleton()->publish(
+    return ROUTER::singleton()->publish(
         MESSAGE{.source = this->id(),
                 .target = ID(makeTopic(relativeTarget)),
                 .payload = message.payload,
@@ -46,7 +46,7 @@ public:
 
   virtual void stop() override {
     const RESPONSE_CODE __rc =
-        BROKER::singleton()->unsubscribeSource(this->id());
+        ROUTER::singleton()->unsubscribeSource(this->id());
     if (__rc) {
       LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(),
           RESPONSE_CODE_STR(__rc).c_str());

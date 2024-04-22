@@ -5,8 +5,8 @@
 //
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/actor_monoid.hpp>
-#include <kernel/process/actor/broker/broker.hpp>
-#include <kernel/process/actor/broker/local_broker/local_broker.hpp>
+#include <kernel/process/actor/router/router.hpp>
+#include <kernel/process/actor/router/local_router/local_router.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/esp32/thread.hpp>
 #include <kernel/structure/structure.hpp>
@@ -17,10 +17,10 @@ namespace fhatos::kernel {
 void test_actor_communication() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
   auto *actor1 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
+      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
           "actor1@127.0.0.1");
   auto *actor2 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
+      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
           "actor2@127.0.0.1");
 
   TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
@@ -65,10 +65,10 @@ void test_actor_communication() {
 void test_message_retain() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
   auto *actor1 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
+      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
           "actor1@127.0.0.1");
   auto *actor2 =
-      new Actor<Thread, StringMessage, LocalBroker<StringMessage>>(
+      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
           "actor2@127.0.0.1");
 
   TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,

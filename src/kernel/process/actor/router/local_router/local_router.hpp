@@ -1,16 +1,16 @@
-#ifndef fhatos_kernel__local_broker_hpp
-#define fhatos_kernel__local_broker_hpp
+#ifndef fhatos_kernel__local_router_hpp
+#define fhatos_kernel__local_router_hpp
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/broker/broker.hpp>
+#include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/util/mutex/mutex.hpp>
 
 #define FULL_DRAIN_INBOX_SIZE 10
 
 namespace fhatos::kernel {
 
-template <class MESSAGE> class LocalBroker : public Broker<MESSAGE> {
+template <class MESSAGE> class LocalRouter : public Router<MESSAGE> {
 
 protected:
   // messaging data structures
@@ -20,12 +20,12 @@ protected:
   Mutex __MUTEX_RETAIN;
 
 public:
-  static LocalBroker *singleton() {
-    static LocalBroker singleton = LocalBroker();
+  static LocalRouter *singleton() {
+    static LocalRouter singleton = LocalRouter();
     return &singleton;
   }
 
-  LocalBroker(const ID &id = ID("broker/local")) : Broker<MESSAGE>(id) {}
+  LocalRouter(const ID &id = ID("broker/local")) : Router<MESSAGE>(id) {}
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;

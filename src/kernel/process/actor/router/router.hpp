@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__broker_hpp
-#define fhatos_kernel__broker_hpp
+#ifndef fhatos_kernel__router_hpp
+#define fhatos_kernel__router_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/actor/message_box.hpp>
@@ -134,7 +134,7 @@ enum RESPONSE_CODE {
   REPEAT_SUBSCRIPTION = 2,
   NO_SUBSCRIPTION = 3,
   NO_MESSAGE = 4,
-  BROKER_ERROR = 5,
+  ROUTER_ERROR = 5,
   MUTEX_TIMEOUT = 6
 };
 
@@ -150,8 +150,8 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
     return "Subscription doesn't exist";
   case NO_MESSAGE:
     return "No message";
-  case BROKER_ERROR:
-    return "Broker error";
+  case ROUTER_ERROR:
+    return "Router error";
   case MUTEX_TIMEOUT:
     return "Mutex timeout";
   default:
@@ -160,16 +160,16 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 };
 
 ////////////////////////////////////////////
-/////////////// BROKER CLASS ///////////////
+/////////////// ROUTER CLASS ///////////////
 ////////////////////////////////////////////
 
 #define FP_OK_RESULT                                                           \
   { return RESPONSE_CODE::OK; }
 
-template <class MESSAGE> class Broker : public IDed {
+template <class MESSAGE> class Router : public IDed {
 
 public:
-  Broker(const ID &id) : IDed(id){};
+  Router(const ID &id) : IDed(id){};
   virtual const RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;
