@@ -3,3 +3,4 @@
 scripts/__pycache__
 *.swp
 .DS_Store
+.wifi.ini
