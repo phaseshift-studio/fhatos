@@ -14,10 +14,10 @@ namespace fhatos::kernel {
 /////////////// MESSAGE STRUCT ///////////////
 //////////////////////////////////////////////
 
-template <typename M> struct Message {
+template <typename PAYLOAD> struct Message {
   const ID source;
   const ID target;
-  const M payload;
+  const PAYLOAD payload;
   const bool retain;
   const String payloadString() const {
     String p;

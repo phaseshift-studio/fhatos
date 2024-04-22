@@ -25,7 +25,7 @@ public:
     return &singleton;
   }
 
-  LocalRouter(const ID &id = ID("broker/local")) : Router<MESSAGE>(id) {}
+  LocalRouter(const ID &id = ID("router/local")) : Router<MESSAGE>(id) {}
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;

@@ -34,7 +34,7 @@
 
 namespace fhatos::kernel {
 
-static const char *ANSI_ART =
+/*static const char *ANSI_ART =
     "            PhaseShift Studio Presents\n"
     " <`--'>____  ______  __  __  ______  ______  ______  ______     \n"
     " /. .  `'  \\/\\  ___\\/\\ \\_\\ \\/\\  __ \\/\\__  _\\/\\  __ \\/\\  "
@@ -44,7 +44,18 @@ static const char *ANSI_ART =
     " `-._,     / \\ \\_\\   \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ \\ "
     "\\_____\\/\\_____\\  \n"
     "    )-)_/-(>  \\/_/    \\/_/\\/_/\\/_/\\/_/  \\/_/  \\/_____/\\/_____/  \n"
-    "                                    A Dogturd Stynx Production  \n";
+    "                                    A Dogturd Stynx Production  \n";*/
+
+
+static const char *ANSI_ART =
+    "!M            PhaseShift Studio Presents!! \n"
+    "!R <`--'>____!G  ______ __  __  ______  ______  !B______  ______!! \n"
+    "!R /. .  `'  \\!G/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!B/\\  __ \\/\\  ___\\!! \n"
+    "!R(`')  ,     @!G \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!B\\ \\ \\_\\ \\ \\___  \\!! \n"
+    "!R `-._,     /!G \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !B\\ \\_____\\/\\_____\\!! \n"
+    "!R    )-)_/-(>!G  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  !B\\/_____/\\/_____/!! \n"
+    "!M                                   A Dogturd Stynx Production!! \n";
+
 
 ////////////////////
 /// LAMBDA TYPES ///
@@ -107,7 +118,6 @@ public:
     return this->__message;
   }
 };
-
 ////////////
 // MACROS //
 ////////////
@@ -149,6 +159,18 @@ enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
           ? (message.source.toString().c_str())                                \
           : (message.payload.c_str()),                                         \
       (message.source.toString().c_str()))
+
+////////////////////////////
+// ARCHITECTURE LIBRARIES //
+////////////////////////////
+
+#if defined(ESP32)
+#define FOS_PROCESS(proc) <kernel/process/esp32/proc>
+#elif define(ESP8266)
+#define FOS_PROCESS(proc) STR(CONCAT("kernel/process/esp8266/",(proc)))
+#else
+#error "Unknown architecture."
+#endif
 
 static TriConsumer<const LOG_TYPE, const char *, const uint16_t> LOG_FUNCTION =
     [](const LOG_TYPE type, const char *buffer, const uint16_t bufferLength) {

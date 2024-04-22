@@ -6,10 +6,6 @@
 #include <fhatos.hpp>
 #include <kernel/util/ansi.hpp>
 
-#define UNITY_BEGIN()                                                          \
-  Serial.println(fhatos::kernel::ANSI_ART);                                    \
-  UnityBegin(__FILE__)
-
 #define SETUP_AND_LOOP()                                                       \
   void setup() {                                                               \
     Serial.begin(FOS_SERIAL_BAUDRATE);                                         \
@@ -18,18 +14,19 @@
   }                                                                            \
   void loop() {}
 
-#define TEST_MESSAGE(format, ...)                                              \
+#define FOS_TEST_MESSAGE(format, ...)                                          \
   Serial.printf("  line %i", __LINE__);                                        \
   Serial.printf((format), ##__VA_ARGS__);                                      \
   Serial.println();
 
 #define TEST_ASSERT_EQUAL_FURI(x, y)                                           \
-  TEST_MESSAGE("\t%s =?= %s", (x).toString().c_str(), (y).toString().c_str()); \
+  FOS_TEST_MESSAGE("\t%s =?= %s", (x).toString().c_str(),                      \
+                   (y).toString().c_str());                                    \
   TEST_ASSERT_TRUE((x).equals(y));
 
 #define TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                       \
-  TEST_MESSAGE("\t%s !=?= %s", (x).toString().c_str(),                         \
-               (y).toString().c_str());                                        \
+  FOS_TEST_MESSAGE("\t%s !=?= %s", (x).toString().c_str(),                     \
+                   (y).toString().c_str());                                    \
   TEST_ASSERT_FALSE((x).equals(y))
 
 #define TEST_ASSERT_EQUAL_CHAR_FURI(x, y)                                      \
@@ -46,6 +43,7 @@
 namespace fhatos::kernel {
 #define RUN_TESTS(x)                                                           \
   void RUN_UNITY_TESTS() {                                                     \
+    LOG(NONE, ANSI_ART);                                                       \
     UNITY_BEGIN();                                                             \
     x;                                                                         \
     UNITY_END();                                                               \

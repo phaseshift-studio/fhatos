@@ -3,11 +3,15 @@
 
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/actor/router/local_router/local_router.hpp>
+#include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
+#include <kernel/process/actor/router/meta_router/meta_router.hpp>
+#include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
+#include FOS_PROCESS(thread.hpp)
 
 namespace fhatos::kernel {
-template <typename TASK, typename MESSAGE = StringMessage, typename ROUTER = LocalRouter<MESSAGE>>
+template <typename TASK, typename MESSAGE = StringMessage, typename ROUTER = MqttRouter<MESSAGE,MQTT<Thread,MESSAGE>>>
 class Actor : public TASK,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:

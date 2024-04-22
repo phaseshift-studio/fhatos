@@ -1,11 +1,9 @@
-#ifndef fhatos_kernel__thread_hpp
-#define fhatos_kernel__thread_hpp
+#ifndef fhatos_kernel__threadx_hpp
+#define fhatos_kernel__threadx_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/abstract_scheduler.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
-#include <kernel/process/esp32/scheduler.hpp>
 //
 
 namespace fhatos::kernel {
@@ -30,9 +28,9 @@ public:
          "Scheduler starting %s thread %s (!rthreads:%i!!)\n",
          this->isLean() ? "lean" : "", this->id().c_str(),
          Scheduler->__THREADS.size());*/
-    if (this->running()) {
-      this->start();
-    }
+    //if (this->running()) {
+     // Scheduler::singleton()->addThread(this);
+   // }
   }
 
   virtual void stop() override { this->__running = false; }

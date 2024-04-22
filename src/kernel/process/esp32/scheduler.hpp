@@ -2,15 +2,16 @@
 #define fhatos_kernel__scheduler_hpp
 
 #include <fhatos.hpp>
+///
 #include <kernel/process/abstract_scheduler.hpp>
-#include <kernel/process/esp32/fiber.hpp>
-#include <kernel/process/esp32/thread.hpp>
-#include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
+#include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {
 
-class Scheduler : AbstractScheduler<Thread, Fiber> {
+class Scheduler : public AbstractScheduler {
 
 protected:
   bool initialized = false;
@@ -21,9 +22,9 @@ public:
     return &scheduler;
   }
 
-  const bool removeThread(const ID &threadId) override {
+  const bool removeThread(const ID &threadId) {
     uint16_t size = __THREADS.size();
-    __THREADS.remove_if([threadId](Thread* thread) {
+    __THREADS.remove_if([threadId](Thread *thread) {
       if (threadId.equals(thread->id())) {
         thread->stop();
         return true;
@@ -33,31 +34,57 @@ public:
     return __THREADS.size() < size;
   };
 
-  const bool removeFiber(const ID &fiberId) override {
+  const bool removeFiber(const ID &fiberId) {
     uint16_t size = __FIBERS.size();
     for (const auto &fiber : __FIBERS) {
       if (fiber->id().equals(fiberId))
         fiber->stop();
     }
+    return __FIBERS.size() < size;
   };
 
-  const bool addThread(Thread *thread) {
+
+  const bool removeCoroutine(const ID &coroutineId) {
+    uint16_t size = __COROUTINES.size();
+    for (const auto &coroutine : __COROUTINES) {
+      if (coroutine->id().equals(coroutineId))
+        coroutine->stop();
+    }
+    return __COROUTINES.size() < size;
+  };
+
+  const bool addProcess(Thread *thread) {
     thread->setup();
     __THREADS.push_back(thread);
     return true;
   };
 
-  const bool addFiber(Fiber *fiber) {
+  const bool addProcess(Fiber *fiber) {
     fiber->setup();
     __FIBERS.push_back(fiber);
+    return true;
+  };
+
+  const bool addProcess(Coroutine *coroutine) {
+    coroutine->setup();
+    __COROUTINES.push_back(coroutine);
+    return true;
+  };
+
+  const bool addProcess(KernelProcess *kernelProcess) {
+    kernelProcess->setup();
+    __KERNELS.push_back(kernelProcess);
     return true;
   };
 
   void setup() {
     if (!initialized) {
       initialized = true;
-      // LOG(INFO, "Initializing thread pool (!rthreads:%i!!)\n",
-      //    Scheduler->__THREADS.size());
+      for (const auto &kernel : __KERNELS) {
+        kernel->start();
+      }
+      LOG(INFO, "Initializing thread pool (!rthreads:%i!!)\n",
+          __THREADS.size());
       // HANDLE FIBERS
       const BaseType_t fiberResult = xTaskCreatePinnedToCore(
           __FIBER_FUNCTION, // Function that should be called
@@ -67,11 +94,11 @@ public:
           CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
           NULL,                                   // Task handle
           tskNO_AFFINITY);                        // Processor core
-      // LOG(fiberResult == pdPASS ? INFO : ERROR,
-      //    "!MThreading master lean task!!\n");
+      LOG(fiberResult == pdPASS ? INFO : ERROR,
+          "!MThreading master lean task!!\n");
 
       // HANDLE THREADS
-      for (const auto &thread : this->__THREADS) {
+      for (const auto &thread : __THREADS) {
         const BaseType_t threadResult = xTaskCreatePinnedToCore(
             __THREAD_FUNCTION,               // Function that should be called
             thread->id().segment(1).c_str(), // Name of the task (for debugging)
@@ -80,20 +107,21 @@ public:
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             &(thread->handle),                      // Task handle
             tskNO_AFFINITY);                        // Processor core
-        // LOG(threadResult == pdPASS ? INFO : ERROR, "!MThreading %s %s!!\n",
-        //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
+        LOG(threadResult == pdPASS ? INFO : ERROR, "!MThreading %s!!\n",
+            thread->id().toString().c_str());
       }
-      /*LOG(INFO, "!B[Scheduler Configuration]!!\n");
+      LOG(INFO, "!B[Scheduler Configuration]!!\n");
       LOG(INFO,
-          "\tNumber of threads         : %i\n"
-          "\tNumber of standard threads: %i\n"
-          "\tNumber of virtual threads : %i\n",
-          Scheduler->__THREADS.size(),
-          Scheduler->__THREADS.size() - Scheduler->__LEAN_THREADS->size(),
-          Scheduler->__LEAN_THREADS->size());*/
+          "\tNumber of processes   : %i\n"
+          "\t  Number of kernels   : %i\n"
+          "\t  Number of threads   : %i\n"
+          "\t  Number of fibers    : %i\n"
+          "\t  Number of coroutines: %i\n",
+          __THREADS.size() + __FIBERS.size() + __KERNELS.size() + __COROUTINES.size(),
+          __KERNELS.size(), __THREADS.size(), __FIBERS.size(),__COROUTINES.size());
     } else {
-      // LOG(ERROR, "Thread pool already initialized via global
-      // Thread::init()\n");
+      LOG(ERROR,
+          "Thread pool already initialized via global Scheduler::setup()\n");
     }
   }
 
@@ -102,8 +130,10 @@ public:
 private:
   Scheduler(){};
   TaskHandle_t *FIBER_THREAD = nullptr;
-  static List<Fiber *> __FIBERS;
-  static List<Thread *> __THREADS;
+  List<Coroutine*> __COROUTINES;
+  List<Fiber *> __FIBERS;
+  List<Thread *> __THREADS;
+  List<KernelProcess *> __KERNELS;
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
@@ -135,6 +165,7 @@ private:
   //////////////////////////////////////////////////////
   static void __THREAD_FUNCTION(void *vptr_thread) {
     Thread *thread = (Thread *)vptr_thread;
+    thread->start();
     while (thread->running()) {
       thread->loop();
       vTaskDelay(1); // feeds the watchdog for the task

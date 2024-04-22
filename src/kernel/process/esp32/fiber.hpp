@@ -2,8 +2,6 @@
 #define fhatos_kernel__fiber_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/abstract_scheduler.hpp>
-#include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
 //

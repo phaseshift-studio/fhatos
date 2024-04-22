@@ -2,7 +2,6 @@
 #define fhatos_kernel__wifi_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/actor/actor.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
 //
@@ -26,7 +25,7 @@ namespace fhatos::kernel {
 class WIFI : public KernelProcess {
 
 private:
-  WIFI(const ID &id = ID("wifi"), const char *ssids = STR(WIFI_SSID),
+  WIFI(const ID &id = ID("name@wifi"), const char *ssids = STR(WIFI_SSID),
        const char *passwords = STR(WIFI_PASS))
       : KernelProcess(id) {
     this->ssids = ssids;
@@ -38,7 +37,13 @@ protected:
   const char *passwords;
 
 public:
- static WIFI *singleton(const ID &id = ID("wifi"),
+ static ID idFromIP(const String user, const String path = "") {
+  if(!WIFI::singleton()->running())
+    WIFI::singleton()->start();
+    return ID((user + "@" + WIFI::singleton()->ip().toString() +
+              (path.isEmpty() ? "" : ("/" + path))).c_str());
+  }
+ static WIFI *singleton(const ID &id = ID("name@wifi"),
                                 const char *ssids = STR(WIFI_SSID),
                                 const char *passwords = STR(WIFI_PASS)) {
     static WIFI singleton = WIFI(id, ssids, passwords);
@@ -51,8 +56,10 @@ public:
 
   bool reconnect() { return WiFi.reconnect(); }
 
-  void start() override { this->setStation();
-  KernelProcess::start();}
+  void start() override { 
+    this->setStation();
+    KernelProcess::start();
+  }
 
   void stop() override {
     WiFi.disconnect();
@@ -116,11 +123,12 @@ private:
     for (int j = 0; j < i; j++) {
       multi.addAP(ssids_parsed[j], passwords_parsed[j]);
     }
-    WiFi.hostname(this->id().user().value());
     uint8_t attempts = 0;
     while (attempts < 10) {
       attempts++;
       if (multi.run() == WL_CONNECTED) {
+        this->__id = *(new ID(WIFI::idFromIP("wifi").toString().c_str()));
+         WiFi.hostname(this->id().user().value());
         const bool mdnsStatus =   MDNS.begin(this->id().user().value());
         LOG(INFO,
             "\tID             : %s\n"
@@ -158,6 +166,6 @@ private:
     return this;
   }
 };
-} // namespace fhatos::kernel
+}
 
 #endif
