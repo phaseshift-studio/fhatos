@@ -43,7 +43,6 @@ public:
     return __FIBERS.size() < size;
   };
 
-
   const bool removeCoroutine(const ID &coroutineId) {
     uint16_t size = __COROUTINES.size();
     for (const auto &coroutine : __COROUTINES) {
@@ -117,8 +116,10 @@ public:
           "\t  Number of threads   : %i\n"
           "\t  Number of fibers    : %i\n"
           "\t  Number of coroutines: %i\n",
-          __THREADS.size() + __FIBERS.size() + __KERNELS.size() + __COROUTINES.size(),
-          __KERNELS.size(), __THREADS.size(), __FIBERS.size(),__COROUTINES.size());
+          __THREADS.size() + __FIBERS.size() + __KERNELS.size() +
+              __COROUTINES.size(),
+          __KERNELS.size(), __THREADS.size(), __FIBERS.size(),
+          __COROUTINES.size());
     } else {
       LOG(ERROR,
           "Thread pool already initialized via global Scheduler::setup()\n");
@@ -130,7 +131,7 @@ public:
 private:
   Scheduler(){};
   TaskHandle_t *FIBER_THREAD = nullptr;
-  List<Coroutine*> __COROUTINES;
+  List<Coroutine *> __COROUTINES;
   List<Fiber *> __FIBERS;
   List<Thread *> __THREADS;
   List<KernelProcess *> __KERNELS;
@@ -139,6 +140,9 @@ private:
   //////////////////////////////////////////////////////
   static void __FIBER_FUNCTION(void *vptr_fibers) {
     List<Fiber *> *fibers = (List<Fiber *> *)vptr_fibers;
+    for ( Fiber *fiber : *fibers) {
+      fiber->start();
+    }
     while (!fibers->empty()) {
       fibers->remove_if([](Fiber *fiber) {
         if (!fiber->running()) {

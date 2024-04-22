@@ -19,7 +19,7 @@ namespace fhatos::kernel {
 typedef std::function<void(const char *, const byte *, const uint32_t)>
     RecvFunction;
 
-template <typename PROCESS, typename MESSAGE> class MQTT : public PROCESS {
+template <typename PROCESS = Thread, typename MESSAGE = StringMessage> class MQTT : public PROCESS {
 public:
   static MQTT *singleton(const ID id = WIFI::idFromIP("mqtt"),
                          const char *domain = STR(MQTT_BROKER_ADDR),
@@ -64,11 +64,11 @@ public:
   };
 
   bool subscribe(const ID &source, const Pattern &topic, const uint8_t qos,
-                 const OnRecvFunction<MESSAGE> onRecv) {
+                 const RecvFunction onRecv) {
     bool found = false;
     if (!__SUBSCRIPTIONS.empty()) {
       for (const auto &sub : __SUBSCRIPTIONS) {
-        if (sub.source.equals(source) && sub.topic.equals(topic)) {
+        if (sub.source.equals(source) && sub.pattern.equals(topic)) {
           found = true;
           break;
         }
@@ -85,8 +85,8 @@ public:
           "[!B%s!!] =!msubscribe[qos:%i]!!=> [!B%s!!]\n",
           source.toString().c_str(), qos, topic.toString().c_str());
       if (success) {
-        this->__SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
-            .source = source, .topic = topic, .qos = qos, .onRecv = onRecv});
+      //  __SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
+      //      .source = source, .pattern = topic, .qos = (QoS)qos, .onRecv = onRecv});
       }
     }
     return success;
