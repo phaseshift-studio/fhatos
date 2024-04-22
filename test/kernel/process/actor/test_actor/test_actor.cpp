@@ -7,8 +7,8 @@
 #include <kernel/process/actor/actor_monoid.hpp>
 #include <kernel/process/actor/broker/broker.hpp>
 #include <kernel/process/actor/broker/local_broker/local_broker.hpp>
-#include <kernel/process/task/esp32/scheduler.hpp>
-#include <kernel/process/task/esp32/thread.hpp>
+#include <kernel/process/esp32/scheduler.hpp>
+#include <kernel/process/esp32/thread.hpp>
 #include <kernel/structure/structure.hpp>
 #include <unity.h>
 

@@ -2,10 +2,10 @@
 #define fhatos_kernel__scheduler_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/task/abstract_scheduler.hpp>
-#include <kernel/process/task/esp32/fiber.hpp>
-#include <kernel/process/task/esp32/thread.hpp>
-#include <kernel/process/task/task.hpp>
+#include <kernel/process/abstract_scheduler.hpp>
+#include <kernel/process/esp32/fiber.hpp>
+#include <kernel/process/esp32/thread.hpp>
+#include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
 
 namespace fhatos::kernel {
@@ -21,17 +21,37 @@ public:
     return &scheduler;
   }
 
-  bool addThread(Thread *thread) {
+  const bool removeThread(const ID &threadId) override {
+    uint16_t size = __THREADS.size();
+    __THREADS.remove_if([threadId](Thread* thread) {
+      if (threadId.equals(thread->id())) {
+        thread->stop();
+        return true;
+      }
+      return false;
+    });
+    return __THREADS.size() < size;
+  };
+
+  const bool removeFiber(const ID &fiberId) override {
+    uint16_t size = __FIBERS.size();
+    for (const auto &fiber : __FIBERS) {
+      if (fiber->id().equals(fiberId))
+        fiber->stop();
+    }
+  };
+
+  const bool addThread(Thread *thread) {
     thread->setup();
     __THREADS.push_back(thread);
     return true;
-  }
+  };
 
-  bool addFiber(Fiber *fiber) {
+  const bool addFiber(Fiber *fiber) {
     fiber->setup();
     __FIBERS.push_back(fiber);
     return true;
-  }
+  };
 
   void setup() {
     if (!initialized) {
@@ -84,11 +104,9 @@ private:
   TaskHandle_t *FIBER_THREAD = nullptr;
   static List<Fiber *> __FIBERS;
   static List<Thread *> __THREADS;
-
-  static void removeTask(Thread *thread) {
-    Scheduler::singleton()->__THREADS.remove_if(
-        [thread](Thread *tempThread) { return thread->equals(*tempThread); });
-  }
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
   static void __FIBER_FUNCTION(void *vptr_fibers) {
     List<Fiber *> *fibers = (List<Fiber *> *)vptr_fibers;
     while (!fibers->empty()) {
@@ -112,7 +130,9 @@ private:
     // LOG(INFO, "!MDisconnecting master lean thread!!\n");
     vTaskDelete(NULL);
   }
-  ////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
   static void __THREAD_FUNCTION(void *vptr_thread) {
     Thread *thread = (Thread *)vptr_thread;
     while (thread->running()) {
@@ -121,7 +141,7 @@ private:
     }
     // LOG(INFO, "!MDisconnecting thread %s %s!!\n",
     //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
-    Scheduler::removeTask(thread);
+    Scheduler::singleton()->removeThread(thread->id());
     vTaskDelete(NULL);
   }
 };
