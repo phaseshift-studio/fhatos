@@ -120,6 +120,12 @@ public:
     return (index < this->__length) ? String(this->__segments[index])
                                     : String();
   }
+
+  Option<String> user() const {
+    Option<Pair<String, String>> temp = this->user_password();
+    return temp.has_value() ? temp->first : Option<String>();
+  }
+
   Option<Pair<String, String>> user_password() const {
     const int i = this->authority().indexOf("@");
     if (i < 0)
@@ -163,7 +169,6 @@ public:
   }
 };
 
-
 class ID : public fURI {
 
 public:
@@ -182,7 +187,7 @@ public:
 class Pattern : public fURI {
 public:
   Pattern() : fURI(""){};
-  Pattern(const ID& id) : Pattern(id.toString()) {}
+  Pattern(const ID &id) : Pattern(id.toString()) {}
   Pattern(const Pattern &id) : fURI(id){};
   Pattern(const String &furiString) : fURI(furiString){};
   Pattern(const char *furiCharacters) : fURI(furiCharacters){};
@@ -198,14 +203,14 @@ public:
 
 class IDed {
 public:
-  IDed(const ID &id) { this->__id = new ID(id); }
-  const ID id() const { return *__id; }
+  IDed(const ID &id) : __id(id) {}
+  const ID id() const { return __id; }
   const bool equals(const IDed &other) const {
-    return this->id().equals(other.id());
+    return this->__id.equals(other.__id);
   }
 
 protected:
-  ID *__id;
+  ID __id;
 };
 
 } // namespace fhatos::kernel

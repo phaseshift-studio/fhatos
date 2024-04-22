@@ -2,7 +2,9 @@
 #define fhatos_kernel__wifi_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/esp32/thread.hpp>
+#include <kernel/process/actor/actor.hpp>
+#include <kernel/process/process.hpp>
+#include <kernel/structure/structure.hpp>
 //
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -21,13 +23,12 @@
 
 namespace fhatos::kernel {
 
-class WIFI : public Thread {
+class WIFI : public KernelProcess {
 
 private:
-  WIFI(const ID& id = ID("wifi"),
-       const char *ssids = STR(WIFI_SSID),
+  WIFI(const ID &id = ID("wifi"), const char *ssids = STR(WIFI_SSID),
        const char *passwords = STR(WIFI_PASS))
-      : Thread(id) {
+      : KernelProcess(id) {
     this->ssids = ssids;
     this->passwords = passwords;
   }
@@ -37,7 +38,7 @@ protected:
   const char *passwords;
 
 public:
-  inline static WIFI *singleton(const ID& id = ID("wifi"),
+ static WIFI *singleton(const ID &id = ID("wifi"),
                                 const char *ssids = STR(WIFI_SSID),
                                 const char *passwords = STR(WIFI_PASS)) {
     static WIFI singleton = WIFI(id, ssids, passwords);
@@ -50,11 +51,12 @@ public:
 
   bool reconnect() { return WiFi.reconnect(); }
 
-  void start() override { this->setStation(); }
+  void start() override { this->setStation();
+  KernelProcess::start();}
 
   void stop() override {
     WiFi.disconnect();
-    Thread::stop();
+    KernelProcess::stop();
   }
 
 private:
@@ -76,9 +78,9 @@ private:
           "\tBroadcast:       %s\n"
           "\tChannel:         %i\n"
           "\tMax connections: %i\n",
-          this->id().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
-          WiFi.softAPmacAddress().c_str(), hideSSID ? "false" : "true",
-          WiFi.channel(), maxConnections);
+          this->id().toString().c_str(), ssid,
+          WiFi.softAPIP().toString().c_str(), WiFi.softAPmacAddress().c_str(),
+          hideSSID ? "false" : "true", WiFi.channel(), maxConnections);
     }
 
     WiFi.enableAP(true);
@@ -114,13 +116,12 @@ private:
     for (int j = 0; j < i; j++) {
       multi.addAP(ssids_parsed[j], passwords_parsed[j]);
     }
-    WiFi.hostname(Helper::machine());
+    WiFi.hostname(this->id().user().value());
     uint8_t attempts = 0;
     while (attempts < 10) {
       attempts++;
       if (multi.run() == WL_CONNECTED) {
-        this->__id = Helper::makeId("wifi");
-        const bool mdnsStatus = MDNS.begin(Helper::machine());
+        const bool mdnsStatus =   MDNS.begin(this->id().user().value());
         LOG(INFO,
             "\tID             : %s\n"
             "\tStatus         : %s\n"
@@ -133,31 +134,30 @@ private:
             "\tSubnet mask    : %s\n"
             "\tDNS address    : %s\n"
             "\tChannel        : %i\n",
-            this->id().c_str(),
+            this->id().toString().c_str(),
             WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
             WiFi.SSID().c_str(), WiFi.macAddress().c_str(),
             WiFi.localIP().toString().c_str(), WiFi.getHostname(),
-            mdnsStatus ? (String(Helper::machine()) + ".local").c_str()
+            mdnsStatus ? (this->id().user().value() + ".local").c_str()
                        : "<error>",
             WiFi.gatewayIP().toString().c_str(),
             WiFi.subnetMask().toString().c_str(),
             WiFi.dnsIP().toString().c_str(), WiFi.channel());
         if (!mdnsStatus) {
-          LOGTASK(ERROR, this, "Unable to create mDNS hostname %s\n",
-                  Helper::machine());
+          LOG_TASK(ERROR, this, "Unable to create mDNS hostname %s\n",
+                  this->id().user()->c_str());
         }
         LOG(INFO, "\tConnection attempts: %i\n", attempts);
         attempts = 100;
       }
     }
     if (attempts != 100) {
-      LOGTASK(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
+      LOG_TASK(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
               attempts);
     }
     return this;
   }
 };
 } // namespace fhatos::kernel
-
 
 #endif

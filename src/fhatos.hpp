@@ -108,20 +108,19 @@ enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
 #define FSTR(a) F(STR(a))
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), F(format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())
-#define LOGTASK(logtype, task, format, ...)                                    \
+#define LOG_TASK(logtype, process, format, ...)                                \
   LOG((logtype), (String("[%s] ") + (format) + "\n").c_str(),                  \
-      Helper::popIdComponentsLeft((task->id()), 1).c_str(), ##__VA_ARGS__)
+      (process)->id().toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(logtype, subscription)                                   \
   LOG((logtype), "[!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",               \
-      (subscription.source.toString().c_str()), ((uint8_t)subscription.qos),              \
+      (subscription.source.toString().c_str()), ((uint8_t)subscription.qos),   \
       (subscription.pattern.toString().c_str()))
-#define LOG_UNSUBSCRIBE(logtype, source, pattern)                                   \
-  LOG((logtype), "[!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",               \
-      (source.toString().c_str()),              \
-      (pattern.toString().c_str()))
+#define LOG_UNSUBSCRIBE(logtype, source, pattern)                              \
+  LOG((logtype), "[!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",                       \
+      (source.toString().c_str()), (pattern.toString().c_str()))
 #define LOG_PUBLISH(logtype, message)                                          \
   LOG((logtype), "[!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",       \
-      (message.source.toString().c_str()), (FP_BOOL_STR(message.retain)),                 \
+      (message.source.toString().c_str()), (FP_BOOL_STR(message.retain)),      \
       (message.payload.c_str()), (message.target.toString().c_str()))
 #define LOG_RECEIVE(logtype, message, subscription)                            \
   LOG((logtype),                                                               \
@@ -129,13 +128,14 @@ enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
           ? "[!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]\n"     \
           : "[!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%s!!]"   \
             "\n",                                                              \
-      (subscription.source.toString().c_str()), (subscription.pattern.toString().c_str()),           \
+      (subscription.source.toString().c_str()),                                \
+      (subscription.pattern.toString().c_str()),                               \
       (subscription.pattern.equals(message.target))                            \
-          ? (message.payload.c_str())                               \
-          : (message.target.toString().c_str()),                                          \
+          ? (message.payload.c_str())                                          \
+          : (message.target.toString().c_str()),                               \
       (subscription.pattern.equals(message.target))                            \
-          ? (message.source.toString().c_str())                                           \
-          : (message.payload.c_str()),                              \
+          ? (message.source.toString().c_str())                                \
+          : (message.payload.c_str()),                                         \
       (message.source.toString().c_str()))
 
 static TriConsumer<const LOG_TYPE, const char *, const uint16_t> LOG_FUNCTION =

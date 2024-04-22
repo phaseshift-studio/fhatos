@@ -20,6 +20,11 @@ public:
   virtual void yield(){};
 };
 
+class KernelProcess : public Process {
+public:
+  KernelProcess(const ID &id) : Process(id) {}
+};
+
 } // namespace fhatos::kernel
 
 #endif
