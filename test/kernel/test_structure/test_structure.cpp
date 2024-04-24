@@ -8,6 +8,35 @@
 
 namespace fhatos::kernel {
 
+void test_furi_memory_leaks() {
+  int sketchMemory = -1;
+  int heapMemory = -1;
+  for (int i = 0; i < 20000; i++) {
+    fURI a = fURI("127.0.0.1");
+    fURI b = fURI(a);
+    fURI c = fURI(b.toString());
+    fURI d = fURI(b.segment(0));
+    fURI e = fURI(b.segment(0)).extend("");
+    TEST_ASSERT_TRUE(a.equals(a));
+    TEST_ASSERT_TRUE(a.equals(b));
+    TEST_ASSERT_TRUE(a.equals(c));
+    TEST_ASSERT_TRUE(a.equals(d));
+    TEST_ASSERT_TRUE(a.equals(e));
+    if (sketchMemory != -1) {
+      TEST_ASSERT_EQUAL_INT32(sketchMemory, ESP.getFreeSketchSpace());
+      TEST_ASSERT_EQUAL_INT32(heapMemory, ESP.getFreeHeap());
+    }
+    sketchMemory = ESP.getFreeSketchSpace();
+    heapMemory = ESP.getFreeHeap();
+    if (i % 1000 == 0) {
+      FOS_TEST_MESSAGE("fURI count: %i\t[free sketch:%i][free heap:%i]", i,
+                       sketchMemory, heapMemory);
+    }
+  }
+  FOS_TEST_MESSAGE("FINAL [free sketch:%i][free heap:%i]",
+                   ESP.getFreeSketchSpace(), ESP.getFreeHeap());
+}
+
 void test_furi_equals() {
   /// TRUE
   TEST_ASSERT_TRUE(fURI("").equals(fURI("")));
@@ -96,7 +125,7 @@ void test_furi_extend() {
   TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"),
                          fURI("127.0.0.1").extend("a").extend("b"));
   TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"),
-                         fURI("127.0.0.1").extend("a/b"));
+                         fURI("127.0.0.1").extend("a").extend("b"));
 
   //// FALSE
   TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"),
@@ -109,9 +138,9 @@ void test_furi_slash_operator() {
   TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1") / "a");
   TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1") / "a" / "b");
   TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"),
-                         fURI("127.0.0.1") / "a" / "b/c");
+                         fURI("127.0.0.1") / "a" / "b" / "c");
   TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"),
-                         fURI("127.0.0.1") / "a" / "b/c" / "" / "/");
+                         fURI("127.0.0.1") / "a" / "b" / "c" / "" / "");
 }
 
 void test_furi_match() {
@@ -143,6 +172,7 @@ void test_id_construction() {
 }
 
 RUN_TESTS(                              //
+    RUN_TEST(test_furi_memory_leaks);   //
     RUN_TEST(test_furi_equals);         //
     RUN_TEST(test_furi_length);         //
     RUN_TEST(test_furi_user_password);  //

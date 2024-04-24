@@ -15,17 +15,17 @@
   void loop() {}
 
 #define FOS_TEST_MESSAGE(format, ...)                                          \
-  Serial.printf("  line %i", __LINE__);                                        \
+  Serial.printf("  line %i\t", __LINE__);                                        \
   Serial.printf((format), ##__VA_ARGS__);                                      \
   Serial.println();
 
 #define TEST_ASSERT_EQUAL_FURI(x, y)                                           \
-  FOS_TEST_MESSAGE("\t%s =?= %s", (x).toString().c_str(),                      \
+  FOS_TEST_MESSAGE("%s =?= %s", (x).toString().c_str(),                      \
                    (y).toString().c_str());                                    \
   TEST_ASSERT_TRUE((x).equals(y));
 
 #define TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                       \
-  FOS_TEST_MESSAGE("\t%s !=?= %s", (x).toString().c_str(),                     \
+  FOS_TEST_MESSAGE("%s !=?= %s", (x).toString().c_str(),                     \
                    (y).toString().c_str());                                    \
   TEST_ASSERT_FALSE((x).equals(y))
 

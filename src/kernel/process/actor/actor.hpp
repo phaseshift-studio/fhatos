@@ -27,7 +27,7 @@ public:
     return ROUTER::singleton()->subscribe(
         Subscription<MESSAGE>{.actor = this,
                               .source = this->id(),
-                              .pattern = /*makeTopic(*/relativePattern,
+                              .pattern = makeTopic(relativePattern),
                               .qos = qos,
                               .onRecv = onRecv});
   }
@@ -35,7 +35,7 @@ public:
   virtual const RESPONSE_CODE
   unsubscribe(const Pattern &relativePattern = F("")) {
     return ROUTER::singleton()->unsubscribe(
-        this->id(), /*makeTopic(*/relativePattern);
+        this->id(), makeTopic(relativePattern));
   }
 
   const RESPONSE_CODE publish(const IDed &target, const String &message,
@@ -47,7 +47,7 @@ public:
                                       const String &message,
                                       const bool retain = RETAIN_MESSAGE) {
     return ROUTER::singleton()->publish(
-        MESSAGE(this->id(), /*makeTopic(*/relativeTarget, message, retain));
+        MESSAGE(this->id(), makeTopic(relativeTarget), message, retain));
   }
 
   virtual void setup() override { PROCESS::setup(); }
@@ -84,7 +84,7 @@ public:
       return false;
     // LOG_RECEIVE(INFO, mail->first, mail->second);
     mail.value()->first.execute(mail.value()->second);
-    delete mail.value();
+    //delete mail.value();
     return true;
   }
 

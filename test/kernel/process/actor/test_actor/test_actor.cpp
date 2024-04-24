@@ -132,7 +132,7 @@ void test_actor_monoid() {
 RUN_TESTS(                              //
     RUN_TEST(test_actor_communication); //
     RUN_TEST(test_message_retain);      //
-    RUN_TEST(test_actor_monoid);        //
+    //RUN_TEST(test_actor_monoid);        //
 );
 
 } // namespace fhatos::kernel

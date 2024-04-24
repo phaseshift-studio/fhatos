@@ -4,23 +4,26 @@
 #include <fhatos.hpp>
 #include <memory>
 
-#define FOS_MAX_FURI_SEGMENT_LENGTH 10
+#define FOS_MAX_FURI_SEGMENTS 10
 
 namespace __private_fhatos {
 
 static int split(const char *text, const char *deliminator, char **&result,
                  uint8_t offset = 0) {
-  char *copy = strdup(text);
+  char *copy;
+  char *freeable_copy;
+  freeable_copy = copy = strdup(text);
   char *token;
   int i = offset;
+
   while ((token = strsep(&copy, deliminator)) != nullptr) {
     if (strlen(token) > 0) {
       result[i] = strdup(token);
       i++;
     }
   }
-  delete copy;
-  copy = nullptr;
+  delete token;
+  delete freeable_copy;
   return i;
 }
 
@@ -30,8 +33,8 @@ static bool match(const char *id_cstr, const char *pattern_cstr) {
     return strcmp(id_cstr, pattern_cstr) == 0;
   if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
     return true;
-  char **idParts = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
-  char **patternParts = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
+  char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
+  char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
   int idLength = split(id_cstr, "/", idParts);
   if (id_cstr[strlen(id_cstr) - 1] == '/')
     idLength++;
@@ -50,10 +53,14 @@ static bool match(const char *id_cstr, const char *pattern_cstr) {
     }
     return patternLength == idLength;
   }();
-  delete[] (idParts);
-  delete[] (patternParts);
-  idParts = nullptr;
-  patternParts = nullptr;
+  for (uint8_t i = 0; i < idLength; i++) {
+    delete[] idParts[i];
+  }
+  delete[] idParts;
+  for (uint8_t i = 0; i < patternLength; i++) {
+    delete[] patternParts[i];
+  }
+  delete[] patternParts;
   return result;
 }
 } // namespace __private_fhatos
@@ -75,34 +82,48 @@ protected:
 public:
   fURI() { __length = 0; }
   fURI(const fURI &furi) {
-    this->__segments = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
+    this->__segments = new char *[furi.__length];
     for (int i = 0; i < furi.__length; i++) {
-      this->__segments[i] = furi.__segments[i];
+      this->__segments[i] = strdup(furi.__segments[i]);
     }
     this->__length = furi.__length;
   };
-  fURI(const String &furiString) {
-    char *temp = strdup(furiString.c_str());
-    this->__segments = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
-    this->__length = __private_fhatos::split(temp, "/", this->__segments);
-    delete temp;
-    temp = nullptr;
-  };
+  fURI(const String &furiString) : fURI(furiString.c_str()) {}
   fURI(const char *furiCharacters) {
-    this->__segments = new char *[FOS_MAX_FURI_SEGMENT_LENGTH];
-    this->__length =
-        __private_fhatos::split(furiCharacters, "/", this->__segments);
+    if (0 == strlen(furiCharacters)) {
+      this->__length = 0;
+    } else {
+      uint8_t counter = 0;
+      for (uint8_t i = 0; i < strlen(furiCharacters); i++) {
+        if (furiCharacters[i] == '/')
+          counter++;
+      }
+      this->__segments = new char *[counter + 1];
+      if (counter == 0) {
+        this->__segments[0] = strdup(furiCharacters);
+        this->__length = 1;
+      } else {
+        this->__length =
+            __private_fhatos::split(furiCharacters, "/", this->__segments);
+      }
+    }
   };
-  fURI(const fURI &parent, const char *extension) : fURI(parent) {
-    this->__segments[this->__length++] = strdup(extension);
-  };
+  fURI(const fURI &parent, const char *extension)
+      : fURI(parent.toString() + "/" + extension){
+            // this->__segments[this->__length++] = strdup(extension);
+        };
   fURI(const StringSumHelper &shelper) : fURI(shelper.c_str()){};
   ~fURI() {
-    delete[] this->__segments;
-    this->__segments = nullptr;
+    if (this->__length > 0) {
+      for (uint8_t i = 0; i < this->__length; i++) {
+        delete this->__segments[i];
+      }
+      delete __segments;
+    }
   }
   const fURI extend(const char *segments) const {
-    return fURI(*this, segments);
+    return (strlen(segments) == 0) ? fURI(this->toString())
+                                   : fURI(this->toString() + "/" + segments);
   }
   const uint8_t length() const { return this->__length; }
   const bool empty() const { return 0 == this->__length; }

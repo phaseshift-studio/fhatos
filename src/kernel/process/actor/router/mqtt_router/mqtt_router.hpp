@@ -35,11 +35,11 @@ public:
                                            const byte *payload,
                                            const int length) {
                  subscription.actor->push(
-                     {subscription,
+                     new Pair<Subscription<MESSAGE>,MESSAGE>(subscription,
                       MESSAGE{.source = "unknown",
                               .target = topic,
                               .payload = MESSAGE::fromBytes(payload, length),
-                              .retain = true}});
+                              .retain = true}));
                }))
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::REPEAT_SUBSCRIPTION;

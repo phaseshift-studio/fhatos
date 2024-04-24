@@ -21,7 +21,7 @@ public:
   }
   ActorMonoid<ACTOR, MESSAGE> operator>(ACTOR *other) {
     this->actor->publish(*other, this->message->payload, false);
-    this->message = nullptr;
+    //this->message = nullptr;
     return *this;
   }
   ActorMonoid<ACTOR, MESSAGE>
