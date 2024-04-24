@@ -7,20 +7,21 @@
 #include <kernel/process/actor/router/meta_router/meta_router.hpp>
 #include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
 #include <kernel/structure/structure.hpp>
-#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(thread.hpp)
 
 namespace fhatos::kernel {
 
-class Log : public Actor<Fiber, StringMessage, MetaRouter<StringMessage>> {
+template <typename ROUTER = LocalRouter<StringMessage>>
+class Log : public Actor<Thread, StringMessage, ROUTER> {
 public:
   Log(const ID &id = WIFI::idFromIP("log"))
-      : Actor<Fiber, StringMessage, MetaRouter<StringMessage>>(id){};
+      : Actor<Thread, StringMessage, ROUTER>(id){};
 
   virtual void setup() override {
-    this->subscribe(this->id().extend("INFO"), [this](StringMessage message) {
+    this->subscribe(this->id().extend("INFO"), [this](const StringMessage& message) {
       LOG(INFO, message.payload.c_str());
     });
-    this->subscribe(this->id().extend("ERROR"), [this](StringMessage message) {
+    this->subscribe(this->id().extend("ERROR"), [this](const StringMessage& message) {
       LOG(ERROR, message.payload.c_str());
     });
   }

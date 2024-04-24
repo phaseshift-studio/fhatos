@@ -13,7 +13,6 @@ public:
   const ID target;
   const PAYLOAD payload;
   const bool retain;
-
   Message(const ID &source, const ID &target, const PAYLOAD &payload,
           const bool retain)
       : source(source), target(target), payload(payload), retain(retain){};
@@ -40,7 +39,8 @@ public:
 
 class StringMessage : public Message<String> {
 public:
-  StringMessage(const String &payload) : StringMessage(payload.c_str()){};
+  StringMessage(const String &payload)
+      : Message<String>(ID(), ID(), payload, false){};
   StringMessage(const char *payload)
       : Message<String>(ID(), ID(), String(payload), false){};
   StringMessage(const ID &source, const ID &target, const String &payload,

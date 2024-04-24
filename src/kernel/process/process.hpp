@@ -14,7 +14,7 @@ public:
   virtual void setup(){};
   virtual void loop() {}
   virtual void stop(){};
-  virtual bool running() { return true; }
+  virtual const bool running() const { return true; }
   virtual void delay(const uint64_t milliseconds){};
   virtual void yield(){};
 };
@@ -22,6 +22,15 @@ public:
 class KernelProcess : public Process {
 public:
   KernelProcess(const ID &id) : Process(id) {}
+  virtual void stop() override { this->__running = false; };
+  virtual const bool running() const override { return this->__running; }
+  virtual void delay(const uint64_t milliseconds) override {
+    ::delay(milliseconds);
+  }
+  virtual void yield() { ::yield(); }
+
+protected:
+  bool __running = true;
 };
 
 } // namespace fhatos::kernel

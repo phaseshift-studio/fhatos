@@ -8,21 +8,25 @@
 
 using namespace fhatos::kernel;
 
-Log *logger;
+Log<> *logger;
+ID* loggerINFO;
+ID self("self@127.0.0.1");
 
 void setup() {
   Serial.begin(FOS_SERIAL_BAUDRATE);
   LOG(NONE, ANSI_ART);
   Scheduler::singleton()->addProcess(WIFI::singleton());
   Scheduler::singleton()->addProcess(MQTT<Thread, StringMessage>::singleton());
-  Scheduler::singleton()->addProcess(logger = new Log());
+  Scheduler::singleton()->addProcess(logger = new Log<>());
+  loggerINFO = new ID(logger->id().extend("INFO"));
   Scheduler::singleton()->setup();
 }
 
 void loop() {
   static int counter = 0;
-  MetaRouter<StringMessage>::singleton()->publish(
-      StringMessage(ID("self@127.0.0.1"), ID(logger->id().extend("INFO")),
-                    String("logging message: ") + counter++ + "\n", false));
-                    delay(150);
+  String x = String("logging message: ") + counter++ + "\n";
+
+  LocalRouter<StringMessage>::singleton()->publish(
+      StringMessage(self, *loggerINFO,
+                   x , false));
 }

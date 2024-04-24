@@ -51,11 +51,11 @@ public:
     return &singleton;
   }
 
-  bool running() override { return WiFi.isConnected(); }
+  const bool running() const override { return WiFi.isConnected() && KernelProcess::running(); }
 
-  IPAddress ip() { return WiFi.localIP(); }
+  const IPAddress ip() const { return WiFi.localIP(); }
 
-  bool reconnect() { return WiFi.reconnect(); }
+  const bool reconnect() { return WiFi.reconnect(); }
 
   void setup() override {
     KernelProcess::setup();
@@ -66,7 +66,7 @@ public:
     WiFi.disconnect();
     KernelProcess::stop();
   }
-
+  
 private:
   WIFI *setAccessPoint(const char *ssid, const char *password,
                        const bool hideSSID = false,

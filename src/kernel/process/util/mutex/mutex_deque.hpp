@@ -45,13 +45,13 @@ public:
       return Option<T>(t);
     });
   }
-  bool push_front(const T &t, const bool withMutex = true) {
+  bool push_front(const T t, const bool withMutex = true) {
     return lockSwitch<bool>(withMutex, [this, t]() {
       deque.push_front(t);
       return true;
     });
   }
-  bool push_back(const T &t, const bool withMutex = true) {
+  bool push_back(const T t, const bool withMutex = true) {
     return lockSwitch<bool>(withMutex, [this, t]() {
       deque.push_back(t);
       return true;

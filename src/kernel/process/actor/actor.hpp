@@ -13,12 +13,13 @@
 
 namespace fhatos::kernel {
 template <typename PROCESS, typename MESSAGE = StringMessage,
-          typename ROUTER = MqttRouter<MESSAGE, MQTT<Thread, MESSAGE>>>
+          typename ROUTER = MetaRouter<MESSAGE>>
 class Actor : public PROCESS,
               public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
 public:
   Actor(const ID &id) : PROCESS(id) {
-    //this->inbox = new MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE>>();
+    static_assert(std::is_base_of<Router<MESSAGE>, ROUTER>::value,
+                  "ROUTER not derived from Router<MESSAGE>");
   }
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                         const OnRecvFunction<MESSAGE> onRecv,
@@ -26,7 +27,7 @@ public:
     return ROUTER::singleton()->subscribe(
         Subscription<MESSAGE>{.actor = this,
                               .source = this->id(),
-                              .pattern = Pattern(makeTopic(relativePattern)),
+                              .pattern = /*makeTopic(*/relativePattern,
                               .qos = qos,
                               .onRecv = onRecv});
   }
@@ -34,24 +35,19 @@ public:
   virtual const RESPONSE_CODE
   unsubscribe(const Pattern &relativePattern = F("")) {
     return ROUTER::singleton()->unsubscribe(
-        this->id(), Pattern(this->makeTopic(relativePattern)));
+        this->id(), /*makeTopic(*/relativePattern);
   }
 
-  const RESPONSE_CODE publish(const IDed &target, const MESSAGE &message,
+  const RESPONSE_CODE publish(const IDed &target, const String &message,
                               const bool retain = RETAIN_MESSAGE) {
-    return ROUTER::singleton()->publish(MESSAGE{.source = this->id(),
-                                                .target = target.id(),
-                                                .payload = message.payload,
-                                                .retain = retain});
+    return ROUTER::singleton()->publish(
+        MESSAGE(this->id(), target.id(), message, retain));
   }
   virtual const RESPONSE_CODE publish(const ID &relativeTarget,
-                                      const MESSAGE &message,
+                                      const String &message,
                                       const bool retain = RETAIN_MESSAGE) {
     return ROUTER::singleton()->publish(
-        MESSAGE{.source = this->id(),
-                .target = ID(makeTopic(relativeTarget)),
-                .payload = message.payload,
-                .retain = retain});
+        MESSAGE(this->id(), /*makeTopic(*/relativeTarget, message, retain));
   }
 
   virtual void setup() override { PROCESS::setup(); }
@@ -69,47 +65,39 @@ public:
   virtual void loop() {
     //  const long clock = millis();
     //  while ((millis() - clock) < MAX_LOOP_MILLISECONDS) {
-    while (true) {
-      Option<Pair<Subscription<MESSAGE>, MESSAGE>> pair =
-          this->inbox.pop_front();
-      if (pair.has_value()) {
-        LOG_RECEIVE(INFO, pair->second, pair->first);
-        pair->first.execute(pair->second);
-      } else {
-        break;
-      }
+    while (this->next()) {
     } // else
     // break;
     //   }
   }
 
-  virtual Option<Pair<Subscription<MESSAGE>, MESSAGE>> pop() override {
+  virtual Option<Pair<Subscription<MESSAGE>, MESSAGE> *> pop() override {
     return this->inbox.pop_front();
   }
 
-  virtual bool push(const Pair<Subscription<MESSAGE>, MESSAGE> &mail) override {
-    this->inbox.push_back(mail);
-    return true;
+  virtual bool push(Pair<Subscription<MESSAGE>, MESSAGE> *mail) override {
+    return this->inbox.push_back(mail);
   }
   virtual bool next() {
-    Option<Pair<Subscription<MESSAGE>, MESSAGE>> mail = this->pop();
+    Option<Pair<Subscription<MESSAGE>, MESSAGE> *> mail = this->pop();
     if (!mail.has_value())
       return false;
-    mail->first.execute(mail->second);
+    // LOG_RECEIVE(INFO, mail->first, mail->second);
+    mail.value()->first.execute(mail.value()->second);
+    delete mail.value();
     return true;
   }
 
   virtual uint16_t size() const override { return inbox.size(); }
 
 protected:
-  MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE>> inbox;
-  const String makeTopic(const fURI &relativeTopic) {
-    return relativeTopic.empty()
-               ? this->id().toString()
-               : (relativeTopic.toString().startsWith(F("/"))
-                      ? (this->id().toString() + F("/") +
-                         relativeTopic.toString().substring(1))
-                      : relativeTopic.toString());
+  MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE> *> inbox;
+   const Pattern makeTopic(const Pattern &relativeTopic) {
+    return relativeTopic.empty() ? Pattern(this->id())
+                                   : (relativeTopic.toString().startsWith(F("/"))
+                                          ? Pattern(this->id().toString() + F("/") +
+                                                    relativeTopic.toString().substring(1))
+                                          : relativeTopic);
   }
 };
 

@@ -138,19 +138,16 @@ private:
   static void __FIBER_FUNCTION(void *vptr_fibers) {
     List<Fiber *> *fibers = (List<Fiber *> *)vptr_fibers;
     while (!fibers->empty()) {
-      fibers->remove_if([](Fiber *fiber) {
+      for (const auto &fiber : *fibers) {
         if (!fiber->running()) {
-           LOG(INFO, "!MStopping fiber %s!!\n",fiber->id().toString().c_str());
-          fiber->stop();
-          return true;
+          LOG(INFO, "!MStopping fiber %s!!\n", fiber->id().toString().c_str());
+          fibers->remove(fiber);
+          delete fiber;
         } else {
-          return false;
+          fiber->loop();
+          vTaskDelay(1); // feeds the watchdog for the task
+          // fiber->yield();
         }
-      });
-      for (Fiber *fiber : *fibers) {
-        fiber->loop();
-        vTaskDelay(1); // feeds the watchdog for the task
-        fiber->yield();
       }
       vTaskDelay(1); // feeds the watchdog for the task
     }

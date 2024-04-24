@@ -29,17 +29,17 @@ public:
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
-    for (const auto & subscription : __SUBSCRIPTIONS) {
+    for (const auto &subscription : __SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
-          subscription.actor->push({subscription, message});
-          //TODO: ACTOR MAILBOX GETTING TOO BIG!
+          subscription.actor->push(new Pair<Subscription<MESSAGE>,MESSAGE>(subscription, message));
+          // TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
           LOG_EXCEPTION(e);
           __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
         }
-        LOG_PUBLISH(__rc ? ERROR : INFO, message);
+        // LOG_PUBLISH(__rc ? ERROR : INFO, message);
       }
     }
     if (message.retain) {
@@ -78,7 +78,7 @@ public:
     ///// deliver retains
     for (const Pair<ID, MESSAGE> &retain : __RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
-        subscription.actor->push({subscription, retain.second});
+        subscription.actor->push(new Pair<Subscription<MESSAGE>,MESSAGE>(subscription, retain.second));
       }
     }
     return __rc;

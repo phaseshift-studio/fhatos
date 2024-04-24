@@ -158,7 +158,7 @@ char *LOG_TYPE_c_str(const LOG_TYPE type) {
   LOG((logtype), "[!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",       \
       (message.source.toString().c_str()), (FP_BOOL_STR(message.retain)),      \
       (message.payload.c_str()), (message.target.toString().c_str()))
-#define LOG_RECEIVE(logtype, message, subscription)                            \
+#define LOG_RECEIVE(logtype, subscription, message)                            \
   LOG((logtype),                                                               \
       (subscription.pattern.equals(message.target))                            \
           ? "[!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]\n"     \
