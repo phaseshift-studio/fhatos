@@ -7,9 +7,9 @@
 namespace fhatos::kernel {
 
 template <typename T> struct MessageBox {
-  virtual bool push( T* message);
-  virtual Option<T*> pop();
-  virtual uint16_t size() const;
+  virtual const bool push(const T message);
+  virtual Option<T> pop();
+  virtual const uint16_t size() const;
 };
 } // namespace fhatos::kernel
 

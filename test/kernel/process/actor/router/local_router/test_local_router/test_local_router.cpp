@@ -10,11 +10,11 @@
 
 namespace fhatos::kernel {
 
+LocalRouter<StringMessage> *router = LocalRouter<StringMessage>::singleton();
+
 void test_subscribe() {}
 
 void test_publish() {
-  LocalRouter<StringMessage> *router = LocalRouter<StringMessage>::singleton();
-
   TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS,
                     router->publish(StringMessage{.source = ID("a"),
                                                   .target = ID("b"),
@@ -22,8 +22,8 @@ void test_publish() {
                                                   .retain = false}));
 };
 
-RUN_TESTS(                  //
-    RUN_TEST(test_publish); //
+FOS_RUN_TESTS(                  //
+    FOS_RUN_TEST(test_publish); //
 );
 
 } // namespace fhatos::kernel

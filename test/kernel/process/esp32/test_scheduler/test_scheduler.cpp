@@ -11,8 +11,8 @@ namespace fhatos::kernel {
 
 void test_true() { TEST_ASSERT_TRUE(true); };
 
-RUN_TESTS(               //
-    RUN_TEST(test_true); //
+FOS_RUN_TESTS(               //
+    FOS_RUN_TEST(test_true); //
 );
 
 } // namespace fhatos::kernel

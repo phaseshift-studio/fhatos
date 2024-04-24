@@ -24,11 +24,12 @@ protected:
 public:
   inline static MetaRouter *singleton() {
     static MetaRouter singleton = MetaRouter();
+    LOCAL_ROUTER::singleton();
+    REMOTE_ROUTER::singleton();
     return &singleton;
   }
 
-  MetaRouter(const ID &id = WIFI::idFromIP("meta"))
-      : Router<MESSAGE>(id) {}
+  MetaRouter(const ID &id = WIFI::idFromIP("meta")) : Router<MESSAGE>(id) {}
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     return this->select(message.target)->publish(message);
@@ -40,7 +41,7 @@ public:
   }
 
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
-                                    const Pattern &pattern) override {
+                                          const Pattern &pattern) override {
     return this->select(pattern)->unsubscribe(source, pattern);
   }
 

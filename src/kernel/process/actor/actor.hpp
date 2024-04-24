@@ -34,8 +34,8 @@ public:
 
   virtual const RESPONSE_CODE
   unsubscribe(const Pattern &relativePattern = F("")) {
-    return ROUTER::singleton()->unsubscribe(
-        this->id(), makeTopic(relativePattern));
+    return ROUTER::singleton()->unsubscribe(this->id(),
+                                            makeTopic(relativePattern));
   }
 
   const RESPONSE_CODE publish(const IDed &target, const String &message,
@@ -71,33 +71,33 @@ public:
     //   }
   }
 
-  virtual Option<Pair<Subscription<MESSAGE>, MESSAGE> *> pop() override {
+  virtual Option<Pair<Subscription<MESSAGE>, MESSAGE>> pop() override {
     return this->inbox.pop_front();
   }
 
-  virtual bool push(Pair<Subscription<MESSAGE>, MESSAGE> *mail) override {
+  virtual const bool push(Pair<Subscription<MESSAGE>, MESSAGE> mail) override {
     return this->inbox.push_back(mail);
   }
   virtual bool next() {
-    Option<Pair<Subscription<MESSAGE>, MESSAGE> *> mail = this->pop();
+    Option<Pair<Subscription<MESSAGE>, MESSAGE>> mail = this->pop();
     if (!mail.has_value())
       return false;
     // LOG_RECEIVE(INFO, mail->first, mail->second);
-    mail.value()->first.execute(mail.value()->second);
-    //delete mail.value();
+    mail->first.execute(mail->second);
     return true;
   }
 
-  virtual uint16_t size() const override { return inbox.size(); }
+  virtual const uint16_t size() const override { return inbox.size(); }
 
 protected:
-  MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE> *> inbox;
-   const Pattern makeTopic(const Pattern &relativeTopic) {
-    return relativeTopic.empty() ? Pattern(this->id())
-                                   : (relativeTopic.toString().startsWith(F("/"))
-                                          ? Pattern(this->id().toString() + F("/") +
-                                                    relativeTopic.toString().substring(1))
-                                          : relativeTopic);
+  MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE>> inbox;
+  const Pattern makeTopic(const Pattern &relativeTopic) {
+    return relativeTopic.empty()
+               ? Pattern(this->id())
+               : (relativeTopic.toString().startsWith(F("/"))
+                      ? Pattern(this->id().toString() + F("/") +
+                                relativeTopic.toString().substring(1))
+                      : relativeTopic);
   }
 };
 

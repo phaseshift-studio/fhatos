@@ -90,12 +90,15 @@ public:
   };
   fURI(const String &furiString) : fURI(furiString.c_str()) {}
   fURI(const char *furiCharacters) {
-    if (0 == strlen(furiCharacters)) {
+    if ((strlen(furiCharacters) == 0) ||
+        (strlen(furiCharacters) == 1 && furiCharacters[0] == '/')) {
       this->__length = 0;
     } else {
       uint8_t counter = 0;
-      for (uint8_t i = 0; i < strlen(furiCharacters); i++) {
-        if (furiCharacters[i] == '/')
+      uint8_t length = strlen(furiCharacters);
+      for (uint8_t i = 0; i < length; i++) {
+        if ((furiCharacters[i]) == '/' &&
+            ((i == length - 1) || furiCharacters[i + 1] != '/'))
           counter++;
       }
       this->__segments = new char *[counter + 1];
@@ -113,7 +116,7 @@ public:
             // this->__segments[this->__length++] = strdup(extension);
         };
   fURI(const StringSumHelper &shelper) : fURI(shelper.c_str()){};
-  ~fURI() {
+  virtual ~fURI() {
     if (this->__length > 0) {
       for (uint8_t i = 0; i < this->__length; i++) {
         delete this->__segments[i];
@@ -122,8 +125,10 @@ public:
     }
   }
   const fURI extend(const char *segments) const {
-    return (strlen(segments) == 0) ? fURI(this->toString())
-                                   : fURI(this->toString() + "/" + segments);
+    return ((strlen(segments) == 0) ||
+            (strlen(segments) == 1 && segments[0] == '/'))
+               ? fURI(this->toString())
+               : fURI(this->toString() + "/" + segments);
   }
   const uint8_t length() const { return this->__length; }
   const bool empty() const { return 0 == this->__length; }
@@ -198,10 +203,21 @@ public:
   ID(const fURI &id) : ID(id.toString()){};
   ID(const String &furiString) : fURI(furiString){};
   ID(const char *furiCharacters) : fURI(furiCharacters) {
-    if (strchr(furiCharacters, '#')) {
-      throw fError("IDs can not contain pattern symbols: #");
-    } else if (strchr(furiCharacters, '+')) {
-      throw fError("IDs can not contain pattern symbols: +");
+    try {
+      if (strchr(furiCharacters, '#')) {
+        throw fError("IDs can not contain pattern symbols: #");
+      } else if (strchr(furiCharacters, '+')) {
+        throw fError("IDs can not contain pattern symbols: +");
+      }
+    } catch (const fError e) {
+      if (this->__length > 0) {
+        for (uint8_t i = 0; i < this->__length; i++) {
+          delete this->__segments[i];
+        }
+        delete __segments;
+      }
+      this->__length = 0;
+      throw e;
     }
   }
 };

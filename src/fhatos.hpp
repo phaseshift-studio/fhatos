@@ -124,7 +124,7 @@ public:
 // MACROS //
 ////////////
 enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
-char *LOG_TYPE_c_str(const LOG_TYPE type) {
+const char *LOG_TYPE_c_str(const LOG_TYPE type) {
   switch (type) {
   case DEBUG:
     return "DEBUG";

@@ -5,8 +5,8 @@
 //
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/actor_monoid.hpp>
-#include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/actor/router/local_router/local_router.hpp>
+#include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/esp32/thread.hpp>
 #include <kernel/structure/structure.hpp>
@@ -14,24 +14,25 @@
 
 namespace fhatos::kernel {
 
+// called outside test functions as singletons alter memory across tests
+LocalRouter<StringMessage> *meta = LocalRouter<StringMessage>::singleton();
+
 void test_actor_communication() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
-  auto *actor1 =
-      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
-          "actor1@127.0.0.1");
-  auto *actor2 =
-      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
-          "actor2@127.0.0.1");
+  auto *actor1 = new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
+      "actor1@127.0.0.1");
+  auto *actor2 = new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
+      "actor2@127.0.0.1");
 
-  TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
-  TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,
       actor1->subscribe(
           actor1->id(), [actor1, actor2, counter](StringMessage message) {
             TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
-            TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-            TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
             TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
                               actor1->publish(message.source, "pong", false));
             counter->first++;
@@ -42,8 +43,8 @@ void test_actor_communication() {
       actor2->subscribe(
           "actor2@127.0.0.1", [actor1, actor2, counter](StringMessage message) {
             TEST_ASSERT_EQUAL_STRING("pong", message.payload.c_str());
-            TEST_ASSERT_EQUAL_FURI(message.source, actor1->id());
-            TEST_ASSERT_EQUAL_FURI(message.target, actor2->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor1->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor2->id());
             counter->second++;
           }));
   TEST_ASSERT_EQUAL(
@@ -60,23 +61,22 @@ void test_actor_communication() {
   actor2->stop();
   delete actor1;
   delete actor2;
+  delete counter;
 }
 
 void test_message_retain() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
-  auto *actor1 =
-      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
-          "actor1@127.0.0.1");
-  auto *actor2 =
-      new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
-          "actor2@127.0.0.1");
+  auto *actor1 = new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
+      "actor1@127.0.0.1");
+  auto *actor2 = new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
+      "actor2@127.0.0.1");
 
   TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
                     actor1->subscribe(actor1->id(), [actor1, actor2, counter](
                                                         StringMessage message) {
                       TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
-                      TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-                      TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+                      FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
+                      FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
                       counter->first++;
                     }));
   actor2->publish(*actor1, "ping", true);
@@ -89,8 +89,8 @@ void test_message_retain() {
       actor2->subscribe(
           "actor1@127.0.0.1", [actor1, actor2, counter](StringMessage message) {
             TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
-            TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-            TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
             counter->second++;
           }));
   actor1->loop();
@@ -103,8 +103,8 @@ void test_message_retain() {
       actor1->subscribe(
           "actor1@127.0.0.1", [actor1, actor2, counter](StringMessage message) {
             TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
-            TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-            TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
             counter->second++;
           }));
   TEST_ASSERT_EQUAL_INT(1, counter->first);
@@ -117,6 +117,7 @@ void test_message_retain() {
   actor2->stop();
   delete actor1;
   delete actor2;
+  delete counter;
 }
 
 void test_actor_monoid() {
@@ -125,14 +126,19 @@ void test_actor_monoid() {
   auto *monoid1 = new ActorMonoid<Actor<Thread>, StringMessage>(actor1);
   auto *monoid2 = new ActorMonoid<Actor<Thread>, StringMessage>(actor2);
 
-  *monoid2 <std::make_pair(actor2->id(), [](StringMessage message) {});
+  *monoid2 < std::make_pair(
+                 actor2->id(), [](StringMessage message) {});
   *monoid1 > "ping" > actor2;
+  delete actor1;
+  delete actor2;
+  delete monoid1;
+  delete monoid2;
 }
 
-RUN_TESTS(                              //
+FOS_RUN_TESTS(                              //
     RUN_TEST(test_actor_communication); //
     RUN_TEST(test_message_retain);      //
-    //RUN_TEST(test_actor_monoid);        //
+    RUN_TEST(test_actor_monoid);            //
 );
 
 } // namespace fhatos::kernel

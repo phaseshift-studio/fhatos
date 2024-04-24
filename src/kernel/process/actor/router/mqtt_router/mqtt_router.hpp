@@ -24,7 +24,8 @@ public:
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     return MQTT_CLIENT::singleton()->publish(message.target, message.payload)
-        ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;
+               ? RESPONSE_CODE::OK
+               : RESPONSE_CODE::ROUTER_ERROR;
   }
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) override {
@@ -34,12 +35,12 @@ public:
                RecvFunction([subscription](const char *topic,
                                            const byte *payload,
                                            const int length) {
-                 subscription.actor->push(
-                     new Pair<Subscription<MESSAGE>,MESSAGE>(subscription,
-                      MESSAGE{.source = "unknown",
-                              .target = topic,
-                              .payload = MESSAGE::fromBytes(payload, length),
-                              .retain = true}));
+                 subscription.actor->push(Pair<Subscription<MESSAGE>, MESSAGE>(
+                     subscription,
+                     MESSAGE{.source = "unknown",
+                             .target = topic,
+                             .payload = MESSAGE::fromBytes(payload, length),
+                             .retain = true}));
                }))
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::REPEAT_SUBSCRIPTION;
