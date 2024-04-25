@@ -148,10 +148,9 @@ void test_actor_monoid() {
 FOS_RUN_TESTS( //
                // called outside test functions as singletons alter memory
                // across tests
-    LocalRouter<StringMessage> *router =
-        LocalRouter<StringMessage>::singleton(); //
-    FOS_RUN_TEST(test_actor_communication);      //
-    FOS_RUN_TEST(test_message_retain);           //
+    LocalRouter<StringMessage>::singleton(); //
+    FOS_RUN_TEST(test_actor_communication);  //
+    FOS_RUN_TEST(test_message_retain);       //
     RUN_TEST(test_actor_monoid);             //
 );
 
