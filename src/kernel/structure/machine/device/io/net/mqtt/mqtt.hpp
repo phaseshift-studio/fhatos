@@ -20,7 +20,8 @@ namespace fhatos::kernel {
 typedef std::function<void(const char *, const byte *, const uint32_t)>
     RecvFunction;
 
-template <typename PROCESS = Thread, typename MESSAGE = StringMessage> class MQTT : public PROCESS {
+template <typename PROCESS = Thread, typename MESSAGE = StringMessage>
+class MQTT : public PROCESS {
 public:
   static MQTT *singleton(const ID id = WIFI::idFromIP("mqtt"),
                          const char *domain = STR(MQTT_BROKER_ADDR),
@@ -59,7 +60,10 @@ public:
       this->xmqtt->setCallback(this->recvFunction);
     }
   }
-
+  ~MQTT() {
+    this->stop();
+    delete this->xmqtt;
+  }
   void onRecv(const RecvFunction recvFunction) {
     this->xmqtt->setCallback(recvFunction);
   };
@@ -86,8 +90,9 @@ public:
           "[!B%s!!] =!msubscribe[qos:%i]!!=> [!B%s!!]\n",
           source.toString().c_str(), qos, topic.toString().c_str());
       if (success) {
-      //  __SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
-      //      .source = source, .pattern = topic, .qos = (QoS)qos, .onRecv = onRecv});
+        //  __SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
+        //      .source = source, .pattern = topic, .qos = (QoS)qos, .onRecv =
+        //      onRecv});
       }
     }
     return success;
@@ -170,7 +175,6 @@ public:
   }
 
   void loop() {
-
     this->testConnection();
     //  BEGIN: drain publication queue
     __DRAIN_PUBLICATION_QUEUE();
@@ -191,18 +195,16 @@ public:
   void stop() {
     LOG_TASK(INFO, this, "Disconnecting MQTT from %s:%i\n", this->server,
              this->port);
-    this->__DRAIN_PUBLICATION_QUEUE();
-    this->xmqtt->loop();
-    /*List<Subscription<MESSAGE>> __COPY =
-    List<Subscription<MESSAGE>(__SUBSCRIPTIONS); for (const
-    Subscription<MESSAGE> &sub : __COPY) { this->unsubscribe(sub.source,
-    sub.pattern);
+    List<Subscription<MESSAGE>> __COPY =
+        List<Subscription<MESSAGE>>(__SUBSCRIPTIONS);
+    for (const Subscription<MESSAGE> &sub : __COPY) {
+      this->unsubscribe(sub.source, sub.pattern);
     };
-    __COPY.clear();*/
+    __COPY.clear();
+    __PUBLICATIONS.clear();
+    __SUBSCRIPTIONS.clear();
     // FP_ESP_FEED;
-    this->xmqtt->loop();
     this->xmqtt->disconnect();
-    this->__SUBSCRIPTIONS.clear();
     PROCESS::stop();
   }
   void setWill(const ID &willTopic, const String &willMessage,

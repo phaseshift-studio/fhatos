@@ -30,6 +30,12 @@ public:
   }
 
   MetaRouter(const ID &id = WIFI::idFromIP("meta")) : Router<MESSAGE>(id) {}
+  ~MetaRouter() { this->clear(); }
+  virtual RESPONSE_CODE clear() override {
+    RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
+    RESPONSE_CODE __rc2 = REMOTE_ROUTER::singleton()->clear();
+    return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
+  }
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     return this->select(message.target)->publish(message);

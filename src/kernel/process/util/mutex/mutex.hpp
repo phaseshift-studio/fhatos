@@ -13,6 +13,9 @@ private:
 #endif
 
 public:
+#if defined(ESP32)
+  ~Mutex() { vSemaphoreDelete(xmutex); }
+#endif
   template <typename T = void *>
   T lockUnlock(const Supplier<T> criticalFunction,
                const uint16_t millisecondsWait = 250) const {

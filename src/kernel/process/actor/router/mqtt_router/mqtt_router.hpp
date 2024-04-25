@@ -16,7 +16,13 @@ class MqttRouter : public Router<MESSAGE> {
 public:
   inline static MqttRouter *singleton() {
     static MqttRouter singleton = MqttRouter();
+    MQTT_CLIENT::singleton();
     return &singleton;
+  }
+
+  virtual RESPONSE_CODE clear() override {
+    MQTT_CLIENT::singleton()->stop();
+    return RESPONSE_CODE::OK;
   }
 
   MqttRouter(const ID id = WIFI::idFromIP("mqttrouter"))

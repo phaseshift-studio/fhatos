@@ -6,6 +6,7 @@
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/actor_monoid.hpp>
 #include <kernel/process/actor/router/local_router/local_router.hpp>
+#include <kernel/process/actor/router/meta_router/meta_router.hpp>
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/esp32/thread.hpp>
@@ -13,9 +14,6 @@
 #include <unity.h>
 
 namespace fhatos::kernel {
-
-// called outside test functions as singletons alter memory across tests
-LocalRouter<StringMessage> *meta = LocalRouter<StringMessage>::singleton();
 
 void test_actor_communication() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
@@ -52,6 +50,7 @@ void test_actor_communication() {
       actor1->subscribe("actor1@127.0.0.1", [](StringMessage message) {
         TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
       }));
+
   actor2->publish(*actor1, "ping", false);
   actor1->loop();
   actor2->loop();
@@ -62,6 +61,7 @@ void test_actor_communication() {
   delete actor1;
   delete actor2;
   delete counter;
+  LocalRouter<StringMessage>::singleton()->clear();
 }
 
 void test_message_retain() {
@@ -80,6 +80,8 @@ void test_message_retain() {
                       counter->first++;
                     }));
   actor2->publish(*actor1, "ping", true);
+  actor1->loop();
+  actor2->loop();
   actor1->loop();
   actor2->loop();
   TEST_ASSERT_EQUAL_INT(1, counter->first);
@@ -118,27 +120,39 @@ void test_message_retain() {
   delete actor1;
   delete actor2;
   delete counter;
+  LocalRouter<StringMessage>::singleton()->clear();
 }
 
 void test_actor_monoid() {
-  auto *actor1 = new Actor<Thread>("actor1@127.0.0.1");
-  auto *actor2 = new Actor<Thread>("actor2@127.0.0.1");
-  auto *monoid1 = new ActorMonoid<Actor<Thread>, StringMessage>(actor1);
-  auto *monoid2 = new ActorMonoid<Actor<Thread>, StringMessage>(actor2);
+  auto *actor1 = new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
+      "actor1@127.0.0.1");
+  auto *actor2 = new Actor<Thread, StringMessage, LocalRouter<StringMessage>>(
+      "actor2@127.0.0.1");
+  auto *monoid1 =
+      new ActorMonoid<Actor<Thread, StringMessage, LocalRouter<StringMessage>>,
+                      StringMessage>(actor1);
+  auto *monoid2 =
+      new ActorMonoid<Actor<Thread, StringMessage, LocalRouter<StringMessage>>,
+                      StringMessage>(actor2);
 
   *monoid2 < std::make_pair(
                  actor2->id(), [](StringMessage message) {});
   *monoid1 > "ping" > actor2;
-  delete actor1;
-  delete actor2;
   delete monoid1;
   delete monoid2;
+  delete actor1;
+  delete actor2;
+  LocalRouter<StringMessage>::singleton()->clear();
 }
 
-FOS_RUN_TESTS(                              //
-    RUN_TEST(test_actor_communication); //
-    RUN_TEST(test_message_retain);      //
-    RUN_TEST(test_actor_monoid);            //
+FOS_RUN_TESTS( //
+               // called outside test functions as singletons alter memory
+               // across tests
+    LocalRouter<StringMessage> *router =
+        LocalRouter<StringMessage>::singleton(); //
+    FOS_RUN_TEST(test_actor_communication);      //
+    FOS_RUN_TEST(test_message_retain);           //
+    RUN_TEST(test_actor_monoid);             //
 );
 
 } // namespace fhatos::kernel

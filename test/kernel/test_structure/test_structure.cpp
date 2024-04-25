@@ -174,6 +174,8 @@ void test_id_construction() {
   // TODO: Exception in constructor causes memory leak:
   // FOS_TEST_ASSERT_EXCEPTION(ID("127.0.0.1/#"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), ID("127.0.0.1/a/b/c"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/#"),
+                             Pattern("127.0.0.1/a/b/#"));
 }
 
 FOS_RUN_TESTS(                              //

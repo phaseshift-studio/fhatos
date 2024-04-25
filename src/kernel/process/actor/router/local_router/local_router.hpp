@@ -27,12 +27,21 @@ public:
 
   LocalRouter(const ID &id = ID("router/local")) : Router<MESSAGE>(id) {}
 
+  virtual RESPONSE_CODE clear() override {
+    __RETAINS.clear();
+    __SUBSCRIPTIONS.clear();
+    return (__RETAINS.empty() && __SUBSCRIPTIONS.empty())
+               ? RESPONSE_CODE::OK
+               : RESPONSE_CODE::ROUTER_ERROR;
+  }
+
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
     for (const auto &subscription : __SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
-          subscription.actor->push(Pair<Subscription<MESSAGE>,MESSAGE>(subscription, message));
+          subscription.actor->push(
+              Pair<Subscription<MESSAGE>, MESSAGE>(subscription, message));
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
@@ -78,7 +87,8 @@ public:
     ///// deliver retains
     for (const Pair<ID, MESSAGE> &retain : __RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
-        subscription.actor->push(Pair<Subscription<MESSAGE>,MESSAGE>(subscription, retain.second));
+        subscription.actor->push(
+            Pair<Subscription<MESSAGE>, MESSAGE>(subscription, retain.second));
       }
     }
     return __rc;

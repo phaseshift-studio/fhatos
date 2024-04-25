@@ -81,6 +81,7 @@ public:
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
                                           const Pattern &pattern) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
+  virtual RESPONSE_CODE clear() FP_OK_RESULT;
   // virtual ID *adjacent(const ID &source) { return nullptr; }
   // virtual RESPONSE_CODE call(const ID &source, const ID &target)
   // FP_OK_RESULT;
