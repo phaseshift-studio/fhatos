@@ -15,13 +15,15 @@ void test_furi_memory_leaks() {
     fURI a = fURI("127.0.0.1");
     fURI b = fURI(a);
     fURI c = fURI(b.toString());
-    fURI d = fURI(b.segment(0));
-    fURI e = fURI(b.segment(0)).extend("");
+    fURI d = fURI(c.segment(0));
+    fURI e = fURI(d.segment(0)).extend("");
+    fURI f = fURI(e.toString());
     TEST_ASSERT_TRUE(a.equals(a));
     TEST_ASSERT_TRUE(a.equals(b));
     TEST_ASSERT_TRUE(a.equals(c));
     TEST_ASSERT_TRUE(a.equals(d));
     TEST_ASSERT_TRUE(a.equals(e));
+    TEST_ASSERT_TRUE(a.equals(f));
     if (sketchMemory != -1) {
       TEST_ASSERT_EQUAL_INT32(sketchMemory, ESP.getFreeSketchSpace());
       TEST_ASSERT_EQUAL_INT32(heapMemory, ESP.getFreeHeap());

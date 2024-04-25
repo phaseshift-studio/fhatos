@@ -96,10 +96,13 @@ public:
       // HANDLE THREADS
       for (const auto &thread : __THREADS) {
         const BaseType_t threadResult = xTaskCreatePinnedToCore(
-            __THREAD_FUNCTION,               // Function that should be called
-            thread->id().segment(1).c_str(), // Name of the task (for debugging)
-            10000,                           // Stack size (bytes)
-            thread,                          // Parameter to pass
+            __THREAD_FUNCTION, // Function that should be called
+            thread->id()
+                .user()
+                .value_or(thread->id().toString())
+                .c_str(), // Name of the task (for debugging)
+            10000,        // Stack size (bytes)
+            thread,       // Parameter to pass
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             &(thread->handle),                      // Task handle
             tskNO_AFFINITY);                        // Processor core

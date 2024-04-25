@@ -41,7 +41,8 @@ public:
       if (subscription.pattern.matches(message.target)) {
         try {
           subscription.actor->push(
-              Pair<Subscription<MESSAGE>, MESSAGE>(subscription, message));
+              Pair<const Subscription<MESSAGE> &, const MESSAGE>(subscription,
+                                                                 message));
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
@@ -85,10 +86,9 @@ public:
     }
     LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
     ///// deliver retains
-    for (const Pair<ID, MESSAGE> &retain : __RETAINS) {
+    for (const auto& retain : __RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
-        subscription.actor->push(
-            Pair<Subscription<MESSAGE>, MESSAGE>(subscription, retain.second));
+        subscription.actor->push(std::make_pair(subscription, retain.second));
       }
     }
     return __rc;

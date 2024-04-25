@@ -15,12 +15,13 @@ namespace fhatos::kernel {
 template <typename PROCESS, typename MESSAGE = StringMessage,
           typename ROUTER = MetaRouter<MESSAGE>>
 class Actor : public PROCESS,
-              public MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> {
+              public MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> {
 public:
   Actor(const ID &id) : PROCESS(id) {
     static_assert(std::is_base_of<Router<MESSAGE>, ROUTER>::value,
                   "ROUTER not derived from Router<MESSAGE>");
   }
+  /// SUBSCRIBE
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                         const OnRecvFunction<MESSAGE> onRecv,
                                         const QoS qos = QoS::_1) {
@@ -32,24 +33,34 @@ public:
                               .onRecv = onRecv});
   }
 
+  /// UNSUBSCRIBE
   virtual const RESPONSE_CODE
   unsubscribe(const Pattern &relativePattern = F("")) {
     return ROUTER::singleton()->unsubscribe(this->id(),
                                             makeTopic(relativePattern));
   }
 
+  // PUBLISH
   const RESPONSE_CODE publish(const IDed &target, const String &message,
-                              const bool retain = RETAIN_MESSAGE) {
+                              const bool retain = TRANSIENT_MESSAGE) {
     return ROUTER::singleton()->publish(
         MESSAGE(this->id(), target.id(), message, retain));
   }
   virtual const RESPONSE_CODE publish(const ID &relativeTarget,
                                       const String &message,
-                                      const bool retain = RETAIN_MESSAGE) {
+                                      const bool retain = TRANSIENT_MESSAGE) {
     return ROUTER::singleton()->publish(
         MESSAGE(this->id(), makeTopic(relativeTarget), message, retain));
   }
 
+  // MESSAGE BOX METHODS
+  virtual const bool push(const Pair<const Subscription<MESSAGE>, const MESSAGE>& mail) override {
+    return this->inbox.push_back(mail);
+  }
+
+  virtual const uint16_t size() const override { return inbox.size(); }
+
+  /// PROCESS METHODS
   virtual void setup() override { PROCESS::setup(); }
 
   virtual void stop() override {
@@ -71,26 +82,8 @@ public:
     //   }
   }
 
-  virtual Option<Pair<Subscription<MESSAGE>, MESSAGE>> pop() override {
-    return this->inbox.pop_front();
-  }
-
-  virtual const bool push(Pair<Subscription<MESSAGE>, MESSAGE> mail) override {
-    return this->inbox.push_back(mail);
-  }
-  virtual bool next() {
-    Option<Pair<Subscription<MESSAGE>, MESSAGE>> mail = this->pop();
-    if (!mail.has_value())
-      return false;
-    // LOG_RECEIVE(INFO, mail->first, mail->second);
-    mail->first.execute(mail->second);
-    return true;
-  }
-
-  virtual const uint16_t size() const override { return inbox.size(); }
-
 protected:
-  MutexDeque<Pair<Subscription<MESSAGE>, MESSAGE>> inbox;
+  MutexDeque<Pair<const Subscription<MESSAGE>, const MESSAGE>> inbox;
   const Pattern makeTopic(const Pattern &relativeTopic) {
     return relativeTopic.empty()
                ? Pattern(this->id())
@@ -98,6 +91,17 @@ protected:
                       ? Pattern(this->id().toString() + F("/") +
                                 relativeTopic.toString().substring(1))
                       : relativeTopic);
+  }
+  virtual Option<Pair<const Subscription<MESSAGE>, const MESSAGE>> pop() override {
+    return this->inbox.pop_front();
+  }
+
+  virtual bool next() {
+    Option<Pair<const Subscription<MESSAGE>, const MESSAGE>> mail = this->pop();
+    if (!mail.has_value())
+      return false;
+    mail->first.execute(mail->second);
+    return true;
   }
 };
 

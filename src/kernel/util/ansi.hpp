@@ -8,7 +8,7 @@ namespace fhatos::kernel {
 
 class Ansi : public ANSI {
 public:
-  Ansi(Stream *baseStream = &Serial) : ANSI(baseStream) { this->__on = true; }
+  Ansi(Stream *baseStream = &::Serial) : ANSI(baseStream) { this->__on = true; }
 
   Ansi *on() {
     this->__on = true;

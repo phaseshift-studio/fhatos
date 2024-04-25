@@ -127,7 +127,7 @@ public:
   const fURI extend(const char *segments) const {
     return ((strlen(segments) == 0) ||
             (strlen(segments) == 1 && segments[0] == '/'))
-               ? fURI(this->toString())
+               ? fURI(*this)
                : fURI(this->toString() + "/" + segments);
   }
   const uint8_t length() const { return this->__length; }
@@ -168,6 +168,7 @@ public:
   virtual bool colocated(const fURI &other) const {
     return strcmp(__segments[0], other.__segments[0]) == 0;
   }
+ // const char *c_str() const { return this->toString().c_str(); }
   const String toString() const {
     String temp;
     for (uint8_t i = 0; i < this->__length; i++) {

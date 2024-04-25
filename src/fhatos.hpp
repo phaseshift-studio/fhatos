@@ -68,6 +68,8 @@ template <typename A> using Consumer = std::function<void(A)>;
 template <typename A, typename B> using BiConsumer = std::function<void(A, B)>;
 template <typename A, typename B, typename C>
 using TriConsumer = std::function<void(A, B, C)>;
+template <typename A, typename B, typename C, typename D>
+using QuadConsumer = std::function<void(A, B, C,D)>;
 template <typename A> using Supplier = std::function<A()>;
 template <typename A, typename B> using Function = std::function<B(A)>;
 template <typename A, typename B, typename C>

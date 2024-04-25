@@ -14,7 +14,7 @@ public:
   const PAYLOAD payload;
   const bool retain;
   Message(const ID &source, const ID &target, const PAYLOAD &payload,
-          const bool retain)
+          const bool retain = false)
       : source(source), target(target), payload(payload), retain(retain){};
 
   virtual const String toString() const {
@@ -26,7 +26,7 @@ public:
   };
   virtual const String payloadString() const { return ""; }
 
-  virtual const Pair<byte *, uint16_t> toBytes() const {
+  virtual const Pair<byte *, uint> toBytes() const {
     String temp = payloadString();
     byte *bytes = (byte *)temp.c_str();
     return std::make_pair(bytes, temp.length());
@@ -39,17 +39,17 @@ public:
 
 class StringMessage : public Message<String> {
 public:
-  StringMessage(const String &payload)
-      : Message<String>(ID(), ID(), payload, false){};
-  StringMessage(const char *payload)
-      : Message<String>(ID(), ID(), String(payload), false){};
   StringMessage(const ID &source, const ID &target, const String &payload,
-                const bool retain)
+                const bool retain = false)
       : Message<String>(source, target, payload, retain){};
-  static const String fromBytes(const byte *bytes, const int length) {
-    return String((char *)bytes);
+  static const String fromBytes(const byte *bytes, const uint length) {
+    return String((char *)bytes, length);
   }
-  const String payloadString() const { return this->payload; }
+  virtual const Pair<byte *, uint> toBytes() const override {
+    return std::make_pair((byte *)this->payload.c_str(),
+                          this->payload.length());
+  }
+  virtual const String payloadString() const { return this->payload; }
 };
 
 } // namespace fhatos::kernel

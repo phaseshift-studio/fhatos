@@ -20,13 +20,15 @@ using OnRecvFunction = std::function<void(const MESSAGE &)>;
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
 template <typename MESSAGE> struct Subscription {
-  MessageBox<Pair<Subscription<MESSAGE>, MESSAGE>> *actor;
+  MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos;
   const OnRecvFunction<MESSAGE> onRecv;
-  bool match(const ID &target) { return this->pattern.matches(target); }
-  void execute(const MESSAGE message) { onRecv(message); }
+  const bool match(const ID &target) const {
+    return this->pattern.matches(target);
+  }
+  void execute(const MESSAGE message) const { onRecv(message); }
 };
 
 //////////////////////////////////////////////

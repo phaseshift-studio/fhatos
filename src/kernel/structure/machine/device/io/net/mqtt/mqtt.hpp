@@ -14,6 +14,7 @@
 #define JSON_DOCUMENT_SIZE 250
 
 #define RETAIN_MESSAGE true
+#define TRANSIENT_MESSAGE false
 
 namespace fhatos::kernel {
 
@@ -89,11 +90,16 @@ public:
       LOG(success ? INFO : ERROR,
           "[!B%s!!] =!msubscribe[qos:%i]!!=> [!B%s!!]\n",
           source.toString().c_str(), qos, topic.toString().c_str());
-      if (success) {
-        //  __SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
-        //      .source = source, .pattern = topic, .qos = (QoS)qos, .onRecv =
-        //      onRecv});
-      }
+     // if (success) {
+        __SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
+            .source = source,
+            .pattern = topic,
+            .qos = (QoS)qos,
+            .onRecv = [topic, onRecv](MESSAGE message) {
+              Pair<byte *, int> bytes = message.toBytes();
+              onRecv(topic.toString().c_str(), bytes.first, bytes.second);
+            }});
+    //  }
     }
     return success;
   }

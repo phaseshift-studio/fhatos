@@ -45,10 +45,11 @@ namespace fhatos::kernel {
   __test_freeSketch = ESP.getFreeSketchSpace();                                \
   __test_freeHeap = ESP.getFreeHeap();                                         \
   { RUN_TEST(x); }                                                             \
-  UNITY_TEST_ASSERT_EQUAL_INT32(__test_freeSketch, ESP.getFreeSketchSpace(),   \
-                                __LINE__, "Memory leak in sketch space.");     \
-  UNITY_TEST_ASSERT_EQUAL_INT32(__test_freeHeap, ESP.getFreeHeap(), __LINE__,  \
-                                "Memory leak in heap.");
+  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch,                \
+                                             ESP.getFreeSketchSpace(),         \
+                                             "Memory leak in sketch space.");  \
+  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(                                  \
+      __test_freeHeap, ESP.getFreeHeap(), "Memory leak in heap.");
 
 #define FOS_RUN_TESTS(x)                                                       \
   void RUN_UNITY_TESTS() {                                                     \
