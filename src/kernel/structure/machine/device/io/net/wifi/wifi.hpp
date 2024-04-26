@@ -37,7 +37,7 @@ protected:
   const char *passwords;
 
 public:
-  static ID idFromIP(const String user, const String path = "") {
+  static const ID idFromIP(const String &user, const String &path = "") {
     if (!WIFI::singleton()->running())
       WIFI::singleton()->setup();
     return ID((user + "@" + WIFI::singleton()->ip().toString() +
@@ -51,9 +51,17 @@ public:
     return &singleton;
   }
 
-  const bool running() const override { return WiFi.isConnected() && KernelProcess::running(); }
+  const bool running() const override {
+    return WiFi.isConnected() && KernelProcess::running();
+  }
 
   const IPAddress ip() const { return WiFi.localIP(); }
+
+  const IPAddress resolve(const String &hostname) const {
+    IPAddress addr;
+    WiFi.hostByName(hostname.c_str(), addr);
+    return addr;
+  }
 
   const bool reconnect() { return WiFi.reconnect(); }
 
@@ -66,7 +74,7 @@ public:
     WiFi.disconnect();
     KernelProcess::stop();
   }
-  
+
 private:
   WIFI *setAccessPoint(const char *ssid, const char *password,
                        const bool hideSSID = false,
@@ -99,6 +107,7 @@ private:
     LOG(INFO, "!b[WIFI Station Configuration]!!\n");
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
+    // WiFi.persistent(true);
     const char *delim = ":";
     char ssidsTemp[strlen(this->ssids) + 1];
     sprintf(ssidsTemp, this->ssids);

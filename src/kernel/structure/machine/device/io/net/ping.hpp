@@ -9,40 +9,40 @@
 
 namespace fhatos::kernel {
 
-class Ping : public Actor<Fiber, StringMessage, LocalRouter<StringMessage>> {
+template <typename PROCESS = Fiber, typename MESSAGE = StringMessage,
+         typename ROUTER = LocalRouter<MESSAGE>>
+class Ping : public Actor<PROCESS, MESSAGE, ROUTER> {
 public:
   Ping(const ID &id = WIFI::idFromIP("ping"))
-      : Actor<Fiber, StringMessage, LocalRouter<StringMessage>>(id) {}
+      : Actor<PROCESS,MESSAGE,ROUTER>(id) {}
 
   virtual void setup() override {
-    Actor::setup();
+    Actor<PROCESS,MESSAGE,ROUTER>::setup();
     this->subscribe(this->id(), [this](const StringMessage &message) {
-      this->currentPing = message.payloadString();
-      this->counter = 0;
-      this->success = 0;
-      this->failure = 0;
-      this->totalTime = 0;
+      if (this->pingData)
+        delete this->pingData;
+      if (!message.payloadString().isEmpty())
+        this->pingData = new PingData(message.payloadString());
     });
   }
 
   virtual void loop() override {
-    Actor::loop();
+    Actor<PROCESS,MESSAGE,ROUTER>::loop();
     // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
-    if (!this->currentPing.isEmpty()) {
-      counter++;
-      char* message = new char[100];
-      if (::Ping.ping(this->currentPing.c_str(), 1)) {
-        this->success++;
-        this->totalTime += ::Ping.averageTime();
+    if (this->pingData) {
+      this->pingData->counter++;
+      char *message = new char[100];
+      if (this->xping.ping(this->pingData->host.c_str(), 1)) {
+        this->pingData->success++;
+        // this->pingData->totalTime += ::Ping.averageTime();
         sprintf(message, "64 bytes from %s: icmp_seq=%i time=%.3f ms\n",
-                this->currentPing.c_str(), this->counter,
-                this->totalTime / (float)this->success);
+                this->pingData->ip.c_str(), this->pingData->counter,
+                this->xping.averageTime());
         this->publish(WIFI::idFromIP("log", "INFO"), String(message));
       } else {
-        this->failure++;
         sprintf(message,
                 "Request timeout for icmp_seq %i failure_rate=%.2f%%\n",
-                this->counter, (float)this->failure / (float)this->counter);
+                this->pingData->counter, this->pingData->failureRate());
         this->publish(WIFI::idFromIP("log", "ERROR"), String(message));
       }
       delete message;
@@ -51,11 +51,25 @@ public:
   }
 
 protected:
-  String currentPing;
-  uint counter = 0;
-  uint success = 0;
-  uint failure = 0;
-  float totalTime = 0;
+  struct PingData {
+    String host;
+    String ip;
+    uint16_t counter = 0;
+    uint16_t success = 0;
+    // float totalTime = 0.0f;
+
+    PingData(const String &host) {
+      this->host = host;
+      this->ip = WIFI::singleton()->resolve(this->host).toString();
+    }
+    const float failureRate() const {
+      return ((float)(counter - success)) / ((float)counter);
+    }
+    // const float successRate() const { return success / counter; }
+    // const float averageTime() const { return totalTime / success; }
+  };
+  ::PingClass xping = ::Ping;
+  PingData *pingData = nullptr;
 };
 } // namespace fhatos::kernel
 

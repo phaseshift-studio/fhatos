@@ -130,6 +130,15 @@ public:
                ? fURI(*this)
                : fURI(this->toString() + "/" + segments);
   }
+  const fURI retract() const {
+    if (this->empty())
+      return *this;
+    String path;
+    for (uint8_t i = 0; i < this->__length - 1; i++) {
+      path = path + this->__segments[i];
+    }
+    return fURI(path);
+  }
   const uint8_t length() const { return this->__length; }
   const bool empty() const { return 0 == this->__length; }
   virtual bool matches(const fURI &pattern) const {
@@ -168,7 +177,7 @@ public:
   virtual bool colocated(const fURI &other) const {
     return strcmp(__segments[0], other.__segments[0]) == 0;
   }
- // const char *c_str() const { return this->toString().c_str(); }
+  // const char *c_str() const { return this->toString().c_str(); }
   const String toString() const {
     String temp;
     for (uint8_t i = 0; i < this->__length; i++) {
