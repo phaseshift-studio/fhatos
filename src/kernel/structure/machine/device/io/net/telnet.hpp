@@ -2,17 +2,19 @@
 #define fhatos_kernel__telnet_hpp
 
 #include <ESPTelnet.h>
-#include <EscapeCodes.h>
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/message.hpp>
 #include <kernel/structure/structure.hpp>
+#include <kernel/util/ansi.hpp>
+#include <kernel/util/string_stream.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos::kernel {
 
 /////////////////////////////////////////////////////////////////////
 
+#define tthis Telnet::singleton()
 #define T (*Telnet::singleton())
 #define TSerial (*(Telnet::singleton()->xtelnet))
 #define TAnsiOn(x)                                                             \
@@ -49,22 +51,25 @@ public:
 
   Telnet(const ID &id = WIFI::idFromIP("telnet"), const uint16_t port = 23,
          const bool useAnsi = true)
-      : Actor<PROCESS, MESSAGE, ROUTER>(id), port(port), useAnsi(useAnsi) {
+      : Actor<PROCESS, MESSAGE, ROUTER>(id), port(port), useAnsi(useAnsi),
+        currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
     this->xtelnet->setLineMode(true);
-    this->currentTopic =  ID(id);
   }
+
+  ~Telnet() { delete this->currentTopic; }
 
   virtual void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
     ////////// ON CONNECT //////////
     this->xtelnet->onConnect([](const String ipAddress) {
-      LOG_TASK(INFO, &T, "Telnet connection made from %s\n", ipAddress.c_str());
-      PRINTLN(ANSI_ART);
-      PRINTF("Telnet server on %s\n" TAB ":help for help menu\n",
-             WIFI::singleton()->ip().toString().c_str());
-      T.currentTopic =  ID(T.id());
-      T.printPrompt();
+      // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
+      // ipAddress.c_str());
+      tthis->xtelnet->println(ANSI_ART);
+      tthis->xtelnet->printf("Telnet server on %s\n" TAB ":help for help menu\n",
+                            WIFI::singleton()->ip().toString().c_str());
+      tthis->currentTopic = new ID(tthis->id());
+      tthis->printPrompt();
     });
 
     ////////// ON INPUT //////////
@@ -74,66 +79,62 @@ public:
       if (line.isEmpty()) {
         // do nothing
       } else if (line.equals("/+")) {
-        T.subscribe(T.currentTopic / "+", [](const MESSAGE &message) {
-          PRINT("\n[");
-          TAnsi(ansi.setFG(ANSI_GREEN), PRINT("/+"));
-          PRINT("]=>");
-          TAnsi(ansi.setFG(ANSI_GREEN),
-                PRINTLN(message.target.toString().c_str()));
-        });
+        tthis->subscribe(
+            *tthis->currentTopic / "+", [](const MESSAGE &message) {
+              tthis->xtelnet->printf("[/+]=>!g%s!!\n",
+                                     message.target.toString().c_str());
+            });
       } else if (line.startsWith("<=")) {
         String payload = line.substring(2);
         payload.trim();
-        T.publish(T.currentTopic, payload, false);
+        tthis->publish(*tthis->currentTopic, payload, false);
       } else if (line.startsWith("=>")) {
-        TCHECK(T.subscribe(T.currentTopic,
-                           [](const MESSAGE &message) {
-                             PRINT("\n[");
-                             TAnsi(ansi.setFG(ANSI_GREEN),
-                                   PRINTF(message.target.toString().c_str()));
-                             PRINT("]=>");
-                             TAnsi(ansi.setFG(ANSI_GREEN),
-                                   PRINTLN(message.payloadString().c_str()));
-                           }),
-               PRINTF("Subscribed to %s\n", T.currentTopic.toString().c_str()));
+        RESPONSE_CODE __rc =
+            tthis->subscribe(*tthis->currentTopic, [](const MESSAGE &message) {
+              tthis->xtelnet->printf("[%s]=>%s\n",
+                                     message.source.toString().c_str(),
+                                     message.payloadString().c_str());
+            });
+        tthis->xtelnet->printf("[%s] Subscribed to %s\n", __rc ? "ERROR" : "OK",
+                               tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("=|")) {
-        TCHECK(T.unsubscribe(T.currentTopic),
-               PRINTF("Unsubscribed from %s\n",
-                      T.currentTopic.toString().c_str()));
+        RESPONSE_CODE __rc = tthis->unsubscribe(*tthis->currentTopic);
+        tthis->xtelnet->printf("[%s] Unsubscribed from %s\n",
+                               __rc ? "ERROR" : "OK",
+                               tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("/..")) {
-        T.currentTopic = T.currentTopic.retract();
+        tthis->currentTopic = new ID(tthis->currentTopic->retract());
       } else if (line.startsWith("/") && !line.equals("/")) {
-        T.currentTopic = T.currentTopic.extend(line.substring(1).c_str());
+        tthis->currentTopic =
+            new ID(tthis->currentTopic->extend(line.substring(1).c_str()));
       } else if (line.startsWith(":")) {
         // : global commands
         if (line.equals(":help")) {
-          TAnsi(
-              ansi.setFG(ANSI_RED),
-              PRINT("Help Menu\n"
-                    "mqtt commands\n" TAB "<= publish to topic\n" TAB
-                    "=> subscribe to topic\n" TAB "=| unsubscribe from topic\n"
-                    ": global commands\n" TAB ":help [help menu]\n" TAB
-                    ":quit [drop connection]\n" TAB ":ansi [toggle ansi mode]\n"
-                    "? local commands\n"));
+         tthis->xtelnet->print("Help Menu\n"
+                  "mqtt commands\n" TAB "<= publish to topic\n" TAB
+                  "=> subscribe to topic\n" TAB "=| unsubscribe from topic\n"
+                  ": global commands\n" TAB ":help [help menu]\n" TAB
+                  ":quit [drop connection]\n" TAB ":ansi [toggle ansi mode]\n"
+                  "? local commands\n");
         } else if (line.equals(":quit")) {
-          T.xtelnet->disconnectClient();
+          tthis->xtelnet->disconnectClient();
         } else if (line.equals(":ansi")) {
-          TCHECK(true, PRINTF("ANSI turned %s\n",
-                              ((T.useAnsi = !T.useAnsi) ? "ON" : "OFF")));
+          //    TCHECK(true, PRINTF("ANSI turned %s\n",
+          //                       ((T.useAnsi = !T.useAnsi) ? "ON" : "OFF")));
         } else {
-          TCHECK(false, PRINTF("Unknown command: %s\n", line.substring(1)));
+          tthis->xtelnet->printf("[ERROR] Unknown command: %s\n", line.substring(1).c_str());
         }
       } else if (line.startsWith("?")) {
         // ? current topic commands (beyond publish/subscribe/unsubscribe)
       } else {
-        T.currentTopic = ID(line);
+        tthis->currentTopic = new ID(line);
       }
-      T.printPrompt();
+      tthis->printPrompt();
     });
 
     ////////// ON DISCONNECT //////////
     this->xtelnet->onDisconnect([](String ipAddress) {
-      T.currentTopic = T.id();
+      tthis->currentTopic = new ID(tthis->id());
       ROUTER::singleton()->unsubscribeSource(T.id());
       LOG_TASK(INFO, &T, "Client %s disconnected from Telnet server\n",
                ipAddress.c_str());
@@ -154,17 +155,14 @@ public:
 
 private:
   void printPrompt() {
-    PRINT("[");
-    TAnsi(ansi.setFG(ANSI_MAGENTA), PRINT(T.currentTopic.toString().c_str()));
-    PRINT("]");
+    tthis->xtelnet->printf("[%s]", tthis->currentTopic->toString().c_str());
   }
 
 protected:
   uint16_t port;
   bool useAnsi;
-  static EscapeCodes ansi;
   ESPTelnet *xtelnet;
-  ID currentTopic;
+  ID *currentTopic;
 };
 
 } // namespace fhatos::kernel
