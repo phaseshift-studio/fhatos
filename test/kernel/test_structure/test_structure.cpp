@@ -44,6 +44,8 @@ void test_furi_equals() {
   TEST_ASSERT_TRUE(fURI("").equals(fURI("")));
   TEST_ASSERT_TRUE(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
   TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b")));
+  TEST_ASSERT_TRUE(
+      fURI("fhat@127.0.0.1/a/b").equals(fURI("fhat@127.0.0.1/a/b")));
   TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b/")));
   TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b//")));
   TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a///b")));
@@ -53,6 +55,8 @@ void test_furi_equals() {
   TEST_ASSERT_FALSE(fURI("127.0.0.1").equals(fURI("127.1.1.2")));
   TEST_ASSERT_FALSE(fURI("127.0.0.1/a").equals(fURI("127.0.0.1/b")));
   FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a/b"));
+  FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"),
+                                 fURI("pig@127.0.0.1/a"));
 }
 
 void test_furi_length() {
@@ -121,6 +125,27 @@ void test_furi_authority() {
                            fURI("fat:pig@127.0.0.1/a/b/c").authority().c_str());
 }
 
+void test_furi_retract() {
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("127.0.0.1/a/b").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"),
+                             fURI("fhat@127.0.0.1/a/b").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1"),
+                             fURI("fhat@127.0.0.1/a/b").retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(
+      fURI(""), fURI("fhat@127.0.0.1/a/b").retract().retract().retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("fhat@127.0.0.1/a/b")
+                                           .retract()
+                                           .retract()
+                                           .retract()
+                                           .retract()
+                                           .retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("").retract());
+  FOS_TEST_ASSERT_EQUAL_FURI(
+      fURI("fhat@127.0.0.1/a"),
+      fURI("fhat@127.0.0.1/a/b").retract().retract().extend("a"));
+}
+
 void test_furi_extend() {
   /// TRUE
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
@@ -129,6 +154,9 @@ void test_furi_extend() {
                              fURI("127.0.0.1/a").extend(""));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"),
                              fURI("127.0.0.1").extend("a").extend("b"));
+  FOS_TEST_ASSERT_EQUAL_FURI(
+      fURI("fhat:pig@127.0.0.1/a/b"),
+      fURI("fhat:pig@127.0.0.1").extend("a").extend("b"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"),
                              fURI("127.0.0.1").extend("a").extend("b"));
 
@@ -188,6 +216,7 @@ FOS_RUN_TESTS(                              //
     FOS_RUN_TEST(test_furi_host);           //
     FOS_RUN_TEST(test_furi_segment);        //
     FOS_RUN_TEST(test_furi_authority);      //
+    FOS_RUN_TEST(test_furi_retract);        //
     FOS_RUN_TEST(test_furi_extend);         //
     FOS_RUN_TEST(test_furi_slash_operator); //
     FOS_RUN_TEST(test_furi_match);          //

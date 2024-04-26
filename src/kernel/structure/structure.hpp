@@ -135,7 +135,7 @@ public:
       return *this;
     String path;
     for (uint8_t i = 0; i < this->__length - 1; i++) {
-      path = path + this->__segments[i];
+      path = path + "/" + this->__segments[i];
     }
     return fURI(path);
   }
