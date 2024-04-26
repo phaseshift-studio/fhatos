@@ -44,15 +44,15 @@ protected:
     if (message.startsWith("\t"))
       type = LOG_TYPE::NONE;
     String output;
-    StringStream stream(&output);
+    StringStream stream = StringStream(&output);
     Ansi ansi = Ansi(&stream);
     if (type != LOG_TYPE::NONE)
       ansi.color(type == ERROR  ? ANSI::red
                  : type == INFO ? ANSI::green
                                 : ANSI::yellow,
-                 type == ERROR  ? "[ERROR] "
-                 : type == INFO ? "[INFO]  "
-                                : "[DEBUG] ");
+                 type == ERROR  ? "[ERROR]\t"
+                 : type == INFO ? "[INFO]\t"
+                                : "[DEBUG]\t");
     ansi.parse(message);
     ansi.flush();
     return output;

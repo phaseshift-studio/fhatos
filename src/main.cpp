@@ -2,6 +2,7 @@
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/structure/machine/device/io/log/log.hpp>
 #include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
+#include <kernel/structure/machine/device/io/net/ping.hpp>
 #include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
 #include <kernel/structure/machine/device/io/serial/serial.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -18,12 +19,19 @@ void setup() {
   Scheduler::singleton()->addProcess(MQTT<Thread, StringMessage>::singleton());
   Scheduler::singleton()->addProcess(logger = new Log<>());
   Scheduler::singleton()->addProcess(new fhatos::kernel::Serial<>());
+  Scheduler::singleton()->addProcess(new fhatos::kernel::Ping());
   Scheduler::singleton()->setup();
 }
 
 void loop() {
   static int counter = 0;
-  LocalRouter<StringMessage>::singleton()->publish(StringMessage(
+  /*LocalRouter<StringMessage>::singleton()->publish(StringMessage(
       ID("self@127.0.0.1"), logger->id().extend("INFO"),
-      String("!Mlogging!! !Rme!!ssage: !g") + counter++ + "!!\n", RETAIN_MESSAGE));
+      String("!Mlogging!! !Rme!!ssage: !g") + counter++ + "!!\n",
+     RETAIN_MESSAGE));*/
+  if (counter++ == 0) {
+    LocalRouter<StringMessage>::singleton()->publish(
+        StringMessage("self@127.0.0.1", WIFI::idFromIP("ping"),
+                      String("www.google.com"), RETAIN_MESSAGE));
+  }
 }

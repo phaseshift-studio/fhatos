@@ -190,7 +190,7 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 
 static TriConsumer<const LOG_TYPE, const char *, const uint16_t> LOG_FUNCTION =
     [](const LOG_TYPE type, const char *buffer, const uint16_t bufferLength) {
-      static Ansi ansi = Ansi(&Serial);
+      static Ansi ansi = Ansi(&::Serial);
       if (type != LOG_TYPE::NONE)
         ansi.color(type == ERROR  ? ANSI::red
                    : type == INFO ? ANSI::green

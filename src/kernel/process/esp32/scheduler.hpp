@@ -90,8 +90,8 @@ public:
           CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
           NULL,                                   // Task handle
           tskNO_AFFINITY);                        // Processor core
-      LOG(fiberResult == pdPASS ? INFO : ERROR,
-          "!MThreading master fiber process!!\n");
+      if (fiberResult != pdPASS)
+        LOG(ERROR, "!MStarting master fiber thread!!\n");
 
       // HANDLE THREADS
       for (const auto &thread : __THREADS) {
@@ -106,7 +106,7 @@ public:
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             &(thread->handle),                      // Task handle
             tskNO_AFFINITY);                        // Processor core
-        LOG(threadResult == pdPASS ? INFO : ERROR, "!MThreading %s!!\n",
+        LOG(threadResult == pdPASS ? INFO : ERROR, "!MStarting thread %s!!\n",
             thread->id().toString().c_str());
       }
       LOG(INFO, "!B[Scheduler Configuration]!!\n");
@@ -140,6 +140,9 @@ private:
   //////////////////////////////////////////////////////
   static void __FIBER_FUNCTION(void *vptr_fibers) {
     List<Fiber *> *fibers = (List<Fiber *> *)vptr_fibers;
+    for (const auto &fiber : *fibers) {
+      LOG(INFO, "!MStarting fiber %s!!\n", fiber->id().toString().c_str());
+    }
     while (!fibers->empty()) {
       for (const auto &fiber : *fibers) {
         if (!fiber->running()) {

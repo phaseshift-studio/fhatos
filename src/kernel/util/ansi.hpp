@@ -3,6 +3,7 @@
 
 #include <Stream.h>
 #include <ansi.h>
+#include <kernel/util/string_stream.hpp>
 
 namespace fhatos::kernel {
 
