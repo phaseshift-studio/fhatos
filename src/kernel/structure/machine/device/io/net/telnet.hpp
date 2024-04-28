@@ -93,14 +93,14 @@ public:
       } else if (line.startsWith("<=")) {
         String payload = line.substring(2);
         payload.trim();
-        tthis->publish(*tthis->currentTopic, payload, false);
+        tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
       } else if (line.startsWith("=>")) {
         RESPONSE_CODE __rc =
             tthis->subscribe(*tthis->currentTopic, [](const MESSAGE &message) {
               tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
                                   message.source.toString().c_str(),
                                   FP_BOOL_STR(message.retain));
-              tthis->xtelnet->println(message.payloadString().c_str());
+              tthis->xtelnet->println(message.payloadString().c_str()); // TODO: ansi off/on
             });
         tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
                             __rc ? "!RERROR" : "!GOK",

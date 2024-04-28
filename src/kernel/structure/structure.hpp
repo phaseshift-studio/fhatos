@@ -204,6 +204,9 @@ public:
   const bool isLocal(const fURI &other) const {
     return this->host().equals(other.host());
   }
+  /*static const fURI resolve(const fURI base, const fURI abbr) {
+
+  }*/
 };
 
 class ID : public fURI {
