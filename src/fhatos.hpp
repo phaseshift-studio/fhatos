@@ -184,10 +184,15 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 #if defined(ESP32)
 #define FOS_PROCESS(proc) <kernel/process/esp32/proc>
 #elif define(ESP8266)
-#define FOS_PROCESS(proc) STR(CONCAT("kernel/process/esp8266/", (proc)))
+#define FOS_PROCESS(proc) <kernel/process/esp8266/proc>
 #else
 #error "Unknown architecture."
 #endif
+
+
+///////////////////
+// !!TO REMOVE!! //
+///////////////////
 
 static TriConsumer<const LOG_TYPE, const char *, const uint16_t> LOG_FUNCTION =
     [](const LOG_TYPE type, const char *buffer, const uint16_t bufferLength) {

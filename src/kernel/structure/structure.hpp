@@ -96,6 +96,8 @@ public:
     } else {
       uint8_t counter = 0;
       uint8_t length = strlen(furiCharacters);
+      if (furiCharacters[0] == '/')
+        counter++;
       for (uint8_t i = 0; i < length; i++) {
         if ((furiCharacters[i]) == '/' &&
             ((i == length - 1) || furiCharacters[i + 1] != '/'))
@@ -106,8 +108,14 @@ public:
         this->__segments[0] = strdup(furiCharacters);
         this->__length = 1;
       } else {
-        this->__length =
-            __private_fhatos::split(furiCharacters, "/", this->__segments);
+        if (furiCharacters[0] == '/') {
+          this->__segments[0] = strdup("");
+          this->__length =
+              __private_fhatos::split(furiCharacters, "/", this->__segments, 1);
+        } else {
+          this->__length =
+              __private_fhatos::split(furiCharacters, "/", this->__segments);
+        }
       }
     }
   };
@@ -135,7 +143,9 @@ public:
       return *this;
     String path;
     for (uint8_t i = 0; i < this->__length - 1; i++) {
-      path = path + "/" + this->__segments[i];
+      if (i > 0)
+        path = path + "/";
+      path = path + this->__segments[i];
     }
     return fURI(path);
   }
@@ -149,6 +159,18 @@ public:
   // bool childOf(const fURI &furi) const { return furi.parentOf(*this); }
   const String segment(const uint8_t index) const {
     return String(this->__segments[index]);
+  }
+
+  const String path() const {
+    String temp;
+    if (this->__length > 1) {
+      for (uint8_t i = 1; i < this->__length; i++) {
+        if (i > 1)
+          temp = temp + "/";
+        temp = temp + String(this->__segments[i]);
+      }
+    }
+    return temp;
   }
 
   const Option<String> user() const {
@@ -172,6 +194,21 @@ public:
     int i = temp.indexOf("@");
     return i < 0 ? temp : temp.substring(i + 1);
   }
+
+  const fURI host(const String &host) const {
+    String temp;
+    Option<Pair<String, String>> x = this->user_password();
+    if (x.has_value()) {
+      temp = temp + x->first;
+      if (!x->second.isEmpty())
+        temp = temp + ":" + x->second;
+      temp = temp + "@";
+    }
+    temp = temp + host;
+
+    return fURI(temp + "/" + this->path());
+  }
+
   const String authority() const { return String(this->__segments[0]); }
 
   virtual bool colocated(const fURI &other) const {
@@ -204,9 +241,13 @@ public:
   const bool isLocal(const fURI &other) const {
     return this->host().equals(other.host());
   }
-  /*static const fURI resolve(const fURI base, const fURI abbr) {
-
-  }*/
+  const fURI resolve(const fURI base) const {
+    if (this->host().isEmpty()) {
+      return this->host(base.host());
+    } else {
+      return *this;
+    }
+  }
 };
 
 class ID : public fURI {

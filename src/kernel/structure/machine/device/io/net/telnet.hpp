@@ -91,7 +91,7 @@ public:
                                   message.target.toString().c_str());
             });
       } else if (line.startsWith("<=")) {
-        String payload = line.substring(2);
+        String payload = line.length() == 2 ? "" : line.substring(2);
         payload.trim();
         tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
       } else if (line.startsWith("=>")) {
@@ -100,7 +100,8 @@ public:
               tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
                                   message.source.toString().c_str(),
                                   FP_BOOL_STR(message.retain));
-              tthis->xtelnet->println(message.payloadString().c_str()); // TODO: ansi off/on
+              tthis->xtelnet->println(
+                  message.payloadString().c_str()); // TODO: ansi off/on
             });
         tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
                             __rc ? "!RERROR" : "!GOK",
@@ -139,7 +140,7 @@ public:
       } else if (line.startsWith("?")) {
         // ? current topic commands (beyond publish/subscribe/unsubscribe)
       } else {
-        tthis->currentTopic = new ID(line);
+        tthis->currentTopic = new ID(ID(line).resolve(*tthis->currentTopic));
       }
       tthis->printPrompt();
     });

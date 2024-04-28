@@ -97,6 +97,28 @@ void test_furi_host() {
                            fURI("fhat@127.0.0.1/a/b").host().c_str());
   TEST_ASSERT_EQUAL_STRING("127.0.0.1",
                            fURI("fhat:pig@127.0.0.1/a/b").host().c_str());
+  TEST_ASSERT_EQUAL_STRING("", fURI("/a/b/c").host().c_str());
+  /////
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("/a").host("127.0.0.1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"),
+                             fURI("/a/b/c").host("127.0.0.1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("/").host("127.0.0.1"));
+}
+
+void test_furi_resolve() {
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("/a").resolve(fURI("127.0.0.1/a/b/c")));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"),
+                             fURI("fhat@/a").resolve(fURI("127.0.0.1/a/b/c")));
+}
+
+void test_furi_path() {
+  TEST_ASSERT_EQUAL_STRING("", fURI("").path().c_str());
+  TEST_ASSERT_EQUAL_STRING("", fURI("127.0.0.1").path().c_str());
+  TEST_ASSERT_EQUAL_STRING("a", fURI("127.0.0.1/a").path().c_str());
+  TEST_ASSERT_EQUAL_STRING("a/b/c", fURI("127.0.0.1/a/b/c").path().c_str());
+  TEST_ASSERT_EQUAL_STRING("a/b/c",
+                           fURI("fhat@127.0.0.1/a/b/c").path().c_str());
 }
 
 void test_furi_segment() {
@@ -214,6 +236,8 @@ FOS_RUN_TESTS(                              //
     FOS_RUN_TEST(test_furi_length);         //
     FOS_RUN_TEST(test_furi_user_password);  //
     FOS_RUN_TEST(test_furi_host);           //
+    FOS_RUN_TEST(test_furi_path);           //
+    FOS_RUN_TEST(test_furi_resolve);        //
     FOS_RUN_TEST(test_furi_segment);        //
     FOS_RUN_TEST(test_furi_authority);      //
     FOS_RUN_TEST(test_furi_retract);        //

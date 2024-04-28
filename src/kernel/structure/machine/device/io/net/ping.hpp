@@ -10,24 +10,28 @@
 namespace fhatos::kernel {
 
 template <typename PROCESS = Fiber, typename MESSAGE = StringMessage,
-         typename ROUTER = LocalRouter<MESSAGE>>
+          typename ROUTER = LocalRouter<MESSAGE>>
 class Ping : public Actor<PROCESS, MESSAGE, ROUTER> {
 public:
   Ping(const ID &id = WIFI::idFromIP("ping"))
-      : Actor<PROCESS,MESSAGE,ROUTER>(id) {}
+      : Actor<PROCESS, MESSAGE, ROUTER>(id) {}
+
+  ~Ping() { delete this->pingData; }
 
   virtual void setup() override {
-    Actor<PROCESS,MESSAGE,ROUTER>::setup();
+    Actor<PROCESS, MESSAGE, ROUTER>::setup();
     this->subscribe(this->id(), [this](const StringMessage &message) {
-      if (this->pingData)
+      if (this->pingData) {
         delete this->pingData;
+        this->pingData = nullptr;
+      }
       if (!message.payloadString().isEmpty())
         this->pingData = new PingData(message.payloadString());
     });
   }
 
   virtual void loop() override {
-    Actor<PROCESS,MESSAGE,ROUTER>::loop();
+    Actor<PROCESS, MESSAGE, ROUTER>::loop();
     // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
     if (this->pingData) {
       this->pingData->counter++;
