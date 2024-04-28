@@ -69,7 +69,7 @@ template <typename A, typename B> using BiConsumer = std::function<void(A, B)>;
 template <typename A, typename B, typename C>
 using TriConsumer = std::function<void(A, B, C)>;
 template <typename A, typename B, typename C, typename D>
-using QuadConsumer = std::function<void(A, B, C,D)>;
+using QuadConsumer = std::function<void(A, B, C, D)>;
 template <typename A> using Supplier = std::function<A()>;
 template <typename A, typename B> using Function = std::function<B(A)>;
 template <typename A, typename B, typename C>
@@ -151,18 +151,19 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
       (process)->id().toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(logtype, subscription)                                   \
   LOG((logtype), "[!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",               \
-      (subscription.source.toString().c_str()), ((uint8_t)subscription.qos),   \
-      (subscription.pattern.toString().c_str()))
+      (subscription).source.toString().c_str(), (uint8_t)(subscription).qos,   \
+      (subscription).pattern.toString().c_str())
 #define LOG_UNSUBSCRIBE(logtype, source, pattern)                              \
   LOG((logtype), "[!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",                       \
-      (source.toString().c_str()), (pattern.toString().c_str()))
+      ((source).toString().c_str()),                                           \
+      nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(logtype, message)                                          \
   LOG((logtype), "[!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",       \
       (message.source.toString().c_str()), (FP_BOOL_STR(message.retain)),      \
       (message.payload.c_str()), (message.target.toString().c_str()))
 #define LOG_RECEIVE(logtype, subscription, message)                            \
   LOG((logtype),                                                               \
-      (subscription.pattern.equals(message.target))                            \
+      ((subscription).pattern.equals((message).target))                        \
           ? "[!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]\n"     \
           : "[!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%s!!]"   \
             "\n",                                                              \

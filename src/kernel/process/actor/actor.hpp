@@ -14,12 +14,13 @@
 namespace fhatos::kernel {
 template <typename PROCESS, typename MESSAGE = StringMessage,
           typename ROUTER = MetaRouter<MESSAGE>>
-class Actor : public PROCESS,
-              public MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> {
+class Actor
+    : public PROCESS,
+      public MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> {
 public:
   Actor(const ID &id) : PROCESS(id) {
-    static_assert(std::is_base_of<Router<MESSAGE>, ROUTER>::value,
-                  "ROUTER not derived from Router<MESSAGE>");
+    static_assert(std::is_base_of_v<Process, PROCESS>);
+    static_assert(std::is_base_of_v<Router<MESSAGE>, ROUTER>);
   }
   /// SUBSCRIBE
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
@@ -54,7 +55,8 @@ public:
   }
 
   // MESSAGE BOX METHODS
-  virtual const bool push(const Pair<const Subscription<MESSAGE>, const MESSAGE>& mail) override {
+  virtual const bool
+  push(const Pair<const Subscription<MESSAGE>, const MESSAGE> &mail) override {
     return this->inbox.push_back(mail);
   }
 
@@ -74,6 +76,7 @@ public:
   }
 
   virtual void loop() {
+    PROCESS::loop();
     //  const long clock = millis();
     //  while ((millis() - clock) < MAX_LOOP_MILLISECONDS) {
     while (this->next()) {
@@ -92,7 +95,8 @@ protected:
                                 relativeTopic.toString().substring(1))
                       : relativeTopic);
   }
-  virtual Option<Pair<const Subscription<MESSAGE>, const MESSAGE>> pop() override {
+  virtual Option<Pair<const Subscription<MESSAGE>, const MESSAGE>>
+  pop() override {
     return this->inbox.pop_front();
   }
 

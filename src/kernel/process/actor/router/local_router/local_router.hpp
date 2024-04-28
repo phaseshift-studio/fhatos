@@ -6,8 +6,6 @@
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/util/mutex/mutex.hpp>
 
-#define FULL_DRAIN_INBOX_SIZE 10
-
 namespace fhatos::kernel {
 
 template <class MESSAGE> class LocalRouter : public Router<MESSAGE> {
@@ -86,7 +84,7 @@ public:
     }
     LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
     ///// deliver retains
-    for (const auto& retain : __RETAINS) {
+    for (const auto &retain : __RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
         subscription.actor->push(std::make_pair(subscription, retain.second));
       }
@@ -96,6 +94,15 @@ public:
 
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
                                           const Pattern &pattern) override {
+    return unsubscribeX(source, &pattern);
+  }
+
+  virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
+    return unsubscribeX(source, nullptr);
+  }
+
+private:
+  const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
     RESPONSE_CODE __rc;
     try {
       __rc = __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, source,
@@ -103,7 +110,8 @@ public:
         const uint16_t size = __SUBSCRIPTIONS.size();
         __SUBSCRIPTIONS.remove_if(
             [source, pattern](const Subscription<MESSAGE> &sub) {
-              return sub.source.equals(source) && sub.pattern.equals(pattern);
+              return sub.source.equals(source) &&
+                     (nullptr == pattern || sub.pattern.equals(*pattern));
             });
         return __SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
                                              : RESPONSE_CODE::NO_SUBSCRIPTION;
@@ -114,19 +122,6 @@ public:
     };
     LOG_UNSUBSCRIBE(__rc ? ERROR : INFO, source, pattern);
     return __rc;
-  }
-
-  virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
-    const uint16_t size = __SUBSCRIPTIONS.size();
-    List<Subscription<MESSAGE>> __COPY =
-        List<Subscription<MESSAGE>>(__SUBSCRIPTIONS);
-    for (const Subscription<MESSAGE> &sub : __COPY) {
-      if (sub.source.equals(source)) {
-        this->unsubscribe(sub.source, sub.pattern);
-      }
-    }
-    return __SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
-                                         : RESPONSE_CODE::NO_SUBSCRIPTION;
   }
 };
 } // namespace fhatos::kernel
