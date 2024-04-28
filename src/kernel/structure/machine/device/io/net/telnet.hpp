@@ -6,7 +6,7 @@
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/message.hpp>
 #include <kernel/structure/structure.hpp>
-#include <kernel/util/ansi.hpp>
+#include <kernel/util/ansi2.hpp>
 #include <kernel/util/string_stream.hpp>
 #include FOS_PROCESS(thread.hpp)
 
@@ -55,9 +55,13 @@ public:
         currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
     this->xtelnet->setLineMode(true);
+    this->ansi = new Ansi2<ESPTelnet>(this->xtelnet);
   }
 
-  ~Telnet() { delete this->currentTopic; }
+  ~Telnet() {
+    delete this->currentTopic;
+    delete this->ansi;
+  }
 
   virtual void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
@@ -65,9 +69,10 @@ public:
     this->xtelnet->onConnect([](const String ipAddress) {
       // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
       // ipAddress.c_str());
-      tthis->xtelnet->println(ANSI_ART);
-      tthis->xtelnet->printf("Telnet server on %s\n" TAB ":help for help menu\n",
-                            WIFI::singleton()->ip().toString().c_str());
+      tthis->ansi->println(ANSI_ART);
+      tthis->ansi->printf("Telnet server on !m%s!!\n" TAB
+                          ":help for help menu\n",
+                          WIFI::singleton()->ip().toString().c_str());
       tthis->currentTopic = new ID(tthis->id());
       tthis->printPrompt();
     });
@@ -79,10 +84,11 @@ public:
       if (line.isEmpty()) {
         // do nothing
       } else if (line.equals("/+")) {
+        // todo ??
         tthis->subscribe(
             *tthis->currentTopic / "+", [](const MESSAGE &message) {
-              tthis->xtelnet->printf("[/+]=>!g%s!!\n",
-                                     message.target.toString().c_str());
+              tthis->ansi->printf("[/+]=>!g%s!!\n",
+                                  message.target.toString().c_str());
             });
       } else if (line.startsWith("<=")) {
         String payload = line.substring(2);
@@ -91,17 +97,19 @@ public:
       } else if (line.startsWith("=>")) {
         RESPONSE_CODE __rc =
             tthis->subscribe(*tthis->currentTopic, [](const MESSAGE &message) {
-              tthis->xtelnet->printf("[%s]=>%s\n",
-                                     message.source.toString().c_str(),
-                                     message.payloadString().c_str());
+              tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
+                                  message.source.toString().c_str(),
+                                  FP_BOOL_STR(message.retain));
+              tthis->xtelnet->println(message.payloadString().c_str());
             });
-        tthis->xtelnet->printf("[%s] Subscribed to %s\n", __rc ? "ERROR" : "OK",
-                               tthis->currentTopic->toString().c_str());
+        tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
+                            __rc ? "!RERROR" : "!GOK",
+                            tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("=|")) {
         RESPONSE_CODE __rc = tthis->unsubscribe(*tthis->currentTopic);
-        tthis->xtelnet->printf("[%s] Unsubscribed from %s\n",
-                               __rc ? "ERROR" : "OK",
-                               tthis->currentTopic->toString().c_str());
+        tthis->ansi->printf("[%s!!] Unsubscribed from !b%s!!\n",
+                            __rc ? "!RERROR" : "!GOK",
+                            tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("/..")) {
         tthis->currentTopic = new ID(tthis->currentTopic->retract());
       } else if (line.startsWith("/") && !line.equals("/")) {
@@ -110,19 +118,23 @@ public:
       } else if (line.startsWith(":")) {
         // : global commands
         if (line.equals(":help")) {
-         tthis->xtelnet->print("Help Menu\n"
-                  "mqtt commands\n" TAB "<= publish to topic\n" TAB
-                  "=> subscribe to topic\n" TAB "=| unsubscribe from topic\n"
-                  ": global commands\n" TAB ":help [help menu]\n" TAB
-                  ":quit [drop connection]\n" TAB ":ansi [toggle ansi mode]\n"
-                  "? local commands\n");
+          tthis->ansi->print(
+              "!mHelp Menu!!\n"
+              "!gactor commands!!\n" TAB "!b<=!! publish to topic\n" TAB
+              "!b=>!! subscribe to topic\n" TAB
+              "!b=|!! unsubscribe from topic\n"
+              "!g: global commands!!\n" TAB "!b:help!! [help menu]\n" TAB
+              "!b:quit!! [drop connection]\n" TAB
+              "!b:ansi!! [toggle ansi mode]\n"
+              "!g? local commands!!\n");
         } else if (line.equals(":quit")) {
           tthis->xtelnet->disconnectClient();
         } else if (line.equals(":ansi")) {
           //    TCHECK(true, PRINTF("ANSI turned %s\n",
           //                       ((T.useAnsi = !T.useAnsi) ? "ON" : "OFF")));
         } else {
-          tthis->xtelnet->printf("[ERROR] Unknown command: %s\n", line.substring(1).c_str());
+          tthis->ansi->printf("[!RERROR!!] Unknown command: %s\n",
+                              line.substring(1).c_str());
         }
       } else if (line.startsWith("?")) {
         // ? current topic commands (beyond publish/subscribe/unsubscribe)
@@ -149,19 +161,20 @@ public:
     Actor<PROCESS, MESSAGE, ROUTER>::loop();
     this->xtelnet->loop();
     if (::Serial.available()) {
-      this->xtelnet->print(::Serial.read());
+      this->ansi->print(::Serial.read());
     }
   }
 
 private:
   void printPrompt() {
-    tthis->xtelnet->printf("[%s]", tthis->currentTopic->toString().c_str());
+    tthis->ansi->printf("[!b%s!!]", tthis->currentTopic->toString().c_str());
   }
 
 protected:
   uint16_t port;
   bool useAnsi;
   ESPTelnet *xtelnet;
+  Ansi2<ESPTelnet> *ansi;
   ID *currentTopic;
 };
 
