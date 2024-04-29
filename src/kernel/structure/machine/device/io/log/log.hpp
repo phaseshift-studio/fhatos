@@ -14,50 +14,51 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Thread, typename MESSAGE = StringMessage,
-          typename ROUTER = LocalRouter<MESSAGE>>
-class Log : public Actor<PROCESS, MESSAGE, ROUTER> {
-public:
-  Log(const ID &id = WIFI::idFromIP("log"))
-      : Actor<PROCESS, MESSAGE, ROUTER>(id){};
+    template<typename PROCESS = Thread, typename MESSAGE = StringMessage,
+            typename ROUTER = LocalRouter<MESSAGE>>
+    class Log : public Actor<PROCESS, MESSAGE, ROUTER> {
+    public:
+        explicit Log(const ID &id = WIFI::idFromIP("log"))
+                : Actor<PROCESS, MESSAGE, ROUTER>(id) {};
 
-  virtual void setup() override {
-    const ID serialID = WIFI::idFromIP("serial");
-    // INFO LOGGING
-    this->subscribe(this->id().extend("INFO"), [this, serialID](
-                                                   const MESSAGE &message) {
-      this->publish(
-          serialID,
-          this->createLogMessage(INFO, message.payloadString()).c_str(), false);
-    });
-    // ERROR LOGGING
-    this->subscribe(this->id().extend("ERROR"), [this, serialID](
-                                                    const MESSAGE &message) {
-      this->publish(
-          serialID,
-          this->createLogMessage(INFO, message.payloadString()).c_str(), false);
-    });
-  }
+        void setup() override {
+            Actor<PROCESS,MESSAGE,ROUTER>::setup();
+            const ID serialID = WIFI::idFromIP("serial");
+            // INFO LOGGING
+            this->subscribe(this->id().extend("INFO"), [this, serialID](
+                    const MESSAGE &message) {
+                this->publish(
+                        serialID,
+                        this->createLogMessage(INFO, message.payloadString()).c_str(), false);
+            });
+            // ERROR LOGGING
+            this->subscribe(this->id().extend("ERROR"), [this, serialID](
+                    const MESSAGE &message) {
+                this->publish(
+                        serialID,
+                        this->createLogMessage(INFO, message.payloadString()).c_str(), false);
+            });
+        }
 
-protected:
-  const String createLogMessage(LOG_TYPE type, const String message) {
-    if (message.startsWith("\t"))
-      type = LOG_TYPE::NONE;
-    String output;
-    StringStream stream = StringStream(&output);
-    Ansi<StringStream> ansi = Ansi<StringStream>(&stream);
-    if (type != LOG_TYPE::NONE) {
-      if (type == ERROR)
-        ansi.print("!r[ERROR]!!  ");
-      else if (type == INFO)
-        ansi.print("!g[INFO]!!  ");
-      else
-        ansi.print("!y[DEBUG]!!  ");
-    }
-    ansi.print(message.c_str());
-    return output;
-  }
-};
+    protected:
+        String createLogMessage(LOG_TYPE type, const String message) {
+            if (message.startsWith("\t"))
+                type = LOG_TYPE::NONE;
+            String output;
+            StringStream stream = StringStream(&output);
+            auto ansi = Ansi<StringStream>(&stream);
+            if (type != LOG_TYPE::NONE) {
+                if (type == ERROR)
+                    ansi.print("!r[ERROR]!!  ");
+                else if (type == INFO)
+                    ansi.print("!g[INFO]!!  ");
+                else
+                    ansi.print("!y[DEBUG]!!  ");
+            }
+            ansi.print(message.c_str());
+            return output;
+        }
+    };
 } // namespace fhatos::kernel
 
 #endif

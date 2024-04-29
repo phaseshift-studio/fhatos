@@ -12,10 +12,10 @@ template <class MESSAGE> class LocalRouter : public Router<MESSAGE> {
 
 protected:
   // messaging data structures
-  List<Subscription<MESSAGE>> __SUBSCRIPTIONS;
-  Map<ID, MESSAGE> __RETAINS;
-  Mutex __MUTEX_SUBSCRIPTION;
-  Mutex __MUTEX_RETAIN;
+  List<Subscription<MESSAGE>> SUBSCRIPTIONS;
+  Map<ID, MESSAGE> RETAINS;
+  Mutex MUTEX_SUBSCRIPTION;
+  Mutex MUTEX_RETAIN;
 
 public:
   static LocalRouter *singleton() {
@@ -23,19 +23,19 @@ public:
     return &singleton;
   }
 
-  LocalRouter(const ID &id = ID("router/local")) : Router<MESSAGE>(id) {}
+  explicit LocalRouter(const ID &id = ID("router/local")) : Router<MESSAGE>(id) {}
 
   virtual RESPONSE_CODE clear() override {
-    __RETAINS.clear();
-    __SUBSCRIPTIONS.clear();
-    return (__RETAINS.empty() && __SUBSCRIPTIONS.empty())
+    RETAINS.clear();
+    SUBSCRIPTIONS.clear();
+    return (RETAINS.empty() && SUBSCRIPTIONS.empty())
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::ROUTER_ERROR;
   }
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
-    for (const auto &subscription : __SUBSCRIPTIONS) {
+    for (const auto &subscription : SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
           subscription.actor->push(
@@ -51,19 +51,19 @@ public:
       }
     }
     if (message.retain) {
-      __MUTEX_RETAIN.lockUnlock<void *>([this, message]() {
-        __RETAINS.erase(message.target);
-        __RETAINS.emplace(message.target, message);
+      MUTEX_RETAIN.lockUnlock<void *>([this, message]() {
+        RETAINS.erase(message.target);
+        RETAINS.emplace(message.target, message);
         return nullptr;
       });
     }
     return __rc;
   }
 
-  virtual const RESPONSE_CODE
+  const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::OK;
-    for (const auto &sub : __SUBSCRIPTIONS) {
+    for (const auto &sub : SUBSCRIPTIONS) {
       if (sub.source.equals(subscription.source) &&
           sub.pattern.equals(subscription.pattern)) {
         __rc = RESPONSE_CODE::REPEAT_SUBSCRIPTION;
@@ -72,9 +72,9 @@ public:
     }
     if (!__rc) {
       try {
-        __rc = __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
+        __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
             [this, subscription]() {
-              __SUBSCRIPTIONS.push_back(subscription);
+              SUBSCRIPTIONS.push_back(subscription);
               return RESPONSE_CODE::OK;
             });
       } catch (const std::runtime_error &e) {
@@ -84,7 +84,7 @@ public:
     }
     LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
     ///// deliver retains
-    for (const auto &retain : __RETAINS) {
+    for (const auto &retain : RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
         subscription.actor->push(std::make_pair(subscription, retain.second));
       }
@@ -92,28 +92,28 @@ public:
     return __rc;
   }
 
-  virtual const RESPONSE_CODE unsubscribe(const ID &source,
+  const RESPONSE_CODE unsubscribe(const ID &source,
                                           const Pattern &pattern) override {
     return unsubscribeX(source, &pattern);
   }
 
-  virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
+  const RESPONSE_CODE unsubscribeSource(const ID &source) override {
     return unsubscribeX(source, nullptr);
   }
 
 private:
-  const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
+  RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
     RESPONSE_CODE __rc;
     try {
-      __rc = __MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, source,
+      __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, source,
                                                              pattern]() {
-        const uint16_t size = __SUBSCRIPTIONS.size();
-        __SUBSCRIPTIONS.remove_if(
+        const uint16_t size = SUBSCRIPTIONS.size();
+        SUBSCRIPTIONS.remove_if(
             [source, pattern](const Subscription<MESSAGE> &sub) {
               return sub.source.equals(source) &&
                      (nullptr == pattern || sub.pattern.equals(*pattern));
             });
-        return __SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
+        return SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
                                              : RESPONSE_CODE::NO_SUBSCRIPTION;
       });
     } catch (const std::runtime_error &e) {

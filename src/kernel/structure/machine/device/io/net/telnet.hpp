@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__telnet_hpp
-#define fhatos_kernel__telnet_hpp
+#ifndef fhatos_kernel_telnet_hpp
+#define fhatos_kernel_telnet_hpp
 
 #include <ESPTelnet.h>
 #include <fhatos.hpp>
@@ -49,7 +49,7 @@ public:
     return &singleton;
   }
 
-  Telnet(const ID &id = WIFI::idFromIP("telnet"), const uint16_t port = 23,
+  explicit Telnet(const ID &id = WIFI::idFromIP("telnet"), const uint16_t port = 23,
          const bool useAnsi = true)
       : Actor<PROCESS, MESSAGE, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)) {
@@ -63,7 +63,7 @@ public:
     delete this->ansi;
   }
 
-  virtual void setup() override {
+   void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
     ////////// ON CONNECT //////////
     this->xtelnet->onConnect([](const String ipAddress) {
@@ -72,7 +72,7 @@ public:
       tthis->ansi->println(ANSI_ART);
       tthis->ansi->printf("Telnet server on !m%s!!\n" TAB
                           ":help for help menu\n",
-                          WIFI::singleton()->ip().toString().c_str());
+                          WIFI::ip().toString().c_str());
       tthis->currentTopic = new ID(tthis->id());
       tthis->printPrompt();
     });
@@ -95,7 +95,7 @@ public:
         payload.trim();
         tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
       } else if (line.startsWith("=>")) {
-        RESPONSE_CODE __rc =
+        RESPONSE_CODE _rc =
             tthis->subscribe(*tthis->currentTopic, [](const MESSAGE &message) {
               tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
                                   message.source.toString().c_str(),
@@ -104,12 +104,12 @@ public:
                   message.payloadString().c_str()); // TODO: ansi off/on
             });
         tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
-                            __rc ? "!RERROR" : "!GOK",
+                            _rc ? "!RERROR" : "!GOK",
                             tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("=|")) {
-        RESPONSE_CODE __rc = tthis->unsubscribe(*tthis->currentTopic);
+        RESPONSE_CODE _rc = tthis->unsubscribe(*tthis->currentTopic);
         tthis->ansi->printf("[%s!!] Unsubscribed from !b%s!!\n",
-                            __rc ? "!RERROR" : "!GOK",
+                            _rc ? "!RERROR" : "!GOK",
                             tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("/..")) {
         tthis->currentTopic = new ID(tthis->currentTopic->retract());
@@ -146,7 +146,7 @@ public:
     });
 
     ////////// ON DISCONNECT //////////
-    this->xtelnet->onDisconnect([](String ipAddress) {
+    this->xtelnet->onDisconnect([](const String ipAddress) {
       tthis->currentTopic = new ID(tthis->id());
       ROUTER::singleton()->unsubscribeSource(T.id());
       LOG_TASK(INFO, &T, "Client %s disconnected from Telnet server\n",
@@ -158,7 +158,7 @@ public:
              this->id().toString().c_str());
   }
 
-  virtual void loop() override {
+   void loop() override {
     Actor<PROCESS, MESSAGE, ROUTER>::loop();
     this->xtelnet->loop();
     if (::Serial.available()) {
@@ -174,8 +174,8 @@ private:
 protected:
   uint16_t port;
   bool useAnsi;
-  ESPTelnet *xtelnet;
-  Ansi<ESPTelnet> *ansi;
+  ESPTelnet *xtelnet{};
+  Ansi<ESPTelnet> *ansi{};
   ID *currentTopic;
 };
 

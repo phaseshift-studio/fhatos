@@ -10,9 +10,9 @@ template <typename PRINTER> class Ansi {
 
 protected:
   PRINTER *printer;
-  String *__buffer = new String();
-  StringStream *__stream = new StringStream(__buffer);
-  bool __on = true;
+  String *_buffer = new String();
+  StringStream *_stream = new StringStream(_buffer);
+  bool _on = true;
 
   enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
@@ -73,23 +73,23 @@ protected:
           else if ('d' == jj)
             this->black();
           else
-            this->__stream->print(buffer[i]);
+            this->_stream->print(buffer[i]);
         }
         i++;
       } else {
-        this->__stream->print(buffer[i]);
+        this->_stream->print(buffer[i]);
       }
     }
-    this->printer->print(this->__buffer->c_str());
-    this->__buffer->clear();
+    this->printer->print(this->_buffer->c_str());
+    this->_buffer->clear();
   }
 
 public:
-  Ansi() {}
+  Ansi() {};
 
-  Ansi(PRINTER *printer) : printer(printer) {}
+  explicit Ansi(PRINTER *printer) : printer(printer) {}
 
-  void on(bool turnOn = true) { this->__on = turnOn; }
+  void on(bool turnOn = true) { this->_on = turnOn; }
 
   void print(const char c) { this->parse(&c, 1); }
 

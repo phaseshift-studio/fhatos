@@ -36,7 +36,7 @@ public:
       LOG(INFO, "MQTT disabled as no broker address provided.\n");
       this->stop();
     } else {
-      WiFiClient *client = new WiFiClient();
+      auto *client = new WiFiClient();
       this->xmqtt = new PubSubClient(domain, port, *client);
       this->server = (char *)domain;
       this->port = port;
@@ -49,7 +49,7 @@ public:
                                   const int length) {
         ((char *)payload)[length] = '\0';
         LOG(INFO, "[!B%s!!] <=!mreceive!!= !B%s!!\n", target, (char *)payload);
-        for (const Subscription<MESSAGE> &sub : __SUBSCRIPTIONS) {
+        for (const Subscription<MESSAGE> &sub : SUBSCRIPTIONS) {
           if (ID(target).matches(sub.pattern)) {
             sub.onRecv(MESSAGE{.source = ID("unknown"),
                                .target = target,
@@ -70,10 +70,10 @@ public:
   };
 
   bool subscribe(const ID &source, const Pattern &topic, const uint8_t qos,
-                 const RecvFunction onRecv) {
+                 const RecvFunction& onRecv) {
     bool found = false;
-    if (!__SUBSCRIPTIONS.empty()) {
-      for (const auto &sub : __SUBSCRIPTIONS) {
+    if (!SUBSCRIPTIONS.empty()) {
+      for (const auto &sub : SUBSCRIPTIONS) {
         if (sub.source.equals(source) && sub.pattern.equals(topic)) {
           found = true;
           break;
@@ -91,7 +91,7 @@ public:
           "[!B%s!!] =!msubscribe[qos:%i]!!=> [!B%s!!]\n",
           source.toString().c_str(), qos, topic.toString().c_str());
      // if (success) {
-        __SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
+        SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
             .source = source,
             .pattern = topic,
             .qos = (QoS)qos,
@@ -104,15 +104,15 @@ public:
     return success;
   }
 
-  const bool unsubscribe(const ID &source, const Pattern &topic) {
+  bool unsubscribe(const ID &source, const Pattern &topic) {
     bool found = false;
 
-    if (!__SUBSCRIPTIONS.empty()) {
-      this->__SUBSCRIPTIONS.remove_if(
+    if (!SUBSCRIPTIONS.empty()) {
+      this->SUBSCRIPTIONS.remove_if(
           [source, topic](const Subscription<MESSAGE> &sub) {
             return sub.source.equals(source) && sub.pattern.equals(topic);
           });
-      for (const auto &sub : __SUBSCRIPTIONS) {
+      for (const auto &sub : SUBSCRIPTIONS) {
         if (sub.pattern.equals(topic)) {
           found = true;
           break;
@@ -133,22 +133,22 @@ public:
   }
 
   void setup() override {
-    if (!WIFI::singleton()->running() && !WIFI::singleton()->reconnect()) {
+    if (!WIFI::singleton()->running() && !WIFI::reconnect()) {
       this->stop();
       LOG_TASK(ERROR, this, "No WIFI connection. MQTT support not provided.\n");
     } else {
       uint8_t counter = 0;
       while (!this->xmqtt->connected() &&
-             (MQTT_MAX_RETRIES == -1 || ++counter < MQTT_MAX_RETRIES)) {
+             (++counter < MQTT_MAX_RETRIES == -1 || ++counter < MQTT_MAX_RETRIES)) {
         // Attempt to connect
         if ((this->willTopic.isEmpty() &&
              this->xmqtt->connect(
-                 WIFI::singleton()->ip().toString().c_str())) ||
-            (this->xmqtt->connect(WIFI::singleton()->ip().toString().c_str(),
+                 WIFI::ip().toString().c_str())) ||
+            (this->xmqtt->connect(WIFI::ip().toString().c_str(),
                                   this->willTopic.c_str(), willQoS, willRetain,
                                   this->willMessage.c_str()))) {
           LOG(INFO, "!b[MQTT Client Configuration]!!\n");
-          LOG(INFO,
+          LOG(NONE,
               "\tID                      : %s\n"
               "\tBroker address          : %s:%i\n"
               "\tClient name             : %s\n"
@@ -183,7 +183,7 @@ public:
   void loop() {
     this->testConnection();
     //  BEGIN: drain publication queue
-    __DRAIN_PUBLICATION_QUEUE();
+    DRAIN_PUBLICATION_QUEUE();
     //  END: drain publication queue
     // FP_ESP_FEED;
     if (!this->xmqtt->loop())
@@ -191,7 +191,7 @@ public:
   }
 
   bool publish(const char *target, const char *message, const bool retain) {
-    this->__PUBLICATIONS.push_back(MESSAGE{.source = ID("unknown"),
+    this->PUBLICATIONS.push_back(MESSAGE{.source = ID("unknown"),
                                            .target = ID(target),
                                            .payload = String(message),
                                            .retain = retain});
@@ -201,14 +201,14 @@ public:
   void stop() {
     LOG_TASK(INFO, this, "Disconnecting MQTT from %s:%i\n", this->server,
              this->port);
-    List<Subscription<MESSAGE>> __COPY =
-        List<Subscription<MESSAGE>>(__SUBSCRIPTIONS);
-    for (const Subscription<MESSAGE> &sub : __COPY) {
+    List<Subscription<MESSAGE>> COPY =
+        List<Subscription<MESSAGE>>(SUBSCRIPTIONS);
+    for (const Subscription<MESSAGE> &sub : COPY) {
       this->unsubscribe(sub.source, sub.pattern);
     };
-    __COPY.clear();
-    __PUBLICATIONS.clear();
-    __SUBSCRIPTIONS.clear();
+    COPY.clear();
+    PUBLICATIONS.clear();
+    SUBSCRIPTIONS.clear();
     // FP_ESP_FEED;
     this->xmqtt->disconnect();
     PROCESS::stop();
@@ -220,23 +220,23 @@ public:
     this->willRetain = willRetain;
     this->willQoS = willQoS;
   }
-  bool unsubscribeSource(const ID id);
-  bool running() { return this->__running || this->xmqtt->connected(); }
-  const bool publish(const ID &topic, const String message,
+  bool unsubscribeSource(const ID id) { return true; }
+  bool running() { return this->_running || this->xmqtt->connected(); }
+  bool publish(const ID &topic, const String& message,
                      const bool retain = false) {
     return this->publish(topic.toString().c_str(), message.c_str(), retain);
   }
 
 private:
-  List<MESSAGE> __PUBLICATIONS;
-  List<Subscription<MESSAGE>> __SUBSCRIPTIONS;
-  char *server;
-  uint16_t port;
-  PubSubClient *xmqtt;
+  List<MESSAGE> PUBLICATIONS;
+  List<Subscription<MESSAGE>> SUBSCRIPTIONS;
+  char *server{};
+  uint16_t port{};
+  PubSubClient *xmqtt{};
   String willTopic;
   String willMessage;
-  bool willRetain;
-  uint8_t willQoS;
+  bool willRetain{};
+  uint8_t willQoS{};
   RecvFunction recvFunction;
   void testConnection() {
     if (!this->running()) {
@@ -245,15 +245,15 @@ private:
       this->setup();
     }
   }
-  void __DRAIN_PUBLICATION_QUEUE() {
-    for (const auto &it : __PUBLICATIONS) {
+  void DRAIN_PUBLICATION_QUEUE() {
+    for (const auto &it : PUBLICATIONS) {
       // FP_ESP_FEED;
       if (this->xmqtt->publish(it.target.toString().c_str(),
                                it.payloadString().c_str(), it.retain)) {
         LOG(INFO, "!B%s!! =!mpublish[retain:%s]!!=> [!B%s!!] (!routbox:%i!!)\n",
             it.payloadString().c_str(), FP_BOOL_STR(it.retain),
-            it.target.toString().c_str(), __PUBLICATIONS.size());
-        __PUBLICATIONS.pop_front();
+            it.target.toString().c_str(), PUBLICATIONS.size());
+        PUBLICATIONS.pop_front();
       } else {
         LOG(ERROR, "%s =!mpublish[retain:%s]!!=> [!B%s!!]\n",
             it.payloadString().c_str(), FP_BOOL_STR(it.retain),
@@ -262,9 +262,9 @@ private:
         this->testConnection();
       }
     }
-    if (!__PUBLICATIONS.empty())
+    if (!PUBLICATIONS.empty())
       LOG(ERROR, "Not all MQTT publications published [remaining:%i]\n",
-          __PUBLICATIONS.size());
+          PUBLICATIONS.size());
     this->xmqtt->flush();
   };
   const Map<int8_t, String> MQTT_STATE_CODES = {

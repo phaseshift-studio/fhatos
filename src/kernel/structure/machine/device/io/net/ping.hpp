@@ -13,12 +13,12 @@ template <typename PROCESS = Fiber, typename MESSAGE = StringMessage,
           typename ROUTER = LocalRouter<MESSAGE>>
 class Ping : public Actor<PROCESS, MESSAGE, ROUTER> {
 public:
-  Ping(const ID &id = WIFI::idFromIP("ping"))
+  explicit Ping(const ID &id = WIFI::idFromIP("ping"))
       : Actor<PROCESS, MESSAGE, ROUTER>(id) {}
 
   ~Ping() { delete this->pingData; }
 
-  virtual void setup() override {
+   void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
     this->subscribe(this->id(), [this](const StringMessage &message) {
       if (this->pingData) {
@@ -30,7 +30,7 @@ public:
     });
   }
 
-  virtual void loop() override {
+  void loop() override {
     Actor<PROCESS, MESSAGE, ROUTER>::loop();
     // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
     if (this->pingData) {
@@ -49,7 +49,7 @@ public:
                 this->pingData->counter, this->pingData->failureRate());
         this->publish(WIFI::idFromIP("log", "ERROR"), String(message));
       }
-      delete message;
+      delete[] message;
     }
     delay(1000);
   }
@@ -62,11 +62,11 @@ protected:
     uint16_t success = 0;
     // float totalTime = 0.0f;
 
-    PingData(const String &host) {
+    explicit PingData(const String &host) {
       this->host = host;
       this->ip = WIFI::singleton()->resolve(this->host).toString();
     }
-    const float failureRate() const {
+    [[nodiscard]]  float failureRate() const {
       return (((float)(counter - success)) / ((float)counter)) * 100.0f;
     }
     // const float successRate() const { return success / counter; }

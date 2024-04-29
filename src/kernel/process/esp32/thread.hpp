@@ -11,19 +11,19 @@ namespace fhatos::kernel {
 class Thread : public Process {
 
 protected:
-  bool __running = true;
+  bool _running = true;
 
 public:
   TaskHandle_t handle;
   Thread(const ID &id) : Process(id) {}
 
-  virtual void delay(const uint64_t milliseconds) override {
+  void delay(const uint64_t milliseconds) override {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
   }
 
-  virtual void yield() override { taskYIELD(); }
+  void yield() override { taskYIELD(); }
 
-  virtual void setup() override {
+  void setup() override {
     /*LOG(this->isEnabled() ? INFO : ERROR,
          "Scheduler starting %s thread %s (!rthreads:%i!!)\n",
          this->isLean() ? "lean" : "", this->id().c_str(),
@@ -33,9 +33,9 @@ public:
    // }
   }
 
-  virtual void stop() override { this->__running = false; }
+  void stop() override { this->_running = false; }
 
-  virtual const bool running() const override { return this->__running; }
+  [[nodiscard]] const bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

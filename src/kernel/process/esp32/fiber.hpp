@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__fiber_hpp
-#define fhatos_kernel__fiber_hpp
+#ifndef fhatos_kernel_fiber_hpp
+#define fhatos_kernel_fiber_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/process.hpp>
@@ -11,31 +11,31 @@ namespace fhatos::kernel {
 class Fiber : public Process {
 
 protected:
-  bool __running = true;
+  bool _running = true;
 
 public:
   TaskHandle_t handle;
-  Fiber(const ID &id) : Process(id) {}
+  explicit Fiber(const ID &id) : Process(id) {}
 
-  virtual void delay(const uint64_t milliseconds) override {
+   void delay(const uint64_t milliseconds) override {
     // delay to next fiber
      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
   }
 
-  virtual void yield() override {
+   void yield() override {
     // yield to next fiber
   }
 
-  virtual void setup() override {
+   void setup() override {
     /*LOG(this->isEnabled() ? INFO : ERROR,
          "Scheduler starting %s thread %s (!rthreads:%i!!)\n",
          this->isLean() ? "lean" : "", this->id().c_str(),
          Scheduler->__THREADS.size());*/
   }
 
-  virtual void stop() override { this->__running = false; }
+   void stop() override { this->_running = false; }
 
-  virtual const bool running() const override { return this->__running; }
+   const bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

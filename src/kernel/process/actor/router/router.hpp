@@ -1,10 +1,9 @@
-#ifndef fhatos_kernel__router_hpp
-#define fhatos_kernel__router_hpp
+#ifndef fhatos_kernel_router_hpp
+#define fhatos_kernel_router_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/structure/structure.hpp>
-// #include FP_THREAD_LIBRARY
 
 #define RETAIN_MESSAGE true
 
@@ -23,9 +22,9 @@ template <typename MESSAGE> struct Subscription {
   MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> *actor;
   const ID source;
   const Pattern pattern;
-  const QoS qos;
+  const QoS qos = _1;
   const OnRecvFunction<MESSAGE> onRecv;
-  const bool match(const ID &target) const {
+  [[nodiscard]] bool match(const ID &target) const {
     return this->pattern.matches(target);
   }
   void execute(const MESSAGE message) const { onRecv(message); }
@@ -62,7 +61,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
   case MUTEX_TIMEOUT:
     return "Mutex timeout";
   default:
-    return "Unknown error code: " + rc;
+    return &"Unknown error code: " [ rc];
   }
 };
 
@@ -76,7 +75,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 template <class MESSAGE> class Router : public IDed {
 
 public:
-  Router(const ID &id) : IDed(id){};
+  explicit Router(const ID &id) : IDed(id){};
   virtual const RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;
