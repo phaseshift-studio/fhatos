@@ -39,8 +39,8 @@ namespace fhatos::kernel {
 
 /////////////////////////////////////////////////////////////////////
 
-template <typename PROCESS = Thread, typename MESSAGE = StringMessage,
-          typename ROUTER = LocalRouter<MESSAGE>>
+template <typename PROCESS = Thread, typename MESSAGE = String,
+          typename ROUTER = LocalRouter<Message<MESSAGE>>>
 class Telnet : public Actor<PROCESS, MESSAGE, ROUTER> {
 
 public:
@@ -49,8 +49,8 @@ public:
     return &singleton;
   }
 
-  explicit Telnet(const ID &id = WIFI::idFromIP("telnet"), const uint16_t port = 23,
-         const bool useAnsi = true)
+  explicit Telnet(const ID &id = WIFI::idFromIP("telnet"),
+                  const uint16_t port = 23, const bool useAnsi = true)
       : Actor<PROCESS, MESSAGE, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
@@ -63,7 +63,7 @@ public:
     delete this->ansi;
   }
 
-   void setup() override {
+  void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
     ////////// ON CONNECT //////////
     this->xtelnet->onConnect([](const String ipAddress) {
@@ -86,7 +86,7 @@ public:
       } else if (line.equals("/+")) {
         // todo ??
         tthis->subscribe(
-            *tthis->currentTopic / "+", [](const MESSAGE &message) {
+            *tthis->currentTopic / "+", [](const Message<MESSAGE> &message) {
               tthis->ansi->printf("[/+]=>!g%s!!\n",
                                   message.target.toString().c_str());
             });
@@ -94,18 +94,23 @@ public:
         String payload = line.length() == 2 ? "" : line.substring(2);
         payload.trim();
         tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
-      } else if (line.startsWith("=>")) {
-        RESPONSE_CODE _rc =
-            tthis->subscribe(*tthis->currentTopic, [](const MESSAGE &message) {
+      } else if (line.startsWith("=>") || line.equals("?")) {
+        RESPONSE_CODE _rc = tthis->subscribe(
+            *tthis->currentTopic, [](const Message<MESSAGE> &message) {
               tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
                                   message.source.toString().c_str(),
                                   FP_BOOL_STR(message.retain));
               tthis->xtelnet->println(
                   message.payloadString().c_str()); // TODO: ansi off/on
             });
-        tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
-                            _rc ? "!RERROR" : "!GOK",
-                            tthis->currentTopic->toString().c_str());
+        if (line.equals("?")) {
+          yield();
+          tthis->unsubscribe(*tthis->currentTopic);
+        } else {
+          tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
+                              _rc ? "!RERROR" : "!GOK",
+                              tthis->currentTopic->toString().c_str());
+        }
       } else if (line.startsWith("=|")) {
         RESPONSE_CODE _rc = tthis->unsubscribe(*tthis->currentTopic);
         tthis->ansi->printf("[%s!!] Unsubscribed from !b%s!!\n",
@@ -138,7 +143,7 @@ public:
                               line.substring(1).c_str());
         }
       } else if (line.startsWith("?")) {
-        // ? current topic commands (beyond publish/subscribe/unsubscribe)
+
       } else {
         tthis->currentTopic = new ID(ID(line).resolve(*tthis->currentTopic));
       }
@@ -158,7 +163,7 @@ public:
              this->id().toString().c_str());
   }
 
-   void loop() override {
+  void loop() override {
     Actor<PROCESS, MESSAGE, ROUTER>::loop();
     this->xtelnet->loop();
     if (::Serial.available()) {

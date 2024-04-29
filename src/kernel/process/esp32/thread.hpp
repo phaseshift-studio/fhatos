@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__threadx_hpp
-#define fhatos_kernel__threadx_hpp
+#ifndef fhatos_kernel_thread_hpp
+#define fhatos_kernel_thread_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/process.hpp>
@@ -14,8 +14,8 @@ protected:
   bool _running = true;
 
 public:
-  TaskHandle_t handle;
-  Thread(const ID &id) : Process(id) {}
+  TaskHandle_t handle{};
+  explicit Thread(const ID &id) : Process(id) {}
 
   void delay(const uint64_t milliseconds) override {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);

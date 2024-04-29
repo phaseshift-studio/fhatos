@@ -17,12 +17,12 @@ void setup() {
   ::Serial.begin(FOS_SERIAL_BAUDRATE);
   LOG(NONE, ANSI_ART);
   Scheduler::singleton()->addProcess(WIFI::singleton());
-  Scheduler::singleton()->addProcess(MQTT<Thread, StringMessage>::singleton());
+  Scheduler::singleton()->addProcess(MQTT<Thread, Message<String>>::singleton());
   Scheduler::singleton()->addProcess(logger = new Log<>());
   Scheduler::singleton()->addProcess(new fhatos::kernel::Serial<>());
   Scheduler::singleton()->addProcess(new fhatos::kernel::Ping<>());
   Scheduler::singleton()->addProcess(Telnet<>::singleton());
-  Scheduler::singleton()->setup();
+  Scheduler::singleton()->addProcess(Scheduler::singleton());
 }
 
 void loop() {
@@ -32,8 +32,8 @@ void loop() {
       String("!Mlogging!! !Rme!!ssage: !g") + counter++ + "!!\n",
      RETAIN_MESSAGE));*/
   if (counter++ == -1) {
-    LocalRouter<StringMessage>::singleton()->publish(
-        StringMessage("self@127.0.0.1", WIFI::idFromIP("ping"),
+    LocalRouter<Message<String>>::singleton()->publish(
+        Message<String>("self@127.0.0.1", WIFI::idFromIP("ping"),
                       String("www.google.com"), RETAIN_MESSAGE));
   }
 }

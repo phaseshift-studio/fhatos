@@ -20,8 +20,8 @@ namespace fhatos::kernel {
 
 template <typename ROUTER> void test_actor_by_router() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
-  auto *actor1 = new Actor<Thread, StringMessage, ROUTER>("actor1@127.0.0.1");
-  auto *actor2 = new Actor<Thread, StringMessage, ROUTER>("actor2@127.0.0.1");
+  auto *actor1 = new Actor<Thread, String, ROUTER>("actor1@127.0.0.1");
+  auto *actor2 = new Actor<Thread, String, ROUTER>("actor2@127.0.0.1");
 
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
@@ -71,8 +71,8 @@ template <typename ROUTER> void test_actor_by_router() {
 
 template <typename ROUTER> void test_message_retain() {
   Pair<int, int> *counter = new Pair<int, int>{0, 0};
-  auto *actor1 = new Actor<Thread, StringMessage, ROUTER>("actor1@127.0.0.1");
-  auto *actor2 = new Actor<Thread, StringMessage, ROUTER>("actor2@127.0.0.1");
+  auto *actor1 = new Actor<Thread, String, ROUTER>("actor1@127.0.0.1");
+  auto *actor2 = new Actor<Thread, String, ROUTER>("actor2@127.0.0.1");
 
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,

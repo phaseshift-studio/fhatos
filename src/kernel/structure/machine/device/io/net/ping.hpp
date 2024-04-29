@@ -9,8 +9,8 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Fiber, typename MESSAGE = StringMessage,
-          typename ROUTER = LocalRouter<MESSAGE>>
+template <typename PROCESS = Fiber, typename MESSAGE = String,
+          typename ROUTER = LocalRouter<Message<MESSAGE>>>
 class Ping : public Actor<PROCESS, MESSAGE, ROUTER> {
 public:
   explicit Ping(const ID &id = WIFI::idFromIP("ping"))
@@ -20,7 +20,7 @@ public:
 
    void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
-    this->subscribe(this->id(), [this](const StringMessage &message) {
+    this->subscribe(this->id(), [this](const Message<MESSAGE> &message) {
       if (this->pingData) {
         delete this->pingData;
         this->pingData = nullptr;

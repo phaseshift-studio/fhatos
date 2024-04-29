@@ -119,6 +119,8 @@ namespace fhatos::kernel {
             }
         };
 
+        ~fError() override { delete _message; }
+
         [[nodiscard]] const char *
         what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
             return this->_message;

@@ -14,8 +14,8 @@
 
 namespace fhatos::kernel {
 
-    template<typename PROCESS = Thread, typename MESSAGE = StringMessage,
-            typename ROUTER = LocalRouter<MESSAGE>>
+    template<typename PROCESS = Thread, typename MESSAGE = String,
+            typename ROUTER = LocalRouter<Message<MESSAGE>>>
     class Log : public Actor<PROCESS, MESSAGE, ROUTER> {
     public:
         explicit Log(const ID &id = WIFI::idFromIP("log"))
@@ -26,14 +26,14 @@ namespace fhatos::kernel {
             const ID serialID = WIFI::idFromIP("serial");
             // INFO LOGGING
             this->subscribe(this->id().extend("INFO"), [this, serialID](
-                    const MESSAGE &message) {
+                    const Message<MESSAGE> &message) {
                 this->publish(
                         serialID,
                         this->createLogMessage(INFO, message.payloadString()).c_str(), false);
             });
             // ERROR LOGGING
             this->subscribe(this->id().extend("ERROR"), [this, serialID](
-                    const MESSAGE &message) {
+                    const Message<MESSAGE> &message) {
                 this->publish(
                         serialID,
                         this->createLogMessage(INFO, message.payloadString()).c_str(), false);

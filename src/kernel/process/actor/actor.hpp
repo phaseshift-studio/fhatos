@@ -14,23 +14,23 @@
 #include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos::kernel {
-    template<typename PROCESS, typename MESSAGE = StringMessage,
-            typename ROUTER = MetaRouter<MESSAGE>>
+    template<typename PROCESS, typename PAYLOAD = String,
+            typename ROUTER = MetaRouter<Message<PAYLOAD>>>
     class Actor
             : public PROCESS,
-              public MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> {
+              public MessageBox<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>> {
     public:
         explicit Actor(const ID &id) : PROCESS(id) {
             static_assert(std::is_base_of_v<Process, PROCESS>);
-            static_assert(std::is_base_of_v<Router<MESSAGE>, ROUTER>);
+            static_assert(std::is_base_of_v<Router<Message<PAYLOAD>>, ROUTER>);
         }
 
         /// SUBSCRIBE
         virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
-                                              const OnRecvFunction<MESSAGE> onRecv,
+                                              const OnRecvFunction<Message<PAYLOAD>> onRecv,
                                               const QoS qos = QoS::_1) {
             return ROUTER::singleton()->subscribe(
-                    Subscription<MESSAGE>{.actor = this,
+                    Subscription<Message<PAYLOAD>>{.actor = this,
                             .source = this->id(),
                             .pattern = makeTopic(relativePattern),
                             .qos = qos,
@@ -45,22 +45,22 @@ namespace fhatos::kernel {
         }
 
         // PUBLISH
-        virtual RESPONSE_CODE publish(const IDed &target, const String &message,
+         RESPONSE_CODE publish(const IDed &target, const PAYLOAD &message,
                                       const bool retain = TRANSIENT_MESSAGE) {
             return ROUTER::singleton()->publish(
-                    MESSAGE(this->id(), target.id(), message, retain));
+                    Message<PAYLOAD>(this->id(), target.id(), message, retain));
         }
 
-        virtual RESPONSE_CODE publish(const ID &relativeTarget,
-                                      const String &message,
+         RESPONSE_CODE publish(const ID &relativeTarget,
+                                      const PAYLOAD &message,
                                       const bool retain = TRANSIENT_MESSAGE) {
             return ROUTER::singleton()->publish(
-                    MESSAGE(this->id(), makeTopic(relativeTarget), message, retain));
+                    Message<PAYLOAD>(this->id(), makeTopic(relativeTarget), message, retain));
         }
 
-        // MESSAGE BOX METHODS
+        // PAYLOAD BOX METHODS
         bool
-        push(const Pair<const Subscription<MESSAGE>, const MESSAGE> &mail) override {
+        push(const Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>> &mail) override {
             return this->inbox.push_back(mail);
         }
 
@@ -90,7 +90,7 @@ namespace fhatos::kernel {
         }
 
     protected:
-        MutexDeque<Pair<const Subscription<MESSAGE>, const MESSAGE>> inbox;
+        MutexDeque<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>> inbox;
 
         Pattern makeTopic(const Pattern &relativeTopic) {
             return relativeTopic.empty()
@@ -101,13 +101,13 @@ namespace fhatos::kernel {
                       : relativeTopic);
         }
 
-        Option<Pair<const Subscription<MESSAGE>, const MESSAGE>>
+        Option<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>>
         pop() override {
             return this->inbox.pop_front();
         }
 
         virtual bool next() {
-            Option<Pair<const Subscription<MESSAGE>, const MESSAGE>> mail = this->pop();
+            Option<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>> mail = this->pop();
             if (!mail.has_value())
                 return false;
             mail->first.execute(mail->second);

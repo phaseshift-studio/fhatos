@@ -8,8 +8,8 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Thread, typename MESSAGE = StringMessage,
-          typename ROUTER = LocalRouter<MESSAGE>>
+template <typename PROCESS = Thread, typename MESSAGE = String,
+          typename ROUTER = LocalRouter<Message<MESSAGE>>>
 class Serial : public Actor<PROCESS, MESSAGE, ROUTER> {
 
 public:
@@ -20,7 +20,7 @@ public:
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
     this->subscribe(
         this->id(),
-        [](const MESSAGE &message) {
+        [](const Message<MESSAGE> &message) {
           ::Serial.print(message.payloadString().c_str());
         },
         QoS::_1);

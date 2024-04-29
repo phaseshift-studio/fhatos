@@ -14,8 +14,8 @@ protected:
   bool _running = true;
 
 public:
-  TaskHandle_t handle;
-   Fiber(const ID &id) : Process(id) {}
+  TaskHandle_t handle{};
+   explicit Fiber(const ID &id) : Process(id) {}
 
    void delay(const uint64_t milliseconds) override {
     // delay to next fiber

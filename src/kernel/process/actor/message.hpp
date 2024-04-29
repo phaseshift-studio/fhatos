@@ -7,9 +7,8 @@
 
 namespace fhatos::kernel {
 
-    template<typename PAYLOAD>
+    template<typename PAYLOAD = String>
     class Message {
-
     public:
         const ID source;
         const ID target;
@@ -18,7 +17,8 @@ namespace fhatos::kernel {
 
         Message(ID source, ID target, PAYLOAD payload,
                 const bool retain = false)
-                : source(std::move(source)), target(std::move(target)), payload(std::move(payload)), retain(retain) {};
+                : source(std::move(source)), target(std::move(target)), payload(std::move(payload)), retain(retain) {
+        };
 
         [[nodiscard]] virtual String toString() const {
             char temp[100];
@@ -28,7 +28,26 @@ namespace fhatos::kernel {
             return temp;
         };
 
-        [[nodiscard]] virtual String payloadString() const { return ""; }
+
+        template<typename = typename std::enable_if<std::is_base_of_v<String, PAYLOAD>>>
+        [[nodiscard]] String payloadString() const {
+            return payload;
+        }
+
+        /*template<typename = typename std::enable_if<std::is_base_of_v<int, PAYLOAD>, int>>
+        [[nodiscard]]  String payloadString() const {
+            return String() + payload;
+        }*/
+
+        /*template <typename = typename std::enable_if<std::is_base_of_v<float,PAYLOAD>,float>>
+        [[nodiscard]]  const String payloadString() const {
+            return String() + payload;
+        }
+
+        template<typename = typename std::enable_if<std::is_base_of_v<bool, PAYLOAD>,bool>>
+        [[nodiscard]]  const String payloadString()  {
+            return payload ? "true" : "false";
+        }*/
 
         [[nodiscard]] virtual const Pair<byte *, uint> toBytes() const {
             String temp = payloadString();
@@ -37,27 +56,9 @@ namespace fhatos::kernel {
         }
     };
 
-////////////////////////////////////////////////
-//////////////// STRING MESSAGE ////////////////
-////////////////////////////////////////////////
-
-    class StringMessage : public Message<String> {
-    public:
-        StringMessage(const ID &source, const ID &target, const String &payload,
-                      const bool retain = false)
-                : Message<String>(source, target, payload, retain) {};
-
-        static String fromBytes(const byte *bytes, const uint length) {
-            return {(char *) bytes, length};
-        }
-
-        virtual const Pair<byte *, uint> toBytes() const override {
-            return {(byte *) this->payload.c_str(),
-                                  this->payload.length()};
-        }
-
-        virtual String payloadString() const { return this->payload; }
-    };
+    using BoolMessage = Message<bool>;
+    using IntMessage = Message<int>;
+    using StringMessage = Message<String>;
 
 } // namespace fhatos::kernel
 

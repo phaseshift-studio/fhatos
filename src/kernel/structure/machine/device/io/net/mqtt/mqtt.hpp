@@ -21,7 +21,7 @@ namespace fhatos::kernel {
 typedef std::function<void(const char *, const byte *, const uint32_t)>
     RecvFunction;
 
-template <typename PROCESS = Thread, typename MESSAGE = StringMessage>
+template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
 class MQTT : public PROCESS {
 public:
   static MQTT *singleton(const ID id = WIFI::idFromIP("mqtt"),

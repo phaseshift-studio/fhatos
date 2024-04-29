@@ -3,8 +3,12 @@
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/structure/structure.hpp>
+#include <kernel/process/esp32/scheduler.hpp>
+
+#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(coroutine.hpp)
+
 #include <unity.h>
 
 namespace fhatos::kernel {

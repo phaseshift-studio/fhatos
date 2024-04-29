@@ -6,10 +6,10 @@ namespace fhatos::kernel {
 template <typename MACHINE> class Machine {
 
 public:
-  Machine() { static_assert(std::is_base_of<Machine, MACHINE>::value); }
+  Machine() { static_assert(std::is_base_of<MACHINE, Machine>::value); }
 
   template <typename MACHINE> static MACHINE *singleton() {
-    static_assert(std::is_base_of<Machine, MACHINE>::value);
+    static_assert(std::is_base_of<MACHINE, Machine>::value);
     static MACHINE machine = MACHINE();
     return &machine;
   }
