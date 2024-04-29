@@ -67,7 +67,7 @@ protected:
       this->ip = WIFI::singleton()->resolve(this->host).toString();
     }
     const float failureRate() const {
-      return ((float)(counter - success)) / ((float)counter);
+      return (((float)(counter - success)) / ((float)counter)) * 100.0f;
     }
     // const float successRate() const { return success / counter; }
     // const float averageTime() const { return totalTime / success; }

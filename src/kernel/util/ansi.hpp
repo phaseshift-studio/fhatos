@@ -1,116 +1,50 @@
-#ifndef fhatos_kernel__ansi_hpp
-#define fhatos_kernel__ansi_hpp
+#ifndef fhatos_kernel__ansi2_hpp
+#define fhatos_kernel__ansi2_hpp
 
 #include <Stream.h>
-#include <ansi.h>
 #include <kernel/util/string_stream.hpp>
 
 namespace fhatos::kernel {
 
-class Ansi : public ANSI {
-public:
-  Ansi(Stream *baseStream = &::Serial) : ANSI(baseStream) { this->__on = true; }
+template <typename PRINTER> class Ansi {
 
-  Ansi *on() {
-    this->__on = true;
-    return this;
+protected:
+  PRINTER *printer;
+  String *__buffer = new String();
+  StringStream *__stream = new StringStream(__buffer);
+  bool __on = true;
+
+  enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
+
+  void color(const uint8_t fgcolor, const uint8_t bgcolor) {
+    this->printf("\033[0;%dm", fg_normal + fgcolor);
   }
 
-  Ansi *off() {
-    this->__on = false;
-    return this;
-  }
+  //  COLOR
+  enum {
+    BLACK = 0, // !b
+    RED = 1,   // !r
+    GREEN = 2, // !g
+    YELLOW = 3,
+    BLUE = 4,
+    MAGENTA = 5,
+    CYAN = 6,
+    WHITE = 7,
+    BRIGHT = 8, //  Add this to any of the previous 8 to get a bright color
+  };
 
-  Ansi *black() { return this->color(ANSI::black); }
+  // STYLE
+  enum {
+    UNDERLINE, // !_
+  };
 
-  template <typename... Args> Ansi *black(const char *format, Args... args) {
-    return this->color(ANSI::black, format, args...);
-  }
+  //  foreground, background, and color accept one of the following colors:
+  //  * color name from above:          ANSI::red
+  //  * bright color name from above:   ANSI::red + ANSI::bright
+  //  * gray color:                     ANSI::gray2color(gray)
+  //  * RGB color:                      ANSI::rgb2color(r, g, b)
 
-  Ansi *white() { return this->color(ANSI::white); }
-
-  template <typename... Args> Ansi *white(const char *format, Args... args) {
-    return this->color(ANSI::white, format, args...);
-  }
-
-  Ansi *cyan() { return this->color(ANSI::cyan); }
-
-  template <typename... Args> Ansi *cyan(const char *format, Args... args) {
-    return this->color(ANSI::cyan, format, args...);
-  }
-
-  Ansi *magenta() { return this->color(ANSI::magenta); }
-
-  template <typename... Args> Ansi *magenta(const char *format, Args... args) {
-    return this->color(ANSI::magenta, format, args...);
-  }
-
-  template <typename... Args> Ansi *blue(const char *format, Args... args) {
-    return this->color(ANSI::blue, format, args...);
-  }
-
-  Ansi *blue() { return this->color(ANSI::blue); }
-  template <typename... Args> Ansi *red(const char *format, Args... args) {
-    return this->color(ANSI::red, format, args...);
-  }
-
-  Ansi *red() { return this->color(ANSI::red); }
-
-  template <typename... Args> Ansi *yellow(const char *format, Args... args) {
-    return this->color(ANSI::yellow, format, args...);
-  }
-
-  Ansi *yellow() { return this->color(ANSI::yellow); }
-  template <typename... Args> Ansi *green(const char *format, Args... args) {
-    return this->color(ANSI::green, format, args...);
-  }
-
-  Ansi *green() { return this->color(ANSI::green); }
-
-  Ansi *normal() {
-    if (this->__on)
-      ANSI::normal();
-    return this;
-  }
-
-  Ansi *underline() {
-    if (this->__on)
-      ANSI::underline();
-    return this;
-  }
-
-  Ansi *bold() {
-    if (this->__on)
-      ANSI::bold();
-    return this;
-  }
-
-  String inlineColor(const uint8_t color, const String &text) {
-    return this->__on ? String("\033[") + (char)color + "m" + text + "\033[0m"
-                      : text;
-  }
-
-  template <typename... Args>
-  Ansi *color(const uint8_t color, const char *format, Args... args) {
-    if (this->__on)
-      this->foreground(color);
-    this->printf(format, args...);
-    if (this->__on)
-      ANSI::normal();
-    return this;
-  }
-
-  Ansi *color(const uint8_t color) {
-    if (this->__on)
-      this->foreground(color);
-    return this;
-  }
-
-  Ansi *parse(const String &text) {
-    return this->parse(text.c_str(), text.length());
-  }
-
-  Ansi *parse(const char *buffer, const int bufferLength) {
+  void parse(const char *buffer, const int bufferLength) {
     for (int i = 0; i < bufferLength; i++) {
       if (buffer[i] == '!') {
         const char j = buffer[i + 1];
@@ -139,18 +73,94 @@ public:
           else if ('d' == jj)
             this->black();
           else
-            this->print(buffer[i]);
+            this->__stream->print(buffer[i]);
         }
         i++;
       } else {
-        this->print(buffer[i]);
+        this->__stream->print(buffer[i]);
       }
     }
-    return this;
+    this->printer->print(this->__buffer->c_str());
+    this->__buffer->clear();
   }
 
-protected:
-  bool __on = true;
+public:
+  Ansi() {}
+
+  Ansi(PRINTER *printer) : printer(printer) {}
+
+  void on(bool turnOn = true) { this->__on = turnOn; }
+
+  void print(const char c) { this->parse(&c, 1); }
+
+  void print(const char *c) { this->parse(c, strlen(c)); }
+
+  void println(const char *c) {
+    this->print(c);
+    this->print('\n');
+  }
+
+  void printf(const char *format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    char temp[127];
+    char *buffer = temp;
+    size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+    va_end(arg);
+    if (len > sizeof(temp) - 1) {
+      buffer = new (std::nothrow) char[len + 1];
+      if (!buffer) {
+        return;
+      }
+      va_start(arg, format);
+      vsnprintf(buffer, len + 1, format, arg);
+      va_end(arg);
+    }
+    this->parse(temp, len);
+    if (buffer != temp) {
+      delete[] buffer;
+    }
+  }
+
+  //////////////////////////
+
+  void normal() { this->print("\033[0m"); }
+
+  void underline() { this->print("\033[4m"); }
+
+  void bold() { this->print("\033[1m"); }
+
+  void red(const bool bright = false) { color(RED + (bright ? BRIGHT : 0), 0); }
+
+  void green(const bool bright = false) {
+    color(GREEN + (bright ? BRIGHT : 0), 0);
+  }
+
+  void blue(const bool bright = false) {
+    color(BLUE + (bright ? BRIGHT : 0), 0);
+  }
+
+  void magenta(const bool bright = false) {
+    color(MAGENTA + (bright ? BRIGHT : 0), 0);
+  }
+
+  void cyan(const bool bright = false) {
+    color(CYAN + (bright ? BRIGHT : 0), 0);
+  }
+
+  void white(const bool bright = false) {
+    color(WHITE + (bright ? BRIGHT : 0), 0);
+  }
+
+  void yellow(const bool bright = false) {
+    color(YELLOW + (bright ? BRIGHT : 0), 0);
+  }
+
+  void black(const bool bright = false) {
+    color(BLACK + (bright ? BRIGHT : 0), 0);
+  }
 };
+
 } // namespace fhatos::kernel
+
 #endif

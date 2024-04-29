@@ -45,16 +45,16 @@ protected:
       type = LOG_TYPE::NONE;
     String output;
     StringStream stream = StringStream(&output);
-    Ansi ansi = Ansi(&stream);
-    if (type != LOG_TYPE::NONE)
-      ansi.color(type == ERROR  ? ANSI::red
-                 : type == INFO ? ANSI::green
-                                : ANSI::yellow,
-                 type == ERROR  ? "[ERROR]\t"
-                 : type == INFO ? "[INFO]\t"
-                                : "[DEBUG]\t");
-    ansi.parse(message);
-    ansi.flush();
+    Ansi<StringStream> ansi = Ansi<StringStream>(&stream);
+    if (type != LOG_TYPE::NONE) {
+      if (type == ERROR)
+        ansi.print("!r[ERROR]!!  ");
+      else if (type == INFO)
+        ansi.print("!g[INFO]!!  ");
+      else
+        ansi.print("!y[DEBUG]!!  ");
+    }
+    ansi.print(message.c_str());
     return output;
   }
 };

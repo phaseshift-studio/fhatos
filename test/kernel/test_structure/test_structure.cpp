@@ -98,6 +98,7 @@ void test_furi_host() {
   TEST_ASSERT_EQUAL_STRING("127.0.0.1",
                            fURI("fhat:pig@127.0.0.1/a/b").host().c_str());
   TEST_ASSERT_EQUAL_STRING("", fURI("/a/b/c").host().c_str());
+  TEST_ASSERT_EQUAL_STRING("", fURI("fhat@/a/b/c").host().c_str());
   /////
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("/a").host("127.0.0.1"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"),
@@ -106,10 +107,12 @@ void test_furi_host() {
 }
 
 void test_furi_resolve() {
-  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
-                             fURI("/a").resolve(fURI("127.0.0.1/a/b/c")));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"),
                              fURI("fhat@/a").resolve(fURI("127.0.0.1/a/b/c")));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("/a").resolve(fURI("127.0.0.1")));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"),
+                             fURI("/b").resolve(fURI("127.0.0.1/a")));
 }
 
 void test_furi_path() {
@@ -145,6 +148,19 @@ void test_furi_authority() {
                            fURI("fat@127.0.0.1/a/b/c").authority().c_str());
   TEST_ASSERT_EQUAL_STRING("fat:pig@127.0.0.1",
                            fURI("fat:pig@127.0.0.1/a/b/c").authority().c_str());
+  TEST_ASSERT_EQUAL_STRING("", fURI("/a").authority().c_str());
+  //////
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("1.1.1.1/a").authority("127.0.0.1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"),
+                             fURI("1.1.1.1").authority("127.0.0.1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("1.1.1.1/a").authority("127.0.0.1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                             fURI("/a").authority("127.0.0.1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"),
+                             fURI("").authority("127.0.0.1"));
+  TEST_ASSERT_TRUE(fURI("/a/b/c").authority().isEmpty());
 }
 
 void test_furi_retract() {

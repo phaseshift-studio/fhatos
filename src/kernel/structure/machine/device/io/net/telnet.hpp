@@ -6,7 +6,7 @@
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/message.hpp>
 #include <kernel/structure/structure.hpp>
-#include <kernel/util/ansi2.hpp>
+#include <kernel/util/ansi.hpp>
 #include <kernel/util/string_stream.hpp>
 #include FOS_PROCESS(thread.hpp)
 
@@ -55,7 +55,7 @@ public:
         currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
     this->xtelnet->setLineMode(true);
-    this->ansi = new Ansi2<ESPTelnet>(this->xtelnet);
+    this->ansi = new Ansi<ESPTelnet>(this->xtelnet);
   }
 
   ~Telnet() {
@@ -175,7 +175,7 @@ protected:
   uint16_t port;
   bool useAnsi;
   ESPTelnet *xtelnet;
-  Ansi2<ESPTelnet> *ansi;
+  Ansi<ESPTelnet> *ansi;
   ID *currentTopic;
 };
 

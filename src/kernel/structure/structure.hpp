@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 #include <memory>
 
-#define FOS_MAX_FURI_SEGMENTS 10
+#define FOS_MAX_FURI_SEGMENTS 20
 
 namespace __private_fhatos {
 
@@ -93,6 +93,7 @@ public:
     if ((strlen(furiCharacters) == 0) ||
         (strlen(furiCharacters) == 1 && furiCharacters[0] == '/')) {
       this->__length = 0;
+      this->__segments = new char *[0];
     } else {
       uint8_t counter = 0;
       uint8_t length = strlen(furiCharacters);
@@ -129,8 +130,8 @@ public:
       for (uint8_t i = 0; i < this->__length; i++) {
         delete this->__segments[i];
       }
-      delete __segments;
     }
+    delete this->__segments;
   }
   const fURI extend(const char *segments) const {
     return ((strlen(segments) == 0) ||
@@ -167,10 +168,14 @@ public:
       for (uint8_t i = 1; i < this->__length; i++) {
         if (i > 1)
           temp = temp + "/";
-        temp = temp + String(this->__segments[i]);
+        temp = temp + this->__segments[i];
       }
     }
     return temp;
+  }
+
+  const fURI path(const String path) const {
+    return fURI(this->authority()).extend(path.c_str());
   }
 
   const Option<String> user() const {
@@ -182,34 +187,51 @@ public:
     const int i = this->authority().indexOf("@");
     if (i < 0)
       return Option<Pair<String, String>>();
-    String userpass = this->authority().substring(0, i);
-    const int j = userpass.indexOf(":");
-    if (j < 0)
-      return Option<Pair<String, String>>(std::make_pair(userpass, ""));
-    return Option<Pair<String, String>>(
-        std::make_pair(userpass.substring(0, j), userpass.substring(j + 1)));
+    else {
+      String userpass = this->authority().substring(0, i);
+      const int j = userpass.indexOf(":");
+      if (j < 0)
+        return Option<Pair<String, String>>(std::make_pair(userpass, String()));
+      else
+        return Option<Pair<String, String>>(std::make_pair(
+            userpass.substring(0, j), userpass.substring(j + 1)));
+    }
   }
   const String host() const {
-    String temp = String(this->__segments[0]);
+    String temp = this->authority();
+    if (temp.isEmpty() || temp.charAt(temp.length() - 1) == '@')
+      return String();
     int i = temp.indexOf("@");
-    return i < 0 ? temp : temp.substring(i + 1);
+    return (i < 0) ? temp : temp.substring(i + 1);
   }
 
   const fURI host(const String &host) const {
     String temp;
-    Option<Pair<String, String>> x = this->user_password();
+    const Option<Pair<String, String>> x = this->user_password();
     if (x.has_value()) {
-      temp = temp + x->first;
-      if (!x->second.isEmpty())
-        temp = temp + ":" + x->second;
+      temp = temp + x.value().first;
+      if (!x.value().second.isEmpty())
+        temp = temp + ":" + x.value().second;
       temp = temp + "@";
     }
     temp = temp + host;
-
-    return fURI(temp + "/" + this->path());
+    return this->authority(temp);
   }
 
-  const String authority() const { return String(this->__segments[0]); }
+  const String authority() const {
+    return this->__length > 0 ? String(this->__segments[0]) : String();
+  }
+
+  const fURI authority(const String authority) const {
+    fURI temp = fURI(*this);
+    if (temp.__length == 0)
+      return fURI(authority);
+    else {
+      delete temp.__segments[0];
+      temp.__segments[0] = strdup(authority.c_str());
+      return temp;
+    }
+  }
 
   virtual bool colocated(const fURI &other) const {
     return strcmp(__segments[0], other.__segments[0]) == 0;
@@ -242,11 +264,12 @@ public:
     return this->host().equals(other.host());
   }
   const fURI resolve(const fURI base) const {
-    if (this->host().isEmpty()) {
-      return this->host(base.host());
-    } else {
+    if (this->authority().isEmpty())
+      return base.extend(this->toString().c_str());
+    else if (this->host().isEmpty() && !base.host().isEmpty())
+      return fURI(this->authority() + base.host()).extend(this->path().c_str());
+    else
       return *this;
-    }
   }
 };
 

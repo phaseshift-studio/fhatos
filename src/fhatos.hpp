@@ -189,24 +189,9 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 #error "Unknown architecture."
 #endif
 
-
 ///////////////////
 // !!TO REMOVE!! //
 ///////////////////
-
-static TriConsumer<const LOG_TYPE, const char *, const uint16_t> LOG_FUNCTION =
-    [](const LOG_TYPE type, const char *buffer, const uint16_t bufferLength) {
-      static Ansi ansi = Ansi(&::Serial);
-      if (type != LOG_TYPE::NONE)
-        ansi.color(type == ERROR  ? ANSI::red
-                   : type == INFO ? ANSI::green
-                                  : ANSI::yellow,
-                   type == ERROR  ? "[ERROR] "
-                   : type == INFO ? "[INFO]  "
-                                  : "[DEBUG] ");
-      ansi.parse(buffer, bufferLength);
-      ansi.flush();
-    };
 
 static void MAIN_LOG(const LOG_TYPE type, const String format, ...) {
   // if ((uint8_t)type < (uint8_t)LOG_TYPE::FP_LOGGING)
@@ -229,7 +214,16 @@ static void MAIN_LOG(const LOG_TYPE type, const String format, ...) {
     vsnprintf(buffer, len + 1, format.c_str(), arg);
     va_end(arg);
   }
-  LOG_FUNCTION(header, buffer, len);
+  static fhatos::kernel::Ansi<HardwareSerial> ansi = fhatos::kernel::Ansi<HardwareSerial>(&::Serial);
+  if (type != LOG_TYPE::NONE) {
+    if (type == ERROR)
+      ansi.print("!r[ERROR]!!  ");
+    else if (type == INFO)
+      ansi.print("!g[INFO]!!  ");
+    else
+      ansi.print("!y[DEBUG]!!  ");
+  }
+  ansi.print(buffer);
   if (buffer != temp) {
     delete[] buffer;
   }
