@@ -5,6 +5,7 @@
 //
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
+#include <kernel/process/actor/router/local_router/local_router.hpp>
 //
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
@@ -12,21 +13,34 @@
 
 namespace fhatos::kernel {
 
-class AbstractScheduler {
+    class AbstractScheduler : public KernelProcess {
 
-public:
-  virtual const bool addProcess(const KernelProcess *kernelProcess) {
-    return true;
-  }
-  virtual const bool addProcess(Thread *thread) { return true; };
-  virtual const bool addProcess(Fiber *fiber) { return true; };
-  virtual const bool addProcess(Coroutine *coroutine) { return true; };
-  virtual const bool removeThread(const ID &threadId) { return true; };
-  virtual const bool removeFiber(const ID &fiberId) { return true; };
-  virtual const bool removeCoroutine(const ID &coroutineId) { return true; }
-  virtual void setup(){};
-  virtual void loop(){};
-};
+    protected:
+        AbstractScheduler() : KernelProcess(WIFI::idFromIP("scheduler")) {}
+        virtual void publishRoutes() {}
+
+    public:
+        virtual  bool addProcess(const KernelProcess *kernelProcess) {
+            return true;
+        }
+
+        virtual bool addProcess(Thread *thread) { return true; };
+
+        virtual bool addProcess(Fiber *fiber) { return true; };
+
+        virtual bool addProcess(Coroutine *coroutine) { return true; };
+
+        virtual bool removeThread(const ID &threadId) { return true; };
+
+        virtual bool removeFiber(const ID &fiberId) { return true; };
+
+        virtual bool removeCoroutine(const ID &coroutineId) { return true; }
+
+        void setup() override {
+        };
+
+        void loop() override {};
+    };
 
 } // namespace fhatos::kernel
 

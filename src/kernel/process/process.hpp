@@ -7,31 +7,41 @@
 
 namespace fhatos::kernel {
 
-class Process : public IDed {
+    class Process : public IDed {
 
-public:
-  Process(const ID &id) : IDed(id) {}
-  virtual void setup(){};
-  virtual void loop() {}
-  virtual void stop(){};
-  virtual const bool running() const { return true; }
-  virtual void delay(const uint64_t milliseconds){};
-  virtual void yield(){};
-};
+    public:
+        explicit Process(const ID &id) : IDed(id) {}
 
-class KernelProcess : public Process {
-public:
-  KernelProcess(const ID &id) : Process(id) {}
-  virtual void stop() override { this->__running = false; };
-  virtual const bool running() const override { return this->__running; }
-  virtual void delay(const uint64_t milliseconds) override {
-    ::delay(milliseconds);
-  }
-  virtual void yield() { ::yield(); }
+        virtual void setup() {};
 
-protected:
-  bool __running = true;
-};
+        virtual void loop() {}
+
+        virtual void stop() {};
+
+        [[nodiscard]] virtual bool running() const { return true; }
+
+        virtual void delay(const uint64_t milliseconds) {};
+
+        virtual void yield() {};
+    };
+
+    class KernelProcess : public Process {
+    public:
+        explicit KernelProcess(const ID &id) : Process(id) {}
+
+        void stop() override { this->_running = false; };
+
+        [[nodiscard]] bool running() const override { return this->_running; }
+
+        void delay(const uint64_t milliseconds) override {
+            ::delay(milliseconds);
+        }
+
+        void yield() override { ::yield(); }
+
+    protected:
+        bool _running = true;
+    };
 
 } // namespace fhatos::kernel
 

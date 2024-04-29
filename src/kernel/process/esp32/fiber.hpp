@@ -15,7 +15,7 @@ protected:
 
 public:
   TaskHandle_t handle;
-  explicit Fiber(const ID &id) : Process(id) {}
+   Fiber(const ID &id) : Process(id) {}
 
    void delay(const uint64_t milliseconds) override {
     // delay to next fiber
@@ -35,7 +35,7 @@ public:
 
    void stop() override { this->_running = false; }
 
-   const bool running() const override { return this->_running; }
+    [[nodiscard]] bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

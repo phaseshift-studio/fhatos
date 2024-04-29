@@ -66,7 +66,7 @@ namespace fhatos::kernel {
 
         [[nodiscard]]  uint16_t size() const override { return inbox.size(); }
 
-        virtual /// PROCESS METHODS
+        /// PROCESS METHODS
         void setup() override { PROCESS::setup(); }
 
         void stop() override {

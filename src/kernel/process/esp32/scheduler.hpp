@@ -4,6 +4,7 @@
 #include <fhatos.hpp>
 ///
 #include <kernel/process/abstract_scheduler.hpp>
+#include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
@@ -19,7 +20,7 @@ namespace fhatos::kernel {
             return &scheduler;
         }
 
-        const bool removeThread(const ID &threadId) override {
+        bool removeThread(const ID &threadId) override {
             uint16_t size = THREADS.size();
             THREADS.remove_if([threadId](Thread *thread) {
                 if (threadId.equals(thread->id())) {
@@ -31,7 +32,7 @@ namespace fhatos::kernel {
             return THREADS.size() < size;
         };
 
-        const bool removeFiber(const ID &fiberId) override {
+        bool removeFiber(const ID &fiberId) override {
             uint16_t size = FIBERS.size();
             for (const auto &fiber: FIBERS) {
                 if (fiber->id().equals(fiberId))
@@ -40,7 +41,7 @@ namespace fhatos::kernel {
             return FIBERS.size() < size;
         };
 
-        const bool removeCoroutine(const ID &coroutineId) override {
+        bool removeCoroutine(const ID &coroutineId) override {
             uint16_t size = COROUTINES.size();
             for (const auto &coroutine: COROUTINES) {
                 if (coroutine->id().equals(coroutineId))
@@ -49,19 +50,19 @@ namespace fhatos::kernel {
             return COROUTINES.size() < size;
         };
 
-        const bool addProcess(Thread *thread) override {
+        bool addProcess(Thread *thread) override {
             thread->setup();
             THREADS.push_back(thread);
             return true;
         };
 
-        const bool addProcess(Fiber *fiber) override {
+        bool addProcess(Fiber *fiber) override {
             fiber->setup();
             FIBERS.push_back(fiber);
             return true;
         };
 
-        const bool addProcess(Coroutine *coroutine) override {
+        bool addProcess(Coroutine *coroutine) override {
             coroutine->setup();
             COROUTINES.push_back(coroutine);
             return true;
@@ -118,16 +119,48 @@ namespace fhatos::kernel {
                     COROUTINES.size(),
                     KERNELS.size(), THREADS.size(), FIBERS.size(),
                     COROUTINES.size());
+
             } else {
                 LOG(ERROR,
                     "Thread pool already initialized via global Scheduler::setup()\n");
             }
+            this->publishRoutes();
         }
 
         void loop() override {}
 
+    protected:
+        template<typename LIST>
+        String func(LIST list) {
+            String routes;
+            for (auto r: list) {
+                routes = routes + "\n" + r->id().toString();
+            }
+            return routes.substring(1);
+        }
+
+        void publishRoutes() override {
+
+            LocalRouter<StringMessage>::singleton()->publish(
+                    StringMessage(this->id(), this->id(),
+                                  this->id().extend("kernels").toString() + "\n" +
+                                  this->id().extend("threads").toString() + "\n" +
+                                  this->id().extend("fibers").toString() + "\n" +
+                                  this->id().extend("coroutines").toString(),
+                                  RETAIN_MESSAGE));
+            LocalRouter<StringMessage>::singleton()->publish(
+                    StringMessage(this->id(), this->id().extend("kernels"), func(KERNELS), RETAIN_MESSAGE));
+            LocalRouter<StringMessage>::singleton()->publish(
+                    StringMessage(this->id(), this->id().extend("threads"), func(THREADS), RETAIN_MESSAGE));
+            LocalRouter<StringMessage>::singleton()->publish(
+                    StringMessage(this->id(), this->id().extend("fibers"), func(FIBERS), RETAIN_MESSAGE));
+            LocalRouter<StringMessage>::singleton()->publish(
+                    StringMessage(this->id(), this->id().extend("coroutines"), func(COROUTINES), RETAIN_MESSAGE));
+
+        };
+
     private:
-        Scheduler() {};
+        Scheduler() : AbstractScheduler() {};
         TaskHandle_t *FIBER_THREAD = nullptr;
         List<Coroutine *> COROUTINES;
         List<Fiber *> FIBERS;
@@ -138,7 +171,8 @@ namespace fhatos::kernel {
         //////////////////////////////////////////////////////
         //////////////////////////////////////////////////////
         static void FIBER_FUNCTION(void *vptr_fibers) {
-            auto *fibers = (List<Fiber *> *) vptr_fibers;
+            auto *fibers = (List<Fiber *> *)
+                    vptr_fibers;
             for (const auto &fiber: *fibers) {
                 LOG(INFO, "!MStarting fiber %s!!\n", fiber->id().toString().c_str());
             }

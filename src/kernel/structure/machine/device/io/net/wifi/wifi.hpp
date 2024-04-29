@@ -54,7 +54,7 @@ namespace fhatos::kernel {
             return &singleton;
         }
 
-        [[nodiscard]] const bool running() const override {
+        [[nodiscard]]  bool running() const override {
             return WiFi.isConnected() && KernelProcess::running();
         }
 
