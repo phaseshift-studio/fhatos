@@ -61,7 +61,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
   case MUTEX_TIMEOUT:
     return "Mutex timeout";
   default:
-    return &"Unknown error code: " [ rc];
+    return &"Unknown error code: "[rc];
   }
 };
 
@@ -75,7 +75,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 template <class MESSAGE> class Router : public IDed {
 
 public:
-  explicit Router(const ID &id) : IDed(id){};
+  explicit Router(const ID &id) : IDed(id) {};
   virtual const RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;
@@ -83,6 +83,12 @@ public:
                                           const Pattern &pattern) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
   virtual RESPONSE_CODE clear() FP_OK_RESULT;
+  virtual RESPONSE_CODE registerRoute(const ID &source, const List<ID> incoming,
+                                      const List<ID> outgoing) {
+    return this->publish(MESSAGE{
+        .source = source, .target = source, source.toString(), RETAIN_MESSAGE});
+  }
+
   // virtual ID *adjacent(const ID &source) { return nullptr; }
   // virtual RESPONSE_CODE call(const ID &source, const ID &target)
   // FP_OK_RESULT;

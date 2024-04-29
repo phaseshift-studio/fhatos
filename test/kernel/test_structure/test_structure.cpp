@@ -184,6 +184,25 @@ void test_furi_retract() {
       fURI("fhat@127.0.0.1/a/b").retract().retract().extend("a"));
 }
 
+void test_furi_query() {
+  TEST_ASSERT_TRUE(fURI("127.0.0.1").query().isEmpty());
+  TEST_ASSERT_EQUAL_STRING("testing",
+                           fURI("127.0.0.1/a/b?testing").query().c_str());
+  TEST_ASSERT_EQUAL_STRING("testing=123",
+                           fURI("127.0.0.1?testing=123").query().c_str());
+  TEST_ASSERT_EQUAL_STRING("a=1;b=2",
+                           fURI("fhat@127.0.0.1?a=1;b=2").query().c_str());
+  TEST_ASSERT_EQUAL_STRING("a;b;c", fURI("/a/b/c?a;b;c").query().c_str());
+  ////////////////
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a?a=1"),
+                             fURI("127.0.0.1/a").query("a=1"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a?a=1;b=2;c=3"),
+                             fURI("fhat@127.0.0.1/a").query("a=1;b=2;c=3"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a?a=1;b=2;c=3"),
+                             fURI("/a").query("a=1;b=2;c=3"));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("?a,b,c"), fURI("").query("a,b,c"));
+}
+
 void test_furi_extend() {
   /// TRUE
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
@@ -256,6 +275,7 @@ FOS_RUN_TESTS(                              //
     FOS_RUN_TEST(test_furi_resolve);        //
     FOS_RUN_TEST(test_furi_segment);        //
     FOS_RUN_TEST(test_furi_authority);      //
+    FOS_RUN_TEST(test_furi_query);          //
     FOS_RUN_TEST(test_furi_retract);        //
     FOS_RUN_TEST(test_furi_extend);         //
     FOS_RUN_TEST(test_furi_slash_operator); //
