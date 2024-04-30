@@ -39,9 +39,9 @@ namespace fhatos::kernel {
 
 /////////////////////////////////////////////////////////////////////
 
-template <typename PROCESS = Thread, typename MESSAGE = String,
-          typename ROUTER = LocalRouter<Message<MESSAGE>>>
-class Telnet : public Actor<PROCESS, MESSAGE, ROUTER> {
+template <typename PROCESS = Thread, typename PAYLOAD = String,
+          typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+class Telnet : public Actor<PROCESS, PAYLOAD, ROUTER> {
 
 public:
   static Telnet *singleton() {
@@ -51,7 +51,7 @@ public:
 
   explicit Telnet(const ID &id = WIFI::idFromIP("telnet"),
                   const uint16_t port = 23, const bool useAnsi = true)
-      : Actor<PROCESS, MESSAGE, ROUTER>(id), port(port), useAnsi(useAnsi),
+      : Actor<PROCESS, PAYLOAD, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
     this->xtelnet->setLineMode(true);
@@ -64,7 +64,7 @@ public:
   }
 
   void setup() override {
-    Actor<PROCESS, MESSAGE, ROUTER>::setup();
+    Actor<PROCESS, PAYLOAD, ROUTER>::setup();
     ////////// ON CONNECT //////////
     this->xtelnet->onConnect([](const String ipAddress) {
       // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
@@ -86,7 +86,7 @@ public:
       } else if (line.equals("/+")) {
         // todo ??
         tthis->subscribe(
-            *tthis->currentTopic / "+", [](const Message<MESSAGE> &message) {
+            *tthis->currentTopic / "+", [](const Message<PAYLOAD> &message) {
               tthis->ansi->printf("[/+]=>!g%s!!\n",
                                   message.target.toString().c_str());
             });
@@ -96,10 +96,11 @@ public:
         tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
       } else if (line.startsWith("=>") || line.equals("?")) {
         RESPONSE_CODE _rc = tthis->subscribe(
-            *tthis->currentTopic, [](const Message<MESSAGE> &message) {
+            *tthis->currentTopic, [](const Message<PAYLOAD> &message) {
               tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
                                   message.source.toString().c_str(),
                                   FP_BOOL_STR(message.retain));
+              tthis->xtelnet->println();
               tthis->xtelnet->println(
                   message.payloadString().c_str()); // TODO: ansi off/on
             });
@@ -164,7 +165,7 @@ public:
   }
 
   void loop() override {
-    Actor<PROCESS, MESSAGE, ROUTER>::loop();
+    Actor<PROCESS, PAYLOAD, ROUTER>::loop();
     this->xtelnet->loop();
     if (::Serial.available()) {
       this->ansi->print(::Serial.read());

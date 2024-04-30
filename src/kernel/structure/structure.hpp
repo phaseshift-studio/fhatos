@@ -364,13 +364,18 @@ public:
 };
 
 class IDed {
+
 public:
-  explicit IDed(ID id) : _id(std::move(id)) {}
+  explicit IDed(const ID &id) : _id(std::move(id)) {}
 
   [[nodiscard]] ID id() const { return _id; }
 
   [[nodiscard]] bool equals(const IDed &other) const {
     return this->_id.equals(other._id);
+  }
+
+  virtual Map<String, List<IDed *> *> query(const Set<String> &labels) {
+    return {};
   }
 
 protected:

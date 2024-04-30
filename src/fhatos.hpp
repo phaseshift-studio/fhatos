@@ -46,106 +46,104 @@ namespace fhatos::kernel {
     "    )-)_/-(>  \\/_/    \\/_/\\/_/\\/_/\\/_/  \\/_/  \\/_____/\\/_____/  \n"
     "                                    A Dogturd Stynx Production  \n";*/
 
-    static const char *ANSI_ART =
-            "!r            !_PhaseShift Studio Presents!! \n"
-            "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
-            "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
-            "___\\!! \n"
-            "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
-            "\\___  \\!! \n"
-            "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
-            "\\_____\\/\\_____\\!! \n"
-            "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
-            "!b\\/_____/\\/_____/!! \n"
-            "!r                                   !_A Dogturd Stynx Production!! \n";
+static const char *ANSI_ART =
+    "!r            !_PhaseShift Studio Presents!! \n"
+    "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
+    "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
+    "___\\!! \n"
+    "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
+    "\\___  \\!! \n"
+    "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
+    "\\_____\\/\\_____\\!! \n"
+    "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+    "!b\\/_____/\\/_____/!! \n"
+    "!r                                   !_A Dogturd Stynx Production!! \n";
 
 ////////////////////
 /// LAMBDA TYPES ///
 ////////////////////
-    typedef void (*VoidPtr)();
+typedef void (*VoidPtr)();
 
-    typedef std::function<void(void)> Void0;
-    template<typename A> using Consumer = std::function<void(A)>;
-    template<typename A, typename B> using BiConsumer = std::function<void(A, B)>;
-    template<typename A, typename B, typename C>
-    using TriConsumer = std::function<void(A, B, C)>;
-    template<typename A, typename B, typename C, typename D>
-    using QuadConsumer = std::function<void(A, B, C, D)>;
-    template<typename A> using Supplier = std::function<A()>;
-    template<typename A, typename B> using Function = std::function<B(A)>;
-    template<typename A, typename B, typename C>
-    using BiFunction = std::function<C(A, B)>;
-    template<typename A, typename B, typename C, typename D>
-    using TriFunction = std::function<D(A, B, C)>;
+typedef std::function<void(void)> Void0;
+template <typename A> using Consumer = std::function<void(A)>;
+template <typename A, typename B> using BiConsumer = std::function<void(A, B)>;
+template <typename A, typename B, typename C>
+using TriConsumer = std::function<void(A, B, C)>;
+template <typename A, typename B, typename C, typename D>
+using QuadConsumer = std::function<void(A, B, C, D)>;
+template <typename A> using Supplier = std::function<A()>;
+template <typename A, typename B> using Function = std::function<B(A)>;
+template <typename A, typename B, typename C>
+using BiFunction = std::function<C(A, B)>;
+template <typename A, typename B, typename C, typename D>
+using TriFunction = std::function<D(A, B, C)>;
 
 ///////////////////////
 /// CONTAINER TYPES ///
 ///////////////////////
-    template<typename A> using Option = std::optional<A>;
-    template<typename A> using List = std::list<A>;
-    template<typename A> using Set = std::set<A>;
-    template<typename A> using Queue = std::queue<A>;
-    template<typename A> using Deque = std::deque<A>;
-    template<typename K, typename V> using Pair = std::pair<K, V>;
-    template<typename K, typename V> using Map = std::map<K, V>;
+template <typename A> using Option = std::optional<A>;
+template <typename A> using List = std::list<A>;
+template <typename A> using Set = std::set<A>;
+template <typename A> using Queue = std::queue<A>;
+template <typename A> using Deque = std::deque<A>;
+template <typename K, typename V> using Pair = std::pair<K, V>;
+template <typename K, typename V> using Map = std::map<K, V>;
 
 ///////////////////////
 /// EXCEPTION TYPES ///
 ///////////////////////
-    class fError : public std::exception {
+class fError : public std::exception {
 
-    protected:
-        char *_message;
+protected:
+  char *_message;
 
-    public:
-        explicit fError(const char *format, ...) {
-            va_list arg;
-            va_start(arg, format);
-            char temp[64];
-            _message = temp;
-            size_t len = vsnprintf(temp, sizeof(temp), format, arg);
-            va_end(arg);
-            if (len > sizeof(temp) - 1) {
-                _message = new(std::nothrow) char[len + 1];
-                if (!_message) {
-                    return;
-                }
-                va_start(arg, format);
-                vsnprintf(_message, len + 1, format, arg);
-                va_end(arg);
-            }
-            if (_message != temp) {
-                delete[] _message;
-            }
-        };
+public:
+  explicit fError(const char *format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    char temp[64];
+    _message = temp;
+    size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+    va_end(arg);
+    if (len > sizeof(temp) - 1) {
+      _message = new (std::nothrow) char[len + 1];
+      if (!_message) {
+        return;
+      }
+      va_start(arg, format);
+      vsnprintf(_message, len + 1, format, arg);
+      va_end(arg);
+    }
+    if (_message != temp) {
+      delete[] _message;
+    }
+  };
 
-        ~fError() override { delete _message; }
+  ~fError() override { delete _message; }
 
-        [[nodiscard]] const char *
-        what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
-            return this->_message;
-        }
-    };
+  [[nodiscard]] const char *
+  what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
+    return this->_message;
+  }
+};
 
 ////////////
 // MACROS //
 ////////////
-    enum LOG_TYPE {
-        DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3
-    };
+enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
 
-    const char *LOG_TYPE_c_str(const LOG_TYPE type) {
-        switch (type) {
-            case DEBUG:
-                return "DEBUG";
-            case INFO:
-                return "INFO";
-            case ERROR:
-                return "ERROR";
-            default:
-                return "NONE";
-        };
-    }
+const char *LOG_TYPE_c_str(const LOG_TYPE type) {
+  switch (type) {
+  case DEBUG:
+    return "DEBUG";
+  case INFO:
+    return "INFO";
+  case ERROR:
+    return "ERROR";
+  default:
+    return "NONE";
+  };
+}
 
 #define FP_BOOL_STR(a) a ? "true" : "false"
 #define CONCAT(a, b) XCONCAT(a, b)
@@ -202,35 +200,54 @@ namespace fhatos::kernel {
 // !!TO REMOVE!! //
 ///////////////////
 
-    static void MAIN_LOG(const LOG_TYPE type, const String format, ...) {
-        va_list arg;
-        va_start(arg, format);
-        char temp[64];
-        char *buffer = temp;
-        size_t len = vsnprintf(temp, sizeof(temp), format.c_str(), arg);
-        va_end(arg);
-        if (len > sizeof(temp) - 1) {
-            buffer = new(std::nothrow) char[len + 1];
-            if (!buffer) {
-                return;
-            }
-            va_start(arg, format);
-            vsnprintf(buffer, len + 1, format.c_str(), arg);
-            va_end(arg);
-        }
-        static auto ansi = fhatos::kernel::Ansi<HardwareSerial>(&::Serial);
-        if (type == NONE)
-            ansi.print("");
-        else if (type == ERROR)
-            ansi.print("!r[ERROR]!!  ");
-        else if (type == INFO)
-            ansi.print("!g[INFO]!!  ");
-        else
-            ansi.print("!y[DEBUG]!!  ");
-        ansi.print(buffer);
-        if (buffer != temp) {
-            delete[] buffer;
-        }
+template <typename A> static String listString(const List<A> list) {
+  String temp = "[";
+  for (const auto &a : list) {
+    temp = temp + a->id().toString() + ", ";
+  }
+  temp = temp.substring(0,temp.length()-3) + "]";
+  return temp;
+}
+
+template <typename K, typename V>
+static String mapString(const Map<K, List<V*>*> map) {
+  String temp = "{\n";
+  for (const auto &kv : map) {
+    temp = temp + kv.first + ":" + listString(*kv.second) + "\n";
+  }
+  temp = temp + "}";
+  return temp;
+}
+
+static void MAIN_LOG(const LOG_TYPE type, const String format, ...) {
+  va_list arg;
+  va_start(arg, format);
+  char temp[64];
+  char *buffer = temp;
+  size_t len = vsnprintf(temp, sizeof(temp), format.c_str(), arg);
+  va_end(arg);
+  if (len > sizeof(temp) - 1) {
+    buffer = new (std::nothrow) char[len + 1];
+    if (!buffer) {
+      return;
     }
+    va_start(arg, format);
+    vsnprintf(buffer, len + 1, format.c_str(), arg);
+    va_end(arg);
+  }
+  static auto ansi = fhatos::kernel::Ansi<HardwareSerial>(&::Serial);
+  if (type == NONE)
+    ansi.print("");
+  else if (type == ERROR)
+    ansi.print("!r[ERROR]!!  ");
+  else if (type == INFO)
+    ansi.print("!g[INFO]!!  ");
+  else
+    ansi.print("!y[DEBUG]!!  ");
+  ansi.print(buffer);
+  if (buffer != temp) {
+    delete[] buffer;
+  }
+}
 } // namespace fhatos::kernel
 #endif

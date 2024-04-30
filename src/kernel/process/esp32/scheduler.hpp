@@ -53,14 +53,12 @@ public:
   bool addProcess(Thread *thread) override {
     thread->setup();
     THREADS.push_back(thread);
-    this->routes->children.push_back(thread->id());
     return true;
   };
 
   bool addProcess(Fiber *fiber) override {
     fiber->setup();
     FIBERS.push_back(fiber);
-    this->routes->children.push_back(fiber->id());
     return true;
   };
 
@@ -69,16 +67,34 @@ public:
         coroutine->id().toString().c_str());
     coroutine->setup();
     COROUTINES.push_back(coroutine);
-    this->routes->children.push_back(coroutine->id());
     return true;
   };
 
   bool addProcess(KernelProcess *kernelProcess) {
     kernelProcess->setup();
     KERNELS.push_back(kernelProcess);
-    this->routes->children.push_back(kernelProcess->id());
     return true;
   };
+
+  virtual Map<String, List<IDed *> *>
+  query(const Set<String> &labels) override {
+    Map<String, List<IDed *> *> result;
+    if ((labels.empty() || labels.count("kernel") > 0) && !KERNELS.empty()) {
+      result.emplace("kernel", reinterpret_cast<List<IDed *> *>(&KERNELS));
+    }
+    if ((labels.empty() || labels.count("thread") > 0) && !THREADS.empty()) {
+      result.emplace("thread", reinterpret_cast<List<IDed *> *>(&THREADS));
+    }
+    if ((labels.empty() || labels.count("fiber") > 0) && !FIBERS.empty()) {
+      result.emplace("fiber", reinterpret_cast<List<IDed *> *>(&FIBERS));
+    }
+    if ((labels.empty() || labels.count("coroutine") > 0) &&
+        !COROUTINES.empty()) {
+      result.emplace("coroutine",
+                     reinterpret_cast<List<IDed *> *>(&COROUTINES));
+    }
+    return result;
+  }
 
   void setup() override {
 
@@ -123,8 +139,11 @@ public:
           "\t -Number of coroutines: %i\n",
           THREADS.size() + FIBERS.size() + KERNELS.size() + COROUTINES.size(),
           KERNELS.size(), THREADS.size(), FIBERS.size(), COROUTINES.size());
-      LocalRouter<StringMessage>::singleton()->publish(StringMessage(
-          this->id(), this->id(), this->routes->toString(), RETAIN_MESSAGE));
+      LocalRouter<StringMessage>::singleton()->publish(
+          StringMessage(this->id(),
+           this->id().query(""),
+           mapString<String,IDed>(this->query({})),
+           RETAIN_MESSAGE));
     } else {
       LOG(ERROR, "Scheduler processes already initialized via global "
                  "Scheduler::setup()\n");
@@ -134,13 +153,12 @@ public:
   void loop() override {}
 
 private:
-  Scheduler() : AbstractScheduler(){};
+  Scheduler() : AbstractScheduler() {};
   TaskHandle_t *FIBER_THREAD = nullptr;
   List<Coroutine *> COROUTINES;
   List<Fiber *> FIBERS;
   List<Thread *> THREADS;
   List<KernelProcess *> KERNELS;
-  Routes *routes = new Routes(this->id());
 
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////
