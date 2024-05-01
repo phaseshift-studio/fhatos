@@ -23,15 +23,8 @@ public:
   }
 
    void yield() override {
-    // yield to next fiber
-  }
-
-   void setup() override {
-    /*LOG(this->isEnabled() ? INFO : ERROR,
-         "Scheduler starting %s thread %s (!rthreads:%i!!)\n",
-         this->isLean() ? "lean" : "", this->id().c_str(),
-         Scheduler->__THREADS.size());*/
-  }
+    // do nothing
+   }
 
    void stop() override { this->_running = false; }
 

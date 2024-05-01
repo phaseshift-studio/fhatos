@@ -22,25 +22,11 @@ protected:
   AbstractScheduler() : Coroutine(WIFI::idFromIP("kernel", "scheduler")) {}
 
 public:
-  virtual bool addProcess(const KernelProcess *kernelProcess) { return true; }
+  virtual const bool spawn(Process *process) { return false; }
 
-  virtual bool addProcess(Thread *thread) { return true; };
+  virtual void destroy(const Pattern &processPattern) {}
 
-  virtual bool addProcess(Fiber *fiber) { return true; };
-
-  virtual bool addProcess(Coroutine *coroutine) { return true; };
-
-  virtual bool removeThread(const ID &threadId) { return true; };
-
-  virtual bool removeFiber(const ID &fiberId) { return true; };
-
-  virtual bool removeCoroutine(const ID &coroutineId) { return true; }
-
-  virtual const uint8_t threadCount() const { return 0; }
-
-  void setup() override{};
-
-  void loop() override{};
+  virtual const int count(const Pattern &processPattern) const { return 0; }
 };
 
 } // namespace fhatos::kernel

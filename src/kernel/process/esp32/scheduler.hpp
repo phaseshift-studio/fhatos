@@ -3,6 +3,7 @@
 
 #include <fhatos.hpp>
 ///
+#include <atomic>  
 #include <kernel/process/abstract_scheduler.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
@@ -22,62 +23,71 @@ public:
     return &scheduler;
   }
 
-  const uint8_t threadCount() const override { return THREADS.size(); }
-
-  bool removeThread(const ID &threadId) override {
-    const uint16_t size = THREADS.size();
-    THREADS.remove_if([threadId, this](Thread *thread) {
-      if (thread->id().equals(threadId)) {
-        thread->stop();
-        return true;
-      }
-      return false;
+  const int count(const Pattern &processPattern) const override {
+   std::atomic<int>* counter = new std::atomic(0);
+    THREADS.forEach([counter, processPattern](Thread *process) {
+      if (process->id().matches(processPattern))
+        counter->store(counter->load()+1);
     });
-    return THREADS.size() < size;
-  };
-
-  bool removeFiber(const ID &fiberId) override {
-    const uint16_t size = FIBERS.size();
-    FIBERS.remove_if([fiberId, this](Fiber *fiber) {
-      if (fiber->id().equals(fiberId)) {
-        fiber->stop();
-        return true;
-      }
-      return false;
+    FIBERS.forEach([counter, processPattern](Fiber *process) {
+      if (process->id().matches(processPattern))
+        counter->store(counter->load()+1);
     });
-    return FIBERS.size() < size;
-  };
-
-  bool removeCoroutine(const ID &coroutineId) override {
-    uint16_t size = COROUTINES.size();
-    /* for (const auto &coroutine : COROUTINES) {
-       if (coroutine->id().equals(coroutineId))
-         coroutine->stop();
-     }*/
-    return COROUTINES.size() < size;
-  };
-
-  bool addProcess(Thread *thread) override {
-    thread->setup();
-    return thread->running() ? THREADS.push_back(thread) : false;
+    COROUTINES.forEach([counter, processPattern](Coroutine *process) {
+      if (process->id().matches(processPattern))
+       counter->store(counter->load()+1);
+    });
+    KERNELS.forEach([counter, processPattern](KernelProcess *process) {
+      if (process->id().matches(processPattern))
+        counter->store(counter->load()+1);
+    });
+    const int temp = counter->load();
+    delete counter;
+    return temp;
   }
 
-  bool addProcess(Fiber *fiber) override {
-    fiber->setup();
-    return fiber->running() ? FIBERS.push_back(fiber) : false;
-  };
+  void destroy(const Pattern &processPattern) {
+    THREADS.remove_if([processPattern, this](Thread *process) {
+      if (process->id().matches(processPattern)) {
+        process->stop();
+        return true;
+      }
+      return false;
+    });
+    FIBERS.remove_if([processPattern, this](Fiber *process) {
+      if (process->id().matches(processPattern)) {
+        process->stop();
+        return true;
+      }
+      return false;
+    });
+    COROUTINES.remove_if([processPattern, this](Coroutine *process) {
+      if (process->id().matches(processPattern)) {
+        process->stop();
+        return true;
+      }
+      return false;
+    });
+  }
 
-  bool addProcess(Coroutine *coroutine) override {
-    LOG(INFO, "!MStarting coroutine %s!!\n",
-        coroutine->id().toString().c_str());
-    coroutine->setup();
-    return coroutine->running() ? COROUTINES.push_back(coroutine) : false;
-  };
-
-  bool addProcess(KernelProcess *kernelProcess) {
-    kernelProcess->setup();
-    return kernelProcess->running() ? KERNELS.push_back(kernelProcess) : false;
-  };
+  const bool spawn(Process *process) override {
+    process->setup();
+    if (!process->running())
+      return false;
+    const char *processType = typeid(*process).name();
+    if (strstr(processType, "Thread") == 0) {
+      THREADS.push_back(reinterpret_cast<Thread *>(process));
+    } else if (strstr(processType, "Fiber") == 0) {
+      FIBERS.push_back(reinterpret_cast<Fiber *>(process));
+    } else if (strstr(processType, "Coroutine") == 0) {
+      COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
+    } else if (strstr(processType, "KernelProcess") == 0) {
+      KERNELS.push_back(reinterpret_cast<KernelProcess *>(process));
+    } else {
+      throw fError("Unknown process type: %s", processType);
+    }
+    return true;
+  }
 
   virtual Map<String, MutexDeque<IDed *> *>
   query(const Set<String> &labels) override {
@@ -202,7 +212,7 @@ private:
     }
     // LOG(INFO, "!MDisconnecting thread %s %s!!\n",
     //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
-    Scheduler::singleton()->removeThread(thread->id());
+    Scheduler::singleton()->destroy(thread->id());
     delete thread;
     vTaskDelete(nullptr);
   }

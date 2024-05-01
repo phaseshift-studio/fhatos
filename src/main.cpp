@@ -19,13 +19,13 @@ void setup() {
   ::Serial.begin(FOS_SERIAL_BAUDRATE);
   LOG(NONE, ANSI_ART);
   Scheduler<MAIN_ROUTER> *s = Scheduler<MAIN_ROUTER>::singleton();
-  s->addProcess(WIFI::singleton());
-  s->addProcess(MQTT<Thread, Message<String>>::singleton());
-  s->addProcess(logger = new Log<Fiber, String, MAIN_ROUTER>());
-  s->addProcess(new fhatos::kernel::Serial<Thread, String, MAIN_ROUTER>());
-  s->addProcess(new fhatos::kernel::Ping<Fiber, String, MAIN_ROUTER>());
-  s->addProcess(new fhatos::kernel::Telnet<Thread, String, MAIN_ROUTER>());
-  s->addProcess(Scheduler<MAIN_ROUTER>::singleton());
+  s->spawn(WIFI::singleton());
+  s->spawn(MQTT<Thread, Message<String>>::singleton());
+  s->spawn(logger = new Log<Fiber, String, MAIN_ROUTER>());
+  s->spawn(new fhatos::kernel::Serial<Thread, String, MAIN_ROUTER>());
+  s->spawn(new fhatos::kernel::Ping<Fiber, String, MAIN_ROUTER>());
+  s->spawn(new fhatos::kernel::Telnet<Thread, String, MAIN_ROUTER>());
+  s->spawn(Scheduler<MAIN_ROUTER>::singleton());
 }
 
 void loop() {

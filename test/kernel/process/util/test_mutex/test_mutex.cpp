@@ -13,7 +13,7 @@ struct Worker : public Thread {
   MutexDeque<int> *mutex;
   int counter = 0;
   Worker(int index, MutexDeque<int> *mutex)
-      : Thread(ID(String("worker-") + index)) {
+      : Thread(ID(String("worker/") + index)) {
     this->mutex = mutex;
   }
   void setup() {
@@ -36,21 +36,21 @@ struct Worker : public Thread {
 void test_threaded() {
   int WORKER_COUNT = 10;
   Scheduler<> *s = Scheduler<>::singleton();
-  TEST_ASSERT_EQUAL(0, s->threadCount());
+  TEST_ASSERT_EQUAL(0, s->count("worker/+"));
   MutexDeque<int> m = MutexDeque<int>();
   TEST_ASSERT_EQUAL(0, m.size());
   TEST_ASSERT_TRUE(m.empty());
   for (int i = 0; i < WORKER_COUNT; i++) {
-    TEST_ASSERT_EQUAL(i, s->threadCount());
-    TEST_ASSERT_TRUE(s->addProcess(new Worker(i, &m)));
-    TEST_ASSERT_EQUAL(i + 1, s->threadCount());
+    TEST_ASSERT_EQUAL(i, s->count("worker/+"));
+    TEST_ASSERT_TRUE(s->spawn(new Worker(i, &m)));
+    TEST_ASSERT_EQUAL(i + 1, s->count("worker/+"));
   }
-  TEST_ASSERT_EQUAL(WORKER_COUNT, s->threadCount());
+  TEST_ASSERT_EQUAL(WORKER_COUNT, s->count("worker/+"));
   s->setup();
-  while (s->threadCount() > 0) {
+  while (s->count("worker/+") > 0) {
     // delay(1000);
   }
-  TEST_ASSERT_EQUAL(0, s->threadCount());
+  TEST_ASSERT_EQUAL(0, s->count("worker/+"));
   TEST_ASSERT_EQUAL(10 * WORKER_COUNT, m.size());
   TEST_ASSERT_FALSE(m.empty());
   int sum = 0;

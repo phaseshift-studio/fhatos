@@ -40,7 +40,7 @@ public:
     });
   }
 
-  void forEach(const Consumer<T> consumer, const bool withMutex = true) {
+  void forEach(Consumer<T> consumer, const bool withMutex = true) const {
     lockUnlock<void *>(withMutex, [this, consumer]() {
       for (T t : _deque) {
         consumer(t);

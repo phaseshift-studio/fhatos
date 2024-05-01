@@ -11,11 +11,17 @@ namespace fhatos::kernel {
     public:
         explicit Coroutine(const ID &id) : Process(id) {}
 
-        void setup() override {};
+        void delay(const uint64_t milliseconds) override {
+            // do nothing
+        }
 
-        void delay(const uint64_t milliseconds) override {};
+        void yield() override {
+            // do nothing
+        }
 
-        void yield() override {};
+        void loop() override {
+            // do nothing
+        }
     };
 } // namespace fhatos::kernel
 
