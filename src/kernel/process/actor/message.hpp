@@ -34,6 +34,10 @@ namespace fhatos::kernel {
             return payload;
         }
 
+        /*static Message<PAYLOAD> fromBytes() {
+
+        }*/
+
         /*template<typename = typename std::enable_if<std::is_base_of_v<int, PAYLOAD>, int>>
         [[nodiscard]]  String payloadString() const {
             return String() + payload;

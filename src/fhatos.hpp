@@ -77,6 +77,7 @@ template <typename A, typename B, typename C>
 using BiFunction = std::function<C(A, B)>;
 template <typename A, typename B, typename C, typename D>
 using TriFunction = std::function<D(A, B, C)>;
+template <typename A> using Predicate = std::function<bool(A)>;
 
 ///////////////////////
 /// CONTAINER TYPES ///
@@ -200,22 +201,13 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 // !!TO REMOVE!! //
 ///////////////////
 
-template <typename A> static String listString(const List<A> list) {
-  String temp = "[";
-  for (const auto &a : list) {
-    temp = temp + a->id().toString() + ", ";
-  }
-  temp = temp.substring(0,temp.length()-3) + "]";
-  return temp;
-}
-
 template <typename K, typename V>
-static String mapString(const Map<K, List<V*>*> map) {
-  String temp = "{\n";
+static String mapString(const Map<K, V> map) {
+  String temp = "[\n";
   for (const auto &kv : map) {
-    temp = temp + kv.first + ":" + listString(*kv.second) + "\n";
+    temp = temp + kv.first + ":" + kv.second->toString() + "\n";
   }
-  temp = temp + "}";
+  temp = temp + "]";
   return temp;
 }
 

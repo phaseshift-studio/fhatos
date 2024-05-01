@@ -2,6 +2,7 @@
 #define fhat_kernel_structure_hpp
 
 #include <fhatos.hpp>
+#include <kernel/process/util/mutex/mutex_deque.hpp>
 #include <memory>
 #include <utility>
 
@@ -368,13 +369,15 @@ class IDed {
 public:
   explicit IDed(const ID &id) : _id(std::move(id)) {}
 
-  [[nodiscard]] ID id() const { return _id; }
+  [[nodiscard]] const ID id() const { return _id; }
 
-  [[nodiscard]] bool equals(const IDed &other) const {
+   const String toString() const { return this->id().toString(); }
+
+  [[nodiscard]] const bool equals(const IDed &other) const {
     return this->_id.equals(other._id);
   }
 
-  virtual Map<String, List<IDed *> *> query(const Set<String> &labels) {
+  virtual Map<String, MutexDeque<IDed *> *> query(const Set<String> &labels) {
     return {};
   }
 

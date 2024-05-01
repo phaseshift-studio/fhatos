@@ -48,12 +48,13 @@ public:
       this->recvFunction = [this](const char *target, const byte *payload,
                                   const int length) {
         ((char *)payload)[length] = '\0';
-        LOG(INFO, "[!B%s!!] <=!mreceive!!= !B%s!!\n", target, (char *)payload);
         for (const Subscription<MESSAGE> &sub : SUBSCRIPTIONS) {
           if (ID(target).matches(sub.pattern)) {
-            sub.onRecv(MESSAGE{.source = ID("unknown"),
-                               .target = target,
-                               .payload = String((char *)payload),
+            LOG(INFO, "[!B%s!!] <=!mreceive!!=!B%s!!= [!B%s!!]\n",
+                sub.source.toString().c_str(), (char *)payload, target);
+            sub.onRecv(MESSAGE{.source = target,
+                               .target = sub.source,
+                               .payload = String((char *)payload, length),
                                .retain = true});
           }
         }
@@ -70,7 +71,7 @@ public:
   };
 
   bool subscribe(const ID &source, const Pattern &topic, const uint8_t qos,
-                 const RecvFunction& onRecv) {
+                 const RecvFunction &onRecv) {
     bool found = false;
     if (!SUBSCRIPTIONS.empty()) {
       for (const auto &sub : SUBSCRIPTIONS) {
@@ -90,16 +91,16 @@ public:
       LOG(success ? INFO : ERROR,
           "[!B%s!!] =!msubscribe[qos:%i]!!=> [!B%s!!]\n",
           source.toString().c_str(), qos, topic.toString().c_str());
-     // if (success) {
-        SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
-            .source = source,
-            .pattern = topic,
-            .qos = (QoS)qos,
-            .onRecv = [topic, onRecv](MESSAGE message) {
-              Pair<byte *, int> bytes = message.toBytes();
-              onRecv(topic.toString().c_str(), bytes.first, bytes.second);
-            }});
-    //  }
+      // if (success) {
+      SUBSCRIPTIONS.push_front(Subscription<MESSAGE>{
+          .source = source,
+          .pattern = topic,
+          .qos = (QoS)qos,
+          .onRecv = [topic, onRecv](MESSAGE message) {
+            Pair<byte *, int> bytes = message.toBytes();
+            onRecv(topic.toString().c_str(), bytes.first, bytes.second);
+          }});
+      //  }
     }
     return success;
   }
@@ -138,12 +139,11 @@ public:
       LOG_TASK(ERROR, this, "No WIFI connection. MQTT support not provided.\n");
     } else {
       uint8_t counter = 0;
-      while (!this->xmqtt->connected() &&
-             (++counter < MQTT_MAX_RETRIES == -1 || ++counter < MQTT_MAX_RETRIES)) {
+      while (!this->xmqtt->connected() && (++counter < MQTT_MAX_RETRIES == -1 ||
+                                           ++counter < MQTT_MAX_RETRIES)) {
         // Attempt to connect
         if ((this->willTopic.isEmpty() &&
-             this->xmqtt->connect(
-                 WIFI::ip().toString().c_str())) ||
+             this->xmqtt->connect(WIFI::ip().toString().c_str())) ||
             (this->xmqtt->connect(WIFI::ip().toString().c_str(),
                                   this->willTopic.c_str(), willQoS, willRetain,
                                   this->willMessage.c_str()))) {
@@ -192,9 +192,9 @@ public:
 
   bool publish(const char *target, const char *message, const bool retain) {
     this->PUBLICATIONS.push_back(MESSAGE{.source = ID("unknown"),
-                                           .target = ID(target),
-                                           .payload = String(message),
-                                           .retain = retain});
+                                         .target = ID(target),
+                                         .payload = String(message),
+                                         .retain = retain});
     return true;
   }
 
@@ -222,8 +222,8 @@ public:
   }
   bool unsubscribeSource(const ID id) { return true; }
   bool running() { return this->_running || this->xmqtt->connected(); }
-  bool publish(const ID &topic, const String& message,
-                     const bool retain = false) {
+  bool publish(const ID &topic, const String &message,
+               const bool retain = false) {
     return this->publish(topic.toString().c_str(), message.c_str(), retain);
   }
 

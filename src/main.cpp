@@ -9,20 +9,23 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
+#define MAIN_ROUTER MqttRouter<Message<String>>
+
 using namespace fhatos::kernel;
 
-Log<> *logger;
+Log<Fiber, String, MAIN_ROUTER> *logger;
 
 void setup() {
   ::Serial.begin(FOS_SERIAL_BAUDRATE);
   LOG(NONE, ANSI_ART);
-  Scheduler::singleton()->addProcess(WIFI::singleton());
-  Scheduler::singleton()->addProcess(MQTT<Thread, Message<String>>::singleton());
-  Scheduler::singleton()->addProcess(logger = new Log<>());
-  Scheduler::singleton()->addProcess(new fhatos::kernel::Serial<>());
-  Scheduler::singleton()->addProcess(new fhatos::kernel::Ping<>());
-  Scheduler::singleton()->addProcess(Telnet<>::singleton());
-  Scheduler::singleton()->addProcess(Scheduler::singleton());
+  Scheduler<MAIN_ROUTER> *s = Scheduler<MAIN_ROUTER>::singleton();
+  s->addProcess(WIFI::singleton());
+  s->addProcess(MQTT<Thread, Message<String>>::singleton());
+  s->addProcess(logger = new Log<Fiber, String, MAIN_ROUTER>());
+  s->addProcess(new fhatos::kernel::Serial<Thread, String, MAIN_ROUTER>());
+  s->addProcess(new fhatos::kernel::Ping<Fiber, String, MAIN_ROUTER>());
+  s->addProcess(new fhatos::kernel::Telnet<Thread, String, MAIN_ROUTER>());
+  s->addProcess(Scheduler<MAIN_ROUTER>::singleton());
 }
 
 void loop() {
@@ -34,6 +37,6 @@ void loop() {
   if (counter++ == -1) {
     LocalRouter<Message<String>>::singleton()->publish(
         Message<String>("self@127.0.0.1", WIFI::idFromIP("ping"),
-                      String("www.google.com"), RETAIN_MESSAGE));
+                        String("www.google.com"), RETAIN_MESSAGE));
   }
 }

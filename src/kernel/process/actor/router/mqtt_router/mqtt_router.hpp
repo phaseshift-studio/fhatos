@@ -29,7 +29,7 @@ public:
       : Router<MESSAGE>(id) {}
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
-    return MQTT_CLIENT::singleton()->publish(message.target, message.payload)
+    return MQTT_CLIENT::singleton()->publish(message.target, message.payload, message.retain)
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::ROUTER_ERROR;
   }
@@ -43,10 +43,10 @@ public:
                                            const int length) {
                  subscription.actor->push(Pair<Subscription<MESSAGE>, MESSAGE>(
                      subscription,
-                     MESSAGE{.source = "unknown",
-                             .target = topic,
-                             .payload = MESSAGE::fromBytes(payload, length),
-                             .retain = true}));
+                     MESSAGE(topic,
+                             subscription.source,
+                             String((char*)payload,length),
+                             true)));
                }))
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::REPEAT_SUBSCRIPTION;

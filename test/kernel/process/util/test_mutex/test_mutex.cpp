@@ -18,13 +18,16 @@ struct Worker : public Thread {
   }
   void setup() {
     FOS_TEST_MESSAGE("%s up and running", this->id().toString().c_str());
+    TEST_ASSERT_TRUE(this->running());
   }
 
   void loop() {
+    TEST_ASSERT_TRUE(this->running());
     if (counter++ < 10) {
       this->mutex->push_back(counter);
     } else {
       this->stop();
+      TEST_ASSERT_FALSE(this->running());
       FOS_TEST_MESSAGE("%s done and stopping", this->id().toString().c_str());
     }
   }
@@ -32,7 +35,7 @@ struct Worker : public Thread {
 
 void test_threaded() {
   int WORKER_COUNT = 10;
-  Scheduler *s = Scheduler::singleton();
+  Scheduler<> *s = Scheduler<>::singleton();
   TEST_ASSERT_EQUAL(0, s->threadCount());
   MutexDeque<int> m = MutexDeque<int>();
   TEST_ASSERT_EQUAL(0, m.size());
@@ -44,7 +47,6 @@ void test_threaded() {
   }
   TEST_ASSERT_EQUAL(WORKER_COUNT, s->threadCount());
   s->setup();
-  yield();
   while (s->threadCount() > 0) {
     // delay(1000);
   }
