@@ -36,6 +36,8 @@ public:
 
   virtual bool removeCoroutine(const ID &coroutineId) { return true; }
 
+  virtual const uint8_t threadCount() const { return 0; }
+
   void setup() override{};
 
   void loop() override{};

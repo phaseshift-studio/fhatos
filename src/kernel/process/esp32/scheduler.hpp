@@ -20,16 +20,22 @@ public:
     return &scheduler;
   }
 
+  const uint8_t threadCount() const override {
+    return mutex.lockUnlock<uint8_t>([this]() { return THREADS.size(); },1000);
+  }
+
   bool removeThread(const ID &threadId) override {
-    uint16_t size = THREADS.size();
-    THREADS.remove_if([threadId](Thread *thread) {
-      if (threadId.equals(thread->id())) {
-        thread->stop();
-        return true;
-      }
-      return false;
-    });
-    return THREADS.size() < size;
+    return mutex.lockUnlock<bool>([this, threadId]() {
+      const uint16_t size = THREADS.size();
+      THREADS.remove_if([threadId](Thread *thread) {
+        if (threadId.equals(thread->id())) {
+          thread->stop();
+          return true;
+        }
+        return false;
+      });
+      return THREADS.size() < size;
+    },1000);
   };
 
   bool removeFiber(const ID &fiberId) override {
@@ -51,10 +57,16 @@ public:
   };
 
   bool addProcess(Thread *thread) override {
-    thread->setup();
-    THREADS.push_back(thread);
-    return true;
-  };
+    return mutex.lockUnlock<bool>([this, thread]() {
+      thread->setup();
+      if (thread->running()) {
+        THREADS.push_back(thread);
+        return true;
+      } else {
+        return false;
+      }
+    },1000);
+  }
 
   bool addProcess(Fiber *fiber) override {
     fiber->setup();
@@ -115,35 +127,37 @@ public:
         LOG(ERROR, "!MStarting master fiber thread!!\n");
 
       // HANDLE THREADS
-      for (const auto &thread : THREADS) {
-        const BaseType_t threadResult = xTaskCreatePinnedToCore(
-            THREAD_FUNCTION, // Function that should be called
-            thread->id()
-                .user()
-                .value_or(thread->id().toString())
-                .c_str(), // Name of the task (for debugging)
-            10000,        // Stack size (bytes)
-            thread,       // Parameter to pass
-            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-            &(thread->handle),                      // Task handle
-            tskNO_AFFINITY);                        // Processor core
-        LOG(threadResult == pdPASS ? INFO : ERROR, "!MStarting thread %s!!\n",
-            thread->id().toString().c_str());
-      }
-      LOG(INFO, "!B[Scheduler Configuration]!!\n");
-      LOG(NONE,
-          "\tNumber of processes   : %i\n"
-          "\t -Number of kernels   : %i\n"
-          "\t -Number of threads   : %i\n"
-          "\t -Number of fibers    : %i\n"
-          "\t -Number of coroutines: %i\n",
-          THREADS.size() + FIBERS.size() + KERNELS.size() + COROUTINES.size(),
-          KERNELS.size(), THREADS.size(), FIBERS.size(), COROUTINES.size());
-      LocalRouter<StringMessage>::singleton()->publish(
-          StringMessage(this->id(),
-           this->id().query(""),
-           mapString<String,IDed>(this->query({})),
-           RETAIN_MESSAGE));
+      mutex.lockUnlock<void *>([this]() {
+        List<Thread*> COPY = List<Thread*>(THREADS);
+        for (const auto &thread : COPY) {
+          const BaseType_t threadResult = xTaskCreatePinnedToCore(
+              THREAD_FUNCTION, // Function that should be called
+              thread->id()
+                  .user()
+                  .value_or(thread->id().toString())
+                  .c_str(), // Name of the task (for debugging)
+              10000,         // Stack size (bytes)
+              thread,       // Parameter to pass
+              CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+              &(thread->handle),                      // Task handle
+              tskNO_AFFINITY);                        // Processor core
+          LOG(threadResult == pdPASS ? INFO : ERROR, "!MStarting thread %s!!\n",
+              thread->id().toString().c_str());
+        }
+        LOG(INFO, "!B[Scheduler Configuration]!!\n");
+        LOG(NONE,
+            "\tNumber of processes   : %i\n"
+            "\t -Number of kernels   : %i\n"
+            "\t -Number of threads   : %i\n"
+            "\t -Number of fibers    : %i\n"
+            "\t -Number of coroutines: %i\n",
+            THREADS.size() + FIBERS.size() + KERNELS.size() + COROUTINES.size(),
+            KERNELS.size(), THREADS.size(), FIBERS.size(), COROUTINES.size());
+        LocalRouter<StringMessage>::singleton()->publish(StringMessage(
+            this->id(), this->id().query(""),
+            mapString<String, IDed>(this->query({})), RETAIN_MESSAGE));
+        return nullptr;
+      });
     } else {
       LOG(ERROR, "Scheduler processes already initialized via global "
                  "Scheduler::setup()\n");
@@ -155,6 +169,7 @@ public:
 private:
   Scheduler() : AbstractScheduler() {};
   TaskHandle_t *FIBER_THREAD = nullptr;
+  Mutex mutex;
   List<Coroutine *> COROUTINES;
   List<Fiber *> FIBERS;
   List<Thread *> THREADS;
@@ -198,6 +213,7 @@ private:
     // LOG(INFO, "!MDisconnecting thread %s %s!!\n",
     //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
     Scheduler::singleton()->removeThread(thread->id());
+    delete thread;
     vTaskDelete(nullptr);
   }
 };

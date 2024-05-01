@@ -3,10 +3,67 @@
 
 #include <test_fhatos.hpp>
 //
+#include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 #include <unity.h>
 
 namespace fhatos::kernel {
+
+struct Worker : public Thread {
+  MutexDeque<int> *mutex;
+  int counter = 0;
+  Worker(int index, MutexDeque<int> *mutex)
+      : Thread(ID(String("worker-") + index)) {
+    this->mutex = mutex;
+  }
+  void setup() {
+    FOS_TEST_MESSAGE("%s up and running", this->id().toString().c_str());
+  }
+
+  void loop() {
+    if (counter++ < 10) {
+      this->mutex->push_back(counter);
+    } else {
+      this->stop();
+      FOS_TEST_MESSAGE("%s done and stopping", this->id().toString().c_str());
+    }
+  }
+};
+
+void test_threaded() {
+  int WORKER_COUNT = 10;
+  Scheduler *s = Scheduler::singleton();
+  TEST_ASSERT_EQUAL(0, s->threadCount());
+  MutexDeque<int> m = MutexDeque<int>();
+  TEST_ASSERT_EQUAL(0, m.size());
+  TEST_ASSERT_TRUE(m.empty());
+  for (int i = 0; i < WORKER_COUNT; i++) {
+    TEST_ASSERT_EQUAL(i, s->threadCount());
+    TEST_ASSERT_TRUE(s->addProcess(new Worker(i, &m)));
+    TEST_ASSERT_EQUAL(i + 1, s->threadCount());
+  }
+  TEST_ASSERT_EQUAL(WORKER_COUNT, s->threadCount());
+  s->setup();
+  yield();
+  while (s->threadCount() > 0) {
+    // delay(1000);
+  }
+  TEST_ASSERT_EQUAL(0, s->threadCount());
+  TEST_ASSERT_EQUAL(10 * WORKER_COUNT, m.size());
+  TEST_ASSERT_FALSE(m.empty());
+  int sum = 0;
+  for (int i = 1; i < 11; i++) {
+    sum += i;
+  }
+  sum = sum * WORKER_COUNT;
+  int mutexSum = 0;
+  int temp = 0;
+  while (-1 != temp) {
+    mutexSum += temp;
+    temp = m.pop_front().value_or(-1);
+  }
+  TEST_ASSERT_EQUAL(sum, mutexSum);
+}
 
 void test_deque() {
   MutexDeque<int> m = MutexDeque<int>();
@@ -24,10 +81,10 @@ void test_deque() {
   TEST_ASSERT_EQUAL(0, m.size());
 }
 
-FOS_RUN_TESTS(                //
-    FOS_RUN_TEST(test_deque); //
+FOS_RUN_TESTS(                   //
+    FOS_RUN_TEST(test_deque);    //
+    FOS_RUN_TEST(test_threaded); //
 );
-
 } // namespace fhatos::kernel
 
 SETUP_AND_LOOP()
