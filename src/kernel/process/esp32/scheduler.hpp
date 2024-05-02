@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 ///
-#include <atomic>  
+#include <atomic>
 #include <kernel/process/abstract_scheduler.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
@@ -24,22 +24,22 @@ public:
   }
 
   const int count(const Pattern &processPattern) const override {
-   std::atomic<int>* counter = new std::atomic(0);
+    std::atomic<int> *counter = new std::atomic(0);
     THREADS.forEach([counter, processPattern](Thread *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load()+1);
+        counter->store(counter->load() + 1);
     });
     FIBERS.forEach([counter, processPattern](Fiber *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load()+1);
+        counter->store(counter->load() + 1);
     });
     COROUTINES.forEach([counter, processPattern](Coroutine *process) {
       if (process->id().matches(processPattern))
-       counter->store(counter->load()+1);
+        counter->store(counter->load() + 1);
     });
     KERNELS.forEach([counter, processPattern](KernelProcess *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load()+1);
+        counter->store(counter->load() + 1);
     });
     const int temp = counter->load();
     delete counter;
@@ -75,18 +75,20 @@ public:
     if (!process->running())
       return false;
     const char *processType = typeid(*process).name();
-    if (strstr(processType, "Thread") == 0) {
-      THREADS.push_back(reinterpret_cast<Thread *>(process));
-    } else if (strstr(processType, "Fiber") == 0) {
-      FIBERS.push_back(reinterpret_cast<Fiber *>(process));
-    } else if (strstr(processType, "Coroutine") == 0) {
-      COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
-    } else if (strstr(processType, "KernelProcess") == 0) {
-      KERNELS.push_back(reinterpret_cast<KernelProcess *>(process));
+    // LOG(DEBUG,Serial.println(processType);
+    if (strstr(processType, "Thread")) {
+      return THREADS.push_back(reinterpret_cast<Thread *>(process));
+    } else if (strstr(processType, "Fiber")) {
+      return FIBERS.push_back(reinterpret_cast<Fiber *>(process));
+    } else if (strstr(processType, "Coroutine")) {
+      return COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
+    } else if (strstr(processType, "KernelProcess")) {
+      return KERNELS.push_back(reinterpret_cast<KernelProcess *>(process));
     } else {
-      throw fError("Unknown process type: %s", processType);
+      LOG(ERROR, "!m%s!! has an unknown process type: !r%s!!\n",
+          process->id().toString().c_str(), processType);
+      return false;
     }
-    return true;
   }
 
   virtual Map<String, MutexDeque<IDed *> *>

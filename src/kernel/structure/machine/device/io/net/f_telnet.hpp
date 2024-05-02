@@ -28,8 +28,8 @@ public:
     return &singleton;
   }
 
-  explicit fTelnet(const ID &id = fWIFI::idFromIP("telnet"),
-                  const uint16_t port = 23, const bool useAnsi = true)
+  fTelnet(const ID &id = fWIFI::idFromIP("telnet"), const uint16_t port = 23,
+          const bool useAnsi = true)
       : Actor<PROCESS, PAYLOAD, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
@@ -143,10 +143,10 @@ public:
   }
 
   void loop() override {
-    Actor<PROCESS,PAYLOAD,ROUTER>::loop();
+    Actor<PROCESS, PAYLOAD, ROUTER>::loop();
     tthis->xtelnet->loop();
     if (Serial.available()) {
-      tthis->xtelnet->print(Serial.read());
+      tthis->ansi->print(Serial.read());
     }
   }
 
@@ -158,8 +158,8 @@ private:
 protected:
   uint16_t port;
   bool useAnsi;
-  ESPTelnet *xtelnet{};
-  Ansi<ESPTelnet> *ansi{};
+  ESPTelnet *xtelnet;
+  Ansi<ESPTelnet> *ansi;
   ID *currentTopic;
 };
 

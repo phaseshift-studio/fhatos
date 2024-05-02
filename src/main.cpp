@@ -19,17 +19,17 @@ void setup() {
   Scheduler<MAIN_ROUTER> *s = Scheduler<MAIN_ROUTER>::singleton();
   s->spawn(fWIFI::singleton());
   s->spawn(fMQTT<Thread, Message<String>>::singleton());
-  s->spawn(new fLog<Fiber, String, MAIN_ROUTER>());
+  s->spawn(new fLog<Coroutine, String, MAIN_ROUTER>());
   s->spawn(fSerial<Fiber, String, MAIN_ROUTER>::singleton());
   s->spawn(new fPing<Fiber, String, MAIN_ROUTER>());
-  s->spawn(new fTelnet<Thread, String, MAIN_ROUTER>());
-  s->spawn(Scheduler<MAIN_ROUTER>::singleton());
+  s->spawn(fTelnet<Thread, String, MAIN_ROUTER>::singleton());
+  s->setup();
 }
 
 void loop() {
   static int counter = 0;
   if (counter < 10)
-    fSerial<Fiber,String,MAIN_ROUTER>::println("testing...");
+    fSerial<Fiber, String, MAIN_ROUTER>::println("testing...");
   /*LocalRouter<StringMessage>::singleton()->publish(StringMessage(
       ID("self@127.0.0.1"), logger->id().extend("INFO"),
       String("!Mlogging!! !Rme!!ssage: !g") + counter++ + "!!\n",

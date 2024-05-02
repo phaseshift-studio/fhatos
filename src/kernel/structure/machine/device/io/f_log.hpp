@@ -14,7 +14,7 @@
 
 namespace fhatos::kernel {
 
-    template<typename PROCESS = Thread, typename PAYLOAD = String,
+    template<typename PROCESS = Coroutine, typename PAYLOAD = String,
             typename ROUTER = LocalRouter<Message<PAYLOAD>>>
     class fLog : public Actor<PROCESS, PAYLOAD, ROUTER> {
     public:
@@ -22,7 +22,6 @@ namespace fhatos::kernel {
                 : Actor<PROCESS, PAYLOAD, ROUTER>(id) {};
 
         void setup() override {
-            Actor<PROCESS,PAYLOAD,ROUTER>::setup();
             const ID serialID = fWIFI::idFromIP("serial");
             // INFO LOGGING
             this->subscribe(this->id().extend("INFO"), [this, serialID](
