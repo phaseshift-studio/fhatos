@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__ping_hpp
-#define fhatos_kernel__ping_hpp
+#ifndef fhatos_kernel__f_ping_hpp
+#define fhatos_kernel__f_ping_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
@@ -11,12 +11,12 @@ namespace fhatos::kernel {
 
 template <typename PROCESS = Fiber, typename MESSAGE = String,
           typename ROUTER = LocalRouter<Message<MESSAGE>>>
-class Ping : public Actor<PROCESS, MESSAGE, ROUTER> {
+class fPing : public Actor<PROCESS, MESSAGE, ROUTER> {
 public:
-  explicit Ping(const ID &id = WIFI::idFromIP("ping"))
+  explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
       : Actor<PROCESS, MESSAGE, ROUTER>(id) {}
 
-  ~Ping() { delete this->pingData; }
+  ~fPing() { delete this->pingData; }
 
    void setup() override {
     Actor<PROCESS, MESSAGE, ROUTER>::setup();
@@ -42,12 +42,12 @@ public:
         sprintf(message, "64 bytes from %s: icmp_seq=%i time=%.3f ms\n",
                 this->pingData->ip.c_str(), this->pingData->counter,
                 this->xping.averageTime());
-        this->publish(WIFI::idFromIP("log", "INFO"), String(message));
+        this->publish(fWIFI::idFromIP("log", "INFO"), String(message));
       } else {
         sprintf(message,
                 "Request timeout for icmp_seq %i failure_rate=%.2f%%\n",
                 this->pingData->counter, this->pingData->failureRate());
-        this->publish(WIFI::idFromIP("log", "ERROR"), String(message));
+        this->publish(fWIFI::idFromIP("log", "ERROR"), String(message));
       }
       delete[] message;
     }
@@ -64,7 +64,7 @@ protected:
 
     explicit PingData(const String &host) {
       this->host = host;
-      this->ip = WIFI::singleton()->resolve(this->host).toString();
+      this->ip = fWIFI::singleton()->resolve(this->host).toString();
     }
     [[nodiscard]]  float failureRate() const {
       return (((float)(counter - success)) / ((float)counter)) * 100.0f;

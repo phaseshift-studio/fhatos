@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel_telnet_hpp
-#define fhatos_kernel_telnet_hpp
+#ifndef fhatos_kernel_f_telnet_hpp
+#define fhatos_kernel_f_telnet_hpp
 
 #include <ESPTelnet.h>
 #include <fhatos.hpp>
@@ -14,42 +14,21 @@ namespace fhatos::kernel {
 
 /////////////////////////////////////////////////////////////////////
 
-#define tthis Telnet::singleton()
-#define T (*Telnet::singleton())
-#define TSerial (*(Telnet::singleton()->xtelnet))
-#define TAnsiOn(x)                                                             \
-  if (T.useAnsi) {                                                             \
-    TSerial.print(x);                                                          \
-  }
-#define TAnsiOff() TAnsiOn("\033[0m")
-#define TAnsi(x, y)                                                            \
-  TAnsiOn(x) y;                                                                \
-  TAnsiOff()
-#define PRINTF(x, ...) TSerial.printf(x, ##__VA_ARGS__)
-#define PRINT(x) TSerial.print(x)
-#define PRINTLN(x) TSerial.println(x)
+#define tthis fTelnet::singleton()
 #define TAB "  "
-#define TCHECK(x, y)                                                           \
-  if (!x) {                                                                    \
-    TAnsi(ansi.setFG(ANSI_GREEN), PRINT("[OK] "))                              \
-  } else {                                                                     \
-    TAnsi(ansi.setFG(ANSI_RED), PRINT("[ERROR] "))                             \
-  }                                                                            \
-  y;
-
 /////////////////////////////////////////////////////////////////////
 
 template <typename PROCESS = Thread, typename PAYLOAD = String,
           typename ROUTER = LocalRouter<Message<PAYLOAD>>>
-class Telnet : public Actor<PROCESS, PAYLOAD, ROUTER> {
+class fTelnet : public Actor<PROCESS, PAYLOAD, ROUTER> {
 
 public:
-  static Telnet *singleton() {
-    static Telnet singleton = Telnet();
+  static fTelnet *singleton() {
+    static fTelnet singleton = fTelnet();
     return &singleton;
   }
 
-  explicit Telnet(const ID &id = WIFI::idFromIP("telnet"),
+  explicit fTelnet(const ID &id = fWIFI::idFromIP("telnet"),
                   const uint16_t port = 23, const bool useAnsi = true)
       : Actor<PROCESS, PAYLOAD, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)) {
@@ -58,13 +37,12 @@ public:
     this->ansi = new Ansi<ESPTelnet>(this->xtelnet);
   }
 
-  ~Telnet() {
+  ~fTelnet() {
     delete this->currentTopic;
     delete this->ansi;
   }
 
   void setup() override {
-    Actor<PROCESS, PAYLOAD, ROUTER>::setup();
     ////////// ON CONNECT //////////
     this->xtelnet->onConnect([](const String ipAddress) {
       // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
@@ -72,7 +50,7 @@ public:
       tthis->ansi->println(ANSI_ART);
       tthis->ansi->printf("Telnet server on !m%s!!\n" TAB
                           ":help for help menu\n",
-                          WIFI::ip().toString().c_str());
+                          fWIFI::ip().toString().c_str());
       tthis->currentTopic = new ID(tthis->id());
       tthis->printPrompt();
     });
@@ -105,7 +83,7 @@ public:
                   message.payloadString().c_str()); // TODO: ansi off/on
             });
         if (line.equals("?")) {
-          yield();
+          delay(1000);
           tthis->unsubscribe(*tthis->currentTopic);
         } else {
           tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
@@ -154,8 +132,8 @@ public:
     ////////// ON DISCONNECT //////////
     this->xtelnet->onDisconnect([](const String ipAddress) {
       tthis->currentTopic = new ID(tthis->id());
-      ROUTER::singleton()->unsubscribeSource(T.id());
-      LOG_TASK(INFO, &T, "Client %s disconnected from Telnet server\n",
+      ROUTER::singleton()->unsubscribeSource(tthis->id());
+      LOG_TASK(INFO, tthis, "Client %s disconnected from Telnet server\n",
                ipAddress.c_str());
     });
 
@@ -165,10 +143,10 @@ public:
   }
 
   void loop() override {
-    Actor<PROCESS, PAYLOAD, ROUTER>::loop();
-    this->xtelnet->loop();
-    if (::Serial.available()) {
-      this->ansi->print(::Serial.read());
+    Actor<PROCESS,PAYLOAD,ROUTER>::loop();
+    tthis->xtelnet->loop();
+    if (Serial.available()) {
+      tthis->xtelnet->print(Serial.read());
     }
   }
 

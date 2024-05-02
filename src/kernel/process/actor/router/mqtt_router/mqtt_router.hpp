@@ -4,13 +4,13 @@
 #include <fhatos.hpp>
 //
 #include <kernel/process/actor/router/router.hpp>
-#include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
-#include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
+#include <kernel/structure/machine/device/io/net/f_mqtt.hpp>
+#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos::kernel {
 
-template <class MESSAGE, class MQTT_CLIENT = MQTT<Thread, MESSAGE>>
+template <class MESSAGE, class MQTT_CLIENT = fMQTT<Thread, MESSAGE>>
 class MqttRouter : public Router<MESSAGE> {
 
 public:
@@ -25,7 +25,7 @@ public:
     return RESPONSE_CODE::OK;
   }
 
-  MqttRouter(const ID id = WIFI::idFromIP("mqttrouter"))
+  MqttRouter(const ID id = fWIFI::idFromIP("mqttrouter"))
       : Router<MESSAGE>(id) {}
 
   virtual const RESPONSE_CODE publish(const MESSAGE &message) override {

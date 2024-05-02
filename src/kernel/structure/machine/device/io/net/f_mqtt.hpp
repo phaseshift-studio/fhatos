@@ -1,10 +1,10 @@
-#ifndef fhatos_kernel__mqtt_hpp
-#define fhatos_kernel__mqtt_hpp
+#ifndef fhatos_kernel__f_mqtt_hpp
+#define fhatos_kernel__f_mqtt_hpp
 #include <fhatos.hpp>
 //
 #include <PubSubClient.h>
 #include <kernel/process/actor/router/router.hpp>
-#include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
+#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 #define MQTT_MAX_RETRIES 10
@@ -22,16 +22,16 @@ typedef std::function<void(const char *, const byte *, const uint32_t)>
     RecvFunction;
 
 template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
-class MQTT : public PROCESS {
+class fMQTT : public PROCESS {
 public:
-  static MQTT *singleton(const ID id = WIFI::idFromIP("mqtt"),
+  static fMQTT *singleton(const ID id = fWIFI::idFromIP("mqtt"),
                          const char *domain = STR(MQTT_BROKER_ADDR),
                          const uint32_t port = MQTT_BROKER_PORT) {
-    static MQTT singleton = MQTT(id, domain, port);
+    static fMQTT singleton = fMQTT(id, domain, port);
     return &singleton;
   }
 
-  MQTT(const ID &id, const char *domain, const uint16_t port) : PROCESS(id) {
+  fMQTT(const ID &id, const char *domain, const uint16_t port) : PROCESS(id) {
     if (strcmp("none", domain) == 0) {
       LOG(INFO, "MQTT disabled as no broker address provided.\n");
       this->stop();
@@ -62,7 +62,7 @@ public:
       this->xmqtt->setCallback(this->recvFunction);
     }
   }
-  ~MQTT() {
+  ~fMQTT() {
     this->stop();
     delete this->xmqtt;
   }
@@ -134,7 +134,7 @@ public:
   }
 
   void setup() override {
-    if (!WIFI::singleton()->running() && !WIFI::reconnect()) {
+    if (!fWIFI::singleton()->running() && !fWIFI::reconnect()) {
       this->stop();
       LOG_TASK(ERROR, this, "No WIFI connection. MQTT support not provided.\n");
     } else {
@@ -143,8 +143,8 @@ public:
                                            ++counter < MQTT_MAX_RETRIES)) {
         // Attempt to connect
         if ((this->willTopic.isEmpty() &&
-             this->xmqtt->connect(WIFI::ip().toString().c_str())) ||
-            (this->xmqtt->connect(WIFI::ip().toString().c_str(),
+             this->xmqtt->connect(fWIFI::ip().toString().c_str())) ||
+            (this->xmqtt->connect(fWIFI::ip().toString().c_str(),
                                   this->willTopic.c_str(), willQoS, willRetain,
                                   this->willMessage.c_str()))) {
           LOG(INFO, "!b[MQTT Client Configuration]!!\n");
@@ -157,7 +157,7 @@ public:
               "\tWill QoS                : %i\n"
               "\tWill retain             : %s\n",
               this->id().toString().c_str(), this->server, this->port,
-              WIFI::singleton()->ip().toString().c_str(),
+              fWIFI::singleton()->ip().toString().c_str(),
               this->willTopic.isEmpty() ? "<none>" : this->willTopic.c_str(),
               this->willTopic.isEmpty() ? "<none>" : this->willMessage.c_str(),
               this->willTopic.isEmpty() ? -1 : willQoS,

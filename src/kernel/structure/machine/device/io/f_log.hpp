@@ -1,11 +1,11 @@
-#ifndef fhatos_kernel__log_hpp
-#define fhatos_kernel__log_hpp
+#ifndef fhatos_kernel__f_log_hpp
+#define fhatos_kernel__f_log_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/router/meta_router/meta_router.hpp>
-#include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
+#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/structure/structure.hpp>
 #include <kernel/util/ansi.hpp>
 #include <kernel/util/string_stream.hpp>
@@ -14,26 +14,26 @@
 
 namespace fhatos::kernel {
 
-    template<typename PROCESS = Thread, typename MESSAGE = String,
-            typename ROUTER = LocalRouter<Message<MESSAGE>>>
-    class Log : public Actor<PROCESS, MESSAGE, ROUTER> {
+    template<typename PROCESS = Thread, typename PAYLOAD = String,
+            typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+    class fLog : public Actor<PROCESS, PAYLOAD, ROUTER> {
     public:
-        explicit Log(const ID &id = WIFI::idFromIP("log"))
-                : Actor<PROCESS, MESSAGE, ROUTER>(id) {};
+        explicit fLog(const ID &id = fWIFI::idFromIP("log"))
+                : Actor<PROCESS, PAYLOAD, ROUTER>(id) {};
 
         void setup() override {
-            Actor<PROCESS,MESSAGE,ROUTER>::setup();
-            const ID serialID = WIFI::idFromIP("serial");
+            Actor<PROCESS,PAYLOAD,ROUTER>::setup();
+            const ID serialID = fWIFI::idFromIP("serial");
             // INFO LOGGING
             this->subscribe(this->id().extend("INFO"), [this, serialID](
-                    const Message<MESSAGE> &message) {
+                    const Message<PAYLOAD> &message) {
                 this->publish(
                         serialID,
                         this->createLogMessage(INFO, message.payloadString()).c_str(), false);
             });
             // ERROR LOGGING
             this->subscribe(this->id().extend("ERROR"), [this, serialID](
-                    const Message<MESSAGE> &message) {
+                    const Message<PAYLOAD> &message) {
                 this->publish(
                         serialID,
                         this->createLogMessage(INFO, message.payloadString()).c_str(), false);

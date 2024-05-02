@@ -8,7 +8,6 @@
 #include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
-#include <kernel/structure/machine/device/io/net/mqtt/mqtt.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
@@ -67,9 +66,9 @@ namespace fhatos::kernel {
         [[nodiscard]]  uint16_t size() const override { return inbox.size(); }
 
         /// PROCESS METHODS
-        void setup() override { PROCESS::setup(); }
+        virtual void setup() override { PROCESS::setup(); }
 
-        void stop() override {
+        virtual void stop() override {
             const RESPONSE_CODE _rc =
                     ROUTER::singleton()->unsubscribeSource(this->id());
             if (_rc) {

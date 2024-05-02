@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__wifi_hpp
-#define fhatos_kernel__wifi_hpp
+#ifndef fhatos_kernel__f_wifi_hpp
+#define fhatos_kernel__f_wifi_hpp
 
 #include <fhatos.hpp>
 #include <kernel/process/process.hpp>
@@ -24,10 +24,10 @@
 
 namespace fhatos::kernel {
 
-    class WIFI : public KernelProcess {
+    class fWIFI : public KernelProcess {
 
     private:
-        explicit WIFI(const ID &id = ID("name@wifi"), const char *ssids = STR(WIFI_SSID),
+        explicit fWIFI(const ID &id = ID("name@wifi"), const char *ssids = STR(WIFI_SSID),
                       const char *passwords = STR(WIFI_PASS))
                 : KernelProcess(id) {
             this->ssids = ssids;
@@ -40,17 +40,17 @@ namespace fhatos::kernel {
 
     public:
         static ID idFromIP(const String &user, const String &path = "") {
-            if (!WIFI::singleton()->running())
-                WIFI::singleton()->setup();
-            return {(user + "@" + WIFI::ip().toString() +
+            if (!fWIFI::singleton()->running())
+                fWIFI::singleton()->setup();
+            return {(user + "@" + fWIFI::ip().toString() +
                        (path.isEmpty() ? "" : ("/" + path)))
                               .c_str()};
         }
 
-        static WIFI *singleton(const ID &id = ID("name@wifi"),
+        static fWIFI *singleton(const ID &id = ID("name@wifi"),
                                const char *ssids = STR(WIFI_SSID),
                                const char *passwords = STR(WIFI_PASS)) {
-            static WIFI singleton = WIFI(id, ssids, passwords);
+            static fWIFI singleton = fWIFI(id, ssids, passwords);
             return &singleton;
         }
 
@@ -79,7 +79,7 @@ namespace fhatos::kernel {
         }
 
     private:
-        WIFI *setAccessPoint(const char *ssid, const char *password,
+        fWIFI *setAccessPoint(const char *ssid, const char *password,
                              const bool hideSSID = false,
                              const uint8_t maxConnections = 8) {
             WiFiClass::mode(WIFI_AP_STA);
@@ -106,7 +106,7 @@ namespace fhatos::kernel {
             return this;
         }
 
-        WIFI *setStation() {
+       fWIFI *setStation() {
             LOG(INFO, "!b[WIFI Station Configuration]!!\n");
             WiFiClass::mode(WIFI_STA);
             WiFi.setAutoReconnect(true);
@@ -140,7 +140,7 @@ namespace fhatos::kernel {
             while (attempts < 10) {
                 attempts++;
                 if (multi.run() == WL_CONNECTED) {
-                    this->_id = *(new ID(WIFI::idFromIP("wifi").toString().c_str()));
+                    this->_id = *(new ID(fWIFI::idFromIP("wifi").toString().c_str()));
                     WiFiClass::hostname(this->id().user().value());
                     const bool mdnsStatus = MDNS.begin(this->id().user().value());
                     LOG(NONE,

@@ -6,7 +6,7 @@
 #include <kernel/process/actor/router/local_router/local_router.hpp>
 #include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
 #include <kernel/process/actor/router/router.hpp>
-#include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
+#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 
 namespace fhatos::kernel {
 
@@ -29,7 +29,7 @@ public:
     return &singleton;
   }
 
-  MetaRouter(const ID &id = WIFI::idFromIP("meta")) : Router<MESSAGE>(id) {}
+  MetaRouter(const ID &id = fWIFI::idFromIP("meta")) : Router<MESSAGE>(id) {}
   ~MetaRouter() { this->clear(); }
   virtual RESPONSE_CODE clear() override {
     RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();

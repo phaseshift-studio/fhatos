@@ -6,7 +6,7 @@
 #include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/router/local_router/local_router.hpp>
 #include <kernel/process/process.hpp>
-#include <kernel/structure/machine/device/io/net/wifi/wifi.hpp>
+#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/structure/routes.hpp>
 #include <kernel/structure/structure.hpp>
 //
@@ -19,7 +19,7 @@ namespace fhatos::kernel {
 class AbstractScheduler : public Coroutine {
 
 protected:
-  AbstractScheduler() : Coroutine(WIFI::idFromIP("kernel", "scheduler")) {}
+  AbstractScheduler() : Coroutine(fWIFI::idFromIP("kernel", "scheduler")) {}
 
 public:
   virtual const bool spawn(Process *process) { return false; }
