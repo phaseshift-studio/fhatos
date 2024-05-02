@@ -3,8 +3,8 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/router/local_router/local_router.hpp>
-#include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
+#include <kernel/process/actor/router/local_router.hpp>
+#include <kernel/process/actor/router/mqtt_router.hpp>
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 

@@ -14,18 +14,21 @@ protected:
   bool _running = true;
 
 public:
+
   TaskHandle_t handle{};
-  explicit Thread(const ID &id) : Process(id) {}
+  explicit Thread(const ID &id) : Process(id,THREAD) {}
 
   void delay(const uint64_t milliseconds) override {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
   }
 
+  virtual void loop() override { Process::loop(); }
+
   void yield() override { taskYIELD(); }
 
   void stop() override { this->_running = false; }
 
-  [[nodiscard]]  bool running() const override { return this->_running; }
+  [[nodiscard]] bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

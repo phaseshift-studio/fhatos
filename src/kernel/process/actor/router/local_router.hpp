@@ -8,7 +8,7 @@
 
 namespace fhatos::kernel {
 
-template <class MESSAGE> class LocalRouter : public Router<MESSAGE> {
+template <typename MESSAGE = Message<String>> class LocalRouter : public Router<MESSAGE> {
 
 protected:
   // messaging data structures

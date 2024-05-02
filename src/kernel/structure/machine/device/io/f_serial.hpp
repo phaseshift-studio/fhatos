@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/message.hpp>
-#include <kernel/process/actor/router/local_router/local_router.hpp>
+#include <kernel/process/actor/router/local_router.hpp>
 
 namespace fhatos::kernel {
 

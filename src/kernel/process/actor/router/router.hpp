@@ -2,10 +2,12 @@
 #define fhatos_kernel_router_hpp
 
 #include <fhatos.hpp>
+#include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/structure/structure.hpp>
 
 #define RETAIN_MESSAGE true
+#define TRANSIENT_MESSAGE false
 
 namespace fhatos::kernel {
 
@@ -24,11 +26,12 @@ template <typename MESSAGE> struct Subscription {
   const Pattern pattern;
   const QoS qos = _1;
   const OnRecvFunction<MESSAGE> onRecv;
-  [[nodiscard]] bool match(const ID &target) const {
+  [[nodiscard]] const bool match(const ID &target) const {
     return this->pattern.matches(target);
   }
-  void execute(const MESSAGE message) const { onRecv(message); }
+  void execute(const MESSAGE& message) const { onRecv(message); }
 };
+
 
 //////////////////////////////////////////////
 /////////////// ERROR MESSAGES ///////////////
@@ -72,7 +75,7 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 #define FP_OK_RESULT                                                           \
   { return RESPONSE_CODE::OK; }
 
-template <class MESSAGE> class Router : public IDed {
+template <class MESSAGE = Message<String>> class Router : public IDed {
 
 public:
   explicit Router(const ID &id) : IDed(id) {};
@@ -83,11 +86,6 @@ public:
                                           const Pattern &pattern) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
   virtual RESPONSE_CODE clear() FP_OK_RESULT;
-  virtual RESPONSE_CODE registerRoute(const ID &source, const List<ID> incoming,
-                                      const List<ID> outgoing) {
-    return this->publish(MESSAGE{
-        .source = source, .target = source, source.toString(), RETAIN_MESSAGE});
-  }
 
   // virtual ID *adjacent(const ID &source) { return nullptr; }
   // virtual RESPONSE_CODE call(const ID &source, const ID &target)

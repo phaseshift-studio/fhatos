@@ -3,9 +3,9 @@
 
 #include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/message_box.hpp>
-#include <kernel/process/actor/router/local_router/local_router.hpp>
-#include <kernel/process/actor/router/meta_router/meta_router.hpp>
-#include <kernel/process/actor/router/mqtt_router/mqtt_router.hpp>
+#include <kernel/process/actor/router/local_router.hpp>
+#include <kernel/process/actor/router/meta_router.hpp>
+#include <kernel/process/actor/router/mqtt_router.hpp>
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -45,25 +45,25 @@ namespace fhatos::kernel {
 
         // PUBLISH
          RESPONSE_CODE publish(const IDed &target, const PAYLOAD &message,
-                                      const bool retain = TRANSIENT_MESSAGE) {
+                                      const bool retain = false) {
             return ROUTER::singleton()->publish(
                     Message<PAYLOAD>(this->id(), target.id(), message, retain));
         }
 
          RESPONSE_CODE publish(const ID &relativeTarget,
                                       const PAYLOAD &message,
-                                      const bool retain = TRANSIENT_MESSAGE) {
+                                      const bool retain = false) {
             return ROUTER::singleton()->publish(
                     Message<PAYLOAD>(this->id(), makeTopic(relativeTarget), message, retain));
         }
 
         // PAYLOAD BOX METHODS
-        bool
-        push(const Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>> &mail) override {
+        const bool
+        push(const Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>& mail) override {
             return this->inbox.push_back(mail);
         }
 
-        [[nodiscard]]  uint16_t size() const override { return inbox.size(); }
+        [[nodiscard]] const uint16_t size() const override { return inbox.size(); }
 
         /// PROCESS METHODS
         virtual void setup() override { PROCESS::setup(); }

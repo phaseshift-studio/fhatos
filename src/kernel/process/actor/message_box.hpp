@@ -9,9 +9,9 @@ namespace fhatos::kernel {
     template<typename T>
     struct MessageBox {
     public:
-        [[nodiscard]] virtual bool push(const T &message) { return true; }
+        [[nodiscard]] virtual const bool push(const T &message) { return true; }
 
-        [[nodiscard]] virtual uint16_t size() const { return 0; }
+        [[nodiscard]] virtual const uint16_t size() const { return 0; }
 
     protected:
         virtual Option<T> pop() { return {}; }

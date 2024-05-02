@@ -71,7 +71,7 @@ public:
       } else if (line.startsWith("<=")) {
         String payload = line.length() == 2 ? "" : line.substring(2);
         payload.trim();
-        tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
+        tthis->publish(*tthis->currentTopic, payload, false);
       } else if (line.startsWith("=>") || line.equals("?")) {
         RESPONSE_CODE _rc = tthis->subscribe(
             *tthis->currentTopic, [](const Message<PAYLOAD> &message) {
@@ -84,6 +84,7 @@ public:
             });
         if (line.equals("?")) {
           delay(1000);
+          tthis->next();
           tthis->unsubscribe(*tthis->currentTopic);
         } else {
           tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",

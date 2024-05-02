@@ -9,7 +9,7 @@
 namespace fhatos::kernel {
     class Coroutine : public Process {
     public:
-        explicit Coroutine(const ID &id) : Process(id) {}
+        explicit Coroutine(const ID &id) : Process(id,COROUTINE) {}
 
         void delay(const uint64_t milliseconds) override {
             // do nothing

@@ -15,7 +15,7 @@ protected:
 
 public:
   TaskHandle_t handle{};
-   explicit Fiber(const ID &id) : Process(id) {}
+   explicit Fiber(const ID &id) : Process(id,FIBER) {}
 
    void delay(const uint64_t milliseconds) override {
     // delay to next fiber

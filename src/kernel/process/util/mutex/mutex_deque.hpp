@@ -28,6 +28,20 @@ private:
 public:
   // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) {}
 
+  const Option<T> find(Predicate<T> predicate,
+                       const bool withMutex = true) const {
+    return lockUnlock<Option<T>>(withMutex, [this, predicate]() {
+      T *temp = nullptr;
+      for (T t : _deque) {
+        if (predicate(t)) {
+          temp = &t;
+          break;
+        }
+      }
+      return temp ? Option<T>(*temp) : Option<T>();
+    });
+  }
+
   const Option<T> pop_front(const bool withMutex = true) {
     return lockUnlock<Option<T>>(withMutex, [this]() {
       if (_deque.empty())
@@ -49,9 +63,10 @@ public:
     });
   }
 
-  void remove_if(const Predicate<T> predicate, const bool withMutex = true) {
+  void remove_if(Predicate<T> predicate, const bool withMutex = true) {
     lockUnlock<void *>(withMutex, [this, predicate]() {
-      _deque.erase(std::remove_if(_deque.begin(), _deque.end(), predicate),
+      _deque.erase(std::remove_if(_deque.begin(), _deque.end(),
+                                  [predicate](T t) { return predicate(t); }),
                    _deque.end());
       return nullptr;
     });
@@ -82,10 +97,10 @@ public:
       return true;
     });
   }
-  SIZE_TYPE size(const bool withMutex = true) const {
+  const SIZE_TYPE size(const bool withMutex = true) const {
     return lockUnlock<SIZE_TYPE>(withMutex, [this]() { return _deque.size(); });
   }
-  bool empty(const bool withMutex = true) const {
+  const bool empty(const bool withMutex = true) const {
     return lockUnlock<bool>(withMutex, [this]() { return _deque.empty(); });
   }
   const String toString(const bool withMutex = true) const {
@@ -97,6 +112,13 @@ public:
       }
       temp = temp.substring(0, temp.length() - 3) + "]";
       return temp;
+    });
+  }
+
+  void clear(const bool withMutex = true) {
+    lockUnlock<void *>(withMutex, [this]() {
+      _deque.clear();
+      return nullptr;
     });
   }
 };

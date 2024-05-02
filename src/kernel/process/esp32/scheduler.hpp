@@ -74,21 +74,74 @@ public:
     process->setup();
     if (!process->running())
       return false;
-    const char *processType = typeid(*process).name();
-    // LOG(DEBUG,Serial.println(processType);
-    if (strstr(processType, "Thread")) {
-      return THREADS.push_back(reinterpret_cast<Thread *>(process));
-    } else if (strstr(processType, "Fiber")) {
-      return FIBERS.push_back(reinterpret_cast<Fiber *>(process));
-    } else if (strstr(processType, "Coroutine")) {
+    //////////////////////////////////////////////////
+    ////// THREAD //////
+    if (THREAD == process->pType) {
+      const BaseType_t threadResult = xTaskCreatePinnedToCore(
+          THREAD_FUNCTION, // Function that should be called
+          process->id()
+              .user()
+              .value_or(process->id().toString())
+              .c_str(), // Name of the task (for debugging)
+          10000,        // Stack size (bytes)
+          process,      // Parameter to pass
+          CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+          &(((Thread *)process)->handle),         // Task handle
+          tskNO_AFFINITY);                        // Processor core
+      LOG(threadResult == pdPASS ? INFO : ERROR, "!MThread %s spawned!!\n",
+          process->id().toString().c_str());
+      return pdPASS == threadResult &&
+             THREADS.push_back(reinterpret_cast<Thread *>(process));
+    }
+    ////// FIBER //////
+    else if (FIBER == process->pType) {
+      BaseType_t fiberResult = pdFAIL;
+      if (!FIBER_THREAD) {
+        fiberResult = xTaskCreatePinnedToCore(
+            FIBER_FUNCTION, // Function that should be called
+            "fibers",       // Name of the task (for debugging)
+            10000,          // Stack size (bytes)
+            &FIBERS,        // Parameter to pass
+            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+            FIBER_THREAD,                           // Task handle
+            tskNO_AFFINITY);                        // Processor core
+        if (fiberResult != pdPASS)
+          LOG(ERROR, "!MFiber thread spawned!!\n");
+      }
+      LOG(fiberResult == pdPASS ? INFO : ERROR, "!MFiber %s spawned!!\n",
+          process->id().toString().c_str());
+      return pdPASS == fiberResult &&
+             FIBERS.push_back(reinterpret_cast<Fiber *>(process));
+    }
+    ////// COROUTINE //////
+    else if (COROUTINE == process->pType) {
+      LOG(INFO, "!MCoroutine %s spawned!!\n", process->id().toString().c_str());
       return COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
-    } else if (strstr(processType, "KernelProcess")) {
+    }
+    ////// KERNEL //////
+    else if (KERNEL == process->pType) {
+      LOG(INFO, "!MKernel %s spawned!!\n", process->id().toString().c_str());
       return KERNELS.push_back(reinterpret_cast<KernelProcess *>(process));
     } else {
-      LOG(ERROR, "!m%s!! has an unknown process type: !r%s!!\n",
-          process->id().toString().c_str(), processType);
+      LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n",
+          process->id().toString().c_str(), process->pType);
       return false;
     }
+    /*
+ LOG(INFO, "!B[Scheduler Configuration]!!\n");
+       LOG(NONE,
+           "\tNumber of processes   : %i\n"
+           "\t -Number of kernels   : %i\n"
+           "\t -Number of threads   : %i\n"
+           "\t -Number of fibers    : %i\n"
+           "\t -Number of coroutines: %i\n",
+           THREADS.size() + FIBERS.size() + KERNELS.size() + COROUTINES.size(),
+           KERNELS.size(), THREADS.size(), FIBERS.size(), COROUTINES.size());
+       ROUTER::singleton()->publish(StringMessage(
+           this->id(), this->id().query(""),
+           mapString<String, MutexDeque<IDed *> *>(this->query({})),
+           RETAIN_MESSAGE));
+    */
   }
 
   virtual Map<String, MutexDeque<IDed *> *>
@@ -113,62 +166,6 @@ public:
     return result;
   }
 
-  void setup() override {
-    static bool initialized = false;
-    if (!initialized) {
-      initialized = true;
-      LOG(INFO, "!B[Scheduler Configuration]!!\n");
-      LOG(NONE,
-          "\tNumber of processes   : %i\n"
-          "\t -Number of kernels   : %i\n"
-          "\t -Number of threads   : %i\n"
-          "\t -Number of fibers    : %i\n"
-          "\t -Number of coroutines: %i\n",
-          THREADS.size() + FIBERS.size() + KERNELS.size() + COROUTINES.size(),
-          KERNELS.size(), THREADS.size(), FIBERS.size(), COROUTINES.size());
-      ROUTER::singleton()->publish(StringMessage(
-          this->id(), this->id().query(""),
-          mapString<String, MutexDeque<IDed *> *>(this->query({})),
-          RETAIN_MESSAGE));
-      /////////////////////////////////////////////////////////////////////////
-      LOG(INFO, "Initializing thread pool (!rthreads:%i!!)\n", THREADS.size());
-      // HANDLE FIBERS
-      const BaseType_t fiberResult = xTaskCreatePinnedToCore(
-          FIBER_FUNCTION, // Function that should be called
-          "fibers",       // Name of the task (for debugging)
-          10000,          // Stack size (bytes)
-          &FIBERS,        // Parameter to pass
-          CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-          FIBER_THREAD,                           // Task handle
-          tskNO_AFFINITY);                        // Processor core
-      if (fiberResult != pdPASS)
-        LOG(ERROR, "!MStarting master fiber thread!!\n");
-      // HANDLE THREADS
-      List<Thread *> *COPY = new List<Thread *>();
-      THREADS.forEach([COPY](Thread *thread) { COPY->push_back(thread); });
-      for (const auto &thread : *COPY) {
-        const BaseType_t threadResult = xTaskCreatePinnedToCore(
-            THREAD_FUNCTION, // Function that should be called
-            thread->id()
-                .user()
-                .value_or(thread->id().toString())
-                .c_str(), // Name of the task (for debugging)
-            10000,        // Stack size (bytes)
-            thread,       // Parameter to pass
-            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-            &(thread->handle),                      // Task handle
-            tskNO_AFFINITY);                        // Processor core
-        LOG(threadResult == pdPASS ? INFO : ERROR, "!MStarting thread %s!!\n",
-            thread->id().toString().c_str());
-      }
-    } else {
-      LOG(ERROR, "Scheduler processes already initialized via global "
-                 "Scheduler::setup()\n");
-    }
-  }
-
-  void loop() override {}
-
 private:
   Scheduler() : AbstractScheduler() {};
   TaskHandle_t *FIBER_THREAD = nullptr;
@@ -182,14 +179,11 @@ private:
   //////////////////////////////////////////////////////
   static void FIBER_FUNCTION(void *vptr_fibers) {
     auto *fibers = (MutexDeque<Fiber *> *)vptr_fibers;
-    fibers->forEach([](Fiber *fiber) {
-      LOG(INFO, "!MStarting fiber %s!!\n", fiber->id().toString().c_str());
-    });
     while (!fibers->empty()) {
       fibers->forEach([fibers](Fiber *fiber) {
         if (!fiber->running()) {
           LOG(INFO, "!MStopping fiber %s!!\n", fiber->id().toString().c_str());
-          fibers->remove(fiber);
+          Scheduler::singleton()->destroy(fiber->id());
           delete fiber;
         } else {
           fiber->loop();
@@ -212,8 +206,7 @@ private:
       thread->loop();
       vTaskDelay(1); // feeds the watchdog for the task
     }
-    // LOG(INFO, "!MDisconnecting thread %s %s!!\n",
-    //     Helper::typeName(xthread).c_str(), xthread->id().c_str());
+    LOG(INFO, "!MStopping thread %s!!\n", thread->id().toString().c_str());
     Scheduler::singleton()->destroy(thread->id());
     delete thread;
     vTaskDelete(nullptr);

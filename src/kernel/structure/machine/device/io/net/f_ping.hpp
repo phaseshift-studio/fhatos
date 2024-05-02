@@ -9,18 +9,17 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Fiber, typename MESSAGE = String,
-          typename ROUTER = LocalRouter<Message<MESSAGE>>>
-class fPing : public Actor<PROCESS, MESSAGE, ROUTER> {
+template <typename PROCESS = Fiber, typename PAYLOAD = String,
+          typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+class fPing : public Actor<PROCESS, PAYLOAD, ROUTER> {
 public:
   explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
-      : Actor<PROCESS, MESSAGE, ROUTER>(id) {}
+      : Actor<PROCESS, PAYLOAD, ROUTER>(id) {}
 
   ~fPing() { delete this->pingData; }
 
    void setup() override {
-    Actor<PROCESS, MESSAGE, ROUTER>::setup();
-    this->subscribe(this->id(), [this](const Message<MESSAGE> &message) {
+    this->subscribe(this->id(), [this](const Message<PAYLOAD> &message) {
       if (this->pingData) {
         delete this->pingData;
         this->pingData = nullptr;
@@ -31,7 +30,7 @@ public:
   }
 
   void loop() override {
-    Actor<PROCESS, MESSAGE, ROUTER>::loop();
+    Actor<PROCESS, PAYLOAD, ROUTER>::loop();
     // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
     if (this->pingData) {
       this->pingData->counter++;
@@ -64,7 +63,7 @@ protected:
 
     explicit PingData(const String &host) {
       this->host = host;
-      this->ip = fWIFI::singleton()->resolve(this->host).toString();
+      this->ip = fWIFI::resolve(this->host).toString();
     }
     [[nodiscard]]  float failureRate() const {
       return (((float)(counter - success)) / ((float)counter)) * 100.0f;

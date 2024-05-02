@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/actor/message.hpp>
-#include <kernel/process/actor/router/meta_router/meta_router.hpp>
+#include <kernel/process/actor/router/meta_router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/structure/structure.hpp>
 #include <kernel/util/ansi.hpp>

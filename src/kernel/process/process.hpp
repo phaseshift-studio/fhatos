@@ -7,41 +7,42 @@
 
 namespace fhatos::kernel {
 
-    class Process : public IDed {
+class Process : public IDed {
 
-    public:
-        explicit Process(const ID &id) : IDed(id) {}
+public:
+  enum Type { THREAD, FIBER, COROUTINE, KERNEL };
+  const Type pType{};
 
-        virtual void setup() {};
+  explicit Process(const ID &id, const Type pType) : IDed(id), pType(pType) {}
 
-        virtual void loop() {}
+  virtual void setup() {};
 
-        virtual void stop() {};
+  virtual void loop() {}
 
-        [[nodiscard]] virtual bool running() const { return true; }
+  virtual void stop() {};
 
-        virtual void delay(const uint64_t milliseconds) {};
+  [[nodiscard]] virtual bool running() const { return true; }
 
-        virtual void yield() {};
-    };
+  virtual void delay(const uint64_t milliseconds) {};
 
-    class KernelProcess : public Process {
-    public:
-        explicit KernelProcess(const ID &id) : Process(id) {}
+  virtual void yield() {};
+};
 
-        void stop() override { this->_running = false; };
+class KernelProcess : public Process {
+public:
+  explicit KernelProcess(const ID &id) : Process(id, KERNEL) {}
 
-        [[nodiscard]] bool running() const override { return this->_running; }
+  void stop() override { this->_running = false; };
 
-        void delay(const uint64_t milliseconds) override {
-            ::delay(milliseconds);
-        }
+  [[nodiscard]] bool running() const override { return this->_running; }
 
-        void yield() override { ::yield(); }
+  void delay(const uint64_t milliseconds) override { ::delay(milliseconds); }
 
-    protected:
-        bool _running = true;
-    };
+  void yield() override { ::yield(); }
+
+protected:
+  bool _running = true;
+};
 
 } // namespace fhatos::kernel
 
