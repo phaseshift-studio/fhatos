@@ -24,7 +24,7 @@ protected:
   MqttRouter(const ID &id = fWIFI::idFromIP("kernel", "router/mqtt"),
              const char *domain = STR(MQTT_BROKER_ADDR),
              const uint16_t port = MQTT_BROKER_PORT)
-      : Router<MESSAGE>(id) {
+      : Router<PROCESS, MESSAGE>(id) {
     auto *client = new WiFiClient();
     this->xmqtt = new PubSubClient(domain, port, *client);
     this->server = (char *)domain;

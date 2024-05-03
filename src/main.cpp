@@ -9,7 +9,7 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
-#define MAIN_ROUTER LocalRouter<Coroutine, Message<String>>
+#define MAIN_ROUTER MqttRouter<>
 
 using namespace fhatos::kernel;
 
