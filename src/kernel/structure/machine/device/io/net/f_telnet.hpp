@@ -5,7 +5,7 @@
 //
 #include <ESPTelnet.h>
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include <kernel/util/ansi.hpp>
 #include <kernel/util/string_stream.hpp>
 #include FOS_PROCESS(thread.hpp)

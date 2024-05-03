@@ -5,8 +5,8 @@
 //
 #include <PubSubClient.h>
 #include <kernel/process/router/router.hpp>
-#include <kernel/util/mutex_deque.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
+#include <kernel/util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 #define MQTT_MAX_RETRIES 10
@@ -21,7 +21,7 @@ template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
 class MqttRouter : public Router<PROCESS, MESSAGE> {
 
 protected:
-  MqttRouter(const ID &id = fWIFI::idFromIP("kernel","router/mqtt"),
+  MqttRouter(const ID &id = fWIFI::idFromIP("kernel", "router/mqtt"),
              const char *domain = STR(MQTT_BROKER_ADDR),
              const uint16_t port = MQTT_BROKER_PORT)
       : Router<MESSAGE>(id) {
@@ -63,8 +63,9 @@ protected:
 
 public:
   ~MqttRouter() {
-    delete xmqtt;
-    delete client;
+    delete this->xmqtt;
+    delete this->client;
+    delete this->server;
   }
   static MqttRouter *singleton() {
     static MqttRouter singleton = MqttRouter();

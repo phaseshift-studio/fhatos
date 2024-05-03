@@ -3,7 +3,7 @@
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 
 #include FOS_PROCESS(fiber.hpp)

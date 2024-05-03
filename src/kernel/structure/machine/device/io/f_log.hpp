@@ -6,7 +6,7 @@
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include <kernel/util/ansi.hpp>
 #include <kernel/util/string_stream.hpp>
 #include <sstream>

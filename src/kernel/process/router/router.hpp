@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 //
 #include <kernel/process/actor/message_box.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 #define RETAIN_MESSAGE true

@@ -8,7 +8,7 @@
 #include <kernel/process/process.hpp>
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/util/mutex_deque.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(coroutine.hpp)

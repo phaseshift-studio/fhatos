@@ -2,7 +2,7 @@
 #define fhatos_kernel__process_hpp
 
 #include <fhatos.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 //
 
 namespace fhatos::kernel {

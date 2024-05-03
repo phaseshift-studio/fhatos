@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 //
 #include <kernel/process/process.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 //
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>

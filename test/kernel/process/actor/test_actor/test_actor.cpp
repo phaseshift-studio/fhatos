@@ -9,7 +9,7 @@
 #include <kernel/process/router/router.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/esp32/thread.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include <unity.h>
 
 namespace fhatos::kernel {

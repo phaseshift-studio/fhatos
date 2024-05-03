@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 
 namespace fhatos::kernel {
 

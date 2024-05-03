@@ -7,7 +7,7 @@
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/process/router/meta_router.hpp>
 #include <kernel/process/router/mqtt_router.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 #include <unity.h>
 
 namespace fhatos::kernel {

@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 //
 #include <kernel/process/process.hpp>
-#include <kernel/structure/structure.hpp>
+#include <kernel/furi.hpp>
 
 namespace fhatos::kernel {
     class Coroutine : public Process {
