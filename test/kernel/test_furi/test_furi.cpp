@@ -1,6 +1,5 @@
-#ifndef fhatos_kernel__test_structure_hpp
-#define fhatos_kernel__test_structure_hpp
-
+#ifndef fhatos_kernel__test_furi_hpp
+#define fhatos_kernel__test_furi_hpp
 #include <test_fhatos.hpp>
 //
 #include <kernel/furi.hpp>

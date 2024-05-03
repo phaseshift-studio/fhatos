@@ -13,13 +13,14 @@
 
 #ifndef ESP32
 #ifndef ESP8266
-#error FhatOS requires ESP32 or ESP8266 architectures
+#ifndef NATIVE
+#error FhatOS requires ESP32 or ESP8266 architectures (or NATIVE for testing)
+#endif
 #endif
 #endif
 
 // Arduino programming framework
 #include <Arduino.h>
-#include <ArduinoJson.h>
 #include <kernel/util/ansi.hpp>
 
 // C++ standard template library common data structures

@@ -1,5 +1,5 @@
-#ifndef fhatos_kernel__ansi2_hpp
-#define fhatos_kernel__ansi2_hpp
+#ifndef fhatos_kernel__ansi_hpp
+#define fhatos_kernel__ansi_hpp
 
 #include <Stream.h>
 #include <kernel/util/string_stream.hpp>
