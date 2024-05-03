@@ -21,7 +21,7 @@ public:
 
   virtual void stop() {};
 
-  [[nodiscard]] virtual bool running() const { return true; }
+  virtual const bool running() const { return true; }
 
   virtual void delay(const uint64_t milliseconds) {};
 
@@ -34,7 +34,7 @@ public:
 
   void stop() override { this->_running = false; };
 
-  [[nodiscard]] bool running() const override { return this->_running; }
+  virtual const bool running() const override { return this->_running; }
 
   void delay(const uint64_t milliseconds) override { ::delay(milliseconds); }
 

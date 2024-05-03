@@ -4,8 +4,8 @@
 #include <test_fhatos.hpp>
 //
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/router/local_router/local_router.hpp>
-#include <kernel/process/actor/router/meta_router/meta_router.hpp>
+#include <kernel/process/actor/router/local_router.hpp>
+#include <kernel/process/actor/router/meta_router.hpp>
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/esp32/thread.hpp>
@@ -131,13 +131,13 @@ template <typename ROUTER> void test_message_retain() {
 FOS_RUN_TESTS( //
                // called outside test functions as singletons alter memory
                // across tests
-    LocalRouter<StringMessage>::singleton(); //
+    LocalRouter<>::singleton(); //
     // MqttRouter<StringMessage>::singleton();  //
     // MetaRouter<StringMessage>::singleton();  //
-    FOS_RUN_TEST(test_actor_by_router<LocalRouter<StringMessage>>); //
+    FOS_RUN_TEST(test_actor_by_router<LocalRouter<>>); //
     // FOS_RUN_TEST(test_actor_by_router<MqttRouter<StringMessage>>);  //
     // FOS_RUN_TEST(test_actor_by_router<MetaRouter<StringMessage>>);  //
-    FOS_RUN_TEST(test_message_retain<LocalRouter<StringMessage>>); //
+    FOS_RUN_TEST(test_message_retain<LocalRouter<>>); //
 );
 
 } // namespace fhatos::kernel

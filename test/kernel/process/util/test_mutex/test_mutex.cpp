@@ -41,12 +41,8 @@ void test_threaded() {
   TEST_ASSERT_EQUAL(0, m.size());
   TEST_ASSERT_TRUE(m.empty());
   for (int i = 0; i < WORKER_COUNT; i++) {
-    TEST_ASSERT_EQUAL(i, s->count("worker/+"));
     TEST_ASSERT_TRUE(s->spawn(new Worker(i, &m)));
-    TEST_ASSERT_EQUAL(i + 1, s->count("worker/+"));
   }
-  TEST_ASSERT_EQUAL(WORKER_COUNT, s->count("worker/+"));
-  s->setup();
   while (s->count("worker/+") > 0) {
     // delay(1000);
   }

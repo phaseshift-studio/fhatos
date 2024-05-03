@@ -5,6 +5,7 @@
 ///
 #include <atomic>
 #include <kernel/process/abstract_scheduler.hpp>
+#include <kernel/process/actor/router/local_router.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/process/util/mutex/mutex_deque.hpp>
 #include <kernel/structure/structure.hpp>
@@ -14,7 +15,7 @@
 
 namespace fhatos::kernel {
 
-template <typename ROUTER = LocalRouter<Message<String>>>
+template <typename ROUTER = LocalRouter<>>
 class Scheduler : public AbstractScheduler {
 
 public:
@@ -27,19 +28,19 @@ public:
     std::atomic<int> *counter = new std::atomic(0);
     THREADS.forEach([counter, processPattern](Thread *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load() + 1);
+        counter->fetch_add(1);
     });
     FIBERS.forEach([counter, processPattern](Fiber *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load() + 1);
+        counter->fetch_add(1);
     });
     COROUTINES.forEach([counter, processPattern](Coroutine *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load() + 1);
+        counter->fetch_add(1);
     });
     KERNELS.forEach([counter, processPattern](KernelProcess *process) {
       if (process->id().matches(processPattern))
-        counter->store(counter->load() + 1);
+        counter->fetch_add(1);
     });
     const int temp = counter->load();
     delete counter;
@@ -50,6 +51,7 @@ public:
     THREADS.remove_if([processPattern, this](Thread *process) {
       if (process->id().matches(processPattern)) {
         process->stop();
+        delete process;
         return true;
       }
       return false;
@@ -57,6 +59,7 @@ public:
     FIBERS.remove_if([processPattern, this](Fiber *process) {
       if (process->id().matches(processPattern)) {
         process->stop();
+        delete process;
         return true;
       }
       return false;
@@ -64,6 +67,7 @@ public:
     COROUTINES.remove_if([processPattern, this](Coroutine *process) {
       if (process->id().matches(processPattern)) {
         process->stop();
+        delete process;
         return true;
       }
       return false;
@@ -77,6 +81,7 @@ public:
     //////////////////////////////////////////////////
     ////// THREAD //////
     if (THREAD == process->pType) {
+      THREADS.push_back(reinterpret_cast<Thread *>(process));
       const BaseType_t threadResult = xTaskCreatePinnedToCore(
           THREAD_FUNCTION, // Function that should be called
           process->id()
@@ -90,12 +95,11 @@ public:
           tskNO_AFFINITY);                        // Processor core
       LOG(threadResult == pdPASS ? INFO : ERROR, "!MThread %s spawned!!\n",
           process->id().toString().c_str());
-      return pdPASS == threadResult &&
-             THREADS.push_back(reinterpret_cast<Thread *>(process));
+      return pdPASS == threadResult;
     }
     ////// FIBER //////
     else if (FIBER == process->pType) {
-      BaseType_t fiberResult = pdFAIL;
+      BaseType_t fiberResult = pdPASS;
       if (!FIBER_THREAD) {
         fiberResult = xTaskCreatePinnedToCore(
             FIBER_FUNCTION, // Function that should be called
@@ -184,7 +188,6 @@ private:
         if (!fiber->running()) {
           LOG(INFO, "!MStopping fiber %s!!\n", fiber->id().toString().c_str());
           Scheduler::singleton()->destroy(fiber->id());
-          delete fiber;
         } else {
           fiber->loop();
           vTaskDelay(1); // feeds the watchdog for the task
@@ -208,7 +211,6 @@ private:
     }
     LOG(INFO, "!MStopping thread %s!!\n", thread->id().toString().c_str());
     Scheduler::singleton()->destroy(thread->id());
-    delete thread;
     vTaskDelete(nullptr);
   }
 };

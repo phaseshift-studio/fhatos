@@ -55,19 +55,19 @@ public:
     return &singleton;
   }
 
-  [[nodiscard]] bool running() const override {
+  virtual const bool running() const override {
     return WiFi.isConnected() && KernelProcess::running();
   }
 
-  [[nodiscard]] static IPAddress ip() { return WiFi.localIP(); }
+  static const IPAddress ip() { return WiFi.localIP(); }
 
-  [[nodiscard]] static IPAddress resolve(const String &hostname) {
+  static const IPAddress resolve(const String &hostname) {
     IPAddress addr;
     WiFiClass::hostByName(hostname.c_str(), addr);
     return addr;
   }
 
-  [[nodiscard]] static bool reconnect() { return WiFi.reconnect(); }
+  static const bool reconnect() { return WiFi.reconnect(); }
 
   void setup() override {
     KernelProcess::setup();

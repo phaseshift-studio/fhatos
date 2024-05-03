@@ -28,7 +28,7 @@ public:
 
   void stop() override { this->_running = false; }
 
-  [[nodiscard]] bool running() const override { return this->_running; }
+  virtual const bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

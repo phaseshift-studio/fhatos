@@ -72,7 +72,7 @@ public:
     });
   }
 
-  void remove(T toRemove, const bool withMutex = true) {
+  void remove(const T &toRemove, const bool withMutex = true) {
     this->remove_if([this, toRemove](T t) { return t == toRemove; }, withMutex);
   }
 
