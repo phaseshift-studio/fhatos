@@ -152,7 +152,7 @@ public:
                : fURI(this->toString() + "/" + segments);
   }
 
-  [[nodiscard]] fURI retract() const {
+  const fURI retract() const {
     if (this->empty())
       return *this;
     String path;
@@ -164,22 +164,22 @@ public:
     return fURI(path);
   }
 
-  [[nodiscard]] uint8_t length() const { return this->_length; }
+  const uint8_t length() const { return this->_length; }
 
-  [[nodiscard]] bool empty() const { return 0 == this->_length; }
+  const bool empty() const { return 0 == this->_length; }
 
-  [[nodiscard]] virtual bool matches(const fURI &pattern) const {
+  virtual const bool matches(const fURI &pattern) const {
     return private_fhatos::match(this->toString().c_str(),
                                  pattern.toString().c_str());
   }
 
   // bool parentOf(const fURI &furi) const;
   // bool childOf(const fURI &furi) const { return furi.parentOf(*this); }
-  [[nodiscard]] const String segment(const uint8_t index) const {
+  const String segment(const uint8_t index) const {
     return String(this->_segments[index]);
   }
 
-  [[nodiscard]] String path() const {
+  const String path() const {
     String temp;
     if (this->_length > 1) {
       for (uint8_t i = 1; i < this->_length; i++) {
@@ -191,16 +191,16 @@ public:
     return temp;
   }
 
-  [[nodiscard]] const fURI path(const String path) const {
+  const fURI path(const String path) const {
     return fURI(this->authority()).extend(path.c_str());
   }
 
-  [[nodiscard]] const Option<String> user() const {
+  const Option<String> user() const {
     Option<Pair<String, String>> temp = this->user_password();
     return temp.has_value() ? temp->first : Option<String>();
   }
 
-  [[nodiscard]] const Option<Pair<String, String>> user_password() const {
+  const Option<Pair<String, String>> user_password() const {
     const int i = this->authority().indexOf("@");
     if (i < 0)
       return {};
@@ -214,7 +214,7 @@ public:
     }
   }
 
-  [[nodiscard]] String host() const {
+  const String host() const {
     String temp = this->authority();
     if (temp.isEmpty() || temp.charAt(temp.length() - 1) == '@')
       return String();
@@ -222,7 +222,7 @@ public:
     return (i < 0) ? temp : temp.substring(i + 1);
   }
 
-  [[nodiscard]] const fURI host(const String &host) const {
+  const fURI host(const String &host) const {
     String temp;
     const Option<Pair<String, String>> x = this->user_password();
     if (x.has_value()) {
@@ -235,11 +235,11 @@ public:
     return this->authority(temp);
   }
 
-  [[nodiscard]] String authority() const {
+  const String authority() const {
     return this->_length > 0 ? String(this->_segments[0]) : String();
   }
 
-  [[nodiscard]] fURI authority(const String &authority) const {
+  const fURI authority(const String &authority) const {
     fURI temp = fURI(*this);
     if (temp._length == 0)
       return fURI(authority);
@@ -250,7 +250,7 @@ public:
     }
   }
 
-  [[nodiscard]] String query() const {
+  const String query() const {
     for (uint8_t i = 0; i < this->_length; i++) {
       char *ptr = strchr(_segments[i], '?');
       if (ptr) {
@@ -260,19 +260,19 @@ public:
     return String();
   }
 
-  [[nodiscard]] fURI query(const String &query) const {
+  const fURI query(const String &query) const {
     if (query.isEmpty())
       return *this;
     else
       return fURI(this->toString() + "?" + query);
   }
 
-  [[nodiscard]] virtual bool colocated(const fURI &other) const {
+  virtual const bool colocated(const fURI &other) const {
     return strcmp(_segments[0], other._segments[0]) == 0;
   }
 
   // const char *c_str() const { return this->toString().c_str(); }
-  [[nodiscard]] String toString() const {
+  const String toString() const {
     String temp;
     for (uint8_t i = 0; i < this->_length; i++) {
       temp.concat(this->_segments[i]);
@@ -282,7 +282,7 @@ public:
     return temp;
   }
 
-  [[nodiscard]] bool equals(const fURI &other) const {
+  const bool equals(const fURI &other) const {
     if (this->_length != other._length)
       return false;
     for (uint8_t i = 0; i < this->_length; i++) {
@@ -292,19 +292,27 @@ public:
     return true;
   }
 
-  [[nodiscard]] fURI operator/(const char *cstr) const {
-    return this->extend(cstr);
+  const bool subfuri(const fURI furi) const {
+    if (this->_length <= furi._length)
+      return false;
+    for (uint8_t i = 0; i < furi._length; i++) {
+      if (strcmp(this->_segments[i], furi._segments[i]) != 0)
+        return false;
+    }
+    return true;
   }
 
-  [[nodiscard]] bool operator<(const fURI &furi) const {
+  const fURI operator/(const char *cstr) const { return this->extend(cstr); }
+
+  const bool operator<(const fURI &furi) const {
     return this->toString() < furi.toString();
   }
 
-  [[nodiscard]] bool isLocal(const fURI &other) const {
+  const bool isLocal(const fURI &other) const {
     return this->host().equals(other.host());
   }
 
-  [[nodiscard]] fURI resolve(const fURI &base) const {
+  const fURI resolve(const fURI &base) const {
     if (this->authority().isEmpty())
       return base.extend(this->toString().c_str());
     else if (this->host().isEmpty() && !base.host().isEmpty())
@@ -353,12 +361,12 @@ public:
 
   Pattern(const char *furiCharacters) : fURI(furiCharacters) {};
 
-  [[nodiscard]] bool colocated(const fURI &furi) const override {
+  const bool colocated(const fURI &furi) const override {
     return furi.authority().equals("#") ||
            -1 != furi.authority().indexOf("+") || fURI::colocated(furi);
   }
 
-  [[nodiscard]] bool matches(const fURI &pattern) const override {
+  const bool matches(const fURI &pattern) const override {
     return private_fhatos::match(pattern.toString().c_str(),
                                  this->toString().c_str());
   }
@@ -369,11 +377,11 @@ class IDed {
 public:
   explicit IDed(const ID &id) : _id(std::move(id)) {}
 
-  [[nodiscard]] const ID id() const { return _id; }
+  const ID id() const { return _id; }
 
-   const String toString() const { return this->id().toString(); }
+  const String toString() const { return this->id().toString(); }
 
-  [[nodiscard]] const bool equals(const IDed &other) const {
+  const bool equals(const IDed &other) const {
     return this->_id.equals(other._id);
   }
 

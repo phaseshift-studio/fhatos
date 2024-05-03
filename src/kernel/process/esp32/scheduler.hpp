@@ -167,7 +167,7 @@ public:
   }
 
 private:
-  Scheduler() : AbstractScheduler() {};
+  Scheduler() : AbstractScheduler() { this->spawn(this); };
   TaskHandle_t *FIBER_THREAD = nullptr;
   MutexDeque<Coroutine *> COROUTINES;
   MutexDeque<Fiber *> FIBERS;

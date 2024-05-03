@@ -241,6 +241,7 @@ void test_furi_match() {
   TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(Pattern("127.0.0.1/a")));
   TEST_ASSERT_TRUE(ID("127.0.0.1").matches(Pattern("+")));
   TEST_ASSERT_TRUE(ID("127.0.0.1").matches(Pattern("#")));
+  TEST_ASSERT_TRUE(ID("fhat@127.0.0.1/a").matches(Pattern("fhat@127.0.0.1/#")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(Pattern("127.0.0.1/#")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/#/b")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/+/b")));
@@ -265,6 +266,27 @@ void test_id_construction() {
                              Pattern("127.0.0.1/a/b/#"));
 }
 
+void test_subfuri() {
+  TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b/c").subfuri(fURI("127.0.0.1/a/b")));
+  TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b/c").subfuri(fURI("127.0.0.1/a")));
+  TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b/c").subfuri(fURI("127.0.0.1")));
+  TEST_ASSERT_TRUE(fURI("127.0.0.1/a/b/c").subfuri(fURI("")));
+  TEST_ASSERT_TRUE(
+      fURI("fhat@127.0.0.1/a/b/c").subfuri(fURI("fhat@127.0.0.1/a/b")));
+  TEST_ASSERT_TRUE(
+      fURI("fhat@127.0.0.1/a/b/c").subfuri(fURI("fhat@127.0.0.1/a")));
+  // TODO:
+  // TEST_ASSERT_TRUE(fURI("fhat@127.0.0.1/a/b/c?").subfuri(fURI("fhat@127.0.0.1?")));
+  ////
+  TEST_ASSERT_FALSE(fURI("127.0.0.1/a").subfuri(fURI("127.0.0.1/a")));
+  TEST_ASSERT_FALSE(fURI("127.0.0.1/a").subfuri(fURI("127.0.0.1/a/b")));
+  TEST_ASSERT_FALSE(fURI("127.0.0.1/a").subfuri(fURI("127.0.0.1/a/b/c")));
+  TEST_ASSERT_FALSE(fURI("fhat@127.0.0.1/a").subfuri(fURI("fhat@127.0.0.1/a")));
+  TEST_ASSERT_FALSE(
+      fURI("fhat@127.0.0.1/a/b/c").subfuri(fURI("pig@127.0.0.1/a/b")));
+  TEST_ASSERT_FALSE(fURI("127.0.0.1/a?").subfuri(fURI("127.0.0.1/a/b/c?")));
+}
+
 FOS_RUN_TESTS(                              //
     FOS_RUN_TEST(test_furi_memory_leaks);   //
     FOS_RUN_TEST(test_furi_equals);         //
@@ -281,6 +303,7 @@ FOS_RUN_TESTS(                              //
     FOS_RUN_TEST(test_furi_slash_operator); //
     FOS_RUN_TEST(test_furi_match);          //
     FOS_RUN_TEST(test_id_construction);     //
+    FOS_RUN_TEST(test_subfuri);             //
 );
 
 } // namespace fhatos::kernel

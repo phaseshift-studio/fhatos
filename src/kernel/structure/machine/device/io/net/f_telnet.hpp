@@ -75,10 +75,19 @@ public:
       } else if (line.startsWith("=>") || line.equals("?")) {
         RESPONSE_CODE _rc = tthis->subscribe(
             *tthis->currentTopic, [](const Message<PAYLOAD> &message) {
-              tthis->ansi->printf("[!b%s!!]=!gpublish!![!mretain:%s!!]=>",
-                                  message.source.toString().c_str(),
-                                  FP_BOOL_STR(message.retain));
-              tthis->xtelnet->println();
+              if (!tthis->previousMessage ||
+                  !tthis->previousMessage->first.equals(message.source) ||
+                  !tthis->previousMessage->second.equals(message.target)) {
+                if (!tthis->previousMessage)
+                  delete tthis->previousMessage;
+                tthis->ansi->printf(
+                    "[!b%s!!]=!gpublish!![!mretain:%s!!]=>[!b%s!!]\n",
+                    message.source.toString().c_str(),
+                    FP_BOOL_STR(message.retain),
+                    message.target.toString().c_str());
+                tthis->previousMessage =
+                    new Pair<ID, ID>(message.source, message.target);
+              }
               tthis->xtelnet->println(
                   message.payloadString().c_str()); // TODO: ansi off/on
             });
@@ -162,6 +171,7 @@ protected:
   ESPTelnet *xtelnet;
   Ansi<ESPTelnet> *ansi;
   ID *currentTopic;
+  Pair<ID, ID> *previousMessage;
 };
 
 } // namespace fhatos::kernel

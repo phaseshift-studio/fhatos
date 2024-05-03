@@ -5,10 +5,12 @@
 //
 #include <kernel/process/actor/router/router.hpp>
 #include <kernel/process/util/mutex/mutex.hpp>
+#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
+#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {
 
-template <typename MESSAGE = Message<String>> class LocalRouter : public Router<MESSAGE> {
+template <typename PROCESS = Coroutine, typename MESSAGE = Message<String>> class LocalRouter : public Router<PROCESS, MESSAGE> {
 
 protected:
   // messaging data structures
@@ -23,7 +25,7 @@ public:
     return &singleton;
   }
 
-  explicit LocalRouter(const ID &id = ID("router/local")) : Router<MESSAGE>(id) {}
+  explicit LocalRouter(const ID &id = fWIFI::idFromIP("kernel","router/local")) : Router<PROCESS, MESSAGE>(id) {}
 
   virtual RESPONSE_CODE clear() override {
     RETAINS.clear();

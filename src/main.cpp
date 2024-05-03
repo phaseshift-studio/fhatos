@@ -1,4 +1,5 @@
 #include <fhatos.hpp>
+#include <kernel/process/actor/router/local_router.hpp>
 #include <kernel/process/actor/router/mqtt_router.hpp>
 #include <kernel/structure/machine/device/io/f_log.hpp>
 #include <kernel/structure/machine/device/io/f_serial.hpp>
@@ -8,7 +9,7 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
-#define MAIN_ROUTER MqttRouter<Thread,Message<String>>
+#define MAIN_ROUTER LocalRouter<Coroutine, Message<String>>
 
 using namespace fhatos::kernel;
 
@@ -16,9 +17,9 @@ void setup() {
   Serial.begin(FOS_SERIAL_BAUDRATE);
   LOG(NONE, ANSI_ART);
   Scheduler<MAIN_ROUTER> *s = Scheduler<MAIN_ROUTER>::singleton();
-  fWIFI::singleton();
+  s->spawn(fWIFI::singleton());
   s->spawn(MAIN_ROUTER::singleton());
-  //s->spawn(fMQTT<Thread, String>::singleton());
+  // s->spawn(fMQTT<Thread, String>::singleton());
   s->spawn(new fLog<Coroutine, String, MAIN_ROUTER>());
   s->spawn(fSerial<Fiber, String, MAIN_ROUTER>::singleton());
   s->spawn(new fPing<Fiber, String, MAIN_ROUTER>());
@@ -26,8 +27,8 @@ void setup() {
 }
 
 void loop() {
-  //static int counter = 0;
- // if (counter < 10)
+  // static int counter = 0;
+  // if (counter < 10)
   //  fSerial<Fiber, String, MAIN_ROUTER>::println("testing...");
   /*LocalRouter<StringMessage>::singleton()->publish(StringMessage(
       ID("self@127.0.0.1"), logger->id().extend("INFO"),

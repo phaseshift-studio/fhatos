@@ -5,6 +5,7 @@
 #include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/structure/structure.hpp>
+#include FOS_PROCESS(thread.hpp)
 
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
@@ -75,10 +76,10 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 #define FP_OK_RESULT                                                           \
   { return RESPONSE_CODE::OK; }
 
-template <class MESSAGE = Message<String>> class Router : public IDed {
+template <typename PROCESS = Thread, typename MESSAGE = Message<String>> class Router : public PROCESS {
 
 public:
-  explicit Router(const ID &id) : IDed(id) {};
+  explicit Router(const ID &id) : PROCESS(id) {};
   virtual const RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
   virtual const RESPONSE_CODE
   subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;

@@ -19,13 +19,13 @@
 namespace fhatos::kernel {
 
 template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
-class MqttRouter : public Router<MESSAGE>, public PROCESS {
+class MqttRouter : public Router<PROCESS, MESSAGE> {
 
 protected:
-  MqttRouter(const ID &id = fWIFI::idFromIP("mqtt"),
+  MqttRouter(const ID &id = fWIFI::idFromIP("kernel","router/mqtt"),
              const char *domain = STR(MQTT_BROKER_ADDR),
              const uint16_t port = MQTT_BROKER_PORT)
-      : Router<MESSAGE>(id), PROCESS(id) {
+      : Router<MESSAGE>(id) {
     auto *client = new WiFiClient();
     this->xmqtt = new PubSubClient(domain, port, *client);
     this->server = (char *)domain;
@@ -71,8 +71,6 @@ public:
     static MqttRouter singleton = MqttRouter();
     return &singleton;
   }
-
-  ID id() { return PROCESS::id(); }
 
   void setWill(const ID &willTopic, const String &willMessage,
                const bool willRetain = false, const uint8_t willQoS = 1) {
@@ -142,7 +140,7 @@ public:
             (this->xmqtt->connect(fWIFI::ip().toString().c_str(),
                                   this->willTopic.c_str(), willQoS, willRetain,
                                   this->willMessage.c_str()))) {
-          LOG(INFO, "!b[MQTT Client Configuration]!!\n");
+          LOG(INFO, "!b[MQTT Router Configuration]!!\n");
           LOG(NONE,
               "\tID                      : %s\n"
               "\tBroker address          : %s:%i\n"

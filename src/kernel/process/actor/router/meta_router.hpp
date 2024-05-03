@@ -29,7 +29,7 @@ public:
     return &singleton;
   }
 
-  MetaRouter(const ID &id = fWIFI::idFromIP("meta")) : Router<MESSAGE>(id) {}
+  MetaRouter(const ID &id = fWIFI::idFromIP("kernel","router/meta")) : Router<MESSAGE>(id) {}
   ~MetaRouter() { this->clear(); }
   virtual RESPONSE_CODE clear() override {
     RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
