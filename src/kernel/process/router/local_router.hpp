@@ -3,8 +3,8 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/router/router.hpp>
-#include <kernel/process/util/mutex/mutex.hpp>
+#include <kernel/process/router/router.hpp>
+#include <kernel/util/mutex.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 

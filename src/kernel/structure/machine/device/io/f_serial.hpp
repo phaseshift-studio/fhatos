@@ -2,14 +2,14 @@
 #define fhatos_kernel__f_serial_hpp
 
 #include <fhatos.hpp>
+//
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/message.hpp>
-#include <kernel/process/actor/router/local_router.hpp>
+#include <kernel/process/router/local_router.hpp>
 
 namespace fhatos::kernel {
 
 template <typename PROCESS = Fiber, typename PAYLOAD = String,
-          typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+          typename ROUTER = LocalRouter<>>
 class fSerial : public Actor<PROCESS, PAYLOAD, ROUTER> {
 
 protected:

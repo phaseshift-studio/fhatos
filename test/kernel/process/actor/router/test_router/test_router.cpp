@@ -4,9 +4,9 @@
 #include <test_fhatos.hpp>
 //
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/router/local_router.hpp>
-#include <kernel/process/actor/router/meta_router.hpp>
-#include <kernel/process/actor/router/mqtt_router.hpp>
+#include <kernel/process/router/local_router.hpp>
+#include <kernel/process/router/meta_router.hpp>
+#include <kernel/process/router/mqtt_router.hpp>
 #include <kernel/structure/structure.hpp>
 #include <unity.h>
 

@@ -3,14 +3,13 @@
 
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/message.hpp>
 #include FOS_PROCESS(fiber.hpp)
 #include <ESPping.h>
 
 namespace fhatos::kernel {
 
 template <typename PROCESS = Fiber, typename PAYLOAD = String,
-          typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+          typename ROUTER = LocalRouter<>>
 class fPing : public Actor<PROCESS, PAYLOAD, ROUTER> {
 public:
   explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
@@ -81,7 +80,7 @@ protected:
     // const float averageTime() const { return totalTime / success; }
   };
   ::PingClass xping = ::Ping;
-  PingData *pingData = nullptr;
+  PingData *pingData = nullptr; // make PingData a coroutine and make an array of them
 };
 } // namespace fhatos::kernel
 

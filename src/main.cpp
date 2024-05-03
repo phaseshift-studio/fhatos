@@ -1,6 +1,6 @@
 #include <fhatos.hpp>
-#include <kernel/process/actor/router/local_router.hpp>
-#include <kernel/process/actor/router/mqtt_router.hpp>
+#include <kernel/process/router/local_router.hpp>
+#include <kernel/process/router/mqtt_router.hpp>
 #include <kernel/structure/machine/device/io/f_log.hpp>
 #include <kernel/structure/machine/device/io/f_serial.hpp>
 #include <kernel/structure/machine/device/io/net/f_ping.hpp>

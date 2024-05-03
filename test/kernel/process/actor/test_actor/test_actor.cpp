@@ -4,9 +4,9 @@
 #include <test_fhatos.hpp>
 //
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/router/local_router.hpp>
-#include <kernel/process/actor/router/meta_router.hpp>
-#include <kernel/process/actor/router/router.hpp>
+#include <kernel/process/router/local_router.hpp>
+#include <kernel/process/router/meta_router.hpp>
+#include <kernel/process/router/router.hpp>
 #include <kernel/process/esp32/scheduler.hpp>
 #include <kernel/process/esp32/thread.hpp>
 #include <kernel/structure/structure.hpp>

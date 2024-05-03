@@ -2,9 +2,9 @@
 #define fhatos_kernel__f_log_hpp
 
 #include <fhatos.hpp>
+//
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/message.hpp>
-#include <kernel/process/actor/router/meta_router.hpp>
+#include <kernel/process/router/local_router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/structure/structure.hpp>
 #include <kernel/util/ansi.hpp>
@@ -15,7 +15,7 @@
 namespace fhatos::kernel {
 
     template<typename PROCESS = Coroutine, typename PAYLOAD = String,
-            typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+            typename ROUTER = LocalRouter<>>
     class fLog : public Actor<PROCESS, PAYLOAD, ROUTER> {
     public:
         explicit fLog(const ID &id = fWIFI::idFromIP("log"))

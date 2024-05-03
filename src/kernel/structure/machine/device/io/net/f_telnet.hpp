@@ -1,10 +1,10 @@
 #ifndef fhatos_kernel_f_telnet_hpp
 #define fhatos_kernel_f_telnet_hpp
 
-#include <ESPTelnet.h>
 #include <fhatos.hpp>
+//
+#include <ESPTelnet.h>
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/process/actor/message.hpp>
 #include <kernel/structure/structure.hpp>
 #include <kernel/util/ansi.hpp>
 #include <kernel/util/string_stream.hpp>
@@ -19,7 +19,7 @@ namespace fhatos::kernel {
 /////////////////////////////////////////////////////////////////////
 
 template <typename PROCESS = Thread, typename PAYLOAD = String,
-          typename ROUTER = LocalRouter<Message<PAYLOAD>>>
+          typename ROUTER = LocalRouter<>>
 class fTelnet : public Actor<PROCESS, PAYLOAD, ROUTER> {
 
 public:

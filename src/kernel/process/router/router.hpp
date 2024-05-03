@@ -1,8 +1,8 @@
-#ifndef fhatos_kernel_router_hpp
-#define fhatos_kernel_router_hpp
+#ifndef fhatos_kernel__router_hpp
+#define fhatos_kernel__router_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/actor/message.hpp>
+//
 #include <kernel/process/actor/message_box.hpp>
 #include <kernel/structure/structure.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -12,27 +12,62 @@
 
 namespace fhatos::kernel {
 
+//////////////////////////////////////////////
+/////////////// MESSAGE STRUCT ///////////////
+//////////////////////////////////////////////
+
+template <typename PAYLOAD = String> class Message {
+public:
+  const ID source;
+  const ID target;
+  const PAYLOAD payload;
+  const bool retain;
+
+  Message(ID source, ID target, PAYLOAD payload, const bool retain = false)
+      : source(std::move(source)), target(std::move(target)),
+        payload(std::move(payload)), retain(retain) {};
+
+  virtual const String toString() const {
+    char temp[100];
+    sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(),
+            payloadString().c_str(), FP_BOOL_STR(retain),
+            target.toString().c_str());
+    return temp;
+  };
+
+  template <
+      typename = typename std::enable_if<std::is_base_of_v<String, PAYLOAD>>>
+  const String payloadString() const {
+    return payload;
+  }
+
+  virtual const Pair<byte *, uint> toBytes() const {
+    String temp = payloadString();
+    byte *bytes = (byte *)temp.c_str();
+    return {bytes, temp.length()};
+  }
+};
+
+using BoolMessage = Message<bool>;
+using IntMessage = Message<int>;
+using StringMessage = Message<String>;
+
 ///////////////////////////////////////////////////
 /////////////// SUBSCRIPTION STRUCT ///////////////
 ///////////////////////////////////////////////////
 
-template <typename MESSAGE>
-using OnRecvFunction = std::function<void(const MESSAGE &)>;
-
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
-
-template <typename MESSAGE> struct Subscription {
+template <typename MESSAGE = Message<String>> struct Subscription {
   MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos = _1;
-  const OnRecvFunction<MESSAGE> onRecv;
-  [[nodiscard]] const bool match(const ID &target) const {
+  const Consumer<MESSAGE> onRecv;
+  const bool match(const ID &target) const {
     return this->pattern.matches(target);
   }
-  void execute(const MESSAGE& message) const { onRecv(message); }
+  void execute(const MESSAGE &message) const { onRecv(message); }
 };
-
 
 //////////////////////////////////////////////
 /////////////// ERROR MESSAGES ///////////////
@@ -76,7 +111,8 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 #define FP_OK_RESULT                                                           \
   { return RESPONSE_CODE::OK; }
 
-template <typename PROCESS = Thread, typename MESSAGE = Message<String>> class Router : public PROCESS {
+template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
+class Router : public PROCESS {
 
 public:
   explicit Router(const ID &id) : PROCESS(id) {};

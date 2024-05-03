@@ -1,10 +1,10 @@
-#ifndef fhatos_kernel_coroutine_hpp
-#define fhatos_kernel_coroutine_hpp
+#ifndef fhatos_kernel__coroutine_hpp
+#define fhatos_kernel__coroutine_hpp
 
 #include <fhatos.hpp>
+//
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
-//
 
 namespace fhatos::kernel {
     class Coroutine : public Process {

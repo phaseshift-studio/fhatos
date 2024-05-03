@@ -3,14 +3,10 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/message.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
-#include <kernel/structure/routes.hpp>
 #include <kernel/structure/structure.hpp>
 //
-#include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {

@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 ////
-#include <kernel/process/util/mutex/mutex.hpp>
+#include <kernel/util/mutex.hpp>
 
 namespace fhatos::kernel {
 

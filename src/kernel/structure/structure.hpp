@@ -2,7 +2,7 @@
 #define fhat_kernel_structure_hpp
 
 #include <fhatos.hpp>
-#include <kernel/process/util/mutex/mutex_deque.hpp>
+#include <kernel/util/mutex_deque.hpp>
 #include <memory>
 #include <utility>
 

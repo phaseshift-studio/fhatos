@@ -4,7 +4,7 @@
 #include <test_fhatos.hpp>
 //
 #include <kernel/process/esp32/scheduler.hpp>
-#include <kernel/process/util/mutex/mutex_deque.hpp>
+#include <kernel/util/mutex_deque.hpp>
 #include <unity.h>
 
 namespace fhatos::kernel {

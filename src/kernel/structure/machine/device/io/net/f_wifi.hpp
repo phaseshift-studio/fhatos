@@ -2,6 +2,7 @@
 #define fhatos_kernel__f_wifi_hpp
 
 #include <fhatos.hpp>
+//
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
 //

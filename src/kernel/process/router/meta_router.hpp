@@ -3,15 +3,15 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/router/local_router.hpp>
-#include <kernel/process/actor/router/mqtt_router.hpp>
-#include <kernel/process/actor/router/router.hpp>
+#include <kernel/process/router/local_router.hpp>
+#include <kernel/process/router/mqtt_router.hpp>
+#include <kernel/process/router/router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 
 namespace fhatos::kernel {
 
-template <class MESSAGE, typename LOCAL_ROUTER = LocalRouter<MESSAGE>,
-          typename REMOTE_ROUTER = MqttRouter<MESSAGE>>
+template <class MESSAGE = Message<String>, typename LOCAL_ROUTER = LocalRouter<>,
+          typename REMOTE_ROUTER = MqttRouter<>>
 class MetaRouter : public Router<MESSAGE> {
 
 protected:

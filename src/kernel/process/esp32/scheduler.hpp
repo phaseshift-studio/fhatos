@@ -1,13 +1,13 @@
-#ifndef fhatos_kernel_scheduler_hpp
-#define fhatos_kernel_scheduler_hpp
+#ifndef fhatos_kernel__scheduler_hpp
+#define fhatos_kernel__scheduler_hpp
 
 #include <fhatos.hpp>
 ///
 #include <atomic>
 #include <kernel/process/abstract_scheduler.hpp>
-#include <kernel/process/actor/router/local_router.hpp>
 #include <kernel/process/process.hpp>
-#include <kernel/process/util/mutex/mutex_deque.hpp>
+#include <kernel/process/router/local_router.hpp>
+#include <kernel/util/mutex_deque.hpp>
 #include <kernel/structure/structure.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)

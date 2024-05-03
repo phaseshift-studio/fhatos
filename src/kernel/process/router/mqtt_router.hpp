@@ -4,9 +4,8 @@
 #include <fhatos.hpp>
 //
 #include <PubSubClient.h>
-#include <kernel/process/actor/message.hpp>
-#include <kernel/process/actor/router/router.hpp>
-#include <kernel/process/util/mutex/mutex_deque.hpp>
+#include <kernel/process/router/router.hpp>
+#include <kernel/util/mutex_deque.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
 

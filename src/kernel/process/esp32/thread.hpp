@@ -1,10 +1,10 @@
-#ifndef fhatos_kernel_thread_hpp
-#define fhatos_kernel_thread_hpp
+#ifndef fhatos_kernel__thread_hpp
+#define fhatos_kernel__thread_hpp
 
 #include <fhatos.hpp>
+//
 #include <kernel/process/process.hpp>
 #include <kernel/structure/structure.hpp>
-//
 
 namespace fhatos::kernel {
 

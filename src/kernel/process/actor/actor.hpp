@@ -1,20 +1,16 @@
 #ifndef fhatos_kernel__actor_hpp
 #define fhatos_kernel__actor_hpp
 
-#include <kernel/process/actor/message.hpp>
 #include <kernel/process/actor/message_box.hpp>
-#include <kernel/process/actor/router/local_router.hpp>
-#include <kernel/process/actor/router/meta_router.hpp>
-#include <kernel/process/actor/router/mqtt_router.hpp>
-#include <kernel/process/actor/router/router.hpp>
-#include <kernel/process/util/mutex/mutex_deque.hpp>
+#include <kernel/process/router/router.hpp>
+#include <kernel/process/router/meta_router.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
-#include FOS_PROCESS(scheduler.hpp)
+#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {
 template <typename PROCESS, typename PAYLOAD = String,
-          typename ROUTER = MetaRouter<Coroutine, Message<PAYLOAD>>>
+          typename ROUTER = MetaRouter<>>
 class Actor
     : public PROCESS,
       public MessageBox<
@@ -27,7 +23,7 @@ public:
   /// SUBSCRIBE
   virtual const RESPONSE_CODE
   subscribe(const Pattern &relativePattern,
-            const OnRecvFunction<Message<PAYLOAD>> onRecv,
+            const Consumer<Message<PAYLOAD>> onRecv,
             const QoS qos = QoS::_1) {
     return ROUTER::singleton()->subscribe(
         Subscription<Message<PAYLOAD>>{.actor = this,
