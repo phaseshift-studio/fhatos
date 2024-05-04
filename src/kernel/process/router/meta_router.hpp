@@ -10,15 +10,15 @@
 
 namespace fhatos::kernel {
 
-template <class MESSAGE = Message<String>, typename LOCAL_ROUTER = LocalRouter<>,
+template <typename LOCAL_ROUTER = LocalRouter<>,
           typename REMOTE_ROUTER = MqttRouter<>>
-class MetaRouter : public Router<MESSAGE> {
+class MetaRouter : public Router<> {
 
 protected:
-  Router<MESSAGE> *select(const ID &target) {
+  Router<> *select(const ID &target) {
     return false && this->id().isLocal(target)
-               ? (Router<MESSAGE> *)LOCAL_ROUTER::singleton()
-               : (Router<MESSAGE> *)REMOTE_ROUTER::singleton();
+               ? (Router<> *)LOCAL_ROUTER::singleton()
+               : (Router<> *)REMOTE_ROUTER::singleton();
   }
 
 public:
@@ -29,7 +29,7 @@ public:
     return &singleton;
   }
 
-  MetaRouter(const ID &id = fWIFI::idFromIP("kernel","router/meta")) : Router<MESSAGE>(id) {}
+  MetaRouter(const ID &id = fWIFI::idFromIP("kernel","router/meta")) : Router<>(id) {}
   ~MetaRouter() { this->clear(); }
   virtual RESPONSE_CODE clear() override {
     RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
@@ -37,12 +37,12 @@ public:
     return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
   }
 
-  virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
+  virtual const RESPONSE_CODE publish(const Message &message) override {
     return this->select(message.target)->publish(message);
   }
 
   virtual const RESPONSE_CODE
-  subscribe(const Subscription<MESSAGE> &subscription) override {
+  subscribe(const Subscription &subscription) override {
     return this->select(subscription.pattern)->subscribe(subscription);
   }
 

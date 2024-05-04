@@ -8,21 +8,22 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Fiber, typename PAYLOAD = String,
-          typename ROUTER = LocalRouter<>>
-class fSerial : public Actor<PROCESS, PAYLOAD, ROUTER> {
+template <typename PROCESS = Fiber, typename ROUTER = LocalRouter<>>
+class fSerial : public Actor<PROCESS, ROUTER> {
 
 protected:
   fSerial(const ID &id = fWIFI::idFromIP("serial"))
-      : Actor<PROCESS, PAYLOAD, ROUTER>(id) {}
+      : Actor<PROCESS, ROUTER>(id) {}
 
 public:
   static void println(const char *text) {
     ROUTER::singleton()->publish(
-        Message<PAYLOAD>{.source = "anonymous",
-                        .target = fSerial::singleton()->id(),
-                        .payload = String(text) + "\n",
-                        .retain = false});
+        Message{.source = "anonymous",
+                .target = fSerial::singleton()->id(),
+                .payload = {.type = STR,
+                            .data = (byte *)(String(text) + "\n").c_str(),
+                            .length = strlen(text) + 1},
+                .retain = false});
   }
   static fSerial *singleton() {
     static fSerial serial = fSerial();
@@ -31,7 +32,7 @@ public:
   virtual void setup() override {
     this->subscribe(
         this->id(),
-        [](const Message<PAYLOAD> &message) {
+        [](const auto &message) {
           Serial.print(message.payloadString().c_str());
         },
         QoS::_1);

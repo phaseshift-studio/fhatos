@@ -20,10 +20,10 @@ void setup() {
   s->spawn(fWIFI::singleton());
   s->spawn(MAIN_ROUTER::singleton());
   // s->spawn(fMQTT<Thread, String>::singleton());
-  s->spawn(new fLog<Coroutine, String, MAIN_ROUTER>());
-  s->spawn(fSerial<Fiber, String, MAIN_ROUTER>::singleton());
-  s->spawn(new fPing<Fiber, String, MAIN_ROUTER>());
-  s->spawn(fTelnet<Thread, String, MAIN_ROUTER>::singleton());
+  s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
+  s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
+  s->spawn(new fPing<Fiber, MAIN_ROUTER>());
+  s->spawn(fTelnet<Thread, MAIN_ROUTER>::singleton());
 }
 
 void loop() {

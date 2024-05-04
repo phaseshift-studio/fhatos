@@ -8,12 +8,11 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Fiber, typename PAYLOAD = String,
-          typename ROUTER = LocalRouter<>>
-class fPing : public Actor<PROCESS, PAYLOAD, ROUTER> {
+template <typename PROCESS = Fiber, typename ROUTER = LocalRouter<>>
+class fPing : public Actor<PROCESS, ROUTER> {
 public:
   explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
-      : Actor<PROCESS, PAYLOAD, ROUTER>(id) {}
+      : Actor<PROCESS, ROUTER>(id) {}
 
   ~fPing() {
     this->stop();
@@ -21,23 +20,22 @@ public:
   }
 
   void setup() override {
-    this->subscribe(
-        this->id().extend("#"), [this](const Message<PAYLOAD> &message) {
-          if (message.target.subfuri(this->id())) {
-            if (message.payloadString().equals("~()")) {
-              if (this->pingData) {
-                delete this->pingData;
-                this->pingData = nullptr;
-              }
-            } else if (message.payloadString().equals("()")) {
-              if (!this->pingData)
-                this->pingData = new PingData(message.target.path());
-            }
+    this->subscribe(this->id().extend("#"), [this](const Message &message) {
+      if (message.target.subfuri(this->id())) {
+        if (message.payloadString().equals("~()")) {
+          if (this->pingData) {
+            delete this->pingData;
+            this->pingData = nullptr;
           }
-        });
+        } else if (message.payloadString().equals("()")) {
+          if (!this->pingData)
+            this->pingData = new PingData(message.target.path());
+        }
+      }
+    });
   }
   void loop() override {
-    Actor<PROCESS, PAYLOAD, ROUTER>::loop();
+    Actor<PROCESS, ROUTER>::loop();
     // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
     if (this->pingData) {
       this->pingData->counter++;
@@ -50,12 +48,11 @@ public:
                 this->xping.averageTime());
 
       } else {
-        sprintf(message,
-                "Request timeout for icmp_seq %i failure_rate=%.2f%%",
+        sprintf(message, "Request timeout for icmp_seq %i failure_rate=%.2f%%",
                 this->pingData->counter, this->pingData->failureRate());
       }
-      this->publish(this->id().extend(this->pingData->host.c_str()),
-                    String(message));
+      this->publish(this->id().extend(this->pingData->host.c_str()), String(message),
+                    TRANSIENT_MESSAGE);
       delete[] message;
     }
     delay(1000);
@@ -80,7 +77,8 @@ protected:
     // const float averageTime() const { return totalTime / success; }
   };
   ::PingClass xping = ::Ping;
-  PingData *pingData = nullptr; // make PingData a coroutine and make an array of them
+  PingData *pingData =
+      nullptr; // make PingData a coroutine and make an array of them
 };
 } // namespace fhatos::kernel
 

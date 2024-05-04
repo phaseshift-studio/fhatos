@@ -2,63 +2,87 @@
 #define fhatos_kernel__actor_hpp
 
 #include <kernel/process/actor/message_box.hpp>
-#include <kernel/process/router/router.hpp>
 #include <kernel/process/router/meta_router.hpp>
+#include <kernel/process/router/router.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {
-template <typename PROCESS, typename PAYLOAD = String,
-          typename ROUTER = MetaRouter<>>
-class Actor
-    : public PROCESS,
-      public MessageBox<
-          Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>> {
+template <typename PROCESS, typename ROUTER = MetaRouter<>>
+class Actor : public PROCESS,
+              public MessageBox<Pair<const Subscription, const Message>> {
 public:
   explicit Actor(const ID &id) : PROCESS(id) {
     static_assert(std::is_base_of_v<Process, PROCESS>);
   }
 
   /// SUBSCRIBE
-  virtual const RESPONSE_CODE
-  subscribe(const Pattern &relativePattern,
-            const Consumer<Message<PAYLOAD>> onRecv,
-            const QoS qos = QoS::_1) {
+  virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
+                                        const Consumer<Message> onRecv,
+                                        const QoS qos = QoS::_1) {
     return ROUTER::singleton()->subscribe(
-        Subscription<Message<PAYLOAD>>{.actor = this,
-                                       .source = this->id(),
-                                       .pattern = makeTopic(relativePattern),
-                                       .qos = qos,
-                                       .onRecv = onRecv});
+        Subscription{.actor = this,
+                     .source = this->id(),
+                     .pattern = makeTopic(relativePattern),
+                     .qos = qos,
+                     .onRecv = onRecv});
   }
 
   /// UNSUBSCRIBE
-  virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
+  virtual const RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
     return ROUTER::singleton()->unsubscribe(this->id(),
                                             makeTopic(relativePattern));
   }
 
-  // PUBLISH
-  RESPONSE_CODE publish(const IDed &target, const PAYLOAD &message,
-                        const bool retain = false) {
+  /////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  /// PUBLISH
+  const RESPONSE_CODE publish(const ID &relativeTarget, const Payload &payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
     return ROUTER::singleton()->publish(
-        Message<PAYLOAD>(this->id(), target.id(), message, retain));
+        Message{.source = this->id(),
+                .target = makeTopic(relativeTarget),
+                .payload = payload,
+                .retain = retain});
   }
 
-  RESPONSE_CODE publish(const ID &relativeTarget, const PAYLOAD &message,
-                        const bool retain = false) {
-    return ROUTER::singleton()->publish(Message<PAYLOAD>(
-        this->id(), makeTopic(relativeTarget), message, retain));
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(relativeTarget,
+                         {BOOL, new byte(payload ? (byte)'1' : (byte)'0'), 1},
+                         retain);
   }
+
+  const RESPONSE_CODE publish(const ID &relativeTarget, const int payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(
+        relativeTarget,
+        {INT, static_cast<const byte *>(static_cast<const void *>(&payload)),
+         4},
+        retain);
+  }
+
+  const RESPONSE_CODE publish(const ID &relativeTarget, const String payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(
+        relativeTarget,
+        {STR, (byte *)strdup(payload.c_str()), payload.length()}, retain);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
 
   // PAYLOAD BOX METHODS
-  const bool push(const Pair<const Subscription<Message<PAYLOAD>>,
-                             const Message<PAYLOAD>> &mail) override {
+  const bool
+  push(const Pair<const Subscription, const Message> &mail) override {
     return this->inbox.push_back(mail);
   }
 
- const uint16_t size() const override { return inbox.size(); }
+  const uint16_t size() const override { return inbox.size(); }
 
   /// PROCESS METHODS
   virtual void setup() override { PROCESS::setup(); }
@@ -84,8 +108,7 @@ public:
   }
 
 protected:
-  MutexDeque<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>>
-      inbox;
+  MutexDeque<Pair<const Subscription, const Message>> inbox;
 
   Pattern makeTopic(const Pattern &relativeTopic) {
     return relativeTopic.empty()
@@ -96,17 +119,16 @@ protected:
                       : relativeTopic);
   }
 
-  Option<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>>
-  pop() override {
+  Option<Pair<const Subscription, const Message>> pop() override {
     return this->inbox.pop_front();
   }
 
   virtual bool next() {
-    Option<Pair<const Subscription<Message<PAYLOAD>>, const Message<PAYLOAD>>>
-        mail = this->pop();
+    Option<Pair<const Subscription, const Message>> mail = this->pop();
     if (!mail.has_value())
       return false;
     mail->first.execute(mail->second);
+    // delete mail->second.payload.data;
     return true;
   }
 };

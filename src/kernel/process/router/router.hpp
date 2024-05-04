@@ -3,8 +3,8 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/message_box.hpp>
 #include <kernel/furi.hpp>
+#include <kernel/process/actor/message_box.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 #define RETAIN_MESSAGE true
@@ -16,18 +16,25 @@ namespace fhatos::kernel {
 /////////////// MESSAGE STRUCT ///////////////
 //////////////////////////////////////////////
 
-template <typename PAYLOAD = String> class Message {
+enum MType { OBJ, BOOL, INT, REAL, STR, LST, REC };
+struct Payload {
+  const MType type;
+  const byte *data;
+  const uint length;
+};
+
+struct Message {
 public:
   const ID source;
   const ID target;
-  const PAYLOAD payload;
+  const Payload payload;
   const bool retain;
 
-  Message(ID source, ID target, PAYLOAD payload, const bool retain = false)
+  /*Message(ID source, ID target, PAYLOAD payload, const bool retain = false)
       : source(std::move(source)), target(std::move(target)),
-        payload(std::move(payload)), retain(retain) {};
+        payload(std::move(payload)), retain(retain) {};*/
 
-  virtual const String toString() const {
+  const String toString() const {
     char temp[100];
     sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(),
             payloadString().c_str(), FP_BOOL_STR(retain),
@@ -35,38 +42,41 @@ public:
     return temp;
   };
 
-  template <
-      typename = typename std::enable_if<std::is_base_of_v<String, PAYLOAD>>>
   const String payloadString() const {
-    return payload;
-  }
-
-  virtual const Pair<byte *, uint> toBytes() const {
-    String temp = payloadString();
-    byte *bytes = (byte *)temp.c_str();
-    return {bytes, temp.length()};
+    switch (this->payload.type) {
+    case BOOL:
+      return FP_BOOL_STR(this->payload.data[0] == (byte)'1');
+    case INT: {
+      int integer = 0;
+      integer = (integer << 8) + this->payload.data[3];
+      integer = (integer << 8) + this->payload.data[2];
+      integer = (integer << 8) + this->payload.data[1];
+      integer = (integer << 8) + this->payload.data[0];
+      return "" + integer;
+    }
+    case STR:
+      return String(this->payload.data, this->payload.length);
+    default:
+      throw fError("Unknown type: %i", this->payload.type);
+    }
   }
 };
-
-using BoolMessage = Message<bool>;
-using IntMessage = Message<int>;
-using StringMessage = Message<String>;
 
 ///////////////////////////////////////////////////
 /////////////// SUBSCRIPTION STRUCT ///////////////
 ///////////////////////////////////////////////////
 
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
-template <typename MESSAGE = Message<String>> struct Subscription {
-  MessageBox<Pair<const Subscription<MESSAGE>, const MESSAGE>> *actor;
+struct Subscription {
+  MessageBox<Pair<const Subscription, const Message>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos = _1;
-  const Consumer<MESSAGE> onRecv;
+  const Consumer<Message> onRecv;
   const bool match(const ID &target) const {
     return this->pattern.matches(target);
   }
-  void execute(const MESSAGE &message) const { onRecv(message); }
+  void execute(const Message &message) const { onRecv(message); }
 };
 
 //////////////////////////////////////////////
@@ -111,14 +121,13 @@ static String RESPONSE_CODE_STR(const RESPONSE_CODE rc) {
 #define FP_OK_RESULT                                                           \
   { return RESPONSE_CODE::OK; }
 
-template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
-class Router : public PROCESS {
+template <typename PROCESS = Thread> class Router : public PROCESS {
 
 public:
   explicit Router(const ID &id) : PROCESS(id) {};
-  virtual const RESPONSE_CODE publish(const MESSAGE &message) FP_OK_RESULT;
+  virtual const RESPONSE_CODE publish(const Message &message) FP_OK_RESULT;
   virtual const RESPONSE_CODE
-  subscribe(const Subscription<MESSAGE> &subscription) FP_OK_RESULT;
+  subscribe(const Subscription &subscription) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribe(const ID &source,
                                           const Pattern &pattern) FP_OK_RESULT;
   virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;

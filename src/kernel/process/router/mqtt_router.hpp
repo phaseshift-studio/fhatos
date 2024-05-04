@@ -17,14 +17,13 @@
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Thread, typename MESSAGE = Message<String>>
-class MqttRouter : public Router<PROCESS, MESSAGE> {
+template <typename PROCESS = Thread> class MqttRouter : public Router<PROCESS> {
 
 protected:
   MqttRouter(const ID &id = fWIFI::idFromIP("kernel", "router/mqtt"),
              const char *domain = STR(MQTT_BROKER_ADDR),
              const uint16_t port = MQTT_BROKER_PORT)
-      : Router<PROCESS, MESSAGE>(id) {
+      : Router<PROCESS>(id) {
     auto *client = new WiFiClient();
     this->xmqtt = new PubSubClient(domain, port, *client);
     this->server = (char *)domain;
@@ -36,17 +35,21 @@ protected:
     this->xmqtt->setKeepAlive(1000);     // may be too excessive
     this->xmqtt->setCallback([this](const char *target, const byte *payload,
                                     const int length) {
-      ((char *)payload)[length] = '\0';
+      //((char *)payload)[length] = '\0';
       const ID targetId = ID(target);
-      _SUBSCRIPTIONS.forEach(
-          [targetId, payload](const Subscription<MESSAGE> &subscription) {
-            if (targetId.matches(subscription.pattern)) {
-              subscription.actor->push(
-                  Pair<const Subscription<MESSAGE> &, const MESSAGE>(
-                      subscription, MESSAGE("unknown", targetId,
-                                            String((char *)payload), true)));
-            }
-          });
+      _SUBSCRIPTIONS.forEach([targetId, payload,
+                              length](const auto &subscription) {
+        if (targetId.matches(subscription.pattern)) {
+          subscription.actor->push(Pair<const Subscription &, const Message>(
+              subscription, Message{.source = ID("unknown"),
+                                    .target = targetId,
+                                    .payload = {.type = STR,
+                                                .data = (const byte *)strdup(
+                                                    (const char *)payload),
+                                                .length = length},
+                                    .retain = true}));
+        }
+      });
     });
   }
 
@@ -54,8 +57,8 @@ protected:
   uint16_t port;
   PubSubClient *xmqtt;
   WiFiClient *client;
-  MutexDeque<Subscription<MESSAGE>> _SUBSCRIPTIONS;
-  MutexDeque<MESSAGE> _PUBLICATIONS;
+  MutexDeque<Subscription> _SUBSCRIPTIONS;
+  MutexDeque<Message> _PUBLICATIONS;
   String willTopic;
   String willMessage;
   bool willRetain{};
@@ -85,15 +88,16 @@ public:
     return RESPONSE_CODE::OK;
   }
 
-  virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
+  virtual const RESPONSE_CODE publish(const Message &message) override {
     return _PUBLICATIONS.push_back(message) ? RESPONSE_CODE::OK
                                             : RESPONSE_CODE::ROUTER_ERROR;
   }
+
   virtual const RESPONSE_CODE
-  subscribe(const Subscription<MESSAGE> &subscription) override {
+  subscribe(const Subscription &subscription) override {
     RESPONSE_CODE _rc =
         _SUBSCRIPTIONS
-                .find([subscription](const Subscription<MESSAGE> &sub) {
+                .find([subscription](const auto &sub) {
                   return subscription.source.equals(sub.source) &&
                          subscription.pattern.equals(sub.pattern);
                 })
@@ -175,7 +179,7 @@ public:
   virtual void stop() override {
     LOG_TASK(INFO, this, "Disconnecting MQTT from %s:%i\n", this->server,
              this->port);
-    _SUBSCRIPTIONS.forEach([this](const Subscription<MESSAGE> &sub) {
+    _SUBSCRIPTIONS.forEach([this](const auto &sub) {
       this->unsubscribe(sub.source, sub.pattern);
     });
     _PUBLICATIONS.clear();
@@ -187,18 +191,20 @@ public:
   virtual void loop() override {
     uint8_t errors = 0;
     while (errors < 10) {
-      const Option<MESSAGE> m = _PUBLICATIONS.pop_front();
+      const auto &m = _PUBLICATIONS.pop_front();
       if (m.has_value()) {
-        if (!this->xmqtt->publish(m->target.toString().c_str(),
-                                  m->payloadString().c_str(), m->retain)) {
+        if (!this->xmqtt->publish(m->target.toString().c_str(), m->payload.data,
+                                  m->payload.length, m->retain)) {
           LOG(ERROR, "%s=!mpublish[retain:%s]!!=> [!B%s!!] (%i)\n",
               m->payloadString().c_str(), FP_BOOL_STR(m->retain),
               m->target.toString().c_str(), this->xmqtt->getWriteError());
           this->xmqtt->clearWriteError();
           errors++;
         }
-      } else
+      } else {
+        // delete m->payload.data;
         break;
+      }
     }
     if (errors) {
       LOG_TASK(ERROR, this, "Errors during publishing: %i\n", errors);
@@ -251,7 +257,7 @@ private:
                     (nullptr == pattern || sub.pattern.equals(*pattern));
            });*/
       if (!(_SUBSCRIPTIONS
-                .find([pattern](Subscription<MESSAGE> sub) {
+                .find([pattern](const auto &sub) {
                   return sub.pattern.equals(*pattern);
                 })
                 .has_value())) {

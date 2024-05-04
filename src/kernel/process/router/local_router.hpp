@@ -4,18 +4,19 @@
 #include <fhatos.hpp>
 //
 #include <kernel/process/router/router.hpp>
-#include <kernel/util/mutex.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
+#include <kernel/util/mutex.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {
 
-template <typename PROCESS = Coroutine, typename MESSAGE = Message<String>> class LocalRouter : public Router<PROCESS, MESSAGE> {
+template <typename PROCESS = Coroutine>
+class LocalRouter : public Router<PROCESS> {
 
 protected:
   // messaging data structures
-  List<Subscription<MESSAGE>> SUBSCRIPTIONS;
-  Map<ID, MESSAGE> RETAINS;
+  List<Subscription> SUBSCRIPTIONS;
+  Map<ID, Message> RETAINS;
   Mutex MUTEX_SUBSCRIPTION;
   Mutex MUTEX_RETAIN;
 
@@ -25,7 +26,8 @@ public:
     return &singleton;
   }
 
-  explicit LocalRouter(const ID &id = fWIFI::idFromIP("kernel","router/local")) : Router<PROCESS, MESSAGE>(id) {}
+  explicit LocalRouter(const ID &id = fWIFI::idFromIP("kernel", "router/local"))
+      : Router<PROCESS>(id) {}
 
   virtual RESPONSE_CODE clear() override {
     RETAINS.clear();
@@ -35,13 +37,13 @@ public:
                : RESPONSE_CODE::ROUTER_ERROR;
   }
 
-  virtual const RESPONSE_CODE publish(const MESSAGE &message) override {
+  virtual const RESPONSE_CODE publish(const Message &message) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
     for (const auto &subscription : SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
           subscription.actor->push(
-              Pair<const Subscription<MESSAGE> &, const MESSAGE>(subscription,
+              Pair<const Subscription &, const Message>(subscription,
                                                                  message));
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
@@ -62,8 +64,8 @@ public:
     return __rc;
   }
 
-  const RESPONSE_CODE
-  subscribe(const Subscription<MESSAGE> &subscription) override {
+  virtual const RESPONSE_CODE
+  subscribe(const Subscription &subscription) override {
     RESPONSE_CODE __rc = RESPONSE_CODE::OK;
     for (const auto &sub : SUBSCRIPTIONS) {
       if (sub.source.equals(subscription.source) &&
@@ -95,7 +97,7 @@ public:
   }
 
   const RESPONSE_CODE unsubscribe(const ID &source,
-                                          const Pattern &pattern) override {
+                                  const Pattern &pattern) override {
     return unsubscribeX(source, &pattern);
   }
 
@@ -107,17 +109,17 @@ private:
   RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
     RESPONSE_CODE __rc;
     try {
-      __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>([this, source,
-                                                             pattern]() {
-        const uint16_t size = SUBSCRIPTIONS.size();
-        SUBSCRIPTIONS.remove_if(
-            [source, pattern](const Subscription<MESSAGE> &sub) {
-              return sub.source.equals(source) &&
-                     (nullptr == pattern || sub.pattern.equals(*pattern));
-            });
-        return SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
-                                             : RESPONSE_CODE::NO_SUBSCRIPTION;
-      });
+      __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
+          [this, source, pattern]() {
+            const uint16_t size = SUBSCRIPTIONS.size();
+            SUBSCRIPTIONS.remove_if(
+                [source, pattern](const auto &sub) {
+                  return sub.source.equals(source) &&
+                         (nullptr == pattern || sub.pattern.equals(*pattern));
+                });
+            return SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
+                                               : RESPONSE_CODE::NO_SUBSCRIPTION;
+          });
     } catch (const std::runtime_error &e) {
       LOG_EXCEPTION(e);
       __rc = RESPONSE_CODE::MUTEX_TIMEOUT;

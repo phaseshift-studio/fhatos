@@ -3,13 +3,13 @@
 
 #include <test_fhatos.hpp>
 //
+#include <kernel/furi.hpp>
 #include <kernel/process/actor/actor.hpp>
+#include <kernel/process/esp32/scheduler.hpp>
+#include <kernel/process/esp32/thread.hpp>
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/process/router/meta_router.hpp>
 #include <kernel/process/router/router.hpp>
-#include <kernel/process/esp32/scheduler.hpp>
-#include <kernel/process/esp32/thread.hpp>
-#include <kernel/furi.hpp>
 #include <unity.h>
 
 namespace fhatos::kernel {
@@ -27,21 +27,21 @@ template <typename ROUTER> void test_actor_by_router() {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,
-      actor1->subscribe(actor1->id(), [actor1, actor2,
-                                       counter](const StringMessage &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-        FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
-        TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
-                          actor1->publish(message.source, "pong", false));
-        counter->first++;
-        counter->second++;
-      }));
+      actor1->subscribe(
+          actor1->id(), [actor1, actor2, counter](const Message &message) {
+            TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data);
+            FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+            TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
+                              actor1->publish(message.source, "pong", false));
+            counter->first++;
+            counter->second++;
+          }));
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,
-      actor2->subscribe("actor2@127.0.0.1", [actor1, actor2, counter](
-                                                const StringMessage &message) {
-        TEST_ASSERT_EQUAL_STRING("pong", message.payload.c_str());
+      actor2->subscribe("actor2@127.0.0.1", [actor1, actor2,
+                                             counter](const Message &message) {
+        TEST_ASSERT_EQUAL_STRING("pong", (char *)message.payload.data);
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor1->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor2->id());
         counter->second++;
@@ -76,13 +76,13 @@ template <typename ROUTER> void test_message_retain() {
 
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,
-      actor1->subscribe(actor1->id(), [actor1, actor2,
-                                       counter](const StringMessage &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-        FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
-        counter->first++;
-      }));
+      actor1->subscribe(
+          actor1->id(), [actor1, actor2, counter](const Message &message) {
+            TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data);
+            FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
+            FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+            counter->first++;
+          }));
   actor2->publish(*actor1, "ping", RETAIN_MESSAGE);
   actor1->loop();
   actor2->loop();
@@ -92,9 +92,9 @@ template <typename ROUTER> void test_message_retain() {
   TEST_ASSERT_EQUAL_INT(0, counter->second);
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,
-      actor2->subscribe("actor1@127.0.0.1", [actor1, actor2, counter](
-                                                const StringMessage &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
+      actor2->subscribe("actor1@127.0.0.1", [actor1, actor2,
+                                             counter](const Message &message) {
+        TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data);
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
         counter->second++;
@@ -106,9 +106,9 @@ template <typename ROUTER> void test_message_retain() {
   TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(actor1->id()));
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::OK,
-      actor1->subscribe("actor1@127.0.0.1", [actor1, actor2, counter](
-                                                const StringMessage &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.c_str());
+      actor1->subscribe("actor1@127.0.0.1", [actor1, actor2,
+                                             counter](const Message &message) {
+        TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data);
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
         counter->second++;

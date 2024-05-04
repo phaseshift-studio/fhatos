@@ -3,11 +3,11 @@
 
 #include <test_fhatos.hpp>
 //
+#include <kernel/furi.hpp>
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/process/router/meta_router.hpp>
 #include <kernel/process/router/mqtt_router.hpp>
-#include <kernel/furi.hpp>
 #include <unity.h>
 
 namespace fhatos::kernel {
@@ -16,11 +16,11 @@ void test_subscribe() {}
 
 void test_publish() {
   TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS,
-                    LocalRouter<>::singleton()->publish(
-                        Message<String>{.source = ID("a"),
-                                      .target = ID("b"),
-                                      .payload = String("test"),
-                                      .retain = TRANSIENT_MESSAGE}));
+                    LocalRouter<>::singleton()->publish(Message{
+                        .source = ID("a"),
+                        .target = ID("b"),
+                        .payload = {.type = STR, .data = (byte *)"test", 4},
+                        .retain = TRANSIENT_MESSAGE}));
 };
 
 FOS_RUN_TESTS(                  //
