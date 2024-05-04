@@ -95,6 +95,8 @@ public:
     this->_length = furi._length;
   };
 
+  // fURI(const IDed &ided) : fURI(ided._id) {}
+
   explicit fURI(const String &furiString) : fURI(furiString.c_str()) {}
 
   explicit fURI(const char *furiCharacters) {

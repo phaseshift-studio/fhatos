@@ -66,6 +66,13 @@ public:
         retain);
   }
 
+  const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(relativeTarget,
+                         {STR, (byte *)strdup(payload), strlen(payload)},
+                         retain);
+  }
+
   const RESPONSE_CODE publish(const ID &relativeTarget, const String payload,
                               const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(
