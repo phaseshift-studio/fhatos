@@ -4,8 +4,8 @@
 #include <fhatos.hpp>
 //
 #include <ESPTelnet.h>
-#include <kernel/process/actor/actor.hpp>
 #include <kernel/furi.hpp>
+#include <kernel/process/actor/actor.hpp>
 #include <kernel/util/ansi.hpp>
 #include <kernel/util/string_stream.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -18,8 +18,7 @@ namespace fhatos::kernel {
 #define TAB "  "
 /////////////////////////////////////////////////////////////////////
 
-template <typename PROCESS = Thread,
-          typename ROUTER = LocalRouter<>>
+template <typename PROCESS = Thread, typename ROUTER = LocalRouter<>>
 class fTelnet : public Actor<PROCESS, ROUTER> {
 
 public:
@@ -63,18 +62,35 @@ public:
         // do nothing
       } else if (line.equals("/+")) {
         // todo ??
-        tthis->subscribe(
-            *tthis->currentTopic / "+", [](const auto &message) {
-              tthis->ansi->printf("[/+]=>!g%s!!\n",
-                                  message.target.toString().c_str());
-            });
+        tthis->subscribe(*tthis->currentTopic / "+", [](const auto &message) {
+          tthis->ansi->printf("[/+]=>!g%s!!\n",
+                              message.target.toString().c_str());
+        });
       } else if (line.startsWith("<=")) {
-        String payload = line.length() == 2 ? "" : line.substring(2);
-        payload.trim();
-        tthis->publish(*tthis->currentTopic, payload, TRANSIENT_MESSAGE);
+        const String payload = (line.length() == 2) ? "" : line.substring(2);
+        String type;
+        if ((payload.startsWith("'") && payload.endsWith("'")) ||
+            (payload.startsWith("\"") && payload.endsWith("\""))) {
+          tthis->publish(*tthis->currentTopic,
+                         payload.substring(1, payload.length() - 1),
+                         TRANSIENT_MESSAGE);
+          type = "STR";
+        } else if (payload.equals("true") || payload.equals("false")) {
+          tthis->publish(*tthis->currentTopic, payload.equals("true"),
+                         TRANSIENT_MESSAGE);
+          type = "BOOL";
+        } else {
+          tthis->publish(*tthis->currentTopic, payload.toInt(),
+                         TRANSIENT_MESSAGE);
+          type = "INT";
+        }
+        LOG(DEBUG, "Telnet publishing: %s::%s\n", type, payload.c_str());
+        // else {
+        //   LOG(ERROR, "Unknown message: %s", payload);
+        // }
       } else if (line.startsWith("=>") || line.equals("?")) {
-       const RESPONSE_CODE _rc = tthis->subscribe(
-            *tthis->currentTopic, [](const auto &message) {
+        const RESPONSE_CODE _rc =
+            tthis->subscribe(*tthis->currentTopic, [](const auto &message) {
               if (!tthis->previousMessage ||
                   !tthis->previousMessage->first.equals(message.source) ||
                   !tthis->previousMessage->second.equals(message.target)) {
@@ -101,7 +117,7 @@ public:
                               tthis->currentTopic->toString().c_str());
         }
       } else if (line.startsWith("=|")) {
-       const RESPONSE_CODE _rc = tthis->unsubscribe(*tthis->currentTopic);
+        const RESPONSE_CODE _rc = tthis->unsubscribe(*tthis->currentTopic);
         tthis->ansi->printf("[%s!!] Unsubscribed from !b%s!!\n",
                             _rc ? "!RERROR" : "!GOK",
                             tthis->currentTopic->toString().c_str());

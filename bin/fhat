@@ -23,6 +23,7 @@ if [[ $1 == "monitor" ]]; then
     fi
     echo -e "${FHATOS} Monitor $2 with baudrate $baudrate"
     stty -f $2 $baudrate & cat $2
+   
 elif [[ $1 == "telnet" ]]; then
     if [[ -z $3 ]]; then
         port=23
@@ -36,4 +37,10 @@ else
 usage: 
   fhat monitor /dev/xxxxxx [115200]
   fhat telnet 127.0.0.1 [23]"
+fi
+
+if [[ $? == 0 ]]; then
+    echo -e "${GREEN}SUCCESS"
+else
+    echo -e "${RED}FAILURE"
 fi

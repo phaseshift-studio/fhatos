@@ -40,14 +40,23 @@ protected:
       _SUBSCRIPTIONS.forEach([targetId, payload,
                               length](const auto &subscription) {
         if (targetId.matches(subscription.pattern)) {
-          subscription.actor->push(Pair<const Subscription &, const Message>(
-              subscription, Message{.source = ID("unknown"),
-                                    .target = targetId,
-                                    .payload = {.type = STR,
-                                                .data = (const byte *)strdup(
-                                                    (const char *)payload),
-                                                .length = length},
-                                    .retain = true}));
+          ((char *)payload)[length] = '\0';
+          const String temp = String(payload, length);
+          const Message message{
+              .source = ID("unknown"),
+              .target = targetId,
+              .payload =
+                  {.type = (MType)(temp.substring(0, 1).toInt()),
+                   .data =
+                       (const byte *)(temp.substring(3)
+                                          .c_str()), // CAN'T USE BYTES AS ITS A
+                                                     // STRING ENCODING
+                   .length = (uint)(length - 3)},
+              .retain = true};
+          LOG(INFO, "MESSAGE: %s\n", temp.c_str());
+          subscription.actor->push(
+              Pair<const Subscription &, const Message>(subscription, message));
+          // delete[] results;
         }
       });
     });
@@ -193,10 +202,13 @@ public:
     while (errors < 10) {
       const auto &m = _PUBLICATIONS.pop_front();
       if (m.has_value()) {
-        if (!this->xmqtt->publish(m->target.toString().c_str(), m->payload.data,
-                                  m->payload.length, m->retain)) {
+        const String temp =
+            String(m->payload.type).substring(0, 1) + "::" + m->payloadString();
+        if (!this->xmqtt->publish(m->target.toString().c_str(),
+                                  (byte *)temp.c_str(), temp.length(),
+                                  m->retain)) {
           LOG(ERROR, "%s=!mpublish[retain:%s]!!=> [!B%s!!] (%i)\n",
-              m->payloadString().c_str(), FP_BOOL_STR(m->retain),
+              temp.c_str(), FP_BOOL_STR(m->retain),
               m->target.toString().c_str(), this->xmqtt->getWriteError());
           this->xmqtt->clearWriteError();
           errors++;

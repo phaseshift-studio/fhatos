@@ -1,6 +1,7 @@
 #include <fhatos.hpp>
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/process/router/mqtt_router.hpp>
+#include <kernel/structure/f_soc.hpp>
 #include <kernel/structure/machine/device/io/f_log.hpp>
 #include <kernel/structure/machine/device/io/f_serial.hpp>
 #include <kernel/structure/machine/device/io/net/f_ping.hpp>
@@ -19,6 +20,7 @@ void setup() {
   Scheduler<MAIN_ROUTER> *s = Scheduler<MAIN_ROUTER>::singleton();
   s->spawn(fWIFI::singleton());
   s->spawn(MAIN_ROUTER::singleton());
+  s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
   // s->spawn(fMQTT<Thread, String>::singleton());
   s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
   s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());

@@ -181,6 +181,10 @@ public:
     return String(this->_segments[index]);
   }
 
+  const String lastSegment() const {
+    return String(this->_segments[this->_length - 1]);
+  }
+
   const String path() const {
     String temp;
     if (this->_length > 1) {

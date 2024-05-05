@@ -53,17 +53,22 @@ public:
   const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
                               const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget,
-                         {BOOL, new byte(payload ? (byte)'1' : (byte)'0'), 1},
-                         retain);
+                         {BOOL, new byte(payload ? HIGH : LOW), 1}, retain);
   }
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const int payload,
                               const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(
         relativeTarget,
-        {INT, static_cast<const byte *>(static_cast<const void *>(&payload)),
+        {INT,
+         (byte *)static_cast<const byte *>(static_cast<const void *>(&payload)),
          4},
         retain);
+  }
+
+  const RESPONSE_CODE publish(const ID &relativeTarget, const long payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(relativeTarget, (int)payload, retain);
   }
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
@@ -73,7 +78,7 @@ public:
                          retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const String payload,
+  const RESPONSE_CODE publish(const ID &relativeTarget, const String &payload,
                               const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(
         relativeTarget,

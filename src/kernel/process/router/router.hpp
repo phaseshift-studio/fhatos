@@ -21,6 +21,10 @@ struct Payload {
   const MType type;
   const byte *data;
   const uint length;
+  // const bool toBool() const {}
+  // const int toInt() const {}
+  // const float toReal() const {}
+  // const String toString() const {}
 };
 
 struct Message {
@@ -42,18 +46,39 @@ public:
     return temp;
   };
 
-  const String payloadString() const {
-    switch (this->payload.type) {
-    case BOOL:
-      return FP_BOOL_STR(this->payload.data[0] == (byte)'1');
-    case INT: {
+  const bool toBool() const {
+    if (BOOL == payload.type) {
+      return payload.data[0] == HIGH;
+    } else if (INT == payload.type) {
+      return this->toInt() > 0;
+    } else if (STR == payload.type) {
+      return this->toString().equals("true") || this->toString().equals("1");
+    }
+    throw fError("not an int");
+  }
+
+  const int toInt() const {
+    if (BOOL == payload.type) {
+      return this->toBool() ? 1 : 0;
+    } else if (INT == payload.type) {
       int integer = 0;
       integer = (integer << 8) + this->payload.data[3];
       integer = (integer << 8) + this->payload.data[2];
       integer = (integer << 8) + this->payload.data[1];
       integer = (integer << 8) + this->payload.data[0];
-      return "" + integer;
+      return integer;
+    } else if (STR == payload.type) {
+      return this->toString().toInt();
     }
+    throw fError("not an int");
+  }
+
+  const String payloadString() const {
+    switch (this->payload.type) {
+    case BOOL:
+      return String(this->toBool() ? "true" : "false");
+    case INT:
+      return String(this->toInt());
     case STR:
       return String(this->payload.data, this->payload.length);
     default:
