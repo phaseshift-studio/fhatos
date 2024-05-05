@@ -28,7 +28,7 @@ public:
         [this, serialID](const auto &message) {
           this->publish(
               serialID,
-              this->createLogMessage(INFO, message.payloadString()).c_str(),
+              this->createLogMessage(INFO, message.payload.toString()).c_str(),
               false);
         });
     // ERROR LOGGING
@@ -37,7 +37,7 @@ public:
         [this, serialID](const auto &message) {
           this->publish(
               serialID,
-              this->createLogMessage(INFO, message.payloadString()).c_str(),
+              this->createLogMessage(INFO, message.payload.toString()).c_str(),
               false);
         });
   }

@@ -105,7 +105,7 @@ public:
                     new Pair<ID, ID>(message.source, message.target);
               }
               tthis->xtelnet->println(
-                  message.payloadString().c_str()); // TODO: ansi off/on
+                  message.payload.toString().c_str()); // TODO: ansi off/on
             });
         if (line.equals("?")) {
           delay(1000);

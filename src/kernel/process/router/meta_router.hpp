@@ -6,6 +6,7 @@
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/process/router/mqtt_router.hpp>
 #include <kernel/process/router/router.hpp>
+#include <kernel/process/router/message.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 
 namespace fhatos::kernel {

@@ -3,9 +3,11 @@
 
 #include <fhatos.hpp>
 //
+#include <kernel/process/router/message.hpp>
 #include <kernel/process/router/router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/util/mutex.hpp>
+
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos::kernel {
@@ -43,8 +45,7 @@ public:
       if (subscription.pattern.matches(message.target)) {
         try {
           subscription.actor->push(
-              Pair<const Subscription &, const Message>(subscription,
-                                                                 message));
+              Pair<const Subscription &, const Message>(subscription, message));
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
@@ -112,11 +113,10 @@ private:
       __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
           [this, source, pattern]() {
             const uint16_t size = SUBSCRIPTIONS.size();
-            SUBSCRIPTIONS.remove_if(
-                [source, pattern](const auto &sub) {
-                  return sub.source.equals(source) &&
-                         (nullptr == pattern || sub.pattern.equals(*pattern));
-                });
+            SUBSCRIPTIONS.remove_if([source, pattern](const auto &sub) {
+              return sub.source.equals(source) &&
+                     (nullptr == pattern || sub.pattern.equals(*pattern));
+            });
             return SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
                                                : RESPONSE_CODE::NO_SUBSCRIPTION;
           });

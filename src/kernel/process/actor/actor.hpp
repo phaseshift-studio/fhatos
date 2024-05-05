@@ -1,7 +1,10 @@
 #ifndef fhatos_kernel__actor_hpp
 #define fhatos_kernel__actor_hpp
 
+#include <fhatos.hpp>
+//
 #include <kernel/process/actor/message_box.hpp>
+#include <kernel/process/router/message.hpp>
 #include <kernel/process/router/meta_router.hpp>
 #include <kernel/process/router/router.hpp>
 #include FOS_PROCESS(thread.hpp)

@@ -31,22 +31,22 @@ public:
     this->subscribe(this->id().extend("gpio/+"),
                     [this](const Message &message) {
                       if (message.target.lastSegment().equals("RST")) {
-                        if (message.toBool()) {
+                        if (message.payload.toBool()) {
                           ESP.restart();
                         }
                       } else {
                         LOG(INFO, "Writing !g%s!! to digital pin !b%i!!\n",
-                            FP_BOOL_STR(message.toBool()),
+                            FP_BOOL_STR(message.payload.toBool()),
                             message.target.lastSegment().toInt());
                         digitalWrite(message.target.lastSegment().toInt(),
-                                     message.toBool() ? HIGH : LOW);
+                                     message.payload.toBool() ? HIGH : LOW);
                       }
                     });
     /////////////////////////////  PWM  /////////////////////////////
     this->subscribe(this->id().extend("pwm/+"), [this](const Message &message) {
-      LOG(INFO, "Writing !g%i!! to analaog pin !b%i!!\n", message.toInt(),
+      LOG(INFO, "Writing !g%i!! to analaog pin !b%i!!\n", message.payload.toInt(),
           message.target.lastSegment().toInt());
-      analogWrite(message.target.lastSegment().toInt(), message.toInt());
+      analogWrite(message.target.lastSegment().toInt(), message.payload.toInt());
     });
   }
 };

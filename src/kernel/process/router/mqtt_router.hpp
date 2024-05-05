@@ -5,6 +5,7 @@
 //
 #include <PubSubClient.h>
 #include <kernel/process/router/router.hpp>
+#include <kernel/process/router/message.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -203,7 +204,7 @@ public:
       const auto &m = _PUBLICATIONS.pop_front();
       if (m.has_value()) {
         const String temp =
-            String(m->payload.type).substring(0, 1) + "::" + m->payloadString();
+            String(m->payload.type).substring(0, 1) + "::" + m->payload.toString();
         if (!this->xmqtt->publish(m->target.toString().c_str(),
                                   (byte *)temp.c_str(), temp.length(),
                                   m->retain)) {

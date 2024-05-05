@@ -33,7 +33,7 @@ public:
     this->subscribe(
         this->id(),
         [](const auto &message) {
-          Serial.print(message.payloadString().c_str());
+          Serial.print(message.payload.toString().c_str());
         },
         QoS::_1);
   }

@@ -22,12 +22,12 @@ public:
   void setup() override {
     this->subscribe(this->id().extend("#"), [this](const Message &message) {
       if (message.target.subfuri(this->id())) {
-        if (message.payloadString().equals("~()")) {
+        if (message.payload.toString().equals("~()")) {
           if (this->pingData) {
             delete this->pingData;
             this->pingData = nullptr;
           }
-        } else if (message.payloadString().equals("()")) {
+        } else if (message.payload.toString().equals("()")) {
           if (!this->pingData)
             this->pingData = new PingData(message.target.path());
         }
