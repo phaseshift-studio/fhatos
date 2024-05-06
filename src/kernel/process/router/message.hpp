@@ -13,7 +13,15 @@ namespace fhatos::kernel {
 //////////////////////////////////////////////
 /////////////// PAYLOAD STRUCT ///////////////
 //////////////////////////////////////////////
-enum MType { OBJ, BOOL, INT, REAL, STR, LST, REC };
+enum MType { OBJ = 0, BOOL = 1, INT = 2, REAL = 3, STR = 4, LST = 5, REC = 6 };
+const Map<MType, String> MTYPE_NAMES = {{{OBJ, F("obj")},
+                                          {BOOL, F("bool")},
+                                          {INT, F("int")},
+                                          {REAL, F("real")},
+                                          {STR, F("str")},
+                                          {LST, F("lst")},
+                                          {REC, F("rec")}}};
+
 struct Payload {
   const MType type;
   const byte *data;
@@ -22,13 +30,15 @@ struct Payload {
   const bool toBool() const {
     switch (type) {
     case BOOL:
-      return atoi((const char *)this->data) == 1;
+      return this->data[0] == 'T';
     case INT:
       return this->toInt() > 0;
+    case REAL:
+      return this->toFloat() > 0.0f;
     case STR:
       return this->toString().equals("true") || this->toString().equals("1");
     default:
-      throw fError("error");
+      throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
     }
   }
   const int toInt() const {
@@ -37,34 +47,58 @@ struct Payload {
       return this->toBool() ? 1 : 0;
     case INT:
       return atoi((const char *)this->data);
+    case REAL:
+      return (int)this->toFloat();
     case STR:
       return this->toString().toInt();
     default:
-      throw fError("error");
+      throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
     }
   }
+
+  const float toFloat() const {
+    switch (type) {
+    case BOOL:
+      return this->toBool() ? 1.0f : 0.0f;
+    case INT:
+      return (float)this->toInt();
+    case REAL:
+      return atof((const char *)this->data);
+    case STR:
+      return this->toString().toFloat();
+    default:
+      throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
+    }
+  }
+
   const String toString() const {
     switch (type) {
     case BOOL:
       return String(this->toBool() ? "true" : "false");
     case INT:
       return String(this->toInt());
+    case REAL:
+      return String(this->toFloat(), 4);
     case STR:
       return String(this->data, this->length);
     default:
-      throw fError("Unknown type: %i", this->type);
+      throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
     }
   }
 
   static const Payload fromBool(const bool xbool) {
-    char temp[2];
-    itoa(xbool ? 1 : 0, temp, 2);
-    return {.type = BOOL, .data = (const byte *)temp, .length = strlen(temp)};
+    return {.type = BOOL, .data = new byte(xbool ? 'T' : 'F'), .length = 1};
   }
 
   static const Payload fromInt(const int xint) {
     char temp[10];
     itoa(xint, temp, 10);
+    return {.type = INT, .data = (const byte *)temp, .length = strlen(temp)};
+  }
+
+  static const Payload fromFloat(const float xfloat) {
+    char temp[20];
+    snprintf(temp, sizeof(temp), "%.4f", xfloat);
     return {.type = INT, .data = (const byte *)temp, .length = strlen(temp)};
   }
 
