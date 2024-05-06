@@ -35,30 +35,30 @@ protected:
     this->xmqtt->setServer(domain, port);
     this->xmqtt->setSocketTimeout(1000); // may be too excessive
     this->xmqtt->setKeepAlive(1000);     // may be too excessive
-    this->xmqtt->setCallback(
-        [this](const char *target, const byte *payload, const int length) {
-          ((char *)payload)[length] = '\0';
-          const ID targetId = ID(target);
-          _SUBSCRIPTIONS.forEach(
-              [targetId, payload, length](const auto &subscription) {
-                if (targetId.matches(subscription.pattern)) {
-                  JsonDocument doc;
-                  deserializeJson(doc, payload, length);
-                  const Message message{
-                      .source = ID(doc["source"].as<String>()),
-                      .target = targetId,
-                      .payload = {.type = (MType)doc["type"].as<uint>(),
-                                  .data = (const byte *)strdup(
-                                      doc["data"].as<const char *>()),
-                                  .length = doc["length"].as<uint>()},
-                      .retain = doc["retain"].as<bool>()};
-                  LOG(INFO, "Message: %s\n", message.toString().c_str());
+    this->xmqtt->setCallback([this](const char *target, const byte *payload,
+                                    const int length) {
+      ((char *)payload)[length] = '\0';
+      const ID targetId = ID(target);
+      _SUBSCRIPTIONS.forEach([targetId, payload,
+                              length](const auto &subscription) {
+        if (targetId.matches(subscription.pattern)) {
+          JsonDocument doc;
+          deserializeJson(doc, payload, length);
+          const Message message{
+              .source = ID(doc["source"].as<String>()),
+              .target = targetId,
+              .payload = {.type = (MType)doc["type"].as<uint>(),
+                          .data = (const byte *)strdup(
+                              doc["data"].as<const char *>()),
+                          .length = doc["length"].as<uint>()},
+              .retain = doc["retain"].as<bool>()};
+          LOG(INFO, "Message: %s\n", message.toString().c_str());
           subscription.actor->push(
-              Pair<const Subscription &, const Message>(subscription, message)));
+              Pair<const Subscription &, const Message>(subscription, message));
           // delete[] results;
-                }
-              });
-        });
+        }
+      });
+    });
   }
 
   char *server;
