@@ -4,10 +4,12 @@
 #include <kernel/structure/f_soc.hpp>
 #include <kernel/structure/machine/device/io/f_log.hpp>
 #include <kernel/structure/machine/device/io/f_serial.hpp>
+#include <kernel/structure/machine/device/io/net/f_ota.hpp>
 #include <kernel/structure/machine/device/io/net/f_ping.hpp>
 #include <kernel/structure/machine/device/io/net/f_telnet.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
 #define MAIN_ROUTER MqttRouter<>
@@ -21,8 +23,9 @@ void setup() {
   s->spawn(fWIFI::singleton());
   s->spawn(MAIN_ROUTER::singleton());
   s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
-  s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
-  s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
+  s->spawn(fOTA<Fiber>::singleton());
+  //s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
+  //s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
   s->spawn(new fPing<Fiber, MAIN_ROUTER>());
   s->spawn(fTelnet<Thread, MAIN_ROUTER>::singleton());
 }

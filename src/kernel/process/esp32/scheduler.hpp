@@ -104,13 +104,11 @@ public:
         fiberResult = xTaskCreatePinnedToCore(
             FIBER_FUNCTION, // Function that should be called
             "fibers",       // Name of the task (for debugging)
-            10000,          // Stack size (bytes)
+            15000,          // Stack size (bytes)
             &FIBERS,        // Parameter to pass
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             FIBER_THREAD,                           // Task handle
             tskNO_AFFINITY);                        // Processor core
-        if (fiberResult != pdPASS)
-          LOG(ERROR, "!MFiber thread spawned!!\n");
       }
       LOG(fiberResult == pdPASS ? INFO : ERROR, "!MFiber %s spawned!!\n",
           process->id().toString().c_str());
