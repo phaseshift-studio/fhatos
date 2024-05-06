@@ -37,7 +37,7 @@ protected:
     this->xmqtt->setKeepAlive(1000);     // may be too excessive
     this->xmqtt->setCallback([this](const char *target, const byte *payload,
                                     const int length) {
-      //((char *)payload)[length] = '\0';
+      ((char *)payload)[length] = '\0';
       const ID targetId = ID(target);
       _SUBSCRIPTIONS.forEach([targetId, payload,
                               length](const auto &subscription) {
