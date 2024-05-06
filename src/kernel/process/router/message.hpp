@@ -99,7 +99,7 @@ struct Payload {
   static const Payload fromFloat(const float xfloat) {
     char temp[20];
     snprintf(temp, sizeof(temp), "%.4f", xfloat);
-    return {.type = INT, .data = (const byte *)temp, .length = strlen(temp)};
+    return {.type = REAL, .data = (const byte *)temp, .length = strlen(temp)};
   }
 
   static const Payload fromString(const String xstring) {

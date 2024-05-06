@@ -9,17 +9,27 @@
 
 namespace fhatos::kernel {
 
-void test_str() {
-  ///// STRING
-  Message message1{.source = ID("a"),
-                   .target = ID("b"),
-                   .payload = Payload::fromString("fhatty"),
-                   .retain = false};
-  TEST_ASSERT_EQUAL_STRING("fhatty", message1.payload.toString().c_str());
-  TEST_ASSERT_EQUAL_STRING("fhatty", (const char *)message1.payload.data);
-  TEST_ASSERT_EQUAL(6, message1.payload.length);
-  TEST_ASSERT_EQUAL(STR, message1.payload.type);
-  TEST_ASSERT_FALSE(message1.retain);
+void test_bool() {
+  for (int i = 0; i < 1000; i++) {
+    ///// BOOL
+    if (i % 100 == 0) {
+      FOS_TEST_MESSAGE("Testing bool conversion: %i", i);
+    }
+    Message m{.source = ID("a"),
+              .target = ID("b"),
+              .payload = Payload::fromBool((i % 2) == 0),
+              .retain = (i % 2) != 0};
+    TEST_ASSERT_EQUAL(BOOL, m.payload.type);
+    if (i % 2 == 0) {
+      TEST_ASSERT_TRUE(m.payload.toBool());
+      TEST_ASSERT_EQUAL(m.payload.data[0], 'T');
+    } else {
+      TEST_ASSERT_FALSE(m.payload.toBool());
+      TEST_ASSERT_EQUAL(m.payload.data[0], 'F');
+    }
+    TEST_ASSERT_EQUAL(1, m.payload.length);
+    TEST_ASSERT_EQUAL((i % 2) != 0, m.retain);
+  }
 }
 
 void test_int() {
@@ -28,43 +38,53 @@ void test_int() {
     if (i % 50000 == 0) {
       FOS_TEST_MESSAGE("Testing int conversion: %i", i);
     }
-    Message message2{.source = ID("a"),
-                     .target = ID("b"),
-                     .payload = Payload::fromInt(i),
-                     .retain = true};
-    TEST_ASSERT_EQUAL(i, message2.payload.toInt());
-    TEST_ASSERT_EQUAL(INT, message2.payload.type);
-    TEST_ASSERT_EQUAL(message2.payload.length,
-                      strlen((const char *)message2.payload.data));
-    TEST_ASSERT_TRUE(message2.retain);
+    Message m{.source = ID("a"),
+              .target = ID("b"),
+              .payload = Payload::fromInt(i),
+              .retain = (i % 2) == 0};
+    TEST_ASSERT_EQUAL(INT, m.payload.type);
+    TEST_ASSERT_EQUAL(i, m.payload.toInt());
+    TEST_ASSERT_EQUAL(m.payload.length, strlen((const char *)m.payload.data));
+    TEST_ASSERT_EQUAL((i % 2) == 0, m.retain);
   }
 }
 
-void test_bool() {
-  for (int i = 0; i < 1000; i++) {
-    ///// BOOL
-    if (i % 100 == 0) {
-      FOS_TEST_MESSAGE("Testing bool conversion: %i", i);
+void test_float() {
+  ///// FLOAT
+  for (float i = -200000.123f; i < 200000.123f; i = i + 5.0f) {
+
+    if ((int(trunc(i))) % 50000 == 0) {
+      FOS_TEST_MESSAGE("Testing float conversion: %.4f", i);
     }
-    Message message3{.source = ID("a"),
-                     .target = ID("b"),
-                     .payload = Payload::fromBool((i % 2) == 0),
-                     .retain = (i % 2) != 0};
-    TEST_ASSERT_EQUAL(BOOL, message3.payload.type);
-    if (i % 2 == 0) {
-      TEST_ASSERT_TRUE(message3.payload.toBool());
-    } else {
-      TEST_ASSERT_FALSE(message3.payload.toBool());
-    }
-    TEST_ASSERT_EQUAL(1, message3.payload.length);
-    TEST_ASSERT_EQUAL((i % 2) != 0, message3.retain);
+    Message m{.source = ID("a"),
+              .target = ID("b"),
+              .payload = Payload::fromFloat(i),
+              .retain = i > 0.0f};
+    TEST_ASSERT_EQUAL(REAL, m.payload.type);
+    TEST_ASSERT_EQUAL(i, m.payload.toFloat());
+    TEST_ASSERT_EQUAL(m.payload.length, strlen((const char *)m.payload.data));
+    TEST_ASSERT_EQUAL(i > 0.0f, m.retain);
   }
 }
 
-FOS_RUN_TESTS(               //
-    FOS_RUN_TEST(test_str);  //
-    FOS_RUN_TEST(test_int);  //
-    FOS_RUN_TEST(test_bool); //
+void test_str() {
+  ///// STRING
+  Message m{.source = ID("a"),
+            .target = ID("b"),
+            .payload = Payload::fromString("fhatty"),
+            .retain = false};
+  TEST_ASSERT_EQUAL_STRING("fhatty", m.payload.toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("fhatty", (const char *)m.payload.data);
+  TEST_ASSERT_EQUAL(6, m.payload.length);
+  TEST_ASSERT_EQUAL(STR, m.payload.type);
+  TEST_ASSERT_FALSE(m.retain);
+}
+
+FOS_RUN_TESTS(                //
+    FOS_RUN_TEST(test_bool);  //
+    FOS_RUN_TEST(test_int);   //
+    FOS_RUN_TEST(test_float); //
+    FOS_RUN_TEST(test_str);   //
 );
 
 } // namespace fhatos::kernel
