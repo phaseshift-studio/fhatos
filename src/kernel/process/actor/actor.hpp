@@ -69,6 +69,17 @@ public:
                          retain);
   }
 
+  const RESPONSE_CODE publish(const ID &relativeTarget, const float payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(relativeTarget, Payload::fromFloat(payload), retain);
+  }
+
+  const RESPONSE_CODE publish(const ID &relativeTarget, const double payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+    return this->publish(relativeTarget, Payload::fromFloat((float)payload),
+                         retain);
+  }
+
   const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
                               const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromString(payload), retain);

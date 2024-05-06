@@ -51,6 +51,7 @@ protected:
                           .data = (const byte *)doc["data"].as<const char *>(),
                           .length = doc["length"].as<uint>()},
               .retain = doc["retain"].as<bool>()};
+          LOG(INFO, "Message: %s\n", message.toString().c_str());
           subscription.actor->push(
               Pair<const Subscription &, const Message>(subscription, message));
           // delete[] results;

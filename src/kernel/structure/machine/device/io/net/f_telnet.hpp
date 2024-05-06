@@ -79,6 +79,11 @@ public:
           tthis->publish(*tthis->currentTopic, payload.equals("true"),
                          TRANSIENT_MESSAGE);
           type = "BOOL";
+        } else if (payload.endsWith("f")) {
+          tthis->publish(*tthis->currentTopic,
+                         payload.substring(0, payload.length() - 1).toFloat(),
+                         TRANSIENT_MESSAGE);
+          type = "REAL";
         } else {
           tthis->publish(*tthis->currentTopic, (int)payload.toInt(),
                          TRANSIENT_MESSAGE);

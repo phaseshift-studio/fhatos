@@ -15,12 +15,12 @@ namespace fhatos::kernel {
 //////////////////////////////////////////////
 enum MType { OBJ = 0, BOOL = 1, INT = 2, REAL = 3, STR = 4, LST = 5, REC = 6 };
 const Map<MType, String> MTYPE_NAMES = {{{OBJ, F("obj")},
-                                          {BOOL, F("bool")},
-                                          {INT, F("int")},
-                                          {REAL, F("real")},
-                                          {STR, F("str")},
-                                          {LST, F("lst")},
-                                          {REC, F("rec")}}};
+                                         {BOOL, F("bool")},
+                                         {INT, F("int")},
+                                         {REAL, F("real")},
+                                         {STR, F("str")},
+                                         {LST, F("lst")},
+                                         {REC, F("rec")}}};
 
 struct Payload {
   const MType type;
@@ -30,7 +30,7 @@ struct Payload {
   const bool toBool() const {
     switch (type) {
     case BOOL:
-      return this->data[0] == 'T';
+      return strcmp((char *)this->data, "T") == 0;
     case INT:
       return this->toInt() > 0;
     case REAL:
@@ -63,7 +63,7 @@ struct Payload {
     case INT:
       return (float)this->toInt();
     case REAL:
-      return atof((const char *)this->data);
+      return (float)atof((const char *)this->data);
     case STR:
       return this->toString().toFloat();
     default:
@@ -87,25 +87,30 @@ struct Payload {
   }
 
   static const Payload fromBool(const bool xbool) {
-    return {.type = BOOL, .data = new byte(xbool ? 'T' : 'F'), .length = 1};
+    return {
+        .type = BOOL, .data = (const byte *)(xbool ? "T" : "F"), .length = 1};
   }
 
   static const Payload fromInt(const int xint) {
     char temp[10];
     itoa(xint, temp, 10);
-    return {.type = INT, .data = (const byte *)temp, .length = strlen(temp)};
+    uint size = strlen(temp);
+    temp[size] = '\0';
+    return {.type = INT, .data = (const byte *)temp, .length = size};
   }
 
   static const Payload fromFloat(const float xfloat) {
     char temp[20];
-    snprintf(temp, sizeof(temp), "%.4f", xfloat);
-    return {.type = REAL, .data = (const byte *)temp, .length = strlen(temp)};
+    uint size = snprintf(temp, sizeof(temp), "%.4f", xfloat);
+    temp[size] = '\0';
+    return {.type = REAL, .data = (const byte *)temp, .length = size};
   }
 
   static const Payload fromString(const String xstring) {
-    return {.type = STR,
-            .data = (const byte *)strdup(xstring.c_str()),
-            .length = xstring.length()};
+    char *temp = strdup(xstring.c_str());
+    temp[xstring.length()] = '\0';
+    return {
+        .type = STR, .data = (const byte *)temp, .length = xstring.length()};
   }
 };
 
