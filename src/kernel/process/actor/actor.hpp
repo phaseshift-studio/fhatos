@@ -26,7 +26,7 @@ public:
  
   // PAYLOAD BOX METHODS
   const bool
-  push(const Pair<const Subscription, const Message> &mail) override {
+  push(const Pair<const Subscription, const Message> mail) override {
     return this->inbox.push_back(mail);
   }
 

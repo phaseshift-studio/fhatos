@@ -95,11 +95,11 @@ public:
         // }
       } else if (line.startsWith("=>") || line.equals("?")) {
         const RESPONSE_CODE _rc =
-            tthis->subscribe(*tthis->currentTopic, [](const auto &message) {
-              if (!tthis->previousMessage ||
+            tthis->subscribe(*tthis->currentTopic, [](const Message &message) {
+              /*if (!tthis->previousMessage ||
                   !tthis->previousMessage->first.equals(message.source) ||
                   !tthis->previousMessage->second.equals(message.target)) {
-                if (!tthis->previousMessage)
+                if (tthis->previousMessage)
                   delete tthis->previousMessage;
                 tthis->ansi->printf(
                     "[!b%s!!]=!gpublish!![!mretain:%s!!]=>[!b%s!!]\n",
@@ -107,8 +107,8 @@ public:
                     FP_BOOL_STR(message.retain),
                     message.target.toString().c_str());
                 tthis->previousMessage =
-                    new Pair<ID, ID>(message.source, message.target);
-              }
+                    new Pair<ID, ID>(message.source, message.target);*/
+              //}
               tthis->xtelnet->println(
                   message.payload.toString().c_str()); // TODO: ansi off/on
             });

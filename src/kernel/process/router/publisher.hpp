@@ -14,19 +14,19 @@ public:
   MessageBox<Pair<const Subscription, const Message>> *messageBox;
   Publisher(
       IDed *ided,
-      MessageBox<Pair<const Subscription, const Message>> *messageBox = false)
+      MessageBox<Pair<const Subscription, const Message>> *messageBox = nullptr)
       : ided(ided), messageBox(messageBox) {}
 
   /// SUBSCRIBE
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
                                         const Consumer<Message> onRecv,
                                         const QoS qos = QoS::_1) {
-    return ROUTER::singleton()->subscribe(Subscription{
-        .actor = this->messageBox,
-        .source = this->ided->id(),
-        .pattern = makeTopic(relativePattern),
-        .qos = qos,
-        .onRecv = onRecv});
+    return ROUTER::singleton()->subscribe(
+        Subscription{.actor = this->messageBox,
+                     .source = this->ided->id(),
+                     .pattern = makeTopic(relativePattern),
+                     .qos = qos,
+                     .onRecv = onRecv});
   }
 
   /// UNSUBSCRIBE

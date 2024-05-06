@@ -22,18 +22,20 @@ public:
   void setup() override {
     this->subscribe(this->id().extend("#"), [this](const Message &message) {
       if (message.target.subfuri(this->id())) {
-        if (message.payload.toString().equals("~()")) {
-          if (this->pingData) {
+        if (message.payload.type == BOOL) {
+          if (!message.payload.toBool() && this->pingData) {
             delete this->pingData;
             this->pingData = nullptr;
           }
-        } else if (message.payload.toString().equals("()")) {
-          if (!this->pingData)
-            this->pingData = new PingData(message.target.path());
+          if (message.payload.toBool()) {
+            if (!this->pingData)
+              this->pingData = new PingData(message.target.path());
+          }
         }
       }
     });
   }
+
   void loop() override {
     Actor<PROCESS, ROUTER>::loop();
     // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
@@ -51,9 +53,9 @@ public:
         sprintf(message, "Request timeout for icmp_seq %i failure_rate=%.2f%%",
                 this->pingData->counter, this->pingData->failureRate());
       }
-      this->publish(this->id().extend(this->pingData->host.c_str()), String(message),
+      this->publish(this->id().extend(this->pingData->host.c_str()), message,
                     TRANSIENT_MESSAGE);
-      delete[] message;
+      // delete[] message;
     }
     delay(1000);
   }
