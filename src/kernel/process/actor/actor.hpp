@@ -55,37 +55,28 @@ public:
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
                               const bool retain = TRANSIENT_MESSAGE) {
-    return this->publish(relativeTarget,
-                         {BOOL, new byte(payload ? HIGH : LOW), 1}, retain);
+    return this->publish(relativeTarget, Payload::fromBool(payload), retain);
   }
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const int payload,
                               const bool retain = TRANSIENT_MESSAGE) {
-    return this->publish(
-        relativeTarget,
-        {INT,
-         (byte *)static_cast<const byte *>(static_cast<const void *>(&payload)),
-         4},
-        retain);
+    return this->publish(relativeTarget, Payload::fromInt(payload), retain);
   }
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const long payload,
                               const bool retain = TRANSIENT_MESSAGE) {
-    return this->publish(relativeTarget, (int)payload, retain);
+    return this->publish(relativeTarget, Payload::fromInt((int)payload),
+                         retain);
   }
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
                               const bool retain = TRANSIENT_MESSAGE) {
-    return this->publish(relativeTarget,
-                         {STR, (byte *)strdup(payload), strlen(payload)},
-                         retain);
+    return this->publish(relativeTarget, Payload::fromString(payload), retain);
   }
 
   const RESPONSE_CODE publish(const ID &relativeTarget, const String &payload,
                               const bool retain = TRANSIENT_MESSAGE) {
-    return this->publish(
-        relativeTarget,
-        {STR, (byte *)strdup(payload.c_str()), payload.length()}, retain);
+    return this->publish(relativeTarget, Payload::fromString(payload), retain);
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////

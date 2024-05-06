@@ -3,9 +3,10 @@
 
 #include <fhatos.hpp>
 //
+#include <ArduinoJson.h>
 #include <PubSubClient.h>
-#include <kernel/process/router/router.hpp>
 #include <kernel/process/router/message.hpp>
+#include <kernel/process/router/router.hpp>
 #include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include <kernel/util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -41,20 +42,15 @@ protected:
       _SUBSCRIPTIONS.forEach([targetId, payload,
                               length](const auto &subscription) {
         if (targetId.matches(subscription.pattern)) {
-          ((char *)payload)[length] = '\0';
-          const String temp = String(payload, length);
+          JsonDocument doc;
+          deserializeJson(doc, payload, length);
           const Message message{
-              .source = ID("unknown"),
+              .source = ID(doc["source"].as<String>()),
               .target = targetId,
-              .payload =
-                  {.type = (MType)(temp.substring(0, 1).toInt()),
-                   .data =
-                       (const byte *)(temp.substring(3)
-                                          .c_str()), // CAN'T USE BYTES AS ITS A
-                                                     // STRING ENCODING
-                   .length = (uint)(length - 3)},
-              .retain = true};
-          LOG(INFO, "MESSAGE: %s\n", temp.c_str());
+              .payload = {.type = (MType)doc["type"].as<uint>(),
+                          .data = (const byte *)doc["data"].as<const char *>(),
+                          .length = doc["length"].as<uint>()},
+              .retain = doc["retain"].as<bool>()};
           subscription.actor->push(
               Pair<const Subscription &, const Message>(subscription, message));
           // delete[] results;
@@ -203,14 +199,19 @@ public:
     while (errors < 10) {
       const auto &m = _PUBLICATIONS.pop_front();
       if (m.has_value()) {
-        const String temp =
-            String(m->payload.type).substring(0, 1) + "::" + m->payload.toString();
+        JsonDocument doc;
+        doc["source"] = m->source.toString();
+        doc["type"] = (const uint)m->payload.type;
+        doc["data"] = m->payload.data;
+        doc["length"] = m->payload.length;
+        doc["retain"] = m->retain;
+        char buffer[512];
+        const uint length = serializeJson(doc, buffer);
         if (!this->xmqtt->publish(m->target.toString().c_str(),
-                                  (byte *)temp.c_str(), temp.length(),
-                                  m->retain)) {
-          LOG(ERROR, "%s=!mpublish[retain:%s]!!=> [!B%s!!] (%i)\n",
-              temp.c_str(), FP_BOOL_STR(m->retain),
-              m->target.toString().c_str(), this->xmqtt->getWriteError());
+                                  (const byte *)buffer, length, m->retain)) {
+          LOG(ERROR, "%s=!mpublish[retain:%s]!!=> [!B%s!!] (!R%s!!)\n", buffer,
+              FP_BOOL_STR(m->retain), m->target.toString().c_str(),
+              MQTT_STATE_CODES.at(this->xmqtt->getWriteError()).c_str());
           this->xmqtt->clearWriteError();
           errors++;
         }

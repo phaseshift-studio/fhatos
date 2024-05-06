@@ -10,7 +10,7 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
-#define MAIN_ROUTER LocalRouter<>
+#define MAIN_ROUTER MqttRouter<>
 
 using namespace fhatos::kernel;
 
@@ -21,7 +21,6 @@ void setup() {
   s->spawn(fWIFI::singleton());
   s->spawn(MAIN_ROUTER::singleton());
   s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
-  // s->spawn(fMQTT<Thread, String>::singleton());
   s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
   s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
   s->spawn(new fPing<Fiber, MAIN_ROUTER>());

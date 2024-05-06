@@ -36,7 +36,7 @@ public:
                         }
                       } else {
                         LOG(INFO, "Writing !g%s!! to digital pin !b%i!!\n",
-                            FP_BOOL_STR(message.payload.toBool()),
+                            message.payload.toBool() ? "HIGH" : "LOW",
                             message.target.lastSegment().toInt());
                         digitalWrite(message.target.lastSegment().toInt(),
                                      message.payload.toBool() ? HIGH : LOW);

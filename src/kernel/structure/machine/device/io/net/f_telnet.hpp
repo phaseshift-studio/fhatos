@@ -80,7 +80,7 @@ public:
                          TRANSIENT_MESSAGE);
           type = "BOOL";
         } else {
-          tthis->publish(*tthis->currentTopic, payload.toInt(),
+          tthis->publish(*tthis->currentTopic, (int)payload.toInt(),
                          TRANSIENT_MESSAGE);
           type = "INT";
         }

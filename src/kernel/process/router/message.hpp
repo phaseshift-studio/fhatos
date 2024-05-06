@@ -22,7 +22,7 @@ struct Payload {
   const bool toBool() const {
     switch (type) {
     case BOOL:
-      return HIGH == data[0];
+      return atoi((const char *)this->data) == 1;
     case INT:
       return this->toInt() > 0;
     case STR:
@@ -35,16 +35,12 @@ struct Payload {
     switch (type) {
     case BOOL:
       return this->toBool() ? 1 : 0;
-    case INT: {
-      int integer = 0;
-      integer = (integer << 8) + this->data[3];
-      integer = (integer << 8) + this->data[2];
-      integer = (integer << 8) + this->data[1];
-      integer = (integer << 8) + this->data[0];
-      return integer;
-    }
+    case INT:
+      return atoi((const char *)this->data);
     case STR:
       return this->toString().toInt();
+    default:
+      throw fError("error");
     }
   }
   const String toString() const {
@@ -58,6 +54,24 @@ struct Payload {
     default:
       throw fError("Unknown type: %i", this->type);
     }
+  }
+
+  static const Payload fromBool(const bool xbool) {
+    char temp[2];
+    itoa(xbool ? 1 : 0, temp, 2);
+    return {.type = BOOL, .data = (const byte *)temp, .length = strlen(temp)};
+  }
+
+  static const Payload fromInt(const int xint) {
+    char temp[10];
+    itoa(xint, temp, 10);
+    return {.type = INT, .data = (const byte *)temp, .length = strlen(temp)};
+  }
+
+  static const Payload fromString(const String xstring) {
+    return {.type = STR,
+            .data = (const byte *)strdup(xstring.c_str()),
+            .length = xstring.length()};
   }
 };
 
