@@ -100,8 +100,8 @@ public:
           subscription.onRecv(retain.second);
         }
       }
-      return __rc;
     }
+    return __rc;
   }
 
   const RESPONSE_CODE unsubscribe(const ID &source,

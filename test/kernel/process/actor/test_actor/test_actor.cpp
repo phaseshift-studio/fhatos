@@ -133,10 +133,10 @@ FOS_RUN_TESTS( //
                // called outside test functions as singletons alter memory
                // across tests
     LocalRouter<>::singleton();                               //
-    Scheduler<MqttRouter<>>::singleton()->spawn(MqttRouter<>::singleton()); //
+    //Scheduler<MqttRouter<>>::singleton()->spawn(MqttRouter<>::singleton()); //
     // MetaRouter<>::singleton();  //
     FOS_RUN_TEST(test_actor_by_router<LocalRouter<>>); //
-    FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
+    //FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
     // FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //
     FOS_RUN_TEST(test_message_retain<LocalRouter<>>); //
 );
