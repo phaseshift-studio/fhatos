@@ -32,8 +32,9 @@ template <typename ROUTER> void test_actor_by_router() {
             TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data);
             FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
             FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
-            TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
-                              actor1->publish(message.source, "pong", TRANSIENT_MESSAGE));
+            TEST_ASSERT_EQUAL(
+                RESPONSE_CODE::OK,
+                actor1->publish(message.source, "pong", TRANSIENT_MESSAGE));
             counter->first++;
             counter->second++;
           }));
@@ -131,12 +132,12 @@ template <typename ROUTER> void test_message_retain() {
 FOS_RUN_TESTS( //
                // called outside test functions as singletons alter memory
                // across tests
-    LocalRouter<>::singleton(); //
-    // MqttRouter<StringMessage>::singleton();  //
-    // MetaRouter<StringMessage>::singleton();  //
+    LocalRouter<>::singleton();                               //
+    Scheduler<MqttRouter<>>::singleton()->spawn(MqttRouter<>::singleton()); //
+    // MetaRouter<>::singleton();  //
     FOS_RUN_TEST(test_actor_by_router<LocalRouter<>>); //
-    // FOS_RUN_TEST(test_actor_by_router<MqttRouter<StringMessage>>);  //
-    // FOS_RUN_TEST(test_actor_by_router<MetaRouter<StringMessage>>);  //
+    FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
+    // FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //
     FOS_RUN_TEST(test_message_retain<LocalRouter<>>); //
 );
 

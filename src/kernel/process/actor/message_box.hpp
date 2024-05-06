@@ -12,7 +12,7 @@ public:
   virtual const uint16_t size() const { return 0; }
 
 protected:
-  virtual Option<T> pop() { return {}; }
+  virtual const Option<T> pop() { return {}; }
 };
 } // namespace fhatos::kernel
 

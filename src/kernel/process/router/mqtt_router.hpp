@@ -92,7 +92,11 @@ public:
   }
 
   virtual RESPONSE_CODE clear() override {
-    // MQTT_CLIENT::singleton()->stop();
+    _SUBSCRIPTIONS.forEach([this](const Subscription &subscription) {
+      this->xmqtt->unsubscribe(subscription.pattern.toString().c_str());
+    });
+    _SUBSCRIPTIONS.clear();
+    _PUBLICATIONS.clear();
     return RESPONSE_CODE::OK;
   }
 

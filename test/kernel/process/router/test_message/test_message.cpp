@@ -53,7 +53,7 @@ void test_float() {
   ///// FLOAT
   for (float i = -200000.123f; i < 200000.123f; i = i + 5.0f) {
 
-    if ((int(trunc(i))) % 50000 == 0) {
+    if (((int)i) % 50000 == 0) {
       FOS_TEST_MESSAGE("Testing float conversion: %.4f", i);
     }
     Message m{.source = ID("a"),

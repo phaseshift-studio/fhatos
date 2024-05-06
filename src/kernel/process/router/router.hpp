@@ -19,7 +19,7 @@ namespace fhatos::kernel {
 
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 struct Subscription {
-  MessageBox<Pair<const Subscription, const Message>> *actor;
+  MessageBox<Pair<const Subscription,const Message>> *actor;
   const ID source;
   const Pattern pattern;
   const QoS qos = _1;

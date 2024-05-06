@@ -44,8 +44,11 @@ public:
     for (const auto &subscription : SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
-          subscription.actor->push(
-              Pair<const Subscription &, const Message>(subscription, message));
+          if (subscription.actor) {
+            subscription.actor->push(std::make_pair(subscription, message));
+          } else {
+            subscription.onRecv(message);
+          }
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
           __rc = RESPONSE_CODE::OK;
         } catch (const std::runtime_error &e) {
@@ -91,10 +94,14 @@ public:
     ///// deliver retains
     for (const auto &retain : RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
-        subscription.actor->push(std::make_pair(subscription, retain.second));
+        if (subscription.actor) {
+          subscription.actor->push(std::make_pair(subscription, retain.second));
+        } else {
+          subscription.onRecv(retain.second);
+        }
       }
+      return __rc;
     }
-    return __rc;
   }
 
   const RESPONSE_CODE unsubscribe(const ID &source,
@@ -106,8 +113,8 @@ public:
     return unsubscribeX(source, nullptr);
   }
 
-private:
-  RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
+protected:
+  const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
     RESPONSE_CODE __rc;
     try {
       __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
