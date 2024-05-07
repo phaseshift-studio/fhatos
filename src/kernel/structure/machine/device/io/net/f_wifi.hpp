@@ -56,10 +56,6 @@ public:
     return &singleton;
   }
 
-  virtual const bool running() const override {
-    return WiFi.isConnected() && KernelProcess::running();
-  }
-
   static const IPAddress ip() { return WiFi.localIP(); }
 
   static const IPAddress resolve(const String &hostname) {

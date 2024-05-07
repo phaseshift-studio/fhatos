@@ -12,7 +12,7 @@ template <typename PROCESS = Fiber, typename ROUTER = LocalRouter<>>
 class fSerial : public Actor<PROCESS, ROUTER> {
 
 protected:
-  fSerial(const ID &id = fWIFI::idFromIP("serial"))
+ explicit fSerial(const ID &id = fWIFI::idFromIP("serial"))
       : Actor<PROCESS, ROUTER>(id) {}
 
 public:

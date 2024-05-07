@@ -10,9 +10,6 @@ namespace fhatos::kernel {
 
 class Thread : public Process {
 
-protected:
-  bool _running = true;
-
 public:
   TaskHandle_t handle{};
   explicit Thread(const ID &id) : Process(id, THREAD) {}
@@ -22,10 +19,6 @@ public:
   }
 
   virtual void yield() override { taskYIELD(); }
-
-  virtual void stop() override { this->_running = false; }
-
-  virtual const bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

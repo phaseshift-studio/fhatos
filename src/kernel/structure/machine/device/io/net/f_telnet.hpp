@@ -27,8 +27,8 @@ public:
     return &singleton;
   }
 
-  fTelnet(const ID &id = fWIFI::idFromIP("telnet"), const uint16_t port = 23,
-          const bool useAnsi = true)
+  explicit fTelnet(const ID &id = fWIFI::idFromIP("telnet"),
+                   const uint16_t port = 23, const bool useAnsi = true)
       : Actor<PROCESS, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)) {
     this->xtelnet = new ESPTelnet();
@@ -94,10 +94,11 @@ public:
         // else {
         //   LOG(ERROR, "Unknown message: %s", payload);
         // }
-      } else if (line.equals("?")) {
-        tthis->query(*tthis->currentTopic, [](const Message message) {
-          tthis->ansi->println(message.payload.toString().c_str());
-        });
+      } else if (line.startsWith("?")) {
+        tthis->query(tthis->currentTopic->query(line.substring(1)),
+                     [](const Message &message) {
+                       tthis->ansi->println(message.payload.toString().c_str());
+                     });
       } else if (line.startsWith("=>")) {
         const RESPONSE_CODE _rc =
             tthis->subscribe(*tthis->currentTopic, [](const Message message) {

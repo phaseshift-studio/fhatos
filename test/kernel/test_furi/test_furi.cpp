@@ -192,6 +192,9 @@ void test_furi_query() {
   TEST_ASSERT_EQUAL_STRING("a=1;b=2",
                            fURI("fhat@127.0.0.1?a=1;b=2").query().c_str());
   TEST_ASSERT_EQUAL_STRING("a;b;c", fURI("/a/b/c?a;b;c").query().c_str());
+  TEST_ASSERT_TRUE(fURI("127.0.0.1/a?query").hasQuery());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
+                         fURI("127.0.0.1/a?query").query(""));
   ////////////////
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a?a=1"),
                              fURI("127.0.0.1/a").query("a=1"));
@@ -255,6 +258,7 @@ void test_furi_match() {
   TEST_ASSERT_FALSE(ID("127.0.0.1/a/b").matches(fURI("127.0.0.2/?/b")));
   TEST_ASSERT_FALSE(ID("127.0.0.1").matches(fURI("127.0.0.1/+")));
   TEST_ASSERT_FALSE(ID("127.0.0.1/a/b/c").matches(fURI("127.0.0.1/+/+")));
+  TEST_ASSERT_FALSE(ID("127.0.0.1/abc").matches(fURI("127.0.0.1/abc/#")));
 }
 
 void test_id_construction() {

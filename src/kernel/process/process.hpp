@@ -9,6 +9,9 @@ namespace fhatos::kernel {
 
 class Process : public IDed {
 
+protected:
+  bool _running = true;
+
 public:
   const bool parent;
   enum Type { THREAD, FIBER, COROUTINE, KERNEL };
@@ -23,9 +26,9 @@ public:
 
   virtual void loop() {}
 
-  virtual void stop() {};
+  virtual void stop() { this->_running = false; };
 
-  virtual const bool running() const { return true; }
+  const bool running() const { return this->_running; }
 
   virtual void delay(const uint64_t milliseconds) {};
 
@@ -38,6 +41,15 @@ protected:
   List<PROCESS *> _children;
 
 public:
+  const void loopChildren() {
+    for (PROCESS *child : this->_children) {
+      if (!child->running()) {
+        delete child;
+      } else {
+        child->loop();
+      }
+    }
+  }
   const uint8_t searchChildren(
       const Pattern &childPattern,
       const Consumer<PROCESS *> onFind = [](PROCESS *proc) {},
@@ -86,16 +98,9 @@ class KernelProcess : public Process {
 public:
   explicit KernelProcess(const ID &id) : Process(id, KERNEL) {}
 
-  void stop() override { this->_running = false; };
-
-  virtual const bool running() const override { return this->_running; }
-
   void delay(const uint64_t milliseconds) override { ::delay(milliseconds); }
 
   void yield() override { ::yield(); }
-
-protected:
-  bool _running = true;
 };
 
 } // namespace fhatos::kernel

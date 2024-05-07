@@ -29,12 +29,14 @@ public:
     return this->inbox.push_back(mail);
   }
 
-  const bool query(const ID &id, const Consumer<const Message> onRecv) {
-    this->subscribe(id, [this, id, onRecv](const Message message) {
-      this->unsubscribe(id);
-      onRecv(message);
+  const void query(const ID &queryId, const Consumer<const Message> onRecv) {
+    this->publish(queryId.query(""), ("?" + queryId.query()), TRANSIENT_MESSAGE);
+    this->subscribe(queryId, [this, queryId, onRecv](const Message message) {
+      if (message.retain) {
+        onRecv(message);
+        this->unsubscribe(queryId);
+      }
     });
-    return true;
   }
 
   const uint16_t size() const override { return inbox.size(); }

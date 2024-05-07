@@ -12,14 +12,12 @@ template <typename ROUTER> class Publisher {
 public:
   IDed *ided;
   Mailbox<Mail> *mailbox;
-  Publisher(
-      IDed *ided,
-      Mailbox<Mail> *messageBox = nullptr)
+  Publisher(IDed *ided, Mailbox<Mail> *messageBox = nullptr)
       : ided(ided), mailbox(messageBox) {}
 
   /// SUBSCRIBE
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
-                                        const Consumer<const Message&> onRecv,
+                                        const Consumer<const Message &> onRecv,
                                         const QoS qos = QoS::_1) {
     return ROUTER::singleton()->subscribe(
         Subscription{.mailbox = this->mailbox,
@@ -50,45 +48,52 @@ public:
 
   /////////////////////////////////////////////////////////////////////////////////////////
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const bool payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromBool(payload), retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const int payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const int payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromInt(payload), retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const long payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const long payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromInt((int)payload),
                          retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const float payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const float payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromFloat(payload), retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const double payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const double payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromFloat((float)payload),
                          retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const char *payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromString(payload), retain);
   }
 
-  const RESPONSE_CODE publish(const ID &relativeTarget, const String &payload,
-                              const bool retain = TRANSIENT_MESSAGE) {
+  inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                     const String &payload,
+                                     const bool retain = TRANSIENT_MESSAGE) {
     return this->publish(relativeTarget, Payload::fromString(payload), retain);
   }
 
 private:
-  Pattern makeTopic(const Pattern &relativeTopic) {
+  const Pattern makeTopic(const Pattern &relativeTopic) const {
     return relativeTopic.empty()
                ? Pattern(this->ided->id())
                : (relativeTopic.toString().startsWith(F("/"))

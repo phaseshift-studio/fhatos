@@ -12,7 +12,7 @@ namespace fhatos::kernel {
 template <typename PROCESS = Fiber> class fOTA : public PROCESS {
 
 private:
-  fOTA(const ID &id = fWIFI::idFromIP("kernel", "ota"),
+  explicit fOTA(const ID &id = fWIFI::idFromIP("kernel", "ota"),
        const uint16_t port = 3232)
       : PROCESS(id), port(port) {
     ArduinoOTA.setHostname(id.toString().c_str());

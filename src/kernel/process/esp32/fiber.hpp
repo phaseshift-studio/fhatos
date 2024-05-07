@@ -10,9 +10,6 @@ namespace fhatos::kernel {
 
 class Fiber : public Process {
 
-protected:
-  bool _running = true;
-
 public:
   TaskHandle_t handle{};
    explicit Fiber(const ID &id) : Process(id,FIBER) {}
@@ -26,9 +23,6 @@ public:
     // do nothing
    }
 
-   void stop() override { this->_running = false; }
-
-    virtual const bool running() const override { return this->_running; }
 };
 } // namespace fhatos::kernel
 

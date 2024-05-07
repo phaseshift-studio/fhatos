@@ -256,6 +256,8 @@ public:
     }
   }
 
+  const bool hasQuery() const { return this->toString().indexOf("?") != -1; }
+
   const String query() const {
     for (uint8_t i = 0; i < this->_length; i++) {
       char *ptr = strchr(_segments[i], '?');
@@ -267,14 +269,14 @@ public:
   }
 
   const fURI query(const String &query) const {
-    if (query.isEmpty())
-      return *this;
-    else
-      return fURI(this->toString() + "?" + query);
+    const String temp = this->toString();
+    const int index = temp.indexOf("?");
+    const fURI furi = -1 == index ? *this : fURI(temp.substring(0, index));
+    return query.isEmpty() ? furi : fURI(furi.toString() + "?" + query);
   }
 
   virtual const bool colocated(const fURI &other) const {
-    return strcmp(_segments[0], other._segments[0]) == 0;
+    return this->host().equals(other.host());
   }
 
   // const char *c_str() const { return this->toString().c_str(); }
