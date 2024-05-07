@@ -53,10 +53,10 @@ protected:
                               .length = doc["length"].as<uint>()},
                   .retain = doc["retain"].as<bool>()};
               //LOG(INFO, "Message: %s\n", message.toString().c_str());
-              if (subscription.actor) {
-                subscription.actor->push(std::make_pair(subscription, message));
+              if (subscription.mailbox) {
+                subscription.mailbox->push(Mail(subscription, message)); // if mailbox, put in mailbox
               } else {
-                subscription.onRecv(message);
+                subscription.onRecv(message); // else, evaluate callback
               }
               // delete[] results;
             }

@@ -4,32 +4,33 @@
 #include <fhatos.hpp>
 //
 #include <kernel/furi.hpp>
+#include <kernel/process/actor/mailbox.hpp>
 #include <kernel/process/router/message.hpp>
-#include <kernel/process/actor/message_box.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
 
 namespace fhatos::kernel {
-  
+
 ///////////////////////////////////////////////////
 /////////////// SUBSCRIPTION STRUCT ///////////////
 ///////////////////////////////////////////////////
 
 enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 struct Subscription {
-  MessageBox<Pair<const Subscription,const Message>> *actor;
+  using Mail = Pair<const Subscription, const Message>;
+  Mailbox<Mail> *mailbox;
   const ID source;
   const Pattern pattern;
   const QoS qos = _1;
-  const Consumer<Message> onRecv;
+  const Consumer<const Message> onRecv;
   const bool match(const ID &target) const {
     return this->pattern.matches(target);
   }
   void execute(const Message &message) const { onRecv(message); }
 };
-
+using Mail = Pair<const Subscription, const Message>;
 //////////////////////////////////////////////
 /////////////// ERROR MESSAGES ///////////////
 //////////////////////////////////////////////

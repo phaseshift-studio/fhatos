@@ -44,8 +44,8 @@ public:
     for (const auto &subscription : SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
-          if (subscription.actor) {
-            subscription.actor->push(std::make_pair(subscription, message));
+          if (subscription.mailbox) {
+            subscription.mailbox->push(Mail(subscription, message));
           } else {
             subscription.onRecv(message);
           }
@@ -55,13 +55,13 @@ public:
           LOG_EXCEPTION(e);
           __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
         }
-        // LOG_PUBLISH(__rc ? ERROR : INFO, message);
+        LOG_PUBLISH(__rc ? ERROR : INFO, message);
       }
     }
     if (message.retain) {
       MUTEX_RETAIN.lockUnlock<void *>([this, message]() {
         RETAINS.erase(message.target);
-        RETAINS.emplace(message.target, message);
+        RETAINS.emplace(message.target, Message(message));
         return nullptr;
       });
     }
@@ -92,10 +92,10 @@ public:
     }
     LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
     ///// deliver retains
-    for (const auto &retain : RETAINS) {
+    for (const Pair<ID, Message> &retain : RETAINS) {
       if (retain.first.matches(subscription.pattern)) {
-        if (subscription.actor) {
-          subscription.actor->push(std::make_pair(subscription, retain.second));
+        if (subscription.mailbox) {
+          subscription.mailbox->push(Mail(subscription, retain.second));
         } else {
           subscription.onRecv(retain.second);
         }

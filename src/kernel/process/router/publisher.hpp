@@ -1,7 +1,7 @@
 #ifndef fhatos_kernel__publisher_hpp
 #define fhatos_kernel__publisher_hpp
 
-#include <kernel/process/actor/message_box.hpp>
+#include <kernel/process/actor/mailbox.hpp>
 #include <kernel/process/router/message.hpp>
 #include <kernel/process/router/router.hpp>
 
@@ -11,18 +11,18 @@ template <typename ROUTER> class Publisher {
 
 public:
   IDed *ided;
-  MessageBox<Pair<const Subscription, const Message>> *messageBox;
+  Mailbox<Mail> *mailbox;
   Publisher(
       IDed *ided,
-      MessageBox<Pair<const Subscription, const Message>> *messageBox = nullptr)
-      : ided(ided), messageBox(messageBox) {}
+      Mailbox<Mail> *messageBox = nullptr)
+      : ided(ided), mailbox(messageBox) {}
 
   /// SUBSCRIBE
   virtual const RESPONSE_CODE subscribe(const Pattern &relativePattern,
-                                        const Consumer<Message> onRecv,
+                                        const Consumer<const Message&> onRecv,
                                         const QoS qos = QoS::_1) {
     return ROUTER::singleton()->subscribe(
-        Subscription{.actor = this->messageBox,
+        Subscription{.mailbox = this->mailbox,
                      .source = this->ided->id(),
                      .pattern = makeTopic(relativePattern),
                      .qos = qos,

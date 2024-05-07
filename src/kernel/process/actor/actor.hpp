@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/actor/message_box.hpp>
+#include <kernel/process/actor/mailbox.hpp>
 #include <kernel/process/router/message.hpp>
 #include <kernel/process/router/meta_router.hpp>
 #include <kernel/process/router/publisher.hpp>
@@ -15,19 +15,26 @@
 namespace fhatos::kernel {
 
 template <typename PROCESS, typename ROUTER = MetaRouter<>>
-class Actor : public PROCESS,
-              public Publisher<ROUTER>,
-              public MessageBox<Pair<const Subscription, const Message>> {
+class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<Mail> {
 public:
   explicit Actor(const ID &id) : PROCESS(id), Publisher<ROUTER>(this, this) {
     static_assert(std::is_base_of_v<Process, PROCESS>);
-    //static_assert(std::is_base_of_v<Router, ROUTER>);
+    // static_assert(std::is_base_of_v<Router, ROUTER>);
   }
- 
+
+  //~Actor() { this->inbox.clear(); }
+
   // PAYLOAD BOX METHODS
-  const bool
-  push(const Pair<const Subscription, const Message> mail) override {
+  const bool push(const Mail mail) override {
     return this->inbox.push_back(mail);
+  }
+
+  const bool query(const ID &id, const Consumer<const Message> onRecv) {
+    this->subscribe(id, [this, id, onRecv](const Message message) {
+      this->unsubscribe(id);
+      onRecv(message);
+    });
+    return true;
   }
 
   const uint16_t size() const override { return inbox.size(); }
@@ -56,18 +63,15 @@ public:
   }
 
 protected:
-  MutexDeque<Pair<const Subscription, const Message>> inbox;
+  MutexDeque<Mail> inbox;
 
-  const Option<Pair<const Subscription, const Message>> pop() override {
-    return this->inbox.pop_front();
-  }
+  const Option<Mail> pop() override { return this->inbox.pop_front(); }
 
   virtual bool next() {
-    const Option<Pair<const Subscription, const Message>> mail = this->pop();
+    const Option<Mail> mail = this->pop();
     if (!mail.has_value())
       return false;
     mail->first.execute(mail->second);
-    // delete mail->second.payload.data;
     return true;
   }
 };

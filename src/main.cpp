@@ -1,18 +1,19 @@
 #include <fhatos.hpp>
-#include <kernel/process/router/local_router.hpp>
-#include <kernel/process/router/mqtt_router.hpp>
+
+#include FOS_MODULE(io/net/f_wifi.hpp)
 #include <kernel/structure/f_soc.hpp>
-#include <kernel/structure/machine/device/io/f_log.hpp>
-#include <kernel/structure/machine/device/io/f_serial.hpp>
-#include <kernel/structure/machine/device/io/net/f_ota.hpp>
-#include <kernel/structure/machine/device/io/net/f_ping.hpp>
-#include <kernel/structure/machine/device/io/net/f_telnet.hpp>
-#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
+#include FOS_ROUTER(local_router.hpp)
+#include FOS_ROUTER(mqtt_router.hpp)
+#include FOS_MODULE(io/f_log.hpp)
+#include FOS_MODULE(io/f_serial.hpp)
+#include FOS_MODULE(io/net/f_ota.hpp)
+#include FOS_MODULE(io/net/f_ping.hpp)
+#include FOS_MODULE(io/net/f_telnet.hpp)
 
-#define MAIN_ROUTER MqttRouter<>
+#define MAIN_ROUTER LocalRouter<>
 
 using namespace fhatos::kernel;
 

@@ -11,5 +11,5 @@ __FhatOS__
     )-)_/-(>  \/_/    \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
                                     A Dogturd Stynx Production
 
-Fabric-Oriented Operating System for ESP32 and ESP8266 Microcontrollers
+A Process-Centric Operating System for ESP32 and ESP8266 Microprocessors
 ```

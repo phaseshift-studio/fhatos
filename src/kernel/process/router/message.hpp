@@ -26,6 +26,10 @@ struct Payload {
   const MType type;
   const byte *data;
   const uint length;
+/*  ~Payload() {
+    if (data)
+      delete[] data;
+  }*/
   //////////////////
   const bool toBool() const {
     switch (type) {
@@ -106,7 +110,7 @@ struct Payload {
     return {.type = REAL, .data = (const byte *)temp, .length = size};
   }
 
-  static const Payload fromString(const String xstring) {
+  static const Payload fromString(const String &xstring) {
     char *temp = strdup(xstring.c_str());
     temp[xstring.length()] = '\0';
     return {
@@ -127,6 +131,10 @@ public:
   /*Message(ID source, ID target, PAYLOAD payload, const bool retain = false)
       : source(std::move(source)), target(std::move(target)),
         payload(std::move(payload)), retain(retain) {};*/
+
+  template <MType type> const bool is() const {
+    return type == this->payload.type;
+  }
 
   const String toString() const {
     char temp[100];

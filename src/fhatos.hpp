@@ -146,7 +146,7 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
     return "NONE";
   };
 }
-
+#define FOS_TAB "  "
 #define FP_BOOL_STR(a) a ? "true" : "false"
 #define CONCAT(a, b) XCONCAT(a, b)
 #define XCONCAT(a, b) a##b
@@ -169,7 +169,8 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 #define LOG_PUBLISH(logtype, message)                                          \
   LOG((logtype), "[!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",       \
       (message.source.toString().c_str()), (FP_BOOL_STR(message.retain)),      \
-      (message.payload.c_str()), (message.target.toString().c_str()))
+      (message.payload.toString().c_str()),                                    \
+      (message.target.toString().c_str()))
 #define LOG_RECEIVE(logtype, subscription, message)                            \
   LOG((logtype),                                                               \
       ((subscription).pattern.equals((message).target))                        \
@@ -179,11 +180,11 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
       (subscription.source.toString().c_str()),                                \
       (subscription.pattern.toString().c_str()),                               \
       (subscription.pattern.equals(message.target))                            \
-          ? (message.payload.c_str())                                          \
+          ? (message.payload.toString().c_str())                               \
           : (message.target.toString().c_str()),                               \
       (subscription.pattern.equals(message.target))                            \
           ? (message.source.toString().c_str())                                \
-          : (message.payload.c_str()),                                         \
+          : (message.payload.toString)().c_str()),                                         \
       (message.source.toString().c_str()))
 
 ////////////////////////////
@@ -197,13 +198,14 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 #else
 #error "Unknown architecture."
 #endif
+#define FOS_ROUTER(rout) <kernel/process/router/rout>
+#define FOS_MODULE(modu) <kernel/structure/machine/device/modu>
 
 ///////////////////
 // !!TO REMOVE!! //
 ///////////////////
 
-template <typename K, typename V>
-static String mapString(const Map<K, V> map) {
+template <typename K, typename V> static String mapString(const Map<K, V> map) {
   String temp = "[\n";
   for (const auto &kv : map) {
     temp = temp + kv.first + ":" + kv.second->toString() + "\n";

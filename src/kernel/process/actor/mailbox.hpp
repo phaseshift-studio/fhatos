@@ -5,7 +5,7 @@
 
 namespace fhatos::kernel {
 
-template <typename T> struct MessageBox {
+template <typename T> struct Mailbox {
 public:
   virtual const bool push(const T message) { return true; }
 

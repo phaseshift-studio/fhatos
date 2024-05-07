@@ -3,8 +3,8 @@
 
 #include <fhatos.hpp>
 //
-#include <kernel/process/process.hpp>
 #include <kernel/furi.hpp>
+#include <kernel/process/process.hpp>
 
 namespace fhatos::kernel {
 
@@ -14,19 +14,16 @@ protected:
   bool _running = true;
 
 public:
-
   TaskHandle_t handle{};
-  explicit Thread(const ID &id) : Process(id,THREAD) {}
+  explicit Thread(const ID &id) : Process(id, THREAD) {}
 
-  void delay(const uint64_t milliseconds) override {
+  virtual void delay(const uint64_t milliseconds) override {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
   }
 
-  virtual void loop() override { Process::loop(); }
+  virtual void yield() override { taskYIELD(); }
 
-  void yield() override { taskYIELD(); }
-
-  void stop() override { this->_running = false; }
+  virtual void stop() override { this->_running = false; }
 
   virtual const bool running() const override { return this->_running; }
 };

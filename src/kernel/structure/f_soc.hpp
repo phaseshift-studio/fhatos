@@ -4,11 +4,14 @@
 #include <fhatos.hpp>
 #include <kernel/furi.hpp>
 #include <kernel/process/actor/actor.hpp>
-#include <kernel/structure/machine/device/io/net/f_wifi.hpp>
+#include FOS_PROCESS(fiber.hpp)
+#include FOS_ROUTER(local_router.hpp)
+#include FOS_MODULE(io/net/f_wifi.hpp)
+
 
 namespace fhatos::kernel {
 
-template <typename PROCESS, typename ROUTER>
+template <typename PROCESS = Fiber, typename ROUTER = LocalRouter<>>
 class fSoC : public Actor<PROCESS, ROUTER> {
 
 protected:

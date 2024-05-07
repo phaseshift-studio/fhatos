@@ -8,28 +8,43 @@
 
 namespace fhatos::kernel {
 
+struct PingRoutine : public Coroutine {
+  String host;
+  String ip;
+  uint16_t counter = 0;
+  uint16_t success = 0;
+  // float totalTime = 0.0f;
+
+  explicit PingRoutine(const ID &id) : Coroutine(id) {
+    this->host = id.path();
+    this->ip = fWIFI::resolve(this->host).toString();
+  }
+  const float failureRate() const {
+    return (((float)(counter - success)) / ((float)counter)) * 100.0f;
+  }
+};
+
 template <typename PROCESS = Fiber, typename ROUTER = LocalRouter<>>
-class fPing : public Actor<PROCESS, ROUTER> {
+class fPing : public Actor<PROCESS, ROUTER>, public ParentProcess<PingRoutine> {
 public:
   explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
-      : Actor<PROCESS, ROUTER>(id) {}
+      : Actor<PROCESS, ROUTER>(id), ParentProcess<PingRoutine>() {}
 
-  ~fPing() {
-    this->stop();
-    delete this->pingData;
-  }
+  ~fPing() { this->stop(); }
+
+  void stop() override { this->destroyChildren(); }
 
   void setup() override {
+    this->updateBBS();
     this->subscribe(this->id().extend("#"), [this](const Message &message) {
       if (message.target.subfuri(this->id())) {
-        if (message.payload.type == BOOL) {
-          if (!message.payload.toBool() && this->pingData) {
-            delete this->pingData;
-            this->pingData = nullptr;
-          }
-          if (message.payload.toBool()) {
-            if (!this->pingData)
-              this->pingData = new PingData(message.target.path());
+        if (message.is<BOOL>()) {
+          if (!message.payload.toBool()) {
+            this->destroyChildren(message.target);
+          } else {
+            if (0 == this->searchChildren(Pattern(message.target))) {
+              this->_children.emplace_back(new PingRoutine(message.target));
+            }
           }
         }
       }
@@ -37,50 +52,52 @@ public:
   }
 
   void loop() override {
+
     Actor<PROCESS, ROUTER>::loop();
-    // 64 bytes from 172.217.12.142: icmp_seq=0 ttl=116 time=87.243 ms
-    if (this->pingData) {
-      this->pingData->counter++;
+    // 64 bytes from fhatos.org [172.217.12.142]: icmp_seq=0 ttl=116 time=87.243
+    // ms
+    static int loops = 0;
+    if (loops % 10 == 0)
+      this->updateBBS();
+    for (PingRoutine *pinger : this->_children) {
+      pinger->counter++;
       char *message = new char[100];
-      if (this->xping.ping(this->pingData->host.c_str(), 1)) {
-        this->pingData->success++;
+      if (this->xping.ping(pinger->host.c_str(), 1)) {
+        pinger->success++;
         // this->pingData->totalTime += ::Ping.averageTime();
-        sprintf(message, "64 bytes from %s: icmp_seq=%i time=%.3f ms",
-                this->pingData->ip.c_str(), this->pingData->counter,
+        sprintf(message, "64 bytes from %s [%s]: icmp_seq=%i time=%.3f ms",
+                pinger->host.c_str(), pinger->ip.c_str(), pinger->counter,
                 this->xping.averageTime());
 
       } else {
-        sprintf(message, "Request timeout for icmp_seq %i failure_rate=%.2f%%",
-                this->pingData->counter, this->pingData->failureRate());
+        sprintf(
+            message,
+            "Request timeout for %s [unknown] icmp_seq %i failure_rate=%.2f%%",
+            pinger->host.c_str(), pinger->counter, pinger->failureRate());
       }
-      this->publish(this->id().extend(this->pingData->host.c_str()), message,
+      this->publish(this->id().extend(pinger->host.c_str()), message,
                     TRANSIENT_MESSAGE);
       // delete[] message;
     }
+
     delay(1000);
   }
 
 protected:
-  struct PingData {
-    String host;
-    String ip;
-    uint16_t counter = 0;
-    uint16_t success = 0;
-    // float totalTime = 0.0f;
-
-    explicit PingData(const String &host) {
-      this->host = host;
-      this->ip = fWIFI::resolve(this->host).toString();
-    }
-    const float failureRate() const {
-      return (((float)(counter - success)) / ((float)counter)) * 100.0f;
-    }
-    // const float successRate() const { return success / counter; }
-    // const float averageTime() const { return totalTime / success; }
-  };
   ::PingClass xping = ::Ping;
-  PingData *pingData =
-      nullptr; // make PingData a coroutine and make an array of them
+  void updateBBS() {
+    String message = "\n!M!_" + this->id().toString() + "!!\n";
+    for (PingRoutine *pinger : this->_children) {
+      char line[256];
+      sprintf(line,
+              FOS_TAB "!b\\_!!!r%s!!\n" FOS_TAB "" FOS_TAB "" FOS_TAB
+                      "[!gip!!:!b%s!!][!gcounter!!:!b%i!!][!gsuccess!!:!b%.2f%%!!]\n",
+              pinger->id().toString().c_str(), pinger->ip.c_str(),
+              pinger->counter, 100.0f - pinger->failureRate());
+      message = message + line;
+    }
+    this->publish(this->id(), message, RETAIN_MESSAGE);
+  }
 };
 } // namespace fhatos::kernel
 

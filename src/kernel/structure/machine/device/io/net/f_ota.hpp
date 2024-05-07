@@ -4,6 +4,7 @@
 #include <fhatos.hpp>
 #include <kernel/process/actor/actor.hpp>
 #include FOS_PROCESS(fiber.hpp)
+#include FOS_MODULE(io/net/f_wifi.hpp)
 #include <ArduinoOTA.h>
 
 namespace fhatos::kernel {

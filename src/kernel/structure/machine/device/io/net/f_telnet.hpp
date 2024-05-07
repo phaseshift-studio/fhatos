@@ -39,6 +39,7 @@ public:
   ~fTelnet() {
     delete this->currentTopic;
     delete this->ansi;
+    delete this->xtelnet;
   }
 
   void setup() override {
@@ -93,9 +94,13 @@ public:
         // else {
         //   LOG(ERROR, "Unknown message: %s", payload);
         // }
-      } else if (line.startsWith("=>") || line.equals("?")) {
+      } else if (line.equals("?")) {
+        tthis->query(*tthis->currentTopic, [](const Message message) {
+          tthis->ansi->println(message.payload.toString().c_str());
+        });
+      } else if (line.startsWith("=>")) {
         const RESPONSE_CODE _rc =
-            tthis->subscribe(*tthis->currentTopic, [](const Message &message) {
+            tthis->subscribe(*tthis->currentTopic, [](const Message message) {
               /*if (!tthis->previousMessage ||
                   !tthis->previousMessage->first.equals(message.source) ||
                   !tthis->previousMessage->second.equals(message.target)) {
@@ -109,18 +114,14 @@ public:
                 tthis->previousMessage =
                     new Pair<ID, ID>(message.source, message.target);*/
               //}
+
               tthis->xtelnet->println(
                   message.payload.toString().c_str()); // TODO: ansi off/on
             });
-        if (line.equals("?")) {
-          delay(1000);
-          tthis->next();
-          tthis->unsubscribe(*tthis->currentTopic);
-        } else {
-          tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
-                              _rc ? "!RERROR" : "!GOK",
-                              tthis->currentTopic->toString().c_str());
-        }
+
+        tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
+                            _rc ? "!RERROR" : "!GOK",
+                            tthis->currentTopic->toString().c_str());
       } else if (line.startsWith("=|")) {
         const RESPONSE_CODE _rc = tthis->unsubscribe(*tthis->currentTopic);
         tthis->ansi->printf("[%s!!] Unsubscribed from !b%s!!\n",
