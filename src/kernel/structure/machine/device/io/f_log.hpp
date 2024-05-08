@@ -24,8 +24,7 @@ public:
     const ID serialID = fWIFI::idFromIP("serial");
     // INFO LOGGING
     this->subscribe(
-        this->id().extend("INFO"),
-        [this, serialID](const auto &message) {
+        this->id().extend("INFO"), [this, serialID](const auto &message) {
           this->publish(
               serialID,
               this->createLogMessage(INFO, message.payload.toString()).c_str(),
@@ -33,8 +32,7 @@ public:
         });
     // ERROR LOGGING
     this->subscribe(
-        this->id().extend("ERROR"),
-        [this, serialID](const auto &message) {
+        this->id().extend("ERROR"), [this, serialID](const auto &message) {
           this->publish(
               serialID,
               this->createLogMessage(INFO, message.payload.toString()).c_str(),

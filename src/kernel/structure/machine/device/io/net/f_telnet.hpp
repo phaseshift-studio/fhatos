@@ -69,31 +69,11 @@ public:
         });
       } else if (line.startsWith("<=")) {
         const String payload = (line.length() == 2) ? "" : line.substring(2);
-        String type;
-        if ((payload.startsWith("'") && payload.endsWith("'")) ||
-            (payload.startsWith("\"") && payload.endsWith("\""))) {
-          tthis->publish(*tthis->currentTopic,
-                         payload.substring(1, payload.length() - 1),
-                         TRANSIENT_MESSAGE);
-          type = "STR";
-        } else if (payload.equals("true") || payload.equals("false")) {
-          tthis->publish(*tthis->currentTopic, payload.equals("true"),
-                         TRANSIENT_MESSAGE);
-          type = "BOOL";
-        } else if (payload.endsWith("f")) {
-          tthis->publish(*tthis->currentTopic,
-                         payload.substring(0, payload.length() - 1).toFloat(),
-                         TRANSIENT_MESSAGE);
-          type = "REAL";
-        } else {
-          tthis->publish(*tthis->currentTopic, (int)payload.toInt(),
-                         TRANSIENT_MESSAGE);
-          type = "INT";
-        }
-        LOG(DEBUG, "Telnet publishing: %s::%s\n", type, payload.c_str());
-        // else {
-        //   LOG(ERROR, "Unknown message: %s", payload);
-        // }
+        Payload conversion = Payload::interpret(payload);
+        tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
+        LOG(DEBUG, "Telnet publishing: %s::%s\n",
+            MTYPE_NAMES.at(conversion.type).c_str(),
+            conversion.toString().c_str());
       } else if (line.startsWith("?")) {
         tthis->query(tthis->currentTopic->query(line.substring(1)),
                      [](const Message &message) {
@@ -149,13 +129,13 @@ public:
           tthis->xtelnet->disconnectClient();
         } else if (line.equals(":ansi")) {
           //    TCHECK(true, PRINTF("ANSI turned %s\n",
-          //                       ((T.useAnsi = !T.useAnsi) ? "ON" : "OFF")));
+          //                       ((T.useAnsi = !T.useAnsi) ? "ON" :
+          //                       "OFF")));
         } else {
           tthis->ansi->printf("[!RERROR!!] Unknown command: %s\n",
                               line.substring(1).c_str());
         }
       } else if (line.startsWith("?")) {
-
       } else {
         tthis->currentTopic = new ID(ID(line).resolve(*tthis->currentTopic));
       }

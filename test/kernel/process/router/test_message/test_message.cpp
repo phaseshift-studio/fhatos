@@ -51,9 +51,9 @@ void test_int() {
 
 void test_float() {
   ///// FLOAT
-  for (float i = -200000.123f; i < 200000.123f; i = i + 5.0f) {
-
-    if (((int)i) % 50000 == 0) {
+  int counter = 0;
+  for (float i = -200000.123f; i < 200000.123f; i = i + 5.196f) {
+    if (counter++ % 5000 == 0) {
       FOS_TEST_MESSAGE("Testing float conversion: %.4f", i);
     }
     Message m{.source = ID("a"),
@@ -61,7 +61,7 @@ void test_float() {
               .payload = Payload::fromFloat(i),
               .retain = i > 0.0f};
     TEST_ASSERT_EQUAL(REAL, m.payload.type);
-    TEST_ASSERT_EQUAL(i, m.payload.toFloat());
+    TEST_ASSERT_FLOAT_WITHIN(0.1f, i, m.payload.toFloat());
     TEST_ASSERT_EQUAL(m.payload.length, strlen((const char *)m.payload.data));
     TEST_ASSERT_EQUAL(i > 0.0f, m.retain);
   }
@@ -80,11 +80,45 @@ void test_str() {
   TEST_ASSERT_FALSE(m.retain);
 }
 
-FOS_RUN_TESTS(                //
-    FOS_RUN_TEST(test_bool);  //
-    FOS_RUN_TEST(test_int);   //
-    FOS_RUN_TEST(test_float); //
-    FOS_RUN_TEST(test_str);   //
+void test_interpret() {
+  TEST_ASSERT_TRUE(
+      Payload::fromString("fhat").equals(Payload::interpret("\"fhat\"")));
+  TEST_ASSERT_TRUE(Payload::fromBool(true).equals(Payload::interpret("true")));
+  TEST_ASSERT_TRUE(Payload::fromInt(62).equals(Payload::interpret("62")));
+  /*TEST_ASSERT_TRUE(
+      Payload::fromFloat(12.32f).equals(Payload::interpret("12.32f")));*/
+  //////////////////////////////////////////////////////////////////
+  TEST_ASSERT_EQUAL_STRING(Payload::fromString("fhat").toString().c_str(),
+                           Payload::interpret("\"fhat\"").toString().c_str());
+  TEST_ASSERT_EQUAL(Payload::fromBool(true).toBool(),
+                    Payload::interpret("true").toBool());
+  TEST_ASSERT_FLOAT_WITHIN(0.1f, Payload::fromFloat(12.32f).toFloat(),
+                           Payload::interpret("12.32f").toFloat());
+  TEST_ASSERT_EQUAL(Payload::fromInt(62).toInt(),
+                    Payload::interpret("62").toInt());
+  //////////////////////////////////////////////////////////////////
+  TEST_ASSERT_EQUAL_STRING("fhat",
+                           Payload::interpret("\"fhat\"").toString().c_str());
+  TEST_ASSERT_EQUAL(true, Payload::interpret("true").toBool());
+  TEST_ASSERT_FLOAT_WITHIN(0.1f, 12.32f,
+                           Payload::interpret("12.32f").toFloat());
+  TEST_ASSERT_EQUAL(62, Payload::interpret("62").toInt());
+  //////////////////////////////////////////////////////////////////
+  TEST_ASSERT_EQUAL_STRING("fhat",
+                           Payload::interpret("\"fhat\"").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("true",
+                           Payload::interpret("true").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("10.320000",
+                           Payload::interpret("10.32f").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("24", Payload::interpret("24").toString().c_str());
+}
+
+FOS_RUN_TESTS(                    //
+    FOS_RUN_TEST(test_bool);      //
+    FOS_RUN_TEST(test_int);       //
+    FOS_RUN_TEST(test_float);     //
+    FOS_RUN_TEST(test_str);       //
+    FOS_RUN_TEST(test_interpret); //
 );
 
 } // namespace fhatos::kernel

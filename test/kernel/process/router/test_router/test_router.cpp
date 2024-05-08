@@ -19,7 +19,7 @@ void test_publish() {
                     LocalRouter<>::singleton()->publish(Message{
                         .source = ID("a"),
                         .target = ID("b"),
-                        .payload = {.type = STR, .data = (byte *)"test", 4},
+                        .payload = {.type = STR, .data = (byte *)"test", .length=4},
                         .retain = TRANSIENT_MESSAGE}));
 };
 

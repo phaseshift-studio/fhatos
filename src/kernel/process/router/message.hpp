@@ -21,15 +21,20 @@ const Map<MType, String> MTYPE_NAMES = {{{OBJ, F("obj")},
                                          {STR, F("str")},
                                          {LST, F("lst")},
                                          {REC, F("rec")}}};
-
 struct Payload {
   const MType type;
   const byte *data;
   const uint length;
-/*  ~Payload() {
-    if (data)
-      delete[] data;
-  }*/
+  /*  ~Payload() {
+      if (data)
+        delete[] data;
+    }*/
+  //////////////////
+  const bool equals(const Payload &other) const {
+    return (this->type == other.type) &&
+           (strcmp((char *)this->data, (char *)other.data) == 0) &&
+           (this->length == other.length);
+  }
   //////////////////
   const bool toBool() const {
     switch (type) {
@@ -50,7 +55,7 @@ struct Payload {
     case BOOL:
       return this->toBool() ? 1 : 0;
     case INT:
-      return atoi((const char *)this->data);
+      return (int)atoi((const char *)this->data);
     case REAL:
       return (int)this->toFloat();
     case STR:
@@ -67,7 +72,9 @@ struct Payload {
     case INT:
       return (float)this->toInt();
     case REAL:
-      return (float)atof((const char *)this->data);
+      return (float)atof(
+          (const char *)this
+              ->data); //(float)String((const char *)this->data).toFloat();
     case STR:
       return this->toString().toFloat();
     default:
@@ -81,8 +88,12 @@ struct Payload {
       return String(this->toBool() ? "true" : "false");
     case INT:
       return String(this->toInt());
-    case REAL:
-      return String(this->toFloat(), 4);
+    case REAL: {
+      char temp[15];
+      uint size = sprintf(temp, "%f", this->toFloat());
+      temp[size] = '\0';
+      return String(temp);
+    }
     case STR:
       return String(this->data, this->length);
     default:
@@ -96,16 +107,15 @@ struct Payload {
   }
 
   static const Payload fromInt(const int xint) {
-    char temp[10];
-    itoa(xint, temp, 10);
-    uint size = strlen(temp);
+    char temp[15];
+    uint size = sprintf(temp, "%i", xint);
     temp[size] = '\0';
     return {.type = INT, .data = (const byte *)temp, .length = size};
   }
 
   static const Payload fromFloat(const float xfloat) {
-    char temp[20];
-    uint size = snprintf(temp, sizeof(temp), "%.4f", xfloat);
+    char temp[15];
+    uint size = sprintf(temp, "%.4f", xfloat);
     temp[size] = '\0';
     return {.type = REAL, .data = (const byte *)temp, .length = size};
   }
@@ -115,6 +125,22 @@ struct Payload {
     temp[xstring.length()] = '\0';
     return {
         .type = STR, .data = (const byte *)temp, .length = xstring.length()};
+  }
+
+  static const Payload interpret(const String &line) {
+    if (line.startsWith("\"") && line.endsWith("\""))
+      return Payload::fromString(line.substring(1, line.length() - 1));
+    else if (line.equals("true") || line.equals("false"))
+      return Payload::fromBool(line.equals("true"));
+    else if (line.endsWith("f")) {
+      char *c = strdup(line.substring(0, line.length() - 1).c_str());
+      c[line.length() - 1] = '\0';
+      return Payload::fromFloat((float)atof(c));
+    } else {
+      char *c = strdup(line.c_str());
+      c[line.length()] = '\0';
+      return Payload::fromInt((int)atoi(c));
+    }
   }
 };
 
