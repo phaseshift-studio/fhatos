@@ -41,11 +41,11 @@ protected:
   const char *passwords;
 
 public:
-  static ID idFromIP(const String &user, const String &path = "") {
+  static ID idFromIP(const String &user, const String &path = emptyString) {
     if (!fWIFI::singleton()->running())
       fWIFI::singleton()->setup();
     return {(user + "@" + fWIFI::ip().toString() +
-             (path.isEmpty() ? "" : ("/" + path)))
+             (path.isEmpty() ? emptyString : ("/" + path)))
                 .c_str()};
   }
 

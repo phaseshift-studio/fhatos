@@ -152,7 +152,7 @@ public:
            THREADS.size() + FIBERS.size() + KERNELS.size() + COROUTINES.size(),
            KERNELS.size(), THREADS.size(), FIBERS.size(), COROUTINES.size());
        ROUTER::singleton()->publish(StringMessage(
-           this->id(), this->id().query(""),
+           this->id(), this->id().query(emptyString),
            mapString<String, MutexDeque<IDed *> *>(this->query({})),
            RETAIN_MESSAGE));
     */

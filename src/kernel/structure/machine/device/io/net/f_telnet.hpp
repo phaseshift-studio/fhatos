@@ -68,7 +68,7 @@ public:
                               message.target.toString().c_str());
         });
       } else if (line.startsWith("<=")) {
-        const String payload = (line.length() == 2) ? "" : line.substring(2);
+        const String payload = (line.length() == 2) ? emptyString : line.substring(2);
         Payload conversion = Payload::interpret(payload);
         tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
         LOG(DEBUG, "Telnet publishing: %s::%s\n",

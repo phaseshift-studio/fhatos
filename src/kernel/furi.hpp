@@ -363,7 +363,7 @@ public:
 
 class Pattern : public fURI {
 public:
-  Pattern() : fURI("") {};
+  Pattern() : fURI(emptyString) {};
 
   Pattern(const fURI &fURI) : Pattern(fURI.toString()) {}
 

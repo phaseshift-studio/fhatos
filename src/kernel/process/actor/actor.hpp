@@ -60,7 +60,7 @@ public:
   }
 
   const void query(const ID &queryId, const Consumer<const Message> onRecv) {
-    this->publish(queryId.query(""), ("?" + queryId.query()),
+    this->publish(queryId.query(emptyString), ("?" + queryId.query()),
                   TRANSIENT_MESSAGE);
     this->subscribe(queryId, [this, queryId, onRecv](const Message message) {
       if (message.retain) {
