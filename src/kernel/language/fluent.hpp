@@ -15,26 +15,27 @@ protected:
 
 public:
   Fluent(const S s) : bcode(Bytecode<S, S>()) {
-    this->bcode.push_back(Inst<S, S>(std::make_pair(
-        std::make_pair(Str("start"), Lst({reinterpret_cast<void *>(new S(s))})),
-        [this](const S &s) { return s; })));
+    this->bcode.push_back(
+        Inst<S, S>({Lst(List<ObjX>{new Str("start"), new S(s)}),
+                    [this](const S &s) { return s; }}));
   };
 
   Fluent<S, E>(Bytecode<S, E> bcode) : bcode(bcode) {}
 
   const Fluent<S, E> plus(const E e) const {
     Bytecode<S, E> newBytecode = Bytecode<S, E>((Bytecode<S, E>)this->bcode);
-
-    newBytecode.push_back(Inst<E, E>(std::make_pair(
-        std::make_pair(Str("plus"), Lst({reinterpret_cast<void *>(new E(e))})),
-        [this](const E &e) { return e.plus(e); })));
+    newBytecode.push_back(
+        Inst<E, E>({Lst(List<ObjX>{new Str("plus"), new E(e)}),
+                    [this](const E &e) { return e.plus(e); }}));
     return Fluent<S, E>(newBytecode);
   }
 
   const String toString() const {
-    String s = "f";
+    String s = ((Lst)this->bcode.front().get().first).toStr() + "=>";
+    int counter = 0;
     for (const auto &inst : this->bcode) {
-      s = s + inst.toStr();
+      if (counter++ > 0)
+        s = s + inst.toStr();
     }
     return s;
   }

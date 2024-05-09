@@ -14,11 +14,11 @@ namespace fhatos::kernel {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
+const Fluent<Int, Int> __(const Int start) { return Fluent<Int, Int>(start); }
+
 void test_fluent() {
-  const Fluent<Int, Int> f =
-      Fluent<Int, Int>(Int(10)).plus(Int(20)).plus(Int(5));
-  Serial.println("HERE");
-  FOS_TEST_MESSAGE("%s\n", f.toString().c_str());
+  FOS_TEST_MESSAGE("%s\n",
+                   __(10).plus(20).plus(5).toString().c_str());
 }
 
 FOS_RUN_TESTS(                 //

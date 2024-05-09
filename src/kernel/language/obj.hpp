@@ -19,6 +19,8 @@ public:
   virtual const String toStr() const { return "obj"; }
 };
 
+using ObjX = void *;
+
 /*class Type : public Obj<Lst<Type>> {
   Type(const Obj<Lst<Type>> value) : Obj(value) {};
   virtual const OType type() const override { return TYPE; }
@@ -67,17 +69,18 @@ public:
     return Str(this->value + other.value);
   }
 };
-class Lst : public Obj<List<void *>> {
+class Lst : public Obj<List<ObjX>> {
 public:
-  Lst(const List<void *> value) : Obj<List<void *>>(value) {};
+  Lst(const List<ObjX> value) : Obj<List<void *>>(value) {};
   virtual const OType type() const override { return LST; }
   virtual const String toStr() const override {
     String t = "[";
-   // List<Obj<void *>> temp = reinterpret_cast<List<Obj<void *>>>(this->value);
-    for (void* element : this->value) {
-      t = t + ((Obj<Int>*)element)->toStr() + ",";
+    // List<Obj<void *>> temp = reinterpret_cast<List<Obj<void
+    // *>>>(this->value);
+    for (ObjX element : this->value) {
+      t = t + ((Int *)element)->toStr() + ",";
     }
-    t[t.length()-1] = ']';
+    t[t.length() - 1] = ']';
     return t;
   }
   //
@@ -97,14 +100,30 @@ template <typename K, typename V> class Rec : public Obj<Map<K, V>> {
 using Inst_t = Pair<Pair<Str, Lst<Obj<void *>>>, Function<A, B>>;*/
 
 template <typename A, typename B>
-class Inst : public Obj<Pair<Pair<Str, Lst>, Function<A, B>>> {
+class Inst : public Obj<Pair<Lst, Function<A, B>>> {
 public:
-  Inst(const Pair<Pair<Str, Lst>, Function<A, B>> value)
-      : Obj<Pair<Pair<Str, Lst>, Function<A, B>>>(value) {}
+  Inst(const Pair<Lst, Function<A, B>> value)
+      : Obj<Pair<Lst, Function<A, B>>>(value) {}
+  virtual const Str opcode() const {
+    return *((Str *)this->get().first.get().front());
+  }
+  virtual const List<ObjX> args() const {
+    List<ObjX> list;
+    int i = 0;
+    for (const ObjX arg : this->get().first.get()) {
+      if (i++ > 0) {
+        list.push_back(arg);
+      }
+    }
+    return list;
+  }
   virtual const OType type() const override { return INST; }
   virtual const String toStr() const override {
-    return "[" + this->value.first.first.toStr() + "," +
-           this->value.first.second.toStr() + "]";
+    String t = "[" + this->opcode().toStr() + ",";
+    for (const ObjX arg : this->args()) {
+      t = t + ((Int *)arg)->toStr();
+    }
+    return t + "]";
   }
 };
 
