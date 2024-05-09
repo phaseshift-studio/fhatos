@@ -147,6 +147,8 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
   };
 }
 #define FOS_TAB "  "
+#define FOS_I2C_ADDR_STR "0x%x/%i"
+#define FOS_I2C_ADDR(a) a, a
 #define FP_BOOL_STR(a) a ? "true" : "false"
 #define CONCAT(a, b) XCONCAT(a, b)
 #define XCONCAT(a, b) a##b

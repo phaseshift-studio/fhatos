@@ -14,7 +14,7 @@ private:
 
 public:
 #if defined(ESP32)
-  ~Mutex() { vSemaphoreDelete(xmutex); }
+  ~Mutex() { vSemaphoreDelete(this->xmutex); }
 #endif
   template <typename T = void *>
   T lockUnlock(const Supplier<T> criticalFunction,
@@ -34,6 +34,17 @@ public:
 #elif defined(ESP8266)
     return T(criticalFunction());
 #endif
+  }
+
+  const bool lock(const uint16_t millisecondsWait = 250) {
+    return this->xmutex != NULL && pdTRUE ==
+           xSemaphoreTake(this->xmutex,
+                          (TickType_t)(millisecondsWait / portTICK_PERIOD_MS));
+  }
+
+  const bool unlock(const uint16_t millisecondsWait = 250) {
+    
+    return this->xmutex != NULL && pdTRUE == xSemaphoreGive(this->xmutex);
   }
 };
 } // namespace fhatos::kernel

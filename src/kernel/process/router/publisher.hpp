@@ -99,7 +99,8 @@ private:
                : (relativeTopic.toString().startsWith(F("/"))
                       ? Pattern(this->ided->id().toString() + F("/") +
                                 relativeTopic.toString().substring(1))
-                      : relativeTopic);
+                      : relativeTopic)
+                     .resolve(this->ided->id());
   }
 };
 } // namespace fhatos::kernel

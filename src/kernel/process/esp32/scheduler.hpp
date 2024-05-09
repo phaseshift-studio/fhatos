@@ -4,11 +4,11 @@
 #include <fhatos.hpp>
 ///
 #include <atomic>
+#include <kernel/furi.hpp>
 #include <kernel/process/abstract_scheduler.hpp>
 #include <kernel/process/process.hpp>
 #include <kernel/process/router/local_router.hpp>
 #include <kernel/util/mutex_deque.hpp>
-#include <kernel/furi.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(coroutine.hpp)
@@ -24,7 +24,10 @@ public:
     return &scheduler;
   }
 
-  const int count(const Pattern &processPattern) const override {
+  const int count(const Pattern &processPattern = Pattern("#")) const override {
+    if (processPattern.equals(Pattern("#")))
+      return THREADS.size() + FIBERS.size() + COROUTINES.size() +
+             KERNELS.size();
     std::atomic<int> *counter = new std::atomic(0);
     THREADS.forEach([counter, processPattern](Thread *process) {
       if (process->id().matches(processPattern))
@@ -48,36 +51,45 @@ public:
   }
 
   void destroy(const Pattern &processPattern) {
-    THREADS.remove_if([processPattern, this](Thread *process) {
-      if (process->id().matches(processPattern)) {
-        process->stop();
-        delete process;
-        return true;
-      }
-      return false;
-    });
-    FIBERS.remove_if([processPattern, this](Fiber *process) {
-      if (process->id().matches(processPattern)) {
-        process->stop();
-        delete process;
-        return true;
-      }
-      return false;
-    });
-    COROUTINES.remove_if([processPattern, this](Coroutine *process) {
-      if (process->id().matches(processPattern)) {
-        process->stop();
-        delete process;
-        return true;
-      }
-      return false;
+    DESTROY_MUTEX.lockUnlock<bool>([this, processPattern]() {
+      THREADS.remove_if([processPattern, this](Thread *process) {
+        if (process->id().matches(processPattern)) {
+          if (process->running())
+            process->stop();
+          delete process;
+          return true;
+        }
+        return false;
+      });
+      FIBERS.remove_if([processPattern, this](Fiber *process) {
+        if (process->id().matches(processPattern)) {
+          if (process->running())
+            process->stop();
+          delete process;
+          return true;
+        }
+        return false;
+      });
+      COROUTINES.remove_if([processPattern, this](Coroutine *process) {
+        if (process->id().matches(processPattern)) {
+          if (process->running())
+            process->stop();
+          delete process;
+          return true;
+        }
+        return false;
+      });
+      return true;
     });
   }
 
   const bool spawn(Process *process) override {
     process->setup();
-    if (!process->running())
+    if (!process->running()) {
+      LOG(ERROR, "Process %s is currently running",
+          process->id().toString().c_str());
       return false;
+    }
     //////////////////////////////////////////////////
     ////// THREAD //////
     if (THREAD == process->pType) {
@@ -175,6 +187,7 @@ private:
   MutexDeque<Fiber *> FIBERS;
   MutexDeque<Thread *> THREADS;
   MutexDeque<KernelProcess *> KERNELS;
+  Mutex DESTROY_MUTEX;
 
   //////////////////////////////////////////////////////
   //////////////////////////////////////////////////////

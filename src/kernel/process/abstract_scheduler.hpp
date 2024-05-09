@@ -21,7 +21,7 @@ public:
 
   virtual void destroy(const Pattern &processPattern) {}
 
-  virtual const int count(const Pattern &processPattern) const { return 0; }
+  virtual const int count(const Pattern &processPattern = Pattern("#")) const { return 0; }
 };
 
 } // namespace fhatos::kernel

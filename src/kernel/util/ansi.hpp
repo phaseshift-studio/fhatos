@@ -95,9 +95,15 @@ public:
 
   void print(const char *c) { this->parse(c, strlen(c)); }
 
-  void println(const char *c) {
+  void println(const char *c = "") {
     this->print(c);
     this->print('\n');
+  }
+
+  void flush() {
+    delete this->_buffer;
+    this->_buffer = NULL;
+    this->_buffer = new String();
   }
 
   void printf(const char *format, ...) {

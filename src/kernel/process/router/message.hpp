@@ -23,12 +23,8 @@ const Map<MType, String> MTYPE_NAMES = {{{OBJ, F("obj")},
                                          {REC, F("rec")}}};
 struct Payload {
   const MType type;
-  const byte *data;
+  const byte * data;
   const uint length;
-  /*  ~Payload() {
-      if (data)
-        delete[] data;
-    }*/
   //////////////////
   const bool equals(const Payload &other) const {
     return (this->type == other.type) &&
@@ -72,9 +68,8 @@ struct Payload {
     case INT:
       return (float)this->toInt();
     case REAL:
-      return (float)atof(
-          (const char *)this
-              ->data); //(float)String((const char *)this->data).toFloat();
+      return (float)atof((const char *)this->data);
+      //(float)String((const char *)this->data).toFloat();
     case STR:
       return this->toString().toFloat();
     default:
@@ -94,37 +89,44 @@ struct Payload {
       temp[size] = '\0';
       return String(temp);
     }
-    case STR:
-      return String(this->data, this->length);
+    case STR: {
+      return String((char *)this->data);
+    }
     default:
       throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
     }
   }
 
   static const Payload fromBool(const bool xbool) {
-    return {
-        .type = BOOL, .data = (const byte *)(xbool ? "T" : "F"), .length = 1};
+    return {.type = BOOL,
+            .data = (byte *)(xbool ? "T" : "F"),
+            .length = 1};
   }
 
   static const Payload fromInt(const int xint) {
     char temp[15];
     uint size = sprintf(temp, "%i", xint);
     temp[size] = '\0';
-    return {.type = INT, .data = (const byte *)temp, .length = size};
+    return {.type = INT,
+            .data = (byte *)temp,
+            .length = size};
   }
 
   static const Payload fromFloat(const float xfloat) {
     char temp[15];
     uint size = sprintf(temp, "%.4f", xfloat);
     temp[size] = '\0';
-    return {.type = REAL, .data = (const byte *)temp, .length = size};
+    return {.type = REAL,
+            .data = (byte *)temp,
+            .length = size};
   }
 
   static const Payload fromString(const String &xstring) {
     char *temp = strdup(xstring.c_str());
     temp[xstring.length()] = '\0';
-    return {
-        .type = STR, .data = (const byte *)temp, .length = xstring.length()};
+    return {.type = STR,
+            .data = (byte *)temp,
+            .length = xstring.length()};
   }
 
   static const Payload interpret(const String &line) {
@@ -135,11 +137,15 @@ struct Payload {
     else if (line.endsWith("f")) {
       char *c = strdup(line.substring(0, line.length() - 1).c_str());
       c[line.length() - 1] = '\0';
-      return Payload::fromFloat((float)atof(c));
+      const Payload p = Payload::fromFloat((float)atof(c));
+      delete c;
+      return p;
     } else {
       char *c = strdup(line.c_str());
       c[line.length()] = '\0';
-      return Payload::fromInt((int)atoi(c));
+      const Payload p = Payload::fromInt((int)atoi(c));
+      delete c;
+      return p;
     }
   }
 };
@@ -167,7 +173,9 @@ public:
     sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(),
             payload.toString().c_str(), FP_BOOL_STR(retain),
             target.toString().c_str());
-    return temp;
+    const String s(temp);
+    delete &temp;
+    return s;
   };
 };
 } // namespace fhatos::kernel

@@ -10,6 +10,10 @@
 
 #include FOS_PROCESS(coroutine.hpp)
 
+#define NOT_USED 1
+#define READING 2
+#define WRITING 3
+
 namespace fhatos::kernel {
 
 template <typename PROCESS = Coroutine>
@@ -19,7 +23,9 @@ protected:
   // messaging data structures
   List<Subscription> SUBSCRIPTIONS;
   Map<ID, Message> RETAINS;
-  Mutex MUTEX_SUBSCRIPTION;
+  Mutex SUBSCRIPTION_READER_LOCK;
+  bool SUBSCRIPTION_WRITE_LOCK = false;
+  int SUBSCRIPTION_READER_COUNT = 0;
   Mutex MUTEX_RETAIN;
 
 public:
@@ -33,31 +39,38 @@ public:
 
   virtual RESPONSE_CODE clear() override {
     RETAINS.clear();
-    SUBSCRIPTIONS.clear();
+   SUBSCRIPTIONS.clear();//.erase(std::remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),[](const Subscription s) { return true;}));
     return (RETAINS.empty() && SUBSCRIPTIONS.empty())
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::ROUTER_ERROR;
   }
 
   virtual const RESPONSE_CODE publish(const Message &message) override {
-    RESPONSE_CODE __rc = RESPONSE_CODE::NO_TARGETS;
+    SUBSCRIPTION_READER_LOCK.lockUnlock<void *>([this]() {
+      SUBSCRIPTION_READER_COUNT++;
+      SUBSCRIPTION_WRITE_LOCK = true;
+      return nullptr;
+    });
+    //////////////
+    RESPONSE_CODE _rc = RESPONSE_CODE::NO_TARGETS;
     for (const auto &subscription : SUBSCRIPTIONS) {
       if (subscription.pattern.matches(message.target)) {
         try {
           if (subscription.mailbox) {
             subscription.mailbox->push(Mail(subscription, message));
-          } else {
-            subscription.onRecv(message);
-          }
+          } // else {
+            // subscription.onRecv(message);
+          //}
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
-          __rc = RESPONSE_CODE::OK;
-        } catch (const std::runtime_error &e) {
+          _rc = RESPONSE_CODE::OK;
+        } catch (const fError &e) {
           LOG_EXCEPTION(e);
-          __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
+          _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
         }
-        LOG_PUBLISH(__rc ? ERROR : INFO, message);
+        LOG_PUBLISH(_rc ? ERROR : INFO, message);
       }
     }
+
     if (message.retain) {
       MUTEX_RETAIN.lockUnlock<void *>([this, message]() {
         RETAINS.erase(message.target);
@@ -65,43 +78,60 @@ public:
         return nullptr;
       });
     }
-    return __rc;
+    //////////////
+    SUBSCRIPTION_READER_LOCK.lockUnlock<void *>([this]() {
+      if (--SUBSCRIPTION_READER_COUNT == 0)
+        SUBSCRIPTION_WRITE_LOCK = false;
+      return nullptr;
+    });
+    return _rc;
   }
 
   virtual const RESPONSE_CODE
   subscribe(const Subscription &subscription) override {
-    RESPONSE_CODE __rc = RESPONSE_CODE::OK;
-    for (const auto &sub : SUBSCRIPTIONS) {
-      if (sub.source.equals(subscription.source) &&
-          sub.pattern.equals(subscription.pattern)) {
-        __rc = RESPONSE_CODE::REPEAT_SUBSCRIPTION;
-        break;
-      }
-    }
-    if (!__rc) {
-      try {
-        __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
+    try {
+      RESPONSE_CODE _rc = RESPONSE_CODE::MUTEX_LOCKOUT;
+      while (_rc == RESPONSE_CODE::MUTEX_LOCKOUT) {
+        _rc = SUBSCRIPTION_READER_LOCK.lockUnlock<RESPONSE_CODE>(
             [this, subscription]() {
-              SUBSCRIPTIONS.push_back(subscription);
-              return RESPONSE_CODE::OK;
+              if (SUBSCRIPTION_WRITE_LOCK)
+                return RESPONSE_CODE::MUTEX_LOCKOUT;
+              RESPONSE_CODE _rc = RESPONSE_CODE::OK;
+              for (const auto &sub : SUBSCRIPTIONS) {
+                if (sub.source.equals(subscription.source) &&
+                    sub.pattern.equals(subscription.pattern)) {
+                  _rc = RESPONSE_CODE::REPEAT_SUBSCRIPTION;
+                  break;
+                }
+              }
+              if (!_rc) {
+                SUBSCRIPTIONS.push_back(subscription);
+              }
+              LOG_SUBSCRIBE(_rc ? ERROR : INFO, subscription);
+              ///// deliver retains
+              if (!_rc) {
+                MUTEX_RETAIN.lockUnlock<void *>([this, subscription]() {
+                  for (const Pair<ID, Message> &retain : RETAINS) {
+                    if (retain.first.matches(subscription.pattern)) {
+                      if (subscription.mailbox) {
+                        subscription.mailbox->push(
+                            Mail(subscription, retain.second));
+                      } else {
+                        subscription.onRecv(retain.second);
+                      }
+                    }
+                  }
+                  return nullptr;
+                });
+              }
+              return _rc;
             });
-      } catch (const std::runtime_error &e) {
-        LOG_EXCEPTION(e);
-        __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
       }
+      return _rc;
+    } catch (const fError &e) {
+      LOG_EXCEPTION(e);
+      return RESPONSE_CODE::MUTEX_TIMEOUT;
     }
-    LOG_SUBSCRIBE(__rc ? ERROR : INFO, subscription);
-    ///// deliver retains
-    for (const Pair<ID, Message> &retain : RETAINS) {
-      if (retain.first.matches(subscription.pattern)) {
-        if (subscription.mailbox) {
-          subscription.mailbox->push(Mail(subscription, retain.second));
-        } else {
-          subscription.onRecv(retain.second);
-        }
-      }
-    }
-    return __rc;
   }
 
   const RESPONSE_CODE unsubscribe(const ID &source,
@@ -115,24 +145,31 @@ public:
 
 protected:
   const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
-    RESPONSE_CODE __rc;
     try {
-      __rc = MUTEX_SUBSCRIPTION.lockUnlock<RESPONSE_CODE>(
-          [this, source, pattern]() {
-            const uint16_t size = SUBSCRIPTIONS.size();
-            SUBSCRIPTIONS.remove_if([source, pattern](const auto &sub) {
-              return sub.source.equals(source) &&
-                     (nullptr == pattern || sub.pattern.equals(*pattern));
+      RESPONSE_CODE _rc = RESPONSE_CODE::MUTEX_LOCKOUT;
+      while (_rc == RESPONSE_CODE::MUTEX_LOCKOUT) {
+        _rc = SUBSCRIPTION_READER_LOCK.lockUnlock<RESPONSE_CODE>(
+            [this, source, pattern]() {
+              if (SUBSCRIPTION_WRITE_LOCK)
+                return RESPONSE_CODE::MUTEX_LOCKOUT;
+              const uint16_t size = SUBSCRIPTIONS.size();
+              SUBSCRIPTIONS.remove_if([source, pattern](const auto &sub) {
+                return sub.source.equals(source) &&
+                       (nullptr == pattern || sub.pattern.equals(*pattern));
+              });
+
+              const RESPONSE_CODE _rc = SUBSCRIPTIONS.size() < size
+                                            ? RESPONSE_CODE::OK
+                                            : RESPONSE_CODE::NO_SUBSCRIPTION;
+              LOG_UNSUBSCRIBE(_rc ? ERROR : INFO, source, pattern);
+              return _rc;
             });
-            return SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK
-                                               : RESPONSE_CODE::NO_SUBSCRIPTION;
-          });
-    } catch (const std::runtime_error &e) {
+      }
+      return _rc;
+    } catch (const fError &e) {
       LOG_EXCEPTION(e);
-      __rc = RESPONSE_CODE::MUTEX_TIMEOUT;
+      return RESPONSE_CODE::MUTEX_TIMEOUT;
     };
-    LOG_UNSUBSCRIBE(__rc ? ERROR : INFO, source, pattern);
-    return __rc;
   }
 };
 } // namespace fhatos::kernel

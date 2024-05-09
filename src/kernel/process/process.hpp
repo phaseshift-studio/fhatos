@@ -10,7 +10,7 @@ namespace fhatos::kernel {
 class Process : public IDed {
 
 protected:
-  bool _running = true;
+  bool _running = false;
 
 public:
   const bool parent;
@@ -20,9 +20,9 @@ public:
   explicit Process(const ID &id, const Type pType, const bool parent = false)
       : IDed(id), pType(pType), parent(parent) {}
 
-  ~Process() { this->stop(); }
+  //~Process() { this->stop(); }
 
-  virtual void setup() {};
+  virtual void setup() { this->_running = true; };
 
   virtual void loop() {}
 

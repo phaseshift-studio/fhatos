@@ -147,6 +147,8 @@ public:
     delete this->_segments;
   }
 
+  //const bool operator==(const fURI other) const { return this->equals(other); }
+
   const fURI extend(const char *segments) const {
     return ((strlen(segments) == 0) ||
             (strlen(segments) == 1 && segments[0] == '/'))

@@ -8,6 +8,8 @@
 namespace fhatos::kernel {
 
 void test_furi_memory_leaks() {
+#define FOS_TEST_PRINTER Serial
+  FOS_TEST_PRINTER.flush();
   int sketchMemory = -1;
   int heapMemory = -1;
   for (int i = 0; i < 20000; i++) {
@@ -32,10 +34,12 @@ void test_furi_memory_leaks() {
     if (i % 1000 == 0) {
       FOS_TEST_MESSAGE("fURI count: %i\t[free sketch:%i][free heap:%i]", i,
                        sketchMemory, heapMemory);
+      FOS_TEST_PRINTER.flush();
     }
   }
   FOS_TEST_MESSAGE("FINAL [free sketch:%i][free heap:%i]",
                    ESP.getFreeSketchSpace(), ESP.getFreeHeap());
+#define FOS_TEST_PRINTER ansi
 }
 
 void test_furi_equals() {
@@ -194,7 +198,7 @@ void test_furi_query() {
   TEST_ASSERT_EQUAL_STRING("a;b;c", fURI("/a/b/c?a;b;c").query().c_str());
   TEST_ASSERT_TRUE(fURI("127.0.0.1/a?query").hasQuery());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"),
-                         fURI("127.0.0.1/a?query").query(""));
+                             fURI("127.0.0.1/a?query").query(""));
   ////////////////
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a?a=1"),
                              fURI("127.0.0.1/a").query("a=1"));
