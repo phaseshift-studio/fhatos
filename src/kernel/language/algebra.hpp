@@ -9,13 +9,15 @@ namespace fhatos::kernel {
 
 class Algebra {
 
-template <typename T>
+    template <typename T>
     static T plus(const T& a, const T&b) {
        Int a;
        Int b;
        a.plus(b); 
     }
 
-}
+};
 
 }
+
+#endif

@@ -30,8 +30,9 @@ public:
   // kernel@127.0.0.1/soc/spi/
 
   virtual void setup() override {
+    PROCESS::setup();
     this->subscribe(this->id(), [this](const Message &message) {
-      LOG(INFO,"HERE! %s",message.payload.toString());
+      LOG(INFO, "HERE! %s", message.payload.toString());
       if (message.payload.toString().equals("?out"))
         this->updateBBS(message.target.query("out"));
     });

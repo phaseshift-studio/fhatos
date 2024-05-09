@@ -5,7 +5,7 @@
 
 namespace fhatos::kernel {
 
-enum OType { OBJ, BOOL, INT, REAL, STR, LST, REC, TYPE };
+enum OType { OBJ, BOOL, INT, REAL, STR, LST, REC, TYPE, INST };
 
 template <typename DATA> class Obj {
 protected:
@@ -19,64 +19,93 @@ public:
   virtual const String toStr() const { return "obj"; }
 };
 
-class Type : public Obj<Lst<Type>> {
+/*class Type : public Obj<Lst<Type>> {
   Type(const Obj<Lst<Type>> value) : Obj(value) {};
   virtual const OType type() const override { return TYPE; }
   virtual const String toStr() const override { return value.toStr(); }
   //
   const Type plus(const Type &other) { return Type(Lst<Type>({*this, other})); }
-};
+};*/
 
 class Bool : public Obj<bool> {
 public:
-  Bool(const bool value) : Obj(value) {};
+  Bool(const bool value) : Obj<bool>(value) {};
   virtual const OType type() const override { return BOOL; }
   virtual const String toStr() const override { return FP_BOOL_STR(value); }
   //
-  const Bool plus(const Bool &other) {
+  const Bool plus(const Bool &other) const {
     return Bool(this->value || other.value);
   }
 };
 class Int : public Obj<int> {
 public:
-  Int(const int value) : Obj(value) {};
+  Int(const int value) : Obj<int>(value) {};
   virtual const OType type() const override { return INT; }
   virtual const String toStr() const override { return String(value); }
   //
-  const Int plus(const Int &other) { return Int(this->value + other.value); }
+  const Int plus(const Int &other) const {
+    return Int(this->value + other.value);
+  }
 };
 class Real : public Obj<float> {
 public:
-  Real(const float value) : Obj(value) {};
+  Real(const float value) : Obj<float>(value) {};
   virtual const OType type() const override { return REAL; }
   virtual const String toStr() const override { return String(value); }
   //
-  const Real plus(const Real &other) { return Real(this->value + other.value); }
+  const Real plus(const Real &other) const {
+    return Real(this->value + other.value);
+  }
 };
 class Str : public Obj<String> {
 public:
-  Str(const String value) : Obj(value) {};
+  Str(const String value) : Obj<String>(value) {};
   virtual const OType type() const override { return STR; }
-  virtual const String toStr() const override { value; }
+  virtual const String toStr() const override { return value; }
   //
-  const Str plus(const Str &other) { return Str(this->value + other.value); }
-};
-template <typename V> class Lst : public Obj<List<V>> {
-public:
-  Lst(const List<V> value) : Obj(value) {};
-  virtual const OType type() const override { return LST; }
-  virtual const String toStr() const override { return "lst" }
-  //
-  const Lst plus(const Lst &other) {
-    return Lst(this->value.emplace_back(other.value));
+  const Str plus(const Str &other) const {
+    return Str(this->value + other.value);
   }
 };
+class Lst : public Obj<List<void *>> {
+public:
+  Lst(const List<void *> value) : Obj<List<void *>>(value) {};
+  virtual const OType type() const override { return LST; }
+  virtual const String toStr() const override {
+    String t = "[";
+   // List<Obj<void *>> temp = reinterpret_cast<List<Obj<void *>>>(this->value);
+    for (void* element : this->value) {
+      t = t + ((Obj<Int>*)element)->toStr() + ",";
+    }
+    t[t.length()-1] = ']';
+    return t;
+  }
+  //
+  //// const Lst plus(const Lst &other) {
+  // return Lst(this->value.emplace_back(other.value));
+  // }
+};
 template <typename K, typename V> class Rec : public Obj<Map<K, V>> {
-  Rec(const Map<K, V> value) : Obj(value) {};
+  Rec(const Map<K, V> value) : Obj<Map<K, V>>(value) {};
   virtual const OType type() const override { return REC; }
   virtual const String toStr() const override { return "rec"; }
   //
   const Rec plus(const Rec &other) { return Rec(this->value.insert(other)); }
+};
+
+/*template <typename A, typename B>
+using Inst_t = Pair<Pair<Str, Lst<Obj<void *>>>, Function<A, B>>;*/
+
+template <typename A, typename B>
+class Inst : public Obj<Pair<Pair<Str, Lst>, Function<A, B>>> {
+public:
+  Inst(const Pair<Pair<Str, Lst>, Function<A, B>> value)
+      : Obj<Pair<Pair<Str, Lst>, Function<A, B>>>(value) {}
+  virtual const OType type() const override { return INST; }
+  virtual const String toStr() const override {
+    return "[" + this->value.first.first.toStr() + "," +
+           this->value.first.second.toStr() + "]";
+  }
 };
 
 } // namespace fhatos::kernel

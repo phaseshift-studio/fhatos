@@ -42,7 +42,8 @@ public:
     delete this->xtelnet;
   }
 
-  void setup() override {
+  virtual void setup() override {
+    PROCESS::setup();
     ////////// ON CONNECT //////////
     this->xtelnet->onConnect([](const String ipAddress) {
       // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
@@ -68,7 +69,8 @@ public:
                               message.target.toString().c_str());
         });
       } else if (line.startsWith("<=")) {
-        const String payload = (line.length() == 2) ? emptyString : line.substring(2);
+        const String payload =
+            (line.length() == 2) ? emptyString : line.substring(2);
         Payload conversion = Payload::interpret(payload);
         tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
         LOG(DEBUG, "Telnet publishing: %s::%s\n",

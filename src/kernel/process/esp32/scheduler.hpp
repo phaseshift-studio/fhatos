@@ -86,7 +86,7 @@ public:
   const bool spawn(Process *process) override {
     process->setup();
     if (!process->running()) {
-      LOG(ERROR, "Process %s is currently running",
+      LOG(ERROR, "Process %s is currently running\n",
           process->id().toString().c_str());
       return false;
     }

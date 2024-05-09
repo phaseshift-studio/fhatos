@@ -30,6 +30,7 @@ public:
     return &serial;
   }
   virtual void setup() override {
+    PROCESS::setup();
     this->subscribe(
         this->id(),
         [](const auto &message) {

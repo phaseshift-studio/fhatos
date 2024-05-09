@@ -21,6 +21,7 @@ public:
       : Actor<PROCESS, ROUTER>(id) {};
 
   void setup() override {
+    PROCESS::setup();
     const ID serialID = fWIFI::idFromIP("serial");
     // INFO LOGGING
     this->subscribe(
