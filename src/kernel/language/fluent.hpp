@@ -10,36 +10,49 @@ namespace fhatos::kernel {
 template <typename S, typename E> using Bytecode = List<Inst<S, E>>;
 
 template <typename S, typename E> class Fluent {
-protected:
-  Bytecode<S, E> bcode;
 
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////////////    PUBLIC   ////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 public:
-  Fluent(const S s) : bcode(Bytecode<S, S>()) {
-    this->bcode.push_back(
-        Inst<S, S>({Lst(List<ObjX>{new Str("start"), new S(s)}),
-                    [this](const S &s) { return s; }}));
-  };
+  Fluent(const S s)
+      : bcode({Inst<S, S>(
+            {"start", {new S(s)}, [s](const S &in) { return s; }})}) {}
 
-  Fluent<S, E>(Bytecode<S, E> bcode) : bcode(bcode) {}
-
-  const Fluent<S, E> plus(const E e) const {
-    Bytecode<S, E> newBytecode = Bytecode<S, E>((Bytecode<S, E>)this->bcode);
-    newBytecode.push_back(
-        Inst<E, E>({Lst(List<ObjX>{new Str("plus"), new E(e)}),
-                    [this](const E &e) { return e.plus(e); }}));
-    return Fluent<S, E>(newBytecode);
+  Fluent<S, E> plus(const E e) {
+    return *this->addInst<E>("plus", {new E(e)}, [](const E &e) { return e; });
   }
 
+  /////////////////////////////  TO_STRING /////////////////////////////////////
   const String toString() const {
-    String s = ((Lst)this->bcode.front().get().first).toStr() + "=>";
+    String s;
     int counter = 0;
     for (const auto &inst : this->bcode) {
-      if (counter++ > 0)
-        s = s + inst.toStr();
+      s = s + inst.toString();
     }
     return s;
   }
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////////////    PRIVATE   ///////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+private:
+  Bytecode<S, E> bcode;
+  Fluent<S, E>(Bytecode<S, E> bcode) : bcode(bcode) {}
+  template <typename E2>
+  Fluent<S, E2> *addInst(const char *op, const List<void *> &args,
+                         const Function<E, E2> &function) {
+    bcode.push_back(Inst<E, E2>({String(op), args, function}));
+    return (Fluent<S, E2> *)this;
+  }
 };
+
+  //////////////////////////////////////////////////////////////////////////////
+  //////////////////////    STATIC HELPERS   ///////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+template <typename S> const static Fluent<S, S> __(const S start) {
+  return Fluent<S, S>(start);
+}
 
 } // namespace fhatos::kernel
 

@@ -14,11 +14,10 @@ namespace fhatos::kernel {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-const Fluent<Int, Int> __(const Int start) { return Fluent<Int, Int>(start); }
+ Fluent<Int, Int> __( Int start) { return Fluent<Int, Int>(start); }
 
 void test_fluent() {
-  FOS_TEST_MESSAGE("%s\n",
-                   __(10).plus(20).plus(5).toString().c_str());
+  FOS_TEST_MESSAGE("%s\n", __(Int(10)).plus(Int(20)).plus(Int(5)).toString().c_str());
 }
 
 FOS_RUN_TESTS(                 //
@@ -28,6 +27,6 @@ FOS_RUN_TESTS(                 //
 
 } // namespace fhatos::kernel
 
-SETUP_AND_LOOP()
+SETUP_AND_LOOP();
 
 #endif

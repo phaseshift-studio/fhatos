@@ -89,6 +89,7 @@ template <typename A> using Set = std::set<A>;
 template <typename A> using Queue = std::queue<A>;
 template <typename A> using Deque = std::deque<A>;
 template <typename K, typename V> using Pair = std::pair<K, V>;
+template <typename A, typename B, typename C> using Triple = std::tuple<A,B,C>;
 template <typename K, typename V> using Map = std::map<K, V>;
 
 ///////////////////////
