@@ -39,7 +39,9 @@ public:
 
   virtual RESPONSE_CODE clear() override {
     RETAINS.clear();
-   SUBSCRIPTIONS.clear();//.erase(std::remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),[](const Subscription s) { return true;}));
+    SUBSCRIPTIONS.clear(); //.erase(std::remove_if(SUBSCRIPTIONS.begin(),
+                           // SUBSCRIPTIONS.end(),[](const Subscription s) {
+                           // return true;}));
     return (RETAINS.empty() && SUBSCRIPTIONS.empty())
                ? RESPONSE_CODE::OK
                : RESPONSE_CODE::ROUTER_ERROR;
@@ -57,17 +59,21 @@ public:
       if (subscription.pattern.matches(message.target)) {
         try {
           if (subscription.mailbox) {
-            subscription.mailbox->push(Mail(subscription, message));
-          } // else {
-            // subscription.onRecv(message);
-          //}
+            if (!subscription.mailbox->push(Mail(subscription, message)))
+              _rc = RESPONSE_CODE::ROUTER_ERROR;
+            else
+              _rc = RESPONSE_CODE::OK;
+          } else {
+            subscription.onRecv(message);
+            _rc = RESPONSE_CODE::OK;
+          }
           // TODO: ACTOR MAILBOX GETTING TOO BIG!
-          _rc = RESPONSE_CODE::OK;
+
         } catch (const fError &e) {
           LOG_EXCEPTION(e);
           _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
         }
-        LOG_PUBLISH(_rc ? ERROR : INFO, message);
+        LOG_PUBLISH(_rc, message);
       }
     }
 
@@ -107,7 +113,6 @@ public:
               if (!_rc) {
                 SUBSCRIPTIONS.push_back(subscription);
               }
-              LOG_SUBSCRIBE(_rc ? ERROR : INFO, subscription);
               ///// deliver retains
               if (!_rc) {
                 MUTEX_RETAIN.lockUnlock<void *>([this, subscription]() {
@@ -124,6 +129,7 @@ public:
                   return nullptr;
                 });
               }
+              LOG_SUBSCRIBE(_rc, subscription);
               return _rc;
             });
       }
@@ -161,7 +167,7 @@ protected:
               const RESPONSE_CODE _rc = SUBSCRIPTIONS.size() < size
                                             ? RESPONSE_CODE::OK
                                             : RESPONSE_CODE::NO_SUBSCRIPTION;
-              LOG_UNSUBSCRIBE(_rc ? ERROR : INFO, source, pattern);
+              LOG_UNSUBSCRIBE(_rc, source, pattern);
               return _rc;
             });
       }

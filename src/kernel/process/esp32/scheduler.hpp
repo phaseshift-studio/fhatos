@@ -111,6 +111,7 @@ public:
     }
     ////// FIBER //////
     else if (FIBER == process->pType) {
+      FIBERS.push_back(reinterpret_cast<Fiber *>(process));
       BaseType_t fiberResult = pdPASS;
       if (!FIBER_THREAD) {
         fiberResult = xTaskCreatePinnedToCore(
@@ -122,10 +123,10 @@ public:
             FIBER_THREAD,                           // Task handle
             tskNO_AFFINITY);                        // Processor core
       }
-      LOG(fiberResult == pdPASS ? INFO : ERROR, "!MFiber %s spawned!!\n",
+      const bool result = pdPASS == fiberResult;
+      LOG(result ? INFO : ERROR, "!MFiber %s spawned!!\n",
           process->id().toString().c_str());
-      return pdPASS == fiberResult &&
-             FIBERS.push_back(reinterpret_cast<Fiber *>(process));
+      return result;
     }
     ////// COROUTINE //////
     else if (COROUTINE == process->pType) {

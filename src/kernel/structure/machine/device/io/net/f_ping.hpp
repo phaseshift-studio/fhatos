@@ -5,6 +5,7 @@
 #include <kernel/process/actor/actor.hpp>
 #include <kernel/process/router/publisher.hpp>
 #include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(scheduler.hpp)
 #include <ESPping.h>
 
 namespace fhatos::kernel {
@@ -21,8 +22,9 @@ struct PingRoutine : public Coroutine, public Publisher<ROUTER> {
   }
 
   void loop() override {
+    Coroutine::loop();
     this->counter++;
-    char *message = new char[100];
+    char message[100];
     if (Ping.ping(this->id().path().c_str(), 1)) {
       this->success++;
       this->totalTime += Ping.averageTime();
@@ -37,7 +39,6 @@ struct PingRoutine : public Coroutine, public Publisher<ROUTER> {
           this->id().path().c_str(), this->counter, this->failureRate());
     }
     this->publish(this->id(), message, TRANSIENT_MESSAGE);
-    delete[] message;
   }
 
   const float failureRate() const {
@@ -55,8 +56,6 @@ public:
   explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
       : Actor<PROCESS, ROUTER>(id), ParentProcess<PingRoutine<ROUTER>>() {}
 
-  ~fPing() { this->stop(); }
-
   void stop() override {
     this->destroyChildren();
     Actor<PROCESS, ROUTER>::stop();
@@ -71,18 +70,15 @@ public:
         this->updateBBS(message.target.query("out"));
     });
     // spawn/destroy children
-    this->subscribe(this->id().extend("#"), [this](const Message &message) {
-      if (message.target.subfuri(this->id())) {
-        if (message.is<BOOL>()) {
-          if (!message.payload.toBool()) {
-            this->destroyChildren(message.target);
-          } else {
-            if (0 == this->searchChildren(Pattern(message.target))) {
-              this->_children.emplace_back(
-                  new PingRoutine<ROUTER>(message.target));
-            }
-          }
+    this->subscribe(this->id().extend("+"), [this](const Message &message) {
+      if (message.is<BOOL>()) {
+        if (!message.payload.toBool()) {
+          this->destroyChildren(message.target);
+        } else {
+          if (0 == this->searchChildren(Pattern(message.target)))
+            this->spawnChild(new PingRoutine<ROUTER>(message.target));
         }
+        this->updateBBS(message.target.query("out"));
       }
     });
   }

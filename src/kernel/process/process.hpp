@@ -7,6 +7,23 @@
 
 namespace fhatos::kernel {
 
+ enum PType { THREAD, FIBER, COROUTINE, KERNEL };
+
+static const String P_TYPE_STR(const PType pType) {
+  switch (pType) {
+  case THREAD:
+    return "thread";
+  case FIBER:
+    return "fiber";
+  case COROUTINE:
+    return "coroutine";
+  case KERNEL:
+    return "kernel";
+  default:
+    return "<unknown process>";
+  }
+}
+
 class Process : public IDed {
 
 protected:
@@ -14,19 +31,27 @@ protected:
 
 public:
   const bool parent;
-  enum Type { THREAD, FIBER, COROUTINE, KERNEL };
-  const Type pType{};
+ 
+  const PType pType{};
 
-  explicit Process(const ID &id, const Type pType, const bool parent = false)
+  explicit Process(const ID &id, const PType pType, const bool parent = false)
       : IDed(id), pType(pType), parent(parent) {}
 
   //~Process() { this->stop(); }
 
-  virtual void setup() { this->_running = true; };
+  virtual void setup() {
+    LOG(INFO, "!MStarting %s %s!!\n", P_TYPE_STR(this->pType),
+        this->id().toString().c_str());
+    this->_running = true;
+  };
 
   virtual void loop() {}
 
-  virtual void stop() { this->_running = false; };
+  virtual void stop() {
+    LOG(INFO, "!MStopping %s %s!!\n", P_TYPE_STR(this->pType),
+        this->id().toString().c_str());
+    this->_running = false;
+  };
 
   const bool running() const { return this->_running; }
 
@@ -35,6 +60,8 @@ public:
   virtual void yield() {};
 };
 
+
+
 template <typename PROCESS> class ParentProcess {
 
 protected:
@@ -42,7 +69,7 @@ protected:
 
 public:
   const void loopChildren() {
-    for (PROCESS *child : this->_children) {
+    for (auto *child : this->_children) {
       if (!child->running()) {
         delete child;
       } else {
@@ -70,7 +97,11 @@ public:
     }
     return counter;
   }
-  const bool spawnChild(const PROCESS *child) { return false; }
+  bool spawnChild(PROCESS *child) {
+    child->setup();
+    this->_children.push_back(child);
+    return true;
+  }
   const bool destroyChildren(const Pattern &childPattern = Pattern("#")) {
     this->_children.remove_if([this](PROCESS *child) {
       child->stop();

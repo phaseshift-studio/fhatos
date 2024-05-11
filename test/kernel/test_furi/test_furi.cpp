@@ -248,6 +248,7 @@ void test_furi_match() {
   TEST_ASSERT_TRUE(ID("127.0.0.1").matches(Pattern("+")));
   TEST_ASSERT_TRUE(ID("127.0.0.1").matches(Pattern("#")));
   TEST_ASSERT_TRUE(ID("fhat@127.0.0.1/a").matches(Pattern("fhat@127.0.0.1/#")));
+  TEST_ASSERT_TRUE(ID("127.0.0.1/abc.org").matches(Pattern("127.0.0.1/#")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a").matches(Pattern("127.0.0.1/#")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/#/b")));
   TEST_ASSERT_TRUE(ID("127.0.0.1/a/b").matches(Pattern("127.0.0.1/+/b")));

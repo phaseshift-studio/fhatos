@@ -23,12 +23,13 @@ void setup() {
   Scheduler<MAIN_ROUTER> *s = Scheduler<MAIN_ROUTER>::singleton();
   s->spawn(fWIFI::singleton());
   //s->spawn(MAIN_ROUTER::singleton());
-  s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
+  //s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
   //s->spawn(fOTA<Fiber>::singleton());
   //s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
   //s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
-  //s->spawn(new fPing<Fiber, MAIN_ROUTER>());
   s->spawn(fTelnet<Thread, MAIN_ROUTER>::singleton());
+  s->spawn(new fPing<Fiber, MAIN_ROUTER>());
+ 
 }
 
 void loop() {

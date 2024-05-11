@@ -52,9 +52,10 @@ protected:
                                   doc["data"].as<const char *>()),
                               .length = doc["length"].as<uint>()},
                   .retain = doc["retain"].as<bool>()};
-              //LOG(INFO, "Message: %s\n", message.toString().c_str());
+              LOG_RECEIVE(RESPONSE_CODE::OK, subscription, message);
               if (subscription.mailbox) {
-                subscription.mailbox->push(Mail(subscription, message)); // if mailbox, put in mailbox
+                subscription.mailbox->push(
+                    Mail(subscription, message)); // if mailbox, put in mailbox
               } else {
                 subscription.onRecv(message); // else, evaluate callback
               }
@@ -104,8 +105,11 @@ public:
   }
 
   virtual const RESPONSE_CODE publish(const Message &message) override {
-    return _PUBLICATIONS.push_back(message) ? RESPONSE_CODE::OK
-                                            : RESPONSE_CODE::ROUTER_ERROR;
+    const RESPONSE_CODE _rc = _PUBLICATIONS.push_back(message)
+                                  ? RESPONSE_CODE::OK
+                                  : RESPONSE_CODE::ROUTER_ERROR;
+    LOG_PUBLISH(_rc, message);
+    return _rc;
   }
 
   virtual const RESPONSE_CODE
@@ -132,7 +136,7 @@ public:
         _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
       }
     }
-    LOG_SUBSCRIBE(_rc ? ERROR : INFO, subscription);
+    LOG_SUBSCRIBE(_rc, subscription);
     return _rc;
   }
 
@@ -296,7 +300,7 @@ private:
       LOG_EXCEPTION(e);
       _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
     };
-    LOG_UNSUBSCRIBE(_rc ? ERROR : INFO, source, pattern);
+    LOG_UNSUBSCRIBE(_rc, source, pattern);
     return _rc;
   }
 };

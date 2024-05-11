@@ -89,7 +89,8 @@ template <typename A> using Set = std::set<A>;
 template <typename A> using Queue = std::queue<A>;
 template <typename A> using Deque = std::deque<A>;
 template <typename K, typename V> using Pair = std::pair<K, V>;
-template <typename A, typename B, typename C> using Triple = std::tuple<A,B,C>;
+template <typename A, typename B, typename C>
+using Triple = std::tuple<A, B, C>;
 template <typename K, typename V> using Map = std::map<K, V>;
 
 ///////////////////////
@@ -161,25 +162,32 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 #define LOG_TASK(logtype, process, format, ...)                                \
   LOG((logtype), (String("[%s] ") + (format) + "\n").c_str(),                  \
       (process)->id().toString().c_str(), ##__VA_ARGS__)
-#define LOG_SUBSCRIBE(logtype, subscription)                                   \
-  LOG((logtype), "[!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",               \
+#define LOG_SUBSCRIBE(rc, subscription)                                        \
+  LOG((rc == OK ? INFO : ERROR),                                               \
+      "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                      \
+      (String(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
       (subscription).source.toString().c_str(), (uint8_t)(subscription).qos,   \
       (subscription).pattern.toString().c_str())
-#define LOG_UNSUBSCRIBE(logtype, source, pattern)                              \
-  LOG((logtype), "[!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",                       \
+#define LOG_UNSUBSCRIBE(rc, source, pattern)                                   \
+  LOG((rc == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",   \
+      (String(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
       ((source).toString().c_str()),                                           \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
-#define LOG_PUBLISH(logtype, message)                                          \
-  LOG((logtype), "[!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",       \
+#define LOG_PUBLISH(rc, message)                                               \
+  LOG((rc == OK ? INFO : ERROR),                                               \
+      "[%s][!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",              \
+      (String(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
       (message.source.toString().c_str()), (FP_BOOL_STR(message.retain)),      \
       (message.payload.toString().c_str()),                                    \
       (message.target.toString().c_str()))
-#define LOG_RECEIVE(logtype, subscription, message)                            \
-  LOG((logtype),                                                               \
-      ((subscription).pattern.equals((message).target))                        \
-          ? "[!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]\n"     \
-          : "[!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%s!!]"   \
-            "\n",                                                              \
+#define LOG_RECEIVE(rc, subscription, message)                                 \
+  LOG((rc == OK ? INFO : ERROR),                                               \
+      (((subscription).pattern.equals((message).target))                       \
+           ? "[%s][!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]"  \
+             "\n"                                                              \
+           : "[%s][!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%"  \
+             "s!!]\n"),                                                        \
+      (String(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
       (subscription.source.toString().c_str()),                                \
       (subscription.pattern.toString().c_str()),                               \
       (subscription.pattern.equals(message.target))                            \
@@ -187,7 +195,7 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
           : (message.target.toString().c_str()),                               \
       (subscription.pattern.equals(message.target))                            \
           ? (message.source.toString().c_str())                                \
-          : (message.payload.toString)().c_str()),                                         \
+          : (message.payload.toString)().c_str(),                              \
       (message.source.toString().c_str()))
 
 ////////////////////////////
