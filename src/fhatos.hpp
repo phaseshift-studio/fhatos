@@ -5,7 +5,7 @@
  *            PhaseShift Studio Presents
  * <`--'>____  ______  __  __  ______  ______  ______  ______
  * /. .  `'  \/\  ___\/\ \_\ \/\  __ \/\__  _\/\  __ \/\  ___\
- *(`')  ,     @ \  __\\ \  __ \ \  __ \/_/\ \/\ \ \/\ \ \___  \
+ *('')  ,     @ \  __\\ \  __ \ \  __ \/_/\ \/\ \ \/\ \ \___  \
  * `-._,     / \ \_\   \ \_\ \_\ \_\ \_\ \ \_\ \ \_____\/\_____\
  *    )-)_/-(>  \/_/    \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
  *                                    A Dogturd Stynx Production
@@ -20,8 +20,10 @@
 #endif
 
 // Arduino programming framework
+#ifndef NATIVE
 #include <Arduino.h>
 #include <kernel/util/ansi.hpp>
+#endif
 
 // C++ standard template library common data structures
 #include <deque>
@@ -204,8 +206,10 @@ const char *LOG_TYPE_c_str(const LOG_TYPE type) {
 
 #if defined(ESP32)
 #define FOS_PROCESS(proc) <kernel/process/esp32/proc>
-#elif define(ESP8266)
+#elif defined(ESP8266)
 #define FOS_PROCESS(proc) <kernel/process/esp8266/proc>
+#elif defined(NATIVE)
+#define FOS_PROCESS
 #else
 #error "Unknown architecture."
 #endif

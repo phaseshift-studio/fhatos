@@ -25,6 +25,14 @@ template <typename OBJ, AType atype> struct Algebra {
   }
 };
 
+template <typename T> static const List<T *>* ptr_list(const List<T> ts) {
+  List<T *>* pts = new List<T*>();
+  for (const auto &t : ts) {
+    pts->push_back(new T(t));
+  }
+  return pts;
+}
+
 template <typename DATA> class Obj {
 
 protected:
@@ -34,7 +42,9 @@ public:
   Obj(const DATA &value) : value(value) {}
   virtual const DATA get() const { return this->value; }
   virtual const OType type() const { return OBJ; }
-  // virtual const String utype() const { return "obj"; }
+  /*virtual const bool equals(const Obj &other) const {
+    return this->type() == other.type() && this->value == other.get();
+  }*/
   virtual const String toString() const {
     return String((char *)((void *)(&(this->value))));
   }
@@ -45,11 +55,10 @@ public:
 
 using ObjX = void *; // wildcard object
 using ObjY = Obj<ObjX> *;
-using ObjZ = Obj<ObjX>;
 
+/////////////////////////////////////////////////////////////
 class Bool : public Obj<bool> {
 public:
-  /////////////////////////////////////////////////////////////
   Bool(const bool value) : Obj<bool>(value) {};
   virtual const OType type() const override { return BOOL; }
   virtual const String toString() const override {
@@ -84,8 +93,8 @@ public:
   virtual const OType type() const override { return LST; }
   virtual const String toString() const override {
     String t = "[";
-    for (ObjX element : this->value) {
-      t = t + ((ObjY)element)->toString();
+    for (const ObjX &element : this->value) {
+      t = t + ((ObjY)element)->toString() + ",";
     }
     t[t.length() - 1] = ']';
     return t;
@@ -98,22 +107,26 @@ template <typename K, typename V> class Rec : public Obj<Map<K, V>> {
 };
 
 template <typename A, typename B>
-class Inst : public Obj<Triple<String, List<void *>, Function<A, B>>> {
+class Inst : public Obj<Triple<String, List<void *>, Function<A *, B *>>> {
 
 public:
-  Inst(const Triple<String, List<void *>, Function<A, B>> &value)
-      : Obj<Triple<String, List<void *>, Function<A, B>>>(value) {}
+  Inst(const Triple<String, List<void *>, Function<A *, B *>> &value)
+      : Obj<Triple<String, List<void *>, Function<A *, B *>>>(value) {}
   virtual const OType type() const override { return INST; }
   virtual const String toString() const override {
     String t = "[" + this->opcode() + ",";
-    for (const ObjX arg : this->args()) {
+    for (const ObjX &arg : this->args()) {
       t = t + ((ObjY)arg)->toString();
     }
     return t + "]";
   }
-  //////
+  ////////////////////////////////////
   virtual const String opcode() const { return std::get<0>(this->value); }
   virtual const List<ObjX> args() const { return std::get<1>(this->value); }
+  virtual const Function<A *, B *> func() const {
+    return std::get<2>(this->value);
+  }
+  virtual B *apply(A *a) const { return this->func()(a); }
 };
 
 template <typename S, typename E>
@@ -125,24 +138,47 @@ public:
       : Obj<List<Inst<S, E>>>(List<Inst<S, E>>(braces)) {}
   Bytecode(const Inst<S, E> &inst) : Bytecode<S, E>({inst}) {}
   Bytecode(const E &obj)
-      : Bytecode<S, E>(Inst<E, E>(
-            {"identity", {new E(obj)}, [](const E &e) { return e; }})) {}
+      : Bytecode<S, E>(
+            Inst<E, E>({"start", {new E(obj)}, [](E *e) { return e; }})) {}
 
   virtual const OType type() const override { return BYTECODE; }
   template <typename E2>
   const Bytecode<S, E2> addInst(const char *op, const List<void *> &args,
                                 const Function<E, E2> &function) const {
+    return this->addInst(Inst<E, E2>({String(op), args, function}));
+  }
+  template <typename E2>
+  const Bytecode<S, E2> addInst(const Inst<E, E2> &inst) const {
     List<Inst<S, E>> list(this->get());
-    list.push_back(Inst<E, E2>({String(op), args, function}));
+    list.push_back(inst);
     return Bytecode<S, E2>(list);
   }
   const String toString() const {
-    String s;
+    String s = "[";
     for (auto &inst : this->value) {
       s = s + inst.toString();
     }
-    return s;
+    return s + "]";
   }
+};
+
+template <typename A> class Monad {
+protected:
+  A *value;
+  const Inst<ObjY, A> *inst = nullptr;
+  const long _bulk = 1;
+
+public:
+  Monad(A *value) : value(value) {}
+  template <typename B> const Monad<B> *split(const Inst<A, B> *next) const {
+    return new Monad<B>(next->apply(this->get()));
+  }
+  A *get() const { return this->value; }
+  const long bulk() const { return this->_bulk; }
+  const Inst<ObjX, A> *at() const { return this->inst; }
+  // const bool equals(const Monad<ObjX> &other) const {
+  //   return this->value.equals(other.get());
+  // }
 };
 
 } // namespace fhatos::kernel

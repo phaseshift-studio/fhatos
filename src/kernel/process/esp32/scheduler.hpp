@@ -56,6 +56,8 @@ public:
         if (process->id().matches(processPattern)) {
           if (process->running())
             process->stop();
+          LOG_TASK(INFO, this, "!MDestroying thread %s!!\n",
+                   process->id().toString().c_str());
           delete process;
           return true;
         }
@@ -65,6 +67,8 @@ public:
         if (process->id().matches(processPattern)) {
           if (process->running())
             process->stop();
+          LOG_TASK(INFO, this, "!MDestroying fiber %s!!\n",
+                   process->id().toString().c_str());
           delete process;
           return true;
         }
@@ -74,6 +78,8 @@ public:
         if (process->id().matches(processPattern)) {
           if (process->running())
             process->stop();
+          LOG_TASK(INFO, this, "!MDestroying coroutine %s!!\n",
+                   process->id().toString().c_str());
           delete process;
           return true;
         }
@@ -86,8 +92,9 @@ public:
   const bool spawn(Process *process) override {
     process->setup();
     if (!process->running()) {
-      LOG(ERROR, "Process %s is currently running\n",
-          process->id().toString().c_str());
+      LOG_TASK(ERROR, this, "!MUnable to spawn running %s %s!!\n",
+               P_TYPE_STR(process->pType), process->id().toString().c_str());
+
       return false;
     }
     //////////////////////////////////////////////////
@@ -105,8 +112,8 @@ public:
           CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
           &(((Thread *)process)->handle),         // Task handle
           tskNO_AFFINITY);                        // Processor core
-      LOG(threadResult == pdPASS ? INFO : ERROR, "!MThread %s spawned!!\n",
-          process->id().toString().c_str());
+      LOG_TASK(threadResult == pdPASS ? INFO : ERROR, this,
+               "!MThread spawned %s!!\n", process->id().toString().c_str());
       return pdPASS == threadResult;
     }
     ////// FIBER //////
@@ -124,22 +131,24 @@ public:
             tskNO_AFFINITY);                        // Processor core
       }
       const bool result = pdPASS == fiberResult;
-      LOG(result ? INFO : ERROR, "!MFiber %s spawned!!\n",
-          process->id().toString().c_str());
+      LOG_TASK(result ? INFO : ERROR, this, "!Fiber spawned %s!!\n",
+               process->id().toString().c_str());
       return result;
     }
     ////// COROUTINE //////
     else if (COROUTINE == process->pType) {
-      LOG(INFO, "!MCoroutine %s spawned!!\n", process->id().toString().c_str());
+      LOG_TASK(INFO, this, "!MCoroutine spawned %s!!\n",
+               process->id().toString().c_str());
       return COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
     }
     ////// KERNEL //////
     else if (KERNEL == process->pType) {
-      LOG(INFO, "!MKernel %s spawned!!\n", process->id().toString().c_str());
+      LOG_TASK(INFO, this, "!MKernel spawned %s!!\n",
+               process->id().toString().c_str());
       return KERNELS.push_back(reinterpret_cast<KernelProcess *>(process));
     } else {
-      LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n",
-          process->id().toString().c_str(), process->pType);
+      LOG_TASK(ERROR, this, "!m%s!! has an unknown process type: !r%i!!\n",
+               process->id().toString().c_str(), process->pType);
       return false;
     }
     /*
@@ -196,9 +205,8 @@ private:
   static void FIBER_FUNCTION(void *vptr_fibers) {
     auto *fibers = (MutexDeque<Fiber *> *)vptr_fibers;
     while (!fibers->empty()) {
-      fibers->forEach([fibers](Fiber *fiber) {
+      fibers->forEach([](Fiber *fiber) {
         if (!fiber->running()) {
-          LOG(INFO, "!MStopping fiber %s!!\n", fiber->id().toString().c_str());
           Scheduler::singleton()->destroy(fiber->id());
         } else {
           fiber->loop();
@@ -221,7 +229,6 @@ private:
       thread->loop();
       vTaskDelay(1); // feeds the watchdog for the task
     }
-    LOG(INFO, "!MStopping thread %s!!\n", thread->id().toString().c_str());
     Scheduler::singleton()->destroy(thread->id());
     vTaskDelete(nullptr);
   }

@@ -5,6 +5,7 @@
 //
 #include <kernel/furi.hpp>
 #include <kernel/language/fluent.hpp>
+#include <kernel/language/instructions.hpp>
 #include <kernel/language/obj.hpp>
 #include <unity.h>
 
@@ -14,12 +15,23 @@ namespace fhatos::kernel {
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
- Fluent<Int, Int> __( Int start) { return Fluent<Int, Int>(start); }
-
 void test_fluent() {
-  FOS_TEST_MESSAGE("%s\n", __<Int>(10).plus(Int(20)).plus(Int(5)).toString().c_str());
-  FOS_TEST_MESSAGE("%s\n", __<Int>(10).plus(__<Int>().plus(6).plus(12).plus(__<Int>().plus(13).plus(6))).toString().c_str());
-  FOS_TEST_MESSAGE("%s\n", Bytecode<Int,Int>(Int(10)).toString().c_str());
+  FOS_TEST_MESSAGE("%s\n",
+                   __<Int>({10}).plus(Int(20)).plus(Int(5)).toString().c_str());
+  FOS_TEST_MESSAGE("%s\n", __<Int>(10)
+                               .plus(__<Int>().plus(6).plus(12).plus(
+                                   __<Int>().plus(13).plus(6)))
+                               .toString()
+                               .c_str());
+  FOS_TEST_MESSAGE("%s\n", Bytecode<Int, Int>(Int(10)).toString().c_str());
+
+  FOS_TEST_MESSAGE("%s\n", Monad<Int>(new Int(32))
+                               .split(new PlusInst<Int>(10))
+                               ->get()
+                               ->toString()
+                               .c_str());
+
+  FOS_TEST_MESSAGE("%i\n", __<Int>({32,45}).plus(10).plus(15).next()->get());
 }
 
 FOS_RUN_TESTS(                 //
