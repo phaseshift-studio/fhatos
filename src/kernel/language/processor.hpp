@@ -8,26 +8,82 @@
 
 namespace fhatos::kernel {
 
-template <typename S, typename E, typename MONAD = Monad<E>> class Processor {
+    template<typename A>
+    class Monad {
+    protected:
+        A *value;
+        const Inst<ObjY, A> *inst = nullptr;
+        const long _bulk = 1;
 
-protected:
-  const Bytecode<S, E> bcode;
+    public:
+        Monad(A *value) : value(value) {}
 
-public:
-  Processor(const Bytecode<S, E>& bcode) : bcode(bcode) {}
+        template<typename B>
+        const Monad<B> *split(const Inst<A, B> *next) const {
+            return new Monad<B>(next->apply(this->get()));
+        }
 
-  List<E *> resultSet() { return List<E *>(); }
+        A *get() const { return this->value; }
 
-  const E *next() {
-    MONAD *start = new MONAD((E *)this->bcode.get().front().args().front());
-    int counter = 0;
-    for (const auto &inst : this->bcode.get()) {
-      if (counter++ != 0)
-        start = (MONAD *)(void *)start->split(&inst);
-    }
-    return start->get();
-  }
-};
+        const long bulk() const { return this->_bulk; }
+
+        const Inst<ObjX, A> *at() const { return this->inst; }
+        // const bool equals(const Monad<ObjX> &other) const {
+        //   return this->value.equals(other.get());
+        // }
+    };
+
+    template<typename S, typename E, typename MONAD = Monad<E>>
+    class Processor {
+
+    protected:
+        const Bytecode<S, E> bcode;
+        List<E *> ends;
+
+
+    public:
+        Processor(const Bytecode<S, E> &bcode) : bcode(bcode) {}
+
+        const void forEach(const Consumer<const E *> consumer)  {
+            for (const auto *end: this->toList()) {
+                consumer(end);
+            }
+        }
+
+         List<E *> toList()  {
+            static bool done = false;
+            if (done)
+                return this->ends;
+            else
+                done = true;
+            List<void *> starts = List<void *>(this->bcode.get().front().args());
+            for (const auto *start: starts) {
+                MONAD *end = new MONAD((E *) start);
+                int counter = 0;
+                for (const auto &inst: this->bcode.get()) {
+                    if (counter++ != 0)
+                        end = (MONAD *) (void *) end->split(&inst);
+                }
+                this->ends.push_back(end->get());
+            }
+            return this->ends;
+        }
+
+        const bool hasNext()  {
+            return !this->toList().empty();
+        }
+
+        const E *next()  {
+
+            if (!this->hasNext())
+                throw fError("No more obj results");
+            else {
+                const E *e = this->toList().front();
+                this->toList().pop_front();
+                return e;
+            }
+        }
+    };
 
 } // namespace fhatos::kernel
 

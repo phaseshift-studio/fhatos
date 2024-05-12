@@ -21,7 +21,8 @@ class Fluent { //: public E {
   //////////////////////////////////////////////////////////////////////////////
 public:
   Fluent() : bcode(Bytecode<S, E>()) {}
-  Fluent(const List<S*>* starts) : bcode(StartInst<S>((List<void*>*)(void*)starts)) {};
+  Fluent(const List<S *> *starts)
+      : bcode(StartInst<S>((List<void *> *)(void *)starts)) {};
 
   const Fluent<S, E> plus(const E &e) const {
     return this->addInst<E>(PlusInst<E>(e));
@@ -31,14 +32,23 @@ public:
         Inst<E, E>({"plus", List<void *>({(void *)new Bytecode<E, E>(e.bcode)}),
                     [](E *e) { return e; }}));
   }
-  const E *next() const {
+    const String toString() const { return "f" + this->bcode.toString(); }
+
+  //////////////////////////////////////////////////////////////////////////////
+  const E * next() const {
     static PROCESSOR proc = PROCESSOR(this->bcode);
     return proc.next();
   }
 
-  /////////////////////////////  TO_STRING
-  ////////////////////////////////////////
-  const String toString() const { return "f" + this->bcode.toString(); }
+  const List<E *> toList() const {
+    static PROCESSOR proc = PROCESSOR(this->bcode);
+    return proc.toList();
+  }
+
+  const void forEach(const Consumer<const E *> consumer) const {
+    static PROCESSOR proc = PROCESSOR(this->bcode);
+    proc.forEach(consumer);
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////////////    PRIVATE ///////////////////////////////////////

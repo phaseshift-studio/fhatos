@@ -154,31 +154,12 @@ public:
     return Bytecode<S, E2>(list);
   }
   const String toString() const {
-    String s = "[";
+    String s = "{";
     for (auto &inst : this->value) {
       s = s + inst.toString();
     }
-    return s + "]";
+    return s + "}";
   }
-};
-
-template <typename A> class Monad {
-protected:
-  A *value;
-  const Inst<ObjY, A> *inst = nullptr;
-  const long _bulk = 1;
-
-public:
-  Monad(A *value) : value(value) {}
-  template <typename B> const Monad<B> *split(const Inst<A, B> *next) const {
-    return new Monad<B>(next->apply(this->get()));
-  }
-  A *get() const { return this->value; }
-  const long bulk() const { return this->_bulk; }
-  const Inst<ObjX, A> *at() const { return this->inst; }
-  // const bool equals(const Monad<ObjX> &other) const {
-  //   return this->value.equals(other.get());
-  // }
 };
 
 } // namespace fhatos::kernel
