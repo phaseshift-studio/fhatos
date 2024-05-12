@@ -1,11 +1,10 @@
-#ifndef fhatos_kernel__test_mutex_hpp
-#define fhatos_kernel__test_mutex_hpp
+#ifndef fhatos_test_mutex_hpp
+#define fhatos_test_mutex_hpp
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/process/esp32/scheduler.hpp>
-#include <kernel/util/mutex_deque.hpp>
-#include <unity.h>
+#include FOS_PROCESS(scheduler.hpp)
+#include <util/mutex_deque.hpp>
 
 namespace fhatos::kernel {
 

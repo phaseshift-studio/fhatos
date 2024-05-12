@@ -1,5 +1,5 @@
-#ifndef fhatstructure_hpp
-#define fhatstructure_hpp
+#ifndef fhatos_furi_hpp
+#define fhatos_furi_hpp
 
 #include <fhatos.hpp>
 #include <util/mutex_deque.hpp>

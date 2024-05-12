@@ -1,9 +1,8 @@
-#ifndef fhatos_kernel__test_furi_hpp
-#define fhatos_kernel__test_furi_hpp
+#ifndef fhatos_test_furi_hpp
+#define fhatos_test_furi_hpp
 #include <test_fhatos.hpp>
 //
-#include <kernel/furi.hpp>
-#include <unity.h>
+#include <furi.hpp>
 
 namespace fhatos::kernel {
 

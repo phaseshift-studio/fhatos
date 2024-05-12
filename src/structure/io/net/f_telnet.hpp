@@ -84,7 +84,7 @@ public:
       } else if (line.startsWith("=>")) {
         const RESPONSE_CODE _rc =
             tthis->subscribe(*tthis->currentTopic, [](const Message message) {
-              /*if (!tthis->previousMessage ||
+              if (!tthis->previousMessage ||
                   !tthis->previousMessage->first.equals(message.source) ||
                   !tthis->previousMessage->second.equals(message.target)) {
                 if (tthis->previousMessage)
@@ -95,9 +95,8 @@ public:
                     FOS_BOOL_STR(message.retain),
                     message.target.toString().c_str());
                 tthis->previousMessage =
-                    new Pair<ID, ID>(message.source, message.target);*/
-              //}
-
+                    new Pair<ID, ID>(message.source, message.target);
+              }
               tthis->xtelnet->println(
                   message.payload.toString().c_str()); // TODO: ansi off/on
             });
@@ -152,7 +151,7 @@ public:
                ipAddress.c_str());
     });
 
-    bool success = this->xtelnet->begin(this->port, true);
+    const bool success = this->xtelnet->begin(this->port, true);
     LOG_TASK(success ? INFO : ERROR, this, "Telnet server initialized on %s:%i",
              this->id().host().c_str(),this->port);
   }

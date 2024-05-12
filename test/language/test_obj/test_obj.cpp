@@ -1,11 +1,10 @@
-#ifndef fhatos_kernel__test_obj_hpp
-#define fhatos_kernel__test_obj_hpp
+#ifndef fhatos_test_obj_hpp
+#define fhatos_test_obj_hpp
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/furi.hpp>
-#include <kernel/language/obj.hpp>
-#include <unity.h>
+#include <furi.hpp>
+#include <language/obj.hpp>
 
 namespace fhatos::kernel {
 

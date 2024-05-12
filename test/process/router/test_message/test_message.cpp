@@ -1,11 +1,10 @@
-#ifndef fhatos_kernel__test_message_hpp
-#define fhatos_kernel__test_message_hpp
+#ifndef fhatos_test_message_hpp
+#define fhatos_test_message_hpp
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/furi.hpp>
-#include <kernel/process/router/message.hpp>
-#include <unity.h>
+#include <furi.hpp>
+#include <process/router/message.hpp>
 
 namespace fhatos::kernel {
 

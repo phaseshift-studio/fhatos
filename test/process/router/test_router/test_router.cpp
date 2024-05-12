@@ -1,14 +1,13 @@
-#ifndef fhatos_kernel__test_router_hpp
-#define fhatos_kernel__test_router_hpp
+#ifndef fhatos_test_router_hpp
+#define fhatos_test_router_hpp
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/furi.hpp>
-#include <kernel/process/actor/actor.hpp>
-#include <kernel/process/router/local_router.hpp>
-#include <kernel/process/router/meta_router.hpp>
-#include <kernel/process/router/mqtt_router.hpp>
-#include <unity.h>
+#include <furi.hpp>
+#include <process/actor/actor.hpp>
+#include <process/router/local_router.hpp>
+#include <process/router/meta_router.hpp>
+#include <process/router/mqtt_router.hpp>
 
 namespace fhatos::kernel {
 

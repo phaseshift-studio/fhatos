@@ -1,12 +1,12 @@
-#ifndef fhatos_kernel__test_fhatos_hpp
-#define fhatos_kernel__test_fhatos_hpp
+#ifndef fhatos_test_fhatos_hpp
+#define fhatos_test_fhatos_hpp
 
 #include <unity.h>
 //
 #include <fhatos.hpp>
-#include <kernel/util/ansi.hpp>
+#include <util/ansi.hpp>
 
-static fhatos::kernel::Ansi<HardwareSerial> ansi(&::Serial);
+static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
 #define FOS_TEST_PRINTER ansi // Serial
 
 #define SETUP_AND_LOOP()                                                       \

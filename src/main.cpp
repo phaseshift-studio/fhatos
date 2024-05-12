@@ -12,6 +12,7 @@
 #include FOS_MODULE(io/net/f_ota.hpp)
 #include FOS_MODULE(io/net/f_ping.hpp)
 #include FOS_MODULE(io/net/f_telnet.hpp)
+#include FOS_MODULE(io/fs/f_fs.hpp)
 #include <language/fluent.hpp>
 
 #define MAIN_ROUTER LocalRouter<>
@@ -29,8 +30,9 @@ void setup() {
   //s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
   //s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
   s->spawn(fTelnet<>::singleton());
-  s->spawn(new fPing());
- 
+  //s->spawn(new fPing());
+  s->spawn(fFS<>::singleton());
+
 }
 
 void loop() {

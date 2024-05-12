@@ -1,16 +1,15 @@
-#ifndef fhatos_kernel__test_actor_hpp
-#define fhatos_kernel__test_actor_hpp
+#ifndef fhatos_test_actor_hpp
+#define fhatos_test_actor_hpp
 
 #include <test_fhatos.hpp>
 //
-#include <kernel/furi.hpp>
-#include <kernel/process/actor/actor.hpp>
-#include <kernel/process/esp32/scheduler.hpp>
-#include <kernel/process/esp32/thread.hpp>
-#include <kernel/process/router/local_router.hpp>
-#include <kernel/process/router/meta_router.hpp>
-#include <kernel/process/router/router.hpp>
-#include <unity.h>
+#include <furi.hpp>
+#include <process/actor/actor.hpp>
+#include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(scheduler.hpp)
+#include <process/router/local_router.hpp>
+#include <process/router/meta_router.hpp>
+#include <process/router/router.hpp>
 
 namespace fhatos::kernel {
 
