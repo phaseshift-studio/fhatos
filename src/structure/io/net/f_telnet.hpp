@@ -148,13 +148,13 @@ public:
     this->xtelnet->onDisconnect([](const String ipAddress) {
       tthis->currentTopic = new ID(tthis->id());
       ROUTER::singleton()->unsubscribeSource(tthis->id());
-      LOG_TASK(INFO, tthis, "Client %s disconnected from Telnet server\n",
+      LOG_TASK(INFO, tthis, "Client %s disconnected from Telnet server",
                ipAddress.c_str());
     });
 
     bool success = this->xtelnet->begin(this->port, true);
-    LOG_TASK(success ? INFO : ERROR, this, "Initializing Telnet server %s\n",
-             this->id().toString().c_str());
+    LOG_TASK(success ? INFO : ERROR, this, "Telnet server initialized on %s:%i",
+             this->id().host().c_str(),this->port);
   }
 
   void loop() override {
