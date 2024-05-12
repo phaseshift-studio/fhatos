@@ -5,6 +5,7 @@
 //
 #include <fhatos.hpp>
 #include <util/ansi.hpp>
+#include <ESP.h>
 
 static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
 #define FOS_TEST_PRINTER ansi // Serial

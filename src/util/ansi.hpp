@@ -1,8 +1,13 @@
 #ifndef fhatos_ansi_hpp
 #define fhatos_ansi_hpp
 
+
+#include <cstdarg>
+#include <stdio.h>
 #include <Stream.h>
+#include <stdexcept>
 #include <util/string_stream.hpp>
+
 
 namespace fhatos {
 
@@ -53,9 +58,9 @@ protected:
         else if ('!' == j)
           this->normal();
         else {
-          if (isUpperCase(j))
+          if (isupper(j))
             this->bold();
-          const char jj = toLowerCase(j);
+          const char jj = tolower(j);
           if ('r' == jj)
             this->red();
           else if ('g' == jj)

@@ -2,6 +2,12 @@
 #define fhatos_mutex_hpp
 
 #include <fhatos.hpp>
+#ifdef ESP32
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+#endif
+
+//TODO: std::mutex
 
 namespace fhatos {
 

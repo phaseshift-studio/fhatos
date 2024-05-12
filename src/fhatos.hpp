@@ -21,7 +21,6 @@
 
 // Arduino programming framework
 #ifndef NATIVE
-#include <Arduino.h>
 #include <util/ansi.hpp>
 #endif
 
@@ -29,6 +28,7 @@
 #include <deque>
 #include <exception>
 #include <functional>
+#include <HardwareSerial.h>
 #include <list>
 #include <map>
 #include <optional>
