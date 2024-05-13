@@ -1,30 +1,22 @@
 #ifdef NATIVE
-#include <test_fhatos_native.hpp>
-#endif
-
-#ifndef NATIVE
-#ifndef fhatos_test_fhatos_hpp
-#define fhatos_test_fhatos_hpp
+#ifndef fhatos_test_fhatos_native_hpp
+#define fhatos_test_fhatos_native_hpp
 
 #include <unity.h>
-//
-#include <fhatos.hpp>
+#include <stdio.h>
 
-static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
-#define FOS_TEST_PRINTER ansi // Serial
+//static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
+#define FOS_TEST_PRINTER ""
 
 #define SETUP_AND_LOOP()                                                       \
-  void setup() {                                                               \
-    Serial.begin(FOS_SERIAL_BAUDRATE);                                         \
-    delay(2000);                                                               \
-    fhatos::RUN_UNITY_TESTS();                                         \
-  }                                                                            \
-  void loop() {}
+int main(int arg, char **argsv) {           \
+fhatos::RUN_UNITY_TESTS();                                              \
+};
 
 #define FOS_TEST_MESSAGE(format, ...)                                          \
-  FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                        \
-  FOS_TEST_PRINTER.printf((format), ##__VA_ARGS__);                            \
-  FOS_TEST_PRINTER.println();
+  printf("  !rline %i!!\t", __LINE__);                        \
+  printf((format), ##__VA_ARGS__);                            \
+  printf("\n");
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                       \
   FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(),            \
@@ -43,31 +35,21 @@ static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
   try {                                                                        \
     x;                                                                         \
     TEST_ASSERT(false);                                                        \
-  } catch (fhatos::fError e) {                                         \
+  } catch (fhatos::kernel::fError e) {                                         \
     TEST_ASSERT(true);                                                         \
   }
 
 namespace fhatos {
 #define FOS_RUN_TEST(x)                                                        \
-  __test_freeSketch = ESP.getFreeSketchSpace();                                \
-  __test_freeHeap = ESP.getFreeHeap();                                         \
-  { RUN_TEST(x); }                                                             \
-  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch,                   \
-                                          ESP.getFreeSketchSpace(),            \
-                                          "Memory leak in sketch space.");     \
-  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeHeap, ESP.getFreeHeap(),  \
-                                          "Memory leak in heap.");
+  { RUN_TEST(x); }
 
 #define FOS_RUN_TESTS(x)                                                       \
   void RUN_UNITY_TESTS() {                                                     \
-    LOG(NONE, ANSI_ART);                                                       \
     UNITY_BEGIN();                                                             \
-    uint32_t __test_freeSketch;                                                \
-    uint32_t __test_freeHeap;                                                  \
     x;                                                                         \
     UNITY_END();                                                               \
   }
-} // namespace fhatos::kernel
+} // namespace fhatos
 
 #endif
 #endif

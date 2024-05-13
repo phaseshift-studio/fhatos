@@ -3,7 +3,6 @@
 
 #include <fhatos.hpp>
 //
-#include <language/algebra.hpp>
 #include <language/instructions.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
@@ -39,7 +38,7 @@ namespace fhatos {
         }));
     }
 
-    const String toString() const { return "f" + this->bcode.toString(); }
+    const string toString() const { return "f" + this->bcode.toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
     const E *next() const {

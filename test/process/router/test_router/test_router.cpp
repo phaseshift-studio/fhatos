@@ -9,7 +9,7 @@
 #include <process/router/meta_router.hpp>
 #include <process/router/mqtt_router.hpp>
 
-namespace fhatos::kernel {
+namespace fhatos {
 
 void test_subscribe() {}
 

@@ -1,7 +1,6 @@
 #ifndef fhatos_message_hpp
 #define fhatos_message_hpp
 
-
 #include <fhatos.hpp>
 //
 #include <furi.hpp>
@@ -15,6 +14,7 @@ namespace fhatos {
   /////////////// PAYLOAD STRUCT ///////////////
   //////////////////////////////////////////////
 
+  typedef uint8_t byte;
 
   struct Payload {
     const OType type;
@@ -39,7 +39,7 @@ namespace fhatos {
         case STR:
           return this->toString().equals("true") || this->toString().equals("1");
         default:
-          throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
+          throw fError("Unknown type: %s", OTYPE_STR.at(this->type).c_str());
       }
     }
 
@@ -54,7 +54,7 @@ namespace fhatos {
         case STR:
           return this->toString().toInt();
         default:
-          throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
+          throw fError("Unknown type: %s", OTYPE_STR.at(this->type).c_str());
       }
     }
 
@@ -70,7 +70,7 @@ namespace fhatos {
         case STR:
           return this->toString().toFloat();
         default:
-          throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
+          throw fError("Unknown type: %s", OTYPE_STR.at(this->type).c_str());
       }
     }
 
@@ -90,7 +90,7 @@ namespace fhatos {
           return String((char *) this->data);
         }
         default:
-          throw fError("Unknown type: %s", MTYPE_NAMES.at(this->type).c_str());
+          throw fError("Unknown type: %s", OTYPE_STR.at(this->type).c_str());
       }
     }
 

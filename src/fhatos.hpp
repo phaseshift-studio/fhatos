@@ -1,6 +1,9 @@
 #ifndef fhatos_hpp
 #define fhatos_hpp
 
+#ifdef NATIVE
+#include <fhatos_native.hpp>
+#else
 /***
  *            PhaseShift Studio Presents
  * <`--'>____  ______  __  __  ______  ______  ______  ______
@@ -21,14 +24,15 @@
 
 // Arduino programming framework
 #ifndef NATIVE
+#include <Arduino.h>
 #include <util/ansi.hpp>
 #endif
 
 // C++ standard template library common data structures
 #include <deque>
+#include <string>
 #include <exception>
 #include <functional>
-#include <HardwareSerial.h>
 #include <list>
 #include <map>
 #include <optional>
@@ -106,6 +110,7 @@ namespace fhatos {
   template<typename K, typename V>
   using Map = std::map<K, V>;
 
+  using string = std::string;
   ///////////////////////
   /// EXCEPTION TYPES ///
   ///////////////////////
@@ -272,4 +277,5 @@ namespace fhatos {
     }
   }
 } // namespace fhatos
+#endif
 #endif

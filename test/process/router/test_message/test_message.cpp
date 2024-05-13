@@ -6,7 +6,7 @@
 #include <furi.hpp>
 #include <process/router/message.hpp>
 
-namespace fhatos::kernel {
+namespace fhatos {
 
 void test_bool() {
   for (int i = 0; i < 1000; i++) {

@@ -1,10 +1,14 @@
 #ifndef fhatos_test_furi_hpp
 #define fhatos_test_furi_hpp
+#ifdef NATIVE
+#include <test_fhatos_native.hpp>
+#else
 #include <test_fhatos.hpp>
+#endif
 //
 #include <furi.hpp>
 
-namespace fhatos::kernel {
+namespace fhatos {
 
 void test_furi_memory_leaks() {
 #define FOS_TEST_PRINTER Serial

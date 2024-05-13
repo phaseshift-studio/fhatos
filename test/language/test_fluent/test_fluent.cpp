@@ -2,13 +2,11 @@
 #define fhatos_test_fluent_hpp
 
 #include <test_fhatos.hpp>
-//
-#include <furi.hpp>
 #include <language/fluent.hpp>
 #include <language/instructions.hpp>
 #include <language/obj.hpp>
 
-namespace fhatos::kernel {
+namespace fhatos {
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////

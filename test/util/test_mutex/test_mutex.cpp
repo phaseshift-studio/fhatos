@@ -6,7 +6,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <util/mutex_deque.hpp>
 
-namespace fhatos::kernel {
+namespace fhatos {
 
 ///////////////////// UTILITY THREAD
 

@@ -74,7 +74,7 @@ public:
         Payload conversion = Payload::interpret(payload);
         tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
         LOG(DEBUG, "Telnet publishing: %s::%s\n",
-            MTYPE_NAMES.at(conversion.type).c_str(),
+            OTYPE_STR.at(conversion.type).c_str(),
             conversion.toString().c_str());
       } else if (line.startsWith("?")) {
         tthis->query(tthis->currentTopic->query(line.substring(1)),
