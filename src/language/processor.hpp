@@ -9,12 +9,12 @@ namespace fhatos {
   template<typename A>
   class Monad {
   protected:
-    A *value;
+    const A *value;
     const Inst<ObjY, A> *inst = nullptr;
     const long _bulk = 1;
 
   public:
-    Monad(A *value) : value(value) {
+    explicit Monad(const A *value) : value(value) {
     }
 
     template<typename B>
@@ -22,9 +22,9 @@ namespace fhatos {
       return new Monad<B>(next->apply(this->get()));
     }
 
-    A *get() const { return this->value; }
+    const A *get() const { return this->value; }
 
-    const long bulk() const { return this->_bulk; }
+    long bulk() const { return this->_bulk; }
 
     const Inst<ObjX, A> *at() const { return this->inst; }
     // const bool equals(const Monad<ObjX> &other) const {
@@ -36,49 +36,46 @@ namespace fhatos {
   class Processor {
   protected:
     const Bytecode<S, E> bcode;
-    List<E *> ends;
+    List<const E *> ends;
 
   public:
     explicit Processor(const Bytecode<S, E> &bcode) : bcode(bcode) {
     }
 
-    const void forEach(const Consumer<const E *> consumer) {
+    void forEach(const Consumer<const E *> &consumer) {
       for (const auto *end: this->toList()) {
         consumer(end);
       }
     }
 
-    List<E *> toList() {
+    List<const E *> toList() {
       static bool done = false;
       if (done)
         return this->ends;
-      else
-        done = true;
-      List<void *> starts = List<void *>(this->bcode.get().front().args());
+      done = true;
+      const auto starts = List<void *>(this->bcode.get().front().args());
       for (const auto *start: starts) {
-        MONAD *end = new MONAD((E *) start);
+        const MONAD *end = new MONAD(static_cast<const E *>(start));
         int counter = 0;
         for (const auto &inst: this->bcode.get()) {
           if (counter++ != 0)
-            end = (MONAD *) (void *) end->split(&inst);
+            end = static_cast<const MONAD *>(static_cast<const void *>(end->split(&inst)));
         }
         this->ends.push_back(end->get());
       }
       return this->ends;
     }
 
-    const bool hasNext() {
+    bool hasNext() {
       return !this->toList().empty();
     }
 
     const E *next() {
       if (!this->hasNext())
         throw std::runtime_error("No more obj results");
-      else {
-        const E *e = this->toList().front();
-        this->toList().pop_front();
-        return e;
-      }
+      const E *e = this->toList().front();
+      this->toList().pop_front();
+      return e;
     }
   };
 } // namespace fhatos

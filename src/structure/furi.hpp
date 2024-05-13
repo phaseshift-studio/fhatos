@@ -387,16 +387,12 @@ class IDed {
 public:
   explicit IDed(const ID &id) : _id(std::move(id)) {}
 
-  const ID id() const { return _id; }
+  const ID& id() const { return _id; }
 
-  const String toString() const { return this->id().toString(); }
+ // const String toString() const { return this->id().toString(); }
 
-  const bool equals(const IDed &other) const {
+  bool equals(const IDed &other) const {
     return this->_id.equals(other._id);
-  }
-
-  virtual Map<String, MutexDeque<IDed *> *> query(const Set<String> &labels) {
-    return {};
   }
 
 protected:

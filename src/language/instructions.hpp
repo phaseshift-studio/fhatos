@@ -8,23 +8,23 @@
 
 namespace fhatos {
   template<typename A>
-  class StartInst : public Inst<A, A> {
+  class StartInst final : public Inst<A, A> {
   public:
-    StartInst(const List<void *> *starts)
+    explicit StartInst(const List<void *> *starts)
       : Inst<A, A>({
         "start", *starts,
-        [starts](A *b) { return (A *) starts->front(); }
+        [starts](A *b) { return static_cast<A *>(starts->front()); }
       }) {
-    };
+    }
   };
 
   template<typename A>
-  class PlusInst : public Inst<A, A> {
+  class PlusInst final : public Inst<A, A> {
   public:
-    PlusInst(const A &a)
+    explicit PlusInst(const A &a)
       : Inst<A, A>(
         {"plus", {new A(a)}, RingAlgebra<A>::plus(new A(a), new A(a))}) {
-    };
+    }
   };
 } // namespace fhatos
 

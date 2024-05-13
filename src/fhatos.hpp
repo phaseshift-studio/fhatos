@@ -1,9 +1,6 @@
 #ifndef fhatos_hpp
 #define fhatos_hpp
 
-#ifdef NATIVE
-#include <fhatos_native.hpp>
-#else
 /***
  *            PhaseShift Studio Presents
  * <`--'>____  ______  __  __  ______  ______  ______  ______
@@ -22,11 +19,14 @@
 #endif
 #endif
 
-// Arduino programming framework
-#ifndef NATIVE
+////////////////////////////////////////////////// NATIVE
+#ifdef NATIVE
+#include <fhatos_native.hpp>
+#else
+////////////////////////////////////////////////// ESP8266/ESP32
+
 #include <Arduino.h>
 #include <util/ansi.hpp>
-#endif
 
 // C++ standard template library common data structures
 #include <deque>
@@ -40,17 +40,6 @@
 #include <set>
 
 namespace fhatos {
-  /*static const char *ANSI_ART =
-      "            PhaseShift Studio Presents\n"
-      " <`--'>____  ______  __  __  ______  ______  ______  ______     \n"
-      " /. .  `'  \\/\\  ___\\/\\ \\_\\ \\/\\  __ \\/\\__  _\\/\\  __ \\/\\  "
-      "___\\    \n"
-      "(`')  ,     @ \\  __\\\\ \\  __ \\ \\  __ \\/_/\\ \\/\\ \\ \\/\\ \\ \\___ "
-      " \\ \n"
-      " `-._,     / \\ \\_\\   \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ \\ "
-      "\\_____\\/\\_____\\  \n"
-      "    )-)_/-(>  \\/_/    \\/_/\\/_/\\/_/\\/_/  \\/_/  \\/_____/\\/_____/  \n"
-      "                                    A Dogturd Stynx Production  \n";*/
 
   static const char *ANSI_ART =
       "!r            !_PhaseShift Studio Presents!! \n"
@@ -70,7 +59,7 @@ namespace fhatos {
   ////////////////////
   typedef void (*VoidPtr)();
 
-  typedef std::function<void(void)> Void0;
+  typedef std::function<void()> Void0;
   template<typename A>
   using Consumer = std::function<void(A)>;
   template<typename A, typename B>

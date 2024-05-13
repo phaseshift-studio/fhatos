@@ -4,7 +4,6 @@
 #include <fhatos.hpp>
 ///
 #include <atomic>
-#include <furi.hpp>
 #include <process/abstract_scheduler.hpp>
 #include <process/process.hpp>
 #include <process/router/local_router.hpp>
@@ -158,28 +157,6 @@ namespace fhatos {
              mapString<String, MutexDeque<IDed *> *>(this->query({})),
              RETAIN_MESSAGE));
       */
-    }
-
-    virtual Map<String, MutexDeque<IDed *> *>
-    query(const Set<String> &labels) override {
-      Map<String, MutexDeque<IDed *> *> result;
-      if ((labels.empty() || labels.count("kernel") > 0) && !KERNELS.empty()) {
-        result.emplace("kernel",
-                       reinterpret_cast<MutexDeque<IDed *> *>(&KERNELS));
-      }
-      if ((labels.empty() || labels.count("thread") > 0) && !THREADS.empty()) {
-        result.emplace("thread",
-                       reinterpret_cast<MutexDeque<IDed *> *>(&THREADS));
-      }
-      if ((labels.empty() || labels.count("fiber") > 0) && !FIBERS.empty()) {
-        result.emplace("fiber", reinterpret_cast<MutexDeque<IDed *> *>(&FIBERS));
-      }
-      if ((labels.empty() || labels.count("coroutine") > 0) &&
-          !COROUTINES.empty()) {
-        result.emplace("coroutine",
-                       reinterpret_cast<MutexDeque<IDed *> *>(&COROUTINES));
-      }
-      return result;
     }
 
   private:

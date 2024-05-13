@@ -4,10 +4,8 @@
 #include <fhatos.hpp>
 //
 #include <ESPTelnet.h>
-#include <furi.hpp>
 #include <process/actor/actor.hpp>
 #include <util/ansi.hpp>
-#include <util/string_stream.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {

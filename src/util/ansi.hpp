@@ -5,7 +5,6 @@
 #include <cstdarg>
 #include <stdio.h>
 #include <Stream.h>
-#include <stdexcept>
 #include <util/string_stream.hpp>
 
 

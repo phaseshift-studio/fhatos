@@ -7,12 +7,21 @@ namespace fhatos {
   template<typename T>
   struct Mailbox {
   public:
-    virtual const bool push(const T message) { return true; }
+    virtual ~Mailbox() {
+      this->clear();
+    }
 
-    virtual const uint16_t size() const { return 0; }
+    void clear() {
+      while (this->pop().has_value()) {
+      }
+    }
+
+    virtual bool push(const T message) { return true; }
+
+    virtual uint16_t size() const { return 0; }
 
   protected:
-    virtual const Option<T> pop() { return {}; }
+    virtual Option<T> pop() { return {}; }
   };
 } // namespace fhatos
 

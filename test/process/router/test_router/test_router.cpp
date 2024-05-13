@@ -3,7 +3,6 @@
 
 #include <test_fhatos.hpp>
 //
-#include <furi.hpp>
 #include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
 #include <process/router/meta_router.hpp>

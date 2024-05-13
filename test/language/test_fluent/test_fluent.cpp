@@ -20,7 +20,6 @@ void test_fluent() {
                                  __<Int>().plus(13).plus(6)))
                              .toString()
                              .c_str());
-  FOS_TEST_MESSAGE("%s", Bytecode<Int, Int>(Int(10)).toString().c_str());
 
   FOS_TEST_MESSAGE("%s", Monad<Int>(new Int(32))
                              .split(new PlusInst<Int>(10))

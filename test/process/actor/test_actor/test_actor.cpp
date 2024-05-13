@@ -3,7 +3,6 @@
 
 #include <test_fhatos.hpp>
 //
-#include <furi.hpp>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)

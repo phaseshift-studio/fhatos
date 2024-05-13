@@ -3,7 +3,7 @@
 
 #include <test_fhatos.hpp>
 //
-#include <furi.hpp>
+#include <structure/furi.hpp>
 #include <process/router/message.hpp>
 
 namespace fhatos {

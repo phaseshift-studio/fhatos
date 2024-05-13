@@ -4,26 +4,24 @@
 #include <fhatos.hpp>
 //
 #include <process/process.hpp>
-#include <furi.hpp>
 
 namespace fhatos {
+  class Fiber : public Process {
+  public:
+    TaskHandle_t handle{};
 
-class Fiber : public Process {
+    explicit Fiber(const ID &id) : Process(id, FIBER) {
+    }
 
-public:
-  TaskHandle_t handle{};
-   explicit Fiber(const ID &id) : Process(id,FIBER) {}
+    void delay(const uint64_t milliseconds) override {
+      // delay to next fiber
+      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+    }
 
-   void delay(const uint64_t milliseconds) override {
-    // delay to next fiber
-     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
-  }
-
-   void yield() override {
-    // do nothing
-   }
-
-};
+    void yield() override {
+      // do nothing
+    }
+  };
 } // namespace fhatos
 
 #endif

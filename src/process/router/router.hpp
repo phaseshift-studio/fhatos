@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 //
-#include <furi.hpp>
+#include <structure/furi.hpp>
 #include <process/actor/mailbox.hpp>
 #include <process/router/message.hpp>
 #include FOS_PROCESS(thread.hpp)

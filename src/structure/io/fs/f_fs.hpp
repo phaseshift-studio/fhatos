@@ -5,7 +5,6 @@
 //
 #include <FS.h>
 #include <LittleFS.h>
-#include <furi.hpp>
 #include <process/actor/actor.hpp>
 #include <util/ansi.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -31,7 +30,7 @@ namespace fhatos {
 
     virtual ~fFS() override {
       FOS_FILE_SYSTEM.end();
-      Actor<PROCESS, ROUTER>::~Actor();
+      // Actor<PROCESS,ROUTER>::~Actor();
     }
 
     virtual void setup() override {

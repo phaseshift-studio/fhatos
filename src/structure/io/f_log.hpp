@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 //
-#include <furi.hpp>
+#include <structure/furi.hpp>
 #include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
 #include <structure/io/net/f_wifi.hpp>

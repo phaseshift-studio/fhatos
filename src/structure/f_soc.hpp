@@ -2,7 +2,6 @@
 #define fhatos_f_soc_hpp
 
 #include <fhatos.hpp>
-#include <furi.hpp>
 #include <process/actor/actor.hpp>
 #include <util/i2c.hpp>
 #include FOS_PROCESS(fiber.hpp)

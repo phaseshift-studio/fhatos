@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 //
-#include <furi.hpp>
+#include <structure/furi.hpp>
 #include <language/obj.hpp>
 
 #define RETAIN_MESSAGE true

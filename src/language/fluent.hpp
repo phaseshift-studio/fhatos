@@ -8,8 +8,6 @@
 #include <language/processor.hpp>
 
 namespace fhatos {
-  // template <typename S, typename E> using Bytecode = List<Inst<S, E>>;
-
   template<typename S, typename E,
     typename PROCESSOR = Processor<S, E, Monad<E> > >
   class Fluent {
@@ -23,22 +21,22 @@ namespace fhatos {
     }
 
     explicit Fluent(const List<S *> *starts)
-      : bcode(StartInst<S>((List<void *> *) (void *) starts)) {
+      : bcode({StartInst<S>(static_cast<const List<void *> *>(static_cast<const void *>(starts)))}) {
     };
 
-    const Fluent<S, E> plus(const E &e) const {
-      return this->addInst<E>(PlusInst<E>(e));
+    Fluent<S, E> plus(const E &e) const {
+      return this->template addInst<E>(PlusInst<E>(e));
     }
 
-    const Fluent<S, E> plus(const Fluent<E, E> &e) const {
+    Fluent<S, E> plus(const Fluent<E, E> &e) const {
       return this->addInst<E>(
         Inst<E, E>({
-          "plus", List<void *>({(void *) new Bytecode<E, E>(e.bcode)}),
-          [](E *e) { return e; }
+          "plus", List<void *>({static_cast<void *>(new Bytecode<E, E>(e.bcode))}),
+          [](E *e2) { return e2; }
         }));
     }
 
-    const string toString() const { return "f" + this->bcode.toString(); }
+    string toString() const { return "f" + this->bcode.toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
     const E *next() const {
@@ -46,12 +44,12 @@ namespace fhatos {
       return proc.next();
     }
 
-    const List<E *> toList() const {
+    const List<E *> &toList() const {
       static PROCESSOR proc = PROCESSOR(this->bcode);
       return proc.toList();
     }
 
-    const void forEach(const Consumer<const E *> consumer) const {
+    void forEach(const Consumer<const E *> &consumer) const {
       static PROCESSOR proc = PROCESSOR(this->bcode);
       proc.forEach(consumer);
     }
@@ -66,7 +64,7 @@ namespace fhatos {
     }
 
     template<typename E2>
-    const Fluent<S, E2> addInst(const Inst<E, E2> &inst) const {
+    Fluent<S, E2> addInst(const Inst<E, E2> &inst) const {
       return Fluent<S, E2>(bcode.addInst(inst));
     }
   };
@@ -76,17 +74,17 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////
 
   template<typename S>
-  const static Fluent<S, S> __(std::initializer_list<S> starts) {
+  inline static Fluent<S, S> __(std::initializer_list<S> starts) {
     return Fluent<S, S>(ptr_list(List<S>(starts)));
   };
 
   template<typename S>
-  const static Fluent<S, S> __(const S &start) {
+  inline static Fluent<S, S> __(const S &start) {
     return __<S>({start});
   };
 
   template<typename S>
-  const static Fluent<S, S> __() { return Fluent<S, S>(); };
+  inline static Fluent<S, S> __() { return Fluent<S, S>(); };
 } // namespace fhatos
 
 #endif

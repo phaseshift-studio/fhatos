@@ -6,7 +6,7 @@
 #include <test_fhatos.hpp>
 #endif
 //
-#include <furi.hpp>
+#include <structure/furi.hpp>
 
 namespace fhatos {
 

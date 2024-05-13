@@ -2,7 +2,7 @@
 #define fhatos_process_hpp
 
 #include <fhatos.hpp>
-#include <furi.hpp>
+#include <structure/furi.hpp>
 //
 
 namespace fhatos {

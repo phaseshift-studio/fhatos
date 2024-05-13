@@ -3,7 +3,6 @@
 
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
-#include <process/router/publisher.hpp>
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 #include <ESPping.h>

@@ -8,12 +8,10 @@
 #include <process/router/meta_router.hpp>
 #include <process/router/publisher.hpp>
 #include <process/router/router.hpp>
-#include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
-#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
-  template<typename PROCESS, typename ROUTER = MetaRouter<> >
+  template<typename PROCESS, typename ROUTER = MetaRouter<>>
   class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<Mail> {
   public:
     explicit Actor(
@@ -22,21 +20,19 @@ namespace fhatos {
       const Consumer<Actor<PROCESS, ROUTER> *> loopFunction = nullptr)
       : PROCESS(id), Publisher<ROUTER>(this, this) {
       static_assert(std::is_base_of_v<Process, PROCESS>);
-      // static_assert(std::is_base_of_v<Router, ROUTER>);
+      //static_assert(std::is_base_of_v<Router<>, ROUTER>);
       if (loopFunction)
         this->onLoop(loopFunction);
       if (setupFunction)
         this->_setupFunction = setupFunction;
     }
 
-    virtual ~Actor() { this->inbox.clear(); }
-
     static constexpr char hexmap[] = {
       '0', '1', '2', '3', '4', '5', '6', '7',
       '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 
-    String hexStr(unsigned char *data, int len) {
+    String hexStr(const unsigned char *data, const int len) {
       String s(len * 2, ' ');
       for (uint8_t i = 0; i < len; ++i) {
         s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
@@ -45,21 +41,22 @@ namespace fhatos {
       return s;
     }
 
-    const Pair<byte *,uint> serialize() const {
-      byte *bytes = (byte *)malloc(sizeof(*this));
-      memcpy(bytes, (byte *)this, sizeof(*this));
-      return {bytes,sizeof(*this)};
+    const Pair<byte *, uint> serialize() const {
+      byte *bytes = (byte *) malloc(sizeof(*this));
+      memcpy(bytes, (byte *) this, sizeof(*this));
+      return {bytes, sizeof(*this)};
     }
 
-    static Actor<PROCESS,ROUTER> *deserialize(const byte *bytes) {
-      return (Actor<PROCESS,ROUTER> *)bytes;
+    static Actor<PROCESS, ROUTER> *deserialize(const byte *bytes) {
+      return (Actor<PROCESS, ROUTER> *) bytes;
     }
+
     // PAYLOAD BOX METHODS
-    const bool push(const Mail mail) override {
+    bool push(const Mail mail) override {
       return this->running() && this->inbox.push_back(mail);
     }
 
-    const void query(const ID &queryId, const Consumer<const Message> &onRecv) {
+    void query(const ID &queryId, const Consumer<const Message> &onRecv) {
       this->publish(queryId.query(emptyString), ("?" + queryId.query()),
                     TRANSIENT_MESSAGE);
       this->subscribe(queryId, [this, queryId, onRecv](const Message &message) {
@@ -70,7 +67,7 @@ namespace fhatos {
       });
     }
 
-    const uint16_t size() const override { return inbox.size(); }
+    uint16_t size() const override { return inbox.size(); }
 
     /// PROCESS METHODS
     virtual void setup() override {
@@ -117,7 +114,7 @@ namespace fhatos {
       }
     }
 
-    virtual void onLoop(const Consumer<Actor *> loopFunction) {
+    void onLoop(const Consumer<Actor *> loopFunction) {
       this->_loopFunction = loopFunction;
     }
 
@@ -125,7 +122,7 @@ namespace fhatos {
     MutexDeque<Mail> inbox;
     Consumer<Actor *> _setupFunction = nullptr;
     Consumer<Actor *> _loopFunction = nullptr;
-    const Option<Mail> pop() override { return this->inbox.pop_front(); }
+    Option<Mail> pop() override { return this->inbox.pop_front(); }
 
     virtual bool next() {
       const Option<Mail> mail = this->pop();

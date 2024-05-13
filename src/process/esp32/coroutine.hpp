@@ -3,7 +3,6 @@
 
 #include <fhatos.hpp>
 //
-#include <furi.hpp>
 #include <process/process.hpp>
 
 namespace fhatos {

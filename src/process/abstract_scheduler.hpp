@@ -5,7 +5,7 @@
 //
 #include <process/process.hpp>
 #include <structure/io/net/f_wifi.hpp>
-#include <furi.hpp>
+#include <structure/furi.hpp>
 //
 #include FOS_PROCESS(coroutine.hpp)
 
