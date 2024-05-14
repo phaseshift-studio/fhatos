@@ -9,7 +9,7 @@ namespace fhatos {
   template<typename OBJ>
   struct RingAlgebra : public Algebra<OBJ, RING> {
     static Function<OBJ *, OBJ *> plus(OBJ *a, OBJ *b) {
-      return [a](OBJ *b) { return new OBJ(a->get() + b->get()); };
+      return [a](OBJ *b) { return new OBJ(a->value() + b->value()); };
     }
 
     /*static const Function<OBJ, OBJ> minus(const OBJ &a, const OBJ &b) {

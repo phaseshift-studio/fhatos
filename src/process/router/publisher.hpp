@@ -40,7 +40,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////
 
     /// PUBLISH
-    const RESPONSE_CODE publish(const ID &relativeTarget, const Payload &payload,
+    const RESPONSE_CODE publish(const ID &relativeTarget, const SerialObj<> &payload,
                                 const bool retain = TRANSIENT_MESSAGE) {
       return ROUTER::singleton()->publish(
         Message{
@@ -56,45 +56,51 @@ namespace fhatos {
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const bool payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromBool(payload), retain);
+      return this->publish(relativeTarget, SerialObj<>::fromBoolean(payload), retain);
     }
 
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const int payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromInt(payload), retain);
+      return this->publish(relativeTarget, SerialObj<>::fromInteger(payload), retain);
     }
 
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const long payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromInt((int) payload),
+      return this->publish(relativeTarget, SerialObj<>::fromInteger((int) payload),
                            retain);
     }
 
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const float payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromFloat(payload), retain);
+      return this->publish(relativeTarget, SerialObj<>::fromFloat(payload), retain);
     }
 
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const double payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromFloat((float) payload),
+      return this->publish(relativeTarget, SerialObj<>::fromFloat((float) payload),
                            retain);
     }
 
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const char *payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromString(payload), retain);
+      return this->publish(relativeTarget, SerialObj<>::fromString(payload), retain);
+    }
+
+    inline const RESPONSE_CODE publish(const ID &relativeTarget,
+                                       const string &payload,
+                                       const bool retain = TRANSIENT_MESSAGE) {
+      return this->publish(relativeTarget, SerialObj<>::fromString(payload), retain);
     }
 
     inline const RESPONSE_CODE publish(const ID &relativeTarget,
                                        const String &payload,
                                        const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, Payload::fromString(payload), retain);
+      return this->publish(relativeTarget, SerialObj<>::fromString(string(payload.c_str(), payload.length())), retain);
     }
 
   private:

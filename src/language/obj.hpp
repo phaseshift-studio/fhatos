@@ -48,22 +48,32 @@ namespace fhatos {
     return pts;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   template<typename DATA>
   class Obj {
   protected:
-    const DATA value;
+    const DATA _value;
+
+    //~Obj() {
+    //}
 
   public:
-    Obj(const DATA &value) : value(value) {
+    explicit Obj(const DATA &value) : _value(value) {
     }
 
-    virtual const DATA &get() const { return this->value; }
+    virtual const DATA &value() const { return this->_value; }
     virtual OType type() const { return OBJ; }
     /*virtual const bool equals(const Obj &other) const {
       return this->type() == other.type() && this->value == other.get();
     }*/
     virtual string toString() const {
-      return string((char *) ((void *) (&(this->value))));
+      return string((char *) ((void *) (&(this->_value))));
+    }
+    bool operator<(const Obj &other) const {
+      return true; //this->_value < other._value;
     }
 
     static const Algebra<Obj<DATA>, RING> algebra() {
@@ -73,48 +83,59 @@ namespace fhatos {
 
   using ObjX = void *; // wildcard object
   using ObjY = Obj<ObjX> *;
+  using ObjZ = Obj<ObjX>;
 
-  /////////////////////////////////////////////////////////////
-  class Bool : public Obj<bool> {
+  ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
+  class Bool final : public Obj<bool> {
   public:
-    Bool(const bool value) : Obj<bool>(value) {
-    };
+    Bool(const bool value) : Obj(value) {
+    }
+
     virtual OType type() const override { return BOOL; }
 
     virtual string toString() const override {
-      return this->value ? "true" : "false";
+      return this->_value ? "true" : "false";
     }
   };
 
-  /////////////////////////////////////////////////////////////
-  class Int : public Obj<FL_INT_TYPE> {
+  ///////////////////////////////////////////////// INT //////////////////////////////////////////////////////////////
+  class Int final : public Obj<FL_INT_TYPE> {
   public:
-    Int(const FL_INT_TYPE value) : Obj<FL_INT_TYPE>(value) {
-    };
+    Int(const FL_INT_TYPE value) : Obj(value) {
+    }
+
     virtual OType type() const override { return INT; }
-    virtual string toString() const override { return std::to_string(value); }
+    virtual string toString() const override { return std::to_string(_value); }
   };
 
-  /////////////////////////////////////////////////////////////
-  class Real : public Obj<FL_REAL_TYPE> {
+  ///////////////////////////////////////////////// REAL //////////////////////////////////////////////////////////////
+  class Real final : public Obj<FL_REAL_TYPE> {
   public:
-    Real(const FL_REAL_TYPE value) : Obj<FL_REAL_TYPE>(value) {
+    Real(const FL_REAL_TYPE value) : Obj(value) {
     };
     virtual OType type() const override { return REAL; }
-    virtual string toString() const override { return std::to_string(value); }
+    virtual string toString() const override { return std::to_string(_value); }
   };
 
-  /////////////////////////////////////////////////////////////
-  class Str : public Obj<string> {
+  ///////////////////////////////////////////////// STR //////////////////////////////////////////////////////////////
+  class Str final : public Obj<string> {
   public:
     Str(const string &value) : Obj<string>(value) {
     };
     virtual OType type() const override { return STR; }
-    virtual string toString() const override { return value; }
+    virtual string toString() const override { return _value; }
+
+    int compare(const Str &other) const {
+      return this->_value.compare(other._value);
+    }
+
+    bool operator<(const Str &other) const {
+      return this->_value < other._value;
+    }
   };
 
-  /////////////////////////////////////////////////////////////
-  class Lst : public Obj<List<ObjX> > {
+  ///////////////////////////////////////////////// LST //////////////////////////////////////////////////////////////
+  class Lst final : public Obj<List<ObjX> > {
   public:
     Lst(const List<ObjX> &value) : Obj<List<ObjX> >(value) {
     };
@@ -122,7 +143,7 @@ namespace fhatos {
 
     virtual string toString() const override {
       string t = "[";
-      for (const ObjX &element: this->value) {
+      for (const ObjX &element: this->_value) {
         t = t + ((ObjY) element)->toString() + ",";
       }
       t[t.length() - 1] = ']';
@@ -130,22 +151,45 @@ namespace fhatos {
     }
   };
 
-  template<typename K, typename V>
-  class Rec : public Obj<Map<K, V> > {
-    Rec(const Map<K, V> &value) : Obj<Map<K, V> >(value) {
+  ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
+  class Rec final : public Obj<Map<const ObjZ, ObjZ> > {
+  public:
+    Rec(const Map<const ObjZ, ObjZ> &_value) : Obj<Map<const ObjZ, ObjZ> >(_value) {
     };
+
+    Rec(const std::initializer_list<Pair<const ObjZ, ObjZ> > init) : Obj<Map<const ObjZ, ObjZ> >(Map<const ObjZ,ObjZ>(init)) {
+    };
+
+   /* template <typename V>
+    V get(const ObjZ &key) {
+      return  this->_value[key];
+    }
+
+    void set(const ObjZ &key, const ObjZ &val) {
+      return this->_value[key] = val;
+    }*/
+
     virtual OType type() const override { return REC; }
-    virtual  string toString() const override { return "rec"; }
+
+    virtual string toString() const override {
+      string t = "[";
+      for (const Pair<const ObjZ, ObjZ> &pair: this->_value) {
+        t = t + pair.first.toString() + ":" + pair.second.toString() + ",";
+      }
+      t[t.length() - 1] = ']';
+      return t;
+    }
   };
 
+  ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
   template<typename A, typename B>
   class Inst : public Obj<Triple<string, List<void *>, Function<A *, B *> > > {
   public:
     virtual ~Inst() {
     }
 
-    Inst(const Triple<string, List<void *>, Function<A *, B *> > &value)
-      : Obj<Triple<string, List<void *>, Function<A *, B *> > >(value) {
+    Inst(const Triple<string, List<void *>, Function<A *, B *> > &_value)
+      : Obj<Triple<string, List<void *>, Function<A *, B *> > >(_value) {
     }
 
     virtual OType type() const override { return INST; }
@@ -159,16 +203,17 @@ namespace fhatos {
     }
 
     ////////////////////////////////////
-    virtual const string &opcode() const { return std::get<0>(this->value); }
-    virtual const List<ObjX> &args() const { return std::get<1>(this->value); }
+    virtual const string &opcode() const { return std::get<0>(this->_value); }
+    virtual const List<ObjX> &args() const { return std::get<1>(this->_value); }
 
     virtual const Function<A *, B *> &func() const {
-      return std::get<2>(this->value);
+      return std::get<2>(this->_value);
     }
 
-    virtual const B *apply(const A *a) const { return (const B*)this->func()((A*)a); }
+    virtual const B *apply(const A *a) const { return (const B *) this->func()((A *) a); }
   };
 
+  ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
   template<typename S, typename E>
   class Bytecode final : public Obj<List<Inst<S, E> > > {
   public:
@@ -196,14 +241,14 @@ namespace fhatos {
 
     template<typename E2>
     Bytecode<S, E2> addInst(const Inst<E, E2> &inst) const {
-      List<Inst<S, E> > list(this->get());
+      List<Inst<S, E> > list(this->value());
       list.push_back(inst);
       return Bytecode<S, E2>(list);
     }
 
     virtual string toString() const override {
       string s = "{";
-      for (auto &inst: this->value) {
+      for (auto &inst: this->_value) {
         s = s + inst.toString();
       }
       return s + "}";

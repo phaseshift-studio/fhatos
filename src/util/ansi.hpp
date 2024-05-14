@@ -14,7 +14,7 @@ template <typename PRINTER> class Ansi {
 
 protected:
   PRINTER *printer;
-  String *_buffer = new String();
+  std::string *_buffer = new std::string();
   StringStream *_stream = new StringStream(_buffer);
   bool _on = true;
 
@@ -107,7 +107,7 @@ public:
   void flush() {
     delete this->_buffer;
     this->_buffer = NULL;
-    this->_buffer = new String();
+    this->_buffer = new std::string();
   }
 
   void printf(const char *format, ...) {

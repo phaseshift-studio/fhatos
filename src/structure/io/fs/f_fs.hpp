@@ -46,14 +46,14 @@ namespace fhatos {
             Ansi ansi(new StringStream(&temp));
             for (const auto &row: *listing) {
               ansi.printf(
-                FOS_TAB "!b\\_!!!r%s %s!!\n" FOS_TAB "" FOS_TAB "" FOS_TAB
-                "[!gsize!!:!b%s!!]\n",
+                FOS_TAB "!b\\_!!!r%s %s!!\n" FOS_TAB "" FOS_TAB "" FOS_TAB,
                 std::get<0>(row).c_str(),
-                std::get<1>(row).c_str(),
-                this->prettyPrintBytes(std::get<2>(row).toFloat()).c_str());
+                std::get<1>(row).c_str());
+              this->prettyPrintBytes(std::get<2>(row).toFloat(), ansi);
             }
             ansi.flush();
-            this->publish(message.target, temp,RETAIN_MESSAGE);
+            LOG(INFO, temp.c_str());
+            this->publish(message.target, temp.c_str(),RETAIN_MESSAGE);
             delete listing;
           } else {
             LOG_TASK(ERROR, this, "Unable to load %s", message.target.path().c_str());
@@ -62,25 +62,21 @@ namespace fhatos {
     }
 
   private:
-    const String prettyPrintBytes(const float bytes) const {
-      char returnSize[256];
+    static void prettyPrintBytes(const float bytes, Ansi<StringStream> &ansi) {
       if (constexpr float tb = 1099511627776; bytes >= tb)
-        sprintf(returnSize, "%.2f tb", static_cast<float>(bytes) / tb);
+        ansi.printf("[!gsize!!:!b%.2f tb!!]\n", static_cast<float>(bytes) / tb);
       else if (constexpr float gb = 1073741824; bytes >= gb && bytes < tb)
-        sprintf(returnSize, "%.2f gb", static_cast<float>(bytes) / gb);
+        ansi.printf("[!gsize!!:!b%.2f gb!!]\n", static_cast<float>(bytes) / gb);
       else if (constexpr float mb = 1048576; bytes >= mb && bytes < gb)
-        sprintf(returnSize, "%.2f mb", static_cast<float>(bytes) / mb);
+        ansi.printf("[!gsize!!:!b%.2f mb!!]\n", static_cast<float>(bytes) / mb);
       else if (constexpr float kb = 1024; bytes >= kb && bytes < mb)
-        sprintf(returnSize, "%.2f kb", static_cast<float>(bytes) / kb);
-      else if (bytes < kb)
-        sprintf(returnSize, "%.2f bytes", bytes);
+        ansi.printf("[!gsize!!:!b%.2f kb!!]\n", static_cast<float>(bytes) / kb);
       else
-        sprintf(returnSize, "%.2f bytes", bytes);
-      return String(returnSize);
+        ansi.printf("[!gsize!!:!b%.2f bytes!!]\n", bytes);
     }
 
-    const bool listDir(List<Triple<String, String, String> > *result, FS &fs, const char *dirname,
-                       uint8_t levels) const {
+    bool listDir(List<Triple<String, String, String> > *result, FS &fs, const char *dirname,
+                 uint8_t levels) const {
       File root = fs.open(dirname);
       if (!root || !root.isDirectory()) {
         LOG_TASK(ERROR, this, "Failed to open directory: %s", dirname);

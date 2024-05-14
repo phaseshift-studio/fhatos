@@ -78,6 +78,8 @@ namespace fhatos {
   using Map = std::map<K, V>;
 
   using string = std::string;
+  typedef uint8_t byte;
+  typedef	unsigned int	uint;
 }
 #endif
 #endif

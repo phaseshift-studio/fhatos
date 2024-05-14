@@ -45,7 +45,7 @@ protected:
   String createLogMessage(LOG_TYPE type, const String message) {
     if (message.startsWith("\t"))
       type = LOG_TYPE::NONE;
-    String output;
+    string output;
     StringStream stream = StringStream(&output);
     auto ansi = Ansi<StringStream>(&stream);
     if (type != LOG_TYPE::NONE) {
@@ -57,7 +57,7 @@ protected:
         ansi.print("!y[DEBUG]!!  ");
     }
     ansi.print(message.c_str());
-    return output;
+    return String(output.c_str());
   }
 };
 } // namespace fhatos

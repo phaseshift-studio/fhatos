@@ -53,11 +53,11 @@ namespace fhatos {
       if (done)
         return this->ends;
       done = true;
-      const auto starts = List<void *>(this->bcode.get().front().args());
+      const auto starts = List<void *>(this->bcode.value().front().args());
       for (const auto *start: starts) {
         const MONAD *end = new MONAD(static_cast<const E *>(start));
         int counter = 0;
-        for (const auto &inst: this->bcode.get()) {
+        for (const auto &inst: this->bcode.value()) {
           if (counter++ != 0)
             end = static_cast<const MONAD *>(static_cast<const void *>(end->split(&inst)));
         }
