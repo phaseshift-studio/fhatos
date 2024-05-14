@@ -8,7 +8,7 @@
 #include <language/instructions.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
-#include <language/serializer.hpp>
+#include <language/binary_obj.hpp>
 
 int main(int arg, char **argsv) {
 }

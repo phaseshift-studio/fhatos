@@ -5,7 +5,7 @@
 //
 #include <structure/furi.hpp>
 #include <process/router/message.hpp>
-#include <language/serializer.hpp>
+#include <language/binary_obj.hpp>
 
 namespace fhatos {
 
@@ -17,17 +17,17 @@ void test_bool() {
     }
     Message m{.source = ID("a"),
               .target = ID("b"),
-              .payload = SerialObj<>::fromBoolean((i % 2) == 0),
+              .payload = BinaryObj<>((i % 2) == 0),
               .retain = (i % 2) != 0};
-    TEST_ASSERT_EQUAL(BOOL, m.payload.type);
+    TEST_ASSERT_EQUAL(BOOL, m.payload.type());
     if (i % 2 == 0) {
       TEST_ASSERT_TRUE(m.payload.toBool().value());
-      TEST_ASSERT_EQUAL(m.payload.data[0], 'T');
+      TEST_ASSERT_EQUAL(m.payload.data()[0], 'T');
     } else {
       TEST_ASSERT_FALSE(m.payload.toBool().value());
-      TEST_ASSERT_EQUAL(m.payload.data[0], 'F');
+      TEST_ASSERT_EQUAL(m.payload.data()[0], 'F');
     }
-    TEST_ASSERT_EQUAL(1, m.payload.length);
+    TEST_ASSERT_EQUAL(1, m.payload.length());
     TEST_ASSERT_EQUAL((i % 2) != 0, m.retain);
   }
 }
@@ -40,11 +40,11 @@ void test_int() {
     }
     Message m{.source = ID("a"),
               .target = ID("b"),
-              .payload = SerialObj<>::fromInteger(i),
+              .payload =  BinaryObj<>(i),
               .retain = (i % 2) == 0};
-    TEST_ASSERT_EQUAL(INT, m.payload.type);
+    TEST_ASSERT_EQUAL(INT, m.payload.type());
     TEST_ASSERT_EQUAL(i, m.payload.toInt().value());
-    TEST_ASSERT_EQUAL(m.payload.length, strlen((const char *)m.payload.data));
+    TEST_ASSERT_EQUAL(m.payload.length(), strlen((const char *)m.payload.data()));
     TEST_ASSERT_EQUAL((i % 2) == 0, m.retain);
   }
 }
@@ -58,11 +58,11 @@ void test_float() {
     }
     Message m{.source = ID("a"),
               .target = ID("b"),
-              .payload = SerialObj<>::fromFloat(i),
+              .payload =  BinaryObj<>(i),
               .retain = i > 0.0f};
-    TEST_ASSERT_EQUAL(REAL, m.payload.type);
+    TEST_ASSERT_EQUAL(REAL, m.payload.type());
     TEST_ASSERT_FLOAT_WITHIN(0.1f, i, m.payload.toReal().value());
-    TEST_ASSERT_EQUAL(m.payload.length, strlen((const char *)m.payload.data));
+    TEST_ASSERT_EQUAL(m.payload.length(), strlen((const char *)m.payload.data()));
     TEST_ASSERT_EQUAL(i > 0.0f, m.retain);
   }
 }
@@ -71,46 +71,46 @@ void test_str() {
   ///// STRING
   Message m{.source = ID("a"),
             .target = ID("b"),
-            .payload = SerialObj<>::fromString("fhatty"),
+            .payload =  BinaryObj<>("fhatty"),
             .retain = false};
-  TEST_ASSERT_EQUAL_STRING("fhatty", m.payload.toString().c_str());
-  TEST_ASSERT_EQUAL_STRING("fhatty", (const char *)m.payload.data);
-  TEST_ASSERT_EQUAL(6, m.payload.length);
-  TEST_ASSERT_EQUAL(STR, m.payload.type);
+  TEST_ASSERT_EQUAL_STRING("fhatty", m.payload.toStr().toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("fhatty", (const char *)m.payload.data());
+  TEST_ASSERT_EQUAL(6, m.payload.length());
+  TEST_ASSERT_EQUAL(STR, m.payload.type());
   TEST_ASSERT_FALSE(m.retain);
 }
 
 void test_interpret() {
   TEST_ASSERT_TRUE(
-     SerialObj<>::fromString("fhat").equals(SerialObj<>::interpret("\"fhat\"")));
-  TEST_ASSERT_TRUE(SerialObj<>::fromBoolean(true).equals(SerialObj<>::interpret("true")));
-  TEST_ASSERT_TRUE(SerialObj<>::fromInteger(62).equals(SerialObj<>::interpret("62")));
+      BinaryObj<>("fhat").equals( BinaryObj<>::interpret("\"fhat\"")));
+  TEST_ASSERT_TRUE( BinaryObj<>(true).equals( BinaryObj<>::interpret("true")));
+  TEST_ASSERT_TRUE( BinaryObj<>(62).equals( BinaryObj<>::interpret("62")));
   //TEST_ASSERT_TRUE(
     // SerialObj<>::fromFloat(12.32f).equals(SerialObj<>::interpret("12.32f")));
   //////////////////////////////////////////////////////////////////
-  TEST_ASSERT_EQUAL_STRING(SerialObj<>::fromString("fhat").toStr().value().c_str(),
-                           SerialObj<>::interpret("\"fhat\"").toStr().value().c_str());
-  TEST_ASSERT_EQUAL(SerialObj<>::fromBoolean(true).toBool().value(),
-                    SerialObj<>::interpret("true").toBool().value());
-  TEST_ASSERT_FLOAT_WITHIN(0.1f, SerialObj<>::fromFloat(12.32f).toReal().value(),
-                          SerialObj<>::interpret("12.32f").toReal().value());
-  TEST_ASSERT_EQUAL(SerialObj<>::fromInteger(62).toInt().value(),
-                    SerialObj<>::interpret("62").toInt().value());
+  TEST_ASSERT_EQUAL_STRING( BinaryObj<>("fhat").toStr().value().c_str(),
+                            BinaryObj<>::interpret("\"fhat\"").toStr().value().c_str());
+  TEST_ASSERT_EQUAL( BinaryObj<>(true).toBool().value(),
+                     BinaryObj<>::interpret("true").toBool().value());
+  TEST_ASSERT_FLOAT_WITHIN(0.1f,  BinaryObj<>(12.32f).toReal().value(),
+                          BinaryObj<>::interpret("12.32f").toReal().value());
+  TEST_ASSERT_EQUAL( BinaryObj<>(62).toInt().value(),
+                BinaryObj<>::interpret("62").toInt().value());
   //////////////////////////////////////////////////////////////////
   TEST_ASSERT_EQUAL_STRING("fhat",
-                           SerialObj<>::interpret("\"fhat\"").toStr().value().c_str());
-  TEST_ASSERT_TRUE(SerialObj<>::interpret("true").toBool().value());
+                           BinaryObj<>::interpret("\"fhat\"").toStr().value().c_str());
+  TEST_ASSERT_TRUE( BinaryObj<>::interpret("true").toBool().value());
   TEST_ASSERT_FLOAT_WITHIN(0.1f, 12.32f,
-                           SerialObj<>::interpret("12.32f").toReal().value());
-  TEST_ASSERT_EQUAL(62, SerialObj<>::interpret("62").toInt().value());
+                            BinaryObj<>::interpret("12.32f").toReal().value());
+  TEST_ASSERT_EQUAL(62,  BinaryObj<>::interpret("62").toInt().value());
   //////////////////////////////////////////////////////////////////
   TEST_ASSERT_EQUAL_STRING("fhat",
-                         SerialObj<>::interpret("\"fhat\"").toStr().value().c_str());
+                          BinaryObj<>::interpret("\"fhat\"").toStr().value().c_str());
   TEST_ASSERT_EQUAL_STRING("true",
-                          SerialObj<>::interpret("true").toStr().value().c_str());
+                          BinaryObj<>::interpret("true").toStr().value().c_str());
   TEST_ASSERT_EQUAL_STRING("10.320000",
-                           SerialObj<>::interpret("10.32f").toReal().toString().c_str()); // TODO: fix
-  TEST_ASSERT_EQUAL_STRING("24", SerialObj<>::interpret("24").toStr().value().c_str());
+                           BinaryObj<>::interpret("10.32f").toReal().toString().c_str()); // TODO: fix
+  TEST_ASSERT_EQUAL_STRING("24",  BinaryObj<>::interpret("24").toStr().value().c_str());
 }
 
 FOS_RUN_TESTS(                    //

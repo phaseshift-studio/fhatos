@@ -38,9 +38,9 @@
 #include <optional>
 #include <queue>
 #include <set>
+#include <atomic>
 
 namespace fhatos {
-
   static const char *ANSI_ART =
       "!r            !_PhaseShift Studio Presents!! \n"
       "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
@@ -101,7 +101,8 @@ namespace fhatos {
 
   using string = std::string;
   typedef uint8_t byte;
-  typedef	unsigned int	uint;
+  typedef unsigned int uint;
+
   ///////////////////////
   /// EXCEPTION TYPES ///
   ///////////////////////
@@ -157,6 +158,9 @@ namespace fhatos {
     };
   }
 
+#define FOS_TAB_2 "  "
+#define FOS_TAB_3 "   "
+#define FOS_TAB_4 "    "
 #define FOS_TAB "  "
 #define FOS_I2C_ADDR_STR "0x%x/%i"
 #define FOS_I2C_ADDR(a) a, a

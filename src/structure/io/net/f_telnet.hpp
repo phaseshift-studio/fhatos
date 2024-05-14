@@ -6,7 +6,7 @@
 #include <ESPTelnet.h>
 #include <process/actor/actor.hpp>
 #include <util/ansi.hpp>
-#include <language/serializer.hpp>
+#include <language/binary_obj.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
@@ -46,9 +46,9 @@ namespace fhatos {
         // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
         // ipAddress.c_str());
         tthis->ansi->println(ANSI_ART);
-        tthis->ansi->printf("Telnet server on !m%s!!\n" TAB
+        tthis->ansi->printf("Telnet server on !m%s!!\n" TAB "Connection from !m%s!!\n" TAB
                             ":help for help menu\n",
-                            fWIFI::ip().toString().c_str());
+                            fWIFI::ip().toString().c_str(), ipAddress.c_str());
         tthis->currentTopic = new ID(tthis->id());
         tthis->printPrompt();
       });
@@ -66,17 +66,17 @@ namespace fhatos {
                                 message.target.toString().c_str());
           });
         } else if (line.startsWith("<=")) {
-          const String payload =
-              (line.length() == 2) ? emptyString : line.substring(2);
-          SerialObj<> conversion = SerialObj<>::interpret(payload.c_str());
-          tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
+          const string payload =
+              (line.length() == 2) ? "" : line.substring(2).c_str();
+          BinaryObj<> conversion = BinaryObj<>::interpret(payload);
           LOG(DEBUG, "Telnet publishing: %s::%s\n",
-              OTYPE_STR.at(conversion.type).c_str(),
+              OTYPE_STR.at(conversion.type()).c_str(),
               conversion.toString().c_str());
+          tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
         } else if (line.startsWith("?")) {
           tthis->query(tthis->currentTopic->query(line.substring(1)),
                        [](const Message &message) {
-                         tthis->ansi->println(message.payload.toString().c_str());
+                         tthis->ansi->println(message.payload.toStr().toString().c_str());
                        });
         } else if (line.startsWith("=>")) {
           const RESPONSE_CODE _rc =
@@ -95,7 +95,7 @@ namespace fhatos {
                       new Pair<ID, ID>(message.source, message.target);
                 }
                 tthis->xtelnet->println(
-                  message.payload.toString().c_str()); // TODO: ansi off/on
+                  message.payload.toStr().toString().c_str()); // TODO: ansi off/on
               });
 
           tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",

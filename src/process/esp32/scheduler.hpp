@@ -3,7 +3,6 @@
 
 #include <fhatos.hpp>
 ///
-#include <atomic>
 #include <process/abstract_scheduler.hpp>
 #include <process/process.hpp>
 #include <process/router/local_router.hpp>

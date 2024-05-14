@@ -11,7 +11,7 @@
 #include <fhatos.hpp>
 
 namespace fhatos {
-  enum OType { OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
+  enum OType { URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
   enum AType { MONOID, SEMIRING, GROUP, RING, FIELD };
 
   static const Map<OType, string> OTYPE_STR = {
@@ -66,12 +66,15 @@ namespace fhatos {
 
     virtual const DATA &value() const { return this->_value; }
     virtual OType type() const { return OBJ; }
-    /*virtual const bool equals(const Obj &other) const {
-      return this->type() == other.type() && this->value == other.get();
+
+    /*virtual bool equals(const Obj &other) const {
+      return this->type() == other.type() && this->_value == other._value;
     }*/
+
     virtual string toString() const {
       return string((char *) ((void *) (&(this->_value))));
     }
+
     bool operator<(const Obj &other) const {
       return true; //this->_value < other._value;
     }
@@ -84,6 +87,19 @@ namespace fhatos {
   using ObjX = void *; // wildcard object
   using ObjY = Obj<ObjX> *;
   using ObjZ = Obj<ObjX>;
+
+  ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
+  class Uri final : public Obj<fURI> {
+  public:
+    Uri(const fURI value) : Obj(value) {
+    }
+
+    virtual OType type() const override { return URI; }
+
+    virtual string toString() const override {
+      return string(this->_value.toString().c_str());
+    }
+  };
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
   class Bool final : public Obj<bool> {
@@ -157,17 +173,18 @@ namespace fhatos {
     Rec(const Map<const ObjZ, ObjZ> &_value) : Obj<Map<const ObjZ, ObjZ> >(_value) {
     };
 
-    Rec(const std::initializer_list<Pair<const ObjZ, ObjZ> > init) : Obj<Map<const ObjZ, ObjZ> >(Map<const ObjZ,ObjZ>(init)) {
+    Rec(const std::initializer_list<Pair<const ObjZ, ObjZ> > init) : Obj<Map<const ObjZ, ObjZ> >(
+      Map<const ObjZ, ObjZ>(init)) {
     };
 
-   /* template <typename V>
-    V get(const ObjZ &key) {
-      return  this->_value[key];
-    }
+    /* template <typename V>
+     V get(const ObjZ &key) {
+       return  this->_value[key];
+     }
 
-    void set(const ObjZ &key, const ObjZ &val) {
-      return this->_value[key] = val;
-    }*/
+     void set(const ObjZ &key, const ObjZ &val) {
+       return this->_value[key] = val;
+     }*/
 
     virtual OType type() const override { return REC; }
 

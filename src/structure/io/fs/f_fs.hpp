@@ -7,6 +7,7 @@
 #include <LittleFS.h>
 #include <process/actor/actor.hpp>
 #include <util/ansi.hpp>
+#include <structure/query/q_fs.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
@@ -38,69 +39,21 @@ namespace fhatos {
       const char *mount = "/littlefs";
       const bool success = LittleFS.begin(false, mount);
       LOG_TASK(success ? INFO : ERROR, this, "%s mounted at %s", STR(FOS_FILE_SYSTEM), mount);
-      this->subscribe(this->id().extend("#"), [this](const Message &message) {
-        if (!message.source.equals(this->id()))
-          if (auto *listing = new List<Triple<String, String, String> >();
-            this->listDir(listing, LittleFS, (String("/") + message.target.path()).c_str(), 1)) {
-            String temp;
-            Ansi ansi(new StringStream(&temp));
-            for (const auto &row: *listing) {
-              ansi.printf(
-                FOS_TAB "!b\\_!!!r%s %s!!\n" FOS_TAB "" FOS_TAB "" FOS_TAB,
-                std::get<0>(row).c_str(),
-                std::get<1>(row).c_str());
-              this->prettyPrintBytes(std::get<2>(row).toFloat(), ansi);
-            }
-            ansi.flush();
-            LOG(INFO, temp.c_str());
-            this->publish(message.target, temp.c_str(),RETAIN_MESSAGE);
-            delete listing;
-          } else {
-            LOG_TASK(ERROR, this, "Unable to load %s", message.target.path().c_str());
-          }
-      });
-    }
-
-  private:
-    static void prettyPrintBytes(const float bytes, Ansi<StringStream> &ansi) {
-      if (constexpr float tb = 1099511627776; bytes >= tb)
-        ansi.printf("[!gsize!!:!b%.2f tb!!]\n", static_cast<float>(bytes) / tb);
-      else if (constexpr float gb = 1073741824; bytes >= gb && bytes < tb)
-        ansi.printf("[!gsize!!:!b%.2f gb!!]\n", static_cast<float>(bytes) / gb);
-      else if (constexpr float mb = 1048576; bytes >= mb && bytes < gb)
-        ansi.printf("[!gsize!!:!b%.2f mb!!]\n", static_cast<float>(bytes) / mb);
-      else if (constexpr float kb = 1024; bytes >= kb && bytes < mb)
-        ansi.printf("[!gsize!!:!b%.2f kb!!]\n", static_cast<float>(bytes) / kb);
-      else
-        ansi.printf("[!gsize!!:!b%.2f bytes!!]\n", bytes);
-    }
-
-    bool listDir(List<Triple<String, String, String> > *result, FS &fs, const char *dirname,
-                 uint8_t levels) const {
-      File root = fs.open(dirname);
-      if (!root || !root.isDirectory()) {
-        LOG_TASK(ERROR, this, "Failed to open directory: %s", dirname);
-        return false;
-      }
-      result->push_back({"DIR", this->id().extend(root.name()).toString(), String(root.size())});
-      File file = root.openNextFile();
-      while (file) {
-        if (file.isDirectory()) {
-          result->push_back({
-            "dir", this->id().extend(root.name()).extend(file.name()).toString(), String(file.size())
-          });
-          if (levels) {
-            if (!listDir(result, fs, file.name(), levels - 1))
-              return false;
-          }
-        } else {
-          String f = String(file.name()) + " " + file.size();
-          result->push_back(
-            {"FILE", this->id().extend(root.name()).extend(file.name()).toString(), String(file.size())});
-        }
-        file = root.openNextFile();
-      }
-      return true;
+      this->subscribe(this->id().extend("#"),
+                      [this](const Message &message) {
+                        if (!message.source.equals(this->id()) && message.isQuery()) {
+                          const FSInfo *info = qFS(&message.target, LittleFS).structure(true);
+                          String temp;
+                          Ansi<Stream> ansi(new StringStream(&temp));
+                          if (info->type == FILE)
+                            ((FileInfo *) info)->print(ansi);
+                          else
+                            ((DirInfo *) info)->print(ansi);
+                          ansi.flush();
+                          delete info;
+                          this->publish(message.target, temp,RETAIN_MESSAGE);
+                        }
+                      });
     }
   };
 } // namespace fhatos

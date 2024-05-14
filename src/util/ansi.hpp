@@ -18,6 +18,7 @@ protected:
   StringStream *_stream = new StringStream(_buffer);
   bool _on = true;
 
+
   enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
   void color(const uint8_t fgcolor, const uint8_t bgcolor) {
@@ -89,7 +90,11 @@ protected:
   }
 
 public:
-  Ansi() {};
+  Ansi<PRINTER>() {};
+
+  PRINTER* stream() {
+    return this->_stream;
+  }
 
   explicit Ansi(PRINTER *printer) : printer(printer) {}
 

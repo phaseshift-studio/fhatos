@@ -16,6 +16,10 @@ namespace fhatos {
       xstring.b = s;
     }
 
+    std::string* get() {
+      return this->xstring.b;
+    }
+
     // Stream methods
     virtual int available() override {
       return a ? xstring.a->length() - position : xstring.b->length() - position;

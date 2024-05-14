@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#############################
+## DEFINE GLOBAL VARIABLES ##
+#############################
+NC='\033[0m'
+RED='\033[0;31m'
+BOLDRED='\033[1;31m'
+IRED='\033[0;91m' 
+GREEN='\033[0;32m'
+BOLDGREEN='\033[1;32m'
+MAGENTA='\033[0;35m'
+BLUE='\033[0;34m'
+FHATOS="${MAGENTA}FhatOS${NC}"
+#############################
+
+echo -e "${FHATOS} Development Script"
+
+if [[ -z $2 ]]; then
+  environ=" "
+  echo -e "  [processing ${GREEN}all environments${NC}]"
+else
+  environ="--environment $2"
+  echo -e "  [processing ${GREEN}$environ${NC}]"
+fi
+
+
+
+if [[ $1 == "test" ]]; then
+  platformio run --target clean $environ; platformio test $environ -v
+elif [[ $1 == "build" ]]; then
+  platformio run --target clean $environ; platformio run $environ
+elif [[ $1 == "upload" ]]; then
+  platformio run --target clean $environ; platformio run $environ --target upload 
+else
+   echo -e "usage: 
+  fhat-dev {test | build | upload} {fhatos | native | <empty>} 
+    fhat-dev test native
+    fhat-dev build fhatos
+    fhat-dev upload fhatos
+    fhat-dev test"
+fi
+
+if [[ $? == 0 ]]; then
+    echo -e "${GREEN}SUCCESS"
+else
+    echo -e "${RED}FAILURE"
+fi

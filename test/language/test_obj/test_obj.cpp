@@ -4,7 +4,7 @@
 #include <test_fhatos.hpp>
 //
 #include <language/obj.hpp>
-#include <language/serializer.hpp>
+#include <language/binary_obj.hpp>
 
 namespace fhatos {
 

@@ -8,10 +8,10 @@
 #include <process/router/meta_router.hpp>
 #include <process/router/publisher.hpp>
 #include <process/router/router.hpp>
-#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  template<typename PROCESS, typename ROUTER = MetaRouter<>>
+  template<typename PROCESS = Thread, typename ROUTER = MetaRouter<>>
   class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<Mail> {
   public:
     explicit Actor(
@@ -57,14 +57,16 @@ namespace fhatos {
     }
 
     void query(const ID &queryId, const Consumer<const Message> &onRecv) {
-      this->publish(queryId.query(emptyString), ("?" + queryId.query()),
-                    TRANSIENT_MESSAGE);
       this->subscribe(queryId, [this, queryId, onRecv](const Message &message) {
         if (message.retain) {
-          onRecv(message);
           this->unsubscribe(queryId);
+          onRecv(message);
         }
       });
+      this->yield();
+      this->loop();
+      this->publish(queryId.query(emptyString), ("?" + queryId.query()),
+              TRANSIENT_MESSAGE);
     }
 
     uint16_t size() const override { return inbox.size(); }
