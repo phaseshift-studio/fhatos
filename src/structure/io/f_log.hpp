@@ -28,7 +28,7 @@ public:
         this->id().extend("INFO"), [this, serialID](const auto &message) {
           this->publish(
               serialID,
-              this->createLogMessage(INFO, message.payload.toString()).c_str(),
+              this->createLogMessage(INFO, message.payload->toString()),
               false);
         });
     // ERROR LOGGING
@@ -36,14 +36,14 @@ public:
         this->id().extend("ERROR"), [this, serialID](const auto &message) {
           this->publish(
               serialID,
-              this->createLogMessage(INFO, message.payload.toString()).c_str(),
+              this->createLogMessage(INFO, message.payload->toString()),
               false);
         });
   }
 
 protected:
-  String createLogMessage(LOG_TYPE type, const String message) {
-    if (message.startsWith("\t"))
+  string createLogMessage(LOG_TYPE type, const string& message) {
+    if (message[0] == '\t')
       type = LOG_TYPE::NONE;
     string output;
     StringStream stream = StringStream(&output);
@@ -57,7 +57,7 @@ protected:
         ansi.print("!y[DEBUG]!!  ");
     }
     ansi.print(message.c_str());
-    return String(output.c_str());
+    return string(output.c_str());
   }
 };
 } // namespace fhatos

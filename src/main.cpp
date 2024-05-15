@@ -27,7 +27,7 @@ void setup() {
   //s->spawn(MAIN_ROUTER::singleton());
   //s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
   //s->spawn(fOTA<Fiber>::singleton());
-  //s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
+  s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
   //s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
   s->spawn(fTelnet<>::singleton());
   //s->spawn(new fPing());

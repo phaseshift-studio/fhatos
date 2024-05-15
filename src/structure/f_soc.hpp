@@ -31,7 +31,7 @@ public:
   virtual void setup() override {
     PROCESS::setup();
     this->subscribe(this->id(), [this](const Message &message) {
-      if (message.payload.toString() == "?out")
+      if (message.payload->toString() == "?out")
         this->updateBBS(message.target.query("out"));
     });
 
@@ -47,19 +47,19 @@ public:
       const int pin = message.target.lastSegment().toInt();
       const bool canOutput = digitalPinCanOutput(pin);
       LOG(canOutput ? INFO : ERROR, "Writing !g%s!! to digital pin !b%i!!\n",
-          message.payload.toBool().value() ? "HIGH" : "LOW",
+          message.payload->toBool().value() ? "HIGH" : "LOW",
           message.target.lastSegment().toInt());
       if (canOutput)
-        digitalWrite(pin, message.payload.toBool().value() ? HIGH : LOW);
+        digitalWrite(pin, message.payload->toBool().value() ? HIGH : LOW);
     });
     /////////////////////////////  PWM  /////////////////////////////
     this->subscribe(this->id().extend("pwm/+"), [this](const Message &message) {
       const int pin = message.target.lastSegment().toInt();
       const bool canOutput = digitalPinHasPWM(pin);
       LOG(canOutput ? INFO : ERROR, "Writing !g%i!! to analaog pin !b%i!!\n",
-          message.payload.toInt(), message.target.lastSegment().toInt());
+          message.payload->toInt(), message.target.lastSegment().toInt());
       if (canOutput)
-        analogWrite(pin, message.payload.toInt().value());
+        analogWrite(pin, message.payload->toInt().value());
     });
   }
 

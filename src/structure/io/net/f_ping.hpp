@@ -65,13 +65,13 @@ namespace fhatos {
       this->updateBBS(this->id().query("out"));
       // handle queries
       this->subscribe(this->id(), [this](const Message &message) {
-        if (message.payload.toStr().value() == "?out")
+        if (message.payload->toStr().value() == "?out")
           this->updateBBS(message.target.query("out"));
       });
       // spawn/destroy children
       this->subscribe(this->id().extend("+"), [this](const Message &message) {
         if (message.is<BOOL>()) {
-          if (!message.payload.toBool().value()) {
+          if (!message.payload->toBool().value()) {
             this->destroyChildren(message.target);
           } else {
             if (0 == this->searchChildren(Pattern(message.target)))

@@ -72,11 +72,11 @@ namespace fhatos {
           LOG(DEBUG, "Telnet publishing: %s::%s\n",
               OTYPE_STR.at(conversion.type()).c_str(),
               conversion.toString().c_str());
-          tthis->publish(*tthis->currentTopic, conversion, TRANSIENT_MESSAGE);
+          tthis->publish(*tthis->currentTopic, &conversion, TRANSIENT_MESSAGE);
         } else if (line.startsWith("?")) {
           tthis->query(tthis->currentTopic->query(line.substring(1)),
                        [](const Message &message) {
-                         tthis->ansi->println(message.payload.toStr().toString().c_str());
+                         tthis->ansi->println(message.payload->toStr().toString().c_str());
                        });
         } else if (line.startsWith("=>")) {
           const RESPONSE_CODE _rc =
@@ -95,7 +95,7 @@ namespace fhatos {
                       new Pair<ID, ID>(message.source, message.target);
                 }
                 tthis->xtelnet->println(
-                  message.payload.toStr().toString().c_str()); // TODO: ansi off/on
+                  message.payload->toStr().toString().c_str()); // TODO: ansi off/on
               });
 
           tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
