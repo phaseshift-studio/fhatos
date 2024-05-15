@@ -89,7 +89,7 @@ namespace fhatos {
   using ObjZ = Obj<ObjX>;
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
-  class Uri final : public Obj<fURI> {
+  /*class Uri final : public Obj<fURI> {
   public:
     Uri(const fURI value) : Obj(value) {
     }
@@ -99,7 +99,7 @@ namespace fhatos {
     virtual string toString() const override {
       return string(this->_value.toString().c_str());
     }
-  };
+  };*/
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
   class Bool final : public Obj<bool> {

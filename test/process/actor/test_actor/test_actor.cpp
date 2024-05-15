@@ -44,12 +44,12 @@ template <typename ROUTER> void test_actor_throughput() {
   while (Scheduler<ROUTER>::singleton()->count("actor1@127.0.0.1") ||
          Scheduler<ROUTER>::singleton()->count("actor2@127.0.0.1")) {
   }
+  //delete actor1;
+  //delete actor2;
   ROUTER::singleton()->clear();
   TEST_ASSERT_EQUAL(counter->first + 1, counter->second);
   TEST_ASSERT_EQUAL(200, counter->first);
   delete counter;
-  // delete Scheduler<ROUTER>::singleton();
-  // delete ROUTER::singleton();
 }
 
 template <typename ROUTER> void test_actor_by_router() {
@@ -65,7 +65,7 @@ template <typename ROUTER> void test_actor_by_router() {
       RESPONSE_CODE::OK,
       actor1->subscribe(
           actor1->id(), [actor1, actor2, counter](const Message &message) {
-            TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data());
+            TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
             FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
             FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
             TEST_ASSERT_EQUAL(
@@ -78,7 +78,7 @@ template <typename ROUTER> void test_actor_by_router() {
       RESPONSE_CODE::OK,
       actor2->subscribe("actor2@127.0.0.1", [actor1, actor2,
                                              counter](const Message &message) {
-        TEST_ASSERT_EQUAL_STRING("pong", (char *)message.payload.data());
+        TEST_ASSERT_EQUAL_STRING("pong", message.payload->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor1->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor2->id());
         counter->second++;
@@ -86,7 +86,7 @@ template <typename ROUTER> void test_actor_by_router() {
   TEST_ASSERT_EQUAL(
       RESPONSE_CODE::REPEAT_SUBSCRIPTION,
       actor1->subscribe("actor1@127.0.0.1", [](const Message &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", (char *)message.payload.data());
+        TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
       }));
 
   actor2->publish(actor1->id(), "ping", TRANSIENT_MESSAGE);
@@ -119,7 +119,7 @@ template <typename ROUTER> void test_message_retain() {
       RESPONSE_CODE::OK,
       actor1->subscribe(actor1->id(), [actor1, actor2,
                                        counter](const Message &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.toString().c_str());
+        TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
         counter->first++;
@@ -135,7 +135,7 @@ template <typename ROUTER> void test_message_retain() {
       RESPONSE_CODE::OK,
       actor2->subscribe("actor1@127.0.0.1", [actor1, actor2,
                                              counter](const Message &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.toString().c_str());
+        TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
         counter->second++;
@@ -149,7 +149,7 @@ template <typename ROUTER> void test_message_retain() {
       RESPONSE_CODE::OK,
       actor1->subscribe("actor1@127.0.0.1", [actor1, actor2,
                                              counter](const Message &message) {
-        TEST_ASSERT_EQUAL_STRING("ping", message.payload.toString().c_str());
+        TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
         counter->second++;
@@ -166,7 +166,7 @@ template <typename ROUTER> void test_message_retain() {
   delete actor1;
   delete actor2;
   delete counter;
-  ROUTER::singleton()->clear();
+  //ROUTER::singleton()->clear();
 }
 
 template <typename ROUTER> void test_actor_serialization() {

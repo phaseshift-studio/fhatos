@@ -217,9 +217,9 @@ namespace fhatos {
         if (m.has_value()) {
           JsonDocument doc;
           doc["source"] = m->source.toString();
-          doc["type"] = (const uint) m->payload.type;
-          doc["data"] = m->payload.data;
-          doc["length"] = m->payload.length;
+          doc["type"] = (const uint) m->payload->type;
+          doc["data"] = m->payload->data;
+          doc["length"] = m->payload->length;
           doc["retain"] = m->retain;
           char buffer[512];
           const uint length = serializeJson(doc, buffer);

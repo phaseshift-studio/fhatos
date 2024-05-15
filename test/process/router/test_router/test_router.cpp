@@ -18,7 +18,7 @@ void test_publish() {
                     LocalRouter<>::singleton()->publish(Message{
                         .source = ID("a"),
                         .target = ID("b"),
-                        .payload = BinaryObj<>{ STR,  (byte *)"test", 4},
+                        .payload = new BinaryObj<>{ STR,  (byte *)"test", 4},
                         .retain = TRANSIENT_MESSAGE}));
 };
 

@@ -11,7 +11,7 @@
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = MetaRouter<>>
+  template<typename PROCESS = Thread, typename ROUTER = MetaRouter<> >
   class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<Mail> {
   public:
     explicit Actor(
@@ -66,7 +66,7 @@ namespace fhatos {
       this->yield();
       this->loop();
       this->publish(queryId.query(emptyString), ("?" + queryId.query()),
-              TRANSIENT_MESSAGE);
+                    TRANSIENT_MESSAGE);
     }
 
     uint16_t size() const override { return inbox.size(); }
@@ -131,6 +131,7 @@ namespace fhatos {
       if (!mail.has_value())
         return false;
       mail->first.execute(mail->second);
+     /// delete mail->second.payload;
       return true;
     }
   };

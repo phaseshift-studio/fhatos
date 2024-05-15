@@ -13,6 +13,7 @@ namespace fhatos {
 
     void clear() {
       while (this->pop().has_value()) {
+
       }
     }
 
@@ -20,7 +21,6 @@ namespace fhatos {
 
     virtual uint16_t size() const { return 0; }
 
-  protected:
     virtual Option<T> pop() { return {}; }
   };
 } // namespace fhatos

@@ -18,22 +18,22 @@ namespace fhatos {
   public:
     const ID source;
     const ID target;
-    const BinaryObj<> payload;
+    const BinaryObj<>* payload;
     const bool retain;
 
     template<OType type>
     bool is() const {
-      return type == this->payload.type();
+      return type == this->payload->type();
     }
 
     bool isQuery() const {
-      return !this->retain && payload.type() == STR && payload.data()[0] == '?';
+      return !this->retain && payload->type() == STR && payload->data()[0] == '?';
     }
 
     string toString() const {
       char temp[100];
       sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(),
-              payload.toString().c_str(), FOS_BOOL_STR(retain),
+              payload->toString().c_str(), FOS_BOOL_STR(retain),
               target.toString().c_str());
       return string(temp);
     };

@@ -13,6 +13,12 @@ namespace fhatos {
   template<typename SERIALIZER = CharSerializer>
   class BinaryObj : public Obj<binary_obj> {
   public:
+    ~BinaryObj() {
+      const OType t = std::get<0>(this->_value);
+      if (t == INT || t == REAL || t == STR)
+        delete std::get<1>(this->_value);
+    }
+
     explicit BinaryObj(const OType type, const byte *data, const uint16_t length) : Obj({type, data, length}) {
     };
 
@@ -28,6 +34,9 @@ namespace fhatos {
     }
 
     explicit BinaryObj(const string &xstring) : Obj(SERIALIZER::fromString(xstring)) {
+    }
+
+    explicit BinaryObj(const char *xcstr) : Obj(SERIALIZER::fromString(string(xcstr))) {
     }
 
 
@@ -60,11 +69,11 @@ namespace fhatos {
     }
 
     /////////////////
-    virtual bool equals(const BinaryObj<> &other) const {
+    bool equals(const BinaryObj &other) const {
       return (this->type() == other.type()) &&
              (this->length() == other.length()) &&
-             (strcmp((const char *) this->data(),
-                     (const char *) (other.data())) == 0);
+             (strcmp(reinterpret_cast<const char *>(this->data()),
+                     reinterpret_cast<const char *>(other.data())) == 0);
     }
 
 
@@ -80,13 +89,13 @@ namespace fhatos {
 
     static BinaryObj interpret(const string &line) {
       if (line[0] == '\"' && line[line.length() - 1] == '\"')
-        return BinaryObj((string) line.substr(1, line.length() - 2)); // might be wrong indices
-      else if (line == "true" || line == "false")
-        return BinaryObj((bool) (line == "true"));
+        return BinaryObj(line.substr(1, line.length() - 2)); // might be wrong indices
+      else if (strcmp("true", line.c_str()) == 0 || strcmp("false", line.c_str()) == 0)
+        return BinaryObj((bool) (strcmp("true", line.c_str()) == 0));
       else if (line[line.length() - 1] == 'f') {
-        return BinaryObj((float) stof(line.substr(0, line.length() - 1)));
+        return BinaryObj(stof(line.substr(0, line.length() - 1)));
       } else {
-        return BinaryObj((int) stoi(line));
+        return BinaryObj(stoi(line));
       }
     }
   };
@@ -138,110 +147,114 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  class PtrSerializer : public Serializer {
-  public:
-    static binary_obj fromBoolean(const bool xbool) {
-      return {
-        BOOL,
-        new byte(xbool ? '1' : '0'),
-        1
-      };
-    }
+  /* class PtrSerializer : public Serializer {
+   public:
+     static binary_obj fromBoolean(const bool xbool) {
+       return {
+         BOOL,
+         new byte(xbool ? '1' : '0'),
+         1
+       };
+     }
 
-    static binary_obj fromInteger(const int xint) {
-      return {
-        INT,
-        (byte *) new int(xint),
-        4
-      };
-    }
+     static binary_obj fromInteger(const int xint) {
+       return {
+         INT,
+         (byte *) new int(xint),
+         4
+       };
+     }
 
-    static binary_obj fromFloat(const float xfloat) {
-      return {
-        REAL,
-        (byte *) new string(std::to_string(xfloat)),
-        4
-      };
-    }
+     static binary_obj fromFloat(const float xfloat) {
+       return {
+         REAL,
+         (byte *) new string(std::to_string(xfloat)),
+         4
+       };
+     }
 
-    static binary_obj fromString(const string &xstring) {
-      return {
-        STR,
-        (byte *) new string(xstring),
-        (uint16_t) (xstring.length())
-      };
-    }
+     static binary_obj fromString(const string &xstring) {
+       return {
+         STR,
+         (byte *) new string(xstring),
+         (uint16_t) (xstring.length())
+       };
+     }
 
-    static Bool toBool(const BinaryObj<PtrSerializer> &bobj) {
-      switch (bobj.type()) {
-        case BOOL:
-          return Bool(bobj.data()[0] == '1');
-        case INT:
-          return Bool(bobj.toInt().value() > 0);
-        case REAL:
-          return Bool(bobj.toReal().value() > 0.0f);
-        case STR:
-          return Bool(bobj.toStr().value().compare("true") == 0 || bobj.toStr().value().compare("1") == 0);
-        default:
-          throw std::runtime_error("bad1"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
-      }
-    }
+     static Bool toBool(const BinaryObj<PtrSerializer> &bobj) {
+       switch (bobj.type()) {
+         case BOOL:
+           return Bool(bobj.data()[0] == '1');
+         case INT:
+           return Bool(bobj.toInt().value() > 0);
+         case REAL:
+           return Bool(bobj.toReal().value() > 0.0f);
+         case STR:
+           return Bool(bobj.toStr().value().compare("true") == 0 || bobj.toStr().value().compare("1") == 0);
+         default:
+           throw std::runtime_error("bad1"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+       }
+     }
 
-    static Int toInt(const BinaryObj<PtrSerializer> &bobj) {
-      switch (bobj.type()) {
-        case BOOL:
-          return Int(bobj.toBool().value() ? 1 : 0);
-        case INT:
-          return Int(*((int *) (bobj.data())));
-        case REAL:
-          return Int(static_cast<int>(bobj.toReal().value()));
-        case STR:
-          return Int(atoi(bobj.toStr().value().c_str()));
-        default:
-          throw std::runtime_error("bad2"); //fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
-      }
-    }
+     static Int toInt(const BinaryObj<PtrSerializer> &bobj) {
+       switch (bobj.type()) {
+         case BOOL:
+           return Int(bobj.toBool().value() ? 1 : 0);
+         case INT:
+           return Int(std::stoi(std::string((char*)bobj.data())));
+         case REAL:
+           return Int(static_cast<int>(bobj.toReal().value()));
+         case STR:
+           return Int(std::stoi(std::string((char*)bobj.data())));
+         default:
+           throw std::runtime_error("bad2"); //fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+       }
+     }
 
-    static Real toReal(const BinaryObj<PtrSerializer> &bobj) {
-      switch (bobj.type()) {
-        case BOOL:
-          return Real(bobj.toBool().value() ? 1.0f : 0.0f);
-        case INT:
-          return Real((float) bobj.toInt().value());
-        case REAL:
-          return Real(atof(((string *) (bobj.data()))->c_str()));
-        case STR:
-          return Real(atof(((string *) (bobj.data()))->c_str()));
-        default:
-          throw std::runtime_error("bad3"); //throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
-      }
-    }
+     static Real toReal(const BinaryObj<PtrSerializer> &bobj) {
+       switch (bobj.type()) {
+         case BOOL:
+           return Real(bobj.toBool().value() ? 1.0f : 0.0f);
+         case INT:
+           return Real((float) bobj.toInt().value());
+         case REAL:
+           return Real(std::stof(std::string((char*)bobj.data())));
+         case STR:
+           return Real(std::stof(std::string((char*)bobj.data())));
+         default:
+           throw std::runtime_error("bad3"); //throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+       }
+     }
 
-    static Str toStr(const BinaryObj<PtrSerializer> &bobj) {
-      switch (bobj.type()) {
-        case BOOL: {
-          return Str(bobj.toBool().value() ? "true" : "false");
-        }
-        case INT: {
-          char temp[15];
-          const uint size = sprintf(temp, "%i", bobj.toInt().value());
-          temp[size] = '\0';
-          return Str(temp);
-        }
-        case REAL: {
-          char temp[15];
-          const uint size = sprintf(temp, "%4f", bobj.toReal().value());
-          temp[size] = '\0';
-          return Str(string(temp, size));
-        }
-        case STR: {
-          return Str(((string *) (bobj.data()))->c_str());
-        }
-        default:
-          throw std::runtime_error("bad4"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
-      }
-    }
-  };
+     static Str toStr(const BinaryObj<PtrSerializer> &bobj) {
+       switch (bobj.type()) {
+         case BOOL: {
+           return Str(bobj.toBool().value() ? "true" : "false");
+         }
+         case INT: {
+           char temp[15];
+           const uint size = sprintf(temp, "%i", bobj.toInt().value());
+           temp[size] = '\0';
+           return Str(temp);
+         }
+         case REAL: {
+           char temp[15];
+           const uint size = sprintf(temp, "%4f", bobj.toReal().value());
+           temp[size] = '\0';
+           return Str(string(temp, size));
+         }
+         case STR: {
+           return Str(((string *) (bobj.data()))->c_str());
+         }
+         default:
+           throw std::runtime_error("bad4"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+       }
+     }
+   };*/
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   class CharSerializer : public Serializer {
   public:
@@ -254,32 +267,40 @@ namespace fhatos {
     }
 
     static binary_obj fromInteger(const int xint) {
-      char temp[15];
-      const uint16_t size = sprintf(temp, "%i", xint);
-      temp[size] = '\0';
+      const string str = std::to_string(xint);
+      const uint16_t len = str.length();
+      char *temp = (char *) malloc(len + 1);
+      memccpy(temp, str.c_str(), 0, len);
+      temp[len] = '\0';
       return {
         INT,
-        reinterpret_cast<const byte *>(temp),
-        size
+        (byte *) temp,
+        len
       };
     }
 
     static binary_obj fromFloat(const float xfloat) {
-      const string* temp =  new string(std::to_string(xfloat));
+      const string str = std::to_string(xfloat);
+      const uint16_t len = str.length();
+      char *temp = (char *) malloc(len + 1);
+      memccpy(temp, str.c_str(), 0, len);
+      temp[len] = '\0';
       return {
         REAL,
-        (byte*)strdup(temp->c_str()),
-        temp->size()
+        (byte *) temp,
+        len
       };
     }
 
     static binary_obj fromString(const string &xstring) {
-      char *temp = strdup(xstring.c_str());
-      temp[xstring.length()] = '\0';
+      const uint16_t len = xstring.length();
+      char *temp = (char *) malloc(len + 1);
+      memccpy(temp, xstring.c_str(), 0, len);
+      temp[len] = '\0';
       return {
         STR,
         (byte *) temp,
-        (uint16_t) (xstring.length())
+        len
       };
     }
 
@@ -304,11 +325,11 @@ namespace fhatos {
         case BOOL:
           return Int(bobj.toBool().value() ? 1 : 0);
         case INT:
-          return Int(atoi((const char *) bobj.data()));
+          return Int(std::stoi(string((char *) bobj.data(), bobj.length())));
         case REAL:
           return Int(static_cast<int>(bobj.toReal().value()));
         case STR:
-          return Int(atoi(bobj.toStr().value().c_str()));
+          return Int(std::stoi(string((char *) bobj.data(), bobj.length())));
         default:
           throw std::runtime_error("bad2"); //fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
       }
@@ -319,11 +340,11 @@ namespace fhatos {
         case BOOL:
           return Real(bobj.toBool().value() ? 1.0f : 0.0f);
         case INT:
-          return Real(static_cast<float>(bobj.toInt().value()));
+          return Real((float)(bobj.toInt().value()));
         case REAL:
-          return Real(static_cast<float>(atof((const char *) bobj.data())));
+          return Real(std::stof(string((char *) bobj.data(), bobj.length())));
         case STR:
-          return Real(static_cast<float>(atof(bobj.toStr().value().c_str())));
+          return Real(std::stof(string((char *) bobj.data(), bobj.length())));
         default:
           throw std::runtime_error("bad3"); //throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
       }
@@ -331,23 +352,22 @@ namespace fhatos {
 
     static Str toStr(const BinaryObj<CharSerializer> &bobj) {
       switch (bobj.type()) {
-        case BOOL: {
+        case BOOL:
           return Str(bobj.toBool().value() ? "true" : "false");
-        }
         case INT: {
           char temp[15];
           const uint size = sprintf(temp, "%i", bobj.toInt().value());
           temp[size] = '\0';
-          return Str(temp);
+          return Str(string(temp, size));
         }
         case REAL: {
           char temp[15];
-          const uint size = sprintf(temp, "%4f", bobj.toReal().value());
+          const uint size = sprintf(temp, "%f", bobj.toReal().value());
           temp[size] = '\0';
           return Str(string(temp, size));
         }
         case STR: {
-          return Str(string(reinterpret_cast<const char *>(bobj.data()), bobj.length()));
+          return Str(string((char *) (bobj.data()), bobj.length()));
         }
         default:
           throw std::runtime_error("bad4"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
