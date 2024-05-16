@@ -100,6 +100,14 @@ namespace fhatos {
       PROCESS::stop();
     }
 
+    void onQuery(const Pattern pattern, const Consumer<ID> &queryFunction) {
+      //this->unsubscribe(pattern);
+      this->subscribe(pattern, [this,queryFunction](const Message &message) {
+        if (!this->id().equals(message.source))
+          queryFunction(message.target);
+      });
+    }
+
     virtual void loop() {
       if (!this->_running) {
         LOG(ERROR, "Actor %s has already stopped [loop()]\n",
@@ -131,7 +139,7 @@ namespace fhatos {
       if (!mail.has_value())
         return false;
       mail->first.execute(mail->second);
-     /// delete mail->second.payload;
+      /// delete mail->second.payload;
       return true;
     }
   };

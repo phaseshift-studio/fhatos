@@ -39,21 +39,18 @@ namespace fhatos {
       const char *mount = "/littlefs";
       const bool success = LittleFS.begin(false, mount);
       LOG_TASK(success ? INFO : ERROR, this, "%s mounted at %s", STR(FOS_FILE_SYSTEM), mount);
-      this->subscribe(this->id().extend("#"),
-                      [this](const Message &message) {
-                        if (!message.source.equals(this->id()) && message.isQuery()) {
-                          const FSInfo *info = qFS(&message.target, LittleFS).structure(true);
-                          String temp;
-                          Ansi<Stream> ansi(new StringStream(&temp));
-                          if (info->type == FILE)
-                            ((FileInfo *) info)->print(ansi);
-                          else
-                            ((DirInfo *) info)->print(ansi);
-                          ansi.flush();
-                          delete info;
-                          this->publish(message.target, temp,RETAIN_MESSAGE);
-                        }
-                      });
+      this->onQuery(this->id().extend("#"), [this](const ID queryTarget) {
+        const FSInfo *info = qFS(&queryTarget, LittleFS).structure(true);
+        String temp;
+        Ansi<Stream> ansi(new StringStream(&temp));
+        if (info->type == FILE)
+          ((FileInfo *) info)->print(ansi);
+        else
+          ((DirInfo *) info)->print(ansi);
+        ansi.flush();
+        delete info;
+        this->publish(queryTarget, temp,RETAIN_MESSAGE);
+      });
     }
   };
 } // namespace fhatos

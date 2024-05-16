@@ -80,6 +80,8 @@ namespace fhatos {
         });
         return true;
       });
+      LOG_TASK(INFO, this, "!RFree memory after %s destory!! [sketch:%i][heap:%i][psram:%i]",
+               processPattern.toString().c_str(), ESP.getFreeSketchSpace(), ESP.getFreeHeap(), ESP.getFreePsram());
     }
 
     const bool spawn(Process *process) override {
@@ -92,6 +94,7 @@ namespace fhatos {
       }
       //////////////////////////////////////////////////
       ////// THREAD //////
+      bool success = false;
       if (THREAD == process->type) {
         THREADS.push_back(reinterpret_cast<Thread *>(process));
         const BaseType_t threadResult = xTaskCreatePinnedToCore(
@@ -106,13 +109,13 @@ namespace fhatos {
           &static_cast<Thread *>(process)->handle, // Task handle
           tskNO_AFFINITY); // Processor core
         LOG_TASK(threadResult == pdPASS ? INFO : ERROR, process, "Spawned as thread");
-        return pdPASS == threadResult;
+        success = pdPASS == threadResult;
       }
       ////// FIBER //////
       else if (FIBER == process->type) {
-        FIBERS.push_back(reinterpret_cast<Fiber *>(process));
         BaseType_t fiberResult = pdPASS;
         if (!FIBER_THREAD) {
+          FIBERS.push_back(reinterpret_cast<Fiber *>(process));
           fiberResult = xTaskCreatePinnedToCore(
             FIBER_FUNCTION, // Function that should be called
             "fibers", // Name of the task (for debugging)
@@ -121,16 +124,18 @@ namespace fhatos {
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             FIBER_THREAD, // Task handle
             tskNO_AFFINITY); // Processor core
+        } else {
+          FIBERS.push_back(reinterpret_cast<Fiber *>(process));
         }
         const bool result = pdPASS == fiberResult;
         LOG_TASK(result ? INFO : ERROR, process, "Spawned as fiber",
                  process->id().toString().c_str());
-        return result;
+        success = result;
       }
       ////// COROUTINE //////
       else if (COROUTINE == process->type) {
         LOG_TASK(INFO, process, "Spawned as coroutine");
-        return COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
+        success = COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
       }
       ////// KERNEL //////
       else if (KERNEL == process->type) {
@@ -139,7 +144,7 @@ namespace fhatos {
       } else {
         LOG_TASK(ERROR, process, "!m%s!! has an unknown process type: !r%i!!\n",
                  process->id().toString().c_str(), process->type);
-        return false;
+        success = false;
       }
       /*
    LOG(INFO, "!B[Scheduler Configuration]!!\n");
@@ -156,6 +161,9 @@ namespace fhatos {
              mapString<String, MutexDeque<IDed *> *>(this->query({})),
              RETAIN_MESSAGE));
       */
+      LOG_TASK(INFO, this, "!RFree memory after %s spawn!! [sketch:%i][heap:%i][psram:%i]", P_TYPE_STR(process->type),
+               ESP.getFreeSketchSpace(), ESP.getFreeHeap(), ESP.getFreePsram());
+      return success;
     }
 
   private:
