@@ -8,7 +8,7 @@
 #include <ESPping.h>
 
 namespace fhatos {
-  template<typename ROUTER>
+  template<typename PROCESS = Coroutine, typename ROUTER = FOS_DEFAULT_ROUTER>
   struct PingRoutine : public Coroutine, public Publisher<ROUTER> {
     String ip;
     uint16_t counter = 0;
@@ -47,7 +47,7 @@ namespace fhatos {
     }
   };
 
-  template<typename PROCESS = Fiber, typename ROUTER = LocalRouter<> >
+  template<typename PROCESS = Coroutine, typename ROUTER = FOS_DEFAULT_ROUTER>
   class fPing : public Actor<PROCESS, ROUTER>,
                 public ParentProcess<PingRoutine<ROUTER> > {
   public:

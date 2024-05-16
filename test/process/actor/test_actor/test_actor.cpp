@@ -38,11 +38,11 @@ template <typename ROUTER> void test_actor_throughput() {
         });
       });
 
-  Scheduler<ROUTER>::singleton()->spawn(actor1);
-  Scheduler<ROUTER>::singleton()->spawn(actor2);
+  Scheduler::singleton()->spawn(actor1);
+  Scheduler::singleton()->spawn(actor2);
   actor1->publish("actor2@", "START!", TRANSIENT_MESSAGE);
-  while (Scheduler<ROUTER>::singleton()->count("actor1@127.0.0.1") ||
-         Scheduler<ROUTER>::singleton()->count("actor2@127.0.0.1")) {
+  while (Scheduler::singleton()->count("actor1@127.0.0.1") ||
+         Scheduler::singleton()->count("actor2@127.0.0.1")) {
   }
   //delete actor1;
   //delete actor2;
@@ -188,7 +188,7 @@ template <typename ROUTER> void test_actor_serialization() {
 FOS_RUN_TESTS( //
                // called outside test functions as singletons alter memory
                // across tests
-    auto *s = Scheduler<LocalRouter<>>::singleton(); //
+    auto *s = Scheduler::singleton(); //
     auto *l = LocalRouter<>::
         singleton(); //
                      // Scheduler<MqttRouter<>>::singleton()->spawn(MqttRouter<>::singleton());

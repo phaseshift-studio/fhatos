@@ -4,11 +4,11 @@
 #include <fhatos.hpp>
 //
 #include <process/actor/actor.hpp>
-#include <process/router/local_router.hpp>
+#include <process/router/message.hpp>
 
 namespace fhatos {
 
-template <typename PROCESS = Fiber, typename ROUTER = LocalRouter<>>
+template <typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER>
 class fSerial : public Actor<PROCESS, ROUTER> {
 
 protected:
@@ -34,7 +34,7 @@ public:
     this->subscribe(
         this->id(),
         [](const auto &message) {
-          Serial.print(message.payload.toString().c_str());
+          Serial.print(message.payload->toString().c_str());
         },
         QoS::_1);
   }

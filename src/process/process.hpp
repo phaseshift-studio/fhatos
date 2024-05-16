@@ -28,7 +28,7 @@ namespace fhatos {
     bool _running = false;
 
   public:
-    const PType type{};
+    const PType type;
     const bool parent;
 
     explicit Process(const ID &id, const PType pType, const bool parent = false)
@@ -38,7 +38,6 @@ namespace fhatos {
     //~Process() { this->stop(); }
 
     virtual void setup() {
-      LOG_TASK(INFO, this, "Spawning %s", P_TYPE_STR(this->type));
       this->_running = true;
     };
 
@@ -46,7 +45,6 @@ namespace fhatos {
     }
 
     virtual void stop() {
-      LOG_TASK(INFO, this, "Destroying %s", P_TYPE_STR(this->type));
       this->_running = false;
     };
 

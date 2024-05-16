@@ -8,7 +8,7 @@
 namespace fhatos {
   class Thread : public Process {
   public:
-    TaskHandle_t handle{};
+    TaskHandle_t handle;
 
     explicit Thread(const ID &id) : Process(id, THREAD) {
     }

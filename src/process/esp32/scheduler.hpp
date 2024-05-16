@@ -12,7 +12,6 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
-  template<typename ROUTER = LocalRouter<> >
   class Scheduler : public AbstractScheduler {
   public:
     static Scheduler *singleton() {
@@ -20,16 +19,17 @@ namespace fhatos {
       return &scheduler;
     }
 
+
     const int count(const Pattern &processPattern = Pattern("#")) const override {
       if (processPattern.equals(Pattern("#")))
-        return THREADS.size() + FIBERS.size() + COROUTINES.size() +
+        return THREADS.size() + FIBERS->size() + COROUTINES.size() +
                KERNELS.size();
       std::atomic<int> *counter = new std::atomic(0);
       THREADS.forEach([counter, processPattern](const Thread *process) {
         if (process->id().matches(processPattern))
           counter->fetch_add(1);
       });
-      FIBERS.forEach([counter, processPattern](const Fiber *process) {
+      FIBERS->forEach([counter, processPattern](const Fiber *process) {
         if (process->id().matches(processPattern))
           counter->fetch_add(1);
       });
@@ -58,7 +58,7 @@ namespace fhatos {
           }
           return false;
         });
-        FIBERS.remove_if([processPattern, this](Fiber *process) {
+        FIBERS->remove_if([processPattern, this](Fiber *process) {
           if (process->id().matches(processPattern)) {
             if (process->running())
               process->stop();
@@ -80,23 +80,27 @@ namespace fhatos {
         });
         return true;
       });
-      LOG_TASK(INFO, this, "!RFree memory after %s destory!! [sketch:%i][heap:%i][psram:%i]",
-               processPattern.toString().c_str(), ESP.getFreeSketchSpace(), ESP.getFreeHeap(), ESP.getFreePsram());
+      LOG_TASK(INFO, this,
+               "!RFree memory after destroying !M%s!!\n"
+               "\t!bsketch: %i!!\n"
+               "\t!bheap  : %i!!\n"
+               "\t!bpsram : %i!!\n",
+               processPattern.toString().c_str(),
+               ESP.getFreeSketchSpace(), ESP.getFreeHeap(), ESP.getFreePsram());
     }
 
     const bool spawn(Process *process) override {
       process->setup();
       if (!process->running()) {
-        LOG_TASK(ERROR, this, "!RUnable to spawn running %s!!\n",
-                 P_TYPE_STR(process->type));
-
+        LOG_TASK(ERROR, this, "!RUnable to spawn running %s: %s!!\n",
+                 P_TYPE_STR(process->type), process->id().toString().c_str());
         return false;
       }
       //////////////////////////////////////////////////
       ////// THREAD //////
       bool success = false;
       if (THREAD == process->type) {
-        THREADS.push_back(reinterpret_cast<Thread *>(process));
+        THREADS.push_back(static_cast<Thread *>(process));
         const BaseType_t threadResult = xTaskCreatePinnedToCore(
           THREAD_FUNCTION, // Function that should be called
           process->id()
@@ -108,41 +112,37 @@ namespace fhatos {
           CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
           &static_cast<Thread *>(process)->handle, // Task handle
           tskNO_AFFINITY); // Processor core
-        LOG_TASK(threadResult == pdPASS ? INFO : ERROR, process, "Spawned as thread");
         success = pdPASS == threadResult;
+        LOG_TASK(success ? INFO : ERROR, this, "%s thread spawned", process->id().toString().c_str());
       }
       ////// FIBER //////
       else if (FIBER == process->type) {
-        BaseType_t fiberResult = pdPASS;
-        if (!FIBER_THREAD) {
-          FIBERS.push_back(reinterpret_cast<Fiber *>(process));
-          fiberResult = xTaskCreatePinnedToCore(
-            FIBER_FUNCTION, // Function that should be called
-            "fibers", // Name of the task (for debugging)
-            15000, // Stack size (bytes)
-            &FIBERS, // Parameter to pass
-            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-            FIBER_THREAD, // Task handle
-            tskNO_AFFINITY); // Processor core
+        if (!FIBER_THREAD_HANDLE) {
+          FIBERS->push_back(static_cast<Fiber *>(process));
+          success = pdPASS == xTaskCreatePinnedToCore(
+                      FIBER_FUNCTION, // Function that should be called
+                      this->id().extend("fiber_bundle").toString().c_str(), // Name of the task (for debugging)
+                      15000, // Stack size (bytes)
+                      nullptr, // Parameter to pass
+                      CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+                      &FIBER_THREAD_HANDLE, // Task handle
+                      tskNO_AFFINITY); // Processor core
         } else {
-          FIBERS.push_back(reinterpret_cast<Fiber *>(process));
+          success = FIBERS->push_back(static_cast<Fiber *>(process));
         }
-        const bool result = pdPASS == fiberResult;
-        LOG_TASK(result ? INFO : ERROR, process, "Spawned as fiber",
-                 process->id().toString().c_str());
-        success = result;
+        LOG_TASK(success ? INFO : ERROR, this, "%s fiber spawned", process->id().toString().c_str());
       }
       ////// COROUTINE //////
       else if (COROUTINE == process->type) {
-        LOG_TASK(INFO, process, "Spawned as coroutine");
+        LOG_TASK(INFO, this, "%s coroutine spawned", process->id().toString().c_str());
         success = COROUTINES.push_back(reinterpret_cast<Coroutine *>(process));
       }
       ////// KERNEL //////
       else if (KERNEL == process->type) {
-        LOG_TASK(INFO, process, "Spawned as kernel");
+        LOG_TASK(INFO, this, "%s kernel process spawned", process->id().toString().c_str());
         return KERNELS.push_back(reinterpret_cast<KernelProcess *>(process));
       } else {
-        LOG_TASK(ERROR, process, "!m%s!! has an unknown process type: !r%i!!\n",
+        LOG_TASK(ERROR, this, "!m%s!! has an unknown process type: !r%i!!\n",
                  process->id().toString().c_str(), process->type);
         success = false;
       }
@@ -161,16 +161,25 @@ namespace fhatos {
              mapString<String, MutexDeque<IDed *> *>(this->query({})),
              RETAIN_MESSAGE));
       */
-      LOG_TASK(INFO, this, "!RFree memory after %s spawn!! [sketch:%i][heap:%i][psram:%i]", P_TYPE_STR(process->type),
-               ESP.getFreeSketchSpace(), ESP.getFreeHeap(), ESP.getFreePsram());
+      LOG(success ? INFO : ERROR,
+          "!RFree memory after spawning %s !M%s!!\n"
+          "\t!b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
+          FOS_BYTES_MB_STR "]\n",
+          P_TYPE_STR(process->type),
+          process->id().toString().c_str(),
+          FOS_BYTES_MB(ESP.getFreeSketchSpace()),
+          FOS_BYTES_MB(ESP.getFreeHeap()),
+          FOS_BYTES_MB(ESP.getFreePsram()),
+          FOS_BYTES_MB(ESP.getFlashChipSize()));
       return success;
     }
 
   private:
-    Scheduler() : AbstractScheduler() { this->spawn(this); };
-    TaskHandle_t *FIBER_THREAD = nullptr;
+    Scheduler() = default;
+
+    TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
     MutexDeque<Coroutine *> COROUTINES;
-    MutexDeque<Fiber *> FIBERS;
+    MutexDeque<Fiber *> *FIBERS = new MutexDeque<Fiber *>();
     MutexDeque<Thread *> THREADS;
     MutexDeque<KernelProcess *> KERNELS;
     Mutex DESTROY_MUTEX;
@@ -178,19 +187,21 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
-    static void FIBER_FUNCTION(void *vptr_fibers) {
-      auto *fibers = (MutexDeque<Fiber *> *) vptr_fibers;
-      while (!fibers->empty()) {
-        fibers->forEach([](Fiber *fiber) {
-          if (!fiber->running()) {
+    static void FIBER_FUNCTION(void *voidptr) {
+      auto *fibers = Scheduler::singleton()->FIBERS;
+      int counter = 0;
+      while (true) {
+        if (fibers->empty())
+          break;
+        fibers->forIndexed(counter, [counter](Fiber *fiber) {
+          /////
+          if (!fiber->running())
             Scheduler::singleton()->destroy(fiber->id());
-          } else {
+          else
             fiber->loop();
-            vTaskDelay(1); // feeds the watchdog for the task
-            // fiber->yield();
-          }
         });
         vTaskDelay(1); // feeds the watchdog for the task
+        counter = (counter + 1) % fibers->size();
       }
       // LOG(INFO, "!MDisconnecting master lean thread!!\n");
       vTaskDelete(nullptr);

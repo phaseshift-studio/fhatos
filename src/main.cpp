@@ -1,5 +1,6 @@
 #include <fhatos.hpp>
 
+#include FOS_MODULE(kernel/f_kernel.hpp)
 #include FOS_MODULE(io/net/f_wifi.hpp)
 #include <structure/f_soc.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -14,26 +15,34 @@
 #include FOS_MODULE(io/net/f_telnet.hpp)
 #include FOS_MODULE(io/fs/f_fs.hpp)
 #include <language/fluent.hpp>
-
-#define MAIN_ROUTER LocalRouter<>
-
 using namespace fhatos;
 
 void setup() {
+  fKernel<>::bootloader();
+  //
+  Scheduler::singleton()->spawn(fSoC<Thread>::singleton());
+  Scheduler::singleton()->spawn(new fLog<>());
+  Scheduler::singleton()->spawn(fSerial<>::singleton());
+  Scheduler::singleton()->spawn(fTelnet<>::singleton());
+}
+
+/*void setup() {
   Serial.begin(FOS_SERIAL_BAUDRATE);
   LOG(NONE, ANSI_ART);
-  Scheduler<> *s = Scheduler<>::singleton();
+  fKernel<> *kernel = fKernel<>::singleton();
+  Scheduler *s = Scheduler::singleton();
   s->spawn(fWIFI::singleton());
-  //s->spawn(MAIN_ROUTER::singleton());
-  s->spawn(fSoC<Thread, MAIN_ROUTER>::singleton());
+  //s->spawn(FOS_DEFAULT_ROUTER::singleton());
+  s->spawn(fSoC<Thread, FOS_DEFAULT_ROUTER>::singleton());
   //s->spawn(fOTA<Fiber>::singleton());
-  s->spawn(new fLog<Coroutine, MAIN_ROUTER>());
-  //s->spawn(fSerial<Fiber, MAIN_ROUTER>::singleton());
+  s->spawn(new fLog<Coroutine, FOS_DEFAULT_ROUTER>());
+  //s->spawn(fSerial<Fiber, FOS_DEFAULT_ROUTER>::singleton());
   s->spawn(fTelnet<>::singleton());
-  s->spawn(new fPing<Thread>());
-  s->spawn(fFS<>::singleton());
 
-}
+  s->spawn(fFS<>::singleton());
+  s->spawn(new fPing<>());
+
+}*/
 
 void loop() {
 

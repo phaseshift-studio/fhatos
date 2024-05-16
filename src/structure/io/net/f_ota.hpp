@@ -9,7 +9,7 @@
 
 namespace fhatos {
 
-template <typename PROCESS = Fiber> class fOTA : public PROCESS {
+template <typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER> class fOTA : public PROCESS {
 
 private:
   explicit fOTA(const ID &id = fWIFI::idFromIP("kernel", "ota"),

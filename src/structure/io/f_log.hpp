@@ -14,7 +14,7 @@
 
 namespace fhatos {
 
-template <typename PROCESS = Coroutine, typename ROUTER = LocalRouter<>>
+template <typename PROCESS = Coroutine, typename ROUTER = FOS_DEFAULT_ROUTER>
 class fLog : public Actor<PROCESS, ROUTER> {
 public:
   explicit fLog(const ID &id = fWIFI::idFromIP("log"))

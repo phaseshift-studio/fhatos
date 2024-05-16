@@ -10,20 +10,19 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
+  class AbstractScheduler : public IDed {
+  protected:
+    AbstractScheduler(const ID &id = ID("scheduler")) : IDed(id) {
+    }
 
-class AbstractScheduler : public Coroutine {
+  public:
+    virtual const bool spawn(Process *process) { return false; }
 
-protected:
-  AbstractScheduler() : Coroutine(fWIFI::idFromIP("kernel", "scheduler")) {}
+    virtual void destroy(const Pattern &processPattern) {
+    }
 
-public:
-  virtual const bool spawn(Process *process) { return false; }
-
-  virtual void destroy(const Pattern &processPattern) {}
-
-  virtual const int count(const Pattern &processPattern = Pattern("#")) const { return 0; }
-};
-
+    virtual const int count(const Pattern &processPattern = Pattern("#")) const { return 0; }
+  };
 } // namespace fhatos
 
 #endif

@@ -16,7 +16,7 @@ namespace fhatos {
 #define TAB "  "
   /////////////////////////////////////////////////////////////////////
 
-  template<typename PROCESS = Thread, typename ROUTER = LocalRouter<> >
+  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
   class fTelnet : public Actor<PROCESS, ROUTER> {
   public:
     static fTelnet *singleton() {

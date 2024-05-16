@@ -17,7 +17,7 @@ namespace fhatos {
 #endif
   /////////////////////////////////////////////////////////////////////
 
-  template<typename PROCESS = Fiber, typename ROUTER = LocalRouter<> >
+  template<typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER >
   class fFS final : public Actor<PROCESS, ROUTER> {
   public:
     static fFS *singleton() {

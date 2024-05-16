@@ -89,7 +89,7 @@ void test_mutex_deque_methods() {
 
 void test_mutex_deque_concurrently() {
   int WORKER_COUNT = 10;
-  Scheduler<> *s = Scheduler<>::singleton();
+  Scheduler *s = Scheduler::singleton();
   TEST_ASSERT_EQUAL(0, s->count("worker/+"));
   MutexDeque<int> m = MutexDeque<int>();
   TEST_ASSERT_EQUAL(0, m.size());

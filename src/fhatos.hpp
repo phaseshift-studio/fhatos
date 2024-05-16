@@ -157,7 +157,6 @@ namespace fhatos {
         return "NONE";
     };
   }
-
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "
 #define FOS_TAB_4 "    "
@@ -170,6 +169,8 @@ namespace fhatos {
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
 #define FSTR(a) F(STR(a))
+#define FOS_BYTES_MB_STR "%i (%.2f MB)"
+#define FOS_BYTES_MB(a) a, (((float)a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), F(format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())
 #define LOG_TASK(logtype, process, format, ...)                                \
@@ -210,7 +211,9 @@ namespace fhatos {
           ? (message.source.toString().c_str())                                \
           : (message.payload->toString)().c_str(),                              \
       (message.source.toString().c_str()))
-
+#ifndef FOS_DEFAULT_ROUTER
+#define FOS_DEFAULT_ROUTER LocalRouter<>
+#endif
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
   ////////////////////////////
