@@ -30,7 +30,7 @@ namespace fhatos {
       }, contents{contents} {
     }
 
-    void print(Ansi<Stream> &ansi) const {
+    void print(Ansi<StringPrinter> &ansi) const {
       ansi.printf("!b==>FILE!![!gsize:%s!!]!r%s!!\n", Pretty::prettyBytes(this->size).c_str(),
                   this->furi->path().c_str());
       if (this->contents.has_value()) {
@@ -47,7 +47,7 @@ namespace fhatos {
       }, contents{contents} {
     }
 
-    void print(Ansi<Stream> &ansi) const {
+    void print(Ansi<StringPrinter> &ansi) const {
       ansi.printf("!b==>DIR!![!gsize:%i!!]!r%s!!\n", this->size, this->furi->path().c_str());
       if (this->contents.has_value()) {
         for (const FSInfo *info: contents.value()) {

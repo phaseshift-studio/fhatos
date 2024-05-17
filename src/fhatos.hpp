@@ -59,7 +59,7 @@ namespace fhatos {
   ////////////////////
   typedef void (*VoidPtr)();
 
-  typedef std::function<void()> Void0;
+  using Runnable = std::function<void()>;
   template<typename A>
   using Consumer = std::function<void(A)>;
   template<typename A, typename B>
@@ -100,8 +100,8 @@ namespace fhatos {
   using Map = std::map<K, V>;
 
   using string = std::string;
-  typedef uint8_t byte;
-  typedef unsigned int uint;
+  using byte = uint8_t;
+  using uint = unsigned int;
 
   ///////////////////////
   /// EXCEPTION TYPES ///
@@ -132,9 +132,10 @@ namespace fhatos {
       }
     };
 
-    ~fError() override { delete _message; }
+    // ~fError() override { delete _message; }
 
-    [[nodiscard]] const char *
+    [[nodiscard]]
+    virtual const char *
     what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
       return this->_message;
     }
@@ -145,18 +146,6 @@ namespace fhatos {
   ////////////
   enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
 
-  inline const char *LOG_TYPE_c_str(const LOG_TYPE type) {
-    switch (type) {
-      case DEBUG:
-        return "DEBUG";
-      case INFO:
-        return "INFO";
-      case ERROR:
-        return "ERROR";
-      default:
-        return "NONE";
-    };
-  }
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "
 #define FOS_TAB_4 "    "

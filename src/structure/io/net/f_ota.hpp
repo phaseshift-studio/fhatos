@@ -27,7 +27,7 @@ public:
     return &singleton;
   }
 
-  fOTA *onStart(const Void0 startFunction) {
+  fOTA *onStart(const Runnable startFunction) {
     ArduinoOTA.onStart(startFunction);
     return this;
   };
@@ -43,7 +43,7 @@ public:
         [errorFunction](ota_error_t error) { errorFunction(error); });
     return this;
   }
-  fOTA *onEnd(const Void0 endFunction) {
+  fOTA *onEnd(const Runnable endFunction) {
     ArduinoOTA.onEnd([endFunction]() { endFunction(); });
     return this;
   };

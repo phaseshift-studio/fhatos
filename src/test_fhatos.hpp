@@ -1,11 +1,9 @@
-#ifdef NATIVE
-#include <test_fhatos_native.hpp>
-#endif
-
-#ifndef NATIVE
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
 
+#ifdef NATIVE
+#include <test_fhatos_native.hpp>
+#else
 #include <unity.h>
 //
 #include <fhatos.hpp>

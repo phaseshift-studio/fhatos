@@ -13,11 +13,19 @@ namespace fhatos {
     explicit Thread(const ID &id) : Process(id, THREAD) {
     }
 
-    virtual void delay(const uint64_t milliseconds) override {
+    void setup() override {
+      Process::setup();
+    }
+
+    void stop() override {
+      Process::stop();
+    }
+
+    void delay(const uint64_t milliseconds) override {
       vTaskDelay(milliseconds / portTICK_PERIOD_MS);
     }
 
-    virtual void yield() override { taskYIELD(); }
+    void yield() override { taskYIELD(); }
   };
 } // namespace fhatos
 

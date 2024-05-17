@@ -18,16 +18,28 @@ namespace fhatos {
   public:
     const ID source;
     const ID target;
-    const BinaryObj<>* payload;
+    const BinaryObj<> *payload;
     const bool retain;
+
+    //~Message() {
+      //if (this->payload)
+       // delete this->payload;
+   // }
 
     template<OType type>
     bool is() const {
       return type == this->payload->type();
     }
 
-    bool isQuery() const {
-      return !this->retain && payload->type() == STR && payload->data()[0] == '?';
+    bool isQuery(const char *query = "?") const {
+      return !this->retain &
+             0 == payload->length() &&
+             target.query() == query &&
+             !target.equals(source);
+    }
+
+    bool isReflexive() const {
+      return target.query("").equals(source.query(""));
     }
 
     string toString() const {

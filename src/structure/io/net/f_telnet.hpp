@@ -27,13 +27,13 @@ namespace fhatos {
     explicit fTelnet(const ID &id = fWIFI::idFromIP("telnet"),
                      const uint16_t port = 23, const bool useAnsi = true)
       : Actor<PROCESS, ROUTER>(id), port(port), useAnsi(useAnsi),
-        currentTopic(new ID(id)) {
+        currentTopic(new ID(id)), previousMessage(nullptr) {
       this->xtelnet = new ESPTelnet();
       this->xtelnet->setLineMode(true);
       this->ansi = new Ansi<ESPTelnet>(this->xtelnet);
     }
 
-    ~fTelnet() {
+    ~fTelnet() override {
       delete this->currentTopic;
       delete this->ansi;
       delete this->xtelnet;
@@ -48,7 +48,7 @@ namespace fhatos {
         tthis->ansi->println(ANSI_ART);
         tthis->ansi->printf("Telnet server on !m%s!!\n" TAB "Connection from !m%s!!\n" TAB
                             ":help for help menu\n",
-                            fWIFI::ip().toString().c_str(), ipAddress.c_str());
+                            fWIFI::ip().c_str(), ipAddress.c_str());
         tthis->currentTopic = new ID(tthis->id());
         tthis->printPrompt();
       });
@@ -74,7 +74,7 @@ namespace fhatos {
               conversion.toString().c_str());
           tthis->publish(*tthis->currentTopic, &conversion, TRANSIENT_MESSAGE);
         } else if (line.startsWith("?")) {
-          tthis->query(tthis->currentTopic->query(line.substring(1)),
+          tthis->query(tthis->currentTopic->query(line.c_str()),
                        [](const Message &message) {
                          tthis->ansi->println(message.payload->toStr().toString().c_str());
                        });
@@ -135,7 +135,7 @@ namespace fhatos {
           }
         } else if (line.startsWith("?")) {
         } else {
-          tthis->currentTopic = new ID(ID(line).resolve(*tthis->currentTopic));
+          tthis->currentTopic = new ID(ID(line.c_str()).resolve(*tthis->currentTopic));
         }
         tthis->printPrompt();
       });

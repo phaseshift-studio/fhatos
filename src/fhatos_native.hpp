@@ -20,6 +20,9 @@
 #endif
 #endif
 
+// fhatos utility
+#include <util/ansi.hpp>
+
 // C++ standard template library common data structures
 #include <string>
 #include <deque>
@@ -32,12 +35,26 @@
 #include <set>
 
 namespace fhatos {
+
+  static const char *ANSI_ART =
+       "!r            !_PhaseShift Studio Presents!! \n"
+       "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
+       "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
+       "___\\!! \n"
+       "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
+       "\\___  \\!! \n"
+       "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
+       "\\_____\\/\\_____\\!! \n"
+       "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+       "!b\\/_____/\\/_____/!! \n"
+       "!r                                   !_A Dogturd Stynx Production!! \n";
+
   ////////////////////
   /// LAMBDA TYPES ///
   ////////////////////
   typedef void (*VoidPtr)();
 
-  typedef std::function<void(void)> Void0;
+  using Runnable = std::function<void()>;
   template<typename A>
   using Consumer = std::function<void(A)>;
   template<typename A, typename B>
@@ -79,7 +96,79 @@ namespace fhatos {
 
   using string = std::string;
   typedef uint8_t byte;
-  typedef	unsigned int	uint;
+  typedef unsigned int uint;
+
+  ///////////////////////
+  /// EXCEPTION TYPES ///
+  ///////////////////////
+  class fError :  std::exception {
+  protected:
+    char *_message;
+
+  public:
+    explicit fError(const char *format, ...) noexcept {
+      va_list arg;
+      va_start(arg, format);
+      char temp[64];
+      _message = temp;
+      size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+      va_end(arg);
+      if (len > sizeof(temp) - 1) {
+        _message = new(std::nothrow) char[len + 1];
+        if (!_message) {
+          return;
+        }
+        va_start(arg, format);
+        vsnprintf(_message, len + 1, format, arg);
+        va_end(arg);
+      }
+      if (_message != temp) {
+        delete[] _message;
+      }
+    };
+
+    // ~fError() override { delete _message; }
+
+     const char * what() const noexcept  {
+      return this->_message;
+    }
+  };
+
+  ////////////
+  // MACROS //
+  ////////////
+  enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
+#define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
+  static void MAIN_LOG(const LOG_TYPE type, const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    char temp[64];
+    char *buffer = temp;
+    const size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+    va_end(arg);
+    if (len > sizeof(temp) - 1) {
+      buffer = new(std::nothrow) char[len + 1];
+      if (!buffer) {
+        return;
+      }
+      va_start(arg, format);
+      vsnprintf(buffer, len + 1, format, arg);
+      va_end(arg);
+    }
+    static auto ansi = Ansi(new CPrinter());
+    if (type == NONE)
+      ansi.print("");
+    else if (type == ERROR)
+      ansi.print("!r[ERROR]!!  ");
+    else if (type == INFO)
+      ansi.print("!g[INFO]!!  ");
+    else
+      ansi.print("!y[DEBUG]!!  ");
+    ansi.print(buffer);
+    if (buffer != temp) {
+      delete[] buffer;
+    }
+  }
 }
 #endif
 #endif

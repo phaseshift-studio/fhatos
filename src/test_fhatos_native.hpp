@@ -4,9 +4,11 @@
 
 #include <unity.h>
 #include <stdio.h>
+#include <fhatos.hpp>
+#include <util/ansi.hpp>
 
-//static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
-#define FOS_TEST_PRINTER ""
+static fhatos::Ansi<fhatos::CPrinter> ansi(new fhatos::CPrinter());
+#define FOS_TEST_PRINTER ansi
 
 #define SETUP_AND_LOOP()                                                       \
 int main(int arg, char **argsv) {           \
@@ -14,9 +16,9 @@ fhatos::RUN_UNITY_TESTS();                                              \
 };
 
 #define FOS_TEST_MESSAGE(format, ...)                                          \
-  printf("  !rline %i!!\t", __LINE__);                        \
-  printf((format), ##__VA_ARGS__);                            \
-  printf("\n");
+  FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                        \
+  FOS_TEST_PRINTER.printf((format), ##__VA_ARGS__);                            \
+  FOS_TEST_PRINTER.printf("\n");
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                       \
   FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(),            \
@@ -45,6 +47,7 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                       \
   void RUN_UNITY_TESTS() {                                                     \
+  LOG(NONE, ANSI_ART);                                                         \
     UNITY_BEGIN();                                                             \
     x;                                                                         \
     UNITY_END();                                                               \

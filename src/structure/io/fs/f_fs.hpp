@@ -39,17 +39,17 @@ namespace fhatos {
       const char *mount = "/littlefs";
       const bool success = LittleFS.begin(false, mount);
       LOG_TASK(success ? INFO : ERROR, this, "%s mounted at %s", STR(FOS_FILE_SYSTEM), mount);
-      this->onQuery(this->id().extend("#"), [this](const ID queryTarget) {
-        const FSInfo *info = qFS(&queryTarget, LittleFS).structure(true);
-        String temp;
-        Ansi<Stream> ansi(new StringStream(&temp));
+      this->onQuery(this->id().extend("#"), [this](const SourceID source, const TargetID target) {
+        const FSInfo *info = qFS(&target, LittleFS).structure(true);
+        string temp;
+        Ansi<StringPrinter> ansi(new StringPrinter(&temp));
         if (info->type == FILE)
           ((FileInfo *) info)->print(ansi);
         else
           ((DirInfo *) info)->print(ansi);
         ansi.flush();
         delete info;
-        this->publish(queryTarget, temp,RETAIN_MESSAGE);
+        this->publish(source, temp,RETAIN_MESSAGE);
       });
     }
   };

@@ -3,7 +3,9 @@
 
 #include <test_fhatos.hpp>
 //
+#include <process/abstract_scheduler.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+#include FOS_PROCESS(thread.hpp)
 #include <util/mutex_deque.hpp>
 
 namespace fhatos {
@@ -14,7 +16,7 @@ struct Worker : public Thread {
   MutexDeque<int> *mutex;
   int counter = 0;
   Worker(int index, MutexDeque<int> *mutex)
-      : Thread(ID(String("worker/") + index)) {
+      : Thread(ID(string("worker/").append(std::to_string(index)))) {
     this->mutex = mutex;
   }
   void setup() {

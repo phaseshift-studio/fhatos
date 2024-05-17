@@ -27,6 +27,11 @@ namespace fhatos {
         this->_setupFunction = setupFunction;
     }
 
+    /* ~Actor<PROCESS, ROUTER>() override {
+       this->Publisher<ROUTER>::~Publisher();
+       this->Mailbox<Mail>::~Mailbox();
+     }*/
+
     static constexpr char hexmap[] = {
       '0', '1', '2', '3', '4', '5', '6', '7',
       '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -41,9 +46,9 @@ namespace fhatos {
       return s;
     }
 
-    const Pair<byte *, uint> serialize() const {
-      byte *bytes = (byte *) malloc(sizeof(*this));
-      memcpy(bytes, (byte *) this, sizeof(*this));
+    Pair<byte *, uint> serialize() const {
+      byte *bytes = static_cast<byte *>(malloc(sizeof(*this)));
+      memcpy(bytes, reinterpret_cast<const byte *>(this), sizeof(*this));
       return {bytes, sizeof(*this)};
     }
 
@@ -56,17 +61,18 @@ namespace fhatos {
       return this->running() && this->inbox.push_back(mail);
     }
 
-    void query(const ID &queryId, const Consumer<const Message> &onRecv) {
-      this->subscribe(queryId, [this, queryId, onRecv](const Message &message) {
-        if (message.retain) {
-          this->unsubscribe(queryId);
-          onRecv(message);
-        }
-      });
-      this->yield();
-      this->loop();
-      this->publish(queryId.query(emptyString), ("?" + queryId.query()),
-                    TRANSIENT_MESSAGE);
+    void query(const TargetID &queryId, const Consumer<const Message> &onRecv = nullptr) {
+      if (onRecv) {
+        this->subscribe(queryId, [this, queryId, onRecv](const Message &message) {
+          if (message.retain) {
+            this->unsubscribe(queryId);
+            onRecv(message);
+          }
+        });
+        this->yield();
+        this->loop();
+      }
+      this->publish(queryId, "",TRANSIENT_MESSAGE);
     }
 
     uint16_t size() const override { return inbox.size(); }
@@ -97,15 +103,8 @@ namespace fhatos {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(),
             RESPONSE_CODE_STR(_rc).c_str());
       }
+      this->inbox.clear();
       PROCESS::stop();
-    }
-
-    void onQuery(const Pattern pattern, const Consumer<ID> &queryFunction) {
-      //this->unsubscribe(pattern);
-      this->subscribe(pattern, [this,queryFunction](const Message &message) {
-        if (!this->id().equals(message.source))
-          queryFunction(message.target);
-      });
     }
 
     virtual void loop() {
@@ -124,7 +123,7 @@ namespace fhatos {
       }
     }
 
-    void onLoop(const Consumer<Actor *> loopFunction) {
+    void onLoop(const Consumer<Actor *> &loopFunction) {
       this->_loopFunction = loopFunction;
     }
 

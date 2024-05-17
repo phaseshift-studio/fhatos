@@ -8,7 +8,7 @@
 #include <process/router/local_router.hpp>
 #include <structure/io/net/f_wifi.hpp>
 #include <util/ansi.hpp>
-#include <util/string_stream.hpp>
+#include <util/string_printer.hpp>
 #include <sstream>
 #include FOS_PROCESS(thread.hpp)
 
@@ -46,8 +46,8 @@ protected:
     if (message[0] == '\t')
       type = LOG_TYPE::NONE;
     string output;
-    StringStream stream = StringStream(&output);
-    auto ansi = Ansi<StringStream>(&stream);
+    StringPrinter stream = StringPrinter(&output);
+    auto ansi = Ansi<StringPrinter>(&stream);
     if (type != LOG_TYPE::NONE) {
       if (type == ERROR)
         ansi.print("!r[ERROR]!!  ");

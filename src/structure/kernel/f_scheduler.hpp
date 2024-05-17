@@ -7,7 +7,6 @@
 #include <structure/furi.hpp>
 #include <structure/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos {
@@ -21,11 +20,19 @@ namespace fhatos {
 
     void setup() override {
       Actor<PROCESS, ROUTER>::setup();
-      this->onQuery(this->id(), [this](const ID &queryTarget) {
+      this->onQuery(this->id().query("?"), [this](const SourceID&, const TargetID& target) {
         char temp[100];
-        sprintf(temp, "\\_%s", queryTarget.query("").toString().c_str());
-        this->publish(queryTarget, temp,RETAIN_MESSAGE);
+        sprintf(temp, "\\_%s", target.query("").toString().c_str());
+        this->publish(target, temp,RETAIN_MESSAGE);
       });
+    }
+
+    void loop() override {
+
+    }
+
+    bool spawn(Process *process) {
+      return Scheduler::singleton()->spawn(process);
     }
 
   protected:

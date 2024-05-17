@@ -6,7 +6,7 @@
 #include <util/mutex.hpp>
 
 namespace fhatos {
-  template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 250>
+  template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
   class MutexDeque {
   protected:
     Deque<T> _deque;
@@ -26,8 +26,8 @@ namespace fhatos {
   public:
     // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) {}
 
-    const Option<T> find(Predicate<T> predicate,
-                         const bool withMutex = true) const {
+    Option<T> find(Predicate<T> predicate,
+                   const bool withMutex = true) const {
       return lockUnlock<Option<T> >(withMutex, [this, predicate]() {
         T *temp = nullptr;
         for (T t: _deque) {
@@ -40,7 +40,7 @@ namespace fhatos {
       });
     }
 
-    const Option<T> pop_front(const bool withMutex = true) {
+    Option<T> pop_front(const bool withMutex = true) {
       return lockUnlock<Option<T> >(withMutex, [this]() {
         if (_deque.empty()) {
           return Option<T>();
@@ -52,25 +52,37 @@ namespace fhatos {
       });
     }
 
+    List<T> *match(const Predicate<T> predicate, const bool withMutex = true) const {
+      List<T> *results = new List<T>();
+      lockUnlock<void *>(withMutex, [this, results, predicate]() {
+        for (const T &t: _deque) {
+          if (predicate(t))
+            results->push_back(t);
+        }
+        return nullptr;
+      });
+      return results;
+    }
+
     void forEach(Consumer<T> consumer, const bool withMutex = true) const {
       lockUnlock<void *>(withMutex, [this, consumer]() {
-        for (T t: _deque) {
+        for (const T &t: _deque) {
           consumer(t);
         }
         return nullptr;
       });
     }
 
-    void forIndexed(int index, Consumer<T> consumer, const bool withMutex = true) {
-      lockUnlock<void *>(withMutex, [this,index, consumer]() {
+    Option<T> get(int index, const bool withMutex = true) {
+      return lockUnlock<Option<T> >(withMutex, [this,index]() {
         int counter = 0;
         for (const T &t: _deque) {
           if (counter++ == index) {
-            consumer(t);
+            return Option<T>(t);
             break;
           }
         }
-        return nullptr;
+        return Option<T>();
       });
     }
 
@@ -87,7 +99,7 @@ namespace fhatos {
       this->remove_if([this, toRemove](T t) { return t == toRemove; }, withMutex);
     }
 
-    const Option<T> pop_back(const bool withMutex = true) {
+    Option<T> pop_back(const bool withMutex = true) {
       return lockUnlock<Option<T> >(withMutex, [this]() {
         if (_deque.empty())
           return Option<T>();
@@ -97,29 +109,29 @@ namespace fhatos {
       });
     }
 
-    const bool push_front(const T t, const bool withMutex = true) {
+    bool push_front(const T t, const bool withMutex = true) {
       return lockUnlock<bool>(withMutex, [this, t]() {
         _deque.push_front(t);
         return true;
       });
     }
 
-    const bool push_back(const T t, const bool withMutex = true) {
+    bool push_back(const T t, const bool withMutex = true) {
       return lockUnlock<bool>(withMutex, [this, t]() {
         _deque.push_back(t);
         return true;
       });
     }
 
-    const SIZE_TYPE size(const bool withMutex = true) const {
+    SIZE_TYPE size(const bool withMutex = true) const {
       return lockUnlock<SIZE_TYPE>(withMutex, [this]() { return _deque.size(); });
     }
 
-    const bool empty(const bool withMutex = true) const {
+    bool empty(const bool withMutex = true) const {
       return lockUnlock<bool>(withMutex, [this]() { return _deque.empty(); });
     }
 
-    const String toString(const bool withMutex = true) const {
+    String toString(const bool withMutex = true) const {
       return lockUnlock<String>(withMutex, [this]() {
         String temp = "[";
         for (const auto &t: _deque) {
@@ -131,7 +143,7 @@ namespace fhatos {
       });
     }
 
-    const void clear(const bool withMutex = true) {
+    void clear(const bool withMutex = true) {
       lockUnlock<void *>(withMutex, [this]() {
         _deque.clear();
         return nullptr;

@@ -21,10 +21,10 @@ namespace fhatos {
 
     void setup() override {
       Actor<PROCESS, ROUTER>::setup();
-      this->onQuery(this->id(), [this](const ID &queryTarget) {
+      this->onQuery(this->id(), [this](const SourceID, const TargetID &target) {
         char temp[100];
-        sprintf(temp, "\\_%s", queryTarget.query("").toString().c_str());
-        this->publish(queryTarget, temp,RETAIN_MESSAGE);
+        sprintf(temp, "\\_%s", target.query("").toString().c_str());
+        this->publish(target, temp,RETAIN_MESSAGE);
       });
     }
 

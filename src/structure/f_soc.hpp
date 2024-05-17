@@ -35,28 +35,28 @@ namespace fhatos {
       });
 
       this->subscribe(this->id().extend("i2c/+"), [this](const Message &message) {
-        String pins = message.target.lastSegment();
-        int i = pins.indexOf(",");
-        uint8_t sda = pins.substring(0, i).toInt();
-        uint8_t scl = pins.substring(i + 1).toInt();
+        string pins = message.target.lastSegment();
+        int i = pins.find(',');
+        uint8_t sda = stoi(pins.substr(0, i));
+        uint8_t scl = stoi(pins.substr(i + 1));
       });
       ///////////////////////////// GPIO /////////////////////////////
       this->subscribe(this->id().extend("gpio/+"), [this](
                     const Message &message) {
-                        const int pin = message.target.lastSegment().toInt();
+                        const int pin = stoi(message.target.lastSegment());
                         const bool canOutput = digitalPinCanOutput(pin);
                         LOG(canOutput ? INFO : ERROR, "Writing !g%s!! to digital pin !b%i!!\n",
                             message.payload->toBool().value() ? "HIGH" : "LOW",
-                            message.target.lastSegment().toInt());
+                            stoi(message.target.lastSegment()));
                         if (canOutput)
                           digitalWrite(pin, message.payload->toBool().value() ? HIGH : LOW);
                       });
       /////////////////////////////  PWM  /////////////////////////////
       this->subscribe(this->id().extend("pwm/+"), [this](const Message &message) {
-        const int pin = message.target.lastSegment().toInt();
+        const int pin = stoi(message.target.lastSegment());
         const bool canOutput = digitalPinHasPWM(pin);
         LOG(canOutput ? INFO : ERROR, "Writing !g%i!! to analaog pin !b%i!!\n",
-            message.payload->toInt(), message.target.lastSegment().toInt());
+            message.payload->toInt(), stoi(message.target.lastSegment()));
         if (canOutput)
           analogWrite(pin, message.payload->toInt().value());
       });
@@ -68,7 +68,7 @@ namespace fhatos {
   private:
     void updateBBS(const ID &queryId) {
       LOG(INFO, "Scanning I2C pins");
-      String message = "\n!M!_" + this->id().toString() + "!!\n";
+      string message = string("\n!M!_").append(this->id().toString()).append("!!\n");
       for (Pair<i2c_pins, List<Pair<uint8_t, const char *> > > i2c:
            I2C::i2cFullScan()) {
         for (Pair<uint8_t, const char *> single: i2c.second) {

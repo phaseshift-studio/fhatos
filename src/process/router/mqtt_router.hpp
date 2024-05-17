@@ -162,8 +162,8 @@ namespace fhatos {
                                              ++counter < MQTT_MAX_RETRIES)) {
           // Attempt to connect
           if ((this->willTopic.isEmpty() &&
-               this->xmqtt->connect(fWIFI::ip().toString().c_str())) ||
-              (this->xmqtt->connect(fWIFI::ip().toString().c_str(),
+               this->xmqtt->connect(fWIFI::ip().c_str())) ||
+              (this->xmqtt->connect(fWIFI::ip().c_str(),
                                     this->willTopic.c_str(), willQoS, willRetain,
                                     this->willMessage.c_str()))) {
             LOG(INFO, "!b[MQTT Router Configuration]!!\n");
@@ -176,7 +176,7 @@ namespace fhatos {
                 "\tWill QoS                : %i\n"
                 "\tWill retain             : %s\n",
                 this->id().toString().c_str(), this->server, this->port,
-                fWIFI::singleton()->ip().toString().c_str(),
+                fWIFI::singleton()->ip().c_str(),
                 this->willTopic.isEmpty() ? "<none>" : this->willTopic.c_str(),
                 this->willTopic.isEmpty() ? "<none>" : this->willMessage.c_str(),
                 this->willTopic.isEmpty() ? -1 : willQoS,

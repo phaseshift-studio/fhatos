@@ -16,19 +16,16 @@ namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
   class fKernel : public Actor<PROCESS, ROUTER> {
   public:
-    static const bool bootloader() {
+    static const bool bootloader(const List<Process *>& processes) {
       Serial.begin(FOS_SERIAL_BAUDRATE);
       LOG(NONE, ANSI_ART);
       LOG(INFO, "!R[kernel mode]!! !gBootloader started!!\n");
-      Scheduler::singleton()->spawn(fWIFI::singleton());
-      Scheduler::singleton()->spawn(ROUTER::singleton());
-      Scheduler::singleton()->spawn(fKernel::singleton());
-      Scheduler::singleton()->spawn(fScheduler<>::singleton());
-      Scheduler::singleton()->spawn(fMemory<>::singleton());
-      Scheduler::singleton()->spawn(fFS<>::singleton());
-      Scheduler::singleton()->spawn(fOTA<>::singleton());
+      bool success = true;
+      for (auto *process: processes) {
+        success = success & Scheduler::singleton()->spawn(process);
+      }
       LOG(INFO, "!R[kernel mode]!! !gBootloader finished!!\n");
-      return true;
+      return success;
     }
 
     static fKernel *singleton() {

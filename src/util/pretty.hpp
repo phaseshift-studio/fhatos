@@ -6,13 +6,13 @@
 namespace fhatos {
   class Pretty {
   public:
-    static string prettyBytes(const int bytes, Ansi<StringStream> *ansi = nullptr) {
+    static string prettyBytes(const int bytes, Ansi<StringPrinter> *ansi = nullptr) {
       string x;
-      Ansi<StringStream>* temp;
+      Ansi<StringPrinter>* temp;
       if (ansi)
         temp = ansi;
       else
-        temp = new Ansi<StringStream>(new StringStream(&x));
+        temp = new Ansi<StringPrinter>(new StringPrinter(&x));
       if (constexpr float tb = 1099511627776; bytes >= tb)
         temp->printf("%.2f tb", static_cast<float>(bytes) / tb);
       else if (constexpr float gb = 1073741824; bytes >= gb && bytes < tb)
