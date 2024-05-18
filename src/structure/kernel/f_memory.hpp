@@ -21,10 +21,18 @@ namespace fhatos {
 
     void setup() override {
       Actor<PROCESS, ROUTER>::setup();
-      this->onQuery(this->id(), [this](const SourceID, const TargetID &target) {
-        char temp[100];
-        sprintf(temp, "\\_%s", target.query("").toString().c_str());
-        this->publish(target, temp,RETAIN_MESSAGE);
+      this->onQuery(this->id().query("?"), [this](const SourceID, const TargetID &target) {
+        char temp[512];
+        sprintf(temp,
+                FOS_TAB "!b\\_!!!r%s!!\n" FOS_TAB "" FOS_TAB "" FOS_TAB
+                "[!gsketch:!b" FOS_BYTES_MB_STR "!!][!gheap!!:!b" FOS_BYTES_MB_STR "!!][!gpram!!:!b" FOS_BYTES_MB_STR
+                "!!][!gflash!!:!b" FOS_BYTES_MB_STR "!!]\n",
+                target.toString().c_str(),
+                FOS_BYTES_MB(ESP.getFreeSketchSpace()),
+                FOS_BYTES_MB(ESP.getFreeHeap()),
+                FOS_BYTES_MB(ESP.getFreePsram()),
+                FOS_BYTES_MB(ESP.getFlashChipSize()));
+        this->publish(target, string(temp),RETAIN_MESSAGE);
       });
     }
 

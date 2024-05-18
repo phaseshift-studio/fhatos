@@ -3,6 +3,7 @@
 
 #include <fhatos.hpp>
 #include <FS.h>
+#include <bits/fs_fwd.h>
 #include <util/ansi.hpp>
 #include <structure/query/query.hpp>
 #include <util/pretty.hpp>
@@ -13,47 +14,55 @@ namespace fhatos {
   const static Map<FSType, string> D_TYPE_STR = {{FILE, "file"}, {DIR, "dir"}};
 
   struct FSInfo {
-    const FSType type;
-    const fURI *furi;
+    const fURI furi;
     const uint16_t size;
+    const FSType type;
 
+    union FileOrDir {
+      const Option<string> f;
+      const Option<List<FSInfo *> > d;
 
-    FSInfo(const FSType type, const fURI *furi, const uint16_t size) : type(type), furi(furi), size(size) {
-    }
-  };
+      ~FileOrDir() {
+        /* if (d.has_value()) {
+           List<FSInfo *> list = d.value();
+           list.remove_if([](FSInfo *x) {
+             delete x;
+             return true;
+           });
+         }*/
+      };
+    } contents;
 
-  struct FileInfo : public FSInfo {
-    const Option<string> contents;
-
-    FileInfo(const fURI *furi, const uint16_t size, const Option<string> contents) : FSInfo{
-        FILE, furi, size
-      }, contents{contents} {
-    }
-
-    void print(Ansi<StringPrinter> &ansi) const {
-      ansi.printf("!b==>FILE!![!gsize:%s!!]!r%s!!\n", Pretty::prettyBytes(this->size).c_str(),
-                  this->furi->path().c_str());
-      if (this->contents.has_value()) {
-        ansi.printf("%s\n", this->contents.value().c_str());
-      }
-    }
-  };
-
-  struct DirInfo : public FSInfo {
-    const Option<List<const FSInfo *> > contents;
-
-    DirInfo(const fURI *furi, const uint16_t size, const Option<List<const FSInfo *> > contents) : FSInfo{
-        DIR, furi, size
-      }, contents{contents} {
+    FSInfo(const fURI &furi, const uint16_t size,
+           const Option<List<FSInfo *> > &contents) : furi(furi), size(size), type(DIR), contents{.d = contents} {
     }
 
-    void print(Ansi<StringPrinter> &ansi) const {
-      ansi.printf("!b==>DIR!![!gsize:%i!!]!r%s!!\n", this->size, this->furi->path().c_str());
-      if (this->contents.has_value()) {
-        for (const FSInfo *info: contents.value()) {
-          ansi.printf(FOS_TAB_3 "!b\\_%s!![!gsize:%s!!]!r%s!!\n", info->type == FILE ? "FILE" : "DIR",
-                      info->type == FILE ? Pretty::prettyBytes(this->size).c_str() : Int(this->size).toString().c_str(),
-                      info->furi->path().c_str());
+    FSInfo(const fURI &furi, const uint16_t size, const Option<string> &contents) : furi(furi), size(size), type(FILE),
+      contents{.f = contents} {
+    }
+
+    template<typename PRINTER>
+    void print(Ansi<PRINTER> &ansi) const {
+      if (this->type == FILE) {
+        ansi.printf(FOS_TAB_2 "!b\\__file!!:!r%s!![!gsize:" FOS_BYTES_MB_STR "!!]\n", this->furi.path().c_str(),
+                    FOS_BYTES_MB(this->size));
+        if (this->contents.f.has_value()) {
+          ansi.printf("%s\n", this->contents.f.value().c_str());
+        }
+      } else {
+        ansi.printf(FOS_TAB_2 "!b\\_dir!!:!r%s!![!gsize:%i!!]\n", this->furi.path().c_str(), this->size);
+        if (this->contents.d.has_value()) {
+          for (const FSInfo *info: contents.d.value()) {
+            if (FILE == info->type) {
+              ansi.printf(FOS_TAB_2 FOS_TAB_2 "!b\\_file!!:!r%s!![!gsize:" FOS_BYTES_MB_STR "!!]\n",
+                          info->furi.lastSegment().c_str(),
+                          FOS_BYTES_MB(info->size));
+            } else {
+              ansi.printf(FOS_TAB_2 FOS_TAB_2 "!b\\_dir!!:!r%s!![!gsize:%i!!]\n",
+                          info->furi.lastSegment().c_str(),
+                          info->size);
+            }
+          }
         }
       }
     }
@@ -63,34 +72,34 @@ namespace fhatos {
   public:
     FS &fs;
 
-    qFS(const fURI *furi, FS &fs) : Query(furi), fs(fs) {
+    qFS(const fURI &furi, FS &fs) : Query(furi), fs(fs) {
     }
 
-    const FSInfo *structure(const bool contents = false) {
-      LOG(INFO, "Fetching file system information on %s\n", furi->toString().c_str());
-      File root = fs.open(("/" + furi->path()).c_str());
+    FSInfo *structure(const bool contents = false) const {
+      LOG(INFO, "Fetching file system information on %s\n", furi.toString().c_str());
+      File root = fs.open(("/" + furi.path()).c_str());
       if (root.isDirectory()) {
         uint16_t counter = 0;
-        List<const FSInfo *> body;
+        List<FSInfo *> body;
         File next = root.openNextFile();
         while (next) {
           counter++;
           if (contents)
-            body.push_back(qFS(new fURI(furi->extend(next.name())), this->fs).structure(false));
+            body.push_back(qFS(furi.extend(next.name()), fs).structure(false));
           next = root.openNextFile();
         }
-        const DirInfo *result = new DirInfo{
+        FSInfo *result = new FSInfo{
           .furi = furi,
           .size = counter,
-          .contents = (contents ? Option<List<const FSInfo *> >(body) : Option<List<const FSInfo *> >())
+          .contents{.d = contents ? Option<List<FSInfo *> >(body) : Option<List<FSInfo *> >()}
         };
         root.close();
         return result;
       } else {
-        const FileInfo *result = new FileInfo{
+        FSInfo *result = new FSInfo{
           .furi = furi,
-          .size = (uint16_t) root.size(),
-          .contents = (contents ? Option<string>(string(root.readString().c_str())) : Option<string>())
+          .size = root.size(),
+          .contents = {.f = (contents ? Option<string>(string(root.readString().c_str())) : Option<string>())}
         };
         root.close();
         return result;

@@ -7,10 +7,10 @@
 namespace fhatos {
   class Query {
   protected:
-    const fURI *furi;
+    const fURI furi;
 
   public:
-    explicit Query(const fURI *furi) : furi(furi) {
+    explicit Query(const fURI& furi) : furi(furi) {
     };
   };
 }

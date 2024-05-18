@@ -32,16 +32,16 @@ namespace fhatos {
     }
 
     Publisher<ROUTER> *onQuery(const Pattern &queryPattern, const Runnable &runnable) {
-      this->subscribe(queryPattern, [queryPattern,runnable](const Message &message) {
-        if (!message.isReflexive() && message.isQuery(queryPattern.query().c_str()))
+      this->subscribe(queryPattern, [this,queryPattern,runnable](const Message &message) {
+        if (!message.source.equals(this->ided->id()) && message.isQuery(queryPattern.query().c_str()))
           runnable();
       });
       return this;
     }
 
     Publisher<ROUTER> *onQuery(const Pattern &queryPattern, const BiConsumer<SourceID, TargetID> &consumer) {
-      this->subscribe(queryPattern, [queryPattern,consumer](const Message &message) {
-        if (!message.isReflexive() && message.isQuery(queryPattern.query().c_str()))
+      this->subscribe(queryPattern, [this,queryPattern,consumer](const Message &message) {
+        if (!message.source.equals(this->ided->id()) && message.isQuery(queryPattern.query().c_str()))
           consumer(message.source, message.target);
       });
       return this;
@@ -50,8 +50,8 @@ namespace fhatos {
     Publisher<ROUTER> *onQuery(const Pattern &queryPattern,
                                const Map<string, BiConsumer<SourceID, TargetID> > &mapping,
                                const BiConsumer<SourceID, TargetID> &thenDo = nullptr) {
-      this->subscribe(queryPattern, [mapping,thenDo](const Message &message) {
-        if (message.target.hasQuery() && !message.isReflexive()) {
+      this->subscribe(queryPattern, [this,mapping,thenDo](const Message &message) {
+        if (message.target.hasQuery() && !message.source.equals(this->ided->id())) {
           if (const string query = message.target.query(); mapping.count(query)) {
             mapping.at(query)(message.source, message.target);
           } else if (mapping.count("default")) {
