@@ -11,7 +11,10 @@ namespace fhatos {
   class PtrSerializer;
 
   template<typename SERIALIZER = CharSerializer>
-  class BinaryObj : public Obj<binary_obj> {
+  class BinaryObj : public Obj {
+  protected:
+    const binary_obj _value;
+
   public:
     ~BinaryObj() {
       const OType t = std::get<0>(this->_value);
@@ -19,29 +22,29 @@ namespace fhatos {
         delete std::get<1>(this->_value);
     }
 
-    explicit BinaryObj(const OType type, const byte *data, const uint16_t length) : Obj({type, data, length}) {
+    explicit BinaryObj(const OType type, const byte *data, const uint16_t length) : Obj(type),
+      _value{type, data, length} {
     };
 
-    explicit BinaryObj(const bool xbool) : Obj(SERIALIZER::fromBoolean(xbool)) {
+    explicit BinaryObj(const bool xbool) : Obj(BOOL), _value(SERIALIZER::fromBoolean(xbool)) {
     }
 
 
-    explicit BinaryObj(const int xint) : Obj(SERIALIZER::fromInteger(xint)) {
+    explicit BinaryObj(const int xint) : Obj(INT), _value(SERIALIZER::fromInteger(xint)) {
     }
 
 
-    explicit BinaryObj(const float xfloat) : Obj(SERIALIZER::fromFloat(xfloat)) {
+    explicit BinaryObj(const float xfloat) : Obj(REAL), _value(SERIALIZER::fromFloat(xfloat)) {
     }
 
-    explicit BinaryObj(const string &xstring) : Obj(SERIALIZER::fromString(xstring)) {
+    explicit BinaryObj(const string &xstring) : Obj(STR), _value(SERIALIZER::fromString(xstring)) {
     }
 
-    explicit BinaryObj(const char *xcstr) : Obj(SERIALIZER::fromString(string(xcstr))) {
+    explicit BinaryObj(const char *xcstr) : Obj(STR), _value(SERIALIZER::fromString(string(xcstr))) {
     }
 
-
-    virtual OType type() const override {
-      return std::get<0>(this->_value);
+    virtual const binary_obj value() const {
+      return _value;
     }
 
     const byte *data() const {
@@ -77,7 +80,7 @@ namespace fhatos {
     }
 
 
-    virtual string toString() const override {
+    virtual const string toString() const  {
       switch (this->type()) {
         case BOOL: return toBool().toString();
         case INT: return toInt().toString();
@@ -340,7 +343,7 @@ namespace fhatos {
         case BOOL:
           return Real(bobj.toBool().value() ? 1.0f : 0.0f);
         case INT:
-          return Real((float)(bobj.toInt().value()));
+          return Real((float) (bobj.toInt().value()));
         case REAL:
           return Real(std::stof(string((char *) bobj.data(), bobj.length())));
         case STR:

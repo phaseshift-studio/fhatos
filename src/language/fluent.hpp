@@ -10,7 +10,7 @@
 namespace fhatos {
   template<typename S, typename E,
     typename PROCESSOR = Processor<S, E, Monad<E> > >
-  class Fluent {
+  class Fluent : public S_E<S, E> {
     //: public E {
 
     //////////////////////////////////////////////////////////////////////////////
@@ -20,8 +20,8 @@ namespace fhatos {
     Fluent() : bcode(Bytecode<S, E>()) {
     }
 
-    explicit Fluent(const List<S *> *starts)
-      : bcode({StartInst<S>(static_cast<const List<void *> *>(static_cast<const void *>(starts)))}) {
+    explicit Fluent(const List<S> starts)
+      : bcode({StartInst<S>(starts)}) {
     };
 
     Fluent<S, E> plus(const E &e) const {
@@ -31,14 +31,18 @@ namespace fhatos {
     Fluent<S, E> plus(const Fluent<E, E> &e) const {
       return this->addInst<E>(
         Inst<E, E>({
-          "plus", List<void *>({static_cast<void *>(new Bytecode<E, E>(e.bcode))}),
-          [](E *e2) { return e2; }
+          "plus", List<Obj *>({new Bytecode<E, E>(e.bcode)}),
+          [](S e2) { return e2; }
         }));
     }
 
     string toString() const { return "f" + this->bcode.toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
+    virtual const E apply(const S start) const {
+      return this->bcode.apply(start);
+    }
+
     const E *next() const {
       static PROCESSOR proc = PROCESSOR(this->bcode);
       return proc.next();
@@ -75,12 +79,12 @@ namespace fhatos {
 
   template<typename S>
   inline static Fluent<S, S> __(std::initializer_list<S> starts) {
-    return Fluent<S, S>(ptr_list(List<S>(starts)));
+    return Fluent<S, S>(List<S>(starts));
   };
 
   template<typename S>
-  inline static Fluent<S, S> __(const S &start) {
-    return __<S>({start});
+  inline static Fluent<S, S> __(const S start) {
+    return Fluent<S, S>(List<S>{start});
   };
 
   template<typename S>

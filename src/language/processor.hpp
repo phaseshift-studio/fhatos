@@ -10,7 +10,7 @@ namespace fhatos {
   class Monad {
   protected:
     const A *value;
-    const Inst<ObjY, A> *inst = nullptr;
+    const Inst<Obj, A> *inst = nullptr;
     const long _bulk = 1;
 
   public:
@@ -18,25 +18,25 @@ namespace fhatos {
     }
 
     template<typename B>
-    const Monad<B> *split(const Inst<A, B> *next) const {
-      return new Monad<B>(next->apply(this->get()));
+    Monad<B> *split(Inst<A, B> *next) const {
+      return new Monad<B>(new B(next->apply(*this->get())));
     }
 
     const A *get() const { return this->value; }
 
     long bulk() const { return this->_bulk; }
 
-    const Inst<ObjX, A> *at() const { return this->inst; }
+    const Inst<Obj, A> *at() const { return this->inst; }
     // const bool equals(const Monad<ObjX> &other) const {
     //   return this->value.equals(other.get());
     // }
   };
 
-  template<typename S, typename E, typename MONAD = Monad<E> >
+  template<typename S, typename E, typename MONAD = Monad<Obj> >
   class Processor {
   protected:
     const Bytecode<S, E> bcode;
-    List<const E *> ends;
+    List<E *> ends;
 
   public:
     explicit Processor(const Bytecode<S, E> &bcode) : bcode(bcode) {
@@ -48,20 +48,20 @@ namespace fhatos {
       }
     }
 
-    List<const E *> toList() {
+    List<E *> toList() {
       static bool done = false;
       if (done)
         return this->ends;
       done = true;
-      const auto starts = List<void *>(this->bcode.value().front().args());
+      const auto starts = List<Obj *>(this->bcode.value().front().args());
       for (const auto *start: starts) {
-        const MONAD *end = new MONAD(static_cast<const E *>(start));
+        Monad<E> *end = new Monad<E>((E*)start);
         int counter = 0;
-        for (const auto &inst: this->bcode.value()) {
+        for (const auto inst: this->bcode.value()) {
           if (counter++ != 0)
-            end = static_cast<const MONAD *>(static_cast<const void *>(end->split(&inst)));
+            end = end->split((Inst<E, E> *) (&inst));
         }
-        this->ends.push_back(end->get());
+        this->ends.push_back((E*)(void*)end->get());
       }
       return this->ends;
     }

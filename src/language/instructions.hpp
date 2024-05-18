@@ -7,23 +7,24 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
-  template<typename A>
-  class StartInst final : public Inst<A, A> {
+  template<typename S>
+  class StartInst final : public Inst<S, S> {
   public:
-    explicit StartInst(const List<void *> *starts)
-      : Inst<A, A>({
-        "start", *starts,
-        [starts](A *b) { return static_cast<A *>(starts->front()); }
+    explicit StartInst(const List<S> starts)
+      : Inst<S, S>({
+        "start", ptr_list<S, Obj>(starts),
+        [starts](S b) {
+          return starts.front();
+        }
       }) {
     }
   };
 
-  template<typename A>
-  class PlusInst final : public Inst<A, A> {
+  template<typename E>
+  class PlusInst final : public Inst<E, E> {
   public:
-    explicit PlusInst(const A &a)
-      : Inst<A, A>(
-        {"plus", {new A(a)}, RingAlgebra<A>::plus(new A(a), new A(a))}) {
+    explicit PlusInst(const E &a)
+      : Inst<E, E>({"plus", ptr_list<E, Obj>({a}), [a](E b) { return E(a.value() + b.value()); }}) {
     }
   };
 } // namespace fhatos

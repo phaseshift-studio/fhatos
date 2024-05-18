@@ -53,7 +53,7 @@ namespace fhatos {
         delete info;
       };
       this->onQuery(this->id().query("?"), handler);
-      this->onQuery(this->id().query("?partitions"),
+      this->onQuery(this->id().extend("partitions").query("?"),
                     [this](const SourceID &source, const TargetID &target) {
                       string temp;
                       StringPrinter printer(&temp);
@@ -74,7 +74,7 @@ namespace fhatos {
                       this->publish(target, string(temp.c_str()),RETAIN_MESSAGE);
                       ansi.flush();
                     });
-      this->onQuery(this->id().extend("#"), {{"?", handler}});
+      this->onQuery(this->id().extend("files").extend("#"), {{"?", handler}});
     }
   };
 } // namespace fhatos
