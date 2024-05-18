@@ -1,15 +1,16 @@
 import sys
+import colors
 
 def head(cl_targets, build_targets, env):
-    ASCII_ART = """ 
-            PhaseShift Studio Presents
- <`--'>____  ______  __  __  ______  ______  ______  ______    
- /. .  `'  \\/\\  ___\\/\\ \\_\\ \\/\\  __ \\/\\__  _\\/\\  __ \\/\\  ___\\   
-(`')  ,     @ \\  __\\\\ \\  __ \\ \\  __ \\/_/\\ \\/\\ \\ \\/\\ \\ \\___  \\  
- `-._,     / \\ \\_\\   \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ \\ \\_____\\/\\_____\\ 
-    )-)_/-(>  \\/_\\/    \\/_/\\/_/\\/_/\\/_/  \\/_/  \\/_____/\\/_____/ 
-                                    A Dogturd Stynx Production
-    """
+    ASCII_ART = (""" 
+{R}            PhaseShift Studio Presents
+{M} <`--'>____  {B}______  __  __  ______  ______  {G}______  ______    
+{M} /. .  `'  \\{B}/\\  ___\\/\\ \\_\\ \\/\\  __ \\/\\__  _\\/{G}\\  __ \\/\\  ___\\   
+{M}(`')  ,     {LM}@{B} \\  __\\\\ \\  __ \\ \\  __ \\/_/\\ \\/{G}\\ \\ \\/\\ \\ \\___  \\  
+{M} `-._,     / {B}\\ \\_\\   \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\{G} \\ \\_____\\/\\_____\\ 
+{M}    )-)_/-(> {B} \\/_\\/   \\/_/\\/_/\\/_/\\/_/  \\/_/ {G} \\/_____/\\/_____/ 
+{R}                                    A Dogturd Stynx Production{N}
+    """).format(R=colors.RED, M=colors.PURPLE,B=colors.BLUE,G=colors.GREEN,LM=colors.LIGHT_PURPLE,N=colors.END)
     print()
     print(ASCII_ART, end="\n\n")
     print("Python version:", sys.version, end="\n\n")
