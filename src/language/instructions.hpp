@@ -24,10 +24,10 @@ namespace fhatos {
   template<typename E>
   class PlusInst final : public Inst<E, E> {
   public:
-    explicit PlusInst(const E *a)
+    explicit PlusInst(const S_E<Obj,E> *a)
       : Inst<E, E>({
         "plus", {(Obj *) a},
-        [this](const E *b) { return new E(this->template arg<E>(0)->apply(b)->value() + b->value()); }
+        [this](const E *b) { return new E(this->template arg<S_E<Obj,E>>(0)->apply(b)->value() + b->value()); }
       }) {
     }
 
