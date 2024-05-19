@@ -10,7 +10,7 @@ namespace fhatos {
   class Monad {
   protected:
     const A *value;
-    const Inst<Obj, A> *inst = nullptr;
+    // const Inst<Obj, A> *inst = nullptr;
     const long _bulk = 1;
 
   public:
@@ -19,14 +19,18 @@ namespace fhatos {
 
     template<typename B>
     Monad<B> *split(Inst<A, B> *next) const {
-      return new Monad<B>(new B(next->apply(*this->get())));
+      return new Monad<B>(next->apply(this->get()));
     }
 
     const A *get() const { return this->value; }
 
     long bulk() const { return this->_bulk; }
 
-    const Inst<Obj, A> *at() const { return this->inst; }
+    const string toString() const {
+      return string("M[") + this->get()->toString() + "]";
+    }
+
+    // const Inst<Obj, A> *at() const { return this->inst; }
     // const bool equals(const Monad<ObjX> &other) const {
     //   return this->value.equals(other.get());
     // }
@@ -35,33 +39,38 @@ namespace fhatos {
   template<typename S, typename E, typename MONAD = Monad<Obj> >
   class Processor {
   protected:
-    const Bytecode<S, E> bcode;
+    const Bytecode<S, E> *bcode;
     List<E *> ends;
+    bool done = false;
 
   public:
-    explicit Processor(const Bytecode<S, E> &bcode) : bcode(bcode) {
+    explicit Processor(const Bytecode<S, E> *bcode) : bcode(bcode) {
     }
 
     void forEach(const Consumer<const E *> &consumer) {
-      for (const auto *end: this->toList()) {
+      for (const E *end: this->toList()) {
         consumer(end);
       }
     }
 
     List<E *> toList() {
-      static bool done = false;
-      if (done)
+      if (this->done)
         return this->ends;
-      done = true;
-      const auto starts = List<Obj *>(this->bcode.value().front().args());
+      this->done = true;
+      LOG(DEBUG, "Processing bytecode: %s\n", this->bcode->toString().c_str());
+      const auto starts = List<Obj *>(this->bcode->value().front().args());
       for (const auto *start: starts) {
-        Monad<E> *end = new Monad<E>((E*)start);
+        LOG(DEBUG, FOS_TAB_2 "starting with %s\n", start->toString().c_str());
+        Monad<Obj> *end = new Monad<Obj>((Obj *) start);
         int counter = 0;
-        for (const auto inst: this->bcode.value()) {
-          if (counter++ != 0)
-            end = end->split((Inst<E, E> *) (&inst));
+        for (const auto inst: this->bcode->value()) {
+          if (counter++ != 0) {
+            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s\n", end->toString().c_str(), inst.toString().c_str());
+            end = end->split((Inst<Obj, Obj> *) &inst);
+          }
         }
-        this->ends.push_back((E*)(void*)end->get());
+        this->ends.push_back((E *) end->get());
+        delete end;
       }
       return this->ends;
     }

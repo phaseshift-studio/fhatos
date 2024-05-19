@@ -24,7 +24,7 @@ namespace fhatos {
     }
 
     Fluent<S, E> plus(const E &e) const {
-      return this->template addInst<E>(PlusInst<E>(new E(e)));
+      return this->template addInst<E>(PlusInst<E>(&e));
     }
 
     Fluent<S, E> plus(const Fluent<E, E> &e) const {
@@ -49,7 +49,7 @@ namespace fhatos {
     }
 
     void forEach(const Consumer<const E *> &consumer) const {
-      static PROCESSOR proc = PROCESSOR(this->bcode);
+      PROCESSOR proc = PROCESSOR(this->bcode);
       proc.forEach(consumer);
     }
 
@@ -71,12 +71,12 @@ namespace fhatos {
 
   template<typename S>
   inline static Fluent<S, S> __(const List<S> &starts) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S,S>>({StartInst<S>(starts)})));
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> >({StartInst<S>(starts)})));
   };
 
   template<typename S>
   inline static Fluent<S, S> __(const S &start) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S,S>>({StartInst<S>({start})})));
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> >({StartInst<S>({start})})));
   };
 
   template<typename S>

@@ -128,7 +128,7 @@ namespace fhatos {
 
     const FL_INT_TYPE value() const { return this->_value; }
 
-    const Int *apply(const Obj *obj) const override {
+    virtual const Int *apply(const Obj *obj) const override {
       return this;
     }
 
@@ -263,9 +263,10 @@ namespace fhatos {
     const string toString() const override {
       string t = "[" + this->opcode() + ",";
       for (const auto *arg: this->args()) {
-        t = t + arg->toString();
+        t = t + arg->toString() + ",";
       }
-      return t + "]";
+      t[t.length() - 1] = ']';
+      return t;
     }
 
     ////////////////////////////////////
