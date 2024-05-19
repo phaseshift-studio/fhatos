@@ -21,10 +21,10 @@ namespace fhatos {
   struct Subscription {
     using Mail = Pair<const Subscription, const Message>;
     Mailbox<Mail> *mailbox;
-    const ID source;
-    const Pattern pattern;
-    const QoS qos = _1;
-    const Consumer<const Message> onRecv;
+    ID source;
+    Pattern pattern;
+    QoS qos = _1;
+    Consumer<const Message> onRecv;
 
     const bool match(const ID &target) const {
       return this->pattern.matches(target);
@@ -49,7 +49,7 @@ namespace fhatos {
     MUTEX_LOCKOUT = 7
   };
 
-  static String RESPONSE_CODE_STR(const RESPONSE_CODE& rc) {
+  static String RESPONSE_CODE_STR(const RESPONSE_CODE &rc) {
     switch (rc) {
       case OK:
         return "OK";

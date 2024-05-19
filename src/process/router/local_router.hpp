@@ -137,7 +137,7 @@ namespace fhatos {
         return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>(
           [this, source, pattern]() {
             const uint16_t size = SUBSCRIPTIONS.size();
-            SUBSCRIPTIONS.remove_if([source, pattern](const auto &sub) {
+            std::remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(), [source, pattern](const auto &sub) {
               return sub.source.equals(source) &&
                      (nullptr == pattern || sub.pattern.equals(*pattern));
             });

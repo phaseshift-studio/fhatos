@@ -59,7 +59,7 @@ public:
         count++;
         LOG(INFO, "\tDevice [type:%s] at [i2c:" FOS_I2C_ADDR_STR "]\n",
             i2cToDevice(i), FOS_I2C_ADDR(i));
-        results.push_front({i, i2cToDevice(i)});
+        results.push_back({i, i2cToDevice(i)});
         delay(10); // maybe unneeded?
       } else if (4 == result) {
         LOG(ERROR, "\tDevice error at [i2c:" FOS_I2C_ADDR_STR "]\n",

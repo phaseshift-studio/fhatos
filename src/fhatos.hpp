@@ -85,7 +85,7 @@ namespace fhatos {
   template<typename A>
   using Option = std::optional<A>;
   template<typename A>
-  using List = std::list<A>;
+  using List = std::vector<A>;
   template<typename A>
   using Set = std::set<A>;
   template<typename A>

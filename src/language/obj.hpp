@@ -57,8 +57,8 @@ namespace fhatos {
   public:
     virtual ~S_E() = default;
 
-    virtual const E apply(const S s) const {
-      return *(E *) (void *) new string(); // TOTAL HACK TO REMOVE --no-return COMPILER WARNING
+    virtual const E *apply(const S *s) const {
+      return (E *) s; // TOTAL HACK TO REMOVE --no-return COMPILER WARNING
     }
   };
 
@@ -108,8 +108,8 @@ namespace fhatos {
 
     virtual const bool value() const { return this->_value; }
 
-    const Bool apply(const Obj obj) const override {
-      return *this;
+    const Bool *apply(const Obj *obj) const override {
+      return this;
     }
 
     const string toString() const override {
@@ -128,8 +128,8 @@ namespace fhatos {
 
     const FL_INT_TYPE value() const { return this->_value; }
 
-    const Int apply(const Obj obj) const override {
-      return *this;
+    const Int *apply(const Obj *obj) const override {
+      return this;
     }
 
     const string toString() const override { return std::to_string(_value); }
@@ -145,8 +145,8 @@ namespace fhatos {
     };
     const FL_REAL_TYPE value() const { return this->_value; }
 
-    const Real apply(const Obj obj) const override {
-      return *this;
+    const Real *apply(const Obj *obj) const override {
+      return this;
     }
 
     const string toString() const override { return std::to_string(_value); }
@@ -162,8 +162,8 @@ namespace fhatos {
     };
     const string value() const { return this->_value; }
 
-    const Str apply(const Obj obj) const override {
-      return *this;
+    const Str *apply(const Obj *obj) const override {
+      return this;
     }
 
     const string toString() const override { return _value; }
@@ -187,8 +187,8 @@ namespace fhatos {
     };
     const List<Obj> value() const { return _value; }
 
-    const Lst apply(const Obj obj) const override {
-      return *this;
+    const Lst *apply(const Obj *obj) const override {
+      return this;
     }
 
     const string toString() const override {
@@ -223,8 +223,8 @@ namespace fhatos {
        return this->_value[key] = val;
      }*/
 
-    const Rec apply(const Obj obj) const override {
-      return *this;
+    const Rec *apply(const Obj *obj) const override {
+      return this;
     }
 
     virtual const Map<const Obj, Obj> value() const {
@@ -245,19 +245,19 @@ namespace fhatos {
   template<typename S, typename E>
   class Inst : public Obj, public S_E<S, E> {
   protected:
-    const Triple<const string, const List<Obj *>, const Function<S, E>> _value;
+    const Triple<const string, const List<Obj *>, const Function<S *, E *>> _value;
 
   public:
-    Inst(const Triple<const string, const List<Obj *>, const Function<S, E>> &value)
+    Inst(const Triple<const string, const List<Obj *>, const Function<S *, E *>> &value)
       : Obj(INST), _value(value) {
     }
 
-    virtual Triple<const string, const List<Obj *>, const Function<S, E>> value() const {
+    virtual Triple<const string, const List<Obj *>, const Function<S *, E *>> value() const {
       return this->_value;
     }
 
-    const E apply(const S obj) const override {
-      return this->func()(obj);
+    const E *apply(const S *obj) const override {
+      return this->func()((S *) obj);
     }
 
     const string toString() const override {
@@ -269,10 +269,13 @@ namespace fhatos {
     }
 
     ////////////////////////////////////
-    virtual const string &opcode() const { return std::get<0>(this->_value); }
-    virtual const List<Obj *> &args() const { return std::get<1>(this->_value); }
+    virtual const string opcode() const { return std::get<0>(this->_value); }
+    virtual const List<Obj *> args() const { return std::get<1>(this->_value); }
 
-    virtual const Function<S, E> &func() const {
+    template<typename A>
+    A *arg(const uint8_t index) const { return (A*) this->args()[index]; }
+
+    virtual const Function<S *, E *> func() const {
       return std::get<2>(this->_value);
     }
   };
@@ -298,19 +301,19 @@ namespace fhatos {
       : Obj(BYTECODE), _value(List<Inst<S, E> >(braces)) {
     }
 
-    const E apply(const S obj) const override {
-      const E *running = &obj;
+    const E *apply(const S *obj) const override {
+      const E *running = (E *) obj;
       for (const auto &inst: this->_value) {
-        running = new E(inst.func()(*running)); //.apply(*(Obj*)(void*)&running);
+        running = inst.func()((S *) running);
       }
-      return *running;
+      return running;
     }
 
     const List<Inst<S, E> > value() const { return this->_value; }
 
     template<typename E2>
-    Bytecode<S, E2> addInst(const char *op, const List<Obj> &args,
-                            const Function<E, E2> &function) const {
+    Bytecode<S, E2> addInst(const char *op, const List<Obj *> &args,
+                            const Function<E *, E2 *> &function) const {
       return this->addInst(Inst<E, E2>({string(op), args, function}));
     }
 

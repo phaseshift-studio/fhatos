@@ -15,7 +15,7 @@ namespace fhatos {
 
   struct FSInfo {
     const fURI furi;
-    const uint16_t size;
+    const size_t size;
     const FSType type;
 
     union FileOrDir {

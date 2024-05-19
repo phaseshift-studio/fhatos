@@ -16,7 +16,7 @@
 #include <language/fluent.hpp>
 using namespace fhatos;
 // #include <fhatos_native.hpp>
-#include <../test/language/test_fluent/test_fluent.cpp>
+// #include <../test/language/test_fluent/test_fluent.cpp>
 
 //#endif
 

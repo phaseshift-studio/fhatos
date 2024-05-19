@@ -9,6 +9,9 @@
 namespace fhatos {
   template<typename ROUTER>
   class Publisher {
+  protected:
+    ~Publisher() = default;
+
   public:
     IDed *ided;
     Mailbox<Mail> *mailbox;
@@ -19,7 +22,7 @@ namespace fhatos {
 
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern,
-                                    const Consumer<const Message &> onRecv,
+                                    const Consumer<const Message> onRecv,
                                     const QoS qos = QoS::_1) {
       return ROUTER::singleton()->subscribe(
         Subscription{

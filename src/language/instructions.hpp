@@ -3,6 +3,7 @@
 
 #include <fhatos.hpp>
 //
+#include <any>
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
 
@@ -13,8 +14,8 @@ namespace fhatos {
     explicit StartInst(const List<S> starts)
       : Inst<S, S>({
         "start", ptr_list<S, Obj>(starts),
-        [starts](S b) {
-          return starts.front();
+        [starts](S* b) -> S* {
+          return new S(starts.front());
         }
       }) {
     }
@@ -23,8 +24,8 @@ namespace fhatos {
   template<typename E>
   class PlusInst final : public Inst<E, E> {
   public:
-    explicit PlusInst(const E &a)
-      : Inst<E, E>({"plus", ptr_list<E, Obj>({a}), [a](E b) { return E(a.value() + b.value()); }}) {
+    explicit PlusInst(const E* a)
+      : Inst<E, E>({"plus", {(Obj*)a}, [this](E* b) { return new E( this->template arg<E>(0)->apply(b)->value() + b->value()); }}) {
     }
   };
 } // namespace fhatos

@@ -25,7 +25,7 @@ namespace fhatos {
     };
 
     Fluent<S, E> plus(const E &e) const {
-      return this->template addInst<E>(PlusInst<E>(e));
+      return this->template addInst<E>(PlusInst<E>(new E(e)));
     }
 
     Fluent<S, E> plus(const Fluent<E, E> &e) const {
@@ -39,7 +39,7 @@ namespace fhatos {
     string toString() const { return "f" + this->bcode.toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
-    virtual const E apply(const S start) const {
+    virtual const E* apply(const S* start) const {
       return this->bcode.apply(start);
     }
 
