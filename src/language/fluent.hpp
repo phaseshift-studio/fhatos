@@ -17,30 +17,25 @@ namespace fhatos {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    Fluent() : bcode(Bytecode<S, E>()) {
+    explicit Fluent() : bcode(new Bytecode<S, E>()) {
     }
 
-    explicit Fluent(const List<S> starts)
-      : bcode({StartInst<S>(starts)}) {
-    };
+    explicit Fluent(Bytecode<S, E> *bcode) : bcode(bcode) {
+    }
 
     Fluent<S, E> plus(const E &e) const {
       return this->template addInst<E>(PlusInst<E>(new E(e)));
     }
 
     Fluent<S, E> plus(const Fluent<E, E> &e) const {
-      return this->addInst<E>(
-        Inst<E, E>({
-          "plus", List<Obj *>({new Bytecode<E, E>(e.bcode)}),
-          [](S e2) { return e2; }
-        }));
+      return this->template addInst<E>(PlusInst<E>(e.bcode));
     }
 
-    string toString() const { return "f" + this->bcode.toString(); }
+    string toString() const { return "f" + this->bcode->toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
-    virtual const E* apply(const S* start) const {
-      return this->bcode.apply(start);
+    virtual const E *apply(const S *start) const {
+      return this->bcode->apply(start);
     }
 
     const E *next() const {
@@ -62,14 +57,11 @@ namespace fhatos {
     /////////////////////////    PRIVATE ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   private:
-    const Bytecode<S, E> bcode;
-
-    explicit Fluent(const Bytecode<S, E> &bcode) : bcode(bcode) {
-    }
+    const Bytecode<S, E> *bcode;
 
     template<typename E2>
     Fluent<S, E2> addInst(const Inst<E, E2> &inst) const {
-      return Fluent<S, E2>(bcode.addInst(inst));
+      return Fluent<S, E2>(this->bcode->addInst(inst));
     }
   };
 
@@ -78,13 +70,13 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////
 
   template<typename S>
-  inline static Fluent<S, S> __(std::initializer_list<S> starts) {
-    return Fluent<S, S>(List<S>(starts));
+  inline static Fluent<S, S> __(const List<S> &starts) {
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S,S>>({StartInst<S>(starts)})));
   };
 
   template<typename S>
-  inline static Fluent<S, S> __(const S start) {
-    return Fluent<S, S>(List<S>{start});
+  inline static Fluent<S, S> __(const S &start) {
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S,S>>({StartInst<S>({start})})));
   };
 
   template<typename S>

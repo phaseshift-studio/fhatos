@@ -273,7 +273,7 @@ namespace fhatos {
     virtual const List<Obj *> args() const { return std::get<1>(this->_value); }
 
     template<typename A>
-    A *arg(const uint8_t index) const { return (A*) this->args()[index]; }
+    A *arg(const uint8_t index) const { return (A *) this->args()[index]; }
 
     virtual const Function<S *, E *> func() const {
       return std::get<2>(this->_value);
@@ -287,18 +287,14 @@ namespace fhatos {
     const List<Inst<S, E> > _value;
 
   public:
-    virtual ~Bytecode() {
+    ~Bytecode() override {
       //  todo clear list and delete instructions
-    }
-
-    explicit Bytecode() : Obj(BYTECODE), _value(List<Inst<S, E> >()) {
     }
 
     explicit Bytecode(const List<Inst<S, E> > &list) : Obj(BYTECODE), _value(list) {
     }
 
-    explicit Bytecode(const std::initializer_list<Inst<S, E> > braces)
-      : Obj(BYTECODE), _value(List<Inst<S, E> >(braces)) {
+    explicit Bytecode() : Obj(BYTECODE), _value(List<Inst<S, E> >()) {
     }
 
     const E *apply(const S *obj) const override {
@@ -312,19 +308,19 @@ namespace fhatos {
     const List<Inst<S, E> > value() const { return this->_value; }
 
     template<typename E2>
-    Bytecode<S, E2> addInst(const char *op, const List<Obj *> &args,
-                            const Function<E *, E2 *> &function) const {
+    Bytecode<S, E2> *addInst(const char *op, const List<Obj *> &args,
+                             const Function<E *, E2 *> &function) const {
       return this->addInst(Inst<E, E2>({string(op), args, function}));
     }
 
     template<typename E2>
-    Bytecode<S, E2> addInst(const Inst<E, E2> &inst) const {
+    Bytecode<S, E2> *addInst(const Inst<E, E2> &inst) const {
       List<Inst<S, E2> > list;
       for (Inst<S, E> i: this->_value) {
         list.push_back(i);
       }
       list.push_back(inst);
-      return Bytecode<S, E2>(list);
+      return new Bytecode<S, E2>(list);
     }
 
     const string toString() const override {
