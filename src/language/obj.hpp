@@ -40,10 +40,10 @@ namespace fhatos {
   };
 
   template<typename S, typename E>
-   static const List<E *> ptr_list(const List<S> ts) {
+  static const List<E *> ptr_list(const List<S> ts) {
     List<E *> pts = List<E *>();
     for (const auto &t: ts) {
-      pts.push_back(new S(t));
+      pts.push_back((E *) t.self());
     }
     return pts;
   }
@@ -51,16 +51,6 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  template<typename S, typename E>
-  class S_E {
-  public:
-    virtual ~S_E() = default;
-
-    virtual const E *apply(const S *s) const {
-      return (E *) s; // TOTAL HACK TO REMOVE --no-return COMPILER WARNING
-    }
-  };
 
 
   class Obj {
@@ -81,6 +71,48 @@ namespace fhatos {
 
     bool operator<(const Obj &other) const {
       return true; //this->_value < other._value;
+    }
+  };
+
+  template<typename S, typename E>
+  class S_E {
+  public:
+    virtual ~S_E() = default;
+
+    const OType type;
+
+    const union {
+      bool *boolX;
+      int *intX;
+      string *strX;
+    } preType;
+
+    S_E(): type(OBJ), preType{.boolX = new bool(false)} {
+    };
+
+    S_E(bool boolX): type(BOOL), preType{.boolX = new bool(boolX)} {
+    };
+
+    S_E(int intX): type(INT), preType{.intX = new int(intX)} {
+    };
+
+    S_E(string strX): type(STR), preType{.strX = new string(strX)} {
+    };
+
+    virtual const E *apply(const S *s) const {
+      return (E *) this; // TOTAL HACK TO REMOVE --no-return COMPILER WARNING
+    }
+
+    virtual const S_E *self() const {
+      return nullptr;
+    }
+
+    virtual Obj *obj() const {
+      return (Obj *) this;
+    }
+
+    virtual const string toString() const {
+      return "this should never happen";
     }
   };
 
@@ -112,13 +144,18 @@ namespace fhatos {
       return this;
     }
 
+    const Bool *self() const override {
+      return new Bool(this->_value);
+    }
+
+
     const string toString() const override {
       return this->_value ? "true" : "false";
     }
   };
 
   ///////////////////////////////////////////////// INT //////////////////////////////////////////////////////////////
-  class Int final : public Obj, public S_E<Obj, Int> {
+  class Int : public Obj, public S_E<Obj, Int> {
   protected:
     const FL_INT_TYPE _value;
 
@@ -130,6 +167,10 @@ namespace fhatos {
 
     virtual const Int *apply(const Obj *obj) const override {
       return this;
+    }
+
+    const Int *self() const override {
+      return new Int(this->_value);
     }
 
     const string toString() const override { return std::to_string(_value); }
@@ -243,7 +284,7 @@ namespace fhatos {
 
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
   template<typename S, typename E>
-  class Inst : public Obj, public S_E<S, E> {
+  class Inst : public Obj, public S_E<Obj, E> {
   protected:
     const Triple<const string, const List<Obj *>, const Function<S *, E *>> _value;
 
@@ -256,8 +297,36 @@ namespace fhatos {
       return this->_value;
     }
 
-    const E *apply(const S *obj) const override {
+    template<typename X>
+    static const S_E<Obj, X> *convert(const S_E<Obj, X> *s_e) {
+      switch (s_e->type) {
+        case BOOL: return dynamic_cast<S_E<Obj, X> *>(new Bool(*s_e->preType.boolX));
+        case INT: return dynamic_cast<S_E<Obj, X> *>(new Int(*s_e->preType.intX));
+        case STR: return dynamic_cast<S_E<Obj, X> *>(new Str(*s_e->preType.strX));
+        default:
+          return s_e->self();
+      }
+    }
+
+    static const string makeString(const string &opcode, const string arg1 = "", const string arg2 = "",
+                                   const string arg3 = "") {
+      string t = "[" + opcode + ",";
+      if (!arg1.empty())
+        t = t + arg1 + ",";
+      if (!arg2.empty())
+        t = t + arg2 + ",";
+      if (!arg3.empty())
+        t = t + arg3 + ",";
+      t[t.length() - 1] = ']';
+      return t;
+    }
+
+    const E *apply(const Obj *obj) const override {
       return this->func()((S *) obj);
+    }
+
+    const Inst<S, E> *self() const override {
+      return new Inst<S, E>(this->_value);
     }
 
     const string toString() const override {
@@ -283,7 +352,7 @@ namespace fhatos {
 
   ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
   template<typename S, typename E>
-  class Bytecode final : public Obj, S_E<S, E> {
+  class Bytecode final : public Obj, public S_E<Obj, E> {
   protected:
     const List<Inst<S, E> *> _value;
 
@@ -298,12 +367,16 @@ namespace fhatos {
     explicit Bytecode() : Obj(BYTECODE), _value(List<Inst<S, E> *>()) {
     }
 
-    const E *apply(const S *obj) const override {
+    const E *apply(const Obj *obj) const override {
       const E *running = (E *) obj;
       for (const auto *inst: this->_value) {
         running = inst->func()((S *) running);
       }
       return running;
+    }
+
+    const Bytecode<S, E> *self() const override {
+      return this;
     }
 
     const List<Inst<S, E> *> value() const { return this->_value; }

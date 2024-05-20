@@ -13,10 +13,10 @@ namespace fhatos {
 
   void test_fluent() {
     FOS_TEST_MESSAGE("%s",
-                     __<Int>(10).plus(20).plus(__<Int>(26).plus(5)).plus(5).toString().c_str());
+                     __<Int>(19).plus(__<Int>(26).plus(5)).plus(5).toString().c_str());
     FOS_TEST_MESSAGE("%s", __<Int>(10)
-                     .plus(__<Int>().plus(Int(6)).plus(Int(12)).plus(
-                       __<Int>().plus(Int(13)).plus(Int(6)))).plus(23)
+                     .plus(__<Int>().plus(6).mult(12).plus(
+                       __<Int>().plus(13).plus(6))).plus(23)
                      .toString()
                      .c_str());
 
@@ -31,7 +31,7 @@ namespace fhatos {
 
     FOS_TEST_MESSAGE("=========================\n");
 
-    const Fluent<Int, Int> f = __<Int>({232, 3145, 13}).plus(10).plus(15);
+    const Fluent<Int, Int> f = __<Int>({232, 3145, 13}).plus(10).plus(15).mult(10);//.mult(__.plus(2).mult(10));
     f.forEach([](const Int *e) {
       FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
     });

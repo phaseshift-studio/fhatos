@@ -24,18 +24,30 @@ namespace fhatos {
   template<typename E>
   class PlusInst final : public Inst<E, E> {
   public:
-    explicit PlusInst(const E *a)
+    explicit PlusInst(const S_E<Obj, E> *a)
       : Inst<E, E>({
-        "plus", {(Obj *) a},
-        [this,a](const E *b) { return new E(a->apply(b)->value() + b->value()); }
+        "plus", {Inst<E, E>::template convert<E>(a)->obj()},
+        [this](const E *b) { return new E(this->template arg<S_E<Obj, E> >(0)->apply(b)->value() + b->value()); }
       }) {
     }
-    template<typename S>
-    explicit PlusInst(const Bytecode<S, E> *a)
+
+    const string toString() const override {
+      return Inst<E, E>::makeString(this->opcode(), this->template arg<S_E<Obj, E> >(0)->toString());
+    }
+  };
+
+  template<typename E>
+  class MultInst final : public Inst<E, E> {
+  public:
+    explicit MultInst(const S_E<Obj, E> *a)
       : Inst<E, E>({
-        "plus", {(Obj *) a},
-        [this](const E *b) { return new E(this->template arg<Bytecode<S, E> >(0)->apply(b)->value() + b->value()); }
+        "mult", {Inst<E, E>::template convert<E>(a)->obj()},
+        [this](const E *b) { return new E(this->template arg<S_E<Obj, E> >(0)->apply(b)->value() * b->value()); }
       }) {
+    }
+
+    const string toString() const override {
+      return Inst<E, E>::makeString(this->opcode(), this->template arg<S_E<Obj, E> >(0)->toString());
     }
   };
 } // namespace fhatos

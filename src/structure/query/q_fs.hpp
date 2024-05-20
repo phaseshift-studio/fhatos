@@ -33,11 +33,11 @@ namespace fhatos {
       };
     } contents;
 
-    FSInfo(const fURI &furi, const uint16_t size,
+    FSInfo(const fURI &furi, const size_t size,
            const Option<List<FSInfo *> > &contents) : furi(furi), size(size), type(DIR), contents{.d = contents} {
     }
 
-    FSInfo(const fURI &furi, const uint16_t size, const Option<string> &contents) : furi(furi), size(size), type(FILE),
+    FSInfo(const fURI &furi, const size_t size, const Option<string> &contents) : furi(furi), size(size), type(FILE),
       contents{.f = contents} {
     }
 

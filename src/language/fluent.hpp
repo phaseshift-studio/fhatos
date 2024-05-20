@@ -10,9 +10,7 @@
 namespace fhatos {
   template<typename S, typename E,
     typename PROCESSOR = Processor<S, E, Monad<E> > >
-  class Fluent : public S_E<S, E> {
-    //: public E {
-
+  class Fluent : public S_E<Obj, E> {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
@@ -20,22 +18,16 @@ namespace fhatos {
     explicit Fluent() : bcode(new Bytecode<S, E>()) {
     }
 
-    explicit Fluent(Bytecode<S, E> *bcode) : bcode(bcode) {
+    explicit Fluent(const Bytecode<S, E> *bcode) : bcode(bcode) {
     }
-
-    Fluent<S, E> plus(const E &e) const {
-      return this->template addInst<E>(new PlusInst<E>(&e));
-    }
-
-    Fluent<S, E> plus(const Fluent<E, E> &e) const {
-      return this->template addInst<E>(new PlusInst<E>(e.bcode));
-    }
-
-    string toString() const { return "f" + this->bcode->toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
-    virtual const E *apply(const S *start) const {
+    const E *apply(const Obj *start) const override {
       return this->bcode->apply(start);
+    }
+
+    const Bytecode<S, E> *self() const override {
+      return this->bcode->self();
     }
 
     const E *next() const {
@@ -53,15 +45,30 @@ namespace fhatos {
       proc.forEach(consumer);
     }
 
+    const string toString() const override { return "f" + this->bcode->toString(); }
+
     //////////////////////////////////////////////////////////////////////////////
-    /////////////////////////    PRIVATE ///////////////////////////////////////
+    ///////////////////////// PROTECTED  /////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
-  private:
+  protected:
     const Bytecode<S, E> *bcode;
 
     template<typename E2>
-    Fluent<S, E2> addInst(const Inst<E, E2>* inst) const {
+    Fluent<S, E2> addInst(const Inst<E, E2> *inst) const {
       return Fluent<S, E2>(this->bcode->addInst(inst));
+    }
+
+  public:
+    //////////////////////////////////////////////////////////////////////////////
+    ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+    Fluent<S, E> plus(const S_E<Obj, E> &e) const {
+      return this->template addInst<E>(new PlusInst<E>(&e));
+    }
+
+    Fluent<S, E> mult(const S_E<Obj, E> &e) const {
+      return this->template addInst<E>(new MultInst<E>(&e));
     }
   };
 
@@ -71,12 +78,12 @@ namespace fhatos {
 
   template<typename S>
   inline static Fluent<S, S> __(const List<S> &starts) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S>* >({new StartInst<S>(starts)})));
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> *>({new StartInst<S>(starts)})));
   };
 
   template<typename S>
   inline static Fluent<S, S> __(const S &start) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S>* >({new StartInst<S>({start})})));
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> *>({new StartInst<S>({start})})));
   };
 
   template<typename S>
