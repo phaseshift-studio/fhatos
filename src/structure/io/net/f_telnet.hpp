@@ -7,6 +7,7 @@
 #include <process/actor/actor.hpp>
 #include <util/ansi.hpp>
 #include <language/binary_obj.hpp>
+#include <language/parser.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {

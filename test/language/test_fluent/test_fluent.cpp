@@ -15,7 +15,7 @@ namespace fhatos {
     FOS_TEST_MESSAGE("%s",
                      __<Int>(19).plus(__<Int>(26).plus(5)).plus(5).toString().c_str());
     FOS_TEST_MESSAGE("%s", __<Int>(10)
-                     .plus(__<Int>().plus(6).mult(12).plus(
+                     .plus(__<Int>().plus(6).mult(23).plus(
                        __<Int>().plus(13).plus(6))).plus(23)
                      .toString()
                      .c_str());

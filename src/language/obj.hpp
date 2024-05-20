@@ -39,14 +39,14 @@ namespace fhatos {
     }
   };
 
-  template<typename S, typename E>
+  /*template<typename S, typename E>
   static const List<E *> ptr_list(const List<S> ts) {
     List<E *> pts = List<E *>();
     for (const auto &t: ts) {
       pts.push_back((E *) t.self());
     }
     return pts;
-  }
+  }*/
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,50 +69,16 @@ namespace fhatos {
       return "obj";
     }
 
-    bool operator<(const Obj &other) const {
-      return true; //this->_value < other._value;
-    }
-  };
-
-  template<typename S, typename E>
-  class S_E {
-  public:
-    virtual ~S_E() = default;
-
-    const OType type;
-
-    const union {
-      bool *boolX;
-      int *intX;
-      string *strX;
-    } preType;
-
-    S_E(): type(OBJ), preType{.boolX = new bool(false)} {
-    };
-
-    S_E(bool boolX): type(BOOL), preType{.boolX = new bool(boolX)} {
-    };
-
-    S_E(int intX): type(INT), preType{.intX = new int(intX)} {
-    };
-
-    S_E(string strX): type(STR), preType{.strX = new string(strX)} {
-    };
-
-    virtual const E *apply(const S *s) const {
-      return (E *) this; // TOTAL HACK TO REMOVE --no-return COMPILER WARNING
-    }
-
-    virtual const S_E *self() const {
-      return nullptr;
-    }
-
-    virtual Obj *obj() const {
+    const Obj *obj() const {
       return (Obj *) this;
     }
 
-    virtual const string toString() const {
-      return "this should never happen";
+    virtual const Obj *apply(const Obj *obj) const {
+      return this;
+    }
+
+    bool operator<(const Obj &other) const {
+      return true; //this->_value < other._value;
     }
   };
 
@@ -130,7 +96,7 @@ namespace fhatos {
   };*/
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
-  class Bool final : public Obj, public S_E<Obj, Bool> {
+  class Bool final : public Obj {
   protected:
     const bool _value;
 
@@ -144,18 +110,13 @@ namespace fhatos {
       return this;
     }
 
-    const Bool *self() const override {
-      return new Bool(this->_value);
-    }
-
-
     const string toString() const override {
       return this->_value ? "true" : "false";
     }
   };
 
   ///////////////////////////////////////////////// INT //////////////////////////////////////////////////////////////
-  class Int : public Obj, public S_E<Obj, Int> {
+  class Int : public Obj {
   protected:
     const FL_INT_TYPE _value;
 
@@ -166,10 +127,6 @@ namespace fhatos {
     const FL_INT_TYPE value() const { return this->_value; }
 
     virtual const Int *apply(const Obj *obj) const override {
-      return this;
-    }
-
-    const Int *self() const override {
       return new Int(this->_value);
     }
 
@@ -177,7 +134,7 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// REAL //////////////////////////////////////////////////////////////
-  class Real final : public Obj, public S_E<Obj, Real> {
+  class Real final : public Obj {
   protected:
     const FL_REAL_TYPE _value;
 
@@ -194,7 +151,7 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// STR //////////////////////////////////////////////////////////////
-  class Str final : public Obj, public S_E<Obj, Str> {
+  class Str final : public Obj {
   protected:
     const string _value;
 
@@ -219,7 +176,7 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// LST //////////////////////////////////////////////////////////////
-  class Lst final : public Obj, public S_E<Obj, Lst> {
+  class Lst final : public Obj {
   protected:
     const List<Obj> _value;
 
@@ -243,7 +200,7 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
-  class Rec final : public Obj, public S_E<Obj, Rec> {
+  class Rec final : public Obj {
   protected:
     const Map<const Obj, Obj> _value;
 
@@ -284,7 +241,7 @@ namespace fhatos {
 
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
   template<typename S, typename E>
-  class Inst : public Obj, public S_E<Obj, E> {
+  class Inst : public Obj {
   protected:
     const Triple<const string, const List<Obj *>, const Function<S *, E *>> _value;
 
@@ -295,17 +252,6 @@ namespace fhatos {
 
     virtual Triple<const string, const List<Obj *>, const Function<S *, E *>> value() const {
       return this->_value;
-    }
-
-    template<typename X>
-    static const S_E<Obj, X> *convert(const S_E<Obj, X> *s_e) {
-      switch (s_e->type) {
-        case BOOL: return (S_E<Obj, X> *)(new Bool(*s_e->preType.boolX));
-        case INT: return (S_E<Obj, X> *)(new Int(*s_e->preType.intX));
-        case STR: return (S_E<Obj, X> *)(new Str(*s_e->preType.strX));
-        default:
-          return s_e->self();
-      }
     }
 
     static const string makeString(const string &opcode, const string arg1 = "", const string arg2 = "",
@@ -325,14 +271,10 @@ namespace fhatos {
       return this->func()((S *) obj);
     }
 
-    const Inst<S, E> *self() const override {
-      return new Inst<S, E>(this->_value);
-    }
-
     const string toString() const override {
       string t = "[" + this->opcode() + ",";
       for (const auto *arg: this->args()) {
-        t = t + arg->toString() + ",";
+        t = t.append(arg->toString()).append(",");
       }
       t[t.length() - 1] = ']';
       return t;
@@ -352,7 +294,7 @@ namespace fhatos {
 
   ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
   template<typename S, typename E>
-  class Bytecode final : public Obj, public S_E<Obj, E> {
+  class Bytecode final : public Obj {
   protected:
     const List<Inst<S, E> *> _value;
 
@@ -373,10 +315,6 @@ namespace fhatos {
         running = inst->func()((S *) running);
       }
       return running;
-    }
-
-    const Bytecode<S, E> *self() const override {
-      return this;
     }
 
     const List<Inst<S, E> *> value() const { return this->_value; }
@@ -406,6 +344,8 @@ namespace fhatos {
       return s + "}";
     }
   };
+
+
 } // namespace fhatos
 
 #endif
