@@ -145,7 +145,7 @@ namespace fhatos {
     }
 
   private:
-     Pattern makeTopic(const Pattern &relativeTopic) const {
+    Pattern makeTopic(const Pattern &relativeTopic) const {
       return relativeTopic.empty()
                ? Pattern(this->ided->id())
                : (relativeTopic.toString()[0] == '/'

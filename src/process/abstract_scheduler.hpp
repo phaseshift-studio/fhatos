@@ -24,7 +24,12 @@ namespace fhatos {
     AbstractScheduler() = default;
 
   public:
-    virtual ~AbstractScheduler() = default;
+    virtual ~AbstractScheduler() {
+      delete COROUTINES;
+      delete FIBERS;
+      delete THREADS;
+      delete KERNELS;
+    };
 
     virtual bool spawn(Process *process) { return false; }
 

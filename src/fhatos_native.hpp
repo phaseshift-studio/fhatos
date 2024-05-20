@@ -33,6 +33,7 @@
 #include <optional>
 #include <queue>
 #include <set>
+#include <memory>
 
 namespace fhatos {
 

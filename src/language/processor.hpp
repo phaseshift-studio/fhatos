@@ -18,11 +18,11 @@ namespace fhatos {
     }
 
     template<typename B>
-    Monad<B> *split(Inst<A, B> *next) const {
-      return new Monad<B>(next->apply(this->get()));
+    std::shared_ptr<Monad<B> > split(const Inst<A, B> *next) const {
+      return std::make_shared<Monad<B> >(Monad<B>(next->apply(this->get())));
     }
 
-    const A *get() const { return this->value; }
+    const A* get() const { return (A*) this->value; }
 
     long bulk() const { return this->_bulk; }
 
@@ -58,19 +58,18 @@ namespace fhatos {
         return this->ends;
       this->done = true;
       LOG(DEBUG, "Processing bytecode: %s\n", this->bcode->toString().c_str());
-      const auto starts = List<Obj *>(this->bcode->value().front().args());
+      const auto starts = List<Obj *>(this->bcode->value().front()->args());
       for (const auto *start: starts) {
         LOG(DEBUG, FOS_TAB_2 "starting with %s\n", start->toString().c_str());
-        Monad<Obj> *end = new Monad<Obj>((Obj *) start);
+        std::shared_ptr<Monad<Obj> > end = std::make_shared<Monad<Obj> >(start);
         int counter = 0;
-        for (const auto inst: this->bcode->value()) {
+        for (const auto* inst: this->bcode->value()) {
           if (counter++ != 0) {
-            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s\n", end->toString().c_str(), inst.toString().c_str());
-            end = end->split((Inst<Obj, Obj> *) &inst);
+            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s\n", end->toString().c_str(), inst->toString().c_str());
+            end = end->split((Inst<Obj, Obj>*) inst);
           }
         }
-        this->ends.push_back((E *) end->get());
-        delete end;
+        this->ends.push_back((E*)end->get());
       }
       return this->ends;
     }

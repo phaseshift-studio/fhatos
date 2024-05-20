@@ -39,6 +39,7 @@
 #include <queue>
 #include <set>
 #include <atomic>
+#include <memory>
 
 namespace fhatos {
   static const char *ANSI_ART =

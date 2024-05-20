@@ -24,11 +24,11 @@ namespace fhatos {
     }
 
     Fluent<S, E> plus(const E &e) const {
-      return this->template addInst<E>(PlusInst<E>(&e));
+      return this->template addInst<E>(new PlusInst<E>(&e));
     }
 
     Fluent<S, E> plus(const Fluent<E, E> &e) const {
-      return this->template addInst<E>(PlusInst<E>(e.bcode));
+      return this->template addInst<E>(new PlusInst<E>(e.bcode));
     }
 
     string toString() const { return "f" + this->bcode->toString(); }
@@ -60,7 +60,7 @@ namespace fhatos {
     const Bytecode<S, E> *bcode;
 
     template<typename E2>
-    Fluent<S, E2> addInst(const Inst<E, E2> &inst) const {
+    Fluent<S, E2> addInst(const Inst<E, E2>* inst) const {
       return Fluent<S, E2>(this->bcode->addInst(inst));
     }
   };
@@ -71,12 +71,12 @@ namespace fhatos {
 
   template<typename S>
   inline static Fluent<S, S> __(const List<S> &starts) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> >({StartInst<S>(starts)})));
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S>* >({new StartInst<S>(starts)})));
   };
 
   template<typename S>
   inline static Fluent<S, S> __(const S &start) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> >({StartInst<S>({start})})));
+    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S>* >({new StartInst<S>({start})})));
   };
 
   template<typename S>

@@ -75,11 +75,11 @@ namespace fhatos {
                         "?start", [this](const SourceID &, const TargetID &target) {
                           Scheduler::singleton()->spawn(new PingRoutine<ROUTER>(target.query("")));
                         }),
-                       std::make_pair(
+                      std::make_pair(
                         "?stop", [this](const SourceID &, const TargetID &target) {
                           Scheduler::singleton()->destroy(target.query(""));
                         }),
-                       std::make_pair(
+                      std::make_pair(
                         "default", [](const SourceID &source, const TargetID &target) {
                           LOG(ERROR, "Unknown query by !m%s!! of !m%s!!: !y%s!!\n",
                               source.toString().c_str(),
@@ -93,9 +93,11 @@ namespace fhatos {
 
     void loop() override {
       Actor<PROCESS, ROUTER>::loop();
-      for (Process *child: *Scheduler::singleton()->find(this->id().extend("+"))) {
+      List<Process *> *results = Scheduler::singleton()->find(this->id().extend("+"));
+      for (Process *child: *results) {
         this->publish(child->id().query("?loop"), "",TRANSIENT_MESSAGE);
       }
+      delete results;
       delay(1000);
     }
 

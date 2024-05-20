@@ -20,8 +20,7 @@ namespace fhatos {
                      .toString()
                      .c_str());
 
-    FOS_TEST_MESSAGE("%s", Monad<Int>(new Int(32))
-                     .split(new PlusInst<Int>(new Int(10)))
+    FOS_TEST_MESSAGE("%s", (new Monad<Int>(new Int(32)))->split(new PlusInst<Int>(new Int(10)))
                      ->get()
                      ->toString()
                      .c_str());
@@ -32,7 +31,7 @@ namespace fhatos {
 
     FOS_TEST_MESSAGE("=========================\n");
 
-    const Fluent<Int, Int> f = __<Int>({Int(232), Int(3145), Int(13), Int(452)}).plus(10).plus(15);
+    const Fluent<Int, Int> f = __<Int>({232, 3145, 13}).plus(10).plus(15);
     f.forEach([](const Int *e) {
       FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
     });

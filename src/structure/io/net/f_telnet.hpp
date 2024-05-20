@@ -49,6 +49,7 @@ namespace fhatos {
         tthis->ansi->printf("Telnet server on !m%s!!\n" TAB "Connection from !m%s!!\n" TAB
                             ":help for help menu\n",
                             fWIFI::ip().c_str(), ipAddress.c_str());
+        delete tthis->currentTopic;
         tthis->currentTopic = new ID(tthis->id());
         tthis->printPrompt();
       });
@@ -107,8 +108,10 @@ namespace fhatos {
                               _rc ? "!RERROR" : "!GOK",
                               tthis->currentTopic->toString().c_str());
         } else if (line.startsWith("/..")) {
+          delete tthis->currentTopic;
           tthis->currentTopic = new ID(tthis->currentTopic->retract());
         } else if (line.startsWith("/") && !line.equals("/")) {
+          delete tthis->currentTopic;
           tthis->currentTopic =
               new ID(tthis->currentTopic->extend(line.substring(1).c_str()));
         } else if (line.startsWith(":")) {
@@ -135,6 +138,7 @@ namespace fhatos {
           }
         } else if (line.startsWith("?")) {
         } else {
+          delete tthis->currentTopic;
           tthis->currentTopic = new ID(ID(line.c_str()).resolve(*tthis->currentTopic));
         }
         tthis->printPrompt();
@@ -142,6 +146,7 @@ namespace fhatos {
 
       ////////// ON DISCONNECT //////////
       this->xtelnet->onDisconnect([](const String ipAddress) {
+        delete tthis->currentTopic;
         tthis->currentTopic = new ID(tthis->id());
         ROUTER::singleton()->unsubscribeSource(tthis->id());
         LOG_TASK(INFO, tthis, "Client %s disconnected from Telnet server",
