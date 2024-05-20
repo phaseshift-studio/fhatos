@@ -300,9 +300,9 @@ namespace fhatos {
     template<typename X>
     static const S_E<Obj, X> *convert(const S_E<Obj, X> *s_e) {
       switch (s_e->type) {
-        case BOOL: return dynamic_cast<S_E<Obj, X> *>(new Bool(*s_e->preType.boolX));
-        case INT: return dynamic_cast<S_E<Obj, X> *>(new Int(*s_e->preType.intX));
-        case STR: return dynamic_cast<S_E<Obj, X> *>(new Str(*s_e->preType.strX));
+        case BOOL: return (S_E<Obj, X> *)(new Bool(*s_e->preType.boolX));
+        case INT: return (S_E<Obj, X> *)(new Int(*s_e->preType.intX));
+        case STR: return (S_E<Obj, X> *)(new Str(*s_e->preType.strX));
         default:
           return s_e->self();
       }
