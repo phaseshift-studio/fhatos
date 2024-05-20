@@ -13,7 +13,7 @@ namespace fhatos {
 
   void test_basic_parser() {
     Parser parser;
-   parser.parse<Int,Int>(new string("plus(1, 2,'hello',  3.246 , true, __.plus(2),4)"));
+   parser.parse<Int,Int>(new string("plus(1, 2,'hello',  3.246 , true,4).mult(4)"));
 
 
   }
