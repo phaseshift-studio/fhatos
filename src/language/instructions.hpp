@@ -6,15 +6,18 @@
 #include <any>
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
+#ifndef NATIVE
+#include <process/router/local_router.hpp>
+#endif
 
 namespace fhatos {
   class S_E;
 
-  template <typename S>
-  static List<Obj*>* cast(const List<S*>* list) {
-    List<Obj*>* newList = new List<Obj*>();
-    for(const auto s : *list) {
-      newList->push_back((Obj*)s);
+  template<typename S>
+  static List<Obj *> *cast(const List<S *> *list) {
+    List<Obj *> *newList = new List<Obj *>();
+    for (const auto s: *list) {
+      newList->push_back((Obj *) s);
     }
     return newList;
   }
@@ -22,43 +25,63 @@ namespace fhatos {
   template<typename S>
   class StartInst final : public Inst<S, S> {
   public:
-    explicit StartInst(const List<S*>* starts)
+    explicit StartInst(const List<S *> *starts)
       : Inst<S, S>({
         "start", *cast(starts),
         [starts](S *b) -> S *{
-          return new S(((S*)starts->front())->value());
+          return new S(((S *) starts->front())->value());
         }
       }) {
     }
   };
 
-  template<typename E>
+  template<typename E, typename ALGEBRA = Algebra>
   class PlusInst final : public Inst<E, E> {
   public:
     explicit PlusInst(const E *a)
       : Inst<E, E>({
-        "plus", List<Obj*>({(Obj*)a->obj()}),
-        [this](const E *b) { return new E(this->template arg<E>(0)->apply(b)->value() + b->value()); }
+        "plus", List<Obj *>({(Obj *) a->obj()}),
+        [this](const E *b) {
+          return (E *) ALGEBRA::singleton()->plus(this->template arg<E>(0)->apply(b), b);
+        }
       }) {
-    }
-
-    virtual const string toString() const override {
-      return Inst<E, E>::makeString(this->opcode(), ((E*)this->template arg<E>(0))->toString());
     }
   };
 
-  template<typename E>
+  template<typename E, typename ALGEBRA=Algebra>
   class MultInst final : public Inst<E, E> {
   public:
     explicit MultInst(const E *a)
       : Inst<E, E>({
-        "mult", List<Obj*>({(Obj*)a->obj()}),
-        [this](const E *b) { return new E(this->template arg<E>(0)->apply(b)->value() * b->value()); }
+        "mult", List<Obj *>({(Obj *) a->obj()}),
+        [this](const E *b) {
+          return (E *) ALGEBRA::singleton()->mult(this->template arg<E>(0)->apply(b), b);
+        }
       }) {
     }
+  };
 
-    const string toString() const override {
-      return Inst<E, E>::makeString(this->opcode(), ((E*)this->template arg<E>(0))->toString());
+  template<typename E, typename ALGEBRA=Algebra>
+  class PublishInst final : public Inst<Uri, Uri> {
+  public:
+    explicit PublishInst(const E *a) : Inst<Uri, Uri>({
+      "<=", List<Obj *>({(Obj *) a->obj()}),
+      [this](const Uri *uri) {
+#ifndef NATIVE
+        FOS_DEFAULT_ROUTER::singleton()->publish(Message{
+          .source = ID("anoymous"),
+          .target = uri,
+          .payload = this->template arg<E>(0)->apply(uri),
+          .retain = TRANSIENT_MESSAGE
+        });
+        return uri;
+#else
+        LOG(INFO, "Pbulished %s\n", this->template arg<E>(0)->toString().c_str());
+        return (Uri*) uri;
+#endif
+
+      }
+    }) {
     }
   };
 } // namespace fhatos

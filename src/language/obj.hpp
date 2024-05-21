@@ -9,6 +9,8 @@
 #endif
 
 #include <fhatos.hpp>
+#include <structure/furi.hpp>
+
 
 namespace fhatos {
   enum OType { URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
@@ -17,6 +19,7 @@ namespace fhatos {
   static const Map<OType, string> OTYPE_STR = {
     {
       {OBJ, "obj"},
+      {URI, "uri"},
       {BOOL, "bool"},
       {INT, "int"},
       {REAL, "real"},
@@ -26,33 +29,6 @@ namespace fhatos {
       {BYTECODE, "bcode"}
     }
   };
-
-  template<typename OBJ, AType atype>
-  struct Algebra {
-    const AType _atype;
-
-    Algebra(const AType _atype) : _atype(_atype) {
-    }
-
-    static const Algebra<OBJ, atype> singleton() {
-      const static Algebra<OBJ, atype> *instance = Algebra<OBJ, atype>(atype);
-      return &instance;
-    }
-  };
-
-  /*template<typename S, typename E>
-  static const List<E *> ptr_list(const List<S> ts) {
-    List<E *> pts = List<E *>();
-    for (const auto &t: ts) {
-      pts.push_back((E *) t.self());
-    }
-    return pts;
-  }*/
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
   class Obj {
   protected:
@@ -84,17 +60,20 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
-  /*class Uri final : public Obj<fURI> {
+  class Uri final : public Obj {
+  protected:
+    const fURI _value;
+
   public:
-    Uri(const fURI value) : Obj(value) {
+    Uri(const fURI value) : Obj(URI), _value(value) {
     }
 
-    virtual OType type() const override { return URI; }
+    const fURI value() const { return this->_value; }
 
-    virtual string toString() const override {
-      return string(this->_value.toString().c_str());
+    virtual const string toString() const override {
+      return this->_value.toString();
     }
-  };*/
+  };
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
   class Bool final : public Obj {
@@ -269,7 +248,7 @@ namespace fhatos {
     }
 
     const E *apply(const Obj *obj) const override {
-      return this->func()((S *) obj);
+      return (E*) this->func()((S *) obj);
     }
 
     const string toString() const override {

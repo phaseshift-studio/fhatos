@@ -20,6 +20,9 @@ namespace fhatos {
     S_E(OType type, Obj *obj) : type(type), obj(obj) {
     }
 
+    S_E(fURI furiX): type(URI), obj(new Uri(furiX)) {
+    };
+
     S_E(bool boolX): type(BOOL), obj(new Bool(boolX)) {
     };
 
@@ -46,7 +49,7 @@ namespace fhatos {
     }
   };
 
-  template<typename S, typename E,
+  template<typename S, typename E, typename ALGEBRA = Algebra,
     typename PROCESSOR = Processor<S, E, Monad<E> > >
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
@@ -95,13 +98,12 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////
 
     operator const S_E &() const {
-      LOG(INFO, "%s!!\n", OTYPE_STR.at(S_E((Bytecode<Obj,Obj>*)this->bcode).obj->type()).c_str());
       return *new S_E((Bytecode<Obj, Obj> *) this->bcode);
     }
 
-    Fluent<S, E> start(const List<S_E*> starts) const {
+    Fluent<S, E> start(const List<S_E *> starts) const {
       List<S *> *castStarts = new List<S *>();
-      for (S_E* se: starts) {
+      for (S_E *se: starts) {
         castStarts->push_back((S *) se->obj);
       }
       return this->template addInst<E>(new StartInst<E>(castStarts));
@@ -116,12 +118,15 @@ namespace fhatos {
     }
 
     Fluent<S, E> plus(const S_E &e) const {
-      return this->template addInst<E>(new PlusInst<E>(e.cast<E>()));
+      return this->template addInst<E>(new PlusInst<E, ALGEBRA>(e.cast<E>()));
     }
 
     Fluent<S, E> mult(const S_E &e) const {
-      LOG(INFO, "%s!!\n", OTYPE_STR.at(e.obj->type()).c_str());
-      return this->template addInst<E>(new MultInst<E>(e.cast<E>()));
+      return this->template addInst<E>(new MultInst<E, ALGEBRA>(e.cast<E>()));
+    }
+
+    Fluent<S, Uri> publish(const S_E &e) const {
+      return this->template addInst<Uri>((Inst<E,Uri>*)new PublishInst<E, ALGEBRA>(e.cast<E>()));
     }
   };
 

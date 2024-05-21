@@ -13,7 +13,7 @@ namespace fhatos {
 
   void test_basic_parser() {
     Parser parser;
-   LOG(INFO,"RESULT: %s\n\n",parser.parse<Int,Int>(new string("__(12,15,6).plus(10)"))->toString().c_str());
+   LOG(INFO,"RESULT: %s\n\n",parser.parse<Uri,Uri>(new string("__(actor@127.9.9.1).<=('hello')"))->toString().c_str());
 
    Processor<Int,Int>* p = new Processor<Int,Int>(parser.parse<Int,Int>(new string("__(15).plus(1).plus(__.plus(5))")));
    p->forEach([](const Int* i) {
