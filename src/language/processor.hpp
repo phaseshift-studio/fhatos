@@ -58,12 +58,12 @@ namespace fhatos {
         return this->ends;
       this->done = true;
       LOG(DEBUG, "Processing bytecode: %s\n", this->bcode->toString().c_str());
-      const auto starts = List<Obj *>(this->bcode->value().front()->args());
+      const auto starts = List<Obj *>(this->bcode->value()->front()->args());
       for (const auto *start: starts) {
         LOG(DEBUG, FOS_TAB_2 "starting with %s\n", start->toString().c_str());
         std::shared_ptr<Monad<Obj> > end = std::make_shared<Monad<Obj> >(start);
         int counter = 0;
-        for (const auto* inst: this->bcode->value()) {
+        for ( Inst<Obj,Obj>* inst: *this->bcode->value()) {
           if (counter++ != 0) {
             LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s\n", end->toString().c_str(), inst->toString().c_str());
             end = end->split((Inst<Obj, Obj>*) inst);

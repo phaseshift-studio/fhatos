@@ -296,50 +296,46 @@ namespace fhatos {
   template<typename S, typename E>
   class Bytecode final : public Obj {
   protected:
-    const List<Inst<S, E> *> _value;
+     List<Inst<Obj, Obj> *>* _value;
 
   public:
-    ~Bytecode() override {
-      //  todo clear list and delete instructions
+    explicit Bytecode( List<Inst<Obj, Obj> *>*list) : Obj(BYTECODE), _value(list) {
     }
 
-    explicit Bytecode(const List<Inst<S, E> *> &list) : Obj(BYTECODE), _value(list) {
-    }
-
-    explicit Bytecode() : Obj(BYTECODE), _value(List<Inst<S, E> *>()) {
+    explicit Bytecode() : Bytecode(new List<Inst<Obj, Obj> *>()) {
     }
 
     const E *apply(const Obj *obj) const override {
       const E *running = (E *) obj;
-      for (const auto *inst: this->_value) {
-        running = inst->func()((S *) running);
+      for (const auto *inst: *this->_value) {
+        running = ((Inst<S,E>*)inst)->func()((S *) running);
       }
       return running;
     }
 
-    const List<Inst<S, E> *> value() const { return this->_value; }
+    const List<Inst<Obj, Obj> *>* value() const { return this->_value; }
 
     template<typename E2>
     Bytecode<S, E2> *addInst(const char *op, const List<Obj *> &args,
                              const Function<E *, E2 *> &function) const {
-      return this->addInst(std::make_shared<Inst<E, E2> >(Inst<E, E2>({string(op), args, function})));
+      return this->addInst(new Inst<E, E2>({string(op), args, function}));
     }
 
     template<typename E2>
     Bytecode<S, E2> *addInst(const Inst<E, E2> *inst) const {
-      List<Inst<S, E2> *> list;
-      for (Inst<S, E> *i: this->_value) {
-        list.push_back((Inst<S, E2> *) i);
+      List<Inst<Obj, Obj> *>* list = new  List<Inst<Obj,Obj> *>();
+      for (Inst<Obj, Obj> *i: *this->_value) {
+        list->push_back((Inst<Obj, Obj> *) i);
       }
-      list.push_back((Inst<S, E2> *) inst);
+      list->push_back((Inst<Obj, Obj> *) inst);
       return new Bytecode<S, E2>(list); //auto ret = std::make_shared<Bytecode<S, E2>>(
       //return ret;
     }
 
     const string toString() const override {
       string s = "{";
-      for (auto *inst: this->_value) {
-        s = s + inst->toString();
+      for (auto *inst: *this->_value) {
+        s = s + ((Inst<Obj,Obj>*)inst)->toString();
       }
       return s + "}";
     }

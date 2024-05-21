@@ -4,7 +4,7 @@
 #include <test_fhatos.hpp>
 //
 #include <language/parser.hpp>
-
+#include <language/processor.hpp>
 namespace fhatos {
 
   //////////////////////////////////////////////////////////
@@ -13,7 +13,13 @@ namespace fhatos {
 
   void test_basic_parser() {
     Parser parser;
-   parser.parse<Int,Int>(new string("plus(1, 2,'hello',  3.246 , true,4).mult(4)"));
+   LOG(INFO,"%s\n",parser.parse<Obj,Obj>(new string("__(12).plus(10)"))->toString().c_str());
+
+   Processor<Int,Int>* p = new Processor<Int,Int>(parser.parse<Int,Int>(new string("__(15).plus(1).plus(45)")));
+   p->forEach([](const Int* i) {
+     LOG(INFO,"==>%s\n",i->toString().c_str());
+   });
+
 
 
   }

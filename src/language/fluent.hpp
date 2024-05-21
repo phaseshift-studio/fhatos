@@ -121,12 +121,12 @@ namespace fhatos {
     for (S_E se: starts) {
       castStarts->push_back((S*)se.obj);
     }
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> *>({new StartInst<S>(castStarts)})));
+    return Fluent<S, S>(new Bytecode<S, S>(new List<Inst<Obj, Obj> *>({(Inst<Obj,Obj>*)new StartInst<S>(castStarts)})));
   };
 
   template<typename S>
   inline static Fluent<S, S> __(const S_E &start) {
-    return Fluent<S, S>(new Bytecode<S, S>(List<Inst<S, S> *>({new StartInst<S>(new List<S*>{(S*)start.obj})})));
+    return Fluent<S, S>(new Bytecode<S, S>(new List<Inst<Obj, Obj> *>({(Inst<Obj,Obj>*)new StartInst<S>(new List<S*>{(S*)start.obj})})));
   };
 
   template<typename S>
