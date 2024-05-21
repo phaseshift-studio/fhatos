@@ -8,12 +8,23 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
+  class S_E;
+
+  template <typename S>
+  static List<Obj*>* cast(const List<S*>* list) {
+    List<Obj*>* newList = new List<Obj*>();
+    for(const auto s : *list) {
+      newList->push_back((Obj*)s);
+    }
+    return newList;
+  }
+
   template<typename S>
   class StartInst final : public Inst<S, S> {
   public:
     explicit StartInst(const List<S*>* starts)
       : Inst<S, S>({
-        "start", List<Obj*>({(Obj*)starts->front()}),
+        "start", *cast(starts),
         [starts](S *b) -> S *{
           return new S(((S*)starts->front())->value());
         }

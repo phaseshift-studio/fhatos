@@ -297,10 +297,10 @@ namespace fhatos {
   template<typename S, typename E>
   class Bytecode final : public Obj {
   protected:
-    List<Inst<Obj, Obj> *> *_value;
+    const List<Inst<Obj, Obj> *> *_value;
 
   public:
-    explicit Bytecode(List<Inst<Obj, Obj> *> *list) : Obj(BYTECODE), _value(list) {
+    explicit Bytecode(const List<Inst<Obj, Obj> *> *list) : Obj(BYTECODE), _value(list) {
     }
 
     explicit Bytecode() : Bytecode(new List<Inst<Obj, Obj> *>()) {
