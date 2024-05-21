@@ -173,6 +173,7 @@ namespace fhatos {
     if (buffer != temp) {
       delete[] buffer;
     }
+    fflush(stdout);
   }
 }
 #endif
