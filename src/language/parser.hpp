@@ -27,7 +27,7 @@ namespace fhatos {
       const auto ss = new stringstream(*line);
       List<Inst<Obj, Obj> *> *insts = this->parseBytecode(ss);
       auto bcode = new Bytecode<S, E>(insts);
-      //LOG(INFO, "BYTECODE: %s []\n",OTYPE_STR.at(bcode->type()).c_str());
+      LOG(INFO, "BYTECODE: %s []\n",OTYPE_STR.at(bcode->type()).c_str());
       return bcode;
     }
 
