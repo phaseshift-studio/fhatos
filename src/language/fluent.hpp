@@ -94,13 +94,18 @@ namespace fhatos {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    operator const S_E&() const { return *new S_E(this->bcode); }
+    operator const S_E&() const {
+
+      LOG(INFO,"%s!!\n",OTYPE_STR.at(S_E((Bytecode<Obj,Obj>*)this->bcode).obj->type()).c_str());
+      return *new S_E((Bytecode<Obj,Obj>*)this->bcode);
+    }
 
     Fluent<S, E> plus(const S_E &e) const {
       return this->template addInst<E>(new PlusInst<E>(e.cast<E>()));
     }
 
     Fluent<S, E> mult(const S_E &e) const {
+      LOG(INFO,"%s!!\n",OTYPE_STR.at(e.obj->type()).c_str());
       return this->template addInst<E>(new MultInst<E>(e.cast<E>()));
     }
   };

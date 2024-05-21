@@ -22,7 +22,8 @@ namespace fhatos {
       {REAL, "real"},
       {STR, "str"},
       {LST, "lst"},
-      {REC, "rec"}
+      {REC, "rec"},
+      {BYTECODE, "bcode"}
     }
   };
 
@@ -104,7 +105,7 @@ namespace fhatos {
     Bool(const bool value) : Obj(BOOL), _value(value) {
     }
 
-    virtual const bool value() const { return this->_value; }
+    const bool value() const { return this->_value; }
 
     const Bool *apply(const Obj *obj) const override {
       return this;
@@ -296,10 +297,10 @@ namespace fhatos {
   template<typename S, typename E>
   class Bytecode final : public Obj {
   protected:
-     List<Inst<Obj, Obj> *>* _value;
+    List<Inst<Obj, Obj> *> *_value;
 
   public:
-    explicit Bytecode( List<Inst<Obj, Obj> *>*list) : Obj(BYTECODE), _value(list) {
+    explicit Bytecode(List<Inst<Obj, Obj> *> *list) : Obj(BYTECODE), _value(list) {
     }
 
     explicit Bytecode() : Bytecode(new List<Inst<Obj, Obj> *>()) {
@@ -308,12 +309,12 @@ namespace fhatos {
     const E *apply(const Obj *obj) const override {
       const E *running = (E *) obj;
       for (const auto *inst: *this->_value) {
-        running = ((Inst<S,E>*)inst)->func()((S *) running);
+        running = ((Inst<S, E> *) inst)->func()((S *) running);
       }
       return running;
     }
 
-    const List<Inst<Obj, Obj> *>* value() const { return this->_value; }
+    const List<Inst<Obj, Obj> *> *value() const { return this->_value; }
 
     template<typename E2>
     Bytecode<S, E2> *addInst(const char *op, const List<Obj *> &args,
@@ -323,7 +324,7 @@ namespace fhatos {
 
     template<typename E2>
     Bytecode<S, E2> *addInst(const Inst<E, E2> *inst) const {
-      List<Inst<Obj, Obj> *>* list = new  List<Inst<Obj,Obj> *>();
+      List<Inst<Obj, Obj> *> *list = new List<Inst<Obj, Obj> *>();
       for (Inst<Obj, Obj> *i: *this->_value) {
         list->push_back((Inst<Obj, Obj> *) i);
       }
@@ -335,13 +336,11 @@ namespace fhatos {
     const string toString() const override {
       string s = "{";
       for (auto *inst: *this->_value) {
-        s = s + ((Inst<Obj,Obj>*)inst)->toString();
+        s = s + ((Inst<Obj, Obj> *) inst)->toString();
       }
       return s + "}";
     }
   };
-
-
 } // namespace fhatos
 
 #endif

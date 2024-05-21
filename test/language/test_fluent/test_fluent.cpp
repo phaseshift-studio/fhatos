@@ -31,7 +31,7 @@ namespace fhatos {
 
     FOS_TEST_MESSAGE("=========================\n");
 
-    const Fluent<Int, Int> f = __<Int>({232, 3145, 13}).plus(10).plus(15).mult(10);//.mult(__.plus(2).mult(10));
+    const Fluent<Int, Int> f = __<Int>(30).plus(10).plus(15).mult(__<Int>().plus(5));//.mult(__.plus(2).mult(10));
     f.forEach([](const Int *e) {
       FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
     });
