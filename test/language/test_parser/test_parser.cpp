@@ -12,6 +12,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_basic_parser() {
+try {
     Parser parser;
    parser.parseToFluent<Uri,Uri>("__(actor@127.9.9.1).<=('hello').plus(dmc).=>(abc@123.4.5.6,__.plus('hey'))")->forEach([](const Uri* uri) {
      LOG(INFO,"==>%s\n",uri->value().toString().c_str());
@@ -21,9 +22,9 @@ namespace fhatos {
    p->forEach([](const Int* i) {
      LOG(INFO,"==>%s\n",i->toString().c_str());
    });
-
-
-
+} catch(fError error) {
+  LOG_EXCEPTION(error);
+}
   }
 
   FOS_RUN_TESTS(                           //

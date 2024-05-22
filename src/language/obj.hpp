@@ -65,6 +65,8 @@ namespace fhatos {
     const fURI _value;
 
   public:
+    using ptr = std::shared_ptr<Uri>;
+
     Uri(const fURI value) : Obj(URI), _value(value) {
     }
 
@@ -81,6 +83,8 @@ namespace fhatos {
     const bool _value;
 
   public:
+    using ptr = std::shared_ptr<Bool>;
+
     Bool(const bool value) : Obj(BOOL), _value(value) {
     }
 
@@ -101,6 +105,8 @@ namespace fhatos {
     const FL_INT_TYPE _value;
 
   public:
+    using ptr = std::shared_ptr<Int>;
+
     Int(const FL_INT_TYPE value) : Obj(INT), _value(value) {
     }
 
@@ -220,17 +226,16 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
-  template<typename S, typename E>
   class Inst : public Obj {
   protected:
-    const Triple<const string, const List<Obj *>, const Function<S *, E *>> _value;
+    const Triple<const string, const List<Obj *>, const Function<Obj *, Obj *>> _value;
 
   public:
-    Inst(const Triple<const string, const List<Obj *>, const Function<S *, E *>> &value)
+    explicit Inst(const Triple<const string, const List<Obj *>, const Function<Obj *, Obj *>> &value)
       : Obj(INST), _value(value) {
     }
 
-    virtual Triple<const string, const List<Obj *>, const Function<S *, E *>> value() const {
+    virtual Triple<const string, const List<Obj *>, const Function<Obj *, Obj *>> value() const {
       return this->_value;
     }
 
@@ -247,8 +252,8 @@ namespace fhatos {
       return t;
     }
 
-    const E *apply(const Obj *obj) const override {
-      return (E *) this->func()((S *) obj);
+    const Obj *apply(const Obj *obj) const override {
+      return (Obj *) this->func()((Obj *) obj);
     }
 
     const string toString() const override {
@@ -267,55 +272,54 @@ namespace fhatos {
     template<typename A>
     A *arg(const uint8_t index) const { return (A *) this->args()[index]; }
 
-    virtual const Function<S *, E *> func() const {
+    virtual const Function<Obj *, Obj *> func() const {
       return std::get<2>(this->_value);
     }
   };
 
   ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
-  template<typename S, typename E>
   class Bytecode final : public Obj {
   protected:
-    const List<Inst<Obj, Obj> *> *_value;
+    const List<Inst *> *_value;
 
   public:
-    explicit Bytecode(const List<Inst<Obj, Obj> *> *list) : Obj(BYTECODE), _value(list) {
+    using ptr = std::shared_ptr<Bytecode>;
+
+    explicit Bytecode(const List<Inst *> *list) : Obj(BYTECODE), _value(list) {
     }
 
-    explicit Bytecode() : Bytecode(new List<Inst<Obj, Obj> *>()) {
+    explicit Bytecode() : Bytecode(new List<Inst *>()) {
     }
 
-    const E *apply(const Obj *obj) const override {
-      const E *running = (E *) obj;
-      for (const auto *inst: *this->_value) {
-        running = ((Inst<S, E> *) inst)->func()((S *) running);
+    const Obj *apply(const Obj *obj) const override {
+      Obj *running = (Obj *) obj;
+      for (const Inst *inst: *this->_value) {
+        running = inst->func()(running);
       }
       return running;
     }
 
-    const List<Inst<Obj, Obj> *> *value() const { return this->_value; }
+    const List<Inst *> *value() const { return this->_value; }
 
-    template<typename E2>
-    Bytecode<S, E2> *addInst(const char *op, const List<Obj *> &args,
-                             const Function<E *, E2 *> &function) const {
-      return this->addInst(new Inst<E, E2>({string(op), args, function}));
+    Bytecode *addInst(const char *op, const List<Obj *> &args,
+                      const Function<Obj *, Obj *> &function) const {
+      return this->addInst(new Inst({string(op), args, function}));
     }
 
-    template<typename E2>
-    Bytecode<S, E2> *addInst(const Inst<E, E2> *inst) const {
-      List<Inst<Obj, Obj> *> *list = new List<Inst<Obj, Obj> *>();
-      for (Inst<Obj, Obj> *i: *this->_value) {
-        list->push_back((Inst<Obj, Obj> *) i);
+    Bytecode *addInst(Inst *inst) const {
+      List<Inst *> *list = new List<Inst *>();
+      for (Inst *i: *this->_value) {
+        list->push_back((Inst *) i);
       }
-      list->push_back((Inst<Obj, Obj> *) inst);
-      return new Bytecode<S, E2>(list); //auto ret = std::make_shared<Bytecode<S, E2>>(
+      list->push_back(inst);
+      return new Bytecode(list); //auto ret = std::make_shared<Bytecode<S, E2>>(
       //return ret;
     }
 
     const string toString() const override {
       string s = "{";
       for (auto *inst: *this->_value) {
-        s = s + ((Inst<Obj, Obj> *) inst)->toString();
+        s = s + inst->toString();
       }
       return s + "}";
     }

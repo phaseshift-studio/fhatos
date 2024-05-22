@@ -143,6 +143,7 @@ namespace fhatos {
 #define FOS_TAB_4 "    "
 #define FOS_TAB "  "
   enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
+#define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
   static void MAIN_LOG(const LOG_TYPE type, const char* format, ...) {
     va_list arg;

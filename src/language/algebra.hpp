@@ -21,9 +21,8 @@ namespace fhatos {
         case REAL: return new Real(((Real *) b)->value() + ((Real *) a)->value());
         case STR: return new Str(string(((Str *) b)->value().c_str()).append(((Str *) a)->value()));
         default: {
-          throw new fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
-                           OTYPE_STR.at(b->type()).c_str());
-          return nullptr;
+          throw  fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
+                       OTYPE_STR.at(b->type()).c_str());
         }
       }
     }
@@ -34,9 +33,8 @@ namespace fhatos {
         case INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());
         case REAL: return new Real(((Real *) b)->value() * ((Real *) a)->value());
         default: {
-          throw new fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()).c_str(),
-                           OTYPE_STR.at(b->type()).c_str());
-          return nullptr;
+          throw  fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()).c_str(),
+                       OTYPE_STR.at(b->type()).c_str());
         }
       }
     }

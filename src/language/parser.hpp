@@ -19,10 +19,10 @@ namespace fhatos {
     }
 
     template<typename S, typename E>
-    Bytecode<S, E> *parse(const char *line) {
+    Bytecode *parse(const char *line) {
       LOG(DEBUG, "PARSING: %s\n", line);
       const auto ss = new stringstream(string(line));
-      Bytecode<S, E> *bcode = this->parseBytecode<S, E>(ss);
+      Bytecode *bcode = this->parseBytecode<S, E>(ss);
       LOG(DEBUG, "BYTECODE: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()).c_str());
       return bcode;
     }
@@ -33,7 +33,7 @@ namespace fhatos {
     }
 
     template<typename S, typename E>
-    Bytecode<S, E> *parseBytecode(stringstream *ss) {
+    Bytecode *parseBytecode(stringstream *ss) {
       Fluent<S, E> *fluent = new Fluent<S, E>();
       while (!ss->eof()) {
         const string *opcode = this->parseOpcode(ss);
@@ -55,7 +55,9 @@ namespace fhatos {
           range = URI;
           temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->subscribe(*args->at(0), *args->at(1))));
         } else {
-          throw new fError("Unknown instruction opcode: %s", opcode->c_str());
+          fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
+          LOG(ERROR, error->what());
+          throw error;
         }
         delete fluent;
         fluent = temp;
@@ -65,7 +67,7 @@ namespace fhatos {
         range = OBJ;
         delete args;
       }
-      Bytecode<S, E> *byteTemp = new Bytecode<S, E>(fluent->bcode->value());
+      Bytecode *byteTemp = new Bytecode(fluent->bcode->value());
       delete fluent;
       return byteTemp;
     }
@@ -143,7 +145,7 @@ namespace fhatos {
         OType tdomain = domain;
         OType trange = range;
         //domain = range;
-        S_E *b = new S_E((Bytecode<Obj, Obj> *) (this->parseBytecode<S, E>(ss)));
+        S_E *b = new S_E((Bytecode*)this->parseBytecode<S, E>(ss));
         domain = tdomain;
         range = trange;
         return b;

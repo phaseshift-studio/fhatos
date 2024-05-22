@@ -14,12 +14,15 @@ namespace fhatos {
     const long _bulk = 1;
 
   public:
+    template <typename X>
+    using ptr = std::shared_ptr<Monad<X>>;
+
     explicit Monad(const A *value) : value(value) {
     }
 
     template<typename B>
-    std::shared_ptr<Monad<B> > split(const Inst<A, B> *next) const {
-      return std::make_shared<Monad<B> >(Monad<B>(next->apply(this->get())));
+    const Monad<B>* split(const Inst *next) const {
+      return new Monad<B>((B*)next->apply(this->get()));
     }
 
     const A *get() const { return (A *) this->value; }
@@ -39,12 +42,12 @@ namespace fhatos {
   template<typename S, typename E, typename MONAD = Monad<Obj> >
   class Processor {
   protected:
-    const Bytecode<S, E> *bcode;
+    const Bytecode *bcode;
     List<E *> ends;
     bool done = false;
 
   public:
-    explicit Processor(const Bytecode<S, E> *bcode) : bcode(bcode) {
+    explicit Processor(const Bytecode *bcode) : bcode(bcode) {
     }
 
     void forEach(const Consumer<const E *> &consumer) {
@@ -61,13 +64,14 @@ namespace fhatos {
       const auto starts = List<Obj *>(this->bcode->value()->front()->args());
       for (const auto *start: starts) {
         LOG(DEBUG, FOS_TAB_2 "starting with %s [%s]\n", start->toString().c_str(), OTYPE_STR.at(start->type()).c_str());
-        std::shared_ptr<Monad<Obj> > end = std::make_shared<Monad<Obj> >(start);
+        Monad<E>*  end = new Monad<E> ((E*)start);
         int counter = 0;
-        for (Inst<Obj, Obj> *inst: *this->bcode->value()) {
+        for (Inst *inst : *this->bcode->value()
+        ) {
           if (counter++ != 0) {
             LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), inst->toString().c_str(),
                 OTYPE_STR.at(end->get()->type()).c_str());
-            end = end->split((Inst<Obj, Obj> *) inst);
+            end = (Monad<E>*)end->template split<E>(inst);
           }
         }
         this->ends.push_back((E *) end->get());

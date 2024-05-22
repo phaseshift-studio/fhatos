@@ -35,8 +35,7 @@ namespace fhatos {
     S_E(string strX): type(STR), obj(new Str(strX)) {
     };
 
-
-    S_E(Bytecode<Obj, Obj> *bcodeX): type(BYTECODE), obj(bcodeX) {
+    S_E(Bytecode *bcodeX): type(BYTECODE), obj(bcodeX) {
     };
 
     template<typename E>
@@ -56,10 +55,10 @@ namespace fhatos {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent() : bcode(new Bytecode<S, E>()) {
+    explicit Fluent() : bcode(new Bytecode()) {
     }
 
-    explicit Fluent(const Bytecode<S, E> *bcode) : bcode(bcode) {
+    explicit Fluent(Bytecode *bcode) : bcode(bcode) {
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -84,12 +83,12 @@ namespace fhatos {
     ///////////////////////// PROTECTED  /////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    const Bytecode<S, E> *bcode;
+    const Bytecode *bcode;
 
   protected:
     template<typename E2>
-    Fluent<S, E2> addInst(const Inst<E, E2> *inst) const {
-      return Fluent<S, E2>(this->bcode->addInst(inst));
+    Fluent<S, E2> addInst(const Inst *inst) const {
+      return Fluent<S, E2>((Bytecode*)this->bcode->addInst((Inst*)inst));
     }
 
   public:
@@ -98,10 +97,10 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////
 
     operator const S_E &() const {
-      return *new S_E((Bytecode<Obj, Obj> *) this->bcode);
+      return *new S_E((Bytecode*) this->bcode);
     }
 
-    Fluent<S, E> start(const List<S_E *> starts) const {
+    Fluent<S, E> start(const List<S_E *>& starts) const {
       List<S *> *castStarts = new List<S *>();
       for (S_E *se: starts) {
         castStarts->push_back((S *) se->obj);
@@ -118,20 +117,20 @@ namespace fhatos {
     }
 
     Fluent<S, E> plus(const S_E &e) const {
-      return this->template addInst<E>(new PlusInst<E, ALGEBRA>(e.cast<E>()));
+      return this-> addInst<E>((Inst*)new PlusInst<E, ALGEBRA>(e.cast<E>()));
     }
 
     Fluent<S, E> mult(const S_E &e) const {
-      return this->template addInst<E>(new MultInst<E, ALGEBRA>(e.cast<E>()));
+      return this-> addInst<E>((Inst*)new MultInst<E, ALGEBRA>(e.cast<E>()));
     }
 
     Fluent<S, Uri> publish(const S_E &e) const {
-      return this->addInst<Uri>((Inst<E, Uri> *) new PublishInst<E>(e.cast<E>()));
+      return this->template addInst<Uri>(new PublishInst<E>(e.cast<E>()));
     }
 
     Fluent<S, Uri> subscribe(const S_E &pattern, const S_E &onRecvBCode) const {
       return this->addInst<Uri>(
-        (Inst<E, Uri> *) new SubscribeInst(pattern.cast<Uri>(), onRecvBCode.cast<Bytecode<Obj, Obj> >()));
+         new SubscribeInst(pattern.cast<Uri>(), onRecvBCode.cast<Bytecode>()));
     }
   };
 
@@ -152,13 +151,13 @@ namespace fhatos {
       castStarts->push_back((S *) se.obj);
     }
     return Fluent<S, S>(
-      new Bytecode<S, S>(new List<Inst<Obj, Obj> *>({(Inst<Obj, Obj> *) new StartInst<S>(castStarts)})));
+      new Bytecode(new List<Inst *>({new StartInst<S>(castStarts)})));
   };
 
   template<typename S>
   inline static Fluent<S, S> __(const S_E &start) {
-    return Fluent<S, S>(new Bytecode<S, S>(new List<Inst<Obj, Obj> *>({
-      (Inst<Obj, Obj> *) new StartInst<S>(new List<S *>{(S *) start.obj})
+    return Fluent<S, S>(new Bytecode(new List<Inst *>({
+     new StartInst<S>(new List<S *>{(S *) start.obj})
     })));
   };
 

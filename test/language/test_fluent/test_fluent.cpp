@@ -20,7 +20,7 @@ namespace fhatos {
                      .toString()
                      .c_str());
 
-    FOS_TEST_MESSAGE("%s", (new Monad<Int>(new Int(32)))->split(new PlusInst<Int>(new Int(10)))
+    FOS_TEST_MESSAGE("%s", (new Monad<Int>(new Int(32)))->split<Int>((Inst*)(new PlusInst<Int>(new Int(10))))
                      ->get()
                      ->toString()
                      .c_str());
