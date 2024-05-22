@@ -55,10 +55,10 @@ namespace fhatos {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent() : bcode(new Bytecode()) {
+    explicit Fluent(const Bytecode *bcode) : bcode(bcode) {
     }
 
-    explicit Fluent(Bytecode *bcode) : bcode(bcode) {
+    explicit Fluent(const ID context = ID("anonymous")) : Fluent(new Bytecode(context)) {
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -88,7 +88,7 @@ namespace fhatos {
   protected:
     template<typename E2>
     Fluent<S, E2> addInst(const Inst *inst) const {
-      return Fluent<S, E2>((Bytecode*)this->bcode->addInst((Inst*)inst));
+      return Fluent<S, E2>(this->bcode->addInst((Inst *) inst));
     }
 
   public:
@@ -97,7 +97,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////
 
     operator const S_E &() const {
-      return *new S_E((Bytecode*) this->bcode);
+      return *new S_E((Bytecode *) this->bcode);
     }
 
     Fluent<S, E> start(const List<S_E *> starts) const {
@@ -117,20 +117,20 @@ namespace fhatos {
     }
 
     Fluent<S, E> plus(const S_E &e) const {
-      return this-> addInst<E>((Inst*)new PlusInst<E, ALGEBRA>(e.cast<E>()));
+      return this->addInst<E>((Inst *) new PlusInst<E, ALGEBRA>(e.cast<E>()));
     }
 
     Fluent<S, E> mult(const S_E &e) const {
-      return this-> addInst<E>((Inst*)new MultInst<E, ALGEBRA>(e.cast<E>()));
+      return this->addInst<E>((Inst *) new MultInst<E, ALGEBRA>(e.cast<E>()));
     }
 
     Fluent<S, Uri> publish(const S_E &e) const {
-      return this->template addInst<Uri>(new PublishInst<E>(e.cast<E>()));
+      return this->template addInst<Uri>(new PublishInst<E>(e.cast<E>(), this->bcode->context));
     }
 
     Fluent<S, Uri> subscribe(const S_E &pattern, const S_E &onRecvBCode) const {
       return this->addInst<Uri>(
-         new SubscribeInst(pattern.cast<Uri>(), onRecvBCode.cast<Bytecode>()));
+        new SubscribeInst(pattern.cast<Uri>(), onRecvBCode.cast<Bytecode>(), this->bcode->context));
     }
   };
 
@@ -157,7 +157,7 @@ namespace fhatos {
   template<typename S>
   inline static Fluent<S, S> __(const S_E &start) {
     return Fluent<S, S>(new Bytecode(new List<Inst *>({
-     new StartInst<S>(new List<S *>{(S *) start.obj})
+      new StartInst<S>(new List<S *>{(S *) start.obj})
     })));
   };
 

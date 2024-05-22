@@ -9,23 +9,23 @@ namespace fhatos {
   template<typename A>
   class Monad {
   protected:
-    const A *value;
+    A *_value;
     // const Inst<Obj, A> *inst = nullptr;
     const long _bulk = 1;
 
   public:
-    template <typename X>
-    using ptr = std::shared_ptr<Monad<X>>;
+    template<typename X>
+    using ptr = std::shared_ptr<Monad<X> >;
 
-    explicit Monad(const A *value) : value(value) {
+    explicit Monad(const Obj *value) : _value((A *) value) {
     }
 
     template<typename B>
-    const Monad<B>* split(const Inst *next) const {
-      return new Monad<B>((B*)next->apply(this->get()));
+    const Monad<B> *split(const Inst *next) const {
+      return new Monad<B>((B *) next->apply(this->get()));
     }
 
-    const A *get() const { return (A *) this->value; }
+    A *get() const { return this->_value; }
 
     long bulk() const { return this->_bulk; }
 
@@ -43,7 +43,7 @@ namespace fhatos {
   class Processor {
   protected:
     const Bytecode *bcode;
-    List<E *> ends;
+    List<const E *> output;
     bool done = false;
 
   public:
@@ -56,27 +56,28 @@ namespace fhatos {
       }
     }
 
-    List<E *> toList() {
+    List<const E *> toList() {
       if (this->done)
-        return this->ends;
+        return this->output;
       this->done = true;
       LOG(DEBUG, "Processing bytecode: %s\n", this->bcode->toString().c_str());
-      const auto starts = List<Obj *>(this->bcode->value()->front()->args());
-      for (const auto *start: starts) {
+      while (!this->bcode->startInst()->getOutput()->empty()) {
+        const Obj *start = this->bcode->startInst()->getOutput()->back();
+        this->bcode->startInst()->getOutput()->pop_back();
+        if (!start)
+          return this->output;
         LOG(DEBUG, FOS_TAB_2 "starting with %s [%s]\n", start->toString().c_str(), OTYPE_STR.at(start->type()).c_str());
-        Monad<E>*  end = new Monad<E> ((E*)start);
-        int counter = 0;
-        for (Inst *inst : *this->bcode->value()
-        ) {
-          if (counter++ != 0) {
-            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), inst->toString().c_str(),
+        Monad<E> *end = new Monad<E>(start);
+        //int counter = 0;
+        for (auto it = ++this->bcode->value()->begin(); it != this->bcode->value()->end(); ++it) {
+         // if (counter++ != 0) {
+            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), (**it).toString().c_str(),
                 OTYPE_STR.at(end->get()->type()).c_str());
-            end = (Monad<E>*)end->template split<E>(inst);
+            end = const_cast<Monad<E> *>(end->template split<E>(*it));
           }
-        }
-        this->ends.push_back((E *) end->get());
+        this->output.push_back(end->get());
       }
-      return this->ends;
+      return this->output;
     }
 
     bool hasNext() {
@@ -85,7 +86,7 @@ namespace fhatos {
 
     const E *next() {
       if (!this->hasNext())
-        throw std::runtime_error("No more obj results");
+        throw fError("No more obj results");
       const E *e = this->toList().front();
       this->toList().pop_front();
       return e;

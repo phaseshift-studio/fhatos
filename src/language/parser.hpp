@@ -13,9 +13,10 @@ namespace fhatos {
   protected:
     OType domain = OBJ;
     OType range = OBJ;
+    const ID context;
 
   public:
-    Parser() {
+    Parser(const ID context = ID("anonymous")) : context((context)) {
     }
 
     template<typename S, typename E>
@@ -34,7 +35,7 @@ namespace fhatos {
 
     template<typename S, typename E>
     Bytecode *parseBytecode(stringstream *ss) {
-      Fluent<S, E> *fluent = new Fluent<S, E>();
+      Fluent<S, E> *fluent = new Fluent<S, E>(this->context);
       while (!ss->eof()) {
         const string *opcode = this->parseOpcode(ss);
         const List<S_E *> *args = this->parseArgs<S, E>(ss);
@@ -46,14 +47,14 @@ namespace fhatos {
           range = domain;
           temp = new Fluent<S, E>(fluent->mult(*args->at(0)));
         } else if (*opcode == "start") {
-          range = args->at(0)->type;
+          range = args->size() > 0 ? args->at(0)->type : OBJ;
           temp = new Fluent<S, E>(fluent->start(*args));
         } else if (*opcode == "<=") {
           range = URI;
-          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->publish(*args->at(0))));
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->publish(*args->at(0)).bcode));
         } else if (*opcode == "=>") {
           range = URI;
-          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->subscribe(*args->at(0), *args->at(1))));
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->subscribe(*args->at(0), *args->at(1)).bcode));
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());
@@ -67,7 +68,7 @@ namespace fhatos {
         range = OBJ;
         delete args;
       }
-      Bytecode *byteTemp = new Bytecode(fluent->bcode->value());
+      Bytecode *byteTemp = new Bytecode(fluent->bcode->value(), this->context);
       delete fluent;
       return byteTemp;
     }
@@ -140,12 +141,12 @@ namespace fhatos {
         return new S_E(token.substr(1, token.length() - 2)); // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
         return new S_E((strcmp("true", token.c_str()) == 0));
-      } else if (token.length() > 3 && token[0] == '_' && token[1] == '_' && token[2] == '.') {
-        stringstream *ss = new stringstream(token.substr(3));
+      } else if (token[0] == '_' && token[1] == '_') {
+        stringstream *ss = new stringstream(token.length() > 2 ? token.substr(3) : token);
         OType tdomain = domain;
         OType trange = range;
         //domain = range;
-        S_E *b = new S_E((Bytecode*)this->parseBytecode<S, E>(ss));
+        S_E *b = new S_E((Bytecode *) this->parseBytecode<S, E>(ss));
         domain = tdomain;
         range = trange;
         return b;

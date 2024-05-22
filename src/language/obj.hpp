@@ -226,34 +226,48 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
+  typedef Function<Obj *, Obj *> InstFunction;
+  typedef List<Obj *> InstArgs;
+  typedef List<Obj *> InstStorage;
+
   class Inst : public Obj {
   protected:
-    const Triple<const string, const List<Obj *>, const Function<Obj *, Obj *>> _value;
+    const Triple<const string, const InstArgs, const InstFunction> _value;
+    InstStorage input;
+    InstStorage output;
 
   public:
-    explicit Inst(const Triple<const string, const List<Obj *>, const Function<Obj *, Obj *>> &value)
+    explicit Inst(const Triple<const string, const InstArgs, const InstFunction> &value)
       : Obj(INST), _value(value) {
     }
 
-    virtual Triple<const string, const List<Obj *>, const Function<Obj *, Obj *>> value() const {
+    virtual Triple<const string, const InstArgs, const InstFunction> value() const {
       return this->_value;
     }
 
-    static const string makeString(const string &opcode, const string arg1 = "", const string arg2 = "",
-                                   const string arg3 = "") {
-      string t = "[" + opcode + ",";
-      if (!arg1.empty())
-        t = t + arg1 + ",";
-      if (!arg2.empty())
-        t = t + arg2 + ",";
-      if (!arg3.empty())
-        t = t + arg3 + ",";
-      t[t.length() - 1] = ']';
-      return t;
+    const Obj *apply(const Obj *obj) const override {
+      return this->func()((Obj *) obj);
     }
 
-    const Obj *apply(const Obj *obj) const override {
-      return (Obj *) this->func()((Obj *) obj);
+    InstStorage *getOutput() {
+      return &this->output;
+    }
+
+    Obj *next() {
+      while (true) {
+        if (output.empty()) {
+          if (input.empty())
+            return nullptr;
+          else {
+            output.push_back((Obj *) (this->apply(input.back())));
+            input.pop_back();
+          }
+        } else {
+          Obj *obj = output.back();
+          output.pop_back();
+          return obj;
+        }
+      }
     }
 
     const string toString() const override {
@@ -267,12 +281,12 @@ namespace fhatos {
 
     ////////////////////////////////////
     virtual const string opcode() const { return std::get<0>(this->_value); }
-    virtual const List<Obj *> args() const { return std::get<1>(this->_value); }
+    virtual const InstArgs args() const { return std::get<1>(this->_value); }
 
     template<typename A>
     A *arg(const uint8_t index) const { return (A *) this->args()[index]; }
 
-    virtual const Function<Obj *, Obj *> func() const {
+    virtual const InstFunction func() const {
       return std::get<2>(this->_value);
     }
   };
@@ -284,8 +298,13 @@ namespace fhatos {
 
   public:
     using ptr = std::shared_ptr<Bytecode>;
+    const ID context;
 
-    explicit Bytecode(const List<Inst *> *list) : Obj(BYTECODE), _value(list) {
+    explicit Bytecode(const List<Inst *> *list, const ID context = ID("anonymous")) : Obj(BYTECODE), _value(list),
+      context(context) {
+    }
+
+    explicit Bytecode(const ID context = ID("anonymous")) : Bytecode(new List<Inst *>, context) {
     }
 
     explicit Bytecode() : Bytecode(new List<Inst *>()) {
@@ -312,8 +331,12 @@ namespace fhatos {
         list->push_back((Inst *) i);
       }
       list->push_back(inst);
-      return new Bytecode(list); //auto ret = std::make_shared<Bytecode<S, E2>>(
+      return new Bytecode(list, this->context); //auto ret = std::make_shared<Bytecode<S, E2>>(
       //return ret;
+    }
+
+    Inst *startInst() const {
+      return this->value()->front();
     }
 
     const string toString() const override {
