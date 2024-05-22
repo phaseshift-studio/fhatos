@@ -73,7 +73,7 @@ namespace fhatos {
     }
   };
 
-  template<typename E, typename ALGEBRA=Algebra>
+  template<typename E>
   class PublishInst final : public Inst {
   public:
     explicit PublishInst(const E *a) : Inst({
@@ -98,7 +98,6 @@ namespace fhatos {
     }
   };
 
-  template<typename E = Uri, typename ALGEBRA=Algebra>
   class SubscribeInst final : public Inst {
   public:
     explicit SubscribeInst(const Uri *a, const Bytecode *b) : Inst({
@@ -112,7 +111,7 @@ namespace fhatos {
           .source = ID("anonymous"),
           .pattern = *pattern2,
           .onRecv = [this,bcode2](const Message &message) {
-            bcode2->apply<Str, Obj>((Str *) new Str(message.payload->toStr().value()));
+            bcode2->apply(new Str(message.payload->toStr().value()));
           }
         });
         return (Obj *) uri;
