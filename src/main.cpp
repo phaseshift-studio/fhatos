@@ -14,6 +14,7 @@
 #include FOS_MODULE(io/net/f_telnet.hpp)
 #include FOS_MODULE(io/fs/f_fs.hpp)
 #include <language/fluent.hpp>
+#include <language/instructions.hpp>
 using namespace fhatos;
 // #include <fhatos_native.hpp>
 // #include <../test/language/test_fluent/test_fluent.cpp>

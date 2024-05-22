@@ -46,7 +46,7 @@ namespace fhatos {
       return "obj";
     }
 
-    const Obj *obj() const {
+    Obj *obj() const {
       return (Obj *) this;
     }
 
@@ -248,7 +248,7 @@ namespace fhatos {
     }
 
     const E *apply(const Obj *obj) const override {
-      return (E*) this->func()((S *) obj);
+      return (E *) this->func()((S *) obj);
     }
 
     const string toString() const override {

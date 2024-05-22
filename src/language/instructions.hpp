@@ -15,15 +15,22 @@
 #endif
 
 namespace fhatos {
-  class S_E;
-
   template<typename S>
-  static List<Obj *> *cast(const List<S *> *list) {
+  static List<Obj *> cast(const List<S *> *list) {
     List<Obj *> *newList = new List<Obj *>();
     for (const auto s: *list) {
       newList->push_back((Obj *) s);
     }
-    return newList;
+    return *newList;
+  }
+
+  template<typename _ARG>
+  static List<Obj *> cast(const std::initializer_list<_ARG *> list) {
+    List<Obj *> *newList = new List<Obj *>();
+    for (const auto s: list) {
+      newList->push_back((Obj *) s);
+    }
+    return *newList;
   }
 
   template<typename S>
@@ -31,7 +38,7 @@ namespace fhatos {
   public:
     explicit StartInst(const List<S *> *starts)
       : Inst<S, S>({
-        "start", *cast(starts),
+        "start", cast(starts),
         [starts](S *b) -> S *{
           return new S(((S *) starts->front())->value());
         }
@@ -44,7 +51,7 @@ namespace fhatos {
   public:
     explicit PlusInst(const E *a)
       : Inst<E, E>({
-        "plus", List<Obj *>({(Obj *) a->obj()}),
+        "plus", cast({a}),
         [this](const E *b) {
           return (E *) ALGEBRA::singleton()->plus(this->template arg<E>(0)->apply(b), b);
         }
@@ -57,7 +64,7 @@ namespace fhatos {
   public:
     explicit MultInst(const E *a)
       : Inst<E, E>({
-        "mult", List<Obj *>({(Obj *) a->obj()}),
+        "mult", cast({a}),
         [this](const E *b) {
           return (E *) ALGEBRA::singleton()->mult(this->template arg<E>(0)->apply(b), b);
         }
@@ -69,7 +76,7 @@ namespace fhatos {
   class PublishInst final : public Inst<Uri, Uri> {
   public:
     explicit PublishInst(const E *a) : Inst<Uri, Uri>({
-      "<=", List<Obj *>({(Obj *) a->obj()}),
+      "<=", cast({a}),
       [this](const Uri *uri) {
         const BinaryObj<> *payload2 = (BinaryObj<> *) BinaryObj
             <>::fromObj((Obj *) this->template arg<E>(0)->apply(uri));
@@ -90,20 +97,19 @@ namespace fhatos {
     }
   };
 
-  template<typename ALGEBRA=Algebra>
   class SubscribeInst final : public Inst<Uri, Uri> {
   public:
     explicit SubscribeInst(const Uri *a, const Bytecode<Obj, Obj> *b) : Inst<Uri, Uri>({
-      "<=", List<Obj *>({(Obj *) a->obj(), (Obj *) b->obj()}),
+      "<=", cast({(Obj *) a, (Obj *) b}),
       [this](const Uri *uri) {
         const Pattern *pattern2 = new Pattern(((Uri *) this->arg<Uri>(0)->apply(uri))->value());
         const Bytecode<Obj, Obj> *bcode2 = this->arg<Bytecode<Obj, Obj> >(1);
 #ifndef NATIVE
-        FOS_DEFAULT_ROUTER::singleton()->subscribe({
+        FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,
           .source = ID("anonymous"),
           .pattern = *pattern2,
-          .onRecv = [this,bcode2](Message &message) {
+          .onRecv = [this,bcode2](const Message &message) {
             bcode2->apply((Obj *) new Str(message.payload->toStr().value()));
           }
         });
