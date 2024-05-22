@@ -62,6 +62,7 @@ namespace fhatos {
     }
   };
 
+  // int -> mult(int') => int * int'
   template<typename E, typename ALGEBRA=Algebra>
   class MultInst final : public Inst {
   public:
@@ -75,52 +76,51 @@ namespace fhatos {
     }
   };
 
-  template<typename E>
+  // uri -> publish(message) => {uri,message} => uri
+  template<typename _URI, typename _PAYLOAD>
   class PublishInst final : public Inst {
   public:
-    explicit PublishInst(const E *a, const ID context = ID("anonymous")) : Inst({
-      "<=", cast({a}),
-      [this,context](const Obj *uri) {
-        const BinaryObj<> *payload2 = (BinaryObj<> *) BinaryObj
-            <>::fromObj((Obj *) this->template arg<E>(0)->apply(uri));
+    explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID context = ID("anonymous")) : Inst({
+      "<=", cast({(Obj*)uri, (Obj*)payload}),
+      [this,context](const Obj *incoming) {
+        const ID target = ID(((Uri*)(this-> arg<Obj>(0)->apply(incoming)))->value());
+        const BinaryObj<> *payload2 = BinaryObj<>::fromObj((Obj *) this->arg<Obj>(1)->apply(incoming));
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
           .source = context,
-          .target = ((Uri *) uri)->value(),
+          .target = target,
           .payload = payload2,
           .retain = TRANSIENT_MESSAGE
         });
-        return (Obj *) uri;
 #else
-        LOG(DEBUG, "!rPublished!! %s\n", payload2->toString().c_str());
-        return (Uri*) uri;
+        LOG(DEBUG, "!rPublished!! %s <= %s\n",target.toString().c_str(), payload2->toString().c_str());
 #endif
+        return (Obj *) incoming;
       }
     }) {
     }
   };
 
+  template<typename _URI, typename _ONRECV>
   class SubscribeInst final : public Inst {
   public:
-    explicit SubscribeInst(const Uri *a, const Bytecode *b, const ID context = ID("anonymous")) : Inst({
-      "<=", cast({(Obj *) a, (Obj *) b}),
-      [this,context](const Obj *uri) {
-        const Pattern *pattern2 = new Pattern(((Uri *) this->arg<Uri>(0)->apply(uri))->value());
-        Bytecode *bcode2 = this->arg<Bytecode>(1);
+    explicit SubscribeInst(const _URI *pattern, const _ONRECV *onRecv, const ID context = ID("anonymous")) : Inst({
+      "<=", cast({(Obj *) pattern, (Obj *) onRecv}),
+      [this,context](const Obj *incoming) {
+        const Pattern pattern2 = Pattern(((Uri*)this->arg<Obj>(0)->apply(incoming))->value());
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,
           .source = context,
-          .pattern = *pattern2,
-          .onRecv = [this,bcode2](const Message &message) {
-            bcode2->apply(new Str(message.payload->toStr().value()));
+          .pattern = pattern2,
+          .onRecv = [this](const Message &message) {
+            this->arg<Obj>(1)->apply(message.payload);
           }
         });
-        return (Obj *) uri;
 #else
-        LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2->toString().c_str(), bcode2->toString().c_str());
-        return (Uri*) uri;
+        LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2.toString().c_str(),   this->arg<_ONRECV>(1)->toString().c_str());
 #endif
+        return (Obj *) incoming;
       }
     }) {
     }

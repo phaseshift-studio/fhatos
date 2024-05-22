@@ -124,13 +124,15 @@ namespace fhatos {
       return this->addInst<E>((Inst *) new MultInst<E, ALGEBRA>(e.cast<E>()));
     }
 
-    Fluent<S, Uri> publish(const S_E &e) const {
-      return this->template addInst<Uri>(new PublishInst<E>(e.cast<E>(), this->bcode->context));
+    template <typename _PAYLOAD>
+    Fluent<S, E> publish(const S_E &uri, const S_E &payload) const {
+      return this->template addInst<E>(new PublishInst<E,_PAYLOAD>(uri.cast<E>(), payload.cast<_PAYLOAD>(), this->bcode->context));
     }
 
-    Fluent<S, Uri> subscribe(const S_E &pattern, const S_E &onRecvBCode) const {
-      return this->addInst<Uri>(
-        new SubscribeInst(pattern.cast<Uri>(), onRecvBCode.cast<Bytecode>(), this->bcode->context));
+    template <typename _ONRECV>
+    Fluent<S, E> subscribe(const S_E &pattern, const S_E &onRecv) const {
+      return this->template addInst<E>(
+        new SubscribeInst<E,_ONRECV>(pattern.cast<E>(), onRecv.cast<_ONRECV>(), this->bcode->context));
     }
   };
 

@@ -51,10 +51,10 @@ namespace fhatos {
           temp = new Fluent<S, E>(fluent->start(*args));
         } else if (*opcode == "<=") {
           range = URI;
-          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->publish(*args->at(0)).bcode));
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S,E>(fluent->template publish<Obj>(*args->at(0),*args->at(1)).bcode));
         } else if (*opcode == "=>") {
           range = URI;
-          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->subscribe(*args->at(0), *args->at(1)).bcode));
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode));
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());
