@@ -15,11 +15,11 @@ namespace fhatos {
 
     virtual const Obj *plus(const Obj *a, const Obj *b) {
       switch (a->type()) {
-        case URI: return new Uri(((Uri *) a)->value().extend(((Uri *) b)->toString().c_str()));
-        case BOOL: return new Bool(((Bool *) a)->value() || ((Bool *) b)->value());
-        case INT: return new Int(((Int *) a)->value() + ((Int *) b)->value());
-        case REAL: return new Real(((Real *) a)->value() + ((Real *) b)->value());
-        case STR: return new Str(string(((Str *) a)->value().c_str()).append(((Str *) b)->value()));
+        case URI: return new Uri(((Uri *) b)->value().extend(((Uri *) a)->toString().c_str()));
+        case BOOL: return new Bool(((Bool *) b)->value() || ((Bool *) a)->value());
+        case INT: return new Int(((Int *) b)->value() + ((Int *) a)->value());
+        case REAL: return new Real(((Real *) b)->value() + ((Real *) a)->value());
+        case STR: return new Str(string(((Str *) b)->value().c_str()).append(((Str *) a)->value()));
         default: {
           throw new fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
                            OTYPE_STR.at(b->type()).c_str());
@@ -30,9 +30,9 @@ namespace fhatos {
 
     virtual const Obj *mult(const Obj *a, const Obj *b) {
       switch (a->type()) {
-        case BOOL: return new Bool(((Bool *) a)->value() && ((Bool *) b)->value());
-        case INT: return new Int(((Int *) a)->value() * ((Int *) b)->value());
-        case REAL: return new Real(((Real *) a)->value() * ((Real *) b)->value());
+        case BOOL: return new Bool(((Bool *) b)->value() && ((Bool *) a)->value());
+        case INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());
+        case REAL: return new Real(((Real *) b)->value() * ((Real *) a)->value());
         default: {
           throw new fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()).c_str(),
                            OTYPE_STR.at(b->type()).c_str());

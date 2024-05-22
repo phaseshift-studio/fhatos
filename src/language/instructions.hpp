@@ -3,11 +3,15 @@
 
 #include <fhatos.hpp>
 //
-#include <any>
+#include <language/binary_obj.hpp>
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
+#include <language/processor.hpp>
+
+#include "fluent.hpp"
 #ifndef NATIVE
 #include <process/router/local_router.hpp>
+
 #endif
 
 namespace fhatos {
@@ -67,19 +71,47 @@ namespace fhatos {
     explicit PublishInst(const E *a) : Inst<Uri, Uri>({
       "<=", List<Obj *>({(Obj *) a->obj()}),
       [this](const Uri *uri) {
+        const BinaryObj<> *payload2 = (BinaryObj<> *) BinaryObj
+            <>::fromObj((Obj *) this->template arg<E>(0)->apply(uri));
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
           .source = ID("anoymous"),
-          .target = uri,
-          .payload = this->template arg<E>(0)->apply(uri),
+          .target = uri->value(),
+          .payload = payload2,
           .retain = TRANSIENT_MESSAGE
         });
-        return uri;
+        return (Uri *) uri;
 #else
-        LOG(INFO, "Pbulished %s\n", this->template arg<E>(0)->toString().c_str());
+        LOG(DEBUG, "!rPublished!! %s\n", payload2->toString().c_str());
         return (Uri*) uri;
 #endif
+      }
+    }) {
+    }
+  };
 
+  template<typename ALGEBRA=Algebra>
+  class SubscribeInst final : public Inst<Uri, Uri> {
+  public:
+    explicit SubscribeInst(const Uri *a, const Bytecode<Obj, Obj> *b) : Inst<Uri, Uri>({
+      "<=", List<Obj *>({(Obj *) a->obj(), (Obj *) b->obj()}),
+      [this](const Uri *uri) {
+        const Pattern *pattern2 = new Pattern(((Uri *) this->arg<Uri>(0)->apply(uri))->value());
+        const Bytecode<Obj, Obj> *bcode2 = this->arg<Bytecode<Obj, Obj> >(1);
+#ifndef NATIVE
+        FOS_DEFAULT_ROUTER::singleton()->subscribe({
+          .mailbox = nullptr,
+          .source = ID("anonymous"),
+          .pattern = *pattern2,
+          .onRecv = [this,bcode2](Message &message) {
+            bcode2->apply((Obj *) new Str(message.payload->toStr().value()));
+          }
+        });
+        return (Uri *) uri;
+#else
+        LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2->toString().c_str(), bcode2->toString().c_str());
+        return (Uri*) uri;
+#endif
       }
     }) {
     }

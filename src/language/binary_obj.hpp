@@ -22,9 +22,17 @@ namespace fhatos {
         delete std::get<1>(this->_value);
     }
 
+    explicit BinaryObj(const binary_obj bobj) : Obj(std::get<0>(bobj)),
+      _value{std::get<0>(bobj), std::get<1>(bobj), std::get<2>(bobj)} {
+    };
+
     explicit BinaryObj(const OType type, const byte *data, const uint16_t length) : Obj(type),
       _value{type, data, length} {
     };
+
+    explicit BinaryObj(const fURI xfuri) : Obj(URI), _value(SERIALIZER::fromUri(xfuri)) {
+    }
+
 
     explicit BinaryObj(const bool xbool) : Obj(BOOL), _value(SERIALIZER::fromBoolean(xbool)) {
     }
@@ -41,6 +49,18 @@ namespace fhatos {
     }
 
     explicit BinaryObj(const char *xcstr) : Obj(STR), _value(SERIALIZER::fromString(string(xcstr))) {
+    }
+
+
+    static BinaryObj *fromObj(const Obj *obj) {
+      switch (obj->type()) {
+        case URI: return new BinaryObj<>((binary_obj)SERIALIZER::fromUri(((Uri *) obj)->value()));
+        case BOOL: return new BinaryObj<>((binary_obj)SERIALIZER::fromBoolean(((Bool *) obj)->value()));
+        case INT: return new BinaryObj<>((binary_obj)SERIALIZER::fromInteger(((Int *) obj)->value()));
+        case REAL: return new BinaryObj<>((binary_obj)SERIALIZER::fromFloat(((Real *) obj)->value()));
+        case STR: return new BinaryObj<>((binary_obj)SERIALIZER::fromString(((Str *) obj)->value()));
+        default: throw std::runtime_error("error on type");
+      }
     }
 
     virtual const binary_obj value() const {
@@ -80,7 +100,7 @@ namespace fhatos {
     }
 
 
-    virtual const string toString() const  {
+    virtual const string toString() const {
       switch (this->type()) {
         case BOOL: return toBool().toString();
         case INT: return toInt().toString();
@@ -109,6 +129,10 @@ namespace fhatos {
 
   class Serializer {
   public:
+    static binary_obj fromUri(const fURI &xfuri) {
+      return {OBJ, nullptr, 0};
+    }
+
     static binary_obj fromBoolean(const bool xbool) {
       return {OBJ, nullptr, 0};
     }
@@ -123,6 +147,11 @@ namespace fhatos {
 
     static binary_obj fromString(const string &xstr) {
       return {OBJ, nullptr, 0};
+    }
+
+    template<typename SERIALIZER>
+    static Uri toUri(const BinaryObj<SERIALIZER> &xserial) {
+      return Uri(fURI("/"));
     }
 
     template<typename SERIALIZER>
@@ -261,6 +290,19 @@ namespace fhatos {
 
   class CharSerializer : public Serializer {
   public:
+    static binary_obj fromUri(const fURI &xfuri) {
+      const uint16_t len = xfuri.toString().length();
+      char *temp = (char *) malloc(len + 1);
+      memccpy(temp, xfuri.toString().c_str(), 0, len);
+      temp[len] = '\0';
+      return {
+        URI,
+        (byte *) temp,
+        len
+      };
+    }
+
+
     static binary_obj fromBoolean(const bool xbool) {
       return {
         BOOL,
@@ -307,6 +349,22 @@ namespace fhatos {
       };
     }
 
+    static Uri toUri(const BinaryObj<CharSerializer> &bobj) {
+      switch (bobj.type()) {
+        case URI:
+          return Uri(fURI("/" + bobj.toString()));;
+        case BOOL:
+          return Uri(fURI("/" + bobj.toString()));
+        case INT:
+          return Uri(fURI("/" + bobj.toString()));
+        case REAL:
+          return Uri(fURI("/" + bobj.toString()));
+        case STR:
+          return Uri(fURI("/" + bobj.toString()));
+        default:
+          throw std::runtime_error("bad1"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+      }
+    }
 
     static Bool toBool(const BinaryObj<CharSerializer> &bobj) {
       switch (bobj.type()) {

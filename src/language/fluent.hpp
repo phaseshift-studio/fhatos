@@ -126,7 +126,12 @@ namespace fhatos {
     }
 
     Fluent<S, Uri> publish(const S_E &e) const {
-      return this->template addInst<Uri>((Inst<E,Uri>*)new PublishInst<E, ALGEBRA>(e.cast<E>()));
+      return this->addInst<Uri>((Inst<E, Uri> *) new PublishInst<E, ALGEBRA>(e.cast<E>()));
+    }
+
+    Fluent<S, Uri> subscribe(const S_E &pattern, const S_E &onRecvBCode) const {
+      return this->addInst<Uri>(
+        (Inst<E, Uri> *) new SubscribeInst<ALGEBRA>(pattern.cast<Uri>(), onRecvBCode.cast<Bytecode<Obj, Obj> >()));
     }
   };
 

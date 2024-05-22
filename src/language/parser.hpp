@@ -19,12 +19,17 @@ namespace fhatos {
     }
 
     template<typename S, typename E>
-    Bytecode<S, E> *parse(string *line) {
-      LOG(DEBUG, "PARSING: %s\n", line->c_str());
-      const auto ss = new stringstream(*line);
+    Bytecode<S, E> *parse(const char *line) {
+      LOG(DEBUG, "PARSING: %s\n", line);
+      const auto ss = new stringstream(string(line));
       Bytecode<S, E> *bcode = this->parseBytecode<S, E>(ss);
       LOG(DEBUG, "BYTECODE: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()).c_str());
       return bcode;
+    }
+
+    template<typename S, typename E>
+    Fluent<S, E> *parseToFluent(const char *line) {
+      return new Fluent<S, E>(this->parse<S, E>(line));
     }
 
     template<typename S, typename E>
@@ -46,6 +51,9 @@ namespace fhatos {
         } else if (*opcode == "<=") {
           range = URI;
           temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->publish(*args->at(0))));
+        } else if (*opcode == "=>") {
+          range = URI;
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->subscribe(*args->at(0), *args->at(1))));
         } else {
           throw new fError("Unknown instruction opcode: %s", opcode->c_str());
         }

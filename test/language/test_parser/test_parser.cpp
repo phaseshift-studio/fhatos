@@ -13,9 +13,11 @@ namespace fhatos {
 
   void test_basic_parser() {
     Parser parser;
-   LOG(INFO,"RESULT: %s\n\n",parser.parse<Uri,Uri>(new string("__(actor@127.9.9.1).<=('hello')"))->toString().c_str());
+   parser.parseToFluent<Uri,Uri>("__(actor@127.9.9.1).<=('hello').plus(dmc).=>(abc@123.4.5.6,__.plus('hey'))")->forEach([](const Uri* uri) {
+     LOG(INFO,"==>%s\n",uri->value().toString().c_str());
+   });
 
-   Processor<Int,Int>* p = new Processor<Int,Int>(parser.parse<Int,Int>(new string("__(15).plus(1).plus(__.plus(5))")));
+   Processor<Int,Int>* p = new Processor<Int,Int>(parser.parse<Int,Int>("__(15).plus(1).plus(__.plus(5))"));
    p->forEach([](const Int* i) {
      LOG(INFO,"==>%s\n",i->toString().c_str());
    });

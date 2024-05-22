@@ -22,7 +22,7 @@ namespace fhatos {
       return std::make_shared<Monad<B> >(Monad<B>(next->apply(this->get())));
     }
 
-    const A* get() const { return (A*) this->value; }
+    const A *get() const { return (A *) this->value; }
 
     long bulk() const { return this->_bulk; }
 
@@ -60,16 +60,17 @@ namespace fhatos {
       LOG(DEBUG, "Processing bytecode: %s\n", this->bcode->toString().c_str());
       const auto starts = List<Obj *>(this->bcode->value()->front()->args());
       for (const auto *start: starts) {
-        LOG(DEBUG, FOS_TAB_2 "starting with %s\n", start->toString().c_str());
+        LOG(DEBUG, FOS_TAB_2 "starting with %s [%s]\n", start->toString().c_str(), OTYPE_STR.at(start->type()).c_str());
         std::shared_ptr<Monad<Obj> > end = std::make_shared<Monad<Obj> >(start);
         int counter = 0;
-        for ( Inst<Obj,Obj>* inst: *this->bcode->value()) {
+        for (Inst<Obj, Obj> *inst: *this->bcode->value()) {
           if (counter++ != 0) {
-            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s\n", end->toString().c_str(), inst->toString().c_str());
-            end = end->split((Inst<Obj, Obj>*) inst);
+            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), inst->toString().c_str(),
+                OTYPE_STR.at(end->get()->type()).c_str());
+            end = end->split((Inst<Obj, Obj> *) inst);
           }
         }
-        this->ends.push_back((E*)end->get());
+        this->ends.push_back((E *) end->get());
       }
       return this->ends;
     }
