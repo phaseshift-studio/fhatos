@@ -36,12 +36,12 @@ namespace fhatos {
   template<typename S>
   class StartInst final : public Inst {
   public:
-    explicit StartInst(const List<S *> *starts)
+    explicit StartInst( List<S *> *starts)
       : Inst({
         "start", cast(starts),
         [starts](Obj *b){
-          S *s = (new S(((S *) starts->front())->value()));
-          return (S *) s;
+          //S *s = (new S(((S *) starts->front())->value()));
+          return (Obj *) b;
         }
       }) {
     }

@@ -7,7 +7,11 @@
 #include <process/actor/actor.hpp>
 #include <util/ansi.hpp>
 #include <language/binary_obj.hpp>
+#include <language/obj.hpp>
 #include <language/parser.hpp>
+#include <language/fluent.hpp>
+#include <language/instructions.hpp>
+#include <language/processor.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
@@ -61,6 +65,11 @@ namespace fhatos {
         line.trim();
         if (line.isEmpty()) {
           // do nothing
+        } else if (line.startsWith("^")) {
+          Parser parser;
+          parser.parseToFluent<Uri, Obj>(line.substring(1).c_str())->forEach([](const Obj *obj) {
+            tthis->ansi->printf("!g==>!!%s\n", obj->toString().c_str());
+          });
         } else if (line.equals("/+")) {
           // todo ??
           tthis->subscribe(*tthis->currentTopic / "+", [](const auto &message) {

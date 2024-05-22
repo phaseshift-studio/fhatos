@@ -100,18 +100,18 @@ namespace fhatos {
       return *new S_E((Bytecode*) this->bcode);
     }
 
-    Fluent<S, E> start(const List<S_E *>& starts) const {
-      List<S *> *castStarts = new List<S *>();
+    Fluent<S, E> start(const List<S_E *> starts) const {
+      List<E *> *castStarts = new List<E *>();
       for (S_E *se: starts) {
-        castStarts->push_back((S *) se->obj);
+        castStarts->push_back((E *) se->obj);
       }
       return this->template addInst<E>(new StartInst<E>(castStarts));
     }
 
-    Fluent<S, E> start(const List<S_E> &starts) const {
-      List<S *> *castStarts = new List<S *>();
+    Fluent<S, E> start(const List<S_E> starts) const {
+      List<E *> *castStarts = new List<E *>();
       for (S_E se: starts) {
-        castStarts->push_back((S *) se.obj);
+        castStarts->push_back((E *) se.obj);
       }
       return this->template addInst<E>(new StartInst<E>(castStarts));
     }
