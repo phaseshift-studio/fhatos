@@ -34,6 +34,7 @@
 #include <queue>
 #include <set>
 #include <memory>
+#include <unordered_map>
 
 namespace fhatos {
 
@@ -94,6 +95,8 @@ namespace fhatos {
   using Triple = std::tuple<A, B, C>;
   template<typename K, typename V>
   using Map = std::map<K, V>;
+  template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K> >
+  using UnorderedMap = std::unordered_map<K, V, H, E>;
 
   using string = std::string;
   typedef uint8_t byte;
@@ -141,6 +144,10 @@ namespace fhatos {
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "
 #define FOS_TAB_4 "    "
+#define FOS_TAB_5 "     "
+#define FOS_TAB_6 "      "
+#define FOS_TAB_7 "       "
+#define FOS_TAB_8 "        "
 #define FOS_TAB "  "
   enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
 #define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())

@@ -28,7 +28,7 @@ void test_base_obj_strings() {
                            Str("fhatty_fhat_fhat").toString().c_str());
 }
 
-/*void test_rec(){
+/*\void test_rec(){
  Rec rec = Rec{{Str("name"),Str("none")},{Str("title"),Str("dogturd")}};
  ;
  FOS_TEST_MESSAGE("%s",rec.toString().c_str());

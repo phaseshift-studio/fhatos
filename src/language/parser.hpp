@@ -21,10 +21,10 @@ namespace fhatos {
 
     template<typename S, typename E>
     Bytecode *parse(const char *line) {
-      LOG(DEBUG, "PARSING: %s\n", line);
+      LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", line);
       const auto ss = new stringstream(string(line));
       Bytecode *bcode = this->parseBytecode<S, E>(ss);
-      LOG(DEBUG, "BYTECODE: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()).c_str());
+      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()).c_str());
       return bcode;
     }
 
@@ -51,10 +51,12 @@ namespace fhatos {
           temp = new Fluent<S, E>(fluent->start(*args));
         } else if (*opcode == "<=") {
           range = URI;
-          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S,E>(fluent->template publish<Obj>(*args->at(0),*args->at(1)).bcode));
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, E>(
+            fluent->template publish<Obj>(*args->at(0), *args->at(1)).bcode));
         } else if (*opcode == "=>") {
           range = URI;
-          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode));
+          temp = reinterpret_cast<Fluent<S, E> *>(new Fluent<S, Uri>(
+            fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode));
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());
@@ -62,7 +64,7 @@ namespace fhatos {
         }
         delete fluent;
         fluent = temp;
-        LOG(DEBUG, FOS_TAB_2 "domain(%s) => range(%s)\n", OTYPE_STR.at(domain).c_str(), OTYPE_STR.at(range).c_str());
+        LOG(DEBUG, FOS_TAB_2 "!gdomain!!(!y%s!!) => !grange!!(!y%s!!)\n", OTYPE_STR.at(domain).c_str(), OTYPE_STR.at(range).c_str());
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
         domain = range;
         range = OBJ;
@@ -86,7 +88,7 @@ namespace fhatos {
         opcode->clear();
         opcode->append("start");
       }
-      LOG(DEBUG, FOS_TAB_2 "OPCODE: %s\n", opcode->c_str());
+      LOG(DEBUG, FOS_TAB_2 "!rOPCODE!!: %s\n", opcode->c_str());
       return opcode;
     }
 
@@ -101,7 +103,7 @@ namespace fhatos {
       while (!ss->eof()) {
         S_E *argObj = this->parseArg<S, E>(ss);
         args->push_back(argObj);
-        LOG(DEBUG, FOS_TAB_3 "ARG: %s [%s]\n", argObj->obj->toString().c_str(),
+        LOG(DEBUG, FOS_TAB_3 "!rARG!!: %s [%s]\n", argObj->obj->toString().c_str(),
             OTYPE_STR.at(argObj->obj->type()).c_str());
         if (ss->peek() == ',' || ss->peek() == '.' || ss->peek() == ')') {
           ss->get();
@@ -131,32 +133,46 @@ namespace fhatos {
         }
       }
       trim(argS);
-      return parseObj<S, E>(argS);
+      S_E *o = parseObj<S, E>(argS);
+      LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", o->toString().c_str(), OTYPE_STR.at(o->type).c_str());
+      return o;
     }
 
-    template<typename S, typename E>
+    template<typename S, typename E = S>
     S_E *parseObj(const string &token) {
-      LOG(DEBUG, FOS_TAB_4 "PARSING TOKEN: %s\n", token.c_str());
+      S_E *se;
+      LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       if (token[0] == '\'' && token[token.length() - 1] == '\'') {
-        return new S_E(token.substr(1, token.length() - 2)); // might be wrong indices
+        se = new S_E(token.substr(1, token.length() - 2)); // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
-        return new S_E((strcmp("true", token.c_str()) == 0));
+        se = new S_E((strcmp("true", token.c_str()) == 0));
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream *ss = new stringstream(token.length() > 2 ? token.substr(3) : token);
         OType tdomain = domain;
         OType trange = range;
         //domain = range;
-        S_E *b = new S_E((Bytecode *) this->parseBytecode<S, E>(ss));
+        se = new S_E((Bytecode *) this->parseBytecode<S, E>(ss));
         domain = tdomain;
         range = trange;
-        return b;
+      } else if (token[0] == '[' && token[token.length() - 1] == ']') {
+        RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
+        char **result = new char *[20]();
+        int length = private_fhatos::split(token.substr(1, token.length() - 2).c_str(), ",", result);
+        LOG(DEBUG,FOS_TAB_8 "Processing %i keys and values...\n",length);
+        for (int i = 0; i < length; i = i + 2) {
+          map->insert({this->parseObj<Obj, Obj>(string(result[i]))->cast<Obj>(),
+                       this->parseObj<Obj, Obj>(string(result[i + 1]))->cast<Obj>()});
+        }
+        se = new S_E(map);
       } else if (isdigit(token[0]) && token.find('.') != string::npos) {
-        return new S_E(stof(token));
+        se = new S_E(stof(token));
       } else if (isdigit(token[0])) {
-        return new S_E(stoi(token));
+        se =  new S_E(stoi(token));
       } else {
-        return new S_E(fURI(token));
+        se =  new S_E(fURI(token));
       }
+      LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", se->toString().c_str(), OTYPE_STR.at(se->type).c_str());
+      return se;
     }
 
     static void trim(string &s) {

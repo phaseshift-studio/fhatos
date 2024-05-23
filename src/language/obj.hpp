@@ -57,6 +57,10 @@ namespace fhatos {
     bool operator<(const Obj &other) const {
       return true; //this->_value < other._value;
     }
+
+    bool operator==(const Obj &other) const {
+      return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
+    }
   };
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
@@ -68,6 +72,9 @@ namespace fhatos {
     using ptr = std::shared_ptr<Uri>;
 
     Uri(const fURI value) : Obj(URI), _value(value) {
+    }
+
+    Uri(const string &value) : Uri(fURI(value)) {
     }
 
     const fURI value() const { return this->_value; }
@@ -186,39 +193,53 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
+  struct obj_hash {
+    size_t operator()(const Obj *obj) const {
+      return obj->type() + obj->toString().length();
+    }
+  };
+
+  struct obj_equal_to : std::binary_function<Obj *, Obj *, bool> {
+    bool operator()(const Obj *a, const Obj *b) const {
+      return true; // strcmp(a->toString().c_str(), b->toString().c_str()) == 0;
+    }
+  };
+
+  template<typename K, typename V>
+  using RecMap = UnorderedMap<K, V, obj_hash, obj_equal_to>;
+
   class Rec final : public Obj {
   protected:
-    const Map<const Obj, Obj> _value;
+    RecMap<Obj *, Obj *> *_value;
 
   public:
-    Rec(const Map<const Obj, Obj> &value) : Obj(REC), _value(value) {
+    Rec(RecMap<Obj *, Obj *> *value) : Obj(REC), _value(value) {
     };
 
-    Rec(const std::initializer_list<Pair<const Obj, Obj> > init) : Obj(REC),
-                                                                   _value(Map<const Obj, Obj>(init)) {
-    };
+    /*Rec(const std::initializer_list<Pair<const Obj*, const Obj*> > init) : Rec(Map<const Obj*, Obj*>(init.begin())) {
+    };*/
 
-    /* template <typename V>
-     V get(const ObjZ &key) {
-       return  this->_value[key];
-     }
+    template<typename V>
+    const V *get(Obj *key) const {
+      return (V *) (this->_value->count(key) ? this->_value->at(key) : nullptr);
+    }
 
-     void set(const ObjZ &key, const ObjZ &val) {
-       return this->_value[key] = val;
-     }*/
+    void set(Obj *key, Obj *val) {
+      this->_value->emplace(key, val);
+    }
 
     const Rec *apply(const Obj *obj) const override {
       return this;
     }
 
-    virtual const Map<const Obj, Obj> value() const {
+    RecMap<Obj *, Obj *> *value() const {
       return this->_value;
     }
 
     const string toString() const override {
       string t = "[";
-      for (const Pair<const Obj, Obj> &pair: this->_value) {
-        t = t + pair.first.toString() + ":" + pair.second.toString() + ",";
+      for (const auto &pair: *this->_value) {
+        t = t + "!g" + pair.first->toString() + "!! !r=>!! !g" + pair.second->toString() + "!!,";
       }
       t[t.length() - 1] = ']';
       return t;

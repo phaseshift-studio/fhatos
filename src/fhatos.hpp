@@ -40,6 +40,7 @@
 #include <set>
 #include <atomic>
 #include <memory>
+#include <unordered_map>
 
 namespace fhatos {
   static const char *ANSI_ART =
@@ -99,6 +100,8 @@ namespace fhatos {
   using Triple = std::tuple<A, B, C>;
   template<typename K, typename V>
   using Map = std::map<K, V>;
+  template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K> >
+  using UnorderedMap = std::unordered_map<K, V, H, E>;
 
   using string = std::string;
   using byte = uint8_t;
@@ -150,6 +153,10 @@ namespace fhatos {
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "
 #define FOS_TAB_4 "    "
+#define FOS_TAB_5 "     "
+#define FOS_TAB_6 "      "
+#define FOS_TAB_7 "       "
+#define FOS_TAB_8 "        "
 #define FOS_TAB "  "
 #define FOS_I2C_ADDR_STR "0x%x/%i"
 #define FOS_I2C_ADDR(a) a, a

@@ -35,6 +35,9 @@ namespace fhatos {
     S_E(string strX): type(STR), obj(new Str(strX)) {
     };
 
+    S_E(RecMap<Obj *, Obj *>* recX) : type(REC), obj(new Rec(recX)) {
+    };
+
     S_E(Bytecode *bcodeX): type(BYTECODE), obj(bcodeX) {
     };
 
@@ -124,15 +127,16 @@ namespace fhatos {
       return this->addInst<E>((Inst *) new MultInst<E, ALGEBRA>(e.cast<E>()));
     }
 
-    template <typename _PAYLOAD>
+    template<typename _PAYLOAD>
     Fluent<S, E> publish(const S_E &uri, const S_E &payload) const {
-      return this->template addInst<E>(new PublishInst<E,_PAYLOAD>(uri.cast<E>(), payload.cast<_PAYLOAD>(), this->bcode->context));
+      return this->template addInst<E>(
+        new PublishInst<E, _PAYLOAD>(uri.cast<E>(), payload.cast<_PAYLOAD>(), this->bcode->context));
     }
 
-    template <typename _ONRECV>
+    template<typename _ONRECV>
     Fluent<S, E> subscribe(const S_E &pattern, const S_E &onRecv) const {
       return this->template addInst<E>(
-        new SubscribeInst<E,_ONRECV>(pattern.cast<E>(), onRecv.cast<_ONRECV>(), this->bcode->context));
+        new SubscribeInst<E, _ONRECV>(pattern.cast<E>(), onRecv.cast<_ONRECV>(), this->bcode->context));
     }
   };
 
