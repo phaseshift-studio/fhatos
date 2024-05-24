@@ -32,7 +32,7 @@ namespace fhatos {
     }
 
     bool isQuery(const char *query = "?") const {
-      return !this->retain &
+      return !this->retain &&
              0 == payload->length() &&
              target.query() == query &&
              !target.equals(source);

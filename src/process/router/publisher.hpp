@@ -138,12 +138,6 @@ namespace fhatos {
       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
     }
 
-    inline RESPONSE_CODE publish(const ID &relativeTarget,
-                                 const String &payload,
-                                 const bool retain = TRANSIENT_MESSAGE) {
-      return this->publish(relativeTarget, new BinaryObj<>(string(payload.c_str(), payload.length())), retain);
-    }
-
   private:
     Pattern makeTopic(const Pattern &relativeTopic) const {
       return relativeTopic.empty()

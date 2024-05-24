@@ -40,16 +40,16 @@ namespace fhatos {
 
   enum RESPONSE_CODE {
     OK = 0,
-    NO_TARGETS = 1,
-    REPEAT_SUBSCRIPTION = 2,
-    NO_SUBSCRIPTION = 3,
-    NO_MESSAGE = 4,
-    ROUTER_ERROR = 5,
-    MUTEX_TIMEOUT = 6,
-    MUTEX_LOCKOUT = 7
+    NO_TARGETS,
+    REPEAT_SUBSCRIPTION,
+    NO_SUBSCRIPTION,
+    NO_MESSAGE,
+    ROUTER_ERROR,
+    MUTEX_TIMEOUT,
+    MUTEX_LOCKOUT
   };
 
-  static String RESPONSE_CODE_STR(const RESPONSE_CODE &rc) {
+  static const char *RESPONSE_CODE_STR(const RESPONSE_CODE &rc) {
     switch (rc) {
       case OK:
         return "OK";
@@ -66,7 +66,7 @@ namespace fhatos {
       case MUTEX_TIMEOUT:
         return "Mutex timeout";
       default:
-        return &"Unknown error code: "[rc];
+        return (new string(string("Unknown error code: ") + std::to_string(rc)))->c_str();
     }
   };
 

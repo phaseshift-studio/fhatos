@@ -4,14 +4,15 @@
 #include <fhatos.hpp>
 //
 #include <process/actor/mailbox.hpp>
+#include <process/router/local_router.hpp>
 #include <process/router/message.hpp>
-#include <process/router/meta_router.hpp>
 #include <process/router/publisher.hpp>
 #include <process/router/router.hpp>
+#include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = MetaRouter<> >
+  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
   class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<Mail> {
   public:
     explicit Actor(
@@ -37,8 +38,8 @@ namespace fhatos {
       '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 
-    String hexStr(const unsigned char *data, const int len) {
-      String s(len * 2, ' ');
+    string hexStr(const unsigned char *data, const int len) {
+      string s(len * 2, ' ');
       for (uint8_t i = 0; i < len; ++i) {
         s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
         s[2 * i + 1] = hexmap[data[i] & 0x0F];
@@ -101,13 +102,13 @@ namespace fhatos {
       if (const RESPONSE_CODE _rc =
           ROUTER::singleton()->unsubscribeSource(this->id())) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(),
-            RESPONSE_CODE_STR(_rc).c_str());
+            RESPONSE_CODE_STR(_rc));
       }
       this->inbox.clear();
       PROCESS::stop();
     }
 
-    virtual void loop() {
+    virtual void loop() override {
       if (!this->_running) {
         LOG(ERROR, "Actor %s has already stopped [loop()]\n",
             this->id().toString().c_str());

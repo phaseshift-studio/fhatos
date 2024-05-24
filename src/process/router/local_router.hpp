@@ -5,7 +5,7 @@
 //
 #include <process/router/message.hpp>
 #include <process/router/router.hpp>
-#include <structure/io/net/f_wifi.hpp>
+//#include <structure/io/net/f_wifi.hpp>
 #include FOS_UTIL(mutex.hpp)
 #include <util/mutex_rw.hpp>
 
@@ -31,7 +31,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit LocalRouter(const ID &id = fWIFI::idFromIP("kernel", "router/local"))
+    explicit LocalRouter(const ID &id = "kernel/router/local")// fWIFI::idFromIP("kernel", "router/local"))
       : Router<PROCESS>(id) {
     }
 
@@ -43,30 +43,30 @@ namespace fhatos {
       SUBSCRIPTIONS.clear();
       RETAINS.clear();
       return (RETAINS.empty() && SUBSCRIPTIONS.empty())
-               ? RESPONSE_CODE::OK
-               : RESPONSE_CODE::ROUTER_ERROR;
+               ? OK
+               : ROUTER_ERROR;
     }
 
     virtual const RESPONSE_CODE publish(const Message &message) override {
       return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this,message]() {
         //////////////
-        RESPONSE_CODE _rc = RESPONSE_CODE::NO_TARGETS;
+        RESPONSE_CODE _rc = NO_TARGETS;
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription.pattern.matches(message.target)) {
             try {
               if (subscription.mailbox) {
                 if (!subscription.mailbox->push(Mail(subscription, message)))
-                  _rc = RESPONSE_CODE::ROUTER_ERROR;
+                  _rc = ROUTER_ERROR;
                 else
-                  _rc = RESPONSE_CODE::OK;
+                  _rc = OK;
               } else {
                 subscription.onRecv(message);
-                _rc = RESPONSE_CODE::OK;
+                _rc = OK;
               }
               // TODO: ACTOR MAILBOX GETTING TOO BIG!
             } catch (const fError &e) {
               LOG_EXCEPTION(e);
-              _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
+              _rc = MUTEX_TIMEOUT;
             }
             LOG_PUBLISH(_rc, message);
           }
@@ -86,11 +86,11 @@ namespace fhatos {
     const RESPONSE_CODE subscribe(const Subscription &subscription) override {
       try {
         return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this,subscription]() {
-          RESPONSE_CODE _rc = RESPONSE_CODE::OK;
+          RESPONSE_CODE _rc = OK;
           for (const auto &sub: SUBSCRIPTIONS) {
             if (sub.source.equals(subscription.source) &&
                 sub.pattern.equals(subscription.pattern)) {
-              _rc = RESPONSE_CODE::REPEAT_SUBSCRIPTION;
+              _rc = REPEAT_SUBSCRIPTION;
               break;
             }
           }
