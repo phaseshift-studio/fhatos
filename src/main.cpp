@@ -1,7 +1,7 @@
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
-#include #include <structure/f_simple.hpp>
+#include <structure/f_simple.hpp>
 using namespace fhatos;
 int main(int arg, char **argsv) {
   try {

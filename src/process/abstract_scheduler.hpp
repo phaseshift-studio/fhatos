@@ -35,13 +35,8 @@ namespace fhatos {
     virtual void join() {
       LOG(INFO, "!MScheduler joining all processes!!\n");
       while (THREADS->size() + FIBERS->size() + COROUTINES->size() > 0) {
-#ifdef NATIVE
-        THREADS->forEach([this](Thread *t) {
-          t->xthread->join();
-        });
-#endif
       }
-      LOG(INFO, "!MSchduler joined all processes and now shutting down!!\n");
+      LOG(INFO, "!MScheduler joined all processes and now shutting down!!\n");
     }
 
     virtual bool spawn(Process *process) { return false; }
