@@ -12,6 +12,10 @@ namespace fhatos {
     int print(const char *c_str) {
       return printf("%s", c_str);
     }
+
+    void flush() {
+      fflush(stdout);
+    }
   };
 
   template<typename PRINTER>
@@ -90,7 +94,7 @@ namespace fhatos {
         }
       }
       this->printer->print(this->_buffer->c_str());
-      this->_buffer->clear();
+      this->flush();
     }
 
   public:
@@ -116,9 +120,8 @@ namespace fhatos {
     }
 
     void flush() {
-      delete this->_buffer;
-      this->_buffer = NULL;
-      this->_buffer = new std::string();
+      this->_buffer->clear();
+      this->printer->flush();
     }
 
     void printf(const char *format, ...) {

@@ -3,13 +3,14 @@
 
 #include <fhatos.hpp>
 //
-#include <process/process.hpp>
 #include <structure/furi.hpp>
-#include <util/mutex.hpp>
 #include <util/mutex_deque.hpp>
+#include <atomic>
+#include FOS_PROCESS(process.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
+
 
 namespace fhatos {
   class AbstractScheduler {
@@ -31,6 +32,18 @@ namespace fhatos {
       delete KERNELS;
     };
 
+    virtual void join() {
+      LOG(INFO, "!MScheduler joining all processes!!\n");
+      while (THREADS->size() + FIBERS->size() + COROUTINES->size() > 0) {
+#ifdef NATIVE
+        THREADS->forEach([this](Thread *t) {
+          t->xthread->join();
+        });
+#endif
+      }
+      LOG(INFO, "!MSchduler joined all processes and now shutting down!!\n");
+    }
+
     virtual bool spawn(Process *process) { return false; }
 
     virtual bool destroy(const Pattern &processPattern) {
@@ -40,7 +53,9 @@ namespace fhatos {
             if (process->running())
               process->stop();
             LOG(INFO, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
+#ifndef NATIVE
             delete process;
+#endif
             return true;
           }
           return false;
@@ -67,14 +82,15 @@ namespace fhatos {
         });
         return true;
       });
-      LOG(NONE,
+      /*LOG(NONE,
           "\t!yFree memory\n"
           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
           FOS_BYTES_MB_STR "]\n",
           FOS_BYTES_MB(ESP.getFreeSketchSpace()),
           FOS_BYTES_MB(ESP.getFreeHeap()),
           FOS_BYTES_MB(ESP.getFreePsram()),
-          FOS_BYTES_MB(ESP.getFlashChipSize()));
+          FOS_BYTES_MB(ESP.getFlashChipSize()))
+      ;*/
       return success;
     }
 
@@ -120,14 +136,11 @@ namespace fhatos {
         if (process->id().matches(processPattern))
           counter->fetch_add(1);
       });
-      try {
-        FIBERS->forEach([counter, processPattern](const Fiber *process) {
-          if (process->id().matches(processPattern))
-            counter->fetch_add(1);
-        });
-      } catch (fError e) {
-        LOG(ERROR, "HERE: %s\n", e.what());
-      }
+      FIBERS->forEach([counter, processPattern](const Fiber *process) {
+        if (process->id().matches(processPattern))
+          counter->fetch_add(1);
+      });
+
       COROUTINES->forEach([counter, processPattern](const Coroutine *process) {
         if (process->id().matches(processPattern))
           counter->fetch_add(1);

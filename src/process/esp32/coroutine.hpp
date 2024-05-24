@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 //
-#include <process/process.hpp>
+#include FOS_PROCESS(process.hpp)
 
 namespace fhatos {
 class Coroutine : public Process {

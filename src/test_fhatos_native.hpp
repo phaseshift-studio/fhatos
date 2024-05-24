@@ -5,7 +5,6 @@
 #include <unity.h>
 #include <stdio.h>
 #include <fhatos.hpp>
-#include <util/ansi.hpp>
 
 static fhatos::Ansi<fhatos::CPrinter> ansi(new fhatos::CPrinter());
 #define FOS_TEST_PRINTER ansi

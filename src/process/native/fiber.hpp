@@ -8,14 +8,14 @@
 namespace fhatos {
   class Fiber : public Process {
   public:
-    TaskHandle_t handle{};
+    std::thread *xthread;
 
     explicit Fiber(const ID &id) : Process(id, FIBER) {
     }
 
     void delay(const uint64_t milliseconds) override {
       // delay to next fiber
-      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
     void yield() override {

@@ -2,13 +2,14 @@
 #define fhatos_process_hpp
 
 #include <fhatos.hpp>
+#include <thread>
 #include <structure/furi.hpp>
 //
 
 namespace fhatos {
   enum PType { THREAD, FIBER, COROUTINE, KERNEL };
 
-  static const String P_TYPE_STR(const PType pType) {
+  static const char *P_TYPE_STR(const PType pType) {
     switch (pType) {
       case THREAD:
         return "thread";
@@ -61,9 +62,11 @@ namespace fhatos {
     explicit KernelProcess(const ID &id) : Process(id, KERNEL) {
     }
 
-    void delay(const uint64_t milliseconds) override { ::delay(milliseconds); }
+    void delay(const uint64_t milliseconds) override {
+      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
 
-    void yield() override { ::yield(); }
+    void yield() override { std::this_thread::yield(); }
   };
 } // namespace fhatos
 

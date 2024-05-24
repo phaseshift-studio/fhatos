@@ -75,7 +75,7 @@ namespace fhatos {
       this->publish(queryId, "",TRANSIENT_MESSAGE);
     }
 
-    uint16_t size() const override { return inbox.size(); }
+    uint16_t size() override { return inbox.size(); }
 
     /// PROCESS METHODS
     virtual void setup() override {

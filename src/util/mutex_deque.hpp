@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 ////
-#include <util/mutex.hpp>
+#include FOS_UTIL(mutex.hpp)
 
 namespace fhatos {
   template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
@@ -14,7 +14,7 @@ namespace fhatos {
 
   private:
     template<typename A = void *>
-    A lockUnlock(const bool withMutex, Supplier<A> function) const {
+    A lockUnlock(const bool withMutex, Supplier<A> function) {
       if (withMutex)
         return _mutex.lockUnlock(function);
       else {
@@ -52,7 +52,7 @@ namespace fhatos {
       });
     }
 
-    List<T> *match(const Predicate<T> predicate, const bool withMutex = true) const {
+    List<T> *match(const Predicate<T> predicate, const bool withMutex = true) {
       List<T> *results = new List<T>();
       lockUnlock<void *>(withMutex, [this, results, predicate]() {
         for (const T &t: _deque) {
@@ -64,7 +64,7 @@ namespace fhatos {
       return results;
     }
 
-    void forEach(Consumer<T> consumer, const bool withMutex = true) const {
+    void forEach(Consumer<T> consumer, const bool withMutex = true) {
       lockUnlock<void *>(withMutex, [this, consumer]() {
         for (const T &t: _deque) {
           consumer(t);
@@ -123,22 +123,22 @@ namespace fhatos {
       });
     }
 
-    SIZE_TYPE size(const bool withMutex = true) const {
+    SIZE_TYPE size(const bool withMutex = true) {
       return lockUnlock<SIZE_TYPE>(withMutex, [this]() { return _deque.size(); });
     }
 
-    bool empty(const bool withMutex = true) const {
+    bool empty(const bool withMutex = true) {
       return lockUnlock<bool>(withMutex, [this]() { return _deque.empty(); });
     }
 
-    String toString(const bool withMutex = true) const {
-      return lockUnlock<String>(withMutex, [this]() {
-        String temp = "[";
+    string toString(const bool withMutex = true) {
+      return lockUnlock<string>(withMutex, [this]() {
+        string temp = "[";
         for (const auto &t: _deque) {
           if (t)
             temp = temp + t->toString() + ", ";
         }
-        temp = temp.substring(0, temp.length() - 3) + "]";
+        temp = temp.substr(0, temp.length() - 3) + "]";
         return temp;
       });
     }

@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 //
-#include <process/process.hpp>
+#include FOS_PROCESS(process.hpp)
 #include <structure/furi.hpp>
 //
 #if defined(ESP8266)

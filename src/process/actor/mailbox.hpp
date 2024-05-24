@@ -13,13 +13,12 @@ namespace fhatos {
 
     void clear() {
       while (this->pop().has_value()) {
-
       }
     }
 
     virtual bool push(const T message) { return true; }
 
-    virtual uint16_t size() const { return 0; }
+    virtual uint16_t size() { return 0; }
 
     virtual Option<T> pop() { return {}; }
   };

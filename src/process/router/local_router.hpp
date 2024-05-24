@@ -6,7 +6,7 @@
 #include <process/router/message.hpp>
 #include <process/router/router.hpp>
 #include <structure/io/net/f_wifi.hpp>
-#include <util/mutex.hpp>
+#include FOS_UTIL(mutex.hpp)
 #include <util/mutex_rw.hpp>
 
 #include FOS_PROCESS(coroutine.hpp)

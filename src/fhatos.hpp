@@ -19,14 +19,11 @@
 #endif
 #endif
 
-////////////////////////////////////////////////// NATIVE
-#ifdef NATIVE
-#include <fhatos_native.hpp>
-#else
-////////////////////////////////////////////////// ESP8266/ESP32
-
+#ifndef NATIVE
 #include <Arduino.h>
+#endif
 #include <util/ansi.hpp>
+#include <util/fhat_error.hpp>
 
 // C++ standard template library common data structures
 #include <deque>
@@ -107,43 +104,6 @@ namespace fhatos {
   using byte = uint8_t;
   using uint = unsigned int;
 
-  ///////////////////////
-  /// EXCEPTION TYPES ///
-  ///////////////////////
-  class fError : public std::exception {
-  protected:
-    char *_message;
-
-  public:
-    explicit fError(const char *format, ...) {
-      va_list arg;
-      va_start(arg, format);
-      char temp[64];
-      _message = temp;
-      size_t len = vsnprintf(temp, sizeof(temp), format, arg);
-      va_end(arg);
-      if (len > sizeof(temp) - 1) {
-        _message = new(std::nothrow) char[len + 1];
-        if (!_message) {
-          return;
-        }
-        va_start(arg, format);
-        vsnprintf(_message, len + 1, format, arg);
-        va_end(arg);
-      }
-      if (_message != temp) {
-        delete[] _message;
-      }
-    };
-
-    // ~fError() override { delete _message; }
-
-    [[nodiscard]]
-    virtual const char *
-    what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
-      return this->_message;
-    }
-  };
 
   ////////////
   // MACROS //
@@ -165,10 +125,10 @@ namespace fhatos {
 #define XCONCAT(a, b) a##b
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
-#define FSTR(a) F(STR(a))
+#define FSTR(a) STR(a)
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float)a) / (1024.0f * 1024.0f))
-#define LOG(logtype, format, ...) MAIN_LOG((logtype), F(format), ##__VA_ARGS__)
+#define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())
 #define LOG_TASK(logtype, process, format, ...)                                \
   LOG((logtype), (String("[!M%s!!] ") + (format) + "\n").c_str(),              \
@@ -217,10 +177,13 @@ namespace fhatos {
 
 #if defined(ESP32)
 #define FOS_PROCESS(proc) <process/esp32/proc>
+#define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(ESP8266)
 #define FOS_PROCESS(proc) <process/esp8266/proc>
+#define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(NATIVE)
-#define FOS_PROCESS
+#define FOS_PROCESS(proc) <process/native/proc>
+#define FOS_UTIL(utl) <util/std/utl>
 #else
 #error "Unknown architecture."
 #endif
@@ -231,22 +194,12 @@ namespace fhatos {
   // !!TO REMOVE!! //
   ///////////////////
 
-  template<typename K, typename V>
-  static String mapString(const Map<K, V> map) {
-    String temp = "[\n";
-    for (const auto &kv: map) {
-      temp = temp + kv.first + ":" + kv.second->toString() + "\n";
-    }
-    temp = temp + "]";
-    return temp;
-  }
-
-  static void MAIN_LOG(const LOG_TYPE type, const String &format, ...) {
+  static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
     va_list arg;
     va_start(arg, format);
     char temp[64];
     char *buffer = temp;
-    const size_t len = vsnprintf(temp, sizeof(temp), format.c_str(), arg);
+    const size_t len = vsnprintf(temp, sizeof(temp), format, arg);
     va_end(arg);
     if (len > sizeof(temp) - 1) {
       buffer = new(std::nothrow) char[len + 1];
@@ -254,10 +207,14 @@ namespace fhatos {
         return;
       }
       va_start(arg, format);
-      vsnprintf(buffer, len + 1, format.c_str(), arg);
+      vsnprintf(buffer, len + 1, format, arg);
       va_end(arg);
     }
+#ifdef NATIVE
+    static auto ansi = Ansi(new CPrinter());
+#else
     static auto ansi = Ansi(&::Serial);
+#endif
     if (type == NONE)
       ansi.print("");
     else if (type == ERROR)
@@ -272,5 +229,4 @@ namespace fhatos {
     }
   }
 } // namespace fhatos
-#endif
 #endif

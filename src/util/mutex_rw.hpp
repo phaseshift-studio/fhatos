@@ -3,7 +3,7 @@
 
 #include <fhatos.hpp>
 ////
-#include <util/mutex.hpp>
+#include FOS_UTIL(mutex.hpp)
 
 namespace fhatos {
   template<typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>

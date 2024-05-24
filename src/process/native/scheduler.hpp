@@ -1,4 +1,4 @@
-#if defined(ESP32)
+#if defined(NATIVE)
 #ifndef fhatos_scheduler_hpp
 #define fhatos_scheduler_hpp
 
@@ -28,33 +28,19 @@ namespace fhatos {
       switch (process->type) {
         case THREAD: {
           THREADS->push_back(static_cast<Thread *>(process));
-          const BaseType_t threadResult = xTaskCreatePinnedToCore(
-            THREAD_FUNCTION, // Function that should be called
-            process->id()
-            .user()
-            .value_or(process->id().toString())
-            .c_str(), // Name of the task (for debugging)
-            10000, // Stack size (bytes)
-            process, // Parameter to pass
-            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-            &static_cast<Thread *>(process)->handle, // Task handle
-            tskNO_AFFINITY); // Processor core
-          success = pdPASS == threadResult;
+          static_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, (void *) process);
+          success = true;
           break;
         }
         case FIBER: {
           success = FIBERS->push_back(static_cast<Fiber *>(process));
           LOG(INFO, "Fiber bundle count: %i\n", FIBERS->size());
           if (!FIBER_THREAD_HANDLE) {
-            success &= pdPASS == xTaskCreatePinnedToCore(
-              FIBER_FUNCTION, // Function that should be called
-              "fiber_bundle", // Name of the task (for debugging)
-              15000, // Stack size (bytes)
-              nullptr, // Parameter to pass
-              CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-              &FIBER_THREAD_HANDLE, // Task handle
-              tskNO_AFFINITY); // Processor core
+            FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
+            if (FIBER_THREAD_HANDLE)
+              success = true;
           }
+          static_cast<Fiber *>(process)->xthread = FIBER_THREAD_HANDLE;
           break;
         }
         case COROUTINE: {
@@ -74,22 +60,21 @@ namespace fhatos {
       LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n",
           process->id().toString().c_str(),
           P_TYPE_STR(process->type));
-      LOG(NONE,
+      /*LOG(NONE,
           "\t!yFree memory\n"
           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
           FOS_BYTES_MB_STR "]\n",
           FOS_BYTES_MB(ESP.getFreeSketchSpace()),
           FOS_BYTES_MB(ESP.getFreeHeap()),
           FOS_BYTES_MB(ESP.getFreePsram()),
-          FOS_BYTES_MB(ESP.getFlashChipSize()));
+          FOS_BYTES_MB(ESP.getFlashChipSize()));*/
       return success;
     }
 
   private:
     Scheduler() = default;
 
-    TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
-
+    std::thread *FIBER_THREAD_HANDLE = nullptr;
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
@@ -107,11 +92,7 @@ namespace fhatos {
         } else {
           counter = 0;
         }
-        vTaskDelay(1); // feeds the watchdog for the task
       }
-
-      // LOG(INFO, "!MDisconnecting master lean thread!!\n");
-      vTaskDelete(nullptr);
     }
 
     //////////////////////////////////////////////////////
@@ -121,13 +102,10 @@ namespace fhatos {
       auto *thread = static_cast<Thread *>(vptr_thread);
       while (thread->running()) {
         thread->loop();
-        vTaskDelay(1); // feeds the watchdog for the task
       }
       Scheduler::singleton()->destroy(thread->id());
-      vTaskDelete(nullptr);
     }
   };
 } // namespace fhatos
-
 #endif
 #endif

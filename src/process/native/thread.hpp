@@ -2,15 +2,21 @@
 #define fhatos_thread_hpp
 
 #include <fhatos.hpp>
+#include <chrono>
+#include <thread>
 //
 #include FOS_PROCESS(process.hpp)
 
 namespace fhatos {
   class Thread : public Process {
   public:
-    TaskHandle_t handle;
+    std::thread *xthread;
 
     explicit Thread(const ID &id) : Process(id, THREAD) {
+    }
+
+    ~Thread() {
+      delete this->xthread;
     }
 
     void setup() override {
@@ -21,11 +27,17 @@ namespace fhatos {
       Process::stop();
     }
 
-    void delay(const uint64_t milliseconds) override {
-      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+    void loop() override {
+      Process::loop();
     }
 
-    void yield() override { taskYIELD(); }
+    void delay(const uint64_t milliseconds) override {
+      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
+
+    void yield() override {
+      std::this_thread::yield();
+    }
   };
 } // namespace fhatos
 
