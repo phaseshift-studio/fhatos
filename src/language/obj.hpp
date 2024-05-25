@@ -428,6 +428,7 @@ namespace fhatos {
     OBJ_OR_BYTECODE(int objA) : Obj(OType::INT) {
       this->data = OBJ_UNION{.objA = new Int(objA)};
     }
+
     OBJ_OR_BYTECODE(_OBJ *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
@@ -489,6 +490,14 @@ namespace fhatos {
     }
 
     STR_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Str>(bcodeB) {
+    }
+  };
+
+  struct REC_OR_BYTECODE : public OBJ_OR_BYTECODE<Rec> {
+    REC_OR_BYTECODE(Rec *objA) : OBJ_OR_BYTECODE<Rec>(objA) {
+    }
+
+    REC_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Rec>(bcodeB) {
     }
   };
 } // namespace fhatos

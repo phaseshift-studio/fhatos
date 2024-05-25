@@ -56,8 +56,7 @@ namespace fhatos {
       : Inst({
         "branch", cast({rec}),
         [this](Obj *b) {
-          Rec *rec = this->arg<Rec>(0);
-          for (const auto &kv: *rec->value()) {
+          for (const Rec *rec1 = this->arg<Rec>(0); const auto &kv: *rec1->value()) {
             if (kv.first->apply(b)) {
               return (E *) kv.second->apply(b);
             }
@@ -103,7 +102,8 @@ namespace fhatos {
       : Inst({
         "plus", cast({obj.template cast<Obj>()}),
         [this](const Obj *b) {
-          return (E *) ALGEBRA::singleton()->plus(const_cast<E *>(this->arg<OBJ_OR_BYTECODE<E>>(0)->apply(b)), (E *) b);
+          return (E *) ALGEBRA::singleton()->
+              plus(const_cast<E *>(this->arg<OBJ_OR_BYTECODE<E> >(0)->apply(b)), (E *) b);
         }
       }) {
     }
