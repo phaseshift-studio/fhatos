@@ -8,7 +8,6 @@
 #include <language/processor.hpp>
 
 namespace fhatos {
-  //template<typename S, typename E>
   class S_E {
   public:
     virtual ~S_E() = default;
@@ -23,6 +22,9 @@ namespace fhatos {
     S_E(fURI furiX): type(URI), obj(new Uri(furiX)) {
     };
 
+    S_E(NoObj *noobj): type(NOOBJ), obj(noobj) {
+    };
+
     S_E(bool boolX): type(BOOL), obj(new Bool(boolX)) {
     };
 
@@ -35,11 +37,24 @@ namespace fhatos {
     S_E(string strX): type(STR), obj(new Str(strX)) {
     };
 
-    S_E(RecMap<Obj *, Obj *>* recX) : type(REC), obj(new Rec(recX)) {
+    S_E(RecMap<Obj *, Obj *> *recX): type(REC), obj(new Rec(recX)) {
+    };
+
+    S_E(const std::initializer_list<Pair<S_E const, S_E> > &init) : type(REC),
+                                                                    obj(new Rec(new RecMap<Obj *, Obj *>())) {
+      for (auto iter = rbegin(init); iter != rend(init); ++iter) {
+        ((Rec *) this->obj)->value()->insert({iter->first.obj, iter->second.obj});
+        LOG(INFO, "%s => %s\n", iter->first.obj->toString().c_str(), iter->second.cast<Obj>()->toString().c_str());
+      }
+      LOG(INFO, "size => %i\n", ((Rec*)this->obj)->value()->size());
     };
 
     S_E(Bytecode *bcodeX): type(BYTECODE), obj(bcodeX) {
     };
+
+    bool isNoObj() const {
+      return this->obj->isNoObj();
+    }
 
     template<typename E>
     E *cast() const {
@@ -127,6 +142,18 @@ namespace fhatos {
       return this->addInst<E>((Inst *) new MultInst<E, ALGEBRA>(e.cast<E>()));
     }
 
+    Fluent<S, E> branch(const std::initializer_list<Pair<S_E const, S_E> > &recMap) {
+      return this->addInst<E>((Inst *) new BranchInst<E>(S_E(recMap).cast<Rec>()));
+    }
+
+    Fluent<S, Bool> eq(const S_E &se) {
+      return this->addInst<Bool>((Inst *) new EqInst<E>(se.cast<E>()));
+    }
+
+    Fluent<S, E> is(const S_E &se) {
+      return this->addInst<E>((Inst *) new IsInst<E>(se.cast<E>()));
+    }
+
     template<typename _PAYLOAD>
     Fluent<S, E> publish(const S_E &uri, const S_E &payload) const {
       return this->template addInst<E>(
@@ -150,6 +177,7 @@ namespace fhatos {
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
+
   template<typename S>
   inline static Fluent<S, S> __(const List<S_E> &starts) {
     List<S *> *castStarts = new List<S *>();
@@ -169,6 +197,9 @@ namespace fhatos {
 
   template<typename S>
   inline static Fluent<S, S> __() { return Fluent<S, S>(); };
+
+  template<typename S>
+  inline static Fluent<S, S> _ = __<S>();
 } // namespace fhatos
 
 #endif

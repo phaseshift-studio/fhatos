@@ -49,6 +49,53 @@ namespace fhatos {
     }
   };
 
+  template<typename E>
+  class BranchInst final : public Inst {
+  public:
+    explicit BranchInst(const Rec *rec)
+      : Inst({
+        "branch", cast({rec}),
+        [this](Obj *b) {
+          Rec *rec = this->arg<Rec>(0);
+          for (const auto &kv: *rec->value()) {
+            if (kv.first->apply(b)) {
+              return (E *) kv.second->apply(b);
+            }
+          }
+          return (E *) nullptr;
+        }
+      }) {
+    }
+  };
+
+  template<typename E>
+  class IsInst final : public Inst {
+  public:
+    explicit IsInst(const E *obj)
+      : Inst({
+        "is", cast({obj}),
+        [this](Obj *b) {
+          return ((Bool *) this->arg<Obj>(0)->apply(b))->value() ? b : (Obj*)NoObj::singleton();
+        }
+      }) {
+    }
+  };
+
+
+  template<typename E>
+  class EqInst final : public Inst {
+  public:
+    explicit EqInst(const E *obj)
+      : Inst({
+        "eq", cast({obj}),
+        [this](Obj *b) {
+          return new Bool(*this->arg<E>(0)->apply(b) == *b);
+        }
+      }) {
+    }
+  };
+
+
   template<typename E, typename ALGEBRA = Algebra>
   class PlusInst final : public Inst {
   public:
@@ -81,9 +128,9 @@ namespace fhatos {
   class PublishInst final : public Inst {
   public:
     explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID context = ID("anonymous")) : Inst({
-      "<=", cast({(Obj*)uri, (Obj*)payload}),
+      "<=", cast({(Obj *) uri, (Obj *) payload}),
       [this,context](const Obj *incoming) {
-        const ID target = ID(((Uri*)(this-> arg<Obj>(0)->apply(incoming)))->value());
+        const ID target = ID(((Uri *) (this->arg<Obj>(0)->apply(incoming)))->value());
         const BinaryObj<> *payload2 = BinaryObj<>::fromObj((Obj *) this->arg<Obj>(1)->apply(incoming));
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
@@ -93,7 +140,7 @@ namespace fhatos {
           .retain = TRANSIENT_MESSAGE
         });
 #else
-        LOG(DEBUG, "!rPublished!! %s <= %s\n",target.toString().c_str(), payload2->toString().c_str());
+        LOG(DEBUG, "!rPublished!! %s <= %s\n", target.toString().c_str(), payload2->toString().c_str());
 #endif
         return (Obj *) incoming;
       }
@@ -107,7 +154,7 @@ namespace fhatos {
     explicit SubscribeInst(const _URI *pattern, const _ONRECV *onRecv, const ID context = ID("anonymous")) : Inst({
       "<=", cast({(Obj *) pattern, (Obj *) onRecv}),
       [this,context](const Obj *incoming) {
-        const Pattern pattern2 = Pattern(((Uri*)this->arg<Obj>(0)->apply(incoming))->value());
+        const Pattern pattern2 = Pattern(((Uri *) this->arg<Obj>(0)->apply(incoming))->value());
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,
@@ -118,7 +165,8 @@ namespace fhatos {
           }
         });
 #else
-        LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2.toString().c_str(),   this->arg<_ONRECV>(1)->toString().c_str());
+        LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2.toString().c_str(),
+            this->arg<_ONRECV>(1)->toString().c_str());
 #endif
         return (Obj *) incoming;
       }

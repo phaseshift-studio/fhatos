@@ -8,6 +8,7 @@
 #include <ctime>
 
 namespace fhatos {
+  template<uint16_t WAIT_TIME_MS = 250>
   class Mutex {
   private:
     std::mutex *xmutex = new std::mutex();
@@ -17,7 +18,7 @@ namespace fhatos {
 
     template<typename T = void *>
     T lockUnlock(const Supplier<T> criticalFunction,
-                 const uint16_t millisecondsWait = 250) {
+                 const uint16_t millisecondsWait = WAIT_TIME_MS) {
       if (this->lock(millisecondsWait)) {
         T t = criticalFunction();
         this->unlock();
@@ -29,7 +30,7 @@ namespace fhatos {
       }
     }
 
-    const bool lock(const uint16_t millisecondsWait = 250) {
+    const bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
       const long timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
       while (true) {
@@ -42,7 +43,7 @@ namespace fhatos {
       }
     }
 
-    const bool unlock(const uint16_t millisecondsWait = 250) {
+    const bool unlock() {
       this->xmutex->unlock();
       return true;
     }

@@ -52,7 +52,8 @@ namespace fhatos {
 
     void forEach(const Consumer<const E *> &consumer) {
       for (const E *end: this->toList()) {
-        consumer(end);
+        if (!((Obj *) end)->isNoObj())
+          consumer(end);
       }
     }
 
@@ -70,12 +71,15 @@ namespace fhatos {
         Monad<E> *end = new Monad<E>(start);
         //int counter = 0;
         for (auto it = ++this->bcode->value()->begin(); it != this->bcode->value()->end(); ++it) {
-         // if (counter++ != 0) {
-            LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), (**it).toString().c_str(),
-                OTYPE_STR.at(end->get()->type()).c_str());
-            end = const_cast<Monad<E> *>(end->template split<E>(*it));
-          }
-        this->output.push_back(end->get());
+          // if (counter++ != 0) {
+          LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), (**it).toString().c_str(),
+              OTYPE_STR.at(end->get()->type()).c_str());
+          end = const_cast<Monad<E> *>(end->template split<E>(*it));
+          if (((Obj *) end->get())->isNoObj())
+            break;
+        }
+        if (!((Obj *) end->get())->isNoObj())
+          this->output.push_back(end->get());
       }
       return this->output;
     }

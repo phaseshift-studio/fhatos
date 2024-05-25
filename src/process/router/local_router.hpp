@@ -22,7 +22,7 @@ namespace fhatos {
     // messaging data structures
     List<Subscription> SUBSCRIPTIONS;
     Map<ID, Message> RETAINS;
-    Mutex MUTEX_RETAIN;
+    Mutex<> MUTEX_RETAIN;
     MutexRW<> MUTEX_SUBSCRIPTIONS;
 
   public:
@@ -31,12 +31,12 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit LocalRouter(const ID &id = "kernel/router/local")// fWIFI::idFromIP("kernel", "router/local"))
+    explicit LocalRouter(const ID &id = "kernel/router/local") // fWIFI::idFromIP("kernel", "router/local"))
       : Router<PROCESS>(id) {
     }
 
     void setup() override {
-      Coroutine::setup();
+      PROCESS::setup();
     }
 
     virtual RESPONSE_CODE clear() override {
@@ -74,7 +74,8 @@ namespace fhatos {
 
         if (message.retain) {
           MUTEX_RETAIN.lockUnlock<void *>([this, message]() {
-            RETAINS.erase(message.target);
+            if (RETAINS.count(message.target))
+              RETAINS.erase(message.target);
             RETAINS.emplace(message.target, Message(message));
             return nullptr;
           });
@@ -85,7 +86,7 @@ namespace fhatos {
 
     const RESPONSE_CODE subscribe(const Subscription &subscription) override {
       try {
-        return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this,subscription]() {
+        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this,subscription]() {
           RESPONSE_CODE _rc = OK;
           for (const auto &sub: SUBSCRIPTIONS) {
             if (sub.source.equals(subscription.source) &&
@@ -114,44 +115,44 @@ namespace fhatos {
             });
           }
           LOG_SUBSCRIBE(_rc, subscription);
-          return _rc;
+          return make_shared<RESPONSE_CODE>(_rc);
         });
       } catch (const fError &e) {
         LOG_EXCEPTION(e);
-        return RESPONSE_CODE::MUTEX_TIMEOUT;
+        return MUTEX_TIMEOUT;
       }
     }
 
     const RESPONSE_CODE unsubscribe(const ID &source,
                                     const Pattern &pattern) override {
-      return unsubscribeX(source, &pattern);
+      return *unsubscribeX(source, &pattern);
     }
 
     const RESPONSE_CODE unsubscribeSource(const ID &source) override {
-      return unsubscribeX(source, nullptr);
+     return *unsubscribeX(source, nullptr);
     }
 
   protected:
-    const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
+    ptr<RESPONSE_CODE> unsubscribeX(const ID &source, const Pattern *pattern) {
       try {
         return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>(
           [this, source, pattern]() {
             const uint16_t size = SUBSCRIPTIONS.size();
-            SUBSCRIPTIONS.erase(std::remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
-                                               [source, pattern](const auto &sub) {
-                                                 return sub.source.equals(source) &&
-                                                        (nullptr == pattern || sub.pattern.equals(*pattern));
-                                               }), SUBSCRIPTIONS.end());
-
-            const RESPONSE_CODE _rc2 = SUBSCRIPTIONS.size() < size
-                                         ? RESPONSE_CODE::OK
-                                         : RESPONSE_CODE::NO_SUBSCRIPTION;
-            LOG_UNSUBSCRIBE(_rc2, source, pattern);
+            SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
+                                          [source, pattern](const auto &sub) {
+                                            return sub.source.equals(source) &&
+                                                   (nullptr == pattern || sub.pattern.equals(*pattern));
+                                          }), SUBSCRIPTIONS.end());
+            //LOG(INFO, "!bSIZE: %i --> %i \n", SUBSCRIPTIONS.size(), size);
+            const auto _rc2 = make_shared<RESPONSE_CODE>((SUBSCRIPTIONS.size() < size)
+                                                           ? OK
+                                                           : NO_SUBSCRIPTION);
+            LOG_UNSUBSCRIBE(*_rc2, source, pattern);
             return _rc2;
           });
       } catch (const fError &e) {
         LOG_EXCEPTION(e);
-        return RESPONSE_CODE::MUTEX_TIMEOUT;
+        return make_shared<RESPONSE_CODE>(MUTEX_TIMEOUT);
       }
     }
   };

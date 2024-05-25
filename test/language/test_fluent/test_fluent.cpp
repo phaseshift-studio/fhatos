@@ -25,22 +25,37 @@ namespace fhatos {
                      ->toString()
                      .c_str());
 
-  __<Int>({32,45}).plus(10).plus(15).forEach([](const Int *e){
+    __<Int>({32, 45}).plus(10).plus(15).forEach([](const Int *e) {
       FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
     });
 
     FOS_TEST_MESSAGE("=========================\n");
 
-    const Fluent<Int, Int> f = __<Int>(30).plus(10).plus(15).mult(__<Int>().plus(5));//.mult(__.plus(2).mult(10));
+    const Fluent<Int, Int> f = __<Int>(30).plus(10).plus(15).mult(__<Int>().plus(5)); //.mult(__.plus(2).mult(10));
+    f.forEach([](const Int *e) {
+      FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
+    });
+  }
+
+  void test_rec_branch() {
+    Fluent<Int, Int> f =
+        __<Int>(1).plus(2).branch({
+            {_<Int>.is(_<Int>.eq(3)), _<Int>.plus(2)},
+            {2, 4},
+            {_<Int>.mult(2), 7}
+        }).is(_<Bool>.eq(5)).mult(_<Int>.plus(95));
+    FOS_TEST_MESSAGE("%s",
+                     f.toString().c_str());
     f.forEach([](const Int *e) {
       FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
     });
   }
 
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(test_fluent); //
+      FOS_RUN_TEST(test_fluent); //
+      FOS_RUN_TEST(test_rec_branch); //
 
-  );
+      );
 } // namespace fhatos::kernel
 
 SETUP_AND_LOOP();

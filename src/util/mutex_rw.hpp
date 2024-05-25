@@ -4,42 +4,42 @@
 #include <fhatos.hpp>
 ////
 #include FOS_UTIL(mutex.hpp)
+using namespace std;
 
 namespace fhatos {
   template<typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
   class MutexRW {
   protected:
-    Mutex _READER_LOCK;
+    Mutex<WAIT_TIME_MS> _READER_LOCK;
     bool _WRITER_LOCK = false;
     SIZE_TYPE _READER_COUNT = 0;
 
   public:
     template<typename A>
-    A write(const Supplier<A> &supplier) {
-      Pair<RESPONSE_CODE, A *> result = std::make_pair<RESPONSE_CODE, A *>(MUTEX_LOCKOUT, nullptr);
+    ptr<A> write(const Supplier<ptr<A> > &supplier) {
+      Pair<RESPONSE_CODE, ptr<A> > result = make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
       while (result.first == MUTEX_LOCKOUT) {
-        result = _READER_LOCK.lockUnlock<Pair<RESPONSE_CODE, A *> >(
+        result = _READER_LOCK.template lockUnlock<Pair<RESPONSE_CODE, ptr<A> > >(
           [this,supplier]() {
             if (_WRITER_LOCK)
-              return std::make_pair<RESPONSE_CODE, A *>(MUTEX_LOCKOUT, nullptr);
+              return make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
             else {
-              A temp = supplier();
-              return std::make_pair<RESPONSE_CODE, A *>(OK, &temp);
+              return make_pair<RESPONSE_CODE, ptr<A> >(OK, supplier());
             }
           });
       }
-      return *result.second;
+      return result.second;
     }
 
     template<typename A>
     A read(const Supplier<A> &supplier) {
-      _READER_LOCK.lockUnlock<void *>([this]() {
+      _READER_LOCK.template lockUnlock<void *>([this]() {
         ++_READER_COUNT;
         _WRITER_LOCK = true;
         return nullptr;
       });
       A a = supplier();
-      _READER_LOCK.lockUnlock<void *>([this]() {
+      _READER_LOCK.template lockUnlock<void *>([this]() {
         if (--_READER_COUNT == 0)
           _WRITER_LOCK = false;
         return nullptr;

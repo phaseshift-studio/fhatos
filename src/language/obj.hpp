@@ -13,11 +13,12 @@
 
 
 namespace fhatos {
-  enum OType { URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
+  enum OType { NOOBJ = 0, URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
   enum AType { MONOID, SEMIRING, GROUP, RING, FIELD };
 
   static const Map<OType, string> OTYPE_STR = {
     {
+      {NOOBJ, "noobj"},
       {OBJ, "obj"},
       {URI, "uri"},
       {BOOL, "bool"},
@@ -40,7 +41,7 @@ namespace fhatos {
     explicit Obj(const OType type) : _type(type) {
     }
 
-    virtual const OType type() const { return _type; }
+    virtual OType type() const { return _type; }
 
     virtual const string toString() const {
       return "obj";
@@ -54,12 +55,34 @@ namespace fhatos {
       return this;
     }
 
-    bool operator<(const Obj &other) const {
-      return true; //this->_value < other._value;
-    }
 
     bool operator==(const Obj &other) const {
-      return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
+      return !this->isNoObj() &&
+             !other.isNoObj() &&
+             strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
+    }
+
+    bool isNoObj() const {
+      return this->type() == NOOBJ;
+    }
+  };
+
+  class NoObj : public Obj {
+  public:
+    static NoObj *singleton() {
+      static NoObj no = NoObj();
+      return &no;
+    }
+
+    NoObj() : Obj(NOOBJ) {
+    }
+
+    const NoObj *apply(const Obj *obj) const override {
+      return this;
+    }
+
+    virtual const string toString() const override {
+      return "Ø";
     }
   };
 
@@ -78,6 +101,10 @@ namespace fhatos {
     }
 
     const fURI value() const { return this->_value; }
+
+    const Uri *apply(const Obj *obj) const override {
+      return this;
+    }
 
     virtual const string toString() const override {
       return this->_value.toString();
@@ -195,18 +222,18 @@ namespace fhatos {
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
   struct obj_hash {
     size_t operator()(const Obj *obj) const {
-      return obj->type() + obj->toString().length();
+      return obj->type() * obj->toString().length() * obj->toString()[0];
     }
   };
 
   struct obj_equal_to : std::binary_function<Obj *, Obj *, bool> {
     bool operator()(const Obj *a, const Obj *b) const {
-      return true; // strcmp(a->toString().c_str(), b->toString().c_str()) == 0;
+      return a->type() == b->type() && strcmp(a->toString().c_str(), b->toString().c_str()) == 0;
     }
   };
 
-  template<typename K, typename V>
-  using RecMap = UnorderedMap<K, V, obj_hash, obj_equal_to>;
+  template<typename K, typename V, typename H=obj_hash, typename Q=obj_equal_to>
+  using RecMap = UnorderedMap<K, V, H, Q>;
 
   class Rec final : public Obj {
   protected:
@@ -216,16 +243,13 @@ namespace fhatos {
     Rec(RecMap<Obj *, Obj *> *value) : Obj(REC), _value(value) {
     };
 
-    /*Rec(const std::initializer_list<Pair<const Obj*, const Obj*> > init) : Rec(Map<const Obj*, Obj*>(init.begin())) {
-    };*/
-
     template<typename V>
     const V *get(Obj *key) const {
-      return (V *) (this->_value->count(key) ? this->_value->at(key) : nullptr);
+      return (V *) (this->_value->count(key) ? this->_value->at(key) : NoObj::singleton());
     }
 
     void set(Obj *key, Obj *val) {
-      this->_value->emplace(key, val);
+      this->_value->insert({key, val});
     }
 
     const Rec *apply(const Obj *obj) const override {
@@ -239,7 +263,7 @@ namespace fhatos {
     const string toString() const override {
       string t = "[";
       for (const auto &pair: *this->_value) {
-        t = t + "!g" + pair.first->toString() + "!! !r=>!! !g" + pair.second->toString() + "!!,";
+        t = t + pair.first->toString() + "!r=>!!" + pair.second->toString() + ",";
       }
       t[t.length() - 1] = ']';
       return t;
@@ -292,9 +316,9 @@ namespace fhatos {
     }
 
     const string toString() const override {
-      string t = "[" + this->opcode() + ",";
+      string t = "[!b" + this->opcode() + "!! ";
       for (const auto *arg: this->args()) {
-        t = t.append(arg->toString()).append(",");
+        t = t + arg->toString() + ",";
       }
       t[t.length() - 1] = ']';
       return t;
@@ -335,6 +359,8 @@ namespace fhatos {
       Obj *running = (Obj *) obj;
       for (const Inst *inst: *this->_value) {
         running = inst->func()(running);
+        if (running->isNoObj())
+          break;
       }
       return running;
     }

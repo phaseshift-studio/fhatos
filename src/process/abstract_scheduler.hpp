@@ -14,7 +14,7 @@
 
 namespace fhatos {
   class AbstractScheduler {
-    Mutex DESTROY_MUTEX;
+    Mutex<> DESTROY_MUTEX;
 
   protected:
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();

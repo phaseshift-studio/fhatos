@@ -35,6 +35,11 @@ namespace fhatos {
 
   void test_mono_type_parsing() {
     Parser *parser = new Parser();
+    // NOOBJ
+    const NoObj *n = parser->parseObj<NoObj>(string("Ø"))->cast<NoObj>();
+    TEST_ASSERT_EQUAL(NOOBJ, n->type());
+    TEST_ASSERT_EQUAL_STRING("Ø", n->toString().c_str());
+    //delete n; can't delete static singleton
     // BOOL
     const Bool *b = parser->parseObj<Bool>(string("true"))->cast<Bool>();
     TEST_ASSERT_EQUAL(BOOL, b->type());
@@ -63,13 +68,27 @@ namespace fhatos {
     Parser *parser = new Parser();
     // LST
     // REC
-    const Rec *rc = parser->parseObj<Rec>(string("['a',13,actor@127.0.0.1,false]"))->cast<Rec>();
-    TEST_ASSERT_EQUAL(REC, rc->type());
-    TEST_ASSERT_EQUAL_INT(13, (rc->get<Int>(new Str("a")))->value());
-    TEST_ASSERT_TRUE(rc->get<Str>(new Int(13)) == nullptr);
-    TEST_ASSERT_TRUE(rc->get<Str>(new Str("no key")) == nullptr);
-    TEST_ASSERT_FALSE(rc->get<Bool>(new Uri("actor@127.0.0.1"))->value());
-    delete rc;
+    const Rec *rc1 = parser->parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
+    TEST_ASSERT_EQUAL(REC, rc1->type());
+    TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(new Str("a")))->value());
+    TEST_ASSERT_EQUAL(NOOBJ, rc1->get<Str>(new Int(13))->type());
+    TEST_ASSERT_EQUAL(NOOBJ, rc1->get<Str>(new Str("no key"))->type());
+    TEST_ASSERT_FALSE(rc1->get<Bool>(new Uri("actor@127.0.0.1"))->value());
+    delete rc1;
+    ///////////////////////////////////
+    const Rec *rc2 = parser->parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]"))->cast<Rec>();
+    TEST_ASSERT_EQUAL(REC, rc2->type());
+    TEST_ASSERT_EQUAL_INT(13, (rc2->get<Int>(new Str("a")))->value());
+    TEST_ASSERT_EQUAL(NOOBJ, rc2->get<Str>(new Int(13))->type());
+    TEST_ASSERT_EQUAL(NOOBJ, rc2->get<Str>(new Str("no key"))->type());
+    const Rec *rc3 = rc2->get<Rec>(new Uri("actor@127.0.0.1"));
+    TEST_ASSERT_EQUAL(REC, rc3->type());
+    TEST_ASSERT_EQUAL_INT(1, (rc3->get<Int>(new Str("b")))->value());
+    TEST_ASSERT_EQUAL_INT(3, (rc3->get<Int>(new Str("c")))->value());
+    // TODO: strip ansi TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",rc2->toString().c_str());
+
+    delete rc2;
+    delete rc3;
     delete parser;
     // INST
     // BYTECODE

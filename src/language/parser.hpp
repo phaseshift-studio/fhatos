@@ -64,7 +64,8 @@ namespace fhatos {
         }
         delete fluent;
         fluent = temp;
-        LOG(DEBUG, FOS_TAB_2 "!gdomain!!(!y%s!!) => !grange!!(!y%s!!)\n", OTYPE_STR.at(domain).c_str(), OTYPE_STR.at(range).c_str());
+        LOG(DEBUG, FOS_TAB_2 "!gdomain!!(!y%s!!) => !grange!!(!y%s!!)\n", OTYPE_STR.at(domain).c_str(),
+            OTYPE_STR.at(range).c_str());
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
         domain = range;
         range = OBJ;
@@ -142,7 +143,9 @@ namespace fhatos {
     S_E *parseObj(const string &token) {
       S_E *se;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
-      if (token[0] == '\'' && token[token.length() - 1] == '\'') {
+      if (token == "Ø") {
+        se = new S_E(NoObj::singleton());
+      } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
         se = new S_E(token.substr(1, token.length() - 2)); // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
         se = new S_E((strcmp("true", token.c_str()) == 0));
@@ -156,23 +159,64 @@ namespace fhatos {
         range = trange;
       } else if (token[0] == '[' && token[token.length() - 1] == ']') {
         RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
-        char **result = new char *[20]();
-        int length = private_fhatos::split(token.substr(1, token.length() - 2).c_str(), ",", result);
-        LOG(DEBUG,FOS_TAB_8 "Processing %i keys and values...\n",length);
-        for (int i = 0; i < length; i = i + 2) {
-          map->insert({this->parseObj<Obj, Obj>(string(result[i]))->cast<Obj>(),
-                       this->parseObj<Obj, Obj>(string(result[i + 1]))->cast<Obj>()});
+        stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
+        bool onKey = true;
+        string key;
+        string value;
+        int bracketCounter = 0;
+        while (!ss->eof()) {
+          if (onKey) {
+            if (bracketCounter == 0 && ss->peek() == '=') {
+              ss->get();
+              if (ss->peek() == '>') {
+                ss->get();
+                onKey = false;
+              } else {
+                key += '=';
+              }
+            } else {
+              if (ss->peek() == '[')
+                bracketCounter++;
+              if (ss->peek() == ']')
+                bracketCounter--;
+              if (!ss->eof())
+                key += ss->get();
+            }
+          } else {
+            ///////
+            if (bracketCounter == 0 && ss->peek() == ',') {
+              ss->get();
+              onKey = true;
+              map->emplace(parseObj<Obj>(key)->cast<Obj>(), parseObj<Obj>(value)->cast<Obj>());
+              key.clear();
+              value.clear();
+            } else {
+              if (ss->peek() == '[')
+                bracketCounter++;
+              if (ss->peek() == ']')
+                bracketCounter--;
+              if (!ss->eof())
+                value += ss->get();
+            }
+          }
         }
-        se = new S_E(map);
+        map->emplace(parseObj<Obj>(key)->cast<Obj>(), parseObj<Obj>(value)->cast<Obj>());
+        RecMap<Obj *, Obj *> *map2 = new RecMap<Obj *, Obj *>(); // necessary to revese entries
+        for (const auto &pair: *map) {
+          map2->insert(pair);
+        }
+        delete map;
+        se = new S_E(map2);
       } else if (isdigit(token[0]) && token.find('.') != string::npos) {
         se = new S_E(stof(token));
       } else if (isdigit(token[0])) {
-        se =  new S_E(stoi(token));
+        se = new S_E(stoi(token));
       } else {
-        se =  new S_E(fURI(token));
+        se = new S_E(fURI(token));
       }
       LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", se->toString().c_str(), OTYPE_STR.at(se->type).c_str());
-      return se;
+      return
+          se;
     }
 
     static void trim(string &s) {

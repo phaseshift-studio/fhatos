@@ -6,11 +6,11 @@
 #include FOS_UTIL(mutex.hpp)
 
 namespace fhatos {
-  template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
+  template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 250>
   class MutexDeque {
   protected:
     Deque<T> _deque;
-    Mutex _mutex;
+    Mutex<WAIT_TIME_MS> _mutex;
 
   private:
     template<typename A = void *>
@@ -145,7 +145,8 @@ namespace fhatos {
 
     void clear(const bool withMutex = true) {
       lockUnlock<void *>(withMutex, [this]() {
-        _deque.clear();
+        if (!_deque.empty())
+          _deque.clear();
         return nullptr;
       });
     }
