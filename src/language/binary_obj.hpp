@@ -6,7 +6,7 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
-  using binary_obj = Triple<const OType, const byte *, const uint16_t>;
+  using binary_obj = Triple<const OType, const fbyte *, const uint16_t>;
   class CharSerializer;
   class PtrSerializer;
 
@@ -26,7 +26,7 @@ namespace fhatos {
       _value{std::get<0>(bobj), std::get<1>(bobj), std::get<2>(bobj)} {
     };
 
-    explicit BinaryObj(const OType type, const byte *data, const uint16_t length) : Obj(type),
+    explicit BinaryObj(const OType type, const fbyte *data, const uint16_t length) : Obj(type),
       _value{type, data, length} {
     };
 
@@ -67,7 +67,7 @@ namespace fhatos {
       return _value;
     }
 
-    const byte *data() const {
+    const fbyte *data() const {
       return std::get<1>(this->_value);
     }
 
@@ -297,7 +297,7 @@ namespace fhatos {
       temp[len] = '\0';
       return {
         URI,
-        (byte *) temp,
+        (fbyte *) temp,
         len
       };
     }
@@ -306,7 +306,7 @@ namespace fhatos {
     static binary_obj fromBoolean(const bool xbool) {
       return {
         BOOL,
-        reinterpret_cast<const byte *>(xbool ? "T" : "F"),
+        reinterpret_cast<const fbyte *>(xbool ? "T" : "F"),
         1
       };
     }
@@ -319,7 +319,7 @@ namespace fhatos {
       temp[len] = '\0';
       return {
         INT,
-        (byte *) temp,
+        (fbyte *) temp,
         len
       };
     }
@@ -332,7 +332,7 @@ namespace fhatos {
       temp[len] = '\0';
       return {
         REAL,
-        (byte *) temp,
+        (fbyte *) temp,
         len
       };
     }
@@ -344,7 +344,7 @@ namespace fhatos {
       temp[len] = '\0';
       return {
         STR,
-        (byte *) temp,
+        (fbyte *) temp,
         len
       };
     }
