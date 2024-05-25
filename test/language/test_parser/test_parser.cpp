@@ -37,28 +37,28 @@ namespace fhatos {
     Parser *parser = new Parser();
     // NOOBJ
     const NoObj *n = parser->parseObj<NoObj>(string("Ø"))->cast<NoObj>();
-    TEST_ASSERT_EQUAL(NOOBJ, n->type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, n->type());
     TEST_ASSERT_EQUAL_STRING("Ø", n->toString().c_str());
     //delete n; can't delete static singleton
     // BOOL
     const Bool *b = parser->parseObj<Bool>(string("true"))->cast<Bool>();
-    TEST_ASSERT_EQUAL(BOOL, b->type());
+    TEST_ASSERT_EQUAL(OType::BOOL, b->type());
     TEST_ASSERT_TRUE(b->value());
     delete b;
     // INT
     const Int *i = parser->parseObj<Int>(string("24"))->cast<Int>();
-    TEST_ASSERT_EQUAL(INT, i->type());
+    TEST_ASSERT_EQUAL(OType::INT, i->type());
     TEST_ASSERT_EQUAL_INT(24, i->value());
     delete i;
     // REAL
     const Real *r = parser->parseObj<Real>(string("45.54"))->cast<Real>();
-    TEST_ASSERT_EQUAL(REAL, r->type());
+    TEST_ASSERT_EQUAL(OType::REAL, r->type());
     TEST_ASSERT_FLOAT_WITHIN(0.1, 45.54, r->value());
     delete r;
     // STR
     // URI
     const Uri *u = parser->parseObj<Uri>(string("fhat@127.0.0.1/os"))->cast<Uri>();
-    TEST_ASSERT_EQUAL(URI, u->type());
+    TEST_ASSERT_EQUAL(OType::URI, u->type());
     TEST_ASSERT_EQUAL_STRING("fhat@127.0.0.1/os", u->value().toString().c_str());
     delete u;
     delete parser;
@@ -69,20 +69,20 @@ namespace fhatos {
     // LST
     // REC
     const Rec* rc1 = parser->parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
-    TEST_ASSERT_EQUAL(REC, rc1->type());
+    TEST_ASSERT_EQUAL(OType::REC, rc1->type());
     TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(new Str("a")))->value());
-    TEST_ASSERT_EQUAL(NOOBJ, rc1->get<Str>(new Int(13))->type());
-    TEST_ASSERT_EQUAL(NOOBJ, rc1->get<Str>(new Str("no key"))->type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Int(13))->type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Str("no key"))->type());
     TEST_ASSERT_FALSE(rc1->get<Bool>(new Uri("actor@127.0.0.1"))->value());
     delete rc1;
     ///////////////////////////////////
     const Rec *rc2 = parser->parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]"))->cast<Rec>();
-    TEST_ASSERT_EQUAL(REC, rc2->type());
+    TEST_ASSERT_EQUAL(OType::REC, rc2->type());
     TEST_ASSERT_EQUAL_INT(13, (rc2->get<Int>(new Str("a")))->value());
-    TEST_ASSERT_EQUAL(NOOBJ, rc2->get<Str>(new Int(13))->type());
-    TEST_ASSERT_EQUAL(NOOBJ, rc2->get<Str>(new Str("no key"))->type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(new Int(13))->type());
+    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(new Str("no key"))->type());
     const Rec *rc3 = rc2->get<Rec>(new Uri("actor@127.0.0.1"));
-    TEST_ASSERT_EQUAL(REC, rc3->type());
+    TEST_ASSERT_EQUAL(OType::REC, rc3->type());
     TEST_ASSERT_EQUAL_INT(1, (rc3->get<Int>(new Str("b")))->value());
     TEST_ASSERT_EQUAL_INT(3, (rc3->get<Int>(new Str("c")))->value());
     // TODO: strip ansi TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",rc2->toString().c_str());

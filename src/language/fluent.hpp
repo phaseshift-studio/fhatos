@@ -19,28 +19,28 @@ namespace fhatos {
     S_E(OType type, Obj *obj) : type(type), obj(obj) {
     }
 
-    S_E(fURI furiX): type(URI), obj(new Uri(furiX)) {
+    S_E(fURI furiX): type(OType::URI), obj(new Uri(furiX)) {
     };
 
-    S_E(NoObj *noobj): type(NOOBJ), obj(noobj) {
+    S_E(NoObj *noobj): type(OType::NOOBJ), obj(noobj) {
     };
 
-    S_E(bool boolX): type(BOOL), obj(new Bool(boolX)) {
+    S_E(bool boolX): type(OType::BOOL), obj(new Bool(boolX)) {
     };
 
-    S_E(int intX): type(INT), obj(new Int(intX)) {
+    S_E(int intX): type(OType::INT), obj(new Int(intX)) {
     };
 
-    S_E(float realX): type(REAL), obj(new Real(realX)) {
+    S_E(float realX): type(OType::REAL), obj(new Real(realX)) {
     }
 
-    S_E(string strX): type(STR), obj(new Str(strX)) {
+    S_E(string strX): type(OType::STR), obj(new Str(strX)) {
     };
 
-    S_E(RecMap<Obj *, Obj *> *recX): type(REC), obj(new Rec(recX)) {
+    S_E(RecMap<Obj *, Obj *> *recX): type(OType::REC), obj(new Rec(recX)) {
     };
 
-    S_E(const std::initializer_list<Pair<S_E const, S_E> > &init) : type(REC),
+    S_E(const std::initializer_list<Pair<S_E const, S_E> > &init) : type(OType::REC),
                                                                     obj(new Rec(new RecMap<Obj *, Obj *>())) {
       for (auto iter = rbegin(init); iter != rend(init); ++iter) {
         ((Rec *) this->obj)->value()->insert({iter->first.obj, iter->second.obj});
@@ -49,7 +49,7 @@ namespace fhatos {
       LOG(INFO, "size => %i\n", ((Rec*)this->obj)->value()->size());
     };
 
-    S_E(Bytecode *bcodeX): type(BYTECODE), obj(bcodeX) {
+    S_E(Bytecode *bcodeX): type(OType::BYTECODE), obj(bcodeX) {
     };
 
     bool isNoObj() const {
@@ -65,6 +65,16 @@ namespace fhatos {
       return "S=>E[" + this->obj->toString() + "]";
     }
   };
+
+  class S_E_BOOL final : public S_E {
+  public:
+    S_E_BOOL(Bytecode *bcodeX): S_E(bcodeX) {
+    };
+
+    S_E_BOOL(bool boolX): S_E(boolX) {
+    };
+  };
+
 
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
@@ -121,7 +131,11 @@ namespace fhatos {
       return *(new S_E(new Bytecode(this->bcode.get()->value())));
     }
 
-    Fluent<S, E> start(const List<ptr<S_E>> starts) const {
+    operator const BOOL_BYTECODE &() const {
+      return *new BOOL_BYTECODE(new Bytecode(this->bcode.get()->value()));
+    }
+
+    Fluent<S, E> start(const List<ptr<S_E> > starts) const {
       List<E *> *castStarts = new List<E *>();
       for (auto se: starts) {
         castStarts->push_back((E *) se->obj);
@@ -153,8 +167,8 @@ namespace fhatos {
       return this->addInst<Bool>((Inst *) new EqInst<E>(se.cast<E>()));
     }
 
-    Fluent<S, E> is(const S_E &se) {
-      return this->addInst<E>((Inst *) new IsInst<E>(se.cast<E>()));
+    Fluent<S, E> is(const BOOL_BYTECODE &se) {
+      return this->addInst<E>((Inst *) new IsInst<E>(se));
     }
 
     template<typename _PAYLOAD>

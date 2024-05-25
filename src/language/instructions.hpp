@@ -71,11 +71,11 @@ namespace fhatos {
   template<typename E>
   class IsInst final : public Inst {
   public:
-    explicit IsInst(const E *obj)
+    explicit IsInst(const BOOL_BYTECODE obj)
       : Inst({
-        "is", cast({obj}),
+        "is", cast({obj.cast<Obj>()}),
         [this](Obj *b) {
-          return ((Bool *) this->arg<Obj>(0)->apply(b))->value() ? b : (Obj*)NoObj::singleton();
+          return (this->arg<BOOL_BYTECODE>(0)->apply(b)->value()) ? b : (Obj *) NoObj::singleton();
         }
       }) {
     }
@@ -103,7 +103,7 @@ namespace fhatos {
       : Inst({
         "plus", cast({a}),
         [this](const Obj *b) {
-          return (E *) ALGEBRA::singleton()->plus((E *) this->arg<E>(0)->apply(b), (E *) b);
+          return (E *) ALGEBRA::singleton()->plus(const_cast<E *>(this->arg<E>(0)->apply(b)), (E *) b);
         }
       }) {
     }
@@ -127,7 +127,7 @@ namespace fhatos {
   template<typename _URI, typename _PAYLOAD>
   class PublishInst final : public Inst {
   public:
-    explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID context = ID("anonymous")) : Inst({
+    explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID &context = ID("anonymous")) : Inst({
       "<=", cast({(Obj *) uri, (Obj *) payload}),
       [this,context](const Obj *incoming) {
         const ID target = ID(((Uri *) (this->arg<Obj>(0)->apply(incoming)))->value());

@@ -16,7 +16,7 @@ void test_bool() {
     }
 bool flip = i % 2 == 0;
     BinaryObj<> m =  flip ? BinaryObj<>(flip) : BinaryObj<>::interpret(flip ? "true" : "false");
-    TEST_ASSERT_EQUAL(BOOL, m.type());
+    TEST_ASSERT_EQUAL(OType::BOOL, m.type());
 	if (flip) {
       TEST_ASSERT_TRUE(m.toBool().value());
       TEST_ASSERT_EQUAL(m.data()[0], 'T');
@@ -38,7 +38,7 @@ void test_int() {
     }
 	bool flip = (i % 2) == 0;
  BinaryObj<> m = flip ? BinaryObj<>(i) : BinaryObj<>::interpret(std::to_string(i));
-    TEST_ASSERT_EQUAL(INT, m.type());
+    TEST_ASSERT_EQUAL(OType::INT, m.type());
     TEST_ASSERT_EQUAL(i, m.toInt().value());
     TEST_ASSERT_EQUAL(m.length(), strlen((const char *)m.data()));
 	TEST_ASSERT_EQUAL_STRING(m.toString().c_str(), m.toStr().toString().c_str());
@@ -56,7 +56,7 @@ void test_real() {
     }
 	bool flip = i > 0.0f;
     BinaryObj<> m = flip ? BinaryObj<>(i): BinaryObj<>::interpret(std::to_string(i) + "f");
-    TEST_ASSERT_EQUAL(REAL, m.type());
+    TEST_ASSERT_EQUAL(OType::REAL, m.type());
    TEST_ASSERT_FLOAT_WITHIN(0.1f, i, m.toReal().value());
     TEST_ASSERT_EQUAL(m.length(), strlen((const char *)m.data()));
     TEST_ASSERT_EQUAL_STRING(m.toString().c_str(), m.toStr().toString().c_str());
@@ -68,7 +68,7 @@ void test_real() {
  ////////////////////////////// STR ///////////////////////////////////
 void test_str() {
  BinaryObj<> m =  BinaryObj<>("fhatty");
-  TEST_ASSERT_EQUAL(STR, m.type());
+  TEST_ASSERT_EQUAL(OType::STR, m.type());
   TEST_ASSERT_EQUAL_STRING("fhatty", m.toStr().toString().c_str());
   TEST_ASSERT_EQUAL_STRING("fhatty", (const char *)m.data());
   TEST_ASSERT_EQUAL(6, m.length());

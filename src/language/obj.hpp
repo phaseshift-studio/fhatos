@@ -13,22 +13,24 @@
 
 
 namespace fhatos {
-  enum OType { NOOBJ = 0, URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
+  enum class OType : uint8_t { NOOBJ = 0, URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
   enum AType { MONOID, SEMIRING, GROUP, RING, FIELD };
 
   static const Map<OType, string> OTYPE_STR = {
     {
-      {NOOBJ, "noobj"},
-      {OBJ, "obj"},
-      {URI, "uri"},
-      {BOOL, "bool"},
-      {INT, "int"},
-      {REAL, "real"},
-      {STR, "str"},
-      {LST, "lst"},
-      {REC, "rec"},
-      {BYTECODE, "bcode"}
+      {OType::NOOBJ, "noobj"},
+      {OType::OBJ, "obj"},
+      {OType::URI, "uri"},
+      {OType::BOOL, "bool"},
+      {OType::INT, "int"},
+      {OType::REAL, "real"},
+      {OType::STR, "str"},
+      {OType::LST, "lst"},
+      {OType::REC, "rec"},
+      {OType::INST, "inst"},
+      {OType::BYTECODE, "bcode"}
     }
+
   };
 
   using UType = string;
@@ -66,7 +68,7 @@ namespace fhatos {
     }
 
     bool isNoObj() const {
-      return this->type() == NOOBJ;
+      return this->type() == OType::NOOBJ;
     }
   };
 
@@ -77,7 +79,7 @@ namespace fhatos {
       return &no;
     }
 
-    NoObj() : Obj(NOOBJ) {
+    NoObj() : Obj(OType::NOOBJ) {
     }
 
     const NoObj *apply(const Obj *obj) const override {
@@ -97,7 +99,7 @@ namespace fhatos {
   public:
     using ptr = std::shared_ptr<Uri>;
 
-    Uri(const fURI value) : Obj(URI), _value(value) {
+    Uri(const fURI value) : Obj(OType::URI), _value(value) {
     }
 
     Uri(const string &value) : Uri(fURI(value)) {
@@ -120,7 +122,7 @@ namespace fhatos {
     const bool _value;
 
   public:
-    Bool(const bool value) : Obj(BOOL), _value(value) {
+    Bool(const bool value) : Obj(OType::BOOL), _value(value) {
     }
 
     const bool value() const { return this->_value; }
@@ -140,7 +142,7 @@ namespace fhatos {
     const FL_INT_TYPE _value;
 
   public:
-    Int(const FL_INT_TYPE value) : Obj(INT), _value(value) {
+    Int(const FL_INT_TYPE value) : Obj(OType::INT), _value(value) {
     }
 
     const FL_INT_TYPE value() const { return this->_value; }
@@ -158,7 +160,7 @@ namespace fhatos {
     const FL_REAL_TYPE _value;
 
   public:
-    Real(const FL_REAL_TYPE value) : Obj(REAL), _value(value) {
+    Real(const FL_REAL_TYPE value) : Obj(OType::REAL), _value(value) {
     };
     const FL_REAL_TYPE value() const { return this->_value; }
 
@@ -175,7 +177,7 @@ namespace fhatos {
     const string _value;
 
   public:
-    Str(const string &value) : Obj(STR), _value(value) {
+    Str(const string &value) : Obj(OType::STR), _value(value) {
     };
     const string value() const { return this->_value; }
 
@@ -200,7 +202,7 @@ namespace fhatos {
     const List<Obj> _value;
 
   public:
-    Lst(const List<Obj> &value) : Obj(LST), _value(value) {
+    Lst(const List<Obj> &value) : Obj(OType::LST), _value(value) {
     };
     const List<Obj> value() const { return _value; }
 
@@ -221,7 +223,7 @@ namespace fhatos {
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
   struct obj_hash {
     size_t operator()(const Obj *obj) const {
-      return obj->type() * obj->toString().length() * obj->toString()[0];
+      return static_cast<std::string::value_type>(obj->type()) * obj->toString().length() * obj->toString()[0];
     }
   };
 
@@ -239,7 +241,7 @@ namespace fhatos {
     RecMap<Obj *, Obj *> *_value;
 
   public:
-    Rec(RecMap<Obj *, Obj *> *value) : Obj(REC), _value(value) {
+    Rec(RecMap<Obj *, Obj *> *value) : Obj(OType::REC), _value(value) {
     };
 
     template<typename V>
@@ -282,7 +284,7 @@ namespace fhatos {
 
   public:
     explicit Inst(const Triple<const string, const InstArgs, const InstFunction> &value)
-      : Obj(INST), _value(value) {
+      : Obj(OType::INST), _value(value) {
     }
 
     virtual Triple<const string, const InstArgs, const InstFunction> value() const {
@@ -290,7 +292,7 @@ namespace fhatos {
     }
 
     const Obj *apply(const Obj *obj) const override {
-      return this->func()((Obj *) obj);
+      return this->func()(const_cast<Obj *>(obj));
     }
 
     InstStorage *getOutput() {
@@ -303,7 +305,7 @@ namespace fhatos {
           if (input.empty())
             return nullptr;
           else {
-            output.push_back((Obj *) (this->apply(input.back())));
+            output.push_back(const_cast<Obj *>(this->apply(input.back())));
             input.pop_back();
           }
         } else {
@@ -328,7 +330,7 @@ namespace fhatos {
     virtual const InstArgs args() const { return std::get<1>(this->_value); }
 
     template<typename A>
-    A *arg(const uint8_t index) const { return (A *) this->args()[index]; }
+    A *arg(const uint8_t index) const { return static_cast<A *>(this->args()[index]); }
 
     virtual const InstFunction func() const {
       return std::get<2>(this->_value);
@@ -343,7 +345,8 @@ namespace fhatos {
   public:
     const ID context;
 
-    explicit Bytecode(const List<Inst *> *list, const ID context = ID("anonymous")) : Obj(BYTECODE), _value(list),
+    explicit Bytecode(const List<Inst *> *list, const ID context = ID("anonymous")) : Obj(OType::BYTECODE),
+      _value(list),
       context(context) {
     }
 
@@ -354,7 +357,7 @@ namespace fhatos {
     }
 
     const Obj *apply(const Obj *obj) const override {
-      Obj *running = (Obj *) obj;
+      Obj *running = const_cast<Obj *>(obj);
       for (const Inst *inst: *this->_value) {
         running = inst->func()(running);
         if (running->isNoObj())
@@ -365,15 +368,15 @@ namespace fhatos {
 
     const List<Inst *> *value() const { return this->_value; }
 
-     ptr<Bytecode> addInst(const char *op, const List<Obj *> &args,
-                      const Function<Obj *, Obj *> &function) const {
+    ptr<Bytecode> addInst(const char *op, const List<Obj *> &args,
+                          const Function<Obj *, Obj *> &function) const {
       return this->addInst(new Inst({string(op), args, function}));
     }
 
-   ptr<Bytecode> addInst(Inst *inst) const {
+    ptr<Bytecode> addInst(Inst *inst) const {
       List<Inst *> *list = new List<Inst *>();
-      for (Inst *i: *this->_value) {
-        list->push_back((Inst *) i);
+      for (auto i: *this->_value) {
+        list->push_back(i);
       }
       list->push_back(inst);
       return share<Bytecode>(Bytecode(list, this->context));
@@ -392,10 +395,41 @@ namespace fhatos {
 
     const string toString() const override {
       string s = "{";
-      for (auto *inst: *this->_value) {
+      for (const auto *inst: *this->_value) {
         s = s + inst->toString();
       }
       return s + "}";
+    }
+  };
+
+  /////////////////////////////////////////// UNIONS ///////////////////////////////////////////
+  struct BOOL_BYTECODE : public Obj {
+    union B_OR_B {
+      const Bool *boolA;
+      const Bytecode *bcodeB;
+    };
+
+    B_OR_B data;
+
+    bool isBytecode() const {
+      return this->_type == OType::BYTECODE;
+    }
+
+    BOOL_BYTECODE(Bool *boolA) : Obj(OType::BOOL) {
+      this->data = B_OR_B{.boolA = boolA};
+    }
+
+    BOOL_BYTECODE(Bytecode *bcodeB) : Obj(OType::BYTECODE) {
+      this->data = B_OR_B{.bcodeB = bcodeB};
+    }
+
+    template<typename T>
+    const T *cast() const {
+      return (T *) (this->isBytecode() ? (T *) data.bcodeB : (T *) data.boolA);
+    }
+
+    const Bool *apply(const Obj *input) const {
+      return (this->isBytecode() ? (Bool *) data.bcodeB->apply(input) : (Bool *) data.boolA);
     }
   };
 } // namespace fhatos

@@ -12,8 +12,8 @@ namespace fhatos {
 
   class Parser {
   protected:
-    OType domain = OBJ;
-    OType range = OBJ;
+    OType domain = OType::OBJ;
+    OType range = OType::OBJ;
     const ID context;
 
   public:
@@ -36,26 +36,26 @@ namespace fhatos {
 
     template<typename S, typename E>
     ptr<Bytecode> parseBytecode(stringstream *ss) {
-      Fluent<S, E>* fluent = new Fluent<S, E>(this->context);
+      Fluent<S, E> *fluent = new Fluent<S, E>(this->context);
       while (!ss->eof()) {
         const ptr<string> opcode = this->parseOpcode(ss);
-        const ptr<List<ptr<S_E>> > args = this->parseArgs<S, E>(ss);
+        const ptr<List<ptr<S_E> > > args = this->parseArgs<S, E>(ss);
 
         if (*opcode == "plus") {
           range = domain;
-          fluent = new Fluent<S,E>(fluent->plus(*args->at(0)).bcode);
+          fluent = new Fluent<S, E>(fluent->plus(*args->at(0)).bcode);
         } else if (*opcode == "mult") {
           range = domain;
-          fluent = new Fluent<S,E>(fluent->mult(*args->at(0)).bcode);
+          fluent = new Fluent<S, E>(fluent->mult(*args->at(0)).bcode);
         } else if (*opcode == "start") {
-          range = args->size() > 0 ? args->at(0)->type : OBJ;
-          fluent = new Fluent<S,E>(fluent->start(*args).bcode);
+          range = args->size() > 0 ? args->at(0)->type : OType::OBJ;
+          fluent = new Fluent<S, E>(fluent->start(*args).bcode);
         } else if (*opcode == "<=") {
-          range = URI;
-          fluent = new Fluent<S,E>(fluent->template publish<Obj>(*args->at(0), *args->at(1)).bcode);
+          range = OType::URI;
+          fluent = new Fluent<S, E>(fluent->template publish<Obj>(*args->at(0), *args->at(1)).bcode);
         } else if (*opcode == "=>") {
-          range = URI;
-          fluent = new Fluent<S,E>(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
+          range = OType::URI;
+          fluent = new Fluent<S, E>(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());
@@ -66,7 +66,7 @@ namespace fhatos {
             OTYPE_STR.at(range).c_str());
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
         domain = range;
-        range = OBJ;
+        range = OType::OBJ;
       }
 
       //delete fluent;
@@ -91,8 +91,8 @@ namespace fhatos {
     }
 
     template<typename S, typename E>
-    ptr<List<ptr<S_E>> > parseArgs(stringstream *ss) {
-      auto args = share(List<ptr<S_E>>());
+    ptr<List<ptr<S_E> > > parseArgs(stringstream *ss) {
+      auto args = share(List<ptr<S_E> >());
       while (std::isspace(ss->peek())) {
         ss->get();
       }
@@ -101,7 +101,8 @@ namespace fhatos {
       while (!ss->eof()) {
         ptr<S_E> argObj = this->parseArg<S, E>(ss);
         args->push_back(argObj);
-        LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(), OTYPE_STR.at(argObj->type).c_str());
+        LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
+            OTYPE_STR.at(argObj->type).c_str());
         if (ss->peek() == ',' || ss->peek() == '.' || ss->peek() == ')') {
           ss->get();
           break;
@@ -151,7 +152,7 @@ namespace fhatos {
         se = share<S_E>(S_E(this->parseBytecode<S, E>(ss).get()));
         domain = tdomain;
         range = trange;
-       // delete ss;
+        // delete ss;
       } else if (token[0] == '[' && token[token.length() - 1] == ']') {
         RecMap<Obj *, Obj *> map = RecMap<Obj *, Obj *>();
         stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
