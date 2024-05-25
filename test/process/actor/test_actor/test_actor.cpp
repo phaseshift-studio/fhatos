@@ -190,7 +190,7 @@ namespace fhatos {
   template<typename ROUTER>
   void test_actor_serialization() {
     Actor<Thread, ROUTER> *actor = new Actor<Thread, ROUTER>("abc");
-    const Pair<byte *, uint> buffer = actor->serialize();
+    const Pair<fbyte *, uint> buffer = actor->serialize();
     Actor<Thread, ROUTER> *clone =
         Actor<Thread, ROUTER>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(actor->id(), clone->id());
