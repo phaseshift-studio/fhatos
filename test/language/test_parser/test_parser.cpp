@@ -68,7 +68,7 @@ namespace fhatos {
     Parser *parser = new Parser();
     // LST
     // REC
-    const Rec *rc1 = parser->parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
+    const Rec* rc1 = parser->parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
     TEST_ASSERT_EQUAL(REC, rc1->type());
     TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(new Str("a")))->value());
     TEST_ASSERT_EQUAL(NOOBJ, rc1->get<Str>(new Int(13))->type());

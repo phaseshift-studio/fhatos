@@ -103,6 +103,11 @@ namespace fhatos {
   template<typename A>
   using ptr = std::shared_ptr<A>;
 
+  template<typename A>
+  ptr<A> share(const A a) {
+    return std::make_shared<A>(a);
+  }
+
   using string = std::string;
   using fbyte = uint8_t;
   using uint = unsigned int;

@@ -42,12 +42,12 @@ namespace fhatos {
   template<typename S, typename E, typename MONAD = Monad<Obj> >
   class Processor {
   protected:
-    const Bytecode *bcode;
+    const ptr<Bytecode> bcode;
     List<const E *> output;
     bool done = false;
 
   public:
-    explicit Processor(const Bytecode *bcode) : bcode(bcode) {
+    explicit Processor(const ptr<Bytecode> bcode) : bcode(bcode) {
     }
 
     void forEach(const Consumer<const E *> &consumer) {

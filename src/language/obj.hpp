@@ -31,6 +31,8 @@ namespace fhatos {
     }
   };
 
+  using UType = string;
+
   class Obj {
   protected:
     OType _type;
@@ -42,6 +44,7 @@ namespace fhatos {
     }
 
     virtual OType type() const { return _type; }
+    virtual UType utype() const { return OTYPE_STR.at(_type); }
 
     virtual const string toString() const {
       return "obj";
@@ -117,8 +120,6 @@ namespace fhatos {
     const bool _value;
 
   public:
-    using ptr = std::shared_ptr<Bool>;
-
     Bool(const bool value) : Obj(BOOL), _value(value) {
     }
 
@@ -139,8 +140,6 @@ namespace fhatos {
     const FL_INT_TYPE _value;
 
   public:
-    using ptr = std::shared_ptr<Int>;
-
     Int(const FL_INT_TYPE value) : Obj(INT), _value(value) {
     }
 
@@ -317,7 +316,7 @@ namespace fhatos {
 
     const string toString() const override {
       string t = "[!b" + this->opcode() + "!! ";
-      for (const auto *arg: this->args()) {
+      for (const auto arg: this->args()) {
         t = t + arg->toString() + ",";
       }
       t[t.length() - 1] = ']';
@@ -342,7 +341,6 @@ namespace fhatos {
     const List<Inst *> *_value;
 
   public:
-    using ptr = std::shared_ptr<Bytecode>;
     const ID context;
 
     explicit Bytecode(const List<Inst *> *list, const ID context = ID("anonymous")) : Obj(BYTECODE), _value(list),
@@ -367,19 +365,18 @@ namespace fhatos {
 
     const List<Inst *> *value() const { return this->_value; }
 
-    Bytecode *addInst(const char *op, const List<Obj *> &args,
+     ptr<Bytecode> addInst(const char *op, const List<Obj *> &args,
                       const Function<Obj *, Obj *> &function) const {
       return this->addInst(new Inst({string(op), args, function}));
     }
 
-    Bytecode *addInst(Inst *inst) const {
+   ptr<Bytecode> addInst(Inst *inst) const {
       List<Inst *> *list = new List<Inst *>();
       for (Inst *i: *this->_value) {
         list->push_back((Inst *) i);
       }
       list->push_back(inst);
-      return new Bytecode(list, this->context); //auto ret = std::make_shared<Bytecode<S, E2>>(
-      //return ret;
+      return share<Bytecode>(Bytecode(list, this->context));
     }
 
     Inst *startInst() const {

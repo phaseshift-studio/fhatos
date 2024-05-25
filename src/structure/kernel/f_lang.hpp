@@ -24,10 +24,20 @@ namespace fhatos {
       Actor<PROCESS, ROUTER>::setup();
       this->subscribe(this->id().extend("parse"), [this](const Message &message) {
         Parser p = Parser(message.source);
-        Bytecode *bcode = p.parse<Obj, Obj>(message.payload->toStr().toString().c_str());
+        ptr<Bytecode> bcode = p.parse<Obj, Obj>(message.payload->toStr().toString().c_str());
         LOG_TASK(INFO, this, "%s\n", bcode->toString().c_str());
         this->publish(ID(message.source), BinaryObj<>::fromObj(new Str(bcode->toString())),RETAIN_MESSAGE);
       });
+      /*this->onQuery(this->id().extend("types"), {
+                      {
+                        "?nat", [](Message m) {
+                        }
+                      },
+                      {
+                        "?person", [](Message m) {
+                        }
+                      }
+                    });*/
     }
 
   protected:
