@@ -5,27 +5,26 @@
 //
 #include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
-#include <process/router/meta_router.hpp>
-#include <process/router/mqtt_router.hpp>
 #include <language/binary_obj.hpp>
 
 namespace fhatos {
 
-void test_subscribe() {}
+  void test_subscribe() {
+  }
 
-void test_publish() {
-  TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS,
-                    LocalRouter<>::singleton()->publish(Message{
+  void test_publish() {
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS,
+                      LocalRouter<>::singleton()->publish(Message{
                         .source = ID("a"),
                         .target = ID("b"),
-                        .payload = new BinaryObj<>{ STR,  (byte *)"test", 4},
+                        .payload = new BinaryObj<>{ STR, (fbyte *)"test", 4},
                         .retain = TRANSIENT_MESSAGE}));
-};
+  };
 
-FOS_RUN_TESTS(                  //
-    LocalRouter<>::singleton(); //
-    FOS_RUN_TEST(test_publish); //
-);
+  FOS_RUN_TESTS( //
+      LocalRouter<>::singleton(); //
+      FOS_RUN_TEST(test_publish); //
+      );
 
 } // namespace fhatos::kernel
 
