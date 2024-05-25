@@ -71,11 +71,11 @@ namespace fhatos {
   template<typename E>
   class IsInst final : public Inst {
   public:
-    explicit IsInst(const BOOL_BYTECODE obj)
+    explicit IsInst(const BOOL_OR_BYTECODE obj)
       : Inst({
         "is", cast({obj.cast<Obj>()}),
         [this](Obj *b) {
-          return (this->arg<BOOL_BYTECODE>(0)->apply(b)->value()) ? b : (Obj *) NoObj::singleton();
+          return (this->arg<BOOL_OR_BYTECODE>(0)->apply(b)->value()) ? b : (Obj *) NoObj::singleton();
         }
       }) {
     }
@@ -99,11 +99,11 @@ namespace fhatos {
   template<typename E, typename ALGEBRA = Algebra>
   class PlusInst final : public Inst {
   public:
-    explicit PlusInst(const E *a)
+    explicit PlusInst(const OBJ_OR_BYTECODE<E> obj)
       : Inst({
-        "plus", cast({a}),
+        "plus", cast({obj.template cast<Obj>()}),
         [this](const Obj *b) {
-          return (E *) ALGEBRA::singleton()->plus(const_cast<E *>(this->arg<E>(0)->apply(b)), (E *) b);
+          return (E *) ALGEBRA::singleton()->plus(const_cast<E *>(this->arg<OBJ_OR_BYTECODE<E>>(0)->apply(b)), (E *) b);
         }
       }) {
     }

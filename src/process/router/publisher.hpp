@@ -67,6 +67,21 @@ namespace fhatos {
       return this;
     }
 
+    Publisher<ROUTER> *onQuery(const Pattern &queryPattern,
+                               const Map<string, Obj> &mapping) {
+      Map<string, BiConsumer<SourceID, TargetID> > map;
+      for (const auto pair: mapping) {
+        map.insert({
+          {
+            pair.first, [this,pair](const SourceID source, const TargetID target) {
+              this->publish(target, BinaryObj<>::fromObj(&pair.second),RETAIN_MESSAGE);
+            }
+          }
+        });
+      }
+      return this->onQuery(queryPattern, map);
+    }
+
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
       return ROUTER::singleton()->unsubscribe(this->ided->id(),

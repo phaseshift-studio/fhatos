@@ -41,9 +41,16 @@ namespace fhatos {
         const ptr<string> opcode = this->parseOpcode(ss);
         const ptr<List<ptr<S_E> > > args = this->parseArgs<S, E>(ss);
 
-        if (*opcode == "plus") {
+        if (*opcode == "is") {
           range = domain;
-          fluent = new Fluent<S, E>(fluent->plus(*args->at(0)).bcode);
+          fluent = new Fluent<S, E>(fluent->is(((args->at(0)->type == OType::BYTECODE)
+                                                 ? BOOL_OR_BYTECODE((Bytecode *) (args->at(0).get()->obj))
+                                                 : BOOL_OR_BYTECODE((Bool *) (args->at(0).get()->obj)))));
+        } else if (*opcode == "plus") {
+          range = domain;
+          fluent = new Fluent<S, E>(fluent->plus((OBJ_OR_BYTECODE<E>)((args->at(0)->type == OType::BYTECODE)
+                                                 ? OBJ_OR_BYTECODE<E>((Bytecode *) (args->at(0).get()->obj))
+                                                 : OBJ_OR_BYTECODE<E>((E*)args->at(0).get()->obj))));
         } else if (*opcode == "mult") {
           range = domain;
           fluent = new Fluent<S, E>(fluent->mult(*args->at(0)).bcode);

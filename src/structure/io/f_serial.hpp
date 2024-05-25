@@ -20,7 +20,7 @@ public:
     ROUTER::singleton()->publish(
         Message{.source = "anonymous",
                 .target = fSerial::singleton()->id(),
-                .payload = {.type = STR,
+                .payload = {.type = OType::STR,
                             .data = (fbyte *)(String(text) + "\n").c_str(),
                             .length = strlen(text) + 1},
                 .retain = false});

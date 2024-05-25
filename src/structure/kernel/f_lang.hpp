@@ -28,16 +28,12 @@ namespace fhatos {
         LOG_TASK(INFO, this, "%s\n", bcode->toString().c_str());
         this->publish(ID(message.source), BinaryObj<>::fromObj(new Str(bcode->toString())),RETAIN_MESSAGE);
       });
-      /*this->onQuery(this->id().extend("types"), {
-                      {
-                        "?nat", [](Message m) {
-                        }
-                      },
-                      {
-                        "?person", [](Message m) {
-                        }
-                      }
-                    });*/
+      this->onQuery(this->id().extend("types").query("?"), Map<string,Obj>{
+                      {"?bool", Str("bool<=bool")},
+                      {"?int", Str("int<=int")},
+                      {"?str", Str("str<=str")},
+                      {"?lst", Str("lst<=lst")}
+                    });
     }
 
   protected:

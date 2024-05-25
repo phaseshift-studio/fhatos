@@ -131,8 +131,16 @@ namespace fhatos {
       return *(new S_E(new Bytecode(this->bcode.get()->value())));
     }
 
-    operator const BOOL_BYTECODE &() const {
-      return *new BOOL_BYTECODE(new Bytecode(this->bcode.get()->value()));
+    operator const BOOL_OR_BYTECODE &() const {
+      return *new BOOL_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
+    }
+
+    operator const OBJ_OR_BYTECODE<Int> &() const {
+      return *new INT_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
+    }
+
+    operator const INT_OR_BYTECODE &() const {
+      return *new INT_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
     }
 
     Fluent<S, E> start(const List<ptr<S_E> > starts) const {
@@ -151,8 +159,8 @@ namespace fhatos {
       return this->template addInst<E>(new StartInst<E>(castStarts));
     }
 
-    Fluent<S, E> plus(const S_E &e) const {
-      return this->addInst<E>((Inst *) new PlusInst<E, ALGEBRA>(e.cast<E>()));
+    Fluent<S, E> plus(const OBJ_OR_BYTECODE<E> &e) const {
+      return this->template addInst<E>(new PlusInst<E, ALGEBRA>(e));
     }
 
     Fluent<S, E> mult(const S_E &e) const {
@@ -167,8 +175,8 @@ namespace fhatos {
       return this->addInst<Bool>((Inst *) new EqInst<E>(se.cast<E>()));
     }
 
-    Fluent<S, E> is(const BOOL_BYTECODE &se) {
-      return this->addInst<E>((Inst *) new IsInst<E>(se));
+    Fluent<S, E> is(const BOOL_OR_BYTECODE &se) {
+      return this->template addInst<E>(new IsInst<E>(se));
     }
 
     template<typename _PAYLOAD>
