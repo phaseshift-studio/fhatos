@@ -104,7 +104,7 @@ namespace fhatos {
   using ptr = std::shared_ptr<A>;
 
   using string = std::string;
-  using byte = uint8_t;
+  using fbyte = uint8_t;
   using uint = unsigned int;
 
 

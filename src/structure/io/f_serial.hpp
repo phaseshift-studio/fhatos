@@ -21,7 +21,7 @@ public:
         Message{.source = "anonymous",
                 .target = fSerial::singleton()->id(),
                 .payload = {.type = STR,
-                            .data = (byte *)(String(text) + "\n").c_str(),
+                            .data = (fbyte *)(String(text) + "\n").c_str(),
                             .length = strlen(text) + 1},
                 .retain = false});
   }

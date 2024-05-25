@@ -35,7 +35,7 @@ namespace fhatos {
       this->xmqtt->setSocketTimeout(1000); // may be too excessive
       this->xmqtt->setKeepAlive(1000); // may be too excessive
       this->xmqtt->setCallback(
-        [this](const char *target, const byte *payload, const int length) {
+        [this](const char *target, const fbyte *payload, const int length) {
           ((char *) payload)[length] = '\0';
           const ID targetId = ID(target);
           _SUBSCRIPTIONS.forEach([targetId, payload,
@@ -48,7 +48,7 @@ namespace fhatos {
                   .target = targetId,
                   .payload = {
                     .type = (OType) doc["type"].as<uint>(),
-                    .data = (const byte *) strdup(
+                    .data = (const fbyte *) strdup(
                       doc["data"].as<const char *>()),
                     .length = doc["length"].as<uint>()
                   },
@@ -224,7 +224,7 @@ namespace fhatos {
           char buffer[512];
           const uint length = serializeJson(doc, buffer);
           if (!this->xmqtt->publish(m->target.toString().c_str(),
-                                    (const byte *) buffer, length, m->retain)) {
+                                    (const fbyte *) buffer, length, m->retain)) {
             LOG(ERROR, "%s=!mpublish[retain:%s]!!=> [!B%s!!] (!R%s!!)\n", buffer,
                 FOS_BOOL_STR(m->retain), m->target.toString().c_str(),
                 MQTT_STATE_CODES.at(this->xmqtt->getWriteError()).c_str());

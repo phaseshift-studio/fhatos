@@ -84,6 +84,10 @@ namespace fhatos {
       return this->output;
     }
 
+    int iterate() {
+      return this->toList().size();
+    }
+
     bool hasNext() {
       return !this->toList().empty();
     }
@@ -94,6 +98,16 @@ namespace fhatos {
       const E *e = this->toList().front();
       this->toList().pop_front();
       return e;
+    }
+
+    /////////////
+    template<typename T>
+    static Consumer<T> bytecodeConsumer(const Bytecode *bytecode) {
+      return [bytecode](const T &s) {
+        bytecode->addStarts({s});
+        Processor proc = Processor<S, Obj>(bytecode);
+        LOG(DEBUG, "Processor iterated %i monads", proc.iterate());
+      };
     }
   };
 } // namespace fhatos

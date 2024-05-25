@@ -4,7 +4,7 @@
 #include <fhatos.hpp>
 ////
 #include FOS_UTIL(mutex.hpp)
-using namespace std;
+//using namespace std;
 
 namespace fhatos {
   template<typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
@@ -17,14 +17,14 @@ namespace fhatos {
   public:
     template<typename A>
     ptr<A> write(const Supplier<ptr<A> > &supplier) {
-      Pair<RESPONSE_CODE, ptr<A> > result = make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
+      Pair<RESPONSE_CODE, ptr<A> > result = std::make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
       while (result.first == MUTEX_LOCKOUT) {
         result = _READER_LOCK.template lockUnlock<Pair<RESPONSE_CODE, ptr<A> > >(
           [this,supplier]() {
             if (_WRITER_LOCK)
-              return make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
+              return std::make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
             else {
-              return make_pair<RESPONSE_CODE, ptr<A> >(OK, supplier());
+              return std::make_pair<RESPONSE_CODE, ptr<A> >(OK, supplier());
             }
           });
       }

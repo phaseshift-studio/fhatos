@@ -115,7 +115,7 @@ namespace fhatos {
             });
           }
           LOG_SUBSCRIBE(_rc, subscription);
-          return make_shared<RESPONSE_CODE>(_rc);
+          return std::make_shared<RESPONSE_CODE>(_rc);
         });
       } catch (const fError &e) {
         LOG_EXCEPTION(e);
@@ -144,7 +144,7 @@ namespace fhatos {
                                                    (nullptr == pattern || sub.pattern.equals(*pattern));
                                           }), SUBSCRIPTIONS.end());
             //LOG(INFO, "!bSIZE: %i --> %i \n", SUBSCRIPTIONS.size(), size);
-            const auto _rc2 = make_shared<RESPONSE_CODE>((SUBSCRIPTIONS.size() < size)
+            const auto _rc2 =std::make_shared<RESPONSE_CODE>((SUBSCRIPTIONS.size() < size)
                                                            ? OK
                                                            : NO_SUBSCRIPTION);
             LOG_UNSUBSCRIBE(*_rc2, source, pattern);
@@ -152,7 +152,7 @@ namespace fhatos {
           });
       } catch (const fError &e) {
         LOG_EXCEPTION(e);
-        return make_shared<RESPONSE_CODE>(MUTEX_TIMEOUT);
+        return std::make_shared<RESPONSE_CODE>(MUTEX_TIMEOUT);
       }
     }
   };

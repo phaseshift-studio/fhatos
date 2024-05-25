@@ -47,13 +47,13 @@ namespace fhatos {
       return s;
     }
 
-    Pair<byte *, uint> serialize() const {
-      byte *bytes = static_cast<byte *>(malloc(sizeof(*this)));
-      memcpy(bytes, reinterpret_cast<const byte *>(this), sizeof(*this));
+    Pair<fbyte *, uint> serialize() const {
+      fbyte *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
+      memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
       return {bytes, sizeof(*this)};
     }
 
-    static Actor<PROCESS, ROUTER> *deserialize(const byte *bytes) {
+    static Actor<PROCESS, ROUTER> *deserialize(const fbyte *bytes) {
       return (Actor<PROCESS, ROUTER> *) bytes;
     }
 

@@ -52,7 +52,7 @@ public:
     uint8_t count = 0;
     List<Pair<uint8_t, const char *>> results;
     Wire.begin(sda, scl);
-    for (byte i = 8; i < 120; i++) {
+    for (fbyte i = 8; i < 120; i++) {
       Wire.beginTransmission(i);
       const uint8_t result = Wire.endTransmission();
       if (0 == result) {

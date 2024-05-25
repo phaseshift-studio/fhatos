@@ -6,10 +6,11 @@
 #include <language/obj.hpp>
 #include <language/fluent.hpp>
 
-using namespace std;
 
 namespace fhatos {
+  using namespace std;
   class Parser {
+
   protected:
     OType domain = OBJ;
     OType range = OBJ;
@@ -154,7 +155,7 @@ namespace fhatos {
         OType tdomain = domain;
         OType trange = range;
         //domain = range;
-        se = new S_E((Bytecode *) this->parseBytecode<S, E>(ss));
+        se = new S_E(this->parseBytecode<S, E>(ss));
         domain = tdomain;
         range = trange;
       } else if (token[0] == '[' && token[token.length() - 1] == ']') {

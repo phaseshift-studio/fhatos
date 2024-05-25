@@ -386,6 +386,13 @@ namespace fhatos {
       return this->value()->front();
     }
 
+    template<typename S>
+    void addStarts(const std::initializer_list<S> &starts) {
+      for (const S &s: starts) {
+        this->startInst()->args().push_back(s);
+      }
+    }
+
     const string toString() const override {
       string s = "{";
       for (auto *inst: *this->_value) {

@@ -16,6 +16,7 @@ int main(int arg, char **argsv) {
 };
 #else
 #include FOS_MODULE(kernel/f_kernel.hpp)
+#include FOS_MODULE(kernel/f_lang.hpp)
 #include FOS_MODULE(io/net/f_wifi.hpp)
 #include <structure/f_soc.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -32,6 +33,7 @@ int main(int arg, char **argsv) {
 #include <language/fluent.hpp>
 #include <language/instructions.hpp>
 using namespace fhatos;
+
 void setup() {
   fKernel<>::bootloader({
       fWIFI::singleton(),
@@ -40,13 +42,15 @@ void setup() {
       fScheduler<>::singleton(),
       fMemory<>::singleton(),
       fFS<>::singleton(),
-      fOTA<>::singleton()
+      fOTA<>::singleton(),
+      fLang<>::singleton()
   });
   fScheduler<>::singleton()->spawn(fSoC<>::singleton());
   fScheduler<>::singleton()->spawn(new fLog());
   fScheduler<>::singleton()->spawn(fSerial<>::singleton());
   fScheduler<>::singleton()->spawn(new fPing<>());
   fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
+
 }
 
 

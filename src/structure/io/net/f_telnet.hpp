@@ -51,7 +51,7 @@ namespace fhatos {
         tthis->ansi->printf("Telnet server on !m%s!!\n" TAB "Connection from !m%s!!\n" TAB
                             ":help for help menu\n",
                             fWIFI::ip().c_str(), ipAddress.c_str());
-        delete tthis->currentTopic;
+        // delete tthis->currentTopic;
         tthis->currentTopic = new ID(tthis->id());
         tthis->printPrompt();
       });
@@ -89,8 +89,8 @@ namespace fhatos {
                        });
         } else if (line.startsWith("=>")) {
           const RESPONSE_CODE _rc =
-              tthis->subscribe(*tthis->currentTopic, [](const Message message) {
-                if (!tthis->previousMessage ||
+              tthis->subscribe(*tthis->currentTopic, [](const Message &message) {
+                /*if (!tthis->previousMessage ||
                     !tthis->previousMessage->first.equals(message.source) ||
                     !tthis->previousMessage->second.equals(message.target)) {
                   if (tthis->previousMessage)
@@ -102,8 +102,8 @@ namespace fhatos {
                     message.target.toString().c_str());
                   tthis->previousMessage =
                       new Pair<ID, ID>(message.source, message.target);
-                }
-                tthis->xtelnet->println(
+                }*/
+                tthis->ansi->println(
                   message.payload->toStr().toString().c_str()); // TODO: ansi off/on
               });
 
@@ -116,10 +116,10 @@ namespace fhatos {
                               _rc ? "!RERROR" : "!GOK",
                               tthis->currentTopic->toString().c_str());
         } else if (line.startsWith("/..")) {
-          delete tthis->currentTopic;
+          // delete tthis->currentTopic;
           tthis->currentTopic = new ID(tthis->currentTopic->retract());
         } else if (line.startsWith("/") && !line.equals("/")) {
-          delete tthis->currentTopic;
+          //  delete tthis->currentTopic;
           tthis->currentTopic =
               new ID(tthis->currentTopic->extend(line.substring(1).c_str()));
         } else if (line.startsWith(":")) {
@@ -153,7 +153,7 @@ namespace fhatos {
 
       ////////// ON DISCONNECT //////////
       this->xtelnet->onDisconnect([](const String ipAddress) {
-        delete tthis->currentTopic;
+        // delete tthis->currentTopic;
         tthis->currentTopic = new ID(tthis->id());
         ROUTER::singleton()->unsubscribeSource(tthis->id());
         LOG_TASK(INFO, tthis, "Client %s disconnected from Telnet server",
