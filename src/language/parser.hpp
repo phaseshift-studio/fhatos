@@ -20,49 +20,49 @@ namespace fhatos {
     Parser(const ID context = ID("anonymous")) : context((context)) {
     }
 
-    template<typename S, typename E>
     ptr<Bytecode> parse(const char *line) {
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", line);
       const auto ss = new stringstream(string(line));
-      ptr<Bytecode> bcode = this->parseBytecode<S, E>(ss);
+      ptr<Bytecode> bcode = this->parseBytecode(ss);
       LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()).c_str());
       return bcode;
     }
 
-    template<typename S, typename E>
-    Fluent<S, E> *parseToFluent(const char *line) {
-      return new Fluent<S, E>(this->parse<S, E>(line));
+    ptr<Fluent<> > parseToFluent(const char *line) {
+      return share<Fluent<> >(Fluent<>(this->parse(line)));
     }
 
-    template<typename S, typename E>
+
     ptr<Bytecode> parseBytecode(stringstream *ss) {
-      Fluent<S, E> *fluent = new Fluent<S, E>(this->context);
+      Fluent<> *fluent = new Fluent<>(this->context);
       while (!ss->eof()) {
         const ptr<string> opcode = this->parseOpcode(ss);
-        const ptr<List<ptr<S_E> > > args = this->parseArgs<S, E>(ss);
+        const ptr<List<ptr<S_E> > > args = this->parseArgs(ss);
 
         if (*opcode == "is") {
           range = domain;
-          fluent = new Fluent<S, E>(fluent->is(((args->at(0)->type == OType::BYTECODE)
-                                                 ? BOOL_OR_BYTECODE((Bytecode *) (args->at(0).get()->obj))
-                                                 : BOOL_OR_BYTECODE((Bool *) (args->at(0).get()->obj)))));
+          fluent = new Fluent(fluent->is(args->at(0)->type == OType::BYTECODE
+                                           ? BOOL_OR_BYTECODE((Bytecode *) args->at(0).get()->obj)
+                                           : BOOL_OR_BYTECODE((Bool *) args->at(0).get()->obj)));
         } else if (*opcode == "plus") {
           range = domain;
-          fluent = new Fluent<S, E>(fluent->plus((OBJ_OR_BYTECODE<E>)((args->at(0)->type == OType::BYTECODE)
-                                                 ? OBJ_OR_BYTECODE<E>((Bytecode *) (args->at(0).get()->obj))
-                                                 : OBJ_OR_BYTECODE<E>((E*)args->at(0).get()->obj))));
+          fluent = new Fluent(fluent->plus(args->at(0)->type == OType::BYTECODE
+                                             ? OBJ_OR_BYTECODE<Obj>(
+                                               (Bytecode *) args->at(0).get()->obj)
+                                             : OBJ_OR_BYTECODE<Obj>(
+                                               args->at(0).get()->obj)));
         } else if (*opcode == "mult") {
           range = domain;
-          fluent = new Fluent<S, E>(fluent->mult(*args->at(0)).bcode);
+          fluent = new Fluent(fluent->mult(*args->at(0)).bcode);
         } else if (*opcode == "start") {
           range = args->size() > 0 ? args->at(0)->type : OType::OBJ;
-          fluent = new Fluent<S, E>(fluent->start(*args).bcode);
+          fluent = new Fluent(fluent->start(*args).bcode);
         } else if (*opcode == "<=") {
           range = OType::URI;
-          fluent = new Fluent<S, E>(fluent->template publish<Obj>(*args->at(0), *args->at(1)).bcode);
+          fluent = new Fluent(fluent->template publish<Obj>(*args->at(0), *args->at(1)).bcode);
         } else if (*opcode == "=>") {
           range = OType::URI;
-          fluent = new Fluent<S, E>(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
+          fluent = new Fluent(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());
@@ -97,7 +97,6 @@ namespace fhatos {
       return opcode;
     }
 
-    template<typename S, typename E>
     ptr<List<ptr<S_E> > > parseArgs(stringstream *ss) {
       auto args = share(List<ptr<S_E> >());
       while (std::isspace(ss->peek())) {
@@ -106,7 +105,7 @@ namespace fhatos {
       if (ss->peek() == '(')
         ss->get(); // (
       while (!ss->eof()) {
-        ptr<S_E> argObj = this->parseArg<S, E>(ss);
+        ptr<S_E> argObj = this->parseArg(ss);
         args->push_back(argObj);
         LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
             OTYPE_STR.at(argObj->type).c_str());
@@ -118,7 +117,6 @@ namespace fhatos {
       return args;
     }
 
-    template<typename S, typename E>
     ptr<S_E> parseArg(stringstream *ss) {
       string argS;
       int paren = 0;
@@ -138,10 +136,9 @@ namespace fhatos {
         }
       }
       trim(argS);
-      return parseObj<S, E>(argS);
+      return parseObj(argS);
     }
 
-    template<typename S, typename E = S>
     ptr<S_E> parseObj(const string &token) {
       ptr<S_E> se;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
@@ -156,7 +153,7 @@ namespace fhatos {
         OType tdomain = domain;
         OType trange = range;
         //domain = range;
-        se = share<S_E>(S_E(this->parseBytecode<S, E>(ss).get()));
+        se = share<S_E>(S_E(this->parseBytecode(ss).get()));
         domain = tdomain;
         range = trange;
         // delete ss;
@@ -190,7 +187,7 @@ namespace fhatos {
             if (bracketCounter == 0 && ss->peek() == ',') {
               ss->get();
               onKey = true;
-              map.emplace(parseObj<Obj>(key)->cast<Obj>(), parseObj<Obj>(value)->cast<Obj>());
+              map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
               key.clear();
               value.clear();
             } else {
@@ -203,7 +200,7 @@ namespace fhatos {
             }
           }
         }
-        map.emplace(parseObj<Obj>(key)->cast<Obj>(), parseObj<Obj>(value)->cast<Obj>());
+        map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
         RecMap<Obj *, Obj *> *map2 = new RecMap<Obj *, Obj *>(); // necessary to revese entries
         for (const auto &pair: map) {
           map2->insert(pair);

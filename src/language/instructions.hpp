@@ -33,23 +33,21 @@ namespace fhatos {
     return *newList;
   }
 
-  template<typename S>
   class StartInst final : public Inst {
   public:
-    explicit StartInst(List<S *> *starts)
+    explicit StartInst(List<Obj *> *starts)
       : Inst({
         "start", cast(starts),
-        [starts](Obj *b) {
+        [](Obj *b) {
           return b;
         }
       }) {
-      for (S *start: *starts) {
-        this->output.push_back((Obj *) start);
+      for (const auto start: *starts) {
+        this->output.push_back(start);
       }
     }
   };
 
-  template<typename E>
   class BranchInst final : public Inst {
   public:
     explicit BranchInst(const Rec *rec)
@@ -58,16 +56,15 @@ namespace fhatos {
         [this](Obj *b) {
           for (const Rec *rec1 = this->arg<Rec>(0); const auto &kv: *rec1->value()) {
             if (kv.first->apply(b)) {
-              return (E *) kv.second->apply(b);
+              return (Obj *) kv.second->apply(b);
             }
           }
-          return (E *) nullptr;
+          return (Obj *) nullptr;
         }
       }) {
     }
   };
 
-  template<typename E>
   class IsInst final : public Inst {
   public:
     explicit IsInst(const BOOL_OR_BYTECODE obj)
@@ -81,43 +78,42 @@ namespace fhatos {
   };
 
 
-  template<typename E>
   class EqInst final : public Inst {
   public:
-    explicit EqInst(const E *obj)
+    explicit EqInst(const Obj *obj)
       : Inst({
         "eq", cast({obj}),
         [this](Obj *b) {
-          return new Bool(*this->arg<E>(0)->apply(b) == *b);
+          return new Bool(*this->arg<Obj>(0)->apply(b) == *b);
         }
       }) {
     }
   };
 
 
-  template<typename E, typename ALGEBRA = Algebra>
+  template<typename ALGEBRA = Algebra>
   class PlusInst final : public Inst {
   public:
-    explicit PlusInst(const OBJ_OR_BYTECODE<E> obj)
+    explicit PlusInst(const OBJ_OR_BYTECODE<Obj> obj)
       : Inst({
         "plus", cast({obj.template cast<Obj>()}),
         [this](const Obj *b) {
-          return (E *) ALGEBRA::singleton()->
-              plus(const_cast<E *>(this->arg<OBJ_OR_BYTECODE<E> >(0)->apply(b)), (E *) b);
+          return (Obj *) (
+            ALGEBRA::singleton()->plus((Obj *) this->arg<OBJ_OR_BYTECODE<Obj> >(0)->apply(b), (Obj *) b));
         }
       }) {
     }
   };
 
   // int -> mult(int') => int * int'
-  template<typename E, typename ALGEBRA=Algebra>
+  template<typename ALGEBRA=Algebra>
   class MultInst final : public Inst {
   public:
-    explicit MultInst(const E *a)
+    explicit MultInst(const Obj *obj)
       : Inst({
-        "mult", cast({a}),
+        "mult", cast({obj}),
         [this](const Obj *b) {
-          return (E *) ALGEBRA::singleton()->mult((E *) this->arg<E>(0)->apply(b), (E *) b);
+          return (Obj *) ALGEBRA::singleton()->mult((Obj *) this->arg<Obj>(0)->apply(b), (Obj *) b);
         }
       }) {
     }

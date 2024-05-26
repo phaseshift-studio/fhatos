@@ -39,7 +39,7 @@ namespace fhatos {
     // }
   };
 
-  template<typename S, typename E, typename MONAD = Monad<Obj> >
+  template<typename E>
   class Processor {
   protected:
     const ptr<Bytecode> bcode;
@@ -101,11 +101,11 @@ namespace fhatos {
     }
 
     /////////////
-    template<typename T>
-    static Consumer<T> bytecodeConsumer(const Bytecode *bytecode) {
-      return [bytecode](const T &s) {
+    template<typename S2, typename E2>
+    static Consumer<S2> bytecodeConsumer(const Bytecode *bytecode) {
+      return [bytecode](const S2 &s) {
         bytecode->addStarts({s});
-        Processor proc = Processor<S, Obj>(bytecode);
+        Processor proc = Processor<E2>(bytecode);
         LOG(DEBUG, "Processor iterated %i monads", proc.iterate());
       };
     }

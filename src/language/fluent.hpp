@@ -79,8 +79,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
-  template<typename S, typename E, typename ALGEBRA = Algebra,
-    typename PROCESSOR = Processor<S, E, Monad<E> > >
+  template<typename ALGEBRA = Algebra>
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
@@ -93,18 +92,21 @@ namespace fhatos {
     }
 
     //////////////////////////////////////////////////////////////////////////////
+    template<typename E = Obj>
     const E *next() const {
-      static PROCESSOR proc = PROCESSOR(this->bcode);
+      static Processor<E> proc = Processor<E>(this->bcode);
       return proc.next();
     }
 
+    template<typename E = Obj>
     const List<E *> &toList() const {
-      static PROCESSOR proc = PROCESSOR(this->bcode);
+      static Processor<E> proc = Processor<E>(this->bcode);
       return proc.toList();
     }
 
+    template<typename E = Obj>
     void forEach(const Consumer<const E *> &consumer) const {
-      PROCESSOR proc = PROCESSOR(this->bcode);
+      Processor<E> proc = Processor<E>(this->bcode);
       proc.forEach(consumer);
     }
 
@@ -117,9 +119,8 @@ namespace fhatos {
     const ptr<Bytecode> bcode;
 
   protected:
-    template<typename E2>
-    Fluent<S, E2> addInst(const Inst *inst) const {
-      return Fluent<S, E2>(this->bcode->addInst((Inst *) inst));
+    Fluent<> addInst(Inst *inst) const {
+      return Fluent<>(this->bcode->addInst(inst));
     }
 
   public:
@@ -135,96 +136,99 @@ namespace fhatos {
       return *new BOOL_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
     }
 
+    operator const OBJ_OR_BYTECODE<Bytecode> &() const {
+      return *new OBJ_OR_BYTECODE<Bytecode>(new Bytecode(this->bcode.get()->value()));
+    }
+
+    operator const OBJ_OR_BYTECODE<Obj> &() const {
+      return *new OBJ_OR_BYTECODE<Obj>(new Bytecode(this->bcode.get()->value()));
+    }
+
     operator const OBJ_OR_BYTECODE<Int> &() const {
       return *new INT_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
+    }
+
+    operator const OBJ_OR_BYTECODE<Bool> &() const {
+      return *new OBJ_OR_BYTECODE<Bool>(new Bytecode(this->bcode.get()->value()));
     }
 
     operator const INT_OR_BYTECODE &() const {
       return *new INT_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
     }
 
-    Fluent<S, E> start(const List<ptr<S_E> > starts) const {
-      List<E *> *castStarts = new List<E *>();
+    Fluent start(const List<ptr<S_E> > starts) const {
+      List<Obj *> *castStarts = new List<Obj *>();
       for (auto se: starts) {
-        castStarts->push_back((E *) se->obj);
+        castStarts->push_back((Obj *) se->obj);
       }
-      return this->template addInst<E>(new StartInst<E>(castStarts));
+      return this->addInst(new StartInst(castStarts));
     }
 
-    Fluent<S, E> start(const List<S_E> starts) const {
-      List<E *> *castStarts = new List<E *>();
+    Fluent start(const List<S_E> starts) const {
+      List<Obj *> *castStarts = new List<Obj *>();
       for (S_E se: starts) {
-        castStarts->push_back((E *) se.obj);
+        castStarts->push_back(se.obj);
       }
-      return this->template addInst<E>(new StartInst<E>(castStarts));
+      return this->addInst(new StartInst(castStarts));
     }
 
-    Fluent<S, E> plus(const OBJ_OR_BYTECODE<E> &e) const {
-      return this->template addInst<E>(new PlusInst<E, ALGEBRA>(e));
+    Fluent plus(const OBJ_OR_BYTECODE<Obj> &e) const {
+      return this->addInst(new PlusInst<ALGEBRA>(e));
     }
 
-    Fluent<S, E> mult(const S_E &e) const {
-      return this->addInst<E>((Inst *) new MultInst<E, ALGEBRA>(e.cast<E>()));
+    Fluent mult(const S_E &e) const {
+      return this->addInst(new MultInst<ALGEBRA>(e.cast<Obj>()));
     }
 
-    Fluent<S, E> branch(const std::initializer_list<Pair<S_E const, S_E> > &recMap) {
-      return this->addInst<E>((Inst *) new BranchInst<E>(S_E(recMap).cast<Rec>()));
+    Fluent branch(const std::initializer_list<Pair<S_E const, S_E> > &recMap) {
+      return this->addInst(new BranchInst(S_E(recMap).cast<Rec>()));
     }
 
-    Fluent<S, Bool> eq(const S_E &se) {
-      return this->addInst<Bool>((Inst *) new EqInst<E>(se.cast<E>()));
+    Fluent eq(const S_E &se) {
+      return this->addInst(new EqInst(se.cast<Obj>()));
     }
 
-    Fluent<S, E> is(const BOOL_OR_BYTECODE &se) {
-      return this->template addInst<E>(new IsInst<E>(se));
+    Fluent is(const BOOL_OR_BYTECODE &se) {
+      return this->addInst(new IsInst(se));
     }
 
     template<typename _PAYLOAD>
-    Fluent<S, E> publish(const S_E &uri, const S_E &payload) const {
-      return this->template addInst<E>(
-        new PublishInst<E, _PAYLOAD>(uri.cast<E>(), payload.cast<_PAYLOAD>(), this->bcode->context));
+    Fluent publish(const S_E &uri, const S_E &payload) const {
+      return this->addInst(
+        new PublishInst<Obj, _PAYLOAD>(uri.cast<Obj>(), payload.cast<_PAYLOAD>(), this->bcode->context));
     }
 
     template<typename _ONRECV>
-    Fluent<S, E> subscribe(const S_E &pattern, const S_E &onRecv) const {
-      return this->template addInst<E>(
-        new SubscribeInst<E, _ONRECV>(pattern.cast<E>(), onRecv.cast<_ONRECV>(), this->bcode->context));
+    Fluent subscribe(const S_E &pattern, const S_E &onRecv) const {
+      return this->addInst(
+        new SubscribeInst<Obj, _ONRECV>(pattern.cast<Obj>(), onRecv.cast<_ONRECV>(), this->bcode->context));
     }
   };
-
-  /*class S_Ef : public S_E {
-  public:
-    S_Ef(Fluent<Obj, Obj> fluentX) : S_E(BYTECODE, (Obj *) fluentX.bcode) {
-    }
-  };*/
 
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
 
-  template<typename S>
-  inline static Fluent<S, S> __(const List<S_E> &starts) {
-    List<S *> *castStarts = new List<S *>();
+  inline static Fluent<> __(const List<S_E> &starts) {
+    List<Obj *> *castStarts = new List<Obj *>();
     for (S_E se: starts) {
-      castStarts->push_back((S *) se.obj);
+      castStarts->push_back((Obj *) se.obj);
     }
-    return Fluent<S, S>(
-      share<Bytecode>(Bytecode(new List<Inst *>({new StartInst<S>(castStarts)}))));
+    return Fluent(
+      share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
   };
 
-  template<typename S>
-  inline static Fluent<S, S> __(const S_E &start) {
-    return Fluent<S, S>(share<Bytecode>(Bytecode(new List<Inst *>({
-      new StartInst<S>(new List<S *>{(S *) start.obj})
+
+  inline static Fluent<> __(const S_E &start) {
+    return Fluent(share<Bytecode>(Bytecode(new List<Inst *>({
+      new StartInst(new List<Obj *>{start.obj})
     }))));
   };
 
-  template<typename S>
-  inline static Fluent<S, S> __() { return Fluent<S, S>(); };
+  inline static Fluent<> __() { return Fluent(); };
 
-  template<typename S>
-  inline static Fluent<S, S> _ = __<S>();
+  inline static Fluent<> _ = __();
 } // namespace fhatos
 
 #endif

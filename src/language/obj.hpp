@@ -429,7 +429,31 @@ namespace fhatos {
       this->data = OBJ_UNION{.objA = new Int(objA)};
     }
 
-    OBJ_OR_BYTECODE(_OBJ *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(Obj *objA) : Obj(objA->type()) {
+      this->data = OBJ_UNION{.objA = objA};
+    }
+
+    OBJ_OR_BYTECODE(Bool *objA) : Obj(objA->type()) {
+      this->data = OBJ_UNION{.objA = objA};
+    }
+
+    OBJ_OR_BYTECODE(Int *objA) : Obj(objA->type()) {
+      this->data = OBJ_UNION{.objA = objA};
+    }
+
+    OBJ_OR_BYTECODE(Real *objA) : Obj(objA->type()) {
+      this->data = OBJ_UNION{.objA = objA};
+    }
+
+    OBJ_OR_BYTECODE(Str *objA) : Obj(objA->type()) {
+      this->data = OBJ_UNION{.objA = objA};
+    }
+
+    OBJ_OR_BYTECODE(Uri *objA) : Obj(objA->type()) {
+      this->data = OBJ_UNION{.objA = objA};
+    }
+
+    OBJ_OR_BYTECODE(Rec *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 

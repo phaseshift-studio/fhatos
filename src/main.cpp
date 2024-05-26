@@ -2,6 +2,8 @@
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
 #include <structure/f_simple.hpp>
+#include <language/parser.hpp>
+
 using namespace fhatos;
 int main(int arg, char **argsv) {
   try {
