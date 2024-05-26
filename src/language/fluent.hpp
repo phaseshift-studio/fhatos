@@ -210,23 +210,23 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////
 
 
-  inline static Fluent<> __(const List<S_E> &starts) {
+  static Fluent<> __(const List<S_E> &starts) {
     List<Obj *> *castStarts = new List<Obj *>();
     for (S_E se: starts) {
-      castStarts->push_back((Obj *) se.obj);
+      castStarts->push_back(se.obj);
     }
-    return Fluent(
+    return Fluent<>(
       share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
   };
 
 
-  inline static Fluent<> __(const S_E &start) {
-    return Fluent(share<Bytecode>(Bytecode(new List<Inst *>({
+  static Fluent<> __(const S_E &start) {
+    return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({
       new StartInst(new List<Obj *>{start.obj})
     }))));
   };
 
-  inline static Fluent<> __() { return Fluent(); };
+  static Fluent<> __() { return Fluent<>(); };
 
   inline static Fluent<> _ = __();
 } // namespace fhatos

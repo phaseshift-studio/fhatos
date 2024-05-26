@@ -54,9 +54,10 @@ namespace fhatos {
       : Inst({
         "branch", cast({rec}),
         [this](Obj *b) {
-          for (const Rec *rec1 = this->arg<Rec>(0); const auto &kv: *rec1->value()) {
-            if (kv.first->apply(b)) {
-              return (Obj *) kv.second->apply(b);
+          const Rec *rec1 = this->arg<Rec>(0);
+          for (const auto &[key, value]: *rec1->value()) {
+            if (key->apply(b)) {
+              return (Obj *) value->apply(b);
             }
           }
           return (Obj *) nullptr;
