@@ -13,7 +13,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    virtual const Obj *plus(const Obj *a, const Obj *b) {
+    virtual const Obj *plus(const Obj *a, const Obj *b) const {
       switch (a->type()) {
         case OType::URI: return new Uri(((Uri *) b)->value().extend(((Uri *) a)->toString().c_str()));
         case OType::BOOL: return new Bool(((Bool *) b)->value() || ((Bool *) a)->value());
@@ -27,7 +27,7 @@ namespace fhatos {
       }
     }
 
-    virtual const Obj *mult(const Obj *a, const Obj *b) {
+    virtual const Obj *mult(const Obj *a, const Obj *b) const {
       switch (a->type()) {
         case OType::BOOL: return new Bool(((Bool *) b)->value() && ((Bool *) a)->value());
         case OType::INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());

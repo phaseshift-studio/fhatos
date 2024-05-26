@@ -38,8 +38,8 @@ namespace fhatos {
     explicit StartInst(List<Obj *> *starts)
       : Inst({
         "start", cast(starts),
-        [](Obj *b) {
-          return b;
+        [](const Obj *start) {
+          return start;
         }
       }) {
       for (const auto start: *starts) {
@@ -50,17 +50,17 @@ namespace fhatos {
 
   class BranchInst final : public Inst {
   public:
-    explicit BranchInst(const Rec *rec)
+    explicit BranchInst(const OBJ_OR_BYTECODE<Rec> &branches)
       : Inst({
-        "branch", cast({rec}),
-        [this](Obj *b) {
-          const Rec *rec1 = this->arg<Rec>(0);
-          for (const auto &[key, value]: *rec1->value()) {
-            if (key->apply(b)) {
-              return (Obj *) value->apply(b);
+        "branch", cast({branches.cast<Obj>()}),
+        [this](const Obj *incoming) -> const Obj *{
+          const Rec *rec = this->arg<Rec>(0)->apply(incoming);
+          for (const auto &[key, value]: *rec->value()) {
+            if (!key->apply(incoming)->isNoObj()) {
+              return value->apply(incoming);
             }
           }
-          return (Obj *) nullptr;
+          return NoObj::singleton();
         }
       }) {
     }
@@ -68,11 +68,11 @@ namespace fhatos {
 
   class IsInst final : public Inst {
   public:
-    explicit IsInst(const BOOL_OR_BYTECODE obj)
+    explicit IsInst(const OBJ_OR_BYTECODE<Bool> &test)
       : Inst({
-        "is", cast({obj.cast<Obj>()}),
-        [this](Obj *b) {
-          return (this->arg<BOOL_OR_BYTECODE>(0)->apply(b)->value()) ? b : (Obj *) NoObj::singleton();
+        "is", cast({test.cast<Obj>()}),
+        [this](const Obj *input) {
+          return this->arg<Bool>(0)->apply(input)->value() ? input : NoObj::singleton();
         }
       }) {
     }
@@ -81,11 +81,11 @@ namespace fhatos {
 
   class EqInst final : public Inst {
   public:
-    explicit EqInst(const Obj *obj)
+    explicit EqInst(const OBJ_OR_BYTECODE<Obj> &rhs)
       : Inst({
-        "eq", cast({obj}),
-        [this](Obj *b) {
-          return new Bool(*this->arg<Obj>(0)->apply(b) == *b);
+        "eq", cast({rhs.cast<Obj>()}),
+        [this](const Obj *lhs) {
+          return new Bool(*this->arg<Obj>(0)->apply(lhs) == *lhs);
         }
       }) {
     }
@@ -95,32 +95,31 @@ namespace fhatos {
   template<typename ALGEBRA = Algebra>
   class PlusInst final : public Inst {
   public:
-    explicit PlusInst(const OBJ_OR_BYTECODE<Obj> obj)
+    explicit PlusInst(const OBJ_OR_BYTECODE<Obj> &rhs)
       : Inst({
-        "plus", cast({obj.template cast<Obj>()}),
-        [this](const Obj *b) {
-          return (Obj *) (
-            ALGEBRA::singleton()->plus((Obj *) this->arg<OBJ_OR_BYTECODE<Obj> >(0)->apply(b), (Obj *) b));
+        "plus", cast({rhs.cast<Obj>()}),
+        [this](const Obj *lhs) {
+          return
+              ALGEBRA::singleton()->plus(this->arg<Obj>(0)->apply(lhs), lhs);
         }
       }) {
     }
   };
 
-  // int -> mult(int') => int * int'
-  template<typename ALGEBRA=Algebra>
+  template<typename ALGEBRA = Algebra>
   class MultInst final : public Inst {
   public:
-    explicit MultInst(const Obj *obj)
+    explicit MultInst(const OBJ_OR_BYTECODE<Obj> &rhs)
       : Inst({
-        "mult", cast({obj}),
-        [this](const Obj *b) {
-          return (Obj *) ALGEBRA::singleton()->mult((Obj *) this->arg<Obj>(0)->apply(b), (Obj *) b);
+        "plus", cast({rhs.cast<Obj>()}),
+        [this](const Obj *lhs) {
+          return
+              ALGEBRA::singleton()->plus(this->arg<Obj>(0)->apply(lhs), lhs);
         }
       }) {
     }
   };
 
-  // uri -> publish(message) => {uri,message} => uri
   template<typename _URI, typename _PAYLOAD>
   class PublishInst final : public Inst {
   public:

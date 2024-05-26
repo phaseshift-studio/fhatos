@@ -61,7 +61,7 @@ namespace fhatos {
     }
 
 
-    bool operator==(const Obj &other) const {
+    virtual bool operator==(const Obj &other) const {
       return !this->isNoObj() &&
              !other.isNoObj() &&
              strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
@@ -88,6 +88,10 @@ namespace fhatos {
 
     virtual const string toString() const override {
       return "Ø";
+    }
+
+    virtual bool operator==(const Obj &other) const override {
+      return other.isNoObj();
     }
   };
 
@@ -277,7 +281,7 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
-  typedef Function<Obj *, Obj *> InstFunction;
+  typedef Function<const Obj *, const Obj *> InstFunction;
   typedef List<Obj *> InstArgs;
   typedef List<Obj *> InstStorage;
 
@@ -297,7 +301,7 @@ namespace fhatos {
     }
 
     const Obj *apply(const Obj *obj) const override {
-      return this->func()(const_cast<Obj *>(obj));
+      return this->func()(obj);
     }
 
     InstStorage *getOutput() {
@@ -308,7 +312,7 @@ namespace fhatos {
       while (true) {
         if (output.empty()) {
           if (input.empty())
-            return nullptr;
+            return NoObj::singleton();
           else {
             output.push_back(const_cast<Obj *>(this->apply(input.back())));
             input.pop_back();
@@ -364,7 +368,7 @@ namespace fhatos {
     const Obj *apply(const Obj *obj) const override {
       Obj *running = const_cast<Obj *>(obj);
       for (const Inst *inst: *this->_value) {
-        running = inst->func()(running);
+        running = (Obj *) inst->func()(running);
         if (running->isNoObj())
           break;
       }
@@ -374,13 +378,13 @@ namespace fhatos {
     const List<Inst *> *value() const { return this->_value; }
 
     ptr<Bytecode> addInst(const char *op, const List<Obj *> &args,
-                          const Function<Obj *, Obj *> &function) const {
+                          const Function<const Obj *, const Obj *> &function) const {
       return this->addInst(new Inst({string(op), args, function}));
     }
 
     ptr<Bytecode> addInst(Inst *inst) const {
       List<Inst *> *list = new List<Inst *>();
-      for (auto i: *this->_value) {
+      for (const auto i: *this->_value) {
         list->push_back(i);
       }
       list->push_back(inst);
@@ -422,43 +426,47 @@ namespace fhatos {
     }
 
     bool isType() const {
-      return this->_type != OType::BYTECODE && data.objA == nullptr;
+      return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
     }
 
-    OBJ_OR_BYTECODE(int objA) : Obj(OType::INT) {
+    OBJ_OR_BYTECODE(const int objA) : Obj(OType::INT) {
       this->data = OBJ_UNION{.objA = new Int(objA)};
     }
 
-    OBJ_OR_BYTECODE(Obj *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Obj *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Bool *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Bool *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Int *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Int *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Real *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Real *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Str *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Str *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Uri *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Uri *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Rec *objA) : Obj(objA->type()) {
+    OBJ_OR_BYTECODE(const Rec *objA) : Obj(objA->type()) {
       this->data = OBJ_UNION{.objA = objA};
     }
 
-    OBJ_OR_BYTECODE(Bytecode *bcodeB) : Obj(OType::BYTECODE) {
+    OBJ_OR_BYTECODE(const Bytecode *bcodeB) : Obj(OType::BYTECODE) {
       this->data = OBJ_UNION{.bcodeB = bcodeB};
+    }
+
+    static const OBJ_OR_BYTECODE create(const Obj *obj) {
+      return obj->type() == OType::BYTECODE ? OBJ_OR_BYTECODE((Bytecode *) obj) : OBJ_OR_BYTECODE((_OBJ*)obj);
     }
 
     template<typename T>

@@ -41,28 +41,26 @@ namespace fhatos {
 
         if (*opcode == "is") {
           range = domain;
-          fluent = new Fluent(fluent->is(args->at(0)->type == OType::BYTECODE
-                                           ? BOOL_OR_BYTECODE((Bytecode *) args->at(0).get()->obj)
-                                           : BOOL_OR_BYTECODE((Bool *) args->at(0).get()->obj)));
+          fluent = new Fluent(fluent->is(OBJ_OR_BYTECODE<Bool>::create(args->at(0).get()->obj)));
+        } else if (*opcode == "branch") {
+          fluent = new Fluent(fluent->branch(OBJ_OR_BYTECODE<Rec>::create(args->at(0).get()->obj)));
+        } else if (*opcode == "eq") {
+          fluent = new Fluent(fluent->eq(OBJ_OR_BYTECODE<Obj>::create(args->at(0).get()->obj)));
         } else if (*opcode == "plus") {
           range = domain;
-          fluent = new Fluent(fluent->plus(args->at(0)->type == OType::BYTECODE
-                                             ? OBJ_OR_BYTECODE<Obj>(
-                                               (Bytecode *) args->at(0).get()->obj)
-                                             : OBJ_OR_BYTECODE<Obj>(
-                                               args->at(0).get()->obj)));
+          fluent = new Fluent(fluent->plus(OBJ_OR_BYTECODE<Obj>::create(args->at(0).get()->obj)));
         } else if (*opcode == "mult") {
           range = domain;
-          fluent = new Fluent(fluent->mult(*args->at(0)).bcode);
+          fluent = new Fluent(fluent->mult(OBJ_OR_BYTECODE<Obj>::create(args->at(0).get()->obj)));
         } else if (*opcode == "start") {
           range = args->size() > 0 ? args->at(0)->type : OType::OBJ;
           fluent = new Fluent(fluent->start(*args).bcode);
         } else if (*opcode == "<=") {
           range = OType::URI;
-          fluent = new Fluent(fluent->template publish<Obj>(*args->at(0), *args->at(1)).bcode);
+          fluent = new Fluent(fluent->publish<Obj>(*args->at(0), *args->at(1)).bcode);
         } else if (*opcode == "=>") {
           range = OType::URI;
-          fluent = new Fluent(fluent->template subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
+          fluent = new Fluent(fluent->subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());

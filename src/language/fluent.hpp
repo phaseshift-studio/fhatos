@@ -172,24 +172,28 @@ namespace fhatos {
       return this->addInst(new StartInst(castStarts));
     }
 
-    Fluent plus(const OBJ_OR_BYTECODE<Obj> &e) const {
-      return this->addInst(new PlusInst<ALGEBRA>(e));
+    Fluent plus(const OBJ_OR_BYTECODE<Obj> &rhs) const {
+      return this->addInst(new PlusInst<ALGEBRA>(rhs));
     }
 
-    Fluent mult(const S_E &e) const {
-      return this->addInst(new MultInst<ALGEBRA>(e.cast<Obj>()));
+    Fluent mult(const OBJ_OR_BYTECODE<Obj> &rhs) const {
+      return this->addInst(new MultInst<ALGEBRA>(rhs));
     }
 
     Fluent branch(const std::initializer_list<Pair<S_E const, S_E> > &recMap) {
       return this->addInst(new BranchInst(S_E(recMap).cast<Rec>()));
     }
 
-    Fluent eq(const S_E &se) {
-      return this->addInst(new EqInst(se.cast<Obj>()));
+    Fluent branch(const OBJ_OR_BYTECODE<Rec> &branches) {
+      return this->addInst(new BranchInst(branches));
     }
 
-    Fluent is(const BOOL_OR_BYTECODE &se) {
-      return this->addInst(new IsInst(se));
+    Fluent eq(const OBJ_OR_BYTECODE<Obj> &rhs) {
+      return this->addInst(new EqInst(rhs));
+    }
+
+    Fluent is(const OBJ_OR_BYTECODE<Bool> &test) {
+      return this->addInst(new IsInst(test));
     }
 
     template<typename _PAYLOAD>
