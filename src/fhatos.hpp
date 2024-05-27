@@ -145,8 +145,8 @@ namespace fhatos {
   LOG((rc == OK ? INFO : ERROR),                                               \
       "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                      \
       (string(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      (subscription).source.toString().c_str(), (uint8_t)(subscription).qos,   \
-      (subscription).pattern.toString().c_str())
+      (subscription)->source.toString().c_str(), (uint8_t)(subscription)->qos,   \
+      (subscription)->pattern.toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                   \
   LOG((rc == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",   \
       (string(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \

@@ -14,9 +14,9 @@ namespace fhatos {
 
   public:
     IDed *ided;
-    Mailbox<Mail> *mailbox;
+    Mailbox<ptr<Mail>> *mailbox;
 
-    explicit Publisher(IDed *ided, Mailbox<Mail> *mailbox = nullptr)
+    explicit Publisher(IDed *ided, Mailbox<ptr<Mail>> *mailbox = nullptr)
       : ided(ided), mailbox(mailbox) {
     }
 

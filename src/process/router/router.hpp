@@ -19,8 +19,8 @@ namespace fhatos {
   enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
   struct Subscription {
-    using Mail = Pair<const Subscription, const Message>;
-    Mailbox<Mail> *mailbox;
+    using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
+    Mailbox<ptr<Mail>> *mailbox;
     ID source;
     Pattern pattern;
     QoS qos = _1;
@@ -33,7 +33,7 @@ namespace fhatos {
     void execute(const Message &message) const { onRecv(message); }
   };
 
-  using Mail = Pair<const Subscription, const Message>;
+  using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
   //////////////////////////////////////////////

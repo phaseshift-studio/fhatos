@@ -13,7 +13,7 @@
 
 namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
-  class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<Mail> {
+  class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<ptr<Mail>> {
   public:
     explicit Actor(
       const ID &id,
@@ -58,7 +58,7 @@ namespace fhatos {
     }
 
     // PAYLOAD BOX METHODS
-    bool push(const Mail mail) override {
+    bool push(const ptr<Mail> mail) override {
       return this->running() && this->inbox.push_back(mail);
     }
 
@@ -129,16 +129,16 @@ namespace fhatos {
     }
 
   protected:
-    MutexDeque<Mail> inbox;
+    MutexDeque<ptr<Mail>> inbox;
     Consumer<Actor *> _setupFunction = nullptr;
     Consumer<Actor *> _loopFunction = nullptr;
-    Option<Mail> pop() override { return this->inbox.pop_front(); }
+    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
 
     virtual bool next() {
-      const Option<Mail> mail = this->pop();
+      const Option<ptr<Mail>> mail = this->pop();
       if (!mail.has_value())
         return false;
-      mail->first.execute(mail->second);
+      mail->get()->first->execute(*mail->get()->second);
       /// delete mail->second.payload;
       return true;
     }

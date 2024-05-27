@@ -40,15 +40,12 @@ namespace fhatos {
               self->stop();
           });
         });
-
     Scheduler::singleton()->spawn(actor1);
     Scheduler::singleton()->spawn(actor2);
     actor1->publish("actor2@", "START!", TRANSIENT_MESSAGE);
     while (Scheduler::singleton()->count("actor1@127.0.0.1") ||
            Scheduler::singleton()->count("actor2@127.0.0.1")) {
     }
-    //delete actor1;
-    //delete actor2;
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
@@ -64,7 +61,6 @@ namespace fhatos {
     auto *actor2 = new Actor<Thread, ROUTER>("actor2@127.0.0.1");
     actor1->setup();
     actor2->setup();
-
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
     RESPONSE_CODE rc =
@@ -103,12 +99,6 @@ namespace fhatos {
     actor2->loop();
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
-    //
-    actor2->stop();
-    actor1->stop();
-    // actor1->serialize();
-    //delete actor1;
-    //delete actor2;
     ROUTER::singleton()->clear();
     delete counter1;
     delete counter2;
@@ -160,9 +150,9 @@ namespace fhatos {
     actor2->loop();
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(1, counter2->load());
-   //  TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(actor1->id()));
+    //  TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(actor1->id()));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribeSource());
-    /* TODO rc = actor1->subscribe("actor1@127.0.0.1", [actor1, actor2,
+    rc = actor1->subscribe("actor1@127.0.0.1", [actor1, actor2,
                              counter2](const Message &message) {
                              TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
                              FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
@@ -170,21 +160,19 @@ namespace fhatos {
                              counter2->fetch_add(1);
                            });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
-    TEST_ASSERT_EQUAL(OK, rc);*/
+    TEST_ASSERT_EQUAL(OK, rc);
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(1, counter2->load());
     actor1->loop();
     actor2->loop();
 
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
-   // TODO TEST_ASSERT_EQUAL_INT(2, counter2->load());
-    //TODO : actor1->stop();
+    TEST_ASSERT_EQUAL_INT(2, counter2->load());
+    actor1->stop();
     actor2->stop();
-    //delete actor1;
-    //delete actor2;
     delete counter1;
     delete counter2;
-    //ROUTER::singleton()->clear();
+    ROUTER::singleton()->clear();
   }
 
   template<typename ROUTER>
@@ -201,9 +189,8 @@ namespace fhatos {
         FOS_TEST_PRINTER.printf("\n" FOS_TAB);
     }
     FOS_TEST_PRINTER.println();
-   // delete buffer.first;
-   // delete actor;
-   // delete clone;
+    //delete actor;
+    free(clone);
   }
 
   FOS_RUN_TESTS( //
