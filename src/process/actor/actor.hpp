@@ -1,3 +1,21 @@
+/*******************************************************************************
+ FhatOS: A Distributed Operating System
+ Copyright (c) 2024 PhaseShift Studio, LLC
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #ifndef fhatos_actor_hpp
 #define fhatos_actor_hpp
 
@@ -13,7 +31,7 @@
 
 namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
-  class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<ptr<Mail>> {
+  class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<ptr<Mail> > {
   public:
     explicit Actor(
       const ID &id,
@@ -129,13 +147,13 @@ namespace fhatos {
     }
 
   protected:
-    MutexDeque<ptr<Mail>> inbox;
+    MutexDeque<ptr<Mail> > inbox;
     Consumer<Actor *> _setupFunction = nullptr;
     Consumer<Actor *> _loopFunction = nullptr;
-    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
+    Option<ptr<Mail> > pop() override { return this->inbox.pop_front(); }
 
     virtual bool next() {
-      const Option<ptr<Mail>> mail = this->pop();
+      const Option<ptr<Mail> > mail = this->pop();
       if (!mail.has_value())
         return false;
       mail->get()->first->execute(*mail->get()->second);

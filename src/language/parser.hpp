@@ -1,3 +1,21 @@
+/*******************************************************************************
+ FhatOS: A Distributed Operating System
+ Copyright (c) 2024 PhaseShift Studio, LLC
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #ifndef fhatos_parser_hpp
 #define fhatos_parser_hpp
 
@@ -17,10 +35,10 @@ namespace fhatos {
     const ID context;
 
   public:
-    Parser(const ID context = ID("anonymous")) : context((context)) {
+    explicit Parser(const ID &context = ID("anonymous")) : context((context)) {
     }
 
-    ptr<Bytecode> parse(const char *line) {
+    const ptr<Bytecode> parse(const char *line) {
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", line);
       const auto ss = new stringstream(string(line));
       ptr<Bytecode> bcode = this->parseBytecode(ss);
@@ -28,12 +46,11 @@ namespace fhatos {
       return bcode;
     }
 
-    ptr<Fluent<> > parseToFluent(const char *line) {
+    const ptr<Fluent<> > parseToFluent(const char *line) {
       return share<Fluent<> >(Fluent<>(this->parse(line)));
     }
 
-
-    ptr<Bytecode> parseBytecode(stringstream *ss) {
+    const ptr<Bytecode> parseBytecode(stringstream *ss) {
       Fluent<> *fluent = new Fluent<>(this->context);
       while (!ss->eof()) {
         const ptr<string> opcode = this->parseOpcode(ss);
@@ -95,8 +112,8 @@ namespace fhatos {
       return opcode;
     }
 
-    ptr<List<ptr<OBJ_OR_BYTECODE> > > parseArgs(stringstream *ss) {
-      auto args = share(List<ptr<OBJ_OR_BYTECODE> >());
+    const ptr<List<ptr<OBJ_OR_BYTECODE> > > parseArgs(stringstream *ss) {
+      const auto args = share(List<ptr<OBJ_OR_BYTECODE> >());
       while (std::isspace(ss->peek())) {
         ss->get();
       }
@@ -115,7 +132,7 @@ namespace fhatos {
       return args;
     }
 
-    ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
+    const ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
       string argS;
       int paren = 0;
       while (!ss->eof()) {
@@ -137,7 +154,7 @@ namespace fhatos {
       return parseObj(argS);
     }
 
-    ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
+    const ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
       ptr<OBJ_OR_BYTECODE> se;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       if (token == "Ø") {
@@ -155,7 +172,7 @@ namespace fhatos {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(this->parseBytecode(ss).get()));
         domain = tdomain;
         range = trange;
-        // delete ss;
+        delete ss;
       } else if (token[0] == '[' && token[token.length() - 1] == ']') {
         RecMap<Obj *, Obj *> map = RecMap<Obj *, Obj *>();
         stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
