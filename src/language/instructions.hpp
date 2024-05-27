@@ -70,7 +70,7 @@ namespace fhatos {
   public:
     explicit BranchInst(const OBJ_OR_BYTECODE &branches)
       : Inst({
-        "branch", cast({branches.cast<Obj>()}),
+        "branch", cast({branches.cast<>()}),
         [this](const Obj *incoming) -> const Obj *{
           const Rec *rec = this->arg<Rec>(0)->apply(incoming);
           for (const auto &[key, value]: *rec->value()) {
@@ -96,19 +96,46 @@ namespace fhatos {
     }
   };
 
-
-  class EqInst final : public Inst {
-  public:
-    explicit EqInst(const OBJ_OR_BYTECODE &rhs)
-      : Inst({
-        "eq", cast({rhs.cast<Obj>()}),
-        [this](const Obj *lhs) {
-          return new Bool(*this->arg<Obj>(0)->apply(lhs) == *lhs);
-        }
-      }) {
-    }
+  enum class RELATION {
+    EQ,
+    NEQ,
+    GT,
+    GTE,
+    LT,
+    LTE
   };
 
+  const static Map<RELATION, string> REL_TO_STR = {
+    {RELATION::EQ, "eq"},
+    {RELATION::NEQ, "neq"},
+    {RELATION::GT, "gt"},
+    {RELATION::GTE, "gte"},
+    {RELATION::LT, "lt"},
+    {RELATION::LTE, "lte"}
+  };
+
+  class RelationalInst final : public Inst {
+  public:
+    const RELATION op;
+
+    explicit RelationalInst(const RELATION op, const OBJ_OR_BYTECODE &rhs)
+      : Inst({
+          REL_TO_STR.at(op), cast({rhs.cast<Obj>()}),
+          [this,op](const Obj *lhs)-> Bool *{
+            const Obj *rhs2 = this->arg<Obj>(0)->apply(lhs);
+            switch (op) {
+              case RELATION::EQ: return new Bool(*lhs == *rhs2);
+              case RELATION::NEQ: return new Bool(!(*lhs == *rhs2));
+              //case GT: return new Bool(*lhs > *rhs2);
+              //case GTE: return new Bool(*lhs >= *rhs2);
+              //case LT: return new Bool(*lhs == *rhs2);
+              //case LTE: return new Bool(*lhs == *rhs2);
+              default: throw fError("Unknown relational predicate: %i", this->op);
+            }
+          }
+        }), op(op) {
+    }
+  };
 
   template<typename ALGEBRA = Algebra>
   class PlusInst final : public Inst {
@@ -129,10 +156,10 @@ namespace fhatos {
   public:
     explicit MultInst(const OBJ_OR_BYTECODE &rhs)
       : Inst({
-        "plus", cast({rhs.cast<Obj>()}),
+        "mult", cast({rhs.cast<Obj>()}),
         [this](const Obj *lhs) {
           return
-              ALGEBRA::singleton()->plus(this->arg<Obj>(0)->apply(lhs), lhs);
+              ALGEBRA::singleton()->mult(this->arg<Obj>(0)->apply(lhs), lhs);
         }
       }) {
     }

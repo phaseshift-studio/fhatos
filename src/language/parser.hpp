@@ -63,6 +63,8 @@ namespace fhatos {
           fluent = new Fluent(fluent->branch(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "eq") {
           fluent = new Fluent(fluent->eq(OBJ_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "neq") {
+          fluent = new Fluent(fluent->neq(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "plus") {
           range = domain;
           fluent = new Fluent(fluent->plus(OBJ_OR_BYTECODE(*args->at(0))));

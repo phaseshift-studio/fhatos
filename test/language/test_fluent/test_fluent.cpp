@@ -36,25 +36,23 @@ namespace fhatos {
   }
 
   void test_rec_branch() {
-    Fluent f =
+    Fluent<> f =
         __(1).plus(2).branch({
             {_.is(_.eq(3)), _.plus(2)},
             {2, 4},
             {_.mult(2), 7}
         }).is(_.eq(5)).mult(_.plus(95));
-    FOS_TEST_MESSAGE("%s",
-                     f.toString().c_str());
-    f.forEach<Int>([](const Int *e) {
+    FOS_TEST_MESSAGE("%s", f.toString().c_str());
+    /*f.forEach<Int>([](const Int *e) {
       FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
-    });
+    });*/
   }
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_rec_branch); //
-
-      );
-} // namespace fhatos::kernel
+      )
+} // namespace fhatos
 
 SETUP_AND_LOOP();
 

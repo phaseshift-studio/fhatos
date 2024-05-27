@@ -57,7 +57,7 @@ namespace fhatos {
       proc.forEach(consumer);
     }
 
-    const string toString() const { return "f" + this->bcode->toString(); }
+    string toString() const { return string("f").append(this->bcode->toString()); }
 
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// PROTECTED  /////////////////////////////////////////
@@ -96,9 +96,9 @@ namespace fhatos {
     }
 
     Fluent branch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
-      RecMap<Obj *, Obj *> *recMap = new RecMap<Obj *, Obj *>;
-      for (auto pair: recPairs) {
-        recMap->insert({pair.first.cast<>(), pair.second.cast<>()});
+      auto recMap = new RecMap<Obj *, Obj *>;
+      for (auto it = std::rbegin(recPairs); it != std::rend(recPairs); ++it) {
+        recMap->insert({it->first.cast<>(), it->second.cast<>()});
       }
       return this->addInst(new BranchInst(OBJ_OR_BYTECODE(new Rec(recMap)).cast<Rec>()));
     }
@@ -108,7 +108,11 @@ namespace fhatos {
     }
 
     Fluent eq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new EqInst(rhs));
+      return this->addInst(new RelationalInst(RELATION::EQ, rhs));
+    }
+
+    Fluent neq(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst(RELATION::NEQ, rhs));
     }
 
     Fluent is(const OBJ_OR_BYTECODE &test) {
@@ -149,7 +153,7 @@ namespace fhatos {
     }))));
   };
 
-  static Fluent<> __() { return Fluent<>(); };
+  static Fluent<> __() { return __({}); };
 
   inline static Fluent<> _ = __();
 } // namespace fhatos

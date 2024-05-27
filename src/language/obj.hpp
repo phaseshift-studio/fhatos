@@ -80,9 +80,7 @@ namespace fhatos {
 
 
     virtual bool operator==(const Obj &other) const {
-      return !this->isNoObj() &&
-             !other.isNoObj() &&
-             strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
+      return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
     }
 
     bool isNoObj() const {
@@ -177,6 +175,11 @@ namespace fhatos {
     virtual const Int *apply(const Obj *obj) const override {
       return new Int(this->_value);
     }
+
+    virtual bool operator==(const Obj &other) const override {
+      return other.type() == OType::INT && this->_value == ((Int *) &other)->_value;
+    }
+
 
     const string toString() const override { return std::to_string(_value); }
   };
@@ -385,8 +388,10 @@ namespace fhatos {
 
     const Obj *apply(const Obj *obj) const override {
       Obj *running = const_cast<Obj *>(obj);
+      if (running->isNoObj())
+        return running;
       for (const Inst *inst: *this->_value) {
-        running = (Obj *) inst->func()(running);
+        running = (Obj *) inst->apply(running);
         if (running->isNoObj())
           break;
       }
@@ -423,9 +428,9 @@ namespace fhatos {
     const string toString() const override {
       string s = "{";
       for (const auto *inst: *this->_value) {
-        s = s + inst->toString();
+        s.append(inst->toString());
       }
-      return s + "}";
+      return s.append("}");
     }
   };
 

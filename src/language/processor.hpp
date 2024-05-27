@@ -92,9 +92,9 @@ namespace fhatos {
           // if (counter++ != 0) {
           LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), (**it).toString().c_str(),
               OTYPE_STR.at(end->get()->type()).c_str());
-          end = const_cast<Monad<E> *>(end->template split<E>(*it));
-          if (((Obj *) end->get())->isNoObj())
-            break;
+          Monad<E> *temp = const_cast<Monad<E> *>(end->template split<E>(*it));
+          if (!((Obj *) end->get())->isNoObj())
+            end = temp;
         }
         if (!((Obj *) end->get())->isNoObj())
           this->output.push_back(end->get());

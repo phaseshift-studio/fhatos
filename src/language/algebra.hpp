@@ -31,6 +31,32 @@ namespace fhatos {
       return &singleton;
     }
 
+    /*
+virtual const Obj* eq(const Obj*a,const Obj*b) const {
+  return new Bool(*a == *b)
+}
+
+virtual const Obj* neq(const Obj*a,const Obj*b) const {
+    return new Bool(!(*a == *b))
+}
+
+virtual const Obj* gt(const Obj*a,const Obj*b) const {
+
+}
+
+virtual const Obj* gte(const Obj*a,const Obj*b) const {
+
+}
+
+virtual const Obj* lt(const Obj*a,const Obj*b) const {
+
+}
+
+virtual const Obj* leq(const Obj*a,const Obj*b) const {
+
+}
+     */
+
     virtual const Obj *plus(const Obj *a, const Obj *b) const {
       switch (a->type()) {
         case OType::URI: return new Uri(((Uri *) b)->value().extend(((Uri *) a)->toString().c_str()));
@@ -39,7 +65,7 @@ namespace fhatos {
         case OType::REAL: return new Real(((Real *) b)->value() + ((Real *) a)->value());
         case OType::STR: return new Str(string(((Str *) b)->value().c_str()).append(((Str *) a)->value()));
         default: {
-          throw  fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
+          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
                        OTYPE_STR.at(b->type()).c_str());
         }
       }
@@ -51,7 +77,7 @@ namespace fhatos {
         case OType::INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());
         case OType::REAL: return new Real(((Real *) b)->value() * ((Real *) a)->value());
         default: {
-          throw  fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()).c_str(),
+          throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()).c_str(),
                        OTYPE_STR.at(b->type()).c_str());
         }
       }
