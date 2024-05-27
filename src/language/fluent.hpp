@@ -87,13 +87,31 @@ namespace fhatos {
       return this->addInst(new StartInst(castStarts));
     }
 
+    /////////////////////////////////////////////////////////////////////
+    //////////////////////////// COMPOSITION ////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+
     Fluent plus(const OBJ_OR_BYTECODE &rhs) const {
-      return this->addInst(new PlusInst<ALGEBRA>(rhs));
+      return this->addInst(new CompositionInst<ALGEBRA>(COMPOSITION_OPERATOR::PLUS, rhs));
     }
 
     Fluent mult(const OBJ_OR_BYTECODE &rhs) const {
-      return this->addInst(new MultInst<ALGEBRA>(rhs));
+      return this->addInst(new CompositionInst<ALGEBRA>(COMPOSITION_OPERATOR::MULT, rhs));
     }
+
+    ///////////////////////////////////////////////////////////////////
+    //////////////////////////// RELATIONS ////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+
+    Fluent eq(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst<>(RELATION_PREDICATE::EQ, rhs));
+    }
+
+    Fluent neq(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst<>(RELATION_PREDICATE::NEQ, rhs));
+    }
+
+    ///////////////////////////////////////////////////////////////////////
 
     Fluent branch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
       auto recMap = new RecMap<Obj *, Obj *>;
@@ -105,14 +123,6 @@ namespace fhatos {
 
     Fluent branch(const OBJ_OR_BYTECODE &branches) {
       return this->addInst(new BranchInst(branches));
-    }
-
-    Fluent eq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst(RELATION::EQ, rhs));
-    }
-
-    Fluent neq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst(RELATION::NEQ, rhs));
     }
 
     Fluent is(const OBJ_OR_BYTECODE &test) {
