@@ -433,6 +433,9 @@ namespace fhatos {
     OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
+    OBJ_OR_BYTECODE(const NoObj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    }
+
     OBJ_OR_BYTECODE(const bool boolX) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(boolX)}) {
     }
 
@@ -443,6 +446,9 @@ namespace fhatos {
     }
 
     OBJ_OR_BYTECODE(const string &strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {
+    }
+
+    OBJ_OR_BYTECODE(const fURI &uriX) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(uriX)}) {
     }
 
     OBJ_OR_BYTECODE(const Bool *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
@@ -461,13 +467,16 @@ namespace fhatos {
     OBJ_OR_BYTECODE(const Uri *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
     }
 
-
-    OBJ_OR_BYTECODE(const Rec *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    OBJ_OR_BYTECODE(const Rec *objA) : _type(OType::REC), data(OBJ_UNION{.objA = objA}) {
     }
 
     OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {
     }
 
+
+    const OType type() const {
+      return this->_type;
+    }
 
     template<typename T = Obj>
     T *cast() const {
