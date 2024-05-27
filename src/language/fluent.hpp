@@ -128,15 +128,15 @@ namespace fhatos {
     Fluent start(const List<ptr<S_E> > starts) const {
       List<Obj *> *castStarts = new List<Obj *>();
       for (auto se: starts) {
-        castStarts->push_back((Obj *) se->obj);
+        castStarts->push_back(se->obj);
       }
       return this->addInst(new StartInst(castStarts));
     }
 
-    Fluent start(const List<S_E> starts) const {
+    Fluent start(const List<OBJ_OR_BYTECODE> starts) const {
       List<Obj *> *castStarts = new List<Obj *>();
-      for (S_E se: starts) {
-        castStarts->push_back(se.obj);
+      for (const auto &se: starts) {
+        castStarts->push_back(se.obj());
       }
       return this->addInst(new StartInst(castStarts));
     }
@@ -150,8 +150,16 @@ namespace fhatos {
     }
 
     Fluent branch(const std::initializer_list<Pair<S_E const, S_E> > &recMap) {
-      return this->addInst(new BranchInst(S_E(recMap).cast<Rec>()));
+      return this->addInst(new BranchInst(OBJ_OR_BYTECODE(S_E(recMap).cast<Rec>())));
     }
+
+    /* Fluent branch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recMap) {
+    RecMap<Obj*,Obj*>* recMap2 =new RecMap<Obj*,Obj*> ;
+    for (auto pair : recMap) {
+    recMap2->insert({pair.first.obj(),pair.second.obj()});
+    }
+    return this->addInst(new BranchInst(OBJ_OR_BYTECODE((Rec*)new Rec(recMap2))));
+    }*/
 
     Fluent branch(const OBJ_OR_BYTECODE &branches) {
       return this->addInst(new BranchInst(branches));

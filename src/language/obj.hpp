@@ -116,9 +116,9 @@ namespace fhatos {
       return this;
     }
 
-   /* virtual bool isType() const {
-      return this->_value == nullptr;
-    }*/
+    /* virtual bool isType() const {
+       return this->_value == nullptr;
+     }*/
 
     virtual const string toString() const override {
       return this->_value.toString();
@@ -469,7 +469,11 @@ namespace fhatos {
       return (T *) (this->isBytecode() ? (T *) data.bcodeB : (T *) data.objA);
     }
 
-    const Obj *apply(const Obj *input) const {
+    const string toString() const override {
+      return this->obj()->toString();
+    }
+
+    const Obj *apply(const Obj *input) const override {
       return (this->isBytecode() ? data.bcodeB->apply(input) : data.objA->apply(input));
     }
   };
