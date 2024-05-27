@@ -35,7 +35,7 @@ namespace fhatos {
 
   class StartInst final : public Inst {
   public:
-    explicit StartInst(List<Obj *> *starts)
+    explicit StartInst(const List<Obj *> *starts)
       : Inst({
         "start", cast(starts),
         [](const Obj *start) {

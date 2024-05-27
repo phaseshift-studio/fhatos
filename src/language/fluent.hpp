@@ -136,7 +136,7 @@ namespace fhatos {
     Fluent start(const List<OBJ_OR_BYTECODE> starts) const {
       List<Obj *> *castStarts = new List<Obj *>();
       for (const auto &se: starts) {
-        castStarts->push_back(se.obj());
+        castStarts->push_back(se.cast<>());
       }
       return this->addInst(new StartInst(castStarts));
     }

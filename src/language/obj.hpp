@@ -412,13 +412,14 @@ namespace fhatos {
   };
 
   /////////////////////////////////////////// UNIONS ///////////////////////////////////////////
-  struct OBJ_OR_BYTECODE : public Obj {
+  struct OBJ_OR_BYTECODE {
     union OBJ_UNION {
       const Obj *objA;
       const Bytecode *bcodeB;
     };
 
-    OBJ_UNION data;
+    const OType _type;
+    const OBJ_UNION data;
 
     bool isBytecode() const {
       return this->_type == OType::BYTECODE;
@@ -428,52 +429,50 @@ namespace fhatos {
       return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
     }
 
-    OBJ_OR_BYTECODE(const int objA) : Obj(OType::INT) {
-      this->data = OBJ_UNION{.objA = new Int(objA)};
+    OBJ_OR_BYTECODE(const int objA) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(objA)}) {
     }
 
-    OBJ_OR_BYTECODE(const Obj *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+    OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Bool *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+    OBJ_OR_BYTECODE(const Bool *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Int *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+
+    OBJ_OR_BYTECODE(const Int *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Real *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+
+    OBJ_OR_BYTECODE(const Real *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Str *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+
+    OBJ_OR_BYTECODE(const Str *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Uri *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+
+    OBJ_OR_BYTECODE(const Uri *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Rec *objA) : Obj(objA->type()) {
-      this->data = OBJ_UNION{.objA = objA};
+
+    OBJ_OR_BYTECODE(const Rec *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Bytecode *bcodeB) : Obj(OType::BYTECODE) {
-      this->data = OBJ_UNION{.bcodeB = bcodeB};
+
+    OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {
     }
 
-    template<typename T>
-    const T *cast() const {
+
+    template<typename T = Obj>
+    T *cast() const {
       return (T *) (this->isBytecode() ? (T *) data.bcodeB : (T *) data.objA);
     }
 
-    const string toString() const override {
-      return this->obj()->toString();
+    const string toString() const {
+      return this->cast()->toString();
     }
 
-    const Obj *apply(const Obj *input) const override {
+    const Obj *apply(const Obj *input) const {
       return (this->isBytecode() ? data.bcodeB->apply(input) : data.objA->apply(input));
     }
   };
