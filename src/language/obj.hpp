@@ -413,6 +413,7 @@ namespace fhatos {
 
   /////////////////////////////////////////// UNIONS ///////////////////////////////////////////
   struct OBJ_OR_BYTECODE {
+  public:
     union OBJ_UNION {
       const Obj *objA;
       const Bytecode *bcodeB;
@@ -429,35 +430,40 @@ namespace fhatos {
       return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
     }
 
-    OBJ_OR_BYTECODE(const int objA) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(objA)}) {
-    }
-
     OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Bool *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const bool boolX) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(boolX)}) {
+    }
+
+    OBJ_OR_BYTECODE(const FL_INT_TYPE intX) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(intX)}) {
+    }
+
+    OBJ_OR_BYTECODE(const FL_REAL_TYPE realX) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(realX)}) {
+    }
+
+    OBJ_OR_BYTECODE(const string &strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {
+    }
+
+    OBJ_OR_BYTECODE(const Bool *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    }
+
+    OBJ_OR_BYTECODE(const Int *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
     }
 
 
-    OBJ_OR_BYTECODE(const Int *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Real *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    }
+
+    OBJ_OR_BYTECODE(const Str *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    }
+
+    OBJ_OR_BYTECODE(const Uri *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
     }
 
 
-    OBJ_OR_BYTECODE(const Real *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Rec *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
     }
-
-
-    OBJ_OR_BYTECODE(const Str *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
-    }
-
-
-    OBJ_OR_BYTECODE(const Uri *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
-    }
-
-
-    OBJ_OR_BYTECODE(const Rec *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
-    }
-
 
     OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {
     }
