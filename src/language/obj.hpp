@@ -98,30 +98,30 @@ namespace fhatos {
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
   class Uri final : public Obj {
   protected:
-    ptr<fURI> _value;
+    fURI _value;
 
   public:
     Uri() : Obj(OType::URI), _value(nullptr) {
     }
 
-    Uri(const fURI &value) : Obj(OType::URI), _value(share<fURI>(value)) {
+    Uri(const fURI &value) : Obj(OType::URI), _value(value) {
     }
 
-    Uri(const string &value) : Obj(OType::URI), _value(share<fURI>(fURI(value))) {
+    Uri(const string &value) : Obj(OType::URI), _value(fURI(value)) {
     }
 
-    const fURI value() const { return *this->_value; }
+    const fURI value() const { return this->_value; }
 
     const Uri *apply(const Obj *obj) const override {
       return this;
     }
 
-    virtual bool isType() const {
+   /* virtual bool isType() const {
       return this->_value == nullptr;
-    }
+    }*/
 
     virtual const string toString() const override {
-      return this->_value->toString();
+      return this->_value.toString();
     }
   };
 
@@ -412,10 +412,9 @@ namespace fhatos {
   };
 
   /////////////////////////////////////////// UNIONS ///////////////////////////////////////////
-  template<typename _OBJ>
   struct OBJ_OR_BYTECODE : public Obj {
     union OBJ_UNION {
-      const _OBJ *objA;
+      const Obj *objA;
       const Bytecode *bcodeB;
     };
 
@@ -465,17 +464,13 @@ namespace fhatos {
       this->data = OBJ_UNION{.bcodeB = bcodeB};
     }
 
-    static const OBJ_OR_BYTECODE create(const Obj *obj) {
-      return obj->type() == OType::BYTECODE ? OBJ_OR_BYTECODE((Bytecode *) obj) : OBJ_OR_BYTECODE((_OBJ*)obj);
-    }
-
     template<typename T>
     const T *cast() const {
       return (T *) (this->isBytecode() ? (T *) data.bcodeB : (T *) data.objA);
     }
 
-    const _OBJ *apply(const Obj *input) const {
-      return (this->isBytecode() ? (_OBJ *) data.bcodeB->apply(input) : (_OBJ *) data.objA);
+    const Obj *apply(const Obj *input) const {
+      return (this->isBytecode() ? data.bcodeB->apply(input) : data.objA->apply(input));
     }
   };
 } // namespace fhatos

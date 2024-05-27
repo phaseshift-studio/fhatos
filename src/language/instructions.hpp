@@ -50,7 +50,7 @@ namespace fhatos {
 
   class BranchInst final : public Inst {
   public:
-    explicit BranchInst(const OBJ_OR_BYTECODE<Rec> &branches)
+    explicit BranchInst(const OBJ_OR_BYTECODE &branches)
       : Inst({
         "branch", cast({branches.cast<Obj>()}),
         [this](const Obj *incoming) -> const Obj *{
@@ -68,7 +68,7 @@ namespace fhatos {
 
   class IsInst final : public Inst {
   public:
-    explicit IsInst(const OBJ_OR_BYTECODE<Bool> &test)
+    explicit IsInst(const OBJ_OR_BYTECODE &test)
       : Inst({
         "is", cast({test.cast<Obj>()}),
         [this](const Obj *input) {
@@ -81,7 +81,7 @@ namespace fhatos {
 
   class EqInst final : public Inst {
   public:
-    explicit EqInst(const OBJ_OR_BYTECODE<Obj> &rhs)
+    explicit EqInst(const OBJ_OR_BYTECODE &rhs)
       : Inst({
         "eq", cast({rhs.cast<Obj>()}),
         [this](const Obj *lhs) {
@@ -95,7 +95,7 @@ namespace fhatos {
   template<typename ALGEBRA = Algebra>
   class PlusInst final : public Inst {
   public:
-    explicit PlusInst(const OBJ_OR_BYTECODE<Obj> &rhs)
+    explicit PlusInst(const OBJ_OR_BYTECODE &rhs)
       : Inst({
         "plus", cast({rhs.cast<Obj>()}),
         [this](const Obj *lhs) {
@@ -109,7 +109,7 @@ namespace fhatos {
   template<typename ALGEBRA = Algebra>
   class MultInst final : public Inst {
   public:
-    explicit MultInst(const OBJ_OR_BYTECODE<Obj> &rhs)
+    explicit MultInst(const OBJ_OR_BYTECODE &rhs)
       : Inst({
         "plus", cast({rhs.cast<Obj>()}),
         [this](const Obj *lhs) {

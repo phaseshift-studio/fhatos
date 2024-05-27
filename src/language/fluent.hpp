@@ -121,22 +121,9 @@ namespace fhatos {
       return *(new S_E(new Bytecode(this->bcode.get()->value())));
     }
 
-    operator const OBJ_OR_BYTECODE<Bytecode> &() const {
-      return *new OBJ_OR_BYTECODE<Bytecode>(new Bytecode(this->bcode.get()->value()));
+    operator const OBJ_OR_BYTECODE &() const {
+      return *new OBJ_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
     }
-
-    operator const OBJ_OR_BYTECODE<Obj> &() const {
-      return *new OBJ_OR_BYTECODE<Obj>(new Bytecode(this->bcode.get()->value()));
-    }
-
-    operator const OBJ_OR_BYTECODE<Int> &() const {
-      return *new OBJ_OR_BYTECODE<Int>(new Bytecode(this->bcode.get()->value()));
-    }
-
-    operator const OBJ_OR_BYTECODE<Bool> &() const {
-      return *new OBJ_OR_BYTECODE<Bool>(new Bytecode(this->bcode.get()->value()));
-    }
-
 
     Fluent start(const List<ptr<S_E> > starts) const {
       List<Obj *> *castStarts = new List<Obj *>();
@@ -154,11 +141,11 @@ namespace fhatos {
       return this->addInst(new StartInst(castStarts));
     }
 
-    Fluent plus(const OBJ_OR_BYTECODE<Obj> &rhs) const {
+    Fluent plus(const OBJ_OR_BYTECODE &rhs) const {
       return this->addInst(new PlusInst<ALGEBRA>(rhs));
     }
 
-    Fluent mult(const OBJ_OR_BYTECODE<Obj> &rhs) const {
+    Fluent mult(const OBJ_OR_BYTECODE &rhs) const {
       return this->addInst(new MultInst<ALGEBRA>(rhs));
     }
 
@@ -166,15 +153,15 @@ namespace fhatos {
       return this->addInst(new BranchInst(S_E(recMap).cast<Rec>()));
     }
 
-    Fluent branch(const OBJ_OR_BYTECODE<Rec> &branches) {
+    Fluent branch(const OBJ_OR_BYTECODE &branches) {
       return this->addInst(new BranchInst(branches));
     }
 
-    Fluent eq(const OBJ_OR_BYTECODE<Obj> &rhs) {
+    Fluent eq(const OBJ_OR_BYTECODE &rhs) {
       return this->addInst(new EqInst(rhs));
     }
 
-    Fluent is(const OBJ_OR_BYTECODE<Bool> &test) {
+    Fluent is(const OBJ_OR_BYTECODE &test) {
       return this->addInst(new IsInst(test));
     }
 
