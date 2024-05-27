@@ -478,60 +478,6 @@ namespace fhatos {
       return (this->isBytecode() ? (_OBJ *) data.bcodeB->apply(input) : (_OBJ *) data.objA);
     }
   };
-
-  struct URI_OR_BYTECODE : public OBJ_OR_BYTECODE<Uri> {
-    URI_OR_BYTECODE(Uri *objA) : OBJ_OR_BYTECODE<Uri>(objA) {
-    }
-
-    URI_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Uri>(bcodeB) {
-    }
-  };
-
-  struct BOOL_OR_BYTECODE : public OBJ_OR_BYTECODE<Bool> {
-    BOOL_OR_BYTECODE(bool objA) : BOOL_OR_BYTECODE(new Bool(objA)) {
-    }
-
-    BOOL_OR_BYTECODE(Bool *objA) : OBJ_OR_BYTECODE<Bool>(objA) {
-    }
-
-    BOOL_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Bool>(bcodeB) {
-    }
-  };
-
-  struct INT_OR_BYTECODE : public OBJ_OR_BYTECODE<Int> {
-    INT_OR_BYTECODE(int objA) : INT_OR_BYTECODE(new Int(objA)) {
-    }
-
-    INT_OR_BYTECODE(Int *objA) : OBJ_OR_BYTECODE<Int>(objA) {
-    }
-
-    INT_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Int>(bcodeB) {
-    }
-  };
-
-  struct REAL_OR_BYTECODE : public OBJ_OR_BYTECODE<Real> {
-    REAL_OR_BYTECODE(Real *objA) : OBJ_OR_BYTECODE<Real>(objA) {
-    }
-
-    REAL_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Real>(bcodeB) {
-    }
-  };
-
-  struct STR_OR_BYTECODE : public OBJ_OR_BYTECODE<Str> {
-    STR_OR_BYTECODE(Str *objA) : OBJ_OR_BYTECODE<Str>(objA) {
-    }
-
-    STR_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Str>(bcodeB) {
-    }
-  };
-
-  struct REC_OR_BYTECODE : public OBJ_OR_BYTECODE<Rec> {
-    REC_OR_BYTECODE(Rec *objA) : OBJ_OR_BYTECODE<Rec>(objA) {
-    }
-
-    REC_OR_BYTECODE(Bytecode *bcodeB) : OBJ_OR_BYTECODE<Rec>(bcodeB) {
-    }
-  };
 } // namespace fhatos
 
 #endif

@@ -15,7 +15,6 @@ namespace fhatos {
     OType type;
     Obj *obj;
 
-
     S_E(OType type, Obj *obj) : type(type), obj(obj) {
     }
 
@@ -65,16 +64,6 @@ namespace fhatos {
       return "S=>E[" + this->obj->toString() + "]";
     }
   };
-
-  class S_E_BOOL final : public S_E {
-  public:
-    S_E_BOOL(Bytecode *bcodeX): S_E(bcodeX) {
-    };
-
-    S_E_BOOL(bool boolX): S_E(boolX) {
-    };
-  };
-
 
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
@@ -132,10 +121,6 @@ namespace fhatos {
       return *(new S_E(new Bytecode(this->bcode.get()->value())));
     }
 
-    operator const BOOL_OR_BYTECODE &() const {
-      return *new BOOL_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
-    }
-
     operator const OBJ_OR_BYTECODE<Bytecode> &() const {
       return *new OBJ_OR_BYTECODE<Bytecode>(new Bytecode(this->bcode.get()->value()));
     }
@@ -145,16 +130,13 @@ namespace fhatos {
     }
 
     operator const OBJ_OR_BYTECODE<Int> &() const {
-      return *new INT_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
+      return *new OBJ_OR_BYTECODE<Int>(new Bytecode(this->bcode.get()->value()));
     }
 
     operator const OBJ_OR_BYTECODE<Bool> &() const {
       return *new OBJ_OR_BYTECODE<Bool>(new Bytecode(this->bcode.get()->value()));
     }
 
-    operator const INT_OR_BYTECODE &() const {
-      return *new INT_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
-    }
 
     Fluent start(const List<ptr<S_E> > starts) const {
       List<Obj *> *castStarts = new List<Obj *>();
