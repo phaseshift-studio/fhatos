@@ -70,27 +70,18 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-  enum class BRANCH_SEMANTIC {
-    SPLIT,
-    CHAIN,
-    SWITCH
-  };
-
+  template<typename ALGEBRA=Algebra>
   class BranchInst final : public Inst {
   public:
-    explicit BranchInst(const OBJ_OR_BYTECODE &branches)
+    const typename ALGEBRA::BRANCH_SEMANTIC branch;
+
+    explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const OBJ_OR_BYTECODE &branches)
       : Inst({
-        "branch", cast({branches.cast<>()}),
-        [this](const Obj *incoming) -> const Obj *{
-          const Rec *rec = this->arg<Rec>(0)->apply(incoming);
-          for (const auto &[key, value]: *rec->value()) {
-            if (!key->apply(incoming)->isNoObj()) {
-              return value->apply(incoming);
-            }
+          ALGEBRA::BRNCH_TO_STR(branch), cast({branches.cast<>()}),
+          [this,branch](const Obj *lhs)-> Obj *{
+            return (Obj *) ALGEBRA::singleton()->branch(branch, lhs, this->arg<Obj>(0));
           }
-          return NoObj::singleton();
-        }
-      }) {
+        }), branch(branch) {
     }
   };
 
@@ -103,13 +94,13 @@ namespace fhatos {
   template<typename ALGEBRA=Algebra>
   class RelationalInst final : public Inst {
   public:
-    const RELATION_PREDICATE predicate;
+    const typename ALGEBRA::RELATION_PREDICATE predicate;
 
-    explicit RelationalInst(const RELATION_PREDICATE predicate, const OBJ_OR_BYTECODE &rhs)
+    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const OBJ_OR_BYTECODE &rhs)
       : Inst({
-          REL_TO_STR.at(predicate), cast({rhs.cast<Obj>()}),
+          ALGEBRA::REL_TO_STR(predicate), cast({rhs.cast<>()}),
           [this,predicate](const Obj *lhs)-> Obj *{
-            return (Obj*) ALGEBRA::singleton()->relate(predicate, this->arg<Obj>(0)->apply(lhs), lhs);
+            return (Obj *) ALGEBRA::singleton()->relate(predicate, this->arg<Obj>(0)->apply(lhs), lhs);
           }
         }), predicate(predicate) {
     }
@@ -133,21 +124,24 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-
   template<typename ALGEBRA = Algebra>
   class CompositionInst final : public Inst {
   public:
-    const COMPOSITION_OPERATOR op;
+    const typename ALGEBRA::COMPOSITION_OPERATOR op;
 
-    explicit CompositionInst(const COMPOSITION_OPERATOR op, const OBJ_OR_BYTECODE &rhs)
+    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR op, const OBJ_OR_BYTECODE &rhs)
       : Inst({
-          COMP_TO_STR.at(op), cast({rhs.cast<Obj>()}),
+          ALGEBRA::COMP_TO_STR(op), cast({rhs.cast<Obj>()}),
           [this,op](const Obj *lhs) {
             return ALGEBRA::singleton()->compose(op, this->arg<Obj>(0)->apply(lhs), lhs);
           }
         }), op(op) {
     }
   };
+
+  //////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
 
   template<typename _URI, typename _PAYLOAD>
   class PublishInst final : public Inst {

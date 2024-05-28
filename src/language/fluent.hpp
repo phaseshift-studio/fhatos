@@ -92,11 +92,11 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
 
     Fluent plus(const OBJ_OR_BYTECODE &rhs) const {
-      return this->addInst(new CompositionInst<ALGEBRA>(COMPOSITION_OPERATOR::PLUS, rhs));
+      return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::PLUS, rhs));
     }
 
     Fluent mult(const OBJ_OR_BYTECODE &rhs) const {
-      return this->addInst(new CompositionInst<ALGEBRA>(COMPOSITION_OPERATOR::MULT, rhs));
+      return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MULT, rhs));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -104,25 +104,27 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////
 
     Fluent eq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<>(RELATION_PREDICATE::EQ, rhs));
+      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::EQ, rhs));
     }
 
     Fluent neq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<>(RELATION_PREDICATE::NEQ, rhs));
+      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::NEQ, rhs));
     }
 
-    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    //////////////////////////// BRANCHING ////////////////////////////
+    ///////////////////////////////////////////////////////////////////
 
     Fluent branch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
       auto recMap = new RecMap<Obj *, Obj *>;
       for (auto it = std::rbegin(recPairs); it != std::rend(recPairs); ++it) {
         recMap->insert({it->first.cast<>(), it->second.cast<>()});
       }
-      return this->addInst(new BranchInst(OBJ_OR_BYTECODE(new Rec(recMap)).cast<Rec>()));
+      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SPLIT, OBJ_OR_BYTECODE(new Rec(recMap))));
     }
 
     Fluent branch(const OBJ_OR_BYTECODE &branches) {
-      return this->addInst(new BranchInst(branches));
+      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SPLIT, branches.cast<Rec>()));
     }
 
     Fluent is(const OBJ_OR_BYTECODE &test) {
