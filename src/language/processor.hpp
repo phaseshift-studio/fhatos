@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
+#include <assert.h>
 
 namespace fhatos {
   class Monad {
