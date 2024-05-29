@@ -304,13 +304,10 @@ namespace fhatos {
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
   typedef Function<const Obj *, const Obj *> InstFunction;
   typedef List<Obj *> InstArgs;
-  typedef List<Obj *> InstStorage;
 
   class Inst : public Obj {
   protected:
     const Triple<const string, const InstArgs, const InstFunction> _value;
-    InstStorage input;
-    InstStorage output;
 
   public:
     explicit Inst(const Triple<const string, const InstArgs, const InstFunction> &value)
@@ -323,27 +320,6 @@ namespace fhatos {
 
     const Obj *apply(const Obj *obj) const override {
       return this->func()(obj);
-    }
-
-    InstStorage *getOutput() {
-      return &this->output;
-    }
-
-    Obj *next() {
-      while (true) {
-        if (output.empty()) {
-          if (input.empty())
-            return NoObj::singleton();
-          else {
-            output.push_back(const_cast<Obj *>(this->apply(input.back())));
-            input.pop_back();
-          }
-        } else {
-          Obj *obj = output.back();
-          output.pop_back();
-          return obj;
-        }
-      }
     }
 
     const string toString() const override {
@@ -386,6 +362,18 @@ namespace fhatos {
     explicit Bytecode() : Bytecode(new List<Inst *>()) {
     }
 
+    const Inst *nextInst(const Inst *currentInst) const {
+      bool found = false;
+      for (const Inst *inst: *this->value()) {
+        if (found) {
+          return inst;
+        } else if (inst == currentInst) {
+          found = true;
+        }
+      }
+      return nullptr;
+    }
+
     const Obj *apply(const Obj *obj) const override {
       Obj *running = const_cast<Obj *>(obj);
       if (running->isNoObj())
@@ -414,8 +402,12 @@ namespace fhatos {
       return share<Bytecode>(Bytecode(list, this->context));
     }
 
-    Inst *startInst() const {
+    const Inst *startInst() const {
       return this->value()->front();
+    }
+
+    const Inst *endInst() const {
+      return this->value()->back();
     }
 
     template<typename S>

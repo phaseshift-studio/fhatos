@@ -24,31 +24,30 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
-  template<typename A>
   class Monad {
   protected:
-    A *_value;
-    // const Inst<Obj, A> *inst = nullptr;
+    const Obj *_obj;
+    const Inst *_inst;
     const long _bulk = 1;
 
   public:
-    template<typename X>
-    using ptr = std::shared_ptr<Monad<X> >;
-
-    explicit Monad(const Obj *value) : _value((A *) value) {
+    explicit Monad(const Obj *obj, const Inst *inst) : _obj(obj), _inst(inst) {
     }
 
-    template<typename B>
-    const Monad<B> *split(const Inst *next) const {
-      return new Monad<B>((B *) next->apply(this->get()));
+    const Monad *split(const Inst *next) const {
+      return new Monad(next->apply(this->obj()), next);
     }
 
-    A *get() const { return this->_value; }
-
+    const Obj *obj() const { return this->_obj; }
+    const Inst *inst() const { return this->_inst; }
     long bulk() const { return this->_bulk; }
 
+    bool halted() const {
+      return this->inst() == nullptr;
+    }
+
     const string toString() const {
-      return string("M[") + this->get()->toString() + "]";
+      return string("!bM!![") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "]";
     }
 
     // const Inst<Obj, A> *at() const { return this->inst; }
@@ -61,61 +60,76 @@ namespace fhatos {
   class Processor {
   protected:
     const ptr<Bytecode> bcode;
-    List<const E *> output;
-    bool done = false;
+    Set<const Monad *> *running = new Set<const Monad *>();
+    List<const E *> *halted = new List<const E *>();
 
   public:
     explicit Processor(const ptr<Bytecode> bcode) : bcode(bcode) {
-    }
-
-    void forEach(const Consumer<const E *> &consumer) {
-      for (const E *end: this->toList()) {
-        if (!((Obj *) end)->isNoObj())
-          consumer(end);
+      const Inst *startInst = this->bcode->startInst();
+      assert(startInst->opcode() == "start");
+      for (const Obj *start: startInst->args()) {
+        const Monad *monad = new Monad(start, startInst);
+        this->running->insert(monad);
+        LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
       }
     }
 
-    List<const E *> toList() {
-      if (this->done)
-        return this->output;
-      this->done = true;
-      LOG(DEBUG, "Processing bytecode: %s\n", this->bcode->toString().c_str());
-      while (!this->bcode->startInst()->getOutput()->empty()) {
-        const Obj *start = this->bcode->startInst()->getOutput()->back();
-        this->bcode->startInst()->getOutput()->pop_back();
-        if (!start)
-          return this->output;
-        LOG(DEBUG, FOS_TAB_2 "starting with %s [%s]\n", start->toString().c_str(), OTYPE_STR.at(start->type()).c_str());
-        Monad<E> *end = new Monad<E>(start);
-        //int counter = 0;
-        for (auto it = ++this->bcode->value()->begin(); it != this->bcode->value()->end(); ++it) {
-          // if (counter++ != 0) {
-          LOG(DEBUG, FOS_TAB_3 "Processing: %s=>%s [M[%s]]\n", end->toString().c_str(), (**it).toString().c_str(),
-              OTYPE_STR.at(end->get()->type()).c_str());
-          Monad<E> *temp = const_cast<Monad<E> *>(end->template split<E>(*it));
-          if (!((Obj *) end->get())->isNoObj())
-            end = temp;
+    const E *next(const int steps = -1) {
+      while (true) {
+        if (this->halted->empty()) {
+          if (this->running->empty()) {
+            return nullptr;
+          } else {
+            this->execute(steps);
+          }
+        } else {
+          const E *end = this->halted->back();
+          this->halted->pop_back();
+          return end;
         }
-        if (!((Obj *) end->get())->isNoObj())
-          this->output.push_back(end->get());
       }
-      return this->output;
     }
 
-    int iterate() {
-      return this->toList().size();
+    int execute(const int steps = -1) {
+      int counter = 0;
+      while (!this->running->empty() && (counter++ < steps || steps == -1)) {
+        const auto parent = this->running->begin();
+        if ((*parent)->obj()->isNoObj()) {
+          this->running->erase(parent);
+          LOG(DEBUG, FOS_TAB_4 "!rKilling!! monad: %s\n", (*parent)->toString().c_str());
+          delete *parent;
+        } else {
+          const Inst *next = this->bcode->nextInst((*parent)->inst());
+          if (next) {
+            const Monad *child = (*parent)->split(next);
+            LOG(DEBUG, FOS_TAB_4 "!ySplitting!! monad : %s => %s\n", (*parent)->toString().c_str(),
+                child->toString().c_str());
+            this->running->erase(parent);
+            delete *parent;
+            LOG(DEBUG, FOS_TAB_4 "!yContinuing!! monad: %s\n", child->toString().c_str());
+            this->running->emplace(child);
+          } else {
+            LOG(DEBUG, FOS_TAB_2 "!gHalting!! monad: %s\n", (*parent)->toString().c_str());
+            this->halted->push_back((const E *) (*parent)->obj());
+            this->running->erase(parent);
+            delete *parent;
+          }
+        }
+      }
+      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!yrunning!!:%i] [!ghalted!!:%i]\n", this->running->size(),
+          this->halted->size());
+      return this->halted->size();
     }
 
-    bool hasNext() {
-      return !this->toList().empty();
-    }
-
-    const E *next() {
-      if (!this->hasNext())
-        throw fError("No more obj results");
-      const E *e = this->toList().front();
-      this->toList().pop_front();
-      return e;
+    void forEach(const Consumer<const E *> &consumer, const int steps = -1) {
+      while (true) {
+        const E *end = this->next();
+        if (end) {
+          consumer(end);
+        } else {
+          break;
+        }
+      }
     }
 
     /////////////
@@ -124,7 +138,7 @@ namespace fhatos {
       return [bytecode](const S2 &s) {
         bytecode->addStarts({s});
         Processor proc = Processor<E2>(bytecode);
-        LOG(DEBUG, "Processor iterated %i monads", proc.iterate());
+        LOG(DEBUG, "Processor iterated %i monads", proc.execute());
       };
     }
   };

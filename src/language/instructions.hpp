@@ -60,11 +60,18 @@ namespace fhatos {
           return start;
         }
       }) {
-      for (const auto start: *starts) {
-        this->output.push_back(start);
-      }
     }
   };
+
+  /*class EndInst final : public Inst {
+  public:
+    explicit EndInst() : Inst({
+      "end", {}, [](const Obj *end) {
+        return end;
+      }
+    }) {
+    }
+  };*/
 
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////

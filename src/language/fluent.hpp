@@ -46,12 +46,6 @@ namespace fhatos {
     }
 
     template<typename E = Obj>
-    const List<E *> &toList() const {
-      static Processor<E> proc = Processor<E>(this->bcode);
-      return proc.toList();
-    }
-
-    template<typename E = Obj>
     void forEach(const Consumer<const E *> &consumer) const {
       Processor<E> proc = Processor<E>(this->bcode);
       proc.forEach(consumer);
