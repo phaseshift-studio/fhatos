@@ -28,6 +28,10 @@
 namespace fhatos {
   class CPrinter {
   public:
+    static CPrinter *singleton() {
+      static CPrinter printer = CPrinter();
+      return &printer;
+    }
     int print(const char *c_str) {
       return printf("%s", c_str);
     }

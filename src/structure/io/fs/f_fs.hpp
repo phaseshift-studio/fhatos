@@ -45,7 +45,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit fFS(const ID &id = fWIFI::idFromIP("kernel", "fs"))
+    explicit fFS(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "fs"))
       : Actor<PROCESS, ROUTER>(id) {
     }
 

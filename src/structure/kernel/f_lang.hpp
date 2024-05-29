@@ -24,10 +24,7 @@
 #include <language/parser.hpp>
 #include <process/actor/actor.hpp>
 #include <structure/furi.hpp>
-#include <structure/io/net/f_wifi.hpp>
-#include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
-#include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos {
   template<typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER >
@@ -42,7 +39,7 @@ namespace fhatos {
       Actor<PROCESS, ROUTER>::setup();
       this->subscribe(this->id().extend("parse"), [this](const Message &message) {
         Parser p = Parser(message.source);
-        ptr<Bytecode> bcode = p.parse<Obj, Obj>(message.payload->toStr().toString().c_str());
+        ptr<Bytecode> bcode = p.parse(message.payload->toStr().toString().c_str());
         LOG_TASK(INFO, this, "%s\n", bcode->toString().c_str());
         this->publish(ID(message.source), BinaryObj<>::fromObj(new Str(bcode->toString())),RETAIN_MESSAGE);
       });
@@ -55,7 +52,7 @@ namespace fhatos {
     }
 
   protected:
-    fLang(const ID &id = fWIFI::idFromIP("kernel", "lang")) : Actor<PROCESS, ROUTER>(id) {
+    fLang(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "lang")) : Actor<PROCESS, ROUTER>(id) {
     }
   };
 };

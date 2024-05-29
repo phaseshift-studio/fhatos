@@ -157,7 +157,7 @@ namespace fhatos {
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())
 #define LOG_TASK(logtype, process, format, ...)                                \
-  LOG((logtype), (String("[!M%s!!] ") + (format) + "\n").c_str(),              \
+  LOG((logtype), (string("[!M%s!!] ") + (format) + "\n").c_str(),              \
       (process)->id().toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(rc, subscription)                                        \
   LOG((rc == OK ? INFO : ERROR),                                               \
@@ -197,6 +197,13 @@ namespace fhatos {
 #ifndef FOS_DEFAULT_ROUTER
 #define FOS_DEFAULT_ROUTER LocalRouter<>
 #endif
+
+#ifdef NATIVE
+#define FOS_OUTPUT fhatos::CPrinter::singleton()
+#else
+#define FOS_OUTPUT (&Serial)
+#endif
+
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
   ////////////////////////////

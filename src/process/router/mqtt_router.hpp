@@ -39,7 +39,7 @@ namespace fhatos {
   template<typename PROCESS = Thread>
   class MqttRouter : public Router<PROCESS> {
   protected:
-    MqttRouter(const ID &id = fWIFI::idFromIP("kernel", "router/mqtt"),
+    MqttRouter(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "router/mqtt"),
                const char *domain = STR(MQTT_BROKER_ADDR),
                const uint16_t port = MQTT_BROKER_PORT)
       : Router<PROCESS>(id) {

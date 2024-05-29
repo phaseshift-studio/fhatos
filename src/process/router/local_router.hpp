@@ -49,7 +49,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit LocalRouter(const ID &id = "kernel/router/local") // fWIFI::idFromIP("kernel", "router/local"))
+    explicit LocalRouter(const ID &id = "kernel/router/local") // FOS_DEFAULT_ROUTER::mintID("kernel", "router/local"))
       : Router<PROCESS>(id) {
     }
 

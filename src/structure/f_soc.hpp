@@ -30,7 +30,7 @@ namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
   class fSoC final : public Actor<PROCESS, ROUTER> {
   protected:
-    explicit fSoC(const ID &id = fWIFI::idFromIP("soc"))
+    explicit fSoC(const ID &id = FOS_DEFAULT_ROUTER::mintID("soc"))
       : Actor<PROCESS, ROUTER>(id) {
     }
 

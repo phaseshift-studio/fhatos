@@ -23,8 +23,9 @@
 #include <unity.h>
 #include <stdio.h>
 #include <fhatos.hpp>
+#include <util/ansi.hpp>
 
-static fhatos::Ansi<fhatos::CPrinter> ansi(new fhatos::CPrinter());
+static fhatos::Ansi<fhatos::CPrinter> ansi(FOS_OUTPUT);
 #define FOS_TEST_PRINTER ansi
 
 #define SETUP_AND_LOOP()                                                       \

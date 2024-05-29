@@ -30,7 +30,7 @@ template <typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER>
 class fSerial : public Actor<PROCESS, ROUTER> {
 
 protected:
- explicit fSerial(const ID &id = fWIFI::idFromIP("serial"))
+ explicit fSerial(const ID &id = FOS_DEFAULT_ROUTER::mintID("serial"))
       : Actor<PROCESS, ROUTER>(id) {}
 
 public:

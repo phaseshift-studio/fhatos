@@ -77,7 +77,7 @@ namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
   class fPing final : public Actor<PROCESS, ROUTER> {
   public:
-    explicit fPing(const ID &id = fWIFI::idFromIP("ping"))
+    explicit fPing(const ID &id = FOS_DEFAULT_ROUTER::mintID("ping"))
       : Actor<PROCESS, ROUTER>(id) {
     }
 

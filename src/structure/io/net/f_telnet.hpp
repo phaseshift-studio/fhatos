@@ -44,7 +44,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit fTelnet(const ID &id = fWIFI::idFromIP("telnet"),
+    explicit fTelnet(const ID &id = FOS_DEFAULT_ROUTER::mintID("telnet"),
                      const uint16_t port = 23, const bool useAnsi = true)
       : Actor<PROCESS, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)), previousMessage(nullptr) {

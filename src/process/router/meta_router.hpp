@@ -46,7 +46,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    MetaRouter(const ID &id = fWIFI::idFromIP("kernel", "router/meta")) : Router<>(id) {
+    MetaRouter(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "router/meta")) : Router<>(id) {
     }
 
     ~MetaRouter() { this->clear(); }

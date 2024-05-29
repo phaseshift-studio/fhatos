@@ -23,7 +23,6 @@
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
 #include <structure/furi.hpp>
-#include <structure/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
@@ -55,7 +54,7 @@ namespace fhatos {
     }
 
   protected:
-    fMemory(const ID &id = fWIFI::idFromIP("kernel", "memory")) : Actor<PROCESS, ROUTER>(id) {
+    fMemory(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "memory")) : Actor<PROCESS, ROUTER>(id) {
     }
   };
 };

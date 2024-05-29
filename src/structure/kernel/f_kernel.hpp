@@ -22,11 +22,7 @@
 
 #include <fhatos.hpp>
 #include FOS_MODULE(kernel/f_scheduler.hpp)
-#include FOS_MODULE(kernel/f_memory.hpp)
-#include FOS_MODULE(io/fs/f_fs.hpp)
-#include FOS_MODULE(io/net/f_ota.hpp)
 #include <process/actor/actor.hpp>
-#include <structure/io/net/f_wifi.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
@@ -34,8 +30,10 @@ namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
   class fKernel : public Actor<PROCESS, ROUTER> {
   public:
-    static const bool bootloader(const List<Process *>& processes) {
+    static const bool bootloader(const List<Process *> &processes) {
+#ifndef NATIVE
       Serial.begin(FOS_SERIAL_BAUDRATE);
+#endif
       LOG(NONE, ANSI_ART);
       LOG(INFO, "!R[kernel mode]!! !gBootloader started!!\n");
       bool success = true;
@@ -56,7 +54,7 @@ namespace fhatos {
     }
 
   protected:
-    fKernel(const ID &id = fWIFI::idFromIP("kernel")) : Actor<PROCESS, ROUTER>(id) {
+    fKernel(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel")) : Actor<PROCESS, ROUTER>(id) {
     }
   };
 };

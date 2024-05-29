@@ -57,12 +57,12 @@ namespace fhatos {
     const char *passwords;
 
   public:
-    static ID idFromIP(const String &user, const String &path = emptyString) {
+    static ID idFromIP(const string &user, const string &path = "") {
       if (!fWIFI::singleton()->running())
         fWIFI::singleton()->setup();
       return {
         (user + "@" + fWIFI::ip().c_str() +
-         (path.isEmpty() ? emptyString : ("/" + path)))
+         (path.empty() ? "" : ("/" + path)))
         .c_str()
       };
     }
@@ -76,7 +76,7 @@ namespace fhatos {
 
     static string ip() { return string(WiFi.localIP().toString().c_str()); }
 
-    static string resolve(const char * hostname) {
+    static string resolve(const char *hostname) {
       IPAddress addr;
       WiFiClass::hostByName(hostname, addr);
       return string(addr.toString().c_str());

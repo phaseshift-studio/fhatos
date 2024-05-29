@@ -24,6 +24,9 @@
 #include <structure/furi.hpp>
 #include <process/actor/mailbox.hpp>
 #include <process/router/message.hpp>
+#ifndef NATIVE
+#include <structure/io/net/f_wifi.hpp>
+#endif
 #include FOS_PROCESS(thread.hpp)
 
 #define RETAIN_MESSAGE true
@@ -38,7 +41,7 @@ namespace fhatos {
 
   struct Subscription {
     using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
-    Mailbox<ptr<Mail>> *mailbox;
+    Mailbox<ptr<Mail> > *mailbox;
     ID source;
     Pattern pattern;
     QoS qos = _1;
@@ -100,6 +103,15 @@ namespace fhatos {
   public:
     explicit Router(const ID &id) : PROCESS(id) {
     };
+
+    static const ID mintID(const char *user, const char *path = "") {
+#ifdef NATIVE
+      return ID(path).user(user);
+#else
+      return fWIFI::idFromIP(user, path);
+#endif
+    }
+
     virtual const RESPONSE_CODE publish(const Message &message) FP_OK_RESULT;
 
     virtual const RESPONSE_CODE

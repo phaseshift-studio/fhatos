@@ -216,6 +216,10 @@ namespace fhatos {
       return fURI(this->authority()).extend(path.c_str());
     }
 
+    const fURI user(const char *user) const {
+      return this->authority(this->host().empty() ? user : string(user) + "@" + this->host());
+    }
+
     const Option<string> user() const {
       Option<Pair<string, string> > temp = this->user_password();
       return temp.has_value() ? temp->first : Option<string>();

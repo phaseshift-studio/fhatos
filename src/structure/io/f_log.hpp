@@ -24,23 +24,20 @@
 #include <structure/furi.hpp>
 #include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
-#include <structure/io/net/f_wifi.hpp>
 #include <util/ansi.hpp>
 #include <util/string_printer.hpp>
-#include <sstream>
-#include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
 
 template <typename PROCESS = Coroutine, typename ROUTER = FOS_DEFAULT_ROUTER>
 class fLog : public Actor<PROCESS, ROUTER> {
 public:
-  explicit fLog(const ID &id = fWIFI::idFromIP("log"))
+  explicit fLog(const ID &id = FOS_DEFAULT_ROUTER::mintID("log"))
       : Actor<PROCESS, ROUTER>(id) {};
 
   void setup() override {
     PROCESS::setup();
-    const ID serialID = fWIFI::idFromIP("serial");
+    const ID serialID = FOS_DEFAULT_ROUTER::mintID("log");
     // INFO LOGGING
     this->subscribe(
         this->id().extend("INFO"), [this, serialID](const auto &message) {
