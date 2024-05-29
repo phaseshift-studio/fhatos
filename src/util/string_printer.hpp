@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_stream_string_hpp
-#define fhatos_stream_string_hpp
+#ifndef fhatos_string_printer_hpp
+#define fhatos_string_printer_hpp
 
 #ifdef NATIVE
 #define VIRTUAL
