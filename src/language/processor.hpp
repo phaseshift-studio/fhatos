@@ -99,25 +99,26 @@ namespace fhatos {
       int counter = 0;
       while (!this->running->empty() && (counter++ < steps || steps == -1)) {
         const auto parent = this->running->begin();
-        if ((*parent)->obj()->isNoObj()) {
+        const Monad *parentMonad = *parent;
+        if ((*parent)->obj()->isNoObj()) { // KILL: monad mapped to noobj
           this->running->erase(parent);
+          delete parentMonad;
           LOG(DEBUG, FOS_TAB_4 "!rKilling!! monad: %s\n", (*parent)->toString().c_str());
-          //delete *parent;
         } else {
           const Inst *next = this->bcode->nextInst((*parent)->inst());
-          if (next) {
+          if (next) {  // TRANSFORM: executing instruction here
             const Monad *child = (*parent)->split(next);
             LOG(DEBUG, FOS_TAB_4 "!ySplitting!! monad : %s => %s\n", (*parent)->toString().c_str(),
                 child->toString().c_str());
             this->running->erase(parent);
-            delete *parent;
+            delete parentMonad;
             LOG(DEBUG, FOS_TAB_4 "!yContinuing!! monad: %s\n", child->toString().c_str());
             this->running->emplace(child);
-          } else {
+          } else { // HALT: monad reached the end of the bytecode
             LOG(DEBUG, FOS_TAB_2 "!gHalting!! monad: %s\n", (*parent)->toString().c_str());
             this->halted->push_back((const E *) (*parent)->obj());
             this->running->erase(parent);
-            delete *parent;
+            delete parentMonad;
           }
         }
       }
