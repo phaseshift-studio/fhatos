@@ -20,6 +20,7 @@
 #define fhatos_furi_hpp
 
 #include <fhatos.hpp>
+#include <string.h>
 //#include <memory>
 //#include <utility>
 

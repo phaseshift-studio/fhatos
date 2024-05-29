@@ -22,6 +22,7 @@
 
 #include <cstdarg>
 #include <stdio.h>
+#include <string.h>
 #include <util/string_printer.hpp>
 
 namespace fhatos {
