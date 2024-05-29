@@ -51,6 +51,15 @@ namespace fhatos {
       proc.forEach(consumer);
     }
 
+    template<typename E=Obj>
+     List<const E *> *toList() const {
+      List<const E *> *list = new List<const E *>();
+      this->template forEach<E>([list](const E *end) {
+        list->push_back(end);
+      });
+      return list;
+    }
+
     string toString() const { return string("f").append(this->bcode->toString()); }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -123,6 +132,10 @@ namespace fhatos {
 
     Fluent is(const OBJ_OR_BYTECODE &test) {
       return this->addInst(new IsInst(test));
+    }
+
+    Fluent where(const OBJ_OR_BYTECODE &test) {
+      return this->addInst(new WhereInst(test));
     }
 
     template<typename _PAYLOAD>

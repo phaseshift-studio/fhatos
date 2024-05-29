@@ -84,9 +84,9 @@ namespace fhatos {
 
     explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const OBJ_OR_BYTECODE &branches)
       : Inst({
-          ALGEBRA::BRNCH_TO_STR(branch), cast({branches.cast<>()}),
+          ALGEBRA::BRNCH_TO_STR(branch), {branches},
           [this,branch](const Obj *lhs)-> Obj *{
-            return (Obj *) ALGEBRA::singleton()->branch(branch, lhs, this->arg<Obj>(0));
+            return (Obj *) ALGEBRA::singleton()->branch(branch, lhs, this->arg(0));
           }
         }), branch(branch) {
     }
@@ -105,9 +105,9 @@ namespace fhatos {
 
     explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const OBJ_OR_BYTECODE &rhs)
       : Inst({
-          ALGEBRA::REL_TO_STR(predicate), cast({rhs.cast<>()}),
+          ALGEBRA::REL_TO_STR(predicate), {rhs},
           [this,predicate](const Obj *lhs)-> Obj *{
-            return (Obj *) ALGEBRA::singleton()->relate(predicate, this->arg<Obj>(0)->apply(lhs), lhs);
+            return (Obj *) ALGEBRA::singleton()->relate(predicate, this->arg(0)->apply(lhs), lhs);
           }
         }), predicate(predicate) {
     }
@@ -118,11 +118,21 @@ namespace fhatos {
   public:
     explicit IsInst(const OBJ_OR_BYTECODE &test)
       : Inst({
-        "is", cast({test.cast<Obj>()}),
+        "is", {test},
         [this](const Obj *input) {
-          return this->arg<Bool>(0)->apply(input)->value() ? input : NoObj::singleton();
+          return this->arg(0)->apply(input)->as<Bool>()->value() ? input : NoObj::singleton();
         }
       }) {
+    }
+  };
+
+  class WhereInst final : public Inst {
+  public:
+    explicit WhereInst(const OBJ_OR_BYTECODE &test) : Inst({
+      "where", {test}, [this](const Obj *input) {
+        return this->arg(0)->apply(input)->isNoObj() ? NoObj::singleton() : input;
+      }
+    }) {
     }
   };
 
@@ -138,9 +148,9 @@ namespace fhatos {
 
     explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR op, const OBJ_OR_BYTECODE &rhs)
       : Inst({
-          ALGEBRA::COMP_TO_STR(op), cast({rhs.cast<Obj>()}),
+          ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
-            return ALGEBRA::singleton()->compose(op, this->arg<Obj>(0)->apply(lhs), lhs);
+            return (Obj *) ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
           }
         }), op(op) {
     }
@@ -156,8 +166,8 @@ namespace fhatos {
     explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID &context = ID("anonymous")) : Inst({
       "<=", cast({(Obj *) uri, (Obj *) payload}),
       [this,context](const Obj *incoming) {
-        const ID target = ID(((Uri *) (this->arg<Obj>(0)->apply(incoming)))->value());
-        const BinaryObj<> *payload2 = BinaryObj<>::fromObj((Obj *) this->arg<Obj>(1)->apply(incoming));
+        const ID target = ID(((Uri *) (this->arg(0)->apply(incoming)))->value());
+        const BinaryObj<> *payload2 = BinaryObj<>::fromObj((Obj *) this->arg(1)->apply(incoming));
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
           .source = context,
@@ -180,19 +190,19 @@ namespace fhatos {
     explicit SubscribeInst(const _URI *pattern, const _ONRECV *onRecv, const ID context = ID("anonymous")) : Inst({
       "<=", cast({(Obj *) pattern, (Obj *) onRecv}),
       [this,context](const Obj *incoming) {
-        const Pattern pattern2 = Pattern(((Uri *) this->arg<Obj>(0)->apply(incoming))->value());
+        const Pattern pattern2 = Pattern(((Uri *) this->arg(0)->apply(incoming))->value());
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,
           .source = context,
           .pattern = pattern2,
           .onRecv = [this](const Message &message) {
-            this->arg<Obj>(1)->apply(message.payload);
+            this->arg(1)->apply(message.payload);
           }
         });
 #else
         LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2.toString().c_str(),
-            this->arg<_ONRECV>(1)->toString().c_str());
+            this->arg(1)->toString().c_str());
 #endif
         return (Obj *) incoming;
       }

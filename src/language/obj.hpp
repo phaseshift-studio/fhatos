@@ -78,6 +78,11 @@ namespace fhatos {
       return this;
     }
 
+    template<typename A>
+    const A *as() const {
+      return reinterpret_cast<A *>(const_cast<Obj *>(this));
+    }
+
 
     virtual bool operator==(const Obj &other) const {
       return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
@@ -172,13 +177,13 @@ namespace fhatos {
 
     const FL_INT_TYPE value() const { return this->_value; }
 
-    virtual const Int *apply(const Obj *obj) const override {
-      return new Int(this->_value);
+    virtual const Obj *apply(const Obj *obj) const override {
+      return this;
     }
 
-    virtual bool operator==(const Obj &other) const override {
-      return other.type() == OType::INT && this->_value == ((Int *) &other)->_value;
-    }
+    //virtual bool operator==(const Obj &other) const override {
+    // return other.type() == OType::INT && this->_value == ((Int)other).value();
+    // }
 
 
     const string toString() const override { return std::to_string(_value); }
@@ -335,8 +340,7 @@ namespace fhatos {
     virtual const string opcode() const { return std::get<0>(this->_value); }
     virtual const InstArgs args() const { return std::get<1>(this->_value); }
 
-    template<typename A>
-    A *arg(const uint8_t index) const { return static_cast<A *>(this->args()[index]); }
+    const Obj *arg(const uint8_t index) const { return this->args()[index]; }
 
     virtual const InstFunction func() const {
       return std::get<2>(this->_value);
@@ -466,23 +470,22 @@ namespace fhatos {
     OBJ_OR_BYTECODE(const fURI &uriX) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(uriX)}) {
     }
 
-    OBJ_OR_BYTECODE(const Bool *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    OBJ_OR_BYTECODE(const Bool *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Int *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    OBJ_OR_BYTECODE(const Int *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-
-    OBJ_OR_BYTECODE(const Real *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    OBJ_OR_BYTECODE(const Real *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Str *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    OBJ_OR_BYTECODE(const Str *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Uri *objA) : OBJ_OR_BYTECODE((Obj *) objA) {
+    OBJ_OR_BYTECODE(const Uri *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Rec *objA) : _type(OType::REC), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Rec *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
 
     OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {
@@ -504,6 +507,10 @@ namespace fhatos {
 
     const Obj *apply(const Obj *input) const {
       return (this->isBytecode() ? data.bcodeB->apply(input) : data.objA->apply(input));
+    }
+
+    operator Obj *() const {
+      return const_cast<Obj *>(this->isBytecode() ? data.bcodeB : data.objA);
     }
   };
 } // namespace fhatos

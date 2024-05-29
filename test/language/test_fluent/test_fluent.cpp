@@ -48,9 +48,25 @@ namespace fhatos {
     });*/
   }
 
+  void test_plus() {
+    const List<const Int *> *result = __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(3, result->size());
+    TEST_ASSERT_EQUAL_INT(54, result->at(0)->value());
+    TEST_ASSERT_EQUAL_INT(50, result->at(1)->value());
+    TEST_ASSERT_EQUAL_INT(46, result->at(2)->value());
+  }
+
+  void test_where() {
+    const List<const Int *> *result = __({1, 2, 3}).plus(10).where(_.is(_.eq(13))).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(1, result->size());
+    TEST_ASSERT_EQUAL_INT(13, result->front()->value());
+  }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_rec_branch); //
+      FOS_RUN_TEST(test_plus); //
+      FOS_RUN_TEST(test_where); //
       )
 } // namespace fhatos
 

@@ -22,7 +22,11 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
+#ifdef NATIVE
 #include <assert.h>
+#else
+#include <esp_assert.h>
+#endif
 
 namespace fhatos {
   class Monad {
@@ -98,7 +102,7 @@ namespace fhatos {
         if ((*parent)->obj()->isNoObj()) {
           this->running->erase(parent);
           LOG(DEBUG, FOS_TAB_4 "!rKilling!! monad: %s\n", (*parent)->toString().c_str());
-          delete *parent;
+          //delete *parent;
         } else {
           const Inst *next = this->bcode->nextInst((*parent)->inst());
           if (next) {

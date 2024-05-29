@@ -82,7 +82,7 @@ namespace fhatos {
           // do nothing
         } else if (line.startsWith("^")) {
           Parser *parser = new Parser(tthis->id());
-          parser->parseToFluent<Uri, Obj>(line.substring(1).c_str())->forEach([](const Obj *obj) {
+          parser->parseToFluent(line.substring(1).c_str())->forEach([](const Obj *obj) {
             tthis->ansi->printf("!g==>!!%s\n", obj->toString().c_str());
           });
           delete parser;
