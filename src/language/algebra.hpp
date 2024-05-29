@@ -100,10 +100,42 @@ namespace fhatos {
       return map.at(rel);
     }
 
-    virtual auto relate(const RELATION_PREDICATE rel, const Obj *a, const Obj *b) const -> const Obj * {
+    const Obj *relate(const RELATION_PREDICATE rel, const Obj *a, const Obj *b) const {
       switch (rel) {
         case RELATION_PREDICATE::EQ: return new Bool(*a == *b);
         case RELATION_PREDICATE::NEQ: return new Bool(!(*a == *b));
+        case RELATION_PREDICATE::GT: {
+          switch (a->type()) {
+            case OType::INT: return new Bool(a->as<Int>()->value() > b->as<Int>()->value());
+            case OType::REAL: return new Bool(a->as<Real>()->value() > b->as<Real>()->value());
+            case OType::STR: return new Bool(a->as<Str>()->value() > b->as<Str>()->value());
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+          }
+        }
+        case RELATION_PREDICATE::GTE: {
+          switch (a->type()) {
+            case OType::INT: return new Bool(a->as<Int>()->value() >= b->as<Int>()->value());
+            case OType::REAL: return new Bool(a->as<Real>()->value() >= b->as<Real>()->value());
+            case OType::STR: return new Bool(a->as<Str>()->value() >= b->as<Str>()->value());
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+          }
+        }
+        case RELATION_PREDICATE::LT: {
+          switch (a->type()) {
+            case OType::INT: return new Bool(a->as<Int>()->value() < b->as<Int>()->value());
+            case OType::REAL: return new Bool(a->as<Real>()->value() < b->as<Real>()->value());
+            case OType::STR: return new Bool(a->as<Str>()->value() < b->as<Str>()->value());
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+          }
+        }
+        case RELATION_PREDICATE::LTE: {
+          switch (a->type()) {
+            case OType::INT: return new Bool(a->as<Int>()->value() <= b->as<Int>()->value());
+            case OType::REAL: return new Bool(a->as<Real>()->value() <= b->as<Real>()->value());
+            case OType::STR: return new Bool(a->as<Str>()->value() <= b->as<Str>()->value());
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+          }
+        }
         default: {
           throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
                        OTYPE_STR.at(b->type()).c_str());

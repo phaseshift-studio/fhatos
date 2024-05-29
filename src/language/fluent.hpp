@@ -52,7 +52,7 @@ namespace fhatos {
     }
 
     template<typename E=Obj>
-     List<const E *> *toList() const {
+    List<const E *> *toList() const {
       List<const E *> *list = new List<const E *>();
       this->template forEach<E>([list](const E *end) {
         list->push_back(end);
@@ -112,6 +112,25 @@ namespace fhatos {
 
     Fluent neq(const OBJ_OR_BYTECODE &rhs) {
       return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::NEQ, rhs));
+    }
+
+    Fluent gt(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::GT, rhs));
+    }
+
+
+    Fluent gte(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::GTE, rhs));
+    }
+
+
+    Fluent lt(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LT, rhs));
+    }
+
+
+    Fluent lte(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LTE, rhs));
     }
 
     ///////////////////////////////////////////////////////////////////

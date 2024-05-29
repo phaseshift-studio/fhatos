@@ -106,8 +106,8 @@ namespace fhatos {
     explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const OBJ_OR_BYTECODE &rhs)
       : Inst({
           ALGEBRA::REL_TO_STR(predicate), {rhs},
-          [this,predicate](const Obj *lhs)-> Obj *{
-            return (Obj *) ALGEBRA::singleton()->relate(predicate, this->arg(0)->apply(lhs), lhs);
+          [this,predicate](const Obj *lhs)-> const Obj *{
+            return ALGEBRA::singleton()->relate(predicate, lhs, this->arg(0)->apply(lhs));
           }
         }), predicate(predicate) {
     }
@@ -119,7 +119,7 @@ namespace fhatos {
     explicit IsInst(const OBJ_OR_BYTECODE &test)
       : Inst({
         "is", {test},
-        [this](const Obj *input) {
+        [this](const Obj *input) -> const Obj *{
           return this->arg(0)->apply(input)->as<Bool>()->value() ? input : NoObj::singleton();
         }
       }) {
@@ -129,7 +129,7 @@ namespace fhatos {
   class WhereInst final : public Inst {
   public:
     explicit WhereInst(const OBJ_OR_BYTECODE &test) : Inst({
-      "where", {test}, [this](const Obj *input) {
+      "where", {test}, [this](const Obj *input) -> const Obj *{
         return this->arg(0)->apply(input)->isNoObj() ? NoObj::singleton() : input;
       }
     }) {
@@ -150,7 +150,7 @@ namespace fhatos {
       : Inst({
           ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
-            return (Obj *) ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
+            return ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
           }
         }), op(op) {
     }

@@ -48,6 +48,35 @@ namespace fhatos {
     });*/
   }
 
+  void test_relational_predicates() {
+    List<const Int *> *result;
+    result = __({1, 2, 3}).plus(10).is(_.eq(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(1, result->size());
+    TEST_ASSERT_EQUAL_INT(12, result->at(0)->value());
+    result = __({1, 2, 3}).plus(10).is(_.neq(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(2, result->size());
+    TEST_ASSERT_EQUAL_INT(11, result->at(0)->value());
+    TEST_ASSERT_EQUAL_INT(13, result->at(1)->value());
+    result = __({1, 2, 3}).plus(10).is(_.gt(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(1, result->size());
+    TEST_ASSERT_EQUAL_INT(13, result->at(0)->value());
+    result = __({1, 2, 3}).plus(10).is(_.gt(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(1, result->size());
+    TEST_ASSERT_EQUAL_INT(13, result->at(0)->value());
+    result = __({1, 2, 3}).plus(10).is(_.gte(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(2, result->size());
+    TEST_ASSERT_EQUAL_INT(12, result->at(0)->value());
+    TEST_ASSERT_EQUAL_INT(13, result->at(1)->value());
+    result = __({1, 2, 3}).plus(10).is(_.lt(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(1, result->size());
+    TEST_ASSERT_EQUAL_INT(11, result->at(0)->value());
+    result = __({1, 2, 3}).plus(10).is(_.lte(12)).toList<Int>();
+    TEST_ASSERT_EQUAL_INT(2, result->size());
+    TEST_ASSERT_EQUAL_INT(11, result->at(0)->value());
+    TEST_ASSERT_EQUAL_INT(12, result->at(1)->value());
+
+  }
+
   void test_plus() {
     const List<const Int *> *result = __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(3, result->size());
@@ -67,6 +96,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_rec_branch); //
       FOS_RUN_TEST(test_plus); //
       FOS_RUN_TEST(test_where); //
+      FOS_RUN_TEST(test_relational_predicates); //
       )
 } // namespace fhatos
 
