@@ -19,3 +19,10 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE NATIVE)
 cmake_print_variables(CMAKE_CXX_COMPILER_ID)
 cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
 
+#####
+
+#project(fhatos-test)
+#add_library(fhatos-test STATIC test/language/test_binary_obj/test_binary_obj.cpp)
+#target_include_directories(fhatos-test PRIVATE test)
+#set_target_properties(fhatos-test PROPERTIES UNITY_BUILD ON UNITY_BUILD_MODE BATCH UNITY_BUILD_BATCH_SIZE 16)
+#enable_testing()

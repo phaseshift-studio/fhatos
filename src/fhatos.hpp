@@ -134,7 +134,7 @@ namespace fhatos {
   ////////////
   // MACROS //
   ////////////
-  enum LOG_TYPE { DEBUG = 0, INFO = 1, ERROR = 2, NONE = 3 };
+  enum LOG_TYPE { NONE = 0, DEBUG = 1, INFO = 2, ERROR = 3 };
 
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "
@@ -194,10 +194,11 @@ namespace fhatos {
           ? (message.source.toString().c_str())                                \
           : (message.payload->toString)().c_str(),                              \
       (message.source.toString().c_str()))
+
+
 #ifndef FOS_DEFAULT_ROUTER
 #define FOS_DEFAULT_ROUTER LocalRouter<>
 #endif
-
 #ifdef NATIVE
 #define FOS_OUTPUT fhatos::CPrinter::singleton()
 #else
@@ -227,7 +228,15 @@ namespace fhatos {
   // !!TO REMOVE!! //
   ///////////////////
 
+#ifndef FOS_LOGGING
+#define FOS_LOGGING INFO
+#endif
+
+  inline LOG_TYPE _logging = LOG_TYPE::FOS_LOGGING;
+
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
+    if ((uint8_t) type < (uint8_t) _logging)
+      return;
     va_list arg;
     va_start(arg, format);
     char temp[64];

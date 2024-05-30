@@ -18,6 +18,7 @@
 
 #include <fhatos.hpp>
 #include <process/router/local_router.hpp>
+#include <structure/console/console.hpp>
 
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
@@ -28,6 +29,7 @@ using namespace fhatos;
 
 using namespace fhatos;
 int main(int arg, char **argsv) {
+  _logging = LOG_TYPE::NONE;
   try {
     fKernel<>::bootloader({
     //fWIFI::singleton(),
@@ -42,6 +44,7 @@ int main(int arg, char **argsv) {
     //fScheduler<>::singleton()->spawn(fSerial<>::singleton());
     //fScheduler<>::singleton()->spawn(new fPing<>());
     //fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
+    Scheduler::singleton()->spawn(new Console<CPrinter>());
     Scheduler::singleton()->join();
   } catch (fError* e) {
     LOG(ERROR,"main() error: %s\n",e->what());
