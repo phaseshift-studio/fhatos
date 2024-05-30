@@ -69,8 +69,8 @@ namespace fhatos {
           return NoObj::singleton();
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->type()).c_str(),
-                       OTYPE_STR.at(control->type()).c_str());
+          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->type()),
+                       OTYPE_STR.at(control->type()));
         }
       }
     }
@@ -109,7 +109,7 @@ namespace fhatos {
             case OType::INT: return new Bool(a->as<Int>()->value() > b->as<Int>()->value());
             case OType::REAL: return new Bool(a->as<Real>()->value() > b->as<Real>()->value());
             case OType::STR: return new Bool(a->as<Str>()->value() > b->as<Str>()->value());
-            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::GTE: {
@@ -117,7 +117,7 @@ namespace fhatos {
             case OType::INT: return new Bool(a->as<Int>()->value() >= b->as<Int>()->value());
             case OType::REAL: return new Bool(a->as<Real>()->value() >= b->as<Real>()->value());
             case OType::STR: return new Bool(a->as<Str>()->value() >= b->as<Str>()->value());
-            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LT: {
@@ -125,7 +125,7 @@ namespace fhatos {
             case OType::INT: return new Bool(a->as<Int>()->value() < b->as<Int>()->value());
             case OType::REAL: return new Bool(a->as<Real>()->value() < b->as<Real>()->value());
             case OType::STR: return new Bool(a->as<Str>()->value() < b->as<Str>()->value());
-            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LTE: {
@@ -133,12 +133,12 @@ namespace fhatos {
             case OType::INT: return new Bool(a->as<Int>()->value() <= b->as<Int>()->value());
             case OType::REAL: return new Bool(a->as<Real>()->value() <= b->as<Real>()->value());
             case OType::STR: return new Bool(a->as<Str>()->value() <= b->as<Str>()->value());
-            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()).c_str(), REL_TO_STR(rel));
+            default: throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
           }
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
-                       OTYPE_STR.at(b->type()).c_str());
+          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()),
+                       OTYPE_STR.at(b->type()));
         }
       }
     }
@@ -177,8 +177,8 @@ namespace fhatos {
             case OType::STR: return (const Obj *) new Str(
                 string(((Str *) b)->value().c_str()).append(((Str *) a)->value()));
             default: {
-              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()).c_str(),
-                           OTYPE_STR.at(b->type()).c_str());
+              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()),
+                           OTYPE_STR.at(b->type()));
             }
           }
         }
@@ -188,15 +188,15 @@ namespace fhatos {
             case OType::INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());
             case OType::REAL: return new Real(((Real *) b)->value() * ((Real *) a)->value());
             default: {
-              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()).c_str(),
-                           OTYPE_STR.at(b->type()).c_str());
+              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()),
+                           OTYPE_STR.at(b->type()));
             }
           }
         }
         default: {
           throw fError("Algebra does not support composition %s on %s", COMP_TO_STR(comp),
-                       OTYPE_STR.at(a->type()).c_str(),
-                       OTYPE_STR.at(b->type()).c_str());
+                       OTYPE_STR.at(a->type()),
+                       OTYPE_STR.at(b->type()));
         }
       }
     }

@@ -16,6 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+
 #ifdef NATIVE
 #ifndef fhatos_test_fhatos_native_hpp
 #define fhatos_test_fhatos_native_hpp
@@ -24,6 +25,7 @@
 #include <stdio.h>
 #include <fhatos.hpp>
 #include <util/ansi.hpp>
+#include <language/fluent.hpp>
 
 static fhatos::Ansi<fhatos::CPrinter> ansi(FOS_OUTPUT);
 #define FOS_TEST_PRINTER ansi
@@ -32,6 +34,10 @@ static fhatos::Ansi<fhatos::CPrinter> ansi(FOS_OUTPUT);
 int main(int arg, char **argsv) {           \
 fhatos::RUN_UNITY_TESTS();                                              \
 };
+
+#define FOS_PRINT_FLUENT(fluent) \
+  FOS_TEST_MESSAGE("!yTesting!!: %s",(fluent).toString().c_str())            \
+  (fluent)
 
 #define FOS_TEST_MESSAGE(format, ...)                                          \
   FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                        \
@@ -70,7 +76,7 @@ namespace fhatos {
     x;                                                                         \
     UNITY_END();                                                               \
   }
-} // namespace fhatos
+}
 
 #endif
 #endif

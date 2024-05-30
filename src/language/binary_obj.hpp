@@ -36,7 +36,7 @@ namespace fhatos {
   public:
     ~BinaryObj() {
       const OType t = std::get<0>(this->_value);
-      if (t == OType::INT || t == OType::REAL || t ==OType:: STR)
+      if (t == OType::INT || t == OType::REAL || t == OType::STR)
         delete std::get<1>(this->_value);
     }
 
@@ -108,6 +108,26 @@ namespace fhatos {
       return SERIALIZER::toStr(*this);
     }
 
+    Uri toUri() const {
+      return SERIALIZER::toUri(*this);
+    }
+
+    Rec toRec() const {
+      return SERIALIZER::toRec(*this);
+    }
+
+    Obj* toObj() const {
+      switch (this->type()) {
+        case OType::BOOL: return new Bool(toBool());
+        case OType::INT: return new Int(toInt());
+        case OType::REAL: return new Real(toReal());
+        case OType::STR: return new Str(toStr());
+        case OType::URI: return new Uri(toUri());
+        //case OType::REC: return &toRec();
+        default: throw new fError("Unsupported conversion for %s\n", OTYPE_STR.at(this->type()));
+      }
+    }
+
     /////////////////
     bool equals(const BinaryObj &other) const {
       return (this->type() == other.type()) &&
@@ -121,7 +141,7 @@ namespace fhatos {
       switch (this->type()) {
         case OType::BOOL: return toBool().toString();
         case OType::INT: return toInt().toString();
-        case OType:: REAL: return toReal().toString();
+        case OType::REAL: return toReal().toString();
         case OType::STR: return toStr().toString();
         default: throw std::runtime_error("error on type");
       }
@@ -335,7 +355,7 @@ namespace fhatos {
       memccpy(temp, str.c_str(), 0, len);
       temp[len] = '\0';
       return {
-      OType::  INT,
+        OType::INT,
         (fbyte *) temp,
         len
       };
@@ -348,7 +368,7 @@ namespace fhatos {
       memccpy(temp, str.c_str(), 0, len);
       temp[len] = '\0';
       return {
-       OType:: REAL,
+        OType::REAL,
         (fbyte *) temp,
         len
       };
@@ -374,7 +394,7 @@ namespace fhatos {
           return Uri(fURI("/" + bobj.toString()));
         case OType::INT:
           return Uri(fURI("/" + bobj.toString()));
-        case OType:: REAL:
+        case OType::REAL:
           return Uri(fURI("/" + bobj.toString()));
         case OType::STR:
           return Uri(fURI("/" + bobj.toString()));
@@ -394,7 +414,7 @@ namespace fhatos {
         case OType::STR:
           return Bool(bobj.toStr().value().compare("true") == 0 || bobj.toStr().value().compare("1") == 0);
         default:
-          throw std::runtime_error("bad1"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+          throw std::runtime_error("bad1"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type));
       }
     }
 
@@ -409,7 +429,7 @@ namespace fhatos {
         case OType::STR:
           return Int(std::stoi(string((char *) bobj.data(), bobj.length())));
         default:
-          throw std::runtime_error("bad2"); //fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+          throw std::runtime_error("bad2"); //fError("Unknown type: %s", OTYPE_STR.at(xserial.type));
       }
     }
 

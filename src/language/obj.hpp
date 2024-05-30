@@ -34,7 +34,7 @@ namespace fhatos {
   enum class OType : uint8_t { NOOBJ = 0, URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
   enum AType { MONOID, SEMIRING, GROUP, RING, FIELD };
 
-  static const Map<OType, string> OTYPE_STR = {
+  static const Map<OType, const char*> OTYPE_STR = {
     {
       {OType::NOOBJ, "noobj"},
       {OType::OBJ, "obj"},

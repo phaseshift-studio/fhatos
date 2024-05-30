@@ -25,6 +25,7 @@
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
 #include <process/router/local_router.hpp>
+#include <atomic>
 
 namespace fhatos {
   template<typename S>
@@ -91,11 +92,11 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
-  class AsInst final : public Inst {
+  class ReferenceInst final : public Inst {
   public:
-    explicit AsInst(const URI_OR_BYTECODE &uri,
+    explicit ReferenceInst(const URI_OR_BYTECODE &uri,
                     const URI_OR_BYTECODE &context) : Inst({
-      "as", {uri, context}, [this](const Obj *toStore) -> const Obj *{
+      "ref", {uri, context}, [this](const Obj *toStore) -> const Obj *{
         ROUTER::singleton()->publish(
           Message{
             .source = this->arg(1)->apply(toStore)->template as<Uri>()->value(),
@@ -104,6 +105,37 @@ namespace fhatos {
             .retain = RETAIN_MESSAGE
           });
         return toStore;
+      }
+    }) {
+    }
+  };
+
+  template<typename ROUTER = FOS_DEFAULT_ROUTER >
+  class DereferenceInst final : public Inst {
+  public:
+    explicit DereferenceInst(const URI_OR_BYTECODE &uri, const URI_OR_BYTECODE &context) : Inst({
+      "dref", {uri, context}, [this](const Obj *obj) -> const Obj *{
+        std::atomic<Obj *> *thing = new std::atomic<Obj *>(nullptr);
+        std::atomic<bool> *done = new std::atomic<bool>(false);
+        const fURI uri = this->arg(0)->apply(obj)->template as<Uri>()->value();
+        const fURI context = this->arg(1)->apply(obj)->template as<Uri>()->value();
+        ROUTER::singleton()->subscribe(
+          Subscription{
+            .source = context,
+            .pattern = uri,
+            .onRecv = [thing,done](const Message &message) {
+              thing->store(message.payload->toObj());
+              done->store(true);
+            }
+          });
+        while (!done->load()) {
+          // wait until done
+        }
+        const Obj *ret = thing->load();
+        delete thing;
+        delete done;
+        ROUTER::singleton()->unsubscribe(context, uri);
+        return ret;
       }
     }) {
     }
@@ -167,7 +199,7 @@ namespace fhatos {
       : Inst({
           ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
-            return (const Obj*)ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
+            return (const Obj *) ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
           }
         }), op(op) {
     }

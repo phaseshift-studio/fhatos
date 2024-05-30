@@ -33,6 +33,13 @@ namespace fhatos {
     }
   }
 
+  void test_no_input_parsing() {
+    Parser *parser = new Parser();
+    ptr<Bytecode> bcode = parser->parse("");
+    TEST_ASSERT_EQUAL_INT(0, bcode->value()->size());
+    delete parser;
+  }
+
   void test_mono_type_parsing() {
     Parser *parser = new Parser();
     // NOOBJ
@@ -68,7 +75,7 @@ namespace fhatos {
     Parser *parser = new Parser();
     // LST
     // REC
-    const Rec* rc1 = parser->parseObj(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
+    const Rec *rc1 = parser->parseObj(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
     TEST_ASSERT_EQUAL(OType::REC, rc1->type());
     TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(new Str("a")))->value());
     TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Int(13))->type());
@@ -96,6 +103,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_no_input_parsing); //
       FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_mono_type_parsing); //
       FOS_RUN_TEST(test_poly_type_parsing); //

@@ -23,7 +23,7 @@
 #include <sstream>
 #include <language/obj.hpp>
 #include <language/fluent.hpp>
-
+#include <util/string_helper.hpp>
 
 namespace fhatos {
   using namespace std;
@@ -35,14 +35,19 @@ namespace fhatos {
     const ID context;
 
   public:
-    explicit Parser(const ID &context = ID("anonymous")) : context((context)) {
+    explicit Parser(const ID &context = ID("anon")) : context((context)) {
     }
 
     const ptr<Bytecode> parse(const char *line) {
-      LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", line);
-      const auto ss = new stringstream(string(line));
+      string cleanLine = string(line);
+      trim(cleanLine);
+      LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", cleanLine.c_str());
+      if (cleanLine.empty()) {
+        return share<Bytecode>(Bytecode(this->context));
+      }
+      const auto ss = new stringstream(cleanLine);
       ptr<Bytecode> bcode = this->parseBytecode(ss);
-      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()).c_str());
+      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()));
       return bcode;
     }
 
@@ -59,9 +64,11 @@ namespace fhatos {
         if (*opcode == "is") {
           range = domain;
           fluent = new Fluent(fluent->is(*args->at(0)));
-        } else if (*opcode == "as") {
-          fluent = new Fluent(fluent->as(URI_OR_BYTECODE(*args->at(0).get()->cast<Uri>())));
-        } else if (*opcode == "branch") {
+        } else if (*opcode == "ref") {
+          fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0).get()->cast<Uri>())));
+        } else if (*opcode == "dref") {
+          fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0).get()->cast<Uri>())));
+        } else if (*opcode == "switch") {
           fluent = new Fluent(fluent->bswitch(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "eq") {
           fluent = new Fluent(fluent->eq(OBJ_OR_BYTECODE(*args->at(0))));
@@ -96,8 +103,8 @@ namespace fhatos {
           throw error;
         }
         //delete fluent;
-        LOG(DEBUG, FOS_TAB_2 "!gdomain!!(!y%s!!) => !grange!!(!y%s!!)\n", OTYPE_STR.at(domain).c_str(),
-            OTYPE_STR.at(range).c_str());
+        LOG(DEBUG, FOS_TAB_2 "!gdomain!!(!y%s!!) => !grange!!(!y%s!!)\n", OTYPE_STR.at(domain),
+            OTYPE_STR.at(range));
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
         domain = range;
         range = OType::OBJ;
@@ -135,7 +142,7 @@ namespace fhatos {
         ptr<OBJ_OR_BYTECODE> argObj = this->parseArg(ss);
         args->push_back(argObj);
         LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
-            OTYPE_STR.at(argObj->type()).c_str());
+            OTYPE_STR.at(argObj->type()));
         if (ss->peek() == ',' || ss->peek() == '.' || ss->peek() == ')') {
           ss->get();
           break;

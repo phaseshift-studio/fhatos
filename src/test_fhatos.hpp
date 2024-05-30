@@ -25,6 +25,7 @@
 #include <unity.h>
 //
 #include <fhatos.hpp>
+#include <language/fluent.hpp>
 
 static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
 #define FOS_TEST_PRINTER ansi // Serial
@@ -84,6 +85,23 @@ namespace fhatos {
     UNITY_END();                                                               \
   }
 } // namespace fhatos::kernel
-
 #endif
+
+static fhatos::Fluent<> FOS_TEST(const fhatos::Fluent<> &fluent) {
+  FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
+  return fluent;
+}
+
+template<typename _OBJ>
+static fhatos::List<const _OBJ *> *FOS_TEST_RESULT(const fhatos::Fluent<> &fluent, const bool printResult = true) {
+  FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
+  fhatos::List<const _OBJ *> *result = fluent.toList<_OBJ>();
+  if (printResult) {
+    int index = 0;
+    for (const _OBJ *obj: *result) {
+      FOS_TEST_MESSAGE("!g=%i!!>%s [!y%s!!]", index++, obj->toString().c_str(), fhatos::OTYPE_STR.at(obj->type()));
+    }
+  }
+  return result;
+}
 #endif

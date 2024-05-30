@@ -138,8 +138,12 @@ namespace fhatos {
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent as(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new AsInst<ROUTER>(uri, this->bcode->context));
+    Fluent ref(const URI_OR_BYTECODE &uri) {
+      return this->addInst(new ReferenceInst<ROUTER>(uri, this->bcode->context));
+    }
+
+    Fluent dref(const URI_OR_BYTECODE &uri) {
+      return this->addInst(new DereferenceInst<ROUTER>(uri, this->bcode->context));
     }
 
     ///////////////////////////////////////////////////////////////////
