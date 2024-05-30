@@ -34,7 +34,7 @@ namespace fhatos {
   enum class OType : uint8_t { NOOBJ = 0, URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
   enum AType { MONOID, SEMIRING, GROUP, RING, FIELD };
 
-  static const Map<OType, const char*> OTYPE_STR = {
+  static const Map<OType, const char *> OTYPE_STR = {
     {
       {OType::NOOBJ, "noobj"},
       {OType::OBJ, "obj"},
@@ -147,6 +147,10 @@ namespace fhatos {
     virtual const string toString() const override {
       return this->_value.toString();
     }
+
+    bool operator==(const Obj &other) const override {
+      return other.type() == this->type() && ((Uri*) &other)->value().equals(this->value());
+    }
   };
 
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
@@ -167,6 +171,10 @@ namespace fhatos {
     const string toString() const override {
       return this->_value ? "true" : "false";
     }
+
+    bool operator==(const Obj &other) const override {
+      return other.type() == this->type() && ((Bool*) &other)->value() == this->value();
+    }
   };
 
   ///////////////////////////////////////////////// INT //////////////////////////////////////////////////////////////
@@ -184,9 +192,9 @@ namespace fhatos {
       return this;
     }
 
-    //virtual bool operator==(const Obj &other) const override {
-    // return other.type() == OType::INT && this->_value == ((Int)other).value();
-    // }
+    bool operator==(const Obj &other) const override {
+      return other.type() == this->type() && ((Int*) &other)->value() == this->value();
+    }
 
 
     const string toString() const override { return std::to_string(_value); }
@@ -204,6 +212,9 @@ namespace fhatos {
 
     const Real *apply(const Obj *obj) const override {
       return this;
+    }
+    bool operator==(const Obj &other) const override {
+      return other.type() == this->type() && ((Real*) &other)->value() == this->value();
     }
 
     const string toString() const override { return std::to_string(_value); }
@@ -227,6 +238,10 @@ namespace fhatos {
 
     int compare(const Str &other) const {
       return this->_value.compare(other._value);
+    }
+
+    bool operator==(const Obj &other) const override {
+      return other.type() == this->type() && ((Str*) &other)->value() == this->value();
     }
 
     bool operator<(const Str &other) const {
@@ -459,7 +474,7 @@ namespace fhatos {
     }
 
     template<class T,
-      class = typename std::enable_if_t<std::is_same_v<bool, T>>>
+      class = typename std::enable_if_t<std::is_same_v<bool, T> > >
     OBJ_OR_BYTECODE(const T boolX) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(boolX)}) {
     }
 
@@ -469,7 +484,7 @@ namespace fhatos {
     OBJ_OR_BYTECODE(const FL_REAL_TYPE realX) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(realX)}) {
     }
 
-    OBJ_OR_BYTECODE(const char * strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {
+    OBJ_OR_BYTECODE(const char *strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {
     }
 
     OBJ_OR_BYTECODE(const string &strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {

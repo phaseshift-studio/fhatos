@@ -120,49 +120,12 @@ namespace fhatos {
   }
 
   void test_relational_predicates() {
-    List<const Int *> * result = FOS_TEST_RESULT<Int>(__({1, 2, 3}).plus(10).is(_.eq(12)));
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 12;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-    result = __({1, 2, 3}).plus(10).is(_.neq(12)).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(2, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 11 || a->value() == 13;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-    result = __({1, 2, 3}).plus(10).is(_.gt(12)).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 13;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-    result = __({1, 2, 3}).plus(10).is(_.gt(12)).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 13;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-    result = __({1, 2, 3}).plus(10).is(_.gte(12)).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(2, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 12 || a->value() == 13;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-    result = __({1, 2, 3}).plus(10).is(_.lt(12)).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 11;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-    result = __({1, 2, 3}).plus(10).is(_.lte(12)).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(2, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
-      return a->value() == 11 || a->value() == 12;
-    }), result->end());
-    TEST_ASSERT_TRUE(result->empty());
-
+    FOS_CHECK_RESULTS<Int>({12}, __({1, 2, 3}).plus(10).is(_.eq(12)));
+    FOS_CHECK_RESULTS<Int>({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12)));
+    FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).is(_.gt(12)));
+    FOS_CHECK_RESULTS<Int>({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12)));
+    FOS_CHECK_RESULTS<Int>({11}, __({1, 2, 3}).plus(10).is(_.lt(12)));
+    FOS_CHECK_RESULTS<Int>({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12)));
   }
 
   void test_plus() {

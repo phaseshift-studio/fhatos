@@ -92,6 +92,7 @@ static fhatos::Fluent<> FOS_TEST(const fhatos::Fluent<> &fluent) {
   return fluent;
 }
 
+
 template<typename _OBJ>
 static fhatos::List<const _OBJ *> *FOS_TEST_RESULT(const fhatos::Fluent<> &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
@@ -104,4 +105,21 @@ static fhatos::List<const _OBJ *> *FOS_TEST_RESULT(const fhatos::Fluent<> &fluen
   }
   return result;
 }
+
+template<typename _OBJ>
+static void FOS_CHECK_RESULTS(const fhatos::List<const _OBJ> expected, const fhatos::Fluent<> &fluent) {
+  const fhatos::List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
+  TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
+  for (const _OBJ obj: expected) {
+    auto x = std::find_if(result->begin(), result->end(),
+                                                                   [obj](const _OBJ *element) {
+                                                                     return obj == *element;
+                                                                   });
+    if (result->end() == x) {
+      TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
+    }
+  }
+}
+
+
 #endif
