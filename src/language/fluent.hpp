@@ -24,9 +24,10 @@
 #include <language/instructions.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
+#include <process/router/local_router.hpp>
 
 namespace fhatos {
-  template<typename ALGEBRA = Algebra>
+  template<typename ALGEBRA = Algebra, typename ROUTER=FOS_DEFAULT_ROUTER >
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
@@ -133,20 +134,28 @@ namespace fhatos {
       return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LTE, rhs));
     }
 
+    /////////////////////////////////////////////////////////////////////
+    //////////////////////////// SIDE-EFFECT ////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+
+    Fluent as(const URI_OR_BYTECODE &uri) {
+      return this->addInst(new AsInst<ROUTER>(uri, this->bcode->context));
+    }
+
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// BRANCHING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent branch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
+    Fluent bswitch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
       auto recMap = new RecMap<Obj *, Obj *>;
       for (auto it = std::rbegin(recPairs); it != std::rend(recPairs); ++it) {
         recMap->insert({it->first.cast<>(), it->second.cast<>()});
       }
-      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SPLIT, OBJ_OR_BYTECODE(new Rec(recMap))));
+      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, OBJ_OR_BYTECODE(new Rec(recMap))));
     }
 
-    Fluent branch(const OBJ_OR_BYTECODE &branches) {
-      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SPLIT, branches.cast<Rec>()));
+    Fluent bswitch(const OBJ_OR_BYTECODE &branches) {
+      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, branches.cast<Rec>()));
     }
 
     Fluent is(const OBJ_OR_BYTECODE &test) {

@@ -24,13 +24,7 @@
 #include <language/binary_obj.hpp>
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
-#include <language/processor.hpp>
-
-#include "fluent.hpp"
-#ifndef NATIVE
 #include <process/router/local_router.hpp>
-
-#endif
 
 namespace fhatos {
   template<typename S>
@@ -92,6 +86,29 @@ namespace fhatos {
     }
   };
 
+  //////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
+
+  template<typename ROUTER = FOS_DEFAULT_ROUTER >
+  class AsInst final : public Inst {
+  public:
+    explicit AsInst(const URI_OR_BYTECODE &uri,
+                    const URI_OR_BYTECODE &context) : Inst({
+      "as", {uri, context}, [this](const Obj *toStore) -> const Obj *{
+        ROUTER::singleton()->publish(
+          Message{
+            .source = this->arg(1)->apply(toStore)->template as<Uri>()->value(),
+            .target = this->arg(0)->apply(toStore)->template as<Uri>()->value(),
+            .payload = BinaryObj<>::fromObj(toStore),
+            .retain = RETAIN_MESSAGE
+          });
+        return toStore;
+      }
+    }) {
+    }
+  };
+
 
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
@@ -150,7 +167,7 @@ namespace fhatos {
       : Inst({
           ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
-            return ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
+            return (const Obj*)ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
           }
         }), op(op) {
     }

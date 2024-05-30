@@ -1,3 +1,4 @@
+#include <structure/kernel/f_lang.hpp>
 #ifndef fhatos_test_fluent_hpp
 #define fhatos_test_fluent_hpp
 
@@ -37,7 +38,7 @@ namespace fhatos {
 
   void test_rec_branch() {
     Fluent<> f =
-        __(1).plus(2).branch({
+        __(1).plus(2).bswitch({
             {_.is(_.eq(3)), _.plus(2)},
             {2, 4},
             {_.mult(2), 7}
@@ -48,32 +49,109 @@ namespace fhatos {
     });*/
   }
 
+  void test_as() {
+    Fluent fluent = __("fhat").as("a").plus("os");
+    FOS_TEST_MESSAGE("%s", fluent.toString().c_str());
+    List<const Str *> *result;
+    atomic<int> *counter = new atomic<int>(0);
+    result = fluent.toList<Str>();
+    TEST_ASSERT_EQUAL_INT(1, result->size());
+    TEST_ASSERT_EQUAL_STRING("fhatos", result->front()->value().c_str());
+    FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
+        .mailbox = nullptr,
+        .source = "anon",
+        .pattern = Pattern("a"),
+        .onRecv = [counter](const Message &message) {
+          TEST_ASSERT_EQUAL_INT(0, counter->fetch_add(1));
+          TEST_ASSERT_EQUAL_STRING("anon", message.source.toString().c_str());
+          TEST_ASSERT_EQUAL_STRING("a", message.target.toString().c_str());
+          TEST_ASSERT_EQUAL_STRING("fhat", message.payload->toStr().value().c_str());
+        }
+    });
+    TEST_ASSERT_EQUAL_INT(1, counter->load());
+    /////////////////////////////////////////////
+    counter->store(0);
+    Fluent fluent2 =
+        __({"fhat", "pig"}).bswitch({
+            {_.is(_.gt("gonzo")), _.as("b")},
+            {_, _.as("c")}
+        }).plus("y");
+    FOS_TEST_MESSAGE("%s", fluent2.toString().c_str());
+    result = fluent2.toList<Str>();
+    TEST_ASSERT_EQUAL_INT(2, result->size());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Str *a)-> bool {
+      return a->value() == "fhaty" || a->value() == "pigy";
+    }), result->end());
+    TEST_ASSERT_EQUAL_INT(0, result->size());
+    FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
+        .mailbox = nullptr,
+        .source = "anon",
+        .pattern = Pattern("b"),
+        .onRecv = [counter](const Message &message) {
+          counter->fetch_add(1);
+          TEST_ASSERT_EQUAL_STRING("anon", message.source.toString().c_str());
+          TEST_ASSERT_EQUAL_STRING("b", message.target.toString().c_str());
+          TEST_ASSERT_EQUAL_STRING("pig", message.payload->toStr().value().c_str());
+        }
+    });
+    FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
+        .mailbox = nullptr,
+        .source = "anon",
+        .pattern = Pattern("c"),
+        .onRecv = [counter](const Message &message) {
+          counter->fetch_add(1);
+          TEST_ASSERT_EQUAL_STRING("anon", message.source.toString().c_str());
+          TEST_ASSERT_EQUAL_STRING("c", message.target.toString().c_str());
+          TEST_ASSERT_EQUAL_STRING("fhat", message.payload->toStr().value().c_str());
+        }
+    });
+    TEST_ASSERT_EQUAL_INT(2, counter->load());
+  }
+
   void test_relational_predicates() {
     List<const Int *> *result;
     result = __({1, 2, 3}).plus(10).is(_.eq(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_INT(12, result->at(0)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+      return a->value() == 12;
+    }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
     result = __({1, 2, 3}).plus(10).is(_.neq(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(2, result->size());
-    TEST_ASSERT_EQUAL_INT(11, result->at(0)->value());
-    TEST_ASSERT_EQUAL_INT(13, result->at(1)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+    return a->value() == 11 || a->value() == 13;
+  }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
     result = __({1, 2, 3}).plus(10).is(_.gt(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_INT(13, result->at(0)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+       return  a->value() == 13;
+     }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
     result = __({1, 2, 3}).plus(10).is(_.gt(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_INT(13, result->at(0)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+       return a->value() == 13;
+     }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
     result = __({1, 2, 3}).plus(10).is(_.gte(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(2, result->size());
-    TEST_ASSERT_EQUAL_INT(12, result->at(0)->value());
-    TEST_ASSERT_EQUAL_INT(13, result->at(1)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+       return a->value() == 12|| a->value() == 13;
+     }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
     result = __({1, 2, 3}).plus(10).is(_.lt(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_INT(11, result->at(0)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+       return a->value() == 11 ;
+     }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
     result = __({1, 2, 3}).plus(10).is(_.lte(12)).toList<Int>();
     TEST_ASSERT_EQUAL_INT(2, result->size());
-    TEST_ASSERT_EQUAL_INT(11, result->at(0)->value());
-    TEST_ASSERT_EQUAL_INT(12, result->at(1)->value());
+    result->erase(std::remove_if(result->begin(), result->end(), [](const Int *a)-> bool {
+       return a->value() == 11 || a->value() == 12;
+     }), result->end());
+    TEST_ASSERT_TRUE(result->empty());
 
   }
 
@@ -94,6 +172,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_rec_branch); //
+      FOS_RUN_TEST(test_as); //
       FOS_RUN_TEST(test_plus); //
       FOS_RUN_TEST(test_where); //
       FOS_RUN_TEST(test_relational_predicates); //

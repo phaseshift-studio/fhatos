@@ -59,12 +59,22 @@ namespace fhatos {
         if (*opcode == "is") {
           range = domain;
           fluent = new Fluent(fluent->is(*args->at(0)));
+        } else if (*opcode == "as") {
+          fluent = new Fluent(fluent->as(URI_OR_BYTECODE(*args->at(0).get()->cast<Uri>())));
         } else if (*opcode == "branch") {
-          fluent = new Fluent(fluent->branch(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->bswitch(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "eq") {
           fluent = new Fluent(fluent->eq(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "neq") {
           fluent = new Fluent(fluent->neq(OBJ_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "gt") {
+          fluent = new Fluent(fluent->gt(OBJ_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "gte") {
+          fluent = new Fluent(fluent->gte(OBJ_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "lt") {
+          fluent = new Fluent(fluent->lt(OBJ_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "lte") {
+          fluent = new Fluent(fluent->lte(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "plus") {
           range = domain;
           fluent = new Fluent(fluent->plus(OBJ_OR_BYTECODE(*args->at(0))));
