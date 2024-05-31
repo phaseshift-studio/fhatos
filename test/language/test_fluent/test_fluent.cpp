@@ -1,11 +1,10 @@
-#include <structure/kernel/f_lang.hpp>
 #ifndef fhatos_test_fluent_hpp
 #define fhatos_test_fluent_hpp
 
 #include <test_fhatos.hpp>
 #include <language/fluent.hpp>
-#include <language/instructions.hpp>
 #include <language/obj.hpp>
+#include <atomic>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
@@ -51,72 +50,24 @@ namespace fhatos {
   }
 
   void test_dref() {
-    const List<const Str *> *result = FOS_TEST_RESULT<Str>(__("fhat").ref("a").plus("os").dref("a"));
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_STRING("fhat", result->front()->value().c_str());
-    delete result;
-    FOS_DEFAULT_ROUTER::singleton()->clear();
-    const List<const Int *> *result2 = FOS_TEST_RESULT<Int>(__(10).ref("a").plus(3).plus(_.dref("a")));
-    TEST_ASSERT_EQUAL_INT(1, result2->size());
-    TEST_ASSERT_EQUAL_INT(23, result2->front()->value());
-    delete result2;
-    FOS_DEFAULT_ROUTER::singleton()->clear();
+    FOS_CHECK_RESULTS<Str>({"fhat"},__("fhat").ref("a").plus("os").dref("a"),
+      {{Uri("a"),new Str("fhat")}});
+    FOS_CHECK_RESULTS<Int>({23},__(10).ref("a").plus(3).plus(_.dref("a")),
+      {{Uri("a"),new Int(10)}});
   }
 
   void test_ref() {
-    atomic<int> *counter = new atomic<int>(0);
-    List<const Str *> *result = FOS_TEST(__("fhat").ref("a").plus("os")).toList<Str>();
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_STRING("fhatos", result->front()->value().c_str());
-    FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
-        .mailbox = nullptr,
-        .source = "anon",
-        .pattern = Pattern("a"),
-        .onRecv = [counter](const Message &message) {
-          TEST_ASSERT_EQUAL_INT(0, counter->fetch_add(1));
-          TEST_ASSERT_EQUAL_STRING("anon", message.source.toString().c_str());
-          TEST_ASSERT_EQUAL_STRING("a", message.target.toString().c_str());
-          TEST_ASSERT_EQUAL_STRING("fhat", message.payload->toStr().value().c_str());
-        }
-    });
-    TEST_ASSERT_EQUAL_INT(1, counter->load());
-    /////////////////////////////////////////////
-    counter->store(0);
-    result = FOS_TEST(__({"fhat", "pig"}).bswitch({
-        {_.is(_.gt("gonzo")), _.ref("b")},
-        {_, _.ref("c")}
-    }).plus("y")).toList<Str>();
-    TEST_ASSERT_EQUAL_INT(2, result->size());
-    result->erase(std::remove_if(result->begin(), result->end(), [](const Str *a)-> bool {
-      return a->value() == "fhaty" || a->value() == "pigy";
-    }), result->end());
-    TEST_ASSERT_EQUAL_INT(0, result->size());
-    FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
-        .mailbox = nullptr,
-        .source = "anon",
-        .pattern = Pattern("b"),
-        .onRecv = [counter](const Message &message) {
-          counter->fetch_add(1);
-          TEST_ASSERT_EQUAL_STRING("anon", message.source.toString().c_str());
-          TEST_ASSERT_EQUAL_STRING("b", message.target.toString().c_str());
-          TEST_ASSERT_EQUAL_STRING("pig", message.payload->toStr().value().c_str());
-        }
-    });
-    FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
-        .mailbox = nullptr,
-        .source = "anon",
-        .pattern = Pattern("c"),
-        .onRecv = [counter](const Message &message) {
-          counter->fetch_add(1);
-          TEST_ASSERT_EQUAL_STRING("anon", message.source.toString().c_str());
-          TEST_ASSERT_EQUAL_STRING("c", message.target.toString().c_str());
-          TEST_ASSERT_EQUAL_STRING("fhat", message.payload->toStr().value().c_str());
-        }
-    });
-    TEST_ASSERT_EQUAL_INT(2, counter->load());
+
+    FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").ref("a").plus("os"),
+                           {
+                               {Uri("a"), new Str("fhat")}});
+    FOS_CHECK_RESULTS<Str>({"fhaty", "pigy"}, __({"fhat", "pig"}).bswitch({
+                               {_.is(_.gt("gonzo")), _.ref("b")},
+                               {_, _.ref("c")}}).plus("y"),
+                           {
+                               {Uri("b"), new Str("pig")},
+                               {Uri("c"), new Str("fhat")}});
     FOS_DEFAULT_ROUTER::singleton()->clear();
-    delete counter;
-    delete result;
   }
 
   void test_relational_predicates() {

@@ -162,6 +162,10 @@ namespace fhatos {
       return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, branches.cast<Rec>()));
     }
 
+    ///////////////////////////////////////////////////////////////////
+    //////////////////////////// FILTERING ////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+
     Fluent is(const OBJ_OR_BYTECODE &test) {
       return this->addInst(new IsInst(test));
     }
@@ -189,12 +193,16 @@ namespace fhatos {
 
 
   static Fluent<> __(const List<OBJ_OR_BYTECODE> &starts) {
-    List<Obj *> *castStarts = new List<Obj *>();
-    for (OBJ_OR_BYTECODE se: starts) {
-      castStarts->push_back(se.cast<>());
+    if (false && starts.empty()) {
+      return Fluent<>(share<Bytecode>(Bytecode({}))); // TODO: remove unnecesary [start]?
+    } else {
+      List<Obj *> *castStarts = new List<Obj *>();
+      for (OBJ_OR_BYTECODE se: starts) {
+        castStarts->push_back(se.cast<>());
+      }
+      return Fluent<>(
+        share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
     }
-    return Fluent<>(
-      share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
   };
 
 

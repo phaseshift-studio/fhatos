@@ -84,7 +84,7 @@ namespace fhatos {
     }
 
 
-    virtual bool operator==(const Obj &other)  const {
+    virtual bool operator==(const Obj &other) const {
       return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
     }
 
@@ -150,6 +150,10 @@ namespace fhatos {
 
     bool operator==(const Obj &other) const override {
       return other.type() == this->type() && ((Uri *) &other)->value().equals(this->value());
+    }
+
+    bool operator<(const Uri &other) const {
+      return this->_value < other._value;
     }
   };
 
@@ -229,6 +233,10 @@ namespace fhatos {
   public:
     Str(const string &value) : Obj(OType::STR), _value(value) {
     };
+
+    Str(const char *value) : Str(string(value)) {
+    }
+
     const string value() const { return this->_value; }
 
     const Str *apply(const Obj *obj) const override {

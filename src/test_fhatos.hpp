@@ -18,7 +18,6 @@
 
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
-
 #ifdef NATIVE
 #include <test_fhatos_native.hpp>
 #else
@@ -87,39 +86,55 @@ namespace fhatos {
 } // namespace fhatos::kernel
 #endif
 
-static fhatos::Fluent<> FOS_TEST(const fhatos::Fluent<> &fluent) {
+using namespace fhatos;
+
+static Fluent<> FOS_TEST(const Fluent<> &fluent) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
   return fluent;
 }
 
 
 template<typename _OBJ>
-static fhatos::List<const _OBJ *> *FOS_TEST_RESULT(const fhatos::Fluent<> &fluent, const bool printResult = true) {
+static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  fhatos::List<const _OBJ *> *result = fluent.toList<_OBJ>();
+  List<const _OBJ *> *result = fluent.toList<_OBJ>();
   if (printResult) {
     int index = 0;
     for (const _OBJ *obj: *result) {
-      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(), fhatos::OTYPE_STR.at(obj->type()));
+      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
+                       fhatos::OTYPE_STR.at(obj->type()));
     }
   }
   return result;
 }
 
 template<typename _OBJ>
-static void FOS_CHECK_RESULTS(const fhatos::List<const _OBJ> expected, const fhatos::Fluent<> &fluent) {
-  const fhatos::List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
+static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
+                              const Map<Uri, Obj *> expectedReferences = {}) {
+  const List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
   for (const _OBJ obj: expected) {
     auto x = std::find_if(result->begin(), result->end(),
-                                                                   [obj](const _OBJ *element) {
-                                                                     return obj == *element;
-                                                                   });
+                          [obj](const _OBJ *element) {
+                            return obj == *element;
+                          });
     if (result->end() == x) {
       TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
     }
   }
+  if (!expectedReferences.empty()) {
+    for (const auto &[key, value]: expectedReferences) {
+      const Obj *temp = value;
+      FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
+        .mailbox = nullptr,
+        .source = ID("anon"),
+        .pattern = key.value(),
+        .onRecv = [temp](const Message &message) {
+          TEST_ASSERT_TRUE(*temp == *message.payload->toObj());
+        }
+      });
+    }
+  }
+  FOS_DEFAULT_ROUTER::singleton()->clear();
 }
-
-
 #endif
