@@ -32,6 +32,7 @@ namespace fhatos {
       static CPrinter printer = CPrinter();
       return &printer;
     }
+
     int print(const char *c_str) {
       return printf("%s", c_str);
     }
@@ -121,14 +122,14 @@ namespace fhatos {
     }
 
   public:
-    Ansi<PRINTER>() {
-    };
-
-    PRINTER *stream() {
-      return this->_printer;
+    Ansi(): printer(nullptr) {
     }
 
     explicit Ansi(PRINTER *printer) : printer(printer) {
+    }
+
+    PRINTER *stream() {
+      return this->_printer;
     }
 
     void on(bool turnOn = true) { this->_on = turnOn; }

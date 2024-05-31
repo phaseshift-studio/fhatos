@@ -116,7 +116,7 @@ namespace fhatos {
       return SERIALIZER::toRec(*this);
     }
 
-    Obj* toObj() const {
+    Obj *toObj() const {
       switch (this->type()) {
         case OType::BOOL: return new Bool(toBool());
         case OType::INT: return new Int(toInt());
@@ -384,6 +384,20 @@ namespace fhatos {
         (fbyte *) temp,
         len
       };
+    }
+
+    static binary_obj fromMap(const RecMap<Obj *, Obj *> &xmap) {
+      fbyte *bytes = static_cast<fbyte *>(malloc(sizeof(xmap)));
+      memcpy(bytes, &xmap, sizeof(xmap));
+      return binary_obj{OType::REC, bytes, sizeof(xmap)};
+    }
+
+    static Rec toRec(const BinaryObj<CharSerializer> &bobj) {
+      switch (bobj.type()) {
+        case OType::REC:
+          return *((Rec *) bobj.data());
+        default: throw std::runtime_error("bad7"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+      }
     }
 
     static Uri toUri(const BinaryObj<CharSerializer> &bobj) {

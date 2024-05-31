@@ -28,6 +28,7 @@
 
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
+#include <../_deps/ordered_map-src/include/tsl/ordered_map.h>
 
 
 namespace fhatos {
@@ -291,12 +292,12 @@ namespace fhatos {
 
   struct obj_equal_to : std::binary_function<Obj *, Obj *, bool> {
     bool operator()(const Obj *a, const Obj *b) const {
-      return a->type() == b->type() && strcmp(a->toString().c_str(), b->toString().c_str()) == 0;
+      return *a == *b;
     }
   };
 
   template<typename K, typename V, typename H=obj_hash, typename Q=obj_equal_to>
-  using RecMap = UnorderedMap<K, V, H, Q>;
+  using RecMap = OrderedMap<K, V, H, Q>;
 
   class Rec final : public Obj {
   protected:
@@ -306,7 +307,7 @@ namespace fhatos {
     Rec(RecMap<Obj *, Obj *> *value) : Obj(OType::REC), _value(value) {
     };
 
-    Rec(RecMap<Obj *, Obj *> value) : Obj(OType::REC), _value(new RecMap<Obj*,Obj*>(value)) {
+    Rec(RecMap<Obj *, Obj *> value) : Obj(OType::REC), _value(new RecMap<Obj *, Obj *>(value)) {
     };
 
     template<typename V>
@@ -328,8 +329,8 @@ namespace fhatos {
 
     const string toString() const override {
       string t = "[";
-      for (const auto &pair: *this->_value) {
-        t = t + pair.first->toString() + "!r=>!!" + pair.second->toString() + ",";
+      for (const auto &[k, v]: *this->_value) {
+        t = t + k->toString() + "!r=>!!" + v->toString() + ",";
       }
       t[t.length() - 1] = ']';
       return t;
@@ -339,17 +340,18 @@ namespace fhatos {
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
   typedef Function<const Obj *, const Obj *> InstFunction;
   typedef List<Obj *> InstArgs;
+  typedef Triple<const string, const InstArgs, const InstFunction> InstTriple;
 
   class Inst : public Obj {
   protected:
-    const Triple<const string, const InstArgs, const InstFunction> _value;
+    const InstTriple _value;
 
   public:
-    explicit Inst(const Triple<const string, const InstArgs, const InstFunction> &value)
+    explicit Inst(const InstTriple &value)
       : Obj(OType::INST), _value(value) {
     }
 
-    virtual Triple<const string, const InstArgs, const InstFunction> value() const {
+    virtual InstTriple value() const {
       return this->_value;
     }
 

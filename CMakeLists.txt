@@ -1,9 +1,10 @@
 include(CMakePrintHelpers)
-cmake_minimum_required(VERSION 3.13)  # CMake version check
+include(FetchContent)
+cmake_minimum_required(VERSION 3.29)  # CMake version check
 project(fhatos)
 set(CMAKE_CXX_STANDARD 20)
 
-# Add main.cpp file of the project root directory as a source file
+######## PROJECT LIBRARY
 include_directories(src)
 set(SOURCE_FILES src/main.cpp)
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -13,11 +14,20 @@ set_target_properties(
         OUTPUT_NAME ${PROJECT_NAME}
         SUFFIX ".out"
 )
+######## EXTERNAL LIBRARIES
+FetchContent_Declare(
+        ordered_map
+        GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
+        GIT_TAG v1.1.0
+)
+FetchContent_MakeAvailable(ordered_map)
+target_link_libraries(${PROJECT_NAME} PUBLIC ordered_map)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_definitions(${PROJECT_NAME} PRIVATE NATIVE)
 cmake_print_variables(CMAKE_CXX_COMPILER_ID)
 cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
+
 
 #####
 

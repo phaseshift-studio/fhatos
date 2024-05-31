@@ -31,3 +31,4 @@ scripts/__pycache__
 **/*.cbp
 **/CMakeScripts
 **/compile_commands.json
+_deps

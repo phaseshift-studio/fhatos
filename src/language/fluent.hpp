@@ -152,7 +152,7 @@ namespace fhatos {
 
     Fluent bswitch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
       auto recMap = new RecMap<Obj *, Obj *>;
-      for (auto it = std::rbegin(recPairs); it != std::rend(recPairs); ++it) {
+      for (auto it = std::begin(recPairs); it != std::end(recPairs); ++it) {
         recMap->insert({it->first.cast<>(), it->second.cast<>()});
       }
       return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, OBJ_OR_BYTECODE(new Rec(recMap))));

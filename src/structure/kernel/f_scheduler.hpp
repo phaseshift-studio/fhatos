@@ -25,6 +25,7 @@
 #include <structure/furi.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
+//#include <structure/f_bcode.hpp>
 
 namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
@@ -37,15 +38,20 @@ namespace fhatos {
 
     void setup() override {
       Actor<PROCESS, ROUTER>::setup();
-      this->onQuery(this->id().query("?"), [this](const SourceID&, const TargetID& target) {
+      this->onQuery(this->id().query("?"), [this](const SourceID &, const TargetID &target) {
         char temp[100];
         sprintf(temp, "\\_%s", target.query("").toString().c_str());
         this->publish(target, temp,RETAIN_MESSAGE);
       });
+      /*this->onQuery(this->id().query("?spawn"), [this](const Message &message) {
+        Rec rec = message.payload->toRec();
+        fBcode* b = new fBcode(rec.get<Uri>(new Str("id"))->value(), new Rec(rec));
+        this->spawn(b);
+      });*/
     }
 
     void loop() override {
-
+      Actor<PROCESS, ROUTER>::loop();
     }
 
     bool spawn(Process *process) {

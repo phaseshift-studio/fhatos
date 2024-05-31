@@ -198,66 +198,144 @@ namespace fhatos {
         domain = tdomain;
         range = trange;
         delete ss;
-      } else if (token[0] == '[' && token[token.length() - 1] == ']') {
-        RecMap<Obj *, Obj *> map = RecMap<Obj *, Obj *>();
+      }/*else if (token.starts_with("[[") && token.ends_with("]]")) {
+        List<Inst *> *insts = new List<Inst *>();
         stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
-        bool onKey = true;
-        string key;
-        string value;
+        string inst;
         int bracketCounter = 0;
         while (!ss->eof()) {
-          if (onKey) {
-            if (bracketCounter == 0 && ss->peek() == '=') {
+          if (ss->peek() == ']') {
+            if (bracketCounter == 0) {
               ss->get();
-              if (ss->peek() == '>') {
+              insts->push_back(parseObj(inst)->cast<Inst>());
+              inst.clear();
+            } else {
+              bracketCounter--;
+            }
+          } else if (ss->peek() == '[') {
+            bracketCounter++;
+          }
+          inst += ss->get();
+        }
+        return share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Bytecode(insts)));
+      }*/ else if (token[0] == '[' && token[token.length() - 1] == ']') {
+        stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
+        string first;
+        OType type = OType::LST;
+        while (!ss->eof()) {
+          if (ss->peek() == '|') {
+            type = OType::INST;
+            ss->get();
+            break;
+          } else if (ss->peek() == '=') {
+            ss->get();
+            if (ss->peek() == '>') {
+              ss->get();
+              type = OType::REC;
+              break;
+            } else {
+              ss += '=';
+            };
+          } else if (ss->peek() == ',') {
+            type = OType::LST;
+            ss->get();
+            break;
+          }
+          first += ss->get();
+        }
+        trim(first);
+        ////////////////////////////////////
+        if (type == OType::INST) {
+          string opcode = first;
+          List<ptr<OBJ_OR_BYTECODE> > args = List<ptr<OBJ_OR_BYTECODE> >();
+          string arg;
+          int bracketCounter = 0;
+          while (!ss->eof()) {
+            if (ss->peek() == ']') {
+              ss->get();
+              break;
+            } else if (ss->peek() == ',' && bracketCounter == 0) {
+              ss->get();
+              args.push_back(parseObj(arg));
+              arg.clear();
+            }
+            if (ss->peek() == '[') {
+              bracketCounter++;
+            } else if (ss->peek() == ']') {
+              bracketCounter--;
+            }
+            arg += ss->get();
+          }
+          //
+        } else if (type == OType::REC) {
+          RecMap<Obj *, Obj *> map = RecMap<Obj *, Obj *>();
+          bool onKey = false;
+          string key = first;
+          string value;
+          int bracketCounter = 0;
+          while (!ss->eof()) {
+            if (onKey) {
+              if (bracketCounter == 0 && ss->peek() == '=') {
                 ss->get();
-                onKey = false;
+                if (ss->peek() == '>') {
+                  ss->get();
+                  onKey = false;
+                } else {
+                  key += '=';
+                }
               } else {
-                key += '=';
+                if (ss->peek() == '[')
+                  bracketCounter++;
+                if (ss->peek() == ']')
+                  bracketCounter--;
+                if (!ss->eof())
+                  key += ss->get();
               }
             } else {
-              if (ss->peek() == '[')
-                bracketCounter++;
-              if (ss->peek() == ']')
-                bracketCounter--;
-              if (!ss->eof())
-                key += ss->get();
-            }
-          } else {
-            ///////
-            if (bracketCounter == 0 && ss->peek() == ',') {
-              ss->get(); // drop k/v separating comma
-              onKey = true;
-              map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
-              key.clear();
-              value.clear();
-            } else {
-              if (ss->peek() == '[')
-                bracketCounter++;
-              if (ss->peek() == ']')
-                bracketCounter--;
-              if (!ss->eof())
-                value += ss->get();
-              else
-                map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
+              ///////
+              if (bracketCounter == 0 && ss->peek() == ',') {
+                ss->get(); // drop k/v separating comma
+                onKey = true;
+                map.insert({parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>()});
+                key.clear();
+                value.clear();
+              } else {
+                if (ss->peek() == '[')
+                  bracketCounter++;
+                if (ss->peek() == ']')
+                  bracketCounter--;
+                if (!ss->eof())
+                  value += ss->get();
+              }
             }
           }
+          map.insert({parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>()});
+          RecMap<Obj *, Obj *> *map2 = new RecMap<Obj *, Obj *>(); // necessary to revese entries
+          for (const auto &pair: map) {
+            map2->insert(pair);
+          }
+          delete ss;
+          se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Rec(map2)));
         }
-        map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
-        RecMap<Obj *, Obj *> *map2 = new RecMap<Obj *, Obj *>(); // necessary to revese entries
-        for (const auto &pair: map) {
-          map2->insert(pair);
-        }
-        delete ss;
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Rec(map2)));
-      } else if (isdigit(token[0]) && token.find('.') != string::npos) {
+      } else if
+      (isdigit(token[0]) &&
+       token
+       .
+       find(
+         '.'
+       )
+       !=
+       string::npos
+      ) {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Real(stof(token))));
-      } else if (isdigit(token[0])) {
+      } else if
+      (isdigit(token[0])) {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Int(stoi(token))));
       } else {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token))));
       }
-      return se;
+      return
+          se;
     }
 
     static void trim(string &s) {

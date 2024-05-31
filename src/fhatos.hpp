@@ -55,7 +55,7 @@
 #include <set>
 #include <atomic>
 #include <memory>
-#include <unordered_map>
+#include "../_deps/ordered_map-src/include/tsl/ordered_map.h"
 
 namespace fhatos {
   static const char *ANSI_ART =
@@ -116,7 +116,7 @@ namespace fhatos {
   template<typename K, typename V>
   using Map = std::map<K, V>;
   template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K> >
-  using UnorderedMap = std::unordered_map<K, V, H, E>;
+  using OrderedMap = tsl::ordered_map<K, V, H, E>;
 
   template<typename A>
   using ptr = std::shared_ptr<A>;
