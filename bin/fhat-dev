@@ -34,10 +34,10 @@ elif [[ $1 == "upload" ]]; then
   platformio run --target clean $environ; platformio run $environ --target upload 
 else
    echo -e "usage: 
-  fhat-dev {test | build | upload} {fhatos | native | <empty>} 
+  fhat-dev {test | build | upload} {esp32 | native | <empty>} 
     fhat-dev test native
-    fhat-dev build fhatos
-    fhat-dev upload fhatos
+    fhat-dev build esp32
+    fhat-dev upload esp32
     fhat-dev test"
 fi
 

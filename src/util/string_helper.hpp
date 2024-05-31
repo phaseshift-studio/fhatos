@@ -24,9 +24,9 @@
 namespace fhatos {
   class StringHelper {
   public:
-    static inline void trim(std::string &s) {
-      ltrim(s);
-      rtrim(s);
+    static inline void trim(const std::string &s) {
+      ltrim(const_cast<string &>(s));
+      rtrim(const_cast<string &>(s));
     }
 
     static inline void ltrim(std::string &s) {

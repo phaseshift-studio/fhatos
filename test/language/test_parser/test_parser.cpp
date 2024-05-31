@@ -40,6 +40,25 @@ namespace fhatos {
     delete parser;
   }
 
+  void test_start_inst_parsing() {
+    Parser *parser = new Parser();
+    FOS_CHECK_ARGS<Int>({new Int(15)}, parser->parse("__(15)")->startInst());
+    FOS_CHECK_ARGS<Obj>({new Str("fhat"), new Str("os"), new Int(69)},
+                        parser->parse("__('fhat','os',69)")->startInst());
+    FOS_CHECK_ARGS<Obj>({new Rec({{new Str("a"), new Int(2)}})},
+                        parser->parse("__(['a'=>2])")->startInst());
+    FOS_CHECK_ARGS<Obj>({new Rec(
+                        {{new Str("a"), new Int(2)},
+                         {new Str("b"), new Int(3)}})},
+                        parser->parse("__(['a'=>2,'b'=>3])")->startInst());
+    FOS_CHECK_ARGS<Obj>({new Rec({
+                            {new Str("a"), new Int(2)},
+                            {new Str("b"), new Rec(
+                                 {{new Int(3), new Uri("http://fhatos.org")}})}})},
+                        parser->parse("__(['a'=>2,'b'=>[3=>http://fhatos.org]])")->startInst());
+    delete parser;
+  }
+
   void test_mono_type_parsing() {
     Parser *parser = new Parser();
     // NOOBJ
@@ -75,13 +94,22 @@ namespace fhatos {
     Parser *parser = new Parser();
     // LST
     // REC
-    const Rec *rc1 = parser->parseObj(string("['a'=>13,actor@127.0.0.1=>false]"))->cast<Rec>();
-    TEST_ASSERT_EQUAL(OType::REC, rc1->type());
-    TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(new Str("a")))->value());
-    TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Int(13))->type());
-    TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Str("no key"))->type());
-    TEST_ASSERT_FALSE(rc1->get<Bool>(new Uri("actor@127.0.0.1"))->value());
-    delete rc1;
+    List<string> forms = {
+        "['a'=>13,actor@127.0.0.1=>false]",
+        "['a' => 13,actor@127.0.0.1 => false ]",
+        "['a'=> 13 , actor@127.0.0.1=>false]",
+        "['a' =>    13 , actor@127.0.0.1 =>    false  ]"};
+    for (const string form: forms) {
+      FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
+      const Rec *rc1 = parser->parseObj(form)->cast<Rec>();
+      TEST_ASSERT_EQUAL(OType::REC, rc1->type());
+      TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(new Str("a")))->value());
+      TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Int(13))->type());
+      TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Str("no key"))->type());
+      TEST_ASSERT_FALSE(rc1->get<Bool>(new Uri("actor@127.0.0.1"))->value());
+      delete rc1;
+    }
+
     ///////////////////////////////////
     const Rec *rc2 = parser->parseObj(string("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]"))->cast<Rec>();
     TEST_ASSERT_EQUAL(OType::REC, rc2->type());
@@ -93,9 +121,11 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, (rc3->get<Int>(new Str("b")))->value());
     TEST_ASSERT_EQUAL_INT(3, (rc3->get<Int>(new Str("c")))->value());
     // TODO: strip ansi TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",rc2->toString().c_str());
-
     delete rc2;
     delete rc3;
+    ///////////////////////////////////
+    const Rec *rc4 = parser->parseObj(string("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]"))->cast<Rec>();
+
     delete parser;
     // INST
     // BYTECODE
@@ -104,6 +134,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_no_input_parsing); //
+      FOS_RUN_TEST(test_start_inst_parsing); //
       FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_mono_type_parsing); //
       FOS_RUN_TEST(test_poly_type_parsing); //

@@ -36,24 +36,19 @@ namespace fhatos {
   }
 
   void test_rec_branch() {
-    List<const Int *> *result = FOS_TEST(
-        __(1).plus(2).bswitch({
+    FOS_CHECK_RESULTS<Int>(
+        {500}, __(1).plus(2).bswitch({
             {_.is(_.eq(3)), _.plus(2)},
             {2, 4},
             {_.mult(2), 7}
-        }).is(_.eq(5)).mult(_.plus(95))).toList<Int>();
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_INT(500, result->front()->value());
-    /*f.forEach<Int>([](const Int *e) {
-      FOS_TEST_MESSAGE("=>%s", e->toString().c_str());
-    });*/
+        }).is(_.eq(5)).mult(_.plus(95)));
   }
 
   void test_dref() {
-    FOS_CHECK_RESULTS<Str>({"fhat"},__("fhat").ref("a").plus("os").dref("a"),
-      {{Uri("a"),new Str("fhat")}});
-    FOS_CHECK_RESULTS<Int>({23},__(10).ref("a").plus(3).plus(_.dref("a")),
-      {{Uri("a"),new Int(10)}});
+    FOS_CHECK_RESULTS<Str>({"fhat"}, __("fhat").ref("a").plus("os").dref("a"),
+                           {{Uri("a"), new Str("fhat")}});
+    FOS_CHECK_RESULTS<Int>({23}, __(10).ref("a").plus(3).plus(_.dref("a")),
+                           {{Uri("a"), new Int(10)}});
   }
 
   void test_ref() {

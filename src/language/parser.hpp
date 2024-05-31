@@ -154,17 +154,22 @@ namespace fhatos {
     const ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
       string argS;
       int paren = 0;
+      int bracket = 0;
       while (!ss->eof()) {
         if (ss->peek() == '(')
           paren++;
-        if (ss->peek() == ')')
+        else if (ss->peek() == ')')
           paren--;
+        else if (ss->peek() == '[') {
+          bracket++;
+        } else if (ss->peek() == ']') {
+          bracket--;
+        }
         argS += static_cast<char>(ss->get());
         if (ss->peek() == ')' && paren == 0) {
           ss->get();
           break;
-        }
-        if (ss->peek() == ',' && paren == 0) {
+        } else if (ss->peek() == ',' && paren == 0 && bracket == 0) {
           ss->get();
           break;
         }
@@ -176,6 +181,7 @@ namespace fhatos {
     const ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
       ptr<OBJ_OR_BYTECODE> se;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
+      StringHelper::trim(token);
       if (token == "Ø") {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(NoObj::singleton()));
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
@@ -220,7 +226,7 @@ namespace fhatos {
           } else {
             ///////
             if (bracketCounter == 0 && ss->peek() == ',') {
-              ss->get();
+              ss->get(); // drop k/v separating comma
               onKey = true;
               map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
               key.clear();
@@ -232,6 +238,8 @@ namespace fhatos {
                 bracketCounter--;
               if (!ss->eof())
                 value += ss->get();
+              else
+                map.emplace(parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>());
             }
           }
         }

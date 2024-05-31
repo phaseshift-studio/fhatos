@@ -306,6 +306,9 @@ namespace fhatos {
     Rec(RecMap<Obj *, Obj *> *value) : Obj(OType::REC), _value(value) {
     };
 
+    Rec(RecMap<Obj *, Obj *> value) : Obj(OType::REC), _value(new RecMap<Obj*,Obj*>(value)) {
+    };
+
     template<typename V>
     const V *get(Obj *key) const {
       return (V *) (this->_value->count(key) ? this->_value->at(key) : NoObj::singleton());

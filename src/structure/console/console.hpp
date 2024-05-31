@@ -74,16 +74,36 @@ namespace fhatos {
       this->ansi->print("!mfhatos!!> ");
     }
 
-    void printResult(const Obj *obj) const {
-      this->ansi->printf("!g==!!>%s [!y%s!!]\n",
-                         obj->toString().c_str(),
-                         OTYPE_STR.at(obj->type()));
-    }
-
     void printResults(const ptr<Fluent<> > &fluent) const {
       fluent->forEach<Obj>([this](const Obj *obj) {
         this->printResult(obj);
       });
+    }
+
+
+    void printResult(const Obj *obj) const {
+      if (obj->type() == OType::REC)
+        this->printRec((Rec *) obj);
+      else
+        this->ansi->printf("!g==!!>%s [!y%s!!]\n",
+                           obj->toString().c_str(),
+                           OTYPE_STR.at(obj->type()));
+    }
+
+    void printRec(const Rec *rec, int i = 0) const {
+      this->ansi->printf("!g==!!>!r[!!");
+      int size = rec->value()->size();
+      for (const auto &[key,value]: *rec->value()) {
+        if (i > 0)
+          this->ansi->print("    ");
+        this->ansi->printf("%s [!y%s!!] !b=>!! %s [!y%s!!]", key->toString().c_str(), OTYPE_STR.at(key->type()),
+                           value->toString().c_str(), OTYPE_STR.at(value->type()));
+        i++;
+        if (i < size) {
+          this->ansi->print("\n");
+        }
+      }
+      this->ansi->printf("!r]!! [!y%s!!]\n",OTYPE_STR.at(rec->type()));
     }
   };
 }

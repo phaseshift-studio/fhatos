@@ -88,11 +88,18 @@ namespace fhatos {
 
 using namespace fhatos;
 
-static Fluent<> FOS_TEST(const Fluent<> &fluent) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  return fluent;
+template <typename _OBJ = Obj>
+static void FOS_CHECK_ARGS(const List<_OBJ*> &expectedArgs, const Inst* inst) {
+  FOS_TEST_MESSAGE("!yTesting!! instruction: %s", inst->toString().c_str());
+  TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst->args().size());
+  for (int i = 0; i < expectedArgs.size(); i++) {
+    bool test = *expectedArgs[i] == *inst->args()[i];
+    if (!test) {
+      FOS_TEST_MESSAGE("!r%s!! != !r%s!!", expectedArgs[i]->toString().c_str(), inst->args()[i]->toString().c_str());
+      TEST_FAIL();
+    }
+  }
 }
-
 
 template<typename _OBJ>
 static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
