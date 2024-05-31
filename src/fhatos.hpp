@@ -198,6 +198,7 @@ namespace fhatos {
 
 #ifndef FOS_DEFAULT_ROUTER
 #define FOS_DEFAULT_ROUTER LocalRouter<>
+#define FOS_DEFAULT_ALGEBRA Algebra
 #endif
 #ifdef NATIVE
 #define FOS_OUTPUT fhatos::CPrinter::singleton()
@@ -239,7 +240,7 @@ namespace fhatos {
       return;
     va_list arg;
     va_start(arg, format);
-    char temp[64];
+    char temp[128];
     char *buffer = temp;
     const size_t len = vsnprintf(temp, sizeof(temp), format, arg);
     va_end(arg);

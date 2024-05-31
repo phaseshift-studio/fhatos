@@ -24,6 +24,7 @@
 #include <util/ansi.hpp>
 #include <structure/furi.hpp>
 #include <language/parser.hpp>
+#include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
@@ -33,39 +34,56 @@ namespace fhatos {
     Ansi<PRINTER> *ansi;
     Parser *parser;
 
-    explicit Console(const ID &id = ID("anon")): Thread(id) {
+    explicit Console(const ID &id = ID("anon")): Thread(id), ansi(new Ansi<PRINTER>(PRINTER::singleton())),
+                                                 parser(new Parser(id)) {
     }
 
     void setup() override {
       Thread::setup();
-      _logging = LOG_TYPE::ERROR;
-      this->ansi = new Ansi<PRINTER>(PRINTER::singleton());
-      this->parser = new Parser(this->id());
+      _logging = LOG_TYPE::INFO;
     }
 
     void loop() override {
+      Thread::loop();
       string line = "";
       while (true) {
-        this->ansi->printf("%s", prompt());
+        this->printPrompt();
         line.clear();
         std::getline(std::cin, line);
-        if (line == ":quit") {
-          this->stop();
-          return;
+        StringHelper::trim(line);
+        /////
+        if (line.empty()) {
+          // do nothing
+        } else if (line[0] == ':') {
+          if (line == ":quit") {
+            this->stop();
+            return;
+          }
+        } else {
+          const ptr<Fluent<> > fluent = this->parser->parseToFluent(line.c_str());
+          this->printResults(fluent);
         }
-        ptr<Fluent<> > f = this->parser->parseToFluent(line.c_str());
-        f->forEach<Obj>([this](const Obj *obj) {
-          this->ansi->printf("%s%s\n", result(), obj->toString().c_str());
-        });
       }
     }
 
-    const char *prompt() const {
-      return "!mfhatos!!> ";
+    void stop() override {
+      Thread::stop();
     }
 
-    const char *result() const {
-      return "!g==!!>";
+    void printPrompt() const {
+      this->ansi->print("!mfhatos!!> ");
+    }
+
+    void printResult(const Obj *obj) const {
+      this->ansi->printf("!g==!!>%s [!y%s!!]\n",
+                         obj->toString().c_str(),
+                         OTYPE_STR.at(obj->type()));
+    }
+
+    void printResults(const ptr<Fluent<> > &fluent) const {
+      fluent->forEach<Obj>([this](const Obj *obj) {
+        this->printResult(obj);
+      });
     }
   };
 }

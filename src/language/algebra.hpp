@@ -43,7 +43,7 @@ namespace fhatos {
       SWITCH
     };
 
-    static const char *BRNCH_TO_STR(BRANCH_SEMANTIC brnch) {
+    static const char *BRNCH_TO_STR(const BRANCH_SEMANTIC brnch) {
       const static Map<const BRANCH_SEMANTIC, const char *> map = {
         {BRANCH_SEMANTIC::SPLIT, "split"},
         {BRANCH_SEMANTIC::CHAIN, "chain"},
@@ -52,7 +52,7 @@ namespace fhatos {
       return map.at(brnch);
     }
 
-    virtual auto branch(const BRANCH_SEMANTIC branch, const Obj *incoming, const Obj *control) const -> const Obj * {
+    virtual const Obj *branch(const BRANCH_SEMANTIC branch, const Obj *incoming, const Obj *control) const {
       switch (branch) {
         case BRANCH_SEMANTIC::SPLIT: {
           return NoObj::singleton();
@@ -88,7 +88,7 @@ namespace fhatos {
       LTE
     };
 
-    static const char *REL_TO_STR(RELATION_PREDICATE rel) {
+    static const char *REL_TO_STR(const RELATION_PREDICATE rel) {
       const static Map<const RELATION_PREDICATE, const char *> map = {
         {RELATION_PREDICATE::EQ, "eq"},
         {RELATION_PREDICATE::NEQ, "neq"},
@@ -100,10 +100,10 @@ namespace fhatos {
       return map.at(rel);
     }
 
-    const Obj *relate(const RELATION_PREDICATE rel, const Obj *a, const Obj *b) const {
+    virtual const Obj *relate(const RELATION_PREDICATE rel, const Obj *a, const Obj *b) {
       switch (rel) {
-        case RELATION_PREDICATE::EQ: return new Bool(*a == *b);
-        case RELATION_PREDICATE::NEQ: return new Bool(!(*a == *b));
+        case RELATION_PREDICATE::EQ: return new Bool(*(Obj *) a == *(Obj *) b);
+        case RELATION_PREDICATE::NEQ: return new Bool(!(*(Obj *) a == *(Obj *) b));
         case RELATION_PREDICATE::GT: {
           switch (a->type()) {
             case OType::INT: return new Bool(a->as<Int>()->value() > b->as<Int>()->value());
@@ -155,7 +155,7 @@ namespace fhatos {
       NEG
     };
 
-    static const char *COMP_TO_STR(COMPOSITION_OPERATOR comp) {
+    static const char *COMP_TO_STR(const COMPOSITION_OPERATOR comp) {
       const static Map<const COMPOSITION_OPERATOR, const char *> map = {
         {COMPOSITION_OPERATOR::PLUS, "plus"},
         {COMPOSITION_OPERATOR::MULT, "mult"},
@@ -170,11 +170,11 @@ namespace fhatos {
       switch (comp) {
         case COMPOSITION_OPERATOR::PLUS: {
           switch (a->type()) {
-            case OType::URI: return (const Obj *) new Uri(((Uri *) b)->value().extend(((Uri *) a)->toString().c_str()));
-            case OType::BOOL: return (const Obj *) new Bool(((Bool *) b)->value() || ((Bool *) a)->value());
-            case OType::INT: return (const Obj *) new Int(((Int *) b)->value() + ((Int *) a)->value());
-            case OType::REAL: return (const Obj *) new Real(((Real *) b)->value() + ((Real *) a)->value());
-            case OType::STR: return (const Obj *) new Str(
+            case OType::URI: return new Uri(((Uri *) b)->value().extend(((Uri *) a)->toString().c_str()));
+            case OType::BOOL: return new Bool(((Bool *) b)->value() || ((Bool *) a)->value());
+            case OType::INT: return new Int(((Int *) b)->value() + ((Int *) a)->value());
+            case OType::REAL: return new Real(((Real *) b)->value() + ((Real *) a)->value());
+            case OType::STR: return new Str(
                 string(((Str *) b)->value().c_str()).append(((Str *) a)->value()));
             default: {
               throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()),

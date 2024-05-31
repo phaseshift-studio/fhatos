@@ -80,8 +80,8 @@ namespace fhatos {
     explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const OBJ_OR_BYTECODE &branches)
       : Inst({
           ALGEBRA::BRNCH_TO_STR(branch), {branches},
-          [this,branch](const Obj *lhs)-> Obj *{
-            return (Obj *) ALGEBRA::singleton()->branch(branch, lhs, this->arg(0));
+          [this,branch](const Obj *lhs)-> const Obj *{
+            return ALGEBRA::singleton()->branch(branch, lhs, this->arg(0));
           }
         }), branch(branch) {
     }
@@ -147,7 +147,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
 
 
-  template<typename ALGEBRA=Algebra>
+  template<typename ALGEBRA=FOS_DEFAULT_ALGEBRA>
   class RelationalInst final : public Inst {
   public:
     const typename ALGEBRA::RELATION_PREDICATE predicate;
@@ -190,7 +190,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-  template<typename ALGEBRA = Algebra>
+  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA>
   class CompositionInst final : public Inst {
   public:
     const typename ALGEBRA::COMPOSITION_OPERATOR op;
@@ -199,7 +199,7 @@ namespace fhatos {
       : Inst({
           ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
-            return (const Obj *) ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
+            return ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
           }
         }), op(op) {
     }
@@ -215,8 +215,8 @@ namespace fhatos {
     explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID &context = ID("anonymous")) : Inst({
       "<=", cast({(Obj *) uri, (Obj *) payload}),
       [this,context](const Obj *incoming) {
-        const ID target = ID(((Uri *) (this->arg(0)->apply(incoming)))->value());
-        const BinaryObj<> *payload2 = BinaryObj<>::fromObj((Obj *) this->arg(1)->apply(incoming));
+        const ID target = ID(this->arg(0)->apply(incoming)->template as<Uri>()->value());
+        const BinaryObj<> *payload2 = BinaryObj<>::fromObj(this->arg(1)->apply(incoming)->template as<Obj>());
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
           .source = context,
@@ -239,7 +239,7 @@ namespace fhatos {
     explicit SubscribeInst(const _URI *pattern, const _ONRECV *onRecv, const ID context = ID("anonymous")) : Inst({
       "<=", cast({(Obj *) pattern, (Obj *) onRecv}),
       [this,context](const Obj *incoming) {
-        const Pattern pattern2 = Pattern(((Uri *) this->arg(0)->apply(incoming))->value());
+        const Pattern pattern2 = Pattern(this->arg(0)->apply(incoming)->template as<Uri>()->value());
 #ifndef NATIVE
         FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,

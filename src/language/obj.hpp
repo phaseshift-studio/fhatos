@@ -84,7 +84,7 @@ namespace fhatos {
     }
 
 
-    virtual bool operator==(const Obj &other) const {
+    virtual bool operator==(const Obj &other)  const {
       return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
     }
 
@@ -149,7 +149,7 @@ namespace fhatos {
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Uri*) &other)->value().equals(this->value());
+      return other.type() == this->type() && ((Uri *) &other)->value().equals(this->value());
     }
   };
 
@@ -173,7 +173,7 @@ namespace fhatos {
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Bool*) &other)->value() == this->value();
+      return other.type() == this->type() && ((Bool *) &other)->value() == this->value();
     }
   };
 
@@ -193,7 +193,7 @@ namespace fhatos {
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Int*) &other)->value() == this->value();
+      return other.type() == this->type() && ((Int *) &other)->value() == this->value();
     }
 
 
@@ -213,8 +213,9 @@ namespace fhatos {
     const Real *apply(const Obj *obj) const override {
       return this;
     }
+
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Real*) &other)->value() == this->value();
+      return other.type() == this->type() && ((Real *) &other)->value() == this->value();
     }
 
     const string toString() const override { return std::to_string(_value); }
@@ -241,7 +242,7 @@ namespace fhatos {
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Str*) &other)->value() == this->value();
+      return other.type() == this->type() && ((Str *) &other)->value() == this->value();
     }
 
     bool operator<(const Str &other) const {
@@ -451,6 +452,8 @@ namespace fhatos {
   /////////////////////////////////////////// UNIONS ///////////////////////////////////////////
   struct OBJ_OR_BYTECODE {
   public:
+    virtual ~OBJ_OR_BYTECODE() = default;
+
     union OBJ_UNION {
       const Obj *objA;
       const Bytecode *bcodeB;
@@ -463,9 +466,9 @@ namespace fhatos {
       return this->_type == OType::BYTECODE;
     }
 
-    bool isType() const {
-      return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
-    }
+    //bool isType() const {
+    //  return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
+    //}
 
     OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
     }
@@ -542,7 +545,9 @@ namespace fhatos {
 
     template<typename T = Obj>
     T *cast() const {
-      return (T *) (this->isBytecode() ? (T *) data.bcodeB : (T *) data.objA);
+      return this->isBytecode()
+               ? (T *) (data.bcodeB)
+               : (T *) (data.objA);
     }
 
     const string toString() const {
@@ -559,10 +564,10 @@ namespace fhatos {
   };
 
   struct URI_OR_BYTECODE : public OBJ_OR_BYTECODE {
-    URI_OR_BYTECODE(const Uri uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
+    URI_OR_BYTECODE(const Uri &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
     }
 
-    URI_OR_BYTECODE(const fURI uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
+    URI_OR_BYTECODE(const fURI &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
     }
 
     URI_OR_BYTECODE(const string &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {

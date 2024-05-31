@@ -100,7 +100,7 @@ static fhatos::List<const _OBJ *> *FOS_TEST_RESULT(const fhatos::Fluent<> &fluen
   if (printResult) {
     int index = 0;
     for (const _OBJ *obj: *result) {
-      FOS_TEST_MESSAGE("!g=%i!!>%s [!y%s!!]", index++, obj->toString().c_str(), fhatos::OTYPE_STR.at(obj->type()));
+      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(), fhatos::OTYPE_STR.at(obj->type()));
     }
   }
   return result;

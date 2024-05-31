@@ -27,16 +27,16 @@
 #include <process/router/local_router.hpp>
 
 namespace fhatos {
-  template<typename ALGEBRA = Algebra, typename ROUTER=FOS_DEFAULT_ROUTER >
+  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER=FOS_DEFAULT_ROUTER >
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent(const ptr<Bytecode> bcode) : bcode(bcode) {
+    explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {
     }
 
-    explicit Fluent(const ID context = ID("anon")) : Fluent(share<Bytecode>(Bytecode(context))) {
+    explicit Fluent(const ID &context = ID("anon")) : Fluent(share<Bytecode>(Bytecode(context))) {
     }
 
     //////////////////////////////////////////////////////////////////////////////
