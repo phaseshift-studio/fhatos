@@ -55,7 +55,7 @@
 #include <set>
 #include <atomic>
 #include <memory>
-#include "../_deps/ordered_map-src/include/tsl/ordered_map.h"
+#include <tsl/ordered_map.h>
 
 namespace fhatos {
   static const char *ANSI_ART =
