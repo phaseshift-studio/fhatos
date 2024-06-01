@@ -77,6 +77,7 @@ namespace fhatos {
         case OType::INT: return new BinaryObj<>((binary_obj) SERIALIZER::fromInteger(((Int *) obj)->value()));
         case OType::REAL: return new BinaryObj<>((binary_obj) SERIALIZER::fromFloat(((Real *) obj)->value()));
         case OType::STR: return new BinaryObj<>((binary_obj) SERIALIZER::fromString(((Str *) obj)->value()));
+        case OType::REC: return new BinaryObj<>((binary_obj) SERIALIZER::fromMap(*((Rec *) obj)->value()));
         default: throw fError("error on type: %s", OTYPE_STR.at(obj->type()));
       }
     }
@@ -187,9 +188,18 @@ namespace fhatos {
       return {OType::OBJ, nullptr, 0};
     }
 
+    static binary_obj fromMap(const RecMap<Obj*,Obj*> &xmap) {
+      return {OType::OBJ, nullptr, 0};
+    }
+
     template<typename SERIALIZER>
     static Uri toUri(const BinaryObj<SERIALIZER> &xserial) {
       return Uri(fURI("/"));
+    }
+
+    template<typename SERIALIZER>
+    static Rec toRec(const BinaryObj<SERIALIZER> &xmap) {
+      return Rec({});
     }
 
     template<typename SERIALIZER>

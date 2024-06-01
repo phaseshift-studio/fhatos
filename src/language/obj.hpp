@@ -323,7 +323,7 @@ namespace fhatos {
       return this;
     }
 
-    RecMap<Obj *, Obj *> *value() const {
+    const RecMap<Obj *, Obj *> *value() const {
       return this->_value;
     }
 
