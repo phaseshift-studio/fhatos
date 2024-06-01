@@ -28,14 +28,13 @@
 namespace fhatos {
   using namespace std;
 
-  class Parser {
+  class Parser : public IDed {
   protected:
     OType domain = OType::OBJ;
     OType range = OType::OBJ;
-    const ID context;
 
   public:
-    explicit Parser(const ID &context = ID("anon")) : context((context)) {
+    explicit Parser(const ID &id = ID(*UUID::singleton()->mint())) : IDed(id) {
     }
 
     const ptr<Bytecode> parse(const char *line) {
@@ -43,7 +42,7 @@ namespace fhatos {
       trim(cleanLine);
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", cleanLine.c_str());
       if (cleanLine.empty()) {
-        return share<Bytecode>(Bytecode(this->context));
+        return share<Bytecode>(Bytecode(this->id()));
       }
       const auto ss = new stringstream(cleanLine);
       ptr<Bytecode> bcode = this->parseBytecode(ss);
@@ -56,7 +55,7 @@ namespace fhatos {
     }
 
     const ptr<Bytecode> parseBytecode(stringstream *ss) {
-      Fluent<> *fluent = new Fluent<>(this->context);
+      Fluent<> *fluent = new Fluent<>(this->id());
       while (!ss->eof()) {
         const ptr<string> opcode = this->parseOpcode(ss);
         const ptr<List<ptr<OBJ_OR_BYTECODE> > > args = this->parseArgs(ss);
@@ -65,9 +64,9 @@ namespace fhatos {
           range = domain;
           fluent = new Fluent(fluent->is(*args->at(0)));
         } else if (*opcode == "ref") {
-          fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0).get()->cast<Uri>())));
+          fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "dref") {
-          fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0).get()->cast<Uri>())));
+          fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "switch") {
           fluent = new Fluent(fluent->bswitch(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "eq") {
@@ -93,10 +92,10 @@ namespace fhatos {
           fluent = new Fluent(fluent->start(*args).bcode);
         } else if (*opcode == "<=") {
           range = OType::URI;
-          fluent = new Fluent(fluent->publish<Obj>(*args->at(0), *args->at(1)).bcode);
+          fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
         } else if (*opcode == "=>") {
           range = OType::URI;
-          fluent = new Fluent(fluent->subscribe<Obj>(*args->at(0), *args->at(1)).bcode);
+          fluent = new Fluent(fluent->subscribe(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
         } else {
           fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
           LOG(ERROR, error->what());

@@ -70,13 +70,14 @@ namespace fhatos {
 
 
     static BinaryObj *fromObj(const Obj *obj) {
+      LOG(DEBUG, "Creating BinaryObj from !b%s!! [!y%s!!]\n", obj->toString().c_str(), OTYPE_STR.at(obj->type()));
       switch (obj->type()) {
         case OType::URI: return new BinaryObj<>((binary_obj) SERIALIZER::fromUri(((Uri *) obj)->value()));
         case OType::BOOL: return new BinaryObj<>((binary_obj) SERIALIZER::fromBoolean(((Bool *) obj)->value()));
         case OType::INT: return new BinaryObj<>((binary_obj) SERIALIZER::fromInteger(((Int *) obj)->value()));
         case OType::REAL: return new BinaryObj<>((binary_obj) SERIALIZER::fromFloat(((Real *) obj)->value()));
         case OType::STR: return new BinaryObj<>((binary_obj) SERIALIZER::fromString(((Str *) obj)->value()));
-        default: throw std::runtime_error("error on type");
+        default: throw fError("error on type: %s", OTYPE_STR.at(obj->type()));
       }
     }
 
@@ -396,7 +397,8 @@ namespace fhatos {
       switch (bobj.type()) {
         case OType::REC:
           return *((Rec *) bobj.data());
-        default: throw std::runtime_error("bad7"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+        default: throw std::runtime_error("bad7");
+        // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
       }
     }
 

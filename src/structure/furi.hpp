@@ -412,7 +412,7 @@ namespace fhatos {
     explicit IDed(const ID &id) : _id(id) {
     }
 
-    const ID &id() const { return this->_id; }
+    virtual const ID &id() const { return this->_id; }
 
     // const String toString() const { return this->id().toString(); }
 

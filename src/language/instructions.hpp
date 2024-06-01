@@ -95,8 +95,8 @@ namespace fhatos {
   class ReferenceInst final : public Inst {
   public:
     explicit ReferenceInst(const URI_OR_BYTECODE &uri,
-                    const URI_OR_BYTECODE &context) : Inst({
-      "ref", {uri, context}, [this](const Obj *toStore) -> const Obj *{
+                           const URI_OR_BYTECODE &target) : Inst({
+      "ref", {uri, target}, [this](const Obj *toStore) -> const Obj *{
         ROUTER::singleton()->publish(
           Message{
             .source = this->arg(1)->apply(toStore)->template as<Uri>()->value(),
@@ -113,15 +113,15 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
   class DereferenceInst final : public Inst {
   public:
-    explicit DereferenceInst(const URI_OR_BYTECODE &uri, const URI_OR_BYTECODE &context) : Inst({
-      "dref", {uri, context}, [this](const Obj *obj) -> const Obj *{
+    explicit DereferenceInst(const URI_OR_BYTECODE &uri, const URI_OR_BYTECODE &source) : Inst({
+      "dref", {uri, source}, [this](const Obj *obj) -> const Obj *{
         std::atomic<Obj *> *thing = new std::atomic<Obj *>(nullptr);
         std::atomic<bool> *done = new std::atomic<bool>(false);
         const fURI uri = this->arg(0)->apply(obj)->template as<Uri>()->value();
-        const fURI context = this->arg(1)->apply(obj)->template as<Uri>()->value();
+        const fURI source = this->arg(1)->apply(obj)->template as<Uri>()->value();
         ROUTER::singleton()->subscribe(
           Subscription{
-            .source = context,
+            .source = source,
             .pattern = uri,
             .onRecv = [thing,done](const Message &message) {
               thing->store(message.payload->toObj());
@@ -134,7 +134,7 @@ namespace fhatos {
         const Obj *ret = thing->load();
         delete thing;
         delete done;
-        ROUTER::singleton()->unsubscribe(context, uri);
+        ROUTER::singleton()->unsubscribe(source, uri);
         return ret;
       }
     }) {
@@ -209,51 +209,38 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-  template<typename _URI, typename _PAYLOAD>
   class PublishInst final : public Inst {
   public:
-    explicit PublishInst(const _URI *uri, const _PAYLOAD *payload, const ID &context = ID("anonymous")) : Inst({
-      "<=", cast({(Obj *) uri, (Obj *) payload}),
-      [this,context](const Obj *incoming) {
-        const ID target = ID(this->arg(0)->apply(incoming)->template as<Uri>()->value());
-        const BinaryObj<> *payload2 = BinaryObj<>::fromObj(this->arg(1)->apply(incoming)->template as<Obj>());
-#ifndef NATIVE
+    explicit PublishInst(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload, const ID &bcodeId) : Inst({
+      "<=", {target, payload},
+      [this,bcodeId](const Obj *incoming)-> const Obj *{
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
-          .source = context,
-          .target = target,
-          .payload = payload2,
+          .source = bcodeId,
+          .target = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
+          .payload = BinaryObj<>::fromObj(this->arg(1)->apply(incoming)),
           .retain = TRANSIENT_MESSAGE
         });
-#else
-        LOG(DEBUG, "!rPublished!! %s <= %s\n", target.toString().c_str(), payload2->toString().c_str());
-#endif
-        return (Obj *) incoming;
+        return incoming;
       }
     }) {
     }
   };
 
-  template<typename _URI, typename _ONRECV>
   class SubscribeInst final : public Inst {
   public:
-    explicit SubscribeInst(const _URI *pattern, const _ONRECV *onRecv, const ID context = ID("anonymous")) : Inst({
-      "<=", cast({(Obj *) pattern, (Obj *) onRecv}),
-      [this,context](const Obj *incoming) {
-        const Pattern pattern2 = Pattern(this->arg(0)->apply(incoming)->template as<Uri>()->value());
-#ifndef NATIVE
+    explicit SubscribeInst(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv, const ID &bcodeId) : Inst({
+      "=>", {pattern, onRecv},
+      [this,bcodeId](const Obj *incoming)-> const Obj *{
         FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,
-          .source = context,
-          .pattern = pattern2,
+          .source = bcodeId,
+          .pattern = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
           .onRecv = [this](const Message &message) {
-            this->arg(1)->apply(message.payload);
+            const Obj *outgoing = this->arg(1)->apply(message.payload->toObj());
+            LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());
           }
         });
-#else
-        LOG(DEBUG, "!rSubscribed!! %s [bcode:%s]\n", pattern2.toString().c_str(),
-            this->arg(1)->toString().c_str());
-#endif
-        return (Obj *) incoming;
+        return incoming;
       }
     }) {
     }

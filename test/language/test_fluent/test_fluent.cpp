@@ -75,17 +75,13 @@ namespace fhatos {
   }
 
   void test_plus() {
-    const List<const Int *> *result = FOS_TEST_RESULT<Int>(__({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
-    TEST_ASSERT_EQUAL_INT(3, result->size());
-    TEST_ASSERT_EQUAL_INT(54, result->at(0)->value());
-    TEST_ASSERT_EQUAL_INT(50, result->at(1)->value());
-    TEST_ASSERT_EQUAL_INT(46, result->at(2)->value());
+    FOS_CHECK_RESULTS<Int>({3}, __(1).plus(2));
+    FOS_CHECK_RESULTS<Int>({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
+
   }
 
   void test_where() {
-    const List<const Int *> *result = FOS_TEST_RESULT<Int>(__({1, 2, 3}).plus(10).where(_.is(_.eq(13))));
-    TEST_ASSERT_EQUAL_INT(1, result->size());
-    TEST_ASSERT_EQUAL_INT(13, result->front()->value());
+    FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13))));
   }
 
   FOS_RUN_TESTS( //

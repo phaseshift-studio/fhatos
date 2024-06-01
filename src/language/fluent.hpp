@@ -36,7 +36,7 @@ namespace fhatos {
     explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {
     }
 
-    explicit Fluent(const ID &context = ID("anon")) : Fluent(share<Bytecode>(Bytecode(context))) {
+    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint())) : Fluent(share<Bytecode>(Bytecode(id))) {
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -139,11 +139,11 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
 
     Fluent ref(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new ReferenceInst<ROUTER>(uri, this->bcode->context));
+      return this->addInst(new ReferenceInst<ROUTER>(uri, this->bcode->id()));
     }
 
     Fluent dref(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new DereferenceInst<ROUTER>(uri, this->bcode->context));
+      return this->addInst(new DereferenceInst<ROUTER>(uri, this->bcode->id()));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -174,16 +174,12 @@ namespace fhatos {
       return this->addInst(new WhereInst(test));
     }
 
-    template<typename _PAYLOAD>
-    Fluent publish(const OBJ_OR_BYTECODE &uri, const OBJ_OR_BYTECODE &payload) const {
-      return this->addInst(
-        new PublishInst<Obj, _PAYLOAD>(uri.cast<Obj>(), payload.cast<_PAYLOAD>(), this->bcode->context));
+    Fluent publish(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload) const {
+      return this->addInst(new PublishInst(target, payload, this->bcode->id()));
     }
 
-    template<typename _ONRECV>
-    Fluent subscribe(const OBJ_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) const {
-      return this->addInst(
-        new SubscribeInst<Obj, _ONRECV>(pattern.cast<Obj>(), onRecv.cast<_ONRECV>(), this->bcode->context));
+    Fluent subscribe(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) const {
+      return this->addInst(new SubscribeInst(pattern, onRecv, this->bcode->id()));
     }
   };
 

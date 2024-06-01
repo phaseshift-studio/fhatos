@@ -21,6 +21,8 @@
 #ifndef fhatos_test_fhatos_native_hpp
 #define fhatos_test_fhatos_native_hpp
 
+//#define FOS_LOGGING DEBUG
+
 #include <unity.h>
 #include <stdio.h>
 #include <fhatos.hpp>

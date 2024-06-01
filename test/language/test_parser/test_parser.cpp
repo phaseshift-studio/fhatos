@@ -82,6 +82,10 @@ namespace fhatos {
     TEST_ASSERT_FLOAT_WITHIN(0.1, 45.54, r->value());
     delete r;
     // STR
+    const Str *s = parser->parseObj(string("'fhatty-the-pig'"))->cast<Str>();
+    TEST_ASSERT_EQUAL(OType::STR, s->type());
+    TEST_ASSERT_EQUAL_STRING("fhatty-the-pig", s->value().c_str());
+    delete s;
     // URI
     const Uri *u = parser->parseObj(string("fhat@127.0.0.1/os"))->cast<Uri>();
     TEST_ASSERT_EQUAL(OType::URI, u->type());

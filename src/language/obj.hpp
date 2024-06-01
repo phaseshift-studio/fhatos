@@ -29,6 +29,7 @@
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
 #include <../_deps/ordered_map-src/include/tsl/ordered_map.h>
+#include <util/uuid.hpp>
 
 
 namespace fhatos {
@@ -81,7 +82,7 @@ namespace fhatos {
 
     template<typename A>
     const A *as() const {
-      return reinterpret_cast<A *>(const_cast<Obj *>(this));
+      return (A *) this;
     }
 
 
@@ -380,22 +381,16 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
-  class Bytecode final : public Obj {
+  class Bytecode final : public Obj, public IDed {
   protected:
     const List<Inst *> *_value;
 
   public:
-    const ID context;
-
-    explicit Bytecode(const List<Inst *> *list, const ID &context = ID("anon")) : Obj(OType::BYTECODE),
-      _value(list),
-      context(context) {
+    explicit Bytecode(const List<Inst *> *list,
+                      const ID &id = ID(*UUID::singleton()->mint())) : Obj(OType::BYTECODE), IDed(id), _value(list) {
     }
 
-    explicit Bytecode(const ID &context = ID("anon")) : Bytecode(new List<Inst *>, context) {
-    }
-
-    explicit Bytecode() : Bytecode(new List<Inst *>()) {
+    explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint())) : Bytecode(new List<Inst *>, id) {
     }
 
     const Inst *nextInst(const Inst *currentInst) const {
@@ -435,7 +430,7 @@ namespace fhatos {
         list->push_back(i);
       }
       list->push_back(inst);
-      return share<Bytecode>(Bytecode(list, this->context));
+      return share<Bytecode>(Bytecode(list, this->id()));
     }
 
     const Inst *startInst() const {
@@ -483,7 +478,10 @@ namespace fhatos {
     //  return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
     //}
 
-    OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()),
+                                       data(objA->type() == OType::BYTECODE
+                                              ? OBJ_UNION{.bcodeB = new Bytecode(*(Bytecode *) objA)}
+                                              : OBJ_UNION{.objA = objA}) {
     }
 
     OBJ_OR_BYTECODE(const NoObj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
@@ -577,6 +575,9 @@ namespace fhatos {
   };
 
   struct URI_OR_BYTECODE : public OBJ_OR_BYTECODE {
+    URI_OR_BYTECODE(const Obj *uriX) : OBJ_OR_BYTECODE(uriX) {
+    }
+
     URI_OR_BYTECODE(const Uri &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
     }
 
