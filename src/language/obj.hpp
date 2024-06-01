@@ -28,7 +28,6 @@
 
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
-#include <../_deps/ordered_map-src/include/tsl/ordered_map.h>
 #include <util/uuid.hpp>
 
 
