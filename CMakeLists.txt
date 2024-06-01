@@ -14,7 +14,10 @@ set_target_properties(
         OUTPUT_NAME ${PROJECT_NAME}
         SUFFIX ".out"
 )
-######## EXTERNAL LIBRARIES
+####################################
+######## EXTERNAL LIBRARIES ########
+####################################
+### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
 FetchContent_Declare(
         ordered_map
         GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
@@ -22,6 +25,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ordered_map)
 target_link_libraries(${PROJECT_NAME} PUBLIC ordered_map)
+### LEXY: DSL PARSING
+FetchContent_Declare(lexy URL https://lexy.foonathan.net/download/lexy-src.zip)
+FetchContent_MakeAvailable(lexy)
+target_link_libraries(${PROJECT_NAME} PUBLIC lexy)
+####################################
+####################################
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_definitions(${PROJECT_NAME} PRIVATE NATIVE)
