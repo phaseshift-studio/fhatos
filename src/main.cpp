@@ -19,6 +19,7 @@
 #include <fhatos.hpp>
 #include <process/router/local_router.hpp>
 #include <structure/console/console.hpp>
+#include <language/lexy_parser.hpp>
 
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE

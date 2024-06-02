@@ -71,7 +71,7 @@ namespace fhatos {
       return "obj";
     }
 
-    Obj *obj() const {
+    const Obj *obj() const {
       return (Obj *) this;
     }
 
@@ -96,7 +96,7 @@ namespace fhatos {
 
   class NoObj : public Obj {
   public:
-    static NoObj *singleton() {
+    static const NoObj *singleton() {
       static NoObj no = NoObj();
       return &no;
     }
@@ -351,6 +351,10 @@ namespace fhatos {
       : Obj(OType::INST), _value(value) {
     }
 
+    bool isNoInst() const {
+      return this->opcode() == "noinst";
+    }
+
     virtual InstTriple value() const {
       return this->_value;
     }
@@ -379,6 +383,23 @@ namespace fhatos {
     }
   };
 
+  //////// NO INST
+  class NoInst final : public Inst {
+  public:
+    static const Inst *singleton() {
+      static NoInst noInst = NoInst();
+      return &noInst;
+    }
+
+  private:
+    NoInst() : Inst({
+      "noinst", {}, [](const Obj *) {
+        return NoObj::singleton();
+      }
+    }) {
+    }
+  };
+
   ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
   class Bytecode final : public Obj, public IDed {
   protected:
@@ -393,27 +414,28 @@ namespace fhatos {
     }
 
     const Inst *nextInst(const Inst *currentInst) const {
+      if (currentInst->isNoInst())
+        return currentInst;
       bool found = false;
       for (const Inst *inst: *this->value()) {
-        if (found) {
+        if (found)
           return inst;
-        } else if (inst == currentInst) {
+        if (inst == currentInst)
           found = true;
-        }
       }
-      return nullptr;
+      return NoInst::singleton();
     }
 
     const Obj *apply(const Obj *obj) const override {
-      Obj *running = const_cast<Obj *>(obj);
-      if (running->isNoObj())
-        return running;
+      Obj *currentObj = const_cast<Obj *>(obj);
+      if (currentObj->isNoObj())
+        return currentObj;
       for (const Inst *inst: *this->_value) {
-        running = (Obj *) inst->apply(running);
-        if (running->isNoObj())
+        currentObj = const_cast<Obj *>(inst->apply(currentObj));
+        if (currentObj->isNoObj())
           break;
       }
-      return running;
+      return currentObj;
     }
 
     const List<Inst *> *value() const { return this->_value; }
