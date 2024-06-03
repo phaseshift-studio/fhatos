@@ -32,11 +32,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ordered_map)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
 target_link_libraries(${PROJECT_NAME} PRIVATE tsl::ordered_map)
 ### LEXY: DSL PARSING
 FetchContent_Declare(lexy URL https://lexy.foonathan.net/download/lexy-src.zip)
 FetchContent_MakeAvailable(lexy)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/lexy-src/include/lexy/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/lexy)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/lexy-src/include/lexy/ DESTINATION ${CMAKE_SOURCE_DIR}/include/lexy)
 target_link_libraries(${PROJECT_NAME} PRIVATE foonathan::lexy)
 ####################################
 ####################################
