@@ -40,12 +40,12 @@ namespace fhatos {
     }
 
     List<const Monad *> split(const ptr<Bytecode> bcode) const {
-      if (!this->_inst->isNoInst() && !this->_obj->isNoObj()) {
+      if (this->_inst->isNoInst() || this->_obj->isNoObj()) {
+        return List<const Monad *>{};
+      } else {
         const Obj *nextObj = this->_inst->apply(this->_obj);
         const Inst *nextInst = bcode->nextInst(this->_inst);
         return List<const Monad *>{new Monad(nextObj, nextInst)};
-      } else {
-        return List<const Monad *>{};
       }
     }
 

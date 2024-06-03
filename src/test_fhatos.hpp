@@ -88,8 +88,8 @@ namespace fhatos {
 
 using namespace fhatos;
 
-template <typename _OBJ = Obj>
-static void FOS_CHECK_ARGS(const List<_OBJ*> &expectedArgs, const Inst* inst) {
+template<typename _OBJ = Obj>
+static void FOS_CHECK_ARGS(const List<_OBJ *> &expectedArgs, const Inst *inst) {
   FOS_TEST_MESSAGE("!yTesting!! instruction: %s", inst->toString().c_str());
   TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst->args().size());
   for (int i = 0; i < expectedArgs.size(); i++) {
@@ -113,6 +113,18 @@ static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool pr
     }
   }
   return result;
+}
+
+template<typename T>
+static const T *FOS_PRINT_OBJ(const T *obj) {
+  FOS_TEST_MESSAGE("!yTesting!!: %s [!y%s!!]", obj->toString().c_str(), OTYPE_STR.at(obj->type()));
+  return obj;
+}
+
+template<typename T>
+static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
+  FOS_PRINT_OBJ<T>(obj.get());
+  return obj;
 }
 
 template<typename _OBJ>

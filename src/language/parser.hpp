@@ -89,7 +89,7 @@ namespace fhatos {
           fluent = new Fluent(fluent->mult(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "start") {
           range = args->size() > 0 ? args->at(0)->type() : OType::OBJ;
-          fluent = new Fluent(fluent->start(*args).bcode);
+          fluent = new Fluent(fluent->start(*args));
         } else if (*opcode == "<=") {
           range = OType::URI;
           fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
@@ -135,8 +135,18 @@ namespace fhatos {
       while (std::isspace(ss->peek())) {
         ss->get();
       }
-      if (ss->peek() == '(')
+      if (ss->peek() == '(') {
         ss->get(); // (
+        if (ss->peek() == ')') {
+          ss->get();
+          if (ss->peek() == '.')
+            ss->get();
+          return args;
+        }
+      } else if (ss->peek() == '.') {
+        ss->get();
+        return args;
+      }
       while (!ss->eof()) {
         ptr<OBJ_OR_BYTECODE> argObj = this->parseArg(ss);
         args->push_back(argObj);
@@ -317,24 +327,14 @@ namespace fhatos {
           se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Rec(map2)));
         }
       } else if
-      (isdigit(token[0]) &&
-       token
-       .
-       find(
-         '.'
-       )
-       !=
-       string::npos
-      ) {
+      (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Real(stof(token))));
-      } else if
-      (isdigit(token[0])) {
+      } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Int(stoi(token))));
       } else {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token))));
       }
-      return
-          se;
+      return se;
     }
 
     static void trim(string &s) {

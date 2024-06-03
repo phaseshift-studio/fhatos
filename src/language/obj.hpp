@@ -32,12 +32,24 @@
 
 
 namespace fhatos {
-  enum class OType : uint8_t { NOOBJ = 0, URI, OBJ, BOOL, INT, REAL, STR, LST, REC, INST, BYTECODE }; // TYPE
-  enum AType { MONOID, SEMIRING, GROUP, RING, FIELD };
-
+  enum class OType : uint8_t {
+    NOOBJ = 0,
+    NOINST,
+    OBJ,
+    BOOL,
+    INT,
+    REAL,
+    STR,
+    URI,
+    LST,
+    REC,
+    INST,
+    BYTECODE
+  }; // TYPE
   static const Map<OType, const char *> OTYPE_STR = {
     {
       {OType::NOOBJ, "noobj"},
+      {OType::NOINST, "noinst"},
       {OType::OBJ, "obj"},
       {OType::URI, "uri"},
       {OType::BOOL, "bool"},
@@ -84,6 +96,9 @@ namespace fhatos {
       return (A *) this;
     }
 
+    /*operator const Obj *() const {
+      return (const Obj *) this;
+    }*/
 
     virtual bool operator==(const Obj &other) const {
       return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
@@ -123,9 +138,6 @@ namespace fhatos {
     fURI _value;
 
   public:
-    //Uri() : Obj(OType::URI), _value(nullptr) {
-    //}
-
     Uri(const fURI &value) : Obj(OType::URI), _value(value) {
     }
 
@@ -193,7 +205,7 @@ namespace fhatos {
 
     const FL_INT_TYPE value() const { return this->_value; }
 
-    virtual const Obj *apply(const Obj *obj) const override {
+    const Obj *apply(const Obj *obj) const override {
       return this;
     }
 
@@ -495,10 +507,6 @@ namespace fhatos {
       return this->_type == OType::BYTECODE;
     }
 
-    //bool isType() const {
-    //  return this->_type != OType::BYTECODE && data.objA == NoObj::singleton();
-    //}
-
     OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()),
                                        data(objA->type() == OType::BYTECODE
                                               ? OBJ_UNION{.bcodeB = new Bytecode(*(Bytecode *) objA)}
@@ -528,43 +536,43 @@ namespace fhatos {
     OBJ_OR_BYTECODE(const fURI &uriX) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(uriX)}) {
     }
 
-    OBJ_OR_BYTECODE(const Bool *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Bool *objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Int *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Int *objA) : _type(OType::INT), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Real *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Real *objA) : _type(OType::REAL), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Str *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Str *objA) : _type(OType::STR), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Uri *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Uri *objA) : _type(OType::URI), data(OBJ_UNION{.objA = objA}) {
     }
 
-    OBJ_OR_BYTECODE(const Rec *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
+    OBJ_OR_BYTECODE(const Rec *objA) : _type(OType::REC), data(OBJ_UNION{.objA = objA}) {
     }
 
     OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {
     }
 
-    OBJ_OR_BYTECODE(const Bool &objA) : _type(objA.type()), data(OBJ_UNION{.objA = new Bool(objA)}) {
+    OBJ_OR_BYTECODE(const Bool &objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(objA)}) {
     }
 
-    OBJ_OR_BYTECODE(const Int &objA) : _type(objA.type()), data(OBJ_UNION{.objA = new Int(objA)}) {
+    OBJ_OR_BYTECODE(const Int &objA) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(objA)}) {
     }
 
-    OBJ_OR_BYTECODE(const Real &objA) : _type(objA.type()), data(OBJ_UNION{.objA = new Real(objA)}) {
+    OBJ_OR_BYTECODE(const Real &objA) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(objA)}) {
     }
 
-    OBJ_OR_BYTECODE(const Str &objA) : _type(objA.type()), data(OBJ_UNION{.objA = new Str(objA)}) {
+    OBJ_OR_BYTECODE(const Str &objA) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(objA)}) {
     }
 
-    OBJ_OR_BYTECODE(const Uri &objA) : _type(objA.type()), data(OBJ_UNION{.objA = new Uri(objA)}) {
+    OBJ_OR_BYTECODE(const Uri &objA) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(objA)}) {
     }
 
-    OBJ_OR_BYTECODE(const Rec &objA) : _type(objA.type()), data(OBJ_UNION{.objA = new Rec(objA)}) {
+    OBJ_OR_BYTECODE(const Rec &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {
     }
 
     OBJ_OR_BYTECODE(const Bytecode &bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = new Bytecode(bcodeB)}) {
@@ -611,8 +619,8 @@ namespace fhatos {
     URI_OR_BYTECODE(const char *uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
     }
 
-    virtual const Uri *apply(const Obj *input) const override {
-      return (this->isBytecode() ? (Uri *) data.bcodeB->apply(input) : (Uri *) data.objA->apply(input));
+    const Uri *apply(const Obj *input) const override {
+      return this->isBytecode() ? (Uri *) data.bcodeB->apply(input) : (Uri *) data.objA->apply(input);
     }
   };
 } // namespace fhatos

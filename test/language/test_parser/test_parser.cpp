@@ -67,30 +67,41 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("Ø", n->toString().c_str());
     //delete n; can't delete static singleton
     // BOOL
-    const Bool *b = parser->parseObj(string("true"))->cast<Bool>();
-    TEST_ASSERT_EQUAL(OType::BOOL, b->type());
-    TEST_ASSERT_TRUE(b->value());
-    delete b;
+    for (auto pair: List<Pair<string, bool> >({{"true", true}, {"false", false}})) {
+      const Bool *b = parser->parseObj(pair.first)->cast<Bool>();
+      TEST_ASSERT_EQUAL(OType::BOOL, b->type());
+      TEST_ASSERT_EQUAL_INT(pair.second, b->value());
+      delete b;
+    }
     // INT
-    const Int *i = parser->parseObj(string("24"))->cast<Int>();
-    TEST_ASSERT_EQUAL(OType::INT, i->type());
-    TEST_ASSERT_EQUAL_INT(24, i->value());
-    delete i;
+    for (auto pair: List<Pair<string, int> >({{"45", 45}, {"0", 0}, {"-12", -12}})) {
+      const Int *i = parser->parseObj(pair.first)->cast<Int>();
+      TEST_ASSERT_EQUAL(OType::INT, i->type());
+      TEST_ASSERT_EQUAL_INT(pair.second, i->value());
+      delete i;
+    }
     // REAL
-    const Real *r = parser->parseObj(string("45.54"))->cast<Real>();
-    TEST_ASSERT_EQUAL(OType::REAL, r->type());
-    TEST_ASSERT_FLOAT_WITHIN(0.1, 45.54, r->value());
-    delete r;
+    for (auto pair: List<Pair<string, float> >({{"45.54", 45.54}, {"0.0", 0.0}, {"-12.534678", -12.534678}})) {
+      const Real *r = parser->parseObj(pair.first)->cast<Real>();
+      TEST_ASSERT_EQUAL(OType::REAL, r->type());
+      TEST_ASSERT_FLOAT_WITHIN(0.01, pair.second, r->value());
+      delete r;
+    }
     // STR
     const Str *s = parser->parseObj(string("'fhatty-the-pig'"))->cast<Str>();
     TEST_ASSERT_EQUAL(OType::STR, s->type());
     TEST_ASSERT_EQUAL_STRING("fhatty-the-pig", s->value().c_str());
     delete s;
     // URI
-    const Uri *u = parser->parseObj(string("fhat@127.0.0.1/os"))->cast<Uri>();
-    TEST_ASSERT_EQUAL(OType::URI, u->type());
-    TEST_ASSERT_EQUAL_STRING("fhat@127.0.0.1/os", u->value().toString().c_str());
-    delete u;
+    for (auto pair: List<Pair<string, Uri> >({
+             {"fhat://pig", Uri("fhat://pig")},
+             {"_2467", Uri("_2467")},
+             {".com", Uri(".com")}})) {
+      const Uri *u = parser->parseObj(pair.first)->cast<Uri>();
+      TEST_ASSERT_EQUAL(OType::URI, u->type());
+      TEST_ASSERT_EQUAL_STRING(pair.second.toString().c_str(), u->value().toString().c_str());
+      delete u;
+    }
     delete parser;
   }
 
@@ -102,7 +113,8 @@ namespace fhatos {
         "['a'=>13,actor@127.0.0.1=>false]",
         "['a' => 13,actor@127.0.0.1 => false ]",
         "['a'=> 13 , actor@127.0.0.1=>false]",
-        "['a' =>    13 , actor@127.0.0.1 =>    false  ]"};
+        "['a' =>    13 , actor@127.0.0.1 =>    false  ]",
+        "['a'=>    13 ,actor@127.0.0.1=>   false]"};
     for (const string form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const Rec *rc1 = parser->parseObj(form)->cast<Rec>();
@@ -127,13 +139,22 @@ namespace fhatos {
     // TODO: strip ansi TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",rc2->toString().c_str());
     delete rc2;
     delete rc3;
-    ///////////////////////////////////
-    const Rec *rc4 = parser->parseObj(string("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]"))->cast<Rec>();
-
     delete parser;
     // INST
     // BYTECODE
 
+  }
+
+  void test_nested_bytecode_parsing() {
+    Parser *parser = new Parser();
+    const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse("__.plus(__.mult(__.plus(3)))"));
+    TEST_ASSERT_EQUAL_INT(2, bcode->value()->size());
+    TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(1)->
+                          arg(0)->as<Bytecode>()->value()->size());
+    TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(1)->
+                          arg(0)->as<Bytecode>()->value()->at(0)->
+                          arg(0)->as<Bytecode>()->value()->size());
+    delete parser;
   }
 
   FOS_RUN_TESTS( //
@@ -142,7 +163,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_mono_type_parsing); //
       FOS_RUN_TEST(test_poly_type_parsing); //
-      // FOS_RUN_TEST(test_rec); //
+      FOS_RUN_TEST(test_nested_bytecode_parsing); //
       )
 }; // namespace fhatos::kernel
 
