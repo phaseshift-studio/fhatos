@@ -139,7 +139,7 @@ namespace fhatos {
         ss->get(); // (
         if (ss->peek() == ')') {
           ss->get();
-          if (ss->peek() == '.')
+          if(ss->peek() == '.')
             ss->get();
           return args;
         }

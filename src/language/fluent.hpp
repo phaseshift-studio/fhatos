@@ -208,7 +208,7 @@ namespace fhatos {
     }))));
   };
 
-  static Fluent<> __() { return __({}); };
+  static Fluent<> __() { return __(List<OBJ_OR_BYTECODE>{}); };
 
   inline static Fluent<> _ = __();
 } // namespace fhatos

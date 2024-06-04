@@ -187,6 +187,19 @@ namespace fhatos {
             case OType::BOOL: return new Bool(((Bool *) b)->value() && ((Bool *) a)->value());
             case OType::INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());
             case OType::REAL: return new Real(((Real *) b)->value() * ((Real *) a)->value());
+            case OType::REC: {
+             // RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
+              Rec *rec = new Rec({});
+              auto ita = ((Rec *) a)->value()->begin();
+              auto itb = ((Rec *) b)->value()->begin();
+              for (; ita != ((Rec *) a)->value()->end(); ++ita) {
+                rec->set(
+                  (Obj *) compose(COMPOSITION_OPERATOR::MULT, ita->first, itb->first),
+                  (Obj *) compose(COMPOSITION_OPERATOR::MULT, ita->second, itb->second));
+                ++itb;
+              }
+              return rec;
+            }
             default: {
               throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()),
                            OTYPE_STR.at(b->type()));

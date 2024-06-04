@@ -322,6 +322,13 @@ namespace fhatos {
     Rec(RecMap<Obj *, Obj *> value) : Obj(OType::REC), _value(new RecMap<Obj *, Obj *>(value)) {
     };
 
+    Rec(std::initializer_list<Pair<Obj * const, Obj *> > keyValues): Obj(OType::REC),
+                                                                     _value(new RecMap<Obj *, Obj *>()) {
+      for (const Pair<Obj * const, Obj *> pair: keyValues) {
+        this->_value->insert(pair);
+      }
+    };
+
     template<typename V>
     const V *get(Obj *key) const {
       return (V *) (this->_value->count(key) ? this->_value->at(key) : NoObj::singleton());
@@ -573,6 +580,19 @@ namespace fhatos {
     }
 
     OBJ_OR_BYTECODE(const Rec &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {
+    }
+
+    OBJ_OR_BYTECODE(const RecMap<Obj *, Obj *> &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {
+    }
+
+    OBJ_OR_BYTECODE(
+      const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > keyValues): _type(OType::REC),
+      data(OBJ_UNION{.objA = new Rec({})}) {
+      for (auto it = std::begin(keyValues); it != std::end(keyValues); ++it) {
+        const_cast<RecMap<Obj *, Obj *> *>(((Rec *) this->data.objA)->value())->insert({
+          it->first.cast<>(), it->second.cast<>()
+        });
+      }
     }
 
     OBJ_OR_BYTECODE(const Bytecode &bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = new Bytecode(bcodeB)}) {

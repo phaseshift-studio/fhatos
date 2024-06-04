@@ -80,6 +80,15 @@ namespace fhatos {
 
   }
 
+  void test_mult() {
+    FOS_CHECK_RESULTS<Int>({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
+    //FOS_CHECK_RESULTS<Real>({54.0f, 50.0f, 46.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).plus(_).plus(_.plus(2.0f)));
+    FOS_CHECK_RESULTS<Rec>({{{new Int(21), new Int(10)}, {new Int(48), new Int(36)}}},
+                           __({{3, 2}, {6, 4}}).mult({{7, 5}, {8, 9}}));
+
+
+  }
+
   void test_where() {
     FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13))));
   }
@@ -90,6 +99,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_ref); //
       FOS_RUN_TEST(test_dref); //
       FOS_RUN_TEST(test_plus); //
+      FOS_RUN_TEST(test_mult); //
       FOS_RUN_TEST(test_where); //
       FOS_RUN_TEST(test_relational_predicates); //
       )

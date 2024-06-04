@@ -43,6 +43,7 @@ namespace fhatos {
   void test_start_inst_parsing() {
     Parser *parser = new Parser();
     FOS_CHECK_ARGS<Int>({new Int(15)}, parser->parse("__(15)")->startInst());
+    FOS_CHECK_ARGS<Int>({new Int(15), new Int(-10), new Int(0)}, parser->parse("__(15,-10,0)")->startInst());
     FOS_CHECK_ARGS<Obj>({new Str("fhat"), new Str("os"), new Int(69)},
                         parser->parse("__('fhat','os',69)")->startInst());
     FOS_CHECK_ARGS<Obj>({new Rec({{new Str("a"), new Int(2)}})},
