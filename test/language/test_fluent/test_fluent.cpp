@@ -42,7 +42,29 @@ namespace fhatos {
             {2, 4},
             {_.mult(2), 7}
         }).is(_.eq(5)).mult(_.plus(95)));
+
+    FOS_CHECK_RESULTS<Str>(
+        {"acdx", "bbcddx"},
+        __({"a", "bb"}).plus("c")
+        .bswitch({
+            {_.is(_.eq("ac")), _.plus("d")},
+            {_.is(_.gte("www")), _.plus("yy")},
+            {_, _.plus("dd")}})
+        .is(_.lt("xxx")).plus("x"));
+
+    FOS_CHECK_RESULTS<Str>(
+        {"acdzx", "bbcddx"},
+        __({"a", "bb"}).plus("c")
+        .bswitch({
+            {_.is(_.eq("ac")),
+             _.plus("d").bswitch({
+                 {_.is(_.gte("a")), _.plus("z")},
+                 {_, _}})},
+            {_.is(_.gte("www")), _.plus("yy")},
+            {_, _.plus("dd")}})
+        .is(_.lt("xxx")).plus("x"));
   }
+
 
   void test_dref() {
     FOS_CHECK_RESULTS<Str>({"fhat"}, __("fhat").ref("a").plus("os").dref("a"),

@@ -45,7 +45,7 @@ namespace fhatos {
       return &uuid;
     }
 
-    const ptr<uuid> mint() {
+    const ptr<uuid> mint(const uint8_t size = 36) {
       std::stringstream ss;
       int i;
       ss << std::hex;
@@ -69,7 +69,7 @@ namespace fhatos {
       for (i = 0; i < 12; i++) {
         ss << dis(gen);
       };
-      return share<uuid>(ss.str());
+      return share<uuid>(ss.str().substr(0, size));
     }
   };
 }

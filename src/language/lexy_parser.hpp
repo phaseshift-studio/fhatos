@@ -22,7 +22,7 @@
 // Copyright (C) 2020-2024 Jonathan Müller and lexy contributors
 // SPDX-License-Identifier: BSL-1.0
 
-#include <cinttypes>
+/*#include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 #include <map>
@@ -38,11 +38,10 @@
 
 //#include <lexy_ext/report_error.hpp> // lexy_ext::report_error
                                      //
-namespace
-{
+
 // Datastructures for storing JSON.
 // Not really the point of the example, so as simple as possible.
-namespace ast
+/*namespace ast
 {
     struct json_value;
 
@@ -386,6 +385,6 @@ int main(int argc, char** argv) {
         return 2;
 }
 #endif
-
+*/
 
 #endif

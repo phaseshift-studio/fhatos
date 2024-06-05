@@ -151,7 +151,7 @@ namespace fhatos {
     void printf(const char *format, ...) {
       va_list arg;
       va_start(arg, format);
-      char temp[127];
+      char temp[255];
       char *buffer = temp;
       size_t len = vsnprintf(temp, sizeof(temp), format, arg);
       va_end(arg);

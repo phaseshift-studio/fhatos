@@ -142,16 +142,6 @@ namespace fhatos {
         }
       }
     }
-
-    /////////////
-    template<typename S2, typename E2>
-    static Consumer<S2> bytecodeConsumer(const Bytecode *bytecode) {
-      return [bytecode](const S2 &s) {
-        bytecode->addStarts({s});
-        Processor proc = Processor<E2>(bytecode);
-        LOG(DEBUG, "Processor iterated %i monads", proc.execute());
-      };
-    }
   };
 } // namespace fhatos
 

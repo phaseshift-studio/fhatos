@@ -347,12 +347,12 @@ namespace fhatos {
     }
 
     const string toString() const override {
-      string t = "[";
+      string t = "!m[!!";
       for (const auto &[k, v]: *this->_value) {
         t = t + k->toString() + "!r=>!!" + v->toString() + ",";
       }
-      t[t.length() - 1] = ']';
-      return t;
+      t[t.length() - 1] = '!';
+      return t.append("m]!!");
     }
   };
 
@@ -383,12 +383,12 @@ namespace fhatos {
     }
 
     const string toString() const override {
-      string t = "[!b" + this->opcode() + "!! ";
+      string t = "!g[!!!b" + this->opcode() + "!! ";
       for (const auto arg: this->args()) {
         t = t + arg->toString() + ",";
       }
-      t[t.length() - 1] = ']';
-      return t;
+      t[t.length() - 1] = '!';
+      return t.append("g]!!");
     }
 
     ////////////////////////////////////
@@ -426,10 +426,10 @@ namespace fhatos {
 
   public:
     explicit Bytecode(const List<Inst *> *list,
-                      const ID &id = ID(*UUID::singleton()->mint())) : Obj(OType::BYTECODE), IDed(id), _value(list) {
+                      const ID &id = ID(*UUID::singleton()->mint(7))) : Obj(OType::BYTECODE), IDed(id), _value(list) {
     }
 
-    explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint())) : Bytecode(new List<Inst *>, id) {
+    explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {
     }
 
     const Inst *nextInst(const Inst *currentInst) const {
@@ -481,19 +481,12 @@ namespace fhatos {
       return this->value()->back();
     }
 
-    template<typename S>
-    void addStarts(const std::initializer_list<S> &starts) {
-      for (const S &s: starts) {
-        this->startInst()->args().push_back(s);
-      }
-    }
-
     const string toString() const override {
-      string s = "{";
+      string s = "";
       for (const auto *inst: *this->_value) {
         s.append(inst->toString());
       }
-      return s.append("}");
+      return s;
     }
   };
 

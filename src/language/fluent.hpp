@@ -36,7 +36,7 @@ namespace fhatos {
     explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {
     }
 
-    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint())) : Fluent(share<Bytecode>(Bytecode(id))) {
+    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(share<Bytecode>(Bytecode(id))) {
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,12 @@ namespace fhatos {
       return list;
     }
 
-    string toString() const { return string("f").append(this->bcode->toString()); }
+    string toString() const {
+      return string("!y<!!")
+          .append(this->bcode->id().toString().c_str())
+          .append("!y>!!")
+          .append(this->bcode->toString());
+    }
 
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// PROTECTED  /////////////////////////////////////////
@@ -189,8 +194,8 @@ namespace fhatos {
 
 
   static Fluent<> __(const List<OBJ_OR_BYTECODE> &starts) {
-    if (false && starts.empty()) {
-      return Fluent<>(share<Bytecode>(Bytecode({}))); // TODO: remove unnecesary [start]?
+    if (starts.empty()) {
+      return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>()))); // TODO: remove unnecesary [start]?
     } else {
       List<Obj *> *castStarts = new List<Obj *>();
       for (OBJ_OR_BYTECODE se: starts) {
