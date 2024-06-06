@@ -66,6 +66,12 @@ namespace fhatos {
   }
 
 
+  void test_count() {
+    FOS_CHECK_RESULTS<Int>({3}, __({"fhat", "os", "pig"}).plus(".").count());
+    FOS_CHECK_RESULTS<Int>({1}, __({"fhat", "os", "pig"}).is(_.eq("pig")).plus(";").count());
+    // TODO: FOS_CHECK_RESULTS<Int>({Int(0)}, __({"fhat", "os", "pig"}).is(_.eq("blah")).count());
+  }
+
   void test_dref() {
     FOS_CHECK_RESULTS<Str>({"fhat"}, __("fhat").ref("a").plus("os").dref("a"),
                            {{Uri("a"), new Str("fhat")}});
@@ -118,6 +124,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_rec_branch); //
+      FOS_RUN_TEST(test_count); //
       FOS_RUN_TEST(test_ref); //
       FOS_RUN_TEST(test_dref); //
       FOS_RUN_TEST(test_plus); //

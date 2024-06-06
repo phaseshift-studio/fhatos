@@ -46,27 +46,37 @@ namespace fhatos {
     return *newList;
   }
 
-  class StartInst final : public Inst {
+  class StartInst final : public OneToOneInst {
   public:
     explicit StartInst(const List<Obj *> *starts)
-      : Inst({
+      : OneToOneInst(
         "start", cast(starts),
         [](const Obj *start) {
           return start;
         }
-      }) {
+      ) {
     }
   };
 
-  class ExplainInst final : public Inst {
+  class ExplainInst final : public ManyToOneInst {
   public:
     explicit ExplainInst(const OBJ_OR_BYTECODE &bcode)
-      : Inst({
+      : ManyToOneInst(
         "explain", {},
-        [bcode](const Obj *start) {
+        [bcode](const Obj *) {
           return bcode.cast<>();
-        }
-      }) {
+        }) {
+    }
+  };
+
+  class CountInst final : public ManyToOneInst {
+  public:
+    explicit CountInst()
+      : ManyToOneInst(
+        "count", {},
+        [](const Obj *obj) {
+          return new Int(((Objs*)obj)->value()->size());
+        }) {
     }
   };
 
@@ -85,17 +95,17 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
 
   template<typename ALGEBRA=Algebra>
-  class BranchInst final : public Inst {
+  class BranchInst final : public OneToOneInst {
   public:
     const typename ALGEBRA::BRANCH_SEMANTIC branch;
 
     explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const OBJ_OR_BYTECODE &branches)
-      : Inst({
+      : OneToOneInst(
           ALGEBRA::BRNCH_TO_STR(branch), {branches},
           [this,branch](const Obj *lhs)-> const Obj *{
             return ALGEBRA::singleton()->branch(branch, lhs, this->arg(0));
           }
-        }), branch(branch) {
+        ), branch(branch) {
     }
   };
 
@@ -104,10 +114,10 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
-  class ReferenceInst final : public Inst {
+  class ReferenceInst final : public OneToOneInst {
   public:
     explicit ReferenceInst(const URI_OR_BYTECODE &uri,
-                           const URI_OR_BYTECODE &target) : Inst({
+                           const URI_OR_BYTECODE &target) : OneToOneInst(
       "ref", {uri, target}, [this](const Obj *toStore) -> const Obj *{
         ROUTER::singleton()->publish(
           Message{
@@ -117,15 +127,14 @@ namespace fhatos {
             .retain = RETAIN_MESSAGE
           });
         return toStore;
-      }
-    }) {
+      }) {
     }
   };
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
-  class DereferenceInst final : public Inst {
+  class DereferenceInst final : public OneToOneInst {
   public:
-    explicit DereferenceInst(const URI_OR_BYTECODE &uri, const URI_OR_BYTECODE &source) : Inst({
+    explicit DereferenceInst(const URI_OR_BYTECODE &uri, const URI_OR_BYTECODE &source) : OneToOneInst(
       "dref", {uri, source}, [this](const Obj *obj) -> const Obj *{
         std::atomic<Obj *> *thing = new std::atomic<Obj *>(nullptr);
         std::atomic<bool> *done = new std::atomic<bool>(false);
@@ -148,8 +157,7 @@ namespace fhatos {
         delete done;
         ROUTER::singleton()->unsubscribe(source, uri);
         return ret;
-      }
-    }) {
+      }) {
     }
   };
 
@@ -160,40 +168,40 @@ namespace fhatos {
 
 
   template<typename ALGEBRA=FOS_DEFAULT_ALGEBRA>
-  class RelationalInst final : public Inst {
+  class RelationalInst final : public OneToOneInst {
   public:
     const typename ALGEBRA::RELATION_PREDICATE predicate;
 
     explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const OBJ_OR_BYTECODE &rhs)
-      : Inst({
+      : OneToOneInst(
           ALGEBRA::REL_TO_STR(predicate), {rhs},
           [this,predicate](const Obj *lhs)-> const Obj *{
             return ALGEBRA::singleton()->relate(predicate, lhs, this->arg(0)->apply(lhs));
           }
-        }), predicate(predicate) {
+        ), predicate(predicate) {
     }
   };
 
 
-  class IsInst final : public Inst {
+  class IsInst final : public OneToOneInst {
   public:
     explicit IsInst(const OBJ_OR_BYTECODE &test)
-      : Inst({
+      : OneToOneInst(
         "is", {test},
         [this](const Obj *input) -> const Obj *{
           return this->arg(0)->apply(input)->as<Bool>()->value() ? input : NoObj::singleton();
         }
-      }) {
+      ) {
     }
   };
 
-  class WhereInst final : public Inst {
+  class WhereInst final : public OneToOneInst {
   public:
-    explicit WhereInst(const OBJ_OR_BYTECODE &test) : Inst({
+    explicit WhereInst(const OBJ_OR_BYTECODE &test) : OneToOneInst(
       "where", {test}, [this](const Obj *input) -> const Obj *{
         return this->arg(0)->apply(input)->isNoObj() ? NoObj::singleton() : input;
       }
-    }) {
+    ) {
     }
   };
 
@@ -203,17 +211,17 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
 
   template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA>
-  class CompositionInst final : public Inst {
+  class CompositionInst final : public OneToOneInst {
   public:
     const typename ALGEBRA::COMPOSITION_OPERATOR op;
 
     explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR op, const OBJ_OR_BYTECODE &rhs)
-      : Inst({
+      : OneToOneInst(
           ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
             return ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
           }
-        }), op(op) {
+        ), op(op) {
     }
   };
 
@@ -221,9 +229,10 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-  class PublishInst final : public Inst {
+  class PublishInst final : public OneToOneInst {
   public:
-    explicit PublishInst(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload, const ID &bcodeId) : Inst({
+    explicit PublishInst(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload,
+                         const ID &bcodeId) : OneToOneInst(
       "<=", {target, payload},
       [this,bcodeId](const Obj *incoming)-> const Obj *{
         FOS_DEFAULT_ROUTER::singleton()->publish(Message{
@@ -234,13 +243,14 @@ namespace fhatos {
         });
         return incoming;
       }
-    }) {
+    ) {
     }
   };
 
-  class SubscribeInst final : public Inst {
+  class SubscribeInst final : public OneToOneInst {
   public:
-    explicit SubscribeInst(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv, const ID &bcodeId) : Inst({
+    explicit SubscribeInst(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv,
+                           const ID &bcodeId) : OneToOneInst(
       "=>", {pattern, onRecv},
       [this,bcodeId](const Obj *incoming)-> const Obj *{
         FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
@@ -254,7 +264,7 @@ namespace fhatos {
         });
         return incoming;
       }
-    }) {
+    ) {
     }
   };
 } // namespace fhatos

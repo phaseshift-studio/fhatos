@@ -31,7 +31,7 @@ using namespace fhatos;
 
 using namespace fhatos;
 int main(int arg, char **argsv) {
-  _logging = LOG_TYPE::NONE;
+  //_logging = LOG_TYPE::DEBUG;
   try {
     fKernel<>::bootloader({
     //fWIFI::singleton(),
@@ -48,8 +48,8 @@ int main(int arg, char **argsv) {
     //fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
     Scheduler::singleton()->spawn(new Console<CPrinter>());
     Scheduler::singleton()->join();
-  } catch (fError* e) {
-    LOG(ERROR,"main() error: %s\n",e->what());
+  } catch (fError e) {
+    LOG(ERROR,"main() error: %s\n",e.what());
    // LOG_EXCEPTION(e);
   }
 };

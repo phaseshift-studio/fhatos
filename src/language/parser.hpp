@@ -56,7 +56,9 @@ namespace fhatos {
         const ptr<string> opcode = this->parseOpcode(ss);
         const ptr<List<ptr<OBJ_OR_BYTECODE> > > args = this->parseArgs(ss);
 
-        if (*opcode == "is") {
+        if (*opcode == "count") {
+          fluent = new Fluent(fluent->count());
+        } else if (*opcode == "is") {
           fluent = new Fluent(fluent->is(*args->at(0)));
         } else if (*opcode == "ref") {
           fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));

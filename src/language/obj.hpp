@@ -29,13 +29,18 @@
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
 #include <util/uuid.hpp>
-
+#ifdef NATIVE
+#include <assert.h>
+#else
+#include <esp_assert.h>
+#endif
 
 namespace fhatos {
   enum class OType : uint8_t {
     NOOBJ = 0,
     NOINST,
     OBJ,
+    OBJS,
     BOOL,
     INT,
     REAL,
@@ -51,6 +56,7 @@ namespace fhatos {
       {OType::NOOBJ, "noobj"},
       {OType::NOINST, "noinst"},
       {OType::OBJ, "obj"},
+      {OType::OBJS, "objs"},
       {OType::URI, "uri"},
       {OType::BOOL, "bool"},
       {OType::INT, "int"},
@@ -132,6 +138,34 @@ namespace fhatos {
     }
   };
 
+  ///////////////////////////////////////////////// OBJS //////////////////////////////////////////////////////////////
+
+  class Objs final : public Obj {
+  protected:
+    const List<const Obj *> *_value;
+
+  public:
+    Objs(const List<const Obj *> *value): Obj(OType::OBJS), _value(value) {
+    }
+
+    const List<const Obj *> *value() const {
+      return this->_value;
+    }
+
+    const Objs *apply(const Obj *obj) const override {
+      return this;
+    }
+
+    const string toString() const override {
+      string t = "(";
+      for (const Obj *obj: *this->_value) {
+        t = t + obj->toString() + ",";
+      }
+      t[t.length() - 1] = ')';
+      return t;
+    }
+  };
+
   ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
   class Uri final : public Obj {
   protected:
@@ -153,11 +187,7 @@ namespace fhatos {
       return this;
     }
 
-    /* virtual bool isType() const {
-       return this->_value == nullptr;
-     }*/
-
-    virtual const string toString() const override {
+    const string toString() const override {
       return this->_value.toString();
     }
 
@@ -357,29 +387,58 @@ namespace fhatos {
   };
 
   ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
+  enum class IType : uint8_t {
+    NOINST = 0,
+    ONE_TO_ONE,
+    ONE_TO_MANY,
+    MANY_TO_ONE,
+    MANY_TO_MANY,
+  }; // TYPE
+  static const Map<IType, const char *> ITYPE_STR = {
+    {
+      {IType::NOINST, "noinst"},
+      {IType::ONE_TO_ONE, "f(x)->y"},
+      {IType::ONE_TO_MANY, "f(x)->y*"},
+      {IType::MANY_TO_ONE, "f(x*)->y"},
+      {IType::MANY_TO_MANY, "f(x*)->y*"},
+    }
+
+  };
+
   typedef Function<const Obj *, const Obj *> InstFunction;
+  typedef Function<const Obj *, const Obj *> OneToOneFunction;
+  typedef Function<const Obj *, const Objs *> OneToManyFunction;
+  typedef Function<const Objs *, const Obj *> ManyToOneFunction;
+  typedef Function<const Objs *, const Objs *> ManyToManyFunction;
+
   typedef List<Obj *> InstArgs;
-  typedef Triple<const string, const InstArgs, const InstFunction> InstTriple;
+  typedef string InstOpcode;
+  typedef Pair<const InstOpcode, const InstArgs> InstPair;
 
   class Inst : public Obj {
   protected:
-    const InstTriple _value;
+    const InstPair _value;
+    const IType _itype;
 
   public:
-    explicit Inst(const InstTriple &value)
-      : Obj(OType::INST), _value(value) {
+    explicit Inst(const InstOpcode &opcode, const InstArgs &args, const IType itype = IType::NOINST)
+      : Obj(OType::INST), _value({opcode, args}), _itype(itype) {
     }
 
     bool isNoInst() const {
       return this->opcode() == "noinst";
     }
 
-    virtual InstTriple value() const {
+    virtual InstPair value() const {
       return this->_value;
     }
 
-    const Obj *apply(const Obj *obj) const override {
-      return this->func()(obj);
+    const IType itype() const {
+      return this->_itype;
+    }
+
+    virtual const Obj *apply(const Obj *obj) const override {
+      return NoObj::singleton();
     }
 
     const string toString() const override {
@@ -392,14 +451,9 @@ namespace fhatos {
     }
 
     ////////////////////////////////////
-    virtual const string opcode() const { return std::get<0>(this->_value); }
+    virtual const InstOpcode opcode() const { return std::get<0>(this->_value); }
     virtual const InstArgs args() const { return std::get<1>(this->_value); }
-
     const Obj *arg(const uint8_t index) const { return this->args()[index]; }
-
-    virtual const InstFunction func() const {
-      return std::get<2>(this->_value);
-    }
   };
 
   //////// NO INST
@@ -411,11 +465,56 @@ namespace fhatos {
     }
 
   private:
-    NoInst() : Inst({
-      "noinst", {}, [](const Obj *) {
-        return NoObj::singleton();
-      }
-    }) {
+    NoInst() : Inst("noinst", {}) {
+    }
+  };
+
+  /////// ONE TO ONE
+  class OneToOneInst : public Inst {
+  protected:
+    OneToOneFunction function;
+
+  public:
+    OneToOneInst(const InstOpcode opcode, const InstArgs args, const OneToOneFunction function) : Inst(opcode, args,
+        IType::ONE_TO_ONE),
+      function(function) {
+    }
+
+    const Obj *apply(const Obj *obj) const {
+      return this->function(obj);
+    }
+  };
+
+  /////// MANY TO ONE
+  class ManyToOneInst : public Inst {
+  protected:
+    ManyToOneFunction function;
+
+  public:
+    ManyToOneInst(const InstOpcode opcode, const InstArgs args,
+                  const ManyToOneFunction function) : Inst(opcode, args, IType::MANY_TO_ONE),
+                                                      function(function) {
+    }
+
+    const Obj *apply(const Obj *obj) const override {
+      assert(obj->type() == OType::OBJS);
+      return this->function((const Objs *) obj);
+    }
+  };
+
+  /////// ONE TO MANY
+  class OneToManyInst : public Inst {
+  protected:
+    OneToManyFunction function;
+
+  public:
+    OneToManyInst(const InstOpcode opcode, const InstArgs args,
+                  const OneToManyFunction function) : Inst(opcode, args, IType::ONE_TO_MANY),
+                                                      function(function) {
+    }
+
+    const Objs *apply(const Obj *obj) const override {
+      return this->function(obj);
     }
   };
 
@@ -450,7 +549,7 @@ namespace fhatos {
       if (currentObj->isNoObj())
         return currentObj;
       for (const Inst *inst: *this->_value) {
-        currentObj = const_cast<Obj *>(inst->apply(currentObj));
+        currentObj = (Obj *) inst->apply(currentObj);
         if (currentObj->isNoObj())
           break;
       }
@@ -458,11 +557,6 @@ namespace fhatos {
     }
 
     const List<Inst *> *value() const { return this->_value; }
-
-    ptr<Bytecode> addInst(const char *op, const List<Obj *> &args,
-                          const Function<const Obj *, const Obj *> &function) const {
-      return this->addInst(new Inst({string(op), args, function}));
-    }
 
     ptr<Bytecode> addInst(Inst *inst) const {
       List<Inst *> *list = new List<Inst *>();
