@@ -58,6 +58,18 @@ namespace fhatos {
     }
   };
 
+  class ExplainInst final : public Inst {
+  public:
+    explicit ExplainInst(const OBJ_OR_BYTECODE &bcode)
+      : Inst({
+        "explain", {},
+        [bcode](const Obj *start) {
+          return bcode.cast<>();
+        }
+      }) {
+    }
+  };
+
   /*class EndInst final : public Inst {
   public:
     explicit EndInst() : Inst({

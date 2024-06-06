@@ -29,17 +29,13 @@ namespace fhatos {
   using namespace std;
 
   class Parser : public IDed {
-  protected:
-    OType domain = OType::OBJ;
-    OType range = OType::OBJ;
-
   public:
     explicit Parser(const ID &id = ID(*UUID::singleton()->mint())) : IDed(id) {
     }
 
     const ptr<Bytecode> parse(const char *line) {
       string cleanLine = string(line);
-      trim(cleanLine);
+      StringHelper::trim(cleanLine);
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", cleanLine.c_str());
       if (cleanLine.empty()) {
         return share<Bytecode>(Bytecode(this->id()));
@@ -61,7 +57,6 @@ namespace fhatos {
         const ptr<List<ptr<OBJ_OR_BYTECODE> > > args = this->parseArgs(ss);
 
         if (*opcode == "is") {
-          range = domain;
           fluent = new Fluent(fluent->is(*args->at(0)));
         } else if (*opcode == "ref") {
           fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
@@ -82,31 +77,23 @@ namespace fhatos {
         } else if (*opcode == "lte") {
           fluent = new Fluent(fluent->lte(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "plus") {
-          range = domain;
           fluent = new Fluent(fluent->plus(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "mult") {
-          range = domain;
           fluent = new Fluent(fluent->mult(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "start") {
-          range = args->size() > 0 ? args->at(0)->type() : OType::OBJ;
           fluent = new Fluent(fluent->start(*args));
+        } else if (*opcode == "explain") {
+          fluent = new Fluent(fluent->explain());
         } else if (*opcode == "<=") {
-          range = OType::URI;
           fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
         } else if (*opcode == "=>") {
-          range = OType::URI;
           fluent = new Fluent(fluent->subscribe(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
         } else {
-          fError *error = new fError("Unknown instruction opcode: %s", opcode->c_str());
-          LOG(ERROR, error->what());
+          const fError error = fError("Unknown instruction opcode: !b%s!!\n", opcode->c_str());
+          LOG(ERROR, error.what());
           throw error;
         }
-        //delete fluent;
-        LOG(DEBUG, FOS_TAB_2 "!gdomain!!(!y%s!!) => !grange!!(!y%s!!)\n", OTYPE_STR.at(domain),
-            OTYPE_STR.at(range));
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
-        domain = range;
-        range = OType::OBJ;
       }
 
       //delete fluent;
@@ -121,7 +108,7 @@ namespace fhatos {
       while (ss->peek() != '.' && ss->peek() != '(' && !ss->eof()) {
         opcode->append({static_cast<char>(ss->get())});
       }
-      trim(*opcode);
+      StringHelper::trim(*opcode);
       if ((*opcode)[0] == '_' && (*opcode)[1] == '_') {
         opcode->clear();
         opcode->append("start");
@@ -139,7 +126,7 @@ namespace fhatos {
         ss->get(); // (
         if (ss->peek() == ')') {
           ss->get();
-          if(ss->peek() == '.')
+          if (ss->peek() == '.')
             ss->get();
           return args;
         }
@@ -161,7 +148,7 @@ namespace fhatos {
     }
 
     const ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
-      string argS;
+      string arg;
       int paren = 0;
       int bracket = 0;
       while (!ss->eof()) {
@@ -174,7 +161,7 @@ namespace fhatos {
         } else if (ss->peek() == ']') {
           bracket--;
         }
-        argS += static_cast<char>(ss->get());
+        arg += ss->get();
         if (ss->peek() == ')' && paren == 0) {
           ss->get();
           break;
@@ -183,8 +170,8 @@ namespace fhatos {
           break;
         }
       }
-      trim(argS);
-      return parseObj(argS);
+      StringHelper::trim(arg);
+      return parseObj(arg);
     }
 
     const ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
@@ -200,34 +187,13 @@ namespace fhatos {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Bool(strcmp("true", token.c_str()) == 0)));
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream *ss = new stringstream(token.length() > 2 ? token.substr(3) : token);
-        OType tdomain = domain;
-        OType trange = range;
-        //domain = range;
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(this->parseBytecode(ss).get()));
-        domain = tdomain;
-        range = trange;
         delete ss;
-      }/*else if (token.starts_with("[[") && token.ends_with("]]")) {
-        List<Inst *> *insts = new List<Inst *>();
-        stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
-        string inst;
-        int bracketCounter = 0;
-        while (!ss->eof()) {
-          if (ss->peek() == ']') {
-            if (bracketCounter == 0) {
-              ss->get();
-              insts->push_back(parseObj(inst)->cast<Inst>());
-              inst.clear();
-            } else {
-              bracketCounter--;
-            }
-          } else if (ss->peek() == '[') {
-            bracketCounter++;
-          }
-          inst += ss->get();
-        }
-        return share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Bytecode(insts)));
-      }*/ else if (token[0] == '[' && token[token.length() - 1] == ']') {
+      } else if (token[token.length() - 1] == ')' && token.find('(')) {
+        stringstream *ss = new stringstream(token);
+        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(this->parseBytecode(ss).get()));
+        delete ss;
+      } else if (token[0] == '[' && token[token.length() - 1] == ']') {
         stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
         string first;
         OType type = OType::LST;
@@ -236,15 +202,9 @@ namespace fhatos {
             type = OType::INST;
             ss->get();
             break;
-          } else if (ss->peek() == '=') {
-            ss->get();
-            if (ss->peek() == '>') {
-              ss->get();
-              type = OType::REC;
-              break;
-            } else {
-              ss += '=';
-            };
+          } else if (StringHelper::lookAhead("=>", ss)) {
+            type = OType::REC;
+            break;
           } else if (ss->peek() == ',') {
             type = OType::LST;
             ss->get();
@@ -252,7 +212,7 @@ namespace fhatos {
           }
           first += ss->get();
         }
-        trim(first);
+        StringHelper::trim(first);
         ////////////////////////////////////
         if (type == OType::INST) {
           string opcode = first;
@@ -284,14 +244,8 @@ namespace fhatos {
           int bracketCounter = 0;
           while (!ss->eof()) {
             if (onKey) {
-              if (bracketCounter == 0 && ss->peek() == '=') {
-                ss->get();
-                if (ss->peek() == '>') {
-                  ss->get();
-                  onKey = false;
-                } else {
-                  key += '=';
-                }
+              if (bracketCounter == 0 && StringHelper::lookAhead("=>", ss)) {
+                onKey = false;
               } else {
                 if (ss->peek() == '[')
                   bracketCounter++;
@@ -335,11 +289,6 @@ namespace fhatos {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token))));
       }
       return se;
-    }
-
-    static void trim(string &s) {
-      s.erase(0, s.find_first_not_of(" "));
-      s.erase(s.find_last_not_of(" ") + 1);
     }
   };
 }

@@ -65,7 +65,7 @@ namespace fhatos {
 
 ////////////////////////////////
 #else
- class fError : std::exception {
+ class fError : public std::exception {
  protected:
    char *_message;
 

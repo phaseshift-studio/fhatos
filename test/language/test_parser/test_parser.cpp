@@ -148,11 +148,11 @@ namespace fhatos {
 
   void test_nested_bytecode_parsing() {
     Parser *parser = new Parser();
-    const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse("__.plus(__.mult(__.plus(3)))"));
-    TEST_ASSERT_EQUAL_INT(2, bcode->value()->size());
-    TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(1)->
+    const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse("plus(mult(plus(3)))"));
+    TEST_ASSERT_EQUAL_INT(1, bcode->value()->size());
+    TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(0)->
                           arg(0)->as<Bytecode>()->value()->size());
-    TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(1)->
+    TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(0)->
                           arg(0)->as<Bytecode>()->value()->at(0)->
                           arg(0)->as<Bytecode>()->value()->size());
     delete parser;

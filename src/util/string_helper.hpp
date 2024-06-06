@@ -41,6 +41,20 @@ namespace fhatos {
       }).base(), s.end());
     }
 
+    static bool lookAhead(const string token, std::stringstream *ss) {
+      for (int i = 0; i < token.size(); i++) {
+        if(token[i] != ss->peek()) {
+          for (int j = 0; j <= i; j++) {
+            ss += token[j];
+          }
+          return false;
+        } else {
+          ss->get();
+        }
+      }
+      return true;
+    }
+
   private:
     StringHelper() = delete;
   };

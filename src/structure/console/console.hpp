@@ -34,8 +34,9 @@ namespace fhatos {
     Ansi<PRINTER> *ansi;
     Parser *parser;
 
-    explicit Console(const ID &id = ID("anon")): Thread(id), ansi(new Ansi<PRINTER>(PRINTER::singleton())),
-                                                 parser(new Parser(id)) {
+    explicit Console(const ID &id = ID("console")): Thread(id),
+                                                    ansi(new Ansi<PRINTER>(PRINTER::singleton())),
+                                                    parser(new Parser(id)) {
     }
 
     void setup() override {
@@ -60,14 +61,23 @@ namespace fhatos {
             return;
           }
         } else {
-          const ptr<Fluent<> > fluent = this->parser->parseToFluent(line.c_str());
-          this->printResults(fluent);
+          try {
+            const ptr<Fluent<> > fluent = this->parser->parseToFluent(line.c_str());
+            this->printResults(fluent);
+          } catch (std::exception ex) {
+            // do nothing (log error for now)
+            // this->printException(ex);
+          }
         }
       }
     }
 
     void stop() override {
       Thread::stop();
+    }
+
+    void printException(const std::exception &ex) const {
+      this->ansi->printf("[!rERROR!!] %s\n", ex.what());
     }
 
     void printPrompt() const {
@@ -92,7 +102,7 @@ namespace fhatos {
 
     void printRec(const Rec *rec, int i = 0) const {
       this->ansi->printf("!g==!!>!r[!!");
-      int size = rec->value()->size();
+      const int size = rec->value()->size();
       for (const auto &[key,value]: *rec->value()) {
         if (i > 0)
           this->ansi->print("    ");
@@ -103,7 +113,7 @@ namespace fhatos {
           this->ansi->print("\n");
         }
       }
-      this->ansi->printf("!r]!! [!y%s!!]\n",OTYPE_STR.at(rec->type()));
+      this->ansi->printf("!r]!! [!y%s!!]\n", OTYPE_STR.at(rec->type()));
     }
   };
 }
