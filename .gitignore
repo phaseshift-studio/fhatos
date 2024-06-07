@@ -21,8 +21,8 @@ scripts/__pycache__
 *.app
 
 # Documentation build
-# docs/html
-# docs/latex
+docs/html
+docs/latex
 
 # CMake files
 **/cmake-build-debug
