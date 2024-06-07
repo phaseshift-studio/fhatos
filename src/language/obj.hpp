@@ -77,20 +77,27 @@ namespace fhatos {
 
   };
 
-  using UType = string;
+  using UType = fURI;
 
   class Obj {
   protected:
-    OType _type;
+    const OType _type;
+    const UType _utype;
+
+    const string appendUType(const string &xstring) const {
+      return 0 == strcmp(this->_utype.toString().c_str(), OTYPE_STR.at(this->_type))
+               ? xstring
+               : "!y" + this->_utype.toString() + "!!::" + xstring;
+    }
 
   public:
     virtual ~Obj() = default;
 
-    explicit Obj(const OType type) : _type(type) {
+    explicit Obj(const OType type, const UType &utype = fURI(OTYPE_STR.at(OType::OBJ))) : _type(type), _utype(utype) {
     }
 
-    virtual OType type() const { return _type; }
-    virtual UType utype() const { return OTYPE_STR.at(_type); }
+    virtual const OType type() const { return this->_type; }
+    virtual const UType utype() const { return this->_utype; }
 
     virtual const string toString() const {
       return "obj";
@@ -109,12 +116,14 @@ namespace fhatos {
       return (A *) this;
     }
 
-    /*operator const Obj *() const {
-      return (const Obj *) this;
-    }*/
-
     virtual bool operator==(const Obj &other) const {
-      return strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
+      return this->_type == other._type &&
+             this->_utype == other._utype &&
+             strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
+    }
+
+    virtual bool operator!=(const Obj &other) const {
+      return !(*this == other);
     }
 
     bool isNoObj() const {
@@ -136,11 +145,11 @@ namespace fhatos {
       return this;
     }
 
-    virtual const string toString() const override {
+    const string toString() const override {
       return "Ø";
     }
 
-    virtual bool operator==(const Obj &other) const override {
+    bool operator==(const Obj &other) const override {
       return other.isNoObj();
     }
   };
@@ -179,13 +188,16 @@ namespace fhatos {
     fURI _value;
 
   public:
-    Uri(const fURI &value) : Obj(OType::URI), _value(value) {
+    Uri(const fURI &value,
+        const UType &utype = fURI(OTYPE_STR.at(OType::URI))) : Obj(OType::URI, utype), _value(value) {
     }
 
-    Uri(const string &value) : Obj(OType::URI), _value(fURI(value)) {
+    Uri(const string &value, const UType &utype = fURI(OTYPE_STR.at(OType::URI))) : Obj(OType::URI, utype),
+      _value(fURI(value)) {
     }
 
-    Uri(const char * &value) : Obj(OType::URI), _value(fURI(value)) {
+    Uri(const char * &value, const UType &utype = fURI(OTYPE_STR.at(OType::URI))) : Obj(OType::URI, utype),
+      _value(fURI(value)) {
     }
 
     const fURI value() const { return this->_value; }
@@ -195,11 +207,13 @@ namespace fhatos {
     }
 
     const string toString() const override {
-      return this->_value.toString();
+      return appendUType(this->_value.toString());
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Uri *) &other)->value().equals(this->value());
+      return this->_type == other.type() &&
+             this->_utype == other.utype() &&
+             ((Uri *) &other)->value().equals(this->value());
     }
 
     bool operator<(const Uri &other) const {
@@ -213,7 +227,8 @@ namespace fhatos {
     const bool _value;
 
   public:
-    Bool(const bool value) : Obj(OType::BOOL), _value(value) {
+    Bool(const bool value, const UType &utype = fURI(OTYPE_STR.at(OType::BOOL))) : Obj(OType::BOOL, utype),
+      _value(value) {
     }
 
     const bool value() const { return this->_value; }
@@ -223,11 +238,13 @@ namespace fhatos {
     }
 
     const string toString() const override {
-      return this->_value ? "true" : "false";
+      return this->appendUType(this->_value ? "true" : "false");
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Bool *) &other)->value() == this->value();
+      return this->_type == other.type() &&
+             this->_utype == other.utype() &&
+             this->_value == ((Bool *) &other)->value();
     }
   };
 
@@ -237,7 +254,8 @@ namespace fhatos {
     const FL_INT_TYPE _value;
 
   public:
-    Int(const FL_INT_TYPE value) : Obj(OType::INT), _value(value) {
+    Int(const FL_INT_TYPE value, const UType &utype = fURI(OTYPE_STR.at(OType::INT))) : Obj(OType::INT, utype),
+      _value(value) {
     }
 
     const FL_INT_TYPE value() const { return this->_value; }
@@ -247,11 +265,13 @@ namespace fhatos {
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Int *) &other)->value() == this->value();
+      return this->_type == other.type() &&
+             this->_utype == other.utype() &&
+             this->_value == ((Int *) &other)->value();
     }
 
 
-    const string toString() const override { return std::to_string(_value); }
+    const string toString() const override { return this->appendUType(std::to_string(this->_value)); }
   };
 
   ///////////////////////////////////////////////// REAL //////////////////////////////////////////////////////////////
@@ -260,7 +280,8 @@ namespace fhatos {
     const FL_REAL_TYPE _value;
 
   public:
-    Real(const FL_REAL_TYPE value) : Obj(OType::REAL), _value(value) {
+    Real(const FL_REAL_TYPE value, const UType &utype = fURI(OTYPE_STR.at(OType::REAL))) : Obj(OType::REAL, utype),
+      _value(value) {
     };
     const FL_REAL_TYPE value() const { return this->_value; }
 
@@ -269,10 +290,12 @@ namespace fhatos {
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Real *) &other)->value() == this->value();
+      return this->_type == other.type() &&
+             this->_utype == other.utype() &&
+             this->_value == ((Real *) &other)->value();
     }
 
-    const string toString() const override { return std::to_string(_value); }
+    const string toString() const override { return this->appendUType(std::to_string(this->_value)); }
   };
 
   ///////////////////////////////////////////////// STR //////////////////////////////////////////////////////////////
@@ -281,10 +304,11 @@ namespace fhatos {
     const string _value;
 
   public:
-    Str(const string &value) : Obj(OType::STR), _value(value) {
+    Str(const string &value, const UType &utype = fURI(OTYPE_STR.at(OType::STR))) : Obj(OType::STR, utype),
+      _value(value) {
     };
 
-    Str(const char *value) : Str(string(value)) {
+    Str(const char *value, const UType &utype = fURI(OTYPE_STR.at(OType::STR))) : Str(string(value), utype) {
     }
 
     const string value() const { return this->_value; }
@@ -293,14 +317,16 @@ namespace fhatos {
       return this;
     }
 
-    const string toString() const override { return _value; }
+    const string toString() const override { return this->appendUType(this->_value); }
 
     int compare(const Str &other) const {
       return this->_value.compare(other._value);
     }
 
     bool operator==(const Obj &other) const override {
-      return other.type() == this->type() && ((Str *) &other)->value() == this->value();
+      return this->_type == other.type() &&
+             this->_utype == other.utype() &&
+             this->_value == ((Str *) &other)->value();
     }
 
     bool operator<(const Str &other) const {
@@ -314,7 +340,8 @@ namespace fhatos {
     const List<Obj> _value;
 
   public:
-    Lst(const List<Obj> &value) : Obj(OType::LST), _value(value) {
+    Lst(const List<Obj> &value, const UType &utype = fURI(OTYPE_STR.at(OType::LST))) : Obj(OType::LST, utype),
+      _value(value) {
     };
     const List<Obj> value() const { return _value; }
 
@@ -335,7 +362,8 @@ namespace fhatos {
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
   struct obj_hash {
     size_t operator()(const Obj *obj) const {
-      return static_cast<std::string::value_type>(obj->type()) * obj->toString().length() * obj->toString()[0];
+      return static_cast<std::string::value_type>(obj->type()) ^ obj->utype().toString().size() ^ obj->toString().
+             length() ^ obj->toString()[0];
     }
   };
 
@@ -353,14 +381,17 @@ namespace fhatos {
     RecMap<Obj *, Obj *> *_value;
 
   public:
-    Rec(RecMap<Obj *, Obj *> *value) : Obj(OType::REC), _value(value) {
+    Rec(RecMap<Obj *, Obj *> *value, const UType &utype = fURI(OTYPE_STR.at(OType::REC))) : Obj(OType::REC, utype),
+      _value(value) {
     };
 
-    Rec(RecMap<Obj *, Obj *> value) : Obj(OType::REC), _value(new RecMap<Obj *, Obj *>(value)) {
+    Rec(RecMap<Obj *, Obj *> value, const UType &utype = fURI(OTYPE_STR.at(OType::REC))) : Obj(OType::REC, utype),
+      _value(new RecMap<Obj *, Obj *>(value)) {
     };
 
-    Rec(std::initializer_list<Pair<Obj * const, Obj *> > keyValues): Obj(OType::REC),
-                                                                     _value(new RecMap<Obj *, Obj *>()) {
+    Rec(std::initializer_list<Pair<Obj * const, Obj *> > keyValues,
+        const UType &utype = fURI(OTYPE_STR.at(OType::REC))): Obj(OType::REC, utype),
+                                                              _value(new RecMap<Obj *, Obj *>()) {
       for (const Pair<Obj * const, Obj *> pair: keyValues) {
         this->_value->insert(pair);
       }
@@ -383,13 +414,27 @@ namespace fhatos {
       return this->_value;
     }
 
+    bool operator==(const Obj &other) const override {
+      if (this->_type != other.type() || this->_utype != other.utype())
+        return false;
+      if (this->_value->size() != (*(Rec *) &other).value()->size())
+        return false;
+      auto itB = (*(Rec *) &other).value()->begin();
+      for (auto itA = this->_value->begin(); itA != this->_value->end(); ++itA) {
+        if (*itA->first != *itB->first || *itA->second != *itB->second)
+          return false;
+        ++itB;
+      }
+      return true;
+    }
+
     const string toString() const override {
       string t = "!m[!!";
       for (const auto &[k, v]: *this->_value) {
         t = t + k->toString() + "!r=>!!" + v->toString() + ",";
       }
       t[t.length() - 1] = '!';
-      return t.append("m]!!");
+      return this->appendUType(t.append("m]!!"));
     }
   };
 
@@ -532,12 +577,12 @@ namespace fhatos {
 
   public:
     ManyToManyInst(const InstOpcode opcode, const InstArgs args,
-                  const ManyToManyFunction function) : Inst(opcode, args, IType::MANY_TO_MANY),
-                                                      function(function) {
+                   const ManyToManyFunction function) : Inst(opcode, args, IType::MANY_TO_MANY),
+                                                        function(function) {
     }
 
     const Objs *apply(const Obj *obj) const override {
-      return this->function((Objs*)obj);
+      return this->function((Objs *) obj);
     }
   };
 

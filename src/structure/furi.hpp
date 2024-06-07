@@ -146,6 +146,14 @@ namespace fhatos {
       }
     };
 
+    const bool operator==(const fURI &other) const {
+      return this->equals(other);
+    }
+
+    const bool operator!=(const fURI &other) const {
+      return !this->equals(other);
+    }
+
     fURI(const fURI &parent, const char *extension)
       : fURI(parent.toString() + "/" + extension) {
       // this->__segments[this->__length++] = strdup(extension);

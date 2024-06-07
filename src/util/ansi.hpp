@@ -109,8 +109,10 @@ namespace fhatos {
               this->yellow();
             else if ('d' == jj)
               this->black();
-            else
+            else {
               this->_printer->print(buffer[i]);
+              this->_printer->print(buffer[i+1]);
+            }
           }
           i++;
         } else {
