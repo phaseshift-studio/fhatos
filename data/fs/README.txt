@@ -1,1 +1,0 @@
-LittleFS README.txt
