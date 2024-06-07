@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#############################
+## DEFINE GLOBAL VARIABLES ##
+#############################
+NC='\033[0m'
+RED='\033[0;31m'
+BOLDRED='\033[1;31m'
+IRED='\033[0;91m' 
+GREEN='\033[0;32m'
+BOLDGREEN='\033[1;32m'
+MAGENTA='\033[0;35m'
+BLUE='\033[0;34m'
+FHATOS="${MAGENTA}FhatOS${NC}"
+#############################
+
+
+if [[ $1 == "monitor" ]]; then
+    if [[ -z $3 ]]; then
+        baudrate=115200
+    else
+        baudrate=$3
+    fi
+    echo -e "${FHATOS} Monitor $2 with baudrate $baudrate"
+    stty -f $2 $baudrate & cat $2
+   
+elif [[ $1 == "telnet" ]]; then
+    if [[ -z $3 ]]; then
+        port=23
+    else
+        port=$3
+    fi
+    echo -e "${FHATOS} Telnet $2:$port"
+    rlwrap nc $2 $port
+else
+    echo -e "${FHATOS} Command Line Tool
+usage: 
+  fhat monitor /dev/xxxxxx [115200]
+  fhat telnet 127.0.0.1 [23]"
+fi
+
+if [[ $? == 0 ]]; then
+    echo -e "${GREEN}SUCCESS"
+else
+    echo -e "${RED}FAILURE"
+fi

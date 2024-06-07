@@ -1,0 +1,43 @@
+.clang-format
+.clang-tidy
+.vscode
+.pio
+scripts/__pycache__
+*.swp
+.DS_Store
+.wifi.ini
+.idea
+
+# Compiled Object files
+**/.DS_Store
+*.slo
+*.lo
+*.o
+*.obj
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Documentation build
+docs/html
+docs/latex
+
+# CMake files
+**/cmake-build-debug
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/install_manifest.txt
+**/CMakeFiles/
+**/CTestTestfile.cmake
+**/Makefile
+**/*.cbp
+**/CMakeScripts
+**/compile_commands.json
+@ONLY
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+docs/CMakeDoxyfile.in
+_deps/
+include/
