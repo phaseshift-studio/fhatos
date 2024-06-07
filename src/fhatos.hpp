@@ -230,7 +230,7 @@ namespace fhatos {
   ///////////////////
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING INFO
+#define FOS_LOGGING DEBUG
 #endif
 
   inline LOG_TYPE _logging = LOG_TYPE::FOS_LOGGING;

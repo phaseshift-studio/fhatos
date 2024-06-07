@@ -16,6 +16,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+/**
+ *  @file   obj.hpp
+ *  @brief  Foundation objects of mm-ADT
+ *  @author Marko A. Rodriguez
+ *  @date   2024-05-01
+ ***********************************************/
+
 #ifndef fhatos_obj_hpp
 #define fhatos_obj_hpp
 
@@ -515,6 +522,22 @@ namespace fhatos {
 
     const Objs *apply(const Obj *obj) const override {
       return this->function(obj);
+    }
+  };
+
+  /////// ONE TO MANY
+  class ManyToManyInst : public Inst {
+  protected:
+    ManyToManyFunction function;
+
+  public:
+    ManyToManyInst(const InstOpcode opcode, const InstArgs args,
+                  const ManyToManyFunction function) : Inst(opcode, args, IType::MANY_TO_MANY),
+                                                      function(function) {
+    }
+
+    const Objs *apply(const Obj *obj) const override {
+      return this->function((Objs*)obj);
     }
   };
 

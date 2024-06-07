@@ -20,6 +20,10 @@ scripts/__pycache__
 *.out
 *.app
 
+# Documentation build
+# docs/html
+# docs/latex
+
 # CMake files
 **/cmake-build-debug
 **/CMakeCache.txt

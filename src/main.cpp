@@ -26,7 +26,7 @@
 #include FOS_MODULE(kernel/f_kernel.hpp)
 #include FOS_MODULE(kernel/f_lang.hpp)
 #include FOS_MODULE(io/f_log.hpp)
-//#include FOS_MODULE(f_bcode.hpp)
+#include FOS_MODULE(f_bcode.hpp)
 using namespace fhatos;
 
 using namespace fhatos;

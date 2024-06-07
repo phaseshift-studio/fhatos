@@ -50,11 +50,11 @@ namespace fhatos {
       return share<Fluent<> >(Fluent<>(this->parse(line)));
     }
 
-    const ptr<Bytecode> parseBytecode(stringstream *ss) {
-      Fluent<> *fluent = new Fluent<>(this->id());
+    static const ptr<Bytecode> parseBytecode(stringstream *ss) {
+      Fluent<> *fluent = new Fluent<>();
       while (!ss->eof()) {
-        const ptr<string> opcode = this->parseOpcode(ss);
-        const ptr<List<ptr<OBJ_OR_BYTECODE> > > args = this->parseArgs(ss);
+        const ptr<string> opcode = Parser::parseOpcode(ss);
+        const ptr<List<ptr<OBJ_OR_BYTECODE> > > args = Parser::parseArgs(ss);
 
         if (*opcode == "count") {
           fluent = new Fluent(fluent->count());
@@ -102,7 +102,7 @@ namespace fhatos {
       return fluent->bcode;
     }
 
-    const ptr<string> parseOpcode(stringstream *ss) {
+    static const ptr<string> parseOpcode(stringstream *ss) {
       auto opcode = share(string());
       while (std::isspace(ss->peek())) {
         ss->get();
@@ -119,7 +119,7 @@ namespace fhatos {
       return opcode;
     }
 
-    const ptr<List<ptr<OBJ_OR_BYTECODE> > > parseArgs(stringstream *ss) {
+    static const ptr<List<ptr<OBJ_OR_BYTECODE> > > parseArgs(stringstream *ss) {
       const auto args = share(List<ptr<OBJ_OR_BYTECODE> >());
       while (std::isspace(ss->peek())) {
         ss->get();
@@ -137,7 +137,7 @@ namespace fhatos {
         return args;
       }
       while (!ss->eof()) {
-        ptr<OBJ_OR_BYTECODE> argObj = this->parseArg(ss);
+        ptr<OBJ_OR_BYTECODE> argObj = Parser::parseArg(ss);
         args->push_back(argObj);
         LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
             OTYPE_STR.at(argObj->type()));
@@ -149,7 +149,7 @@ namespace fhatos {
       return args;
     }
 
-    const ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
+    static const ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
       string arg;
       int paren = 0;
       int bracket = 0;
@@ -176,7 +176,7 @@ namespace fhatos {
       return parseObj(arg);
     }
 
-    const ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
+    static const ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
       ptr<OBJ_OR_BYTECODE> se;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
@@ -189,11 +189,11 @@ namespace fhatos {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Bool(strcmp("true", token.c_str()) == 0)));
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream *ss = new stringstream(token.length() > 2 ? token.substr(3) : token);
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(this->parseBytecode(ss).get()));
+        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
         delete ss;
       } else if (token[token.length() - 1] == ')' && token.find('(')) {
         stringstream *ss = new stringstream(token);
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(this->parseBytecode(ss).get()));
+        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
         delete ss;
       } else if (token[0] == '[' && token[token.length() - 1] == ']') {
         stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
