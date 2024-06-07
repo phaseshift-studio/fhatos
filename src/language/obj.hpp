@@ -43,21 +43,34 @@
 #endif
 
 namespace fhatos {
+  /// @brief The base types of mm-ADT
   enum class OType : uint8_t {
-    NOOBJ = 0,
-    NOINST,
+    /// The base type of all types is the obj
     OBJ,
+    /// A "null" object type used to kill a processing monad
+    NOOBJ,
     OBJS,
+    /// A boolean mono-type
     BOOL,
+    /// An integral number mono-type in Z
     INT,
+    /// A real number mono-type in R
     REAL,
+    /// A string mono-type denoting a sequence of characters where a "char" is equivalent to str[0]
     STR,
+    /// A Uniform Resource Identifier mono-type
     URI,
+    /// A list poly-type
     LST,
+    /// A key/value pair record poly-type
     REC,
+    /// An instruction type denoting an opcode, arguments, and a function
     INST,
+    /// A "null" instruction type used to halt a processing monad
+    NOINST,
+    /// A sequence of instructions denoting a program
     BYTECODE
-  }; // TYPE
+  };
   static const Map<OType, const char *> OTYPE_STR = {
     {
       {OType::NOOBJ, "noobj"},
@@ -79,6 +92,7 @@ namespace fhatos {
 
   using UType = fURI;
 
+  /// An mm-ADT obj represented in C++ as a class
   class Obj {
   protected:
     const OType _type;
@@ -127,7 +141,7 @@ namespace fhatos {
     }
 
     bool isNoObj() const {
-      return this->type() == OType::NOOBJ;
+      return this->_type == OType::NOOBJ;
     }
   };
 
