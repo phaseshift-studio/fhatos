@@ -25,25 +25,18 @@ jobs:
         with:
           doxyfile-path: "./Doxyfile"
           working-directory: "."
-      - uses: actions/upload-artifact@master
-        with:
-          name: page
-          path: build
-          if-no-files-found: error
   deploy:
-    runs-on: ubuntu-latest
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
-      url: ${{steps.deployment.outputs.page_url}}
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@master
-        with:
-          name: page
-          path: .
-      - uses: actions/configure-pages@v1
-      - uses: actions/upload-pages-artifact@v1
-        with:
-          path: .
-      - id: deployment
-        uses: actions/deploy-pages@main
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
