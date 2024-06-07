@@ -18,17 +18,18 @@ as a process accordingly. FhatOS provides a collection of device drivers and new
 typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and
 actuators.
 
-A simple mm-ADT program is defined below. The program is a specialization of the poly-type `rec` called `thread` (abstractly defined as 
+A simple mm-ADT program is defined below. The program is a specialization of the poly-type `rec` called `thread`, where `thread` is abstractly defined as 
 
 ```xpath
 thread[id       ->uri,
        setup{?} ->bytecode,
        loop{?}  ->bytecode]
 ```
-The `thread` is published `<=` to the `kernel@scheduler` query `?spawn`. The scheduler will spawn the program on an individual `thread` with a **furi** id of `@logger` and a reactive `setup` function that logs any messages published to the `thread` id via a subscription `=>`.
+The `thread` is published `<=` to the `kernel@scheduler` `?spawn` query. The scheduler spawns the program on an individual `thread` with a **furi** id of `@logger` and a reactive `setup` function that logs any messages published to the `thread` id via a subscription `=>`.
 
 ```xpath
 <=(kernel@scheduler?spawn,
         thread::[id    -> @logger,
                  setup -> =>(self.by(id),log(__))])
 ```
+
