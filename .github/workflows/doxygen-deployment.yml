@@ -25,25 +25,25 @@ jobs:
         with:
           doxyfile-path: "./Doxyfile"
           working-directory: "."
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - uses: actions/upload-artifact@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Default Doxyfile build documentation to html directory.
-          # Change the directory if changes in Doxyfile
-          publish_dir: ./docs/html
+          name: page
+          path: build
+          if-no-files-found: error
   deploy:
+    runs-on: ubuntu-latest
     needs: build
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+      url: ${{steps.deployment.outputs.page_url}}
     steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v4
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/download-artifact@master
+        with:
+          name: page
+          path: .
+      - uses: actions/configure-pages@v1
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@main
