@@ -35,5 +35,9 @@ scripts/__pycache__
 **/*.cbp
 **/CMakeScripts
 **/compile_commands.json
+@ONLY
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+docs/CMakeDoxyfile.in
 _deps/
 include/
