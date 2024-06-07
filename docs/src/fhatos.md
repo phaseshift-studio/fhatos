@@ -1,4 +1,5 @@
-# Introduction
+Introduction
+============
 
 **FhatOS** (pronounced _fat_) is
 a [distributed operating system](https://en.wikipedia.org/wiki/Distributed_operating_system)
@@ -9,7 +10,8 @@ processes exist within a single [URI](https://en.wikipedia.org/wiki/Uniform_Reso
 rides atop [MQTT](https://en.wikipedia.org/wiki/MQTT) with various levels of access from thread local, to machine local
 and ultimately, globally via cluster remote.
 
-## Software and Device Drivers
+Software and Device Drivers
+---------------------------
 
 FhatOS software can be written in C/C++ or mm-ADT (multi-model abstract data type). mm-ADT is a cluster-oriented
 programming language and virtual machine founded on 5 _mono-types_ (**bool**, **int**, **real**, **uri**, and **str**)
@@ -20,7 +22,7 @@ actuators.
 
 A simple mm-ADT program is defined below. The program is a specialization of the poly-type `rec` called `thread`, where `thread` is abstractly defined as 
 
-~~~~~~~~~~~~~~~{.java}
+~~~~~~~~~~~~~~~{.cpp}
 thread<-rec::[id       ->uri,
               setup{?} ->bytecode,
               loop{?}  ->bytecode]
@@ -28,7 +30,7 @@ thread<-rec::[id       ->uri,
 
 The `thread` is published `<=` to the `kernel@scheduler` `?spawn` query. The scheduler spawns the program on an individual `thread` with a **furi** id of `@logger` and a reactive `setup` function that logs any messages published to the `thread` id via a subscription `=>`.
 
-~~~~~~~~~~~~~~~{.java}
+~~~~~~~~~~~~~~~{.cpp}
 <=(kernel@scheduler?spawn,
         thread::[id    -> @logger,
                  setup -> =>(self.by(id),log(__))])
