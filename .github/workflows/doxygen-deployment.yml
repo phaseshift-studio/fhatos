@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out yr repository under $GITHUB_WORKSPACE, so your job can access itou
