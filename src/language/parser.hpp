@@ -180,33 +180,34 @@ namespace fhatos {
       char *array; //[token2.length()];
       array = strdup(token2.c_str());
       string token = string(array);
-      ptr<OBJ_OR_BYTECODE> se;
+      ptr<OBJ_OR_BYTECODE> obj_or_bcode;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
-      int index = token.find("::");
+      int index = token.find("[");
       fURI *utype = nullptr;
-      if (index != string::npos) {
+      if (index != string::npos && index != 0 && token.back() == ']') {
         utype = new fURI(token.substr(0, index));
-        token = token.substr(index + 2);
-        LOG(DEBUG, FOS_TAB_5 "!yutype!!: %s\n", utype->toString().c_str());
+        token.pop_back();
+        token = token.substr(index + 1);
+        LOG(DEBUG, FOS_TAB_5 "typed stripped token: %s\n", token.c_str());
       }
       if (strcmp(token.c_str(), "Ø") == 0) {
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(NoObj::singleton()));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(NoObj::singleton()));
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Str(token.substr(1, token.length() - 2))));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Str(token.substr(1, token.length() - 2))));
         // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Bool(strcmp("true", token.c_str()) == 0)));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Bool(strcmp("true", token.c_str()) == 0)));
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream *ss = new stringstream(token.length() > 2 ? token.substr(3) : token);
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
         delete ss;
       } else if (token[token.length() - 1] == ')' && token.find('(')) {
         stringstream *ss = new stringstream(token);
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
         delete ss;
-      } else if (token[0] == '[' && token[token.length() - 1] == ']') {
-        stringstream *ss = new stringstream(token.substr(1, token.length() - 2));
+      } else if (token.find("=>") != string::npos /*token[0] == '[' && token[token.length() - 1] == ']'*/) {
+        stringstream *ss = new stringstream(token[0] == '[' ? token.substr(1, token.length() - 2) : token);
         string first;
         OType type = OType::LST;
         while (!ss->eof()) {
@@ -290,21 +291,29 @@ namespace fhatos {
             map2->insert(pair);
           }
           delete ss;
-          se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Rec(map2)));
+          obj_or_bcode = share<OBJ_OR_BYTECODE>(
+            OBJ_OR_BYTECODE(new Rec(map2, utype)));
         }
       } else if
       (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Real(stof(token))));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Real(stof(token), utype)));
       } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
-        se = share<OBJ_OR_BYTECODE>(
-          OBJ_OR_BYTECODE(new Int(stoi(token), utype ? *utype : fURI(OTYPE_STR.at(OType::INT)))));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(
+          OBJ_OR_BYTECODE(new Int(stoi(token), utype)));
       } else {
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token))));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token), utype)));
       }
+
+      LOG(DEBUG, FOS_TAB_5 "!ytype!![%s] !yutype!![%s]\n",
+          OTYPE_STR.at(obj_or_bcode->type()),
+          utype ?
+          utype->toString().c_str() :
+          "null");
+
       delete array;
-      if (utype)
-        delete utype;
-      return se;
+      // if (utype)
+      // delete utype;
+      return obj_or_bcode;
     }
   };
 }
