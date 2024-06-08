@@ -176,11 +176,21 @@ namespace fhatos {
       return parseObj(arg);
     }
 
-    static const ptr<OBJ_OR_BYTECODE> parseObj(const string &token) {
+    static const ptr<OBJ_OR_BYTECODE> parseObj(const string &token2) {
+      char *array; //[token2.length()];
+      array = strdup(token2.c_str());
+      string token = string(array);
       ptr<OBJ_OR_BYTECODE> se;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
-      if (token == "Ø") {
+      int index = token.find("::");
+      fURI *utype = nullptr;
+      if (index != string::npos) {
+        utype = new fURI(token.substr(0, index));
+        token = token.substr(index + 2);
+        LOG(DEBUG, FOS_TAB_5 "!yutype!!: %s\n", utype->toString().c_str());
+      }
+      if (strcmp(token.c_str(), "Ø") == 0) {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(NoObj::singleton()));
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Str(token.substr(1, token.length() - 2))));
@@ -286,10 +296,14 @@ namespace fhatos {
       (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Real(stof(token))));
       } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
-        se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Int(stoi(token))));
+        se = share<OBJ_OR_BYTECODE>(
+          OBJ_OR_BYTECODE(new Int(stoi(token), utype ? *utype : fURI(OTYPE_STR.at(OType::INT)))));
       } else {
         se = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token))));
       }
+      delete array;
+      if (utype)
+        delete utype;
       return se;
     }
   };

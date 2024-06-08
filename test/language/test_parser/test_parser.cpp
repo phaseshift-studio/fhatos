@@ -81,6 +81,14 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(pair.second, i->value());
       delete i;
     }
+    for (auto pair: List<Pair<string, Int> >({{"nat::100", Int(100, fURI("nat"))}, {"nat::0", Int(0, fURI("nat"))},
+                                              {"nat::-100", Int(-100, fURI("nat"))}})) {
+      const Int *i = parser->parseObj(pair.first)->cast<Int>();
+      TEST_ASSERT_EQUAL(OType::INT, i->type());
+      TEST_ASSERT_TRUE(fURI("nat") == i->utype());
+      TEST_ASSERT_EQUAL_INT(pair.second.value(), i->value());
+      delete i;
+    }
     // REAL
     for (auto pair: List<Pair<string, float> >({{"45.54", 45.54}, {"0.0", 0.0}, {"-12.534678", -12.534678}})) {
       const Real *r = parser->parseObj(pair.first)->cast<Real>();
