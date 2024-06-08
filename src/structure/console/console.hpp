@@ -95,13 +95,11 @@ namespace fhatos {
       if (obj->type() == OType::REC)
         this->printRec((Rec *) obj);
       else
-        this->ansi->printf("!g==!!>%s [!y%s!!]\n",
-                           obj->toString().c_str(),
-                           OTYPE_STR.at(obj->type()));
+        this->ansi->printf("!g==!!>%s\n", obj->toString().c_str());
     }
 
     void printRec(const Rec *rec, int i = 0) const {
-      this->ansi->printf("!g==!!>!r[!!");
+      this->ansi->printf("!g==!!>%s[", rec->utype() ? rec->utype()->toString().c_str() : "");
       const int size = rec->value()->size();
       for (const auto &[key,value]: *rec->value()) {
         if (i > 0)
