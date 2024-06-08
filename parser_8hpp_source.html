@@ -277,152 +277,161 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      <span class="keywordtype">char</span> *array; <span class="comment">//[token2.length()];</span></div>
 <div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>      array = strdup(token2.c_str());</div>
 <div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      <span class="keywordtype">string</span> token = string(array);</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      ptr&lt;OBJ_OR_BYTECODE&gt; se;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      ptr&lt;OBJ_OR_BYTECODE&gt; obj_or_bcode;</div>
 <div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>      LOG(DEBUG, FOS_TAB_4 <span class="stringliteral">&quot;!rTOKEN!!: %s\n&quot;</span>, token.c_str());</div>
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      StringHelper::trim(token);</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>      <span class="keywordtype">int</span> index = token.find(<span class="stringliteral">&quot;::&quot;</span>);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>      <span class="keywordtype">int</span> index = token.find(<span class="stringliteral">&quot;[&quot;</span>);</div>
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>      <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a> *utype = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      <span class="keywordflow">if</span> (index != string::npos) {</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      <span class="keywordflow">if</span> (index != string::npos &amp;&amp; index != 0 &amp;&amp; token.back() == <span class="charliteral">&#39;]&#39;</span>) {</div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        utype = <span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(token.substr(0, index));</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        token = token.substr(index + 2);</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        LOG(DEBUG, FOS_TAB_5 <span class="stringliteral">&quot;!yutype!!: %s\n&quot;</span>, utype-&gt;toString().c_str());</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      }</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      <span class="keywordflow">if</span> (strcmp(token.c_str(), <span class="stringliteral">&quot;Ø&quot;</span>) == 0) {</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(NoObj::singleton()));</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;\&#39;&#39;</span> &amp;&amp; token[token.length() - 1] == <span class="charliteral">&#39;\&#39;&#39;</span>) {</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Str.html">Str</a>(token.substr(1, token.length() - 2))));</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>        <span class="comment">// might be wrong indices</span></div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (strcmp(<span class="stringliteral">&quot;true&quot;</span>, token.c_str()) == 0 || strcmp(<span class="stringliteral">&quot;false&quot;</span>, token.c_str()) == 0) {</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Bool.html">Bool</a>(strcmp(<span class="stringliteral">&quot;true&quot;</span>, token.c_str()) == 0)));</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;_&#39;</span> &amp;&amp; token[1] == <span class="charliteral">&#39;_&#39;</span>) {</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        stringstream *ss = <span class="keyword">new</span> stringstream(token.length() &gt; 2 ? token.substr(3) : token);</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(Parser::parseBytecode(ss).get()));</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        <span class="keyword">delete</span> ss;</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[token.length() - 1] == <span class="charliteral">&#39;)&#39;</span> &amp;&amp; token.find(<span class="charliteral">&#39;(&#39;</span>)) {</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        stringstream *ss = <span class="keyword">new</span> stringstream(token);</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(Parser::parseBytecode(ss).get()));</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        <span class="keyword">delete</span> ss;</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;[&#39;</span> &amp;&amp; token[token.length() - 1] == <span class="charliteral">&#39;]&#39;</span>) {</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        stringstream *ss = <span class="keyword">new</span> stringstream(token.substr(1, token.length() - 2));</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        <span class="keywordtype">string</span> first;</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        <a class="code hl_enumeration" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> type = OType::LST;</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>          <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;|&#39;</span>) {</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>            type = OType::INST;</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>            ss-&gt;get();</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>          } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (StringHelper::lookAhead(<span class="stringliteral">&quot;=&gt;&quot;</span>, ss)) {</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>            type = OType::REC;</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>          } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;,&#39;</span>) {</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>            type = OType::LST;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            ss-&gt;get();</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>          }</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>          first += ss-&gt;get();</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>        }</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>        StringHelper::trim(first);</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        <span class="keywordflow">if</span> (type == OType::INST) {</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>          <span class="keywordtype">string</span> opcode = first;</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>          List&lt;ptr&lt;OBJ_OR_BYTECODE&gt; &gt; args = List&lt;ptr&lt;OBJ_OR_BYTECODE&gt; &gt;();</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>          <span class="keywordtype">string</span> arg;</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>          <span class="keywordtype">int</span> bracketCounter = 0;</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>          <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>            <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>) {</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>              ss-&gt;get();</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>              <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>            } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;,&#39;</span> &amp;&amp; bracketCounter == 0) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>              ss-&gt;get();</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>              args.push_back(parseObj(arg));</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>              arg.clear();</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>            }</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>            <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;[&#39;</span>) {</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>              bracketCounter++;</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>            } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>) {</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>              bracketCounter--;</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>            }</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            arg += ss-&gt;get();</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>          }</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>          <span class="comment">//</span></div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == OType::REC) {</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>          RecMap&lt;Obj *, Obj *&gt; map = RecMap&lt;Obj *, Obj *&gt;();</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>          <span class="keywordtype">bool</span> onKey = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>          <span class="keywordtype">string</span> key = first;</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>          <span class="keywordtype">string</span> value;</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>          <span class="keywordtype">int</span> bracketCounter = 0;</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>          <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>            <span class="keywordflow">if</span> (onKey) {</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>              <span class="keywordflow">if</span> (bracketCounter == 0 &amp;&amp; StringHelper::lookAhead(<span class="stringliteral">&quot;=&gt;&quot;</span>, ss)) {</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>                onKey = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>              } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;[&#39;</span>)</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>                  bracketCounter++;</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>)</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>                  bracketCounter--;</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>                <span class="keywordflow">if</span> (!ss-&gt;eof())</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>                  key += ss-&gt;get();</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>              }</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>              <span class="keywordflow">if</span> (bracketCounter == 0 &amp;&amp; ss-&gt;peek() == <span class="charliteral">&#39;,&#39;</span>) {</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>                ss-&gt;get(); <span class="comment">// drop k/v separating comma</span></div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>                onKey = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>                map.insert({parseObj(key)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;(), parseObj(value)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;()});</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>                key.clear();</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>                value.clear();</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>              } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;[&#39;</span>)</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>                  bracketCounter++;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>)</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>                  bracketCounter--;</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>                <span class="keywordflow">if</span> (!ss-&gt;eof())</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>                  value += ss-&gt;get();</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>              }</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>            }</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>          }</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>          map.insert({parseObj(key)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;(), parseObj(value)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;()});</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>          RecMap&lt;Obj *, Obj *&gt; *map2 = <span class="keyword">new</span> RecMap&lt;Obj *, Obj *&gt;(); <span class="comment">// necessary to revese entries</span></div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>          <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;pair: map) {</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>            map2-&gt;insert(pair);</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>          }</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>          <span class="keyword">delete</span> ss;</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>          se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Rec.html">Rec</a>(map2)));</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>        }</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span></div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>      (((token[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; isdigit(token[1])) || isdigit(token[0])) &amp;&amp; token.find(<span class="charliteral">&#39;.&#39;</span>) != string::npos) {</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Real.html">Real</a>(stof(token))));</div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((token[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; isdigit(token[1])) || isdigit(token[0])) {</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>          <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Int.html">Int</a>(stoi(token), utype ? *utype : <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(OTYPE_STR.at(OType::INT)))));</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        se = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Uri.html">Uri</a>(<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(token))));</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>      }</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>      <span class="keyword">delete</span> array;</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>      <span class="keywordflow">if</span> (utype)</div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        <span class="keyword">delete</span> utype;</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>      <span class="keywordflow">return</span> se;</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>    }</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>  };</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        token.pop_back();</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        token = token.substr(index + 1);</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        LOG(DEBUG, FOS_TAB_5 <span class="stringliteral">&quot;typed stripped token: %s\n&quot;</span>, token.c_str());</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      }</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      <span class="keywordflow">if</span> (strcmp(token.c_str(), <span class="stringliteral">&quot;Ø&quot;</span>) == 0) {</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(NoObj::singleton()));</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;\&#39;&#39;</span> &amp;&amp; token[token.length() - 1] == <span class="charliteral">&#39;\&#39;&#39;</span>) {</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Str.html">Str</a>(token.substr(1, token.length() - 2))));</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>        <span class="comment">// might be wrong indices</span></div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (strcmp(<span class="stringliteral">&quot;true&quot;</span>, token.c_str()) == 0 || strcmp(<span class="stringliteral">&quot;false&quot;</span>, token.c_str()) == 0) {</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Bool.html">Bool</a>(strcmp(<span class="stringliteral">&quot;true&quot;</span>, token.c_str()) == 0)));</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;_&#39;</span> &amp;&amp; token[1] == <span class="charliteral">&#39;_&#39;</span>) {</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>        stringstream *ss = <span class="keyword">new</span> stringstream(token.length() &gt; 2 ? token.substr(3) : token);</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(Parser::parseBytecode(ss).get()));</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        <span class="keyword">delete</span> ss;</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[token.length() - 1] == <span class="charliteral">&#39;)&#39;</span> &amp;&amp; token.find(<span class="charliteral">&#39;(&#39;</span>)) {</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        stringstream *ss = <span class="keyword">new</span> stringstream(token);</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(Parser::parseBytecode(ss).get()));</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>        <span class="keyword">delete</span> ss;</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token.find(<span class="stringliteral">&quot;=&gt;&quot;</span>) != string::npos <span class="comment">/*token[0] == &#39;[&#39; &amp;&amp; token[token.length() - 1] == &#39;]&#39;*/</span>) {</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        stringstream *ss = <span class="keyword">new</span> stringstream(token[0] == <span class="charliteral">&#39;[&#39;</span> ? token.substr(1, token.length() - 2) : token);</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        <span class="keywordtype">string</span> first;</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        <a class="code hl_enumeration" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> type = OType::LST;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>          <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;|&#39;</span>) {</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>            type = OType::INST;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>            ss-&gt;get();</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>          } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (StringHelper::lookAhead(<span class="stringliteral">&quot;=&gt;&quot;</span>, ss)) {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>            type = OType::REC;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>          } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;,&#39;</span>) {</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            type = OType::LST;</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>            ss-&gt;get();</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>          }</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>          first += ss-&gt;get();</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>        }</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        StringHelper::trim(first);</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>        <span class="keywordflow">if</span> (type == OType::INST) {</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>          <span class="keywordtype">string</span> opcode = first;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>          List&lt;ptr&lt;OBJ_OR_BYTECODE&gt; &gt; args = List&lt;ptr&lt;OBJ_OR_BYTECODE&gt; &gt;();</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>          <span class="keywordtype">string</span> arg;</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>          <span class="keywordtype">int</span> bracketCounter = 0;</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>          <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>            <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>) {</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>              ss-&gt;get();</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>              <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>            } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;,&#39;</span> &amp;&amp; bracketCounter == 0) {</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>              ss-&gt;get();</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>              args.push_back(parseObj(arg));</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>              arg.clear();</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>            }</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>            <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;[&#39;</span>) {</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>              bracketCounter++;</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>            } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>) {</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>              bracketCounter--;</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            }</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>            arg += ss-&gt;get();</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>          }</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>          <span class="comment">//</span></div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == OType::REC) {</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>          RecMap&lt;Obj *, Obj *&gt; map = RecMap&lt;Obj *, Obj *&gt;();</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>          <span class="keywordtype">bool</span> onKey = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>          <span class="keywordtype">string</span> key = first;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>          <span class="keywordtype">string</span> value;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>          <span class="keywordtype">int</span> bracketCounter = 0;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>          <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>            <span class="keywordflow">if</span> (onKey) {</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>              <span class="keywordflow">if</span> (bracketCounter == 0 &amp;&amp; StringHelper::lookAhead(<span class="stringliteral">&quot;=&gt;&quot;</span>, ss)) {</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>                onKey = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>              } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;[&#39;</span>)</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>                  bracketCounter++;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>)</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>                  bracketCounter--;</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>                <span class="keywordflow">if</span> (!ss-&gt;eof())</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>                  key += ss-&gt;get();</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>              }</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>              <span class="keywordflow">if</span> (bracketCounter == 0 &amp;&amp; ss-&gt;peek() == <span class="charliteral">&#39;,&#39;</span>) {</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>                ss-&gt;get(); <span class="comment">// drop k/v separating comma</span></div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>                onKey = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>                map.insert({parseObj(key)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;(), parseObj(value)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;()});</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>                key.clear();</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>                value.clear();</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>              } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;[&#39;</span>)</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>                  bracketCounter++;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>                <span class="keywordflow">if</span> (ss-&gt;peek() == <span class="charliteral">&#39;]&#39;</span>)</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>                  bracketCounter--;</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>                <span class="keywordflow">if</span> (!ss-&gt;eof())</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>                  value += ss-&gt;get();</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>              }</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>            }</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>          }</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>          map.insert({parseObj(key)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;(), parseObj(value)-&gt;cast&lt;<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>&gt;()});</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>          RecMap&lt;Obj *, Obj *&gt; *map2 = <span class="keyword">new</span> RecMap&lt;Obj *, Obj *&gt;(); <span class="comment">// necessary to revese entries</span></div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>          <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;pair: map) {</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>            map2-&gt;insert(pair);</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>          }</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>          <span class="keyword">delete</span> ss;</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>          obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>            <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Rec.html">Rec</a>(map2, utype)));</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>        }</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>      (((token[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; isdigit(token[1])) || isdigit(token[0])) &amp;&amp; token.find(<span class="charliteral">&#39;.&#39;</span>) != string::npos) {</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Real.html">Real</a>(stof(token), utype)));</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((token[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; isdigit(token[1])) || isdigit(token[0])) {</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>          <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Int.html">Int</a>(stoi(token), utype)));</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        obj_or_bcode = share&lt;OBJ_OR_BYTECODE&gt;(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Uri.html">Uri</a>(<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(token), utype)));</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>      }</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>      LOG(DEBUG, FOS_TAB_5 <span class="stringliteral">&quot;!ytype!![%s] !yutype!![%s]\n&quot;</span>,</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>          OTYPE_STR.at(obj_or_bcode-&gt;type()),</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>          utype ?</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>          utype-&gt;toString().c_str() :</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>          <span class="stringliteral">&quot;null&quot;</span>);</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span> </div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>      <span class="keyword">delete</span> array;</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>      <span class="comment">// if (utype)</span></div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>      <span class="comment">// delete utype;</span></div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>      <span class="keywordflow">return</span> obj_or_bcode;</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    }</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  };</div>
 </div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>}</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> obj.hpp:239</div></div>
-<div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> obj.hpp:604</div></div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>}</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> obj.hpp:240</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> obj.hpp:606</div></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:31</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:360</div></div>
 <div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:416</div></div>
-<div class="ttc" id="aclassfhatos_1_1Int_html"><div class="ttname"><a href="classfhatos_1_1Int.html">fhatos::Int</a></div><div class="ttdef"><b>Definition</b> obj.hpp:266</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:96</div></div>
+<div class="ttc" id="aclassfhatos_1_1Int_html"><div class="ttname"><a href="classfhatos_1_1Int.html">fhatos::Int</a></div><div class="ttdef"><b>Definition</b> obj.hpp:267</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:97</div></div>
 <div class="ttc" id="aclassfhatos_1_1Parser_html"><div class="ttname"><a href="classfhatos_1_1Parser.html">fhatos::Parser</a></div><div class="ttdef"><b>Definition</b> parser.hpp:31</div></div>
-<div class="ttc" id="aclassfhatos_1_1Real_html"><div class="ttname"><a href="classfhatos_1_1Real.html">fhatos::Real</a></div><div class="ttdef"><b>Definition</b> obj.hpp:292</div></div>
-<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> obj.hpp:393</div></div>
-<div class="ttc" id="aclassfhatos_1_1Str_html"><div class="ttname"><a href="classfhatos_1_1Str.html">fhatos::Str</a></div><div class="ttdef"><b>Definition</b> obj.hpp:316</div></div>
-<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> obj.hpp:200</div></div>
+<div class="ttc" id="aclassfhatos_1_1Real_html"><div class="ttname"><a href="classfhatos_1_1Real.html">fhatos::Real</a></div><div class="ttdef"><b>Definition</b> obj.hpp:293</div></div>
+<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> obj.hpp:395</div></div>
+<div class="ttc" id="aclassfhatos_1_1Str_html"><div class="ttname"><a href="classfhatos_1_1Str.html">fhatos::Str</a></div><div class="ttdef"><b>Definition</b> obj.hpp:317</div></div>
+<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> obj.hpp:201</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:30</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:93</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 <div class="ttc" id="aobj_8hpp_html_a48680c360c0948acdfc2bab032a0139e"><div class="ttname"><a href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">fhatos::OType</a></div><div class="ttdeci">OType</div><div class="ttdoc">The base types of mm-ADT.</div><div class="ttdef"><b>Definition</b> obj.hpp:47</div></div>
-<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:670</div></div>
-<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:795</div></div>
+<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:672</div></div>
+<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:797</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
