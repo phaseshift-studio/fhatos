@@ -159,61 +159,59 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>          <span class="keywordflow">try</span> {</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>            <span class="keyword">const</span> ptr&lt;Fluent&lt;&gt; &gt; fluent = this-&gt;parser-&gt;parseToFluent(line.c_str());</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>            this-&gt;printResults(fluent);</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>          } <span class="keywordflow">catch</span> (std::exception ex) {</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>          } <span class="keywordflow">catch</span> (fError ex) {</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>            <span class="comment">// do nothing (log error for now)</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            <span class="comment">// this-&gt;printException(ex);</span></div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>          }</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        }</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      }</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    }</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordtype">void</span> stop()<span class="keyword"> override </span>{</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      Thread::stop();</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    }</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">void</span> printException(<span class="keyword">const</span> std::exception &amp;ex)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;[!rERROR!!] %s\n&quot;</span>, ex.what());</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    }</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordtype">void</span> printPrompt()<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      this-&gt;ansi-&gt;print(<span class="stringliteral">&quot;!mfhatos!!&gt; &quot;</span>);</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    }</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keywordtype">void</span> printResults(<span class="keyword">const</span> ptr&lt;Fluent&lt;&gt; &gt; &amp;fluent)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      fluent-&gt;forEach&lt;Obj&gt;([<span class="keyword">this</span>](<span class="keyword">const</span> Obj *obj) {</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        this-&gt;printResult(obj);</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      });</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    }</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            LOG(ERROR, <span class="stringliteral">&quot;%s\n&quot;</span>, ex.what());</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            <span class="comment">//this-&gt;printException(ex);</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>          }</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        }</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    }</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordtype">void</span> stop()<span class="keyword"> override </span>{</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      Thread::stop();</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    }</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordtype">void</span> printException(<span class="keyword">const</span> std::exception &amp;ex)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;[!rERROR!!] %s\n&quot;</span>, ex.what());</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    }</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keywordtype">void</span> printPrompt()<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      this-&gt;ansi-&gt;print(<span class="stringliteral">&quot;!mfhatos!!&gt; &quot;</span>);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    }</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordtype">void</span> printResults(<span class="keyword">const</span> ptr&lt;Fluent&lt;&gt; &gt; &amp;fluent)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      fluent-&gt;forEach&lt;Obj&gt;([<span class="keyword">this</span>](<span class="keyword">const</span> Obj *obj) {</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        this-&gt;printResult(obj);</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      });</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">void</span> printResult(<span class="keyword">const</span> Obj *obj)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      <span class="keywordflow">if</span> (obj-&gt;type() == OType::REC)</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        this-&gt;printRec((Rec *) obj);</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;!g==!!&gt;%s [!y%s!!]\n&quot;</span>,</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>                           obj-&gt;toString().c_str(),</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>                           OTYPE_STR.at(obj-&gt;type()));</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    }</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordtype">void</span> printRec(<span class="keyword">const</span> Rec *rec, <span class="keywordtype">int</span> i = 0)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>      this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;!g==!!&gt;!r[!!&quot;</span>);</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>      <span class="keyword">const</span> <span class="keywordtype">int</span> size = rec-&gt;value()-&gt;size();</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[key,value]: *rec-&gt;value()) {</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        <span class="keywordflow">if</span> (i &gt; 0)</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>          this-&gt;ansi-&gt;print(<span class="stringliteral">&quot;    &quot;</span>);</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;%s [!y%s!!] !b=&gt;!! %s [!y%s!!]&quot;</span>, key-&gt;toString().c_str(), OTYPE_STR.at(key-&gt;type()),</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>                           value-&gt;toString().c_str(), OTYPE_STR.at(value-&gt;type()));</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        i++;</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        <span class="keywordflow">if</span> (i &lt; size) {</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>          this-&gt;ansi-&gt;print(<span class="stringliteral">&quot;\n&quot;</span>);</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        }</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>      }</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;!r]!! [!y%s!!]\n&quot;</span>, OTYPE_STR.at(rec-&gt;type()));</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    }</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  };</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>}</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">void</span> printResult(<span class="keyword">const</span> Obj *obj)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      <span class="keywordflow">if</span> (obj-&gt;type() == OType::REC)</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        this-&gt;printRec((Rec *) obj);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>        this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;!g==!!&gt;%s\n&quot;</span>, obj-&gt;toString().c_str());</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    }</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    <span class="keywordtype">void</span> printRec(<span class="keyword">const</span> Rec *rec, <span class="keywordtype">int</span> i = 0)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;!g==!!&gt;!y%s!![&quot;</span>, rec-&gt;utype() ? rec-&gt;utype()-&gt;toString().c_str() : <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>      <span class="keyword">const</span> <span class="keywordtype">int</span> size = rec-&gt;value()-&gt;size();</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[key,value]: *rec-&gt;value()) {</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>        <span class="keywordflow">if</span> (i &gt; 0)</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>          this-&gt;ansi-&gt;print(<span class="stringliteral">&quot;    &quot;</span>);</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;%s !b=&gt;!! %s&quot;</span>, key-&gt;toString().c_str(), value-&gt;toString().c_str());</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        i++;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        <span class="keywordflow">if</span> (i &lt; size) {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>          this-&gt;ansi-&gt;print(<span class="stringliteral">&quot;\n&quot;</span>);</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        }</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      }</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      this-&gt;ansi-&gt;printf(<span class="stringliteral">&quot;]\n&quot;</span>);</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    }</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  };</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>}</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span><span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -222,15 +222,15 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> ref(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;uri) {</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1ReferenceInst.html">ReferenceInst&lt;ROUTER&gt;</a>(uri, this-&gt;bcode-&gt;id()));</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1ReferenceInst.html">ReferenceInst&lt;ROUTER&gt;</a>(uri));</div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    }</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> dref(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;uri) {</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1DereferenceInst.html">DereferenceInst&lt;ROUTER&gt;</a>(uri, this-&gt;bcode-&gt;id()));</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1DereferenceInst.html">DereferenceInst&lt;ROUTER&gt;</a>(uri));</div>
 <div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    }</div>
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> explain() {</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1ExplainInst.html">ExplainInst</a>(<a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a>(this-&gt;bcode.get())));</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1ExplainInst.html">ExplainInst</a>());</div>
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    }</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
 <div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> count() {</div>
@@ -266,58 +266,68 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> subscribe(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;pattern, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;onRecv)<span class="keyword"> const </span>{</div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1SubscribeInst.html">SubscribeInst</a>(pattern, onRecv, this-&gt;bcode-&gt;id()));</div>
 <div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    }</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  };</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span> </div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> type(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;utype)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1TypeInst.html">TypeInst&lt;ROUTER&gt;</a>(utype));</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    }</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> define(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;utype, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;typeDefinition)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>      <span class="keywordflow">return</span> this-&gt;addInst(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1DefineInst.html">DefineInst&lt;ROUTER&gt;</a>(utype, typeDefinition));</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  };</div>
 </div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span> </div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span> </div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  <span class="keyword">static</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a> __(<span class="keyword">const</span> List&lt;OBJ_OR_BYTECODE&gt; &amp;starts) {</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <span class="keywordflow">if</span> (starts.empty()) {</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>      <span class="keywordflow">return</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a>(share&lt;Bytecode&gt;(<a class="code hl_class" href="classfhatos_1_1Bytecode.html">Bytecode</a>(<span class="keyword">new</span> List&lt;Inst *&gt;()))); <span class="comment">// TODO: remove unnecesary [start]?</span></div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      List&lt;Obj *&gt; *castStarts = <span class="keyword">new</span> List&lt;Obj *&gt;();</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      <span class="keywordflow">for</span> (OBJ_OR_BYTECODE se: starts) {</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        castStarts-&gt;push_back(se.cast&lt;&gt;());</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>      }</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>      <span class="keywordflow">return</span> Fluent&lt;&gt;(</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        share&lt;Bytecode&gt;(Bytecode(<span class="keyword">new</span> List&lt;Inst *&gt;({<span class="keyword">new</span> StartInst(castStarts)}))));</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    }</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  };</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span> </div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  <span class="keyword">static</span> Fluent&lt;&gt; __(<span class="keyword">const</span> OBJ_OR_BYTECODE &amp;start) {</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    <span class="keywordflow">return</span> Fluent&lt;&gt;(share&lt;Bytecode&gt;(Bytecode(<span class="keyword">new</span> List&lt;Inst *&gt;({</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>      <span class="keyword">new</span> StartInst(<span class="keyword">new</span> List&lt;Obj *&gt;{start.cast&lt;&gt;()})</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    }))));</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  };</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  <span class="keyword">static</span> Fluent&lt;&gt; __() { <span class="keywordflow">return</span> __(List&lt;OBJ_OR_BYTECODE&gt;{}); };</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <span class="keyword">static</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a> __(<span class="keyword">const</span> List&lt;OBJ_OR_BYTECODE&gt; &amp;starts) {</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <span class="keywordflow">if</span> (starts.empty()) {</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>      <span class="keywordflow">return</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a>(share&lt;Bytecode&gt;(<a class="code hl_class" href="classfhatos_1_1Bytecode.html">Bytecode</a>(<span class="keyword">new</span> List&lt;Inst *&gt;()))); <span class="comment">// TODO: remove unnecesary [start]?</span></div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>      List&lt;Obj *&gt; *castStarts = <span class="keyword">new</span> List&lt;Obj *&gt;();</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>      <span class="keywordflow">for</span> (OBJ_OR_BYTECODE se: starts) {</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        castStarts-&gt;push_back(se.cast&lt;&gt;());</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>      }</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>      <span class="keywordflow">return</span> Fluent&lt;&gt;(</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        share&lt;Bytecode&gt;(Bytecode(<span class="keyword">new</span> List&lt;Inst *&gt;({<span class="keyword">new</span> StartInst(castStarts)}))));</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    }</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  };</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
 <div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="keyword">inline</span> <span class="keyword">static</span> Fluent&lt;&gt; _ = __();</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span> </div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1BranchInst_html"><div class="ttname"><a href="classfhatos_1_1BranchInst.html">fhatos::BranchInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:98</div></div>
-<div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> obj.hpp:606</div></div>
-<div class="ttc" id="aclassfhatos_1_1CompositionInst_html"><div class="ttname"><a href="classfhatos_1_1CompositionInst.html">fhatos::CompositionInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:214</div></div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="keyword">static</span> Fluent&lt;&gt; __(<span class="keyword">const</span> OBJ_OR_BYTECODE &amp;start) {</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="keywordflow">return</span> Fluent&lt;&gt;(share&lt;Bytecode&gt;(Bytecode(<span class="keyword">new</span> List&lt;Inst *&gt;({</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>      <span class="keyword">new</span> StartInst(<span class="keyword">new</span> List&lt;Obj *&gt;{start.cast&lt;&gt;()})</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    }))));</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  };</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span> </div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  <span class="keyword">static</span> Fluent&lt;&gt; __() { <span class="keywordflow">return</span> __(List&lt;OBJ_OR_BYTECODE&gt;{}); };</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span> </div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <span class="keyword">inline</span> <span class="keyword">static</span> Fluent&lt;&gt; _ = __();</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span> </div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aclassfhatos_1_1BranchInst_html"><div class="ttname"><a href="classfhatos_1_1BranchInst.html">fhatos::BranchInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:138</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> obj.hpp:620</div></div>
+<div class="ttc" id="aclassfhatos_1_1CompositionInst_html"><div class="ttname"><a href="classfhatos_1_1CompositionInst.html">fhatos::CompositionInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:234</div></div>
 <div class="ttc" id="aclassfhatos_1_1CountInst_html"><div class="ttname"><a href="classfhatos_1_1CountInst.html">fhatos::CountInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:72</div></div>
-<div class="ttc" id="aclassfhatos_1_1DereferenceInst_html"><div class="ttname"><a href="classfhatos_1_1DereferenceInst.html">fhatos::DereferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:135</div></div>
+<div class="ttc" id="aclassfhatos_1_1DefineInst_html"><div class="ttname"><a href="classfhatos_1_1DefineInst.html">fhatos::DefineInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:106</div></div>
+<div class="ttc" id="aclassfhatos_1_1DereferenceInst_html"><div class="ttname"><a href="classfhatos_1_1DereferenceInst.html">fhatos::DereferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:173</div></div>
 <div class="ttc" id="aclassfhatos_1_1ExplainInst_html"><div class="ttname"><a href="classfhatos_1_1ExplainInst.html">fhatos::ExplainInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:61</div></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:31</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:360</div></div>
-<div class="ttc" id="aclassfhatos_1_1Inst_html"><div class="ttname"><a href="classfhatos_1_1Inst.html">fhatos::Inst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:486</div></div>
-<div class="ttc" id="aclassfhatos_1_1IsInst_html"><div class="ttname"><a href="classfhatos_1_1IsInst.html">fhatos::IsInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:186</div></div>
+<div class="ttc" id="aclassfhatos_1_1Inst_html"><div class="ttname"><a href="classfhatos_1_1Inst.html">fhatos::Inst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:488</div></div>
+<div class="ttc" id="aclassfhatos_1_1IsInst_html"><div class="ttname"><a href="classfhatos_1_1IsInst.html">fhatos::IsInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:206</div></div>
 <div class="ttc" id="aclassfhatos_1_1Processor_html"><div class="ttname"><a href="classfhatos_1_1Processor.html">fhatos::Processor</a></div><div class="ttdef"><b>Definition</b> processor.hpp:78</div></div>
-<div class="ttc" id="aclassfhatos_1_1PublishInst_html"><div class="ttname"><a href="classfhatos_1_1PublishInst.html">fhatos::PublishInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:232</div></div>
+<div class="ttc" id="aclassfhatos_1_1PublishInst_html"><div class="ttname"><a href="classfhatos_1_1PublishInst.html">fhatos::PublishInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:252</div></div>
 <div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> obj.hpp:395</div></div>
-<div class="ttc" id="aclassfhatos_1_1ReferenceInst_html"><div class="ttname"><a href="classfhatos_1_1ReferenceInst.html">fhatos::ReferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:117</div></div>
-<div class="ttc" id="aclassfhatos_1_1RelationalInst_html"><div class="ttname"><a href="classfhatos_1_1RelationalInst.html">fhatos::RelationalInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:171</div></div>
+<div class="ttc" id="aclassfhatos_1_1ReferenceInst_html"><div class="ttname"><a href="classfhatos_1_1ReferenceInst.html">fhatos::ReferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:157</div></div>
+<div class="ttc" id="aclassfhatos_1_1RelationalInst_html"><div class="ttname"><a href="classfhatos_1_1RelationalInst.html">fhatos::RelationalInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:191</div></div>
 <div class="ttc" id="aclassfhatos_1_1StartInst_html"><div class="ttname"><a href="classfhatos_1_1StartInst.html">fhatos::StartInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:49</div></div>
-<div class="ttc" id="aclassfhatos_1_1SubscribeInst_html"><div class="ttname"><a href="classfhatos_1_1SubscribeInst.html">fhatos::SubscribeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:250</div></div>
-<div class="ttc" id="aclassfhatos_1_1WhereInst_html"><div class="ttname"><a href="classfhatos_1_1WhereInst.html">fhatos::WhereInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:198</div></div>
+<div class="ttc" id="aclassfhatos_1_1SubscribeInst_html"><div class="ttname"><a href="classfhatos_1_1SubscribeInst.html">fhatos::SubscribeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:270</div></div>
+<div class="ttc" id="aclassfhatos_1_1TypeInst_html"><div class="ttname"><a href="classfhatos_1_1TypeInst.html">fhatos::TypeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:84</div></div>
+<div class="ttc" id="aclassfhatos_1_1WhereInst_html"><div class="ttname"><a href="classfhatos_1_1WhereInst.html">fhatos::WhereInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:218</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
-<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:672</div></div>
-<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:797</div></div>
+<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:706</div></div>
+<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:831</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
