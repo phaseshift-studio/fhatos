@@ -122,9 +122,36 @@ namespace fhatos {
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
     virtual RESPONSE_CODE clear() FP_OK_RESULT;
 
-    // virtual ID *adjacent(const ID &source) { return nullptr; }
-    // virtual RESPONSE_CODE call(const ID &source, const ID &target)
-    // FP_OK_RESULT;
+    virtual const Obj *read(const ID &source, const ID &target)  {
+      std::atomic<Obj *> *thing = new std::atomic<Obj *>(nullptr);
+      std::atomic<bool> *done = new std::atomic<bool>(false);
+      this->subscribe(Subscription{
+        .source = source,
+        .pattern = target,
+        .onRecv = [thing,done](const Message &message) {
+          thing->store(message.payload->toObj());
+          done->store(true);
+        }
+      });
+      while (!done->load()) {
+        // wait until done
+      }
+      const Obj *ret = thing->load();
+      delete thing;
+      delete done;
+      unsubscribe(source, target);
+      return ret;
+    }
+
+    virtual RESPONSE_CODE write(const Obj *obj, const ID &source, const ID &target) {
+      return this->publish(
+        Message{
+          .source = source,
+          .target = target,
+          .payload = BinaryObj<>::fromObj(obj),
+          .retain = RETAIN_MESSAGE
+        });
+    }
   };
 } // namespace fhatos
 

@@ -64,9 +64,10 @@ namespace fhatos {
           try {
             const ptr<Fluent<> > fluent = this->parser->parseToFluent(line.c_str());
             this->printResults(fluent);
-          } catch (std::exception ex) {
+          } catch (fError ex) {
             // do nothing (log error for now)
-            // this->printException(ex);
+            LOG(ERROR, "%s\n", ex.what());
+            //this->printException(ex);
           }
         }
       }
@@ -99,19 +100,18 @@ namespace fhatos {
     }
 
     void printRec(const Rec *rec, int i = 0) const {
-      this->ansi->printf("!g==!!>%s[", rec->utype() ? rec->utype()->toString().c_str() : "");
+      this->ansi->printf("!g==!!>!y%s!![", rec->utype() ? rec->utype()->toString().c_str() : "");
       const int size = rec->value()->size();
       for (const auto &[key,value]: *rec->value()) {
         if (i > 0)
           this->ansi->print("    ");
-        this->ansi->printf("%s [!y%s!!] !b=>!! %s [!y%s!!]", key->toString().c_str(), OTYPE_STR.at(key->type()),
-                           value->toString().c_str(), OTYPE_STR.at(value->type()));
+        this->ansi->printf("%s !b=>!! %s", key->toString().c_str(), value->toString().c_str());
         i++;
         if (i < size) {
           this->ansi->print("\n");
         }
       }
-      this->ansi->printf("!r]!! [!y%s!!]\n", OTYPE_STR.at(rec->type()));
+      this->ansi->printf("]\n");
     }
   };
 }

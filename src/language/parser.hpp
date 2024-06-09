@@ -84,6 +84,10 @@ namespace fhatos {
           fluent = new Fluent(fluent->mult(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "start") {
           fluent = new Fluent(fluent->start(*args));
+        } else if (*opcode == "type") {
+          fluent = new Fluent(fluent->type(URI_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "define") {
+          fluent = new Fluent(fluent->define(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
         } else if (*opcode == "explain") {
           fluent = new Fluent(fluent->explain());
         } else if (*opcode == "<=") {
@@ -184,9 +188,9 @@ namespace fhatos {
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find("[");
-      fURI *utype = nullptr;
+      ptr<UType> utype = nullptr;
       if (index != string::npos && index != 0 && token.back() == ']') {
-        utype = new fURI(token.substr(0, index));
+        utype = share(fURI(token.substr(0, index)));
         token.pop_back();
         token = token.substr(index + 1);
         LOG(DEBUG, FOS_TAB_5 "typed stripped token: %s\n", token.c_str());
@@ -211,11 +215,7 @@ namespace fhatos {
         string first;
         OType type = OType::LST;
         while (!ss->eof()) {
-          if (ss->peek() == '|') {
-            type = OType::INST;
-            ss->get();
-            break;
-          } else if (StringHelper::lookAhead("=>", ss)) {
+          if (StringHelper::lookAhead("=>", ss)) {
             type = OType::REC;
             break;
           } else if (ss->peek() == ',') {
@@ -227,29 +227,7 @@ namespace fhatos {
         }
         StringHelper::trim(first);
         ////////////////////////////////////
-        if (type == OType::INST) {
-          string opcode = first;
-          List<ptr<OBJ_OR_BYTECODE> > args = List<ptr<OBJ_OR_BYTECODE> >();
-          string arg;
-          int bracketCounter = 0;
-          while (!ss->eof()) {
-            if (ss->peek() == ']') {
-              ss->get();
-              break;
-            } else if (ss->peek() == ',' && bracketCounter == 0) {
-              ss->get();
-              args.push_back(parseObj(arg));
-              arg.clear();
-            }
-            if (ss->peek() == '[') {
-              bracketCounter++;
-            } else if (ss->peek() == ']') {
-              bracketCounter--;
-            }
-            arg += ss->get();
-          }
-          //
-        } else if (type == OType::REC) {
+        if (type == OType::REC) {
           RecMap<Obj *, Obj *> map = RecMap<Obj *, Obj *>();
           bool onKey = false;
           string key = first;

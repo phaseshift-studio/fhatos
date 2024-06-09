@@ -97,7 +97,7 @@ namespace fhatos {
   class Obj {
   protected:
     const OType _type;
-    const UType *_utype;
+    const ptr<UType> _utype;
 
     inline string wrapUType(const string &xstring) const {
       return this->_utype
@@ -108,11 +108,11 @@ namespace fhatos {
   public:
     virtual ~Obj() = default;
 
-    explicit Obj(const OType type, const UType *utype = nullptr) : _type(type), _utype(utype) {
+    explicit Obj(const OType type, const ptr<UType> utype = nullptr) : _type(type), _utype(utype) {
     }
 
     virtual const OType type() const { return this->_type; }
-    virtual const UType *utype() const { return this->_utype; }
+    virtual const ptr<UType> utype() const { return this->_utype; }
 
     virtual const string toString() const {
       return "obj";
@@ -204,15 +204,15 @@ namespace fhatos {
 
   public:
     Uri(const fURI &value,
-        const UType *utype = nullptr) : Obj(OType::URI, utype), _value(value) {
+        const ptr<UType> utype = nullptr) : Obj(OType::URI, utype), _value(value) {
     }
 
-    Uri(const string &value, const UType *utype = nullptr) : Obj(OType::URI, utype),
-                                                             _value(fURI(value)) {
+    Uri(const string &value, const ptr<UType> utype = nullptr) : Obj(OType::URI, utype),
+                                                                 _value(fURI(value)) {
     }
 
-    Uri(const char * &value, const UType *utype = nullptr) : Obj(OType::URI, utype),
-                                                             _value(fURI(value)) {
+    Uri(const char * &value, const ptr<UType> utype = nullptr) : Obj(OType::URI, utype),
+                                                                 _value(fURI(value)) {
     }
 
     const fURI value() const { return this->_value; }
@@ -242,8 +242,8 @@ namespace fhatos {
     const bool _value;
 
   public:
-    Bool(const bool value, const UType *utype = nullptr) : Obj(OType::BOOL, utype),
-                                                           _value(value) {
+    Bool(const bool value, const ptr<UType> utype = nullptr) : Obj(OType::BOOL, utype),
+                                                               _value(value) {
     }
 
     const bool value() const { return this->_value; }
@@ -269,8 +269,8 @@ namespace fhatos {
     const FL_INT_TYPE _value;
 
   public:
-    Int(const FL_INT_TYPE value, const UType *utype = nullptr) : Obj(OType::INT, utype),
-                                                                 _value(value) {
+    Int(const FL_INT_TYPE value, const ptr<UType> utype = nullptr) : Obj(OType::INT, utype),
+                                                                     _value(value) {
     }
 
     const FL_INT_TYPE value() const { return this->_value; }
@@ -295,8 +295,8 @@ namespace fhatos {
     const FL_REAL_TYPE _value;
 
   public:
-    Real(const FL_REAL_TYPE value, const UType *utype = nullptr) : Obj(OType::REAL, utype),
-                                                                   _value(value) {
+    Real(const FL_REAL_TYPE value, const ptr<UType> utype = nullptr) : Obj(OType::REAL, utype),
+                                                                       _value(value) {
     };
     const FL_REAL_TYPE value() const { return this->_value; }
 
@@ -319,11 +319,11 @@ namespace fhatos {
     const string _value;
 
   public:
-    Str(const string &value, const UType *utype = nullptr) : Obj(OType::STR, utype),
-                                                             _value(value) {
+    Str(const string &value, const ptr<UType> utype = nullptr) : Obj(OType::STR, utype),
+                                                                 _value(value) {
     };
 
-    Str(const char *value, const UType *utype = nullptr) : Str(string(value), utype) {
+    Str(const char *value, const ptr<UType> utype = nullptr) : Str(string(value), utype) {
     }
 
     const string value() const { return this->_value; }
@@ -355,8 +355,8 @@ namespace fhatos {
     const List<Obj> _value;
 
   public:
-    Lst(const List<Obj> &value, const UType *utype = nullptr) : Obj(OType::LST, utype),
-                                                                _value(value) {
+    Lst(const List<Obj> &value, const ptr<UType> utype = nullptr) : Obj(OType::LST, utype),
+                                                                    _value(value) {
     };
     const List<Obj> value() const { return _value; }
 
@@ -377,7 +377,7 @@ namespace fhatos {
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
   struct obj_hash {
     size_t operator()(const Obj *obj) const {
-      return static_cast<std::string::value_type>(obj->type()) ^ (obj->utype() ?  obj->utype()->toString().size() : 123)
+      return static_cast<std::string::value_type>(obj->type()) ^ (obj->utype() ? obj->utype()->toString().size() : 123)
              ^ obj->toString().
              length() ^ obj->toString()[0];
     }
@@ -397,17 +397,17 @@ namespace fhatos {
     RecMap<Obj *, Obj *> *_value;
 
   public:
-    Rec(RecMap<Obj *, Obj *> *value, const UType *utype = nullptr) : Obj(OType::REC, utype),
-                                                                     _value(value) {
+    Rec(RecMap<Obj *, Obj *> *value, const ptr<UType> utype = nullptr) : Obj(OType::REC, utype),
+                                                                         _value(value) {
     };
 
-    Rec(RecMap<Obj *, Obj *> value, const UType *utype = nullptr) : Obj(OType::REC, utype),
-                                                                    _value(new RecMap<Obj *, Obj *>(value)) {
+    Rec(RecMap<Obj *, Obj *> value, const ptr<UType> utype = nullptr) : Obj(OType::REC, utype),
+                                                                        _value(new RecMap<Obj *, Obj *>(value)) {
     };
 
     Rec(std::initializer_list<Pair<Obj * const, Obj *> > keyValues,
-        const UType *utype = nullptr) : Obj(OType::REC, utype),
-                                        _value(new RecMap<Obj *, Obj *>()) {
+        const ptr<UType> utype = nullptr) : Obj(OType::REC, utype),
+                                            _value(new RecMap<Obj *, Obj *>()) {
       for (const Pair<Obj * const, Obj *> pair: keyValues) {
         this->_value->insert(pair);
       }
@@ -483,10 +483,13 @@ namespace fhatos {
   typedef string InstOpcode;
   typedef Pair<const InstOpcode, const InstArgs> InstPair;
 
+  class Bytecode;
+
   class Inst : public Obj {
   protected:
     const InstPair _value;
     const IType _itype;
+    Bytecode *_bcode = nullptr;
 
   public:
     explicit Inst(const InstOpcode &opcode, const InstArgs &args, const IType itype = IType::NOINST)
@@ -495,6 +498,14 @@ namespace fhatos {
 
     bool isNoInst() const {
       return this->opcode() == "noinst";
+    }
+
+    void bcode(Bytecode *bcode) {
+      this->_bcode = bcode;
+    }
+
+    Bytecode *bcode() const {
+      return this->_bcode;
     }
 
     virtual InstPair value() const {
@@ -560,7 +571,8 @@ namespace fhatos {
 
   public:
     ManyToOneInst(const InstOpcode opcode, const InstArgs args,
-                  const ManyToOneFunction function) : Inst(opcode, args, IType::MANY_TO_ONE),
+                  const ManyToOneFunction function) : Inst(opcode, args,
+                                                           IType::MANY_TO_ONE),
                                                       function(function) {
     }
 
@@ -577,7 +589,8 @@ namespace fhatos {
 
   public:
     OneToManyInst(const InstOpcode opcode, const InstArgs args,
-                  const OneToManyFunction function) : Inst(opcode, args, IType::ONE_TO_MANY),
+                  const OneToManyFunction function) : Inst(opcode, args,
+                                                           IType::ONE_TO_MANY),
                                                       function(function) {
     }
 
@@ -593,7 +606,8 @@ namespace fhatos {
 
   public:
     ManyToManyInst(const InstOpcode opcode, const InstArgs args,
-                   const ManyToManyFunction function) : Inst(opcode, args, IType::MANY_TO_MANY),
+                   const ManyToManyFunction function) : Inst(opcode, args,
+                                                             IType::MANY_TO_MANY),
                                                         function(function) {
     }
 
@@ -606,10 +620,14 @@ namespace fhatos {
   class Bytecode final : public Obj, public IDed {
   protected:
     const List<Inst *> *_value;
+    // need a type/ref cache
 
   public:
     explicit Bytecode(const List<Inst *> *list,
                       const ID &id = ID(*UUID::singleton()->mint(7))) : Obj(OType::BYTECODE), IDed(id), _value(list) {
+      for (auto *inst: *this->_value) {
+        inst->bcode(this);
+      }
     }
 
     explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {
@@ -644,11 +662,14 @@ namespace fhatos {
 
     ptr<Bytecode> addInst(Inst *inst) const {
       List<Inst *> *list = new List<Inst *>();
+      ptr<Bytecode> bcode = share(Bytecode(list, this->id()));
       for (const auto i: *this->_value) {
         list->push_back(i);
+        i->bcode(bcode.get());
       }
       list->push_back(inst);
-      return share<Bytecode>(Bytecode(list, this->id()));
+      inst->bcode(bcode.get());
+      return bcode;
     }
 
     const Inst *startInst() const {
@@ -667,6 +688,19 @@ namespace fhatos {
       return s;
     }
   };
+
+  static const Obj *clone(const Obj *obj, const UType newUType) {
+    switch (obj->type()) {
+      case OType::BOOL: return new Bool(((Bool *) obj)->value(), share(newUType));
+      case OType::INT: return new Int(((Int *) obj)->value(), share(newUType));
+      case OType::REAL: return new Real(((Real *) obj)->value(), share(newUType));
+      case OType::URI: return new Uri(((Uri *) obj)->value(), share(newUType));
+      case OType::STR: return new Str(((Str *) obj)->value(), share(newUType));
+      case OType::REC: return new Rec(RecMap<Obj *, Obj *>(*((Rec *) obj)->value()), share(newUType));
+      //case OType::BYTECODE: return new Bytecode(new List<Inst*>(*((Bytecode *) obj)->value()), share(newUType));
+      default: throw fError("Cloning %s current not supported\n", OTYPE_STR.at(obj->type()));
+    }
+  }
 
   /////////////////////////////////////////// UNIONS ///////////////////////////////////////////
   struct OBJ_OR_BYTECODE {

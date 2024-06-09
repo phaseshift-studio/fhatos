@@ -144,15 +144,15 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
 
     Fluent ref(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new ReferenceInst<ROUTER>(uri, this->bcode->id()));
+      return this->addInst(new ReferenceInst<ROUTER>(uri));
     }
 
     Fluent dref(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new DereferenceInst<ROUTER>(uri, this->bcode->id()));
+      return this->addInst(new DereferenceInst<ROUTER>(uri));
     }
 
     Fluent explain() {
-      return this->addInst(new ExplainInst(OBJ_OR_BYTECODE(this->bcode.get())));
+      return this->addInst(new ExplainInst());
     }
 
     Fluent count() {
@@ -193,6 +193,14 @@ namespace fhatos {
 
     Fluent subscribe(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) const {
       return this->addInst(new SubscribeInst(pattern, onRecv, this->bcode->id()));
+    }
+
+    Fluent type(const URI_OR_BYTECODE &utype) const {
+      return this->addInst(new TypeInst<ROUTER>(utype));
+    }
+
+    Fluent define(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) const {
+      return this->addInst(new DefineInst<ROUTER>(utype, typeDefinition));
     }
   };
 

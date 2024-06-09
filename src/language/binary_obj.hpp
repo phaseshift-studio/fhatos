@@ -78,7 +78,11 @@ namespace fhatos {
         case OType::REAL: return new BinaryObj<>((binary_obj) SERIALIZER::fromFloat(((Real *) obj)->value()));
         case OType::STR: return new BinaryObj<>((binary_obj) SERIALIZER::fromString(((Str *) obj)->value()));
         case OType::REC: return new BinaryObj<>((binary_obj) SERIALIZER::fromMap(*((Rec *) obj)->value()));
-        default: throw fError("Unknown obj type: %s\n", OTYPE_STR.at(obj->type()));
+        case OType::BYTECODE: return new BinaryObj<>((binary_obj) SERIALIZER::fromList(*((Bytecode *) obj)->value()));
+        default: {
+          LOG(ERROR, "Unknown obj type: %s\n", OTYPE_STR.at(obj->type()));
+          throw fError("Unknown obj type: %s\n", OTYPE_STR.at(obj->type()));
+        }
       }
     }
 
@@ -118,6 +122,10 @@ namespace fhatos {
       return SERIALIZER::toRec(*this);
     }
 
+    Bytecode toBytecode() const {
+      return SERIALIZER::toBytecode(*this);
+    }
+
     Obj *toObj() const {
       switch (this->type()) {
         case OType::BOOL: return new Bool(toBool());
@@ -126,6 +134,7 @@ namespace fhatos {
         case OType::STR: return new Str(toStr());
         case OType::URI: return new Uri(toUri());
         case OType::REC: return new Rec(toRec());
+        case OType::BYTECODE: return new Bytecode(toBytecode());
         default: throw new fError("Unsupported conversion for %s\n", OTYPE_STR.at(this->type()));
       }
     }
@@ -146,6 +155,7 @@ namespace fhatos {
         case OType::REAL: return toReal().toString();
         case OType::STR: return toStr().toString();
         case OType::REC: return toRec().toString();
+        case OType::BYTECODE: return toBytecode().toString();
         default: throw fError("Unknown type: %s\n", OTYPE_STR.at(this->type()));
       }
     }
@@ -193,6 +203,10 @@ namespace fhatos {
       return {OType::OBJ, nullptr, 0};
     }
 
+    static binary_obj fromList(const List<Inst*> &xlist) {
+      return {OType::OBJ, nullptr, 0};
+    }
+
     template<typename SERIALIZER>
     static Uri toUri(const BinaryObj<SERIALIZER> &xserial) {
       return Uri(fURI("/"));
@@ -201,6 +215,11 @@ namespace fhatos {
     template<typename SERIALIZER>
     static Rec toRec(const BinaryObj<SERIALIZER> &xmap) {
       return Rec({});
+    }
+
+    template<typename SERIALIZER>
+  static Bytecode toBytecode(const BinaryObj<SERIALIZER> &xlist) {
+      return Bytecode({});
     }
 
     template<typename SERIALIZER>
@@ -299,6 +318,22 @@ namespace fhatos {
       memcpy(bytes, reinterpret_cast<const fbyte *>(temp), sizeof(*temp));
       LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*temp), temp->toString().c_str());
       return binary_obj{OType::REC, bytes, sizeof(*temp)};
+    }
+
+    static binary_obj fromList(const List<Inst*> &xlist) {
+      Bytecode *temp = new Bytecode(&xlist);
+      fbyte *bytes = static_cast<fbyte *>(malloc(sizeof(*temp)));
+      memcpy(bytes, reinterpret_cast<const fbyte *>(temp), sizeof(*temp));
+      LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*temp), temp->toString().c_str());
+      return binary_obj{OType::BYTECODE, bytes, sizeof(*temp)};
+    }
+
+    static Bytecode toBytecode(const BinaryObj<CharSerializer> &bobj) {
+      LOG(DEBUG, "!g!_%s serialization!! [!rsize:%i!!]:\n" FOS_TAB, OTYPE_STR.at(bobj.type()), bobj.length());
+      switch (bobj.type()) {
+        case OType::BYTECODE: return *(Bytecode *) bobj.data();
+        default: throw fError("Unknown type: %s\n", OTYPE_STR.at(bobj.type()));
+      }
     }
 
     static Rec toRec(const BinaryObj<CharSerializer> &bobj) {

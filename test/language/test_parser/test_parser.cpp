@@ -84,9 +84,9 @@ namespace fhatos {
       delete i;
     }
     // TYPED INT
-    for (auto pair: List<Pair<string, Int> >({{"nat[100]", Int(100, new fURI("nat"))},
-                                              {"zero[0]", Int(0, new fURI("zero"))},
-                                              {"z[-100]", Int(-100, new fURI("z"))}})) {
+    for (auto pair: List<Pair<string, Int> >({{"nat[100]", Int(100, share(fURI("nat")))},
+                                              {"zero[0]", Int(0, share(fURI("zero")))},
+                                              {"z[-100]", Int(-100, share(fURI("z")))}})) {
       const Int *i = Parser::parseObj(pair.first)->cast<Int>();
       TEST_ASSERT_EQUAL(OType::INT, i->type());
       TEST_ASSERT_EQUAL_STRING(pair.second.utype()->toString().c_str(), i->utype()->toString().c_str());

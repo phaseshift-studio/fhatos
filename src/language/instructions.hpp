@@ -37,14 +37,14 @@ namespace fhatos {
     return *newList;
   }
 
-  template<typename _ARG>
+  /*template<typename _ARG>
   static List<Obj *> cast(const std::initializer_list<_ARG *> list) {
     List<Obj *> *newList = new List<Obj *>();
     for (const auto s: list) {
       newList->push_back((Obj *) s);
     }
     return *newList;
-  }
+  }*/
 
   class StartInst final : public OneToOneInst {
   public:
@@ -60,11 +60,11 @@ namespace fhatos {
 
   class ExplainInst final : public ManyToOneInst {
   public:
-    explicit ExplainInst(const OBJ_OR_BYTECODE &bcode)
+    explicit ExplainInst()
       : ManyToOneInst(
         "explain", {},
-        [bcode](const Obj *) {
-          return bcode.cast<>();
+        [this](const Obj *) {
+          return (Obj *) this->_bcode;
         }) {
     }
   };
@@ -75,8 +75,48 @@ namespace fhatos {
       : ManyToOneInst(
         "count", {},
         [](const Obj *obj) {
-          return new Int(((Objs*)obj)->value()->size());
+          return new Int(((Objs *) obj)->value()->size());
         }) {
+    }
+  };
+
+  template<typename ROUTER = FOS_DEFAULT_ROUTER >
+  class TypeInst final : public OneToOneInst {
+  public:
+    explicit TypeInst(const URI_OR_BYTECODE &utype) : OneToOneInst({
+      "type",
+      {utype},
+      [this](const Obj *obj) {
+        const UType utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
+        const Obj *typeDefinition = ROUTER::singleton()->read(this->bcode()->id(), utype);
+        if (typeDefinition->type() != OType::BYTECODE && typeDefinition->type() != obj->type())
+          return NoObj::singleton()->obj();
+        if (typeDefinition->apply(obj)->isNoObj()) {
+          LOG(ERROR, "%s is not a !y%s!!%s\n", obj->toString().c_str(), utype.toString().c_str(),
+              typeDefinition->toString().c_str());
+          return NoObj::singleton()->obj();
+        }
+        return clone(obj, utype)->obj();
+      }
+    }) {
+    }
+  };
+
+  template<typename ROUTER = FOS_DEFAULT_ROUTER >
+  class DefineInst final : public OneToOneInst {
+  public:
+    explicit DefineInst(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) : OneToOneInst(
+      "define",
+      {utype, typeDefinition},
+      [this](const Obj *obj) -> const Obj *{
+        RESPONSE_CODE _rc = ROUTER::singleton()->write(
+          this->arg(1),
+          this->bcode()->id(),
+          this->arg(0)->apply(obj)->template as<Uri>()->value()
+        );
+        LOG(DEBUG, "define response code: %s\n", RESPONSE_CODE_STR(_rc));
+        return (Obj *) obj;
+      }) {
     }
   };
 
@@ -116,16 +156,14 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
   class ReferenceInst final : public OneToOneInst {
   public:
-    explicit ReferenceInst(const URI_OR_BYTECODE &uri,
-                           const URI_OR_BYTECODE &target) : OneToOneInst(
-      "ref", {uri, target}, [this](const Obj *toStore) -> const Obj *{
-        ROUTER::singleton()->publish(
-          Message{
-            .source = this->arg(1)->apply(toStore)->template as<Uri>()->value(),
-            .target = this->arg(0)->apply(toStore)->template as<Uri>()->value(),
-            .payload = BinaryObj<>::fromObj(toStore),
-            .retain = RETAIN_MESSAGE
-          });
+    explicit ReferenceInst(const URI_OR_BYTECODE &uri) : OneToOneInst(
+      "ref", {uri}, [this](const Obj *toStore) -> const Obj *{
+        RESPONSE_CODE response = ROUTER::singleton()->write(
+          toStore,
+          this->_bcode->id(),
+          this->arg(0)->apply(toStore)->template as<Uri>()->value());
+        //if(!RESPONSE_CODE)
+        // LOG(ERROR,"")
         return toStore;
       }) {
     }
@@ -134,29 +172,11 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
   class DereferenceInst final : public OneToOneInst {
   public:
-    explicit DereferenceInst(const URI_OR_BYTECODE &uri, const URI_OR_BYTECODE &source) : OneToOneInst(
-      "dref", {uri, source}, [this](const Obj *obj) -> const Obj *{
-        std::atomic<Obj *> *thing = new std::atomic<Obj *>(nullptr);
-        std::atomic<bool> *done = new std::atomic<bool>(false);
-        const fURI uri = this->arg(0)->apply(obj)->template as<Uri>()->value();
-        const fURI source = this->arg(1)->apply(obj)->template as<Uri>()->value();
-        ROUTER::singleton()->subscribe(
-          Subscription{
-            .source = source,
-            .pattern = uri,
-            .onRecv = [thing,done](const Message &message) {
-              thing->store(message.payload->toObj());
-              done->store(true);
-            }
-          });
-        while (!done->load()) {
-          // wait until done
-        }
-        const Obj *ret = thing->load();
-        delete thing;
-        delete done;
-        ROUTER::singleton()->unsubscribe(source, uri);
-        return ret;
+    explicit DereferenceInst(const URI_OR_BYTECODE &target) : OneToOneInst(
+      "dref", {target}, [this](const Obj *obj) -> const Obj *{
+        return ROUTER::singleton()->read(
+          this->_bcode->id(),
+          this->arg(0)->apply(obj)->template as<Uri>()->value());
       }) {
     }
   };
