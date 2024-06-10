@@ -23,6 +23,7 @@
 //
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <fhatos.hpp>
 #include <process/router/message.hpp>
 #include <process/router/router.hpp>
 #include <structure/io/net/f_wifi.hpp>
@@ -75,7 +76,7 @@ namespace fhatos {
                 LOG_RECEIVE(RESPONSE_CODE::OK, subscription, message);
                 if (subscription.mailbox) {
                   subscription.mailbox->push(
-                    Mail(subscription, message)); // if mailbox, put in mailbox
+                    share(Mail(share(subscription), share(message)))); // if mailbox, put in mailbox
                 } else {
                   subscription.onRecv(message); // else, evaluate callback
                 }

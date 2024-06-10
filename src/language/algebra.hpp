@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
+#include <util/obj_helper.hpp>
 
 namespace fhatos {
   class Algebra {
@@ -166,50 +167,54 @@ namespace fhatos {
       return map.at(comp);
     }
 
-    virtual const Obj *compose(const COMPOSITION_OPERATOR comp, const Obj *a, const Obj *b) const {
+    virtual const Obj *compose(const COMPOSITION_OPERATOR comp, const Obj *lhs, const Obj *rhs) const {
+      if (const Option<fError> e = ObjHelper::sameTypes(lhs, rhs)) {
+        throw e.value();
+      }
       switch (comp) {
         case COMPOSITION_OPERATOR::PLUS: {
-          switch (a->type()) {
-            case OType::URI: return new Uri(((Uri *) b)->value().extend(((Uri *) a)->toString().c_str()));
-            case OType::BOOL: return new Bool(((Bool *) b)->value() || ((Bool *) a)->value());
-            case OType::INT: return new Int(((Int *) b)->value() + ((Int *) a)->value());
-            case OType::REAL: return new Real(((Real *) b)->value() + ((Real *) a)->value());
-            case OType::STR: return new Str(
-                string(((Str *) b)->value().c_str()).append(((Str *) a)->value()));
+          switch (lhs->type()) {
+            case OType::URI: return ((Uri *) lhs)->split(
+                ((Uri *) lhs)->value().extend(((Uri *) rhs)->toString().c_str()));
+            case OType::BOOL: return ((Bool *) lhs)->split(((Bool *) lhs)->value() || ((Bool *) rhs)->value());
+            case OType::INT: return ((Int *) lhs)->split(((Int *) lhs)->value() + ((Int *) rhs)->value());
+            case OType::REAL: return ((Real *) lhs)->split(((Real *) lhs)->value() + ((Real *) rhs)->value());
+            case OType::STR: return ((Str *) lhs)->split(
+                string(((Str *) lhs)->value().c_str()).append(((Str *) rhs)->value()));
             default: {
-              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()),
-                           OTYPE_STR.at(b->type()));
+              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->type()),
+                           OTYPE_STR.at(rhs->type()));
             }
           }
         }
         case COMPOSITION_OPERATOR::MULT: {
-          switch (a->type()) {
-            case OType::BOOL: return new Bool(((Bool *) b)->value() && ((Bool *) a)->value());
-            case OType::INT: return new Int(((Int *) b)->value() * ((Int *) a)->value());
-            case OType::REAL: return new Real(((Real *) b)->value() * ((Real *) a)->value());
+          switch (lhs->type()) {
+            case OType::BOOL: return ((Bool *) lhs)->split(((Bool *) lhs)->value() && ((Bool *) rhs)->value());
+            case OType::INT: return ((Int *) lhs)->split(((Int *) lhs)->value() * ((Int *) rhs)->value());
+            case OType::REAL: return ((Real *) lhs)->split(((Real *) lhs)->value() * ((Real *) rhs)->value());
             case OType::REC: {
-             // RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
+              // RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
               Rec *rec = new Rec({});
-              auto ita = ((Rec *) a)->value()->begin();
-              auto itb = ((Rec *) b)->value()->begin();
-              for (; ita != ((Rec *) a)->value()->end(); ++ita) {
+              auto itLHS = ((Rec *) lhs)->value()->begin();
+              auto itRHS = ((Rec *) rhs)->value()->begin();
+              for (; itLHS != ((Rec *) lhs)->value()->end(); ++itLHS) {
                 rec->set(
-                  (Obj *) compose(COMPOSITION_OPERATOR::MULT, ita->first, itb->first),
-                  (Obj *) compose(COMPOSITION_OPERATOR::MULT, ita->second, itb->second));
-                ++itb;
+                  (Obj *) compose(COMPOSITION_OPERATOR::MULT, itLHS->first, itRHS->first),
+                  (Obj *) compose(COMPOSITION_OPERATOR::MULT, itLHS->second, itRHS->second));
+                ++itRHS;
               }
               return rec;
             }
             default: {
-              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(a->type()),
-                           OTYPE_STR.at(b->type()));
+              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(lhs->type()),
+                           OTYPE_STR.at(rhs->type()));
             }
           }
         }
         default: {
           throw fError("Algebra does not support composition %s on %s", COMP_TO_STR(comp),
-                       OTYPE_STR.at(a->type()),
-                       OTYPE_STR.at(b->type()));
+                       OTYPE_STR.at(lhs->type()),
+                       OTYPE_STR.at(rhs->type()));
         }
       }
     }

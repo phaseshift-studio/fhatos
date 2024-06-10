@@ -1,39 +1,59 @@
-include(CMakePrintHelpers)
-include(FetchContent)
-cmake_minimum_required(VERSION 3.29)  # CMake version check
-project(fhatos)
-set(CMAKE_CXX_STANDARD 20)
+INCLUDE(CMakePrintHelpers)
+INCLUDE(FetchContent)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.28)  # CMake version check
+PROJECT(fhatos)
+SET(CMAKE_CXX_STANDARD 20)
+IF(NOT WIN32)
+    STRING(ASCII 27 Esc)
+    SET(.. "${Esc}[m")
+    SET(ColourBold  "${Esc}[1m")
+    SET(.r         "${Esc}[31m")
+    SET(.g       "${Esc}[32m")
+    SET(.y      "${Esc}[33m")
+    SET(Blue        "${Esc}[34m")
+    SET(Magenta     "${Esc}[35m")
+    SET(Cyan        "${Esc}[36m")
+    SET(White       "${Esc}[37m")
+    SET(BoldRed     "${Esc}[1;31m")
+    SET(BoldGreen   "${Esc}[1;32m")
+    SET(BoldYellow  "${Esc}[1;33m")
+    SET(BoldBlue    "${Esc}[1;34m")
+    SET(BoldMagenta "${Esc}[1;35m")
+    SET(BoldCyan    "${Esc}[1;36m")
+    SET(BoldWhite   "${Esc}[1;37m")
+ENDIF()
+
 
 ######## PROJECT LIBRARY
-include_directories(src include)
+MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} Library${..}")
+INCLUDE_DIRECTORIES(src include)
 # set(SOURCE_FILES src/main.cpp)
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-set_target_properties(
-        ${PROJECT_NAME}
-        PROPERTIES
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
         OUTPUT_NAME ${PROJECT_NAME}
         SUFFIX ".out"
 )
-target_sources(${PROJECT_NAME} PRIVATE src/main.cpp)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-target_compile_definitions(${PROJECT_NAME} PRIVATE NATIVE)
-cmake_print_variables(CMAKE_CXX_COMPILER_ID)
-cmake_print_variables(CMAKE_CXX_COMPILER_VERSION)
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
+TARGET_SOURCES(${PROJECT_NAME} PRIVATE src/main.cpp)
+TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
+TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PRIVATE NATIVE)
+CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-FetchContent_Declare(
+MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+FETCHCONTENT_DECLARE(
         ordered_map
         GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
         GIT_TAG v1.1.0
 )
-FetchContent_MakeAvailable(ordered_map)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
-target_link_libraries(${PROJECT_NAME} PRIVATE tsl::ordered_map)
+FETCHCONTENT_MAKEAVAILABLE(ordered_map)
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE tsl::ordered_map)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ### LEXY: DSL PARSING
 #FetchContent_Declare(lexy URL https://lexy.foonathan.net/download/lexy-src.zip)
 #FetchContent_MakeAvailable(lexy)
@@ -43,24 +63,22 @@ target_link_libraries(${PROJECT_NAME} PRIVATE tsl::ordered_map)
 ####################################
 ####################################
 
-#####
-
-#project(fhatos-test)
-#add_library(fhatos-test STATIC test/language/test_binary_obj/test_binary_obj.cpp)
-#target_include_directories(fhatos-test PRIVATE test)
-#set_target_properties(fhatos-test PROPERTIES UNITY_BUILD ON UNITY_BUILD_MODE BATCH UNITY_BUILD_BATCH_SIZE 16)
-#enable_testing()
+####################################
+############# TESTING ##############
+####################################
+ADD_SUBDIRECTORY(test)
 
 ####################################
 ########## DOCUMENTATION ###########
 ####################################
+MESSAGE(CHECK_START "${.y}CMaking Doxygen Documentation${..}")
 OPTION(BUILD_WITH_DOCS "Build documentation" ON)
-IF(TASKSCH_BUILD_WITH_DOCS)
+IF (TASKSCH_BUILD_WITH_DOCS)
     ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/docs)
-ENDIF()
+ENDIF ()
 
-FIND_PACKAGE( Doxygen )
-IF(DOXYGEN_FOUND)
+FIND_PACKAGE(Doxygen)
+IF (DOXYGEN_FOUND)
     MESSAGE(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE} -- ${DOXYGEN_VERSION}")
     # Set Doxygen input and output files.
     SET(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR})
@@ -80,4 +98,5 @@ IF(DOXYGEN_FOUND)
             VERBATIM)
     # Create CMake Target for generating doc.
     ADD_CUSTOM_TARGET(docs ALL DEPENDS ${DOXYGEN_INDEX_FILE})
-ENDIF()
+ENDIF ()
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")

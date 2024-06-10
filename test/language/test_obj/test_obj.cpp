@@ -5,12 +5,17 @@
 //
 #include <language/obj.hpp>
 #include <language/binary_obj.hpp>
+#include <unity.h>
 
 namespace fhatos {
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
+
+void test_int_obj() {
+
+}
 
 void test_base_obj_strings() {
   TEST_ASSERT_EQUAL_STRING("true", Bool(true).toString().c_str());

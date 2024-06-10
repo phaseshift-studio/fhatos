@@ -25,6 +25,7 @@ docs/html
 docs/latex
 
 # CMake files
+.cmake
 **/cmake-build-debug
 **/CMakeCache.txt
 **/cmake_install.cmake

@@ -88,7 +88,7 @@ namespace fhatos {
       {utype},
       [this](const Obj *obj) {
         const UType utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
-        const Obj *typeDefinition = ROUTER::singleton()->read(this->bcode()->id(), utype);
+        const Obj *typeDefinition = this->_bcode->template getType<ROUTER>(utype);
         if (typeDefinition->type() != OType::BYTECODE && typeDefinition->type() != obj->type())
           return NoObj::singleton()->obj();
         if (typeDefinition->apply(obj)->isNoObj()) {
@@ -109,12 +109,7 @@ namespace fhatos {
       "define",
       {utype, typeDefinition},
       [this](const Obj *obj) -> const Obj *{
-        RESPONSE_CODE _rc = ROUTER::singleton()->write(
-          this->arg(1),
-          this->bcode()->id(),
-          this->arg(0)->apply(obj)->template as<Uri>()->value()
-        );
-        LOG(DEBUG, "define response code: %s\n", RESPONSE_CODE_STR(_rc));
+        this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),(Obj*)this->arg(1));
         return (Obj *) obj;
       }) {
     }
@@ -239,7 +234,7 @@ namespace fhatos {
       : OneToOneInst(
           ALGEBRA::COMP_TO_STR(op), {rhs},
           [this,op](const Obj *lhs) {
-            return ALGEBRA::singleton()->compose(op, this->arg(0)->apply(lhs), lhs);
+            return ALGEBRA::singleton()->compose(op, lhs, this->arg(0)->apply(lhs));
           }
         ), op(op) {
     }

@@ -188,7 +188,7 @@ namespace fhatos {
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find("[");
-      ptr<UType> utype = nullptr;
+      ptr<UType> utype = NO_UTYPE;
       if (index != string::npos && index != 0 && token.back() == ']') {
         utype = share(fURI(token.substr(0, index)));
         token.pop_back();

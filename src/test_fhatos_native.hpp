@@ -17,10 +17,10 @@
  ******************************************************************************/
 
 
-#ifdef NATIVE
+
 #ifndef fhatos_test_fhatos_native_hpp
 #define fhatos_test_fhatos_native_hpp
-
+#ifdef NATIVE
 //#define FOS_LOGGING DEBUG
 
 #include <unity.h>
@@ -28,6 +28,13 @@
 #include <fhatos.hpp>
 #include <util/ansi.hpp>
 #include <language/fluent.hpp>
+
+void setUp() {
+
+}
+void tearDown() {
+
+}
 
 static fhatos::Ansi<fhatos::CPrinter> ansi(FOS_OUTPUT);
 #define FOS_TEST_PRINTER ansi
