@@ -191,7 +191,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      {utype},</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *obj) {</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1fURI.html">UType</a> utype = this-&gt;arg(0)-&gt;apply(obj)-&gt;template as&lt;Uri&gt;()-&gt;value();</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *typeDefinition = ROUTER::singleton()-&gt;read(this-&gt;bcode()-&gt;<span class="keywordtype">id</span>(), utype);</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *typeDefinition = this-&gt;_bcode-&gt;template getType&lt;ROUTER&gt;(utype);</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        <span class="keywordflow">if</span> (typeDefinition-&gt;type() != OType::BYTECODE &amp;&amp; typeDefinition-&gt;type() != obj-&gt;type())</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>          <span class="keywordflow">return</span> NoObj::singleton()-&gt;obj();</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        <span class="keywordflow">if</span> (typeDefinition-&gt;apply(obj)-&gt;isNoObj()) {</div>
@@ -214,219 +214,214 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      <span class="stringliteral">&quot;define&quot;</span>,</div>
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>      {utype, typeDefinition},</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *obj) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        RESPONSE_CODE _rc = ROUTER::singleton()-&gt;write(</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>          this-&gt;arg(1),</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>          this-&gt;bcode()-&gt;<span class="keywordtype">id</span>(),</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>          this-&gt;arg(0)-&gt;apply(obj)-&gt;<span class="keyword">template</span> as&lt;Uri&gt;()-&gt;value()</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        );</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        LOG(DEBUG, <span class="stringliteral">&quot;define response code: %s\n&quot;</span>, RESPONSE_CODE_STR(_rc));</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        <span class="keywordflow">return</span> (<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *) obj;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      }) {</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    }</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  };</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        this-&gt;_bcode-&gt;template createType&lt;ROUTER&gt;(this-&gt;arg(0)-&gt;apply(obj)-&gt;<span class="keyword">template</span> as&lt;Uri&gt;()-&gt;value(),(<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a>*)this-&gt;arg(1));</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        <span class="keywordflow">return</span> (<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *) obj;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      }) {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    }</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  };</div>
 </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <span class="comment">/*class EndInst final : public Inst {</span></div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span><span class="comment">  public:</span></div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="comment">    explicit EndInst() : Inst({</span></div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span><span class="comment">      &quot;end&quot;, {}, [](const Obj *end) {</span></div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span><span class="comment">        return end;</span></div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span><span class="comment">      }</span></div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="comment">    }) {</span></div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="comment">    }</span></div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span><span class="comment">  };*/</span></div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  <span class="comment">/*class EndInst final : public Inst {</span></div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span><span class="comment">  public:</span></div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span><span class="comment">    explicit EndInst() : Inst({</span></div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="comment">      &quot;end&quot;, {}, [](const Obj *end) {</span></div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span><span class="comment">        return end;</span></div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><span class="comment">      }</span></div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span><span class="comment">    }) {</span></div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="comment">    }</span></div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span><span class="comment">  };*/</span></div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span> </div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ALGEBRA=Algebra&gt;</div>
+<div class="foldopen" id="foldopen00133" data-start="{" data-end="};">
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno"><a class="line" href="classfhatos_1_1BranchInst.html">  133</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1BranchInst.html">BranchInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::BRANCH_SEMANTIC branch;</div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ALGEBRA=Algebra&gt;</div>
-<div class="foldopen" id="foldopen00138" data-start="{" data-end="};">
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="classfhatos_1_1BranchInst.html">  138</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1BranchInst.html">BranchInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::BRANCH_SEMANTIC branch;</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1BranchInst.html">BranchInst</a>(<span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::BRANCH_SEMANTIC branch, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;branches)</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>          ALGEBRA::BRNCH_TO_STR(branch), {branches},</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>          [<span class="keyword">this</span>,branch](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *lhs)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>            <span class="keywordflow">return</span> ALGEBRA::singleton()-&gt;branch(branch, lhs, this-&gt;arg(0));</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          }</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        ), branch(branch) {</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    }</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  };</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1BranchInst.html">BranchInst</a>(<span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::BRANCH_SEMANTIC branch, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;branches)</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>          ALGEBRA::BRNCH_TO_STR(branch), {branches},</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>          [<span class="keyword">this</span>,branch](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *lhs)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>            <span class="keywordflow">return</span> ALGEBRA::singleton()-&gt;branch(branch, lhs, this-&gt;arg(0));</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>          }</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        ), branch(branch) {</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    }</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  };</div>
 </div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ROUTER = FOS_DEFAULT_ROUTER &gt;</div>
-<div class="foldopen" id="foldopen00157" data-start="{" data-end="};">
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno"><a class="line" href="classfhatos_1_1ReferenceInst.html">  157</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1ReferenceInst.html">ReferenceInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1ReferenceInst.html">ReferenceInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;uri) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>      <span class="stringliteral">&quot;ref&quot;</span>, {uri}, [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *toStore) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        RESPONSE_CODE response = ROUTER::singleton()-&gt;write(</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>          toStore,</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>          this-&gt;_bcode-&gt;id(),</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>          this-&gt;arg(0)-&gt;apply(toStore)-&gt;template as&lt;Uri&gt;()-&gt;value());</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>        <span class="comment">//if(!RESPONSE_CODE)</span></div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        <span class="comment">// LOG(ERROR,&quot;&quot;)</span></div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>        <span class="keywordflow">return</span> toStore;</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      }) {</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    }</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  };</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span> </div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ROUTER = FOS_DEFAULT_ROUTER &gt;</div>
+<div class="foldopen" id="foldopen00152" data-start="{" data-end="};">
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno"><a class="line" href="classfhatos_1_1ReferenceInst.html">  152</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1ReferenceInst.html">ReferenceInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1ReferenceInst.html">ReferenceInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;uri) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      <span class="stringliteral">&quot;ref&quot;</span>, {uri}, [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *toStore) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        RESPONSE_CODE response = ROUTER::singleton()-&gt;write(</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>          toStore,</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>          this-&gt;_bcode-&gt;id(),</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>          this-&gt;arg(0)-&gt;apply(toStore)-&gt;template as&lt;Uri&gt;()-&gt;value());</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        <span class="comment">//if(!RESPONSE_CODE)</span></div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        <span class="comment">// LOG(ERROR,&quot;&quot;)</span></div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        <span class="keywordflow">return</span> toStore;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>      }) {</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    }</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>  };</div>
 </div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span> </div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ROUTER = FOS_DEFAULT_ROUTER &gt;</div>
-<div class="foldopen" id="foldopen00173" data-start="{" data-end="};">
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno"><a class="line" href="classfhatos_1_1DereferenceInst.html">  173</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1DereferenceInst.html">DereferenceInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1DereferenceInst.html">DereferenceInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;target) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      <span class="stringliteral">&quot;dref&quot;</span>, {target}, [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *obj) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>        <span class="keywordflow">return</span> ROUTER::singleton()-&gt;read(</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>          this-&gt;_bcode-&gt;id(),</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>          this-&gt;arg(0)-&gt;apply(obj)-&gt;template as&lt;Uri&gt;()-&gt;value());</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      }) {</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    }</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  };</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ROUTER = FOS_DEFAULT_ROUTER &gt;</div>
+<div class="foldopen" id="foldopen00168" data-start="{" data-end="};">
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="classfhatos_1_1DereferenceInst.html">  168</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1DereferenceInst.html">DereferenceInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1DereferenceInst.html">DereferenceInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;target) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>      <span class="stringliteral">&quot;dref&quot;</span>, {target}, [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *obj) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        <span class="keywordflow">return</span> ROUTER::singleton()-&gt;read(</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>          this-&gt;_bcode-&gt;id(),</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>          this-&gt;arg(0)-&gt;apply(obj)-&gt;template as&lt;Uri&gt;()-&gt;value());</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      }) {</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    }</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  };</div>
 </div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
 <div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span> </div>
 <div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ALGEBRA=FOS_DEFAULT_ALGEBRA&gt;</div>
+<div class="foldopen" id="foldopen00186" data-start="{" data-end="};">
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno"><a class="line" href="classfhatos_1_1RelationalInst.html">  186</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1RelationalInst.html">RelationalInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::RELATION_PREDICATE predicate;</div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ALGEBRA=FOS_DEFAULT_ALGEBRA&gt;</div>
-<div class="foldopen" id="foldopen00191" data-start="{" data-end="};">
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno"><a class="line" href="classfhatos_1_1RelationalInst.html">  191</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1RelationalInst.html">RelationalInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    <span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::RELATION_PREDICATE predicate;</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1RelationalInst.html">RelationalInst</a>(<span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::RELATION_PREDICATE predicate, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;rhs)</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>          ALGEBRA::REL_TO_STR(predicate), {rhs},</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>          [<span class="keyword">this</span>,predicate](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *lhs)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>            <span class="keywordflow">return</span> ALGEBRA::singleton()-&gt;relate(predicate, lhs, this-&gt;arg(0)-&gt;apply(lhs));</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>          }</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        ), predicate(predicate) {</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    }</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  };</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1RelationalInst.html">RelationalInst</a>(<span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::RELATION_PREDICATE predicate, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;rhs)</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>          ALGEBRA::REL_TO_STR(predicate), {rhs},</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>          [<span class="keyword">this</span>,predicate](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *lhs)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>            <span class="keywordflow">return</span> ALGEBRA::singleton()-&gt;relate(predicate, lhs, this-&gt;arg(0)-&gt;apply(lhs));</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>          }</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        ), predicate(predicate) {</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    }</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  };</div>
 </div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span> </div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
-<div class="foldopen" id="foldopen00206" data-start="{" data-end="};">
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno"><a class="line" href="classfhatos_1_1IsInst.html">  206</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1IsInst.html">IsInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1IsInst.html">IsInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;test)</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        <span class="stringliteral">&quot;is&quot;</span>, {test},</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *input) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>          <span class="keywordflow">return</span> this-&gt;arg(0)-&gt;apply(input)-&gt;as&lt;<a class="code hl_class" href="classfhatos_1_1Bool.html">Bool</a>&gt;()-&gt;value() ? input : NoObj::singleton();</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        }</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>      ) {</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    }</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>  };</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span> </div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span> </div>
+<div class="foldopen" id="foldopen00201" data-start="{" data-end="};">
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno"><a class="line" href="classfhatos_1_1IsInst.html">  201</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1IsInst.html">IsInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1IsInst.html">IsInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;test)</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        <span class="stringliteral">&quot;is&quot;</span>, {test},</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *input) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>          <span class="keywordflow">return</span> this-&gt;arg(0)-&gt;apply(input)-&gt;as&lt;<a class="code hl_class" href="classfhatos_1_1Bool.html">Bool</a>&gt;()-&gt;value() ? input : NoObj::singleton();</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>        }</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      ) {</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    }</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  };</div>
 </div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
-<div class="foldopen" id="foldopen00218" data-start="{" data-end="};">
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno"><a class="line" href="classfhatos_1_1WhereInst.html">  218</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1WhereInst.html">WhereInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1WhereInst.html">WhereInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;test) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      <span class="stringliteral">&quot;where&quot;</span>, {test}, [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *input) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>        <span class="keywordflow">return</span> this-&gt;arg(0)-&gt;apply(input)-&gt;isNoObj() ? NoObj::singleton() : input;</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>      }</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    ) {</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    }</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  };</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
+<div class="foldopen" id="foldopen00213" data-start="{" data-end="};">
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno"><a class="line" href="classfhatos_1_1WhereInst.html">  213</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1WhereInst.html">WhereInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1WhereInst.html">WhereInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;test) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>      <span class="stringliteral">&quot;where&quot;</span>, {test}, [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *input) -&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>        <span class="keywordflow">return</span> this-&gt;arg(0)-&gt;apply(input)-&gt;isNoObj() ? NoObj::singleton() : input;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>      }</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    ) {</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    }</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  };</div>
 </div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
 <div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span> </div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ALGEBRA = FOS_DEFAULT_ALGEBRA&gt;</div>
+<div class="foldopen" id="foldopen00229" data-start="{" data-end="};">
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno"><a class="line" href="classfhatos_1_1CompositionInst.html">  229</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1CompositionInst.html">CompositionInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::COMPOSITION_OPERATOR op;</div>
 <div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span> </div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ALGEBRA = FOS_DEFAULT_ALGEBRA&gt;</div>
-<div class="foldopen" id="foldopen00234" data-start="{" data-end="};">
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno"><a class="line" href="classfhatos_1_1CompositionInst.html">  234</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1CompositionInst.html">CompositionInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::COMPOSITION_OPERATOR op;</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1CompositionInst.html">CompositionInst</a>(<span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::COMPOSITION_OPERATOR op, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;rhs)</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>          ALGEBRA::COMP_TO_STR(op), {rhs},</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>          [<span class="keyword">this</span>,op](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *lhs) {</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>            <span class="keywordflow">return</span> ALGEBRA::singleton()-&gt;compose(op, this-&gt;arg(0)-&gt;apply(lhs), lhs);</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>          }</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>        ), op(op) {</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    }</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  };</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1CompositionInst.html">CompositionInst</a>(<span class="keyword">const</span> <span class="keyword">typename</span> ALGEBRA::COMPOSITION_OPERATOR op, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;rhs)</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>      : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>          ALGEBRA::COMP_TO_STR(op), {rhs},</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>          [<span class="keyword">this</span>,op](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *lhs) {</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>            <span class="keywordflow">return</span> ALGEBRA::singleton()-&gt;compose(op, lhs, this-&gt;arg(0)-&gt;apply(lhs));</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>          }</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        ), op(op) {</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    }</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  };</div>
 </div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
-<div class="foldopen" id="foldopen00252" data-start="{" data-end="};">
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno"><a class="line" href="classfhatos_1_1PublishInst.html">  252</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1PublishInst.html">PublishInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1PublishInst.html">PublishInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;target, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;payload,</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>                         <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;bcodeId) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>      <span class="stringliteral">&quot;&lt;=&quot;</span>, {target, payload},</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      [<span class="keyword">this</span>,bcodeId](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *incoming)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        FOS_DEFAULT_ROUTER::singleton()-&gt;publish(<a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a>{</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>          .source = bcodeId,</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>          .target = this-&gt;arg(0)-&gt;apply(incoming)-&gt;template as&lt;Uri&gt;()-&gt;value(),</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>          .payload = <a class="code hl_class" href="classfhatos_1_1BinaryObj.html">BinaryObj&lt;&gt;::fromObj</a>(this-&gt;arg(1)-&gt;apply(incoming)),</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>          .retain = TRANSIENT_MESSAGE</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        });</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>        <span class="keywordflow">return</span> incoming;</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>      }</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    ) {</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    }</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  };</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
+<div class="foldopen" id="foldopen00247" data-start="{" data-end="};">
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno"><a class="line" href="classfhatos_1_1PublishInst.html">  247</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1PublishInst.html">PublishInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1PublishInst.html">PublishInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;target, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;payload,</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>                         <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;bcodeId) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      <span class="stringliteral">&quot;&lt;=&quot;</span>, {target, payload},</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      [<span class="keyword">this</span>,bcodeId](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *incoming)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        FOS_DEFAULT_ROUTER::singleton()-&gt;publish(<a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a>{</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>          .source = bcodeId,</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>          .target = this-&gt;arg(0)-&gt;apply(incoming)-&gt;template as&lt;Uri&gt;()-&gt;value(),</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>          .payload = <a class="code hl_class" href="classfhatos_1_1BinaryObj.html">BinaryObj&lt;&gt;::fromObj</a>(this-&gt;arg(1)-&gt;apply(incoming)),</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>          .retain = TRANSIENT_MESSAGE</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        });</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        <span class="keywordflow">return</span> incoming;</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>      }</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    ) {</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    }</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>  };</div>
 </div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span> </div>
-<div class="foldopen" id="foldopen00270" data-start="{" data-end="};">
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno"><a class="line" href="classfhatos_1_1SubscribeInst.html">  270</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1SubscribeInst.html">SubscribeInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1SubscribeInst.html">SubscribeInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;pattern, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;onRecv,</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>                           <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;bcodeId) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>      <span class="stringliteral">&quot;=&gt;&quot;</span>, {pattern, onRecv},</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      [<span class="keyword">this</span>,bcodeId](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *incoming)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>        FOS_DEFAULT_ROUTER::singleton()-&gt;subscribe(<a class="code hl_struct" href="structfhatos_1_1Subscription.html">Subscription</a>{</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>          .mailbox = <span class="keyword">nullptr</span>,</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>          .source = bcodeId,</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>          .pattern = this-&gt;arg(0)-&gt;apply(incoming)-&gt;template as&lt;Uri&gt;()-&gt;value(),</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>          .onRecv = [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a> &amp;message) {</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>            <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *outgoing = this-&gt;arg(1)-&gt;apply(message.payload-&gt;toObj());</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>            LOG(INFO, <span class="stringliteral">&quot;subscription result: %s\n&quot;</span>, outgoing-&gt;toString().c_str());</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>          }</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        });</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        <span class="keywordflow">return</span> incoming;</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>      }</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>    ) {</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>    }</div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>  };</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
+<div class="foldopen" id="foldopen00265" data-start="{" data-end="};">
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno"><a class="line" href="classfhatos_1_1SubscribeInst.html">  265</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1SubscribeInst.html">SubscribeInst</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a> {</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1SubscribeInst.html">SubscribeInst</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;pattern, <span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;onRecv,</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>                           <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;bcodeId) : <a class="code hl_class" href="classfhatos_1_1OneToOneInst.html">OneToOneInst</a>(</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>      <span class="stringliteral">&quot;=&gt;&quot;</span>, {pattern, onRecv},</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>      [<span class="keyword">this</span>,bcodeId](<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *incoming)-&gt; <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *{</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>        FOS_DEFAULT_ROUTER::singleton()-&gt;subscribe(<a class="code hl_struct" href="structfhatos_1_1Subscription.html">Subscription</a>{</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>          .mailbox = <span class="keyword">nullptr</span>,</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>          .source = bcodeId,</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>          .pattern = this-&gt;arg(0)-&gt;apply(incoming)-&gt;template as&lt;Uri&gt;()-&gt;value(),</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>          .onRecv = [<span class="keyword">this</span>](<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a> &amp;message) {</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>            <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *outgoing = this-&gt;arg(1)-&gt;apply(message.payload-&gt;toObj());</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>            LOG(INFO, <span class="stringliteral">&quot;subscription result: %s\n&quot;</span>, outgoing-&gt;toString().c_str());</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>          }</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        });</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        <span class="keywordflow">return</span> incoming;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>      }</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    ) {</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    }</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>  };</div>
 </div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span> </div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span> </div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1BinaryObj_html"><div class="ttname"><a href="classfhatos_1_1BinaryObj.html">fhatos::BinaryObj</a></div><div class="ttdef"><b>Definition</b> binary_obj.hpp:32</div></div>
-<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> obj.hpp:240</div></div>
-<div class="ttc" id="aclassfhatos_1_1BranchInst_html"><div class="ttname"><a href="classfhatos_1_1BranchInst.html">fhatos::BranchInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:138</div></div>
-<div class="ttc" id="aclassfhatos_1_1CompositionInst_html"><div class="ttname"><a href="classfhatos_1_1CompositionInst.html">fhatos::CompositionInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:234</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> obj.hpp:248</div></div>
+<div class="ttc" id="aclassfhatos_1_1BranchInst_html"><div class="ttname"><a href="classfhatos_1_1BranchInst.html">fhatos::BranchInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:133</div></div>
+<div class="ttc" id="aclassfhatos_1_1CompositionInst_html"><div class="ttname"><a href="classfhatos_1_1CompositionInst.html">fhatos::CompositionInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:229</div></div>
 <div class="ttc" id="aclassfhatos_1_1CountInst_html"><div class="ttname"><a href="classfhatos_1_1CountInst.html">fhatos::CountInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:72</div></div>
 <div class="ttc" id="aclassfhatos_1_1DefineInst_html"><div class="ttname"><a href="classfhatos_1_1DefineInst.html">fhatos::DefineInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:106</div></div>
-<div class="ttc" id="aclassfhatos_1_1DereferenceInst_html"><div class="ttname"><a href="classfhatos_1_1DereferenceInst.html">fhatos::DereferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:173</div></div>
+<div class="ttc" id="aclassfhatos_1_1DereferenceInst_html"><div class="ttname"><a href="classfhatos_1_1DereferenceInst.html">fhatos::DereferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:168</div></div>
 <div class="ttc" id="aclassfhatos_1_1ExplainInst_html"><div class="ttname"><a href="classfhatos_1_1ExplainInst.html">fhatos::ExplainInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:61</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:360</div></div>
-<div class="ttc" id="aclassfhatos_1_1Int_html"><div class="ttname"><a href="classfhatos_1_1Int.html">fhatos::Int</a></div><div class="ttdef"><b>Definition</b> obj.hpp:267</div></div>
-<div class="ttc" id="aclassfhatos_1_1IsInst_html"><div class="ttname"><a href="classfhatos_1_1IsInst.html">fhatos::IsInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:206</div></div>
-<div class="ttc" id="aclassfhatos_1_1ManyToOneInst_html"><div class="ttname"><a href="classfhatos_1_1ManyToOneInst.html">fhatos::ManyToOneInst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:568</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:97</div></div>
-<div class="ttc" id="aclassfhatos_1_1Objs_html"><div class="ttname"><a href="classfhatos_1_1Objs.html">fhatos::Objs</a></div><div class="ttdef"><b>Definition</b> obj.hpp:174</div></div>
-<div class="ttc" id="aclassfhatos_1_1OneToOneInst_html"><div class="ttname"><a href="classfhatos_1_1OneToOneInst.html">fhatos::OneToOneInst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:552</div></div>
-<div class="ttc" id="aclassfhatos_1_1PublishInst_html"><div class="ttname"><a href="classfhatos_1_1PublishInst.html">fhatos::PublishInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:252</div></div>
-<div class="ttc" id="aclassfhatos_1_1ReferenceInst_html"><div class="ttname"><a href="classfhatos_1_1ReferenceInst.html">fhatos::ReferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:157</div></div>
-<div class="ttc" id="aclassfhatos_1_1RelationalInst_html"><div class="ttname"><a href="classfhatos_1_1RelationalInst.html">fhatos::RelationalInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:191</div></div>
+<div class="ttc" id="aclassfhatos_1_1Int_html"><div class="ttname"><a href="classfhatos_1_1Int.html">fhatos::Int</a></div><div class="ttdef"><b>Definition</b> obj.hpp:279</div></div>
+<div class="ttc" id="aclassfhatos_1_1IsInst_html"><div class="ttname"><a href="classfhatos_1_1IsInst.html">fhatos::IsInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:201</div></div>
+<div class="ttc" id="aclassfhatos_1_1ManyToOneInst_html"><div class="ttname"><a href="classfhatos_1_1ManyToOneInst.html">fhatos::ManyToOneInst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:592</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:101</div></div>
+<div class="ttc" id="aclassfhatos_1_1Objs_html"><div class="ttname"><a href="classfhatos_1_1Objs.html">fhatos::Objs</a></div><div class="ttdef"><b>Definition</b> obj.hpp:178</div></div>
+<div class="ttc" id="aclassfhatos_1_1OneToOneInst_html"><div class="ttname"><a href="classfhatos_1_1OneToOneInst.html">fhatos::OneToOneInst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:576</div></div>
+<div class="ttc" id="aclassfhatos_1_1PublishInst_html"><div class="ttname"><a href="classfhatos_1_1PublishInst.html">fhatos::PublishInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:247</div></div>
+<div class="ttc" id="aclassfhatos_1_1ReferenceInst_html"><div class="ttname"><a href="classfhatos_1_1ReferenceInst.html">fhatos::ReferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:152</div></div>
+<div class="ttc" id="aclassfhatos_1_1RelationalInst_html"><div class="ttname"><a href="classfhatos_1_1RelationalInst.html">fhatos::RelationalInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:186</div></div>
 <div class="ttc" id="aclassfhatos_1_1StartInst_html"><div class="ttname"><a href="classfhatos_1_1StartInst.html">fhatos::StartInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:49</div></div>
-<div class="ttc" id="aclassfhatos_1_1SubscribeInst_html"><div class="ttname"><a href="classfhatos_1_1SubscribeInst.html">fhatos::SubscribeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:270</div></div>
+<div class="ttc" id="aclassfhatos_1_1SubscribeInst_html"><div class="ttname"><a href="classfhatos_1_1SubscribeInst.html">fhatos::SubscribeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:265</div></div>
 <div class="ttc" id="aclassfhatos_1_1TypeInst_html"><div class="ttname"><a href="classfhatos_1_1TypeInst.html">fhatos::TypeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:84</div></div>
-<div class="ttc" id="aclassfhatos_1_1WhereInst_html"><div class="ttname"><a href="classfhatos_1_1WhereInst.html">fhatos::WhereInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:218</div></div>
+<div class="ttc" id="aclassfhatos_1_1WhereInst_html"><div class="ttname"><a href="classfhatos_1_1WhereInst.html">fhatos::WhereInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:213</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:93</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 <div class="ttc" id="astructfhatos_1_1Message_html"><div class="ttname"><a href="structfhatos_1_1Message.html">fhatos::Message</a></div><div class="ttdef"><b>Definition</b> message.hpp:35</div></div>
-<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:706</div></div>
+<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:761</div></div>
 <div class="ttc" id="astructfhatos_1_1Subscription_html"><div class="ttname"><a href="structfhatos_1_1Subscription.html">fhatos::Subscription</a></div><div class="ttdef"><b>Definition</b> router.hpp:42</div></div>
-<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:831</div></div>
+<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:886</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -285,7 +285,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      LOG(DEBUG, FOS_TAB_4 <span class="stringliteral">&quot;!rTOKEN!!: %s\n&quot;</span>, token.c_str());</div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      StringHelper::trim(token);</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      <span class="keywordtype">int</span> index = token.find(<span class="stringliteral">&quot;[&quot;</span>);</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      ptr&lt;UType&gt; utype = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      ptr&lt;UType&gt; utype = NO_UTYPE;</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      <span class="keywordflow">if</span> (index != string::npos &amp;&amp; index != 0 &amp;&amp; token.back() == <span class="charliteral">&#39;]&#39;</span>) {</div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        utype = share(<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(token.substr(0, index)));</div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>        token.pop_back();</div>
@@ -392,24 +392,24 @@ $(function(){ initResizable(false); });
 </div>
 <div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>}</div>
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> obj.hpp:240</div></div>
-<div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> obj.hpp:620</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> obj.hpp:248</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> obj.hpp:644</div></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:31</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:360</div></div>
 <div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:416</div></div>
-<div class="ttc" id="aclassfhatos_1_1Int_html"><div class="ttname"><a href="classfhatos_1_1Int.html">fhatos::Int</a></div><div class="ttdef"><b>Definition</b> obj.hpp:267</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:97</div></div>
+<div class="ttc" id="aclassfhatos_1_1Int_html"><div class="ttname"><a href="classfhatos_1_1Int.html">fhatos::Int</a></div><div class="ttdef"><b>Definition</b> obj.hpp:279</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:101</div></div>
 <div class="ttc" id="aclassfhatos_1_1Parser_html"><div class="ttname"><a href="classfhatos_1_1Parser.html">fhatos::Parser</a></div><div class="ttdef"><b>Definition</b> parser.hpp:31</div></div>
-<div class="ttc" id="aclassfhatos_1_1Real_html"><div class="ttname"><a href="classfhatos_1_1Real.html">fhatos::Real</a></div><div class="ttdef"><b>Definition</b> obj.hpp:293</div></div>
-<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> obj.hpp:395</div></div>
-<div class="ttc" id="aclassfhatos_1_1Str_html"><div class="ttname"><a href="classfhatos_1_1Str.html">fhatos::Str</a></div><div class="ttdef"><b>Definition</b> obj.hpp:317</div></div>
-<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> obj.hpp:201</div></div>
+<div class="ttc" id="aclassfhatos_1_1Real_html"><div class="ttname"><a href="classfhatos_1_1Real.html">fhatos::Real</a></div><div class="ttdef"><b>Definition</b> obj.hpp:309</div></div>
+<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> obj.hpp:419</div></div>
+<div class="ttc" id="aclassfhatos_1_1Str_html"><div class="ttname"><a href="classfhatos_1_1Str.html">fhatos::Str</a></div><div class="ttdef"><b>Definition</b> obj.hpp:337</div></div>
+<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> obj.hpp:205</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:30</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:93</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
-<div class="ttc" id="aobj_8hpp_html_a48680c360c0948acdfc2bab032a0139e"><div class="ttname"><a href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">fhatos::OType</a></div><div class="ttdeci">OType</div><div class="ttdoc">The base types of mm-ADT.</div><div class="ttdef"><b>Definition</b> obj.hpp:47</div></div>
-<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:706</div></div>
-<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:831</div></div>
+<div class="ttc" id="aobj_8hpp_html_a48680c360c0948acdfc2bab032a0139e"><div class="ttname"><a href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">fhatos::OType</a></div><div class="ttdeci">OType</div><div class="ttdoc">The base types of mm-ADT.</div><div class="ttdef"><b>Definition</b> obj.hpp:49</div></div>
+<div class="ttc" id="astructfhatos_1_1OBJ__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:761</div></div>
+<div class="ttc" id="astructfhatos_1_1URI__OR__BYTECODE_html"><div class="ttname"><a href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></div><div class="ttdef"><b>Definition</b> obj.hpp:886</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
