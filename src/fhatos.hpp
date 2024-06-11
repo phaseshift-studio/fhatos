@@ -155,45 +155,45 @@ namespace fhatos {
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float)a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(ex) LOG(ERROR, ex.what())
+#define LOG_EXCEPTION(ex) LOG(ERROR, (ex).what())
 #define LOG_TASK(logtype, process, format, ...)                                \
   LOG((logtype), (string("[!M%s!!] ") + (format) + "\n").c_str(),              \
       (process)->id().toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(rc, subscription)                                        \
-  LOG((rc == OK ? INFO : ERROR),                                               \
+  LOG(((rc) == OK ? INFO : ERROR),                                               \
       "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                      \
-      (string(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
       (subscription)->source.toString().c_str(), (uint8_t)(subscription)->qos,   \
       (subscription)->pattern.toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                   \
-  LOG((rc == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",   \
-      (string(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
+  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",   \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
       ((source).toString().c_str()),                                           \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                               \
-  LOG((rc == OK ? INFO : ERROR),                                               \
+  LOG(((rc) == OK ? INFO : ERROR),                                               \
       "[%s][!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",              \
-      (string(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      (message.source.toString().c_str()), (FOS_BOOL_STR(message.retain)),      \
-      (message.payload->toString().c_str()),                                    \
-      (message.target.toString().c_str()))
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
+      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),      \
+      ((message).payload->toString().c_str()),                                    \
+      ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                 \
-  LOG((rc == OK ? INFO : ERROR),                                               \
+  LOG(((rc) == OK ? INFO : ERROR),                                               \
       (((subscription).pattern.equals((message).target))                       \
            ? "[%s][!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]"  \
              "\n"                                                              \
            : "[%s][!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%"  \
              "s!!]\n"),                                                        \
-      (string(rc == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      (subscription.source.toString().c_str()),                                \
-      (subscription.pattern.toString().c_str()),                               \
-      (subscription.pattern.equals(message.target))                            \
-          ? (message.payload->toString().c_str())                               \
-          : (message.target.toString().c_str()),                               \
-      (subscription.pattern.equals(message.target))                            \
-          ? (message.source.toString().c_str())                                \
-          : (message.payload->toString)().c_str(),                              \
-      (message.source.toString().c_str()))
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
+      ((subscription).source.toString().c_str()),                                \
+      ((subscription).pattern.toString().c_str()),                               \
+      ((subscription).pattern.equals((message).target))                            \
+          ? ((message).payload->toString().c_str())                               \
+          : ((message).target.toString().c_str()),                               \
+      ((subscription).pattern.equals((message).target))                            \
+          ? ((message).source.toString().c_str())                                \
+          : ((message).payload->toString)().c_str(),                              \
+      ((message).source.toString().c_str()))
 
 
 #ifndef FOS_DEFAULT_ROUTER

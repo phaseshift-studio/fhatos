@@ -23,23 +23,19 @@
 //
 #include <process/router/message.hpp>
 #include <process/router/router.hpp>
-//#include <structure/io/net/f_wifi.hpp>
+// #include <structure/io/net/f_wifi.hpp>
 #include FOS_UTIL(mutex.hpp)
 #include <util/mutex_rw.hpp>
 
 #include FOS_PROCESS(coroutine.hpp)
-
-#define NOT_USED 1
-#define READING 2
-#define WRITING 3
 
 namespace fhatos {
   template<typename PROCESS = Coroutine>
   class LocalRouter : public Router<PROCESS> {
   protected:
     // messaging data structures
-    List<ptr<Subscription> > SUBSCRIPTIONS;
-    Map<ID, ptr<Message> > RETAINS;
+    List<ptr<Subscription>> SUBSCRIPTIONS;
+    Map<ID, const ptr<Message>> RETAINS;
     Mutex<> MUTEX_RETAIN;
     MutexRW<> MUTEX_SUBSCRIPTIONS;
 
@@ -50,35 +46,26 @@ namespace fhatos {
     }
 
     explicit LocalRouter(const ID &id = "kernel/router/local") // FOS_DEFAULT_ROUTER::mintID("kernel", "router/local"))
-      : Router<PROCESS>(id) {
-    }
+        : Router<PROCESS>(id) {}
 
-    void setup() override {
-      PROCESS::setup();
-    }
+    void setup() override { PROCESS::setup(); }
 
     virtual RESPONSE_CODE clear() override {
       SUBSCRIPTIONS.clear();
       RETAINS.clear();
-      return (RETAINS.empty() && SUBSCRIPTIONS.empty())
-               ? OK
-               : ROUTER_ERROR;
+      return (RETAINS.empty() && SUBSCRIPTIONS.empty()) ? OK : ROUTER_ERROR;
     }
 
-    virtual const RESPONSE_CODE publish(const Message &message) override {
-      return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this,message]() {
+    const RESPONSE_CODE publish(const Message &message) override {
+      return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
+        const ptr<Message> message_ptr = share(message);
         //////////////
         RESPONSE_CODE _rc = NO_TARGETS;
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(message.target)) {
             try {
               if (subscription->mailbox) {
-                ptr<Message> message_ptr = share<Message>(Message(message));
-
-                if (!subscription->mailbox->push(share<Mail>(Mail(subscription, message_ptr))))
-                  _rc = ROUTER_ERROR;
-                else
-                  _rc = OK;
+                _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, message_ptr))) ? OK : ROUTER_ERROR;
               } else {
                 subscription->onRecv(message);
                 _rc = OK;
@@ -88,30 +75,30 @@ namespace fhatos {
               LOG_EXCEPTION(e);
               _rc = MUTEX_TIMEOUT;
             }
-            LOG_PUBLISH(_rc, message);
           }
         }
-
         if (message.retain) {
-          MUTEX_RETAIN.lockUnlock<void *>([this, message]() {
-            if (RETAINS.count(message.target))
-              RETAINS.erase(message.target);
-            RETAINS.emplace(message.target, share<Message>(Message(message)));
+          MUTEX_RETAIN.lockUnlock<void *>([this, message_ptr]() {
+            if (RETAINS.count(message_ptr->target))
+              RETAINS.erase(message_ptr->target);
+            LOG(DEBUG, "Retaining message: %s\n", message_ptr->toString().c_str());
+            RETAINS.insert({message_ptr->target, share<Message>(Message(*message_ptr))});
             return nullptr;
           });
         }
+        LOG_PUBLISH(_rc, message);
+        LOG(DEBUG, "Retain messages [size:%i]\n", RETAINS.size());
         return _rc;
       });
     }
 
     const RESPONSE_CODE subscribe(const Subscription &subscription) override {
       try {
-        ptr<Subscription> subscription_ptr = share<Subscription>(Subscription(subscription));
-        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this,subscription_ptr]() {
+        const ptr<Subscription> subscription_ptr = share<Subscription>(Subscription(subscription));
+        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription_ptr]() {
           RESPONSE_CODE _rc = OK;
           for (const auto &sub: SUBSCRIPTIONS) {
-            if (sub->source.equals(subscription_ptr->source) &&
-                sub->pattern.equals(subscription_ptr->pattern)) {
+            if (sub->source.equals(subscription_ptr->source) && sub->pattern.equals(subscription_ptr->pattern)) {
               _rc = REPEAT_SUBSCRIPTION;
               break;
             }
@@ -122,13 +109,14 @@ namespace fhatos {
           ///// deliver retains
           if (!_rc) {
             MUTEX_RETAIN.lockUnlock<void *>([this, subscription_ptr]() {
-              for (const Pair<const ID, ptr<Message> > &retain: RETAINS) {
-                if (retain.first.matches(subscription_ptr->pattern)) {
+              LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS.size());
+              for (const auto &[target, message_ptr]: RETAINS) {
+                LOG(DEBUG, "Retain message: %s\n", message_ptr->toString().c_str());
+                if (target.matches(subscription_ptr->pattern)) {
                   if (subscription_ptr->mailbox) {
-                    subscription_ptr->mailbox->push(
-                      share<Mail>(Mail(subscription_ptr, retain.second)));
+                    subscription_ptr->mailbox->push(share<Mail>(Mail(subscription_ptr, message_ptr)));
                   } else {
-                    subscription_ptr->onRecv(*retain.second);
+                    subscription_ptr->onRecv(*message_ptr);
                   }
                 }
               }
@@ -144,38 +132,33 @@ namespace fhatos {
       }
     }
 
-    const RESPONSE_CODE unsubscribe(const ID &source,
-                                    const Pattern &pattern) override {
+    const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
       return *unsubscribeX(source, &pattern);
     }
 
-    const RESPONSE_CODE unsubscribeSource(const ID &source) override {
-      return *unsubscribeX(source, nullptr);
-    }
+    const RESPONSE_CODE unsubscribeSource(const ID &source) override { return *unsubscribeX(source, nullptr); }
 
   protected:
     ptr<RESPONSE_CODE> unsubscribeX(const ID &source, const Pattern *pattern) {
       try {
-        return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>(
-          [this, source, pattern]() {
-            const uint16_t size = SUBSCRIPTIONS.size();
-            SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
-                                          [source, pattern](const auto &sub) {
-                                            return sub->source.equals(source) &&
-                                                   (nullptr == pattern || sub->pattern.equals(*pattern));
-                                          }), SUBSCRIPTIONS.end());
-            //LOG(INFO, "!bSIZE: %i --> %i \n", SUBSCRIPTIONS.size(), size);
-            const auto _rc2 = share<RESPONSE_CODE>((SUBSCRIPTIONS.size() < size)
-                                                     ? OK
-                                                     : NO_SUBSCRIPTION);
-            LOG_UNSUBSCRIBE(*_rc2, source, pattern);
-            return _rc2;
-          });
+        return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, source, pattern]() {
+          const uint16_t size = SUBSCRIPTIONS.size();
+          SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
+                                        [source, pattern](const auto &sub) {
+                                          return sub->source.equals(source) &&
+                                                 (nullptr == pattern || sub->pattern.equals(*pattern));
+                                        }),
+                              SUBSCRIPTIONS.end());
+          // LOG(INFO, "!bSIZE: %i --> %i \n", SUBSCRIPTIONS.size(), size);
+          const auto _rc2 = share<RESPONSE_CODE>((SUBSCRIPTIONS.size() < size) ? OK : NO_SUBSCRIPTION);
+          LOG_UNSUBSCRIBE(*_rc2, source, pattern);
+          return _rc2;
+        });
       } catch (const fError &e) {
         LOG_EXCEPTION(e);
         return share<RESPONSE_CODE>(MUTEX_TIMEOUT);
       }
     }
   };
-}
+} // namespace fhatos
 #endif

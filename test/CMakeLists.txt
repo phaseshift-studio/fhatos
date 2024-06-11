@@ -10,8 +10,8 @@ FETCHCONTENT_DECLARE(
         GIT_TAG v2.6.0
 )
 FETCHCONTENT_MAKEAVAILABLE(unity)
-INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/unity)
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ########### TEST SUITES ############

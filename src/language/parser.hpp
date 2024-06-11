@@ -84,8 +84,8 @@ namespace fhatos {
           fluent = new Fluent(fluent->mult(OBJ_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "start") {
           fluent = new Fluent(fluent->start(*args));
-        } else if (*opcode == "type") {
-          fluent = new Fluent(fluent->type(URI_OR_BYTECODE(*args->at(0))));
+        } else if (*opcode == "as") {
+          fluent = new Fluent(fluent->as(URI_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "define") {
           fluent = new Fluent(fluent->define(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
         } else if (*opcode == "explain") {

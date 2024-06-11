@@ -459,7 +459,10 @@ namespace fhatos {
 
     bool isNoInst() const { return this->opcode() == "noinst"; }
 
-    void bcode(Bytecode *bcode) { this->_bcode = bcode; }
+    Inst *bcode(Bytecode *bcode) {
+      this->_bcode = bcode;
+      return this;
+    }
 
     Bytecode *bcode() const { return this->_bcode; }
 
@@ -593,32 +596,30 @@ namespace fhatos {
     const List<Inst *> *value() const { return this->_value; }
 
     ptr<Bytecode> addInst(Inst *inst) const {
-      List<Inst *> *list = new List<Inst *>();
-      ptr<Bytecode> bcode = share(Bytecode(list, this->id()));
-      for (const auto i: *this->_value) {
-        list->push_back(i);
-        i->bcode(bcode.get());
+      auto *list = new List<Inst *>();
+      const ptr<Bytecode> bcode = share(Bytecode(list, this->id()));
+      for (const auto prevInst: *this->_value) {
+        list->push_back(prevInst->bcode(bcode.get()));
       }
-      list->push_back(inst);
-      inst->bcode(bcode.get());
+      list->push_back(inst->bcode(bcode.get()));
       return bcode;
     }
 
     template<typename ROUTER>
     void createType(const fURI &type, const Obj *typeDefinition) {
       if (!ROUTER::singleton()->write(typeDefinition, this->id(), type)) {
-        this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
+        // this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
       }
     }
 
     template<typename ROUTER>
     const Obj *getType(const fURI &type) {
-      if (this->_TYPE_CACHE.count(type))
-        return this->_TYPE_CACHE.at(type);
+      // if (this->_TYPE_CACHE.count(type))
+      //   return this->_TYPE_CACHE.at(type);
       const Obj *typeDefinition = ROUTER::singleton()->read(this->id(), type);
-      if (typeDefinition) {
-        this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
-      }
+      // if (typeDefinition) {
+      //   this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
+      // }
       return typeDefinition;
     }
 

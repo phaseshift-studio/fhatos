@@ -27,17 +27,15 @@
 #include <process/router/local_router.hpp>
 
 namespace fhatos {
-  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER=FOS_DEFAULT_ROUTER >
+  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER = FOS_DEFAULT_ROUTER>
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {
-    }
+    explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {}
 
-    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(share<Bytecode>(Bytecode(id))) {
-    }
+    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(share<Bytecode>(Bytecode(id))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
@@ -52,12 +50,10 @@ namespace fhatos {
       proc.forEach(consumer);
     }
 
-    template<typename E=Obj>
+    template<typename E = Obj>
     List<const E *> *toList() const {
       List<const E *> *list = new List<const E *>();
-      this->template forEach<E>([list](const E *end) {
-        list->push_back(end);
-      });
+      this->template forEach<E>([list](const E *end) { list->push_back(end); });
       return list;
     }
 
@@ -75,23 +71,21 @@ namespace fhatos {
     const ptr<Bytecode> bcode;
 
   protected:
-    Fluent<> addInst(Inst *inst) const {
-      return Fluent<>(this->bcode->addInst(inst));
-    }
+    Fluent<> addInst(Inst *inst) const { return Fluent<>(this->bcode->addInst(inst)); }
 
   public:
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    operator const OBJ_OR_BYTECODE &() const {
+     operator const OBJ_OR_BYTECODE &() const {
       return *new OBJ_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
     }
 
-    Fluent start(const List<ptr<OBJ_OR_BYTECODE> > &starts) const {
-      List<Obj *> *castStarts = new List<Obj *>();
-      for (const auto &se: starts) {
-        castStarts->push_back(se->cast<>());
+    Fluent start(const List<ptr<OBJ_OR_BYTECODE>> &starts) const {
+      auto *castStarts = new List<Obj *>();
+      for (const auto &start: starts) {
+        castStarts->push_back(start->cast<Obj>());
       }
       return this->addInst(new StartInst(castStarts));
     }
@@ -100,11 +94,11 @@ namespace fhatos {
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent plus(const OBJ_OR_BYTECODE &rhs) const {
+    Fluent plus(const OBJ_OR_BYTECODE &rhs) {
       return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::PLUS, rhs));
     }
 
-    Fluent mult(const OBJ_OR_BYTECODE &rhs) const {
+    Fluent mult(const OBJ_OR_BYTECODE &rhs) {
       return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MULT, rhs));
     }
 
@@ -143,30 +137,22 @@ namespace fhatos {
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent ref(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new ReferenceInst<ROUTER>(uri));
-    }
+    Fluent ref(const URI_OR_BYTECODE &uri) { return this->addInst(new ReferenceInst<ROUTER>(uri)); }
 
-    Fluent dref(const URI_OR_BYTECODE &uri) {
-      return this->addInst(new DereferenceInst<ROUTER>(uri));
-    }
+    Fluent dref(const URI_OR_BYTECODE &uri) { return this->addInst(new DereferenceInst<ROUTER>(uri)); }
 
-    Fluent explain() {
-      return this->addInst(new ExplainInst());
-    }
+    Fluent explain() { return this->addInst(new ExplainInst()); }
 
-    Fluent count() {
-      return this->addInst(new CountInst());
-    }
+    Fluent count() { return this->addInst(new CountInst()); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// BRANCHING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent bswitch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > &recPairs) {
-      auto recMap = new RecMap<Obj *, Obj *>;
-      for (auto it = std::begin(recPairs); it != std::end(recPairs); ++it) {
-        recMap->insert({it->first.cast<>(), it->second.cast<>()});
+    Fluent bswitch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE>> &recPairs) {
+      const auto recMap = new RecMap<Obj *, Obj *>;
+      for (const auto &[key, value] : recPairs) {
+        recMap->insert({key.cast(), value.cast()});
       }
       return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, OBJ_OR_BYTECODE(new Rec(recMap))));
     }
@@ -179,27 +165,21 @@ namespace fhatos {
     //////////////////////////// FILTERING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent is(const OBJ_OR_BYTECODE &test) {
-      return this->addInst(new IsInst(test));
-    }
+    Fluent is(const OBJ_OR_BYTECODE &test) { return this->addInst(new IsInst(test)); }
 
-    Fluent where(const OBJ_OR_BYTECODE &test) {
-      return this->addInst(new WhereInst(test));
-    }
+    Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 
-    Fluent publish(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload) const {
+    Fluent publish(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload) {
       return this->addInst(new PublishInst(target, payload, this->bcode->id()));
     }
 
-    Fluent subscribe(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) const {
+    Fluent subscribe(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) {
       return this->addInst(new SubscribeInst(pattern, onRecv, this->bcode->id()));
     }
 
-    Fluent type(const URI_OR_BYTECODE &utype) const {
-      return this->addInst(new TypeInst<ROUTER>(utype));
-    }
+    Fluent as(const OBJ_OR_BYTECODE &utype) { return this->addInst(new AsInst<ROUTER>(utype)); }
 
-    Fluent define(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) const {
+    Fluent define(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) {
       return this->addInst(new DefineInst<ROUTER>(utype, typeDefinition));
     }
   };
@@ -217,16 +197,13 @@ namespace fhatos {
       for (OBJ_OR_BYTECODE se: starts) {
         castStarts->push_back(se.cast<>());
       }
-      return Fluent<>(
-        share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
+      return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
     }
   };
 
 
   static Fluent<> __(const OBJ_OR_BYTECODE &start) {
-    return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({
-      new StartInst(new List<Obj *>{start.cast<>()})
-    }))));
+    return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(new List<Obj *>{start.cast<>()})}))));
   };
 
   static Fluent<> __() { return __(List<OBJ_OR_BYTECODE>{}); };

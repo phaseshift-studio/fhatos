@@ -321,8 +321,8 @@ namespace fhatos {
     }
 
     static binary_obj fromList(const List<Inst*> &xlist) {
-      Bytecode *temp = new Bytecode(&xlist);
-      fbyte *bytes = static_cast<fbyte *>(malloc(sizeof(*temp)));
+      const auto temp = new Bytecode(new List<Inst*>(xlist));
+      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*temp)));
       memcpy(bytes, reinterpret_cast<const fbyte *>(temp), sizeof(*temp));
       LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*temp), temp->toString().c_str());
       return binary_obj{OType::BYTECODE, bytes, sizeof(*temp)};
@@ -331,7 +331,7 @@ namespace fhatos {
     static Bytecode toBytecode(const BinaryObj<CharSerializer> &bobj) {
       LOG(DEBUG, "!g!_%s serialization!! [!rsize:%i!!]:\n" FOS_TAB, OTYPE_STR.at(bobj.type()), bobj.length());
       switch (bobj.type()) {
-        case OType::BYTECODE: return *(Bytecode *) bobj.data();
+        case OType::BYTECODE: return Bytecode(new List<Inst*>(*(((Bytecode *) bobj.data())->value())));
         default: throw fError("Unknown type: %s\n", OTYPE_STR.at(bobj.type()));
       }
     }
@@ -347,7 +347,7 @@ namespace fhatos {
     static Uri toUri(const BinaryObj<CharSerializer> &bobj) {
       switch (bobj.type()) {
         case OType::URI:
-          return Uri(fURI("/" + bobj.toString()));;
+          return Uri(fURI("/" + bobj.toString()));
         case OType::BOOL:
           return Uri(fURI("/" + bobj.toString()));
         case OType::INT:

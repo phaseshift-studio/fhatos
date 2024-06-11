@@ -81,10 +81,10 @@ namespace fhatos {
   };
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER >
-  class TypeInst final : public OneToOneInst {
+  class AsInst final : public OneToOneInst {
   public:
-    explicit TypeInst(const URI_OR_BYTECODE &utype) : OneToOneInst({
-      "type",
+    explicit AsInst(const OBJ_OR_BYTECODE &utype) : OneToOneInst({
+      "as",
       {utype},
       [this](const Obj *obj) {
         const UType utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
@@ -107,10 +107,10 @@ namespace fhatos {
   public:
     explicit DefineInst(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) : OneToOneInst(
       "define",
-      {utype, typeDefinition},
+      {utype, typeDefinition.cast<Obj>()},
       [this](const Obj *obj) -> const Obj *{
-        this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),(Obj*)this->arg(1));
-        return (Obj *) obj;
+        this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),this->arg(1)->obj());
+        return obj;
       }) {
     }
   };

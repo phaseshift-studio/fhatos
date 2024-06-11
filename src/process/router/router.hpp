@@ -21,9 +21,9 @@
 
 #include <fhatos.hpp>
 //
-#include <structure/furi.hpp>
 #include <process/actor/mailbox.hpp>
 #include <process/router/message.hpp>
+#include <structure/furi.hpp>
 #ifndef NATIVE
 #include <structure/io/net/f_wifi.hpp>
 #endif
@@ -41,15 +41,13 @@ namespace fhatos {
 
   struct Subscription {
     using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
-    Mailbox<ptr<Mail> > *mailbox;
+    Mailbox<ptr<Mail>> *mailbox;
     ID source;
     Pattern pattern;
     QoS qos = _1;
-    Consumer<const Message> onRecv;
+    Consumer<const Message &> onRecv;
 
-    const bool match(const ID &target) const {
-      return this->pattern.matches(target);
-    }
+    const bool match(const ID &target) const { return this->pattern.matches(target); }
 
     void execute(const Message &message) const { onRecv(message); }
   };
@@ -95,14 +93,13 @@ namespace fhatos {
   /////////////// ROUTER CLASS ///////////////
   ////////////////////////////////////////////
 
-#define FP_OK_RESULT                                                           \
+#define FP_OK_RESULT                                                                                                   \
   { return RESPONSE_CODE::OK; }
 
   template<typename PROCESS = Thread>
   class Router : public PROCESS {
   public:
-    explicit Router(const ID &id) : PROCESS(id) {
-    };
+    explicit Router(const ID &id) : PROCESS(id){};
 
     static const ID mintID(const char *user, const char *path = "") {
 #ifdef NATIVE
@@ -114,27 +111,26 @@ namespace fhatos {
 
     virtual const RESPONSE_CODE publish(const Message &message) FP_OK_RESULT;
 
-    virtual const RESPONSE_CODE
-    subscribe(const Subscription &subscription) FP_OK_RESULT;
+    virtual const RESPONSE_CODE subscribe(const Subscription &subscription) FP_OK_RESULT;
 
-    virtual const RESPONSE_CODE unsubscribe(const ID &source,
-                                            const Pattern &pattern) FP_OK_RESULT;
+    virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) FP_OK_RESULT;
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
     virtual RESPONSE_CODE clear() FP_OK_RESULT;
 
-    virtual const Obj *read(const ID &source, const ID &target)  {
-      std::atomic<Obj *> *thing = new std::atomic<Obj *>(nullptr);
-      std::atomic<bool> *done = new std::atomic<bool>(false);
-      this->subscribe(Subscription{
-        .source = source,
-        .pattern = target,
-        .onRecv = [thing,done](const Message &message) {
-          thing->store(message.payload->toObj());
-          done->store(true);
-        }
-      });
+    virtual const Obj *read(const ID &source, const ID &target) {
+      auto *thing = new std::atomic<Obj *>(nullptr);
+      auto *done = new std::atomic<bool>(false);
+      this->subscribe(
+          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const Message &message) {
+                         thing->store(message.payload->toObj());
+                         done->store(true);
+                       }});
+      const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
-        // wait until done
+        if (time(nullptr) - startTimestamp > 5) {
+          LOG(ERROR, "Read timeout on target !y%s!!\n", target.toString().c_str());
+          break;
+        }
       }
       const Obj *ret = thing->load();
       delete thing;
@@ -145,12 +141,7 @@ namespace fhatos {
 
     virtual RESPONSE_CODE write(const Obj *obj, const ID &source, const ID &target) {
       return this->publish(
-        Message{
-          .source = source,
-          .target = target,
-          .payload = BinaryObj<>::fromObj(obj),
-          .retain = RETAIN_MESSAGE
-        });
+          Message{.source = source, .target = target, .payload = BinaryObj<>::fromObj(obj), .retain = RETAIN_MESSAGE});
     }
   };
 } // namespace fhatos

@@ -141,7 +141,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 
 template<typename _OBJ>
 static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
-                              const Map<Uri, Obj *> expectedReferences = {}) {
+                              const Map<Uri, Obj *> expectedReferences = {}, const bool clearRouter = true) {
   const List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
   for (const _OBJ obj: expected) {
@@ -159,6 +159,7 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
           }});
     }
   }
-  FOS_DEFAULT_ROUTER::singleton()->clear();
+  if (clearRouter)
+    FOS_DEFAULT_ROUTER::singleton()->clear();
 }
 #endif
