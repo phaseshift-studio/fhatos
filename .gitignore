@@ -42,3 +42,4 @@ CMakeDoxygenDefaults.cmake
 docs/CMakeDoxyfile.in
 _deps/
 include/
+Testing/

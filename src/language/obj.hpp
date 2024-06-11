@@ -37,12 +37,13 @@
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
 #include <util/uuid.hpp>
+#include <utility>
 #ifdef NATIVE
 #include <assert.h>
 #else
 #include <esp_assert.h>
 #endif
-//#include <process/router/local_router.hpp>
+// #include <process/router/local_router.hpp>
 
 namespace fhatos {
   /// @brief The base types of mm-ADT
@@ -75,22 +76,19 @@ namespace fhatos {
   };
 
 
-  static const Map<OType, const char *> OTYPE_STR = {
-    {
-      {OType::NOOBJ, "noobj"},
-      {OType::NOINST, "noinst"},
-      {OType::OBJ, "obj"},
-      {OType::OBJS, "objs"},
-      {OType::URI, "uri"},
-      {OType::BOOL, "bool"},
-      {OType::INT, "int"},
-      {OType::REAL, "real"},
-      {OType::STR, "str"},
-      {OType::LST, "lst"},
-      {OType::REC, "rec"},
-      {OType::INST, "inst"},
-      {OType::BYTECODE, "bcode"}
-    }
+  static const Map<OType, const char *> OTYPE_STR = {{{OType::NOOBJ, "noobj"},
+                                                      {OType::NOINST, "noinst"},
+                                                      {OType::OBJ, "obj"},
+                                                      {OType::OBJS, "objs"},
+                                                      {OType::URI, "uri"},
+                                                      {OType::BOOL, "bool"},
+                                                      {OType::INT, "int"},
+                                                      {OType::REAL, "real"},
+                                                      {OType::STR, "str"},
+                                                      {OType::LST, "lst"},
+                                                      {OType::REC, "rec"},
+                                                      {OType::INST, "inst"},
+                                                      {OType::BYTECODE, "bcode"}}
 
   };
 
@@ -104,31 +102,23 @@ namespace fhatos {
     const ptr<UType> _utype;
 
     const string wrapUType(const string &xstring) const {
-      return NO_UTYPE->equals(*this->_utype.get())
-               ? xstring
-               : ("!y" + this->_utype->toString() + "!![" + xstring + "]");
+      return NO_UTYPE->equals(*this->_utype.get()) ? xstring
+                                                   : ("!y" + this->_utype->toString() + "!![" + xstring + "]");
     }
 
   public:
     virtual ~Obj() = default;
 
-    explicit Obj(const OType type, const ptr<UType> utype = NO_UTYPE) : _type(type), _utype(utype) {
-    }
+    explicit Obj(const OType type, const ptr<UType> utype = NO_UTYPE) : _type(type), _utype(utype) {}
 
     virtual const OType type() const { return this->_type; }
     virtual const ptr<UType> utype() const { return this->_utype; }
 
-    virtual const string toString() const {
-      return "obj";
-    }
+    virtual const string toString() const { return "obj"; }
 
-    const Obj *obj() const {
-      return (Obj *) this;
-    }
+    const Obj *obj() const { return (Obj *) this; }
 
-    virtual const Obj *apply(const Obj *obj) const {
-      return this;
-    }
+    virtual const Obj *apply(const Obj *obj) const { return this; }
 
     template<typename A>
     const A *as() const {
@@ -141,13 +131,9 @@ namespace fhatos {
              strcmp(this->toString().c_str(), other.toString().c_str()) == 0;
     }
 
-    virtual bool operator!=(const Obj &other) const {
-      return !(*this == other);
-    }
+    virtual bool operator!=(const Obj &other) const { return !(*this == other); }
 
-    bool isNoObj() const {
-      return this->_type == OType::NOOBJ;
-    }
+    bool isNoObj() const { return this->_type == OType::NOOBJ; }
   };
 
   class NoObj : public Obj {
@@ -157,39 +143,28 @@ namespace fhatos {
       return &no;
     }
 
-    NoObj() : Obj(OType::NOOBJ) {
-    }
+    NoObj() : Obj(OType::NOOBJ) {}
 
-    const NoObj *apply(const Obj *obj) const override {
-      return this;
-    }
+    const NoObj *apply(const Obj *obj) const override { return this; }
 
-    const string toString() const override {
-      return "Ø";
-    }
+    const string toString() const override { return "Ø"; }
 
-    bool operator==(const Obj &other) const override {
-      return other.isNoObj();
-    }
+    bool operator==(const Obj &other) const override { return other.isNoObj(); }
   };
 
-  ///////////////////////////////////////////////// OBJS //////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// OBJS
+  /////////////////////////////////////////////////////////////////
 
   class Objs final : public Obj {
   protected:
     const List<const Obj *> *_value;
 
   public:
-    Objs(const List<const Obj *> *value): Obj(OType::OBJS), _value(value) {
-    }
+    Objs(const List<const Obj *> *value) : Obj(OType::OBJS), _value(value) {}
 
-    const List<const Obj *> *value() const {
-      return this->_value;
-    }
+    const List<const Obj *> *value() const { return this->_value; }
 
-    const Objs *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Objs *apply(const Obj *obj) const override { return this; }
 
     const string toString() const override {
       string t = "(";
@@ -201,77 +176,62 @@ namespace fhatos {
     }
   };
 
-  ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// BOOL
+  /////////////////////////////////////////////////////////////////
   class Uri final : public Obj {
   protected:
     fURI _value;
 
   public:
-    Uri(const fURI &value,
-        const ptr<UType> utype = NO_UTYPE) : Obj(OType::URI, utype), _value(value) {
-    }
+    Uri(const fURI &value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::URI, utype), _value(value) {}
 
-    Uri(const string &value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::URI, utype),
-                                                                 _value(fURI(value)) {
-    }
+    // Uri(const string &value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::URI, utype), _value(fURI(value)) {}
 
-    Uri(const char * &value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::URI, utype),
-                                                                 _value(fURI(value)) {
-    }
+    Uri(const char *&value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::URI, utype), _value(fURI(value)) {}
 
-    const Uri *split(const fURI newValue) const {
-      return new Uri(newValue, this->_utype);
-    }
+    const Uri *split(const fURI &newValue) const { return new Uri(newValue, this->_utype); }
 
     const fURI value() const { return this->_value; }
 
-    const Uri *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Uri *apply(const Obj *obj) const override { return this; }
 
-    const string toString() const override {
-      return wrapUType(this->_value.toString());
+    const string toString() const override { return wrapUType(this->_value.toString()); }
+
+    const Uri *cast(const UType &utype) const {
+      return *this->_utype == utype ? this : new Uri(this->_value, share(utype));
     }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() &&
-             this->_utype == other.utype() &&
+      return this->_type == other.type() && *this->_utype.get() == *other.utype().get() &&
              ((Uri *) &other)->value().equals(this->value());
     }
 
-    bool operator<(const Uri &other) const {
-      return this->_value < other._value;
-    }
+    bool operator<(const Uri &other) const { return this->_value < other._value; }
   };
 
-  ///////////////////////////////////////////////// BOOL //////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// BOOL
+  /////////////////////////////////////////////////////////////////
   class Bool final : public Obj {
   protected:
     const bool _value;
 
   public:
-    Bool(const bool value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::BOOL, utype),
-                                                               _value(value) {
-    }
+    Bool(const bool value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::BOOL, utype), _value(value) {}
 
     const bool value() const { return this->_value; }
 
-    const Bool *split(const bool newValue) const {
-      return new Bool(newValue, this->_utype);
-    }
+    const Bool *split(const bool newValue) const { return new Bool(newValue, this->_utype); }
 
-    const Bool *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Bool *apply(const Obj *obj) const override { return this; }
 
-    const string toString() const override {
-      return this->wrapUType(this->_value ? "true" : "false");
-    }
+    const string toString() const override { return this->wrapUType(this->_value ? "true" : "false"); }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() &&
-             this->_utype == other.utype() &&
-             this->_value == ((Bool *) &other)->value();
+      return this->_type == other.type() && this->_utype == other.utype() && this->_value == ((Bool *) &other)->value();
+    }
+
+    const Bool *cast(const UType &utype) const {
+      return *this->_utype == utype ? this : new Bool(this->_value, share(utype));
     }
   };
 
@@ -281,56 +241,49 @@ namespace fhatos {
     const FL_INT_TYPE _value;
 
   public:
-    Int(const FL_INT_TYPE value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::INT, utype),
-                                                                     _value(value) {
-    }
+    Int(const FL_INT_TYPE value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::INT, utype), _value(value) {}
 
     const FL_INT_TYPE value() const { return this->_value; }
 
-    const Int *split(const FL_INT_TYPE newValue) const {
-      return new Int(newValue, this->_utype);
-    }
+    const Int *split(const FL_INT_TYPE newValue) const { return new Int(newValue, this->_utype); }
 
-    const Obj *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Obj *apply(const Obj *obj) const override { return this; }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() &&
-             this->_utype == other.utype() &&
+      return this->_type == other.type() && *this->_utype.get() == *other.utype().get() &&
              this->_value == ((Int *) &other)->value();
     }
 
-
     const string toString() const override { return this->wrapUType(std::to_string(this->_value)); }
+
+    const Int *cast(const UType &utype = *NO_UTYPE) const {
+      return *this->_utype == utype ? this : new Int(this->_value, share(utype));
+    }
   };
 
-  ///////////////////////////////////////////////// REAL //////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// REAL
+  /////////////////////////////////////////////////////////////////
   class Real final : public Obj {
   protected:
     const FL_REAL_TYPE _value;
 
   public:
-    Real(const FL_REAL_TYPE value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::REAL, utype),
-                                                                       _value(value) {
-    };
+    Real(const FL_REAL_TYPE value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::REAL, utype), _value(value){};
     const FL_REAL_TYPE value() const { return this->_value; }
 
-    const Real *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Real *apply(const Obj *obj) const override { return this; }
 
-    const Real *split(const FL_REAL_TYPE newValue) const {
-      return new Real(newValue, this->_utype);
-    }
+    const Real *split(const FL_REAL_TYPE newValue) const { return new Real(newValue, this->_utype); }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() &&
-             this->_utype == other.utype() &&
-             this->_value == ((Real *) &other)->value();
+      return this->_type == other.type() && this->_utype == other.utype() && this->_value == ((Real *) &other)->value();
     }
 
     const string toString() const override { return this->wrapUType(std::to_string(this->_value)); }
+
+    const Real *cast(const UType &utype) const {
+      return *this->_utype == utype ? this : new Real(this->_value, share(utype));
+    }
   };
 
   ///////////////////////////////////////////////// STR //////////////////////////////////////////////////////////////
@@ -339,37 +292,28 @@ namespace fhatos {
     const string _value;
 
   public:
-    Str(const string &value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::STR, utype),
-                                                                 _value(value) {
-    };
+    Str(const string &value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::STR, utype), _value(value){};
 
-    Str(const char *value, const ptr<UType> utype = NO_UTYPE) : Str(string(value), utype) {
-    }
+    Str(const char *value, const ptr<UType> &utype = NO_UTYPE) : Str(string(value), utype) {}
 
     const string value() const { return this->_value; }
 
-    const Str *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Str *apply(const Obj *obj) const override { return this; }
 
-    const Str *split(const string newValue) const {
-      return new Str(newValue, this->_utype);
-    }
+    const Str *split(const string &newValue) const { return new Str(newValue, this->_utype); }
 
     const string toString() const override { return this->wrapUType(this->_value); }
 
-    int compare(const Str &other) const {
-      return this->_value.compare(other._value);
-    }
+    int compare(const Str &other) const { return this->_value.compare(other._value); }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() &&
-             this->_utype == other.utype() &&
-             this->_value == ((Str *) &other)->value();
+      return this->_type == other.type() && this->_utype == other.utype() && this->_value == ((Str *) &other)->value();
     }
 
-    bool operator<(const Str &other) const {
-      return this->_value < other._value;
+    bool operator<(const Str &other) const { return this->_value < other._value; }
+
+    const Str *cast(const UType &utype) const {
+      return *this->_utype == utype ? this : new Str(this->_value, share(utype));
     }
   };
 
@@ -379,14 +323,10 @@ namespace fhatos {
     const List<Obj> _value;
 
   public:
-    Lst(const List<Obj> &value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::LST, utype),
-                                                                    _value(value) {
-    };
+    Lst(const List<Obj> &value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::LST, utype), _value(value){};
     const List<Obj> value() const { return _value; }
 
-    const Lst *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Lst *apply(const Obj *obj) const override { return this; }
 
     const string toString() const override {
       string t = "[";
@@ -401,19 +341,16 @@ namespace fhatos {
   ///////////////////////////////////////////////// REC //////////////////////////////////////////////////////////////
   struct obj_hash {
     size_t operator()(const Obj *obj) const {
-      return static_cast<std::string::value_type>(obj->type()) ^ (obj->utype() ? obj->utype()->toString().size() : 123)
-             ^ obj->toString().
-             length() ^ obj->toString()[0];
+      return static_cast<std::string::value_type>(obj->type()) ^
+             (obj->utype() ? obj->utype()->toString().size() : 123) ^ obj->toString().length() ^ obj->toString()[0];
     }
   };
 
   struct obj_equal_to : std::binary_function<Obj *, Obj *, bool> {
-    bool operator()(const Obj *a, const Obj *b) const {
-      return *a == *b;
-    }
+    bool operator()(const Obj *a, const Obj *b) const { return *a == *b; }
   };
 
-  template<typename K, typename V, typename H=obj_hash, typename Q=obj_equal_to>
+  template<typename K = Obj *, typename V = Obj *, typename H = obj_hash, typename Q = obj_equal_to>
   using RecMap = OrderedMap<K, V, H, Q>;
 
   class Rec final : public Obj {
@@ -421,38 +358,35 @@ namespace fhatos {
     RecMap<Obj *, Obj *> *_value;
 
   public:
-    Rec(RecMap<Obj *, Obj *> *value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::REC, utype),
-                                                                         _value(value) {
-    };
+    Rec(RecMap<Obj *, Obj *> *value, const ptr<UType> &utype = NO_UTYPE) : Obj(OType::REC, utype), _value(value){};
 
-    Rec(RecMap<Obj *, Obj *> value, const ptr<UType> utype = NO_UTYPE) : Obj(OType::REC, utype),
-                                                                        _value(new RecMap<Obj *, Obj *>(value)) {
-    };
+    Rec(RecMap<Obj *, Obj *> value, const ptr<UType> &utype = NO_UTYPE) :
+        Obj(OType::REC, utype), _value(new RecMap<Obj *, Obj *>(std::move(value))){};
 
-    Rec(std::initializer_list<Pair<Obj * const, Obj *> > keyValues,
-        const ptr<UType> utype = NO_UTYPE) : Obj(OType::REC, utype),
-                                            _value(new RecMap<Obj *, Obj *>()) {
-      for (const Pair<Obj * const, Obj *> pair: keyValues) {
+    Rec(const std::initializer_list<Pair<Obj *const, Obj *>> &keyValues, const ptr<UType> &utype = NO_UTYPE) :
+        Obj(OType::REC, utype), _value(new RecMap<Obj *, Obj *>()) {
+      for (const Pair<Obj *const, Obj *> pair: keyValues) {
         this->_value->insert(pair);
       }
-    };
+    }
+
+    /*Rec(const std::initializer_list<Pair<Obj const, Obj>>& keyValues, const ptr<UType>& utype = NO_UTYPE) :
+        Obj(OType::REC, utype), _value(new RecMap<Obj *, Obj *>()) {
+      for (const Pair<Obj const, Obj>& pair: keyValues) {
+        this->_value->emplace(&pair.first, &pair.second);
+      }
+    }*/
 
     template<typename V>
     const V *get(Obj *key) const {
       return (V *) (this->_value->count(key) ? this->_value->at(key) : NoObj::singleton());
     }
 
-    void set(Obj *key, Obj *val) {
-      this->_value->insert({key, val});
-    }
+    void set(Obj *key, Obj *val) { this->_value->insert({key, val}); }
 
-    const Rec *apply(const Obj *obj) const override {
-      return this;
-    }
+    const Rec *apply(const Obj *obj) const override { return this; }
 
-    const RecMap<Obj *, Obj *> *value() const {
-      return this->_value;
-    }
+    const RecMap<Obj *, Obj *> *value() const { return this->_value; }
 
     bool operator==(const Obj &other) const override {
       if (this->_type != other.type() || this->_utype != other.utype())
@@ -476,9 +410,14 @@ namespace fhatos {
       t[t.length() - 1] = '!';
       return this->wrapUType(t.append("m]!!"));
     }
+
+    const Rec *cast(const UType &utype) const {
+      return *this->_utype == utype ? this : new Rec(this->_value, share(utype));
+    }
   };
 
-  ///////////////////////////////////////////////// INST //////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// INST
+  /////////////////////////////////////////////////////////////////
   enum class IType : uint8_t {
     NOINST = 0,
     ONE_TO_ONE,
@@ -486,14 +425,13 @@ namespace fhatos {
     MANY_TO_ONE,
     MANY_TO_MANY,
   }; // TYPE
-  static const Map<IType, const char *> ITYPE_STR = {
-    {
+  static const Map<IType, const char *> ITYPE_STR = {{
       {IType::NOINST, "noinst"},
       {IType::ONE_TO_ONE, "f(x)->y"},
       {IType::ONE_TO_MANY, "f(x)->y*"},
       {IType::MANY_TO_ONE, "f(x*)->y"},
       {IType::MANY_TO_MANY, "f(x*)->y*"},
-    }
+  }
 
   };
 
@@ -516,33 +454,20 @@ namespace fhatos {
     Bytecode *_bcode = nullptr;
 
   public:
-    explicit Inst(const InstOpcode &opcode, const InstArgs &args, const IType itype = IType::NOINST)
-      : Obj(OType::INST), _value({opcode, args}), _itype(itype) {
-    }
+    explicit Inst(const InstOpcode &opcode, const InstArgs &args, const IType itype = IType::NOINST) :
+        Obj(OType::INST), _value({opcode, args}), _itype(itype) {}
 
-    bool isNoInst() const {
-      return this->opcode() == "noinst";
-    }
+    bool isNoInst() const { return this->opcode() == "noinst"; }
 
-    void bcode(Bytecode *bcode) {
-      this->_bcode = bcode;
-    }
+    void bcode(Bytecode *bcode) { this->_bcode = bcode; }
 
-    Bytecode *bcode() const {
-      return this->_bcode;
-    }
+    Bytecode *bcode() const { return this->_bcode; }
 
-    virtual InstPair value() const {
-      return this->_value;
-    }
+    virtual InstPair value() const { return this->_value; }
 
-    const IType itype() const {
-      return this->_itype;
-    }
+    const IType itype() const { return this->_itype; }
 
-    virtual const Obj *apply(const Obj *obj) const override {
-      return NoObj::singleton();
-    }
+    virtual const Obj *apply(const Obj *obj) const override { return NoObj::singleton(); }
 
     const string toString() const override {
       string t = "!g[!!!b" + this->opcode() + "!! ";
@@ -568,8 +493,7 @@ namespace fhatos {
     }
 
   private:
-    NoInst() : Inst("noinst", {}) {
-    }
+    NoInst() : Inst("noinst", {}) {}
   };
 
   /////// ONE TO ONE
@@ -578,14 +502,10 @@ namespace fhatos {
     OneToOneFunction function;
 
   public:
-    OneToOneInst(const InstOpcode opcode, const InstArgs args, const OneToOneFunction function) : Inst(opcode, args,
-        IType::ONE_TO_ONE),
-      function(function) {
-    }
+    OneToOneInst(const InstOpcode &opcode, const InstArgs &args, const OneToOneFunction &function) :
+        Inst(opcode, args, IType::ONE_TO_ONE), function(function) {}
 
-    const Obj *apply(const Obj *obj) const {
-      return this->function(obj);
-    }
+    const Obj *apply(const Obj *obj) const { return this->function(obj); }
   };
 
   /////// MANY TO ONE
@@ -594,11 +514,8 @@ namespace fhatos {
     ManyToOneFunction function;
 
   public:
-    ManyToOneInst(const InstOpcode opcode, const InstArgs args,
-                  const ManyToOneFunction function) : Inst(opcode, args,
-                                                           IType::MANY_TO_ONE),
-                                                      function(function) {
-    }
+    ManyToOneInst(const InstOpcode &opcode, const InstArgs &args, ManyToOneFunction function) :
+        Inst(opcode, args, IType::MANY_TO_ONE), function(std::move(function)) {}
 
     const Obj *apply(const Obj *obj) const override {
       assert(obj->type() == OType::OBJS);
@@ -612,15 +529,10 @@ namespace fhatos {
     OneToManyFunction function;
 
   public:
-    OneToManyInst(const InstOpcode opcode, const InstArgs args,
-                  const OneToManyFunction function) : Inst(opcode, args,
-                                                           IType::ONE_TO_MANY),
-                                                      function(function) {
-    }
+    OneToManyInst(const InstOpcode &opcode, const InstArgs &args, const OneToManyFunction &function) :
+        Inst(opcode, args, IType::ONE_TO_MANY), function(function) {}
 
-    const Objs *apply(const Obj *obj) const override {
-      return this->function(obj);
-    }
+    const Objs *apply(const Obj *obj) const override { return this->function(obj); }
   };
 
   /////// ONE TO MANY
@@ -629,18 +541,14 @@ namespace fhatos {
     ManyToManyFunction function;
 
   public:
-    ManyToManyInst(const InstOpcode opcode, const InstArgs args,
-                   const ManyToManyFunction function) : Inst(opcode, args,
-                                                             IType::MANY_TO_MANY),
-                                                        function(function) {
-    }
+    ManyToManyInst(const InstOpcode &opcode, const InstArgs &args, const ManyToManyFunction &function) :
+        Inst(opcode, args, IType::MANY_TO_MANY), function(function) {}
 
-    const Objs *apply(const Obj *obj) const override {
-      return this->function((Objs *) obj);
-    }
+    const Objs *apply(const Obj *obj) const override { return this->function((Objs *) obj); }
   };
 
-  ///////////////////////////////////////////////// BYTECODE //////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// BYTECODE
+  /////////////////////////////////////////////////////////////////
   class Bytecode final : public Obj, public IDed {
   protected:
     const List<Inst *> *_value;
@@ -648,15 +556,14 @@ namespace fhatos {
     // need a type/ref cache
 
   public:
-    explicit Bytecode(const List<Inst *> *list,
-                      const ID &id = ID(*UUID::singleton()->mint(7))) : Obj(OType::BYTECODE), IDed(id), _value(list) {
+    explicit Bytecode(const List<Inst *> *list, const ID &id = ID(*UUID::singleton()->mint(7))) :
+        Obj(OType::BYTECODE), IDed(id), _value(list) {
       for (auto *inst: *this->_value) {
         inst->bcode(this);
       }
     }
 
-    explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {
-    }
+    explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {}
 
     const Inst *nextInst(const Inst *currentInst) const {
       if (currentInst->isNoInst())
@@ -698,24 +605,17 @@ namespace fhatos {
     }
 
     template<typename ROUTER>
-    void createType(const fURI type, const Obj *typeDefinition) {
-      if (!ROUTER::singleton()->write(
-        typeDefinition,
-        this->id(),
-        type
-      )) {
+    void createType(const fURI &type, const Obj *typeDefinition) {
+      if (!ROUTER::singleton()->write(typeDefinition, this->id(), type)) {
         this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
       }
     }
 
     template<typename ROUTER>
-    const Obj *getType(const fURI type) {
+    const Obj *getType(const fURI &type) {
       if (this->_TYPE_CACHE.count(type))
         return this->_TYPE_CACHE.at(type);
-      const Obj *typeDefinition = ROUTER::singleton()->read(
-        this->id(),
-        type
-      );
+      const Obj *typeDefinition = ROUTER::singleton()->read(this->id(), type);
       if (typeDefinition) {
         this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
       }
@@ -723,17 +623,13 @@ namespace fhatos {
     }
 
     template<typename ROUTER>
-    bool match(const Obj *obj, const fURI type) const {
+    bool match(const Obj *obj, const fURI &type) const {
       return !((Obj *) this->getType<ROUTER>(type).apply(obj))->isNoObj();
     }
 
-    const Inst *startInst() const {
-      return this->value()->front();
-    }
+    const Inst *startInst() const { return this->value()->front(); }
 
-    const Inst *endInst() const {
-      return this->value()->back();
-    }
+    const Inst *endInst() const { return this->value()->back(); }
 
     const string toString() const override {
       string s = "";
@@ -744,16 +640,24 @@ namespace fhatos {
     }
   };
 
-  static const Obj *clone(const Obj *obj, const UType newUType) {
+  template<typename A>
+  static const A *cast(const A *obj, const UType &utype) {
     switch (obj->type()) {
-      case OType::BOOL: return new Bool(((Bool *) obj)->value(), share(newUType));
-      case OType::INT: return new Int(((Int *) obj)->value(), share(newUType));
-      case OType::REAL: return new Real(((Real *) obj)->value(), share(newUType));
-      case OType::URI: return new Uri(((Uri *) obj)->value(), share(newUType));
-      case OType::STR: return new Str(((Str *) obj)->value(), share(newUType));
-      case OType::REC: return new Rec(RecMap<Obj *, Obj *>(*((Rec *) obj)->value()), share(newUType));
-      //case OType::BYTECODE: return new Bytecode(new List<Inst*>(*((Bytecode *) obj)->value()), share(newUType));
-      default: throw fError("Cloning %s current not supported\n", OTYPE_STR.at(obj->type()));
+      case OType::BOOL:
+        return *obj->utype() == utype ? obj : new Bool(((Bool *) obj)->value(), share(utype));
+      case OType::INT:
+        return *obj->utype() == utype ? obj : new Int(((Int *) obj)->value(), share(utype));
+      case OType::REAL:
+        return *obj->utype() == utype ? obj : new Real(((Real *) obj)->value(), share(utype));
+      case OType::URI:
+        return *obj->utype() == utype ? obj : new Uri(((Uri *) obj)->value(), share(utype));
+      case OType::STR:
+        return *obj->utype() == utype ? obj : new Str(((Str *) obj)->value(), share(utype));
+      case OType::REC:
+        return *obj->utype() == utype ? obj : new Rec(*((Rec *) obj)->value(), share(utype));
+      // case OType::BYTECODE: return new Bytecode(new List<Inst*>(*((Bytecode *) obj)->value()), share(newUType));
+      default:
+        throw fError("Casting %s currently not supported\n", OTYPE_STR.at(obj->type()));
     }
   }
 
@@ -770,134 +674,93 @@ namespace fhatos {
     const OType _type;
     const OBJ_UNION data;
 
-    bool isBytecode() const {
-      return this->_type == OType::BYTECODE;
-    }
+    bool isBytecode() const { return this->_type == OType::BYTECODE; }
 
-    OBJ_OR_BYTECODE(const Obj *objA) : _type(objA->type()),
-                                       data(objA->type() == OType::BYTECODE
-                                              ? OBJ_UNION{.bcodeB = new Bytecode(*(Bytecode *) objA)}
-                                              : OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Obj *objA) :
+        _type(objA->type()),
+        data(objA->type() == OType::BYTECODE ? OBJ_UNION{.bcodeB = new Bytecode(*(Bytecode *) objA)}
+                                             : OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const NoObj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const NoObj *objA) : _type(objA->type()), data(OBJ_UNION{.objA = objA}) {}
 
-    template<class T,
-      class = typename std::enable_if_t<std::is_same_v<bool, T> > >
-    OBJ_OR_BYTECODE(const T boolX) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(boolX)}) {
-    }
+    template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
+    OBJ_OR_BYTECODE(const T &boolX) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(boolX)}) {}
 
-    OBJ_OR_BYTECODE(const FL_INT_TYPE intX) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(intX)}) {
-    }
+    OBJ_OR_BYTECODE(const FL_INT_TYPE &intX) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(intX)}) {}
 
-    OBJ_OR_BYTECODE(const FL_REAL_TYPE realX) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(realX)}) {
-    }
+    OBJ_OR_BYTECODE(const FL_REAL_TYPE &realX) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(realX)}) {}
 
-    OBJ_OR_BYTECODE(const char *strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {
-    }
+    OBJ_OR_BYTECODE(const char *strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {}
 
-    OBJ_OR_BYTECODE(const string &strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {
-    }
+    OBJ_OR_BYTECODE(const string &strX) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(strX)}) {}
 
-    OBJ_OR_BYTECODE(const fURI &uriX) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(uriX)}) {
-    }
+    OBJ_OR_BYTECODE(const fURI &uriX) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(uriX)}) {}
 
-    OBJ_OR_BYTECODE(const Bool *objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Bool *objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const Int *objA) : _type(OType::INT), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Int *objA) : _type(OType::INT), data(OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const Real *objA) : _type(OType::REAL), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Real *objA) : _type(OType::REAL), data(OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const Str *objA) : _type(OType::STR), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Str *objA) : _type(OType::STR), data(OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const Uri *objA) : _type(OType::URI), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Uri *objA) : _type(OType::URI), data(OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const Rec *objA) : _type(OType::REC), data(OBJ_UNION{.objA = objA}) {
-    }
+    OBJ_OR_BYTECODE(const Rec *objA) : _type(OType::REC), data(OBJ_UNION{.objA = objA}) {}
 
-    OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {
-    }
+    OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {}
 
-    OBJ_OR_BYTECODE(const Bool &objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const Bool &objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(objA)}) {}
 
-    OBJ_OR_BYTECODE(const Int &objA) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const Int &objA) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(objA)}) {}
 
-    OBJ_OR_BYTECODE(const Real &objA) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const Real &objA) : _type(OType::REAL), data(OBJ_UNION{.objA = new Real(objA)}) {}
 
-    OBJ_OR_BYTECODE(const Str &objA) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const Str &objA) : _type(OType::STR), data(OBJ_UNION{.objA = new Str(objA)}) {}
 
-    OBJ_OR_BYTECODE(const Uri &objA) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const Uri &objA) : _type(OType::URI), data(OBJ_UNION{.objA = new Uri(objA)}) {}
 
-    OBJ_OR_BYTECODE(const Rec &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const Rec &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {}
 
-    OBJ_OR_BYTECODE(const RecMap<Obj *, Obj *> &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {
-    }
+    OBJ_OR_BYTECODE(const RecMap<Obj *, Obj *> &objA) : _type(OType::REC), data(OBJ_UNION{.objA = new Rec(objA)}) {}
 
-    OBJ_OR_BYTECODE(
-      const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE> > keyValues): _type(OType::REC),
-      data(OBJ_UNION{.objA = new Rec({})}) {
+    OBJ_OR_BYTECODE(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE>> keyValues) :
+        _type(OType::REC), data(OBJ_UNION{.objA = new Rec({})}) {
       for (auto it = std::begin(keyValues); it != std::end(keyValues); ++it) {
-        const_cast<RecMap<Obj *, Obj *> *>(((Rec *) this->data.objA)->value())->insert({
-          it->first.cast<>(), it->second.cast<>()
-        });
+        const_cast<RecMap<Obj *, Obj *> *>(((Rec *) this->data.objA)->value())
+            ->insert({it->first.cast<>(), it->second.cast<>()});
       }
     }
 
-    OBJ_OR_BYTECODE(const Bytecode &bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = new Bytecode(bcodeB)}) {
-    }
+    OBJ_OR_BYTECODE(const Bytecode &bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = new Bytecode(bcodeB)}) {}
 
 
-    const OType type() const {
-      return this->_type;
-    }
+    const OType type() const { return this->_type; }
 
     template<typename T = Obj>
     T *cast() const {
-      return this->isBytecode()
-               ? (T *) (data.bcodeB)
-               : (T *) (data.objA);
+      return this->isBytecode() ? (T *) (data.bcodeB) : (T *) (data.objA);
     }
 
-    const string toString() const {
-      return this->cast()->toString();
-    }
+    const string toString() const { return this->cast()->toString(); }
 
     virtual const Obj *apply(const Obj *input) const {
       return (this->isBytecode() ? data.bcodeB->apply(input) : data.objA->apply(input));
     }
 
-    virtual operator Obj *() const {
-      return const_cast<Obj *>(this->isBytecode() ? data.bcodeB : data.objA);
-    }
+    virtual operator Obj *() const { return const_cast<Obj *>(this->isBytecode() ? data.bcodeB : data.objA); }
   };
 
   struct URI_OR_BYTECODE : public OBJ_OR_BYTECODE {
-    URI_OR_BYTECODE(const Obj *uriX) : OBJ_OR_BYTECODE(uriX) {
-    }
+    URI_OR_BYTECODE(const Obj *uriX) : OBJ_OR_BYTECODE(uriX) {}
 
-    URI_OR_BYTECODE(const Uri &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
-    }
+    URI_OR_BYTECODE(const Uri &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {}
 
-    URI_OR_BYTECODE(const fURI &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
-    }
+    URI_OR_BYTECODE(const fURI &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {}
 
-    URI_OR_BYTECODE(const string &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
-    }
+    URI_OR_BYTECODE(const string &uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {}
 
-    URI_OR_BYTECODE(const char *uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {
-    }
+    URI_OR_BYTECODE(const char *uriX) : OBJ_OR_BYTECODE(new Uri(uriX)) {}
 
     const Uri *apply(const Obj *input) const override {
       return this->isBytecode() ? (Uri *) data.bcodeB->apply(input) : (Uri *) data.objA->apply(input);

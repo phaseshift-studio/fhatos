@@ -111,10 +111,10 @@ namespace fhatos {
 
     // fURI(const IDed &ided) : fURI(ided._id) {}
 
-    explicit fURI(const string &furiString) : fURI(furiString.c_str()) {
+    fURI(const string &furiString) : fURI(furiString.c_str()) {
     }
 
-    explicit fURI(const char *furiCharacters) {
+    fURI(const char *furiCharacters) {
       if ((strlen(furiCharacters) == 0) ||
           (strlen(furiCharacters) == 1 && furiCharacters[0] == '/')) {
         this->_length = 0;

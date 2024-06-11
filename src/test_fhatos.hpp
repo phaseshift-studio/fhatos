@@ -29,62 +29,58 @@
 static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
 #define FOS_TEST_PRINTER ansi // Serial
 
-#define SETUP_AND_LOOP()                                                       \
-  void setup() {                                                               \
-    Serial.begin(FOS_SERIAL_BAUDRATE);                                         \
-    delay(2000);                                                               \
-    fhatos::RUN_UNITY_TESTS();                                         \
-  }                                                                            \
+#define SETUP_AND_LOOP()                                                                                               \
+  void setup() {                                                                                                       \
+    Serial.begin(FOS_SERIAL_BAUDRATE);                                                                                 \
+    delay(2000);                                                                                                       \
+    fhatos::RUN_UNITY_TESTS();                                                                                         \
+  }                                                                                                                    \
   void loop() {}
 
-#define FOS_TEST_MESSAGE(format, ...)                                          \
-  FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                        \
-  FOS_TEST_PRINTER.printf((format), ##__VA_ARGS__);                            \
+#define FOS_TEST_MESSAGE(format, ...)                                                                                  \
+  FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                                                                \
+  FOS_TEST_PRINTER.printf((format), ##__VA_ARGS__);                                                                    \
   FOS_TEST_PRINTER.println();
 
-#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                       \
-  FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(),            \
-                   (y).toString().c_str());                                    \
+#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
+  FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                           \
   TEST_ASSERT_TRUE((x).equals(y));
 
-#define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                   \
-  FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(),           \
-                   (y).toString().c_str());                                    \
+#define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
+  FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
   TEST_ASSERT_FALSE((x).equals(y))
 
-#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y)                                  \
-  TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
+#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
 
-#define FOS_TEST_ASSERT_EXCEPTION(x)                                           \
-  try {                                                                        \
-    x;                                                                         \
-    TEST_ASSERT(false);                                                        \
-  } catch (fhatos::fError e) {                                         \
-    TEST_ASSERT(true);                                                         \
+#define FOS_TEST_ASSERT_EXCEPTION(x)                                                                                   \
+  try {                                                                                                                \
+    x;                                                                                                                 \
+    TEST_ASSERT(false);                                                                                                \
+  } catch (fhatos::fError e) {                                                                                         \
+    TEST_ASSERT(true);                                                                                                 \
   }
 
 namespace fhatos {
-#define FOS_RUN_TEST(x)                                                        \
-  __test_freeSketch = ESP.getFreeSketchSpace();                                \
-  __test_freeHeap = ESP.getFreeHeap();                                         \
-  { RUN_TEST(x); }                                                             \
-  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch,                   \
-                                          ESP.getFreeSketchSpace(),            \
-                                          "Memory leak in sketch space.");     \
-  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeHeap, ESP.getFreeHeap(),  \
-                                          "Memory leak in heap.");
+#define FOS_RUN_TEST(x)                                                                                                \
+  __test_freeSketch = ESP.getFreeSketchSpace();                                                                        \
+  __test_freeHeap = ESP.getFreeHeap();                                                                                 \
+  { RUN_TEST(x); }                                                                                                     \
+  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch, ESP.getFreeSketchSpace(),                                 \
+                                          "Memory leak in sketch space.");                                             \
+  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeHeap, ESP.getFreeHeap(), "Memory leak in heap.");
 
-#define FOS_RUN_TESTS(x)                                                       \
-  void RUN_UNITY_TESTS() {                                                     \
-    LOG(NONE, ANSI_ART);                                                       \
-    UNITY_BEGIN();                                                             \
-    uint32_t __test_freeSketch;                                                \
-    uint32_t __test_freeHeap;                                                  \
-    x;                                                                         \
-    UNITY_END();                                                               \
+#define FOS_RUN_TESTS(x)                                                                                               \
+  void RUN_UNITY_TESTS() {                                                                                             \
+    LOG(NONE, ANSI_ART);                                                                                               \
+    UNITY_BEGIN();                                                                                                     \
+    uint32_t __test_freeSketch;                                                                                        \
+    uint32_t __test_freeHeap;                                                                                          \
+    x;                                                                                                                 \
+    UNITY_END();                                                                                                       \
   }
-} // namespace fhatos::kernel
+} // namespace fhatos
 #endif
+#include "../_deps/unity-src/src/unity.h"
 
 using namespace fhatos;
 
@@ -115,6 +111,22 @@ static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool pr
   return result;
 }
 
+static const void FOS_TEST_OBJ_EQUAL(const Obj *objA, const Obj *objB) {
+  const bool test = *objA == *objB;
+  FOS_TEST_MESSAGE("!bTesting equality!! : %s %s %s", objA->toString().c_str(),
+                   test ? "==" : "!=", objB->toString().c_str());
+  if (!test)
+    TEST_FAIL();
+}
+
+static const void FOS_TEST_OBJ_NOT_EQUAL(const Obj *objA, const Obj *objB) {
+  const bool test = *objA == *objB;
+  FOS_TEST_MESSAGE("!bTesting not equal!!: %s %s %s", objA->toString().c_str(),
+                   test ? "==" : "!=", objB->toString().c_str());
+  if (test)
+    TEST_FAIL();
+}
+
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [!y%s!!]", obj->toString().c_str(), OTYPE_STR.at(obj->type()));
@@ -133,10 +145,7 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
   const List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
   for (const _OBJ obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(),
-                          [obj](const _OBJ *element) {
-                            return obj == *element;
-                          });
+    auto x = std::find_if(result->begin(), result->end(), [obj](const _OBJ *element) { return obj == *element; });
     if (result->end() == x) {
       TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
     }
@@ -145,13 +154,9 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
     for (const auto &[key, value]: expectedReferences) {
       const Obj *temp = value;
       FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
-        .mailbox = nullptr,
-        .source = ID("anon"),
-        .pattern = key.value(),
-        .onRecv = [temp](const Message &message) {
-          TEST_ASSERT_TRUE(*temp == *message.payload->toObj());
-        }
-      });
+          .mailbox = nullptr, .source = ID("anon"), .pattern = key.value(), .onRecv = [temp](const Message &message) {
+            TEST_ASSERT_TRUE(*temp == *message.payload->toObj());
+          }});
     }
   }
   FOS_DEFAULT_ROUTER::singleton()->clear();

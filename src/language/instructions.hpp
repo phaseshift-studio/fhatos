@@ -96,7 +96,7 @@ namespace fhatos {
               typeDefinition->toString().c_str());
           return NoObj::singleton()->obj();
         }
-        return clone(obj, utype)->obj();
+        return cast(obj, utype);
       }
     }) {
     }
