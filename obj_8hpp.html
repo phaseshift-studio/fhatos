@@ -105,6 +105,7 @@ $(function(){ initResizable(false); });
 <div class="textblock"><code>#include &lt;fhatos.hpp&gt;</code><br />
 <code>#include &lt;structure/furi.hpp&gt;</code><br />
 <code>#include &lt;util/uuid.hpp&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;esp_assert.h&gt;</code><br />
 </div>
 <p><a href="obj_8hpp_source.html">Go to the source code of this file.</a></p>
@@ -172,7 +173,7 @@ Typedefs</h2></td></tr>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::UType</b> = <a class="el" href="classfhatos_1_1fURI.html">fURI</a></td></tr>
 <tr class="separator:a9a2730528dfb4e7d2f3a4b8a7696601a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68667d1f01fb9ed9a141524c1cf5f0c2" id="r_a68667d1f01fb9ed9a141524c1cf5f0c2"><td class="memTemplParams" colspan="2"><a id="a68667d1f01fb9ed9a141524c1cf5f0c2" name="a68667d1f01fb9ed9a141524c1cf5f0c2"></a>
-template&lt;typename K , typename V , typename H  = obj_hash, typename Q  = obj_equal_to&gt; </td></tr>
+template&lt;typename K  = Obj *, typename V  = Obj *, typename H  = obj_hash, typename Q  = obj_equal_to&gt; </td></tr>
 <tr class="memitem:a68667d1f01fb9ed9a141524c1cf5f0c2"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>fhatos::RecMap</b> = OrderedMap&lt;K, V, H, Q&gt;</td></tr>
 <tr class="separator:a68667d1f01fb9ed9a141524c1cf5f0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa9aff0e4f40145b66f7cece66aeba6a" id="r_aaa9aff0e4f40145b66f7cece66aeba6a"><td class="memItemLeft" align="right" valign="top"><a id="aaa9aff0e4f40145b66f7cece66aeba6a" name="aaa9aff0e4f40145b66f7cece66aeba6a"></a>
