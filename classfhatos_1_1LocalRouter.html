@@ -126,8 +126,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af59bcc7f311ed16269ecb66a6459f70c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d01ad45ebbd65f602d16755c39d0850" id="r_a2d01ad45ebbd65f602d16755c39d0850"><td class="memItemLeft" align="right" valign="top">virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2d01ad45ebbd65f602d16755c39d0850">clear</a> () override</td></tr>
 <tr class="separator:a2d01ad45ebbd65f602d16755c39d0850"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a519103019b01cdb3bff0530495016505" id="r_a519103019b01cdb3bff0530495016505"><td class="memItemLeft" align="right" valign="top">virtual const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a519103019b01cdb3bff0530495016505">publish</a> (const <a class="el" href="structfhatos_1_1Message.html">Message</a> &amp;message) override</td></tr>
-<tr class="separator:a519103019b01cdb3bff0530495016505"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af471c10ba6c36fdf6a6c2d6213e33b6f" id="r_af471c10ba6c36fdf6a6c2d6213e33b6f"><td class="memItemLeft" align="right" valign="top">const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af471c10ba6c36fdf6a6c2d6213e33b6f">publish</a> (const <a class="el" href="structfhatos_1_1Message.html">Message</a> &amp;message) override</td></tr>
+<tr class="separator:af471c10ba6c36fdf6a6c2d6213e33b6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4be274a28d3f5eabe1734cf5de64886f" id="r_a4be274a28d3f5eabe1734cf5de64886f"><td class="memItemLeft" align="right" valign="top">const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4be274a28d3f5eabe1734cf5de64886f">subscribe</a> (const <a class="el" href="structfhatos_1_1Subscription.html">Subscription</a> &amp;subscription) override</td></tr>
 <tr class="separator:a4be274a28d3f5eabe1734cf5de64886f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adab5347c057e151254463340be421fce" id="r_adab5347c057e151254463340be421fce"><td class="memItemLeft" align="right" valign="top">const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adab5347c057e151254463340be421fce">unsubscribe</a> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source, const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;pattern) override</td></tr>
@@ -214,9 +214,9 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a4ca124196a464517eee35fedf8e6cd66" id="r_a4ca124196a464517eee35fedf8e6cd66"><td class="memItemLeft" align="right" valign="top"><a id="a4ca124196a464517eee35fedf8e6cd66" name="a4ca124196a464517eee35fedf8e6cd66"></a>
 List&lt; ptr&lt; <a class="el" href="structfhatos_1_1Subscription.html">Subscription</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>SUBSCRIPTIONS</b></td></tr>
 <tr class="separator:a4ca124196a464517eee35fedf8e6cd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27b09fe143d0961d00df37fe3ea2c3f0" id="r_a27b09fe143d0961d00df37fe3ea2c3f0"><td class="memItemLeft" align="right" valign="top"><a id="a27b09fe143d0961d00df37fe3ea2c3f0" name="a27b09fe143d0961d00df37fe3ea2c3f0"></a>
-Map&lt; <a class="el" href="classfhatos_1_1ID.html">ID</a>, ptr&lt; <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>RETAINS</b></td></tr>
-<tr class="separator:a27b09fe143d0961d00df37fe3ea2c3f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a537d8556b2285e015c0f42035d19aa73" id="r_a537d8556b2285e015c0f42035d19aa73"><td class="memItemLeft" align="right" valign="top"><a id="a537d8556b2285e015c0f42035d19aa73" name="a537d8556b2285e015c0f42035d19aa73"></a>
+Map&lt; <a class="el" href="classfhatos_1_1ID.html">ID</a>, const ptr&lt; <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>RETAINS</b></td></tr>
+<tr class="separator:a537d8556b2285e015c0f42035d19aa73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0053ad7e4a59426085aab0b0b9886523" id="r_a0053ad7e4a59426085aab0b0b9886523"><td class="memItemLeft" align="right" valign="top"><a id="a0053ad7e4a59426085aab0b0b9886523" name="a0053ad7e4a59426085aab0b0b9886523"></a>
 <a class="el" href="classfhatos_1_1Mutex.html">Mutex</a>&#160;</td><td class="memItemRight" valign="bottom"><b>MUTEX_RETAIN</b></td></tr>
 <tr class="separator:a0053ad7e4a59426085aab0b0b9886523"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -269,8 +269,8 @@ template&lt;typename PROCESS  = Coroutine&gt; </div>
 
 </div>
 </div>
-<a id="a519103019b01cdb3bff0530495016505" name="a519103019b01cdb3bff0530495016505"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a519103019b01cdb3bff0530495016505">&#9670;&#160;</a></span>publish()</h2>
+<a id="af471c10ba6c36fdf6a6c2d6213e33b6f" name="af471c10ba6c36fdf6a6c2d6213e33b6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af471c10ba6c36fdf6a6c2d6213e33b6f">&#9670;&#160;</a></span>publish()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -281,7 +281,7 @@ template&lt;typename PROCESS  = Coroutine&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const RESPONSE_CODE <a class="el" href="classfhatos_1_1LocalRouter.html">fhatos::LocalRouter</a>&lt; PROCESS &gt;::publish </td>
+          <td class="memname">const RESPONSE_CODE <a class="el" href="classfhatos_1_1LocalRouter.html">fhatos::LocalRouter</a>&lt; PROCESS &gt;::publish </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structfhatos_1_1Message.html">Message</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>message</em></span></td><td>)</td>
           <td></td>
