@@ -22,28 +22,35 @@
 #include <string>
 
 namespace fhatos {
-  class StringHelper {
+  class StringHelper final {
   public:
-    static inline void trim(const std::string &s) {
+    StringHelper() = delete;
+    static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    static string hexStr(const unsigned char *data, const int len) {
+      string s(len * 2, ' ');
+      for (uint8_t i = 0; i < len; ++i) {
+        s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
+        s[2 * i + 1] = hexmap[data[i] & 0x0F];
+      }
+      return s;
+    }
+
+    static void trim(const std::string &s) {
       ltrim(const_cast<string &>(s));
       rtrim(const_cast<string &>(s));
     }
 
-    static inline void ltrim(std::string &s) {
-      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-        return !std::isspace(ch);
-      }));
+    static void ltrim(std::string &s) {
+      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
     }
 
-    static inline void rtrim(std::string &s) {
-      s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-      }).base(), s.end());
+    static void rtrim(std::string &s) {
+      s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
     }
 
-    static bool lookAhead(const string token, std::stringstream *ss) {
+    static bool lookAhead(const string &token, std::stringstream *ss) {
       for (int i = 0; i < token.size(); i++) {
-        if(token[i] != ss->peek()) {
+        if (token[i] != ss->peek()) {
           for (int j = 0; j <= i; j++) {
             ss += token[j];
           }
@@ -55,30 +62,27 @@ namespace fhatos {
       return true;
     }
 
-/*
-  *   static bool lookAhead(const string token, std::stringstream *ss, const bool replace = false) {
-        string capture = "";
-        for (int i = 0; i < token.size(); i++) {
-          if (token[i] != ss->peek()) {
-            for (int j = 0; j <= i; j++) {
-              ss += token[j];
+    /*
+      *   static bool lookAhead(const string token, std::stringstream *ss, const bool replace = false) {
+            string capture = "";
+            for (int i = 0; i < token.size(); i++) {
+              if (token[i] != ss->peek()) {
+                for (int j = 0; j <= i; j++) {
+                  ss += token[j];
+                }
+                return false;
+              }
+              capture += ss->get();
             }
-            return false;
+            if (replace) {
+              for (int j = 0; j < capture.size(); j++) {
+                ss += capture[j];
+              }
+            }
+            return true;
           }
-          capture += ss->get();
-        }
-        if (replace) {
-          for (int j = 0; j < capture.size(); j++) {
-            ss += capture[j];
-          }
-        }
-        return true;
-      }
- */
-
-  private:
-    StringHelper() = delete;
+     */
   };
-}
+} // namespace fhatos
 
 #endif

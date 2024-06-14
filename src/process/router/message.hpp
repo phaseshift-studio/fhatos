@@ -39,13 +39,8 @@ namespace fhatos {
     const BinaryObj<> *payload;
     const bool retain;
 
-    //~Message() {
-      //if (this->payload)
-       // delete this->payload;
-   // }
-
     template<OType type>
-    bool is() const {
+    [[nodiscard]] bool is() const {
       return type == this->payload->type();
     }
 
@@ -56,16 +51,16 @@ namespace fhatos {
              !target.equals(source);
     }
 
-    bool isReflexive() const {
+    [[nodiscard]] bool isReflexive() const {
       return target.query("").equals(source.query(""));
     }
 
-    string toString() const {
+    [[nodiscard]] string toString() const {
       char temp[100];
       sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(),
               payload->toString().c_str(), FOS_BOOL_STR(retain),
               target.toString().c_str());
-      return string(temp);
+      return {temp};
     };
   };
 } // namespace fhatos

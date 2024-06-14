@@ -37,14 +37,14 @@ namespace fhatos {
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
 
-  enum QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
+  enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
   struct Subscription {
     using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
     Mailbox<ptr<Mail>> *mailbox;
     ID source;
     Pattern pattern;
-    QoS qos = _1;
+    QoS qos = QoS::_1;
     Consumer<const Message &> onRecv;
 
     const bool match(const ID &target) const { return this->pattern.matches(target); }
@@ -96,12 +96,9 @@ namespace fhatos {
 #define FP_OK_RESULT                                                                                                   \
   { return RESPONSE_CODE::OK; }
 
-  template<typename PROCESS = Thread>
-  class Router : public PROCESS {
+  class Router {
   public:
-    explicit Router(const ID &id) : PROCESS(id){};
-
-    static const ID mintID(const char *user, const char *path = "") {
+    static ID mintID(const char *user, const char *path = "") {
 #ifdef NATIVE
       return ID(path).user(user);
 #else
@@ -115,14 +112,15 @@ namespace fhatos {
 
     virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) FP_OK_RESULT;
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
-    virtual RESPONSE_CODE clear() FP_OK_RESULT;
+    virtual const RESPONSE_CODE clear() FP_OK_RESULT;
 
-    virtual const Obj *read(const ID &source, const ID &target) {
-      auto *thing = new std::atomic<Obj *>(nullptr);
+    template<typename OBJ = Obj>
+    const OBJ *read(const ID &source, const ID &target) {
+      auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const Message &message) {
-                         thing->store(message.payload->toObj());
+                         thing->store((OBJ *) message.payload->toObj());
                          done->store(true);
                        }});
       const time_t startTimestamp = time(nullptr);
@@ -132,7 +130,7 @@ namespace fhatos {
           break;
         }
       }
-      const Obj *ret = thing->load();
+      const OBJ *ret = thing->load();
       delete thing;
       delete done;
       unsubscribe(source, target);

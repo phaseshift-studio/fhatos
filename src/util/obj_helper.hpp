@@ -23,25 +23,18 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
-  class ObjHelper {
-    ObjHelper() = delete;
-
+  class ObjHelper final {
   public:
-    static const char *typeChars(const Obj *obj) {
-      return OTYPE_STR.at(obj->type());
-    }
+    ObjHelper() = delete;
+    static const char *typeChars(const Obj *obj) { return OTYPE_STR.at(obj->type()); }
 
-    static const Option<fError> sameTypes(const Obj *a, const Obj *b) {
-      if (a->type() == b->type() && a->utype()->equals(*b->utype().get()))
-        return Option<fError>();
-      else {
-        return Option<fError>(fError("Obj types are not equivalent: %s[%s] != %s[%s]",
-                             a->utype()->toString().c_str(),
-                             typeChars(a),
-                             b->utype()->toString().c_str(),
-                             typeChars(b)));
-      }
+    static Option<fError> sameTypes(const Obj *a, const Obj *b) {
+      return a->type() == b->type() && a->utype()->equals(*b->utype().get())
+                 ? Option<fError>()
+                 : Option<fError>(fError("Obj types are not equivalent: %s[%s] != %s[%s]",
+                                         a->utype()->toString().c_str(), typeChars(a), b->utype()->toString().c_str(),
+                                         typeChars(b)));
     }
   };
-}
+} // namespace fhatos
 #endif

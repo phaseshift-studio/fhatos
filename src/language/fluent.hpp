@@ -57,7 +57,7 @@ namespace fhatos {
       return list;
     }
 
-    string toString() const {
+    [[nodiscard]] string toString() const {
       return string("!y<!!")
           .append(this->bcode->id().toString().c_str())
           .append("!y>!!")
@@ -78,9 +78,7 @@ namespace fhatos {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-     operator const OBJ_OR_BYTECODE &() const {
-      return *new OBJ_OR_BYTECODE(new Bytecode(this->bcode.get()->value()));
-    }
+    operator const OBJ_OR_BYTECODE &() const { return *new OBJ_OR_BYTECODE(new Bytecode(this->bcode.get()->value())); }
 
     Fluent start(const List<ptr<OBJ_OR_BYTECODE>> &starts) const {
       auto *castStarts = new List<Obj *>();
@@ -151,7 +149,7 @@ namespace fhatos {
 
     Fluent bswitch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE>> &recPairs) {
       const auto recMap = new RecMap<Obj *, Obj *>;
-      for (const auto &[key, value] : recPairs) {
+      for (const auto &[key, value]: recPairs) {
         recMap->insert({key.cast(), value.cast()});
       }
       return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, OBJ_OR_BYTECODE(new Rec(recMap))));
@@ -188,22 +186,20 @@ namespace fhatos {
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
-
   static Fluent<> __(const List<OBJ_OR_BYTECODE> &starts) {
     if (starts.empty()) {
       return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>()))); // TODO: remove unnecesary [start]?
     } else {
       List<Obj *> *castStarts = new List<Obj *>();
-      for (OBJ_OR_BYTECODE se: starts) {
-        castStarts->push_back(se.cast<>());
+      for (OBJ_OR_BYTECODE start: starts) {
+        castStarts->push_back(start.cast<>());
       }
       return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
     }
   };
 
-
   static Fluent<> __(const OBJ_OR_BYTECODE &start) {
-    return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(new List<Obj *>{start.cast<>()})}))));
+    return start.cast<>()->isNoObj() ? __(List<OBJ_OR_BYTECODE>({})) : __(List<OBJ_OR_BYTECODE>({start.cast<>()}));
   };
 
   static Fluent<> __() { return __(List<OBJ_OR_BYTECODE>{}); };

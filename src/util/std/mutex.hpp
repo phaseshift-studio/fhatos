@@ -30,21 +30,22 @@ namespace fhatos {
   class Mutex {
   private:
     std::mutex *xmutex = new std::mutex();
+    string user;
 
   public:
     ~Mutex() { delete this->xmutex; }
 
     template<typename T = void *>
     T lockUnlock(const Supplier<T> criticalFunction,
-                 const uint16_t millisecondsWait = WAIT_TIME_MS) {
+                 const uint16_t millisecondsWait = WAIT_TIME_MS, const string& user = "none") {
       if (this->lock(millisecondsWait)) {
         T t = criticalFunction();
         this->unlock();
         return t;
       } else {
-        fError error("Unable to lock mutex: %i", __LINE__);
+        fError error("User %s unable to lock mutex: [!rline %i!!]", user.c_str(), __LINE__);
         LOG_EXCEPTION(error);
-        throw error;
+       throw error;
       }
     }
 

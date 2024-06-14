@@ -38,7 +38,7 @@ namespace fhatos {
       LOG(INFO, "!R[kernel mode]!! !gBootloader started!!\n");
       bool success = true;
       for (auto *process: processes) {
-        success = success & Scheduler::singleton()->spawn(process);
+        success = success & Scheduler<>::singleton()->spawn(process);
       }
       LOG(INFO, "!R[kernel mode]!! !gBootloader finished!!\n");
       return success;
@@ -49,12 +49,8 @@ namespace fhatos {
       return &kernel;
     }
 
-    virtual void setup() override {
-      Actor<PROCESS, ROUTER>::setup();
-    }
-
   protected:
-    fKernel(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel")) : Actor<PROCESS, ROUTER>(id) {
+    explicit fKernel(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel")) : Actor<PROCESS, ROUTER>(id) {
     }
   };
 };

@@ -23,33 +23,53 @@
 //
 #include <structure/furi.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <structure/kernel/f_scheduler.hpp>
 #include <language/fluent.hpp>
+#include <structure/kernel/f_kernel.hpp>
+#include <structure/kernel/f_scheduler.hpp>
 
 namespace fhatos {
 
+  template<typename ROUTER = LocalRouter>
   void test_spawn() {
-    Scheduler::singleton()->spawn(fScheduler<>::singleton());
-    LocalRouter<>::singleton()->publish(
-        Message{
-            .source = ID("test"),
-            .target = fScheduler<>::singleton()->id().query("?spawn"),
-            .payload = BinaryObj<>::fromObj(new Rec({
-                {new Str("id"), new Uri("testing")},
-                {new Str("setup"), __(12).bcode.get()},
-                {new Str("loop"), __(12).bcode.get()},
+    try {
+      fKernel<>::bootloader({
+          // fScheduler<Thread, ROUTER>::singleton(),
+      });
+      Scheduler<>::singleton()->publish(
+          Scheduler<ROUTER>::singleton()->id().query("?spawn"),
+          BinaryObj<>::fromObj(
+              (new Rec({
+                   {new Str("id"), new Uri("test_spawn")},
+                   {new Str("setup"), new Bytecode(__(0).ref("loop").bcode->value())},
+                   {new Str("loop"),
+                    new Bytecode(__(0)
+                                     .dref("loop")
+                                     .plus(1)
+                                     .bswitch(
+                                         {{_.is(_.lt(0)), _.plus(0)},
+                                          {_.is(_.gt(10)), _.mult(-1).ref("loop").publish(
+                                                               Scheduler<ROUTER>::singleton()->id().query("?destroy"),
+                                                               Uri("test_spawn"))},
+                                          {_, _.ref("loop")}})
+                                     .bcode->value())},
 
-            }))
-        });
-    Scheduler::singleton()->destroy(fScheduler<>::singleton()->id());
+               }))
+                  ->as<Rec>("thread")));
+      Scheduler<ROUTER>::singleton()->barrier("done_barrier",
+                                              []() { return Scheduler<ROUTER>::singleton()->count() == 0; });
+
+      // TEST_ASSERT_EQUAL_INT(-11,
+      //                  ROUTER::singleton()->template read<Int>(fScheduler<>::singleton()->id(), "loop")->value());
+    } catch (fError &error) {
+      LOG_EXCEPTION(error);
+    }
   }
 
   FOS_RUN_TESTS( //
-      LocalRouter<>::singleton(); //
-      Scheduler::singleton(); //
-      // FOS_RUN_TEST(test_spawn); //
-      )
-  ;
+      LocalRouter::singleton(); //
+      Scheduler<>::singleton(); //
+      FOS_RUN_TEST(test_spawn<LocalRouter>); //
+  );
 } // namespace fhatos
 
 SETUP_AND_LOOP()

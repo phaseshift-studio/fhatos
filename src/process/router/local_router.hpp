@@ -30,8 +30,7 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Coroutine>
-  class LocalRouter : public Router<PROCESS> {
+  class LocalRouter : public Router {
   protected:
     // messaging data structures
     List<ptr<Subscription>> SUBSCRIPTIONS;
@@ -45,12 +44,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit LocalRouter(const ID &id = "kernel/router/local") // FOS_DEFAULT_ROUTER::mintID("kernel", "router/local"))
-        : Router<PROCESS>(id) {}
-
-    void setup() override { PROCESS::setup(); }
-
-    virtual RESPONSE_CODE clear() override {
+   const RESPONSE_CODE clear() override {
       SUBSCRIPTIONS.clear();
       RETAINS.clear();
       return (RETAINS.empty() && SUBSCRIPTIONS.empty()) ? OK : ROUTER_ERROR;
@@ -65,6 +59,7 @@ namespace fhatos {
           if (subscription->pattern.matches(message.target)) {
             try {
               if (subscription->mailbox) {
+                // LOG(DEBUG,"Pushing to mailbox: %i\n",subscription->mailbox->size());
                 _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, message_ptr))) ? OK : ROUTER_ERROR;
               } else {
                 subscription->onRecv(message);

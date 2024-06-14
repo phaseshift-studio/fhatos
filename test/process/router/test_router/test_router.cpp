@@ -14,7 +14,7 @@ namespace fhatos {
 
   void test_publish() {
     TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS,
-                      LocalRouter<>::singleton()->publish(Message{
+                      LocalRouter::singleton()->publish(Message{
                         .source = ID("a"),
                         .target = ID("b"),
                         .payload = new BinaryObj<>{OType:: STR, (fbyte *)"test", 4},
@@ -22,7 +22,7 @@ namespace fhatos {
   };
 
   FOS_RUN_TESTS( //
-      LocalRouter<>::singleton(); //
+      LocalRouter::singleton(); //
       FOS_RUN_TEST(test_publish); //
       );
 

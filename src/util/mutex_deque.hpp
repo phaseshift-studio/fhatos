@@ -34,7 +34,7 @@ namespace fhatos {
     template<typename A = void *>
     A lockUnlock(const bool withMutex, Supplier<A> function) {
       if (withMutex)
-        return _mutex.lockUnlock(function);
+        return _mutex.lockUnlock(function,WAIT_TIME_MS,"mutexDeque");
       else {
         A temp = function();
         return temp;

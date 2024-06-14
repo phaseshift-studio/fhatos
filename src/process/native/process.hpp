@@ -20,8 +20,8 @@
 #define fhatos_process_hpp
 
 #include <fhatos.hpp>
-#include <thread>
 #include <structure/furi.hpp>
+#include <thread>
 //
 
 namespace fhatos {
@@ -44,41 +44,31 @@ namespace fhatos {
 
   class Process : public IDed {
   protected:
-    bool _running = false;
+    std::atomic_bool _running = std::atomic_bool(false);
 
   public:
     const PType type;
 
-    explicit Process(const ID &id, const PType pType)
-      : IDed(id), type(pType) {
-    }
+    explicit Process(const ID &id, const PType pType) : IDed(id), type(pType) {}
 
     //~Process() { this->stop(); }
 
-    virtual void setup() {
-      this->_running = true;
-    };
+    virtual void setup() { this->_running.store(true); };
 
-    virtual void loop() {
-    }
+    virtual void loop() {}
 
-    virtual void stop() {
-      this->_running = false;
-    };
+    virtual void stop() { this->_running.store(false); };
 
-    bool running() const { return this->_running; }
+    bool running() const { return this->_running.load(); }
 
-    virtual void delay(const uint64_t milliseconds) {
-    };
+    virtual void delay(const uint64_t milliseconds){};
 
-    virtual void yield() {
-    };
+    virtual void yield(){};
   };
 
   class KernelProcess : public Process {
   public:
-    explicit KernelProcess(const ID &id) : Process(id, KERNEL) {
-    }
+    explicit KernelProcess(const ID &id) : Process(id, KERNEL) {}
 
     void delay(const uint64_t milliseconds) override {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));

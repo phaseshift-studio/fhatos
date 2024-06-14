@@ -44,32 +44,31 @@
 #include <util/fhat_error.hpp>
 
 // C++ standard template library common data structures
+#include <atomic>
 #include <deque>
-#include <string>
 #include <exception>
 #include <functional>
 #include <list>
 #include <map>
+#include <memory>
 #include <optional>
 #include <queue>
 #include <set>
-#include <atomic>
-#include <memory>
+#include <string>
 #include <tsl/ordered_map.h>
 
 namespace fhatos {
-  static const char *ANSI_ART =
-      "!r            !_PhaseShift Studio Presents!! \n"
-      "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
-      "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
-      "___\\!! \n"
-      "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
-      "\\___  \\!! \n"
-      "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
-      "\\_____\\/\\_____\\!! \n"
-      "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
-      "!b\\/_____/\\/_____/!! \n"
-      "!r                                   !_A Dogturd Stynx Production!! \n";
+  static const char *ANSI_ART = "!r            !_PhaseShift Studio Presents!! \n"
+                                "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
+                                "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
+                                "___\\!! \n"
+                                "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
+                                "\\___  \\!! \n"
+                                "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
+                                "\\_____\\/\\_____\\!! \n"
+                                "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+                                "!b\\/_____/\\/_____/!! \n"
+                                "!r                                   !_A Dogturd Stynx Production!! \n";
 
   ////////////////////
   /// LAMBDA TYPES ///
@@ -113,9 +112,11 @@ namespace fhatos {
   using Pair = std::pair<K, V>;
   template<typename A, typename B, typename C>
   using Triple = std::tuple<A, B, C>;
+  template<typename A, typename B, typename C, typename D>
+  using Quadruple = std::tuple<A, B, C, D>;
   template<typename K, typename V>
   using Map = std::map<K, V>;
-  template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K> >
+  template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
   using OrderedMap = tsl::ordered_map<K, V, H, E>;
 
   template<typename A>
@@ -153,51 +154,45 @@ namespace fhatos {
 #define XSTR(a) #a
 #define FSTR(a) STR(a)
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
-#define FOS_BYTES_MB(a) a, (((float)a) / (1024.0f * 1024.0f))
+#define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, (ex).what())
-#define LOG_TASK(logtype, process, format, ...)                                \
-  LOG((logtype), (string("[!M%s!!] ") + (format) + "\n").c_str(),              \
-      (process)->id().toString().c_str(), ##__VA_ARGS__)
-#define LOG_SUBSCRIBE(rc, subscription)                                        \
-  LOG(((rc) == OK ? INFO : ERROR),                                               \
-      "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                      \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      (subscription)->source.toString().c_str(), (uint8_t)(subscription)->qos,   \
+#define LOG_TASK(logtype, process, format, ...)                                                                        \
+  LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id().toString().c_str(), ##__VA_ARGS__)
+#define LOG_SUBSCRIBE(rc, subscription)                                                                                \
+  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                                 \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
       (subscription)->pattern.toString().c_str())
-#define LOG_UNSUBSCRIBE(rc, source, pattern)                                   \
-  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",   \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      ((source).toString().c_str()),                                           \
+#define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
+  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",                                         \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
-#define LOG_PUBLISH(rc, message)                                               \
-  LOG(((rc) == OK ? INFO : ERROR),                                               \
-      "[%s][!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",              \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),      \
-      ((message).payload->toString().c_str()),                                    \
-      ((message).target.toString().c_str()))
-#define LOG_RECEIVE(rc, subscription, message)                                 \
-  LOG(((rc) == OK ? INFO : ERROR),                                               \
-      (((subscription).pattern.equals((message).target))                       \
-           ? "[%s][!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]"  \
-             "\n"                                                              \
-           : "[%s][!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%"  \
-             "s!!]\n"),                                                        \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), \
-      ((subscription).source.toString().c_str()),                                \
-      ((subscription).pattern.toString().c_str()),                               \
-      ((subscription).pattern.equals((message).target))                            \
-          ? ((message).payload->toString().c_str())                               \
-          : ((message).target.toString().c_str()),                               \
-      ((subscription).pattern.equals((message).target))                            \
-          ? ((message).source.toString().c_str())                                \
-          : ((message).payload->toString)().c_str(),                              \
+#define LOG_PUBLISH(rc, message)                                                                                       \
+  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",                         \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
+      ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
+#define LOG_RECEIVE(rc, subscription, message)                                                                         \
+  LOG(((rc) == OK ? INFO : ERROR),                                                                                     \
+      (((subscription).pattern.equals((message).target))                                                               \
+           ? "[%s][!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]"                                          \
+             "\n"                                                                                                      \
+           : "[%s][!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%"                                          \
+             "s!!]\n"),                                                                                                \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      ((subscription).source.toString().c_str()), ((subscription).pattern.toString().c_str()),                         \
+      ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
+                                                        : ((message).target.toString().c_str()),                       \
+      ((subscription).pattern.equals((message).target)) ? ((message).source.toString().c_str())                        \
+                                                        : ((message).payload->toString)().c_str(),                     \
       ((message).source.toString().c_str()))
 
 
 #ifndef FOS_DEFAULT_ROUTER
-#define FOS_DEFAULT_ROUTER LocalRouter<>
+#define FOS_DEFAULT_ROUTER LocalRouter
+#endif
+#ifndef FOS_DEFAULT_ALGEBRA
 #define FOS_DEFAULT_ALGEBRA Algebra
 #endif
 #ifdef NATIVE
@@ -245,7 +240,7 @@ namespace fhatos {
     const size_t len = vsnprintf(temp, sizeof(temp), format, arg);
     va_end(arg);
     if (len > sizeof(temp) - 1) {
-      buffer = new(std::nothrow) char[len + 1];
+      buffer = new (std::nothrow) char[len + 1];
       if (!buffer) {
         return;
       }

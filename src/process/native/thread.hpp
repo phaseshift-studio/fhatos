@@ -19,8 +19,8 @@
 #ifndef fhatos_thread_hpp
 #define fhatos_thread_hpp
 
-#include <fhatos.hpp>
 #include <chrono>
+#include <fhatos.hpp>
 #include <thread>
 //
 #include FOS_PROCESS(process.hpp)
@@ -30,32 +30,31 @@ namespace fhatos {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID &id) : Process(id, THREAD) {
-    }
+    explicit Thread(const ID &id) : Process(id, THREAD), xthread(nullptr) {}
 
-    ~Thread() {
-      delete this->xthread;
-    }
+    ~Thread() override { delete this->xthread; }
 
-    void setup() override {
-      Process::setup();
-    }
+    void setup() override { Process::setup(); }
 
     void stop() override {
       Process::stop();
+      if (this->xthread && this->xthread->joinable() && (this->xthread->get_id() != std::this_thread::get_id())) {
+        try {
+          this->xthread->join();
+        } catch (const std::__1::system_error &e) {
+          LOG_TASK(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
+                   this->xthread->get_id(), std::this_thread::get_id());
+        }
+      }
     }
 
-    void loop() override {
-      Process::loop();
-    }
+    void loop() override { Process::loop(); }
 
     void delay(const uint64_t milliseconds) override {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
-    void yield() override {
-      std::this_thread::yield();
-    }
+    void yield() override { std::this_thread::yield(); }
   };
 } // namespace fhatos
 

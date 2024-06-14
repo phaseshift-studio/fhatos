@@ -36,8 +36,7 @@ namespace fhatos {
     const long _bulk = 1;
 
   public:
-    explicit Monad(const Obj *obj, const Inst *inst) : _obj(obj), _inst(inst) {
-    }
+    explicit Monad(const Obj *obj, const Inst *inst) : _obj(obj), _inst(inst) {}
 
     List<const Monad *> split(const ptr<Bytecode> bcode) const {
       if (this->_inst->isNoInst() || this->_obj->isNoObj()) {
@@ -53,19 +52,13 @@ namespace fhatos {
     const Inst *inst() const { return this->_inst; }
     const long bulk() const { return this->_bulk; }
 
-    bool halted() const {
-      return this->_inst->isNoInst();
-    }
+    bool halted() const { return this->_inst->isNoInst(); }
 
-    bool dead() const {
-      return this->_obj->isNoObj();
-    }
+    bool dead() const { return this->_obj->isNoObj(); }
 
     const string toString() const {
       return string("!bM!![") + this->obj()->toString() + "!g@!!" +
-             (nullptr == this->_inst
-                ? "Ø"
-                : this->inst()->toString()) + "]";
+             (nullptr == this->_inst ? "Ø" : this->inst()->toString()) + "]";
     }
 
     // const Inst<Obj, A> *at() const { return this->inst; }
@@ -83,10 +76,10 @@ namespace fhatos {
     Pair<ManyToOneInst *, List<const Obj *> *> *barrier;
 
   public:
-    explicit Processor(const ptr<Bytecode> bcode) : bcode(bcode),
-                                                    barrier(new Pair<ManyToOneInst *, List<const Obj *> *>(
-                                                      nullptr, nullptr)) {
+    explicit Processor(const ptr<Bytecode> bcode) :
+        bcode(bcode), barrier(new Pair<ManyToOneInst *, List<const Obj *> *>(nullptr, nullptr)) {
       const Inst *startInst = this->bcode->startInst();
+      LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
       assert(startInst->opcode() == "start");
       for (const Obj *startObj: startInst->args()) {
         const Monad *monad = new Monad(startObj, startInst);
@@ -99,7 +92,7 @@ namespace fhatos {
       while (true) {
         if (this->halted->empty()) {
           if (this->running->empty()) {
-            return nullptr;
+            return (E*) (void*) NoObj::singleton();
           } else {
             this->execute(steps);
           }
@@ -155,8 +148,7 @@ namespace fhatos {
         }
       }
 
-      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!yrunning!!:%i] [!ghalted!!:%i]\n",
-          this->running->size(),
+      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!yrunning!!:%i] [!ghalted!!:%i]\n", this->running->size(),
           this->halted->size());
       return this->halted->size();
     }
@@ -164,7 +156,7 @@ namespace fhatos {
     void forEach(const Consumer<const E *> &consumer, const int steps = -1) {
       while (true) {
         const E *end = this->next();
-        if (end) {
+        if (end && !end->isNoObj()) {
           consumer(end);
         } else {
           break;

@@ -28,44 +28,42 @@
 #include <structure/f_bcode.hpp>
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
-  class fScheduler : public Actor<PROCESS, ROUTER> {
+  template<typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER>
+  class fScheduler final : public Actor<PROCESS, ROUTER> {
   public:
     static fScheduler *singleton() {
-      static fScheduler scheduler = fScheduler();
+      static auto scheduler = fScheduler();
       return &scheduler;
     }
 
     void setup() override {
       Actor<PROCESS, ROUTER>::setup();
-      this->onQuery(this->id().query("?"), [this](const SourceID &, const TargetID &target) {
+      /*this->onQuery(this->id().query("?"), [this](const SourceID &, const TargetID &target) {
         char temp[100];
         sprintf(temp, "\\_%s", target.query("").toString().c_str());
-        this->publish(target, temp,RETAIN_MESSAGE);
-      });
+        this->publish(target, temp, RETAIN_MESSAGE);
+      });*/
       this->subscribe(this->id().query("?spawn"), [this](const Message &message) {
-        Rec rec = message.payload->toRec();
-        fBcode *b = new fBcode(rec.get<Uri>(new Str("id"))->value(), new Rec(rec));
-        this->spawn(b);
+        const Rec rec = message.payload->toRec();
+        const auto b = new fBcode(rec.get<Uri>(new Str("id"))->value(), new Rec(*rec.value()));
+       //this->spawn(b);
+      });
+      this->subscribe(this->id().query("?destroy"), [this](const Message &message) {
+        const Uri uri = message.payload->toUri();
+        LOG_TASK(DEBUG, this, "received ?destroy=%s from %s\n", uri.toString().c_str(),
+                 message.source.toString().c_str());
+       // this->destroy(uri.value());
       });
     }
 
-    void stop() override {
-      Actor<PROCESS, ROUTER>::stop();
-    }
+    void stop() override { Actor<PROCESS, ROUTER>::stop(); }
 
-    void loop() override {
-      Actor<PROCESS, ROUTER>::loop();
-    }
-
-    bool spawn(Process *process) {
-      return Scheduler::singleton()->spawn(process);
-    }
+    void loop() override { Actor<PROCESS, ROUTER>::loop(); }
 
   protected:
-    fScheduler(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "scheduler")) : Actor<PROCESS, ROUTER>(id) {
-    }
+    explicit fScheduler(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "scheduler")) :
+        Actor<PROCESS, ROUTER>(id) {}
   };
-};
+}; // namespace fhatos
 
 #endif

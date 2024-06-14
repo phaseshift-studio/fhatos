@@ -24,20 +24,24 @@
 ///
 #include <process/abstract_scheduler.hpp>
 
+
 namespace fhatos {
-  class Scheduler final : public AbstractScheduler {
+  template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  class Scheduler final : public AbstractScheduler<ROUTER> {
   public:
     static Scheduler *singleton() {
       static Scheduler scheduler = Scheduler();
       return &scheduler;
     }
 
-    bool spawn(Process *process) override {
+    bool spawn(Process *process) override { return this->_spawn(process); }
+
+    // protected:
+    bool _spawn(Process *process) override {
       // TODO: have constructed processes NOT running or check is process ID already in scheduler
       process->setup();
       if (!process->running()) {
-        LOG(ERROR, "!RUnable to spawn running %s: %s!!\n",
-            P_TYPE_STR(process->type), process->id().toString().c_str());
+        LOG(ERROR, "!RUnable to spawn running %s: %s!!\n", P_TYPE_STR(process->type), process->id().toString().c_str());
         return false;
       }
       //////////////////////////////////////////////////
@@ -45,39 +49,36 @@ namespace fhatos {
       bool success = false;
       switch (process->type) {
         case THREAD: {
-          THREADS->push_back(static_cast<Thread *>(process));
-          static_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, (void *) process);
+          this->THREADS->push_back(static_cast<Thread *>(process));
+          static_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
           success = true;
           break;
         }
         case FIBER: {
-          success = FIBERS->push_back(static_cast<Fiber *>(process));
-          LOG(INFO, "Fiber bundle count: %i\n", FIBERS->size());
+          success = this->FIBERS->push_back(dynamic_cast<Fiber *>(process));
+          LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
           if (!FIBER_THREAD_HANDLE) {
             FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
             if (FIBER_THREAD_HANDLE)
               success = true;
           }
-          static_cast<Fiber *>(process)->xthread = FIBER_THREAD_HANDLE;
+          dynamic_cast<Fiber *>(process)->xthread = FIBER_THREAD_HANDLE;
           break;
         }
         case COROUTINE: {
-          success = COROUTINES->push_back(static_cast<Coroutine *>(process));
+          success = this->COROUTINES->push_back(dynamic_cast<Coroutine *>(process));
           break;
         }
         case KERNEL: {
-          success = KERNELS->push_back(static_cast<KernelProcess *>(process));
+          success = this->KERNELS->push_back(dynamic_cast<KernelProcess *>(process));
           break;
         }
         default: {
-          LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n",
-              process->id().toString().c_str(), process->type);
+          LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n", process->id().toString().c_str(), process->type);
           return false;
         }
       }
-      LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n",
-          process->id().toString().c_str(),
-          P_TYPE_STR(process->type));
+      LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
       /*LOG(NONE,
           "\t!yFree memory\n"
           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
@@ -90,7 +91,7 @@ namespace fhatos {
     }
 
   private:
-    Scheduler() = default;
+    explicit Scheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) : AbstractScheduler<ROUTER>(id) {}
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
     //////////////////////////////////////////////////////
@@ -121,7 +122,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      Scheduler::singleton()->destroy(thread->id());
+      Scheduler<>::singleton()->destroy(thread->id());
     }
   };
 } // namespace fhatos

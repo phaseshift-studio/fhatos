@@ -40,45 +40,44 @@ namespace fhatos {
         delete std::get<1>(this->_value);
     }
 
-    explicit BinaryObj(const binary_obj bobj) : Obj(std::get<0>(bobj)), _value(bobj) {
-    };
+    explicit BinaryObj(const binary_obj bobj) : Obj(std::get<0>(bobj)), _value(bobj){};
 
-    explicit BinaryObj(const OType type, const fbyte *data, const uint16_t length) : Obj(type),
-      _value{type, data, length} {
-    };
+    explicit BinaryObj(const OType type, const fbyte *data, const uint16_t length) :
+        Obj(type), _value{type, data, length} {};
 
-    explicit BinaryObj(const fURI xfuri) : Obj(OType::URI), _value(SERIALIZER::fromUri(xfuri)) {
-    }
+    explicit BinaryObj(const fURI xfuri) : Obj(OType::URI), _value(SERIALIZER::fromUri(xfuri)) {}
 
 
-    explicit BinaryObj(const bool xbool) : Obj(OType::BOOL), _value(SERIALIZER::fromBoolean(xbool)) {
-    }
+    explicit BinaryObj(const bool xbool) : Obj(OType::BOOL), _value(SERIALIZER::fromBoolean(xbool)) {}
 
 
-    explicit BinaryObj(const int xint) : Obj(OType::INT), _value(SERIALIZER::fromInteger(xint)) {
-    }
+    explicit BinaryObj(const int xint) : Obj(OType::INT), _value(SERIALIZER::fromInteger(xint)) {}
 
 
-    explicit BinaryObj(const float xfloat) : Obj(OType::REAL), _value(SERIALIZER::fromFloat(xfloat)) {
-    }
+    explicit BinaryObj(const float xfloat) : Obj(OType::REAL), _value(SERIALIZER::fromFloat(xfloat)) {}
 
-    explicit BinaryObj(const string &xstring) : Obj(OType::STR), _value(SERIALIZER::fromString(xstring)) {
-    }
+    explicit BinaryObj(const string &xstring) : Obj(OType::STR), _value(SERIALIZER::fromString(xstring)) {}
 
-    explicit BinaryObj(const char *xcstr) : Obj(OType::STR), _value(SERIALIZER::fromString(string(xcstr))) {
-    }
+    explicit BinaryObj(const char *xcstr) : Obj(OType::STR), _value(SERIALIZER::fromString(string(xcstr))) {}
 
 
     static BinaryObj *fromObj(const Obj *obj) {
       LOG(DEBUG, "Creating BinaryObj from !b%s!! [!y%s!!]\n", obj->toString().c_str(), OTYPE_STR.at(obj->type()));
       switch (obj->type()) {
-        case OType::URI: return new BinaryObj<>((binary_obj) SERIALIZER::fromUri(((Uri *) obj)->value()));
-        case OType::BOOL: return new BinaryObj<>((binary_obj) SERIALIZER::fromBoolean(((Bool *) obj)->value()));
-        case OType::INT: return new BinaryObj<>((binary_obj) SERIALIZER::fromInteger(((Int *) obj)->value()));
-        case OType::REAL: return new BinaryObj<>((binary_obj) SERIALIZER::fromFloat(((Real *) obj)->value()));
-        case OType::STR: return new BinaryObj<>((binary_obj) SERIALIZER::fromString(((Str *) obj)->value()));
-        case OType::REC: return new BinaryObj<>((binary_obj) SERIALIZER::fromMap(*((Rec *) obj)->value()));
-        case OType::BYTECODE: return new BinaryObj<>((binary_obj) SERIALIZER::fromList(*((Bytecode *) obj)->value()));
+        case OType::URI:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromUri(((Uri *) obj)->value()));
+        case OType::BOOL:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromBoolean(((Bool *) obj)->value()));
+        case OType::INT:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromInteger(((Int *) obj)->value()));
+        case OType::REAL:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromFloat(((Real *) obj)->value()));
+        case OType::STR:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromString(((Str *) obj)->value()));
+        case OType::REC:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromMap(*((Rec *) obj)->value()));
+        case OType::BYTECODE:
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromList(*((Bytecode *) obj)->value()));
         default: {
           LOG(ERROR, "Unknown obj type: %s\n", OTYPE_STR.at(obj->type()));
           throw fError("Unknown obj type: %s\n", OTYPE_STR.at(obj->type()));
@@ -86,77 +85,72 @@ namespace fhatos {
       }
     }
 
-    virtual const binary_obj value() const {
-      return _value;
-    }
+    virtual const binary_obj value() const { return _value; }
 
-    const fbyte *data() const {
-      return std::get<1>(this->_value);
-    }
+    const fbyte *data() const { return std::get<1>(this->_value); }
 
-    uint16_t length() const {
-      return std::get<2>(this->_value);
-    }
+    uint16_t length() const { return std::get<2>(this->_value); }
 
-    Bool toBool() const {
-      return SERIALIZER::toBool(*this);
-    }
+    Bool toBool() const { return SERIALIZER::toBool(*this); }
 
-    Int toInt() const {
-      return SERIALIZER::toInt(*this);
-    }
+    Int toInt() const { return SERIALIZER::toInt(*this); }
 
-    Real toReal() const {
-      return SERIALIZER::toReal(*this);
-    }
+    Real toReal() const { return SERIALIZER::toReal(*this); }
 
-    Str toStr() const {
-      return SERIALIZER::toStr(*this);
-    }
+    Str toStr() const { return SERIALIZER::toStr(*this); }
 
-    Uri toUri() const {
-      return SERIALIZER::toUri(*this);
-    }
+    Uri toUri() const { return SERIALIZER::toUri(*this); }
 
-    Rec toRec() const {
-      return SERIALIZER::toRec(*this);
-    }
+    Rec toRec() const { return SERIALIZER::toRec(*this); }
 
-    Bytecode toBytecode() const {
-      return SERIALIZER::toBytecode(*this);
-    }
+    Bytecode toBytecode() const { return SERIALIZER::toBytecode(*this); }
 
     Obj *toObj() const {
       switch (this->type()) {
-        case OType::BOOL: return new Bool(toBool());
-        case OType::INT: return new Int(toInt());
-        case OType::REAL: return new Real(toReal());
-        case OType::STR: return new Str(toStr());
-        case OType::URI: return new Uri(toUri());
-        case OType::REC: return new Rec(toRec());
-        case OType::BYTECODE: return new Bytecode(toBytecode());
-        default: throw new fError("Unsupported conversion for %s\n", OTYPE_STR.at(this->type()));
+        case OType::BOOL:
+          return new Bool(toBool());
+        case OType::INT:
+          return new Int(toInt());
+        case OType::REAL:
+          return new Real(toReal());
+        case OType::STR:
+          return new Str(toStr());
+        case OType::URI:
+          return new Uri(toUri());
+        case OType::REC:
+          return new Rec(toRec());
+        case OType::BYTECODE:
+          return new Bytecode(toBytecode());
+        default:
+          throw fError("Unsupported conversion for %s\n", OTYPE_STR.at(this->type()));
       }
     }
 
     /////////////////
     bool equals(const BinaryObj &other) const {
-      return (this->type() == other.type()) &&
-             (this->length() == other.length()) &&
-             (strcmp(reinterpret_cast<const char *>(this->data()),
-                     reinterpret_cast<const char *>(other.data())) == 0);
+      return (this->type() == other.type()) && (this->length() == other.length()) &&
+             (strcmp(reinterpret_cast<const char *>(this->data()), reinterpret_cast<const char *>(other.data())) == 0);
     }
 
 
     virtual const string toString() const {
       switch (this->type()) {
-        case OType::BOOL: return toBool().toString();
-        case OType::INT: return toInt().toString();
-        case OType::REAL: return toReal().toString();
-        case OType::STR: return toStr().toString();
-        case OType::REC: return toRec().toString();
-        case OType::BYTECODE: return toBytecode().toString();
-        default: throw fError("Unknown type: %s\n", OTYPE_STR.at(this->type()));
+        case OType::BOOL:
+          return toBool().toString();
+        case OType::INT:
+          return toInt().toString();
+        case OType::REAL:
+          return toReal().toString();
+        case OType::URI:
+          return toUri().toString();
+        case OType::STR:
+          return toStr().toString();
+        case OType::REC:
+          return toRec().toString();
+        case OType::BYTECODE:
+          return toBytecode().toString();
+        default:
+          throw fError("Unknown type: %s\n", OTYPE_STR.at(this->type()));
       }
     }
 
@@ -179,33 +173,19 @@ namespace fhatos {
 
   class Serializer {
   public:
-    static binary_obj fromUri(const fURI &xfuri) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromUri(const fURI &xfuri) { return {OType::OBJ, nullptr, 0}; }
 
-    static binary_obj fromBoolean(const bool xbool) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromBoolean(const bool xbool) { return {OType::OBJ, nullptr, 0}; }
 
-    static binary_obj fromInt(const int xint) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromInt(const int xint) { return {OType::OBJ, nullptr, 0}; }
 
-    static binary_obj fromFloat(const float xreal) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromFloat(const float xreal) { return {OType::OBJ, nullptr, 0}; }
 
-    static binary_obj fromString(const string &xstr) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromString(const string &xstr) { return {OType::OBJ, nullptr, 0}; }
 
-    static binary_obj fromMap(const RecMap<Obj *, Obj *> &xmap) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromMap(const RecMap<Obj *, Obj *> &xmap) { return {OType::OBJ, nullptr, 0}; }
 
-    static binary_obj fromList(const List<Inst*> &xlist) {
-      return {OType::OBJ, nullptr, 0};
-    }
+    static binary_obj fromList(const List<Inst *> &xlist) { return {OType::OBJ, nullptr, 0}; }
 
     template<typename SERIALIZER>
     static Uri toUri(const BinaryObj<SERIALIZER> &xserial) {
@@ -218,7 +198,7 @@ namespace fhatos {
     }
 
     template<typename SERIALIZER>
-  static Bytecode toBytecode(const BinaryObj<SERIALIZER> &xlist) {
+    static Bytecode toBytecode(const BinaryObj<SERIALIZER> &xlist) {
       return Bytecode({});
     }
 
@@ -258,20 +238,12 @@ namespace fhatos {
       char *temp = (char *) malloc(len + 1);
       memccpy(temp, xfuri.toString().c_str(), 0, len);
       temp[len] = '\0';
-      return {
-        OType::URI,
-        (fbyte *) temp,
-        len
-      };
+      return {OType::URI, (fbyte *) temp, len};
     }
 
 
     static binary_obj fromBoolean(const bool xbool) {
-      return {
-        OType::BOOL,
-        reinterpret_cast<const fbyte *>(xbool ? "T" : "F"),
-        1
-      };
+      return {OType::BOOL, reinterpret_cast<const fbyte *>(xbool ? "T" : "F"), 1};
     }
 
     static binary_obj fromInteger(const int xint) {
@@ -280,11 +252,7 @@ namespace fhatos {
       char *temp = (char *) malloc(len + 1);
       memccpy(temp, str.c_str(), 0, len);
       temp[len] = '\0';
-      return {
-        OType::INT,
-        (fbyte *) temp,
-        len
-      };
+      return {OType::INT, (fbyte *) temp, len};
     }
 
     static binary_obj fromFloat(const float xfloat) {
@@ -293,11 +261,7 @@ namespace fhatos {
       char *temp = (char *) malloc(len + 1);
       memccpy(temp, str.c_str(), 0, len);
       temp[len] = '\0';
-      return {
-        OType::REAL,
-        (fbyte *) temp,
-        len
-      };
+      return {OType::REAL, (fbyte *) temp, len};
     }
 
     static binary_obj fromString(const string &xstring) {
@@ -305,11 +269,7 @@ namespace fhatos {
       char *temp = (char *) malloc(len + 1);
       memccpy(temp, xstring.c_str(), 0, len);
       temp[len] = '\0';
-      return {
-        OType::STR,
-        (fbyte *) temp,
-        len
-      };
+      return {OType::STR, (fbyte *) temp, len};
     }
 
     static binary_obj fromMap(const RecMap<Obj *, Obj *> &xmap) {
@@ -320,8 +280,8 @@ namespace fhatos {
       return binary_obj{OType::REC, bytes, sizeof(*temp)};
     }
 
-    static binary_obj fromList(const List<Inst*> &xlist) {
-      const auto temp = new Bytecode(new List<Inst*>(xlist));
+    static binary_obj fromList(const List<Inst *> &xlist) {
+      const auto temp = new Bytecode(new List<Inst *>(xlist));
       auto *bytes = static_cast<fbyte *>(malloc(sizeof(*temp)));
       memcpy(bytes, reinterpret_cast<const fbyte *>(temp), sizeof(*temp));
       LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*temp), temp->toString().c_str());
@@ -331,23 +291,27 @@ namespace fhatos {
     static Bytecode toBytecode(const BinaryObj<CharSerializer> &bobj) {
       LOG(DEBUG, "!g!_%s serialization!! [!rsize:%i!!]:\n" FOS_TAB, OTYPE_STR.at(bobj.type()), bobj.length());
       switch (bobj.type()) {
-        case OType::BYTECODE: return Bytecode(new List<Inst*>(*(((Bytecode *) bobj.data())->value())));
-        default: throw fError("Unknown type: %s\n", OTYPE_STR.at(bobj.type()));
+        case OType::BYTECODE:
+          return Bytecode(new List<Inst *>(*(((Bytecode *) bobj.data())->value())));
+        default:
+          throw fError("Unknown type: %s\n", OTYPE_STR.at(bobj.type()));
       }
     }
 
     static Rec toRec(const BinaryObj<CharSerializer> &bobj) {
       LOG(DEBUG, "!g!_%s serialization!! [!rsize:%i!!]:\n" FOS_TAB, OTYPE_STR.at(bobj.type()), bobj.length());
       switch (bobj.type()) {
-        case OType::REC: return *(Rec *) bobj.data();
-        default: throw fError("Unknown type: %s\n", OTYPE_STR.at(bobj.type()));
+        case OType::REC:
+          return *(Rec *) bobj.data();
+        default:
+          throw fError("Unknown type: %s\n", OTYPE_STR.at(bobj.type()));
       }
     }
 
     static Uri toUri(const BinaryObj<CharSerializer> &bobj) {
       switch (bobj.type()) {
         case OType::URI:
-          return Uri(fURI("/" + bobj.toString()));
+          return Uri(fURI(string((char *) (bobj.data()), bobj.length())));
         case OType::BOOL:
           return Uri(fURI("/" + bobj.toString()));
         case OType::INT:
@@ -387,7 +351,7 @@ namespace fhatos {
         case OType::STR:
           return Int(std::stoi(string((char *) bobj.data(), bobj.length())));
         default:
-          throw std::runtime_error("bad2"); //fError("Unknown type: %s", OTYPE_STR.at(xserial.type));
+          throw std::runtime_error("bad2"); // fError("Unknown type: %s", OTYPE_STR.at(xserial.type));
       }
     }
 
@@ -402,7 +366,7 @@ namespace fhatos {
         case OType::STR:
           return Real(std::stof(string((char *) bobj.data(), bobj.length())));
         default:
-          throw std::runtime_error("bad3"); //throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
+          throw std::runtime_error("bad3"); // throw fError("Unknown type: %s", OTYPE_STR.at(xserial.type).c_str());
       }
     }
 
@@ -430,6 +394,6 @@ namespace fhatos {
       }
     }
   };
-}
+} // namespace fhatos
 
 #endif

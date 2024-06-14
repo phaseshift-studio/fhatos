@@ -19,34 +19,43 @@
 #ifndef fhatos_f_bcode_hpp
 #define fhatos_f_bcode_hpp
 #include <language/obj.hpp>
+#include <process/actor/actor.hpp>
 
 namespace fhatos {
-  class fBcode final : public Actor<> {
+  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER>
+  class fBcode final : public Actor<PROCESS, ROUTER> {
   public:
-    Rec *rec;
-    Str *loopKey = new Str("loop");
-    Str *setupKey = new Str("setup");
+    const Rec *rec;
+    Obj *LOOP_KEY = new Str("loop");
+    Obj *SETUP_KEY = new Str("setup");
 
-    fBcode(const ID &id, Rec *rec): Actor(id), rec(rec) {
-    }
+    fBcode(const ID &id, const Rec *rec) :
+        Actor<PROCESS, ROUTER>(
+            id,
+            // setup
+            [this](const Actor<PROCESS, ROUTER> *actor) {
+              try {
+                const auto bcode_ptr = ptr<Bytecode>(
+                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(SETUP_KEY)->value())));
+                Processor<Obj>(bcode_ptr).forEach(
+                    [](const Obj *obj) { LOG(DEBUG, "setup: %s\n", obj->toString().c_str()); });
+              } catch (fError &error) {
+                LOG_EXCEPTION(error);
+              }
+            },
+            // loop
 
-    void setup() override {
-      const ptr<Bytecode> bcode_ptr = ptr<Bytecode>(const_cast<Bytecode *>(this->rec->get<Bytecode>(this->setupKey)));
-      Processor<Obj> *processor = new Processor<Obj>(bcode_ptr);
-      processor->forEach([](const Obj *obj) {
-        LOG(INFO, "setup: %s\n", obj->toString().c_str());
-      });
-      delete processor;
-    }
-
-    void loop() override {
-      const ptr<Bytecode> bcode_ptr = ptr<Bytecode>(const_cast<Bytecode *>(this->rec->get<Bytecode>(this->loopKey)));
-      Processor<Obj> *processor = new Processor<Obj>(bcode_ptr);
-      processor->forEach([](const Obj *obj) {
-        LOG(INFO, "loop: %s\n", obj->toString().c_str());
-      });
-      delete processor;
-    }
+            [this](const Actor<PROCESS, ROUTER> *actor) {
+              try {
+                const auto bcode_ptr = ptr<Bytecode>(
+                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(this->LOOP_KEY)->value())));
+                Processor<Obj>(bcode_ptr).forEach(
+                    [](const Obj *obj) { LOG(DEBUG, "loop: %s\n", obj->toString().c_str()); });
+              } catch (fError &error) {
+                LOG_EXCEPTION(error);
+              }
+            }),
+        rec(new Rec(*rec->value())) {}
   };
-}
+} // namespace fhatos
 #endif

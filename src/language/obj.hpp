@@ -99,11 +99,10 @@ namespace fhatos {
   class Obj {
   protected:
     const OType _type;
-    const ptr<UType> _utype;
+    ptr<UType> _utype;
 
     const string wrapUType(const string &xstring) const {
-      return NO_UTYPE->equals(*this->_utype.get()) ? xstring
-                                                   : ("!y" + this->_utype->toString() + "!![" + xstring + "]");
+      return NO_UTYPE->equals(*this->_utype) ? xstring : ("!y" + this->_utype->toString() + "!![" + xstring + "]");
     }
 
   public:
@@ -121,8 +120,12 @@ namespace fhatos {
     virtual const Obj *apply(const Obj *obj) const { return this; }
 
     template<typename A>
-    const A *as() const {
-      return (A *) this;
+    const A *as(const fURI utype = fURI("")) const {
+      if (utype.empty() || *this->utype() == utype)
+        return (A *) this;
+      Obj *temp = new A(*(A *) this);
+      temp->_utype = share<UType>(utype);
+      return (A *) temp;
     }
 
     virtual bool operator==(const Obj &other) const {
@@ -391,9 +394,9 @@ namespace fhatos {
     bool operator==(const Obj &other) const override {
       if (this->_type != other.type() || this->_utype != other.utype())
         return false;
-      if (this->_value->size() != (*(Rec *) &other).value()->size())
+      if (this->_value->size() != ((Rec *) &other)->value()->size())
         return false;
-      auto itB = (*(Rec *) &other).value()->begin();
+      auto itB = ((Rec *) &other)->value()->begin();
       for (auto itA = this->_value->begin(); itA != this->_value->end(); ++itA) {
         if (*itA->first != *itB->first || *itA->second != *itB->second)
           return false;
@@ -478,12 +481,12 @@ namespace fhatos {
         t = t + arg->toString() + ",";
       }
       t[t.length() - 1] = '!';
-      return t.append("g]!!");
+      return this->wrapUType(t.append("g]!!"));
     }
 
     ////////////////////////////////////
-    virtual const InstOpcode opcode() const { return std::get<0>(this->_value); }
-    virtual const InstArgs args() const { return std::get<1>(this->_value); }
+    const InstOpcode opcode() const { return std::get<0>(this->_value); }
+    const InstArgs args() const { return std::get<1>(this->_value); }
     const Obj *arg(const uint8_t index) const { return this->args()[index]; }
   };
 
@@ -491,7 +494,7 @@ namespace fhatos {
   class NoInst final : public Inst {
   public:
     static const Inst *singleton() {
-      static NoInst noInst = NoInst();
+      static auto noInst = NoInst();
       return &noInst;
     }
 
@@ -505,8 +508,8 @@ namespace fhatos {
     OneToOneFunction function;
 
   public:
-    OneToOneInst(const InstOpcode &opcode, const InstArgs &args, const OneToOneFunction &function) :
-        Inst(opcode, args, IType::ONE_TO_ONE), function(function) {}
+    OneToOneInst(const InstOpcode &opcode, const InstArgs &args, OneToOneFunction function) :
+        Inst(opcode, args, IType::ONE_TO_ONE), function(std::move(function)) {}
 
     const Obj *apply(const Obj *obj) const { return this->function(obj); }
   };
@@ -532,8 +535,8 @@ namespace fhatos {
     OneToManyFunction function;
 
   public:
-    OneToManyInst(const InstOpcode &opcode, const InstArgs &args, const OneToManyFunction &function) :
-        Inst(opcode, args, IType::ONE_TO_MANY), function(function) {}
+    OneToManyInst(const InstOpcode &opcode, const InstArgs &args, OneToManyFunction function) :
+        Inst(opcode, args, IType::ONE_TO_MANY), function(std::move(function)) {}
 
     const Objs *apply(const Obj *obj) const override { return this->function(obj); }
   };
@@ -544,8 +547,8 @@ namespace fhatos {
     ManyToManyFunction function;
 
   public:
-    ManyToManyInst(const InstOpcode &opcode, const InstArgs &args, const ManyToManyFunction &function) :
-        Inst(opcode, args, IType::MANY_TO_MANY), function(function) {}
+    ManyToManyInst(const InstOpcode &opcode, const InstArgs &args, ManyToManyFunction function) :
+        Inst(opcode, args, IType::MANY_TO_MANY), function(std::move(function)) {}
 
     const Objs *apply(const Obj *obj) const override { return this->function((Objs *) obj); }
   };
@@ -555,8 +558,7 @@ namespace fhatos {
   class Bytecode final : public Obj, public IDed {
   protected:
     const List<Inst *> *_value;
-    Map<fURI, Obj *> _TYPE_CACHE;
-    // need a type/ref cache
+    Map<const fURI, const Obj *> TYPE_CACHE;
 
   public:
     explicit Bytecode(const List<Inst *> *list, const ID &id = ID(*UUID::singleton()->mint(7))) :
@@ -582,7 +584,7 @@ namespace fhatos {
     }
 
     const Obj *apply(const Obj *obj) const override {
-      Obj *currentObj = const_cast<Obj *>(obj);
+      auto currentObj = const_cast<Obj *>(obj);
       if (currentObj->isNoObj())
         return currentObj;
       for (const Inst *inst: *this->_value) {
@@ -608,18 +610,20 @@ namespace fhatos {
     template<typename ROUTER>
     void createType(const fURI &type, const Obj *typeDefinition) {
       if (!ROUTER::singleton()->write(typeDefinition, this->id(), type)) {
-        // this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
+        this->TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
       }
     }
 
     template<typename ROUTER>
     const Obj *getType(const fURI &type) {
-      // if (this->_TYPE_CACHE.count(type))
-      //   return this->_TYPE_CACHE.at(type);
+      if (this->TYPE_CACHE.count(type)) {
+        LOG(DEBUG, "Bytecode type cache hit: %s\n", type.toString().c_str());
+        return this->TYPE_CACHE.at(type);
+      }
       const Obj *typeDefinition = ROUTER::singleton()->read(this->id(), type);
-      // if (typeDefinition) {
-      //   this->_TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
-      // }
+      if (typeDefinition) {
+        this->TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
+      }
       return typeDefinition;
     }
 
@@ -633,11 +637,11 @@ namespace fhatos {
     const Inst *endInst() const { return this->value()->back(); }
 
     const string toString() const override {
-      string s = "";
+      string s;
       for (const auto *inst: *this->_value) {
         s.append(inst->toString());
       }
-      return s;
+      return this->wrapUType(s);
     }
   };
 

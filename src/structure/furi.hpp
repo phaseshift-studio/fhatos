@@ -393,8 +393,8 @@ namespace fhatos {
     Pattern(const fURI &fURI) : Pattern(fURI.toString()) {
     }
 
-    Pattern(const ID &id) : Pattern(id.toString()) {
-    }
+   // Pattern(const ID &id) : Pattern(id.toString()) {
+   // }
 
     Pattern(const string &furiString) : fURI(furiString) {
     };
