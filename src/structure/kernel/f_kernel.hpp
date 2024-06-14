@@ -21,7 +21,6 @@
 
 
 #include <fhatos.hpp>
-#include FOS_MODULE(kernel/f_scheduler.hpp)
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)

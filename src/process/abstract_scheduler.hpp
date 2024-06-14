@@ -38,12 +38,12 @@ namespace fhatos {
     Mutex<> DESTROY_MUTEX;
 
   protected:
-    // Supplier<bool> _onJoinPredicate = nullptr;
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
     MutexDeque<Fiber *> *FIBERS = new MutexDeque<Fiber *>();
     MutexDeque<Thread *> *THREADS = new MutexDeque<Thread *>();
     MutexDeque<KernelProcess *> *KERNELS = new MutexDeque<KernelProcess *>();
-
+    MutexDeque<ptr<Mail>> inbox;
+    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
 
   public:
     explicit AbstractScheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) :
@@ -51,7 +51,7 @@ namespace fhatos {
       this->subscribe(id.query("?spawn"), [this](const Message &message) {
         const Rec rec = message.payload->toRec();
         const auto b = new fBcode(rec.get<Uri>(new Str("id"))->value(), new Rec(*rec.value()));
-        this->_spawn(b);
+        this->spawn(b);
       });
       this->subscribe(id.query("?destroy"), [this](const Message &message) {
         const Uri uri = message.payload->toUri();
@@ -83,16 +83,21 @@ namespace fhatos {
       LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
     }
 
-    virtual bool spawn(Process *process) { throw new fError("Member function spawn() must be implemented"); }
-
-    virtual bool destroy(const Pattern &processPattern) {
+    virtual bool spawn(Process *process) { throw fError("Member function spawn() must be implemented"); }
+    virtual bool destroy(const ID &processPattern) {
       return this->publish(this->id().query("?destroy"), BinaryObj<>::fromObj(new Uri(processPattern)),
                            TRANSIENT_MESSAGE);
     }
 
-    // protected:
-    virtual bool _spawn(Process *process) { throw new fError("Member function _spawn() must be implemented"); }
-
+  protected:
+    bool next() {
+      const Option<ptr<Mail>> mail = this->pop();
+      if (!mail.has_value())
+        return false;
+      mail->get()->first->execute(*mail->get()->second);
+      /// delete mail->second.payload;
+      return true;
+    }
     virtual bool _destroy(const Pattern &processPattern) {
       bool success = DESTROY_MUTEX.lockUnlock<bool>([this, processPattern]() {
         THREADS->remove_if([processPattern, this](Thread *process) {
@@ -126,49 +131,41 @@ namespace fhatos {
         });
         return true;
       });
-      if (NONE != _logging) {
-        LOG(INFO, "!b[Current Processes]!!\n");
-        LOG(INFO, FOS_TAB_2 "!yThreads!!:\n");
-        THREADS->forEach([](const Thread *p) { LOG(INFO, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
-        LOG(INFO, FOS_TAB_2 "!yFibers!!:\n");
-        FIBERS->forEach([](const Fiber *p) { LOG(INFO, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
-        LOG(INFO, FOS_TAB_2 "!yCoroutines!!:\n");
-        COROUTINES->forEach([](const Coroutine *p) { LOG(INFO, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
+      if (DEBUG == _logging) {
+        LOG(DEBUG, "!b[Current Processes]!!\n");
+        LOG(DEBUG, FOS_TAB_2 "!yThreads!!:\n");
+        THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
+        LOG(DEBUG, FOS_TAB_2 "!yFibers!!:\n");
+        FIBERS->forEach([](const Fiber *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
+        LOG(DEBUG, FOS_TAB_2 "!yCoroutines!!:\n");
+        COROUTINES->forEach([](const Coroutine *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
       }
       return success;
-      /* LOG(NONE,
-           "\t!yFree memory\n"
-           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
-           FOS_BYTES_MB_STR "]\n",
-           FOS_BYTES_MB(ESP.getFreeSketchSpace()),
-           FOS_BYTES_MB(ESP.getFreeHeap()),
-           FOS_BYTES_MB(ESP.getFreePsram()),
-           FOS_BYTES_MB(ESP.getFlashChipSize()));*/
     }
 
   public:
-    List<Process *> *find(const Pattern &processPattern = Pattern("#")) const {
-      List<Process *> *results = new List<Process *>();
-      List<Process *> *temp = (List<Process *> *) (void *) THREADS->match(
-          [processPattern](const Process *p) { return p->id().matches(processPattern); });
+    const List<Process *> *find(const Pattern &processPattern = Pattern("#")) const {
+      const auto results = new List<Process *>();
+      auto temp = reinterpret_cast<List<Process *> *>(
+          THREADS->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
       delete temp;
-      temp = (List<Process *> *) (void *) FIBERS->match(
-          [processPattern](const Process *p) { return p->id().matches(processPattern); });
+      temp = reinterpret_cast<List<Process *> *>(
+          FIBERS->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
       delete temp;
-      temp = (List<Process *> *) (void *) COROUTINES->match(
-          [processPattern](const Process *p) { return p->id().matches(processPattern); });
+      temp = reinterpret_cast<List<Process *> *>(
+          COROUTINES->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
       delete temp;
-      temp = (List<Process *> *) (void *) KERNELS->match(
-          [processPattern](const Process *p) { return p->id().matches(processPattern); });
+      temp = reinterpret_cast<List<Process *> *>(
+          KERNELS->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
@@ -176,7 +173,7 @@ namespace fhatos {
       return results;
     }
 
-    int count(const Pattern &processPattern = Pattern("#")) const {
+    const int count(const Pattern &processPattern = Pattern("#")) const {
       if (processPattern.equals(Pattern("#")))
         return THREADS->size() + FIBERS->size() + COROUTINES->size() /*+ KERNELS->size()*/;
       auto *counter = new std::atomic(0);
@@ -202,18 +199,7 @@ namespace fhatos {
       return temp;
     }
 
-  public:
-    MutexDeque<ptr<Mail>> inbox;
-    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
     bool push(const ptr<Mail> mail) override { return this->inbox.push_back(mail); }
-    bool next() {
-      const Option<ptr<Mail>> mail = this->pop();
-      if (!mail.has_value())
-        return false;
-      mail->get()->first->execute(*mail->get()->second);
-      /// delete mail->second.payload;
-      return true;
-    }
   };
 } // namespace fhatos
 

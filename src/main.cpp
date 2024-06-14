@@ -36,7 +36,6 @@ int main(int arg, char **argsv) {
     fKernel<>::bootloader({
     //fWIFI::singleton(),
     fKernel<>::singleton(),
-    fScheduler<>::singleton(),
     //fFS<>::singleton(),
     //fOTA<>::singleton(),
     fLang<>::singleton()

@@ -34,10 +34,7 @@ namespace fhatos {
       return &scheduler;
     }
 
-    bool spawn(Process *process) override { return this->_spawn(process); }
-
-    // protected:
-    bool _spawn(Process *process) override {
+    bool spawn(Process *process) override {
       // TODO: have constructed processes NOT running or check is process ID already in scheduler
       process->setup();
       if (!process->running()) {
@@ -50,7 +47,7 @@ namespace fhatos {
       switch (process->type) {
         case THREAD: {
           this->THREADS->push_back(static_cast<Thread *>(process));
-          static_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
+          dynamic_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
           success = true;
           break;
         }
@@ -91,7 +88,8 @@ namespace fhatos {
     }
 
   private:
-    explicit Scheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) : AbstractScheduler<ROUTER>(id) {}
+    explicit Scheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) : AbstractScheduler<ROUTER>(id) {
+    }
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
     //////////////////////////////////////////////////////

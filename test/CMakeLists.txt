@@ -1,6 +1,7 @@
 PROJECT(fhatos-test)
 OPTION(BUILD_TESTS "Build tests" ON) # ON/OFF
 IF (BUILD_TESTS)
+    MESSAGE("${.r}=====> PROCESSING TESTS${..}")
     ENABLE_TESTING()
     ####################################
     ######## EXTERNAL LIBRARIES ########
@@ -15,15 +16,15 @@ IF (BUILD_TESTS)
     INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/unity)
     INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ####################################
-    ########### TEST SUITES ############
-    ####################################
-
-    ############## LANGUAGE ##############
-
+    ###########################################
+    ########### TEST SUITE BUILDER ############
+    ###########################################
+    SET(TOTAL 0)
     FUNCTION(MAKE_TESTS PACKAGE PACKAGE_TESTS)
-        MESSAGE(STATUS "Processing " ${PACKAGE} " with " ${PACKAGE_TESTS})
+        SET(COUNTER 0)
+        MESSAGE(STATUS "${.m}Processing " ${PACKAGE} " with " ${PACKAGE_TESTS}${..})
         FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
+            MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
             ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator")
@@ -40,11 +41,17 @@ IF (BUILD_TESTS)
             ADD_TEST(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/build/${PACKAGE_TEST}.out)
             MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ENDFOREACH ()
+        MATH(EXPR COUNTER "${COUNTER}+${TOTAL}")
+        SET(TOTAL ${COUNTER} PARENT_SCOPE)
     ENDFUNCTION(MAKE_TESTS)
-
-    ### TEST LOCATIONS BY PACKAGE ###
+    ####################################
+    ########### TEST SUITES ############
+    ####################################
     MAKE_TESTS(language "test_binary_obj;test_fluent;test_obj;test_parser")
+    MAKE_TESTS(process "test_scheduler")
+    MAKE_TESTS(process/actor "test_actor")
+    MAKE_TESTS(process/router "test_router")
     MAKE_TESTS(structure "test_furi")
-    MAKE_TESTS(structure/kernel "test_f_scheduler")
     MAKE_TESTS(util "test_mutex")
+    MESSAGE(STATUS "Total tests produced: ${.g}${TOTAL}${..}")
 ENDIF ()
