@@ -70,7 +70,7 @@ namespace fhatos {
     void shutdown() {
       while (this->next()) {
       }
-      THREADS->forEach([this](Thread *thread) { _destroy(thread->id()); });
+      THREADS->forEach([this](const Thread *thread) { this->destroy(thread->id()); });
       this->barrier("shutting_down");
     }
 
@@ -82,38 +82,6 @@ namespace fhatos {
       }
       LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
     }
-
-    // void onJoin(const Supplier<bool> &onJoinPredicate) const { this->_onJoinPredicate = onJoinPredicate; }
-
-    /* virtual const uint16_t clean() {
-       while (this->next()) {
-       }
-       auto *counter = new std::atomic_int16_t(0);
-       THREADS->forEach([this, counter](const Thread *p) {
-         if (!p->running()) {
-           _destroy(p->id());
-           counter->fetch_add(1);
-         }
-       },false);
-       FIBERS->forEach([this, counter](const Fiber *p) {
-         if (!p->running()) {
-           _destroy(p->id());
-           counter->fetch_add(1);
-         }
-       });
-       COROUTINES->forEach([this, counter](const Coroutine *p) {
-         if (!p->running()) {
-           _destroy(p->id());
-           counter->fetch_add(1);
-         }
-       });
-       const uint16_t count = counter->load();
-       delete counter;
-       if (count > 0) {
-         LOG_TASK(INFO, this, "cleaned processes: %i\n", count);
-       }
-       return count;
-     }*/
 
     virtual bool spawn(Process *process) { throw new fError("Member function spawn() must be implemented"); }
 

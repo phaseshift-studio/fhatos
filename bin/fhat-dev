@@ -33,17 +33,20 @@ else
 fi
 
 if [[ $1 == "clean" ]]; then
+   rm -rf build/
+   rm -rf test/build/
+   rm -rf docs/build/
    rm -rf _deps
+   rm -rf include/
    rm -rf CMakeFiles
    rm CMakeCache.txt
    rm Makefile
    rm *.cmake
-   rm -rf include/
-   rm *.out
+   rm -rf test/CMakeFiles
+   rm -rf test/CMakeCache.txt
    rm test/Makefile
-   rm test/*.out
    rm test/*.cmake
-   rm -rf Testing/
+   rm -rf test/Testing/
    platformio run --target clean
   echo -e "${RED}IMPORTANT${NC}"
   echo -e "    ...next operation builds project from scratch ${GREEN}cmake${NC} ${RED}=>${NC} ${GREEN}cmake_install.cmake${NC} ${RED}=>${NC} ${GREEN}make${NC} ${RED}=>${NC} ${GREEN}platformio${NC}]"

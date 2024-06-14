@@ -1,3 +1,4 @@
+# Local Configurations
 .clang-format
 .clang-tidy
 .vscode
@@ -7,24 +8,14 @@ scripts/__pycache__
 .DS_Store
 .wifi.ini
 .idea
-
-# Compiled Object files
 **/.DS_Store
-*.slo
-*.lo
-*.o
-*.obj
 
-# Executables
-*.exe
-*.out
-*.app
+# Project Build Directories
+build
+test/build
+docs/build
 
-# Documentation build
-docs/html
-docs/latex
-
-# CMake files
+# CMake Files
 .cmake
 **/cmake-build-debug
 **/CMakeCache.txt
@@ -37,9 +28,11 @@ docs/latex
 **/CMakeScripts
 **/compile_commands.json
 @ONLY
+Doxyfile
 CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 docs/CMakeDoxyfile.in
 _deps/
 include/
 Testing/
+

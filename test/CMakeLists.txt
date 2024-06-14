@@ -20,81 +20,31 @@ IF (BUILD_TESTS)
     ####################################
 
     ############## LANGUAGE ##############
-    #[===[
-        SET(PACKAGE language)
-        SET(PACKAGE_TESTS "test_binary_obj;test_fluent;test_obj;test_parser")
+
+    FUNCTION(MAKE_TESTS PACKAGE PACKAGE_TESTS)
+        MESSAGE(STATUS "Processing " ${PACKAGE} " with " ${PACKAGE_TESTS})
         FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            ADD_DEFINITIONS("-DNATIVE")
+            ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator")
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
+                    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/test/build"
+                    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/test/build"
+                    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/test/build"
                     OUTPUT_NAME ${PACKAGE_TEST}
                     SUFFIX ".out"
                     UNITY_BUILD ON
                     UNITY_BUILD_MODE BATCH
                     UNITY_BUILD_BATCH_SIZE 16)
             TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map)
-            ADD_TEST(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
+            ADD_TEST(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/build/${PACKAGE_TEST}.out)
             MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
         ENDFOREACH ()
+    ENDFUNCTION(MAKE_TESTS)
 
-        ############## STRUCTURE ##############
-
-        SET(PACKAGE structure)
-        SET(PACKAGE_TESTS "test_furi")
-        FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
-            MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
-            ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            ADD_DEFINITIONS("-DNATIVE")
-            SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
-                    OUTPUT_NAME ${PACKAGE_TEST}
-                    SUFFIX ".out"
-                    UNITY_BUILD ON
-                    UNITY_BUILD_MODE BATCH
-                    UNITY_BUILD_BATCH_SIZE 16)
-            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map)
-            ADD_TEST(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-        ENDFOREACH ()
-
-        ############## STRUCTURE/KERNEL ##############
-
-        SET(PACKAGE structure/kernel)
-        SET(PACKAGE_TESTS "test_f_scheduler")
-        FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
-            MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
-            ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            ADD_DEFINITIONS("-DNATIVE")
-            SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
-                    OUTPUT_NAME ${PACKAGE_TEST}
-                    SUFFIX ".out"
-                    UNITY_BUILD ON
-                    UNITY_BUILD_MODE BATCH
-                    UNITY_BUILD_BATCH_SIZE 16)
-            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map)
-            ADD_TEST(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-        ENDFOREACH ()
-
-        ############## UTIL ##############
-
-        SET(PACKAGE util)
-        SET(PACKAGE_TESTS "test_mutex")
-        FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
-            MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
-            ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            ADD_DEFINITIONS("-DNATIVE")
-            SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
-                    OUTPUT_NAME ${PACKAGE_TEST}
-                    SUFFIX ".out"
-                    UNITY_BUILD ON
-                    UNITY_BUILD_MODE BATCH
-                    UNITY_BUILD_BATCH_SIZE 16)
-            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map)
-            ADD_TEST(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-        ENDFOREACH ()]] <- this is not the closing
-]===]
-
-        ############## UTIL ##############
-    ENDIF ()
+    ### TEST LOCATIONS BY PACKAGE ###
+    MAKE_TESTS(language "test_binary_obj;test_fluent;test_obj;test_parser")
+    MAKE_TESTS(structure "test_furi")
+    MAKE_TESTS(structure/kernel "test_f_scheduler")
+    MAKE_TESTS(util "test_mutex")
+ENDIF ()

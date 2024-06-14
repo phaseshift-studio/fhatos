@@ -55,8 +55,7 @@ namespace fhatos {
 
                }))
                   ->as<Rec>("thread")));
-      Scheduler<ROUTER>::singleton()->barrier("done_barrier",
-                                              []() { return Scheduler<ROUTER>::singleton()->count() == 0; });
+      Scheduler<ROUTER>::singleton()->shutdown();
 
       // TEST_ASSERT_EQUAL_INT(-11,
       //                  ROUTER::singleton()->template read<Int>(fScheduler<>::singleton()->id(), "loop")->value());
