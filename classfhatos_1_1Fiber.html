@@ -104,18 +104,19 @@ Inheritance diagram for fhatos::Fiber:</div>
  <div class="center">
   <img src="classfhatos_1_1Fiber.png" usemap="#fhatos::Fiber_map" alt=""/>
   <map id="fhatos::Fiber_map" name="fhatos::Fiber_map">
-<area href="classfhatos_1_1Process.html" alt="fhatos::Process" shape="rect" coords="301,56,592,80"/>
-<area href="classfhatos_1_1Process.html" alt="fhatos::Process" shape="rect" coords="903,56,1194,80"/>
-<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="150,0,441,24"/>
-<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="451,0,742,24"/>
-<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="752,0,1043,24"/>
-<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="1053,0,1344,24"/>
-<area href="classfhatos_1_1Actor.html" alt="fhatos::Actor&lt; Fiber, FOS_DEFAULT_ROUTER &gt;" shape="rect" coords="451,168,742,192"/>
-<area href="classfhatos_1_1fOTA.html" alt="fhatos::fOTA&lt; PROCESS, ROUTER &gt;" shape="rect" coords="752,168,1043,192"/>
+<area href="classfhatos_1_1Process.html" alt="fhatos::Process" shape="rect" coords="451,56,742,80"/>
+<area href="classfhatos_1_1Process.html" alt="fhatos::Process" shape="rect" coords="1053,56,1344,80"/>
+<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="301,0,592,24"/>
+<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="602,0,893,24"/>
+<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="903,0,1194,24"/>
+<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="1204,0,1495,24"/>
+<area href="classfhatos_1_1Actor.html" alt="fhatos::Actor&lt; Fiber, FOS_DEFAULT_ROUTER &gt;" shape="rect" coords="602,168,893,192"/>
+<area href="classfhatos_1_1fOTA.html" alt="fhatos::fOTA&lt; PROCESS, ROUTER &gt;" shape="rect" coords="903,168,1194,192"/>
 <area href="classfhatos_1_1fFS.html" alt="fhatos::fFS&lt; PROCESS, ROUTER &gt;" shape="rect" coords="0,224,291,248"/>
 <area href="classfhatos_1_1fLang.html" alt="fhatos::fLang&lt; PROCESS, ROUTER &gt;" shape="rect" coords="301,224,592,248"/>
 <area href="classfhatos_1_1fMemory.html" alt="fhatos::fMemory&lt; PROCESS, ROUTER &gt;" shape="rect" coords="602,224,893,248"/>
-<area href="classfhatos_1_1fSerial.html" alt="fhatos::fSerial&lt; PROCESS, ROUTER &gt;" shape="rect" coords="903,224,1194,248"/>
+<area href="classfhatos_1_1fScheduler.html" alt="fhatos::fScheduler&lt; PROCESS, ROUTER &gt;" shape="rect" coords="903,224,1194,248"/>
+<area href="classfhatos_1_1fSerial.html" alt="fhatos::fSerial&lt; PROCESS, ROUTER &gt;" shape="rect" coords="1204,224,1495,248"/>
   </map>
 </div></div>
 <table class="memberdecls">
@@ -194,6 +195,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:a1f93190bc7c070078ce3e23d45400709 inherit pro_attribs_classfhatos_1_1Process" id="r_a1f93190bc7c070078ce3e23d45400709"><td class="memItemLeft" align="right" valign="top">
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>_running</b> = false</td></tr>
 <tr class="separator:a1f93190bc7c070078ce3e23d45400709 inherit pro_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa375c39e294dc35bb647aeb447b0a925 inherit pro_attribs_classfhatos_1_1Process" id="r_aa375c39e294dc35bb647aeb447b0a925"><td class="memItemLeft" align="right" valign="top">
+std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><b>_running</b> = std::atomic_bool(false)</td></tr>
+<tr class="separator:aa375c39e294dc35bb647aeb447b0a925 inherit pro_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classfhatos_1_1IDed"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1IDed')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1IDed.html">fhatos::IDed</a></td></tr>
 <tr class="memitem:ad064009b8c6dd4801b8c20adcc44e8c4 inherit pro_attribs_classfhatos_1_1IDed" id="r_ad064009b8c6dd4801b8c20adcc44e8c4"><td class="memItemLeft" align="right" valign="top">
 <a class="el" href="classfhatos_1_1ID.html">ID</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_id</b></td></tr>

@@ -7,6 +7,6 @@ var searchData=
   ['referenceinst_4',['ReferenceInst',['../classfhatos_1_1ReferenceInst.html',1,'fhatos']]],
   ['relationalinst_5',['RelationalInst',['../classfhatos_1_1RelationalInst.html',1,'fhatos']]],
   ['router_6',['Router',['../classfhatos_1_1Router.html',1,'fhatos']]],
-  ['router_3c_20coroutine_20_3e_7',['Router&lt; Coroutine &gt;',['../classfhatos_1_1Router.html',1,'fhatos']]],
-  ['router_3c_20thread_20_3e_8',['Router&lt; Thread &gt;',['../classfhatos_1_1Router.html',1,'fhatos']]]
+  ['router_3c_20thread_20_3e_7',['Router&lt; Thread &gt;',['../classfhatos_1_1Router.html',1,'fhatos']]],
+  ['router_3c_3e_8',['Router&lt;&gt;',['../classfhatos_1_1Router.html',1,'fhatos']]]
 ];
