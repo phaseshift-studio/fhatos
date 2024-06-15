@@ -80,7 +80,6 @@ namespace fhatos {
   }
 } // namespace fhatos
 #endif
-#include "../_deps/unity-src/src/unity.h"
 
 using namespace fhatos;
 

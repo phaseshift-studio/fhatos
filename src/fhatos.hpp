@@ -199,7 +199,7 @@ namespace fhatos {
 #ifdef NATIVE
 #define FOS_DEFAULT_PRINTER fhatos::Ansi<fhatos::CPrinter>
 #else
-#define FOS_DEFAULT_PRINTER (&Serial)
+#define FOS_DEFAULT_PRINTER fhatos::Ansi<Serial>
 #endif
 #endif
 
