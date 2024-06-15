@@ -24,6 +24,7 @@
 #include <atomic>
 #include <structure/furi.hpp>
 #include <util/mutex_deque.hpp>
+#include FOS_UTIL(mutex.hpp)
 #include FOS_PROCESS(process.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
@@ -35,9 +36,9 @@
 namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class AbstractScheduler : public IDed, public Publisher<ROUTER>, public Mailbox<ptr<Mail>> {
-    Mutex<> DESTROY_MUTEX;
 
   protected:
+    Mutex<> DESTROY_MUTEX;
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
     MutexDeque<Fiber *> *FIBERS = new MutexDeque<Fiber *>();
     MutexDeque<Thread *> *THREADS = new MutexDeque<Thread *>();
@@ -50,7 +51,7 @@ namespace fhatos {
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       this->subscribe(id.query("?spawn"), [this](const Message &message) {
         const Rec rec = message.payload->toRec();
-        const auto b = new fBcode(rec.get<Uri>(new Str("id"))->value(), new Rec(*rec.value()));
+        const auto b = new fBcode<Thread,ROUTER>(rec.get<Uri>(new Str("id"))->value(), new Rec(*rec.value()));
         this->spawn(b);
       });
       this->subscribe(id.query("?destroy"), [this](const Message &message) {

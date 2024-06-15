@@ -25,14 +25,15 @@
 #include <process/abstract_scheduler.hpp>
 
 namespace fhatos {
-  class Scheduler final : public AbstractScheduler {
+  template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  class Scheduler final : public AbstractScheduler<ROUTER> {
   public:
     static Scheduler *singleton() {
       static Scheduler scheduler = Scheduler();
       return &scheduler;
     }
 
-    bool spawn(Process *process) override {
+    virtual bool spawn(Process *process) override {
       // TODO: have constructed processes NOT running or check is process ID already in scheduler
       process->setup();
       if (!process->running()) {
@@ -45,7 +46,7 @@ namespace fhatos {
       bool success = false;
       switch (process->type) {
         case THREAD: {
-          THREADS->push_back(static_cast<Thread *>(process));
+          this->THREADS->push_back(static_cast<Thread *>(process));
           const BaseType_t threadResult = xTaskCreatePinnedToCore(
             THREAD_FUNCTION, // Function that should be called
             process->id()
@@ -61,8 +62,8 @@ namespace fhatos {
           break;
         }
         case FIBER: {
-          success = FIBERS->push_back(static_cast<Fiber *>(process));
-          LOG(INFO, "Fiber bundle count: %i\n", FIBERS->size());
+          success = this->FIBERS->push_back(static_cast<Fiber *>(process));
+          LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
           if (!FIBER_THREAD_HANDLE) {
             success &= pdPASS == xTaskCreatePinnedToCore(
               FIBER_FUNCTION, // Function that should be called
@@ -76,11 +77,11 @@ namespace fhatos {
           break;
         }
         case COROUTINE: {
-          success = COROUTINES->push_back(static_cast<Coroutine *>(process));
+          success = this->COROUTINES->push_back(static_cast<Coroutine *>(process));
           break;
         }
         case KERNEL: {
-          success = KERNELS->push_back(static_cast<KernelProcess *>(process));
+          success = this->KERNELS->push_back(static_cast<KernelProcess *>(process));
           break;
         }
         default: {
@@ -104,7 +105,9 @@ namespace fhatos {
     }
 
   private:
-    Scheduler() = default;
+  private:
+    explicit Scheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) : AbstractScheduler<ROUTER>(id) {
+    }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
 
