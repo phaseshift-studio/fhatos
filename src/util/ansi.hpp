@@ -29,21 +29,27 @@ namespace fhatos {
   class CPrinter {
   public:
     static CPrinter *singleton() {
-      static CPrinter printer = CPrinter();
+      static auto printer = CPrinter();
       return &printer;
     }
 
-    int print(const char *c_str) {
-      return printf("%s", c_str);
-    }
+    static int print(const char *c_str) { return printf("%s", c_str); }
 
-    void flush() {
-      fflush(stdout);
-    }
+    static void flush() { fflush(stdout); }
   };
 
-  template<typename PRINTER>
+#ifdef NATIVE
+  template<typename PRINTER = CPrinter>
+#else
+  template<typename PRINTER = Serial>
+#endif
   class Ansi {
+  public:
+    static Ansi *singleton() {
+      static auto ansi = Ansi<>();
+      return &ansi;
+    }
+
   protected:
     PRINTER *printer;
     std::string *_buffer = new std::string();
@@ -53,9 +59,7 @@ namespace fhatos {
 
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
-    void color(const uint8_t fgcolor, const uint8_t bgcolor) {
-      this->printf("\033[0;%dm", fg_normal + fgcolor);
-    }
+    void color(const uint8_t fgcolor, const uint8_t bgcolor) { this->printf("\033[0;%dm", fg_normal + fgcolor); }
 
     //  COLOR
     enum {
@@ -111,7 +115,7 @@ namespace fhatos {
               this->black();
             else {
               this->_printer->print(buffer[i]);
-              this->_printer->print(buffer[i+1]);
+              this->_printer->print(buffer[i + 1]);
             }
           }
           i++;
@@ -124,15 +128,11 @@ namespace fhatos {
     }
 
   public:
-    Ansi(): printer(nullptr) {
-    }
+    Ansi() : printer(nullptr) {}
 
-    explicit Ansi(PRINTER *printer) : printer(printer) {
-    }
+    explicit Ansi(PRINTER *printer) : printer(printer) {}
 
-    PRINTER *stream() {
-      return this->_printer;
-    }
+    PRINTER *stream() { return this->_printer; }
 
     void on(bool turnOn = true) { this->_on = turnOn; }
 
@@ -158,7 +158,7 @@ namespace fhatos {
       size_t len = vsnprintf(temp, sizeof(temp), format, arg);
       va_end(arg);
       if (len > sizeof(temp) - 1) {
-        buffer = new(std::nothrow) char[len + 1];
+        buffer = new (std::nothrow) char[len + 1];
         if (!buffer) {
           return;
         }
@@ -182,33 +182,19 @@ namespace fhatos {
 
     void red(const bool bright = false) { color(RED + (bright ? BRIGHT : 0), 0); }
 
-    void green(const bool bright = false) {
-      color(GREEN + (bright ? BRIGHT : 0), 0);
-    }
+    void green(const bool bright = false) { color(GREEN + (bright ? BRIGHT : 0), 0); }
 
-    void blue(const bool bright = false) {
-      color(BLUE + (bright ? BRIGHT : 0), 0);
-    }
+    void blue(const bool bright = false) { color(BLUE + (bright ? BRIGHT : 0), 0); }
 
-    void magenta(const bool bright = false) {
-      color(MAGENTA + (bright ? BRIGHT : 0), 0);
-    }
+    void magenta(const bool bright = false) { color(MAGENTA + (bright ? BRIGHT : 0), 0); }
 
-    void cyan(const bool bright = false) {
-      color(CYAN + (bright ? BRIGHT : 0), 0);
-    }
+    void cyan(const bool bright = false) { color(CYAN + (bright ? BRIGHT : 0), 0); }
 
-    void white(const bool bright = false) {
-      color(WHITE + (bright ? BRIGHT : 0), 0);
-    }
+    void white(const bool bright = false) { color(WHITE + (bright ? BRIGHT : 0), 0); }
 
-    void yellow(const bool bright = false) {
-      color(YELLOW + (bright ? BRIGHT : 0), 0);
-    }
+    void yellow(const bool bright = false) { color(YELLOW + (bright ? BRIGHT : 0), 0); }
 
-    void black(const bool bright = false) {
-      color(BLACK + (bright ? BRIGHT : 0), 0);
-    }
+    void black(const bool bright = false) { color(BLACK + (bright ? BRIGHT : 0), 0); }
   };
 } // namespace fhatos
 

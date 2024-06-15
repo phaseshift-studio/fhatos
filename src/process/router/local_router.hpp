@@ -44,7 +44,7 @@ namespace fhatos {
       return &singleton;
     }
 
-   const RESPONSE_CODE clear() override {
+    const RESPONSE_CODE clear() override {
       SUBSCRIPTIONS.clear();
       RETAINS.clear();
       return (RETAINS.empty() && SUBSCRIPTIONS.empty()) ? OK : ROUTER_ERROR;
@@ -54,7 +54,7 @@ namespace fhatos {
       return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
         const ptr<Message> message_ptr = share(message);
         //////////////
-        RESPONSE_CODE _rc = NO_TARGETS;
+        RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(message.target)) {
             try {

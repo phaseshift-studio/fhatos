@@ -98,6 +98,7 @@ namespace fhatos {
 
   class Router {
   public:
+    virtual ~Router() = default;
     static ID mintID(const char *user, const char *path = "") {
 #ifdef NATIVE
       return ID(path).user(user);
@@ -107,9 +108,7 @@ namespace fhatos {
     }
 
     virtual const RESPONSE_CODE publish(const Message &message) FP_OK_RESULT;
-
     virtual const RESPONSE_CODE subscribe(const Subscription &subscription) FP_OK_RESULT;
-
     virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) FP_OK_RESULT;
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
     virtual const RESPONSE_CODE clear() FP_OK_RESULT;

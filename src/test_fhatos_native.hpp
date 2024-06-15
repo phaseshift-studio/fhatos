@@ -17,75 +17,64 @@
  ******************************************************************************/
 
 
-
 #ifndef fhatos_test_fhatos_native_hpp
 #define fhatos_test_fhatos_native_hpp
 #ifdef NATIVE
-//#define FOS_LOGGING DEBUG
+// #define FOS_LOGGING DEBUG
 
-#include <unity.h>
-#include <stdio.h>
 #include <fhatos.hpp>
-#include <util/ansi.hpp>
 #include <language/fluent.hpp>
+#include <unity.h>
 
-void setUp() {
+void setUp() {}
+void tearDown() {}
 
-}
-void tearDown() {
+#define FOS_TEST_PRINTER FOS_DEFAULT_PRINTER
 
-}
+#define SETUP_AND_LOOP()                                                                                               \
+  int main(int arg, char **argsv) { fhatos::RUN_UNITY_TESTS(); };
 
-static fhatos::Ansi<fhatos::CPrinter> ansi(FOS_OUTPUT);
-#define FOS_TEST_PRINTER ansi
-
-#define SETUP_AND_LOOP()                                                       \
-int main(int arg, char **argsv) {           \
-fhatos::RUN_UNITY_TESTS();                                              \
-};
-
-#define FOS_PRINT_FLUENT(fluent) \
-  FOS_TEST_MESSAGE("!yTesting!!: %s",(fluent).toString().c_str())            \
+#define FOS_PRINT_FLUENT(fluent)                                                                                       \
+  FOS_TEST_MESSAGE("!yTesting!!: %s", (fluent).toString().c_str())                                                     \
   (fluent)
 
-#define FOS_TEST_MESSAGE(format, ...)                                          \
-  FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                        \
-  FOS_TEST_PRINTER.printf((format), ##__VA_ARGS__);                            \
-  FOS_TEST_PRINTER.printf("\n");
+#define FOS_TEST_MESSAGE(format, ...)                                                                                  \
+  if (FOS_LOGGING < ERROR) {                                                                                           \
+    FOS_TEST_PRINTER::singleton()->printf("  !rline %i!!\t", __LINE__);                                                \
+    FOS_TEST_PRINTER::singleton()->printf((format), ##__VA_ARGS__);                                                    \
+    FOS_TEST_PRINTER::singleton()->printf("\n");                                                                       \
+  }
 
-#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                       \
-  FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(),            \
-                   (y).toString().c_str());                                    \
+#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
+  FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                           \
   TEST_ASSERT_TRUE((x).equals(y));
 
-#define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                   \
-  FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(),           \
-                   (y).toString().c_str());                                    \
+#define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
+  FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
   TEST_ASSERT_FALSE((x).equals(y))
 
-#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y)                                  \
-  TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
+#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
 
-#define FOS_TEST_ASSERT_EXCEPTION(x)                                           \
-  try {                                                                        \
-    x;                                                                         \
-    TEST_ASSERT(false);                                                        \
-  } catch (fhatos::kernel::fError e) {                                         \
-    TEST_ASSERT(true);                                                         \
+#define FOS_TEST_ASSERT_EXCEPTION(x)                                                                                   \
+  try {                                                                                                                \
+    x;                                                                                                                 \
+    TEST_ASSERT(false);                                                                                                \
+  } catch (fhatos::kernel::fError e) {                                                                                 \
+    TEST_ASSERT(true);                                                                                                 \
   }
 
 namespace fhatos {
-#define FOS_RUN_TEST(x)                                                        \
+#define FOS_RUN_TEST(x)                                                                                                \
   { RUN_TEST(x); }
 
-#define FOS_RUN_TESTS(x)                                                       \
-  void RUN_UNITY_TESTS() {                                                     \
-  LOG(NONE, ANSI_ART);                                                         \
-    UNITY_BEGIN();                                                             \
-    x;                                                                         \
-    UNITY_END();                                                               \
+#define FOS_RUN_TESTS(x)                                                                                               \
+  void RUN_UNITY_TESTS() {                                                                                             \
+    LOG(NONE, ANSI_ART);                                                                                               \
+    UNITY_BEGIN();                                                                                                     \
+    x;                                                                                                                 \
+    UNITY_END();                                                                                                       \
   }
-}
+} // namespace fhatos
 
 #endif
 #endif

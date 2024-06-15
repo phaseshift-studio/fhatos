@@ -190,15 +190,17 @@ namespace fhatos {
 
 
 #ifndef FOS_DEFAULT_ROUTER
-#define FOS_DEFAULT_ROUTER LocalRouter
+#define FOS_DEFAULT_ROUTER fhatos::LocalRouter
 #endif
 #ifndef FOS_DEFAULT_ALGEBRA
-#define FOS_DEFAULT_ALGEBRA Algebra
+#define FOS_DEFAULT_ALGEBRA fhatos::Algebra
 #endif
+#ifndef FOS_DEFAULT_PRINTER
 #ifdef NATIVE
-#define FOS_OUTPUT fhatos::CPrinter::singleton()
+#define FOS_DEFAULT_PRINTER fhatos::Ansi<fhatos::CPrinter>
 #else
-#define FOS_OUTPUT (&Serial)
+#define FOS_DEFAULT_PRINTER (&Serial)
+#endif
 #endif
 
   ////////////////////////////
@@ -225,13 +227,11 @@ namespace fhatos {
   ///////////////////
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING DEBUG
+#define FOS_LOGGING INFO
 #endif
 
-  inline LOG_TYPE _logging = LOG_TYPE::FOS_LOGGING;
-
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-    if ((uint8_t) type < (uint8_t) _logging)
+    if ((uint8_t) type < (uint8_t) LOG_TYPE::FOS_LOGGING)
       return;
     va_list arg;
     va_start(arg, format);
@@ -248,20 +248,15 @@ namespace fhatos {
       vsnprintf(buffer, len + 1, format, arg);
       va_end(arg);
     }
-#ifdef NATIVE
-    static auto ansi = Ansi(new CPrinter());
-#else
-    static auto ansi = Ansi(&::Serial);
-#endif
     if (type == NONE)
-      ansi.print("");
+      FOS_DEFAULT_PRINTER::singleton()->print("");
     else if (type == ERROR)
-      ansi.print("!r[ERROR]!!  ");
+      FOS_DEFAULT_PRINTER::singleton()->print("!r[ERROR]!!  ");
     else if (type == INFO)
-      ansi.print("!g[INFO]!!  ");
+      FOS_DEFAULT_PRINTER::singleton()->print("!g[INFO]!!  ");
     else
-      ansi.print("!y[DEBUG]!!  ");
-    ansi.print(buffer);
+      FOS_DEFAULT_PRINTER::singleton()->print("!y[DEBUG]!!  ");
+    FOS_DEFAULT_PRINTER::singleton()->print(buffer);
     if (buffer != temp) {
       delete[] buffer;
     }

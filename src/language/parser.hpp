@@ -20,9 +20,9 @@
 #define fhatos_parser_hpp
 
 #include <fhatos.hpp>
-#include <sstream>
-#include <language/obj.hpp>
 #include <language/fluent.hpp>
+#include <language/obj.hpp>
+#include <sstream>
 #include <util/string_helper.hpp>
 
 namespace fhatos {
@@ -30,8 +30,7 @@ namespace fhatos {
 
   class Parser : public IDed {
   public:
-    explicit Parser(const ID &id = ID(*UUID::singleton()->mint())) : IDed(id) {
-    }
+    explicit Parser(const ID &id = ID(*UUID::singleton()->mint())) : IDed(id) {}
 
     const ptr<Bytecode> parse(const char *line) {
       string cleanLine = string(line);
@@ -46,54 +45,54 @@ namespace fhatos {
       return bcode;
     }
 
-    const ptr<Fluent<> > parseToFluent(const char *line) {
-      return share<Fluent<> >(Fluent<>(this->parse(line)));
-    }
+    const ptr<Fluent<>> parseToFluent(const char *line) { return share<Fluent<>>(Fluent<>(this->parse(line))); }
 
     static const ptr<Bytecode> parseBytecode(stringstream *ss) {
       Fluent<> *fluent = new Fluent<>();
       while (!ss->eof()) {
         const ptr<string> opcode = Parser::parseOpcode(ss);
-        const ptr<List<ptr<OBJ_OR_BYTECODE> > > args = Parser::parseArgs(ss);
+        const ptr<List<ptr<OBJ_OR_BYTECODE>>> args = Parser::parseArgs(ss);
 
         if (*opcode == "count") {
           fluent = new Fluent(fluent->count());
         } else if (*opcode == "is") {
           fluent = new Fluent(fluent->is(*args->at(0)));
+        } else if (*opcode == "print") {
+          fluent = new Fluent(fluent->print(*args->at(0)));
         } else if (*opcode == "ref") {
           fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "dref") {
           fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0))));
         } else if (*opcode == "switch") {
-          fluent = new Fluent(fluent->bswitch(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->bswitch(*args->at(0)));
         } else if (*opcode == "eq") {
-          fluent = new Fluent(fluent->eq(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->eq(*args->at(0)));
         } else if (*opcode == "neq") {
-          fluent = new Fluent(fluent->neq(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->neq(*args->at(0)));
         } else if (*opcode == "gt") {
-          fluent = new Fluent(fluent->gt(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->gt(*args->at(0)));
         } else if (*opcode == "gte") {
-          fluent = new Fluent(fluent->gte(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->gte(*args->at(0)));
         } else if (*opcode == "lt") {
-          fluent = new Fluent(fluent->lt(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->lt(*args->at(0)));
         } else if (*opcode == "lte") {
-          fluent = new Fluent(fluent->lte(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->lte(*args->at(0)));
         } else if (*opcode == "plus") {
-          fluent = new Fluent(fluent->plus(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->plus(*args->at(0)));
         } else if (*opcode == "mult") {
-          fluent = new Fluent(fluent->mult(OBJ_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->mult(*args->at(0)));
         } else if (*opcode == "start") {
           fluent = new Fluent(fluent->start(*args));
         } else if (*opcode == "as") {
-          fluent = new Fluent(fluent->as(URI_OR_BYTECODE(*args->at(0))));
+          fluent = new Fluent(fluent->as(*args->at(0)));
         } else if (*opcode == "define") {
-          fluent = new Fluent(fluent->define(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
+          fluent = new Fluent(fluent->define(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
         } else if (*opcode == "explain") {
           fluent = new Fluent(fluent->explain());
         } else if (*opcode == "<=") {
-          fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
+          fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
         } else if (*opcode == "=>") {
-          fluent = new Fluent(fluent->subscribe(URI_OR_BYTECODE(*args->at(0)), OBJ_OR_BYTECODE(*args->at(1))));
+          fluent = new Fluent(fluent->subscribe(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
         } else {
           const fError error = fError("Unknown instruction opcode: !b%s!!\n", opcode->c_str());
           LOG(ERROR, error.what());
@@ -101,8 +100,7 @@ namespace fhatos {
         }
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
       }
-
-      //delete fluent;
+      // delete fluent;
       return fluent->bcode;
     }
 
@@ -123,8 +121,8 @@ namespace fhatos {
       return opcode;
     }
 
-    static const ptr<List<ptr<OBJ_OR_BYTECODE> > > parseArgs(stringstream *ss) {
-      const auto args = share(List<ptr<OBJ_OR_BYTECODE> >());
+    static const ptr<List<ptr<OBJ_OR_BYTECODE>>> parseArgs(stringstream *ss) {
+      const auto args = share(List<ptr<OBJ_OR_BYTECODE>>());
       while (std::isspace(ss->peek())) {
         ss->get();
       }
@@ -143,8 +141,7 @@ namespace fhatos {
       while (!ss->eof()) {
         ptr<OBJ_OR_BYTECODE> argObj = Parser::parseArg(ss);
         args->push_back(argObj);
-        LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
-            OTYPE_STR.at(argObj->type()));
+        LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(), OTYPE_STR.at(argObj->type()));
         if (ss->peek() == ',' || ss->peek() == '.' || ss->peek() == ')') {
           ss->get();
           break;
@@ -278,24 +275,18 @@ namespace fhatos {
             map2->insert(pair);
           }
           delete ss;
-          obj_or_bcode = share<OBJ_OR_BYTECODE>(
-            OBJ_OR_BYTECODE(new Rec(map2, utype)));
+          obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Rec(map2, utype)));
         }
-      } else if
-      (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
+      } else if (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
         obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Real(stof(token), utype)));
       } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(
-          OBJ_OR_BYTECODE(new Int(stoi(token), utype)));
+        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Int(stoi(token), utype)));
       } else {
         obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Uri(fURI(token), utype)));
       }
 
-      LOG(DEBUG, FOS_TAB_5 "!ytype!![%s] !yutype!![%s]\n",
-          OTYPE_STR.at(obj_or_bcode->type()),
-          utype ?
-          utype->toString().c_str() :
-          "null");
+      LOG(DEBUG, FOS_TAB_5 "!ytype!![%s] !yutype!![%s]\n", OTYPE_STR.at(obj_or_bcode->type()),
+          utype ? utype->toString().c_str() : "null");
 
       delete array;
       // if (utype)
@@ -303,5 +294,5 @@ namespace fhatos {
       return obj_or_bcode;
     }
   };
-}
+} // namespace fhatos
 #endif

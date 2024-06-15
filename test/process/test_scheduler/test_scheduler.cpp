@@ -64,7 +64,6 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      _logging = INFO; //
       Scheduler<FOS_DEFAULT_ROUTER>::singleton(); //
       LocalRouter::singleton(); //
       FOS_RUN_TEST(test_threads); //

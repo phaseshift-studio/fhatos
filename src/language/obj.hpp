@@ -570,6 +570,14 @@ namespace fhatos {
 
     explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {}
 
+    const Uri* relativeUri(const Uri* uri) const {
+      if (uri->value().empty())
+        return new Uri(this->id());
+      if (uri->value().toString().starts_with(":"))
+        return new Uri(this->id().toString() + uri->value().toString());
+      return uri;
+    }
+
     const Inst *nextInst(const Inst *currentInst) const {
       if (currentInst->isNoInst())
         return currentInst;
@@ -592,7 +600,7 @@ namespace fhatos {
         if (currentObj->isNoObj())
           break;
       }
-      return currentObj;
+      return (currentObj->type() == OType::URI) ? relativeUri((Uri*)currentObj) : currentObj;
     }
 
     const List<Inst *> *value() const { return this->_value; }

@@ -146,6 +146,16 @@ namespace fhatos {
         }) {}
   };
 
+  template<typename PRINTER = FOS_DEFAULT_PRINTER>
+  class PrintInst final : public OneToOneInst {
+  public:
+    explicit PrintInst(const OBJ_OR_BYTECODE &toPrint) :
+        OneToOneInst("print", {toPrint}, [this](const Obj *lhs) -> const Obj * {
+          PRINTER::singleton()->printf("%s\n", this->arg(0)->apply(lhs)->toString().c_str());
+          return lhs;
+        }) {}
+  };
+
 
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
@@ -203,22 +213,24 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-  class PublishInst final : public Publisher<FOS_DEFAULT_ROUTER>, public OneToOneInst {
+  template <typename ROUTER=FOS_DEFAULT_ROUTER>
+  class PublishInst final : public Publisher<ROUTER>, public OneToOneInst {
   public:
     explicit PublishInst(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload, const ID &bcodeId) :
-        Publisher<FOS_DEFAULT_ROUTER>(bcodeId),
+        Publisher<ROUTER>(bcodeId),
         OneToOneInst("<=", {target, payload}, [this](const Obj *incoming) -> const Obj * {
           this->publish(this->arg(0)->apply(incoming)->template as<Uri>()->value(),
-                        BinaryObj<>::fromObj(this->arg(1)->apply(incoming)), TRANSIENT_MESSAGE);
+                        BinaryObj<>::fromObj(this->arg(1)/*->apply(incoming)*/), TRANSIENT_MESSAGE);
           return incoming;
         }) {}
   };
 
+  template <typename ROUTER=FOS_DEFAULT_ROUTER>
   class SubscribeInst final : public OneToOneInst {
   public:
     explicit SubscribeInst(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv, const ID &bcodeId) :
         OneToOneInst("=>", {pattern, onRecv}, [this, bcodeId](const Obj *incoming) -> const Obj * {
-          FOS_DEFAULT_ROUTER::singleton()->subscribe(
+          ROUTER::singleton()->subscribe(
               Subscription{.mailbox = nullptr,
                            .source = bcodeId,
                            .pattern = this->arg(0)->apply(incoming)->template as<Uri>()->value(),

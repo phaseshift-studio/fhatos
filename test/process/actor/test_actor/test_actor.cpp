@@ -171,13 +171,13 @@ namespace fhatos {
     const Pair<fbyte *, uint> buffer = actor->serialize();
     Actor<Thread, ROUTER> *clone = Actor<Thread, ROUTER>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(actor->id(), clone->id());
-    FOS_TEST_PRINTER.printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
+    FOS_DEFAULT_PRINTER::singleton()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
     for (int i = 0; i < buffer.second; i++) {
-      FOS_TEST_PRINTER.printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
+      FOS_DEFAULT_PRINTER::singleton()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
       if ((i + 1) % 10 == 0)
-        FOS_TEST_PRINTER.printf("\n" FOS_TAB);
+        FOS_DEFAULT_PRINTER::singleton()->printf("\n" FOS_TAB);
     }
-    FOS_TEST_PRINTER.println();
+    FOS_DEFAULT_PRINTER::singleton()->println();
     // delete actor;
     free(clone);
     Scheduler<>::singleton()->barrier();

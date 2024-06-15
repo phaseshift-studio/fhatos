@@ -41,7 +41,6 @@ namespace fhatos {
 
     void setup() override {
       Thread::setup();
-      _logging = LOG_TYPE::INFO;
     }
 
     void loop() override {

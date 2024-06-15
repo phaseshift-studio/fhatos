@@ -27,7 +27,8 @@
 #include <process/router/local_router.hpp>
 
 namespace fhatos {
-  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER = FOS_DEFAULT_ROUTER>
+  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER = FOS_DEFAULT_ROUTER,
+           typename PRINTER = FOS_DEFAULT_PRINTER>
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
@@ -142,6 +143,8 @@ namespace fhatos {
     Fluent explain() { return this->addInst(new ExplainInst()); }
 
     Fluent count() { return this->addInst(new CountInst()); }
+
+    Fluent print(const OBJ_OR_BYTECODE &toPrint) { return this->addInst(new PrintInst<PRINTER>(toPrint)); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// BRANCHING ////////////////////////////

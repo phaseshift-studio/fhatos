@@ -172,7 +172,7 @@ namespace fhatos {
     const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse(
       "<=(scheduler@kernel?spawn,thread["
       "[id    => example,"
-      " setup => __(1,2,3).plus(10),"
+      " setup => __(0).ref(:x).print('setup complete'),"
       " loop  => <=(scheduler@kernel?destroy,example)]])"));
     auto process = Processor<Str>(bcode);
     process.forEach([](const Str *s) { LOG(INFO, "RESULT: %s", s->value().c_str()); });

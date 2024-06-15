@@ -51,8 +51,10 @@ namespace fhatos {
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       this->subscribe(id.query("?spawn"), [this](const Message &message) {
         const Rec rec = message.payload->toRec();
+        // if (rec.utype()->equals(fURI("thread"))) {
         const auto b = new fBcode<Thread, ROUTER>(rec.get<Uri>(new Uri("id"))->value(), new Rec(*rec.value()));
         this->spawn(b);
+        //}
       });
       this->subscribe(id.query("?destroy"), [this](const Message &message) {
         const Uri uri = message.payload->toUri();
@@ -132,7 +134,7 @@ namespace fhatos {
         });
         return true;
       });
-      if (DEBUG == _logging) {
+      if (DEBUG == LOG_TYPE::FOS_LOGGING) {
         LOG(DEBUG, "!b[Current Processes]!!\n");
         LOG(DEBUG, FOS_TAB_2 "!yThreads!!:\n");
         THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });

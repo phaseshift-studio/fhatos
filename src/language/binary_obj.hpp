@@ -34,7 +34,7 @@ namespace fhatos {
     const binary_obj _value;
 
   public:
-    ~BinaryObj() {
+    ~BinaryObj() override {
       const OType t = std::get<0>(this->_value);
       if (t == OType::INT || t == OType::REAL || t == OType::STR)
         delete std::get<1>(this->_value);
@@ -132,8 +132,7 @@ namespace fhatos {
              (strcmp(reinterpret_cast<const char *>(this->data()), reinterpret_cast<const char *>(other.data())) == 0);
     }
 
-
-    virtual const string toString() const {
+    const string toString() const override  {
       switch (this->type()) {
         case OType::BOOL:
           return toBool().toString();
