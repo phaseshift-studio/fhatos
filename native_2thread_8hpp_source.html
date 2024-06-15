@@ -138,7 +138,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      <span class="keywordflow">if</span> (this-&gt;xthread &amp;&amp; this-&gt;xthread-&gt;joinable() &amp;&amp; (this-&gt;xthread-&gt;get_id() != std::this_thread::get_id())) {</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>        <span class="keywordflow">try</span> {</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>          this-&gt;xthread-&gt;join();</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::__1::system_error &amp;e) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::runtime_error &amp;e) {</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>          LOG_TASK(ERROR, <span class="keyword">this</span>, <span class="stringliteral">&quot;%s [process thread id: %i][current thread id: %i]\n&quot;</span>, e.what(),</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                   this-&gt;xthread-&gt;get_id(), std::this_thread::get_id());</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        }</div>
