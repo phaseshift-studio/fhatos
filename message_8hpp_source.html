@@ -130,7 +130,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keyword">public</span>:</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> source;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> target;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1BinaryObj.html">BinaryObj&lt;&gt;</a> *payload;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *payload;</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> retain;</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keyword">template</span>&lt;OType type&gt;</div>
@@ -139,8 +139,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    }</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordtype">bool</span> isQuery(<span class="keyword">const</span> <span class="keywordtype">char</span> *query = <span class="stringliteral">&quot;?&quot;</span>)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">return</span> !this-&gt;retain &amp;&amp;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>             0 == payload-&gt;length() &amp;&amp;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">return</span> !this-&gt;retain</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>             <span class="comment">/*0 == payload-&gt;length()*/</span> &amp;&amp;</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>             target.query() == query &amp;&amp;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>             !target.equals(source);</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    }</div>
@@ -161,8 +161,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1BinaryObj_html"><div class="ttname"><a href="classfhatos_1_1BinaryObj.html">fhatos::BinaryObj</a></div><div class="ttdef"><b>Definition</b> binary_obj.hpp:32</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:360</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:99</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 <div class="ttc" id="astructfhatos_1_1Message_html"><div class="ttname"><a href="structfhatos_1_1Message.html">fhatos::Message</a></div><div class="ttdef"><b>Definition</b> message.hpp:35</div></div>
 </div><!-- fragment --></div><!-- contents -->
