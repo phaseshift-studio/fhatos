@@ -28,7 +28,7 @@ docs/build
 **/CMakeScripts
 **/compile_commands.json
 @ONLY
-Doxyfile
+Doxyfile.in
 CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 docs/CMakeDoxyfile.in
