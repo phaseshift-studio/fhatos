@@ -41,7 +41,7 @@ namespace fhatos {
       if (this->xthread && this->xthread->joinable() && (this->xthread->get_id() != std::this_thread::get_id())) {
         try {
           this->xthread->join();
-        } catch (const std::__1::system_error &e) {
+        } catch (const std::runtime_error &e) {
           LOG_TASK(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
                    this->xthread->get_id(), std::this_thread::get_id());
         }
