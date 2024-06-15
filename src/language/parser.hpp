@@ -203,7 +203,7 @@ namespace fhatos {
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
         obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(new Bool(strcmp("true", token.c_str()) == 0)));
       } else if (token[0] == '_' && token[1] == '_') {
-        stringstream *ss = new stringstream(token.length() > 2 ? token.substr(3) : token);
+        stringstream *ss = new stringstream(token);
         obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(ss).get()));
         delete ss;
       } else if (token[token.length() - 1] == ')' && token.find('(')) {
@@ -233,6 +233,7 @@ namespace fhatos {
           string key = first;
           string value;
           int bracketCounter = 0;
+          int parenCounter = 0;
           while (!ss->eof()) {
             if (onKey) {
               if (bracketCounter == 0 && StringHelper::lookAhead("=>", ss)) {
@@ -242,12 +243,16 @@ namespace fhatos {
                   bracketCounter++;
                 if (ss->peek() == ']')
                   bracketCounter--;
+                if (ss->peek() == '(')
+                  parenCounter++;
+                if (ss->peek() == ')')
+                  parenCounter--;
                 if (!ss->eof())
                   key += ss->get();
               }
             } else {
               ///////
-              if (bracketCounter == 0 && ss->peek() == ',') {
+              if (bracketCounter == 0 && parenCounter == 0 && ss->peek() == ',') {
                 ss->get(); // drop k/v separating comma
                 onKey = true;
                 map.insert({parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>()});
@@ -258,6 +263,10 @@ namespace fhatos {
                   bracketCounter++;
                 if (ss->peek() == ']')
                   bracketCounter--;
+                if (ss->peek() == '(')
+                  parenCounter++;
+                if (ss->peek() == ')')
+                  parenCounter--;
                 if (!ss->eof())
                   value += ss->get();
               }

@@ -3,6 +3,8 @@
 
 #include <test_fhatos.hpp>
 //
+#include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(scheduler.hpp)
 #include <language/parser.hpp>
 #include <language/processor.hpp>
 
@@ -116,9 +118,14 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
-    List<string> forms = {"['a'=>13,actor@127.0.0.1=>false]", "['a' => 13,actor@127.0.0.1 => false ]",
-                          "['a'=> 13 , actor@127.0.0.1=>false]", "['a' =>    13 , actor@127.0.0.1 =>    false  ]",
-                          "['a'=>    13 ,actor@127.0.0.1=>   false]"};
+    List<string> forms = {"['a'=>13,actor@127.0.0.1=>false]",
+                          "['a' => 13,actor@127.0.0.1 => false ]",
+                          "['a'=> 13 , actor@127.0.0.1=>false]",
+                          "['a' =>    13 , actor@127.0.0.1 =>    false  ]",
+                          "['a'=>    13 ,actor@127.0.0.1=>   false]",
+                          "atype['a'=>13 ,actor@127.0.0.1=>   false]",
+                          "btype['a'=>  nat[13] , actor@127.0.0.1=>   abool[false]]",
+                          "ctype['a'=>    13 ,  actor@127.0.0.1=>   false]"};
     for (const string form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const Rec *rc1 = Parser::parseObj(form)->cast<Rec>();
@@ -159,16 +166,22 @@ namespace fhatos {
     delete rc3;
   }
 
-  void test_poly_type_parsing() {
-
-    // LST
-
-    // INST
-    // BYTECODE
+  void test_bcode_parsing() {
+    const auto parser = new Parser;
+    Scheduler<FOS_DEFAULT_ROUTER>::singleton();
+    const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse(
+      "<=(scheduler@kernel?spawn,thread["
+      "[id    => example,"
+      " setup => __(1,2,3).plus(10),"
+      " loop  => <=(scheduler@kernel?destroy,example)]])"));
+    auto process = Processor<Str>(bcode);
+    process.forEach([](const Str *s) { LOG(INFO, "RESULT: %s", s->value().c_str()); });
+    delete parser;
+    Scheduler<>::singleton()->barrier("wait");
   }
 
   void test_nested_bytecode_parsing() {
-    Parser *parser = new Parser();
+    auto *parser = new Parser();
     const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse("plus(mult(plus(3)))"));
     TEST_ASSERT_EQUAL_INT(1, bcode->value()->size());
     TEST_ASSERT_EQUAL_INT(1, bcode->value()->at(0)->arg(0)->as<Bytecode>()->value()->size());
@@ -189,6 +202,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_str_parsing); //
       FOS_RUN_TEST(test_rec_parsing); //
       FOS_RUN_TEST(test_nested_bytecode_parsing); //
+      FOS_RUN_TEST(test_bcode_parsing); //
   )
 }; // namespace fhatos
 

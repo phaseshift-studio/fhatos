@@ -34,7 +34,7 @@ namespace fhatos {
     Mailbox<ptr<Mail>> *mailbox;
 
     explicit Publisher(const IDed *ided, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(ided->id()), mailbox(mailbox) {}
-    explicit Publisher(const ID& id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
+    explicit Publisher(const ID &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
 
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const Message> onRecv,
@@ -100,13 +100,14 @@ namespace fhatos {
 
     /// PUBLISH
     const RESPONSE_CODE publish(const ID &relativeTarget, const BinaryObj<> *payload,
-                                 const bool retain = TRANSIENT_MESSAGE) const {
-      return ROUTER::singleton()->publish(Message{
-          .source = this->__id, .target = makeTopic(relativeTarget), .payload = payload, .retain = retain});
+                                const bool retain = TRANSIENT_MESSAGE) const {
+      return ROUTER::singleton()->publish(
+          Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload, .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
+    template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
     const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
@@ -142,6 +143,11 @@ namespace fhatos {
       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
     }
 
+    const RESPONSE_CODE publish(const ID &relativeTarget, const OBJ_OR_BYTECODE &payload,
+                                const bool retain = TRANSIENT_MESSAGE) const {
+      return this->publish(relativeTarget, BinaryObj<>::fromObj(payload), retain);
+    }
+
     //////////
 
     const RESPONSE_CODE write(const Obj *obj, const TargetID &relativeTarget) const {
@@ -171,13 +177,12 @@ namespace fhatos {
     }
 
   private:
-   const Pattern makeTopic(const Pattern &relativeTopic) const {
-      return relativeTopic.empty()
-                 ? Pattern(this->__id)
-                 : (relativeTopic.toString()[0] == '/'
-                        ? Pattern(this->__id.toString() + "/" + relativeTopic.toString().substr(1))
-                        : relativeTopic)
-                       .resolve(this->__id);
+    const Pattern makeTopic(const Pattern &relativeTopic) const {
+      return relativeTopic.empty() ? Pattern(this->__id)
+                                   : (relativeTopic.toString()[0] == '/'
+                                          ? Pattern(this->__id.toString() + "/" + relativeTopic.toString().substr(1))
+                                          : relativeTopic)
+                                         .resolve(this->__id);
     }
   };
 } // namespace fhatos

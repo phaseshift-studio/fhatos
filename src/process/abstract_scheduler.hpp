@@ -51,7 +51,7 @@ namespace fhatos {
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       this->subscribe(id.query("?spawn"), [this](const Message &message) {
         const Rec rec = message.payload->toRec();
-        const auto b = new fBcode<Thread,ROUTER>(rec.get<Uri>(new Str("id"))->value(), new Rec(*rec.value()));
+        const auto b = new fBcode<Thread, ROUTER>(rec.get<Uri>(new Uri("id"))->value(), new Rec(*rec.value()));
         this->spawn(b);
       });
       this->subscribe(id.query("?destroy"), [this](const Message &message) {

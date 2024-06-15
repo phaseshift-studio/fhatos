@@ -44,29 +44,27 @@ namespace fhatos {
   void test_bcode() {
     Scheduler<>::singleton()->publish(
         Scheduler<ROUTER>::singleton()->id().query("?spawn"),
-        BinaryObj<>::fromObj(
-            (new Rec({
-                 {new Str("id"), new Uri("test_spawn")},
-                 {new Str("setup"), new Bytecode(__(0).ref("loop").bcode->value())},
-                 {new Str("loop"),
-                  new Bytecode(__(0)
-                                   .dref("loop")
-                                   .plus(1)
-                                   .bswitch(
-                                       {{_.is(_.lt(0)), _.plus(0)},
-                                        {_.is(_.gt(10)), _.mult(-1).ref("loop").publish(
-                                                             Scheduler<ROUTER>::singleton()->id().query("?destroy"),
-                                                             Uri("test_spawn"))},
-                                        {_, _.ref("loop")}})
-                                   .bcode->value())},
+        Rec({
+                {new Uri("id"), new Uri("test_spawn")},
+                {new Uri("setup"), new Bytecode(__(0).ref("loop").bcode->value())},
+                {new Uri("loop"),
+                 new Bytecode(__(0)
+                                  .dref("loop")
+                                  .plus(1)
+                                  .bswitch({{_.is(_.lt(0)), _.plus(0)},
+                                            {_.is(_.gt(10)), _.mult(-1).ref("loop").publish(
+                                                                 Scheduler<ROUTER>::singleton()->id().query("?destroy"),
+                                                                 Uri("test_spawn"))},
+                                            {_, _.ref("loop")}})
+                                  .bcode->value())},
 
-             }))
-                ->as<Rec>("thread")));
+            })
+            .as<Rec>("thread"));
     Scheduler<ROUTER>::singleton()->shutdown();
   }
 
   FOS_RUN_TESTS( //
-    _logging = INFO; //
+      _logging = INFO; //
       Scheduler<FOS_DEFAULT_ROUTER>::singleton(); //
       LocalRouter::singleton(); //
       FOS_RUN_TEST(test_threads); //

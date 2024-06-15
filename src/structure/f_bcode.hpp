@@ -26,8 +26,8 @@ namespace fhatos {
   class fBcode final : public Actor<PROCESS, ROUTER> {
   public:
     const Rec *rec;
-    Obj *LOOP_KEY = new Str("loop");
-    Obj *SETUP_KEY = new Str("setup");
+    Obj *LOOP_KEY = new Uri("loop");
+    Obj *SETUP_KEY = new Uri("setup");
 
     fBcode(const ID &id, const Rec *rec) :
         Actor<PROCESS, ROUTER>(
