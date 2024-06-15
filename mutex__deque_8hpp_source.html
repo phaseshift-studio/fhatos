@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FhatOS: src/util/mutex_deque.hpp Source File</title>
+<title>FhatOS: /github/workspace/src/util/mutex_deque.hpp Source File</title>
 <link rel="icon" href="fhatos-logo.svg" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -130,7 +130,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A = <span class="keywordtype">void</span> *&gt;</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    A lockUnlock(<span class="keyword">const</span> <span class="keywordtype">bool</span> withMutex, Supplier&lt;A&gt; function) {</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>      <span class="keywordflow">if</span> (withMutex)</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <span class="keywordflow">return</span> _mutex.lockUnlock(function,WAIT_TIME_MS,<span class="stringliteral">&quot;mutexDeque&quot;</span>);</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <span class="keywordflow">return</span> _mutex.lockUnlock(function,WAIT_TIME_MS);</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        A temp = function();</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        <span class="keywordflow">return</span> temp;</div>
