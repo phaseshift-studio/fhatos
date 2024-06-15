@@ -25,11 +25,11 @@ jobs:
       - name: Doxygen Action
         uses: mattnotmitt/doxygen-action@v1.1.0
         with:
-          doxyfile-path: "docs/Doxyfile"
+          doxyfile-path: "Doxyfile"
           working-directory: "docs/"
       - name: Configure Pages
         uses: actions/configure-pages@v4
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: ./docs/build/html
+          folder: ./build/html
