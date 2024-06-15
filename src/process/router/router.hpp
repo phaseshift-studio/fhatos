@@ -119,7 +119,7 @@ namespace fhatos {
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const Message &message) {
-                         thing->store((OBJ *) message.payload->toObj());
+                         thing->store((OBJ *) message.payload);
                          done->store(true);
                        }});
       const time_t startTimestamp = time(nullptr);
@@ -138,7 +138,7 @@ namespace fhatos {
 
     virtual RESPONSE_CODE write(const Obj *obj, const ID &source, const ID &target) {
       return this->publish(
-          Message{.source = source, .target = target, .payload = BinaryObj<>::fromObj(obj), .retain = RETAIN_MESSAGE});
+          Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };
 } // namespace fhatos

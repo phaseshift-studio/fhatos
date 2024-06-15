@@ -102,7 +102,7 @@ namespace fhatos {
     const RESPONSE_CODE publish(const ID &relativeTarget, const BinaryObj<> *payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
       return ROUTER::singleton()->publish(
-          Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload, .retain = retain});
+          Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload->toObj(), .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +159,7 @@ namespace fhatos {
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(relativeTarget, [thing, done](const Message &message) {
-        thing->store((OBJ *) message.payload->toObj());
+        thing->store((OBJ *) message.payload);
         done->store(true);
       });
       const time_t startTimestamp = time(nullptr);

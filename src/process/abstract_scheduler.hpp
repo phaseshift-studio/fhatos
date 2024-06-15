@@ -50,14 +50,14 @@ namespace fhatos {
     explicit AbstractScheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) :
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       this->subscribe(id.query("?spawn"), [this](const Message &message) {
-        const Rec rec = message.payload->toRec();
+        const Rec rec = *(Rec*)message.payload;
         // if (rec.utype()->equals(fURI("thread"))) {
         const auto b = new fBcode<Thread, ROUTER>(rec.get<Uri>(new Uri("id"))->value(), new Rec(*rec.value()));
         this->spawn(b);
         //}
       });
       this->subscribe(id.query("?destroy"), [this](const Message &message) {
-        const Uri uri = message.payload->toUri();
+        const Uri uri = *(Uri*)message.payload;
         LOG_TASK(DEBUG, this, "received ?destroy=%s from %s\n", uri.toString().c_str(),
                  message.source.toString().c_str());
         this->_destroy(uri.value());
@@ -88,7 +88,7 @@ namespace fhatos {
 
     virtual bool spawn(Process *process) { throw fError("Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
-      return this->publish(this->id().query("?destroy"), BinaryObj<>::fromObj(new Uri(processPattern)),
+      return this->publish(this->id().query("?destroy"), new Uri(processPattern),
                            TRANSIENT_MESSAGE);
     }
 

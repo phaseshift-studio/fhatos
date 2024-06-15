@@ -171,11 +171,11 @@ namespace fhatos {
     Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 
     Fluent publish(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload) {
-      return this->addInst(new PublishInst(target, payload, this->bcode->id()));
+      return this->addInst(new PublishInst<ROUTER>(target, payload, this->bcode->id()));
     }
 
     Fluent subscribe(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) {
-      return this->addInst(new SubscribeInst(pattern, onRecv, this->bcode->id()));
+      return this->addInst(new SubscribeInst<ROUTER>(pattern, onRecv, this->bcode->id()));
     }
 
     Fluent as(const OBJ_OR_BYTECODE &utype) { return this->addInst(new AsInst<ROUTER>(utype)); }

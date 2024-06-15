@@ -26,6 +26,7 @@
 #include <util/string_printer.hpp>
 
 namespace fhatos {
+
   class CPrinter {
   public:
     static CPrinter *singleton() {
@@ -33,16 +34,16 @@ namespace fhatos {
       return &printer;
     }
 
+#ifdef NATIVE
     static int print(const char *c_str) { return printf("%s", c_str); }
-
     static void flush() { fflush(stdout); }
+#else
+    static int print(const char *c_str) { return Serial.printf("%s", c_str); }
+    static void flush() { Serial.flush(); }
+#endif
   };
 
-#ifdef NATIVE
   template<typename PRINTER = CPrinter>
-#else
-  template<typename PRINTER = Serial>
-#endif
   class Ansi {
   public:
     static Ansi *singleton() {

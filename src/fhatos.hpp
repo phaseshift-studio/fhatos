@@ -196,11 +196,7 @@ namespace fhatos {
 #define FOS_DEFAULT_ALGEBRA fhatos::Algebra
 #endif
 #ifndef FOS_DEFAULT_PRINTER
-#ifdef NATIVE
 #define FOS_DEFAULT_PRINTER fhatos::Ansi<fhatos::CPrinter>
-#else
-#define FOS_DEFAULT_PRINTER fhatos::Ansi<Serial>
-#endif
 #endif
 
   ////////////////////////////

@@ -24,7 +24,6 @@
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
 #include FOS_MODULE(kernel/f_kernel.hpp)
-#include FOS_MODULE(kernel/f_lang.hpp)
 #include FOS_MODULE(io/f_log.hpp)
 #include FOS_MODULE(f_bcode.hpp)
 using namespace fhatos;
@@ -38,7 +37,6 @@ int main(int arg, char **argsv) {
     fKernel<>::singleton(),
     //fFS<>::singleton(),
     //fOTA<>::singleton(),
-    fLang<>::singleton()
 });
     //fScheduler<>::singleton()->spawn(new fLog());
     //fScheduler<>::singleton()->spawn(fSerial<>::singleton());

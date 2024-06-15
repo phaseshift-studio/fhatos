@@ -154,7 +154,7 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
       const Obj *temp = value;
       FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr, .source = ID("anon"), .pattern = key.value(), .onRecv = [temp](const Message &message) {
-            TEST_ASSERT_TRUE(*temp == *message.payload->toObj());
+            TEST_ASSERT_TRUE(*temp == *message.payload);
           }});
     }
   }

@@ -220,7 +220,7 @@ namespace fhatos {
         Publisher<ROUTER>(bcodeId),
         OneToOneInst("<=", {target, payload}, [this](const Obj *incoming) -> const Obj * {
           this->publish(this->arg(0)->apply(incoming)->template as<Uri>()->value(),
-                        BinaryObj<>::fromObj(this->arg(1)/*->apply(incoming)*/), TRANSIENT_MESSAGE);
+                        this->arg(1)/*->apply(incoming)*/, TRANSIENT_MESSAGE);
           return incoming;
         }) {}
   };
@@ -235,7 +235,7 @@ namespace fhatos {
                            .source = bcodeId,
                            .pattern = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
                            .onRecv = [this](const Message &message) {
-                             const Obj *outgoing = this->arg(1)->apply(message.payload->toObj());
+                             const Obj *outgoing = this->arg(1)->apply(message.payload);
                              LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());
                            }});
           return incoming;

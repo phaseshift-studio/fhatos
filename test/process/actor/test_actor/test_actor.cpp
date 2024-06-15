@@ -113,7 +113,7 @@ namespace fhatos {
     actor2->setup();
 
     RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1](const Message &message) {
-      TEST_ASSERT_TRUE(Str("ping") == message.payload->toStr());
+      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message.payload);
       FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
       TEST_ASSERT_EQUAL_INT(0, counter1->load());
@@ -144,7 +144,7 @@ namespace fhatos {
     //  TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(actor1->id()));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribeSource());
     rc = actor1->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const Message &message) {
-      TEST_ASSERT_TRUE(Str("ping") == message.payload->toStr());
+      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message.payload);
       FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
       counter2->fetch_add(1);

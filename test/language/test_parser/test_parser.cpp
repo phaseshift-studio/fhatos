@@ -167,8 +167,8 @@ namespace fhatos {
   }
 
   void test_bcode_parsing() {
-    const auto parser = new Parser;
     Scheduler<FOS_DEFAULT_ROUTER>::singleton();
+    const auto parser = new Parser;
     const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse(
       "<=(scheduler@kernel?spawn,thread["
       "[id    => example,"

@@ -36,7 +36,7 @@ namespace fhatos {
             [this](const Actor<PROCESS, ROUTER> *actor) {
               try {
                 const auto bcode_ptr = ptr<Bytecode>(
-                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(SETUP_KEY)->value())));
+                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(SETUP_KEY)->value()),this->id()));
                 Processor<Obj>(bcode_ptr).forEach(
                     [](const Obj *obj) { LOG(DEBUG, "setup: %s\n", obj->toString().c_str()); });
               } catch (fError &error) {
@@ -48,7 +48,7 @@ namespace fhatos {
             [this](const Actor<PROCESS, ROUTER> *actor) {
               try {
                 const auto bcode_ptr = ptr<Bytecode>(
-                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(this->LOOP_KEY)->value())));
+                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(this->LOOP_KEY)->value()),this->id()));
                 Processor<Obj>(bcode_ptr).forEach(
                     [](const Obj *obj) { LOG(DEBUG, "loop: %s\n", obj->toString().c_str()); });
               } catch (fError &error) {

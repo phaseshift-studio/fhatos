@@ -137,6 +137,13 @@ namespace fhatos {
     virtual bool operator!=(const Obj &other) const { return !(*this == other); }
 
     bool isNoObj() const { return this->_type == OType::NOOBJ; }
+
+     Triple<OType,fbyte*,uint32_t> serialize() const {
+      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
+      memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
+      LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*this), this->toString().c_str());
+      return {this->_type, bytes, sizeof(*this)};
+    }
   };
 
   class NoObj : public Obj {
@@ -570,10 +577,21 @@ namespace fhatos {
 
     explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {}
 
+    void setId(const ID& id) {
+      this->_id = id;
+      for(const auto* inst : *this->value()) {
+        for(const auto* arg : inst->args()) {
+          if(arg->type() == OType::BYTECODE) {
+            ((Bytecode*)arg)->setId(id);
+          }
+        }
+      }
+    }
+
     const Uri* relativeUri(const Uri* uri) const {
       if (uri->value().empty())
         return new Uri(this->id());
-      if (uri->value().toString().starts_with(":"))
+      if (uri->value().toString()[0] == ':')
         return new Uri(this->id().toString() + uri->value().toString());
       return uri;
     }
