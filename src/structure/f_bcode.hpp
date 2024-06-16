@@ -25,37 +25,43 @@ namespace fhatos {
   template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER>
   class fBcode final : public Actor<PROCESS, ROUTER> {
   public:
-    const Rec *rec;
-    Obj *LOOP_KEY = new Uri("loop");
-    Obj *SETUP_KEY = new Uri("setup");
+    std::atomic<bool> *setupComplete = new std::atomic<bool>(false);
+    const ptr<const Obj> rec;
+    ptr<Bytecode> SETUP_BCODE;
+    ptr<Bytecode> LOOP_BCODE;
 
-    fBcode(const ID &id, const Rec *rec) :
+    fBcode(const ID &id, const ptr<const Obj> &rec) :
         Actor<PROCESS, ROUTER>(
             id,
             // setup
             [this](const Actor<PROCESS, ROUTER> *actor) {
-              try {
-                const auto bcode_ptr = ptr<Bytecode>(
-                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(SETUP_KEY)->value()),this->id()));
-                Processor<Obj>(bcode_ptr).forEach(
-                    [](const Obj *obj) { LOG(DEBUG, "setup: %s\n", obj->toString().c_str()); });
-              } catch (fError &error) {
-                LOG_EXCEPTION(error);
+              bool done = ((fBcode *) actor)->setupComplete->load();
+              ((fBcode *) actor)->setupComplete->store(true);
+              if (!done) {
+                try {
+                  Processor<Obj>(SETUP_BCODE).forEach([this](const Obj *obj) {
+                    LOG(DEBUG, "%s setup: %s\n", this->id().toString().c_str(), obj->toString().c_str());
+                  });
+                } catch (fError &error) {
+                  LOG_EXCEPTION(error);
+                }
+              } else {
+                LOG_TASK(ERROR,this,"setup() already executed\n");
               }
+
             },
             // loop
-
             [this](const Actor<PROCESS, ROUTER> *actor) {
               try {
-                const auto bcode_ptr = ptr<Bytecode>(
-                    new Bytecode(new List<Inst *>(*this->rec->template get<Bytecode>(this->LOOP_KEY)->value()),this->id()));
-                Processor<Obj>(bcode_ptr).forEach(
-                    [](const Obj *obj) { LOG(DEBUG, "loop: %s\n", obj->toString().c_str()); });
+                Processor<Obj>(LOOP_BCODE).forEach([this](const Obj *obj) {
+                  LOG(DEBUG, "%s loop: %s\n", this->id().toString().c_str(), obj->toString().c_str());
+                });
               } catch (fError &error) {
                 LOG_EXCEPTION(error);
               }
             }),
-        rec(new Rec(*rec->value())) {}
+        rec(rec), SETUP_BCODE(ptr<Bytecode>((Bytecode *) ((Rec *) rec.get())->get<Bytecode>(new Uri("setup")))),
+        LOOP_BCODE(ptr<Bytecode>((Bytecode *) ((Rec *) rec.get())->get<Bytecode>(new Uri("loop")))) {}
   };
 } // namespace fhatos
 #endif

@@ -36,7 +36,7 @@ namespace fhatos {
   public:
     const ID source;
     const ID target;
-    const Obj *payload;
+    const ptr<const Obj> payload;
     const bool retain;
 
     template<OType type>
@@ -45,8 +45,8 @@ namespace fhatos {
     }
 
     bool isQuery(const char *query = "?") const {
-      return !this->retain
-             /*0 == payload->length()*/ &&
+      return !this->retain &&
+             payload->isNoObj() &&
              target.query() == query &&
              !target.equals(source);
     }

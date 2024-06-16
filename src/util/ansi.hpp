@@ -60,7 +60,10 @@ namespace fhatos {
 
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
-    void color(const uint8_t fgcolor, const uint8_t bgcolor) { this->printf("\033[0;%dm", fg_normal + fgcolor); }
+    void color(const uint8_t fgcolor, const uint8_t bgcolor) {
+      if (this->_on)
+        this->printf("\033[0;%dm", fg_normal + fgcolor);
+    }
 
     //  COLOR
     enum {
@@ -146,9 +149,22 @@ namespace fhatos {
       this->print('\n');
     }
 
+    PRINTER *getPrinter() { return this->printer; }
+
     void flush() {
       this->_buffer->clear();
       this->printer->flush();
+    }
+
+    const char *strip(const char *s) {
+      std::string temp;
+      auto *ansi = new Ansi<StringPrinter>(new StringPrinter(new std::string()));
+      ansi->on(false);
+      ansi->print(s);
+      ansi->flush();
+      const char *c = (new std::string(*ansi->getPrinter()->get()))->c_str();
+      delete ansi;
+      return c;
     }
 
     void printf(const char *format, ...) {
@@ -175,11 +191,20 @@ namespace fhatos {
 
     //////////////////////////
 
-    void normal() { this->print("\033[0m"); }
+    void normal() {
+      if (this->_on)
+        this->print("\033[0m");
+    }
 
-    void underline() { this->print("\033[4m"); }
+    void underline() {
+      if (this->_on)
+        this->print("\033[4m");
+    }
 
-    void bold() { this->print("\033[1m"); }
+    void bold() {
+      if (this->_on)
+        this->print("\033[1m");
+    }
 
     void red(const bool bright = false) { color(RED + (bright ? BRIGHT : 0), 0); }
 

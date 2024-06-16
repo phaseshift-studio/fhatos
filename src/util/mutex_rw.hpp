@@ -22,24 +22,23 @@
 #include <fhatos.hpp>
 ////
 #include FOS_UTIL(mutex.hpp)
-//using namespace std;
 
 namespace fhatos {
   template<typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
   class MutexRW {
   protected:
-    Mutex<WAIT_TIME_MS> _READER_LOCK;
-    bool _WRITER_LOCK = false;
-    SIZE_TYPE _READER_COUNT = 0;
+    Mutex<WAIT_TIME_MS> READER_LOCK;
+    bool WRITER_LOCK = false;
+    SIZE_TYPE READER_COUNT = 0;
 
   public:
     template<typename A>
     ptr<A> write(const Supplier<ptr<A> > &supplier) {
       Pair<RESPONSE_CODE, ptr<A> > result = std::make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
       while (result.first == MUTEX_LOCKOUT) {
-        result = _READER_LOCK.template lockUnlock<Pair<RESPONSE_CODE, ptr<A> > >(
+        result = READER_LOCK.template lockUnlock<Pair<RESPONSE_CODE, ptr<A> > >(
           [this,supplier]() {
-            if (_WRITER_LOCK)
+            if (WRITER_LOCK)
               return std::make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
             else {
               return std::make_pair<RESPONSE_CODE, ptr<A> >(OK, supplier());
@@ -51,15 +50,15 @@ namespace fhatos {
 
     template<typename A>
     A read(const Supplier<A> &supplier) {
-      _READER_LOCK.template lockUnlock<void *>([this]() {
-        ++_READER_COUNT;
-        _WRITER_LOCK = true;
+      READER_LOCK.template lockUnlock<void *>([this]() {
+        ++READER_COUNT;
+        WRITER_LOCK = true;
         return nullptr;
       });
       A a = supplier();
-      _READER_LOCK.template lockUnlock<void *>([this]() {
-        if (--_READER_COUNT == 0)
-          _WRITER_LOCK = false;
+      READER_LOCK.template lockUnlock<void *>([this]() {
+        if (--READER_COUNT == 0)
+          WRITER_LOCK = false;
         return nullptr;
       });
       return a;

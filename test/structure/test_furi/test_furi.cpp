@@ -171,7 +171,13 @@ namespace fhatos {
                                fURI("/a").authority("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"),
                                fURI("").authority("127.0.0.1"));
-    TEST_ASSERT_TRUE(fURI("/a/b/c").authority().empty());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@"),
+                               fURI("fhat@127.0.0.1").host(""));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"),
+                             fURI("fhat@127.0.0.1").user(""));
+  TEST_ASSERT_EQUAL_STRING("", fURI("127.0.0.1").host("").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("", fURI("fhat@127.0.0.1").user("").host("").toString().c_str());
+  TEST_ASSERT_TRUE(fURI("/a/b/c").authority().empty());
   }
 
   void test_furi_retract() {

@@ -88,12 +88,13 @@ namespace fhatos {
     virtual void stop() override {
       if (!this->_running) {
         LOG(ERROR, "Actor %s has already stopped [stop()]\n", this->id().toString().c_str());
+        return;
       }
       PROCESS::stop();
       ///////////////////////////////////////////////////////
-      /*if (const RESPONSE_CODE _rc = ROUTER::singleton()->unsubscribeSource(this->id())) {
+      if (const RESPONSE_CODE _rc = ROUTER::singleton()->unsubscribeSource(this->id())) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(), RESPONSE_CODE_STR(_rc));
-      } TODO: freezes on shutdown */
+      }
       this->inbox.clear();
     }
 
@@ -122,7 +123,7 @@ namespace fhatos {
       const Option<ptr<Mail>> mail = this->pop();
       if (!mail.has_value())
         return false;
-      mail->get()->first->execute(*mail->get()->second);
+      mail->get()->first->execute(mail->get()->second);
       /// delete mail->second.payload;
       return true;
     }

@@ -17,7 +17,7 @@ namespace fhatos {
                       LocalRouter::singleton()->publish(Message{
                         .source = ID("a"),
                         .target = ID("b"),
-                        .payload = new BinaryObj<>{OType:: STR, (fbyte *)"test", 4},
+                        .payload = share<Str>(Str("test")),
                         .retain = TRANSIENT_MESSAGE}));
   };
 

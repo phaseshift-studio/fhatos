@@ -29,6 +29,8 @@
 #endif
 #include FOS_PROCESS(thread.hpp)
 
+#include <util/obj_helper.hpp>
+
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
 
@@ -45,11 +47,11 @@ namespace fhatos {
     ID source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    Consumer<const Message &> onRecv;
+    Consumer<const ptr<Message> &> onRecv;
 
     const bool match(const ID &target) const { return this->pattern.matches(target); }
 
-    void execute(const Message &message) const { onRecv(message); }
+    void execute(const ptr<Message> &message) const { onRecv(message); }
   };
 
   using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
@@ -114,12 +116,12 @@ namespace fhatos {
     virtual const RESPONSE_CODE clear() FP_OK_RESULT;
 
     template<typename OBJ = Obj>
-    const OBJ *read(const ID &source, const ID &target) {
+    const ptr<const OBJ> read(const ID &source, const ID &target) {
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
-          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const Message &message) {
-                         thing->store((OBJ *) message.payload);
+          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
+                         thing->store((OBJ*)ObjHelper::clone<OBJ>(message->payload.get()));
                          done->store(true);
                        }});
       const time_t startTimestamp = time(nullptr);
@@ -133,12 +135,11 @@ namespace fhatos {
       delete thing;
       delete done;
       unsubscribe(source, target);
-      return ret;
+      return ptr<const OBJ>(ret);
     }
 
-    virtual RESPONSE_CODE write(const Obj *obj, const ID &source, const ID &target) {
-      return this->publish(
-          Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
+    virtual RESPONSE_CODE write(const ptr<const Obj>& obj, const ID &source, const ID &target) {
+      return this->publish(Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };
 } // namespace fhatos

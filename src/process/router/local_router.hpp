@@ -29,10 +29,11 @@
 
 #include FOS_PROCESS(coroutine.hpp)
 
+#include <util/obj_helper.hpp>
+
 namespace fhatos {
   class LocalRouter : public Router {
   protected:
-    // messaging data structures
     List<ptr<Subscription>> SUBSCRIPTIONS;
     Map<ID, const ptr<Message>> RETAINS;
     Mutex<> MUTEX_RETAIN;
@@ -52,20 +53,22 @@ namespace fhatos {
 
     const RESPONSE_CODE publish(const Message &message) override {
       return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
-        const ptr<Message> message_ptr = share(message);
         //////////////
         RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
+        const ptr<Message> mess_ptr = share<Message>(message);
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(message.target)) {
             try {
               if (subscription->mailbox) {
-                // LOG(DEBUG,"Pushing to mailbox: %i\n",subscription->mailbox->size());
-                _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, message_ptr))) ? OK : ROUTER_ERROR;
+                _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
+                if(subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
+                  LOG(ERROR,"Actor mailbox size is beyond warning size of %i: [size:%i]\n",FOS_MAILBOX_WARNING_SIZE,subscription->mailbox->size());
+                }
               } else {
-                subscription->onRecv(message);
+                subscription->onRecv(mess_ptr);
                 _rc = OK;
               }
-              // TODO: ACTOR MAILBOX GETTING TOO BIG!
+
             } catch (const fError &e) {
               LOG_EXCEPTION(e);
               _rc = MUTEX_TIMEOUT;
@@ -73,52 +76,47 @@ namespace fhatos {
           }
         }
         if (message.retain) {
-          MUTEX_RETAIN.lockUnlock<void *>([this, message_ptr]() {
-            if (RETAINS.count(message_ptr->target))
-              RETAINS.erase(message_ptr->target);
-            LOG(DEBUG, "Retaining message: %s\n", message_ptr->toString().c_str());
-            RETAINS.insert({message_ptr->target, share<Message>(Message(*message_ptr))});
+          MUTEX_RETAIN.lockUnlock<void *>([this, mess_ptr]() {
+            if (RETAINS.count(mess_ptr->target))
+              RETAINS.erase(mess_ptr->target);
+            RETAINS.insert({mess_ptr->target, mess_ptr});
             return nullptr;
           });
+          LOG(INFO,"Total number of retained messages [size:%i]\n", RETAINS.size());
         }
         LOG_PUBLISH(_rc, message);
-        LOG(DEBUG, "Retain messages [size:%i]\n", RETAINS.size());
         return _rc;
       });
     }
 
     const RESPONSE_CODE subscribe(const Subscription &subscription) override {
       try {
-        const ptr<Subscription> subscription_ptr = share<Subscription>(Subscription(subscription));
-        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription_ptr]() {
+        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
           RESPONSE_CODE _rc = OK;
           for (const auto &sub: SUBSCRIPTIONS) {
-            if (sub->source.equals(subscription_ptr->source) && sub->pattern.equals(subscription_ptr->pattern)) {
+            if (sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern)) {
               _rc = REPEAT_SUBSCRIPTION;
               break;
             }
           }
           if (!_rc) {
-            SUBSCRIPTIONS.push_back(subscription_ptr);
-          }
-          ///// deliver retains
-          if (!_rc) {
-            MUTEX_RETAIN.lockUnlock<void *>([this, subscription_ptr]() {
+            const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
+            SUBSCRIPTIONS.push_back(sub_ptr);
+            LOG_SUBSCRIBE(_rc, sub_ptr);
+            MUTEX_RETAIN.lockUnlock<void *>([this, subscription, sub_ptr]() {
               LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS.size());
-              for (const auto &[target, message_ptr]: RETAINS) {
-                LOG(DEBUG, "Retain message: %s\n", message_ptr->toString().c_str());
-                if (target.matches(subscription_ptr->pattern)) {
-                  if (subscription_ptr->mailbox) {
-                    subscription_ptr->mailbox->push(share<Mail>(Mail(subscription_ptr, message_ptr)));
+              for (const auto &[target, message]: RETAINS) {
+                if (target.matches(subscription.pattern)) {
+                  if (subscription.mailbox) {
+                    subscription.mailbox->push(share<Mail>(Mail(sub_ptr, message)));
                   } else {
-                    subscription_ptr->onRecv(*message_ptr);
+                    subscription.onRecv(message);
                   }
                 }
               }
               return nullptr;
             });
           }
-          LOG_SUBSCRIBE(_rc, subscription_ptr);
           return share<RESPONSE_CODE>(_rc);
         });
       } catch (const fError &e) {
@@ -144,8 +142,7 @@ namespace fhatos {
                                                  (nullptr == pattern || sub->pattern.equals(*pattern));
                                         }),
                               SUBSCRIPTIONS.end());
-          // LOG(INFO, "!bSIZE: %i --> %i \n", SUBSCRIPTIONS.size(), size);
-          const auto _rc2 = share<RESPONSE_CODE>((SUBSCRIPTIONS.size() < size) ? OK : NO_SUBSCRIPTION);
+          const auto _rc2 = share<RESPONSE_CODE>(((SUBSCRIPTIONS.size() < size) || pattern== nullptr) ? OK : NO_SUBSCRIPTION);
           LOG_UNSUBSCRIBE(*_rc2, source, pattern);
           return _rc2;
         });

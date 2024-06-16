@@ -86,7 +86,13 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(pair.second.value(), i->value());
       delete i;
     }
-    // Parser::parseObj()
+    // ID/TYPE INT
+    const Int* i = FOS_PRINT_OBJ(Parser::parseObj("x@nat[25]")->cast<Int>());
+    TEST_ASSERT_EQUAL(OType::INT,i->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("nat"),*i->utype());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("x"),i->id());
+    TEST_ASSERT_EQUAL_INT(25,i->value());
+    TEST_ASSERT_EQUAL_STRING("x@nat[25]",FOS_DEFAULT_PRINTER::singleton()->strip(i->toString().c_str()));
   }
 
   void test_real_parsing() {

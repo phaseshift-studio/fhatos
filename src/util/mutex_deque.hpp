@@ -71,7 +71,7 @@ namespace fhatos {
     }
 
     List<T> *match(const Predicate<T> predicate, const bool withMutex = true) {
-      List<T> *results = new List<T>();
+      auto *results = new List<T>();
       lockUnlock<void *>(withMutex, [this, results, predicate]() {
         for (const T &t: _deque) {
           if (predicate(t))

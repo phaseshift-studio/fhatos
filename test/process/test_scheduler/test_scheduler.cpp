@@ -44,7 +44,7 @@ namespace fhatos {
   void test_bcode() {
     Scheduler<>::singleton()->publish(
         Scheduler<ROUTER>::singleton()->id().query("?spawn"),
-        Rec({
+        ptr<const Rec>(Rec({
                 {new Uri("id"), new Uri("test_spawn")},
                 {new Uri("setup"), new Bytecode(__(0).ref("loop").bcode->value())},
                 {new Uri("loop"),
@@ -59,7 +59,7 @@ namespace fhatos {
                                   .bcode->value())},
 
             })
-            .as<Rec>("thread"));
+            .as<Rec>("thread")));
     Scheduler<ROUTER>::singleton()->shutdown();
   }
 

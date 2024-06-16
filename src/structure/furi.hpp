@@ -21,14 +21,13 @@
 
 #include <fhatos.hpp>
 #include <string.h>
-//#include <memory>
-//#include <utility>
+// #include <memory>
+// #include <utility>
 
 #define FOS_MAX_FURI_SEGMENTS 20
 
 namespace private_fhatos {
-  static int split(const char *text, const char *deliminator, char **&result,
-                   const uint8_t offset = 0) {
+  static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
     char *copy;
     const char *freeable_copy = copy = strdup(text);
     char *token;
@@ -46,8 +45,7 @@ namespace private_fhatos {
   }
 
   static bool match(const char *id_cstr, const char *pattern_cstr) {
-    if (strstr(pattern_cstr, "#") == nullptr &&
-        strstr(pattern_cstr, "+") == nullptr)
+    if (strstr(pattern_cstr, "#") == nullptr && strstr(pattern_cstr, "+") == nullptr)
       return strcmp(id_cstr, pattern_cstr) == 0;
     if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
       return true;
@@ -65,8 +63,7 @@ namespace private_fhatos {
         //   LOG(DEBUG, "\t%s <=%i=> %s\n", idParts[i], i, patternParts[i]);
         if (strcmp(patternParts[i], "#") == 0)
           return true;
-        if ((strcmp(patternParts[i], "+") != 0) &&
-            (strcmp(patternParts[i], idParts[i]) != 0))
+        if ((strcmp(patternParts[i], "+") != 0) && (strcmp(patternParts[i], idParts[i]) != 0))
           return false;
       }
       return patternLength == idLength;
@@ -111,12 +108,10 @@ namespace fhatos {
 
     // fURI(const IDed &ided) : fURI(ided._id) {}
 
-    fURI(const string &furiString) : fURI(furiString.c_str()) {
-    }
+    fURI(const string &furiString) : fURI(furiString.c_str()) {}
 
     fURI(const char *furiCharacters) {
-      if ((strlen(furiCharacters) == 0) ||
-          (strlen(furiCharacters) == 1 && furiCharacters[0] == '/')) {
+      if ((strlen(furiCharacters) == 0) || (strlen(furiCharacters) == 1 && furiCharacters[0] == '/')) {
         this->_length = 0;
         this->_segments = new char *[0];
       } else {
@@ -125,8 +120,7 @@ namespace fhatos {
         if (furiCharacters[0] == '/')
           counter++;
         for (uint8_t i = 0; i < length; i++) {
-          if ((furiCharacters[i]) == '/' &&
-              ((i == length - 1) || furiCharacters[i + 1] != '/'))
+          if ((furiCharacters[i]) == '/' && ((i == length - 1) || furiCharacters[i + 1] != '/'))
             counter++;
         }
         this->_segments = new char *[counter + 1];
@@ -136,28 +130,22 @@ namespace fhatos {
         } else {
           if (furiCharacters[0] == '/') {
             this->_segments[0] = strdup("");
-            this->_length =
-                private_fhatos::split(furiCharacters, "/", this->_segments, 1);
+            this->_length = private_fhatos::split(furiCharacters, "/", this->_segments, 1);
           } else {
-            this->_length =
-                private_fhatos::split(furiCharacters, "/", this->_segments);
+            this->_length = private_fhatos::split(furiCharacters, "/", this->_segments);
           }
         }
       }
     };
 
-    const bool operator==(const fURI &other) const {
-      return this->equals(other);
-    }
+    const bool operator==(const fURI &other) const { return this->equals(other); }
 
-    const bool operator!=(const fURI &other) const {
-      return !this->equals(other);
-    }
+    const bool operator!=(const fURI &other) const { return !this->equals(other); }
 
-    fURI(const fURI &parent, const char *extension)
-      : fURI(parent.toString() + "/" + extension) {
-      // this->__segments[this->__length++] = strdup(extension);
-    };
+    fURI(const fURI &parent, const char *extension) :
+        fURI(parent.toString() + "/" + extension){
+            // this->__segments[this->__length++] = strdup(extension);
+        };
 
     virtual ~fURI() {
       if (this->_length > 0) {
@@ -168,13 +156,12 @@ namespace fhatos {
       delete this->_segments;
     }
 
-    //const bool operator==(const fURI other) const { return this->equals(other); }
+    // const bool operator==(const fURI other) const { return this->equals(other); }
 
     const fURI extend(const char *segments) const {
-      return ((string(segments).length() == 0) ||
-              (string(segments).length() == 1 && segments[0] == '/'))
-               ? fURI(*this)
-               : fURI(string(this->toString()).append("/").append(segments));
+      return ((string(segments).length() == 0) || (string(segments).length() == 1 && segments[0] == '/'))
+                 ? fURI(*this)
+                 : fURI(string(this->toString()).append("/").append(segments));
     }
 
     const fURI retract() const {
@@ -194,19 +181,14 @@ namespace fhatos {
     bool empty() const { return 0 == this->_length; }
 
     virtual bool matches(const fURI &pattern) const {
-      return private_fhatos::match(this->toString().c_str(),
-                                   pattern.toString().c_str());
+      return private_fhatos::match(this->toString().c_str(), pattern.toString().c_str());
     }
 
     // bool parentOf(const fURI &furi) const;
     // bool childOf(const fURI &furi) const { return furi.parentOf(*this); }
-    const string segment(const uint8_t index) const {
-      return string(this->_segments[index]);
-    }
+    const string segment(const uint8_t index) const { return string(this->_segments[index]); }
 
-    const string lastSegment() const {
-      return string(this->_segments[this->_length - 1]);
-    }
+    const string lastSegment() const { return string(this->_segments[this->_length - 1]); }
 
     const string path() const {
       string temp;
@@ -220,20 +202,18 @@ namespace fhatos {
       return temp;
     }
 
-    const fURI path(const string &path) const {
-      return fURI(this->authority()).extend(path.c_str());
-    }
+    const fURI path(const string &path) const { return fURI(this->authority()).extend(path.c_str()); }
 
     const fURI user(const char *user) const {
-      return this->authority(this->host().empty() ? user : string(user) + "@" + this->host());
+      return this->authority(this->host().empty() ? user : (strlen(user) == 0 ? this->host() : string(user) + "@" + this->host()));
     }
 
     const Option<string> user() const {
-      Option<Pair<string, string> > temp = this->user_password();
+      Option<Pair<string, string>> temp = this->user_password();
       return temp.has_value() ? temp->first : Option<string>();
     }
 
-    const Option<Pair<string, string> > user_password() const {
+    const Option<Pair<string, string>> user_password() const {
       if (const int i = this->authority().find('@'); i < 0)
         return {};
       else {
@@ -256,7 +236,7 @@ namespace fhatos {
 
     const fURI host(const char *host) const {
       string temp;
-      const Option<Pair<string, string> > x = this->user_password();
+      const Option<Pair<string, string>> x = this->user_password();
       if (x.has_value()) {
         temp = temp + x.value().first;
         if (!x.value().second.empty())
@@ -267,9 +247,7 @@ namespace fhatos {
       return this->authority(temp);
     }
 
-    const string authority() const {
-      return this->_length > 0 ? string(this->_segments[0]) : string();
-    }
+    const string authority() const { return this->_length > 0 ? string(this->_segments[0]) : string(); }
 
     const fURI authority(const string &authority) const {
       if (fURI temp = fURI(*this); temp._length == 0)
@@ -281,9 +259,7 @@ namespace fhatos {
       }
     }
 
-    bool hasQuery(const string &check = "?") const {
-      return strstr(this->_segments[this->_length - 1], check.c_str());
-    }
+    bool hasQuery(const string &check = "?") const { return strstr(this->_segments[this->_length - 1], check.c_str()); }
 
     const string query() const {
       for (uint8_t i = 0; i < this->_length; i++) {
@@ -302,9 +278,7 @@ namespace fhatos {
       return fURI(string(furi.toString()).append(query));
     }
 
-    virtual bool colocated(const fURI &other) const {
-      return this->host() == other.host();
-    }
+    virtual bool colocated(const fURI &other) const { return this->host() == other.host(); }
 
     // const char *c_str() const { return this->toString().c_str(); }
     const string toString() const {
@@ -339,13 +313,9 @@ namespace fhatos {
 
     const fURI operator/(const char *cstr) const { return this->extend(cstr); }
 
-    bool operator<(const fURI &furi) const {
-      return this->toString() < furi.toString();
-    }
+    bool operator<(const fURI &furi) const { return this->toString() < furi.toString(); }
 
-    bool isLocal(const fURI &other) const {
-      return this->host() == other.host();
-    }
+    bool isLocal(const fURI &other) const { return this->host() == other.host(); }
 
     const fURI resolve(const fURI &base) const {
       if (this->authority().empty())
@@ -359,11 +329,9 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const fURI &id) : ID(id.toString()) {
-    }
+    ID(const fURI &id) : ID(id.toString()) {}
 
-    ID(const string &furiString) : fURI(furiString) {
-    }
+    ID(const string &furiString) : fURI(furiString) {}
 
     ID(const char *furiCharacters) : fURI(furiCharacters) {
       try {
@@ -390,43 +358,41 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
-    Pattern(const fURI &fURI) : Pattern(fURI.toString()) {
-    }
+    Pattern(const fURI &fURI) : Pattern(fURI.toString()) {}
 
-   // Pattern(const ID &id) : Pattern(id.toString()) {
-   // }
+    // Pattern(const ID &id) : Pattern(id.toString()) {
+    // }
 
-    Pattern(const string &furiString) : fURI(furiString) {
-    };
+    Pattern(const string &furiString) : fURI(furiString){};
 
-    Pattern(const char *furiCharacters) : fURI(furiCharacters) {
-    };
+    Pattern(const char *furiCharacters) : fURI(furiCharacters){};
 
     bool colocated(const fURI &furi) const override {
-      return furi.authority() == "#" ||
-             furi.authority().find("+") > -1 || fURI::colocated(furi);
+      return furi.authority() == "#" || furi.authority().find("+") > -1 || fURI::colocated(furi);
     }
 
     bool matches(const fURI &pattern) const override {
-      return private_fhatos::match(pattern.toString().c_str(),
-                                   this->toString().c_str());
+      return private_fhatos::match(pattern.toString().c_str(), this->toString().c_str());
     }
   };
 
-  class IDed {
+  class BaseIDed {
+  public:
+    virtual const ID id() const { return nullptr; }
+    virtual bool equals(const BaseIDed &other) const { return false; }
+  };
+
+  class IDed : public BaseIDed {
   public:
     virtual ~IDed() = default;
 
-    explicit IDed(const ID &id) : _id(id) {
-    }
+    explicit IDed(const ID &id) : _id(id) {}
 
-    virtual const ID &id() const { return this->_id; }
+    virtual const ID id() const override { return this->_id; }
 
     // const String toString() const { return this->id().toString(); }
 
-    bool equals(const IDed &other) const {
-      return this->_id.equals(other._id);
-    }
+    bool equals(const BaseIDed &other) const override { return this->_id.equals(other.id()); }
 
   protected:
     ID _id;

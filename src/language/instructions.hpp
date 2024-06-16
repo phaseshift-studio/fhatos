@@ -70,7 +70,7 @@ namespace fhatos {
     explicit AsInst(const OBJ_OR_BYTECODE &utype) :
         OneToOneInst({"as", {utype}, [this](const Obj *obj) {
                         const UType utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
-                        const Obj *typeDefinition = this->_bcode->template getType<ROUTER>(utype);
+                        const ptr<const Obj> typeDefinition = this->_bcode->template getType<ROUTER>(utype);
                         if (typeDefinition->type() != OType::BYTECODE && typeDefinition->type() != obj->type())
                           return NoObj::singleton()->obj();
                         if (typeDefinition->apply(obj)->isNoObj()) {
@@ -88,7 +88,7 @@ namespace fhatos {
     explicit DefineInst(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) :
         OneToOneInst("define", {utype, typeDefinition.cast<Obj>()}, [this](const Obj *obj) -> const Obj * {
           this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),
-                                                    this->arg(1)->obj());
+                                                    ptr<const Obj>(this->arg(1)->obj()));
           return obj;
         }) {}
   };
@@ -129,8 +129,9 @@ namespace fhatos {
   public:
     explicit ReferenceInst(const URI_OR_BYTECODE &uri) :
         OneToOneInst("ref", {uri}, [this](const Obj *toStore) -> const Obj * {
-          RESPONSE_CODE response = ROUTER::singleton()->write(
-              toStore, this->_bcode->id(), this->arg(0)->apply(toStore)->template as<Uri>()->value());
+          RESPONSE_CODE response =
+              ROUTER::singleton()->write(ptr<const Obj>(ObjHelper::clone<Obj>(toStore)), this->_bcode->id(),
+                                         this->arg(0)->apply(toStore)->template as<Uri>()->value());
           // if(!RESPONSE_CODE)
           //  LOG(ERROR,"")
           return toStore;
@@ -142,7 +143,10 @@ namespace fhatos {
   public:
     explicit DereferenceInst(const URI_OR_BYTECODE &target) :
         OneToOneInst("dref", {target}, [this](const Obj *obj) -> const Obj * {
-          return ROUTER::singleton()->read(this->_bcode->id(), this->arg(0)->apply(obj)->template as<Uri>()->value());
+          return ObjHelper::clone<Obj>(
+              ROUTER::singleton()
+                  ->template read<Obj>(this->_bcode->id(), this->arg(0)->apply(obj)->template as<Uri>()->value())
+                  .get());
         }) {}
   };
 
@@ -213,19 +217,21 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////
 
-  template <typename ROUTER=FOS_DEFAULT_ROUTER>
-  class PublishInst final : public Publisher<ROUTER>, public OneToOneInst {
+  template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  class PublishInst final : public OneToOneInst {
   public:
     explicit PublishInst(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload, const ID &bcodeId) :
-        Publisher<ROUTER>(bcodeId),
         OneToOneInst("<=", {target, payload}, [this](const Obj *incoming) -> const Obj * {
-          this->publish(this->arg(0)->apply(incoming)->template as<Uri>()->value(),
-                        this->arg(1)/*->apply(incoming)*/, TRANSIENT_MESSAGE);
+          ROUTER::singleton()->publish(
+              Message{.source = this->bcode()->id(),
+                      .target = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
+                      .payload = ptr<const Obj>(ObjHelper::clone<>(this->arg(1))) /*->apply(incoming)*/,
+                      .retain = TRANSIENT_MESSAGE});
           return incoming;
         }) {}
   };
 
-  template <typename ROUTER=FOS_DEFAULT_ROUTER>
+  template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class SubscribeInst final : public OneToOneInst {
   public:
     explicit SubscribeInst(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv, const ID &bcodeId) :
@@ -234,8 +240,8 @@ namespace fhatos {
               Subscription{.mailbox = nullptr,
                            .source = bcodeId,
                            .pattern = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
-                           .onRecv = [this](const Message &message) {
-                             const Obj *outgoing = this->arg(1)->apply(message.payload);
+                           .onRecv = [this](const ptr<Message> &message) {
+                             const Obj *outgoing = this->arg(1)->apply(message->payload.get());
                              LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());
                            }});
           return incoming;

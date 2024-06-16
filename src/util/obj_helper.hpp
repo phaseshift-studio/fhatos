@@ -35,6 +35,25 @@ namespace fhatos {
                                          a->utype()->toString().c_str(), typeChars(a), b->utype()->toString().c_str(),
                                          typeChars(b)));
     }
+
+    template <typename OBJ = Obj>
+    static const OBJ* clone(const OBJ*obj) {
+      switch(obj->type()) {
+        case OType::BOOL: return (OBJ*) new Bool(*(Bool*)obj);
+        case OType::INT: return (OBJ*) new Int(*(Int*)obj);
+        case OType::REAL: return (OBJ*) new Real(*(Real*)obj);
+        case OType::URI: return (OBJ*) new Uri(*(Uri*)obj);
+        case OType::STR: return (OBJ*) new Str(*(Str*)obj);
+        case OType::LST: return (OBJ*) new Lst(*(Lst*)obj);
+        case OType::REC: return (OBJ*) new Rec(*(Rec*)obj);
+        case OType::BYTECODE: return (OBJ*) new Bytecode(*(Bytecode*)obj);
+        default: throw fError("Unable to clone obj of stype %s\n",obj->type());
+      }
+    }
+    template <typename OBJ>
+    static const ptr<const OBJ> clone_ptr(const ptr<const OBJ> obj) {
+     return ptr<const OBJ>(ObjHelper::clone<const OBJ>(obj.get()));
+    }
   };
 } // namespace fhatos
 #endif

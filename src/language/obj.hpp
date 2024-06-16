@@ -92,11 +92,12 @@ namespace fhatos {
 
   };
 
+  using BObj = Triple<OType,fbyte*,uint32_t>;
   using UType = fURI;
   static const ptr<UType> NO_UTYPE = share(fURI(""));
-
+  class PtrSerializer;
   /// An mm-ADT obj represented in C++ as a class
-  class Obj {
+  class Obj : public BaseIDed {
   protected:
     const OType _type;
     ptr<UType> _utype;
@@ -111,7 +112,8 @@ namespace fhatos {
     explicit Obj(const OType type, const ptr<UType> utype = NO_UTYPE) : _type(type), _utype(utype) {}
 
     virtual const OType type() const { return this->_type; }
-    virtual const ptr<UType> utype() const { return this->_utype; }
+    virtual const ptr<UType> utype() const { return share<UType>(fURI(this->_utype->host())); }
+    virtual const ID id() const override { return ID(this->_utype->user().value_or("")); }
 
     virtual const string toString() const { return "obj"; }
 
@@ -120,7 +122,7 @@ namespace fhatos {
     virtual const Obj *apply(const Obj *obj) const { return this; }
 
     template<typename A>
-    const A *as(const fURI utype = fURI("")) const {
+    const A *as(const fURI& utype = fURI("")) const {
       if (utype.empty() || *this->utype() == utype)
         return (A *) this;
       Obj *temp = new A(*(A *) this);
@@ -138,13 +140,18 @@ namespace fhatos {
 
     bool isNoObj() const { return this->_type == OType::NOOBJ; }
 
-     Triple<OType,fbyte*,uint32_t> serialize() const {
-      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
-      memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
-      LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*this), this->toString().c_str());
-      return {this->_type, bytes, sizeof(*this)};
+    template <typename SERIALIZER = PtrSerializer>
+    const ptr<BObj> serialize() const {
+     return SERIALIZER::singleton()->serialize(this);
     }
+
+    /*template <typename _OBJ>
+    static const _OBJ* deserialize(const BObj* bobj) {
+
+    }*/
   };
+
+
 
   class NoObj : public Obj {
   public:
@@ -317,7 +324,7 @@ namespace fhatos {
     int compare(const Str &other) const { return this->_value.compare(other._value); }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() && this->_utype == other.utype() && this->_value == ((Str *) &other)->value();
+      return this->_type == other.type() && (this->_utype->host() == other.utype()->host()) && this->_value == ((Str *) &other)->value();
     }
 
     bool operator<(const Str &other) const { return this->_value < other._value; }
@@ -399,7 +406,7 @@ namespace fhatos {
     const RecMap<Obj *, Obj *> *value() const { return this->_value; }
 
     bool operator==(const Obj &other) const override {
-      if (this->_type != other.type() || this->_utype != other.utype())
+      if (this->_type != other.type() ||  (this->_utype->host() != other.utype()->host()))
         return false;
       if (this->_value->size() != ((Rec *) &other)->value()->size())
         return false;
@@ -562,14 +569,15 @@ namespace fhatos {
 
   ///////////////////////////////////////////////// BYTECODE
   /////////////////////////////////////////////////////////////////
-  class Bytecode final : public Obj, public IDed {
+  class Bytecode final : public Obj {
   protected:
     const List<Inst *> *_value;
-    Map<const fURI, const Obj *> TYPE_CACHE;
+    Map<const fURI, const ptr<const Obj>> TYPE_CACHE;
 
   public:
+   //~Bytecode() override {}
     explicit Bytecode(const List<Inst *> *list, const ID &id = ID(*UUID::singleton()->mint(7))) :
-        Obj(OType::BYTECODE), IDed(id), _value(list) {
+        Obj(OType::BYTECODE), _value(list) {
       for (auto *inst: *this->_value) {
         inst->bcode(this);
       }
@@ -578,7 +586,7 @@ namespace fhatos {
     explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {}
 
     void setId(const ID& id) {
-      this->_id = id;
+      this->_utype = share<UType>(this->_utype->user(id.toString().c_str()));
       for(const auto* inst : *this->value()) {
         for(const auto* arg : inst->args()) {
           if(arg->type() == OType::BYTECODE) {
@@ -634,21 +642,21 @@ namespace fhatos {
     }
 
     template<typename ROUTER>
-    void createType(const fURI &type, const Obj *typeDefinition) {
+    void createType(const fURI &type, const ptr<const Obj> typeDefinition) {
       if (!ROUTER::singleton()->write(typeDefinition, this->id(), type)) {
-        this->TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
+        this->TYPE_CACHE.emplace(type, typeDefinition);
       }
     }
 
     template<typename ROUTER>
-    const Obj *getType(const fURI &type) {
+    const ptr<const Obj> getType(const fURI &type) {
       if (this->TYPE_CACHE.count(type)) {
         LOG(DEBUG, "Bytecode type cache hit: %s\n", type.toString().c_str());
         return this->TYPE_CACHE.at(type);
       }
-      const Obj *typeDefinition = ROUTER::singleton()->read(this->id(), type);
+      const ptr<const Obj> typeDefinition = ROUTER::singleton()->read(this->id(), type);
       if (typeDefinition) {
-        this->TYPE_CACHE.emplace(type, (Obj *) typeDefinition);
+        this->TYPE_CACHE.emplace(type, typeDefinition);
       }
       return typeDefinition;
     }
@@ -797,6 +805,32 @@ namespace fhatos {
       return this->isBytecode() ? (Uri *) data.bcodeB->apply(input) : (Uri *) data.objA->apply(input);
     }
   };
+
+////////////////////////////
+//////// SERIALIZER ////////
+////////////////////////////
+
+  class PtrSerializer {
+    static PtrSerializer* singleton() {
+      static PtrSerializer serializer = PtrSerializer();
+      return &serializer;
+    }
+
+    static const ptr<BObj> serialize(const Obj* obj) {
+      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*obj)));
+      memcpy(bytes, reinterpret_cast<const fbyte *>(obj), sizeof(*obj));
+      LOG(DEBUG, "[serialization] %i bytes allocated for %s\n", sizeof(*obj), obj->toString().c_str());
+      return share<BObj>({obj->type(), bytes, sizeof(*obj)});
+    }
+
+    template <typename OBJ>
+    ptr<OBJ> deserialize(BObj bobj) {
+      const fbyte* bytes = std::get<1>(bobj);
+      LOG(DEBUG, "[deserialization] %i bytes retrieved for %s\n",std::get<2>(bobj),OTYPE_STR.at(std::get<0>(bobj)));
+      return ptr<OBJ>((OBJ*)bytes);
+    }
+  };
+
 } // namespace fhatos
 
 #endif

@@ -189,6 +189,10 @@ namespace fhatos {
       ((message).source.toString().c_str()))
 
 
+#ifndef FOS_MAILBOX_WARNING_SIZE
+#define FOS_MAILBOX_WARNING_SIZE 15
+#endif
+
 #ifndef FOS_DEFAULT_ROUTER
 #define FOS_DEFAULT_ROUTER fhatos::LocalRouter
 #endif
@@ -198,6 +202,10 @@ namespace fhatos {
 #ifndef FOS_DEFAULT_PRINTER
 #define FOS_DEFAULT_PRINTER fhatos::Ansi<fhatos::CPrinter>
 #endif
+#ifndef FOS_DEFAULT_SERIALIZER
+#define FOS_DEFAULT_SERIALIZER fhatos::PtrSerializer
+#endif
+
 
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //

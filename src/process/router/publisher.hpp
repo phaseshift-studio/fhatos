@@ -37,7 +37,7 @@ namespace fhatos {
     explicit Publisher(const ID &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
 
     /// SUBSCRIBE
-    virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const Message> onRecv,
+    virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message>&>& onRecv,
                                     const QoS qos = QoS::_1) {
       return ROUTER::singleton()->subscribe(Subscription{.mailbox = this->mailbox,
                                                          .source = this->__id,
@@ -99,15 +99,19 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////////////////////////
 
     /// PUBLISH
-    const RESPONSE_CODE publish(const ID &relativeTarget, const BinaryObj<> *payload,
+     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj>& payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
-      return ROUTER::singleton()->publish(
-          Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload->toObj(), .retain = retain});
+      return ROUTER::singleton()->publish(Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload, .retain = retain});
+    }
+
+     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const OBJ_OR_BYTECODE> &payload,
+                            const bool retain = TRANSIENT_MESSAGE) const {
+      return this->publish(relativeTarget, payload, retain);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
-    template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
+   /* template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
     const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
@@ -147,19 +151,19 @@ namespace fhatos {
                                 const bool retain = TRANSIENT_MESSAGE) const {
       return this->publish(relativeTarget, BinaryObj<>::fromObj(payload), retain);
     }
-
+*/
     //////////
 
-    const RESPONSE_CODE write(const Obj *obj, const TargetID &relativeTarget) const {
-      return this->publish(relativeTarget, BinaryObj<>::fromObj(obj), RETAIN_MESSAGE);
+    const RESPONSE_CODE write(const ptr<const Obj> obj, const TargetID &relativeTarget) const {
+      return this->publish(relativeTarget, obj, RETAIN_MESSAGE);
     }
 
     template<typename OBJ = Obj>
-    const OBJ *read(const ID &relativeTarget) const {
-      auto *thing = new std::atomic<OBJ *>(nullptr);
+    const ptr<const OBJ> read(const ID &relativeTarget) const {
+      auto *thing = new std::atomic<ptr<const OBJ>>(nullptr);
       auto *done = new std::atomic<bool>(false);
-      this->subscribe(relativeTarget, [thing, done](const Message &message) {
-        thing->store((OBJ *) message.payload);
+      this->subscribe(relativeTarget, [thing, done](const ptr<Message> &message) {
+        thing->store(message->payload);
         done->store(true);
       });
       const time_t startTimestamp = time(nullptr);
@@ -169,7 +173,7 @@ namespace fhatos {
           break;
         }
       }
-      const OBJ *ret = thing->load();
+      const ptr<const OBJ> ret = thing->load();
       delete thing;
       delete done;
       unsubscribe(relativeTarget);

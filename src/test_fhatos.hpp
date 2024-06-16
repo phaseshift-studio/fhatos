@@ -128,7 +128,8 @@ static const void FOS_TEST_OBJ_NOT_EQUAL(const Obj *objA, const Obj *objB) {
 
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s [!y%s!!]", obj->toString().c_str(), OTYPE_STR.at(obj->type()));
+  FOS_TEST_MESSAGE("!yTesting!!: %s [id:!y%s!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
+                   obj->id().toString().c_str(), OTYPE_STR.at(obj->type()), obj->utype()->toString().c_str());
   return obj;
 }
 
@@ -140,7 +141,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 
 template<typename _OBJ>
 static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
-                              const Map<Uri, Obj *> expectedReferences = {}, const bool clearRouter = true) {
+                              const Map<Uri, Obj *> &expectedReferences = {}, const bool clearRouter = true) {
   const List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
   for (const _OBJ obj: expected) {
@@ -153,9 +154,10 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
     for (const auto &[key, value]: expectedReferences) {
       const Obj *temp = value;
       FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
-          .mailbox = nullptr, .source = ID("anon"), .pattern = key.value(), .onRecv = [temp](const Message &message) {
-            TEST_ASSERT_TRUE(*temp == *message.payload);
-          }});
+          .mailbox = nullptr,
+          .source = ID("anon"),
+          .pattern = key.value(),
+          .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(*temp == *message->payload); }});
     }
   }
   if (clearRouter)

@@ -47,12 +47,9 @@ namespace fhatos {
 
     explicit BinaryObj(const fURI xfuri) : Obj(OType::URI), _value(SERIALIZER::fromUri(xfuri)) {}
 
-
     explicit BinaryObj(const bool xbool) : Obj(OType::BOOL), _value(SERIALIZER::fromBoolean(xbool)) {}
 
-
     explicit BinaryObj(const int xint) : Obj(OType::INT), _value(SERIALIZER::fromInteger(xint)) {}
-
 
     explicit BinaryObj(const float xfloat) : Obj(OType::REAL), _value(SERIALIZER::fromFloat(xfloat)) {}
 
@@ -75,7 +72,7 @@ namespace fhatos {
         case OType::STR:
           return new BinaryObj<>((binary_obj) SERIALIZER::fromString(((Str *) obj)->value()));
         case OType::REC:
-          return new BinaryObj<>((binary_obj) SERIALIZER::fromMap(*((Rec *) obj)->value()));
+          return new BinaryObj<>((binary_obj) SERIALIZER::fromRec((Rec *) obj));
         case OType::BYTECODE:
           return new BinaryObj<>((binary_obj) SERIALIZER::fromBytecode((Bytecode *) obj));
         default: {
@@ -186,6 +183,8 @@ namespace fhatos {
 
     static binary_obj fromList(const List<Inst *> &xlist) { return {OType::OBJ, nullptr, 0}; }
 
+    static binary_obj fromRec(const Rec* &xrec) { return {OType::OBJ, nullptr, 0}; }
+
     static binary_obj fromBytecode(const Bytecode* &xbcode) { return {OType::OBJ, nullptr, 0}; }
 
     template<typename SERIALIZER>
@@ -287,6 +286,13 @@ namespace fhatos {
       memcpy(bytes, reinterpret_cast<const fbyte *>(temp), sizeof(*temp));
       LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*temp), temp->toString().c_str());
       return binary_obj{OType::BYTECODE, bytes, sizeof(*temp)};
+    }
+
+    static binary_obj fromRec(const Rec* rec) {
+      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*rec)));
+      memcpy(bytes, reinterpret_cast<const fbyte *>(rec), sizeof(*rec));
+      LOG(DEBUG, "%i bytes allocated for %s\n", sizeof(*rec), rec->toString().c_str());
+      return binary_obj{OType::REC, bytes, sizeof(*rec)};
     }
 
     static binary_obj fromBytecode(const Bytecode* bcode) {

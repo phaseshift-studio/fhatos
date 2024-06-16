@@ -22,8 +22,8 @@ namespace fhatos {
     std::atomic<int> *counter1 = new std::atomic<int>(0);
     std::atomic<int> *counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread, ROUTER>(ID("actor1@127.0.0.1"), [counter1](Actor<Thread, ROUTER> *self) {
-      self->subscribe(ID("actor1@"), [counter1, self](const Message &message) {
-        self->publish(ID("actor2@"), counter1->load(), TRANSIENT_MESSAGE);
+      self->subscribe(ID("actor1@"), [counter1, self](const ptr<Message> &message) {
+        self->publish(ID("actor2@"), share<Int>(counter1->load()), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
           self->stop();
           //Scheduler<>::singleton()->destroy(self->id());
@@ -32,10 +32,10 @@ namespace fhatos {
       });
     });
     auto *actor2 = new Actor<Thread, ROUTER>(ID("actor2@127.0.0.1"), [counter2](Actor<Thread, ROUTER> *self) {
-      self->subscribe(ID("actor2@"), [self, counter2](const Message &message) {
-        FOS_TEST_ASSERT_EQUAL_FURI(ID("actor1@127.0.0.1"), message.source);
-        FOS_TEST_ASSERT_EQUAL_FURI(self->id(), message.target);
-        self->publish(ID("actor1@"), counter2->load(), TRANSIENT_MESSAGE);
+      self->subscribe(ID("actor2@"), [self, counter2](const ptr<Message> &message) {
+        FOS_TEST_ASSERT_EQUAL_FURI(ID("actor1@127.0.0.1"), message->source);
+        FOS_TEST_ASSERT_EQUAL_FURI(self->id(), message->target);
+        self->publish(ID("actor1@"), share<Int>(counter2->load()), TRANSIENT_MESSAGE);
         if (counter2->fetch_add(1) > 198)
          self->stop();
         //Scheduler<>::singleton()->destroy(self->id());
@@ -43,7 +43,7 @@ namespace fhatos {
     });
     Scheduler<>::singleton()->spawn(actor1);
     Scheduler<>::singleton()->spawn(actor2);
-    actor1->publish("actor2@", "START!", TRANSIENT_MESSAGE);
+    actor1->publish("actor2@", share<Str>("START!"), TRANSIENT_MESSAGE);
     Scheduler<>::singleton()->barrier("no_actors");
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
@@ -62,30 +62,30 @@ namespace fhatos {
     actor2->setup();
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
-    RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1, counter2](const Message &message) {
-      TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
-      TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->publish(message.source, "pong", TRANSIENT_MESSAGE));
+    RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
+      TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
+      TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->publish(message->source, share<Str>("pong"), TRANSIENT_MESSAGE));
       counter1->fetch_add(1);
       counter2->fetch_add(1);
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(OK, rc);
-    rc = actor2->subscribe("actor2@127.0.0.1", [actor1, actor2, counter2](const Message &message) {
-      TEST_ASSERT_EQUAL_STRING("pong", message.payload->toString().c_str());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor1->id());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor2->id());
+    rc = actor2->subscribe("actor2@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+      TEST_ASSERT_EQUAL_STRING("pong", message->payload->toString().c_str());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor1->id());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor2->id());
       counter2->fetch_add(1);
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(OK, rc);
     TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
-                      actor1->subscribe("actor1@127.0.0.1", [](const Message &message) {
-                        TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
+                      actor1->subscribe("actor1@127.0.0.1", [](const ptr<Message> &message) {
+                        TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
                       }));
 
-    actor2->publish(actor1->id(), "ping", TRANSIENT_MESSAGE);
+    actor2->publish(actor1->id(), share<Str>("ping"), TRANSIENT_MESSAGE);
     actor1->loop();
     actor2->loop();
     actor1->loop();
@@ -105,34 +105,34 @@ namespace fhatos {
   template<typename ROUTER>
   void test_message_retain() {
     ROUTER::singleton()->clear();
-    std::atomic<int> *counter1 = new std::atomic<int>(0);
-    std::atomic<int> *counter2 = new std::atomic<int>(0);
+    auto *counter1 = new std::atomic<int>(0);
+    auto *counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread, ROUTER>("actor1@127.0.0.1");
     auto *actor2 = new Actor<Thread, ROUTER>("actor2@127.0.0.1");
     actor1->setup();
     actor2->setup();
 
-    RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1](const Message &message) {
-      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message.payload);
-      FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+    RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1](const ptr<Message> &message) {
+      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message->payload.get());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
       TEST_ASSERT_EQUAL_INT(0, counter1->load());
       counter1->fetch_add(1);
       TEST_ASSERT_EQUAL_INT(1, counter1->load());
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, rc);
-    actor2->publish(actor1->id(), "ping", RETAIN_MESSAGE);
+    actor2->publish(actor1->id(), share<Str>("ping"), RETAIN_MESSAGE);
     actor1->loop();
     actor2->loop();
     actor1->loop();
     actor2->loop();
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(0, counter2->load());
-    rc = actor2->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const Message &message) {
-      TEST_ASSERT_EQUAL_STRING("ping", message.payload->toString().c_str());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+    rc = actor2->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+      TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
       counter2->fetch_add(1);
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
@@ -143,10 +143,10 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, counter2->load());
     //  TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(actor1->id()));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribeSource());
-    rc = actor1->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const Message &message) {
-      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message.payload);
-      FOS_TEST_ASSERT_EQUAL_FURI(message.source, actor2->id());
-      FOS_TEST_ASSERT_EQUAL_FURI(message.target, actor1->id());
+    rc = actor1->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message->payload.get());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
+      FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
       counter2->fetch_add(1);
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
@@ -167,7 +167,7 @@ namespace fhatos {
 
   template<typename ROUTER>
   void test_actor_serialization() {
-    Actor<Thread, ROUTER> *actor = new Actor<Thread, ROUTER>("abc");
+    auto *actor = new Actor<Thread, ROUTER>("abc");
     const Pair<fbyte *, uint> buffer = actor->serialize();
     Actor<Thread, ROUTER> *clone = Actor<Thread, ROUTER>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(actor->id(), clone->id());
