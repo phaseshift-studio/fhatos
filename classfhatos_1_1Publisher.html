@@ -107,10 +107,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a04664b75424962d4325745f2b76f3284" id="r_a04664b75424962d4325745f2b76f3284"><td class="memItemLeft" align="right" valign="top"><a id="a04664b75424962d4325745f2b76f3284" name="a04664b75424962d4325745f2b76f3284"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Publisher</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id, <a class="el" href="structfhatos_1_1Mailbox.html">Mailbox</a>&lt; ptr&lt; Mail &gt; &gt; *mailbox=nullptr)</td></tr>
 <tr class="separator:a04664b75424962d4325745f2b76f3284"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7016007f57ef31ffb01684068cd606b9" id="r_a7016007f57ef31ffb01684068cd606b9"><td class="memItemLeft" align="right" valign="top"><a id="a7016007f57ef31ffb01684068cd606b9" name="a7016007f57ef31ffb01684068cd606b9"></a>
-virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>subscribe</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;relativePattern, const Consumer&lt; const <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; onRecv, const QoS qos=QoS::_1)</td></tr>
-<tr class="memdesc:a7016007f57ef31ffb01684068cd606b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">SUBSCRIBE. <br /></td></tr>
-<tr class="separator:a7016007f57ef31ffb01684068cd606b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2269f72ddb5fff169fef238e1cb290d0" id="r_a2269f72ddb5fff169fef238e1cb290d0"><td class="memItemLeft" align="right" valign="top"><a id="a2269f72ddb5fff169fef238e1cb290d0" name="a2269f72ddb5fff169fef238e1cb290d0"></a>
+virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>subscribe</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;relativePattern, const Consumer&lt; const ptr&lt; <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &amp; &gt; &amp;onRecv, const QoS qos=QoS::_1)</td></tr>
+<tr class="memdesc:a2269f72ddb5fff169fef238e1cb290d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">SUBSCRIBE. <br /></td></tr>
+<tr class="separator:a2269f72ddb5fff169fef238e1cb290d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea3c67043324fafddae757207946081b" id="r_aea3c67043324fafddae757207946081b"><td class="memItemLeft" align="right" valign="top"><a id="aea3c67043324fafddae757207946081b" name="aea3c67043324fafddae757207946081b"></a>
 <a class="el" href="classfhatos_1_1Publisher.html">Publisher</a>&lt; ROUTER &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>onQuery</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;queryPattern, const Runnable &amp;runnable)</td></tr>
 <tr class="separator:aea3c67043324fafddae757207946081b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -130,42 +130,20 @@ virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>unsu
 <tr class="memitem:ab1e3b212bc58bcec8c34dcdf88761295" id="r_ab1e3b212bc58bcec8c34dcdf88761295"><td class="memItemLeft" align="right" valign="top"><a id="ab1e3b212bc58bcec8c34dcdf88761295" name="ab1e3b212bc58bcec8c34dcdf88761295"></a>
 virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>unsubscribeSource</b> ()</td></tr>
 <tr class="separator:ab1e3b212bc58bcec8c34dcdf88761295"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a500a08973218a275b401e033fc3f2899" id="r_a500a08973218a275b401e033fc3f2899"><td class="memItemLeft" align="right" valign="top"><a id="a500a08973218a275b401e033fc3f2899" name="a500a08973218a275b401e033fc3f2899"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const <a class="el" href="classfhatos_1_1BinaryObj.html">BinaryObj</a>&lt;&gt; *payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="memdesc:a500a08973218a275b401e033fc3f2899"><td class="mdescLeft">&#160;</td><td class="mdescRight">PUBLISH. <br /></td></tr>
-<tr class="separator:a500a08973218a275b401e033fc3f2899"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a979c3593c434c1ff5e14f40c80fb997d" id="r_a979c3593c434c1ff5e14f40c80fb997d"><td class="memTemplParams" colspan="2"><a id="a979c3593c434c1ff5e14f40c80fb997d" name="a979c3593c434c1ff5e14f40c80fb997d"></a>
-template&lt;class T , class  = typename std::enable_if_t&lt;std::is_same_v&lt;bool, T&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a979c3593c434c1ff5e14f40c80fb997d"><td class="memTemplItemLeft" align="right" valign="top">const RESPONSE_CODE&#160;</td><td class="memTemplItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const bool payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:a979c3593c434c1ff5e14f40c80fb997d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62e92def2a2d7543578a840636f6c606" id="r_a62e92def2a2d7543578a840636f6c606"><td class="memItemLeft" align="right" valign="top"><a id="a62e92def2a2d7543578a840636f6c606" name="a62e92def2a2d7543578a840636f6c606"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const int payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:a62e92def2a2d7543578a840636f6c606"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc7cfd0f4b625c21bdc35ac6cf3b2f2a" id="r_afc7cfd0f4b625c21bdc35ac6cf3b2f2a"><td class="memItemLeft" align="right" valign="top"><a id="afc7cfd0f4b625c21bdc35ac6cf3b2f2a" name="afc7cfd0f4b625c21bdc35ac6cf3b2f2a"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const long payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:afc7cfd0f4b625c21bdc35ac6cf3b2f2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3221f50d74ca459b511b72aafd83ce03" id="r_a3221f50d74ca459b511b72aafd83ce03"><td class="memItemLeft" align="right" valign="top"><a id="a3221f50d74ca459b511b72aafd83ce03" name="a3221f50d74ca459b511b72aafd83ce03"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const float payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:a3221f50d74ca459b511b72aafd83ce03"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71ade990b74abc9f222a5151b29822e1" id="r_a71ade990b74abc9f222a5151b29822e1"><td class="memItemLeft" align="right" valign="top"><a id="a71ade990b74abc9f222a5151b29822e1" name="a71ade990b74abc9f222a5151b29822e1"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const double payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:a71ade990b74abc9f222a5151b29822e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0252128653ecd1101754ad54c9bf1b37" id="r_a0252128653ecd1101754ad54c9bf1b37"><td class="memItemLeft" align="right" valign="top"><a id="a0252128653ecd1101754ad54c9bf1b37" name="a0252128653ecd1101754ad54c9bf1b37"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const char *payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:a0252128653ecd1101754ad54c9bf1b37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af44718428af77994ba2a1056a528d235" id="r_af44718428af77994ba2a1056a528d235"><td class="memItemLeft" align="right" valign="top"><a id="af44718428af77994ba2a1056a528d235" name="af44718428af77994ba2a1056a528d235"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const string &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:af44718428af77994ba2a1056a528d235"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2ee9c6e2aa871d025db851048001a41" id="r_af2ee9c6e2aa871d025db851048001a41"><td class="memItemLeft" align="right" valign="top"><a id="af2ee9c6e2aa871d025db851048001a41" name="af2ee9c6e2aa871d025db851048001a41"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const <a class="el" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:af2ee9c6e2aa871d025db851048001a41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af15a039cc17c3c718c5056cb2754021c" id="r_af15a039cc17c3c718c5056cb2754021c"><td class="memItemLeft" align="right" valign="top"><a id="af15a039cc17c3c718c5056cb2754021c" name="af15a039cc17c3c718c5056cb2754021c"></a>
-const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>write</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *obj, const <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &amp;relativeTarget) const</td></tr>
-<tr class="separator:af15a039cc17c3c718c5056cb2754021c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b116f7909f5a949727a77d9bb546077" id="r_a0b116f7909f5a949727a77d9bb546077"><td class="memTemplParams" colspan="2"><a id="a0b116f7909f5a949727a77d9bb546077" name="a0b116f7909f5a949727a77d9bb546077"></a>
+<tr class="memitem:af501f32c3c0e7e4b13d3a27ac6eb61a7" id="r_af501f32c3c0e7e4b13d3a27ac6eb61a7"><td class="memItemLeft" align="right" valign="top"><a id="af501f32c3c0e7e4b13d3a27ac6eb61a7" name="af501f32c3c0e7e4b13d3a27ac6eb61a7"></a>
+RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const ptr&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
+<tr class="memdesc:af501f32c3c0e7e4b13d3a27ac6eb61a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">PUBLISH. <br /></td></tr>
+<tr class="separator:af501f32c3c0e7e4b13d3a27ac6eb61a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac662919bd86fb88074a68f847c227fd" id="r_aac662919bd86fb88074a68f847c227fd"><td class="memItemLeft" align="right" valign="top"><a id="aac662919bd86fb88074a68f847c227fd" name="aac662919bd86fb88074a68f847c227fd"></a>
+RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const ptr&lt; const <a class="el" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
+<tr class="separator:aac662919bd86fb88074a68f847c227fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25a00bf954483cf8438785443440f337" id="r_a25a00bf954483cf8438785443440f337"><td class="memItemLeft" align="right" valign="top"><a id="a25a00bf954483cf8438785443440f337" name="a25a00bf954483cf8438785443440f337"></a>
+const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>write</b> (const ptr&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; obj, const <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &amp;relativeTarget) const</td></tr>
+<tr class="separator:a25a00bf954483cf8438785443440f337"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a311b4fdbe86493efab470cd23bec315a" id="r_a311b4fdbe86493efab470cd23bec315a"><td class="memTemplParams" colspan="2"><a id="a311b4fdbe86493efab470cd23bec315a" name="a311b4fdbe86493efab470cd23bec315a"></a>
 template&lt;typename <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a>  = Obj&gt; </td></tr>
-<tr class="memitem:a0b116f7909f5a949727a77d9bb546077"><td class="memTemplItemLeft" align="right" valign="top">const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>read</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget) const</td></tr>
-<tr class="separator:a0b116f7909f5a949727a77d9bb546077"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a311b4fdbe86493efab470cd23bec315a"><td class="memTemplItemLeft" align="right" valign="top">const ptr&lt; const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>read</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget) const</td></tr>
+<tr class="separator:a311b4fdbe86493efab470cd23bec315a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>

@@ -167,7 +167,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    }</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    List&lt;T&gt; *match(<span class="keyword">const</span> Predicate&lt;T&gt; predicate, <span class="keyword">const</span> <span class="keywordtype">bool</span> withMutex = <span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      List&lt;T&gt; *results = <span class="keyword">new</span> List&lt;T&gt;();</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      <span class="keyword">auto</span> *results = <span class="keyword">new</span> List&lt;T&gt;();</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      lockUnlock&lt;void *&gt;(withMutex, [<span class="keyword">this</span>, results, predicate]() {</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> T &amp;t: _deque) {</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>          <span class="keywordflow">if</span> (predicate(t))</div>

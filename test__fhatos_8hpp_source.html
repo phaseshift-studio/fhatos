@@ -224,47 +224,48 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="keyword">static</span> <span class="keyword">const</span> T *FOS_PRINT_OBJ(<span class="keyword">const</span> T *obj) {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!yTesting!!: %s [!y%s!!]&quot;</span>, obj-&gt;toString().c_str(), OTYPE_STR.at(obj-&gt;type()));</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <span class="keywordflow">return</span> obj;</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>}</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><span class="keyword">static</span> <span class="keyword">const</span> ptr&lt;T&gt; FOS_PRINT_OBJ(<span class="keyword">const</span> ptr&lt;T&gt; obj) {</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  FOS_PRINT_OBJ&lt;T&gt;(obj.get());</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keywordflow">return</span> obj;</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>}</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> _OBJ&gt;</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span><span class="keyword">static</span> <span class="keywordtype">void</span> FOS_CHECK_RESULTS(<span class="keyword">const</span> List&lt;_OBJ&gt; expected, <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a> &amp;fluent,</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>                              <span class="keyword">const</span> Map&lt;Uri, Obj *&gt; expectedReferences = {}, <span class="keyword">const</span> <span class="keywordtype">bool</span> clearRouter = <span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keyword">const</span> List&lt;const _OBJ *&gt; *result = FOS_TEST_RESULT&lt;_OBJ&gt;(fluent);</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  TEST_ASSERT_EQUAL_INT(expected.size(), result-&gt;size());</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> _OBJ obj: expected) {</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    <span class="keyword">auto</span> x = std::find_if(result-&gt;begin(), result-&gt;end(), [obj](<span class="keyword">const</span> _OBJ *element) { return obj == *element; });</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="keywordflow">if</span> (result-&gt;end() == x) {</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>      TEST_FAIL_MESSAGE((<span class="stringliteral">&quot;Unable to find &quot;</span> + obj.toString()).c_str());</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    }</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  }</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  <span class="keywordflow">if</span> (!expectedReferences.empty()) {</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[key, value]: expectedReferences) {</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>      <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *temp = value;</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      FOS_DEFAULT_ROUTER::singleton()-&gt;subscribe(<a class="code hl_struct" href="structfhatos_1_1Subscription.html">Subscription</a>{</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>          .mailbox = <span class="keyword">nullptr</span>, .source = <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;anon&quot;</span>), .pattern = key.value(), .onRecv = [temp](<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a> &amp;message) {</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>            TEST_ASSERT_TRUE(*temp == *message.payload);</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>          }});</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    }</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  }</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  <span class="keywordflow">if</span> (clearRouter)</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    FOS_DEFAULT_ROUTER::singleton()-&gt;clear();</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>}</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!yTesting!!: %s [id:!y%s!!][stype:!y%s!!][utype:!y%s!!]&quot;</span>, obj-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                   obj-&gt;id().toString().c_str(), OTYPE_STR.at(obj-&gt;type()), obj-&gt;utype()-&gt;toString().c_str());</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordflow">return</span> obj;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>}</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="keyword">static</span> <span class="keyword">const</span> ptr&lt;T&gt; FOS_PRINT_OBJ(<span class="keyword">const</span> ptr&lt;T&gt; obj) {</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  FOS_PRINT_OBJ&lt;T&gt;(obj.get());</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="keywordflow">return</span> obj;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>}</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> _OBJ&gt;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><span class="keyword">static</span> <span class="keywordtype">void</span> FOS_CHECK_RESULTS(<span class="keyword">const</span> List&lt;_OBJ&gt; expected, <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a> &amp;fluent,</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>                              <span class="keyword">const</span> Map&lt;Uri, Obj *&gt; &amp;expectedReferences = {}, <span class="keyword">const</span> <span class="keywordtype">bool</span> clearRouter = <span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="keyword">const</span> List&lt;const _OBJ *&gt; *result = FOS_TEST_RESULT&lt;_OBJ&gt;(fluent);</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  TEST_ASSERT_EQUAL_INT(expected.size(), result-&gt;size());</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> _OBJ obj: expected) {</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="keyword">auto</span> x = std::find_if(result-&gt;begin(), result-&gt;end(), [obj](<span class="keyword">const</span> _OBJ *element) { return obj == *element; });</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    <span class="keywordflow">if</span> (result-&gt;end() == x) {</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>      TEST_FAIL_MESSAGE((<span class="stringliteral">&quot;Unable to find &quot;</span> + obj.toString()).c_str());</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    }</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  }</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordflow">if</span> (!expectedReferences.empty()) {</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;[key, value]: expectedReferences) {</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      <span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *temp = value;</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      FOS_DEFAULT_ROUTER::singleton()-&gt;subscribe(<a class="code hl_struct" href="structfhatos_1_1Subscription.html">Subscription</a>{</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>          .mailbox = <span class="keyword">nullptr</span>,</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>          .source = <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;anon&quot;</span>),</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>          .pattern = key.value(),</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>          .onRecv = [temp](<span class="keyword">const</span> ptr&lt;Message&gt; &amp;message) { TEST_ASSERT_TRUE(*temp == *message-&gt;payload); }});</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    }</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  }</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  <span class="keywordflow">if</span> (clearRouter)</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    FOS_DEFAULT_ROUTER::singleton()-&gt;clear();</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>}</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Ansi_html"><div class="ttname"><a href="classfhatos_1_1Ansi.html">fhatos::Ansi</a></div><div class="ttdef"><b>Definition</b> ansi.hpp:47</div></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:32</div></div>
-<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:360</div></div>
-<div class="ttc" id="aclassfhatos_1_1Inst_html"><div class="ttname"><a href="classfhatos_1_1Inst.html">fhatos::Inst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:460</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:99</div></div>
-<div class="ttc" id="astructfhatos_1_1Message_html"><div class="ttname"><a href="structfhatos_1_1Message.html">fhatos::Message</a></div><div class="ttdef"><b>Definition</b> message.hpp:35</div></div>
-<div class="ttc" id="astructfhatos_1_1Subscription_html"><div class="ttname"><a href="structfhatos_1_1Subscription.html">fhatos::Subscription</a></div><div class="ttdef"><b>Definition</b> router.hpp:42</div></div>
+<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:330</div></div>
+<div class="ttc" id="aclassfhatos_1_1Inst_html"><div class="ttname"><a href="classfhatos_1_1Inst.html">fhatos::Inst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:467</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:100</div></div>
+<div class="ttc" id="astructfhatos_1_1Subscription_html"><div class="ttname"><a href="structfhatos_1_1Subscription.html">fhatos::Subscription</a></div><div class="ttdef"><b>Definition</b> router.hpp:44</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

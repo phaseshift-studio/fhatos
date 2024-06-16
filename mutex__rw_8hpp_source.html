@@ -117,55 +117,54 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;fhatos.hpp&gt;</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include FOS_UTIL(mutex.hpp)</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">//using namespace std;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">namespace </span>fhatos {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> SIZE_TYPE = u<span class="keywordtype">int</span>8_t, u<span class="keywordtype">int</span>16_t WAIT_TIME_MS = 500&gt;</div>
-<div class="foldopen" id="foldopen00029" data-start="{" data-end="};">
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classfhatos_1_1MutexRW.html">   29</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1MutexRW.html">MutexRW</a> {</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keyword">protected</span>:</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <a class="code hl_class" href="classfhatos_1_1Mutex.html">Mutex&lt;WAIT_TIME_MS&gt;</a> _READER_LOCK;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keywordtype">bool</span> _WRITER_LOCK = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    SIZE_TYPE _READER_COUNT = 0;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A&gt;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    ptr&lt;A&gt; write(<span class="keyword">const</span> Supplier&lt;ptr&lt;A&gt; &gt; &amp;supplier) {</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      Pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt; result = std::make_pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt;(MUTEX_LOCKOUT, <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      <span class="keywordflow">while</span> (result.first == MUTEX_LOCKOUT) {</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        result = _READER_LOCK.template lockUnlock&lt;Pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt; &gt;(</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>          [<span class="keyword">this</span>,supplier]() {</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>            <span class="keywordflow">if</span> (_WRITER_LOCK)</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>              <span class="keywordflow">return</span> std::make_pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt;(MUTEX_LOCKOUT, <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>            <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>              <span class="keywordflow">return</span> std::make_pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt;(OK, supplier());</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>            }</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>          });</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      }</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      <span class="keywordflow">return</span> result.second;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    }</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A&gt;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    A read(<span class="keyword">const</span> Supplier&lt;A&gt; &amp;supplier) {</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      _READER_LOCK.template lockUnlock&lt;void *&gt;([<span class="keyword">this</span>]() {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        ++_READER_COUNT;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        _WRITER_LOCK = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>      });</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      A a = supplier();</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      _READER_LOCK.template lockUnlock&lt;void *&gt;([<span class="keyword">this</span>]() {</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keywordflow">if</span> (--_READER_COUNT == 0)</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>          _WRITER_LOCK = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      });</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      <span class="keywordflow">return</span> a;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    }</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  };</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">namespace </span>fhatos {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> SIZE_TYPE = u<span class="keywordtype">int</span>8_t, u<span class="keywordtype">int</span>16_t WAIT_TIME_MS = 500&gt;</div>
+<div class="foldopen" id="foldopen00028" data-start="{" data-end="};">
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="classfhatos_1_1MutexRW.html">   28</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1MutexRW.html">MutexRW</a> {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <a class="code hl_class" href="classfhatos_1_1Mutex.html">Mutex&lt;WAIT_TIME_MS&gt;</a> READER_LOCK;</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordtype">bool</span> WRITER_LOCK = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    SIZE_TYPE READER_COUNT = 0;</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A&gt;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    ptr&lt;A&gt; write(<span class="keyword">const</span> Supplier&lt;ptr&lt;A&gt; &gt; &amp;supplier) {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>      Pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt; result = std::make_pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt;(MUTEX_LOCKOUT, <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      <span class="keywordflow">while</span> (result.first == MUTEX_LOCKOUT) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        result = READER_LOCK.template lockUnlock&lt;Pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt; &gt;(</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>          [<span class="keyword">this</span>,supplier]() {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>            <span class="keywordflow">if</span> (WRITER_LOCK)</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>              <span class="keywordflow">return</span> std::make_pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt;(MUTEX_LOCKOUT, <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>            <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>              <span class="keywordflow">return</span> std::make_pair&lt;RESPONSE_CODE, ptr&lt;A&gt; &gt;(OK, supplier());</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>            }</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>          });</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      }</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">return</span> result.second;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    }</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A&gt;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    A read(<span class="keyword">const</span> Supplier&lt;A&gt; &amp;supplier) {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      READER_LOCK.template lockUnlock&lt;void *&gt;([<span class="keyword">this</span>]() {</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        ++READER_COUNT;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        WRITER_LOCK = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      });</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>      A a = supplier();</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      READER_LOCK.template lockUnlock&lt;void *&gt;([<span class="keyword">this</span>]() {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        <span class="keywordflow">if</span> (--READER_COUNT == 0)</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>          WRITER_LOCK = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      });</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <span class="keywordflow">return</span> a;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    }</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  };</div>
 </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1MutexRW_html"><div class="ttname"><a href="classfhatos_1_1MutexRW.html">fhatos::MutexRW</a></div><div class="ttdef"><b>Definition</b> mutex_rw.hpp:29</div></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aclassfhatos_1_1MutexRW_html"><div class="ttname"><a href="classfhatos_1_1MutexRW.html">fhatos::MutexRW</a></div><div class="ttdef"><b>Definition</b> mutex_rw.hpp:28</div></div>
 <div class="ttc" id="aclassfhatos_1_1Mutex_html"><div class="ttname"><a href="classfhatos_1_1Mutex.html">fhatos::Mutex</a></div><div class="ttdef"><b>Definition</b> mutex.hpp:30</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
