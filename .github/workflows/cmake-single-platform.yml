@@ -17,6 +17,11 @@ jobs:
       with:
         submodules: 'true'
 
+    - name: Action Information
+      run: |
+        whoami
+        sudo chown runner:admin /usr/local
+
     - name: Install Python
       uses: actions/setup-python@v1
 
