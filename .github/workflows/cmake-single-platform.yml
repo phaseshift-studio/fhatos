@@ -29,10 +29,12 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         touch .wifi.ini
-        echo -DWIFI_SSID=fhatos >> .wifi.ini
-        echo -DWIFI_PASS=fhatos >> .wifi.ini
-        echo -DMQTT_BROKER_ADDR=fhatos.org >> .wifi.ini
-        echo -DMQTT_BROKER_PORT=1833 >> .wifi.ini
+        echo "[wifi]" >> .wifi.ini
+        echo "build_flags =" >> .wifi.ini
+        echo "        -DWIFI_SSID=fhatos" >> .wifi.ini
+        echo "        -DWIFI_PASS=fhatos" >> .wifi.ini
+        echo "        -DMQTT_BROKER_ADDR=fhatos.org" >> .wifi.ini
+        echo "        -DMQTT_BROKER_PORT=1833" >> .wifi.ini
         chmod 664 .wifi.ini
 
     - name: Install PlatformIO Library
