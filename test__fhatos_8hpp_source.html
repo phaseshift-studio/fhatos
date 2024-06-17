@@ -224,8 +224,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="keyword">static</span> <span class="keyword">const</span> T *FOS_PRINT_OBJ(<span class="keyword">const</span> T *obj) {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!yTesting!!: %s [id:!y%s!!][stype:!y%s!!][utype:!y%s!!]&quot;</span>, obj-&gt;toString().c_str(),</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                   obj-&gt;id().toString().c_str(), OTYPE_STR.at(obj-&gt;type()), obj-&gt;utype()-&gt;toString().c_str());</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]&quot;</span>, obj-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                   <span class="comment">/*obj-&gt;id().toString().c_str(),*/</span> OTYPE_STR.at(obj-&gt;type()), obj-&gt;utype()-&gt;toString().c_str());</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordflow">return</span> obj;</div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>}</div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
@@ -262,7 +262,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Ansi_html"><div class="ttname"><a href="classfhatos_1_1Ansi.html">fhatos::Ansi</a></div><div class="ttdef"><b>Definition</b> ansi.hpp:47</div></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:32</div></div>
-<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:330</div></div>
+<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:366</div></div>
 <div class="ttc" id="aclassfhatos_1_1Inst_html"><div class="ttname"><a href="classfhatos_1_1Inst.html">fhatos::Inst</a></div><div class="ttdef"><b>Definition</b> obj.hpp:467</div></div>
 <div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT obj represented in C++ as a class.</div><div class="ttdef"><b>Definition</b> obj.hpp:100</div></div>
 <div class="ttc" id="astructfhatos_1_1Subscription_html"><div class="ttname"><a href="structfhatos_1_1Subscription.html">fhatos::Subscription</a></div><div class="ttdef"><b>Definition</b> router.hpp:44</div></div>
