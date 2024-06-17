@@ -17,11 +17,11 @@ jobs:
 
     - name: Fhat-Dev Build
       working-directory: ${{github.workspace}}
-      run: bin/fhat-dev build
+      run: sudo bin/fhat-dev build
 
     - name: Fhat-Dev Test
       working-directory: ${{github.workspace}}
-      run: bin/fhat-dev test
+      run: sudo bin/fhat-dev test
 
     - name: Cmake
       working-directory: ${{github.workspace}}
