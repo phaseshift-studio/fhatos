@@ -1,4 +1,3 @@
-PROJECT(fhatos-docs)
 OPTION(BUILD_DOCS "Build documentation" ON) # ON/OFF
 IF (TASKSCH_BUILD_WITH_DOCS)
     ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/docs)
@@ -11,10 +10,10 @@ IF (BUILD_DOCS)
         MESSAGE(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE} -- ${DOXYGEN_VERSION}")
         # Set Doxygen input and output files.
         SET(DOXYGEN_INPUT_DIR ${CMAKE_SOURCE_DIR}/docs)
-        SET(DOXYGEN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/docs/doxygen)
-        SET(DOXYGEN_INDEX_FILE ${CMAKE_SOURCE_DIR}/docs/xml/index.xml)
+        SET(DOXYGEN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/docs/doxygen)
+        SET(DOXYGEN_INDEX_FILE ${CMAKE_BINARY_DIR}/docs/xml/index.xml)
         SET(DOXYFILE_IN ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in)
-        SET(DOXYFILE_OUT ${CMAKE_SOURCE_DIR}/docs/Doxyfile)
+        SET(DOXYFILE_OUT ${CMAKE_BINARY_DIR}/docs/Doxyfile)
         # Generate DoxyFile from the input file.
         CONFIGURE_FILE(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
         # Create Output directory.

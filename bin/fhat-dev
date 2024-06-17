@@ -34,28 +34,15 @@ fi
 
 if [[ $1 == "clean" ]]; then
    rm -rf build/
-   rm -rf test/build/
-   rm -rf docs/build/
-   rm -rf _deps
-   rm -rf include/
-   rm -rf CMakeFiles
-   rm CMakeCache.txt
-   rm Makefile
-   rm *.cmake
-   rm -rf test/CMakeFiles
-   rm -rf test/CMakeCache.txt
-   rm test/Makefile
-   rm test/*.cmake
-   rm -rf test/Testing/
    platformio run --target clean
   echo -e "${RED}IMPORTANT${NC}"
   echo -e "    ...next operation builds project from scratch ${GREEN}cmake${NC} ${RED}=>${NC} ${GREEN}cmake_install.cmake${NC} ${RED}=>${NC} ${GREEN}make${NC} ${RED}=>${NC} ${GREEN}platformio${NC}]"
 elif [[ $1 == "test" ]]; then
-  platformio run --target clean ${environ}; cmake . -DBUILD_TESTS=ON -DBUILD_DOCS=OFF; cmake -P cmake_install.cmake; make; platformio test ${environ} -v ${filter}
+  platformio run --target clean ${environ}; rm -rf build; mkdir build; cd build || exit; cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF; cmake -P cmake_install.cmake; make; cd ..; platformio test ${environ} -v ${filter}
 elif [[ $1 == "build" ]]; then
-  platformio run --target clean ${environ}; cmake . -DBUILD_TESTS=OFF -DBUILD_DOCS=ON; cmake -P cmake_install.cmake; make; platformio run ${environ}
+  platformio run --target clean ${environ}; mkdir build; cd build || exit; cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON; cmake -P cmake_install.cmake; make; cd ..; platformio run ${environ}
 elif [[ $1 == "upload" ]]; then
-  platformio run --target clean ${environ}; cmake . -DBUILD_TESTS=OFF -DBUILD_DOCS=OFF; cmake -P cmake_install.cmake; make; platformio run ${environ} --target upload
+  platformio run --target clean ${environ}; mkdir build; cd build || exit; cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=OFF; cmake -P cmake_install.cmake; make; cd ..; platformio run ${environ} --target upload
 else
    echo -e "usage: 
   fhat-dev {clean | test | build | upload} {esp32 | native | <empty>}
