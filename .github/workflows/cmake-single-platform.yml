@@ -43,13 +43,19 @@ jobs:
         chmod 664 .wifi.ini
 
     - name: Install PlatformIO Library
-      run: pio lib install
+      run: |
+        pio lib install
+        export PATH=$PATH:$HOME/.local/bin
+        ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
+        ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
+        ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
 
     - name: Fhat-Dev Build
       working-directory: ${{github.workspace}}
       env:
         CC: clang
       run: |
+        export PATH=$PATH:$HOME/.local/bin
         chmod 777 bin/fhat-dev
         sudo bin/fhat-dev build
 
@@ -58,6 +64,7 @@ jobs:
       env:
         CC: clang
       run: |
+        export PATH=$PATH:$HOME/.local/bin
         chmod 777 bin/fhat-dev
         sudo bin/fhat-dev test
 
