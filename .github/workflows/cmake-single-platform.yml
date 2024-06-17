@@ -20,7 +20,7 @@ jobs:
     - name: Action Information
       run: |
         whoami
-        sudo chown runner:admin /usr/local
+        sudo chmod 777 --recursive /usr/local
 
     - name: Install Python
       uses: actions/setup-python@v1
@@ -51,7 +51,7 @@ jobs:
         CC: clang
       run: |
         chmod 777 bin/fhat-dev
-        bin/fhat-dev build
+        sudo bin/fhat-dev build
 
     - name: Fhat-Dev Test
       working-directory: ${{github.workspace}}
@@ -59,7 +59,7 @@ jobs:
         CC: clang
       run: |
         chmod 777 bin/fhat-dev
-        bin/fhat-dev test
+        sudo bin/fhat-dev test
 
  #   - name: Cmake
  #     working-directory: ${{github.workspace}}
