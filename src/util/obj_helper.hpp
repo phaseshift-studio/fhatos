@@ -36,6 +36,13 @@ namespace fhatos {
                                          typeChars(b)));
     }
 
+    template <OType type,typename OBJ = Obj>
+    static OBJ* checkType(const Obj* a) {
+      if(a->type() != type)
+        throw fError("Expected %s and received %s: %s\n",OTYPE_STR.at(type),typeChars(a),a->toString().c_str());
+      return (OBJ*)a;
+    }
+
     template <typename OBJ = Obj>
     static const OBJ* clone(const OBJ*obj) {
       switch(obj->type()) {

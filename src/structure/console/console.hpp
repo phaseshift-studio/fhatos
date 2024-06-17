@@ -21,9 +21,9 @@
 
 #include <fhatos.hpp>
 #include <iostream>
-#include <util/ansi.hpp>
-#include <structure/furi.hpp>
 #include <language/parser.hpp>
+#include <structure/furi.hpp>
+#include <util/ansi.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
 
@@ -34,14 +34,10 @@ namespace fhatos {
     Ansi<PRINTER> *ansi;
     Parser *parser;
 
-    explicit Console(const ID &id = ID("console")): Thread(id),
-                                                    ansi(new Ansi<PRINTER>(PRINTER::singleton())),
-                                                    parser(new Parser(id)) {
-    }
+    explicit Console(const ID &id = ID("console")) :
+        Thread(id), ansi(new Ansi<PRINTER>(PRINTER::singleton())), parser(new Parser(id)) {}
 
-    void setup() override {
-      Thread::setup();
-    }
+    void setup() override { Thread::setup(); }
 
     void loop() override {
       Thread::loop();
@@ -61,33 +57,30 @@ namespace fhatos {
           }
         } else {
           try {
-            const ptr<Fluent<> > fluent = this->parser->parseToFluent(line.c_str());
-            this->printResults(fluent);
-          } catch (fError ex) {
+            const ptr<OBJ_OR_BYTECODE> obj = Parser::parseObj(line);
+            if (obj->isBytecode()) {
+              const ptr<Fluent<>> fluent =  this->parser->parseToFluent(line.c_str());
+              this->printResults(fluent);
+            } else {
+              this->printResult(obj->cast<Obj>());
+            }
+          } catch (const std::exception &e) {
             // do nothing (log error for now)
-            LOG(ERROR, "%s\n", ex.what());
-            //this->printException(ex);
+            //LOG_EXCEPTION(e);
+            this->printException(e);
           }
         }
       }
     }
 
-    void stop() override {
-      Thread::stop();
-    }
+    void stop() override { Thread::stop(); }
 
-    void printException(const std::exception &ex) const {
-      this->ansi->printf("[!rERROR!!] %s\n", ex.what());
-    }
+    void printException(const std::exception &ex) const { this->ansi->printf("[!rERROR!!] %s\n", ex.what()); }
 
-    void printPrompt() const {
-      this->ansi->print("!mfhatos!!> ");
-    }
+    void printPrompt() const { this->ansi->print("!mfhatos!!> "); }
 
-    void printResults(const ptr<Fluent<> > &fluent) const {
-      fluent->forEach<Obj>([this](const Obj *obj) {
-        this->printResult(obj);
-      });
+    void printResults(const ptr<Fluent<>> &fluent) const {
+      fluent->forEach<Obj>([this](const Obj *obj) { this->printResult(obj); });
     }
 
 
@@ -101,7 +94,7 @@ namespace fhatos {
     void printRec(const Rec *rec, int i = 0) const {
       this->ansi->printf("!g==!!>!y%s!![", rec->utype() ? rec->utype()->toString().c_str() : "");
       const int size = rec->value()->size();
-      for (const auto &[key,value]: *rec->value()) {
+      for (const auto &[key, value]: *rec->value()) {
         if (i > 0)
           this->ansi->print("    ");
         this->ansi->printf("%s !b=>!! %s", key->toString().c_str(), value->toString().c_str());
@@ -113,6 +106,6 @@ namespace fhatos {
       this->ansi->printf("]\n");
     }
   };
-}
+} // namespace fhatos
 
 #endif

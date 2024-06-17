@@ -128,8 +128,8 @@ static const void FOS_TEST_OBJ_NOT_EQUAL(const Obj *objA, const Obj *objB) {
 
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s [id:!y%s!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
-                   obj->id().toString().c_str(), OTYPE_STR.at(obj->type()), obj->utype()->toString().c_str());
+  FOS_TEST_MESSAGE("!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
+                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->type()), obj->utype()->toString().c_str());
   return obj;
 }
 

@@ -34,7 +34,7 @@ int main(int arg, char **argsv) {
   try {
     fKernel<>::bootloader({
     //fWIFI::singleton(),
-    fKernel<>::singleton(),
+   // fKernel<>::singleton(),
     //fFS<>::singleton(),
     //fOTA<>::singleton(),
 });

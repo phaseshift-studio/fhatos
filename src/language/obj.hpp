@@ -97,7 +97,7 @@ namespace fhatos {
   static const ptr<UType> NO_UTYPE = share(fURI(""));
   class PtrSerializer;
   /// An mm-ADT obj represented in C++ as a class
-  class Obj : public BaseIDed {
+  class Obj  {
   protected:
     const OType _type;
     ptr<UType> _utype;
@@ -112,8 +112,8 @@ namespace fhatos {
     explicit Obj(const OType type, const ptr<UType> utype = NO_UTYPE) : _type(type), _utype(utype) {}
 
     virtual const OType type() const { return this->_type; }
-    virtual const ptr<UType> utype() const { return share<UType>(fURI(this->_utype->host())); }
-    virtual const ID id() const override { return ID(this->_utype->user().value_or("")); }
+    virtual const ptr<UType> utype() const { return this->_utype; }
+    //virtual const ptr<ID> id() const { return share<ID>(fURI(this->_utype->user().value_or(""))); }
 
     virtual const string toString() const { return "obj"; }
 
@@ -122,7 +122,7 @@ namespace fhatos {
     virtual const Obj *apply(const Obj *obj) const { return this; }
 
     template<typename A>
-    const A *as(const fURI& utype = fURI("")) const {
+    const A *as(const fURI utype = fURI("")) const {
       if (utype.empty() || *this->utype() == utype)
         return (A *) this;
       Obj *temp = new A(*(A *) this);
@@ -324,7 +324,7 @@ namespace fhatos {
     int compare(const Str &other) const { return this->_value.compare(other._value); }
 
     bool operator==(const Obj &other) const override {
-      return this->_type == other.type() && (this->_utype->host() == other.utype()->host()) && this->_value == ((Str *) &other)->value();
+      return this->_type == other.type() && this->_utype == other.utype() && this->_value == ((Str *) &other)->value();
     }
 
     bool operator<(const Str &other) const { return this->_value < other._value; }
@@ -406,7 +406,7 @@ namespace fhatos {
     const RecMap<Obj *, Obj *> *value() const { return this->_value; }
 
     bool operator==(const Obj &other) const override {
-      if (this->_type != other.type() ||  (this->_utype->host() != other.utype()->host()))
+      if (this->_type != other.type() || this->_utype != other.utype())
         return false;
       if (this->_value->size() != ((Rec *) &other)->value()->size())
         return false;
@@ -569,14 +569,14 @@ namespace fhatos {
 
   ///////////////////////////////////////////////// BYTECODE
   /////////////////////////////////////////////////////////////////
-  class Bytecode final : public Obj {
+  class Bytecode final : public IDed, public Obj{
   protected:
     const List<Inst *> *_value;
     Map<const fURI, const ptr<const Obj>> TYPE_CACHE;
 
   public:
    //~Bytecode() override {}
-    explicit Bytecode(const List<Inst *> *list, const ID &id = ID(*UUID::singleton()->mint(7))) :
+    explicit Bytecode(const List<Inst *> *list, const ID &id = ID(*UUID::singleton()->mint(7))) : IDed(id),
         Obj(OType::BYTECODE), _value(list) {
       for (auto *inst: *this->_value) {
         inst->bcode(this);
@@ -586,7 +586,7 @@ namespace fhatos {
     explicit Bytecode(const ID &id = ID(*UUID::singleton()->mint(7))) : Bytecode(new List<Inst *>, id) {}
 
     void setId(const ID& id) {
-      this->_utype = share<UType>(this->_utype->user(id.toString().c_str()));
+      this->_id = id;
       for(const auto* inst : *this->value()) {
         for(const auto* arg : inst->args()) {
           if(arg->type() == OType::BYTECODE) {
@@ -749,6 +749,8 @@ namespace fhatos {
 
     OBJ_OR_BYTECODE(const Bytecode *bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = bcodeB}) {}
 
+    OBJ_OR_BYTECODE(const Objs* objsA) : _type(OType::OBJS), data(OBJ_UNION{.objA = objsA}) {}
+
     OBJ_OR_BYTECODE(const Bool &objA) : _type(OType::BOOL), data(OBJ_UNION{.objA = new Bool(objA)}) {}
 
     OBJ_OR_BYTECODE(const Int &objA) : _type(OType::INT), data(OBJ_UNION{.objA = new Int(objA)}) {}
@@ -770,6 +772,12 @@ namespace fhatos {
             ->insert({it->first.cast<>(), it->second.cast<>()});
       }
     }
+
+    /*OBJ_OR_BYTECODE(const std::initializer_list<OBJ_OR_BYTECODE> objs) : _type(OType::OBJS), data(OBJ_UNION{.objA=new Objs({})}) {
+      for(auto it =std::begin(objs); it!=std::end(objs); ++it) {
+        ((List<Obj*>*)((Objs*)this->data.objA)->value())->push_back({it->cast<>()});
+      }
+    }*/
 
     OBJ_OR_BYTECODE(const Bytecode &bcodeB) : _type(OType::BYTECODE), data(OBJ_UNION{.bcodeB = new Bytecode(bcodeB)}) {}
 

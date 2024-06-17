@@ -87,12 +87,13 @@ namespace fhatos {
       delete i;
     }
     // ID/TYPE INT
-    const Int* i = FOS_PRINT_OBJ(Parser::parseObj("x@nat[25]")->cast<Int>());
-    TEST_ASSERT_EQUAL(OType::INT,i->type());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("nat"),*i->utype());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("x"),i->id());
-    TEST_ASSERT_EQUAL_INT(25,i->value());
-    TEST_ASSERT_EQUAL_STRING("x@nat[25]",FOS_DEFAULT_PRINTER::singleton()->strip(i->toString().c_str()));
+    const Int *i = FOS_PRINT_OBJ(Parser::parseObj("x@nat[25]")->cast<Int>());
+    TEST_ASSERT_EQUAL(OType::INT, i->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("x@nat"), *i->utype());
+    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("x"), i->id());
+    TEST_ASSERT_EQUAL_INT(25, i->value());
+    TEST_ASSERT_EQUAL_STRING("x@nat[25]", FOS_DEFAULT_PRINTER::singleton()->strip(i->toString().c_str()));
+    delete i;
   }
 
   void test_real_parsing() {
@@ -143,7 +144,7 @@ namespace fhatos {
       delete rc1;
     }
 
-    forms = {"person[age=>nat[29],name=>'dogturd']"};
+    forms = {"person[age=>nat[29],name=>'dogturd']"/*, "@person[age=>nat[29],name=>'dogturd']"*/ };
     for (const string form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const Rec *rc1 = Parser::parseObj(form)->cast<Rec>();
@@ -175,11 +176,11 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler<FOS_DEFAULT_ROUTER>::singleton();
     const auto parser = new Parser;
-    const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse(
-      "<=(scheduler@kernel?spawn,thread["
-      "[id    => example,"
-      " setup => __(0).ref(:x).print('setup complete'),"
-      " loop  => <=(scheduler@kernel?destroy,example)]])"));
+    const ptr<Bytecode> bcode =
+        FOS_PRINT_OBJ<Bytecode>(parser->parse("<=(scheduler@kernel?spawn,thread["
+                                              "[id    => example,"
+                                              " setup => __(0).ref(:x).print('setup complete'),"
+                                              " loop  => <=(scheduler@kernel?destroy,example)]])"));
     auto process = Processor<Str>(bcode);
     process.forEach([](const Str *s) { LOG(INFO, "RESULT: %s", s->value().c_str()); });
     delete parser;
@@ -196,6 +197,14 @@ namespace fhatos {
     delete parser;
   }
 
+  void test_as_parsing() {
+    auto *parser = new Parser();
+    FOS_CHECK_RESULTS<Int>({0}, Fluent(parser->parse("__(0).define(even,mod(2).is(eq(0))")), {}, false);
+    FOS_CHECK_RESULTS<Int>({Int(32, share<UType>(fURI("even")))}, Fluent(parser->parse("__(32).as(even)")), {}, false);
+    FOS_CHECK_RESULTS<Uri>({Uri("even")}, Fluent(parser->parse("__(even[32]).as()")), {}, true);
+    delete parser;
+  }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_no_input_parsing); //
       FOS_RUN_TEST(test_start_inst_parsing); //
@@ -209,6 +218,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_rec_parsing); //
       FOS_RUN_TEST(test_nested_bytecode_parsing); //
       FOS_RUN_TEST(test_bcode_parsing); //
+      FOS_RUN_TEST(test_as_parsing); //
   )
 }; // namespace fhatos
 

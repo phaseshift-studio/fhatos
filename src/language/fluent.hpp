@@ -101,6 +101,10 @@ namespace fhatos {
       return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MULT, rhs));
     }
 
+    Fluent mod(const OBJ_OR_BYTECODE &rhs) {
+      return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MOD, rhs));
+    }
+
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// RELATIONS ////////////////////////////
     ///////////////////////////////////////////////////////////////////
@@ -159,7 +163,7 @@ namespace fhatos {
     }
 
     Fluent bswitch(const OBJ_OR_BYTECODE &branches) {
-      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, branches.cast<Rec>()));
+      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, branches));
     }
 
     ///////////////////////////////////////////////////////////////////
@@ -178,7 +182,29 @@ namespace fhatos {
       return this->addInst(new SubscribeInst<ROUTER>(pattern, onRecv, this->bcode->id()));
     }
 
+     Fluent select(const List<ptr<OBJ_OR_BYTECODE>> &uris) {
+      List<Obj *> *castObjs = new List<Obj *>();
+      for (ptr<OBJ_OR_BYTECODE> uri: uris) {
+        castObjs->push_back(uri->cast<>());
+      }
+      return this->addInst(new SelectInst<ROUTER>(castObjs));
+    }
+
+    Fluent select(const List<OBJ_OR_BYTECODE> & uris) {
+      List<Obj *> *castObjs = new List<Obj *>();
+      for (OBJ_OR_BYTECODE uri: uris) {
+        castObjs->push_back(uri.cast<>());
+      }
+      return this->addInst(new SelectInst<ROUTER>(castObjs));
+    }
+
+    Fluent select(const OBJ_OR_BYTECODE &branches) {
+      return this->addInst(new SelectInst<ROUTER>(branches.cast<Rec>()));
+    }
+
     Fluent as(const OBJ_OR_BYTECODE &utype) { return this->addInst(new AsInst<ROUTER>(utype)); }
+
+    Fluent as() { return this->addInst(new AsInst<ROUTER>(NoObj::singleton())); }
 
     Fluent define(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) {
       return this->addInst(new DefineInst<ROUTER>(utype, typeDefinition));

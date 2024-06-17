@@ -123,6 +123,7 @@ namespace fhatos {
           if ((furiCharacters[i]) == '/' && ((i == length - 1) || furiCharacters[i + 1] != '/'))
             counter++;
         }
+        const char *scheme = strstr(furiCharacters, "://");
         this->_segments = new char *[counter + 1];
         if (counter == 0) {
           this->_segments[0] = strdup(furiCharacters);
@@ -131,6 +132,11 @@ namespace fhatos {
           if (furiCharacters[0] == '/') {
             this->_segments[0] = strdup("");
             this->_length = private_fhatos::split(furiCharacters, "/", this->_segments, 1);
+          } else if (scheme) {
+            this->_length = private_fhatos::split(scheme + 3, "/", this->_segments);
+            string schemeString = string(furiCharacters);
+            this->_segments[0] = strdup(
+                (schemeString.substr(0, schemeString.find_first_of("://")) + "://" + string(_segments[0])).c_str());
           } else {
             this->_length = private_fhatos::split(furiCharacters, "/", this->_segments);
           }
@@ -205,7 +211,8 @@ namespace fhatos {
     const fURI path(const string &path) const { return fURI(this->authority()).extend(path.c_str()); }
 
     const fURI user(const char *user) const {
-      return this->authority(this->host().empty() ? user : (strlen(user) == 0 ? this->host() : string(user) + "@" + this->host()));
+      return this->authority(
+          this->host().empty() ? user : (strlen(user) == 0 ? this->host() : string(user) + "@" + this->host()));
     }
 
     const Option<string> user() const {
@@ -214,10 +221,10 @@ namespace fhatos {
     }
 
     const Option<Pair<string, string>> user_password() const {
-      if (const int i = this->authority().find('@'); i < 0)
+      if (const int i = this->scheme("").authority().find('@'); i < 0)
         return {};
       else {
-        string userpass = this->authority().substr(0, i);
+        string userpass = this->scheme("").authority().substr(0, i);
         const int j = userpass.find(':');
         if (j < 0)
           return {{userpass, string()}};
@@ -227,7 +234,7 @@ namespace fhatos {
     }
 
     const string host() const {
-      string temp = this->authority();
+      string temp = this->scheme("").authority();
       if (temp.empty() || temp.at(temp.length() - 1) == '@')
         return string();
       int i = temp.find('@');
@@ -245,6 +252,35 @@ namespace fhatos {
       }
       temp = temp + host;
       return this->authority(temp);
+    }
+
+    const string scheme() const {
+      const int colonIndex = string(this->_segments[0]).find(':');
+      if (std::string::npos == colonIndex) {
+        return string("");
+      } else {
+        return  string(this->_segments[0]).substr(0, colonIndex);
+      }
+    }
+
+    const fURI scheme(const string &scheme) const {
+      const int index = string(this->_segments[0]).find_first_of(':');
+      const int colonSlashSlashIndex = string(this->_segments[0]).find("://");
+      if (std::string::npos == index) {
+        if (scheme.empty()) {
+          return *this;
+        } else {
+          return fURI(scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") + this->toString());
+        }
+      } else if (scheme.empty()) {
+        fURI temp = fURI(*this);
+        temp._segments[0] = strdup(string(temp._segments[0]).substr(index + (std::string::npos == colonSlashSlashIndex ? 1 : 3)).c_str());
+        return temp;
+      } else {
+        fURI temp = fURI(*this);
+        temp._segments[0] = strdup((scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") + string(temp._segments[0]).substr(index+1)).c_str());
+        return temp;
+      }
     }
 
     const string authority() const { return this->_length > 0 ? string(this->_segments[0]) : string(); }

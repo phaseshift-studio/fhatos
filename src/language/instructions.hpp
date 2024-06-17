@@ -65,10 +65,42 @@ namespace fhatos {
   };
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  class SelectInst final : public OneToOneInst {
+  public:
+    explicit SelectInst(const List<Obj *> *uris) :
+        OneToOneInst({"select", cast(uris), [this](const Obj *obj) -> const Obj * {
+                        RecMap<Obj *, Obj *> map;
+                        for (const Obj *uri: this->args()) {
+                          const Uri *u = ObjHelper::checkType<OType::URI, Uri>(uri->apply(obj));
+                          ;
+                          Obj *key = (Obj *) u;
+                          Obj *value = (Obj *) ObjHelper::clone<Obj>(
+                              ROUTER::singleton()->read(this->bcode()->id(), u->value()).get());
+                          map.insert({key, value});
+                        }
+                        return new Rec(map);
+                      }}) {}
+    explicit SelectInst(const Rec* branches) :
+        OneToOneInst({"select", {(Obj*)branches}, [this](const Obj *lhs) -> const Obj * {
+                        const RecMap<Obj *, Obj *> *split = this->arg(0)->template as<Rec>()->value();
+                        RecMap<Obj *, Obj *> map;
+                        for (const auto [k, v]: *split) {
+                          const Uri *key = ObjHelper::checkType<OType::URI, Uri>(k->apply(lhs));
+                          const Obj *value = v->apply(((Obj *) ObjHelper::clone<Obj>(
+                              ROUTER::singleton()->read(this->bcode()->id(), key->value()).get())));
+                          map.insert({(Obj *) key, (Obj *) value});
+                        }
+                        return new Rec(map);
+                      }}) {}
+  };
+
+  template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class AsInst final : public OneToOneInst {
   public:
-    explicit AsInst(const OBJ_OR_BYTECODE &utype) :
-        OneToOneInst({"as", {utype}, [this](const Obj *obj) {
+    explicit AsInst(const OBJ_OR_BYTECODE &utype = NoObj::singleton()) :
+        OneToOneInst({"as", {utype}, [this](const Obj *obj) -> const Obj * {
+                        if (this->arg(0)->isNoObj())
+                          return new Uri(*obj->utype());
                         const UType utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
                         const ptr<const Obj> typeDefinition = this->_bcode->template getType<ROUTER>(utype);
                         if (typeDefinition->type() != OType::BYTECODE && typeDefinition->type() != obj->type())
@@ -159,7 +191,6 @@ namespace fhatos {
           return lhs;
         }) {}
   };
-
 
   //////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////

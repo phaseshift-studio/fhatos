@@ -156,7 +156,7 @@ namespace fhatos {
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(ex) LOG(ERROR, (ex).what())
+#define LOG_EXCEPTION(ex) LOG(ERROR, "%s\n", (ex).what())
 #define LOG_TASK(logtype, process, format, ...)                                                                        \
   LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id().toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \

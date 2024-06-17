@@ -29,6 +29,22 @@ namespace fhatos {
     f.forEach<Int>([](const Int *e) { FOS_TEST_MESSAGE("=>%s", e->toString().c_str()); });
   }
 
+  void test_select() {
+    FOS_CHECK_RESULTS<Rec>({
+      Rec({
+        {new Uri("a"), new Int(1)},
+        {new Uri("b"),new Int(2)},
+        {new Uri("c"),new Int(3)}})},
+      __(1).ref("a").plus(1).ref("b").plus(1).ref("c").select({Uri("a"),Uri("b"),Uri("c")}));
+
+    FOS_CHECK_RESULTS<Rec>({
+    Rec({
+      {new Uri("a"), new Int(2)},
+      {new Uri("b"),new Int(4)},
+      {new Uri("c"),new Int(6)}})},
+    __(1).ref("a").plus(1).ref("b").plus(1).ref("c").select({{Uri("a"),_.plus(1)},{Uri("b"),_.plus(2)},{Uri("c"),_.plus(3)}}));
+  }
+
   void test_rec_branch() {
     FOS_CHECK_RESULTS<Int>(
         {500},
@@ -107,6 +123,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_fluent); //
+      FOS_RUN_TEST(test_select); //
       FOS_RUN_TEST(test_rec_branch); //
       FOS_RUN_TEST(test_count); //
       FOS_RUN_TEST(test_ref); //
