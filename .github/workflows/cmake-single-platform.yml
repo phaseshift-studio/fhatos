@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
-name: CMake on a single platform
+name: CMake FhatOS using Ubuntu
 
 on:
   push:
@@ -14,24 +14,45 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Install Python
+      uses: actions/setup-python@v1
+
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install platformio
+
+    - name: Install PlatformIO Library
+      run: pio lib install
 
     - name: Fhat-Dev Build
       working-directory: ${{github.workspace}}
-      run: sudo bin/fhat-dev build
+      env:
+        CC: clang
+      run: |
+        chmod 777 bin/fhat-dev
+        bin/fhat-dev build
 
     - name: Fhat-Dev Test
       working-directory: ${{github.workspace}}
-      run: sudo bin/fhat-dev test
+      env:
+        CC: clang
+      run: |
+        chmod 777 bin/fhat-dev
+        bin/fhat-dev test
 
-    - name: Cmake
-      working-directory: ${{github.workspace}}
-      run: cmake .
+ #   - name: Cmake
+ #     working-directory: ${{github.workspace}}
+ #     run: cmake .
 
-    - name: Make
-      working-directory: ${{github.workspace}}
-      run: make
+#    - name: Make
+#      working-directory: ${{github.workspace}}
+#      run: make
 
-    - name: CTest
-      working-directory: ${{github.workspace}}/test
-      run: ctest
+#   - name: CTest
+#      working-directory: ${{github.workspace}}/test
+#      run: ctest
 
