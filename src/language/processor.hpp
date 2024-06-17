@@ -80,11 +80,12 @@ namespace fhatos {
         bcode(bcode), barrier(new Pair<ManyToOneInst *, List<const Obj *> *>(nullptr, nullptr)) {
       const Inst *startInst = this->bcode->startInst();
       LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
-      assert(startInst->opcode() == "start");
-      for (const Obj *startObj: startInst->args()) {
-        const Monad *monad = new Monad(startObj, startInst);
-        this->running->push_back(monad);
-        LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
+      if (startInst->opcode() == "start") {
+        for (const Obj *startObj: startInst->args()) {
+          const Monad *monad = new Monad(startObj, startInst);
+          this->running->push_back(monad);
+          LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
+        }
       }
     }
 
@@ -92,7 +93,7 @@ namespace fhatos {
       while (true) {
         if (this->halted->empty()) {
           if (this->running->empty()) {
-            return (E*) (void*) NoObj::singleton();
+            return (E *) (void *) NoObj::singleton();
           } else {
             this->execute(steps);
           }

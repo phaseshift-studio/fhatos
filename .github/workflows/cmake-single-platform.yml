@@ -15,11 +15,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Build
+    - name: Cmake
       working-directory: ${{github.workspace}}
-      run: cmake .; make
+      run: cmake .
 
-    - name: Test
+    - name: Make
+      working-directory: ${{github.workspace}}
+      run: make
+
+    - name: CTest
       working-directory: ${{github.workspace}}/test
       run: ctest
 
