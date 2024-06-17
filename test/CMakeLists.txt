@@ -13,7 +13,7 @@ IF (BUILD_TESTS)
             GIT_TAG v2.6.0
     )
     FETCHCONTENT_MAKEAVAILABLE(unity)
-    TARGET_LINK_LIBRARIES(fhatos PRIVATE unity::framework)
+    # TARGET_LINK_LIBRARIES(fhatos PRIVATE unity::framework)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ###########################################
     ########### TEST SUITE BUILDER ############
