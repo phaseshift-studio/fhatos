@@ -170,14 +170,22 @@ namespace fhatos {
                  : fURI(string(this->toString()).append("/").append(segments));
     }
 
-    const fURI retract() const {
+    const fURI retract(const bool fromRight=true) const {
       if (this->empty())
         return *this;
       string path;
-      for (uint8_t i = 0; i < this->_length - 1; i++) {
-        if (i > 0)
-          path = path + "/";
-        path = path + this->_segments[i];
+      if(fromRight) {
+        for (uint8_t i = 0; i < this->_length - 1; i++) {
+          if (i > 0)
+            path = path + "/";
+          path = path + this->_segments[i];
+        }
+      } else {
+        for (uint8_t i = 1; i < this->_length; i++) {
+          if (i > 1)
+            path = path + "/";
+          path = path + this->_segments[i];
+        }
       }
       return fURI(path);
     }
