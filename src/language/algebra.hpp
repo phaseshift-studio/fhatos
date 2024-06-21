@@ -168,11 +168,11 @@ namespace fhatos {
           switch (lhs->otype()) {
             case OType::URI:
               return ((Uri *) lhs.get())
-                  ->split(((Uri *) lhs.get())->value().extend(((Uri *) rhs.get())->toString().c_str()));
+                  ->split(((Uri *) lhs.get())->value().extend(((Uri *) rhs.get())->value().toString().c_str()));
             case OType::BOOL:
               return ((Bool *) lhs.get())->split(((Bool *) lhs.get())->value() || ((Bool *) rhs.get())->value());
             case OType::INT:
-              return lhs->split<Int>(((Int *) lhs.get())->value() + ((Int *) rhs.get())->value());
+              return lhs->split(((Int *) lhs.get())->value() + ((Int *) rhs.get())->value());
             case OType::REAL:
               return ((Real *) lhs.get())->split(((Real *) lhs.get())->value() + ((Real *) rhs.get())->value());
             case OType::STR:

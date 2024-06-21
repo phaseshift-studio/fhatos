@@ -12,7 +12,7 @@ namespace fhatos {
   class XObj : public Obj, public std::enable_shared_from_this<OBJ> {
   public:
     explicit XObj(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type) : Obj(value, type) {}
-    virtual OType otype() const override { return OTYPE; }
+    OType otype() const override { return OTYPE; }
     ptr<Type> type() const override { return ptr<Type>(new Type(this->_type)); }
     VALUE value() const { return std::any_cast<VALUE>(std::get<0>(this->_var)); }
     ptr<Obj> apply(const ptr<Obj> &obj) override {
@@ -24,12 +24,25 @@ namespace fhatos {
         return this->shared_from_this();
       }
     }
+
+    ptr<OBJ>
+    split(const VALUE &newValue,
+          const std::variant<ptr<fURI>, const char *> &newType = std::variant<ptr<fURI>, const char *>(nullptr)) const {
+      return Obj::split<OBJ>(newValue, newType);
+    }
     ptr<OBJ> as(const char *utype) const { return this->Obj::as<OBJ>(Type::obj_t(OTYPE, utype)); }
     bool operator==(const Obj &other) const override {
       return this->_type->equals(*other._type) && (this->isBytecode() == other.isBytecode()) &&
              (this->isBytecode() ? (this->bcode() == other.bcode()) : (this->value() == (*(XObj *) &other).value()));
     }
-    static ptr<fURI> _t(const char *utype) { return Type::obj_t(OTYPE, utype); }
+    static ptr<fURI> _t(const char *utype) {
+      string typeToken = string(utype);
+      bool hasAuthority = typeToken.find('@') != std::string::npos;
+      bool hasSlash = typeToken.starts_with("/");
+      return Type::obj_t(
+          OTYPE, share<fURI>(fURI(
+                     typeToken.empty() ? "" : (hasAuthority ? typeToken : (hasSlash ? typeToken : "/" + typeToken)))));
+    }
   };
 
   ////////////////////////////////////////////////
@@ -42,8 +55,6 @@ namespace fhatos {
   public:
     explicit Bool(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = BOOL_FURI) :
         XObj(value, type) {}
-    explicit Bool(const bool value, const ptr<fURI> &type = BOOL_FURI) :
-        Bool(std::variant<Any, ptr<Bytecode>>(value), type) {}
     string toString() const override { return this->type()->objString(this->value() ? "true" : "false"); }
     // operators
     bool operator&&(const Bool &other) const { return this - value() && other.value(); }

@@ -91,9 +91,9 @@ static void FOS_CHECK_ARGS(const List<_OBJ> &expectedArgs, const ptr<Inst> inst)
   FOS_TEST_MESSAGE("!yTesting!! instruction: %s", inst->toString().c_str());
   TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst->v_args().size());
   for (int i = 0; i < expectedArgs.size(); i++) {
-    bool test = expectedArgs[i] == *inst->v_args()[i];
+    bool test = *ObjHelper::cast(expectedArgs[i]) == *inst->v_args()[i];
     if (!test) {
-      FOS_TEST_MESSAGE("!r%s!! != !r%s!!", expectedArgs[i].toString().c_str(), inst->v_args()[i]->toString().c_str());
+      FOS_TEST_MESSAGE("!r%s!! != !r%s!!", ObjHelper::cast(expectedArgs[i])->toString().c_str(), inst->v_args()[i]->toString().c_str());
       TEST_FAIL();
     }
   }

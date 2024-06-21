@@ -87,7 +87,7 @@ namespace fhatos {
         } else if (*opcode == "mod") {
           fluent = new Fluent(fluent->mod(*args->at(0)));
         } else if (*opcode == "start") {
-          // fluent = new Fluent(fluent->start(args));
+          fluent = new Fluent(fluent->start(args));
         } /*else if (*opcode == "select") {
           fluent = new Fluent(args->at(0)->type() == OType::REC ? fluent->select(args->at(0)->cast<Rec>())
                                                                 : fluent->select(*args));
@@ -194,26 +194,34 @@ namespace fhatos {
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find('[');
-      ptr<fURI> utype = OBJ_FURI;
+      ptr<fURI> utype = ptr<fURI>((fURI *) nullptr);
       if (index != string::npos && index != 0 && token.back() == ']') {
-        utype = share(fURI(token.substr(0, index)));
+        string typeToken = token.substr(0, index);
+        //bool hasAuthority = typeToken.find('@') != std::string::npos;
+        //bool hasSlash = typeToken.starts_with("/");
+        utype = share(fURI(typeToken));
         token.pop_back();
         token = token.substr(index + 1);
-        LOG(DEBUG, FOS_TAB_5 "typed stripped token: %s\n", token.c_str());
+        LOG(DEBUG, "\n" FOS_TAB_5 "!rtype token!!: %s\n" FOS_TAB_5 "!rvalue token!!: %s\n", utype->toString().c_str(),
+            token.c_str());
       }
       if (strcmp(token.c_str(), "Ø") == 0) {
-        obj_or_bcode = NoObj::self_ptr();
+        utype = utype.get() ? utype : NOOBJ_FURI;
+        obj_or_bcode = NoObj::self_ptr<NoObj>();
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
-        obj_or_bcode = ptr<Obj>(new Str(token.substr(1, token.length() - 2)));
+        utype = Type::obj_t(OType::STR, utype);
+        obj_or_bcode = ptr<Str>(new Str(token.substr(1, token.length() - 2), utype));
         // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
-        obj_or_bcode = ptr<Obj>(new Bool(strcmp("true", token.c_str()) == 0));
+        utype = Type::obj_t(OType::BOOL, utype);
+        obj_or_bcode = ptr<Bool>(new Bool(strcmp("true", token.c_str()) == 0, utype));
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream ss = stringstream(token);
-        obj_or_bcode = ptr<Obj>(parseBytecode(&ss).get());
+        // utype = utype.get() ? utype : URI_BCODE;
+        obj_or_bcode = ptr<Bytecode>(parseBytecode(&ss).get());
       } else if (token[token.length() - 1] == ')' && token.find('(')) {
         stringstream ss = stringstream(token);
-        obj_or_bcode = ptr<Obj>(parseBytecode(&ss).get());
+        obj_or_bcode = ptr<Bytecode>(parseBytecode(&ss).get());
       } else if (token.find("=>") != string::npos /*token[0] == '[' && token[token.length() - 1] == ']'*/) {
         stringstream x = stringstream(token[0] == '[' ? token.substr(1, token.length() - 2) : token);
         stringstream *ss = &x;
@@ -282,19 +290,25 @@ namespace fhatos {
           for (const auto &pair: map) {
             map2.insert(pair);
           }
-          obj_or_bcode = ptr<Obj>(new Rec(map2, utype));
+          utype = Type::obj_t(OType::REC, utype);
+          obj_or_bcode = ptr<Rec>(new Rec(map2, utype));
         }
       } else if (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
-        obj_or_bcode = ptr<Obj>(new Real(stof(token), utype));
+        utype = Type::obj_t(OType::REAL, utype);
+        obj_or_bcode = ptr<Real>(new Real(stof(token), utype));
       } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
-        obj_or_bcode = ptr<Obj>(new Int(stoi(token), utype));
+        utype = Type::obj_t(OType::INT, utype);
+        obj_or_bcode = ptr<Int>(new Int(stoi(token), utype));
       } else {
+        utype = Type::obj_t(OType::URI, utype);
         obj_or_bcode = ptr<Uri>(new Uri(fURI(token), utype));
       }
-      LOG(DEBUG, FOS_TAB_5 "!ytype!![%s] !yutype!![%s]\n", OTYPE_STR.at(obj_or_bcode->otype()),
-          utype ? utype->toString().c_str() : "null");
       delete array;
-      return share<OBJ>(OBJ(*(OBJ*)obj_or_bcode.get()));
+      ptr<OBJ> temp = std::dynamic_pointer_cast<OBJ>(obj_or_bcode);
+      LOG(DEBUG, FOS_TAB_5 "%s: !yvar!![%s] !yotype!![%s] !ystype!![%s] !yutype!![%s]\n", temp->toString().c_str(),
+          temp->type()->variable().c_str(), OTYPE_STR.at(temp->otype()), temp->type()->stype().c_str(),
+          temp->type()->name().c_str());
+      return temp;
     }
   };
 } // namespace fhatos

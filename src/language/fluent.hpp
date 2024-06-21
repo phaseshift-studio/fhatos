@@ -83,12 +83,12 @@ namespace fhatos {
 
     const ptr<Bytecode> code() const { return this->bcode; }
 
-    Fluent start(const List<Obj> &starts) const {
-      auto castStarts = List<ptr<Obj>>();
-      for (const auto &start: starts) {
-        castStarts.push_back(ptr<Obj>(ObjHelper::cast(start)));
-      }
-      return this->addInst(ptr<Inst>(new StartInst(castStarts)));
+    Fluent start(const ptr<List<ptr<Obj>>> &starts) const {
+      /*auto castStarts = List<ptr<Obj>>();
+      for (const auto &start: *starts) {
+        castStarts.push_back(ptr<Obj>(ObjHelper::cast(*start)));
+      }*/
+      return this->addInst(ptr<Inst>(new StartInst(*starts)));
     }
 
     /////////////////////////////////////////////////////////////////////

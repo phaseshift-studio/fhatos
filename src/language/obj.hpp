@@ -176,8 +176,8 @@ namespace fhatos {
     virtual ptr<Obj> apply(const ptr<Obj> &obj) { throw fError("obj has no applicable form"); }
     virtual bool operator==(const Obj &other) const {
       throw fError("obj has no equality relation");
-     /* return this->_type->equals(*other._type) && (this->isBytecode() == other.isBytecode()) &&
-             (this->isBytecode() ? (this->bcode() == other.bcode()) : (this->toString() == other.toString()));*/
+      /* return this->_type->equals(*other._type) && (this->isBytecode() == other.isBytecode()) &&
+              (this->isBytecode() ? (this->bcode() == other.bcode()) : (this->toString() == other.toString()));*/
     }
     virtual bool operator!=(const Obj &other) const { return !(*this == other); }
     virtual bool isNoObj() const { return this->otype() == OType::NOOBJ; }
@@ -213,19 +213,28 @@ namespace fhatos {
     ptr<fURI> v_furi() const { return std::any_cast<ptr<fURI>>(std::get<0>(this->_var)); }
     OType instanceOType() { return STR_OTYPE.at(this->v_furi()->path(0, 1)); }
     string variable() const { return this->v_furi()->user().value_or(""); }
-    string name() const { return this->v_furi()->lastSegment(); }
+    string name() const { return this->v_furi()->path(this->v_furi()->pathLength() - 1); }
+    string stype() const { return this->v_furi()->path(); }
     string location() const { return this->v_furi()->host(); }
     bool mutating() const { return this->variable()[0] == '~'; }
     string objString(const string &objString) const {
-      if (this->v_furi()->length() > 2)
-        return (this->variable().empty() ? "" : (this->variable() + "@")) +
-               ("!b" + this->name() + "!g[!!" + objString + "!g]!!");
-      else
-        return (this->variable().empty() ? "" : (this->variable() + "@")) + objString;
+      return this->v_furi()->pathLength() > 1
+                 ? (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!b/!!")) +
+                       ("!b" + this->name() + "!g[!!" + objString + "!g]!!")
+                 : (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!!")) + objString;
     }
     string toString() const override { return this->v_furi()->toString(); }
     static ptr<fURI> obj_t(const OType &otype, const char *utype) {
-      return ptr<fURI>(new fURI(string("/") + OTYPE_STR.at(otype) + (strlen(utype) == 0 ? "" : ("/" + string(utype)))));
+      string typeToken = string(utype);
+      bool hasAuthority = typeToken.find('@') != std::string::npos;
+      bool hasSlash = typeToken.starts_with("/");
+      fURI temp = fURI(hasAuthority ? typeToken : hasSlash ? typeToken : "/" + typeToken);
+      fURI temp2 = fURI(string("/") + OTYPE_STR.at(otype) + (temp.path().empty() ? "" : ("/" + temp.path())));
+      fURI temp3 = temp2.authority(temp.authority());
+      return ptr<fURI>(new fURI(temp3));
+    }
+    static ptr<fURI> obj_t(const OType &otype, const ptr<fURI>& utype) {
+      return Type::obj_t(otype, utype.get() ? utype->toString().c_str() : "");
     }
   };
 
@@ -241,6 +250,7 @@ namespace fhatos {
     ptr<Obj> apply(const ptr<Obj> &obj) override { return NoObj::self_ptr(); }
     bool isNoObj() const override { return true; }
     string toString() const override { return "!rØ!!"; }
+    OType otype() const override { return OType::NOOBJ; }
     bool operator==(const Obj &other) const override { return other.isNoObj(); }
 
   private:

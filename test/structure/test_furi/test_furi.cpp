@@ -100,6 +100,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("fhat", fURI(":fhat:pig@127.0.0.1/a/b").user_password()->first.c_str());
     TEST_ASSERT_EQUAL_STRING("pig", fURI(":fhat:pig@127.0.0.1/a/b").user_password()->second.c_str());
     TEST_ASSERT_EQUAL_STRING("", fURI("::pig@127.0.0.1/a/b").user_password()->first.c_str());
+    TEST_ASSERT_EQUAL_STRING("x", fURI("x@/a/b/c/d/e").user()->c_str());
     // TEST_ASSERT_EQUAL_STRING(
     //  "pig", fURI("::pig@127.0.0.1/a/b").user_password()->second.c_str());
     ///
@@ -135,11 +136,17 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("c/d", fURI("fhat@127.0.0.1/a/b/c/d/e").path(2, 4).c_str());
     TEST_ASSERT_EQUAL_STRING("e", fURI("fhat@127.0.0.1/a/b/c/d/e").path(4, 5).c_str());
     TEST_ASSERT_EQUAL_STRING("", fURI("fhat@127.0.0.1/a/b/c/d/e").path(5, 6).c_str());
+    TEST_ASSERT_EQUAL_STRING("a/b/c/d/e", fURI("/a/b/c/d/e").path().c_str());
+    TEST_ASSERT_EQUAL_STRING("a/b/c/d/e", fURI("x@/a/b/c/d/e").path().c_str());
     //
     TEST_ASSERT_EQUAL_INT(0, fURI("").pathLength());
     TEST_ASSERT_EQUAL_INT(0, fURI("fhat@127.0.0.1").pathLength());
     TEST_ASSERT_EQUAL_INT(1, fURI("fhat@127.0.0.1/a").pathLength());
     TEST_ASSERT_EQUAL_INT(5, fURI("fhat@127.0.0.1/a/b/c/d/e").pathLength());
+    TEST_ASSERT_EQUAL_INT(5, fURI("/a/b/c/d/e").pathLength());
+    TEST_ASSERT_EQUAL_INT(5, fURI("x@/a/b/c/d/e").pathLength());
+    TEST_ASSERT_EQUAL_INT(4, fURI("a/b/c/d/e").pathLength());
+    TEST_ASSERT_EQUAL_INT(4, fURI("x@a/b/c/d/e").pathLength());
   }
 
   void test_furi_segment() {
@@ -159,6 +166,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("fat@127.0.0.1", fURI("fat@127.0.0.1/a/b/c").authority().c_str());
     TEST_ASSERT_EQUAL_STRING("fat:pig@127.0.0.1", fURI("fat:pig@127.0.0.1/a/b/c").authority().c_str());
     TEST_ASSERT_EQUAL_STRING("", fURI("/a").authority().c_str());
+    TEST_ASSERT_EQUAL_STRING("x@", fURI("x@/a/b/c/d/e").authority().c_str());
     //////
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("1.1.1.1/a").authority("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("1.1.1.1").authority("127.0.0.1"));

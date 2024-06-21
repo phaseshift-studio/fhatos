@@ -38,11 +38,20 @@ namespace fhatos {
 
     static ptr<Obj> cast(const Obj obj) {
       switch (obj.otype()) {
+        case OType::NOOBJ:
+          return NoObj::self_ptr<>();
         case OType::BOOL:
-          return ptr<Bool>(new Bool(*(Bool *) &obj));
-        case OType::INT: {
-          return ptr<Int>(new Int(*(Int *) &obj));
-        }
+          return share<Bool>(Bool((*(Bool *) &obj).value(), obj._type));
+        case OType::INT:
+          return share<Int>(Int((*(Int *) &obj).value(), obj._type));
+        case OType::REAL:
+          return share<Real>(Real((*(Real *) &obj).value(), obj._type));
+        case OType::STR:
+          return share<Str>(Str((*(Str *) &obj).value(), obj._type));
+        case OType::URI:
+          return share<Uri>(Uri((*(Uri *) &obj).value(), obj._type));
+        case OType::REC:
+          return share<Rec>(Rec((*(Rec *) &obj).value(), obj._type));
         default:
           throw fError("Type not in cast: %s", OTYPE_STR.at(obj.otype()));
       }

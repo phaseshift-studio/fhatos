@@ -55,13 +55,13 @@ namespace fhatos {
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as("age"));
     FOS_TEST_OBJ_EQUAL(intC, intA->as("age"));
     FOS_TEST_OBJ_EQUAL(intC, intB->as("age"));
-    FOS_TEST_OBJ_EQUAL(intA->split<Int>(10, "age"), intB->split<Int>(10, "age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(10, "age"), intB->split(10, "age"));
     FOS_TEST_OBJ_EQUAL(intA, intC->as(""));
     FOS_TEST_OBJ_EQUAL(intA, intA->as(""));
-    FOS_TEST_OBJ_EQUAL(intA->split<Int>(2)->as("age"), intC->split<Int>(2));
-    FOS_TEST_OBJ_EQUAL(intA->split<Int>(2)->as("age"), intB->split<Int>(10)->split<Int>(2)->as("age"));
-    FOS_TEST_OBJ_NOT_EQUAL(intA->split<Int>(2)->as("age"), intB->split<Int>(2));
-    FOS_TEST_OBJ_NOT_EQUAL(intA->split<Int>(2)->as("age"), intB->split<Int>(3)->as("age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("age"), intC->split(2));
+    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("age"), intB->split(10)->split(2)->as("age"));
+    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("age"), intB->split(2));
+    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("age"), intB->split(3)->as("age"));
     /// apply
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intB));
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intA));
