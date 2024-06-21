@@ -233,7 +233,7 @@ namespace fhatos {
       fURI temp3 = temp2.authority(temp.authority());
       return ptr<fURI>(new fURI(temp3));
     }
-    static ptr<fURI> obj_t(const OType &otype, const ptr<fURI>& utype) {
+    static ptr<fURI> obj_t(const OType &otype, const ptr<fURI> &utype) {
       return Type::obj_t(otype, utype.get() ? utype->toString().c_str() : "");
     }
   };
@@ -249,8 +249,9 @@ namespace fhatos {
     }
     ptr<Obj> apply(const ptr<Obj> &obj) override { return NoObj::self_ptr(); }
     bool isNoObj() const override { return true; }
-    string toString() const override { return "!rØ!!"; }
+    string toString() const override { return "Ø"; }
     OType otype() const override { return OType::NOOBJ; }
+    ptr<Type> type() const override { return ptr<Type>(new Type(this->_type)); }
     bool operator==(const Obj &other) const override { return other.isNoObj(); }
 
   private:

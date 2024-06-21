@@ -57,7 +57,6 @@ namespace fhatos {
     const ptr<NoObj> n = Parser::parseObj<NoObj>(string("Ø"));
     TEST_ASSERT_EQUAL(OType::NOOBJ, n->otype());
     TEST_ASSERT_EQUAL_STRING("Ø", n->toString().c_str());
-    // delete n; can't delete static singleton
   }
 
   void test_bool_parsing() {
@@ -172,7 +171,7 @@ namespace fhatos {
     const ptr<Bytecode> bcode =
         FOS_PRINT_OBJ<Bytecode>(parser->parse("<=(scheduler@kernel?spawn,thread["
                                               "[id    => example,"
-                                              " setup => __(0).ref(:x).print('setup complete'),"
+                                              " setup => __(0).ref(x).print('setup complete'),"
                                               " loop  => <=(scheduler@kernel?destroy,example)]])"));
     auto process = Processor<Str>(bcode);
     process.forEach([](const ptr<Str> s) { LOG(INFO, "RESULT: %s", s->value().c_str()); });
@@ -203,16 +202,16 @@ namespace fhatos {
                  // FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_no_input_parsing); //
       // FOS_RUN_TEST(test_start_inst_parsing); //
-      // FOS_RUN_TEST(test_noobj_parsing); //
+       FOS_RUN_TEST(test_noobj_parsing); //
       FOS_RUN_TEST(test_bool_parsing); //
       FOS_RUN_TEST(test_int_parsing); //
       FOS_RUN_TEST(test_real_parsing); //
-      FOS_RUN_TEST(test_uri_parsing); //
+      //FOS_RUN_TEST(test_uri_parsing); //
       FOS_RUN_TEST(test_str_parsing); //
       // FOS_RUN_TEST(test_rec_parsing); //
-      /*FOS_RUN_TEST(test_nested_bytecode_parsing); //
-      FOS_RUN_TEST(test_bcode_parsing); //
-      FOS_RUN_TEST(test_as_parsing); //*/
+      //FOS_RUN_TEST(test_nested_bytecode_parsing); //
+      //FOS_RUN_TEST(test_bcode_parsing); //
+     // FOS_RUN_TEST(test_as_parsing); //
   )
 }; // namespace fhatos
 

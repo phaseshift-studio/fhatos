@@ -197,8 +197,8 @@ namespace fhatos {
       ptr<fURI> utype = ptr<fURI>((fURI *) nullptr);
       if (index != string::npos && index != 0 && token.back() == ']') {
         string typeToken = token.substr(0, index);
-        //bool hasAuthority = typeToken.find('@') != std::string::npos;
-        //bool hasSlash = typeToken.starts_with("/");
+        // bool hasAuthority = typeToken.find('@') != std::string::npos;
+        // bool hasSlash = typeToken.starts_with("/");
         utype = share(fURI(typeToken));
         token.pop_back();
         token = token.substr(index + 1);
@@ -206,7 +206,7 @@ namespace fhatos {
             token.c_str());
       }
       if (strcmp(token.c_str(), "Ø") == 0) {
-        utype = utype.get() ? utype : NOOBJ_FURI;
+        utype = Type::obj_t(OType::NOOBJ, utype);
         obj_or_bcode = NoObj::self_ptr<NoObj>();
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
         utype = Type::obj_t(OType::STR, utype);
