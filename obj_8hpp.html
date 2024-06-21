@@ -102,10 +102,12 @@ $(function(){ initResizable(false); });
 
 <p>Foundation objects of mm-ADT.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;fhatos.hpp&gt;</code><br />
+<div class="textblock"><code>#include &lt;any&gt;</code><br />
+<code>#include &lt;fhatos.hpp&gt;</code><br />
 <code>#include &lt;structure/furi.hpp&gt;</code><br />
 <code>#include &lt;util/uuid.hpp&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;variant&gt;</code><br />
 <code>#include &lt;esp_assert.h&gt;</code><br />
 </div>
 <p><a href="obj_8hpp_source.html">Go to the source code of this file.</a></p>
@@ -113,51 +115,11 @@ $(function(){ initResizable(false); });
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Obj.html">fhatos::Obj</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An mm-ADT obj represented in C++ as a class.  <a href="classfhatos_1_1Obj.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Type.html">fhatos::Type</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An mm-ADT type encoded in a URI.  <a href="classfhatos_1_1Type.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1NoObj.html">fhatos::NoObj</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Objs.html">fhatos::Objs</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Uri.html">fhatos::Uri</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Bool.html">fhatos::Bool</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Int.html">fhatos::Int</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Real.html">fhatos::Real</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Str.html">fhatos::Str</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Lst.html">fhatos::Lst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1obj__hash.html">fhatos::obj_hash</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1obj__equal__to.html">fhatos::obj_equal_to</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Rec.html">fhatos::Rec</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Inst.html">fhatos::Inst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1NoInst.html">fhatos::NoInst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1OneToOneInst.html">fhatos::OneToOneInst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1ManyToOneInst.html">fhatos::ManyToOneInst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1OneToManyInst.html">fhatos::OneToManyInst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1ManyToManyInst.html">fhatos::ManyToManyInst</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1OBJ__OR__BYTECODE.html">fhatos::OBJ_OR_BYTECODE</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unionfhatos_1_1OBJ__OR__BYTECODE_1_1OBJ__UNION.html">fhatos::OBJ_OR_BYTECODE::OBJ_UNION</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1URI__OR__BYTECODE.html">fhatos::URI_OR_BYTECODE</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1PtrSerializer.html">fhatos::PtrSerializer</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
@@ -171,40 +133,9 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ad0e926ed9acc4696f29456ef49037341" id="r_ad0e926ed9acc4696f29456ef49037341"><td class="memItemLeft" align="right" valign="top"><a id="ad0e926ed9acc4696f29456ef49037341" name="ad0e926ed9acc4696f29456ef49037341"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::BObj</b> = Triple&lt;<a class="el" href="#a48680c360c0948acdfc2bab032a0139e">OType</a>,fbyte*,uint32_t&gt;</td></tr>
-<tr class="separator:ad0e926ed9acc4696f29456ef49037341"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a2730528dfb4e7d2f3a4b8a7696601a" id="r_a9a2730528dfb4e7d2f3a4b8a7696601a"><td class="memItemLeft" align="right" valign="top"><a id="a9a2730528dfb4e7d2f3a4b8a7696601a" name="a9a2730528dfb4e7d2f3a4b8a7696601a"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::UType</b> = <a class="el" href="classfhatos_1_1fURI.html">fURI</a></td></tr>
-<tr class="separator:a9a2730528dfb4e7d2f3a4b8a7696601a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68667d1f01fb9ed9a141524c1cf5f0c2" id="r_a68667d1f01fb9ed9a141524c1cf5f0c2"><td class="memTemplParams" colspan="2"><a id="a68667d1f01fb9ed9a141524c1cf5f0c2" name="a68667d1f01fb9ed9a141524c1cf5f0c2"></a>
-template&lt;typename K  = Obj *, typename V  = Obj *, typename H  = obj_hash, typename Q  = obj_equal_to&gt; </td></tr>
-<tr class="memitem:a68667d1f01fb9ed9a141524c1cf5f0c2"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>fhatos::RecMap</b> = OrderedMap&lt;K, V, H, Q&gt;</td></tr>
-<tr class="separator:a68667d1f01fb9ed9a141524c1cf5f0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa9aff0e4f40145b66f7cece66aeba6a" id="r_aaa9aff0e4f40145b66f7cece66aeba6a"><td class="memItemLeft" align="right" valign="top"><a id="aaa9aff0e4f40145b66f7cece66aeba6a" name="aaa9aff0e4f40145b66f7cece66aeba6a"></a>
-typedef Function&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *, const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstFunction</b></td></tr>
-<tr class="separator:aaa9aff0e4f40145b66f7cece66aeba6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8e6c2b0bb0b7a891e97161415a06f4f" id="r_af8e6c2b0bb0b7a891e97161415a06f4f"><td class="memItemLeft" align="right" valign="top"><a id="af8e6c2b0bb0b7a891e97161415a06f4f" name="af8e6c2b0bb0b7a891e97161415a06f4f"></a>
-typedef Function&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *, const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::OneToOneFunction</b></td></tr>
-<tr class="separator:af8e6c2b0bb0b7a891e97161415a06f4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a423640cee71a27c6d0b3d41fc4dfd04f" id="r_a423640cee71a27c6d0b3d41fc4dfd04f"><td class="memItemLeft" align="right" valign="top"><a id="a423640cee71a27c6d0b3d41fc4dfd04f" name="a423640cee71a27c6d0b3d41fc4dfd04f"></a>
-typedef Function&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *, const <a class="el" href="classfhatos_1_1Objs.html">Objs</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::OneToManyFunction</b></td></tr>
-<tr class="separator:a423640cee71a27c6d0b3d41fc4dfd04f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3db9fb5571952c3f9486f8d6f731614f" id="r_a3db9fb5571952c3f9486f8d6f731614f"><td class="memItemLeft" align="right" valign="top"><a id="a3db9fb5571952c3f9486f8d6f731614f" name="a3db9fb5571952c3f9486f8d6f731614f"></a>
-typedef Function&lt; const <a class="el" href="classfhatos_1_1Objs.html">Objs</a> *, const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::ManyToOneFunction</b></td></tr>
-<tr class="separator:a3db9fb5571952c3f9486f8d6f731614f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae28602cd2ea8a47d974f2e4eb259a63d" id="r_ae28602cd2ea8a47d974f2e4eb259a63d"><td class="memItemLeft" align="right" valign="top"><a id="ae28602cd2ea8a47d974f2e4eb259a63d" name="ae28602cd2ea8a47d974f2e4eb259a63d"></a>
-typedef Function&lt; const <a class="el" href="classfhatos_1_1Objs.html">Objs</a> *, const <a class="el" href="classfhatos_1_1Objs.html">Objs</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::ManyToManyFunction</b></td></tr>
-<tr class="separator:ae28602cd2ea8a47d974f2e4eb259a63d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c43602641f3856726655635a45cb790" id="r_a3c43602641f3856726655635a45cb790"><td class="memItemLeft" align="right" valign="top"><a id="a3c43602641f3856726655635a45cb790" name="a3c43602641f3856726655635a45cb790"></a>
-typedef List&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstArgs</b></td></tr>
-<tr class="separator:a3c43602641f3856726655635a45cb790"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9bb6867ffa5a0068e334dbbecd12f76" id="r_ad9bb6867ffa5a0068e334dbbecd12f76"><td class="memItemLeft" align="right" valign="top"><a id="ad9bb6867ffa5a0068e334dbbecd12f76" name="ad9bb6867ffa5a0068e334dbbecd12f76"></a>
-typedef string&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstOpcode</b></td></tr>
-<tr class="separator:ad9bb6867ffa5a0068e334dbbecd12f76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac4226c1ea73e842189262c97f8f7dd2e" id="r_ac4226c1ea73e842189262c97f8f7dd2e"><td class="memItemLeft" align="right" valign="top"><a id="ac4226c1ea73e842189262c97f8f7dd2e" name="ac4226c1ea73e842189262c97f8f7dd2e"></a>
-typedef Pair&lt; const InstOpcode, const InstArgs &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstPair</b></td></tr>
-<tr class="separator:ac4226c1ea73e842189262c97f8f7dd2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40a95275d2b290ba3bfc00f580d216aa" id="r_a40a95275d2b290ba3bfc00f580d216aa"><td class="memItemLeft" align="right" valign="top"><a id="a40a95275d2b290ba3bfc00f580d216aa" name="a40a95275d2b290ba3bfc00f580d216aa"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::BObj</b> = Triple&lt;<a class="el" href="#a48680c360c0948acdfc2bab032a0139e">OType</a>, fbyte *, uint32_t&gt;</td></tr>
+<tr class="separator:a40a95275d2b290ba3bfc00f580d216aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -229,16 +160,6 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a48680c360c0948acdfc2bab032a0139e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The base types of mm-ADT.  <a href="#a48680c360c0948acdfc2bab032a0139e">More...</a><br /></td></tr>
 <tr class="separator:a48680c360c0948acdfc2bab032a0139e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a03c40cb756f3366f6b858579773159d1" id="r_a03c40cb756f3366f6b858579773159d1"><td class="memItemLeft" align="right" valign="top"><a id="a03c40cb756f3366f6b858579773159d1" name="a03c40cb756f3366f6b858579773159d1"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>IType</b> : uint8_t { <br />
-&#160;&#160;<b>NOINST</b> = 0
-, <b>ONE_TO_ONE</b>
-, <b>ONE_TO_MANY</b>
-, <b>MANY_TO_ONE</b>
-, <br />
-&#160;&#160;<b>MANY_TO_MANY</b>
-<br />
- }</td></tr>
-<tr class="separator:a03c40cb756f3366f6b858579773159d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Foundation objects of mm-ADT. </p>

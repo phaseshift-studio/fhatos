@@ -123,9 +123,9 @@ Inheritance diagram for fhatos::fBcode&lt; PROCESS, ROUTER &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae55f43116d07b5de219302e552eada0d" id="r_ae55f43116d07b5de219302e552eada0d"><td class="memItemLeft" align="right" valign="top"><a id="ae55f43116d07b5de219302e552eada0d" name="ae55f43116d07b5de219302e552eada0d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>fBcode</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id, const ptr&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;rec)</td></tr>
-<tr class="separator:ae55f43116d07b5de219302e552eada0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0b4cd8059079d12185a1ec5cf119aa5" id="r_ac0b4cd8059079d12185a1ec5cf119aa5"><td class="memItemLeft" align="right" valign="top"><a id="ac0b4cd8059079d12185a1ec5cf119aa5" name="ac0b4cd8059079d12185a1ec5cf119aa5"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>fBcode</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id, const ptr&lt; <a class="el" href="classfhatos_1_1Rec.html">Rec</a> &gt; &amp;rec)</td></tr>
+<tr class="separator:ac0b4cd8059079d12185a1ec5cf119aa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfhatos_1_1Actor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1Actor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor&lt; Thread, FOS_DEFAULT_ROUTER &gt;</a></td></tr>
 <tr class="memitem:a15d4c5910ad82cbbcb0a26d251506473 inherit pub_methods_classfhatos_1_1Actor" id="r_a15d4c5910ad82cbbcb0a26d251506473"><td class="memItemLeft" align="right" valign="top">
 &#160;</td><td class="memItemRight" valign="bottom"><b>Actor</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id, const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; <a class="el" href="classfhatos_1_1Thread.html">Thread</a>, FOS_DEFAULT_ROUTER &gt; * &gt; setupFunction=nullptr, const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; <a class="el" href="classfhatos_1_1Thread.html">Thread</a>, FOS_DEFAULT_ROUTER &gt; * &gt; loopFunction=nullptr)</td></tr>
@@ -207,18 +207,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>running</b> () const<
 virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>subscribe</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;relativePattern, const Consumer&lt; const ptr&lt; <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &amp; &gt; &amp;onRecv, const QoS qos=QoS::_1)</td></tr>
 <tr class="memdesc:a2269f72ddb5fff169fef238e1cb290d0 inherit pub_methods_classfhatos_1_1Publisher"><td class="mdescLeft">&#160;</td><td class="mdescRight">SUBSCRIBE. <br /></td></tr>
 <tr class="separator:a2269f72ddb5fff169fef238e1cb290d0 inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea3c67043324fafddae757207946081b inherit pub_methods_classfhatos_1_1Publisher" id="r_aea3c67043324fafddae757207946081b"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classfhatos_1_1Publisher.html">Publisher</a>&lt; FOS_DEFAULT_ROUTER &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>onQuery</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;queryPattern, const Runnable &amp;runnable)</td></tr>
-<tr class="separator:aea3c67043324fafddae757207946081b inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3f514cf55c3fd3b33baf577d39b6596 inherit pub_methods_classfhatos_1_1Publisher" id="r_ab3f514cf55c3fd3b33baf577d39b6596"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classfhatos_1_1Publisher.html">Publisher</a>&lt; FOS_DEFAULT_ROUTER &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>onQuery</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;queryPattern, const BiConsumer&lt; <a class="el" href="classfhatos_1_1ID.html">SourceID</a>, <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &gt; &amp;consumer)</td></tr>
-<tr class="separator:ab3f514cf55c3fd3b33baf577d39b6596 inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa35733fd5091ca34f2371b41bdff93f2 inherit pub_methods_classfhatos_1_1Publisher" id="r_aa35733fd5091ca34f2371b41bdff93f2"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classfhatos_1_1Publisher.html">Publisher</a>&lt; FOS_DEFAULT_ROUTER &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>onQuery</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;queryPattern, const Map&lt; string, BiConsumer&lt; <a class="el" href="classfhatos_1_1ID.html">SourceID</a>, <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &gt; &gt; &amp;mapping, const BiConsumer&lt; <a class="el" href="classfhatos_1_1ID.html">SourceID</a>, <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &gt; &amp;thenDo=nullptr)</td></tr>
-<tr class="separator:aa35733fd5091ca34f2371b41bdff93f2 inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a681dec3a4d743626ba4b551c162bda58 inherit pub_methods_classfhatos_1_1Publisher" id="r_a681dec3a4d743626ba4b551c162bda58"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classfhatos_1_1Publisher.html">Publisher</a>&lt; FOS_DEFAULT_ROUTER &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>onQuery</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;queryPattern, const Map&lt; string, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;mapping)</td></tr>
-<tr class="separator:a681dec3a4d743626ba4b551c162bda58 inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa223821def66db39826c13d0e70558c3 inherit pub_methods_classfhatos_1_1Publisher" id="r_aa223821def66db39826c13d0e70558c3"><td class="memItemLeft" align="right" valign="top">
 virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>unsubscribe</b> (const <a class="el" href="classfhatos_1_1Pattern.html">Pattern</a> &amp;relativePattern)</td></tr>
 <tr class="memdesc:aa223821def66db39826c13d0e70558c3 inherit pub_methods_classfhatos_1_1Publisher"><td class="mdescLeft">&#160;</td><td class="mdescRight">UNSUBSCRIBE. <br /></td></tr>
@@ -230,9 +218,6 @@ virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>unsu
 RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const ptr&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
 <tr class="memdesc:af501f32c3c0e7e4b13d3a27ac6eb61a7 inherit pub_methods_classfhatos_1_1Publisher"><td class="mdescLeft">&#160;</td><td class="mdescRight">PUBLISH. <br /></td></tr>
 <tr class="separator:af501f32c3c0e7e4b13d3a27ac6eb61a7 inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac662919bd86fb88074a68f847c227fd inherit pub_methods_classfhatos_1_1Publisher" id="r_aac662919bd86fb88074a68f847c227fd"><td class="memItemLeft" align="right" valign="top">
-RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;relativeTarget, const ptr&lt; const <a class="el" href="structfhatos_1_1OBJ__OR__BYTECODE.html">OBJ_OR_BYTECODE</a> &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</td></tr>
-<tr class="separator:aac662919bd86fb88074a68f847c227fd inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25a00bf954483cf8438785443440f337 inherit pub_methods_classfhatos_1_1Publisher" id="r_a25a00bf954483cf8438785443440f337"><td class="memItemLeft" align="right" valign="top">
 const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>write</b> (const ptr&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; obj, const <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &amp;relativeTarget) const</td></tr>
 <tr class="separator:a25a00bf954483cf8438785443440f337 inherit pub_methods_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -249,9 +234,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a937eae9ac77e87c9449facdb4128532e" id="r_a937eae9ac77e87c9449facdb4128532e"><td class="memItemLeft" align="right" valign="top"><a id="a937eae9ac77e87c9449facdb4128532e" name="a937eae9ac77e87c9449facdb4128532e"></a>
 std::atomic&lt; bool &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>setupComplete</b> = new std::atomic&lt;bool&gt;(false)</td></tr>
 <tr class="separator:a937eae9ac77e87c9449facdb4128532e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30497311f79c11df68809ebd51881e4c" id="r_a30497311f79c11df68809ebd51881e4c"><td class="memItemLeft" align="right" valign="top"><a id="a30497311f79c11df68809ebd51881e4c" name="a30497311f79c11df68809ebd51881e4c"></a>
-const ptr&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>rec</b></td></tr>
-<tr class="separator:a30497311f79c11df68809ebd51881e4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10d137eb714a9c77493e71020812a541" id="r_a10d137eb714a9c77493e71020812a541"><td class="memItemLeft" align="right" valign="top"><a id="a10d137eb714a9c77493e71020812a541" name="a10d137eb714a9c77493e71020812a541"></a>
+const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>rec</b></td></tr>
+<tr class="separator:a10d137eb714a9c77493e71020812a541"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af37b720d0a8ae34aa2dfef11b831637d" id="r_af37b720d0a8ae34aa2dfef11b831637d"><td class="memItemLeft" align="right" valign="top"><a id="af37b720d0a8ae34aa2dfef11b831637d" name="af37b720d0a8ae34aa2dfef11b831637d"></a>
 ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>SETUP_BCODE</b></td></tr>
 <tr class="separator:af37b720d0a8ae34aa2dfef11b831637d"><td class="memSeparator" colspan="2">&#160;</td></tr>

@@ -93,94 +93,117 @@ $(function(){ initResizable(false); });
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classfhatos_1_1Obj-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">fhatos::Obj Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p>An mm-ADT obj represented in C++ as a class.  
- <a href="#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="obj_8hpp_source.html">obj.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for fhatos::Obj:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classfhatos_1_1Obj.png" usemap="#fhatos::Obj_map" alt=""/>
   <map id="fhatos::Obj_map" name="fhatos::Obj_map">
-<area href="classfhatos_1_1BinaryObj.html" alt="fhatos::BinaryObj&lt; SERIALIZER &gt;" shape="rect" coords="214,56,418,80"/>
-<area href="classfhatos_1_1Bool.html" alt="fhatos::Bool" shape="rect" coords="214,112,418,136"/>
-<area href="classfhatos_1_1Bytecode.html" alt="fhatos::Bytecode" shape="rect" coords="214,168,418,192"/>
-<area href="classfhatos_1_1Inst.html" alt="fhatos::Inst" shape="rect" coords="214,224,418,248"/>
-<area href="classfhatos_1_1Int.html" alt="fhatos::Int" shape="rect" coords="214,280,418,304"/>
-<area href="classfhatos_1_1Lst.html" alt="fhatos::Lst" shape="rect" coords="214,336,418,360"/>
-<area href="classfhatos_1_1NoObj.html" alt="fhatos::NoObj" shape="rect" coords="214,392,418,416"/>
-<area href="classfhatos_1_1Objs.html" alt="fhatos::Objs" shape="rect" coords="214,448,418,472"/>
-<area href="classfhatos_1_1Real.html" alt="fhatos::Real" shape="rect" coords="214,504,418,528"/>
-<area href="classfhatos_1_1Rec.html" alt="fhatos::Rec" shape="rect" coords="214,560,418,584"/>
-<area href="classfhatos_1_1Str.html" alt="fhatos::Str" shape="rect" coords="214,616,418,640"/>
-<area href="classfhatos_1_1Uri.html" alt="fhatos::Uri" shape="rect" coords="214,672,418,696"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; Bool, OType::BOOL, bool &gt;" shape="rect" coords="327,56,644,80"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; Int, OType::INT, FL_INT_TYPE &gt;" shape="rect" coords="327,112,644,136"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; Real, OType::REAL, FL_REAL_TYPE &gt;" shape="rect" coords="327,168,644,192"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; Rec, OType::REC, RecMap&lt;&gt; &gt;" shape="rect" coords="327,224,644,248"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; Str, OType::STR, string &gt;" shape="rect" coords="327,280,644,304"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; Uri, OType::URI, fURI &gt;" shape="rect" coords="327,336,644,360"/>
+<area href="classfhatos_1_1Bytecode.html" alt="fhatos::Bytecode" shape="rect" coords="327,392,644,416"/>
+<area href="classfhatos_1_1Inst.html" alt="fhatos::Inst" shape="rect" coords="327,448,644,472"/>
+<area href="classfhatos_1_1NoObj.html" alt="fhatos::NoObj" shape="rect" coords="327,504,644,528"/>
+<area href="classfhatos_1_1Objs.html" alt="fhatos::Objs" shape="rect" coords="327,560,644,584"/>
+<area href="classfhatos_1_1Type.html" title="An mm-ADT type encoded in a URI." alt="fhatos::Type" shape="rect" coords="327,616,644,640"/>
+<area href="classfhatos_1_1XObj.html" alt="fhatos::XObj&lt; OBJ, OTYPE, VALUE &gt;" shape="rect" coords="327,672,644,696"/>
   </map>
 </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af736443a4f444d5e2e69e5310f0223ad" id="r_af736443a4f444d5e2e69e5310f0223ad"><td class="memItemLeft" align="right" valign="top"><a id="af736443a4f444d5e2e69e5310f0223ad" name="af736443a4f444d5e2e69e5310f0223ad"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> type, const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">UType</a> &gt; utype=NO_UTYPE)</td></tr>
-<tr class="separator:af736443a4f444d5e2e69e5310f0223ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a769092d20f24d76feff5dac53b3064" id="r_a8a769092d20f24d76feff5dac53b3064"><td class="memItemLeft" align="right" valign="top"><a id="a8a769092d20f24d76feff5dac53b3064" name="a8a769092d20f24d76feff5dac53b3064"></a>
-virtual const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>type</b> () const</td></tr>
-<tr class="separator:a8a769092d20f24d76feff5dac53b3064"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a443b3cef2df2b6afe5382882e506bb25" id="r_a443b3cef2df2b6afe5382882e506bb25"><td class="memItemLeft" align="right" valign="top"><a id="a443b3cef2df2b6afe5382882e506bb25" name="a443b3cef2df2b6afe5382882e506bb25"></a>
-virtual const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">UType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>utype</b> () const</td></tr>
-<tr class="separator:a443b3cef2df2b6afe5382882e506bb25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5621ca4397d89f0cd0eed52550797e8" id="r_aa5621ca4397d89f0cd0eed52550797e8"><td class="memItemLeft" align="right" valign="top"><a id="aa5621ca4397d89f0cd0eed52550797e8" name="aa5621ca4397d89f0cd0eed52550797e8"></a>
-virtual const string&#160;</td><td class="memItemRight" valign="bottom"><b>toString</b> () const</td></tr>
-<tr class="separator:aa5621ca4397d89f0cd0eed52550797e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa686ccffbc035f548770e33271a7f5cc" id="r_aa686ccffbc035f548770e33271a7f5cc"><td class="memItemLeft" align="right" valign="top"><a id="aa686ccffbc035f548770e33271a7f5cc" name="aa686ccffbc035f548770e33271a7f5cc"></a>
-const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>obj</b> () const</td></tr>
-<tr class="separator:aa686ccffbc035f548770e33271a7f5cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5cdf46bd672a8b25ef399e6352e93612" id="r_a5cdf46bd672a8b25ef399e6352e93612"><td class="memItemLeft" align="right" valign="top"><a id="a5cdf46bd672a8b25ef399e6352e93612" name="a5cdf46bd672a8b25ef399e6352e93612"></a>
-virtual const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>apply</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *obj) const</td></tr>
-<tr class="separator:a5cdf46bd672a8b25ef399e6352e93612"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c24b4ababe26c41513374bc461a82ff" id="r_a6c24b4ababe26c41513374bc461a82ff"><td class="memTemplParams" colspan="2"><a id="a6c24b4ababe26c41513374bc461a82ff" name="a6c24b4ababe26c41513374bc461a82ff"></a>
-template&lt;typename A &gt; </td></tr>
-<tr class="memitem:a6c24b4ababe26c41513374bc461a82ff"><td class="memTemplItemLeft" align="right" valign="top">const A *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>as</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> utype=<a class="el" href="classfhatos_1_1fURI.html">fURI</a>(&quot;&quot;)) const</td></tr>
-<tr class="separator:a6c24b4ababe26c41513374bc461a82ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8fd2de34254fdd3a337b9ee9320fab7" id="r_aa8fd2de34254fdd3a337b9ee9320fab7"><td class="memItemLeft" align="right" valign="top"><a id="aa8fd2de34254fdd3a337b9ee9320fab7" name="aa8fd2de34254fdd3a337b9ee9320fab7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::variant&lt; Any, ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt; &gt; &amp;var, const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt; &amp;type)</td></tr>
+<tr class="separator:aa8fd2de34254fdd3a337b9ee9320fab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c7c20bcea6d66ba55c415ec3a9e3ce7" id="r_a3c7c20bcea6d66ba55c415ec3a9e3ce7"><td class="memTemplParams" colspan="2"><a id="a3c7c20bcea6d66ba55c415ec3a9e3ce7" name="a3c7c20bcea6d66ba55c415ec3a9e3ce7"></a>
+template&lt;class T , class  = typename std::enable_if_t&lt;std::is_same_v&lt;bool, T&gt;&gt;&gt; </td></tr>
+<tr class="memitem:a3c7c20bcea6d66ba55c415ec3a9e3ce7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Obj</b> (const T xbool)</td></tr>
+<tr class="separator:a3c7c20bcea6d66ba55c415ec3a9e3ce7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed6c8d0844e0e48d237dff3b3ce30398" id="r_aed6c8d0844e0e48d237dff3b3ce30398"><td class="memItemLeft" align="right" valign="top"><a id="aed6c8d0844e0e48d237dff3b3ce30398" name="aed6c8d0844e0e48d237dff3b3ce30398"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_INT_TYPE xint)</td></tr>
+<tr class="separator:aed6c8d0844e0e48d237dff3b3ce30398"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a331cca4479862730de89b7df140a1bfb" id="r_a331cca4479862730de89b7df140a1bfb"><td class="memItemLeft" align="right" valign="top"><a id="a331cca4479862730de89b7df140a1bfb" name="a331cca4479862730de89b7df140a1bfb"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_REAL_TYPE xreal)</td></tr>
+<tr class="separator:a331cca4479862730de89b7df140a1bfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69baee1b3d43e58a1621d1e0e6518435" id="r_a69baee1b3d43e58a1621d1e0e6518435"><td class="memItemLeft" align="right" valign="top"><a id="a69baee1b3d43e58a1621d1e0e6518435" name="a69baee1b3d43e58a1621d1e0e6518435"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> xuri)</td></tr>
+<tr class="separator:a69baee1b3d43e58a1621d1e0e6518435"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e56ccc811d2d0b6ec5f7aa7a3bc856d" id="r_a1e56ccc811d2d0b6ec5f7aa7a3bc856d"><td class="memItemLeft" align="right" valign="top"><a id="a1e56ccc811d2d0b6ec5f7aa7a3bc856d" name="a1e56ccc811d2d0b6ec5f7aa7a3bc856d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const char *xstr)</td></tr>
+<tr class="separator:a1e56ccc811d2d0b6ec5f7aa7a3bc856d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3661924f91dc38094fbfdf68b452d1b5" id="r_a3661924f91dc38094fbfdf68b452d1b5"><td class="memItemLeft" align="right" valign="top"><a id="a3661924f91dc38094fbfdf68b452d1b5" name="a3661924f91dc38094fbfdf68b452d1b5"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const string xstr)</td></tr>
+<tr class="separator:a3661924f91dc38094fbfdf68b452d1b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fe3e481d85dce39966229e89374e1de" id="r_a2fe3e481d85dce39966229e89374e1de"><td class="memItemLeft" align="right" valign="top"><a id="a2fe3e481d85dce39966229e89374e1de" name="a2fe3e481d85dce39966229e89374e1de"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::initializer_list&lt; Pair&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> const, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; &amp;xrec)</td></tr>
+<tr class="separator:a2fe3e481d85dce39966229e89374e1de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38c20e6a37c622137dd6ac62724c8018" id="r_a38c20e6a37c622137dd6ac62724c8018"><td class="memItemLeft" align="right" valign="top"><a id="a38c20e6a37c622137dd6ac62724c8018" name="a38c20e6a37c622137dd6ac62724c8018"></a>
+virtual <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>otype</b> () const</td></tr>
+<tr class="separator:a38c20e6a37c622137dd6ac62724c8018"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea10a4cc803f3b98502532a70bd8ec18" id="r_aea10a4cc803f3b98502532a70bd8ec18"><td class="memItemLeft" align="right" valign="top"><a id="aea10a4cc803f3b98502532a70bd8ec18" name="aea10a4cc803f3b98502532a70bd8ec18"></a>
+virtual ptr&lt; <a class="el" href="classfhatos_1_1Type.html">Type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>type</b> () const</td></tr>
+<tr class="separator:aea10a4cc803f3b98502532a70bd8ec18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0248698625bd579b9c6a20f740c967f2" id="r_a0248698625bd579b9c6a20f740c967f2"><td class="memItemLeft" align="right" valign="top"><a id="a0248698625bd579b9c6a20f740c967f2" name="a0248698625bd579b9c6a20f740c967f2"></a>
+virtual string&#160;</td><td class="memItemRight" valign="bottom"><b>toString</b> () const</td></tr>
+<tr class="separator:a0248698625bd579b9c6a20f740c967f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27110d0187add704024672e596411be3" id="r_a27110d0187add704024672e596411be3"><td class="memTemplParams" colspan="2"><a id="a27110d0187add704024672e596411be3" name="a27110d0187add704024672e596411be3"></a>
+template&lt;typename <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a>  = Obj&gt; </td></tr>
+<tr class="memitem:a27110d0187add704024672e596411be3"><td class="memTemplItemLeft" align="right" valign="top">const ptr&lt; <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>split</b> (const Any &amp;newValue, const std::variant&lt; ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;, const char * &gt; &amp;newType=std::variant&lt; ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;, const char * &gt;(nullptr)) const</td></tr>
+<tr class="separator:a27110d0187add704024672e596411be3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2919dd4daf65e33037684f25d7fe3d16" id="r_a2919dd4daf65e33037684f25d7fe3d16"><td class="memItemLeft" align="right" valign="top"><a id="a2919dd4daf65e33037684f25d7fe3d16" name="a2919dd4daf65e33037684f25d7fe3d16"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>isBytecode</b> () const</td></tr>
+<tr class="separator:a2919dd4daf65e33037684f25d7fe3d16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71005e4fef9bea26ab8809bf8789d8c2" id="r_a71005e4fef9bea26ab8809bf8789d8c2"><td class="memItemLeft" align="right" valign="top"><a id="a71005e4fef9bea26ab8809bf8789d8c2" name="a71005e4fef9bea26ab8809bf8789d8c2"></a>
+virtual ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bcode</b> () const</td></tr>
+<tr class="separator:a71005e4fef9bea26ab8809bf8789d8c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad469c3b296c6a876d01472d59afc3cda" id="r_ad469c3b296c6a876d01472d59afc3cda"><td class="memItemLeft" align="right" valign="top"><a id="ad469c3b296c6a876d01472d59afc3cda" name="ad469c3b296c6a876d01472d59afc3cda"></a>
+virtual ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>apply</b> (const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;obj)</td></tr>
+<tr class="separator:ad469c3b296c6a876d01472d59afc3cda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a460a5cae4d0fd5dd3abcd59184042bc7" id="r_a460a5cae4d0fd5dd3abcd59184042bc7"><td class="memItemLeft" align="right" valign="top"><a id="a460a5cae4d0fd5dd3abcd59184042bc7" name="a460a5cae4d0fd5dd3abcd59184042bc7"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &amp;other) const</td></tr>
 <tr class="separator:a460a5cae4d0fd5dd3abcd59184042bc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac38996048244e10520b2b36042f88ee8" id="r_ac38996048244e10520b2b36042f88ee8"><td class="memItemLeft" align="right" valign="top"><a id="ac38996048244e10520b2b36042f88ee8" name="ac38996048244e10520b2b36042f88ee8"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator!=</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &amp;other) const</td></tr>
 <tr class="separator:ac38996048244e10520b2b36042f88ee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adeb5f1f2538d3aa4dde917d29836bdb1" id="r_adeb5f1f2538d3aa4dde917d29836bdb1"><td class="memItemLeft" align="right" valign="top"><a id="adeb5f1f2538d3aa4dde917d29836bdb1" name="adeb5f1f2538d3aa4dde917d29836bdb1"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNoObj</b> () const</td></tr>
-<tr class="separator:adeb5f1f2538d3aa4dde917d29836bdb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5070c737a38bfcee2aa2999f52052d7" id="r_aa5070c737a38bfcee2aa2999f52052d7"><td class="memItemLeft" align="right" valign="top"><a id="aa5070c737a38bfcee2aa2999f52052d7" name="aa5070c737a38bfcee2aa2999f52052d7"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNoObj</b> () const</td></tr>
+<tr class="separator:aa5070c737a38bfcee2aa2999f52052d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c407dc62bd280e0f322bf659be643e6" id="r_a4c407dc62bd280e0f322bf659be643e6"><td class="memTemplParams" colspan="2"><a id="a4c407dc62bd280e0f322bf659be643e6" name="a4c407dc62bd280e0f322bf659be643e6"></a>
 template&lt;typename SERIALIZER  = PtrSerializer&gt; </td></tr>
 <tr class="memitem:a4c407dc62bd280e0f322bf659be643e6"><td class="memTemplItemLeft" align="right" valign="top">const ptr&lt; BObj &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>serialize</b> () const</td></tr>
 <tr class="separator:a4c407dc62bd280e0f322bf659be643e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a9234dad7052a8b93a5a5d7f476d6dc78" id="r_a9234dad7052a8b93a5a5d7f476d6dc78"><td class="memItemLeft" align="right" valign="top"><a id="a9234dad7052a8b93a5a5d7f476d6dc78" name="a9234dad7052a8b93a5a5d7f476d6dc78"></a>
+ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_type</b></td></tr>
+<tr class="separator:a9234dad7052a8b93a5a5d7f476d6dc78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ad76267187339d30ee2890b3ca823c94c" id="r_ad76267187339d30ee2890b3ca823c94c"><td class="memItemLeft" align="right" valign="top"><a id="ad76267187339d30ee2890b3ca823c94c" name="ad76267187339d30ee2890b3ca823c94c"></a>
-const string&#160;</td><td class="memItemRight" valign="bottom"><b>wrapUType</b> (const string &amp;xstring) const</td></tr>
-<tr class="separator:ad76267187339d30ee2890b3ca823c94c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b5713eb03a847b939323eabf3265e8e" id="r_a8b5713eb03a847b939323eabf3265e8e"><td class="memTemplParams" colspan="2"><a id="a8b5713eb03a847b939323eabf3265e8e" name="a8b5713eb03a847b939323eabf3265e8e"></a>
+template&lt;typename A  = Obj&gt; </td></tr>
+<tr class="memitem:a8b5713eb03a847b939323eabf3265e8e"><td class="memTemplItemLeft" align="right" valign="top">ptr&lt; A &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>as</b> (const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt; &amp;type) const</td></tr>
+<tr class="separator:a8b5713eb03a847b939323eabf3265e8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a68a214f353eda2e69ac173a2cccbbdbe" id="r_a68a214f353eda2e69ac173a2cccbbdbe"><td class="memItemLeft" align="right" valign="top"><a id="a68a214f353eda2e69ac173a2cccbbdbe" name="a68a214f353eda2e69ac173a2cccbbdbe"></a>
-const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_type</b></td></tr>
-<tr class="separator:a68a214f353eda2e69ac173a2cccbbdbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad99026ec7141be5f44fd73283ab22621" id="r_ad99026ec7141be5f44fd73283ab22621"><td class="memItemLeft" align="right" valign="top"><a id="ad99026ec7141be5f44fd73283ab22621" name="ad99026ec7141be5f44fd73283ab22621"></a>
-ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">UType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_utype</b></td></tr>
-<tr class="separator:ad99026ec7141be5f44fd73283ab22621"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a272f249bdf9f28adb5c3e91e08619076" id="r_a272f249bdf9f28adb5c3e91e08619076"><td class="memItemLeft" align="right" valign="top"><a id="a272f249bdf9f28adb5c3e91e08619076" name="a272f249bdf9f28adb5c3e91e08619076"></a>
+std::variant&lt; Any, ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_var</b></td></tr>
+<tr class="separator:a272f249bdf9f28adb5c3e91e08619076"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>An mm-ADT obj represented in C++ as a class. </p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>/github/workspace/src/language/<a class="el" href="obj_8hpp_source.html">obj.hpp</a></li>
 </ul>
 </div><!-- contents -->

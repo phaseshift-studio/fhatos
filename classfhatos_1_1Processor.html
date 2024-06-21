@@ -104,29 +104,29 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a99405cd9ee0a96d0f8c1253c7a6d92ad" id="r_a99405cd9ee0a96d0f8c1253c7a6d92ad"><td class="memItemLeft" align="right" valign="top"><a id="a99405cd9ee0a96d0f8c1253c7a6d92ad" name="a99405cd9ee0a96d0f8c1253c7a6d92ad"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Processor</b> (const ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt; bcode)</td></tr>
 <tr class="separator:a99405cd9ee0a96d0f8c1253c7a6d92ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad058634e42bee3e609dc5dcf297c59e" id="r_aad058634e42bee3e609dc5dcf297c59e"><td class="memItemLeft" align="right" valign="top"><a id="aad058634e42bee3e609dc5dcf297c59e" name="aad058634e42bee3e609dc5dcf297c59e"></a>
-const E *&#160;</td><td class="memItemRight" valign="bottom"><b>next</b> (const int steps=-1)</td></tr>
-<tr class="separator:aad058634e42bee3e609dc5dcf297c59e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b60197c0ccd35fc63d559b049e09238" id="r_a3b60197c0ccd35fc63d559b049e09238"><td class="memItemLeft" align="right" valign="top"><a id="a3b60197c0ccd35fc63d559b049e09238" name="a3b60197c0ccd35fc63d559b049e09238"></a>
+const ptr&lt; E &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>next</b> (const int steps=-1)</td></tr>
+<tr class="separator:a3b60197c0ccd35fc63d559b049e09238"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca55b9ff7c54f493102ddd2d6cf101df" id="r_aca55b9ff7c54f493102ddd2d6cf101df"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca55b9ff7c54f493102ddd2d6cf101df">execute</a> (const int steps=-1)</td></tr>
 <tr class="separator:aca55b9ff7c54f493102ddd2d6cf101df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf3eb0f242959085712d56fe753ccb4c" id="r_acf3eb0f242959085712d56fe753ccb4c"><td class="memItemLeft" align="right" valign="top"><a id="acf3eb0f242959085712d56fe753ccb4c" name="acf3eb0f242959085712d56fe753ccb4c"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>forEach</b> (const Consumer&lt; const E * &gt; &amp;consumer, const int steps=-1)</td></tr>
-<tr class="separator:acf3eb0f242959085712d56fe753ccb4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeda7713a2558b3731091dbca7f94df73" id="r_aeda7713a2558b3731091dbca7f94df73"><td class="memItemLeft" align="right" valign="top"><a id="aeda7713a2558b3731091dbca7f94df73" name="aeda7713a2558b3731091dbca7f94df73"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>forEach</b> (const Consumer&lt; const ptr&lt; E &gt; &gt; &amp;consumer, const int steps=-1)</td></tr>
+<tr class="separator:aeda7713a2558b3731091dbca7f94df73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:aa5a17aaf52d01e014cce9a38dadd2df4" id="r_aa5a17aaf52d01e014cce9a38dadd2df4"><td class="memItemLeft" align="right" valign="top"><a id="aa5a17aaf52d01e014cce9a38dadd2df4" name="aa5a17aaf52d01e014cce9a38dadd2df4"></a>
 const ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bcode</b></td></tr>
 <tr class="separator:aa5a17aaf52d01e014cce9a38dadd2df4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3119a74c93726dc9b17450be9daea32c" id="r_a3119a74c93726dc9b17450be9daea32c"><td class="memItemLeft" align="right" valign="top"><a id="a3119a74c93726dc9b17450be9daea32c" name="a3119a74c93726dc9b17450be9daea32c"></a>
-List&lt; const <a class="el" href="classfhatos_1_1Monad.html">Monad</a> * &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>running</b> = new List&lt;const <a class="el" href="classfhatos_1_1Monad.html">Monad</a> *&gt;()</td></tr>
-<tr class="separator:a3119a74c93726dc9b17450be9daea32c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92babba02227e628821629e6d0e88b0b" id="r_a92babba02227e628821629e6d0e88b0b"><td class="memItemLeft" align="right" valign="top"><a id="a92babba02227e628821629e6d0e88b0b" name="a92babba02227e628821629e6d0e88b0b"></a>
-List&lt; const E * &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>halted</b> = new List&lt;const E *&gt;()</td></tr>
-<tr class="separator:a92babba02227e628821629e6d0e88b0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36b0292a8e37c83f9452ce088468859c" id="r_a36b0292a8e37c83f9452ce088468859c"><td class="memItemLeft" align="right" valign="top"><a id="a36b0292a8e37c83f9452ce088468859c" name="a36b0292a8e37c83f9452ce088468859c"></a>
-Pair&lt; <a class="el" href="classfhatos_1_1ManyToOneInst.html">ManyToOneInst</a> *, List&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> * &gt; * &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>barrier</b></td></tr>
-<tr class="separator:a36b0292a8e37c83f9452ce088468859c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6a89e54b29fe227d42fb4b89bd2762b" id="r_aa6a89e54b29fe227d42fb4b89bd2762b"><td class="memItemLeft" align="right" valign="top"><a id="aa6a89e54b29fe227d42fb4b89bd2762b" name="aa6a89e54b29fe227d42fb4b89bd2762b"></a>
+List&lt; const ptr&lt; <a class="el" href="classfhatos_1_1Monad.html">Monad</a> &gt; &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>running</b> = new List&lt;const ptr&lt;<a class="el" href="classfhatos_1_1Monad.html">Monad</a>&gt;&gt;()</td></tr>
+<tr class="separator:aa6a89e54b29fe227d42fb4b89bd2762b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37b49e7d5f01b714617c70da8df15b29" id="r_a37b49e7d5f01b714617c70da8df15b29"><td class="memItemLeft" align="right" valign="top"><a id="a37b49e7d5f01b714617c70da8df15b29" name="a37b49e7d5f01b714617c70da8df15b29"></a>
+List&lt; const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>halted</b> = new List&lt;const ptr&lt;<a class="el" href="classfhatos_1_1Obj.html">Obj</a>&gt;&gt;()</td></tr>
+<tr class="separator:a37b49e7d5f01b714617c70da8df15b29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e319d1f1bd7abee6f4c7b930f1380c0" id="r_a5e319d1f1bd7abee6f4c7b930f1380c0"><td class="memItemLeft" align="right" valign="top"><a id="a5e319d1f1bd7abee6f4c7b930f1380c0" name="a5e319d1f1bd7abee6f4c7b930f1380c0"></a>
+Pair&lt; ptr&lt; <a class="el" href="classfhatos_1_1ManyToOneInst.html">ManyToOneInst</a> &gt;, List&lt; const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; * &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>barrier</b></td></tr>
+<tr class="separator:a5e319d1f1bd7abee6f4c7b930f1380c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="aca55b9ff7c54f493102ddd2d6cf101df" name="aca55b9ff7c54f493102ddd2d6cf101df"></a>

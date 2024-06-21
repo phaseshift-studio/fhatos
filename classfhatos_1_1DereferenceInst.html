@@ -105,77 +105,94 @@ Inheritance diagram for fhatos::DereferenceInst&lt; ROUTER &gt;:</div>
   <map id="fhatos::DereferenceInst_3C_20ROUTER_20_3E_map" name="fhatos::DereferenceInst_3C_20ROUTER_20_3E_map">
 <area href="classfhatos_1_1OneToOneInst.html" alt="fhatos::OneToOneInst" shape="rect" coords="0,112,216,136"/>
 <area href="classfhatos_1_1Inst.html" alt="fhatos::Inst" shape="rect" coords="0,56,216,80"/>
-<area href="classfhatos_1_1Obj.html" title="An mm-ADT obj represented in C++ as a class." alt="fhatos::Obj" shape="rect" coords="0,0,216,24"/>
+<area href="classfhatos_1_1Obj.html" alt="fhatos::Obj" shape="rect" coords="0,0,216,24"/>
   </map>
 </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a24370b266ef522069707b7c9860ceb53" id="r_a24370b266ef522069707b7c9860ceb53"><td class="memItemLeft" align="right" valign="top"><a id="a24370b266ef522069707b7c9860ceb53" name="a24370b266ef522069707b7c9860ceb53"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>DereferenceInst</b> (const <a class="el" href="structfhatos_1_1URI__OR__BYTECODE.html">URI_OR_BYTECODE</a> &amp;target)</td></tr>
-<tr class="separator:a24370b266ef522069707b7c9860ceb53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7038387c9f0c04252e5e24e1988ed72d" id="r_a7038387c9f0c04252e5e24e1988ed72d"><td class="memItemLeft" align="right" valign="top"><a id="a7038387c9f0c04252e5e24e1988ed72d" name="a7038387c9f0c04252e5e24e1988ed72d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>DereferenceInst</b> (const ptr&lt; <a class="el" href="classfhatos_1_1Uri.html">Uri</a> &gt; &amp;target)</td></tr>
+<tr class="separator:a7038387c9f0c04252e5e24e1988ed72d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfhatos_1_1OneToOneInst"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1OneToOneInst')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1OneToOneInst.html">fhatos::OneToOneInst</a></td></tr>
-<tr class="memitem:a232895d013eca00aab4b979cec8b577f inherit pub_methods_classfhatos_1_1OneToOneInst" id="r_a232895d013eca00aab4b979cec8b577f"><td class="memItemLeft" align="right" valign="top">
-&#160;</td><td class="memItemRight" valign="bottom"><b>OneToOneInst</b> (const InstOpcode &amp;opcode, const InstArgs &amp;args, OneToOneFunction function)</td></tr>
-<tr class="separator:a232895d013eca00aab4b979cec8b577f inherit pub_methods_classfhatos_1_1OneToOneInst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0594e9d0c8d86331131b47eac13e1f9a inherit pub_methods_classfhatos_1_1OneToOneInst" id="r_a0594e9d0c8d86331131b47eac13e1f9a"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1OneToOneInst.html#a0594e9d0c8d86331131b47eac13e1f9a">apply</a> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *obj) const</td></tr>
-<tr class="separator:a0594e9d0c8d86331131b47eac13e1f9a inherit pub_methods_classfhatos_1_1OneToOneInst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98a84cfb0b10a9d8025f3660f5f1c9cc inherit pub_methods_classfhatos_1_1OneToOneInst" id="r_a98a84cfb0b10a9d8025f3660f5f1c9cc"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>OneToOneInst</b> (const string &amp;opcode, const InstArgs &amp;args, const OneToOneFunction &amp;function)</td></tr>
+<tr class="separator:a98a84cfb0b10a9d8025f3660f5f1c9cc inherit pub_methods_classfhatos_1_1OneToOneInst"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfhatos_1_1Inst"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1Inst')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1Inst.html">fhatos::Inst</a></td></tr>
-<tr class="memitem:a175fac58dfa6acb744d93d8e6dc8835e inherit pub_methods_classfhatos_1_1Inst" id="r_a175fac58dfa6acb744d93d8e6dc8835e"><td class="memItemLeft" align="right" valign="top">
-&#160;</td><td class="memItemRight" valign="bottom"><b>Inst</b> (const InstOpcode &amp;opcode, const InstArgs &amp;args, const IType itype=IType::NOINST)</td></tr>
-<tr class="separator:a175fac58dfa6acb744d93d8e6dc8835e inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f6b34305a01c59ff991a99e798ad7e4 inherit pub_methods_classfhatos_1_1Inst" id="r_a1f6b34305a01c59ff991a99e798ad7e4"><td class="memItemLeft" align="right" valign="top">
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNoInst</b> () const</td></tr>
-<tr class="separator:a1f6b34305a01c59ff991a99e798ad7e4 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad35fb4be77420a1baee06ef7f4c56a68 inherit pub_methods_classfhatos_1_1Inst" id="r_ad35fb4be77420a1baee06ef7f4c56a68"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classfhatos_1_1Inst.html">Inst</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>bcode</b> (<a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> *bcode)</td></tr>
-<tr class="separator:ad35fb4be77420a1baee06ef7f4c56a68 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8534369dd327974282301c0513af0f2f inherit pub_methods_classfhatos_1_1Inst" id="r_a8534369dd327974282301c0513af0f2f"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>bcode</b> () const</td></tr>
-<tr class="separator:a8534369dd327974282301c0513af0f2f inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0dfbb1708b40f3b3753c73c9a202673 inherit pub_methods_classfhatos_1_1Inst" id="r_ae0dfbb1708b40f3b3753c73c9a202673"><td class="memItemLeft" align="right" valign="top">
-virtual InstPair&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> () const</td></tr>
-<tr class="separator:ae0dfbb1708b40f3b3753c73c9a202673 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b6b91950e7c1d1eddf849f9e94a4af4 inherit pub_methods_classfhatos_1_1Inst" id="r_a4b6b91950e7c1d1eddf849f9e94a4af4"><td class="memItemLeft" align="right" valign="top">
-const IType&#160;</td><td class="memItemRight" valign="bottom"><b>itype</b> () const</td></tr>
-<tr class="separator:a4b6b91950e7c1d1eddf849f9e94a4af4 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a33d3ead8f9aa9b74eda072a787399b48 inherit pub_methods_classfhatos_1_1Inst" id="r_a33d3ead8f9aa9b74eda072a787399b48"><td class="memItemLeft" align="right" valign="top">const string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Inst.html#a33d3ead8f9aa9b74eda072a787399b48">toString</a> () const override</td></tr>
-<tr class="separator:a33d3ead8f9aa9b74eda072a787399b48 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab383a2a431e191e1de4d7a75ce8f54a5 inherit pub_methods_classfhatos_1_1Inst" id="r_ab383a2a431e191e1de4d7a75ce8f54a5"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Inst</b> (const string &amp;opcode, const InstArgs &amp;value, const IType itype, const InstFunction&lt;&gt; &amp;function)</td></tr>
+<tr class="separator:ab383a2a431e191e1de4d7a75ce8f54a5 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08d66009f0d0c15bc7833d7228cc058f inherit pub_methods_classfhatos_1_1Inst" id="r_a08d66009f0d0c15bc7833d7228cc058f"><td class="memItemLeft" align="right" valign="top">
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNoInst</b> () const</td></tr>
+<tr class="separator:a08d66009f0d0c15bc7833d7228cc058f inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca449f515673454054b77c5bc09d77bc inherit pub_methods_classfhatos_1_1Inst" id="r_aca449f515673454054b77c5bc09d77bc"><td class="memItemLeft" align="right" valign="top">
+void&#160;</td><td class="memItemRight" valign="bottom"><b>bcode</b> (<a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> *bcode)</td></tr>
+<tr class="separator:aca449f515673454054b77c5bc09d77bc inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd577c6cc6c705ff1353ec4a835a5b2d inherit pub_methods_classfhatos_1_1Inst" id="r_acd577c6cc6c705ff1353ec4a835a5b2d"><td class="memItemLeft" align="right" valign="top">ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Inst.html#acd577c6cc6c705ff1353ec4a835a5b2d">bcode</a> () const override</td></tr>
+<tr class="separator:acd577c6cc6c705ff1353ec4a835a5b2d inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21074ddff7c9e3bf4c24fdb230ebdea0 inherit pub_methods_classfhatos_1_1Inst" id="r_a21074ddff7c9e3bf4c24fdb230ebdea0"><td class="memItemLeft" align="right" valign="top">
+InstArgs&#160;</td><td class="memItemRight" valign="bottom"><b>v_args</b> () const</td></tr>
+<tr class="separator:a21074ddff7c9e3bf4c24fdb230ebdea0 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0b07ea952d68b4393aa282ad31c1a92 inherit pub_methods_classfhatos_1_1Inst" id="r_af0b07ea952d68b4393aa282ad31c1a92"><td class="memItemLeft" align="right" valign="top">
+IType&#160;</td><td class="memItemRight" valign="bottom"><b>itype</b> () const</td></tr>
+<tr class="separator:af0b07ea952d68b4393aa282ad31c1a92 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a778205e426a50be0bd0977f8025a8906 inherit pub_methods_classfhatos_1_1Inst" id="r_a778205e426a50be0bd0977f8025a8906"><td class="memItemLeft" align="right" valign="top">ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Inst.html#a778205e426a50be0bd0977f8025a8906">apply</a> (const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;obj) override</td></tr>
+<tr class="separator:a778205e426a50be0bd0977f8025a8906 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42a4d1d2c016394baf00462f3ab17c07 inherit pub_methods_classfhatos_1_1Inst" id="r_a42a4d1d2c016394baf00462f3ab17c07"><td class="memItemLeft" align="right" valign="top">ptr&lt; <a class="el" href="classfhatos_1_1Type.html">Type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Inst.html#a42a4d1d2c016394baf00462f3ab17c07">type</a> () const override</td></tr>
+<tr class="separator:a42a4d1d2c016394baf00462f3ab17c07 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c1a8e7a89fb7cba623546277f98c233 inherit pub_methods_classfhatos_1_1Inst" id="r_a3c1a8e7a89fb7cba623546277f98c233"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Inst.html#a3c1a8e7a89fb7cba623546277f98c233">toString</a> () const override</td></tr>
+<tr class="separator:a3c1a8e7a89fb7cba623546277f98c233 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7402cd6d5f85fbe30baf9e2e21b2c706 inherit pub_methods_classfhatos_1_1Inst" id="r_a7402cd6d5f85fbe30baf9e2e21b2c706"><td class="memItemLeft" align="right" valign="top">
 const InstOpcode&#160;</td><td class="memItemRight" valign="bottom"><b>opcode</b> () const</td></tr>
 <tr class="separator:a7402cd6d5f85fbe30baf9e2e21b2c706 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a874fd1f2438679b5e7b4721a47d9203f inherit pub_methods_classfhatos_1_1Inst" id="r_a874fd1f2438679b5e7b4721a47d9203f"><td class="memItemLeft" align="right" valign="top">
-const InstArgs&#160;</td><td class="memItemRight" valign="bottom"><b>args</b> () const</td></tr>
-<tr class="separator:a874fd1f2438679b5e7b4721a47d9203f inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7071cb0b07a8ed955f7fca596e794c78 inherit pub_methods_classfhatos_1_1Inst" id="r_a7071cb0b07a8ed955f7fca596e794c78"><td class="memItemLeft" align="right" valign="top">
-const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>arg</b> (const uint8_t index) const</td></tr>
-<tr class="separator:a7071cb0b07a8ed955f7fca596e794c78 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a552c359f1d3094c645affbb10933a726 inherit pub_methods_classfhatos_1_1Inst" id="r_a552c359f1d3094c645affbb10933a726"><td class="memItemLeft" align="right" valign="top">
+const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>arg</b> (const uint8_t index) const</td></tr>
+<tr class="separator:a552c359f1d3094c645affbb10933a726 inherit pub_methods_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfhatos_1_1Obj"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1Obj')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1Obj.html">fhatos::Obj</a></td></tr>
-<tr class="memitem:af736443a4f444d5e2e69e5310f0223ad inherit pub_methods_classfhatos_1_1Obj" id="r_af736443a4f444d5e2e69e5310f0223ad"><td class="memItemLeft" align="right" valign="top">
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> type, const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">UType</a> &gt; utype=NO_UTYPE)</td></tr>
-<tr class="separator:af736443a4f444d5e2e69e5310f0223ad inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a769092d20f24d76feff5dac53b3064 inherit pub_methods_classfhatos_1_1Obj" id="r_a8a769092d20f24d76feff5dac53b3064"><td class="memItemLeft" align="right" valign="top">
-virtual const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>type</b> () const</td></tr>
-<tr class="separator:a8a769092d20f24d76feff5dac53b3064 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a443b3cef2df2b6afe5382882e506bb25 inherit pub_methods_classfhatos_1_1Obj" id="r_a443b3cef2df2b6afe5382882e506bb25"><td class="memItemLeft" align="right" valign="top">
-virtual const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">UType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>utype</b> () const</td></tr>
-<tr class="separator:a443b3cef2df2b6afe5382882e506bb25 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa686ccffbc035f548770e33271a7f5cc inherit pub_methods_classfhatos_1_1Obj" id="r_aa686ccffbc035f548770e33271a7f5cc"><td class="memItemLeft" align="right" valign="top">
-const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>obj</b> () const</td></tr>
-<tr class="separator:aa686ccffbc035f548770e33271a7f5cc inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c24b4ababe26c41513374bc461a82ff inherit pub_methods_classfhatos_1_1Obj" id="r_a6c24b4ababe26c41513374bc461a82ff"><td class="memTemplParams" colspan="2">
-template&lt;typename A &gt; </td></tr>
-<tr class="memitem:a6c24b4ababe26c41513374bc461a82ff inherit pub_methods_classfhatos_1_1Obj"><td class="memTemplItemLeft" align="right" valign="top">const A *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>as</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> utype=<a class="el" href="classfhatos_1_1fURI.html">fURI</a>(&quot;&quot;)) const</td></tr>
-<tr class="separator:a6c24b4ababe26c41513374bc461a82ff inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8fd2de34254fdd3a337b9ee9320fab7 inherit pub_methods_classfhatos_1_1Obj" id="r_aa8fd2de34254fdd3a337b9ee9320fab7"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::variant&lt; Any, ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt; &gt; &amp;var, const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt; &amp;type)</td></tr>
+<tr class="separator:aa8fd2de34254fdd3a337b9ee9320fab7 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c7c20bcea6d66ba55c415ec3a9e3ce7 inherit pub_methods_classfhatos_1_1Obj" id="r_a3c7c20bcea6d66ba55c415ec3a9e3ce7"><td class="memTemplParams" colspan="2">
+template&lt;class T , class  = typename std::enable_if_t&lt;std::is_same_v&lt;bool, T&gt;&gt;&gt; </td></tr>
+<tr class="memitem:a3c7c20bcea6d66ba55c415ec3a9e3ce7 inherit pub_methods_classfhatos_1_1Obj"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Obj</b> (const T xbool)</td></tr>
+<tr class="separator:a3c7c20bcea6d66ba55c415ec3a9e3ce7 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed6c8d0844e0e48d237dff3b3ce30398 inherit pub_methods_classfhatos_1_1Obj" id="r_aed6c8d0844e0e48d237dff3b3ce30398"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_INT_TYPE xint)</td></tr>
+<tr class="separator:aed6c8d0844e0e48d237dff3b3ce30398 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a331cca4479862730de89b7df140a1bfb inherit pub_methods_classfhatos_1_1Obj" id="r_a331cca4479862730de89b7df140a1bfb"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_REAL_TYPE xreal)</td></tr>
+<tr class="separator:a331cca4479862730de89b7df140a1bfb inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69baee1b3d43e58a1621d1e0e6518435 inherit pub_methods_classfhatos_1_1Obj" id="r_a69baee1b3d43e58a1621d1e0e6518435"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> xuri)</td></tr>
+<tr class="separator:a69baee1b3d43e58a1621d1e0e6518435 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e56ccc811d2d0b6ec5f7aa7a3bc856d inherit pub_methods_classfhatos_1_1Obj" id="r_a1e56ccc811d2d0b6ec5f7aa7a3bc856d"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const char *xstr)</td></tr>
+<tr class="separator:a1e56ccc811d2d0b6ec5f7aa7a3bc856d inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3661924f91dc38094fbfdf68b452d1b5 inherit pub_methods_classfhatos_1_1Obj" id="r_a3661924f91dc38094fbfdf68b452d1b5"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const string xstr)</td></tr>
+<tr class="separator:a3661924f91dc38094fbfdf68b452d1b5 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fe3e481d85dce39966229e89374e1de inherit pub_methods_classfhatos_1_1Obj" id="r_a2fe3e481d85dce39966229e89374e1de"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::initializer_list&lt; Pair&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> const, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; &amp;xrec)</td></tr>
+<tr class="separator:a2fe3e481d85dce39966229e89374e1de inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38c20e6a37c622137dd6ac62724c8018 inherit pub_methods_classfhatos_1_1Obj" id="r_a38c20e6a37c622137dd6ac62724c8018"><td class="memItemLeft" align="right" valign="top">
+virtual <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>otype</b> () const</td></tr>
+<tr class="separator:a38c20e6a37c622137dd6ac62724c8018 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27110d0187add704024672e596411be3 inherit pub_methods_classfhatos_1_1Obj" id="r_a27110d0187add704024672e596411be3"><td class="memTemplParams" colspan="2">
+template&lt;typename <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a>  = Obj&gt; </td></tr>
+<tr class="memitem:a27110d0187add704024672e596411be3 inherit pub_methods_classfhatos_1_1Obj"><td class="memTemplItemLeft" align="right" valign="top">const ptr&lt; <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>split</b> (const Any &amp;newValue, const std::variant&lt; ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;, const char * &gt; &amp;newType=std::variant&lt; ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;, const char * &gt;(nullptr)) const</td></tr>
+<tr class="separator:a27110d0187add704024672e596411be3 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2919dd4daf65e33037684f25d7fe3d16 inherit pub_methods_classfhatos_1_1Obj" id="r_a2919dd4daf65e33037684f25d7fe3d16"><td class="memItemLeft" align="right" valign="top">
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>isBytecode</b> () const</td></tr>
+<tr class="separator:a2919dd4daf65e33037684f25d7fe3d16 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a460a5cae4d0fd5dd3abcd59184042bc7 inherit pub_methods_classfhatos_1_1Obj" id="r_a460a5cae4d0fd5dd3abcd59184042bc7"><td class="memItemLeft" align="right" valign="top">
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &amp;other) const</td></tr>
 <tr class="separator:a460a5cae4d0fd5dd3abcd59184042bc7 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac38996048244e10520b2b36042f88ee8 inherit pub_methods_classfhatos_1_1Obj" id="r_ac38996048244e10520b2b36042f88ee8"><td class="memItemLeft" align="right" valign="top">
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator!=</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &amp;other) const</td></tr>
 <tr class="separator:ac38996048244e10520b2b36042f88ee8 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adeb5f1f2538d3aa4dde917d29836bdb1 inherit pub_methods_classfhatos_1_1Obj" id="r_adeb5f1f2538d3aa4dde917d29836bdb1"><td class="memItemLeft" align="right" valign="top">
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNoObj</b> () const</td></tr>
-<tr class="separator:adeb5f1f2538d3aa4dde917d29836bdb1 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5070c737a38bfcee2aa2999f52052d7 inherit pub_methods_classfhatos_1_1Obj" id="r_aa5070c737a38bfcee2aa2999f52052d7"><td class="memItemLeft" align="right" valign="top">
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isNoObj</b> () const</td></tr>
+<tr class="separator:aa5070c737a38bfcee2aa2999f52052d7 inherit pub_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c407dc62bd280e0f322bf659be643e6 inherit pub_methods_classfhatos_1_1Obj" id="r_a4c407dc62bd280e0f322bf659be643e6"><td class="memTemplParams" colspan="2">
 template&lt;typename SERIALIZER  = PtrSerializer&gt; </td></tr>
 <tr class="memitem:a4c407dc62bd280e0f322bf659be643e6 inherit pub_methods_classfhatos_1_1Obj"><td class="memTemplItemLeft" align="right" valign="top">const ptr&lt; BObj &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>serialize</b> () const</td></tr>
@@ -183,31 +200,29 @@ template&lt;typename SERIALIZER  = PtrSerializer&gt; </td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_attribs_classfhatos_1_1Obj"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_attribs_classfhatos_1_1Obj')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classfhatos_1_1Obj.html">fhatos::Obj</a></td></tr>
+<tr class="memitem:a9234dad7052a8b93a5a5d7f476d6dc78 inherit pub_attribs_classfhatos_1_1Obj" id="r_a9234dad7052a8b93a5a5d7f476d6dc78"><td class="memItemLeft" align="right" valign="top">
+ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_type</b></td></tr>
+<tr class="separator:a9234dad7052a8b93a5a5d7f476d6dc78 inherit pub_attribs_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classfhatos_1_1Obj"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_classfhatos_1_1Obj')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classfhatos_1_1Obj.html">fhatos::Obj</a></td></tr>
-<tr class="memitem:ad76267187339d30ee2890b3ca823c94c inherit pro_methods_classfhatos_1_1Obj" id="r_ad76267187339d30ee2890b3ca823c94c"><td class="memItemLeft" align="right" valign="top">
-const string&#160;</td><td class="memItemRight" valign="bottom"><b>wrapUType</b> (const string &amp;xstring) const</td></tr>
-<tr class="separator:ad76267187339d30ee2890b3ca823c94c inherit pro_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_attribs_classfhatos_1_1OneToOneInst"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1OneToOneInst')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1OneToOneInst.html">fhatos::OneToOneInst</a></td></tr>
-<tr class="memitem:a6edd02967fe865adae169c0f51e44006 inherit pro_attribs_classfhatos_1_1OneToOneInst" id="r_a6edd02967fe865adae169c0f51e44006"><td class="memItemLeft" align="right" valign="top">
-OneToOneFunction&#160;</td><td class="memItemRight" valign="bottom"><b>function</b></td></tr>
-<tr class="separator:a6edd02967fe865adae169c0f51e44006 inherit pro_attribs_classfhatos_1_1OneToOneInst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b5713eb03a847b939323eabf3265e8e inherit pro_methods_classfhatos_1_1Obj" id="r_a8b5713eb03a847b939323eabf3265e8e"><td class="memTemplParams" colspan="2">
+template&lt;typename A  = Obj&gt; </td></tr>
+<tr class="memitem:a8b5713eb03a847b939323eabf3265e8e inherit pro_methods_classfhatos_1_1Obj"><td class="memTemplItemLeft" align="right" valign="top">ptr&lt; A &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>as</b> (const ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt; &amp;type) const</td></tr>
+<tr class="separator:a8b5713eb03a847b939323eabf3265e8e inherit pro_methods_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classfhatos_1_1Inst"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1Inst')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1Inst.html">fhatos::Inst</a></td></tr>
-<tr class="memitem:a0c4e6e08ba6ef41b6504d60e8597ecf4 inherit pro_attribs_classfhatos_1_1Inst" id="r_a0c4e6e08ba6ef41b6504d60e8597ecf4"><td class="memItemLeft" align="right" valign="top">
-const InstPair&#160;</td><td class="memItemRight" valign="bottom"><b>_value</b></td></tr>
-<tr class="separator:a0c4e6e08ba6ef41b6504d60e8597ecf4 inherit pro_attribs_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b679d62566b0ec229073251b6249041 inherit pro_attribs_classfhatos_1_1Inst" id="r_a6b679d62566b0ec229073251b6249041"><td class="memItemLeft" align="right" valign="top">
 const IType&#160;</td><td class="memItemRight" valign="bottom"><b>_itype</b></td></tr>
 <tr class="separator:a6b679d62566b0ec229073251b6249041 inherit pro_attribs_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27ab6dcd11200ccdcb7cddecc1c65c01 inherit pro_attribs_classfhatos_1_1Inst" id="r_a27ab6dcd11200ccdcb7cddecc1c65c01"><td class="memItemLeft" align="right" valign="top">
 <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>_bcode</b> = nullptr</td></tr>
 <tr class="separator:a27ab6dcd11200ccdcb7cddecc1c65c01 inherit pro_attribs_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a217d71d251c6194a3af99e6d1d849880 inherit pro_attribs_classfhatos_1_1Inst" id="r_a217d71d251c6194a3af99e6d1d849880"><td class="memItemLeft" align="right" valign="top">
+const InstFunction&#160;</td><td class="memItemRight" valign="bottom"><b>_function</b></td></tr>
+<tr class="separator:a217d71d251c6194a3af99e6d1d849880 inherit pro_attribs_classfhatos_1_1Inst"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classfhatos_1_1Obj"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1Obj')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1Obj.html">fhatos::Obj</a></td></tr>
-<tr class="memitem:a68a214f353eda2e69ac173a2cccbbdbe inherit pro_attribs_classfhatos_1_1Obj" id="r_a68a214f353eda2e69ac173a2cccbbdbe"><td class="memItemLeft" align="right" valign="top">
-const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_type</b></td></tr>
-<tr class="separator:a68a214f353eda2e69ac173a2cccbbdbe inherit pro_attribs_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad99026ec7141be5f44fd73283ab22621 inherit pro_attribs_classfhatos_1_1Obj" id="r_ad99026ec7141be5f44fd73283ab22621"><td class="memItemLeft" align="right" valign="top">
-ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">UType</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_utype</b></td></tr>
-<tr class="separator:ad99026ec7141be5f44fd73283ab22621 inherit pro_attribs_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a272f249bdf9f28adb5c3e91e08619076 inherit pro_attribs_classfhatos_1_1Obj" id="r_a272f249bdf9f28adb5c3e91e08619076"><td class="memItemLeft" align="right" valign="top">
+std::variant&lt; Any, ptr&lt; <a class="el" href="classfhatos_1_1Bytecode.html">Bytecode</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_var</b></td></tr>
+<tr class="separator:a272f249bdf9f28adb5c3e91e08619076 inherit pro_attribs_classfhatos_1_1Obj"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/github/workspace/src/language/<a class="el" href="instructions_8hpp_source.html">instructions.hpp</a></li>
