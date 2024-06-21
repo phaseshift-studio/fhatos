@@ -44,11 +44,9 @@
 #include <util/fhat_error.hpp>
 
 // C++ standard template library common data structures
-#include <atomic>
+#include <any>
 #include <deque>
-#include <exception>
 #include <functional>
-#include <list>
 #include <map>
 #include <memory>
 #include <optional>
@@ -56,6 +54,7 @@
 #include <set>
 #include <string>
 #include <tsl/ordered_map.h>
+
 
 namespace fhatos {
   static const char *ANSI_ART = "!r            !_PhaseShift Studio Presents!! \n"
@@ -98,6 +97,7 @@ namespace fhatos {
   ///////////////////////
   /// CONTAINER TYPES ///
   ///////////////////////
+  using Any = std::any;
   template<typename A>
   using Option = std::optional<A>;
   template<typename A>
@@ -231,7 +231,7 @@ namespace fhatos {
   ///////////////////
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING INFO
+#define FOS_LOGGING DEBUG
 #endif
 
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {

@@ -31,34 +31,32 @@
 namespace fhatos {
   class Monad {
   protected:
-    const Obj *_obj;
-    const Inst *_inst;
+    const ptr<Obj> _obj;
+    const ptr<Inst> _inst;
     const long _bulk = 1;
 
   public:
-    explicit Monad(const Obj *obj, const Inst *inst) : _obj(obj), _inst(inst) {}
+    explicit Monad(const ptr<Obj> obj, const ptr<Inst> &inst) : _obj(obj), _inst(inst) {}
 
-    List<const Monad *> split(const ptr<Bytecode> bcode) const {
+    List<const ptr<Monad>> split(const ptr<Bytecode> &bcode) const {
       if (this->_inst->isNoInst() || this->_obj->isNoObj()) {
-        return List<const Monad *>{};
+        return List<const ptr<Monad>>{};
       } else {
-        const Obj *nextObj = this->_inst->apply(this->_obj);
-        const Inst *nextInst = bcode->nextInst(this->_inst);
-        return List<const Monad *>{new Monad(nextObj, nextInst)};
+        const ptr<Obj> nextObj = this->_inst->apply(this->_obj);
+        const ptr<Inst> nextInst = bcode->nextInst(this->_inst);
+        return List<const ptr<Monad>>{ptr<Monad>(new Monad(nextObj, nextInst))};
       }
     }
 
-    const Obj *obj() const { return this->_obj; }
-    const Inst *inst() const { return this->_inst; }
-    const long bulk() const { return this->_bulk; }
+    ptr<Obj> obj() const { return this->_obj; }
+    ptr<Inst> inst() const { return this->_inst; }
+    long bulk() const { return this->_bulk; }
 
     bool halted() const { return this->_inst->isNoInst(); }
-
     bool dead() const { return this->_obj->isNoObj(); }
 
-    const string toString() const {
-      return string("!bM!![") + this->obj()->toString() + "!g@!!" +
-             (nullptr == this->_inst ? "Ø" : this->inst()->toString()) + "]";
+    string toString() const {
+      return string("!MM!![") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "]";
     }
 
     // const Inst<Obj, A> *at() const { return this->inst; }
@@ -71,34 +69,34 @@ namespace fhatos {
   class Processor {
   protected:
     const ptr<Bytecode> bcode;
-    List<const Monad *> *running = new List<const Monad *>();
-    List<const E *> *halted = new List<const E *>();
-    Pair<ManyToOneInst *, List<const Obj *> *> *barrier;
+    List<const ptr<Monad>> *running = new List<const ptr<Monad>>();
+    List<const ptr<Obj>> *halted = new List<const ptr<Obj>>();
+    Pair<ptr<ManyToOneInst>, List<const ptr<Obj>> *> *barrier;
 
   public:
     explicit Processor(const ptr<Bytecode> bcode) :
-        bcode(bcode), barrier(new Pair<ManyToOneInst *, List<const Obj *> *>(nullptr, nullptr)) {
-      const Inst *startInst = this->bcode->startInst();
+        bcode(bcode), barrier(new Pair<ptr<ManyToOneInst>, List<const ptr<Obj>> *>(nullptr, nullptr)) {
+      const ptr<Inst> startInst = this->bcode->startInst();
       LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
       if (startInst->opcode() == "start") {
-        for (const Obj *startObj: startInst->args()) {
-          const Monad *monad = new Monad(startObj, startInst);
+        for (const ptr<Obj> &startObj: startInst->v_args()) {
+          const ptr<Monad> monad = ptr<Monad>(new Monad(startObj, startInst));
           this->running->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
         }
       }
     }
 
-    const E *next(const int steps = -1) {
+    const ptr<E> next(const int steps = -1) {
       while (true) {
         if (this->halted->empty()) {
           if (this->running->empty()) {
-            return (E *) (void *) NoObj::singleton();
+            return nullptr; // ptr<E>((E*)new NoObj());
           } else {
             this->execute(steps);
           }
         } else {
-          const E *end = this->halted->back();
+          const ptr<E> end = ptr<E>((E*)this->halted->back().get());
           this->halted->pop_back();
           return end;
         }
@@ -110,42 +108,41 @@ namespace fhatos {
 
       while ((!this->running->empty() || this->barrier->first) && (counter++ < steps || steps == -1)) {
         if (this->running->empty() && this->barrier->first) {
-          const Obj *objA = new Objs(this->barrier->second);
+          const ptr<Objs> objA = ptr<Objs>(new Objs((List<const ptr<Obj>>) *this->barrier->second));
           LOG(DEBUG, "Processing barrier: %s\n", objA->toString().c_str());
-          const Obj *objB = this->barrier->first->apply(objA);
+          const ptr<Obj> objB = this->barrier->first->apply(objA);
           LOG(DEBUG, "Barrier reduction: %s\n", objB->toString().c_str());
-          this->running->push_back(new Monad(objB, bcode->nextInst(this->barrier->first)));
+          this->running->push_back(ptr<Monad>(new Monad(objB, bcode->nextInst(this->barrier->first))));
           this->barrier->second->clear();
           this->barrier->first = nullptr;
           delete this->barrier->second;
         } else {
-          const Monad *parent = this->running->back();
+          const ptr<Monad> parent = this->running->back();
           this->running->pop_back();
           if (parent->dead()) {
             LOG(DEBUG, FOS_TAB_4 "!rKilling!! monad: %s\n", parent->toString().c_str());
           } else if (parent->halted()) {
             LOG(DEBUG, FOS_TAB_2 "!gHalting!! monad: %s\n", parent->toString().c_str());
-            this->halted->push_back((const E *) parent->obj());
+            this->halted->push_back(parent->obj());
           } else {
             if (parent->inst()->itype() == IType::MANY_TO_ONE) {
               /// MANY-TO-ONE BARRIER PROCESSING
               if (!this->barrier->first) {
                 LOG(DEBUG, "Creating barrier: %s\n", parent->inst()->toString().c_str());
-                this->barrier->first = (ManyToOneInst *) parent->inst();
-                this->barrier->second = new List<const Obj *>();
+                this->barrier->first = ptr<ManyToOneInst>((ManyToOneInst *) parent->inst().get());
+                this->barrier->second = new List<const ptr<Obj>>();
               }
               LOG(DEBUG, "Adding to barrier: %s => %s\n", parent->toString().c_str(),
                   parent->inst()->toString().c_str());
               this->barrier->second->push_back(parent->obj());
             } else {
-              for (const Monad *child: parent->split(this->bcode)) {
+              for (const ptr<Monad> &child: parent->split(this->bcode)) {
                 LOG(DEBUG, FOS_TAB_4 "!ySplitting!! monad : %s => %s\n", parent->toString().c_str(),
                     child->toString().c_str());
                 this->running->push_back(child);
               }
             }
           }
-          delete parent;
         }
       }
 
@@ -154,9 +151,9 @@ namespace fhatos {
       return this->halted->size();
     }
 
-    void forEach(const Consumer<const E *> &consumer, const int steps = -1) {
+    void forEach(const Consumer<const ptr<E>> &consumer, const int steps = -1) {
       while (true) {
-        const E *end = this->next();
+        const ptr<E> end = this->next(steps);
         if (end && !end->isNoObj()) {
           consumer(end);
         } else {

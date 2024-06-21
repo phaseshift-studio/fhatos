@@ -23,7 +23,6 @@
 //
 #include <structure/furi.hpp>
 #include <language/obj.hpp>
-#include <language/binary_obj.hpp>
 
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
@@ -39,9 +38,9 @@ namespace fhatos {
     const ptr<const Obj> payload;
     const bool retain;
 
-    template<OType type>
+    template<OType otype>
     [[nodiscard]] bool is() const {
-      return type == this->payload->type();
+      return otype == this->payload->otype();
     }
 
     bool isQuery(const char *query = "?") const {

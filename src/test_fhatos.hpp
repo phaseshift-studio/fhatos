@@ -19,6 +19,9 @@
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
 #ifdef NATIVE
+#include <fhatos.hpp>
+#include <language/fluent.hpp>
+#include <language/obj.hpp>
 #include <test_fhatos_native.hpp>
 #else
 #include <unity.h>
@@ -84,19 +87,19 @@ namespace fhatos {
 using namespace fhatos;
 
 template<typename _OBJ = Obj>
-static void FOS_CHECK_ARGS(const List<_OBJ *> &expectedArgs, const Inst *inst) {
+static void FOS_CHECK_ARGS(const List<_OBJ> &expectedArgs, const ptr<Inst> inst) {
   FOS_TEST_MESSAGE("!yTesting!! instruction: %s", inst->toString().c_str());
-  TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst->args().size());
+  TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst->v_args().size());
   for (int i = 0; i < expectedArgs.size(); i++) {
-    bool test = *expectedArgs[i] == *inst->args()[i];
+    bool test = expectedArgs[i] == *inst->v_args()[i];
     if (!test) {
-      FOS_TEST_MESSAGE("!r%s!! != !r%s!!", expectedArgs[i]->toString().c_str(), inst->args()[i]->toString().c_str());
+      FOS_TEST_MESSAGE("!r%s!! != !r%s!!", expectedArgs[i].toString().c_str(), inst->v_args()[i]->toString().c_str());
       TEST_FAIL();
     }
   }
 }
 
-template<typename _OBJ>
+/*template<typename _OBJ>
 static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
   List<const _OBJ *> *result = fluent.toList<_OBJ>();
@@ -104,32 +107,34 @@ static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool pr
     int index = 0;
     for (const _OBJ *obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       fhatos::OTYPE_STR.at(obj->type()));
+                       OTYPE_STR.at(obj->otype()));
     }
   }
   return result;
-}
+}*/
 
-static const void FOS_TEST_OBJ_EQUAL(const Obj *objA, const Obj *objB) {
-  const bool test = *objA == *objB;
-  FOS_TEST_MESSAGE("!bTesting equality!! : %s %s %s", objA->toString().c_str(),
-                   test ? "==" : "!=", objB->toString().c_str());
+template<typename OBJ = Obj>
+static const void FOS_TEST_OBJ_GT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
+  const bool test = *objA > *objB;
+  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", objA->toString().c_str(),
+                   test ? ">" : "!=", objB->toString().c_str());
   if (!test)
     TEST_FAIL();
 }
 
-static const void FOS_TEST_OBJ_NOT_EQUAL(const Obj *objA, const Obj *objB) {
-  const bool test = *objA == *objB;
-  FOS_TEST_MESSAGE("!bTesting not equal!!: %s %s %s", objA->toString().c_str(),
-                   test ? "==" : "!=", objB->toString().c_str());
-  if (test)
+template<typename OBJ = Obj>
+static const void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
+  const bool test = *objA < *objB;
+  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", objA->toString().c_str(),
+                   test ? "<" : "!=", objB->toString().c_str());
+  if (!test)
     TEST_FAIL();
 }
 
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
-                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->type()), obj->utype()->toString().c_str());
+                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->otype()), obj->type()->toString().c_str());
   return obj;
 }
 
@@ -139,9 +144,9 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   return obj;
 }
 
-template<typename _OBJ>
+/*template<typename _OBJ>
 static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
-                              const Map<Uri, Obj *> &expectedReferences = {}, const bool clearRouter = true) {
+                              const Map<Uri, Obj> &expectedReferences = {}, const bool clearRouter = true) {
   const List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
   for (const _OBJ obj: expected) {
@@ -152,15 +157,15 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
   }
   if (!expectedReferences.empty()) {
     for (const auto &[key, value]: expectedReferences) {
-      const Obj *temp = value;
+      const Obj temp = value;
       FOS_DEFAULT_ROUTER::singleton()->subscribe(Subscription{
           .mailbox = nullptr,
           .source = ID("anon"),
           .pattern = key.value(),
-          .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(*temp == *message->payload); }});
+          .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(temp == *message->payload); }});
     }
   }
   if (clearRouter)
     FOS_DEFAULT_ROUTER::singleton()->clear();
-}
+}*/
 #endif

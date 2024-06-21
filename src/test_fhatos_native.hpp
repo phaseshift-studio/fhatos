@@ -23,7 +23,7 @@
 // #define FOS_LOGGING DEBUG
 
 #include <fhatos.hpp>
-#include <language/fluent.hpp>
+// #include <language/fluent.hpp>
 #include <unity.h>
 
 void setUp() {}
@@ -59,8 +59,27 @@ void tearDown() {}
   try {                                                                                                                \
     x;                                                                                                                 \
     TEST_ASSERT(false);                                                                                                \
-  } catch (fhatos::kernel::fError e) {                                                                                 \
+  } catch (fError & e) {                                                                                               \
+    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
     TEST_ASSERT(true);                                                                                                 \
+  }
+
+#define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
+  {                                                                                                                    \
+    const bool test = *(objA) == *(objB);                                                                              \
+    FOS_TEST_MESSAGE("!yTesting equality!! : %s %s %s", (objA)->toString().c_str(),                                    \
+                     test ? "==" : "!=", (objB)->toString().c_str());                                                  \
+    if (!test)                                                                                                         \
+      TEST_FAIL();                                                                                                     \
+  }
+
+#define FOS_TEST_OBJ_NOT_EQUAL(objA, objB)                                                                             \
+  {                                                                                                                    \
+    const bool test = *(objA) == *(objB);                                                                              \
+    FOS_TEST_MESSAGE("!yTesting not equal!!: %s %s %s", (objA)->toString().c_str(),                                    \
+                     test ? "==" : "!=", (objB)->toString().c_str());                                                  \
+    if (test)                                                                                                          \
+      TEST_FAIL();                                                                                                     \
   }
 
 namespace fhatos {

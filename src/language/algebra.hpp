@@ -46,24 +46,25 @@ namespace fhatos {
       return map.at(brnch);
     }
 
-    virtual const Obj *branch(const BRANCH_SEMANTIC branch, const Obj *incoming, const Obj *control) const {
+    virtual const ptr<Obj> branch(const BRANCH_SEMANTIC branch, const ptr<Obj> incoming, const ptr<Obj> control) const {
       switch (branch) {
         case BRANCH_SEMANTIC::SPLIT: {
-          return NoObj::singleton();
+          return NoObj::self_ptr();
         }
         case BRANCH_SEMANTIC::CHAIN: {
-          return NoObj::singleton();
+          return NoObj::self_ptr();
         }
         case BRANCH_SEMANTIC::SWITCH: {
-          for (const auto &[check, outgoing]: *((Rec *) control)->value()) {
+          for (const auto &[check, outgoing]: ((Rec *) control.get())->value()) {
             if (!check->apply(incoming)->isNoObj()) {
               return outgoing->apply(incoming);
             }
           }
-          return NoObj::singleton();
+          return NoObj::self_ptr();
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->type()), OTYPE_STR.at(control->type()));
+          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->otype()),
+                       OTYPE_STR.at(control->otype()));
         }
       }
     }
@@ -81,62 +82,65 @@ namespace fhatos {
       return map.at(rel);
     }
 
-    virtual const Obj *relate(const RELATION_PREDICATE rel, const Obj *a, const Obj *b) {
+    virtual const ptr<Obj> relate(const RELATION_PREDICATE rel, const ptr<Obj> &lhs, const ptr<Obj> &rhs) {
+      if (const fError* e = ObjHelper::sameTypes(lhs, rhs)) {
+        throw *e;
+      }
       switch (rel) {
         case RELATION_PREDICATE::EQ:
-          return new Bool(*(Obj *) a == *(Obj *) b);
+          return ptr<Obj>(new Bool(*lhs == *rhs));
         case RELATION_PREDICATE::NEQ:
-          return new Bool(!(*(Obj *) a == *(Obj *) b));
+          return ptr<Obj>(new Bool(*lhs != *rhs));
         case RELATION_PREDICATE::GT: {
-          switch (a->type()) {
+          switch (lhs->otype()) {
             case OType::INT:
-              return new Bool(a->as<Int>()->value() > b->as<Int>()->value());
+              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() > ((Int*)rhs.get())->value()));
             case OType::REAL:
-              return new Bool(a->as<Real>()->value() > b->as<Real>()->value());
+              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() > ((Real*)rhs.get())->value()));
             case OType::STR:
-              return new Bool(a->as<Str>()->value() > b->as<Str>()->value());
+              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() > ((Str*)rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::GTE: {
-          switch (a->type()) {
+          switch (lhs->otype()) {
             case OType::INT:
-              return new Bool(a->as<Int>()->value() >= b->as<Int>()->value());
+              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() >= ((Int*)rhs.get())->value()));
             case OType::REAL:
-              return new Bool(a->as<Real>()->value() >= b->as<Real>()->value());
+              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() >= ((Real*)rhs.get())->value()));
             case OType::STR:
-              return new Bool(a->as<Str>()->value() >= b->as<Str>()->value());
+              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() >= ((Str*)rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LT: {
-          switch (a->type()) {
+          switch (lhs->otype()) {
             case OType::INT:
-              return new Bool(a->as<Int>()->value() < b->as<Int>()->value());
+              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() < ((Int*)rhs.get())->value()));
             case OType::REAL:
-              return new Bool(a->as<Real>()->value() < b->as<Real>()->value());
+              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() <((Real*)rhs.get())->value()));
             case OType::STR:
-              return new Bool(a->as<Str>()->value() < b->as<Str>()->value());
+              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() < ((Str*)rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LTE: {
-          switch (a->type()) {
+          switch (lhs->otype()) {
             case OType::INT:
-              return new Bool(a->as<Int>()->value() <= b->as<Int>()->value());
+              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() <= ((Int*)rhs.get())->value()));
             case OType::REAL:
-              return new Bool(a->as<Real>()->value() <= b->as<Real>()->value());
+              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() <= ((Real*)rhs.get())->value()));
             case OType::STR:
-              return new Bool(a->as<Str>()->value() <= b->as<Str>()->value());
+              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() <= ((Str*)rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(a->type()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(a->type()), OTYPE_STR.at(b->type()));
+          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
         }
       }
     }
@@ -155,65 +159,68 @@ namespace fhatos {
       return map.at(comp);
     }
 
-    virtual const Obj *compose(const COMPOSITION_OPERATOR comp, const Obj *lhs, const Obj *rhs) const {
-      if (const Option<fError> e = ObjHelper::sameTypes(lhs, rhs)) {
-        throw e.value();
+    virtual const ptr<Obj> compose(const COMPOSITION_OPERATOR &comp, const ptr<Obj> &lhs, const ptr<Obj> &rhs) const {
+      if (const fError* e = ObjHelper::sameTypes(lhs, rhs)) {
+        throw *e;
       }
       switch (comp) {
         case COMPOSITION_OPERATOR::PLUS: {
-          switch (lhs->type()) {
+          switch (lhs->otype()) {
             case OType::URI:
-              return ((Uri *) lhs)->split(((Uri *) lhs)->value().extend(((Uri *) rhs)->toString().c_str()));
+              return ((Uri *) lhs.get())
+                  ->split(((Uri *) lhs.get())->value().extend(((Uri *) rhs.get())->toString().c_str()));
             case OType::BOOL:
-              return ((Bool *) lhs)->split(((Bool *) lhs)->value() || ((Bool *) rhs)->value());
+              return ((Bool *) lhs.get())->split(((Bool *) lhs.get())->value() || ((Bool *) rhs.get())->value());
             case OType::INT:
-              return ((Int *) lhs)->split(((Int *) lhs)->value() + ((Int *) rhs)->value());
+              return lhs->split<Int>(((Int *) lhs.get())->value() + ((Int *) rhs.get())->value());
             case OType::REAL:
-              return ((Real *) lhs)->split(((Real *) lhs)->value() + ((Real *) rhs)->value());
+              return ((Real *) lhs.get())->split(((Real *) lhs.get())->value() + ((Real *) rhs.get())->value());
             case OType::STR:
-              return ((Str *) lhs)->split(string(((Str *) lhs)->value().c_str()).append(((Str *) rhs)->value()));
+              return ((Str *) lhs.get())
+                  ->split(((Str *) lhs.get())->value().append(((Str *) rhs.get())->value()));
             default: {
-              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->type()), OTYPE_STR.at(rhs->type()));
+              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
             }
           }
         }
         case COMPOSITION_OPERATOR::MULT: {
-          switch (lhs->type()) {
+          switch (lhs->otype()) {
             case OType::BOOL:
-              return ((Bool *) lhs)->split(((Bool *) lhs)->value() && ((Bool *) rhs)->value());
+              return ((Bool *) lhs.get())->split(((Bool *) lhs.get())->value() && ((Bool *) rhs.get())->value());
             case OType::INT:
-              return ((Int *) lhs)->split(((Int *) lhs)->value() * ((Int *) rhs)->value());
+              return ((Int *) lhs.get())->split(((Int *) lhs.get())->value() * ((Int *) rhs.get())->value());
             case OType::REAL:
-              return ((Real *) lhs)->split(((Real *) lhs)->value() * ((Real *) rhs)->value());
+              return ((Real *) lhs.get())->split(((Real *) lhs.get())->value() * ((Real *) rhs.get())->value());
             case OType::REC: {
               // RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
               Rec *rec = new Rec({});
-              auto itLHS = ((Rec *) lhs)->value()->begin();
-              auto itRHS = ((Rec *) rhs)->value()->begin();
-              for (; itLHS != ((Rec *) lhs)->value()->end(); ++itLHS) {
-                rec->set((Obj *) compose(COMPOSITION_OPERATOR::MULT, itLHS->first, itRHS->first),
-                         (Obj *) compose(COMPOSITION_OPERATOR::MULT, itLHS->second, itRHS->second));
+              auto itLHS = ((Rec *) lhs.get())->value().begin();
+              auto itRHS = ((Rec *) rhs.get())->value().begin();
+              for (; itLHS != ((Rec *) lhs.get())->value().end(); ++itLHS) {
+                ptr<Obj> k = compose(COMPOSITION_OPERATOR::MULT, itLHS->first, itRHS->first);
+                ptr<Obj> v = compose(COMPOSITION_OPERATOR::MULT, itLHS->second, itRHS->second);
+                rec->set(k, v);
                 ++itRHS;
               }
-              return rec;
+              return ptr<Rec>(rec);
             }
             default: {
-              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(lhs->type()), OTYPE_STR.at(rhs->type()));
+              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
             }
           }
           case COMPOSITION_OPERATOR::MOD: {
-            switch (lhs->type()) {
+            switch (lhs->otype()) {
               case OType::INT:
-                return ((Int *) lhs)->split(((Int *) lhs)->value() % ((Int *) rhs)->value());
+                return ((Int *) lhs.get())->split(((Int *) lhs.get())->value() % ((Int *) rhs.get())->value());
               default: {
-                throw fError("Algebra doesn't define %s %% %s", OTYPE_STR.at(lhs->type()), OTYPE_STR.at(rhs->type()));
+                throw fError("Algebra doesn't define %s %% %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
               }
             }
           }
         }
         default: {
-          throw fError("Algebra does not support composition %s on %s", COMP_TO_STR(comp), OTYPE_STR.at(lhs->type()),
-                       OTYPE_STR.at(rhs->type()));
+          throw fError("Algebra does not support composition %s on %s", COMP_TO_STR(comp), OTYPE_STR.at(lhs->otype()),
+                       OTYPE_STR.at(rhs->otype()));
         }
       }
     }

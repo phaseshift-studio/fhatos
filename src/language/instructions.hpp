@@ -23,17 +23,18 @@
 //
 #include <atomic>
 #include <language/algebra.hpp>
-#include <language/binary_obj.hpp>
 #include <language/obj.hpp>
+#include <language/otype/mono.hpp>
+#include <language/otype/serializer.hpp>
 #include <process/router/local_router.hpp>
 #include <process/router/publisher.hpp>
 
 namespace fhatos {
   template<typename S>
-  static List<Obj *> cast(const List<S *> *list) {
-    List<Obj *> *newList = new List<Obj *>();
-    for (const auto s: *list) {
-      newList->push_back((Obj *) s);
+  static List<ptr<Obj>> cast(const List<ptr<S>> list) {
+    List<ptr<Obj>> *newList = new List<ptr<Obj>>();
+    for (const auto s: list) {
+      newList->push_back(s);
     }
     return *newList;
   }
@@ -49,59 +50,57 @@ namespace fhatos {
 
   class StartInst final : public OneToOneInst {
   public:
-    explicit StartInst(const List<Obj *> *starts) :
-        OneToOneInst("start", cast(starts), [](const Obj *start) { return start; }) {}
+    explicit StartInst(const List<ptr<Obj>> &starts) :
+        OneToOneInst("start", starts, [](const ptr<Obj> &start) { return start; }) {}
   };
 
   class ExplainInst final : public ManyToOneInst {
   public:
-    explicit ExplainInst() : ManyToOneInst("explain", {}, [this](const Obj *) { return (Obj *) this->_bcode; }) {}
+    explicit ExplainInst() : ManyToOneInst("explain", {}, [this](const ptr<Obj>) { return this->bcode(); }) {}
   };
 
-  class CountInst final : public ManyToOneInst {
-  public:
-    explicit CountInst() :
-        ManyToOneInst("count", {}, [](const Obj *obj) { return new Int(((Objs *) obj)->value()->size()); }) {}
-  };
+  /*  class CountInst final : public ManyToOneInst {
+    public:
+      explicit CountInst() :
+          ManyToOneInst("count", {}, [](const Obj *obj) { return new Int(((Objs *) obj)->value()->size()); }) {}
+    };*/
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class SelectInst final : public OneToOneInst {
   public:
-    explicit SelectInst(const List<Obj *> *uris) :
-        OneToOneInst({"select", cast(uris), [this](const Obj *obj) -> const Obj * {
-                        RecMap<Obj *, Obj *> map;
-                        for (const Obj *uri: this->args()) {
-                          const Uri *u = ObjHelper::checkType<OType::URI, Uri>(uri->apply(obj));
-                          ;
-                          Obj *key = (Obj *) u;
-                          Obj *value = (Obj *) ObjHelper::clone<Obj>(
-                              ROUTER::singleton()->read(this->bcode()->id(), u->value()).get());
+    explicit SelectInst(const List<ptr<Obj>> *uris) :
+        OneToOneInst({"select", uris, [this](const ptr<Obj> obj) -> const ptr<Obj> {
+                        RecMap<> map;
+                        for (const ptr<Obj> uri: this->v_args()) {
+                          const ptr<Uri> u = ObjHelper::checkType<OType::URI, Uri>(uri->apply(obj));
+                          ptr<Obj> key = (ptr<Obj>) u;
+                          ptr<Obj> value = ROUTER::singleton()->read(fURI("123"), u->value()).get();
                           map.insert({key, value});
                         }
-                        return new Rec(map);
+                        return ptr<Rec>(new Rec(map));
                       }}) {}
-    explicit SelectInst(const Rec* branches) :
-        OneToOneInst({"select", {(Obj*)branches}, [this](const Obj *lhs) -> const Obj * {
-                        const RecMap<Obj *, Obj *> *split = this->arg(0)->template as<Rec>()->value();
-                        RecMap<Obj *, Obj *> map;
-                        for (const auto [k, v]: *split) {
-                          const Uri *key = ObjHelper::checkType<OType::URI, Uri>(k->apply(lhs));
-                          const Obj *value = v->apply(((Obj *) ObjHelper::clone<Obj>(
-                              ROUTER::singleton()->read(this->bcode()->id(), key->value()).get())));
-                          map.insert({(Obj *) key, (Obj *) value});
+    explicit SelectInst(const ptr<Rec> branches) :
+        OneToOneInst({"select", {branches}, [this](const ptr<Obj> lhs) -> const ptr<Obj> {
+                        const RecMap<> split = this->arg(0)->template as<Rec>()->value();
+                        RecMap<> map;
+                        for (const auto [k, v]: split) {
+                          const ptr<Uri> key = ObjHelper::checkType<OType::URI, Uri>(k->apply(lhs));
+                          const ptr<Obj> value = v->apply( ObjHelper::clone<Obj>(
+                              ROUTER::singleton()->read(fURI("123"), key->value()).get()));
+                          map.insert({key, value});
                         }
-                        return new Rec(map);
+                        return ptr<Rec>(new Rec(map));
                       }}) {}
   };
 
-  template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  /*template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class AsInst final : public OneToOneInst {
   public:
-    explicit AsInst(const OBJ_OR_BYTECODE &utype = NoObj::singleton()) :
-        OneToOneInst({"as", {utype}, [this](const Obj *obj) -> const Obj * {
+    explicit AsInst(const ptr<Type> &utype = NoObj::self_ptr<Type>()) :
+        OneToOneInst({"as", {utype}, [this](ptr<Obj> obj) -> const ptr<Obj> {
                         if (this->arg(0)->isNoObj())
-                          return new Uri(*obj->utype());
-                        const UType utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
+                          return ptr<Uri>(new Uri(obj->type()->v_furi()));
+                        const fURI utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
                         const ptr<const Obj> typeDefinition = this->_bcode->template getType<ROUTER>(utype);
                         if (typeDefinition->type() != OType::BYTECODE && typeDefinition->type() != obj->type())
                           return NoObj::singleton()->obj();
@@ -112,15 +111,15 @@ namespace fhatos {
                         }
                         return cast(obj, utype);
                       }}) {}
-  };
+  };*/
 
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class DefineInst final : public OneToOneInst {
   public:
-    explicit DefineInst(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) :
-        OneToOneInst("define", {utype, typeDefinition.cast<Obj>()}, [this](const Obj *obj) -> const Obj * {
-          this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),
-                                                    ptr<const Obj>(this->arg(1)->obj()));
+    explicit DefineInst(const ptr<Type> &utype, const ptr<Bytecode> &typeDefinition) :
+        OneToOneInst("define", {utype, typeDefinition}, [this](const ptr<Obj> obj) -> const ptr<Obj> {
+          /* this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),
+                                                     ptr<const Obj>(this->arg(1)->obj()));*/
           return obj;
         }) {}
   };
@@ -144,9 +143,9 @@ namespace fhatos {
   public:
     const typename ALGEBRA::BRANCH_SEMANTIC branch;
 
-    explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const OBJ_OR_BYTECODE &branches) :
+    explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const ptr<Rec> &branches) :
         OneToOneInst(ALGEBRA::BRNCH_TO_STR(branch), {branches},
-                     [this, branch](const Obj *lhs) -> const Obj * {
+                     [this, branch](const ptr<Obj> lhs) -> const ptr<Obj> {
                        return ALGEBRA::singleton()->branch(branch, lhs, this->arg(0));
                      }),
         branch(branch) {}
@@ -159,11 +158,11 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class ReferenceInst final : public OneToOneInst {
   public:
-    explicit ReferenceInst(const URI_OR_BYTECODE &uri) :
-        OneToOneInst("ref", {uri}, [this](const Obj *toStore) -> const Obj * {
-          RESPONSE_CODE response =
-              ROUTER::singleton()->write(ptr<const Obj>(ObjHelper::clone<Obj>(toStore)), this->_bcode->id(),
-                                         this->arg(0)->apply(toStore)->template as<Uri>()->value());
+    explicit ReferenceInst(const ptr<Uri> &uri) :
+        OneToOneInst("ref", {uri}, [this](const ptr<Obj> toStore) -> const ptr<Obj> {
+          RESPONSE_CODE response = ROUTER::singleton()->write(
+              ptr<const Obj>(ObjHelper::clone<Obj>(toStore.get())), /*this->_bcode->id()*/ ID("123"),
+              this->arg(0)->apply(toStore)->template as<Uri>()->v_furi());
           // if(!RESPONSE_CODE)
           //  LOG(ERROR,"")
           return toStore;
@@ -173,20 +172,20 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class DereferenceInst final : public OneToOneInst {
   public:
-    explicit DereferenceInst(const URI_OR_BYTECODE &target) :
-        OneToOneInst("dref", {target}, [this](const Obj *obj) -> const Obj * {
-          return ObjHelper::clone<Obj>(
-              ROUTER::singleton()
-                  ->template read<Obj>(this->_bcode->id(), this->arg(0)->apply(obj)->template as<Uri>()->value())
-                  .get());
+    explicit DereferenceInst(const ptr<Uri> &target) :
+        OneToOneInst("dref", {target}, [this](const ptr<Obj> obj) -> const ptr<Obj> {
+          return ObjHelper::clone<Obj>(ROUTER::singleton()
+                                           ->template read<Obj>(/*this->_bcode->id()*/ ID("123"),
+                                                                this->arg(0)->apply(obj)->template as<Uri>()->v_furi())
+                                           .get());
         }) {}
   };
 
   template<typename PRINTER = FOS_DEFAULT_PRINTER>
   class PrintInst final : public OneToOneInst {
   public:
-    explicit PrintInst(const OBJ_OR_BYTECODE &toPrint) :
-        OneToOneInst("print", {toPrint}, [this](const Obj *lhs) -> const Obj * {
+    explicit PrintInst(const ptr<Obj> &toPrint) :
+        OneToOneInst("print", {toPrint}, [this](const ptr<Obj> lhs) -> const ptr<Obj> {
           PRINTER::singleton()->printf("%s\n", this->arg(0)->apply(lhs)->toString().c_str());
           return lhs;
         }) {}
@@ -202,9 +201,9 @@ namespace fhatos {
   public:
     const typename ALGEBRA::RELATION_PREDICATE predicate;
 
-    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const OBJ_OR_BYTECODE &rhs) :
+    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const ptr<Obj> &rhs) :
         OneToOneInst(ALGEBRA::REL_TO_STR(predicate), {rhs},
-                     [this, predicate](const Obj *lhs) -> const Obj * {
+                     [this, predicate](const ptr<Obj> lhs) -> ptr<Obj> {
                        return ALGEBRA::singleton()->relate(predicate, lhs, this->arg(0)->apply(lhs));
                      }),
         predicate(predicate) {}
@@ -213,19 +212,19 @@ namespace fhatos {
 
   class IsInst final : public OneToOneInst {
   public:
-    explicit IsInst(const OBJ_OR_BYTECODE &test) :
-        OneToOneInst("is", {test}, [this](const Obj *input) -> const Obj * {
-          return this->arg(0)->apply(input)->as<Bool>()->value() ? input : NoObj::singleton();
+    explicit IsInst(const ptr<Bool> &test) :
+        OneToOneInst("is", {test}, [this](const ptr<Obj> &input) -> const ptr<Obj> {
+          return ((Bool *) this->arg(0)->apply(input).get())->value() ? input : NoObj::self_ptr();
         }) {}
   };
 
-  class WhereInst final : public OneToOneInst {
+  /*class WhereInst final : public OneToOneInst {
   public:
     explicit WhereInst(const OBJ_OR_BYTECODE &test) :
         OneToOneInst("where", {test}, [this](const Obj *input) -> const Obj * {
           return this->arg(0)->apply(input)->isNoObj() ? NoObj::singleton() : input;
         }) {}
-  };
+  };*/
 
 
   //////////////////////////////////////////////////////////////////////////
@@ -237,10 +236,11 @@ namespace fhatos {
   public:
     const typename ALGEBRA::COMPOSITION_OPERATOR op;
 
-    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR op, const OBJ_OR_BYTECODE &rhs) :
-        OneToOneInst(
-            ALGEBRA::COMP_TO_STR(op), {rhs},
-            [this, op](const Obj *lhs) { return ALGEBRA::singleton()->compose(op, lhs, this->arg(0)->apply(lhs)); }),
+    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR op, const ptr<Obj> &rhs) :
+        OneToOneInst(ALGEBRA::COMP_TO_STR(op), {rhs},
+                     [this, op](const ptr<Obj> &lhs) {
+                       return ALGEBRA::singleton()->compose(op, lhs, this->arg(0)->apply(lhs));
+                     }),
         op(op) {}
   };
 
@@ -251,10 +251,10 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class PublishInst final : public OneToOneInst {
   public:
-    explicit PublishInst(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload, const ID &bcodeId) :
-        OneToOneInst("<=", {target, payload}, [this](const Obj *incoming) -> const Obj * {
+    explicit PublishInst(const ptr<Obj> &target, const ptr<Obj> &payload, const ID &bcodeId) :
+        OneToOneInst("<=", {target, payload}, [this, bcodeId](const Obj *incoming) -> const Obj * {
           ROUTER::singleton()->publish(
-              Message{.source = this->bcode()->id(),
+              Message{.source = bcodeId,
                       .target = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
                       .payload = ptr<const Obj>(ObjHelper::clone<>(this->arg(1))) /*->apply(incoming)*/,
                       .retain = TRANSIENT_MESSAGE});
@@ -265,12 +265,12 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class SubscribeInst final : public OneToOneInst {
   public:
-    explicit SubscribeInst(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv, const ID &bcodeId) :
+    explicit SubscribeInst(const ptr<Obj> &pattern, const ptr<Obj> &onRecv, const ID &bcodeId) :
         OneToOneInst("=>", {pattern, onRecv}, [this, bcodeId](const Obj *incoming) -> const Obj * {
           ROUTER::singleton()->subscribe(
               Subscription{.mailbox = nullptr,
                            .source = bcodeId,
-                           .pattern = this->arg(0)->apply(incoming)->template as<Uri>()->value(),
+                           .pattern = this->arg(0)->apply(incoming)->template as<Uri>()->v_furi(),
                            .onRecv = [this](const ptr<Message> &message) {
                              const Obj *outgoing = this->arg(1)->apply(message->payload.get());
                              LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());

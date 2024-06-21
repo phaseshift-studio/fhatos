@@ -51,13 +51,13 @@ namespace fhatos {
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       //////////////// SPAWN
       this->subscribe(id.query("?spawn"), [this](const ptr<Message> &message) {
-        if (message->payload->utype()->equals("thread")) {
-          const auto b = new fBcode<Thread, ROUTER>(((Rec*)message->payload.get())->get<Uri>(new Uri("id"))->value(), message->payload);
-          this->spawn(b);
+        if (message->payload->type()->name() == "thread") {
+          //const auto b = new fBcode<Thread, ROUTER>(((Rec*)message->payload.get())->get<Uri>(share<Uri>(Uri(fURI("id"))))->v_furi(), message->payload);
+        //  this->spawn(b);
         } else {
           LOG_TASK(ERROR,this,"obj type can not be spawned: [stype:%s][utype:%s]\n",
-            OTYPE_STR.at(message->payload->type()),
-            message->payload->utype()->toString().c_str());
+            OTYPE_STR.at(message->payload->otype()),
+            message->payload->type()->toString().c_str());
         }
       });
       //////////////// DESTROY

@@ -46,7 +46,7 @@ namespace fhatos {
                                                          .onRecv = onRecv});
     }
 
-    Publisher<ROUTER> *onQuery(const Pattern &queryPattern, const Runnable &runnable) {
+    /*Publisher<ROUTER> *onQuery(const Pattern &queryPattern, const Runnable &runnable) {
       this->subscribe(queryPattern, [this, queryPattern, runnable](const Message &message) {
         if (!message.source.equals(this->__id) && message.isQuery(queryPattern.query().c_str()))
           runnable();
@@ -86,7 +86,7 @@ namespace fhatos {
                      }}});
       }
       return this->onQuery(queryPattern, map);
-    }
+    }*/
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
@@ -102,11 +102,6 @@ namespace fhatos {
      RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj>& payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
       return ROUTER::singleton()->publish(Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload, .retain = retain});
-    }
-
-     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const OBJ_OR_BYTECODE> &payload,
-                            const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, payload, retain);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////

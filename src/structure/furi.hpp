@@ -170,11 +170,11 @@ namespace fhatos {
                  : fURI(string(this->toString()).append("/").append(segments));
     }
 
-    const fURI retract(const bool fromRight=true) const {
+    const fURI retract(const bool fromRight = true) const {
       if (this->empty())
         return *this;
       string path;
-      if(fromRight) {
+      if (fromRight) {
         for (uint8_t i = 0; i < this->_length - 1; i++) {
           if (i > 0)
             path = path + "/";
@@ -204,17 +204,31 @@ namespace fhatos {
 
     const string lastSegment() const { return string(this->_segments[this->_length - 1]); }
 
-    const string path() const {
+    const uint8_t pathLength() const { return this->_length == 0 ? 0 : this->_length - 1; }
+
+    const string path(const uint8_t startSegment = 0, const uint8_t endSegment = UINT8_MAX - 1) const {
       string temp;
       if (this->_length > 1) {
-        for (uint8_t i = 1; i < this->_length; i++) {
-          if (i > 1)
-            temp = temp + "/";
-          temp = temp + this->_segments[i];
+        uint8_t end = (endSegment + 1) > _length ? _length : (endSegment + 1);
+        for (uint8_t i = startSegment + 1; i < end; i++) {
+          temp += this->_segments[i];
+          temp += "/";
         }
       }
-      return temp;
+      return temp.empty() ? temp : temp.substr(0, temp.length() - 1);
     }
+
+    /* const string path() const {
+       string temp;
+       if (this->_length > 1) {
+         for (uint8_t i = 1; i < this->_length; i++) {
+           if (i > 1)
+             temp = temp + "/";
+           temp = temp + this->_segments[i];
+         }
+       }
+       return temp;
+     }*/
 
     const fURI path(const string &path) const { return fURI(this->authority()).extend(path.c_str()); }
 
@@ -267,7 +281,7 @@ namespace fhatos {
       if (std::string::npos == colonIndex) {
         return string("");
       } else {
-        return  string(this->_segments[0]).substr(0, colonIndex);
+        return string(this->_segments[0]).substr(0, colonIndex);
       }
     }
 
@@ -278,15 +292,19 @@ namespace fhatos {
         if (scheme.empty()) {
           return *this;
         } else {
-          return fURI(scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") + this->toString());
+          return fURI(scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") +
+                      this->toString());
         }
       } else if (scheme.empty()) {
         fURI temp = fURI(*this);
-        temp._segments[0] = strdup(string(temp._segments[0]).substr(index + (std::string::npos == colonSlashSlashIndex ? 1 : 3)).c_str());
+        temp._segments[0] = strdup(
+            string(temp._segments[0]).substr(index + (std::string::npos == colonSlashSlashIndex ? 1 : 3)).c_str());
         return temp;
       } else {
         fURI temp = fURI(*this);
-        temp._segments[0] = strdup((scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") + string(temp._segments[0]).substr(index+1)).c_str());
+        temp._segments[0] = strdup((scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") +
+                                    string(temp._segments[0]).substr(index + 1))
+                                       .c_str());
         return temp;
       }
     }

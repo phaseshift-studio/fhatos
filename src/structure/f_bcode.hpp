@@ -26,11 +26,11 @@ namespace fhatos {
   class fBcode final : public Actor<PROCESS, ROUTER> {
   public:
     std::atomic<bool> *setupComplete = new std::atomic<bool>(false);
-    const ptr<const Obj> rec;
+    const ptr<Obj> rec;
     ptr<Bytecode> SETUP_BCODE;
     ptr<Bytecode> LOOP_BCODE;
 
-    fBcode(const ID &id, const ptr<const Obj> &rec) :
+    fBcode(const ID &id, const ptr<Rec> &rec) :
         Actor<PROCESS, ROUTER>(
             id,
             // setup
@@ -46,9 +46,8 @@ namespace fhatos {
                   LOG_EXCEPTION(error);
                 }
               } else {
-                LOG_TASK(ERROR,this,"setup() already executed\n");
+                LOG_TASK(ERROR, this, "setup() already executed\n");
               }
-
             },
             // loop
             [this](const Actor<PROCESS, ROUTER> *actor) {
@@ -60,8 +59,8 @@ namespace fhatos {
                 LOG_EXCEPTION(error);
               }
             }),
-        rec(rec), SETUP_BCODE(ptr<Bytecode>((Bytecode *) ((Rec *) rec.get())->get<Bytecode>(new Uri("setup")))),
-        LOOP_BCODE(ptr<Bytecode>((Bytecode *) ((Rec *) rec.get())->get<Bytecode>(new Uri("loop")))) {}
+        rec(rec), SETUP_BCODE(rec->get<Bytecode>(share<Uri>(Uri("setup")))),
+        LOOP_BCODE(rec->get<Bytecode>(share<Uri>(Uri("loop")))) {}
   };
 } // namespace fhatos
 #endif

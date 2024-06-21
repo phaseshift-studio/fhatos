@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 #include <language/fluent.hpp>
 #include <language/obj.hpp>
+#include <language/otype/mono.hpp>
 #include <sstream>
 #include <util/string_helper.hpp>
 
@@ -37,11 +38,11 @@ namespace fhatos {
       StringHelper::trim(cleanLine);
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", cleanLine.c_str());
       if (cleanLine.empty()) {
-        return share<Bytecode>(Bytecode(this->id()));
+        return ptr<Bytecode>(new Bytecode(ptr<List<ptr<Inst>>>(new List<ptr<Inst>>({}))));
       }
       stringstream ss = stringstream(cleanLine);
       ptr<Bytecode> bcode = this->parseBytecode(&ss);
-      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->type()));
+      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->otype()));
       return bcode;
     }
 
@@ -51,20 +52,22 @@ namespace fhatos {
       Fluent<> *fluent = new Fluent<>();
       while (!ss->eof()) {
         const ptr<string> opcode = Parser::parseOpcode(ss);
-        const ptr<List<ptr<OBJ_OR_BYTECODE>>> args = Parser::parseArgs(ss);
+        const ptr<List<ptr<Obj>>> args = Parser::parseArgs(ss);
 
-        if (*opcode == "count") {
+        /*if (*opcode == "count") {
           fluent = new Fluent(fluent->count());
-        } else if (*opcode == "is") {
-          fluent = new Fluent(fluent->is(*args->at(0)));
+        } else*/
+        if (*opcode == "is") {
+          fluent = new Fluent(fluent->is(*(Bool *) args->at(0).get()));
         } else if (*opcode == "print") {
           fluent = new Fluent(fluent->print(*args->at(0)));
-        } else if (*opcode == "ref") {
-          fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
-        } else if (*opcode == "dref") {
-          fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0))));
-        } else if (*opcode == "switch") {
-          fluent = new Fluent(fluent->bswitch(*args->at(0)));
+        } /* else if (*opcode == "ref") {
+           fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
+         } else if (*opcode == "dref") {
+           fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0))));
+         } */
+        else if (*opcode == "switch") {
+          fluent = new Fluent(fluent->bswitch(*(Rec *) args->at(0).get()));
         } else if (*opcode == "eq") {
           fluent = new Fluent(fluent->eq(*args->at(0)));
         } else if (*opcode == "neq") {
@@ -84,8 +87,8 @@ namespace fhatos {
         } else if (*opcode == "mod") {
           fluent = new Fluent(fluent->mod(*args->at(0)));
         } else if (*opcode == "start") {
-          fluent = new Fluent(fluent->start(*args));
-        } else if (*opcode == "select") {
+          // fluent = new Fluent(fluent->start(args));
+        } /*else if (*opcode == "select") {
           fluent = new Fluent(args->at(0)->type() == OType::REC ? fluent->select(args->at(0)->cast<Rec>())
                                                                 : fluent->select(*args));
         } else if (*opcode == "as") {
@@ -98,10 +101,11 @@ namespace fhatos {
           fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
         } else if (*opcode == "=>") {
           fluent = new Fluent(fluent->subscribe(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
-        } else {
+        } */
+        else {
           throw fError("Unknown instruction opcode: !b%s!!\n", opcode->c_str());
         }
-        LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->value()->back()->toString().c_str());
+        LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->v_insts()->back()->toString().c_str());
       }
       // delete fluent;
       return fluent->bcode;
@@ -124,8 +128,8 @@ namespace fhatos {
       return opcode;
     }
 
-    static const ptr<List<ptr<OBJ_OR_BYTECODE>>> parseArgs(stringstream *ss) {
-      const auto args = share(List<ptr<OBJ_OR_BYTECODE>>());
+    static const ptr<List<ptr<Obj>>> parseArgs(stringstream *ss) {
+      const auto args = share(List<ptr<Obj>>());
       while (std::isspace(ss->peek())) {
         ss->get();
       }
@@ -142,9 +146,10 @@ namespace fhatos {
         return args;
       }
       while (!ss->eof()) {
-        ptr<OBJ_OR_BYTECODE> argObj = Parser::parseArg(ss);
+        ptr<Obj> argObj = Parser::parseArg(ss);
         args->push_back(argObj);
-        LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(), OTYPE_STR.at(argObj->type()));
+        LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
+            OTYPE_STR.at(argObj->otype()));
         if (ss->peek() == ',' || ss->peek() == '.' || ss->peek() == ')') {
           ss->get();
           break;
@@ -153,7 +158,7 @@ namespace fhatos {
       return args;
     }
 
-    static const ptr<OBJ_OR_BYTECODE> parseArg(stringstream *ss) {
+    static const ptr<Obj> parseArg(stringstream *ss) {
       string arg;
       int paren = 0;
       int bracket = 0;
@@ -180,15 +185,16 @@ namespace fhatos {
       return parseObj(arg);
     }
 
-    static const ptr<OBJ_OR_BYTECODE> parseObj(const string &token2) {
+    template<typename OBJ = Obj>
+    static const ptr<OBJ> parseObj(const string &token2) {
       char *array; //[token2.length()];
       array = strdup(token2.c_str());
       string token = string(array);
-      ptr<OBJ_OR_BYTECODE> obj_or_bcode;
+      ptr<Obj> obj_or_bcode;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find('[');
-      ptr<UType> utype = NO_UTYPE;
+      ptr<fURI> utype = OBJ_FURI;
       if (index != string::npos && index != 0 && token.back() == ']') {
         utype = share(fURI(token.substr(0, index)));
         token.pop_back();
@@ -196,18 +202,18 @@ namespace fhatos {
         LOG(DEBUG, FOS_TAB_5 "typed stripped token: %s\n", token.c_str());
       }
       if (strcmp(token.c_str(), "Ø") == 0) {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(NoObj::singleton()));
+        obj_or_bcode = NoObj::self_ptr();
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Str(token.substr(1, token.length() - 2))));
+        obj_or_bcode = ptr<Obj>(new Str(token.substr(1, token.length() - 2)));
         // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Bool(strcmp("true", token.c_str()) == 0)));
+        obj_or_bcode = ptr<Obj>(new Bool(strcmp("true", token.c_str()) == 0));
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream ss = stringstream(token);
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(&ss).get()));
+        obj_or_bcode = ptr<Obj>(parseBytecode(&ss).get());
       } else if (token[token.length() - 1] == ')' && token.find('(')) {
         stringstream ss = stringstream(token);
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Parser::parseBytecode(&ss).get()));
+        obj_or_bcode = ptr<Obj>(parseBytecode(&ss).get());
       } else if (token.find("=>") != string::npos /*token[0] == '[' && token[token.length() - 1] == ']'*/) {
         stringstream x = stringstream(token[0] == '[' ? token.substr(1, token.length() - 2) : token);
         stringstream *ss = &x;
@@ -227,7 +233,7 @@ namespace fhatos {
         StringHelper::trim(first);
         ////////////////////////////////////
         if (type == OType::REC) {
-          RecMap<Obj *, Obj *> map = RecMap<Obj *, Obj *>();
+          RecMap<> map = RecMap<>();
           bool onKey = false;
           string key = first;
           string value;
@@ -254,7 +260,7 @@ namespace fhatos {
               if (bracketCounter == 0 && parenCounter == 0 && ss->peek() == ',') {
                 ss->get(); // drop k/v separating comma
                 onKey = true;
-                map.insert({parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>()});
+                map.insert({parseObj(key), parseObj(value)});
                 key.clear();
                 value.clear();
               } else {
@@ -271,26 +277,24 @@ namespace fhatos {
               }
             }
           }
-          map.insert({parseObj(key)->cast<Obj>(), parseObj(value)->cast<Obj>()});
-          RecMap<Obj *, Obj *> *map2 = new RecMap<Obj *, Obj *>(); // necessary to revese entries
+          map.insert({parseObj(key), parseObj(value)});
+          RecMap<> map2 = RecMap<>(); // necessary to revese entries
           for (const auto &pair: map) {
-            map2->insert(pair);
+            map2.insert(pair);
           }
-          obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Rec(map2, utype)));
+          obj_or_bcode = ptr<Obj>(new Rec(map2, utype));
         }
       } else if (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Real(stof(token), utype)));
+        obj_or_bcode = ptr<Obj>(new Real(stof(token), utype));
       } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Int(stoi(token), utype)));
+        obj_or_bcode = ptr<Obj>(new Int(stoi(token), utype));
       } else {
-        obj_or_bcode = share<OBJ_OR_BYTECODE>(OBJ_OR_BYTECODE(Uri(fURI(token), utype)));
+        obj_or_bcode = ptr<Uri>(new Uri(fURI(token), utype));
       }
-
-      LOG(DEBUG, FOS_TAB_5 "!ytype!![%s] !yutype!![%s]\n", OTYPE_STR.at(obj_or_bcode->type()),
+      LOG(DEBUG, FOS_TAB_5 "!ytype!![%s] !yutype!![%s]\n", OTYPE_STR.at(obj_or_bcode->otype()),
           utype ? utype->toString().c_str() : "null");
-
       delete array;
-      return obj_or_bcode;
+      return share<OBJ>(OBJ(*(OBJ*)obj_or_bcode.get()));
     }
   };
 } // namespace fhatos

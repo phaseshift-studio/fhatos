@@ -24,7 +24,6 @@
 #include <language/instructions.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
-#include <process/router/local_router.hpp>
 
 namespace fhatos {
   template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER = FOS_DEFAULT_ROUTER,
@@ -36,31 +35,32 @@ namespace fhatos {
   public:
     explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {}
 
-    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(share<Bytecode>(Bytecode(id))) {}
+    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) :
+        Fluent(share<Bytecode>(Bytecode(List<ptr<Inst>>{}))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
-    const E *next() const {
+    const ptr<E> next() const {
       static Processor<E> proc = Processor<E>(this->bcode);
       return proc.next();
     }
 
     template<typename E = Obj>
-    void forEach(const Consumer<const E *> &consumer) const {
+    void forEach(const Consumer<const ptr<E>> &consumer) const {
       Processor<E> proc = Processor<E>(this->bcode);
       proc.forEach(consumer);
     }
 
     template<typename E = Obj>
-    List<const E *> *toList() const {
-      List<const E *> *list = new List<const E *>();
-      this->template forEach<E>([list](const E *end) { list->push_back(end); });
+    List<ptr<E>> *toList() const {
+      List<ptr<E>> *list = new List<ptr<E>>();
+      this->template forEach<E>([list](const ptr<E> end) { list->push_back(end); });
       return list;
     }
 
-    [[nodiscard]] string toString() const {
-      return string("!y<!!")
-          .append(this->bcode->id().toString().c_str())
+    string toString() const {
+      return string("!y<!!123")
+          //.append(this->bcode->id().toString().c_str())
           .append("!y>!!")
           .append(this->bcode->toString());
     }
@@ -72,125 +72,137 @@ namespace fhatos {
     const ptr<Bytecode> bcode;
 
   protected:
-    Fluent<> addInst(Inst *inst) const { return Fluent<>(this->bcode->addInst(inst)); }
+    Fluent<> addInst(const ptr<Inst> &inst) const { return Fluent<>(this->bcode->addInst(inst)); }
 
   public:
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    operator const OBJ_OR_BYTECODE &() const { return *new OBJ_OR_BYTECODE(new Bytecode(this->bcode.get()->value())); }
+    explicit operator const Bytecode &() const { return *this->bcode; }
 
-    Fluent start(const List<ptr<OBJ_OR_BYTECODE>> &starts) const {
-      auto *castStarts = new List<Obj *>();
+    const ptr<Bytecode> code() const { return this->bcode; }
+
+    Fluent start(const List<Obj> &starts) const {
+      auto castStarts = List<ptr<Obj>>();
       for (const auto &start: starts) {
-        castStarts->push_back(start->cast<Obj>());
+        castStarts.push_back(ptr<Obj>(ObjHelper::cast(start)));
       }
-      return this->addInst(new StartInst(castStarts));
+      return this->addInst(ptr<Inst>(new StartInst(castStarts)));
     }
 
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent plus(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::PLUS, rhs));
+    Fluent plus(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::PLUS, ObjHelper::cast(rhs))));
     }
 
-    Fluent mult(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MULT, rhs));
+    Fluent mult(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MULT, ObjHelper::cast(rhs))));
     }
 
-    Fluent mod(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MOD, rhs));
+    Fluent mod(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new CompositionInst<ALGEBRA>(ALGEBRA::COMPOSITION_OPERATOR::MOD, ObjHelper::cast(rhs))));
     }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// RELATIONS ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent eq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::EQ, rhs));
+    Fluent eq(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::EQ, ObjHelper::cast(rhs))));
     }
 
-    Fluent neq(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::NEQ, rhs));
+    Fluent neq(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::NEQ, ObjHelper::cast(rhs))));
     }
 
-    Fluent gt(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::GT, rhs));
-    }
-
-
-    Fluent gte(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::GTE, rhs));
-    }
-
-
-    Fluent lt(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LT, rhs));
+    Fluent gt(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::GT, ObjHelper::cast(rhs))));
     }
 
 
-    Fluent lte(const OBJ_OR_BYTECODE &rhs) {
-      return this->addInst(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LTE, rhs));
+    Fluent gte(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::GTE, ObjHelper::cast(rhs))));
+    }
+
+
+    Fluent lt(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LT, ObjHelper::cast(rhs))));
+    }
+
+
+    Fluent lte(const Obj &rhs) {
+      return this->addInst(
+          ptr<Inst>(new RelationalInst<ALGEBRA>(ALGEBRA::RELATION_PREDICATE::LTE, ObjHelper::cast(rhs))));
     }
 
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent ref(const URI_OR_BYTECODE &uri) { return this->addInst(new ReferenceInst<ROUTER>(uri)); }
+    Fluent ref(const Uri &uri) { return this->addInst(ptr<Inst>(new ReferenceInst<ROUTER>(share<Uri>(uri)))); }
 
-    Fluent dref(const URI_OR_BYTECODE &uri) { return this->addInst(new DereferenceInst<ROUTER>(uri)); }
+    Fluent dref(const Uri &uri) { return this->addInst(ptr<Inst>(new DereferenceInst<ROUTER>(share<Uri>(uri)))); }
 
-    Fluent explain() { return this->addInst(new ExplainInst()); }
+    /*Fluent explain() { return this->addInst(new ExplainInst()); }
 
-    Fluent count() { return this->addInst(new CountInst()); }
+    Fluent count() { return this->addInst(new CountInst()); }*/
 
-    Fluent print(const OBJ_OR_BYTECODE &toPrint) { return this->addInst(new PrintInst<PRINTER>(toPrint)); }
+    Fluent print(const Obj &toPrint) { return this->addInst(ptr<Inst>(new PrintInst<PRINTER>(share<Obj>(toPrint)))); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// BRANCHING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent bswitch(const std::initializer_list<Pair<OBJ_OR_BYTECODE const, OBJ_OR_BYTECODE>> &recPairs) {
-      const auto recMap = new RecMap<Obj *, Obj *>;
+    Fluent bswitch(const std::initializer_list<Pair<Obj const, Obj>> &recPairs) {
+      RecMap<> recMap = RecMap<>();
       for (const auto &[key, value]: recPairs) {
-        recMap->insert({key.cast(), value.cast()});
+        recMap.insert({share<Obj>(key), share<Obj>(value)});
       }
-      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, OBJ_OR_BYTECODE(new Rec(recMap))));
+      return this->addInst(
+          ptr<Inst>(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, share<Rec>(Rec(recMap)))));
     }
 
-    Fluent bswitch(const OBJ_OR_BYTECODE &branches) {
-      return this->addInst(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, branches));
+    Fluent bswitch(const Rec &branches) {
+      return this->addInst(ptr<Inst>(new BranchInst<ALGEBRA>(ALGEBRA::BRANCH_SEMANTIC::SWITCH, share<Rec>(branches))));
     }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// FILTERING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent is(const OBJ_OR_BYTECODE &test) { return this->addInst(new IsInst(test)); }
+    Fluent is(const Bool &test) { return this->addInst(ptr<Inst>(new IsInst(share<Bool>(test)))); }
 
-    Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
+    //  Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 
-    Fluent publish(const URI_OR_BYTECODE &target, const OBJ_OR_BYTECODE &payload) {
-      return this->addInst(new PublishInst<ROUTER>(target, payload, this->bcode->id()));
+    Fluent publish(const ptr<Uri> &target, const ptr<Obj> &payload) {
+      return this->addInst(ptr<Inst>(new PublishInst<ROUTER>(target, payload, ID("123") /*this->bcode->id()*/)));
     }
 
-    Fluent subscribe(const URI_OR_BYTECODE &pattern, const OBJ_OR_BYTECODE &onRecv) {
-      return this->addInst(new SubscribeInst<ROUTER>(pattern, onRecv, this->bcode->id()));
+    Fluent subscribe(const ptr<Uri> &pattern, const ptr<Bytecode> &onRecv) {
+      return this->addInst(ptr<Inst>(new SubscribeInst<ROUTER>(pattern, onRecv, ID("123") /*this->bcode->id()*/)));
     }
 
-     Fluent select(const List<ptr<OBJ_OR_BYTECODE>> &uris) {
-      List<Obj *> *castObjs = new List<Obj *>();
-      for (ptr<OBJ_OR_BYTECODE> uri: uris) {
-        castObjs->push_back(uri->cast<>());
+    Fluent select(const List<ptr<Uri>> &uris) {
+      List<ptr<Obj>> castObjs = List<ptr<Obj>>();
+      for (ptr<Uri> uri: uris) {
+        castObjs.push_back(uri);
       }
       return this->addInst(new SelectInst<ROUTER>(castObjs));
     }
 
-    Fluent select(const List<OBJ_OR_BYTECODE> & uris) {
+    /*Fluent select(const List<OBJ_OR_BYTECODE> &uris) {
       List<Obj *> *castObjs = new List<Obj *>();
       for (OBJ_OR_BYTECODE uri: uris) {
         castObjs->push_back(uri.cast<>());
@@ -200,14 +212,14 @@ namespace fhatos {
 
     Fluent select(const OBJ_OR_BYTECODE &branches) {
       return this->addInst(new SelectInst<ROUTER>(branches.cast<Rec>()));
-    }
+    }*/
 
-    Fluent as(const OBJ_OR_BYTECODE &utype) { return this->addInst(new AsInst<ROUTER>(utype)); }
+    /*Fluent as(const OBJ_OR_BYTECODE &utype) { return this->addInst(new AsInst<ROUTER>(utype)); }
 
-    Fluent as() { return this->addInst(new AsInst<ROUTER>(NoObj::singleton())); }
+    Fluent as() { return this->addInst(new AsInst<ROUTER>(NoObj::singleton())); }*/
 
-    Fluent define(const URI_OR_BYTECODE &utype, const OBJ_OR_BYTECODE &typeDefinition) {
-      return this->addInst(new DefineInst<ROUTER>(utype, typeDefinition));
+    Fluent define(const ptr<Type> &type, const ptr<Bytecode> &typeDefinition) {
+      return this->addInst(ptr<Inst>(new DefineInst<ROUTER>(type, typeDefinition)));
     }
   };
 
@@ -215,25 +227,24 @@ namespace fhatos {
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
-  static Fluent<> __(const List<OBJ_OR_BYTECODE> &starts) {
+  static Fluent<> __(const List<Obj> &starts) {
     if (starts.empty()) {
-      return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>()))); // TODO: remove unnecesary [start]?
+      return Fluent<>(ptr<Bytecode>(new Bytecode(ptr<List<ptr<Inst>>>(new List<ptr<Inst>>{}))));
     } else {
-      List<Obj *> *castStarts = new List<Obj *>();
-      for (OBJ_OR_BYTECODE start: starts) {
-        castStarts->push_back(start.cast<>());
+      List<ptr<Obj>> castStarts = List<ptr<Obj>>();
+      for (const Obj &start: starts) {
+        castStarts.push_back(ObjHelper::cast(start));
       }
-      return Fluent<>(share<Bytecode>(Bytecode(new List<Inst *>({new StartInst(castStarts)}))));
+      return Fluent(ptr<Bytecode>(
+          new Bytecode(ptr<List<ptr<Inst>>>(new List<ptr<Inst>>{ptr<StartInst>(new StartInst(castStarts))}))));
     }
   };
 
-  static Fluent<> __(const OBJ_OR_BYTECODE &start) {
-    return start.cast<>()->isNoObj() ? __(List<OBJ_OR_BYTECODE>({})) : __(List<OBJ_OR_BYTECODE>({start.cast<>()}));
-  };
+  static Fluent<> __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); };
 
-  static Fluent<> __() { return __(List<OBJ_OR_BYTECODE>{}); };
+  static Fluent<> __() { return __(List<Obj>{}); };
 
-  inline static Fluent<> _ = __();
+  // inline static const Fluent<> _ = __();
 } // namespace fhatos
 
 #endif
