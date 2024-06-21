@@ -35,14 +35,7 @@ namespace fhatos {
       return this->_type->equals(*other._type) && (this->isBytecode() == other.isBytecode()) &&
              (this->isBytecode() ? (this->bcode() == other.bcode()) : (this->value() == (*(XObj *) &other).value()));
     }
-    static ptr<fURI> _t(const char *utype) {
-      string typeToken = string(utype);
-      bool hasAuthority = typeToken.find('@') != std::string::npos;
-      bool hasSlash = typeToken.starts_with("/");
-      return Type::obj_t(
-          OTYPE, share<fURI>(fURI(
-                     typeToken.empty() ? "" : (hasAuthority ? typeToken : (hasSlash ? typeToken : "/" + typeToken)))));
-    }
+    static ptr<fURI> _t(const char *utype) { return Type::obj_t(OTYPE, utype); }
   };
 
   ////////////////////////////////////////////////
@@ -108,6 +101,8 @@ namespace fhatos {
   class Uri final : public XObj<Uri, OType::URI, fURI> {
   public:
     explicit Uri(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = URI_FURI) : XObj(value, type) {}
+    explicit Uri(const char *value, const ptr<fURI> &type = URI_FURI) : Uri(fURI(value), type) {}
+    explicit Uri(const string &value, const ptr<fURI> &type = URI_FURI) : Uri(value.c_str(), type) {}
     string toString() const override { return this->type()->objString(this->value().toString()); }
     bool operator<(const Uri &other) const { return this->value().toString() < other.value().toString(); }
     bool operator>(const Uri &other) const { return this->value().toString() > other.value().toString(); }
@@ -144,13 +139,13 @@ namespace fhatos {
     }
     template<typename V>
     ptr<V> get(const ptr<Obj> &key) const {
-      return ptr<V>((V *) (this->value().count(key) ? this->value().at(key).get() : NoObj::self_ptr().get()));
+      return std::dynamic_pointer_cast<V>(this->value().count(key) ? this->value().at(key) : NoObj::self_ptr());
     }
     void set(ptr<Obj> &key, ptr<Obj> &val) { this->value().insert({key, val}); }
     string toString() const override {
       string t = "!m[!!";
       for (const auto &[k, v]: this->value()) {
-        t = t + k->toString() + "!r=>!!" + v->toString() + ",";
+        t = t + k->toString() + "!m=>!!" + v->toString() + ",";
       }
       t[t.length() - 1] = '!';
       return this->type()->objString(t.append("m]!!"));

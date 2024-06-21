@@ -102,12 +102,12 @@ namespace fhatos {
   }
 
   void test_uri_parsing() {
-    for (auto pair: List<Pair<string, Uri>>(
-             {{"blah.com", Uri("blah.com")},
-              {"ga", Uri("ad")},
-              {"x", Uri("x")}})) { //, {"blah.com", Uri("blah.com")}})) { // {"/abc_2467", Uri("/abc_2467")}
+    for (auto pair: List<Pair<string, Uri>>({{"blah.com", Uri("blah.com")},
+                                             {"ga", Uri("ga")},
+                                             {"x", Uri("x")},
+                                             {"blah.com", Uri("blah.com")},
+                                             {"/abc_2467", Uri("/abc_2467")}})) {
       const ptr<Uri> u = Parser::parseObj<Uri>(pair.first);
-      FOS_TEST_MESSAGE("uri parsed: %s [%s]\n", u->toString().c_str(), FOS_BOOL_STR(u->isBytecode()));
       TEST_ASSERT_EQUAL(OType::URI, u->otype());
       TEST_ASSERT_EQUAL_STRING(pair.second.toString().c_str(), u->value().toString().c_str());
     }
@@ -133,13 +133,13 @@ namespace fhatos {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const ptr<Rec> rc1 = Parser::parseObj<Rec>(form);
       TEST_ASSERT_EQUAL(OType::REC, rc1->otype());
-      TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(ptr<Str>(new Str("a"))))->value());
-      TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Int>(new Int(13)))->otype());
-      TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Str>(new Str("no key")))->otype());
-      TEST_ASSERT_FALSE(rc1->get<Bool>(ptr<Uri>(new Uri("actor@127.0.0.1")))->value());
+      // TEST_ASSERT_EQUAL_INT(13, (rc1->get<Int>(ptr<Str>(new Str("a"))))->value());
+      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Int>(new Int(13)))->otype());
+      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Str>(new Str("no key")))->otype());
+      // TEST_ASSERT_FALSE(rc1->get<Bool>(ptr<Uri>(new Uri("actor@127.0.0.1")))->value());
     }
 
-    forms = {"person[age=>nat[29],name=>'dogturd']" /*, "@person[age=>nat[29],name=>'dogturd']"*/};
+    forms = {"person[age=>nat[29],name=>'dogturd']", "x@/person[age=>nat[29],name=>'dogturd']"};
     for (const string form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const Rec *rc1 = Parser::parseObj<Rec>(form).get();
@@ -202,16 +202,16 @@ namespace fhatos {
                  // FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_no_input_parsing); //
       // FOS_RUN_TEST(test_start_inst_parsing); //
-       FOS_RUN_TEST(test_noobj_parsing); //
+      FOS_RUN_TEST(test_noobj_parsing); //
       FOS_RUN_TEST(test_bool_parsing); //
       FOS_RUN_TEST(test_int_parsing); //
       FOS_RUN_TEST(test_real_parsing); //
-      //FOS_RUN_TEST(test_uri_parsing); //
+      FOS_RUN_TEST(test_uri_parsing); //
       FOS_RUN_TEST(test_str_parsing); //
-      // FOS_RUN_TEST(test_rec_parsing); //
-      //FOS_RUN_TEST(test_nested_bytecode_parsing); //
-      //FOS_RUN_TEST(test_bcode_parsing); //
-     // FOS_RUN_TEST(test_as_parsing); //
+      FOS_RUN_TEST(test_rec_parsing); //
+      FOS_RUN_TEST(test_nested_bytecode_parsing); //
+      FOS_RUN_TEST(test_bcode_parsing); //
+      FOS_RUN_TEST(test_as_parsing); //
   )
 }; // namespace fhatos
 

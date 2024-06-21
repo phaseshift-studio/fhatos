@@ -6,7 +6,7 @@
 
 namespace fhatos {
 
-///////////////////////////////////////////////// INST
+  ///////////////////////////////////////////////// INST
   /////////////////////////////////////////////////////////////////
   enum class IType : uint8_t {
     NOINST = 0,
@@ -39,7 +39,7 @@ namespace fhatos {
   class Inst : public Obj {
   protected:
     const IType _itype;
-    Bytecode *_bcode = nullptr;
+    ptr<Bytecode> _bcode = ptr<Bytecode>(nullptr);
     const InstFunction<> _function;
 
 
@@ -49,9 +49,9 @@ namespace fhatos {
 
     virtual bool isNoInst() const { return this->otype() == OType::NOINST; }
 
-    void bcode(Bytecode *bcode) { this->_bcode = bcode; }
+    void bcode(ptr<Bytecode> bcode) { this->_bcode = bcode; }
 
-    ptr<Bytecode> bcode() const override { return ptr<Bytecode>(this->_bcode); }
+    ptr<Bytecode> bcode() const override { return this->_bcode; }
 
     InstArgs v_args() const { return std::any_cast<InstArgs>(std::get<0>(this->_var)); }
 
@@ -90,12 +90,11 @@ namespace fhatos {
     }
 
     ptr<Obj> apply(const ptr<Obj> &obj) override { return NoObj::self_ptr(); }
-
     bool isNoObj() const override { return true; }
 
     bool isNoInst() const override { return true; }
-
-    string toString() const override { return "!rØ!!"; }
+    ptr<Type> type() const override { return ptr<Type>(new Type(this->_type)); }
+    string toString() const override { return "Ø"; }
 
     bool operator==(const Obj &other) const override { return other.isNoObj(); }
 
@@ -271,5 +270,5 @@ namespace fhatos {
       return this->type()->objString(s.substr(0, s.length() - 1));
     }
   };
-}
+} // namespace fhatos
 #endif
