@@ -187,9 +187,9 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!yTesting!! instruction: %s&quot;</span>, inst-&gt;toString().c_str());</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst-&gt;v_args().size());</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; expectedArgs.size(); i++) {</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">bool</span> test = expectedArgs[i] == *inst-&gt;v_args()[i];</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">bool</span> test = *ObjHelper::cast(expectedArgs[i]) == *inst-&gt;v_args()[i];</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">if</span> (!test) {</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!r%s!! != !r%s!!&quot;</span>, expectedArgs[i].toString().c_str(), inst-&gt;v_args()[i]-&gt;toString().c_str());</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!r%s!! != !r%s!!&quot;</span>, ObjHelper::cast(expectedArgs[i])-&gt;toString().c_str(), inst-&gt;v_args()[i]-&gt;toString().c_str());</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      TEST_FAIL();</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    }</div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  }</div>

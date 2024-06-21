@@ -170,12 +170,12 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keyword">const</span> ptr&lt;Bytecode&gt; code()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> this-&gt;bcode; }</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> start(<span class="keyword">const</span> List&lt;Obj&gt; &amp;starts)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      <span class="keyword">auto</span> castStarts = List&lt;ptr&lt;Obj&gt;&gt;();</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;start: starts) {</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        castStarts.push_back(ptr&lt;Obj&gt;(ObjHelper::cast(start)));</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      }</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      <span class="keywordflow">return</span> this-&gt;addInst(ptr&lt;Inst&gt;(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1StartInst.html">StartInst</a>(castStarts)));</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a> start(<span class="keyword">const</span> ptr&lt;List&lt;ptr&lt;Obj&gt;&gt;&gt; &amp;starts)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      <span class="comment">/*auto castStarts = List&lt;ptr&lt;Obj&gt;&gt;();</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="comment">      for (const auto &amp;start: *starts) {</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="comment">        castStarts.push_back(ptr&lt;Obj&gt;(ObjHelper::cast(*start)));</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="comment">      }*/</span></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      <span class="keywordflow">return</span> this-&gt;addInst(ptr&lt;Inst&gt;(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1StartInst.html">StartInst</a>(*starts)));</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
@@ -318,7 +318,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> mono.hpp:40</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> mono.hpp:53</div></div>
 <div class="ttc" id="aclassfhatos_1_1BranchInst_html"><div class="ttname"><a href="classfhatos_1_1BranchInst.html">fhatos::BranchInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:142</div></div>
 <div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:162</div></div>
 <div class="ttc" id="aclassfhatos_1_1CompositionInst_html"><div class="ttname"><a href="classfhatos_1_1CompositionInst.html">fhatos::CompositionInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:235</div></div>
@@ -331,13 +331,13 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1PrintInst_html"><div class="ttname"><a href="classfhatos_1_1PrintInst.html">fhatos::PrintInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:185</div></div>
 <div class="ttc" id="aclassfhatos_1_1Processor_html"><div class="ttname"><a href="classfhatos_1_1Processor.html">fhatos::Processor</a></div><div class="ttdef"><b>Definition</b> processor.hpp:69</div></div>
 <div class="ttc" id="aclassfhatos_1_1PublishInst_html"><div class="ttname"><a href="classfhatos_1_1PublishInst.html">fhatos::PublishInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:252</div></div>
-<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> mono.hpp:123</div></div>
+<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> mono.hpp:134</div></div>
 <div class="ttc" id="aclassfhatos_1_1ReferenceInst_html"><div class="ttname"><a href="classfhatos_1_1ReferenceInst.html">fhatos::ReferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:159</div></div>
 <div class="ttc" id="aclassfhatos_1_1RelationalInst_html"><div class="ttname"><a href="classfhatos_1_1RelationalInst.html">fhatos::RelationalInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:200</div></div>
 <div class="ttc" id="aclassfhatos_1_1SelectInst_html"><div class="ttname"><a href="classfhatos_1_1SelectInst.html">fhatos::SelectInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:69</div></div>
 <div class="ttc" id="aclassfhatos_1_1StartInst_html"><div class="ttname"><a href="classfhatos_1_1StartInst.html">fhatos::StartInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:51</div></div>
 <div class="ttc" id="aclassfhatos_1_1SubscribeInst_html"><div class="ttname"><a href="classfhatos_1_1SubscribeInst.html">fhatos::SubscribeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:266</div></div>
-<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> mono.hpp:97</div></div>
+<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> mono.hpp:108</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
