@@ -294,8 +294,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>      ptr&lt;fURI&gt; utype = ptr&lt;fURI&gt;((<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a> *) <span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      <span class="keywordflow">if</span> (index != string::npos &amp;&amp; index != 0 &amp;&amp; token.back() == <span class="charliteral">&#39;]&#39;</span>) {</div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        <span class="keywordtype">string</span> typeToken = token.substr(0, index);</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>        <span class="comment">//bool hasAuthority = typeToken.find(&#39;@&#39;) != std::string::npos;</span></div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        <span class="comment">//bool hasSlash = typeToken.starts_with(&quot;/&quot;);</span></div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>        <span class="comment">// bool hasAuthority = typeToken.find(&#39;@&#39;) != std::string::npos;</span></div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        <span class="comment">// bool hasSlash = typeToken.starts_with(&quot;/&quot;);</span></div>
 <div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>        utype = share(<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(typeToken));</div>
 <div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        token.pop_back();</div>
 <div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        token = token.substr(index + 1);</div>
@@ -303,7 +303,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>            token.c_str());</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>      }</div>
 <div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      <span class="keywordflow">if</span> (strcmp(token.c_str(), <span class="stringliteral">&quot;Ø&quot;</span>) == 0) {</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        utype = utype.get() ? utype : NOOBJ_FURI;</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        utype = Type::obj_t(OType::NOOBJ, utype);</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        obj_or_bcode = NoObj::self_ptr&lt;NoObj&gt;();</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;\&#39;&#39;</span> &amp;&amp; token[token.length() - 1] == <span class="charliteral">&#39;\&#39;&#39;</span>) {</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        utype = Type::obj_t(OType::STR, utype);</div>
