@@ -99,19 +99,19 @@ static void FOS_CHECK_ARGS(const List<_OBJ> &expectedArgs, const ptr<Inst> inst)
   }
 }
 
-/*template<typename _OBJ>
-static List<const _OBJ *> *FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
+template<typename _OBJ>
+static ptr<List<ptr<_OBJ>>>FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  List<const _OBJ *> *result = fluent.toList<_OBJ>();
+  ptr<List<ptr<_OBJ>>> result = fluent.toList<_OBJ>();
   if (printResult) {
     int index = 0;
-    for (const _OBJ *obj: *result) {
+    for (const auto obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
                        OTYPE_STR.at(obj->otype()));
     }
   }
   return result;
-}*/
+}
 
 template<typename OBJ = Obj>
 static const void FOS_TEST_OBJ_GT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
@@ -144,13 +144,13 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   return obj;
 }
 
-/*template<typename _OBJ>
+template<typename _OBJ>
 static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
                               const Map<Uri, Obj> &expectedReferences = {}, const bool clearRouter = true) {
-  const List<const _OBJ *> *result = FOS_TEST_RESULT<_OBJ>(fluent);
+  const ptr<List<ptr<_OBJ>>> result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
-  for (const _OBJ obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const _OBJ *element) { return obj == *element; });
+  for (const _OBJ& obj: expected) {
+    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<_OBJ> element) { return obj == *element; });
     if (result->end() == x) {
       TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
     }
@@ -167,5 +167,5 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> expected, const Fluent<> &fluent,
   }
   if (clearRouter)
     FOS_DEFAULT_ROUTER::singleton()->clear();
-}*/
+}
 #endif

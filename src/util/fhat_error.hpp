@@ -63,17 +63,16 @@ namespace fhatos {
 
 ////////////////////////////////
 #else
-  class fError final : public std::exception {
+  class _LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST fError final : public std::exception {
   protected:
     char _message[250];
 
   public:
     template<typename... Args>
-    explicit fError(const char *format, Args...args) noexcept {
+    explicit fError(const char *format, Args... args) noexcept {
       sprintf(_message, format, args...);
     };
-    //~fError() override = default;
-    const char *what() const noexcept override { return this->_message; }
+    virtual const char *what() const _NOEXCEPT { return this->_message; }
   };
 }
 #endif

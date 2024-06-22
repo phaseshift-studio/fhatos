@@ -58,12 +58,14 @@ namespace fhatos {
   class Bool final : public XObj<Bool, OType::BOOL, bool> {
 
   public:
-    explicit Bool(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = BOOL_FURI) :
-        XObj(value, type) {}
+    explicit Bool(const ptr<Bytecode> &bcode, const ptr<fURI> &type = BOOL_FURI) : XObj(bcode, type) {}
+    explicit Bool(const bool &value, const ptr<fURI> &type = BOOL_FURI) : XObj(value, type) {}
     string toString() const override { return this->type()->objString(this->value() ? "true" : "false"); }
     // operators
     bool operator&&(const Bool &other) const { return this - value() && other.value(); }
     bool operator||(const Bool &other) const { return this - value() || other.value(); }
+
+    static ptr<Bool> of(const bool value) { return share<Bool>(Bool(value)); }
   };
 
   ///////////////////////////////////////////////
@@ -74,14 +76,17 @@ namespace fhatos {
   class Int final : public XObj<Int, OType::INT, FL_INT_TYPE> {
 
   public:
-    explicit Int(const FL_INT_TYPE &value, const ptr<fURI> &type = INT_FURI) : XObj(value, type) {}
     explicit Int(const ptr<Bytecode> &bcode, const ptr<fURI> &type = INT_FURI) : XObj(bcode, type) {}
+    Int(const FL_INT_TYPE &value, const ptr<fURI> &type = INT_FURI) : XObj(value, type) {}
     string toString() const override { return this->type()->objString(std::to_string(this->value())); }
     // operators
     bool operator<(const Int &other) const { return this->value() < other.value(); }
     bool operator>(const Int &other) const { return this->value() > other.value(); }
     Int operator*(const Int &other) const { return Int(this->value() * other.value(), this->_type); }
     Int operator+(const Int &other) const { return Int(this->value() + other.value(), this->_type); }
+
+    static ptr<Int> of(const FL_INT_TYPE value) { return share<Int>(Int(value)); }
+    static ptr<Int> of(const Bytecode &bcode) { return share<Int>(Int(share(bcode))); }
   };
 
   ///////////////////////////////////////////////
@@ -92,8 +97,8 @@ namespace fhatos {
   class Real final : public XObj<Real, OType::REAL, FL_REAL_TYPE> {
 
   public:
-    explicit Real(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = REAL_FURI) :
-        XObj(value, type) {}
+    explicit Real(const ptr<Bytecode> &bcode, const ptr<fURI> &type = REAL_FURI) : XObj(bcode, type) {}
+    Real(const FL_REAL_TYPE &value, const ptr<fURI> &type = REAL_FURI) : XObj(value, type) {}
     string toString() const override { return this->type()->objString(std::to_string(this->value())); }
     bool operator<(const Real &other) const { return this->value() < other.value(); }
     bool operator>(const Real &other) const { return this->value() > other.value(); }
@@ -109,23 +114,30 @@ namespace fhatos {
   class Str final : public XObj<Str, OType::STR, string> {
 
   public:
-    explicit Str(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = STR_FURI) : XObj(value, type) {}
+    explicit Str(const ptr<Bytecode> &bcode, const ptr<fURI> &type = STR_FURI) : XObj(bcode, type) {}
+    explicit Str(const string &value, const ptr<fURI> &type = STR_FURI) : XObj(value, type) {}
     explicit Str(const char *value, const ptr<fURI> &type = STR_FURI) : Str(string(value), type) {}
     string toString() const override { return this->type()->objString("'" + this->value() + "'"); }
     bool operator<(const Str &other) const { return this->value() < other.value(); }
     bool operator>(const Str &other) const { return this->value() > other.value(); }
     Str operator+(const Str &other) const { return Str(this->value() + other.value(), this->_type); }
     int compare(const Str &other) const { return this->value().compare(other.value()); }
+
+    static ptr<Str> of(const char *value) { return share<Str>(Str(value)); }
   };
 
   ///////////////////////////////////////////////
   ///////////////////// URI /////////////////////
   ///////////////////////////////////////////////
+  class Uri;
+  using UriP = ptr<Uri>;
   class Uri final : public XObj<Uri, OType::URI, fURI> {
   public:
-    explicit Uri(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = URI_FURI) : XObj(value, type) {}
-    explicit Uri(const char *value, const ptr<fURI> &type = URI_FURI) : Uri(fURI(value), type) {}
-    explicit Uri(const string &value, const ptr<fURI> &type = URI_FURI) : Uri(value.c_str(), type) {}
+    explicit Uri(const ptr<Bytecode> &bcode, const ptr<fURI> &type = URI_FURI) : XObj(bcode, type) {}
+    explicit Uri(const fURI &value, const ptr<fURI> &type = URI_FURI) : XObj(value, type) {}
+    explicit Uri(const string &value, const ptr<fURI> &type = URI_FURI) : Uri(fURI(value), type) {}
+    Uri(const char *value, const ptr<fURI> &type = URI_FURI) : Uri(fURI(value), type) {}
+
     string toString() const override { return this->type()->objString(this->value().toString()); }
     bool operator<(const Uri &other) const { return this->value().toString() < other.value().toString(); }
     bool operator>(const Uri &other) const { return this->value().toString() > other.value().toString(); }
@@ -133,6 +145,8 @@ namespace fhatos {
       return Uri(this->value().extend(other.value().toString().c_str()), this->_type);
     }
     int compare(const Uri &other) const { return this->value().toString().compare(other.value().toString()); }
+
+    static ptr<Uri> of(const char *value) { return share<Uri>(Uri(value)); }
   };
 
   ///////////////////////////////////////////////
@@ -154,8 +168,9 @@ namespace fhatos {
   using RecMap = OrderedMap<K, V, H, Q>;
   class Rec final : public XObj<Rec, OType::REC, RecMap<>> {
   public:
-    explicit Rec(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = REC_FURI) : XObj(value, type) {}
-    explicit Rec(const std::initializer_list<Pair<Obj const, Obj>> &keyValues, const ptr<fURI> &type = REC_FURI) :
+    explicit Rec(const ptr<Bytecode> &bcode, const ptr<fURI> &type = REC_FURI) : XObj(bcode, type) {}
+    explicit Rec(const RecMap<> &value, const ptr<fURI> &type = REC_FURI) : XObj(value, type) {}
+    Rec(const std::initializer_list<Pair<Obj const, Obj>> &keyValues, const ptr<fURI> &type = REC_FURI) :
         Rec(RecMap<>(), type) {
       RecMap<> map = this->value();
       for (const Pair<Obj const, Obj> &pair: keyValues) {

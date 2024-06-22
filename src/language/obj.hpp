@@ -148,6 +148,7 @@ namespace fhatos {
     Obj(const fURI xuri) : _var(xuri), _type(URI_FURI) {}
     Obj(const char *xstr) : _var(xstr), _type(STR_FURI) {}
     Obj(const string xstr) : _var(xstr), _type(STR_FURI) {}
+    Obj(const Map<ptr<Obj>, ptr<Obj>> &xrec) : _var(xrec), _type(REC_FURI) {}
     Obj(const std::initializer_list<Pair<Obj const, Obj>> &xrec) : _var(Map<ptr<Obj>, ptr<Obj>>({})), _type(REC_FURI) {
       Map<ptr<Obj>, ptr<Obj>> map = std::any_cast<Map<ptr<Obj>, ptr<Obj>>>(std::get<0>(this->_var));
       for (const Pair<Obj const, Obj> &pair: xrec) {
@@ -245,7 +246,7 @@ namespace fhatos {
   public:
     template<typename OBJ = Obj>
     static ptr<OBJ> self_ptr() {
-      return ptr<OBJ>((OBJ*)new NoObj());
+      return ptr<OBJ>((OBJ *) new NoObj());
     }
     ptr<Obj> apply(const ptr<Obj> &obj) override { return NoObj::self_ptr(); }
     bool isNoObj() const override { return true; }

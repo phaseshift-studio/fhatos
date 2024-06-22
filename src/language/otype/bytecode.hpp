@@ -39,7 +39,7 @@ namespace fhatos {
   class Inst : public Obj {
   protected:
     const IType _itype;
-    ptr<Bytecode> _bcode = ptr<Bytecode>(nullptr);
+    Bytecode *_bcode = nullptr;
     const InstFunction<> _function;
 
 
@@ -49,9 +49,9 @@ namespace fhatos {
 
     virtual bool isNoInst() const { return this->otype() == OType::NOINST; }
 
-    void bcode(ptr<Bytecode> bcode) { this->_bcode = bcode; }
+    void bcode(Bytecode *bcode) { this->_bcode = bcode; }
 
-    ptr<Bytecode> bcode() const override { return this->_bcode; }
+    Bytecode *code() const { return this->_bcode; }
 
     InstArgs v_args() const { return std::any_cast<InstArgs>(std::get<0>(this->_var)); }
 
@@ -158,18 +158,16 @@ namespace fhatos {
   /////////////////////////////////////////////
   ////////////////// BYTECODE /////////////////
   /////////////////////////////////////////////
-  class Bytecode final : public Obj {
+  class Bytecode final : public Obj, public std::enable_shared_from_this<Bytecode> {
   protected:
     Map<const fURI, const ptr<const Obj>> TYPE_CACHE;
 
   public:
     //~Bytecode() override {}
-    Bytecode() = delete;
-    explicit Bytecode(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = BCODE_FURI) :
-        Obj(value, type) {
-      // for (auto &inst: this->v_insts()) {
-      //  inst->bcode(this);
-      // }
+    explicit Bytecode(const ptr<List<ptr<Inst>>> &value, const ptr<fURI> &type = BCODE_FURI) : Obj(value, type) {
+      for (auto &inst: *this->v_insts()) {
+        inst->bcode(this);
+      }
     }
 
     /*void setId(const ID &id) {
@@ -258,10 +256,10 @@ namespace fhatos {
 
     const ptr<Inst> endInst() const { return this->v_insts()->back(); }
 
-    virtual string toString() const override {
+    string toString() const override {
       string s;
       for (const auto &inst: *this->v_insts()) {
-        s.append(inst->toString() + ',');
+        s.append(inst->toString() + '.');
       }
       return this->type()->objString(s.substr(0, s.length() - 1));
     }

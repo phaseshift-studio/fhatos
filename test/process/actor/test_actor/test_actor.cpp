@@ -23,7 +23,7 @@ namespace fhatos {
     std::atomic<int> *counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread, ROUTER>(ID("actor1@127.0.0.1"), [counter1](Actor<Thread, ROUTER> *self) {
       self->subscribe(ID("actor1@"), [counter1, self](const ptr<Message> &message) {
-        self->publish(ID("actor2@"), share<Int>(counter1->load()), TRANSIENT_MESSAGE);
+        self->publish(ID("actor2@"), share<Int>(Int(counter1->load())), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
           self->stop();
           //Scheduler<>::singleton()->destroy(self->id());
@@ -35,7 +35,7 @@ namespace fhatos {
       self->subscribe(ID("actor2@"), [self, counter2](const ptr<Message> &message) {
         FOS_TEST_ASSERT_EQUAL_FURI(ID("actor1@127.0.0.1"), message->source);
         FOS_TEST_ASSERT_EQUAL_FURI(self->id(), message->target);
-        self->publish(ID("actor1@"), share<Int>(counter2->load()), TRANSIENT_MESSAGE);
+        self->publish(ID("actor1@"), share<Int>(Int(counter2->load())), TRANSIENT_MESSAGE);
         if (counter2->fetch_add(1) > 198)
          self->stop();
         //Scheduler<>::singleton()->destroy(self->id());
@@ -43,7 +43,7 @@ namespace fhatos {
     });
     Scheduler<>::singleton()->spawn(actor1);
     Scheduler<>::singleton()->spawn(actor2);
-    actor1->publish("actor2@", share<Str>("START!"), TRANSIENT_MESSAGE);
+    actor1->publish("actor2@", share<Str>(Str("START!")), TRANSIENT_MESSAGE);
     Scheduler<>::singleton()->barrier("no_actors");
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
@@ -66,7 +66,7 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
       FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
-      TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->publish(message->source, share<Str>("pong"), TRANSIENT_MESSAGE));
+      TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->publish(message->source, share<Str>(Str("pong")), TRANSIENT_MESSAGE));
       counter1->fetch_add(1);
       counter2->fetch_add(1);
     });
@@ -85,7 +85,7 @@ namespace fhatos {
                         TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
                       }));
 
-    actor2->publish(actor1->id(), share<Str>("ping"), TRANSIENT_MESSAGE);
+    actor2->publish(actor1->id(), share<Str>(Str("ping")), TRANSIENT_MESSAGE);
     actor1->loop();
     actor2->loop();
     actor1->loop();
@@ -122,7 +122,7 @@ namespace fhatos {
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, rc);
-    actor2->publish(actor1->id(), share<Str>("ping"), RETAIN_MESSAGE);
+    actor2->publish(actor1->id(), share<Str>(Str("ping")), RETAIN_MESSAGE);
     actor1->loop();
     actor2->loop();
     actor1->loop();

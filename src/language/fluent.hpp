@@ -52,18 +52,13 @@ namespace fhatos {
     }
 
     template<typename E = Obj>
-    List<ptr<E>> *toList() const {
-      List<ptr<E>> *list = new List<ptr<E>>();
+    ptr<List<ptr<E>>> toList() const {
+      List<ptr<E>>* list = new List<ptr<E>>();
       this->template forEach<E>([list](const ptr<E> end) { list->push_back(end); });
-      return list;
+      return ptr<List<ptr<E>>>(list);
     }
 
-    string toString() const {
-      return string("!y<!!123")
-          //.append(this->bcode->id().toString().c_str())
-          .append("!y>!!")
-          .append(this->bcode->toString());
-    }
+    string toString() const { return this->bcode->toString(); }
 
     //////////////////////////////////////////////////////////////////////////////
     ///////////////////////// PROTECTED  /////////////////////////////////////////
@@ -79,7 +74,7 @@ namespace fhatos {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    explicit operator const Bytecode &() const { return *this->bcode; }
+    operator const Bytecode &() const { return *this->bcode; }
 
     const ptr<Bytecode> code() const { return this->bcode; }
 
@@ -194,25 +189,17 @@ namespace fhatos {
       return this->addInst(ptr<Inst>(new SubscribeInst<ROUTER>(pattern, onRecv, ID("123") /*this->bcode->id()*/)));
     }
 
-    Fluent select(const List<ptr<Uri>> &uris) {
-      List<ptr<Obj>> castObjs = List<ptr<Obj>>();
-      for (ptr<Uri> uri: uris) {
-        castObjs.push_back(uri);
+    Fluent select(const List<ptr<Uri>> &uris) { return this->addInst(ptr<Inst>(new SelectInst<ROUTER>(uris))); }
+
+    Fluent select(const List<Uri> &uris) {
+      List<ptr<Uri>> castObjs = List<ptr<Uri>>();
+      for (auto &uri: uris) {
+        castObjs.push_back(share<Uri>(uri));
       }
-      return this->addInst(new SelectInst<ROUTER>(castObjs));
+      return this->addInst(ptr<Inst>(new SelectInst<ROUTER>(castObjs)));
     }
 
-    /*Fluent select(const List<OBJ_OR_BYTECODE> &uris) {
-      List<Obj *> *castObjs = new List<Obj *>();
-      for (OBJ_OR_BYTECODE uri: uris) {
-        castObjs->push_back(uri.cast<>());
-      }
-      return this->addInst(new SelectInst<ROUTER>(castObjs));
-    }
-
-    Fluent select(const OBJ_OR_BYTECODE &branches) {
-      return this->addInst(new SelectInst<ROUTER>(branches.cast<Rec>()));
-    }*/
+    Fluent select(const Rec &branches) { return this->addInst(ptr<Inst>(new SelectInst<ROUTER>(share<Rec>(branches)))); }
 
     /*Fluent as(const OBJ_OR_BYTECODE &utype) { return this->addInst(new AsInst<ROUTER>(utype)); }
 
@@ -244,7 +231,7 @@ namespace fhatos {
 
   static Fluent<> __() { return __(List<Obj>{}); };
 
-  // inline static const Fluent<> _ = __();
+  inline static Fluent<> _ = __();
 } // namespace fhatos
 
 #endif

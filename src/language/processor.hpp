@@ -96,7 +96,7 @@ namespace fhatos {
             this->execute(steps);
           }
         } else {
-          const ptr<E> end = ptr<E>((E*)this->halted->back().get());
+          const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted->back());
           this->halted->pop_back();
           return end;
         }

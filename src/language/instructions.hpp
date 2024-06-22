@@ -56,7 +56,8 @@ namespace fhatos {
 
   class ExplainInst final : public ManyToOneInst {
   public:
-    explicit ExplainInst() : ManyToOneInst("explain", {}, [this](const ptr<Obj>) { return this->bcode(); }) {}
+    explicit ExplainInst() :
+        ManyToOneInst("explain", {}, [this](const ptr<Obj>) { return ptr<Bytecode>(this->code()); }) {}
   };
 
   /*  class CountInst final : public ManyToOneInst {
@@ -68,25 +69,24 @@ namespace fhatos {
   template<typename ROUTER = FOS_DEFAULT_ROUTER>
   class SelectInst final : public OneToOneInst {
   public:
-    explicit SelectInst(const List<ptr<Obj>> *uris) :
-        OneToOneInst({"select", uris, [this](const ptr<Obj> obj) -> const ptr<Obj> {
+    explicit SelectInst(const List<ptr<Uri>> uris) :
+        OneToOneInst({"select", *(List<ptr<Obj>> *) (&uris), [this](ptr<Obj> obj) -> ptr<Obj> {
                         RecMap<> map;
                         for (const ptr<Obj> uri: this->v_args()) {
                           const ptr<Uri> u = ObjHelper::checkType<OType::URI, Uri>(uri->apply(obj));
                           ptr<Obj> key = (ptr<Obj>) u;
-                          ptr<Obj> value = ROUTER::singleton()->read(fURI("123"), u->value()).get();
+                          ptr<Obj> value = ROUTER::singleton()->template read<Obj>(fURI("123"), u->value());
                           map.insert({key, value});
                         }
                         return ptr<Rec>(new Rec(map));
                       }}) {}
     explicit SelectInst(const ptr<Rec> branches) :
         OneToOneInst({"select", {branches}, [this](const ptr<Obj> lhs) -> const ptr<Obj> {
-                        const RecMap<> split = this->arg(0)->template as<Rec>()->value();
+                        const RecMap<> split = std::dynamic_pointer_cast<Rec>(this->arg(0))->value();
                         RecMap<> map;
-                        for (const auto& [k, v]: split) {
+                        for (const auto &[k, v]: split) {
                           const ptr<Uri> key = ObjHelper::checkType<OType::URI, Uri>(k->apply(lhs));
-                          const ptr<Obj> value = v->apply( ObjHelper::clone<Obj>(
-                              ROUTER::singleton()->read(fURI("123"), key->value()).get()));
+                          const ptr<Obj> value = v->apply(ROUTER::singleton()->read(fURI("123"), key->value()));
                           map.insert({key, value});
                         }
                         return ptr<Rec>(new Rec(map));
@@ -162,7 +162,7 @@ namespace fhatos {
         OneToOneInst("ref", {uri}, [this](const ptr<Obj> toStore) -> const ptr<Obj> {
           RESPONSE_CODE response = ROUTER::singleton()->write(
               ptr<const Obj>(ObjHelper::clone<Obj>(toStore.get())), /*this->_bcode->id()*/ ID("123"),
-              this->arg(0)->apply(toStore)->template as<Uri>()->v_furi());
+              std::dynamic_pointer_cast<Uri>(this->arg(0)->apply(toStore))->value());
           // if(!RESPONSE_CODE)
           //  LOG(ERROR,"")
           return toStore;
@@ -201,7 +201,7 @@ namespace fhatos {
   public:
     const typename ALGEBRA::RELATION_PREDICATE predicate;
 
-    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE& predicate, const ptr<Obj> &rhs) :
+    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE &predicate, const ptr<Obj> &rhs) :
         OneToOneInst(ALGEBRA::REL_TO_STR(predicate), {rhs},
                      [this, predicate](const ptr<Obj> lhs) -> ptr<Obj> {
                        return ALGEBRA::singleton()->relate(predicate, lhs, this->arg(0)->apply(lhs));
@@ -236,7 +236,7 @@ namespace fhatos {
   public:
     const typename ALGEBRA::COMPOSITION_OPERATOR op;
 
-    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR& op, const ptr<Obj> &rhs) :
+    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR &op, const ptr<Obj> &rhs) :
         OneToOneInst(ALGEBRA::COMP_TO_STR(op), {rhs},
                      [this, op](const ptr<Obj> &lhs) {
                        return ALGEBRA::singleton()->compose(op, lhs, this->arg(0)->apply(lhs));

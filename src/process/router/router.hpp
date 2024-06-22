@@ -116,12 +116,12 @@ namespace fhatos {
     virtual const RESPONSE_CODE clear() FP_OK_RESULT;
 
     template<typename OBJ = Obj>
-    const ptr<const OBJ> read(const ID &source, const ID &target) {
+    ptr<OBJ> read(const ID &source, const ID &target) {
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
-                         thing->store((OBJ*)ObjHelper::clone<OBJ>(message->payload.get()));
+                         thing->store((OBJ *) ObjHelper::clone<OBJ>(message->payload.get()));
                          done->store(true);
                        }});
       const time_t startTimestamp = time(nullptr);
@@ -131,14 +131,15 @@ namespace fhatos {
           break;
         }
       }
-      const OBJ *ret = thing->load();
+       OBJ *ret = thing->load();
       delete thing;
       delete done;
       unsubscribe(source, target);
-      return ptr<const OBJ>(ret);
+      const ptr<OBJ> temp = ptr<OBJ>((OBJ*)ret);
+      return temp;
     }
 
-    virtual RESPONSE_CODE write(const ptr<const Obj>& obj, const ID &source, const ID &target) {
+    virtual RESPONSE_CODE write(const ptr<const Obj> &obj, const ID &source, const ID &target) {
       return this->publish(Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };
