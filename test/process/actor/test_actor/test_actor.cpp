@@ -26,7 +26,7 @@ namespace fhatos {
         self->publish(ID("actor2@"), share<Int>(Int(counter1->load())), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
           self->stop();
-          //Scheduler<>::singleton()->destroy(self->id());
+        // Scheduler<>::singleton()->destroy(self->id());
 
         // TEST_ASSERT_EQUAL(counter1->first, counter1->second);
       });
@@ -37,8 +37,8 @@ namespace fhatos {
         FOS_TEST_ASSERT_EQUAL_FURI(self->id(), message->target);
         self->publish(ID("actor1@"), share<Int>(Int(counter2->load())), TRANSIENT_MESSAGE);
         if (counter2->fetch_add(1) > 198)
-         self->stop();
-        //Scheduler<>::singleton()->destroy(self->id());
+          self->stop();
+        // Scheduler<>::singleton()->destroy(self->id());
       });
     });
     Scheduler<>::singleton()->spawn(actor1);
@@ -62,18 +62,20 @@ namespace fhatos {
     actor2->setup();
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), actor2->id());
-    RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
-      TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
-      FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
-      FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
-      TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->publish(message->source, share<Str>(Str("pong")), TRANSIENT_MESSAGE));
-      counter1->fetch_add(1);
-      counter2->fetch_add(1);
-    });
+    RESPONSE_CODE rc =
+        actor1->subscribe(actor1->id(), [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
+          TEST_ASSERT_EQUAL_STRING("ping", std::dynamic_pointer_cast<const Str>(message->payload)->value().c_str());
+          FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
+          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
+          TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
+                            actor1->publish(message->source, share<Str>(Str("pong")), TRANSIENT_MESSAGE));
+          counter1->fetch_add(1);
+          counter2->fetch_add(1);
+        });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(OK, rc);
     rc = actor2->subscribe("actor2@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
-      TEST_ASSERT_EQUAL_STRING("pong", message->payload->toString().c_str());
+      TEST_ASSERT_EQUAL_STRING("pong", std::dynamic_pointer_cast<const Str>(message->payload)->value().c_str());
       FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor1->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor2->id());
       counter2->fetch_add(1);
@@ -113,7 +115,7 @@ namespace fhatos {
     actor2->setup();
 
     RESPONSE_CODE rc = actor1->subscribe(actor1->id(), [actor1, actor2, counter1](const ptr<Message> &message) {
-      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message->payload.get());
+      TEST_ASSERT_TRUE(Str("ping") == *(Str *) message->payload.get());
       FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
       TEST_ASSERT_EQUAL_INT(0, counter1->load());
@@ -130,7 +132,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(0, counter2->load());
     rc = actor2->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
-      TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
+      TEST_ASSERT_EQUAL_STRING("ping", std::dynamic_pointer_cast<const Str>(message->payload)->value().c_str());
       FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
       counter2->fetch_add(1);
@@ -144,7 +146,7 @@ namespace fhatos {
     //  TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(actor1->id()));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribeSource());
     rc = actor1->subscribe("actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
-      TEST_ASSERT_TRUE(Str("ping") == *(Str*)message->payload.get());
+      TEST_ASSERT_EQUAL_STRING("ping", std::dynamic_pointer_cast<const Str>(message->payload)->value().c_str());
       FOS_TEST_ASSERT_EQUAL_FURI(message->source, actor2->id());
       FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id());
       counter2->fetch_add(1);
