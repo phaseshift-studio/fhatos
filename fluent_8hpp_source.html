@@ -130,7 +130,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(<span class="keyword">const</span> ptr&lt;Bytecode&gt; &amp;bcode) : bcode(bcode) {}</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;<span class="keywordtype">id</span> = <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(*UUID::singleton()-&gt;mint(7))) :</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(share&lt;Bytecode&gt;(<a class="code hl_class" href="classfhatos_1_1Bytecode.html">Bytecode</a>(List&lt;ptr&lt;Inst&gt;&gt;{}))) {}</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(share&lt;Bytecode&gt;(<a class="code hl_class" href="classfhatos_1_1Bytecode.html">Bytecode</a>(share&lt;List&lt;ptr&lt;Inst&gt;&gt;&gt;(List&lt;ptr&lt;Inst&gt;&gt;{})))) {}</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> E = Obj&gt;</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keyword">const</span> ptr&lt;E&gt; next()<span class="keyword"> const </span>{</div>
@@ -318,7 +318,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> mono.hpp:46</div></div>
+<div class="ttc" id="aclassfhatos_1_1Bool_html"><div class="ttname"><a href="classfhatos_1_1Bool.html">fhatos::Bool</a></div><div class="ttdef"><b>Definition</b> mono.hpp:58</div></div>
 <div class="ttc" id="aclassfhatos_1_1BranchInst_html"><div class="ttname"><a href="classfhatos_1_1BranchInst.html">fhatos::BranchInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:142</div></div>
 <div class="ttc" id="aclassfhatos_1_1Bytecode_html"><div class="ttname"><a href="classfhatos_1_1Bytecode.html">fhatos::Bytecode</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:161</div></div>
 <div class="ttc" id="aclassfhatos_1_1CompositionInst_html"><div class="ttname"><a href="classfhatos_1_1CompositionInst.html">fhatos::CompositionInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:235</div></div>
@@ -331,13 +331,13 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1PrintInst_html"><div class="ttname"><a href="classfhatos_1_1PrintInst.html">fhatos::PrintInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:185</div></div>
 <div class="ttc" id="aclassfhatos_1_1Processor_html"><div class="ttname"><a href="classfhatos_1_1Processor.html">fhatos::Processor</a></div><div class="ttdef"><b>Definition</b> processor.hpp:69</div></div>
 <div class="ttc" id="aclassfhatos_1_1PublishInst_html"><div class="ttname"><a href="classfhatos_1_1PublishInst.html">fhatos::PublishInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:252</div></div>
-<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> mono.hpp:129</div></div>
+<div class="ttc" id="aclassfhatos_1_1Rec_html"><div class="ttname"><a href="classfhatos_1_1Rec.html">fhatos::Rec</a></div><div class="ttdef"><b>Definition</b> mono.hpp:155</div></div>
 <div class="ttc" id="aclassfhatos_1_1ReferenceInst_html"><div class="ttname"><a href="classfhatos_1_1ReferenceInst.html">fhatos::ReferenceInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:159</div></div>
 <div class="ttc" id="aclassfhatos_1_1RelationalInst_html"><div class="ttname"><a href="classfhatos_1_1RelationalInst.html">fhatos::RelationalInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:200</div></div>
 <div class="ttc" id="aclassfhatos_1_1SelectInst_html"><div class="ttname"><a href="classfhatos_1_1SelectInst.html">fhatos::SelectInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:69</div></div>
 <div class="ttc" id="aclassfhatos_1_1StartInst_html"><div class="ttname"><a href="classfhatos_1_1StartInst.html">fhatos::StartInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:51</div></div>
 <div class="ttc" id="aclassfhatos_1_1SubscribeInst_html"><div class="ttname"><a href="classfhatos_1_1SubscribeInst.html">fhatos::SubscribeInst</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:266</div></div>
-<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> mono.hpp:101</div></div>
+<div class="ttc" id="aclassfhatos_1_1Uri_html"><div class="ttname"><a href="classfhatos_1_1Uri.html">fhatos::Uri</a></div><div class="ttdef"><b>Definition</b> mono.hpp:124</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
