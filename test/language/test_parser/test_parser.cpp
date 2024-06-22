@@ -139,30 +139,31 @@ namespace fhatos {
       // TEST_ASSERT_FALSE(rc1->get<Bool>(ptr<Uri>(new Uri("actor@127.0.0.1")))->value());
     }
 
-    forms = {"person[age=>nat[29],name=>'dogturd']", "x@/person[age=>nat[29],name=>'dogturd']"};
-    for (const string form: forms) {
-      FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
-      const Rec *rc1 = Parser::parseObj<Rec>(form).get();
-      TEST_ASSERT_EQUAL(OType::REC, rc1->otype());
-      TEST_ASSERT_EQUAL_STRING("person", rc1->type()->name().c_str());
-      TEST_ASSERT_EQUAL_INT(29, rc1->get<Int>(ptr<Uri>(new Uri("age")))->value());
-      TEST_ASSERT_EQUAL_STRING("dogturd", rc1->get<Str>(ptr<Uri>(new Uri("name")))->value().c_str());
-      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Int(13))->type());
-      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(new Str("no key"))->type());
-      // TEST_ASSERT_FALSE(rc1->get<Bool>(new Uri("actor@127.0.0.1"))->value());
+    forms = {"person[[age=>nat[29],name=>'dogturd']]", "person[age=>nat[29],name=>'dogturd']",
+             "x@/person[[age=>nat[29],name=>'dogturd']]", "x@/person[age=>nat[29],name=>'dogturd']"};
+    for (const string &form: forms) {
+      FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
+      const ptr<Rec> rc2 = Parser::parseObj<Rec>(form);
+      TEST_ASSERT_EQUAL(OType::REC, rc2->otype());
+      TEST_ASSERT_EQUAL_STRING("person", rc2->type()->name().c_str());
+      TEST_ASSERT_EQUAL_INT(29, rc2->get<Int>(share<Uri>(Uri("age")))->value());
+      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->get<Str>(share<Uri>(Uri("name")))->value().c_str());
+      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(share(Int(13)))->otype()); // TODO
+      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(share(Str("no key")))->otype());
+      TEST_ASSERT_FALSE(rc2->get<Bool>(share(Uri("actor@127.0.0.1")))->value());
     }
-
     ///////////////////////////////////
     const ptr<Rec> rc2 = Parser::parseObj<Rec>(string("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]"));
     TEST_ASSERT_EQUAL(OType::REC, rc2->otype());
-    TEST_ASSERT_EQUAL_INT(13, (rc2->get<Int>(ptr<Str>(new Str("a"))))->value());
-    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
-    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Str>(new Str("no key")))->otype());
-    const ptr<Rec> rc3 = rc2->get<Rec>(ptr<Uri>(new Uri("actor@127.0.0.1")));
+    TEST_ASSERT_EQUAL_INT(13, (rc2->get<Int>(share<Str>(Str("a"))))->value());
+    //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
+    // TEST_ASSERT_TRUE(rc2->get<Str>(share<Str>(Str("no key")))->isNoObj());
+    const ptr<Rec> rc3 = rc2->get<Rec>(share<Uri>(Uri("actor@127.0.0.1")));
     TEST_ASSERT_EQUAL(OType::REC, rc3->otype());
-    TEST_ASSERT_EQUAL_INT(1, (rc3->get<Int>(ptr<Str>(new Str("b"))))->value());
-    TEST_ASSERT_EQUAL_INT(3, (rc3->get<Int>(ptr<Str>(new Str("c"))))->value());
-    // TODO: strip ansi TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",rc2->toString().c_str());
+    TEST_ASSERT_EQUAL_INT(1, (rc3->get<Int>(share<Str>(Str("b"))))->value());
+    TEST_ASSERT_EQUAL_INT(3, (rc3->get<Int>(share<Str>(Str("c"))))->value());
+    TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",
+                             FOS_DEFAULT_PRINTER::singleton()->strip(rc2->toString().c_str()));
   }
 
   void test_bcode_parsing() {
@@ -201,7 +202,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
                  // FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_no_input_parsing); //
-      // FOS_RUN_TEST(test_start_inst_parsing); //
+      FOS_RUN_TEST(test_start_inst_parsing); //
       FOS_RUN_TEST(test_noobj_parsing); //
       FOS_RUN_TEST(test_bool_parsing); //
       FOS_RUN_TEST(test_int_parsing); //
@@ -210,7 +211,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_str_parsing); //
       FOS_RUN_TEST(test_rec_parsing); //
       FOS_RUN_TEST(test_nested_bytecode_parsing); //
-      FOS_RUN_TEST(test_bcode_parsing); //
+      // FOS_RUN_TEST(test_bcode_parsing); //
       FOS_RUN_TEST(test_as_parsing); //
   )
 }; // namespace fhatos

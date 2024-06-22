@@ -83,7 +83,7 @@ namespace fhatos {
         OneToOneInst({"select", {branches}, [this](const ptr<Obj> lhs) -> const ptr<Obj> {
                         const RecMap<> split = this->arg(0)->template as<Rec>()->value();
                         RecMap<> map;
-                        for (const auto [k, v]: split) {
+                        for (const auto& [k, v]: split) {
                           const ptr<Uri> key = ObjHelper::checkType<OType::URI, Uri>(k->apply(lhs));
                           const ptr<Obj> value = v->apply( ObjHelper::clone<Obj>(
                               ROUTER::singleton()->read(fURI("123"), key->value()).get()));
@@ -145,7 +145,7 @@ namespace fhatos {
 
     explicit BranchInst(const typename ALGEBRA::BRANCH_SEMANTIC branch, const ptr<Rec> &branches) :
         OneToOneInst(ALGEBRA::BRNCH_TO_STR(branch), {branches},
-                     [this, branch](const ptr<Obj> lhs) -> const ptr<Obj> {
+                     [this, branch](const ptr<Obj> &lhs) -> const ptr<Obj> {
                        return ALGEBRA::singleton()->branch(branch, lhs, this->arg(0));
                      }),
         branch(branch) {}
@@ -201,7 +201,7 @@ namespace fhatos {
   public:
     const typename ALGEBRA::RELATION_PREDICATE predicate;
 
-    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE predicate, const ptr<Obj> &rhs) :
+    explicit RelationalInst(const typename ALGEBRA::RELATION_PREDICATE& predicate, const ptr<Obj> &rhs) :
         OneToOneInst(ALGEBRA::REL_TO_STR(predicate), {rhs},
                      [this, predicate](const ptr<Obj> lhs) -> ptr<Obj> {
                        return ALGEBRA::singleton()->relate(predicate, lhs, this->arg(0)->apply(lhs));
@@ -236,7 +236,7 @@ namespace fhatos {
   public:
     const typename ALGEBRA::COMPOSITION_OPERATOR op;
 
-    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR op, const ptr<Obj> &rhs) :
+    explicit CompositionInst(const typename ALGEBRA::COMPOSITION_OPERATOR& op, const ptr<Obj> &rhs) :
         OneToOneInst(ALGEBRA::COMP_TO_STR(op), {rhs},
                      [this, op](const ptr<Obj> &lhs) {
                        return ALGEBRA::singleton()->compose(op, lhs, this->arg(0)->apply(lhs));

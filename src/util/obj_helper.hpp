@@ -52,6 +52,8 @@ namespace fhatos {
           return share<Uri>(Uri((*(Uri *) &obj).value(), obj._type));
         case OType::REC:
           return share<Rec>(Rec((*(Rec *) &obj).value(), obj._type));
+        case OType::BYTECODE:
+          return share<Bytecode>(Bytecode((*(Bytecode *) &obj).v_insts(), obj._type));
         default:
           throw fError("Type not in cast: %s", OTYPE_STR.at(obj.otype()));
       }

@@ -11,7 +11,19 @@ namespace fhatos {
   template<typename OBJ, OType OTYPE, typename VALUE>
   class XObj : public Obj, public std::enable_shared_from_this<OBJ> {
   public:
-    explicit XObj(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type) : Obj(value, type) {}
+    explicit XObj(const std::variant<Any, ptr<Bytecode>> &variant, const ptr<fURI> &type) : Obj(variant, type) {
+      // given the ANY variant, this "assert" ensures correct obj construction
+      try {
+        if (this->isBytecode())
+          std::get<ptr<Bytecode>>(this->_var);
+        else
+          this->value();
+      } catch (std::bad_variant_access &e) {
+        LOG(ERROR, "Bad variant access for [otype:%s][type:%s][isBcode:%s]\n", OTYPE_STR.at(OTYPE),
+            type->toString().c_str(), FOS_BOOL_STR(this->isBytecode()));
+        throw;
+      }
+    }
     OType otype() const override { return OTYPE; }
     ptr<Type> type() const override { return ptr<Type>(new Type(this->_type)); }
     VALUE value() const { return std::any_cast<VALUE>(std::get<0>(this->_var)); }
@@ -28,7 +40,7 @@ namespace fhatos {
     ptr<OBJ>
     split(const VALUE &newValue,
           const std::variant<ptr<fURI>, const char *> &newType = std::variant<ptr<fURI>, const char *>(nullptr)) const {
-      return Obj::split<OBJ>(newValue, newType);
+      return Obj::split<OBJ, VALUE>(newValue, newType);
     }
     ptr<OBJ> as(const char *utype) const { return this->Obj::as<OBJ>(Type::obj_t(OTYPE, utype)); }
     bool operator==(const Obj &other) const override {
@@ -62,16 +74,21 @@ namespace fhatos {
   class Int final : public XObj<Int, OType::INT, FL_INT_TYPE> {
 
   public:
-    explicit Int(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = INT_FURI) : XObj(value, type) {}
+    explicit Int(const FL_INT_TYPE &value, const ptr<fURI> &type = INT_FURI) : XObj(value, type) {}
+    explicit Int(const ptr<Bytecode> &bcode, const ptr<fURI> &type = INT_FURI) : XObj(bcode, type) {}
     string toString() const override { return this->type()->objString(std::to_string(this->value())); }
     // operators
     bool operator<(const Int &other) const { return this->value() < other.value(); }
     bool operator>(const Int &other) const { return this->value() > other.value(); }
+    Int operator*(const Int &other) const { return Int(this->value() * other.value(), this->_type); }
+    Int operator+(const Int &other) const { return Int(this->value() + other.value(), this->_type); }
   };
 
   ///////////////////////////////////////////////
   ///////////////////// REAL ////////////////////
   ///////////////////////////////////////////////
+  class Real;
+  using RealP = ptr<Real>;
   class Real final : public XObj<Real, OType::REAL, FL_REAL_TYPE> {
 
   public:
@@ -80,18 +97,24 @@ namespace fhatos {
     string toString() const override { return this->type()->objString(std::to_string(this->value())); }
     bool operator<(const Real &other) const { return this->value() < other.value(); }
     bool operator>(const Real &other) const { return this->value() > other.value(); }
+    Real operator*(const Real &other) const { return Real(this->value() * other.value(), this->_type); }
+    Real operator+(const Real &other) const { return Real(this->value() + other.value(), this->_type); }
   };
 
   ///////////////////////////////////////////////
   ///////////////////// STR /////////////////////
   ///////////////////////////////////////////////
+  class Str;
+  using StrP = ptr<Str>;
   class Str final : public XObj<Str, OType::STR, string> {
 
   public:
     explicit Str(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = STR_FURI) : XObj(value, type) {}
-    string toString() const override { return this->type()->objString(this->value()); }
+    explicit Str(const char *value, const ptr<fURI> &type = STR_FURI) : Str(string(value), type) {}
+    string toString() const override { return this->type()->objString("'" + this->value() + "'"); }
     bool operator<(const Str &other) const { return this->value() < other.value(); }
     bool operator>(const Str &other) const { return this->value() > other.value(); }
+    Str operator+(const Str &other) const { return Str(this->value() + other.value(), this->_type); }
     int compare(const Str &other) const { return this->value().compare(other.value()); }
   };
 
@@ -106,6 +129,9 @@ namespace fhatos {
     string toString() const override { return this->type()->objString(this->value().toString()); }
     bool operator<(const Uri &other) const { return this->value().toString() < other.value().toString(); }
     bool operator>(const Uri &other) const { return this->value().toString() > other.value().toString(); }
+    Uri operator+(const Uri &other) const {
+      return Uri(this->value().extend(other.value().toString().c_str()), this->_type);
+    }
     int compare(const Uri &other) const { return this->value().toString().compare(other.value().toString()); }
   };
 
@@ -120,7 +146,7 @@ namespace fhatos {
     }
   };
 
-  struct obj_equal_to : std::binary_function<ptr<Obj>, ptr<Obj>, bool> {
+  struct obj_equal_to : std::binary_function<ptr<Obj> &, ptr<Obj> &, bool> {
     bool operator()(const ptr<Obj> &a, const ptr<Obj> &b) const { return *a == *b; }
   };
   /////
@@ -130,22 +156,22 @@ namespace fhatos {
   public:
     explicit Rec(const std::variant<Any, ptr<Bytecode>> &value, const ptr<fURI> &type = REC_FURI) : XObj(value, type) {}
     explicit Rec(const std::initializer_list<Pair<Obj const, Obj>> &keyValues, const ptr<fURI> &type = REC_FURI) :
-        XObj(RecMap<>(), type) {
+        Rec(RecMap<>(), type) {
       RecMap<> map = this->value();
       for (const Pair<Obj const, Obj> &pair: keyValues) {
         map.insert({share<Obj>(pair.first), share<Obj>(pair.second)});
       }
-      this->_var.emplace<Any>(Any(RecMap<>(map)));
+      this->_var.emplace<0>(RecMap<>(map));
     }
     template<typename V>
     ptr<V> get(const ptr<Obj> &key) const {
-      return std::dynamic_pointer_cast<V>(this->value().count(key) ? this->value().at(key) : NoObj::self_ptr());
+      return std::static_pointer_cast<V>(this->value().count(key) ? this->value().at(key) : NoObj::self_ptr());
     }
     void set(ptr<Obj> &key, ptr<Obj> &val) { this->value().insert({key, val}); }
     string toString() const override {
       string t = "!m[!!";
       for (const auto &[k, v]: this->value()) {
-        t = t + k->toString() + "!m=>!!" + v->toString() + ",";
+        t += k->toString() + "!m=>!!" + v->toString() + ",";
       }
       t[t.length() - 1] = '!';
       return this->type()->objString(t.append("m]!!"));

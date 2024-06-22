@@ -171,9 +171,6 @@ namespace fhatos {
       //  inst->bcode(this);
       // }
     }
-    explicit Bytecode(const ptr<List<ptr<Inst>>> &value, const ptr<fURI> &type = BCODE_FURI) :
-        Bytecode(std::variant<Any, ptr<Bytecode>>(value), type) {}
-
 
     /*void setId(const ID &id) {
       this->_id = id;
@@ -222,8 +219,7 @@ namespace fhatos {
     ptr<List<ptr<Inst>>> v_insts() const { return std::any_cast<ptr<List<ptr<Inst>>>>(std::get<0>(this->_var)); }
 
     ptr<Bytecode> addInst(const ptr<Inst> inst) const {
-      auto list = ptr<List<ptr<Inst>>>(new List<ptr<Inst>>());
-
+      ptr<List<ptr<Inst>>> list = ptr<List<ptr<Inst>>>(new List<ptr<Inst>>());
       for (const ptr<Inst> &prevInst: *this->v_insts()) {
         list->push_back(prevInst); //->bcode(bcode));
       }

@@ -36,7 +36,7 @@ namespace fhatos {
     explicit Fluent(const ptr<Bytecode> &bcode) : bcode(bcode) {}
 
     explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) :
-        Fluent(share<Bytecode>(Bytecode(List<ptr<Inst>>{}))) {}
+        Fluent(share<Bytecode>(Bytecode(share<List<ptr<Inst>>>(List<ptr<Inst>>{})))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>

@@ -161,9 +161,9 @@ namespace fhatos {
     virtual string toString() const { throw fError("obj has no character representation"); }
     // virtual Any value() const { throw fError("obj has no structural value"); }
 
-    template<typename OBJ = Obj>
+    template<typename OBJ = Obj, typename VALUE>
     const ptr<OBJ>
-    split(const Any &newValue,
+    split(const VALUE &newValue,
           const std::variant<ptr<fURI>, const char *> &newType = std::variant<ptr<fURI>, const char *>(nullptr)) const {
       return ptr<OBJ>(new OBJ(newValue, std::variant<ptr<fURI>, const char *>(nullptr) == newType
                                             ? this->_type
@@ -172,7 +172,7 @@ namespace fhatos {
                                                    : std::get<ptr<fURI>>(newType))));
     }
     bool isBytecode() const { return std::holds_alternative<ptr<Bytecode>>(this->_var); }
-    virtual ptr<Bytecode> bcode() const { return std::get<ptr<Bytecode>>(this->_var); }
+    virtual ptr<Bytecode> bcode() const { return std::get<1>(this->_var); }
     virtual ptr<Obj> apply(const ptr<Obj> &obj) { throw fError("obj has no applicable form"); }
     virtual bool operator==(const Obj &other) const {
       throw fError("obj has no equality relation");
@@ -245,7 +245,7 @@ namespace fhatos {
   public:
     template<typename OBJ = Obj>
     static ptr<OBJ> self_ptr() {
-      return ptr<OBJ>(new NoObj());
+      return ptr<OBJ>((OBJ*)new NoObj());
     }
     ptr<Obj> apply(const ptr<Obj> &obj) override { return NoObj::self_ptr(); }
     bool isNoObj() const override { return true; }

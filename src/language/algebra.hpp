@@ -83,7 +83,7 @@ namespace fhatos {
     }
 
     virtual const ptr<Obj> relate(const RELATION_PREDICATE rel, const ptr<Obj> &lhs, const ptr<Obj> &rhs) {
-      if (const fError* e = ObjHelper::sameTypes(lhs, rhs)) {
+      if (const fError *e = ObjHelper::sameTypes(lhs, rhs)) {
         throw *e;
       }
       switch (rel) {
@@ -93,48 +93,60 @@ namespace fhatos {
           return ptr<Obj>(new Bool(*lhs != *rhs));
         case RELATION_PREDICATE::GT: {
           switch (lhs->otype()) {
-            case OType::INT:
-              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() > ((Int*)rhs.get())->value()));
+            case OType::INT: {
+              auto castLHS = std::static_pointer_cast<Int>(lhs);
+              auto castRHS = std::static_pointer_cast<Int>(rhs);
+              return share<Bool>(Bool(castLHS->value() > castRHS->value()));
+            }
             case OType::REAL:
-              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() > ((Real*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Real *) lhs.get())->value() > ((Real *) rhs.get())->value()));
             case OType::STR:
-              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() > ((Str*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Str *) lhs.get())->value() > ((Str *) rhs.get())->value()));
             default:
               throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::GTE: {
           switch (lhs->otype()) {
-            case OType::INT:
-              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() >= ((Int*)rhs.get())->value()));
+            case OType::INT: {
+              auto castLHS = std::static_pointer_cast<Int>(lhs);
+              auto castRHS = std::static_pointer_cast<Int>(rhs);
+              return share<Bool>(Bool(castLHS->value() >= castRHS->value()));
+            }
             case OType::REAL:
-              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() >= ((Real*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Real *) lhs.get())->value() >= ((Real *) rhs.get())->value()));
             case OType::STR:
-              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() >= ((Str*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Str *) lhs.get())->value() >= ((Str *) rhs.get())->value()));
             default:
               throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LT: {
           switch (lhs->otype()) {
-            case OType::INT:
-              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() < ((Int*)rhs.get())->value()));
+            case OType::INT: {
+              auto castLHS = std::static_pointer_cast<Int>(lhs);
+              auto castRHS = std::static_pointer_cast<Int>(rhs);
+              return share<Bool>(Bool(castLHS->value() < castRHS->value()));
+            }
             case OType::REAL:
-              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() <((Real*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Real *) lhs.get())->value() < ((Real *) rhs.get())->value()));
             case OType::STR:
-              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() < ((Str*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Str *) lhs.get())->value() < ((Str *) rhs.get())->value()));
             default:
               throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LTE: {
           switch (lhs->otype()) {
-            case OType::INT:
-              return ptr<Obj>(new Bool(((Int*)lhs.get())->value() <= ((Int*)rhs.get())->value()));
+            case OType::INT: {
+              auto castLHS = std::static_pointer_cast<Int>(lhs);
+              auto castRHS = std::static_pointer_cast<Int>(rhs);
+              return share<Bool>(Bool(castLHS->value() <= castRHS->value()));
+            }
             case OType::REAL:
-              return ptr<Obj>(new Bool(((Real*)lhs.get())->value() <= ((Real*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Real *) lhs.get())->value() <= ((Real *) rhs.get())->value()));
             case OType::STR:
-              return ptr<Obj>(new Bool(((Str*)lhs.get())->value() <= ((Str*)rhs.get())->value()));
+              return ptr<Obj>(new Bool(((Str *) lhs.get())->value() <= ((Str *) rhs.get())->value()));
             default:
               throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
           }
@@ -160,24 +172,34 @@ namespace fhatos {
     }
 
     virtual const ptr<Obj> compose(const COMPOSITION_OPERATOR &comp, const ptr<Obj> &lhs, const ptr<Obj> &rhs) const {
-      if (const fError* e = ObjHelper::sameTypes(lhs, rhs)) {
+      if (const fError *e = ObjHelper::sameTypes(lhs, rhs)) {
         throw *e;
       }
       switch (comp) {
         case COMPOSITION_OPERATOR::PLUS: {
           switch (lhs->otype()) {
-            case OType::URI:
-              return ((Uri *) lhs.get())
-                  ->split(((Uri *) lhs.get())->value().extend(((Uri *) rhs.get())->value().toString().c_str()));
             case OType::BOOL:
               return ((Bool *) lhs.get())->split(((Bool *) lhs.get())->value() || ((Bool *) rhs.get())->value());
-            case OType::INT:
-              return lhs->split(((Int *) lhs.get())->value() + ((Int *) rhs.get())->value());
-            case OType::REAL:
-              return ((Real *) lhs.get())->split(((Real *) lhs.get())->value() + ((Real *) rhs.get())->value());
-            case OType::STR:
-              return ((Str *) lhs.get())
-                  ->split(((Str *) lhs.get())->value().append(((Str *) rhs.get())->value()));
+            case OType::INT: {
+              auto castLHS = std::static_pointer_cast<Int>(lhs);
+              auto castRHS = std::static_pointer_cast<Int>(rhs);
+              return share<Int>(*castLHS + *castRHS);
+            }
+            case OType::REAL: {
+              auto castLHS = std::static_pointer_cast<Real>(lhs);
+              auto castRHS = std::static_pointer_cast<Real>(rhs);
+              return castLHS->split(castLHS->value() + castRHS->value());
+            }
+            case OType::URI: {
+              auto castLHS = std::static_pointer_cast<Uri>(lhs);
+              auto castRHS = std::static_pointer_cast<Uri>(rhs);
+              return castLHS->split(castLHS->value().extend(castRHS->value().toString().c_str()));
+            }
+            case OType::STR: {
+              auto castLHS = std::static_pointer_cast<Str>(lhs);
+              auto castRHS = std::static_pointer_cast<Str>(rhs);
+              return castLHS->split(castLHS->value().append(castRHS->value()));
+            }
             default: {
               throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
             }
@@ -185,12 +207,21 @@ namespace fhatos {
         }
         case COMPOSITION_OPERATOR::MULT: {
           switch (lhs->otype()) {
-            case OType::BOOL:
-              return ((Bool *) lhs.get())->split(((Bool *) lhs.get())->value() && ((Bool *) rhs.get())->value());
-            case OType::INT:
-              return ((Int *) lhs.get())->split(((Int *) lhs.get())->value() * ((Int *) rhs.get())->value());
-            case OType::REAL:
-              return ((Real *) lhs.get())->split(((Real *) lhs.get())->value() * ((Real *) rhs.get())->value());
+            case OType::BOOL: {
+              ptr<Bool> castLHS = std::static_pointer_cast<Bool>(lhs);
+              ptr<Bool> castRHS = std::static_pointer_cast<Bool>(rhs);
+              return castLHS->split(castLHS->value() && castRHS->value());
+            }
+            case OType::INT: {
+              auto castLHS = std::static_pointer_cast<Int>(lhs);
+              auto castRHS = std::static_pointer_cast<Int>(rhs);
+              return share<Int>(*castLHS * *castRHS);
+            }
+            case OType::REAL: {
+              auto castLHS = std::static_pointer_cast<Real>(lhs);
+              auto castRHS = std::static_pointer_cast<Real>(rhs);
+              return castLHS->split(castLHS->value() * castRHS->value());
+            }
             case OType::REC: {
               // RecMap<Obj *, Obj *> *map = new RecMap<Obj *, Obj *>();
               Rec *rec = new Rec({});

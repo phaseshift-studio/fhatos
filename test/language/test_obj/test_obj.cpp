@@ -78,7 +78,15 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("age", intBCode->type()->name().c_str());
     /// apply
     FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));
-    FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(ptr<Int>(new Int(2, Int::_t("nat")))))
+    FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, Int::_t("nat")))))
+  }
+
+  void test_str() {
+    const StrP strA = share(Str("fhat", Str::_t("first_name")));
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
+    TEST_ASSERT_FALSE(strA->isBytecode());
+    TEST_ASSERT_EQUAL_STRING("fhat", strA->value().c_str());
+    TEST_ASSERT_EQUAL(OType::STR, strA->otype());
   }
 
   /* void test_rec() {
@@ -116,6 +124,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //
+      FOS_RUN_TEST(test_str); //
                               // FOS_RUN_TEST(test_base_obj_strings); //
                               // FOS_RUN_TEST(test_rec); //
                               // FOS_RUN_TEST(test_int); //
