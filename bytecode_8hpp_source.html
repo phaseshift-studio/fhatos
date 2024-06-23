@@ -158,7 +158,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      <span class="keywordflow">return</span> result;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    }</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    ptr&lt;Type&gt; type()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> ptr&lt;Type&gt;(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Type.html">Type</a>(this-&gt;_type)); }</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    ptr&lt;Type&gt; type()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> ptr&lt;Type&gt;(<span class="keyword">new</span> Type(this-&gt;_type)); }</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordtype">string</span> toString()<span class="keyword"> const override </span>{</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      <span class="keywordtype">string</span> t = <span class="stringliteral">&quot;&quot;</span>;</div>
@@ -186,7 +186,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordtype">bool</span> isNoObj()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> <span class="keyword">true</span>; }</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">bool</span> isNoInst()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> <span class="keyword">true</span>; }</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    ptr&lt;Type&gt; type()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> ptr&lt;Type&gt;(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Type.html">Type</a>(this-&gt;_type)); }</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    ptr&lt;Type&gt; type()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> ptr&lt;Type&gt;(<span class="keyword">new</span> Type(this-&gt;_type)); }</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordtype">string</span> toString()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> <span class="stringliteral">&quot;Ø&quot;</span>; }</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> &amp;other)<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> other.isNoObj(); }</div>
@@ -345,7 +345,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="comment">      return !((Obj *) this-&gt;getType&lt;ROUTER&gt;(type).apply(obj))-&gt;isNoObj();</span></div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span><span class="comment">    }*/</span></div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    ptr&lt;Type&gt; type()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> ptr&lt;Type&gt;(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Type.html">Type</a>(this-&gt;_type)); }</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    ptr&lt;Type&gt; type()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> ptr&lt;Type&gt;(<span class="keyword">new</span> Type(this-&gt;_type)); }</div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span> </div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    <span class="keyword">const</span> ptr&lt;Inst&gt; startInst()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> this-&gt;v_insts()-&gt;front(); }</div>
 <div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span> </div>
@@ -367,11 +367,10 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1ManyToManyInst_html"><div class="ttname"><a href="classfhatos_1_1ManyToManyInst.html">fhatos::ManyToManyInst</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:129</div></div>
 <div class="ttc" id="aclassfhatos_1_1ManyToOneInst_html"><div class="ttname"><a href="classfhatos_1_1ManyToOneInst.html">fhatos::ManyToOneInst</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:114</div></div>
 <div class="ttc" id="aclassfhatos_1_1NoInst_html"><div class="ttname"><a href="classfhatos_1_1NoInst.html">fhatos::NoInst</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:85</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdef"><b>Definition</b> obj.hpp:132</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:151</div></div>
 <div class="ttc" id="aclassfhatos_1_1Objs_html"><div class="ttname"><a href="classfhatos_1_1Objs.html">fhatos::Objs</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:139</div></div>
 <div class="ttc" id="aclassfhatos_1_1OneToManyInst_html"><div class="ttname"><a href="classfhatos_1_1OneToManyInst.html">fhatos::OneToManyInst</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:121</div></div>
 <div class="ttc" id="aclassfhatos_1_1OneToOneInst_html"><div class="ttname"><a href="classfhatos_1_1OneToOneInst.html">fhatos::OneToOneInst</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:107</div></div>
-<div class="ttc" id="aclassfhatos_1_1Type_html"><div class="ttname"><a href="classfhatos_1_1Type.html">fhatos::Type</a></div><div class="ttdoc">An mm-ADT type encoded in a URI.</div><div class="ttdef"><b>Definition</b> obj.hpp:211</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 <div class="ttc" id="aobj_8hpp_html_a48680c360c0948acdfc2bab032a0139ead71a43914342530a2045d07d97a904d0"><div class="ttname"><a href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139ead71a43914342530a2045d07d97a904d0">fhatos::OType::NOINST</a></div><div class="ttdeci">@ NOINST</div><div class="ttdoc">A &quot;null&quot; instruction type used to halt a processing monad.</div></div>
 </div><!-- fragment --></div><!-- contents -->

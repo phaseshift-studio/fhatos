@@ -1,9 +1,9 @@
 var indexSectionsWithContent =
 {
-  0: "abcdefiklmnopqrstux",
-  1: "abcdefiklmnopqrstux",
+  0: "abcdefiklmnopqrstu",
+  1: "abcdefiklmnopqrstu",
   2: "o",
-  3: "enpsu",
+  3: "enpstu",
   4: "o",
   5: "bilnorsu",
   6: "i"

@@ -217,7 +217,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      <a class="code hl_class" href="classfhatos_1_1Actor.html">Actor&lt;PROCESS, ROUTER&gt;::loop</a>();</div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>      List&lt;Process *&gt; *results = Scheduler::singleton()-&gt;find(this-&gt;<span class="keywordtype">id</span>().extend(<span class="stringliteral">&quot;+&quot;</span>));</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      <span class="keywordflow">for</span> (<a class="code hl_class" href="classfhatos_1_1Process.html">Process</a> *child: *results) {</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        this-&gt;<a class="code hl_function" href="classfhatos_1_1Publisher.html#af501f32c3c0e7e4b13d3a27ac6eb61a7">publish</a>(child-&gt;id().query(<span class="stringliteral">&quot;?loop&quot;</span>), <span class="stringliteral">&quot;&quot;</span>,TRANSIENT_MESSAGE);</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        this-&gt;publish(child-&gt;id().query(<span class="stringliteral">&quot;?loop&quot;</span>), <span class="stringliteral">&quot;&quot;</span>,TRANSIENT_MESSAGE);</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      }</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>      <span class="keyword">delete</span> results;</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>      delay(1000);</div>
