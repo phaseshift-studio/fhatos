@@ -90,26 +90,25 @@ namespace fhatos {
                              {{Uri("b"), new Str("pig")}, {Uri("c"), new Str("fhat")}});
       FOS_DEFAULT_ROUTER::singleton()->clear();
     }
-
-    void test_relational_predicates() {
-      FOS_CHECK_RESULTS<Int>({12}, __({1, 2, 3}).plus(10).is(_.eq(12)));
-      FOS_CHECK_RESULTS<Int>({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12)));
-      FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).is(_.gt(12)));
-      FOS_CHECK_RESULTS<Int>({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12)));
-      FOS_CHECK_RESULTS<Int>({11}, __({1, 2, 3}).plus(10).is(_.lt(12)));
-      FOS_CHECK_RESULTS<Int>({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12)));
-    }*/
+*/
+  void test_relational_predicates() {
+    FOS_CHECK_RESULTS<Int>({12}, __({1, 2, 3}).plus(10).is(_.eq(12)));
+    FOS_CHECK_RESULTS<Int>({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12)));
+    FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).is(_.gt(12)));
+    FOS_CHECK_RESULTS<Int>({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12)));
+    FOS_CHECK_RESULTS<Int>({11}, __({1, 2, 3}).plus(10).is(_.lt(12)));
+    FOS_CHECK_RESULTS<Int>({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12)));
+  }
 
   void test_plus() {
     FOS_CHECK_RESULTS<Int>({3}, __(1).plus(2));
-    //FOS_CHECK_RESULTS<Int>({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
-
+    FOS_CHECK_RESULTS<Int>({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
+    FOS_CHECK_RESULTS<Real>({54.0f, 50.0f, 46.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).plus(_).plus(_.plus(2.0f)));
   }
 
   void test_mult() {
-    FOS_CHECK_RESULTS<Int>({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
-    // FOS_CHECK_RESULTS<Real>({54.0f, 50.0f, 46.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).plus(_).plus(_.plus(2.0f)));
-    FOS_CHECK_RESULTS<Rec>({{{21, 10}, {48, 36}}}, __({{3, 2}, {6, 4}}).mult({{7, 5}, {8, 9}}));
+    FOS_CHECK_RESULTS<Rec>({Rec{{Int(21), Int(10)}, {Int(48), Int(36)}}},
+                           __(Rec{{Int(3), Int(2)}, {Int(6), Int(4)}}).mult(Rec{{Int(7), Int(5)}, {Int(8), Int(9)}}));
   }
 
   /* void test_where() { FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13)))); }
@@ -121,23 +120,12 @@ namespace fhatos {
    false); FOS_CHECK_RESULTS<Int>({*Int(1).cast("nat")}, __(1).as(fURI("nat")), {{fURI("nat"),
    _.is(_.gt(0)).bcode.get()}}, false);
    }*/
-  /*
-    FOS_RUN_TEST(test_select); //
-          FOS_RUN_TEST(test_rec_branch); //
-          FOS_RUN_TEST(test_count); //
-          FOS_RUN_TEST(test_ref); //
-          FOS_RUN_TEST(test_dref); //
-          FOS_RUN_TEST(test_plus); //
-          FOS_RUN_TEST(test_mult); //
-          FOS_RUN_TEST(test_where); //
-          FOS_RUN_TEST(test_define_and_type); //
-          FOS_RUN_TEST(test_relational_predicates); //
-   */
   FOS_RUN_TESTS( //
-//      FOS_RUN_TEST(test_plus); //
-    //  FOS_RUN_TEST(test_mult); //
       FOS_RUN_TEST(test_fluent); //
-     // FOS_RUN_TEST(test_select); //
+      FOS_RUN_TEST(test_plus); //
+      // FOS_RUN_TEST(test_mult); //
+      FOS_RUN_TEST(test_relational_predicates); //
+      FOS_RUN_TEST(test_select); //
   )
 } // namespace fhatos
 

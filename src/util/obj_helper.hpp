@@ -50,8 +50,13 @@ namespace fhatos {
           return share<Str>(Str((*(Str *) &obj).value(), obj._type));
         case OType::URI:
           return share<Uri>(Uri((*(Uri *) &obj).value(), obj._type));
-        case OType::REC:
-          return share<Rec>(Rec((*(Rec *) &obj).value(), obj._type));
+        case OType::REC: {
+          RecMap<> map = RecMap<>();
+          for (const auto &pair: ((Rec *) &obj)->value()) {
+            map.insert({ObjHelper::cast(*pair.first), ObjHelper::cast(*pair.second)});
+          }
+          return share(Rec(map, obj._type));
+        }
         case OType::BYTECODE:
           return share<Bytecode>(Bytecode((*(Bytecode *) &obj).v_insts(), obj._type));
         default:

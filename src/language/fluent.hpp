@@ -74,16 +74,17 @@ namespace fhatos {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    operator const Bytecode &() const { return *this->bcode; }
+    operator const Bytecode &() const { return *ObjHelper::clone<Bytecode>(this->bcode.get()); }
 
-    const ptr<Bytecode> code() const { return this->bcode; }
+    operator const ptr<Obj> &() const { return this->bcode; }
+    //operator const ptr<Bytecode> &() const { return this->bcode; }
 
     Fluent start(const ptr<List<ptr<Obj>>> &starts) const {
-      /*auto castStarts = List<ptr<Obj>>();
+      auto castStarts = List<ptr<Obj>>();
       for (const auto &start: *starts) {
-        castStarts.push_back(ptr<Obj>(ObjHelper::cast(*start)));
-      }*/
-      return this->addInst(ptr<Inst>(new StartInst(*starts)));
+        castStarts.push_back(ObjHelper::cast(*start));
+      }
+      return this->addInst(ptr<Inst>(new StartInst(castStarts)));
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -177,7 +178,7 @@ namespace fhatos {
     //////////////////////////// FILTERING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent is(const Bool &test) { return this->addInst(ptr<Inst>(new IsInst(share<Bool>(test)))); }
+    Fluent is(const Obj &test) { return this->addInst(ptr<Inst>(new IsInst(ObjHelper::cast(test)))); }
 
     //  Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 

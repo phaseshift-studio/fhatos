@@ -47,8 +47,6 @@
 #endif
 
 namespace fhatos {
-
-
   /// @brief The base types of mm-ADT
   enum class OType : uint8_t {
     /// The base type of all types is the obj
@@ -79,10 +77,17 @@ namespace fhatos {
   };
 
 
+  class Obj;
+  using Objp = ptr<Obj>;
+  using fURIp = ptr<fURI>;
   using BObj = Triple<OType, fbyte *, uint32_t>;
   class PtrSerializer;
   class Type;
   class Objs;
+  using InstFunction = Function<Objp, Objp>;
+  using InstArgs = List<ptr<Obj>>;
+  using InstOpcode = string;
+  using InstValue = Pair<InstArgs, InstFunction>;
 
   static const Map<OType, const char *> OTYPE_STR = {{{OType::NOOBJ, "noobj"},
                                                       {OType::NOINST, "noinst"},
@@ -124,140 +129,347 @@ namespace fhatos {
   static const ptr<fURI> BCODE_FURI = ptr<fURI>(new fURI("/bcode"));
   static const ptr<fURI> OBJS_FURI = ptr<fURI>(new fURI("/objs"));
 
+  enum class IType : uint8_t {
+    NOINST = 0,
+    ONE_TO_ONE,
+    ONE_TO_MANY,
+    MANY_TO_ONE,
+    MANY_TO_MANY,
+  }; // TYPE
+  static const Map<IType, const char *> ITYPE_STR = {{
+      {IType::NOINST, "0->0 (null)"},
+      {IType::ONE_TO_ONE, "f(x)->y (map)"},
+      {IType::ONE_TO_MANY, "f(x)->y* (flatmap)"},
+      {IType::MANY_TO_ONE, "f(x*)->y (reduce)"},
+      {IType::MANY_TO_MANY, "f(x*)->y* (barrier)"},
+  }};
+
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Bytecode;
-  class Obj {
+  class Obj : public std::enable_shared_from_this<Obj> {
   protected:
-    std::variant<Any, ptr<Bytecode>> _var;
+    Any _value;
+    const ptr<fURI> _furi;
+    //////////////////////////////////////////
+    struct obj_hash {
+      size_t operator()(const Objp &obj) const {
+        return static_cast<std::string::value_type>(obj->o_domain()) ^
+               (obj->o_range() ? obj->_furi->toString().size() : 123) ^ obj->toString().length() ^ obj->toString()[0];
+      }
+    };
+
+    struct obj_equal_to : std::binary_function<Objp &, Objp &, bool> {
+      bool operator()(const Objp &a, const Objp &b) const { return *a == *b; }
+    };
+    template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
+    using RecMap = OrderedMap<K, V, H, Q>;
+
 
   public:
-    ptr<fURI> _type;
     virtual ~Obj() = default;
-    explicit Obj(const std::variant<Any, ptr<Bytecode>> &var, const ptr<fURI> &type) : _var(var), _type(type) {}
+    explicit Obj(const Any &value, const ptr<fURI> &furi) : _value(value), _furi(furi) {}
 
+    /////
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
     template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool) : _var(xbool), _type(BOOL_FURI) {}
-    Obj(const FL_INT_TYPE xint) : _var(xint), _type(INT_FURI) {}
-    Obj(const FL_REAL_TYPE xreal) : _var(xreal), _type(REAL_FURI) {}
-    Obj(const fURI xuri) : _var(xuri), _type(URI_FURI) {}
-    Obj(const char *xstr) : _var(xstr), _type(STR_FURI) {}
-    Obj(const string xstr) : _var(xstr), _type(STR_FURI) {}
-    Obj(const Map<ptr<Obj>, ptr<Obj>> &xrec) : _var(xrec), _type(REC_FURI) {}
-    Obj(const std::initializer_list<Pair<Obj const, Obj>> &xrec) : _var(Map<ptr<Obj>, ptr<Obj>>({})), _type(REC_FURI) {
-      Map<ptr<Obj>, ptr<Obj>> map = std::any_cast<Map<ptr<Obj>, ptr<Obj>>>(std::get<0>(this->_var));
-      for (const Pair<Obj const, Obj> &pair: xrec) {
-        map.emplace(ptr<Obj>((Obj *) &(pair.first)), ptr<Obj>((Obj *) &(pair.second)));
+    Obj(const T xbool) : _value(xbool), _furi(BOOL_FURI) {}
+    Obj(const FL_INT_TYPE xint) : _value(xint), _furi(INT_FURI) {}
+    Obj(const FL_REAL_TYPE xreal) : _value(xreal), _furi(REAL_FURI) {}
+    Obj(const fURI xuri) : _value(xuri), _furi(URI_FURI) {}
+    Obj(const char *xstr) : _value(xstr), _furi(STR_FURI) {}
+    Obj(const string xstr) : _value(xstr), _furi(STR_FURI) {}
+    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec) : _value(RecMap<>({})), _furi(REC_FURI) {
+      RecMap<> map = this->rec_value();
+      for (const Pair<const Obj, Obj> &pair: xrec) {
+        map.emplace(share(pair.first), share(pair.second));
       }
-      this->_var = map;
+      this->_value = map;
     }
     //////////////////////////////////////////////////////////////
-    virtual OType otype() const { return STR_OTYPE.at(this->_type->path(0, 1)); }
-    virtual ptr<Type> type() const { throw fError("obj has no structural type"); }
-    virtual string toString() const { throw fError("obj has no character representation"); }
-    // virtual Any value() const { throw fError("obj has no structural value"); }
+    const OType o_domain() const { return STR_OTYPE.at(this->_furi->path(0, 1)); }
+    const OType o_range() const { return STR_OTYPE.at(this->_furi->path(1, 2)); }
+    const fURIp range() const { return this->_furi; }
+    const fURIp domain() const { return this->_furi; }
+    template<typename _VALUE>
+    const _VALUE value() const {
+      return std::any_cast<_VALUE>(this->_value);
+    }
+    const bool bool_value() const {
+      assert(OType::BOOL == o_range());
+      return this->value<bool>();
+    }
+    const FL_INT_TYPE int_value() const {
+      assert(OType::INT == o_range());
+      return this->value<FL_INT_TYPE>();
+    }
+    const FL_REAL_TYPE real_value() const {
+      assert(OType::REAL == o_range());
+      return this->value<FL_REAL_TYPE>();
+    }
+    const fURIp uri_value() const {
+      assert(OType::URI == o_range());
+      return this->value<ptr<fURI>>();
+    }
+    const string str_value() const {
+      assert(OType::STR == o_range());
+      return this->value<string>();
+    }
+    RecMap<> rec_value() const {
+      assert(OType::REC == o_range());
+      return this->value<RecMap<>>();
+    }
+    Objp get(const Objp &key) const {
+      assert(OType::REC == o_range());
+      return this->rec_value().count(key) ? this->rec_value().at(key) : Obj::to_noobj();
+    }
+    void set(Objp &key, const Objp &val) {
+      assert(OType::REC == o_range());
+      this->rec_value().emplace(key, val);
+    }
+    const InstValue inst_value() const {
+      assert(OType::INST == o_range());
+      return this->value<InstValue>();
+    }
+    const string opcode() const {
+      assert(OType::INST == o_range());
+      return this->_furi->lastSegment();
+    }
 
-    template<typename OBJ = Obj, typename VALUE>
-    const ptr<OBJ>
-    split(const VALUE &newValue,
+    const List<Objp> arg() const {
+      assert(OType::INST == o_range());
+      return this->inst_value().first;
+    }
+
+    template<int index>
+    const Objp arg() const {
+      assert(OType::INST == o_range());
+      return this->inst_value().first.at(index);
+    }
+
+    const InstFunction function() const {
+      assert(OType::INST == o_range());
+      return this->inst_value().second;
+    }
+
+    const string toString() const {
+      string objString;
+      switch (this->o_range()) {
+        case OType::BOOL:
+          objString = this->bool_value() ? "true" : "false";
+          break;
+        case OType::INT:
+          objString = std::to_string(this->int_value());
+          break;
+        case OType::REAL:
+          objString = std::to_string(this->real_value());
+          break;
+        case OType::URI:
+          objString = this->uri_value()->toString();
+          break;
+        case OType::STR:
+          objString = "'" + this->str_value() + "'";
+          break;
+        case OType::REC: {
+          string t = "!m[!!";
+          for (const auto &[k, v]: this->rec_value()) {
+            t += k->toString() + "!m=>!!" + v->toString() + ",";
+          }
+          t[t.length() - 1] = '!';
+          objString = t.append("m]!!");
+          break;
+        }
+        case OType::INST: {
+          string t = "";
+          for (const auto &arg: this->inst_value()) {
+            t += arg->toString() + ",";
+          }
+          objString = t.substr(0, t.length() - 1);
+          break;
+        }
+        default:
+          throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_range()));
+      }
+      return this->_furi->pathLength() > 1
+                 ? (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!b/!!")) +
+                       ("!b" + this->_furi->lastSegment() + "!g[!!" + objString + "!g]!!")
+                 : (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!!")) + objString;
+    }
+    int compare(const Obj &other) const { return this->toString().compare(other.toString()); }
+    bool operator&&(const Obj &other) const { return this->bool_value() && other.bool_value(); }
+    bool operator||(const Obj &other) const { return this->bool_value() || other.bool_value(); }
+    bool operator<(const Obj &other) const { return this->int_value() < other.int_value(); }
+    bool operator>(const Obj &other) const { return this->int_value() > other.int_value(); }
+    bool operator<=(const Obj &other) const { return this->int_value() <= other.int_value(); }
+    bool operator>=(const Obj &other) const { return this->int_value() >= other.int_value(); }
+    Obj operator*(const Obj &other) const { return Obj(this->int_value() * other.int_value(), this->_furi); }
+    Obj operator+(const Obj &other) const { return Obj(this->int_value() + other.int_value(), this->_furi); }
+    bool operator!=(const Obj &other) const { return !(*this == other); }
+    bool operator==(const Obj &other) const {
+      if (!this->_furi->equals(*other._furi))
+        return false;
+      switch (this->o_range()) {
+        case OType::BOOL:
+          return this->bool_value() == other.bool_value();
+        case OType::INT:
+          return this->int_value() == other.int_value();
+        case OType::REAL:
+          return this->real_value() == other.real_value();
+        case OType::URI:
+          return this->uri_value()->equals(*other.uri_value());
+        case OType::STR:
+          return this->str_value() == other.str_value();
+        case OType::REC: {
+          auto itB = other.rec_value().begin();
+          for (auto itA = this->rec_value().begin(); itA != this->rec_value().end(); ++itA) {
+            if (*itA->first != *itB->first || *itA->second != *itB->second)
+              return false;
+            ++itB;
+          }
+          return true;
+        }
+        default:
+          throw fError("Unknown obj type in ==: %s\n", OTYPE_STR.at(this->o_range()));
+      }
+    }
+    bool isNoObj() const { return this->o_range() == OType::NOOBJ; }
+    bool isBytecode() { return false; }
+    Objp apply(const Objp &lhs) {
+      switch (this->o_range()) {
+        case OType::BOOL:
+          return shared_from_this();
+        case OType::INT:
+          return shared_from_this();
+        case OType::REAL:
+          return shared_from_this();
+        case OType::URI:
+          return shared_from_this();
+        case OType::STR:
+          return shared_from_this();
+        case OType::INST:
+          return this->function()(lhs);
+        default:
+          throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_range()));
+      }
+    }
+    const Objp
+    split(const Any &newValue,
           const std::variant<ptr<fURI>, const char *> &newType = std::variant<ptr<fURI>, const char *>(nullptr)) const {
-      return ptr<OBJ>(new OBJ(newValue, std::variant<ptr<fURI>, const char *>(nullptr) == newType
-                                            ? this->_type
-                                            : (std::holds_alternative<const char *>(newType)
-                                                   ? ptr<fURI>(new fURI(std::get<const char *>(newType)))
-                                                   : std::get<ptr<fURI>>(newType))));
+      return share(Obj(newValue, std::variant<ptr<fURI>, const char *>(nullptr) == newType
+                                     ? this->_furi
+                                     : (std::holds_alternative<const char *>(newType)
+                                            ? ptr<fURI>(new fURI(std::get<const char *>(newType)))
+                                            : std::get<ptr<fURI>>(newType))));
     }
-    bool isBytecode() const { return std::holds_alternative<ptr<Bytecode>>(this->_var); }
-    virtual ptr<Bytecode> bcode() const { return std::get<1>(this->_var); }
-    virtual ptr<Obj> apply(const ptr<Obj> &obj) { throw fError("obj has no applicable form"); }
-    virtual bool operator==(const Obj &other) const {
-      throw fError("obj has no equality relation");
-      /* return this->_type->equals(*other._type) && (this->isBytecode() == other.isBytecode()) &&
-              (this->isBytecode() ? (this->bcode() == other.bcode()) : (this->toString() == other.toString()));*/
+
+    Objp as(const fURIp &furi) const { return share(Obj(this->_value, furi)); }
+
+    /// STATIC TYPE CONSTRAINED CONSTRUCTORS
+    static Objp to_noobj() { return share(Obj(nullptr, NOOBJ_FURI)); }
+
+    static Objp to_bool(const bool value, const fURIp &furi = BOOL_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::BOOL));
+      return share(Obj(value, furi));
     }
-    virtual bool operator!=(const Obj &other) const { return !(*this == other); }
-    virtual bool isNoObj() const { return this->otype() == OType::NOOBJ; }
+
+    static Objp to_int(const bool value, const fURIp &furi = BOOL_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::INT));
+      return share(Obj(value, furi));
+    }
+
+    static Objp to_str(const string value, const fURIp &furi = STR_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::STR));
+      return share(Obj(value, furi));
+    }
+
+    static Objp to_str(const char *value, const fURIp &furi = STR_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::STR));
+      return share(Obj(string(value), furi));
+    }
+
+    static Objp to_uri(const fURIp &value, const fURIp &furi = URI_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::URI));
+      return share(Obj(value, furi));
+    }
+
+    static Objp to_uri(const char *value, const fURIp &furi = URI_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::URI));
+      return share(Obj(value, furi);
+    }
+
+    static Objp to_inst(const InstValue &value, const fURIp &furi = INST_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::INST));
+      return share(Obj(value, furi));
+    }
+
+    static Objp to_inst(const string opcode, const List<Objp> &args, const InstFunction &function,
+                        const fURIp &furi = share(fURI(string("/inst/") + opcode))) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::INST));
+      return share(Obj(std::make_pair<InstArgs, InstFunction>{args, function}, furi));
+    }
+
 
     template<typename SERIALIZER = PtrSerializer>
     const ptr<BObj> serialize() const {
       return SERIALIZER::singleton()->serialize(this);
     }
 
-  protected:
-    template<typename A = Obj>
-    ptr<A> as(const ptr<fURI> &type) const {
-      if (type->equals(*this->_type))
-        return share(*(A *) this);
-      A *a = new A(*(A *) this);
-      a->_type = type;
-      return ptr<A>(a);
-    }
-
     /*template<typename SERIALIZER = PtrSerializer, typename _OBJ>
     static const ptr<_OBJ> deserialize(const BObj *bobj) {
       return SERIALIZER::singleton()->deserialize(this);
     }*/
-  };
 
-  ///////////////////////////////////////////////////
-  ////////////////////// TYPE //////////////////////
-  //////////////////////////////////////////////////
-  /// An mm-ADT type encoded in a URI
-  class Type : public Obj {
-  public:
-    explicit Type(const ptr<fURI> &furi) : Obj(furi, TYPE_FURI) {}
-    ptr<fURI> v_furi() const { return std::any_cast<ptr<fURI>>(std::get<0>(this->_var)); }
-    OType instanceOType() { return STR_OTYPE.at(this->v_furi()->path(0, 1)); }
-    string variable() const { return this->v_furi()->user().value_or(""); }
-    string name() const { return this->v_furi()->path(this->v_furi()->pathLength() - 1); }
-    string stype() const { return this->v_furi()->path(); }
-    string location() const { return this->v_furi()->host(); }
-    bool mutating() const { return this->variable()[0] == '~'; }
-    string objString(const string &objString) const {
-      return this->v_furi()->pathLength() > 1
-                 ? (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!b/!!")) +
-                       ("!b" + this->name() + "!g[!!" + objString + "!g]!!")
-                 : (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!!")) + objString;
-    }
-    string toString() const override { return this->v_furi()->toString(); }
-    static ptr<fURI> obj_t(const OType &otype, const char *utype) {
-      string typeToken = string(utype);
-      bool hasAuthority = typeToken.find('@') != std::string::npos;
-      bool hasSlash = typeToken.starts_with("/");
-      fURI temp = fURI(hasAuthority ? typeToken : hasSlash ? typeToken : "/" + typeToken);
-      fURI temp2 = fURI(string("/") + OTYPE_STR.at(otype) + (temp.path().empty() ? "" : ("/" + temp.path())));
-      fURI temp3 = temp2.authority(temp.authority());
-      return ptr<fURI>(new fURI(temp3));
-    }
-    static ptr<fURI> obj_t(const OType &otype, const ptr<fURI> &utype) {
-      return Type::obj_t(otype, utype.get() ? utype->toString().c_str() : "");
+    static List<Objp> cast(const List<Obj> &list) {
+      List<Objp> newList = List<Objp>();
+      for (const auto &obj: list) {
+        newList.push_back(share(Obj(obj)));
+      }
+      return newList;
     }
   };
 
-  ///////////////////////////////////////////////////
-  ////////////////////// NOOBJ //////////////////////
-  ///////////////////////////////////////////////////
-  class NoObj : public Obj {
-  public:
-    template<typename OBJ = Obj>
-    static ptr<OBJ> self_ptr() {
-      return ptr<OBJ>((OBJ *) new NoObj());
-    }
-    ptr<Obj> apply(const ptr<Obj> &obj) override { return NoObj::self_ptr(); }
-    bool isNoObj() const override { return true; }
-    string toString() const override { return "Ø"; }
-    OType otype() const override { return OType::NOOBJ; }
-    ptr<Type> type() const override { return ptr<Type>(new Type(this->_type)); }
-    bool operator==(const Obj &other) const override { return other.isNoObj(); }
 
-  private:
-    NoObj() : Obj(std::variant<Any, ptr<Bytecode>>(false), NOOBJ_FURI) {}
-  };
 } // namespace fhatos
+
+
+// namespace fhatos
+///////////////////////////////////////////////////
+////////////////////// TYPE //////////////////////
+//////////////////////////////////////////////////
+/// An mm-ADT type encoded in a URI
+/*class Type : public Obj {
+public:
+  explicit Type(const ptr<fURI> &furi) : Obj(furi, TYPE_FURI) {}
+  ptr<fURI> v_furi() const { return std::any_cast<ptr<fURI>>(std::get<0>(this->_var)); }
+  OType instanceOType() { return STR_OTYPE.at(this->v_furi()->path(0, 1)); }
+  string variable() const { return this->v_furi()->user().value_or(""); }
+  string name() const { return this->v_furi()->path(this->v_furi()->pathLength() - 1); }
+  string stype() const { return this->v_furi()->path(); }
+  string location() const { return this->v_furi()->host(); }
+  bool mutating() const { return this->variable()[0] == '~'; }
+  string objString(const string &objString) const {
+    return this->v_furi()->pathLength() > 1
+               ? (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!b/!!")) +
+                     ("!b" + this->name() + "!g[!!" + objString + "!g]!!")
+               : (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!!")) + objString;
+  }
+  string toString() const override { return this->v_furi()->toString(); }
+  static ptr<fURI> obj_t(const OType &otype, const char *utype) {
+    string typeToken = string(utype);
+    bool hasAuthority = typeToken.find('@') != std::string::npos;
+    bool hasSlash = typeToken.starts_with("/");
+    fURI temp = fURI(hasAuthority ? typeToken : hasSlash ? typeToken : "/" + typeToken);
+    fURI temp2 = fURI(string("/") + OTYPE_STR.at(otype) + (temp.path().empty() ? "" : ("/" + temp.path())));
+    fURI temp3 = temp2.authority(temp.authority());
+    return ptr<fURI>(new fURI(temp3));
+  }
+  static ptr<fURI> obj_t(const OType &otype, const ptr<fURI> &utype) {
+    return Type::obj_t(otype, utype.get() ? utype->toString().c_str() : "");
+  }
+};*/
+
 
 #endif

@@ -187,7 +187,17 @@ namespace fhatos {
       ((subscription).pattern.equals((message).target)) ? ((message).source.toString().c_str())                        \
                                                         : ((message).payload->toString)().c_str(),                     \
       ((message).source.toString().c_str()))
-
+#define FOS_LOG_INST(inst)                                                                                             \
+  LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
+      (inst)->opcode().c_str(),                                                                                        \
+      (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
+                               : (inst)->v_args().at(0)->type()->v_furi()->toString().c_str(),                         \
+      (inst)->v_args().empty() ? OTYPE_STR.at(OType::NOOBJ) : OTYPE_STR.at((inst)->v_args().at(0)->otype()),           \
+      (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->isBytecode()),                         \
+      (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
+#define FOS_LOG_OBJ(obj)                                                                                               \
+  LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
+      OTYPE_STR.at((obj)->otype()), (obj)->type()->toString().c_str());
 
 #ifndef FOS_MAILBOX_WARNING_SIZE
 #define FOS_MAILBOX_WARNING_SIZE 15
