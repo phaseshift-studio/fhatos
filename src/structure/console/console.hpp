@@ -54,6 +54,13 @@ namespace fhatos {
           if (line == ":quit") {
             this->stop();
             return;
+          } else if (line.starts_with(":log ")) {
+            string level = line.substr(5);
+            if (!STR_LOGTYPE.count(level)) {
+              LOG(ERROR, "A valid log level required (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str());
+            } else {
+              LOGGING_LEVEL = STR_LOGTYPE.at(level);
+            }
           }
         } else {
           try {
@@ -84,14 +91,14 @@ namespace fhatos {
     }
 
 
-    void printResult(const Obj_p& obj) const {
+    void printResult(const Obj_p &obj) const {
       if (obj->o_range() == OType::REC)
         this->printRec(obj);
       else
         this->ansi->printf("!g==!!>%s\n", obj->toString().c_str());
     }
 
-    void printRec(const Rec_p& rec, int i = 0) const {
+    void printRec(const Rec_p &rec, int i = 0) const {
       this->ansi->printf("!g==!!>!y%s!![", rec->id() ? rec->id()->toString().c_str() : "");
       const int size = rec->rec_value().size();
       for (const auto &[key, value]: rec->rec_value()) {

@@ -245,9 +245,12 @@ namespace fhatos {
 #ifndef FOS_LOGGING
 #define FOS_LOGGING INFO
 #endif
+  static LOG_TYPE LOGGING_LEVEL = FOS_LOGGING;
+  static const Map<string, LOG_TYPE> STR_LOGTYPE = {
+      {{"DEBUG", LOG_TYPE::DEBUG}, {"INFO", LOG_TYPE::INFO}, {"ERROR", LOG_TYPE::ERROR}, {"NONE", LOG_TYPE::NONE}}};
 
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-    if ((uint8_t) type < (uint8_t) LOG_TYPE::FOS_LOGGING)
+    if ((uint8_t) type < (uint8_t) LOGGING_LEVEL)
       return;
     va_list arg;
     va_start(arg, format);

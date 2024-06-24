@@ -44,7 +44,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 )
 TARGET_SOURCES(${PROJECT_NAME} PRIVATE src/main.cpp)
 TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
-ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-format-security")
+ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
