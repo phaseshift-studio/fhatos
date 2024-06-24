@@ -178,7 +178,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>            RETAINS.insert({mess_ptr-&gt;target, mess_ptr});</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>            <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>          });</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>          LOG(INFO,<span class="stringliteral">&quot;Total number of retained messages [size:%i]\n&quot;</span>, RETAINS.size());</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>          LOG(DEBUG,<span class="stringliteral">&quot;Total number of retained messages [size:%i]\n&quot;</span>, RETAINS.size());</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>        }</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        LOG_PUBLISH(_rc, message);</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        <span class="keywordflow">return</span> _rc;</div>

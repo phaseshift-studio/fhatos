@@ -129,7 +129,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keyword">public</span>:</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1Parser.html">Parser</a>(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;<span class="keywordtype">id</span> = <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(*UUID::singleton()-&gt;mint())) : <a class="code hl_class" href="classfhatos_1_1IDed.html">IDed</a>(<span class="keywordtype">id</span>) {}</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">const</span> Bytecodep parse(<span class="keyword">const</span> <span class="keywordtype">char</span> *line) {</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">const</span> BCode_p parse(<span class="keyword">const</span> <span class="keywordtype">char</span> *line) {</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>      <span class="keywordtype">string</span> cleanLine = string(line);</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>      StringHelper::trim(cleanLine);</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      LOG(DEBUG, <span class="stringliteral">&quot;!RPARSING!!: !g!_%s!!\n&quot;</span>, cleanLine.c_str());</div>
@@ -137,14 +137,14 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        <span class="keywordflow">return</span> Obj::to_bcode({});</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      }</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      stringstream ss = stringstream(cleanLine);</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      Bytecodep bcode = this-&gt;parseBytecode(&amp;ss);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      BCode_p bcode = this-&gt;parseBytecode(&amp;ss);</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>      LOG(DEBUG, <span class="stringliteral">&quot;!rBYTECODE!!: %s [%s]\n&quot;</span>, bcode-&gt;toString().c_str(), OTYPE_STR.at(bcode-&gt;o_range()));</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      <span class="keywordflow">return</span> bcode;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    }</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">const</span> ptr&lt;Fluent&lt;&gt;&gt; parseToFluent(<span class="keyword">const</span> <span class="keywordtype">char</span> *line) { <span class="keywordflow">return</span> share&lt;Fluent&lt;&gt;&gt;(<a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a>(this-&gt;parse(line))); }</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keyword">static</span> <span class="keyword">const</span> ptr&lt;Bytecode&gt; parseBytecode(stringstream *ss) {</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keyword">static</span> <span class="keyword">const</span> ptr&lt;BCode&gt; parseBytecode(stringstream *ss) {</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>      <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a> *fluent = <span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent&lt;&gt;</a>();</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>      <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keyword">const</span> ptr&lt;string&gt; opcode = Parser::parseOpcode(ss);</div>
@@ -242,7 +242,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        <span class="keywordflow">return</span> args;</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>      }</div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      <span class="keywordflow">while</span> (!ss-&gt;eof()) {</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        Objp argObj = Parser::parseArg(ss);</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        Obj_p argObj = Parser::parseArg(ss);</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>        args-&gt;push_back(argObj);</div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        LOG(NONE, FOS_TAB_8 FOS_TAB_6 <span class="stringliteral">&quot;!g==&gt;!!%s [!y%s!!]\n&quot;</span>, argObj-&gt;toString().c_str(),</div>
 <div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>            OTYPE_STR.at(argObj-&gt;o_range()));</div>
@@ -286,11 +286,11 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      <span class="keywordtype">char</span> *array; <span class="comment">//[token2.length()];</span></div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      array = strdup(token2.c_str());</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      <span class="keywordtype">string</span> token = string(array);</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      Objp obj;</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      Obj_p obj;</div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      LOG(DEBUG, FOS_TAB_4 <span class="stringliteral">&quot;!rTOKEN!!: %s\n&quot;</span>, token.c_str());</div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      StringHelper::trim(token);</div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      <span class="keywordtype">int</span> index = token.find(<span class="charliteral">&#39;[&#39;</span>);</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      fURIp utype = fURIp((<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>*)<span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      fURI_p utype = fURI_p((<a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>*)<span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>      <span class="keywordflow">if</span> (index != string::npos &amp;&amp; index != 0 &amp;&amp; token.back() == <span class="charliteral">&#39;]&#39;</span>) {</div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>        <span class="keywordtype">string</span> typeToken = token.substr(0, index);</div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        <span class="comment">// bool hasAuthority = typeToken.find(&#39;@&#39;) != std::string::npos;</span></div>
@@ -303,7 +303,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>      }</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>      <span class="keywordflow">if</span> (strcmp(token.c_str(), <span class="stringliteral">&quot;Ø&quot;</span>) == 0) {</div>
 <div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>        utype = NOOBJ_FURI;</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        obj = <a class="code hl_function" href="classfhatos_1_1Obj.html#a8a81514aa6a075a3242ad0341514ea45">Obj::to_noobj</a>();</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        obj = <a class="code hl_function" href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">Obj::to_noobj</a>();</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (token[0] == <span class="charliteral">&#39;\&#39;&#39;</span> &amp;&amp; token[token.length() - 1] == <span class="charliteral">&#39;\&#39;&#39;</span>) {</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        utype = utype ? share(STR_FURI-&gt;extend(utype-&gt;toString().c_str())) : STR_FURI;</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        obj = Obj::to_str(token.substr(1, token.length() - 2), utype);</div>
@@ -410,8 +410,8 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:31</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:392</div></div>
 <div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:447</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:170</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html_a8a81514aa6a075a3242ad0341514ea45"><div class="ttname"><a href="classfhatos_1_1Obj.html#a8a81514aa6a075a3242ad0341514ea45">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Objp to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:499</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:171</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:547</div></div>
 <div class="ttc" id="aclassfhatos_1_1Parser_html"><div class="ttname"><a href="classfhatos_1_1Parser.html">fhatos::Parser</a></div><div class="ttdef"><b>Definition</b> parser.hpp:31</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:30</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:90</div></div>
