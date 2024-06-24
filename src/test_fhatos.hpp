@@ -104,7 +104,7 @@ static ptr<List<ptr<_OBJ>>> FOS_TEST_RESULT(const Fluent<> &fluent, const bool p
   ptr<List<Objp>> result = fluent.toList<Obj>();
   if (printResult) {
     int index = 0;
-    for (const auto& obj: *result) {
+    for (const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
                        OTYPE_STR.at(obj->o_range()));
     }
@@ -133,7 +133,7 @@ static const void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
-                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->otype()), obj->type()->toString().c_str());
+                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->o_range()), obj->id()->toString().c_str());
   return obj;
 }
 
@@ -149,7 +149,12 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> &expected, const Fluent<> &fluent
   const ptr<List<ptr<_OBJ>>> result = FOS_TEST_RESULT<_OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
   for (const _OBJ &obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<_OBJ> element) { return obj == *element; });
+    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<_OBJ> element) {
+      if (obj.isReal()) {
+        return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
+      } else
+        return obj == *element;
+    });
     if (result->end() == x) {
       TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
     }
@@ -160,7 +165,7 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> &expected, const Fluent<> &fluent
       FOS_DEFAULT_ROUTER::singleton()->subscribe(
           Subscription{.mailbox = nullptr,
                        .source = ID("anon"),
-                       .pattern = *key.uri_value(),
+                       .pattern = key.uri_value(),
                        .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(temp == *message->payload); }});
     }
   }

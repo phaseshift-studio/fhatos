@@ -22,7 +22,6 @@
 #include <fhatos.hpp>
 #include <language/fluent.hpp>
 #include <language/obj.hpp>
-#include <language/otype/mono.hpp>
 #include <sstream>
 #include <util/string_helper.hpp>
 
@@ -33,16 +32,16 @@ namespace fhatos {
   public:
     explicit Parser(const ID &id = ID(*UUID::singleton()->mint())) : IDed(id) {}
 
-    const ptr<Bytecode> parse(const char *line) {
+    const Bytecodep parse(const char *line) {
       string cleanLine = string(line);
       StringHelper::trim(cleanLine);
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", cleanLine.c_str());
       if (cleanLine.empty()) {
-        return ptr<Bytecode>(new Bytecode(ptr<List<ptr<Inst>>>(new List<ptr<Inst>>({}))));
+        return Obj::to_bcode({});
       }
       stringstream ss = stringstream(cleanLine);
-      ptr<Bytecode> bcode = this->parseBytecode(&ss);
-      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->otype()));
+      Bytecodep bcode = this->parseBytecode(&ss);
+      LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->o_range()));
       return bcode;
     }
 
@@ -58,42 +57,42 @@ namespace fhatos {
           fluent = new Fluent(fluent->count());
         } else*/
         if (*opcode == "is") {
-          fluent = new Fluent(fluent->is(*(Bool *) args->at(0).get()));
+          fluent = new Fluent(fluent->is(Obj(*args->at(0))));
         } else if (*opcode == "print") {
-          fluent = new Fluent(fluent->print(*args->at(0)));
+          fluent = new Fluent(fluent->print(Obj(*args->at(0))));
         } /* else if (*opcode == "ref") {
            fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
          } else if (*opcode == "dref") {
            fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0))));
          } */
         else if (*opcode == "switch") {
-          fluent = new Fluent(fluent->bswitch(*(Rec *) args->at(0).get()));
+          fluent = new Fluent(fluent->bswitch(Obj(*args->at(0))));
         } else if (*opcode == "eq") {
-          fluent = new Fluent(fluent->eq(*args->at(0)));
+          fluent = new Fluent(fluent->eq(Obj(*args->at(0))));
         } else if (*opcode == "neq") {
-          fluent = new Fluent(fluent->neq(*args->at(0)));
+          fluent = new Fluent(fluent->neq(Obj(*args->at(0))));
         } else if (*opcode == "gt") {
-          fluent = new Fluent(fluent->gt(*args->at(0)));
+          fluent = new Fluent(fluent->gt(Obj(*args->at(0))));
         } else if (*opcode == "gte") {
-          fluent = new Fluent(fluent->gte(*args->at(0)));
+          fluent = new Fluent(fluent->gte(Obj(*args->at(0))));
         } else if (*opcode == "lt") {
-          fluent = new Fluent(fluent->lt(*args->at(0)));
+          fluent = new Fluent(fluent->lt(Obj(*args->at(0))));
         } else if (*opcode == "lte") {
-          fluent = new Fluent(fluent->lte(*args->at(0)));
+          fluent = new Fluent(fluent->lte(Obj(*args->at(0))));
         } else if (*opcode == "plus") {
-          fluent = new Fluent(fluent->plus(*args->at(0)));
+          fluent = new Fluent(fluent->plus(Obj(*args->at(0))));
         } else if (*opcode == "mult") {
-          fluent = new Fluent(fluent->mult(*args->at(0)));
+          fluent = new Fluent(fluent->mult(Obj(*args->at(0))));
         } else if (*opcode == "mod") {
-          fluent = new Fluent(fluent->mod(*args->at(0)));
+          fluent = new Fluent(fluent->mod(Obj(*args->at(0))));
         } else if (*opcode == "start") {
-          fluent = new Fluent(fluent->start(args));
+          fluent = new Fluent(fluent->start(*args));
         } /*else if (*opcode == "select") {
           fluent = new Fluent(args->at(0)->type() == OType::REC ? fluent->select(args->at(0)->cast<Rec>())
                                                                 : fluent->select(*args));
-        } else if (*opcode == "as") {
-          fluent = new Fluent(args->empty() ? fluent->as() : fluent->as(*args->at(0)));
-        } else if (*opcode == "define") {
+        } */else if (*opcode == "as") {
+          fluent = new Fluent(fluent->as(Obj(*args->at(0))));
+        } /*else if (*opcode == "define") {
           fluent = new Fluent(fluent->define(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
         } else if (*opcode == "explain") {
           fluent = new Fluent(fluent->explain());
@@ -105,7 +104,7 @@ namespace fhatos {
         else {
           throw fError("Unknown instruction opcode: !b%s!!\n", opcode->c_str());
         }
-        LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->v_insts()->back()->toString().c_str());
+        LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->bcode_value().back()->toString().c_str());
       }
       // delete fluent;
       return fluent->bcode;
@@ -146,10 +145,10 @@ namespace fhatos {
         return args;
       }
       while (!ss->eof()) {
-        ptr<Obj> argObj = Parser::parseArg(ss);
+        Objp argObj = Parser::parseArg(ss);
         args->push_back(argObj);
         LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
-            OTYPE_STR.at(argObj->otype()));
+            OTYPE_STR.at(argObj->o_range()));
         if (ss->peek() == ',' || ss->peek() == '.' || ss->peek() == ')') {
           ss->get();
           break;
@@ -190,11 +189,11 @@ namespace fhatos {
       char *array; //[token2.length()];
       array = strdup(token2.c_str());
       string token = string(array);
-      ptr<Obj> obj_or_bcode;
+      Objp obj;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find('[');
-      ptr<fURI> utype = ptr<fURI>((fURI *) nullptr);
+      fURIp utype = fURIp((fURI*)nullptr);
       if (index != string::npos && index != 0 && token.back() == ']') {
         string typeToken = token.substr(0, index);
         // bool hasAuthority = typeToken.find('@') != std::string::npos;
@@ -206,22 +205,22 @@ namespace fhatos {
             token.c_str());
       }
       if (strcmp(token.c_str(), "Ø") == 0) {
-        utype = Type::obj_t(OType::NOOBJ, utype);
-        obj_or_bcode = NoObj::self_ptr<NoObj>();
+        utype = NOOBJ_FURI;
+        obj = Obj::to_noobj();
       } else if (token[0] == '\'' && token[token.length() - 1] == '\'') {
-        utype = Type::obj_t(OType::STR, utype);
-        obj_or_bcode = ptr<Str>(new Str(token.substr(1, token.length() - 2), utype));
+        utype = utype ? share(STR_FURI->extend(utype->toString().c_str())) : STR_FURI;
+        obj = Obj::to_str(token.substr(1, token.length() - 2), utype);
         // might be wrong indices
       } else if (strcmp("true", token.c_str()) == 0 || strcmp("false", token.c_str()) == 0) {
-        utype = Type::obj_t(OType::BOOL, utype);
-        obj_or_bcode = ptr<Bool>(new Bool(strcmp("true", token.c_str()) == 0, utype));
+        utype = utype ? share(BOOL_FURI->extend(utype->toString().c_str())) : BOOL_FURI;
+        obj = Obj::to_bool(strcmp("true", token.c_str()) == 0, utype);
       } else if (token[0] == '_' && token[1] == '_') {
         stringstream ss = stringstream(token);
         // utype = utype.get() ? utype : URI_BCODE;
-        obj_or_bcode = ptr<Bytecode>(parseBytecode(&ss).get());
+        obj = parseBytecode(&ss);
       } else if (token[token.length() - 1] == ')' && token.find('(')) {
         stringstream ss = stringstream(token);
-        obj_or_bcode = ptr<Bytecode>(parseBytecode(&ss).get());
+        obj = parseBytecode(&ss);
       } else if (token.find("=>") != string::npos /*token[0] == '[' && token[token.length() - 1] == ']'*/) {
         stringstream x = stringstream(token[0] == '[' ? token.substr(1, token.length() - 2) : token);
         stringstream *ss = &x;
@@ -241,7 +240,7 @@ namespace fhatos {
         StringHelper::trim(first);
         ////////////////////////////////////
         if (type == OType::REC) {
-          RecMap<> map = RecMap<>();
+          Obj::RecMap<> map = Obj::RecMap<>();
           bool onKey = false;
           string key = first;
           string value;
@@ -285,30 +284,29 @@ namespace fhatos {
               }
             }
           }
-          map.insert({parseObj(key), parseObj(value)});
-          RecMap<> map2 = RecMap<>(); // necessary to revese entries
+          map.insert({Parser::parseObj(key), Parser::parseObj(value)});
+          Obj::RecMap<> map2 = Obj::RecMap<>(); // necessary to reverse entries
           for (const auto &pair: map) {
             map2.insert(pair);
           }
-          utype = Type::obj_t(OType::REC, utype);
-          obj_or_bcode = ptr<Rec>(new Rec(map2, utype));
+          utype = utype ? share(REC_FURI->extend(utype->toString().c_str())) : REC_FURI;
+          obj = Obj::to_rec(map2, utype);
         }
       } else if (((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) && token.find('.') != string::npos) {
-        utype = Type::obj_t(OType::REAL, utype);
-        obj_or_bcode = ptr<Real>(new Real(stof(token), utype));
+        utype = utype ? share(REAL_FURI->extend(utype->toString().c_str())) : REAL_FURI;
+        obj = Obj::to_real(stof(token), utype);
       } else if ((token[0] == '-' && isdigit(token[1])) || isdigit(token[0])) {
-        utype = Type::obj_t(OType::INT, utype);
-        obj_or_bcode = ptr<Int>(new Int(stoi(token), utype));
+        utype = utype ? share(INT_FURI->extend(utype->toString().c_str())) : INT_FURI;
+        obj = Obj::to_int(stoi(token), utype);
       } else {
-        utype = Type::obj_t(OType::URI, utype);
-        obj_or_bcode = ptr<Uri>(new Uri(fURI(token), utype));
+        utype = utype ? share(URI_FURI->extend(utype->toString().c_str())) : URI_FURI;
+        obj = Obj::to_uri(fURI(token.c_str()), utype);
       }
-      delete array;
-      ptr<OBJ> temp = std::dynamic_pointer_cast<OBJ>(obj_or_bcode);
-      LOG(DEBUG, FOS_TAB_5 "%s: !yvar!![%s] !yotype!![%s] !ystype!![%s] !yutype!![%s]\n", temp->toString().c_str(),
-          temp->type()->variable().c_str(), OTYPE_STR.at(temp->otype()), temp->type()->stype().c_str(),
-          temp->type()->name().c_str());
-      return temp;
+      // delete array;
+      LOG(DEBUG, FOS_TAB_5 "%s: !yvar!![%s] !yotype!![%s] !ystype!![%s] !yutype!![%s]\n", obj->toString().c_str(),
+          obj->id()->user().value_or("").c_str(), OTYPE_STR.at(obj->o_range()), obj->id()->toString().c_str(),
+          obj->id()->lastSegment().c_str());
+      return obj;
     }
   };
 } // namespace fhatos

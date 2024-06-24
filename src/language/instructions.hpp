@@ -51,7 +51,7 @@ namespace fhatos {
     }
 
     static Objp as(const Objp uri) {
-      return Obj::to_inst("as", {uri}, [uri](const Objp &lhs) { return lhs->as(uri->uri_value()); });
+      return Obj::to_inst("as", {uri}, [uri](const Objp &lhs) { return lhs->as(share(uri->uri_value())); });
     }
 
     static Objp bswitch(const Objp rec) {
@@ -66,7 +66,7 @@ namespace fhatos {
 
     static Objp is(const Objp xbool) {
       return Obj::to_inst("is", {xbool},
-                          [xbool](const Objp &lhs) { return xbool->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; });
+                          [xbool](const Objp &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); });
     }
 
 
@@ -75,7 +75,7 @@ namespace fhatos {
     }
 
     static Objp eq(const Objp rhs) {
-      return Obj::to_inst("eq", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs == *rhs->apply(lhs)); });
+      return Obj::to_inst("eq", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); });
     }
 
     static Objp gte(const Objp rhs) {
@@ -115,7 +115,7 @@ namespace fhatos {
     static Objp publish(const Objp &target, const Objp &payload) {
       return Obj::to_inst("publish", {target, payload}, [target, payload](const Objp lhs) -> const Objp {
         ROUTER::singleton()->publish(Message{.source = "123",
-                                             .target = fURI(*target->apply(lhs)->uri_value()),
+                                             .target = fURI(target->apply(lhs)->uri_value()),
                                              .payload = Objp(payload) /*->apply(incoming)*/,
                                              .retain = TRANSIENT_MESSAGE});
         return lhs;
@@ -128,7 +128,7 @@ namespace fhatos {
         ROUTER::singleton()->subscribe(
             Subscription{.mailbox = nullptr,
                          .source = "123",
-                         .pattern = fURI(*pattern->apply(lhs)->uri_value()),
+                         .pattern = fURI(pattern->apply(lhs)->uri_value()),
                          .onRecv = [onRecv](const ptr<Message> &message) {
                            const Objp outgoing = onRecv->apply(ptr<Obj>((Obj *) message->payload.get()));
                            LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());

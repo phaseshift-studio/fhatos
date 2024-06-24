@@ -59,8 +59,8 @@ namespace fhatos {
                 LOG_EXCEPTION(error);
               }
             }),
-        rec(rec), SETUP_BCODE(rec->get<Bytecode>(share<Uri>(Uri("setup")))),
-        LOOP_BCODE(rec->get<Bytecode>(share<Uri>(Uri("loop")))) {}
+        rec(rec), SETUP_BCODE(rec->rec_get(share(Uri("setup")))),
+        LOOP_BCODE(rec->rec_get(share(Uri("loop")))) {}
   };
 } // namespace fhatos
 #endif

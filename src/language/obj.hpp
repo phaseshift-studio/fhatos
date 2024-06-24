@@ -96,6 +96,10 @@ namespace fhatos {
   using Realp = Objp;
   using Uri = Obj;
   using Urip = Objp;
+  using Str = Obj;
+  using Strp = Objp;
+  using Rec = Obj;
+  using Recp = Objp;
   using Inst = Obj;
   using Instp = Objp;
   using Bytecode = Obj;
@@ -178,13 +182,14 @@ namespace fhatos {
     struct obj_equal_to : std::binary_function<Objp &, Objp &, bool> {
       bool operator()(const Objp &a, const Objp &b) const { return *a == *b; }
     };
-    template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
-    using RecMap = OrderedMap<K, V, H, Q>;
 
 
   public:
+    template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
+    using RecMap = OrderedMap<K, V, H, Q>;
     virtual ~Obj() = default;
-    explicit Obj(const Any &value, const ptr<fURI> &furi) : _value(value), _furi(furi) {}
+    explicit Obj(const Any &value, const fURIp &furi) : _value(value), _furi(furi) {}
+    explicit Obj(const Any &value, const char *furi) : _value(value), _furi(share(fURI(furi))) {}
 
     /////
     //////////////////////////////////////////////////////////////
@@ -195,7 +200,7 @@ namespace fhatos {
     Obj(const FL_INT_TYPE xint) : _value(xint), _furi(INT_FURI) {}
     Obj(const FL_REAL_TYPE xreal) : _value(xreal), _furi(REAL_FURI) {}
     Obj(const fURI xuri) : _value(xuri), _furi(URI_FURI) {}
-    Obj(const char *xstr) : _value(xstr), _furi(STR_FURI) {}
+    Obj(const char *xstr) : _value(string(xstr)), _furi(STR_FURI) {}
     Obj(const string xstr) : _value(xstr), _furi(STR_FURI) {}
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec) : _value(RecMap<>({})), _furi(REC_FURI) {
       RecMap<> map = this->rec_value();
@@ -216,7 +221,7 @@ namespace fhatos {
     const OType o_range() const { return STR_OTYPE.at(this->_furi->path(0, 1)); } // TODO
     const fURIp range() const { return this->_furi; }
     const fURIp domain() const { return this->_furi; }
-    const ID id() const { return *this->_furi; }
+    const fURIp id() const { return this->_furi; }
     template<typename _VALUE>
     const _VALUE value() const {
       return std::any_cast<_VALUE>(this->_value);
@@ -233,9 +238,9 @@ namespace fhatos {
       assert(OType::REAL == o_range());
       return this->value<FL_REAL_TYPE>();
     }
-    const fURIp uri_value() const {
+    const fURI uri_value() const {
       assert(OType::URI == o_range());
-      return this->value<ptr<fURI>>();
+      return this->value<fURI>();
     }
     const string str_value() const {
       assert(OType::STR == o_range());
@@ -245,11 +250,11 @@ namespace fhatos {
       assert(OType::REC == o_range());
       return this->value<RecMap<>>();
     }
-    Objp get(const Objp &key) const {
+    Objp rec_get(const Objp &key) const {
       assert(OType::REC == o_range());
       return this->rec_value().count(key) ? this->rec_value().at(key) : Obj::to_noobj();
     }
-    void set(Objp &key, const Objp &val) {
+    void rec_set(Objp &key, const Objp &val) {
       assert(OType::REC == o_range());
       this->rec_value().emplace(key, val);
     }
@@ -293,7 +298,7 @@ namespace fhatos {
           objString = std::to_string(this->real_value());
           break;
         case OType::URI:
-          objString = this->uri_value()->toString();
+          objString = this->uri_value().toString();
           break;
         case OType::STR:
           objString = "'" + this->str_value() + "'";
@@ -335,20 +340,61 @@ namespace fhatos {
                        ("!b" + this->_furi->lastSegment() + "!g[!!" + objString + "!g]!!")
                  : (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!!")) + objString;
     }
-    int compare(const Obj &other) const { return this->toString().compare(other.toString()); }
-    bool operator&&(const Obj &other) const { return this->bool_value() && other.bool_value(); }
-    bool operator||(const Obj &other) const { return this->bool_value() || other.bool_value(); }
-    bool operator<(const Obj &other) const { return this->int_value() < other.int_value(); }
-    bool operator>(const Obj &other) const { return this->int_value() > other.int_value(); }
-    bool operator<=(const Obj &other) const { return this->int_value() <= other.int_value(); }
-    bool operator>=(const Obj &other) const { return this->int_value() >= other.int_value(); }
-    Obj operator*(const Obj &other) const { return Obj(this->int_value() * other.int_value(), this->_furi); }
-    Obj operator+(const Obj &other) const {
+    int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
+    bool operator&&(const Obj &rhs) const { return this->bool_value() && rhs.bool_value(); }
+    bool operator||(const Obj &rhs) const { return this->bool_value() || rhs.bool_value(); }
+    bool operator<(const Obj &rhs) const { return this->int_value() < rhs.int_value(); }
+    bool operator>(const Obj &rhs) const { return this->int_value() > rhs.int_value(); }
+    bool operator<=(const Obj &rhs) const { return this->int_value() <= rhs.int_value(); }
+    bool operator>=(const Obj &rhs) const { return this->int_value() >= rhs.int_value(); }
+    Obj operator*(const Obj &rhs) const {
       switch (this->o_range()) {
+        case OType::BOOL:
+          return Obj(this->bool_value() && rhs.bool_value(), this->id());
         case OType::INT:
-          return Obj(this->int_value() + other.int_value(), this->_furi);
+          return Obj(this->int_value() * rhs.int_value(), this->id());
         case OType::REAL:
-          return Obj(this->real_value() + other.real_value(), this->_furi);
+          return Obj(this->real_value() * rhs.real_value(), this->id());
+        // case OType::URI:
+        //   return Obj(this->uri_value().extend(rhs.uri_value().path().c_str()), this->id());
+        // case OType::STR:
+        //   return Obj(this->str_value() + rhs.str_value(), this->id());
+        case OType::REC: {
+          RecMap<> map = RecMap<>();
+          auto itB = rhs.rec_value().begin();
+          for (auto itA = this->rec_value().begin(); itA != this->rec_value().end(); ++itA) {
+            map.insert(std::make_pair(share(Obj((*itA->first) * (*itB->first), itA->first->id())),
+                                      share(Obj((*itA->second) * (*itB->second), itA->second->id()))));
+            ++itB;
+          }
+          return Obj(map, this->id());
+        }
+        default:
+          throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_range()));
+      }
+    }
+    Obj operator+(const Obj &rhs) const {
+      switch (this->o_range()) {
+        case OType::BOOL:
+          return Obj(this->bool_value() || rhs.bool_value(), this->id());
+        case OType::INT:
+          return Obj(this->int_value() + rhs.int_value(), this->id());
+        case OType::REAL:
+          return Obj(this->real_value() + rhs.real_value(), this->id());
+        case OType::URI:
+          return Obj(this->uri_value().extend(rhs.uri_value().path().c_str()), this->id());
+        case OType::STR:
+          return Obj(this->str_value() + rhs.str_value(), this->id());
+        case OType::REC: {
+          RecMap<> map = RecMap<>();
+          for (const auto &pair: this->rec_value()) {
+            map.insert(pair);
+          }
+          for (const auto &pair: rhs.rec_value()) {
+            map.insert(pair);
+          }
+          return Obj(map, this->id());
+        }
         default:
           throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_range()));
       }
@@ -366,7 +412,7 @@ namespace fhatos {
         case OType::REAL:
           return this->real_value() == other.real_value();
         case OType::URI:
-          return this->uri_value()->equals(*other.uri_value());
+          return this->uri_value() == other.uri_value();
         case OType::STR:
           return this->str_value() == other.str_value();
         case OType::REC: {
@@ -383,7 +429,14 @@ namespace fhatos {
       }
     }
     bool isNoObj() const { return this->o_range() == OType::NOOBJ; }
-    bool isBytecode() { return false; }
+    bool isBool() const { return this->o_range() == OType::BOOL; }
+    bool isInt() const { return this->o_range() == OType::INT; }
+    bool isReal() const { return this->o_range() == OType::REAL; }
+    bool isUri() const { return this->o_range() == OType::URI; }
+    bool isStr() const { return this->o_range() == OType::STR; }
+    bool isRec() const { return this->o_range() == OType::REC; }
+    bool isInst() const { return this->o_range() == OType::INST; }
+    bool isBytecode() const { return this->o_range() == OType::BYTECODE; }
     Objp apply(const Objp &lhs) {
       switch (this->o_range()) {
         case OType::BOOL:
@@ -395,6 +448,8 @@ namespace fhatos {
         case OType::URI:
           return shared_from_this();
         case OType::STR:
+          return shared_from_this();
+        case OType::REC:
           return shared_from_this();
         case OType::INST:
           return this->inst_f()(lhs);
@@ -425,6 +480,7 @@ namespace fhatos {
     }
 
     Objp as(const fURIp &furi) const { return share(Obj(this->_value, furi)); }
+    Objp as(const char* furi) const { return share(Obj(this->_value, share(fURI(furi)))); }
 
     const Instp nextInst(Instp currentInst) const {
       if (currentInst->isNoObj())
@@ -467,7 +523,7 @@ namespace fhatos {
       return share(Obj(string(value), furi));
     }
 
-    static Objp to_uri(const fURIp &value, const fURIp &furi = URI_FURI) {
+    static Objp to_uri(const fURI &value, const fURIp &furi = URI_FURI) {
       assert(furi->path(0, 1) == STR_OTYPE.at(OType::URI));
       return share(Obj(value, furi));
     }
@@ -475,6 +531,11 @@ namespace fhatos {
     static Objp to_uri(const char *value, const fURIp &furi = URI_FURI) {
       assert(furi->path(0, 1) == STR_OTYPE.at(OType::URI));
       return share(Obj(value, furi));
+    }
+
+    static Objp to_rec(const RecMap<> &map, const fURIp &furi = REC_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::REC));
+      return share(Obj(map, furi));
     }
 
     static Objp to_inst(const InstValue &value, const fURIp &furi = INST_FURI) {

@@ -82,10 +82,11 @@ namespace fhatos {
 
     // operator const Obj &() const { return *ObjHelper::clone<Bytecode>(this->bcode.get()); }
 
-     operator const Obj &() const { return *this->bcode; }
+    operator const Obj &() const { return *this->bcode; }
     //  operator const ptr<Bytecode> &() const { return this->bcode; }
 
     Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(Obj::cast(starts))); }
+    Fluent start(const List<Objp> &starts) const { return this->addInst(Insts::start(starts)); }
 
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////

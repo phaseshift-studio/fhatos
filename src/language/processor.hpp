@@ -56,7 +56,7 @@ namespace fhatos {
     bool dead() const { return this->_obj->isNoObj(); }
 
     string toString() const {
-      return string("!MM!![") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "]";
+      return string("!MM!y[!!") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "!y]!!";
     }
 
     // const Inst<Obj, A> *at() const { return this->inst; }
@@ -74,7 +74,7 @@ namespace fhatos {
     Pair<Instp, List<const Objp> *> *barrier;
 
   public:
-    explicit Processor(const Bytecodep& bcode) :
+    explicit Processor(const Bytecodep &bcode) :
         bcode(bcode), barrier(new Pair<Instp, List<const ptr<Obj>> *>(nullptr, nullptr)) {
       const Instp startInst = this->bcode->bcode_value().at(0);
       LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
@@ -104,15 +104,16 @@ namespace fhatos {
     }
 
     int execute(const int steps = -1) {
+      int killed = 0;
       int counter = 0;
-
       while ((!this->running->empty() || this->barrier->first) && (counter++ < steps || steps == -1)) {
         if (this->running->empty() && this->barrier->first) {
-          const ptr<Objs> objA = share(Obj(12)); //TODO: ptr<Objs>(new Objs((List<const ptr<Obj>>) *this->barrier->second));
+          const ptr<Objs> objA =
+              share(Obj(12)); // TODO: ptr<Objs>(new Objs((List<const ptr<Obj>>) *this->barrier->second));
           LOG(DEBUG, "Processing barrier: %s\n", objA->toString().c_str());
           const ptr<Obj> objB = this->barrier->first->apply(objA);
           LOG(DEBUG, "Barrier reduction: %s\n", objB->toString().c_str());
-          this->running->push_back(ptr<Monad>(new Monad(objB,bcode->nextInst(this->barrier->first))));
+          this->running->push_back(ptr<Monad>(new Monad(objB, bcode->nextInst(this->barrier->first))));
           this->barrier->second->clear();
           this->barrier->first = nullptr;
           delete this->barrier->second;
@@ -120,15 +121,16 @@ namespace fhatos {
           const ptr<Monad> parent = this->running->back();
           this->running->pop_back();
           if (parent->dead()) {
-            LOG(DEBUG, FOS_TAB_4 "!rKilling!! monad: %s\n", parent->toString().c_str());
+            killed++;
+            LOG(DEBUG, FOS_TAB_5 "!rKilling!! monad: %s\n", parent->toString().c_str());
           } else if (parent->halted()) {
-            LOG(DEBUG, FOS_TAB_2 "!gHalting!! monad: %s\n", parent->toString().c_str());
+            LOG(DEBUG, FOS_TAB_5 "!gHalting!! monad: %s\n", parent->toString().c_str());
             this->halted->push_back(parent->obj());
           } else {
             if (false) { // parent->inst()->itype() == IType::MANY_TO_ONE) {
               /// MANY-TO-ONE BARRIER PROCESSING
               if (!this->barrier->first) {
-                LOG(DEBUG, "Creating barrier: %s\n", parent->inst()->toString().c_str());
+                LOG(DEBUG, "!uCreating barrier!!: %s\n", parent->inst()->toString().c_str());
                 this->barrier->first = share(Inst(*parent->inst()));
                 this->barrier->second = new List<const ptr<Obj>>();
               }
@@ -137,7 +139,7 @@ namespace fhatos {
               this->barrier->second->push_back(parent->obj());
             } else {
               for (const ptr<Monad> &child: parent->split(this->bcode)) {
-                LOG(DEBUG, FOS_TAB_4 "!ySplitting!! monad : %s => %s\n", parent->toString().c_str(),
+                LOG(DEBUG, FOS_TAB_3 "!ySplitting!! monad : %s => %s\n", parent->toString().c_str(),
                     child->toString().c_str());
                 this->running->push_back(child);
               }
@@ -146,8 +148,8 @@ namespace fhatos {
         }
       }
 
-      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!yrunning!!:%i] [!ghalted!!:%i]\n", this->running->size(),
-          this->halted->size());
+      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!ghalted!!:%i] [!yrunning!!:%i] [!rkilled!!:%i]\n",
+          this->running->size(), this->halted->size(), killed);
       return this->halted->size();
     }
 

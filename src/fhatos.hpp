@@ -137,6 +137,7 @@ namespace fhatos {
   ////////////
   enum LOG_TYPE { NONE = 0, DEBUG = 1, INFO = 2, ERROR = 3 };
 
+#define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "
 #define FOS_TAB_4 "    "

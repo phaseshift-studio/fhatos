@@ -51,21 +51,21 @@ namespace fhatos {
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       //////////////// SPAWN
       this->subscribe(id.query("?spawn"), [this](const ptr<Message> &message) {
-        if (message->payload->type()->name() == "thread") {
-          //const auto b = new fBcode<Thread, ROUTER>(((Rec*)message->payload.get())->get<Uri>(share<Uri>(Uri(fURI("id"))))->v_furi(), message->payload);
-        //  this->spawn(b);
+        if (message->payload->id()->lastSegment() == "thread") {
+          // const auto b = new fBcode<Thread,
+          // ROUTER>(((Rec*)message->payload.get())->get<Uri>(share<Uri>(Uri(fURI("id"))))->v_furi(), message->payload);
+          //  this->spawn(b);
         } else {
-          LOG_TASK(ERROR,this,"obj type can not be spawned: [stype:%s][utype:%s]\n",
-            OTYPE_STR.at(message->payload->otype()),
-            message->payload->type()->toString().c_str());
+          LOG_TASK(ERROR, this, "obj type can not be spawned: [stype:%s][utype:%s]\n",
+                   OTYPE_STR.at(message->payload->o_range()), message->payload->id()->toString().c_str());
         }
       });
       //////////////// DESTROY
       this->subscribe(id.query("?destroy"), [this](const ptr<Message> &message) {
-        const Uri* uri = ObjHelper::clone<Uri>((Uri*)message->payload.get());
+        const Urip uri = share(Uri(*message->payload));
         LOG_TASK(DEBUG, this, "received ?destroy=%s from %s\n", uri->toString().c_str(),
                  message->source.toString().c_str());
-        this->_destroy(uri->value());
+        this->_destroy(uri->uri_value());
       });
     }
     ~AbstractScheduler() override {
@@ -93,8 +93,7 @@ namespace fhatos {
 
     virtual bool spawn(Process *process) { throw fError("Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
-      return this->publish(this->id().query("?destroy"), share<const Uri>(Uri(processPattern)),
-                           TRANSIENT_MESSAGE);
+      return this->publish(this->id().query("?destroy"), share<const Uri>(Uri(processPattern)), TRANSIENT_MESSAGE);
     }
 
   protected:
@@ -111,7 +110,7 @@ namespace fhatos {
           if (process->id().matches(processPattern)) {
             process->stop();
             LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
-            //ptr<Thread> temp = ptr<Thread>(process);
+            // ptr<Thread> temp = ptr<Thread>(process);
             return true;
           }
           return false;
@@ -121,7 +120,7 @@ namespace fhatos {
             if (process->running())
               process->stop();
             LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
-           // delete process;
+            // delete process;
             return true;
           }
           return false;
@@ -131,7 +130,7 @@ namespace fhatos {
             if (process->running())
               process->stop();
             LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
-           // delete process;
+            // delete process;
             return true;
           }
           return false;
