@@ -49,6 +49,9 @@ namespace fhatos {
   }
 
   void test_furi_equals() {
+  /// STRING EQUALS
+  TEST_ASSERT_EQUAL_STRING("a",fURI("a").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("/a",fURI("/a").toString().c_str());
     /// TRUE
     TEST_ASSERT_TRUE(fURI("").equals(fURI("")));
     TEST_ASSERT_TRUE(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
@@ -121,9 +124,13 @@ namespace fhatos {
   }
 
   void test_furi_resolve() {
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"), fURI("fhat@/a").resolve(fURI("127.0.0.1/a/b/c")));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("/a").resolve(fURI("127.0.0.1")));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"), fURI("/b").resolve(fURI("127.0.0.1/a")));
+    //  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"), fURI("127.0.0.1/b/c").resolve(fURI("fhat@fhat.org/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1").resolve("/a"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1").resolve("a"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1").resolve("a").resolve("b"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/b"), fURI("127.0.0.1").resolve("a").resolve("/b"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("127.0.0.1").resolve(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("127.0.0.1").resolve("/"));
   }
 
   void test_furi_path() {
@@ -215,7 +222,8 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1").extend("a").extend("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat:pig@127.0.0.1/a/b"), fURI("fhat:pig@127.0.0.1").extend("a").extend("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1").extend("a").extend("b"));
-
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/b").extend("/c"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/b").extend("c"));
     //// FALSE
     FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1").extend("a").extend("b"));
     FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1").extend("b"));

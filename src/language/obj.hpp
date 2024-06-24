@@ -171,7 +171,7 @@ namespace fhatos {
   class Obj : public std::enable_shared_from_this<Obj> {
   protected:
     Any _value;
-    const ptr<fURI> _furi;
+    ptr<fURI> _furi;
     //////////////////////////////////////////
     struct obj_hash {
       size_t operator()(const Obj_p &obj) const {
@@ -186,37 +186,53 @@ namespace fhatos {
 
 
   public:
+    static fURI_p RESOLVE(fURI_p base, fURI_p furi) {
+      if (base->equals(*furi))
+        return base;
+      else {
+        return share(base->resolve(furi->toString().c_str()));
+      }
+    }
+
     template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap = OrderedMap<K, V, H, Q>;
     virtual ~Obj() = default;
-    explicit Obj(Any value, const fURI_p &furi) : _value(std::move(value)), _furi(furi) {}
-    explicit Obj(Any value, const char *furi) : _value(std::move(value)), _furi(share(fURI(furi))) {}
-
+    explicit Obj(const Any &value, const fURI_p &furi) : _value(value), _furi(furi) {}
     /////
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
     template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool) : _value(xbool), _furi(BOOL_FURI) {}
-    Obj(const FL_INT_TYPE xint) : _value(xint), _furi(INT_FURI) {}
-    Obj(const FL_REAL_TYPE xreal) : _value(xreal), _furi(REAL_FURI) {}
-    Obj(const fURI &xuri) : _value(xuri), _furi(URI_FURI) {}
-    Obj(const char *xstr) : _value(string(xstr)), _furi(STR_FURI) {}
-    Obj(const string &xstr) : _value(xstr), _furi(STR_FURI) {}
-    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec) : _value(RecMap<>({})), _furi(REC_FURI) {
+    Obj(const T xbool, const char *furi = BOOL_FURI->toString().c_str()) :
+        Obj(Any(xbool), RESOLVE(BOOL_FURI, share(fURI(furi)))) {}
+    Obj(const FL_INT_TYPE xint, const char *furi = INT_FURI->toString().c_str()) :
+        Obj(Any(xint), RESOLVE(INT_FURI, share(fURI(furi)))) {}
+    Obj(const FL_REAL_TYPE xreal, const char *furi = REAL_FURI->toString().c_str()) :
+        Obj(Any(xreal), RESOLVE(REAL_FURI, share(fURI(furi)))) {}
+    Obj(const fURI &xuri, const char *furi = URI_FURI->toString().c_str()) :
+        Obj(Any(xuri), RESOLVE(URI_FURI, share(fURI(furi)))) {}
+    Obj(const char *xstr, const char *furi = STR_FURI->toString().c_str()) :
+        Obj(Any(string(xstr)), RESOLVE(STR_FURI, share(fURI(furi)))) {}
+    Obj(const string &xstr, const char *furi = STR_FURI->toString().c_str()) :
+        Obj(Any(xstr), RESOLVE(STR_FURI, share(fURI(furi)))) {}
+    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *furi = REC_FURI->toString().c_str()) :
+        Obj(Any(xrec), RESOLVE(REC_FURI, share(fURI(furi)))) {
       RecMap<> map = RecMap<>();
       for (const auto &pair: xrec) {
         map.insert(make_pair(share(pair.first), share(pair.second)));
       }
       this->_value = std::move(map);
     }
-    Obj(const List<Obj> &bcode) : _value(bcode), _furi(BCODE_FURI) {
+    Obj(const List<Inst> &bcode, const char *furi = BCODE_FURI->toString().c_str()) :
+        Obj(Any(bcode), RESOLVE(BCODE_FURI, share(fURI(furi)))) {
       List<Obj_p> list = this->bcode_value();
       for (const auto &obj: bcode) {
         list.push_back(share(obj));
       }
       this->_value = list;
     }
+    Obj(const List<Inst_p> &bcode, const char *furi = BCODE_FURI->toString().c_str()) :
+        Obj(Any(bcode), RESOLVE(BCODE_FURI, share(fURI(furi)))) {}
     //////////////////////////////////////////////////////////////
     const OType o_domain() const { return STR_OTYPE.at(this->_furi->path(0, 1)); }
     const OType o_range() const { return STR_OTYPE.at(this->_furi->path(0, 1)); } // TODO
@@ -435,8 +451,8 @@ namespace fhatos {
         case OType::REC: {
           auto pairsA = this->rec_value();
           auto pairsB = other.rec_value();
-          //if (pairsA.size() != pairsB.size())
-           // return false;
+          // if (pairsA.size() != pairsB.size())
+          //  return false;
           auto itB = pairsB.begin();
           for (const auto &itA: pairsA) {
             if (*itA.first != *itB->first || *itA.second != *itB->second)
@@ -521,15 +537,19 @@ namespace fhatos {
     const Obj_p
     split(const Any &newValue,
           const std::variant<ptr<fURI>, const char *> &newType = std::variant<ptr<fURI>, const char *>(nullptr)) const {
-      return share(Obj(newValue, std::variant<ptr<fURI>, const char *>(nullptr) == newType
-                                     ? this->_furi
-                                     : (std::holds_alternative<const char *>(newType)
-                                            ? ptr<fURI>(new fURI(std::get<const char *>(newType)))
-                                            : std::get<ptr<fURI>>(newType))));
+      const Obj temp = Obj(newValue, this->_furi);
+      if (nullptr != std::get<const char *>(newType)) {
+        return temp.as(std::holds_alternative<const char *>(newType)
+                           ? ptr<fURI>(new fURI(std::get<const char *>(newType)))
+                           : std::get<ptr<fURI>>(newType));
+      }
+      return share(temp);
     }
 
-    Obj_p as(const fURI_p &furi) const { return share(Obj(this->_value, furi)); }
-    Obj_p as(const char *furi) const { return share(Obj(this->_value, share(fURI(furi)))); }
+    Obj_p as(const fURI_p &furi) const {
+      return share(Obj(this->_value, share(this->_furi->resolve(furi->toString().c_str()))));
+    }
+    Obj_p as(const char *furi) const { return this->as(share(fURI(furi))); }
 
     const Inst_p nextInst(Inst_p currentInst) const {
       if (currentInst->isNoObj())

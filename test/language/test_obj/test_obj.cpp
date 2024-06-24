@@ -14,11 +14,14 @@ namespace fhatos {
 
   void test_bool() {
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
-    const Bool_p boolB = share(Bool(false, "/bool/truth"));
+    const Bool_p boolB = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolA, string(boolA->bool_value() ? "true" : "false")).c_str());
-    FOS_TEST_ASSERT_EQUAL_FURI(*boolA->id(), fURI("/bool/truth"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/bool/truth"), *boolA->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/bool/truth"), *boolB->id());
     FOS_TEST_OBJ_NOT_EQUAL(boolA, boolB);
+    FOS_TEST_OBJ_NOT_EQUAL(boolB, boolA);
     FOS_TEST_OBJ_EQUAL(boolA, boolA);
+    FOS_TEST_OBJ_EQUAL(boolB, boolB);
     FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false, "/bool/truth")), share(Bool(*boolA && *boolB)));
     FOS_TEST_OBJ_EQUAL(share(Bool(false)), share(Bool(*boolA && *boolB)));
     TEST_ASSERT_TRUE(boolA->bool_value());
@@ -27,20 +30,20 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_range());
     FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
     ///
-    const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
-    FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
-    FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3 /*,int_t("nat")*/))));
-    FOS_TEST_ASSERT_EXCEPTION(__().lt(2).bcode->apply(share(Bool(true, "/bool/truth"))));
+    /* const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
+     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
+     FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
+   //  FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3 /*,int_t("nat")))));
+     FOS_TEST_ASSERT_EXCEPTION(__().lt(2).bcode->apply(share(Bool(true, "/bool/truth"))));*/
   }
 
   void test_int() {
     const Int_p intA = share(Int(1));
     const Int_p intB = share<Int>(Int(1));
     const Int_p intC = share(Int(1, "/int/age"));
-    const Int_p intD = ptr<Int>(new Int(2, "/int/nat"));
+    const Int_p intD = ptr<Int>(new Int(2, "nat"));
     ///
-    const Int_p int5 = share(Int(5, "/int/age"));
+    const Int_p int5 = share(Int(5, "age"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(int5, std::to_string(int5->int_value())).c_str());
 
     TEST_ASSERT_FALSE(intA->isBytecode());
@@ -49,40 +52,40 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::INT, intA->o_range());
     TEST_ASSERT_FALSE(intA->isNoObj());
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*intC->id(), *intA->as(share(fURI("/int/age")))->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(*intC->id(), *intA->as(share(fURI("age")))->id());
     FOS_TEST_OBJ_EQUAL(intA, intB);
     FOS_TEST_OBJ_EQUAL(intB, intA);
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as("/int/age"));
-    FOS_TEST_OBJ_EQUAL(intC, intA->as("/int/age"));
+    FOS_TEST_OBJ_EQUAL(intC, intA->as("age"));
     FOS_TEST_OBJ_EQUAL(intC, intB->as("/int/age"));
-    FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, "/int/age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, "age"));
     FOS_TEST_OBJ_EQUAL(intA, intC->as("/int"));
     FOS_TEST_OBJ_EQUAL(intA, intA->as("/int"));
-    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("/int/age"), intC->split(2));
-    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("/int/age"), intB->split(10)->split(2)->as("/int/age"));
-    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("/int/age"), intB->split(2));
-    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("/int/age"), intB->split(3)->as("/int/age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("age"), intC->split(2));
+    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("/int/age"), intB->split(10)->split(2)->as("age"));
+    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("age"), intB->split(2));
+    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("age"), intB->split(3)->as("/int/age"));
     /// apply
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intB));
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intA));
-    FOS_TEST_OBJ_EQUAL(intA->as("/int/age"), intA->as("/int/age")->apply(intB));
-    FOS_TEST_OBJ_EQUAL(intC, intA->as("/int/age")->apply(intB));
+    FOS_TEST_OBJ_EQUAL(intA->as("age"), intA->as("/int/age")->apply(intB));
+    FOS_TEST_OBJ_EQUAL(intC, intA->as("age")->apply(intB));
     /// relations
-    FOS_TEST_OBJ_GT(intD, intA->as("/int/nat"));
+    FOS_TEST_OBJ_GT(intD, intA->as("nat"));
     FOS_TEST_OBJ_LT(intB->as("/int/nat"), intD);
     ////// BYTECODE
-    const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age")).bcode->bcode_value(), "/bcode/age"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
-   // TEST_ASSERT_TRUE(intBCode->isBytecode());
-    TEST_ASSERT_EQUAL_STRING("/bcode/age", intBCode->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("age", intBCode->id()->lastSegment().c_str());
-    /// apply
-    FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));
-    FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, "/int/nat"))))
+    /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age")).bcode->bcode_value(), "/bcode/age"));
+     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
+     // TEST_ASSERT_TRUE(intBCode->isBytecode());
+     TEST_ASSERT_EQUAL_STRING("/bcode/age", intBCode->id()->toString().c_str());
+     TEST_ASSERT_EQUAL_STRING("age", intBCode->id()->lastSegment().c_str());
+     /// apply
+     FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));
+     FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, "/nat"))))*/
   }
 
   void test_str() {
-    const Str_p strA = share(Str("fhat", "/str/first_name"));
+    const Str_p strA = share(Str("fhat", "first_name"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());

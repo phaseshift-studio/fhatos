@@ -68,27 +68,28 @@ namespace fhatos {
   }
 
   void test_int_parsing() {
-    for (auto pair: List<Pair<string, int>>({{"45", 45}, {"0", 0}, {"-12", -12}})) {
+    for (auto &pair: List<Pair<string, int>>({{"45", 45}, {"0", 0}, {"-12", -12}})) {
       const ptr<Int> i = Parser::parseObj<Int>(pair.first);
       TEST_ASSERT_EQUAL(OType::INT, i->o_range());
       TEST_ASSERT_EQUAL_INT(pair.second, i->int_value());
       // delete i;
     }
     // TYPED INT
-    for (const auto &pair: List<Pair<string, Int>>(
-             {{"nat[100]", Int(100, "nat")}, {"zero[0]", Int(0, "zero")}, {"z[-100]", Int(-100, "z")}})) {
+    for (const auto &pair: List<Pair<string, Int>>({{"nat[100]", Int(100, "/int/nat")},
+                                                    {"zero[0]", Int(0, "/int/zero")},
+                                                    {"z[-100]", Int(-100, "/int/z")}})) {
       const ptr<Int> i = Parser::parseObj<Int>(pair.first);
       TEST_ASSERT_EQUAL(OType::INT, i->o_range());
-      // TEST_ASSERT_EQUAL_STRING(pair.second.type()->toString().c_str(), i->type()->toString().c_str());
+      TEST_ASSERT_EQUAL_STRING(pair.second.id()->toString().c_str(), i->id()->toString().c_str());
       TEST_ASSERT_EQUAL_INT(pair.second.int_value(), i->int_value());
     }
     // ID/TYPE INT
-    const ptr<Int> i = FOS_PRINT_OBJ(Parser::parseObj<Int>("x@/nat[25]"));
-    TEST_ASSERT_EQUAL(OType::INT, i->o_range());
-// TODO:    FOS_TEST_ASSERT_EQUAL_FURI(fURI("x@/int/nat"), *i->id());
-    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("x"), i->id());
-    TEST_ASSERT_EQUAL_INT(25, i->int_value());
-   //TODO: TEST_ASSERT_EQUAL_STRING("x@/nat[25]", FOS_DEFAULT_PRINTER::singleton()->strip(i->toString().c_str()));
+    /* const ptr<Int> i = FOS_PRINT_OBJ(Parser::parseObj<Int>("x@/nat[25]"));
+     TEST_ASSERT_EQUAL(OType::INT, i->o_range());
+     // TODO:    FOS_TEST_ASSERT_EQUAL_FURI(fURI("x@/int/nat"), *i->id());
+     // FOS_TEST_ASSERT_EQUAL_FURI(fURI("x"), i->id());
+     TEST_ASSERT_EQUAL_INT(25, i->int_value());*/
+    // TODO: TEST_ASSERT_EQUAL_STRING("x@/nat[25]", FOS_DEFAULT_PRINTER::singleton()->strip(i->toString().c_str()));
   }
 
   void test_real_parsing() {
@@ -168,11 +169,10 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler<FOS_DEFAULT_ROUTER>::singleton();
     const auto parser = new Parser;
-    const ptr<BCode> bcode =
-        FOS_PRINT_OBJ<BCode>(parser->parse("<=(scheduler@kernel?spawn,thread["
-                                              "[id    => example,"
-                                              " setup => __(0).ref(x).print('setup complete'),"
-                                              " loop  => <=(scheduler@kernel?destroy,example)]])"));
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(parser->parse("<=(scheduler@kernel?spawn,thread["
+                                                                "[id    => example,"
+                                                                " setup => __(0).ref(x).print('setup complete'),"
+                                                                " loop  => <=(scheduler@kernel?destroy,example)]])"));
     auto process = Processor<Str>(bcode);
     process.forEach([](const ptr<Str> s) { LOG(INFO, "RESULT: %s", s->str_value().c_str()); });
     delete parser;

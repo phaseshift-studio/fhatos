@@ -206,6 +206,8 @@ namespace fhatos {
 
     const uint8_t pathLength() const { return this->_length == 0 ? 0 : this->_length - 1; }
 
+    const fURI path(const char *newPath) const { return fURI(this->authority()).extend(newPath); }
+
     const string path(const uint8_t startSegment = 0, const uint8_t endSegment = UINT8_MAX - 1) const {
       string temp;
       if (this->_length > 1) {
@@ -229,8 +231,6 @@ namespace fhatos {
        }
        return temp;
      }*/
-
-    const fURI path(const string &path) const { return fURI(this->authority()).extend(path.c_str()); }
 
     const fURI user(const char *user) const {
       return this->authority(
@@ -379,13 +379,8 @@ namespace fhatos {
 
     bool isLocal(const fURI &other) const { return this->host() == other.host(); }
 
-    const fURI resolve(const fURI &base) const {
-      if (this->authority().empty())
-        return base.extend(this->toString().c_str());
-      else if (this->host().empty() && !base.host().empty())
-        return fURI(this->authority() + base.host()).extend(this->path().c_str());
-      else
-        return *this;
+    const fURI resolve(const char *relativePath) const {
+      return (strlen(relativePath) > 0 && relativePath[0] == '/') ? this->path(relativePath) : this->extend(relativePath);
     }
   };
 
