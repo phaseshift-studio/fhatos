@@ -92,6 +92,8 @@ namespace fhatos {
   using Boolp = Objp;
   using Int = Obj;
   using Intp = Objp;
+  using Real = Obj;
+  using Realp = Objp;
   using Uri = Obj;
   using Urip = Objp;
   using Inst = Obj;
@@ -341,7 +343,16 @@ namespace fhatos {
     bool operator<=(const Obj &other) const { return this->int_value() <= other.int_value(); }
     bool operator>=(const Obj &other) const { return this->int_value() >= other.int_value(); }
     Obj operator*(const Obj &other) const { return Obj(this->int_value() * other.int_value(), this->_furi); }
-    Obj operator+(const Obj &other) const { return Obj(this->int_value() + other.int_value(), this->_furi); }
+    Obj operator+(const Obj &other) const {
+      switch (this->o_range()) {
+        case OType::INT:
+          return Obj(this->int_value() + other.int_value(), this->_furi);
+        case OType::REAL:
+          return Obj(this->real_value() + other.real_value(), this->_furi);
+        default:
+          throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_range()));
+      }
+    }
     Obj operator%(const Obj &other) const { return Obj(this->int_value() % other.int_value(), this->_furi); }
     bool operator!=(const Obj &other) const { return !(*this == other); }
     bool operator==(const Obj &other) const {
@@ -392,7 +403,7 @@ namespace fhatos {
           for (const Instp &currentInst: this->bcode_value()) {
             if (currentInst->isNoObj() || currentObj->isNoObj())
               break;
-            LOG(DEBUG, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
+            // LOG(DEBUG, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
             currentObj = currentInst->apply(currentObj);
           }
           return currentObj; //(currentObj->type() == OType::URI) ? relativeUri((ptr<Uri>currentObj) : currentObj;
@@ -436,12 +447,17 @@ namespace fhatos {
       return share(Obj(value, furi));
     }
 
-    static Objp to_int(const bool value, const fURIp &furi = BOOL_FURI) {
+    static Objp to_int(const FL_INT_TYPE value, const fURIp &furi = INT_FURI) {
       assert(furi->path(0, 1) == STR_OTYPE.at(OType::INT));
       return share(Obj(value, furi));
     }
 
-    static Objp to_str(const string value, const fURIp &furi = STR_FURI) {
+    static Objp to_real(const FL_REAL_TYPE value, const fURIp &furi = REAL_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::REAL));
+      return share(Obj(value, furi));
+    }
+
+    static Objp to_str(const string &value, const fURIp &furi = STR_FURI) {
       assert(furi->path(0, 1) == STR_OTYPE.at(OType::STR));
       return share(Obj(value, furi));
     }

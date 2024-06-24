@@ -103,7 +103,7 @@ namespace fhatos {
   void test_plus() {
     FOS_CHECK_RESULTS<Int>({3}, __(1).plus(2));
      FOS_CHECK_RESULTS<Int>({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
-    //   FOS_CHECK_RESULTS<Real>({54.0f, 50.0f, 46.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).plus(_).plus(_.plus(2.0f)));
+       FOS_CHECK_RESULTS<Real>({54.1f, 50.1f, 46.1f}, __({1.05f, 2.05f, 3.05f}).plus(10.05f).plus(_).plus(_.plus(2.0f)));
   }
 
   void test_mult() {
