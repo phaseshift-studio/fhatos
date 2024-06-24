@@ -148,7 +148,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    }</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">static</span> Objp as(<span class="keyword">const</span> Objp uri) {</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;as&quot;</span>, {uri}, [uri](<span class="keyword">const</span> Objp &amp;lhs) { <span class="keywordflow">return</span> lhs-&gt;as(uri-&gt;uri_value()); });</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;as&quot;</span>, {uri}, [uri](<span class="keyword">const</span> Objp &amp;lhs) { <span class="keywordflow">return</span> lhs-&gt;as(share(uri-&gt;uri_value())); });</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    }</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keyword">static</span> Objp bswitch(<span class="keyword">const</span> Objp rec) {</div>
@@ -163,7 +163,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keyword">static</span> Objp is(<span class="keyword">const</span> Objp xbool) {</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;is&quot;</span>, {xbool},</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                          [xbool](<span class="keyword">const</span> Objp &amp;lhs) { <span class="keywordflow">return</span> xbool-&gt;apply(lhs)-&gt;isNoObj() ? <a class="code hl_function" href="classfhatos_1_1Obj.html#a8a81514aa6a075a3242ad0341514ea45">Obj::to_noobj</a>() : lhs; });</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                          [xbool](<span class="keyword">const</span> Objp &amp;lhs) { <span class="keywordflow">return</span> xbool-&gt;apply(lhs)-&gt;bool_value() ? lhs : <a class="code hl_function" href="classfhatos_1_1Obj.html#a8a81514aa6a075a3242ad0341514ea45">Obj::to_noobj</a>(); });</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    }</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
@@ -172,7 +172,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    }</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keyword">static</span> Objp eq(<span class="keyword">const</span> Objp rhs) {</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;eq&quot;</span>, {rhs}, [rhs](<span class="keyword">const</span> Objp &amp;lhs) { <span class="keywordflow">return</span> Obj::to_bool(*lhs == *rhs-&gt;apply(lhs)); });</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;eq&quot;</span>, {rhs}, [rhs](<span class="keyword">const</span> Objp &amp;lhs) { <span class="keywordflow">return</span> Obj::to_bool(*lhs == *(rhs-&gt;apply(lhs))); });</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    }</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keyword">static</span> Objp gte(<span class="keyword">const</span> Objp rhs) {</div>
@@ -212,7 +212,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    <span class="keyword">static</span> Objp publish(<span class="keyword">const</span> Objp &amp;target, <span class="keyword">const</span> Objp &amp;payload) {</div>
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;publish&quot;</span>, {target, payload}, [target, payload](<span class="keyword">const</span> Objp lhs) -&gt; <span class="keyword">const</span> Objp {</div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        ROUTER::singleton()-&gt;publish(<a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a>{.source = <span class="stringliteral">&quot;123&quot;</span>,</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>                                             .target = <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(*target-&gt;apply(lhs)-&gt;uri_value()),</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>                                             .target = <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(target-&gt;apply(lhs)-&gt;uri_value()),</div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                                             .payload = Objp(payload) <span class="comment">/*-&gt;apply(incoming)*/</span>,</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>                                             .retain = TRANSIENT_MESSAGE});</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <span class="keywordflow">return</span> lhs;</div>
@@ -225,7 +225,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        ROUTER::singleton()-&gt;subscribe(</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>            <a class="code hl_struct" href="structfhatos_1_1Subscription.html">Subscription</a>{.mailbox = <span class="keyword">nullptr</span>,</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>                         .source = <span class="stringliteral">&quot;123&quot;</span>,</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>                         .pattern = <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(*pattern-&gt;apply(lhs)-&gt;uri_value()),</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>                         .pattern = <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(pattern-&gt;apply(lhs)-&gt;uri_value()),</div>
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                         .onRecv = [onRecv](<span class="keyword">const</span> ptr&lt;Message&gt; &amp;message) {</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>                           <span class="keyword">const</span> Objp outgoing = onRecv-&gt;apply(ptr&lt;Obj&gt;((<a class="code hl_class" href="classfhatos_1_1Obj.html">Obj</a> *) message-&gt;payload.get()));</div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>                           LOG(INFO, <span class="stringliteral">&quot;subscription result: %s\n&quot;</span>, outgoing-&gt;toString().c_str());</div>
@@ -328,8 +328,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span> </div>
 <div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:166</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html_a8a81514aa6a075a3242ad0341514ea45"><div class="ttname"><a href="classfhatos_1_1Obj.html#a8a81514aa6a075a3242ad0341514ea45">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Objp to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:443</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:170</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_a8a81514aa6a075a3242ad0341514ea45"><div class="ttname"><a href="classfhatos_1_1Obj.html#a8a81514aa6a075a3242ad0341514ea45">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Objp to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:499</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:90</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 <div class="ttc" id="astructfhatos_1_1Insts_html"><div class="ttname"><a href="structfhatos_1_1Insts.html">fhatos::Insts</a></div><div class="ttdef"><b>Definition</b> instructions.hpp:31</div></div>
