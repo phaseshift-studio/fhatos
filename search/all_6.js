@@ -5,6 +5,7 @@ var searchData=
   ['ided_2',['IDed',['../classfhatos_1_1IDed.html',1,'fhatos']]],
   ['inst_3',['INST',['../obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf3f3ab32d17f94c82cc112c80d59845b',1,'fhatos']]],
   ['inst_4',['Inst',['../classfhatos_1_1Inst.html',1,'fhatos']]],
-  ['int_5',['INT',['../obj_8hpp.html#a48680c360c0948acdfc2bab032a0139ea53f93baa3057821107c750323892fa92',1,'fhatos']]],
-  ['introduction_6',['Introduction',['../index.html',1,'']]]
+  ['insts_5',['Insts',['../structfhatos_1_1Insts.html',1,'fhatos']]],
+  ['int_6',['INT',['../obj_8hpp.html#a48680c360c0948acdfc2bab032a0139ea53f93baa3057821107c750323892fa92',1,'fhatos']]],
+  ['introduction_7',['Introduction',['../index.html',1,'']]]
 ];

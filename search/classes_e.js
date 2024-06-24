@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['referenceinst_0',['ReferenceInst',['../classfhatos_1_1ReferenceInst.html',1,'fhatos']]],
-  ['router_1',['Router',['../classfhatos_1_1Router.html',1,'fhatos']]],
-  ['router_3c_20thread_20_3e_2',['Router&lt; Thread &gt;',['../classfhatos_1_1Router.html',1,'fhatos']]],
-  ['router_3c_3e_3',['Router&lt;&gt;',['../classfhatos_1_1Router.html',1,'fhatos']]]
+  ['stringhelper_0',['StringHelper',['../classfhatos_1_1StringHelper.html',1,'fhatos']]],
+  ['subscription_1',['Subscription',['../structfhatos_1_1Subscription.html',1,'fhatos']]]
 ];

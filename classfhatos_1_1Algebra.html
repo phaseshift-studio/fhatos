@@ -92,70 +92,17 @@ $(function(){ initResizable(false); });
 <div id="doc-content">
 <div class="header">
   <div class="summary">
-<a href="#pub-types">Public Types</a> &#124;
-<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classfhatos_1_1Algebra-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">fhatos::Algebra Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
-Public Types</h2></td></tr>
-<tr class="memitem:af5c7e1d6673bbea106599cab23a6368c" id="r_af5c7e1d6673bbea106599cab23a6368c"><td class="memItemLeft" align="right" valign="top"><a id="af5c7e1d6673bbea106599cab23a6368c" name="af5c7e1d6673bbea106599cab23a6368c"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>BRANCH_SEMANTIC</b> { <b>SPLIT</b>
-, <b>CHAIN</b>
-, <b>SWITCH</b>
- }</td></tr>
-<tr class="separator:af5c7e1d6673bbea106599cab23a6368c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1dfed02a4a64818e3340cf5b922998da" id="r_a1dfed02a4a64818e3340cf5b922998da"><td class="memItemLeft" align="right" valign="top"><a id="a1dfed02a4a64818e3340cf5b922998da" name="a1dfed02a4a64818e3340cf5b922998da"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>RELATION_PREDICATE</b> { <br />
-&#160;&#160;<b>EQ</b>
-, <b>NEQ</b>
-, <b>GT</b>
-, <b>GTE</b>
-, <br />
-&#160;&#160;<b>LT</b>
-, <b>LTE</b>
-<br />
- }</td></tr>
-<tr class="separator:a1dfed02a4a64818e3340cf5b922998da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae117834222e529ccef81d905f53650c8" id="r_ae117834222e529ccef81d905f53650c8"><td class="memItemLeft" align="right" valign="top"><a id="ae117834222e529ccef81d905f53650c8" name="ae117834222e529ccef81d905f53650c8"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><b>COMPOSITION_OPERATOR</b> { <br />
-&#160;&#160;<b>PLUS</b>
-, <b>MULT</b>
-, <b>MINUS</b>
-, <b>DIV</b>
-, <br />
-&#160;&#160;<b>NEG</b>
-, <b>MOD</b>
-<br />
- }</td></tr>
-<tr class="separator:ae117834222e529ccef81d905f53650c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:affe727a843f553f8e1a9ee8756d0f3a6" id="r_affe727a843f553f8e1a9ee8756d0f3a6"><td class="memItemLeft" align="right" valign="top"><a id="affe727a843f553f8e1a9ee8756d0f3a6" name="affe727a843f553f8e1a9ee8756d0f3a6"></a>
-virtual const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>branch</b> (const BRANCH_SEMANTIC branch, const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; incoming, const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; control) const</td></tr>
-<tr class="separator:affe727a843f553f8e1a9ee8756d0f3a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb453d441adcafcea52b0e895f2c5f02" id="r_abb453d441adcafcea52b0e895f2c5f02"><td class="memItemLeft" align="right" valign="top"><a id="abb453d441adcafcea52b0e895f2c5f02" name="abb453d441adcafcea52b0e895f2c5f02"></a>
-virtual const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>relate</b> (const RELATION_PREDICATE rel, const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;lhs, const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;rhs)</td></tr>
-<tr class="separator:abb453d441adcafcea52b0e895f2c5f02"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add06cb453c46014aa06e5e41c4bc7054" id="r_add06cb453c46014aa06e5e41c4bc7054"><td class="memItemLeft" align="right" valign="top"><a id="add06cb453c46014aa06e5e41c4bc7054" name="add06cb453c46014aa06e5e41c4bc7054"></a>
-virtual const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>compose</b> (const COMPOSITION_OPERATOR &amp;comp, const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;lhs, const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;rhs) const</td></tr>
-<tr class="separator:add06cb453c46014aa06e5e41c4bc7054"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a785f4806a4ff1335413372d93f94ce0c" id="r_a785f4806a4ff1335413372d93f94ce0c"><td class="memItemLeft" align="right" valign="top"><a id="a785f4806a4ff1335413372d93f94ce0c" name="a785f4806a4ff1335413372d93f94ce0c"></a>
 static <a class="el" href="classfhatos_1_1Algebra.html">Algebra</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>singleton</b> ()</td></tr>
 <tr class="separator:a785f4806a4ff1335413372d93f94ce0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a045e8d93405995c4999d1f6b8447f01d" id="r_a045e8d93405995c4999d1f6b8447f01d"><td class="memItemLeft" align="right" valign="top"><a id="a045e8d93405995c4999d1f6b8447f01d" name="a045e8d93405995c4999d1f6b8447f01d"></a>
-static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>BRNCH_TO_STR</b> (const BRANCH_SEMANTIC brnch)</td></tr>
-<tr class="separator:a045e8d93405995c4999d1f6b8447f01d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a0e0d7f3b5b9df7ecf642879ce8a2f3" id="r_a6a0e0d7f3b5b9df7ecf642879ce8a2f3"><td class="memItemLeft" align="right" valign="top"><a id="a6a0e0d7f3b5b9df7ecf642879ce8a2f3" name="a6a0e0d7f3b5b9df7ecf642879ce8a2f3"></a>
-static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>REL_TO_STR</b> (const RELATION_PREDICATE rel)</td></tr>
-<tr class="separator:a6a0e0d7f3b5b9df7ecf642879ce8a2f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7e47f8907ae9fd820d05b46e3eb3057" id="r_ae7e47f8907ae9fd820d05b46e3eb3057"><td class="memItemLeft" align="right" valign="top"><a id="ae7e47f8907ae9fd820d05b46e3eb3057" name="ae7e47f8907ae9fd820d05b46e3eb3057"></a>
-static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>COMP_TO_STR</b> (const COMPOSITION_OPERATOR comp)</td></tr>
-<tr class="separator:ae7e47f8907ae9fd820d05b46e3eb3057"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/github/workspace/src/language/<a class="el" href="algebra_8hpp_source.html">algebra.hpp</a></li>
