@@ -86,7 +86,7 @@ namespace fhatos {
 
 using namespace fhatos;
 
-static void FOS_CHECK_ARGS(const List<Objp> &expectedArgs, const Instp &inst) {
+static void FOS_CHECK_ARGS(const List<Obj_p> &expectedArgs, const Inst_p &inst) {
   FOS_TEST_MESSAGE("!yTesting!! instruction: %s", inst->toString().c_str());
   TEST_ASSERT_EQUAL_INT(expectedArgs.size(), inst->inst_args().size());
   for (int i = 0; i < expectedArgs.size(); i++) {
@@ -101,7 +101,7 @@ static void FOS_CHECK_ARGS(const List<Objp> &expectedArgs, const Instp &inst) {
 template<typename _OBJ = Obj>
 static ptr<List<ptr<_OBJ>>> FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  ptr<List<Objp>> result = fluent.toList<Obj>();
+  ptr<List<Obj_p>> result = fluent.toList<Obj>();
   if (printResult) {
     int index = 0;
     for (const auto &obj: *result) {

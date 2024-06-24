@@ -57,16 +57,16 @@ namespace fhatos {
           }
         } else {
           try {
-            const ptr<OBJ_OR_BYTECODE> obj = Parser::parseObj(line);
+            const Obj_p obj = Parser::parseObj(line);
             if (obj->isBytecode()) {
-              const ptr<Fluent<>> fluent =  this->parser->parseToFluent(line.c_str());
+              const ptr<Fluent<>> fluent = this->parser->parseToFluent(line.c_str());
               this->printResults(fluent);
             } else {
-              this->printResult(obj->cast<Obj>());
+              this->printResult(obj);
             }
           } catch (const std::exception &e) {
             // do nothing (log error for now)
-            //LOG_EXCEPTION(e);
+            // LOG_EXCEPTION(e);
             this->printException(e);
           }
         }
@@ -80,21 +80,21 @@ namespace fhatos {
     void printPrompt() const { this->ansi->print("!mfhatos!!> "); }
 
     void printResults(const ptr<Fluent<>> &fluent) const {
-      fluent->forEach<Obj>([this](const Obj *obj) { this->printResult(obj); });
+      fluent->forEach<Obj>([this](const Obj_p obj) { this->printResult(obj); });
     }
 
 
-    void printResult(const Obj *obj) const {
-      if (obj->type() == OType::REC)
-        this->printRec((Rec *) obj);
+    void printResult(const Obj_p& obj) const {
+      if (obj->o_range() == OType::REC)
+        this->printRec(obj);
       else
         this->ansi->printf("!g==!!>%s\n", obj->toString().c_str());
     }
 
-    void printRec(const Rec *rec, int i = 0) const {
-      this->ansi->printf("!g==!!>!y%s!![", rec->utype() ? rec->utype()->toString().c_str() : "");
-      const int size = rec->value()->size();
-      for (const auto &[key, value]: *rec->value()) {
+    void printRec(const Rec_p& rec, int i = 0) const {
+      this->ansi->printf("!g==!!>!y%s!![", rec->id() ? rec->id()->toString().c_str() : "");
+      const int size = rec->rec_value().size();
+      for (const auto &[key, value]: rec->rec_value()) {
         if (i > 0)
           this->ansi->print("    ");
         this->ansi->printf("%s !b=>!! %s", key->toString().c_str(), value->toString().c_str());

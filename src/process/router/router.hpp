@@ -117,11 +117,11 @@ namespace fhatos {
 
     template<typename OBJ = Obj>
     ptr<OBJ> read(const ID &source, const ID &target) {
-      auto *thing = new std::atomic<OBJ *>(nullptr);
+      auto *thing = new std::atomic<OBJ*>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
-                         thing->store(share(Obj(*message->payload)));
+                         thing->store(new OBJ(*message->payload));
                          done->store(true);
                        }});
       const time_t startTimestamp = time(nullptr);
@@ -131,12 +131,11 @@ namespace fhatos {
           break;
         }
       }
-       OBJ *ret = thing->load();
+      ptr<OBJ> ret = ptr<OBJ>(thing->load());
       delete thing;
       delete done;
       unsubscribe(source, target);
-      const ptr<OBJ> temp = ptr<OBJ>((OBJ*)ret);
-      return temp;
+      return ret;
     }
 
     virtual RESPONSE_CODE write(const ptr<const Obj> &obj, const ID &source, const ID &target) {

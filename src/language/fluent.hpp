@@ -33,9 +33,9 @@ namespace fhatos {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent(const Objp &bcode) : bcode(bcode) {}
+    explicit Fluent(const Obj_p &bcode) : bcode(bcode) {}
 
-    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(Obj::to_bcode(List<Objp>({}))) {}
+    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
@@ -63,11 +63,11 @@ namespace fhatos {
     ///////////////////////// PROTECTED  /////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    const Objp bcode;
+    const Obj_p bcode;
 
   protected:
-    Fluent<> addInst(const Objp &inst) const {
-      List<Objp> newList = List<Objp>();
+    Fluent<> addInst(const Obj_p &inst) const {
+      List<Obj_p> newList = List<Obj_p>();
       for (const auto &oldInst: this->bcode->bcode_value()) {
         newList.push_back(share(Obj(*oldInst)));
       }
@@ -86,7 +86,7 @@ namespace fhatos {
     //  operator const ptr<Bytecode> &() const { return this->bcode; }
 
     Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(Obj::cast(starts))); }
-    Fluent start(const List<Objp> &starts) const { return this->addInst(Insts::start(starts)); }
+    Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(starts)); }
 
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////
@@ -111,9 +111,8 @@ namespace fhatos {
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    // Fluent ref(const Uri &uri) { return this->addInst(ptr<Inst>(new ReferenceInst<ROUTER>(share<Uri>(uri)))); }
-
-    // Fluent dref(const Uri &uri) { return this->addInst(ptr<Inst>(new DereferenceInst<ROUTER>(share<Uri>(uri)))); }
+    Fluent ref(const Uri &uri) { return this->addInst(Insts::ref(share(uri))); }
+    Fluent dref(const Uri &uri) { return this->addInst(Insts::dref(share(uri))); }
 
     /*Fluent explain() { return this->addInst(new ExplainInst()); }
 
@@ -126,10 +125,10 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////
 
     Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) {
-      return this->addInst(Insts::bswitch(share(Obj(recPairs))));
+      return this->addInst(Insts::bswitch(share(Rec(recPairs))));
     }
 
-    Fluent bswitch(const Obj &branches) { return this->addInst(Insts::bswitch(share(branches))); }
+    Fluent bswitch(const Rec &branches) { return this->addInst(Insts::bswitch(share(branches))); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// FILTERING ////////////////////////////
@@ -175,9 +174,9 @@ namespace fhatos {
 
   static Fluent<> __(const List<Obj> &starts) {
     if (starts.empty()) {
-      return Fluent(Obj::to_bcode(List<Objp>{}));
+      return Fluent(Obj::to_bcode(List<Obj_p>{}));
     } else {
-      return Fluent(Obj::to_bcode(List<Objp>{Insts::start(Obj::cast(starts))}));
+      return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(Obj::cast(starts))}));
     }
   };
 

@@ -5,7 +5,6 @@
 //
 #include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
-#include <language/binary_obj.hpp>
 
 namespace fhatos {
 

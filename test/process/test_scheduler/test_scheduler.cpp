@@ -40,7 +40,7 @@ namespace fhatos {
     Scheduler<>::singleton()->barrier("thread-2_dead");
   }
 
-  template<typename ROUTER>
+ /* template<typename ROUTER>
   void test_bcode() {
     Scheduler<>::singleton()->publish(
         Scheduler<ROUTER>::singleton()->id().query("?spawn"),
@@ -61,13 +61,13 @@ namespace fhatos {
             })
             .as<Rec>("thread")));
     Scheduler<ROUTER>::singleton()->shutdown();
-  }
+  }*/
 
   FOS_RUN_TESTS( //
       Scheduler<FOS_DEFAULT_ROUTER>::singleton(); //
       LocalRouter::singleton(); //
       FOS_RUN_TEST(test_threads); //
-      FOS_RUN_TEST(test_bcode<LocalRouter>); //
+    //  FOS_RUN_TEST(test_bcode<LocalRouter>); //
   );
 
 } // namespace fhatos

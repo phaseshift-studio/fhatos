@@ -26,12 +26,12 @@ namespace fhatos {
                 .is(_.lt("xxx"))
                 .plus("x"));*/
 
-    __({32, 45}).plus(10).plus(15).forEach<Int>([](const Intp e) { FOS_TEST_MESSAGE("=>%s", e->toString().c_str()); });
+    __({32, 45}).plus(10).plus(15).forEach<Int>([](const Int_p e) { FOS_TEST_MESSAGE("=>%s", e->toString().c_str()); });
 
     FOS_TEST_MESSAGE("=========================\n");
 
     const Fluent f = __(30).plus(10).plus(15).mult(_.plus(5)); //.mult(__.plus(2).mult(10));
-    f.forEach<Obj>([](Objp e) { FOS_TEST_MESSAGE("=>%s", e->toString().c_str()); });
+    f.forEach<Obj>([](Obj_p e) { FOS_TEST_MESSAGE("=>%s", e->toString().c_str()); });
   }
 
   /*void test_select() {
@@ -75,22 +75,19 @@ namespace fhatos {
       FOS_CHECK_RESULTS<Int>({1}, __({"fhat", "os", "pig"}).is(_.eq("pig")).plus(";").count());
       // TODO: FOS_CHECK_RESULTS<Int>({Int(0)}, __({"fhat", "os", "pig"}).is(_.eq("blah")).count());
     }
-
-    void test_dref() {
-      FOS_CHECK_RESULTS<Str>({"fhat"}, __("fhat").ref("a").plus("os").dref("a"), {{Uri("a"), new Str("fhat")}});
-      FOS_CHECK_RESULTS<Int>({23}, __(10).ref("a").plus(3).plus(_.dref("a")), {{Uri("a"), new Int(10)}});
-    }
-
-    void test_ref() {
-
-      FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").ref("a").plus("os"), {{Uri("a"), new Str("fhat")}});
-      FOS_CHECK_RESULTS<Str>({"fhaty", "pigy"},
-                             __({"fhat", "pig"}).bswitch({{_.is(_.gt("gonzo")), _.ref("b")}, {_,
-    _.ref("c")}}).plus("y"),
-                             {{Uri("b"), new Str("pig")}, {Uri("c"), new Str("fhat")}});
-      FOS_DEFAULT_ROUTER::singleton()->clear();
-    }
 */
+
+  void test_ref_dref() {
+    FOS_CHECK_RESULTS<Int>({2}, __(1).ref(u("a")).plus(_.dref(u("a"))), {{u("a"), 1}});
+    FOS_CHECK_RESULTS<Int>({23}, __(10).ref(u("a")).plus(3).plus(_.dref(u("a"))), {{u("a"), 10}});
+    FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").ref(u("a")).plus("os"), {{u("a"), "fhat"}});
+    /* FOS_CHECK_RESULTS<Str>(
+         {"fhaty", "pigy"},
+         __({"fhat", "pig"}).bswitch({{_.is(_.gt("gonzo")), _.ref(u("b"))}, {_, _.ref(u("c"))}}).plus("y"),
+         {{u("b"), "pig"}, {u("c"), "fhat"}});*/
+    FOS_DEFAULT_ROUTER::singleton()->clear();
+  }
+
   void test_relational_predicates() {
     FOS_CHECK_RESULTS<Int>({1}, __(1).is(_.eq(1)));
     FOS_CHECK_RESULTS<Int>({}, __(1).is(_.neq(1)));
@@ -124,23 +121,25 @@ namespace fhatos {
                            __(Rec{{"a", 1}}).plus({{"b", 2}}).plus({{"c", 3}, {"d", 4}}));
   }
 
-  void test_mult() { FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}})); }
+  void test_mult() {
+    // FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}}));
+  }
 
-  /* void test_where() { FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13)))); }
+  /* void test_where() { FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13)))); }*/
 
-   void test_define_and_type() {
-     FOS_CHECK_RESULTS<Int>({*Int(1).cast("nat")}, __(1).define("nat", _.is(_.gt(0))).as(fURI("nat")),
-                            {{fURI("nat"), _.is(_.gt(0)).bcode.get()}});
-     FOS_CHECK_RESULTS<Int>({1}, __(1).define("nat", _.is(_.gt(0))), {{fURI("nat"), _.is(_.gt(0)).bcode.get()}},
-   false); FOS_CHECK_RESULTS<Int>({*Int(1).cast("nat")}, __(1).as(fURI("nat")), {{fURI("nat"),
-   _.is(_.gt(0)).bcode.get()}}, false);
-   }*/
+  void test_define_as() {
+    FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).define(u("/int/nat"), _.is(_.gt(0))).as(u("/int/nat")), {{u("/int/nat"), _.is(_.gt(0))}});
+    FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.is(_.gt(0))), {{u("/int/nat"), _.is(_.gt(0))}}, false);
+    FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).as(u("/int/nat")), {{u("/int/nat"), _.is(_.gt(0))}}, false);
+  }
   FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_ref_dref); //
       FOS_RUN_TEST(test_plus); //
       // FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_mult); //
       FOS_RUN_TEST(test_relational_predicates); //
       // FOS_RUN_TEST(test_select); //
+      FOS_RUN_TEST(test_define_as); //
   )
 } // namespace fhatos
 

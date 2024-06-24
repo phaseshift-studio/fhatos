@@ -32,7 +32,7 @@ namespace fhatos {
   public:
     explicit Parser(const ID &id = ID(*UUID::singleton()->mint())) : IDed(id) {}
 
-    const Bytecodep parse(const char *line) {
+    const BCode_p parse(const char *line) {
       string cleanLine = string(line);
       StringHelper::trim(cleanLine);
       LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", cleanLine.c_str());
@@ -40,14 +40,14 @@ namespace fhatos {
         return Obj::to_bcode({});
       }
       stringstream ss = stringstream(cleanLine);
-      Bytecodep bcode = this->parseBytecode(&ss);
+      BCode_p bcode = this->parseBytecode(&ss);
       LOG(DEBUG, "!rBYTECODE!!: %s [%s]\n", bcode->toString().c_str(), OTYPE_STR.at(bcode->o_range()));
       return bcode;
     }
 
     const ptr<Fluent<>> parseToFluent(const char *line) { return share<Fluent<>>(Fluent<>(this->parse(line))); }
 
-    static const ptr<Bytecode> parseBytecode(stringstream *ss) {
+    static const ptr<BCode> parseBytecode(stringstream *ss) {
       Fluent<> *fluent = new Fluent<>();
       while (!ss->eof()) {
         const ptr<string> opcode = Parser::parseOpcode(ss);
@@ -145,7 +145,7 @@ namespace fhatos {
         return args;
       }
       while (!ss->eof()) {
-        Objp argObj = Parser::parseArg(ss);
+        Obj_p argObj = Parser::parseArg(ss);
         args->push_back(argObj);
         LOG(NONE, FOS_TAB_8 FOS_TAB_6 "!g==>!!%s [!y%s!!]\n", argObj->toString().c_str(),
             OTYPE_STR.at(argObj->o_range()));
@@ -189,11 +189,11 @@ namespace fhatos {
       char *array; //[token2.length()];
       array = strdup(token2.c_str());
       string token = string(array);
-      Objp obj;
+      Obj_p obj;
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find('[');
-      fURIp utype = fURIp((fURI*)nullptr);
+      fURI_p utype = fURI_p((fURI*)nullptr);
       if (index != string::npos && index != 0 && token.back() == ']') {
         string typeToken = token.substr(0, index);
         // bool hasAuthority = typeToken.find('@') != std::string::npos;

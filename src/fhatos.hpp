@@ -45,6 +45,7 @@
 
 // C++ standard template library common data structures
 #include <any>
+#include <atomic>
 #include <deque>
 #include <functional>
 #include <map>
@@ -242,7 +243,7 @@ namespace fhatos {
   ///////////////////
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING DEBUG
+#define FOS_LOGGING INFO
 #endif
 
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {

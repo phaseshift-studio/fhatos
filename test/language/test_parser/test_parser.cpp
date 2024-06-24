@@ -33,7 +33,7 @@ namespace fhatos {
 
   void test_no_input_parsing() {
     Parser *parser = new Parser();
-    ptr<Bytecode> bcode = parser->parse("");
+    ptr<BCode> bcode = parser->parse("");
     TEST_ASSERT_EQUAL_INT(0, bcode->bcode_value().size());
     delete parser;
   }
@@ -54,7 +54,7 @@ namespace fhatos {
   }
 
   void test_noobj_parsing() {
-    const Objp n = Parser::parseObj(string("Ø"));
+    const Obj_p n = Parser::parseObj(string("Ø"));
     TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_range());
     TEST_ASSERT_EQUAL_STRING("!bØ!!", n->toString().c_str());
   }
@@ -142,7 +142,7 @@ namespace fhatos {
              "person?x[[age=>nat[29],name=>'dogturd']]", "person?x[age=>nat[29],name=>'dogturd']"};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
-      const Recp rc2 = Parser::parseObj<Rec>(form);
+      const Rec_p rc2 = Parser::parseObj<Rec>(form);
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_range());
       TEST_ASSERT_EQUAL_STRING("person", rc2->id()->lastSegment().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(Obj::to_uri("age"))->int_value());
@@ -168,8 +168,8 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler<FOS_DEFAULT_ROUTER>::singleton();
     const auto parser = new Parser;
-    const ptr<Bytecode> bcode =
-        FOS_PRINT_OBJ<Bytecode>(parser->parse("<=(scheduler@kernel?spawn,thread["
+    const ptr<BCode> bcode =
+        FOS_PRINT_OBJ<BCode>(parser->parse("<=(scheduler@kernel?spawn,thread["
                                               "[id    => example,"
                                               " setup => __(0).ref(x).print('setup complete'),"
                                               " loop  => <=(scheduler@kernel?destroy,example)]])"));
@@ -181,7 +181,7 @@ namespace fhatos {
 
   void test_nested_bytecode_parsing() {
     auto *parser = new Parser();
-    const ptr<Bytecode> bcode = FOS_PRINT_OBJ<Bytecode>(parser->parse("plus(mult(plus(3)))"));
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(parser->parse("plus(mult(plus(3)))"));
     TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value().size());
     TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value().at(0)->inst_arg(0)->bcode_value().size());
     //   TEST_ASSERT_EQUAL_INT(

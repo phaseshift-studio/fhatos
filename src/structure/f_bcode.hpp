@@ -27,8 +27,8 @@ namespace fhatos {
   public:
     std::atomic<bool> *setupComplete = new std::atomic<bool>(false);
     const ptr<Obj> rec;
-    ptr<Bytecode> SETUP_BCODE;
-    ptr<Bytecode> LOOP_BCODE;
+    ptr<BCode> SETUP_BCODE;
+    ptr<BCode> LOOP_BCODE;
 
     fBcode(const ID &id, const ptr<Rec> &rec) :
         Actor<PROCESS, ROUTER>(

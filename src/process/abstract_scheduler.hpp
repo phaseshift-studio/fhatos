@@ -62,7 +62,7 @@ namespace fhatos {
       });
       //////////////// DESTROY
       this->subscribe(id.query("?destroy"), [this](const ptr<Message> &message) {
-        const Urip uri = share(Uri(*message->payload));
+        const Uri_p uri = share(Uri(*message->payload));
         LOG_TASK(DEBUG, this, "received ?destroy=%s from %s\n", uri->toString().c_str(),
                  message->source.toString().c_str());
         this->_destroy(uri->uri_value());

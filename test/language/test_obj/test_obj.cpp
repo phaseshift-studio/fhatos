@@ -13,8 +13,8 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_bool() {
-    const Boolp boolA = share(Bool(true, "/bool/truth"));
-    const Boolp boolB = share(Bool(false, "/bool/truth"));
+    const Bool_p boolA = share(Bool(true, "/bool/truth"));
+    const Bool_p boolB = share(Bool(false, "/bool/truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolA, string(boolA->bool_value() ? "true" : "false")).c_str());
     FOS_TEST_ASSERT_EQUAL_FURI(*boolA->id(), fURI("/bool/truth"));
     FOS_TEST_OBJ_NOT_EQUAL(boolA, boolB);
@@ -27,7 +27,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_range());
     FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
     ///
-    const Boolp boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
+    const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
     FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
     FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3 /*,int_t("nat")*/))));
@@ -35,12 +35,12 @@ namespace fhatos {
   }
 
   void test_int() {
-    const Intp intA = share(Int(1));
-    const Intp intB = share<Int>(Int(1));
-    const Intp intC = share(Int(1, "/int/age"));
-    const Intp intD = ptr<Int>(new Int(2, "/int/nat"));
+    const Int_p intA = share(Int(1));
+    const Int_p intB = share<Int>(Int(1));
+    const Int_p intC = share(Int(1, "/int/age"));
+    const Int_p intD = ptr<Int>(new Int(2, "/int/nat"));
     ///
-    const Intp int5 = share(Int(5, "/int/age"));
+    const Int_p int5 = share(Int(5, "/int/age"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(int5, std::to_string(int5->int_value())).c_str());
 
     TEST_ASSERT_FALSE(intA->isBytecode());
@@ -71,7 +71,7 @@ namespace fhatos {
     FOS_TEST_OBJ_GT(intD, intA->as("/int/nat"));
     FOS_TEST_OBJ_LT(intB->as("/int/nat"), intD);
     ////// BYTECODE
-    const Intp intBCode = share(Int(__().plus(Int(0, "/int/age")).bcode->bcode_value(), "/bcode/age"));
+    const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age")).bcode->bcode_value(), "/bcode/age"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
    // TEST_ASSERT_TRUE(intBCode->isBytecode());
     TEST_ASSERT_EQUAL_STRING("/bcode/age", intBCode->id()->toString().c_str());
@@ -82,7 +82,7 @@ namespace fhatos {
   }
 
   void test_str() {
-    const Strp strA = share(Str("fhat", "/str/first_name"));
+    const Str_p strA = share(Str("fhat", "/str/first_name"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());

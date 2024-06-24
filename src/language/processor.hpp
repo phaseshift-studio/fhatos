@@ -31,20 +31,20 @@
 namespace fhatos {
   class Monad {
   protected:
-    const Objp _obj;
-    const Objp _inst;
+    const Obj_p _obj;
+    const Obj_p _inst;
     const long _bulk = 1;
 
   public:
-    explicit Monad(const Objp obj, const Instp &inst) : _obj(obj), _inst(inst) {}
+    explicit Monad(const Obj_p obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
 
-    List<const ptr<Monad>> split(const ptr<Bytecode> &bcode) const {
+    List<ptr<Monad>> split(const ptr<BCode> &bcode) const {
       if (this->_inst->isNoObj() || this->_obj->isNoObj()) {
-        return List<const ptr<Monad>>{};
+        return List<ptr<Monad>>{};
       } else {
         const ptr<Obj> nextObj = this->_inst->apply(this->_obj);
-        const Instp nextInst = bcode->nextInst(this->_inst);
-        return List<const ptr<Monad>>{ptr<Monad>(new Monad(nextObj, nextInst))};
+        const Inst_p nextInst = bcode->nextInst(this->_inst);
+        return List<ptr<Monad>>{ptr<Monad>(new Monad(nextObj, nextInst))};
       }
     }
 
@@ -68,15 +68,15 @@ namespace fhatos {
   template<typename E>
   class Processor {
   protected:
-    const Bytecodep bcode;
-    List<const ptr<Monad>> *running = new List<const ptr<Monad>>();
-    List<const Objp> *halted = new List<const Objp>();
-    Pair<Instp, List<const Objp> *> *barrier;
+    const BCode_p bcode;
+    List<ptr<Monad>> *running = new List<ptr<Monad>>();
+    List<Obj_p> *halted = new List<Obj_p>();
+    Pair<Inst_p, List<Obj_p> *> *barrier;
 
   public:
-    explicit Processor(const Bytecodep &bcode) :
-        bcode(bcode), barrier(new Pair<Instp, List<const ptr<Obj>> *>(nullptr, nullptr)) {
-      const Instp startInst = this->bcode->bcode_value().at(0);
+    explicit Processor(const BCode_p &bcode) :
+        bcode(bcode), barrier(new Pair<Inst_p, List<ptr<Obj>> *>(nullptr, nullptr)) {
+      const Inst_p startInst = this->bcode->bcode_value().at(0);
       LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
       if (startInst->inst_op() == "start") {
         for (const ptr<Obj> &startObj: startInst->inst_value().first) {
@@ -132,7 +132,7 @@ namespace fhatos {
               if (!this->barrier->first) {
                 LOG(DEBUG, "!uCreating barrier!!: %s\n", parent->inst()->toString().c_str());
                 this->barrier->first = share(Inst(*parent->inst()));
-                this->barrier->second = new List<const ptr<Obj>>();
+                this->barrier->second = new List<ptr<Obj>>();
               }
               LOG(DEBUG, "Adding to barrier: %s => %s\n", parent->toString().c_str(),
                   parent->inst()->toString().c_str());

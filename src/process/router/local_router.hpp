@@ -82,7 +82,7 @@ namespace fhatos {
             RETAINS.insert({mess_ptr->target, mess_ptr});
             return nullptr;
           });
-          LOG(INFO,"Total number of retained messages [size:%i]\n", RETAINS.size());
+          LOG(DEBUG,"Total number of retained messages [size:%i]\n", RETAINS.size());
         }
         LOG_PUBLISH(_rc, message);
         return _rc;

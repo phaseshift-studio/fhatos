@@ -30,32 +30,32 @@
 namespace fhatos {
   struct Insts {
     Insts() = delete;
-    static Objp start(const List<Objp> &starts) {
+    static Obj_p start(const List<Obj_p> &starts) {
       return Obj::to_inst("start", starts, [](const ptr<Obj> &start) { return start; });
     }
 
-    static Objp explain() {
+    static Obj_p explain() {
       return Obj::to_inst("explain", {}, [](const ptr<Obj>) { return nullptr; });
     }
 
-    static Objp plus(const Objp rhs) {
-      return Obj::to_inst("plus", {rhs}, [rhs](const Objp &lhs) { return share(*lhs + *rhs->apply(lhs)); });
+    static Obj_p plus(const Obj_p rhs) {
+      return Obj::to_inst("plus", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs + *rhs->apply(lhs)); });
     }
 
-    static Objp mult(const Objp rhs) {
-      return Obj::to_inst("mult", {rhs}, [rhs](const Objp &lhs) { return share(*lhs * *rhs->apply(lhs)); });
+    static Obj_p mult(const Obj_p rhs) {
+      return Obj::to_inst("mult", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs * *rhs->apply(lhs)); });
     }
 
-    static Objp mod(const Objp rhs) {
-      return Obj::to_inst("mod", {rhs}, [rhs](const Objp &lhs) { return share(*lhs % *rhs->apply(lhs)); });
+    static Obj_p mod(const Obj_p rhs) {
+      return Obj::to_inst("mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); });
     }
 
-    static Objp as(const Objp uri) {
-      return Obj::to_inst("as", {uri}, [uri](const Objp &lhs) { return lhs->as(share(uri->uri_value())); });
+    static Obj_p as(const Obj_p uri) {
+      return Obj::to_inst("as", {uri}, [uri](const Obj_p &lhs) { return lhs->as(share(uri->uri_value())); });
     }
 
-    static Objp bswitch(const Objp rec) {
-      return Obj::to_inst("switch", {rec}, [rec](const Objp &lhs) {
+    static Obj_p bswitch(const Obj_p rec) {
+      return Obj::to_inst("switch", {rec}, [rec](const Obj_p &lhs) {
         for (const auto &pair: rec->rec_value()) {
           if (!pair.first->apply(lhs)->isNoObj())
             return pair.second->apply(lhs);
@@ -64,73 +64,103 @@ namespace fhatos {
       });
     }
 
-    static Objp is(const Objp xbool) {
-      return Obj::to_inst("is", {xbool},
-                          [xbool](const Objp &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); });
+    static Obj_p is(const Obj_p xbool) {
+      return Obj::to_inst(
+          "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); });
     }
 
 
-    static Objp neq(const Objp rhs) {
-      return Obj::to_inst("neq", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); });
+    static Obj_p neq(const Obj_p rhs) {
+      return Obj::to_inst("neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); });
     }
 
-    static Objp eq(const Objp rhs) {
-      return Obj::to_inst("eq", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); });
+    static Obj_p eq(const Obj_p rhs) {
+      return Obj::to_inst("eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); });
     }
 
-    static Objp gte(const Objp rhs) {
-      return Obj::to_inst("gte", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); });
+    static Obj_p gte(const Obj_p rhs) {
+      return Obj::to_inst("gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); });
     }
 
-    static Objp gt(const Objp rhs) {
-      return Obj::to_inst("gt", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); });
+    static Obj_p gt(const Obj_p rhs) {
+      return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); });
     }
 
-    static Objp lte(const Objp rhs) {
-      return Obj::to_inst("gte", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); });
+    static Obj_p lte(const Obj_p rhs) {
+      return Obj::to_inst("gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); });
     }
 
-    static Objp lt(const Objp rhs) {
-      return Obj::to_inst("gt", {rhs}, [rhs](const Objp &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); });
+    static Obj_p lt(const Obj_p rhs) {
+      return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); });
     }
 
-    static Objp define(const Objp uri, const Objp type) {
-      return Obj::to_inst("define", {uri, type}, [uri, type](const Objp &lhs) {
-        /*this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),
-                                                  ptr<const Obj>(this->arg(1)->obj()));*/
+    template<typename ROUTER = FOS_DEFAULT_ROUTER>
+    static Obj_p define(const Obj_p uri, const Obj_p type) {
+      return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
+        ROUTER::singleton()->publish(
+            Message{.source = "123", .target = uri->uri_value(), .payload = type, .retain = RETAIN_MESSAGE});
         return lhs;
       });
     }
 
+    template<typename ROUTER = FOS_DEFAULT_ROUTER>
+    static Obj_p as(const Uri_p type) {
+      return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) {
+        Obj_p t = ROUTER::singleton()->read("123", type->apply(lhs)->uri_value());
+        if (t->apply(lhs)->isNoObj()) {
+          LOG(ERROR, "%s is not a %s\n", lhs->toString().c_str(), type->toString().c_str());
+          return Obj::to_noobj();
+        }
+        return lhs->as(share(type->uri_value()));
+      });
+    }
+
+    template<typename ROUTER = FOS_DEFAULT_ROUTER>
+    static Obj_p ref(const Uri_p &uri) {
+      return Obj::to_inst("ref", {uri}, [uri](const Obj_p &lhs) {
+        RESPONSE_CODE _rc = ROUTER::singleton()->write(lhs, "123", uri->apply(lhs)->uri_value());
+        if (_rc)
+          LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
+        return lhs;
+      });
+    }
+
+    template<typename ROUTER = FOS_DEFAULT_ROUTER>
+    static Obj_p dref(const Uri_p &uri) {
+      return Obj::to_inst("dref", {uri}, [uri](const Obj_p &lhs) {
+        return ROUTER::singleton()->read("123", uri->apply(lhs)->uri_value());
+      });
+    }
+
     template<typename PRINTER = FOS_DEFAULT_PRINTER>
-    static Objp print(const Objp toprint) {
-      return Obj::to_inst("print", {toprint}, [toprint](const Objp &lhs) {
-        const Objp done = toprint->apply(lhs);
+    static Obj_p print(const Obj_p toprint) {
+      return Obj::to_inst("print", {toprint}, [toprint](const Obj_p &lhs) {
+        const Obj_p done = toprint->apply(lhs);
         PRINTER::singleton()->printf("%s\n", done->toString().c_str());
         return lhs;
       });
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Objp publish(const Objp &target, const Objp &payload) {
-      return Obj::to_inst("publish", {target, payload}, [target, payload](const Objp lhs) -> const Objp {
+    static Obj_p publish(const Obj_p &target, const Obj_p &payload) {
+      return Obj::to_inst("publish", {target, payload}, [target, payload](const Obj_p &lhs) {
         ROUTER::singleton()->publish(Message{.source = "123",
                                              .target = fURI(target->apply(lhs)->uri_value()),
-                                             .payload = Objp(payload) /*->apply(incoming)*/,
+                                             .payload = Obj_p(payload) /*->apply(incoming)*/,
                                              .retain = TRANSIENT_MESSAGE});
         return lhs;
       });
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Objp subscibe(const Objp &pattern, const Objp &onRecv) {
-      return Obj::to_inst("subscribe", {pattern, onRecv}, [pattern, onRecv](const Objp lhs) -> const Objp {
+    static Obj_p subscibe(const Obj_p &pattern, const Obj_p &onRecv) {
+      return Obj::to_inst("subscribe", {pattern, onRecv}, [pattern, onRecv](const Obj_p &lhs) {
         ROUTER::singleton()->subscribe(
             Subscription{.mailbox = nullptr,
                          .source = "123",
                          .pattern = fURI(pattern->apply(lhs)->uri_value()),
                          .onRecv = [onRecv](const ptr<Message> &message) {
-                           const Objp outgoing = onRecv->apply(ptr<Obj>((Obj *) message->payload.get()));
+                           const Obj_p outgoing = onRecv->apply(ptr<Obj>((Obj *) message->payload.get()));
                            LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());
                          }});
         return lhs;
@@ -189,44 +219,6 @@ namespace fhatos {
                         return cast(obj, utype);
                       }}) {}
   };*/
-
-  /* template<typename ROUTER = FOS_DEFAULT_ROUTER>
-   class DefineInst final : public OneToOneInst {
-   public:
-     explicit DefineInst(const ptr<Type> &utype, const ptr<Bytecode> &typeDefinition) :
-         OneToOneInst("define", {utype, typeDefinition}, [this](const ptr<Obj> obj) -> const ptr<Obj> {
-           this->_bcode->template createType<ROUTER>(this->arg(0)->apply(obj)->template as<Uri>()->value(),
-                                                      ptr<const Obj>(this->arg(1)->obj()));
-           return obj;
-         }) {}
-   };*/
-
-
-  /*template<typename ROUTER = FOS_DEFAULT_ROUTER>
-  class ReferenceInst final : public OneToOneInst {
-  public:
-    explicit ReferenceInst(const ptr<Uri> &uri) :
-        OneToOneInst("ref", {uri}, [this](const ptr<Obj> toStore) -> const ptr<Obj> {
-          RESPONSE_CODE response = ROUTER::singleton()->write(
-              ptr<const Obj>(ObjHelper::clone<Obj>(toStore.get())), this->_bcode->id() ID("123"),
-              std::static_pointer_cast<Uri>(this->arg(0)->apply(toStore))->value());
-          // if(!RESPONSE_CODE)
-          //  LOG(ERROR,"")
-          return toStore;
-        }) {}
-  };*/
-
-  /* template<typename ROUTER = FOS_DEFAULT_ROUTER>
-   class DereferenceInst final : public OneToOneInst {
-   public:
-     explicit DereferenceInst(const ptr<Uri> &target) :
-         OneToOneInst("dref", {target}, [this](const ptr<Obj> obj) -> const ptr<Obj> {
-           return ObjHelper::clone<Obj>(ROUTER::singleton()
-                                            ->template read<Obj>(this->_bcode->id() ID("123"),
-                                                                 this->arg(0)->apply(obj)->template as<Uri>()->v_furi())
-                                            .get());
-         }) {}
-   };*/
 } // namespace fhatos
 
 #endif
