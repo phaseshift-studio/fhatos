@@ -40,7 +40,7 @@ namespace fhatos {
 
     template<OType otype>
     [[nodiscard]] bool is() const {
-      return otype == this->payload->otype();
+      return otype == this->payload->o_range();
     }
 
     bool isQuery(const char *query = "?") const {

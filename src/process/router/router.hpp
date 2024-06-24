@@ -121,7 +121,7 @@ namespace fhatos {
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
-                         thing->store((OBJ *) ObjHelper::clone<OBJ>(message->payload.get()));
+                         thing->store(share(Obj(*message->payload)));
                          done->store(true);
                        }});
       const time_t startTimestamp = time(nullptr);

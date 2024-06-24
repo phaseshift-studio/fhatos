@@ -83,11 +83,24 @@ namespace fhatos {
   using BObj = Triple<OType, fbyte *, uint32_t>;
   class PtrSerializer;
   class Type;
-  class Objs;
   using InstFunction = Function<Objp, Objp>;
   using InstArgs = List<ptr<Obj>>;
   using InstOpcode = string;
   using InstValue = Pair<InstArgs, InstFunction>;
+  ///
+  using Bool = Obj;
+  using Boolp = Objp;
+  using Int = Obj;
+  using Intp = Objp;
+  using Uri = Obj;
+  using Urip = Objp;
+  using Inst = Obj;
+  using Instp = Objp;
+  using Bytecode = Obj;
+  using Bytecodep = Objp;
+  using Objs = Obj;
+  using Objsp = Objp;
+
 
   static const Map<OType, const char *> OTYPE_STR = {{{OType::NOOBJ, "noobj"},
                                                       {OType::NOINST, "noinst"},
@@ -155,8 +168,8 @@ namespace fhatos {
     //////////////////////////////////////////
     struct obj_hash {
       size_t operator()(const Objp &obj) const {
-        return static_cast<std::string::value_type>(obj->o_domain()) ^
-               (obj->o_range() ? obj->_furi->toString().size() : 123) ^ obj->toString().length() ^ obj->toString()[0];
+        return static_cast<std::string::value_type>(obj->o_domain()) ^ obj->_furi->toString().size() ^
+               obj->toString().length() ^ obj->toString()[0];
       }
     };
 
@@ -189,11 +202,19 @@ namespace fhatos {
       }
       this->_value = map;
     }
+    Obj(const List<Obj> bcode) : _value(bcode), _furi(BCODE_FURI) {
+      List<Objp> list = this->bcode_value();
+      for (const Obj obj: bcode) {
+        list.push_back(share(obj));
+      }
+      this->_value = list;
+    }
     //////////////////////////////////////////////////////////////
     const OType o_domain() const { return STR_OTYPE.at(this->_furi->path(0, 1)); }
-    const OType o_range() const { return STR_OTYPE.at(this->_furi->path(1, 2)); }
+    const OType o_range() const { return STR_OTYPE.at(this->_furi->path(0, 1)); } // TODO
     const fURIp range() const { return this->_furi; }
     const fURIp domain() const { return this->_furi; }
+    const ID id() const { return *this->_furi; }
     template<typename _VALUE>
     const _VALUE value() const {
       return std::any_cast<_VALUE>(this->_value);
@@ -234,26 +255,28 @@ namespace fhatos {
       assert(OType::INST == o_range());
       return this->value<InstValue>();
     }
-    const string opcode() const {
+    const string inst_op() const {
       assert(OType::INST == o_range());
       return this->_furi->lastSegment();
     }
-
-    const List<Objp> arg() const {
+    const List<Objp> inst_args() const {
       assert(OType::INST == o_range());
       return this->inst_value().first;
     }
-
-    template<int index>
-    const Objp arg() const {
+    Objp inst_arg(const uint8_t index) const {
       assert(OType::INST == o_range());
       return this->inst_value().first.at(index);
     }
 
-    const InstFunction function() const {
+    const InstFunction inst_f() const {
       assert(OType::INST == o_range());
       return this->inst_value().second;
     }
+    List<Objp> bcode_value() const {
+      assert(OType::BYTECODE == o_range());
+      return this->value<List<Objp>>();
+    }
+
 
     const string toString() const {
       string objString;
@@ -284,10 +307,22 @@ namespace fhatos {
         }
         case OType::INST: {
           string t = "";
-          for (const auto &arg: this->inst_value()) {
+          for (const auto &arg: this->inst_value().first) {
             t += arg->toString() + ",";
           }
           objString = t.substr(0, t.length() - 1);
+          break;
+        }
+        case OType::BYTECODE: {
+          string s;
+          for (const auto &inst: this->bcode_value()) {
+            s.append(inst->toString() + '.');
+          }
+          objString = s.substr(0, s.length() - 1);
+          break;
+        }
+        case OType::NOOBJ: {
+          objString = "!bØ!!";
           break;
         }
         default:
@@ -307,6 +342,7 @@ namespace fhatos {
     bool operator>=(const Obj &other) const { return this->int_value() >= other.int_value(); }
     Obj operator*(const Obj &other) const { return Obj(this->int_value() * other.int_value(), this->_furi); }
     Obj operator+(const Obj &other) const { return Obj(this->int_value() + other.int_value(), this->_furi); }
+    Obj operator%(const Obj &other) const { return Obj(this->int_value() % other.int_value(), this->_furi); }
     bool operator!=(const Obj &other) const { return !(*this == other); }
     bool operator==(const Obj &other) const {
       if (!this->_furi->equals(*other._furi))
@@ -350,9 +386,21 @@ namespace fhatos {
         case OType::STR:
           return shared_from_this();
         case OType::INST:
-          return this->function()(lhs);
+          return this->inst_f()(lhs);
+        case OType::BYTECODE: {
+          ptr<Obj> currentObj = lhs;
+          for (const Instp &currentInst: this->bcode_value()) {
+            if (currentInst->isNoObj() || currentObj->isNoObj())
+              break;
+            LOG(DEBUG, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
+            currentObj = currentInst->apply(currentObj);
+          }
+          return currentObj; //(currentObj->type() == OType::URI) ? relativeUri((ptr<Uri>currentObj) : currentObj;
+        }
+        case OType::NOOBJ:
+          return Obj::to_noobj();
         default:
-          throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_range()));
+          throw fError("Unknown obj type in apply(): %s\n", OTYPE_STR.at(this->o_range()));
       }
     }
     const Objp
@@ -366,6 +414,19 @@ namespace fhatos {
     }
 
     Objp as(const fURIp &furi) const { return share(Obj(this->_value, furi)); }
+
+    const Instp nextInst(Instp currentInst) const {
+      if (currentInst->isNoObj())
+        return currentInst;
+      bool found = false;
+      for (const auto &inst: this->bcode_value()) {
+        if (found)
+          return inst;
+        if (inst == currentInst)
+          found = true;
+      }
+      return Obj::to_noobj();
+    }
 
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
     static Objp to_noobj() { return share(Obj(nullptr, NOOBJ_FURI)); }
@@ -397,7 +458,7 @@ namespace fhatos {
 
     static Objp to_uri(const char *value, const fURIp &furi = URI_FURI) {
       assert(furi->path(0, 1) == STR_OTYPE.at(OType::URI));
-      return share(Obj(value, furi);
+      return share(Obj(value, furi));
     }
 
     static Objp to_inst(const InstValue &value, const fURIp &furi = INST_FURI) {
@@ -406,11 +467,16 @@ namespace fhatos {
     }
 
     static Objp to_inst(const string opcode, const List<Objp> &args, const InstFunction &function,
-                        const fURIp &furi = share(fURI(string("/inst/") + opcode))) {
-      assert(furi->path(0, 1) == STR_OTYPE.at(OType::INST));
-      return share(Obj(std::make_pair<InstArgs, InstFunction>{args, function}, furi));
+                        const fURIp &furi = nullptr) {
+      const fURIp fix = !furi ? share(fURI(string("/inst/") + opcode)) : furi;
+      assert(fix->path(0, 1) == STR_OTYPE.at(OType::INST));
+      return share(Obj(std::make_pair(args, function), fix));
     }
 
+    static Objp to_bcode(const List<Objp> &insts, const fURIp &furi = BCODE_FURI) {
+      assert(furi->path(0, 1) == STR_OTYPE.at(OType::BYTECODE));
+      return share(Obj(insts, furi));
+    }
 
     template<typename SERIALIZER = PtrSerializer>
     const ptr<BObj> serialize() const {

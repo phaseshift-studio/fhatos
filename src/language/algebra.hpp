@@ -38,7 +38,7 @@ namespace fhatos {
     ////////////////////////////// CONTROL //////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    enum class BRANCH_SEMANTIC { SPLIT, CHAIN, SWITCH };
+    /*enum class BRANCH_SEMANTIC { SPLIT, CHAIN, SWITCH };
 
     static const char *BRNCH_TO_STR(const BRANCH_SEMANTIC brnch) {
       const static Map<const BRANCH_SEMANTIC, const char *> map = {
@@ -49,10 +49,10 @@ namespace fhatos {
     virtual const ptr<Obj> branch(const BRANCH_SEMANTIC branch, const ptr<Obj> incoming, const ptr<Obj> control) const {
       switch (branch) {
         case BRANCH_SEMANTIC::SPLIT: {
-          return NoObj::self_ptr();
+          return Obj::to_noobj();
         }
         case BRANCH_SEMANTIC::CHAIN: {
-          return NoObj::self_ptr();
+          return Obj::to_noobj();
         }
         case BRANCH_SEMANTIC::SWITCH: {
           for (const auto &[check, outgoing]: ((Rec *) control.get())->value()) {
@@ -60,11 +60,11 @@ namespace fhatos {
               return outgoing->apply(incoming);
             }
           }
-          return NoObj::self_ptr();
+          return Obj::to_noobj();;
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->otype()),
-                       OTYPE_STR.at(control->otype()));
+          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->o_range()),
+                       OTYPE_STR.at(control->o_domain()));
         }
       }
     }
@@ -255,6 +255,7 @@ namespace fhatos {
         }
       }
     }
+  };*/
   };
 } // namespace fhatos
 
