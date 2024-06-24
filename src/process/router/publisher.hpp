@@ -178,10 +178,7 @@ namespace fhatos {
   private:
     const Pattern makeTopic(const Pattern &relativeTopic) const {
       return relativeTopic.empty() ? Pattern(this->__id)
-                                   : (relativeTopic.toString()[0] == '/'
-                                          ? Pattern(this->__id.toString() + "/" + relativeTopic.toString().substr(1))
-                                          : relativeTopic)
-                                         .resolve(this->__id);
+                                   : Pattern(this->__id.resolve(relativeTopic.toString().c_str()));
     }
   };
 } // namespace fhatos

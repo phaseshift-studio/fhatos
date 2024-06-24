@@ -50,10 +50,6 @@ namespace fhatos {
       return Obj::to_inst("mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); });
     }
 
-    static Obj_p as(const Obj_p uri) {
-      return Obj::to_inst("as", {uri}, [uri](const Obj_p &lhs) { return lhs->as(share(uri->uri_value())); });
-    }
-
     static Obj_p bswitch(const Obj_p rec) {
       return Obj::to_inst("switch", {rec}, [rec](const Obj_p &lhs) {
         for (const auto &pair: rec->rec_value()) {

@@ -57,51 +57,51 @@ namespace fhatos {
           fluent = new Fluent(fluent->count());
         } else*/
         if (*opcode == "is") {
-          fluent = new Fluent(fluent->is(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->is(*args->at(0)));
         } else if (*opcode == "print") {
-          fluent = new Fluent(fluent->print(Obj(*args->at(0))));
-        } /* else if (*opcode == "ref") {
-           fluent = new Fluent(fluent->ref(URI_OR_BYTECODE(*args->at(0))));
-         } else if (*opcode == "dref") {
-           fluent = new Fluent(fluent->dref(URI_OR_BYTECODE(*args->at(0))));
-         } */
-        else if (*opcode == "switch") {
-          fluent = new Fluent(fluent->bswitch(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->print(*args->at(0)));
+        } else if (*opcode == "ref") {
+          fluent = new Fluent(fluent->ref(*args->at(0)));
+        } else if (*opcode == "dref") {
+          fluent = new Fluent(fluent->dref(*args->at(0)));
+        } else if (*opcode == "switch") {
+          fluent = new Fluent(fluent->bswitch(*args->at(0)));
         } else if (*opcode == "eq") {
-          fluent = new Fluent(fluent->eq(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->eq(*args->at(0)));
         } else if (*opcode == "neq") {
-          fluent = new Fluent(fluent->neq(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->neq(*args->at(0)));
         } else if (*opcode == "gt") {
-          fluent = new Fluent(fluent->gt(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->gt(*args->at(0)));
         } else if (*opcode == "gte") {
-          fluent = new Fluent(fluent->gte(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->gte(*args->at(0)));
         } else if (*opcode == "lt") {
-          fluent = new Fluent(fluent->lt(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->lt(*args->at(0)));
         } else if (*opcode == "lte") {
-          fluent = new Fluent(fluent->lte(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->lte(*args->at(0)));
         } else if (*opcode == "plus") {
-          fluent = new Fluent(fluent->plus(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->plus(*args->at(0)));
         } else if (*opcode == "mult") {
-          fluent = new Fluent(fluent->mult(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->mult(*args->at(0)));
         } else if (*opcode == "mod") {
-          fluent = new Fluent(fluent->mod(Obj(*args->at(0))));
+          fluent = new Fluent(fluent->mod(*args->at(0)));
         } else if (*opcode == "start") {
           fluent = new Fluent(fluent->start(*args));
         } /*else if (*opcode == "select") {
           fluent = new Fluent(args->at(0)->type() == OType::REC ? fluent->select(args->at(0)->cast<Rec>())
                                                                 : fluent->select(*args));
-        } */else if (*opcode == "as") {
-          fluent = new Fluent(fluent->as(Obj(*args->at(0))));
-        } /*else if (*opcode == "define") {
-          fluent = new Fluent(fluent->define(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
-        } else if (*opcode == "explain") {
-          fluent = new Fluent(fluent->explain());
-        } else if (*opcode == "<=") {
-          fluent = new Fluent(fluent->publish(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
-        } else if (*opcode == "=>") {
-          fluent = new Fluent(fluent->subscribe(URI_OR_BYTECODE(*args->at(0)), *args->at(1)));
         } */
-        else {
+        else if (*opcode == "as") {
+          fluent = new Fluent(fluent->as(*args->at(0)));
+        } else if (*opcode == "define") {
+          fluent = new Fluent(fluent->define(*args->at(0), *args->at(1)));
+        } /*else if (*opcode == "explain") {
+          fluent = new Fluent(fluent->explain());
+        } */
+        else if (*opcode == "<=") {
+          fluent = new Fluent(fluent->publish(*args->at(0), *args->at(1)));
+        } else if (*opcode == "=>") {
+          fluent = new Fluent(fluent->subscribe(*args->at(0), *args->at(1)));
+        } else {
           throw fError("Unknown instruction opcode: !b%s!!\n", opcode->c_str());
         }
         LOG(DEBUG, FOS_TAB "INST: %s\n", fluent->bcode->bcode_value().back()->toString().c_str());
@@ -193,7 +193,7 @@ namespace fhatos {
       LOG(DEBUG, FOS_TAB_4 "!rTOKEN!!: %s\n", token.c_str());
       StringHelper::trim(token);
       int index = token.find('[');
-      fURI_p utype = fURI_p((fURI*)nullptr);
+      fURI_p utype = fURI_p((fURI *) nullptr);
       if (index != string::npos && index != 0 && token.back() == ']') {
         string typeToken = token.substr(0, index);
         // bool hasAuthority = typeToken.find('@') != std::string::npos;
