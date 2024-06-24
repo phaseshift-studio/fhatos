@@ -274,16 +274,13 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keyword">private</span>:</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="keyword">const</span> Pattern makeTopic(<span class="keyword">const</span> Pattern &amp;relativeTopic)<span class="keyword"> const </span>{</div>
 <div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      <span class="keywordflow">return</span> relativeTopic.empty() ? Pattern(this-&gt;__id)</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>                                   : (relativeTopic.toString()[0] == <span class="stringliteral">&#39;/&#39;</span></div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>                                          ? Pattern(this-&gt;__id.toString() + <span class="stringliteral">&quot;/&quot;</span> + relativeTopic.toString().substr(1))</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>                                          : relativeTopic)</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>                                         .resolve(this-&gt;__id);</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    }</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  };</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>                                   : Pattern(this-&gt;__id.resolve(relativeTopic.toString().c_str()));</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    }</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  };</div>
 </div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:387</div></div>
 <div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:442</div></div>
 <div class="ttc" id="aclassfhatos_1_1Pattern_html"><div class="ttname"><a href="classfhatos_1_1Pattern.html">fhatos::Pattern</a></div><div class="ttdef"><b>Definition</b> furi.hpp:416</div></div>
