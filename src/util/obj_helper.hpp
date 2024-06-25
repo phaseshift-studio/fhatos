@@ -42,7 +42,7 @@ namespace fhatos {
         throw fError("Expected %s and received %s: %s\n", OTYPE_STR.at(O_RANGE), typeChars(a), a->toString().c_str());
       return a;
     }
-    static const string objAnalysis(const ptr<Obj> obj, const string &value = "argument required") {
+    static const string objAnalysis(const Obj &obj) {
       char a[250];
       sprintf(a,
               "!b%s!! structure:\n"
@@ -51,9 +51,9 @@ namespace fhatos {
               "\t!gsize!!  (bytes) : %lu\n"
               "\t!gbcode!!         : %s\n"
               "\t!gvalue!!         : %s",
-              obj->id()->lastSegment().c_str(), obj->id()->toString().c_str(), OTYPE_STR.at(obj->o_range()),
-              OTYPE_STR.at(obj->o_domain()), sizeof(*obj), FOS_BOOL_STR(obj->isBytecode()),
-              obj->isBytecode() ? obj->toString().c_str() : value.c_str());
+              obj.id()->lastSegment().c_str(), obj.id()->toString().c_str(), OTYPE_STR.at(obj.o_range()),
+              OTYPE_STR.at(obj.o_domain()), sizeof(obj), FOS_BOOL_STR(obj.isBytecode()),
+              obj.isBytecode() ? obj.toString().c_str() : obj.toString(false).c_str());
       return string(a);
     }
   };

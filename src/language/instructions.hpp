@@ -52,7 +52,7 @@ namespace fhatos {
 
     static Obj_p bswitch(const Obj_p rec) {
       return Obj::to_inst("switch", {rec}, [rec](const Obj_p &lhs) {
-        for (const auto &pair: rec->rec_value()) {
+        for (const auto &pair: *rec->rec_value()) {
           if (!pair.first->apply(lhs)->isNoObj())
             return pair.second->apply(lhs);
         }
@@ -104,7 +104,8 @@ namespace fhatos {
       return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) {
         Obj_p t = ROUTER::singleton()->read("123", type->apply(lhs)->uri_value());
         if (t->apply(lhs)->isNoObj()) {
-          LOG(ERROR, "%s is not a %s\n", lhs->toString().c_str(), type->toString().c_str());
+          LOG(ERROR, "[!ytyping!!] %s is not a %s[%s]\n", lhs->toString().c_str(), type->toString().c_str(),
+              t->toString().c_str());
           return Obj::to_noobj();
         }
         return lhs->as(share(type->uri_value()));
@@ -112,8 +113,8 @@ namespace fhatos {
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p ref(const Uri_p &uri) {
-      return Obj::to_inst("ref", {uri}, [uri](const Obj_p &lhs) {
+    static Obj_p to(const Uri_p &uri) {
+      return Obj::to_inst("to", {uri}, [uri](const Obj_p &lhs) {
         RESPONSE_CODE _rc = ROUTER::singleton()->write(lhs, "123", uri->apply(lhs)->uri_value());
         if (_rc)
           LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
@@ -122,8 +123,8 @@ namespace fhatos {
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p dref(const Uri_p &uri) {
-      return Obj::to_inst("dref", {uri}, [uri](const Obj_p &lhs) {
+    static Obj_p from(const Uri_p &uri) {
+      return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
         return ROUTER::singleton()->read("123", uri->apply(lhs)->uri_value());
       });
     }
@@ -167,7 +168,52 @@ namespace fhatos {
         explicit CountInst() :
             ManyToOneInst("count", {}, [](const Obj *obj) { return new Int(((Objs *) obj)->value()->size()); }) {}
       };*/
+
+    static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
+      if (type == INST_FURI->resolve("as"))
+        return Insts::as(args.at(0));
+      if (type == INST_FURI->resolve("define"))
+        return Insts::define(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("is"))
+        return Insts::is(args.at(0));
+      if (type == INST_FURI->resolve("plus"))
+        return Insts::plus(args.at(0));
+      if (type == INST_FURI->resolve("mult"))
+        return Insts::mult(args.at(0));
+      if (type == INST_FURI->resolve("mod"))
+        return Insts::mod(args.at(0));
+      if (type == INST_FURI->resolve("eq"))
+        return Insts::eq(args.at(0));
+      if (type == INST_FURI->resolve("neq"))
+        return Insts::neq(args.at(0));
+      if (type == INST_FURI->resolve("gte"))
+        return Insts::gte(args.at(0));
+      if (type == INST_FURI->resolve("gt"))
+        return Insts::gt(args.at(0));
+      if (type == INST_FURI->resolve("lte"))
+        return Insts::lte(args.at(0));
+      if (type == INST_FURI->resolve("lt"))
+        return Insts::lt(args.at(0));
+      if (type == INST_FURI->resolve("to"))
+        return Insts::to(args.at(0));
+      if (type == INST_FURI->resolve("from"))
+        return Insts::to(args.at(0));
+      if (type == INST_FURI->resolve("publish"))
+        return Insts::publish(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("subscribe"))
+        return Insts::subscibe(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("print"))
+        return Insts::print(args.at(0));
+      if (type == INST_FURI->resolve("start"))
+        return Insts::start(args);
+      if (type == INST_FURI->resolve("switch"))
+        return Insts::bswitch(args.at(0));
+      if (type == INST_FURI->resolve("explain"))
+        return Insts::explain();
+      throw fError("Unknown instruction: %s\n", type.toString().c_str());
+    }
   };
+
   /*template<typename ROUTER = FOS_DEFAULT_ROUTER>
   static Objp select(List<Obj> uris) {}
   class SelectInst final : public OneToOneInst {

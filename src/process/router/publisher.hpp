@@ -41,7 +41,7 @@ namespace fhatos {
                                     const QoS qos = QoS::_1) {
       return ROUTER::singleton()->subscribe(Subscription{.mailbox = this->mailbox,
                                                          .source = this->__id,
-                                                         .pattern = makeTopic(relativePattern),
+                                                         .pattern = /*makeTopic(*/relativePattern/*)*/,
                                                          .qos = qos,
                                                          .onRecv = onRecv});
     }
@@ -90,7 +90,7 @@ namespace fhatos {
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
-      return ROUTER::singleton()->unsubscribe(this->__id, makeTopic(relativePattern));
+      return ROUTER::singleton()->unsubscribe(this->__id, /*makeTopic(*/relativePattern/*)*/);
     }
 
     virtual RESPONSE_CODE unsubscribeSource() { return ROUTER::singleton()->unsubscribeSource(this->__id); }
@@ -101,7 +101,7 @@ namespace fhatos {
     /// PUBLISH
      RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj>& payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
-      return ROUTER::singleton()->publish(Message{.source = this->__id, .target = makeTopic(relativeTarget), .payload = payload, .retain = retain});
+      return ROUTER::singleton()->publish(Message{.source = this->__id, .target = /*makeTopic(*/relativeTarget/*)*/, .payload = share(Obj(*payload)), .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////

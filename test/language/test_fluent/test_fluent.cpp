@@ -7,7 +7,6 @@
 #include <test_fhatos.hpp>
 
 namespace fhatos {
-
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
@@ -78,9 +77,9 @@ namespace fhatos {
 */
 
   void test_ref_dref() {
-    FOS_CHECK_RESULTS<Int>({2}, __(1).ref(u("a")).plus(_.dref(u("a"))), {{u("a"), 1}});
-    FOS_CHECK_RESULTS<Int>({23}, __(10).ref(u("a")).plus(3).plus(_.dref(u("a"))), {{u("a"), 10}});
-    FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").ref(u("a")).plus("os"), {{u("a"), "fhat"}});
+    FOS_CHECK_RESULTS<Int>({2}, __(1).to(u("a")).plus(_.from(u("a"))), {{u("a"), 1}});
+    FOS_CHECK_RESULTS<Int>({23}, __(10).to(u("a")).plus(3).plus(_.from(u("a"))), {{u("a"), 10}});
+    FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").to(u("a")).plus("os"), {{u("a"), "fhat"}});
     /* FOS_CHECK_RESULTS<Str>(
          {"fhaty", "pigy"},
          __({"fhat", "pig"}).bswitch({{_.is(_.gt("gonzo")), _.ref(u("b"))}, {_, _.ref(u("c"))}}).plus("y"),
@@ -115,7 +114,7 @@ namespace fhatos {
     //
     FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b"}, __("http://fhatos.org").plus("/a").plus("/b"));
     FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b", "fhat.pig/a/b"},
-                           __({"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));
+                           __(List<Obj>{"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));
     //
     FOS_CHECK_RESULTS<Rec>({{{"a", 1}, {"b", 2}, {"c", 3}}},
                            __(Rec{{"a", 1}}).plus({{"b", 2}}).plus({{"c", 3}, {"d", 4}}));
@@ -132,6 +131,7 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.is(_.gt(0))), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).as(u("/int/nat")), {{u("/int/nat"), _.is(_.gt(0))}}, false);
   }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_ref_dref); //
       FOS_RUN_TEST(test_plus); //

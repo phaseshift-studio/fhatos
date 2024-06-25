@@ -55,7 +55,7 @@ namespace fhatos {
       return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
         //////////////
         RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
-        const ptr<Message> mess_ptr = share<Message>(message);
+        const ptr<Message> mess_ptr = share<Message>(Message(message));
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(message.target)) {
             try {

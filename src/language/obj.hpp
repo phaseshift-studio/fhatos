@@ -79,6 +79,8 @@ namespace fhatos {
 
   class Obj;
   using Obj_p = ptr<Obj>;
+  using NoObj = Obj;
+  using NoObj_p = Obj_p;
   using fURI_p = ptr<fURI>;
   using Bool = Obj;
   using Bool_p = Obj_p;
@@ -196,6 +198,8 @@ namespace fhatos {
 
     template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap = OrderedMap<K, V, H, Q>;
+    template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
+    using RecMap_p = ptr<RecMap<K, V, H, Q>>;
     virtual ~Obj() = default;
     explicit Obj(const Any &value, const fURI_p &furi) : _value(value), _furi(furi) {}
     /////
@@ -217,11 +221,11 @@ namespace fhatos {
         Obj(Any(xstr), RESOLVE(STR_FURI, share(fURI(furi)))) {}
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *furi = REC_FURI->toString().c_str()) :
         Obj(Any(xrec), RESOLVE(REC_FURI, share(fURI(furi)))) {
-      RecMap<> map = RecMap<>();
+      auto map = ptr<RecMap<>>(new RecMap<>());
       for (const auto &pair: xrec) {
-        map.insert(make_pair(share(pair.first), share(pair.second)));
+        map->insert(make_pair(share(pair.first), share(pair.second)));
       }
-      this->_value = std::move(map);
+      this->_value = map;
     }
     Obj(const List<Inst> &bcode, const char *furi = BCODE_FURI->toString().c_str()) :
         Obj(Any(bcode), RESOLVE(BCODE_FURI, share(fURI(furi)))) {
@@ -263,18 +267,23 @@ namespace fhatos {
       assert(OType::STR == o_range());
       return this->value<string>();
     }
-    RecMap<> rec_value() const {
+    RecMap_p<> rec_value() const {
       assert(OType::REC == o_range());
-      return this->value<RecMap<>>();
+      return this->value<RecMap_p<>>();
     }
     Obj_p rec_get(const Obj_p &key) const {
       assert(OType::REC == o_range());
-      return this->rec_value().count(key) ? this->rec_value().at(key) : Obj::to_noobj();
+      return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
-    void rec_set(Obj_p &key, const Obj_p &val) const {
+    Obj_p rec_get(const Obj &key) const { return Obj::rec_get(share(key)); }
+    void rec_set(const Obj_p &key, const Obj_p &val) const {
       assert(OType::REC == o_range());
-      this->rec_value().emplace(key, val);
+      this->rec_value()->erase(key);
+      if (!val->isNoObj())
+        this->rec_value()->insert({key, val});
     }
+    void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
+    void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
     const InstValue inst_value() const {
       assert(OType::INST == o_range());
       return this->value<InstValue>();
@@ -301,7 +310,7 @@ namespace fhatos {
       return this->value<List<Obj_p>>();
     }
 
-    const string toString() const {
+    const string toString(const bool includeType = true) const {
       string objString;
       switch (this->o_range()) {
         case OType::BOOL:
@@ -322,7 +331,7 @@ namespace fhatos {
         case OType::REC: {
           objString = "!m[!!";
           bool first = true;
-          for (const auto &[k, v]: this->rec_value()) {
+          for (const auto &[k, v]: *this->rec_value()) {
             if (first) {
               first = false;
             } else {
@@ -368,10 +377,13 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_range()));
       }
-      return this->_furi->pathLength() > 1
-                 ? (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!b/!!")) +
-                       ("!b" + this->_furi->lastSegment() + "!g[!!" + objString + "!g]!!")
-                 : (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!!")) + objString;
+      return includeType
+                 ? (this->_furi->pathLength() > 1
+                        ? (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!b/!!")) +
+                              ("!b" + this->_furi->lastSegment() + "!g[!!" + objString + "!g]!!")
+                        : (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!!")) +
+                              objString)
+                 : objString;
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     bool operator&&(const Obj &rhs) const { return this->bool_value() && rhs.bool_value(); }
@@ -394,13 +406,13 @@ namespace fhatos {
         //   return Obj(this->str_value() + rhs.str_value(), this->id());
         case OType::REC: {
           auto map = RecMap<>();
-          auto itB = rhs.rec_value().begin();
-          for (auto itA = this->rec_value().begin(); itA != this->rec_value().end(); ++itA) {
+          auto itB = rhs.rec_value()->begin();
+          for (auto itA = this->rec_value()->begin(); itA != this->rec_value()->end(); ++itA) {
             map.insert(std::make_pair(share(Obj((*itA->first) * (*itB->first), itA->first->id())),
                                       share(Obj((*itA->second) * (*itB->second), itA->second->id()))));
             ++itB;
           }
-          return Obj(map, this->id());
+          return Obj(share(map), this->id());
         }
         default:
           throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_range()));
@@ -419,12 +431,12 @@ namespace fhatos {
         case OType::STR:
           return Obj(this->str_value() + rhs.str_value(), this->id());
         case OType::REC: {
-          RecMap<> map = RecMap<>();
-          for (const auto &pair: this->rec_value()) {
-            map.insert(pair);
+          RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
+          for (const auto &pair: *this->rec_value()) {
+            map->insert(pair);
           }
-          for (const auto &pair: rhs.rec_value()) {
-            map.insert(pair);
+          for (const auto &pair: *rhs.rec_value()) {
+            map->insert(pair);
           }
           return Obj(map, this->id());
         }
@@ -453,8 +465,8 @@ namespace fhatos {
           auto pairsB = other.rec_value();
           // if (pairsA.size() != pairsB.size())
           //  return false;
-          auto itB = pairsB.begin();
-          for (const auto &itA: pairsA) {
+          auto itB = pairsB->begin();
+          for (const auto &itA: *pairsA) {
             if (*itA.first != *itB->first || *itA.second != *itB->second)
               return false;
             ++itB;
@@ -566,68 +578,68 @@ namespace fhatos {
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
     static Obj_p to_noobj() { return share(Obj(nullptr, NOOBJ_FURI)); }
 
-    static Obj_p to_bool(const bool value, const fURI_p &furi = BOOL_FURI) {
+    static Bool_p to_bool(const bool value, const fURI_p &furi = BOOL_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::BOOL));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_int(const FL_INT_TYPE value, const fURI_p &furi = INT_FURI) {
+    static Int_p to_int(const FL_INT_TYPE value, const fURI_p &furi = INT_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::INT));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_real(const FL_REAL_TYPE value, const fURI_p &furi = REAL_FURI) {
+    static Real_p to_real(const FL_REAL_TYPE value, const fURI_p &furi = REAL_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::REAL));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_str(const string &value, const fURI_p &furi = STR_FURI) {
+    static Str_p to_str(const string &value, const fURI_p &furi = STR_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::STR));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_str(const char *value, const fURI_p &furi = STR_FURI) {
+    static Str_p to_str(const char *value, const fURI_p &furi = STR_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::STR));
       return share(Obj(string(value), furi));
     }
 
-    static Obj_p to_uri(const fURI &value, const fURI_p &furi = URI_FURI) {
+    static Uri_p to_uri(const fURI &value, const fURI_p &furi = URI_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::URI));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_uri(const char *value, const fURI_p &furi = URI_FURI) {
+    static Uri_p to_uri(const char *value, const fURI_p &furi = URI_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::URI));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_rec(const RecMap<> &map, const fURI_p &furi = REC_FURI) {
+    static Rec_p to_rec(const RecMap<> &map, const fURI_p &furi = REC_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::REC));
-      return share(Obj(map, furi));
+      return share(Obj(share(map), furi));
     }
 
-    static Obj_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const fURI_p &furi = REC_FURI) {
+    static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const fURI_p &furi = REC_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::REC));
       RecMap<> map = RecMap<>();
       for (const auto &pair: xrec) {
         map.insert(make_pair(share(pair.first), share(pair.second)));
       }
-      return share(Rec(map, furi));
+      return share(Rec(share(map), furi));
     }
 
-    static Obj_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
+    static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::INST));
       return share(Obj(value, furi));
     }
 
-    static Obj_p to_inst(const string opcode, const List<Obj_p> &args, const InstFunction &function,
-                         const fURI_p &furi = nullptr) {
+    static Inst_p to_inst(const string opcode, const List<Obj_p> &args, const InstFunction &function,
+                          const fURI_p &furi = nullptr) {
       const fURI_p fix = !furi ? share(fURI(string("/inst/") + opcode)) : furi;
       assert(fix->path(0, 1) == OTYPE_STR.at(OType::INST));
       return share(Obj(std::make_pair(args, function), fix));
     }
 
-    static Obj_p to_bcode(const List<Obj_p> &insts, const fURI_p &furi = BCODE_FURI) {
+    static BCode_p to_bcode(const List<Obj_p> &insts, const fURI_p &furi = BCODE_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::BCODE));
       return share(Obj(insts, furi));
     }
@@ -653,41 +665,6 @@ namespace fhatos {
   static Uri u(const char *uri) { return Uri(fURI(uri)); }
 
 } // namespace fhatos
-// namespace fhatos
-///////////////////////////////////////////////////
-////////////////////// TYPE //////////////////////
-//////////////////////////////////////////////////
-/// An mm-ADT type encoded in a URI
-/*class Type : public Obj {
-public:
-  explicit Type(const ptr<fURI> &furi) : Obj(furi, TYPE_FURI) {}
-  ptr<fURI> v_furi() const { return std::any_cast<ptr<fURI>>(std::get<0>(this->_var)); }
-  OType instanceOType() { return STR_OTYPE.at(this->v_furi()->path(0, 1)); }
-  string variable() const { return this->v_furi()->user().value_or(""); }
-  string name() const { return this->v_furi()->path(this->v_furi()->pathLength() - 1); }
-  string stype() const { return this->v_furi()->path(); }
-  string location() const { return this->v_furi()->host(); }
-  bool mutating() const { return this->variable()[0] == '~'; }
-  string objString(const string &objString) const {
-    return this->v_furi()->pathLength() > 1
-               ? (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!b/!!")) +
-                     ("!b" + this->name() + "!g[!!" + objString + "!g]!!")
-               : (this->variable().empty() ? "" : ("!b" + this->variable() + "!g@!!")) + objString;
-  }
-  string toString() const override { return this->v_furi()->toString(); }
-  static ptr<fURI> obj_t(const OType &otype, const char *utype) {
-    string typeToken = string(utype);
-    bool hasAuthority = typeToken.find('@') != std::string::npos;
-    bool hasSlash = typeToken.starts_with("/");
-    fURI temp = fURI(hasAuthority ? typeToken : hasSlash ? typeToken : "/" + typeToken);
-    fURI temp2 = fURI(string("/") + OTYPE_STR.at(otype) + (temp.path().empty() ? "" : ("/" + temp.path())));
-    fURI temp3 = temp2.authority(temp.authority());
-    return ptr<fURI>(new fURI(temp3));
-  }
-  static ptr<fURI> obj_t(const OType &otype, const ptr<fURI> &utype) {
-    return Type::obj_t(otype, utype.get() ? utype->toString().c_str() : "");
-  }
-};*/
 
 
 #endif

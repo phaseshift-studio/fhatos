@@ -41,7 +41,7 @@ namespace fhatos {
 
     void loop() override {
       Thread::loop();
-      string line = "";
+      string line;
       while (true) {
         this->printPrompt();
         line.clear();
@@ -57,16 +57,16 @@ namespace fhatos {
           } else if (line.starts_with(":log ")) {
             string level = line.substr(5);
             if (!STR_LOGTYPE.count(level)) {
-              LOG(ERROR, "A valid log level required (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str());
+              this->printException(fError("A valid log level required (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str()));
             } else {
               LOGGING_LEVEL = STR_LOGTYPE.at(level);
             }
           }
         } else {
           try {
-            const Obj_p obj = Parser::parseObj(line);
+            const Obj_p obj = Parser::tryParseObj(line).value();
             if (obj->isBytecode()) {
-              const ptr<Fluent<>> fluent = this->parser->parseToFluent(line.c_str());
+              const Fluent<> fluent = Fluent<>(obj->as("/bcode"));
               this->printResults(fluent);
             } else {
               this->printResult(obj);
@@ -79,39 +79,14 @@ namespace fhatos {
         }
       }
     }
-
     void stop() override { Thread::stop(); }
-
-    void printException(const std::exception &ex) const { this->ansi->printf("[!rERROR!!] %s\n", ex.what()); }
-
+    ///// printers
+    void printException(const std::exception &ex) const { this->ansi->printf("!r[ERROR]!! %s", ex.what()); }
     void printPrompt() const { this->ansi->print("!mfhatos!!> "); }
-
     void printResults(const ptr<Fluent<>> &fluent) const {
       fluent->forEach<Obj>([this](const Obj_p obj) { this->printResult(obj); });
     }
-
-
-    void printResult(const Obj_p &obj) const {
-      if (obj->o_range() == OType::REC)
-        this->printRec(obj);
-      else
-        this->ansi->printf("!g==!!>%s\n", obj->toString().c_str());
-    }
-
-    void printRec(const Rec_p &rec, int i = 0) const {
-      this->ansi->printf("!g==!!>!y%s!![", rec->id() ? rec->id()->toString().c_str() : "");
-      const int size = rec->rec_value().size();
-      for (const auto &[key, value]: rec->rec_value()) {
-        if (i > 0)
-          this->ansi->print("    ");
-        this->ansi->printf("%s !b=>!! %s", key->toString().c_str(), value->toString().c_str());
-        i++;
-        if (i < size) {
-          this->ansi->print("\n");
-        }
-      }
-      this->ansi->printf("]\n");
-    }
+    void printResult(const Obj_p &obj) const { this->ansi->printf("!g==>!!%s\n", obj->toString().c_str()); }
   };
 } // namespace fhatos
 

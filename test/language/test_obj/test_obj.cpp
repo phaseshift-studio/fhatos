@@ -15,7 +15,7 @@ namespace fhatos {
   void test_bool() {
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
     const Bool_p boolB = share(Bool(false, "truth"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolA, string(boolA->bool_value() ? "true" : "false")).c_str());
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/bool/truth"), *boolA->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/bool/truth"), *boolB->id());
     FOS_TEST_OBJ_NOT_EQUAL(boolA, boolB);
@@ -44,7 +44,7 @@ namespace fhatos {
     const Int_p intD = ptr<Int>(new Int(2, "nat"));
     ///
     const Int_p int5 = share(Int(5, "age"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(int5, std::to_string(int5->int_value())).c_str());
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*int5).c_str());
 
     TEST_ASSERT_FALSE(intA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("/int", intA->id()->toString().c_str());
@@ -85,52 +85,66 @@ namespace fhatos {
   }
 
   void test_str() {
-    const Str_p strA = share(Str("fhat", "first_name"));
+    const Str strA = Str("fhat", "first_name");
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
-    TEST_ASSERT_FALSE(strA->isBytecode());
-    TEST_ASSERT_EQUAL_STRING("fhat", strA->str_value().c_str());
-    TEST_ASSERT_EQUAL(OType::STR, strA->o_range());
+    TEST_ASSERT_FALSE(strA.isBytecode());
+    TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
+    TEST_ASSERT_EQUAL(OType::STR, strA.o_range());
   }
 
-  /* void test_rec() {
-     const Rec recA = Rec({{new Str("a"), new Int(1)}, {new Str("b"), new Int(2)}});
-     const Rec recB = Rec({{new Str("a"), new Int(1)}, {new Str("b"), new Int(2)}});
-     const Rec recC = Rec({{new Str("a", share<fURI>(fURI("letter"))), new Int(1)},
-                           {new Str("b", share<fURI>(fURI("letter"))), new Int(2)}});
-     TEST_ASSERT_TRUE(recA == recB);
-     TEST_ASSERT_FALSE(recA == recC);
-   }
+  void test_rec() {
+    const Rec recA = Rec({{"a", 1}, {"b", 2}});
+    const Rec recB = Rec({{"a", 1}, {"b", 2}});
+    const Rec recC = Rec({{Str("a", "letter"), 1}, {Str("b", "letter"), 2}}, "mail");
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recC).c_str());
+    TEST_ASSERT_TRUE(recA == recB);
+    TEST_ASSERT_FALSE(recA != recB);
+    TEST_ASSERT_FALSE(recA == recC);
+    TEST_ASSERT_TRUE(recA != recC);
+    ////
+    TEST_ASSERT_EQUAL_INT(1, recA.rec_get("a")->int_value());
+    TEST_ASSERT_EQUAL_INT(2, recA.rec_get("b")->int_value());
+    TEST_ASSERT_TRUE(recA.rec_get("c")->isNoObj());
+    recA.rec_set("b", 12);
+    TEST_ASSERT_EQUAL_INT(12, recA.rec_get("b")->int_value());
+    recA.rec_set("b", Real(202.5f, "cost"));
+    TEST_ASSERT_FLOAT_WITHIN(0.1f, 202.5f, recA.rec_get("b")->real_value());
+    recA.rec_delete("b");
+    TEST_ASSERT_TRUE(recA.rec_get("b")->isNoObj());
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recA).c_str());
+  }
 
-   void test_base_obj_strings() {
-     TEST_ASSERT_EQUAL_STRING("true", Bool(true).toString().c_str());
-     TEST_ASSERT_EQUAL_STRING("false", Bool(false).toString().c_str());
-     for (FL_INT_TYPE i = -100; i < 100; i++) {
-       TEST_ASSERT_EQUAL_INT32(i, Int(i).v_int());
-       TEST_ASSERT_EQUAL_STRING(std::to_string(i).c_str(), Int(i).toString().c_str());
-     }
-     for (FL_REAL_TYPE r = -100.00f; r < 100.00f; r = r + 0.8024f) {
-       TEST_ASSERT_EQUAL_FLOAT(r, Real(r).v_real());
-       TEST_ASSERT_FLOAT_WITHIN(0.1f, r, Real(r).v_real());
-       TEST_ASSERT_EQUAL_STRING(std::to_string(r).c_str(), Real(r).toString().c_str());
-     }
-     TEST_ASSERT_EQUAL_STRING("fhatty_fhat_fhat", Str("fhatty_fhat_fhat").toString().c_str());
-   }
+  /*void test_base_obj_strings() {
+    TEST_ASSERT_EQUAL_STRING("true", Bool(true).toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("false", Bool(false).toString().c_str());
+    for (FL_INT_TYPE i = -100; i < 100; i++) {
+      TEST_ASSERT_EQUAL_INT32(i, Int(i).v_int());
+      TEST_ASSERT_EQUAL_STRING(std::to_string(i).c_str(), Int(i).toString().c_str());
+    }
+    for (FL_REAL_TYPE r = -100.00f; r < 100.00f; r = r + 0.8024f) {
+      TEST_ASSERT_EQUAL_FLOAT(r, Real(r).v_real());
+      TEST_ASSERT_FLOAT_WITHIN(0.1f, r, Real(r).v_real());
+      TEST_ASSERT_EQUAL_STRING(std::to_string(r).c_str(), Real(r).toString().c_str());
+    }
+    TEST_ASSERT_EQUAL_STRING("fhatty_fhat_fhat", Str("fhatty_fhat_fhat").toString().c_str());
+  }
 
-   void test_rec(){
-    Rec rec = Rec{{Str("name"),Str("none")},{Str("title"),Str("dogturd")}};
-    ;
-    FOS_TEST_MESSAGE("%s",rec.toString().c_str());
-    FOS_TEST_MESSAGE("%s",CharSerializer::fromRec(rec).toString().c_str());
+  void test_rec(){
+   Rec rec = Rec{{Str("name"),Str("none")},{Str("title"),Str("dogturd")}};
+   ;
+   FOS_TEST_MESSAGE("%s",rec.toString().c_str());
+   FOS_TEST_MESSAGE("%s",CharSerializer::fromRec(rec).toString().c_str());
 
-   }*/
+  }*/
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //
       FOS_RUN_TEST(test_str); //
-                              // FOS_RUN_TEST(test_base_obj_strings); //
-                              // FOS_RUN_TEST(test_rec); //
-                              // FOS_RUN_TEST(test_int); //
+      FOS_RUN_TEST(test_rec); //
+      // FOS_RUN_TEST(test_base_obj_strings);
+
+      // FOS_RUN_TEST(test_int); //
   )
 
 

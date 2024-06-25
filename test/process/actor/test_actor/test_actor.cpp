@@ -22,8 +22,8 @@ namespace fhatos {
     std::atomic<int> *counter1 = new std::atomic<int>(0);
     std::atomic<int> *counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread, ROUTER>(ID("actor1@127.0.0.1"), [counter1](Actor<Thread, ROUTER> *self) {
-      self->subscribe(ID("actor1@"), [counter1, self](const ptr<Message> &message) {
-        self->publish(ID("actor2@"), share<Int>(Int(counter1->load())), TRANSIENT_MESSAGE);
+      self->subscribe(ID("actor1@127.0.0.1"), [counter1, self](const ptr<Message> &message) {
+        self->publish(ID("actor2@127.0.0.1"), share(Int(counter1->load())), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
           self->stop();
         // Scheduler<>::singleton()->destroy(self->id());
@@ -32,10 +32,10 @@ namespace fhatos {
       });
     });
     auto *actor2 = new Actor<Thread, ROUTER>(ID("actor2@127.0.0.1"), [counter2](Actor<Thread, ROUTER> *self) {
-      self->subscribe(ID("actor2@"), [self, counter2](const ptr<Message> &message) {
+      self->subscribe(ID("actor2@127.0.0.1"), [self, counter2](const ptr<Message> &message) {
         FOS_TEST_ASSERT_EQUAL_FURI(ID("actor1@127.0.0.1"), message->source);
         FOS_TEST_ASSERT_EQUAL_FURI(self->id(), message->target);
-        self->publish(ID("actor1@"), share<Int>(Int(counter2->load())), TRANSIENT_MESSAGE);
+        self->publish(ID("actor1@127.0.0.1"), share(Int(counter2->load())), TRANSIENT_MESSAGE);
         if (counter2->fetch_add(1) > 198)
           self->stop();
         // Scheduler<>::singleton()->destroy(self->id());
@@ -43,7 +43,7 @@ namespace fhatos {
     });
     Scheduler<>::singleton()->spawn(actor1);
     Scheduler<>::singleton()->spawn(actor2);
-    actor1->publish("actor2@", share<Str>(Str("START!")), TRANSIENT_MESSAGE);
+    actor1->publish("actor2@127.0.0.1", share(Str("START")), TRANSIENT_MESSAGE);
     Scheduler<>::singleton()->barrier("no_actors");
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
@@ -87,7 +87,7 @@ namespace fhatos {
                         TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
                       }));
 
-    actor2->publish(actor1->id(), share<Str>(Str("ping")), TRANSIENT_MESSAGE);
+    actor2->publish(actor1->id(), share(Str("ping")), TRANSIENT_MESSAGE);
     actor1->loop();
     actor2->loop();
     actor1->loop();

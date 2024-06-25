@@ -111,8 +111,8 @@ namespace fhatos {
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent ref(const Uri &uri) { return this->addInst(Insts::ref(share(uri))); }
-    Fluent dref(const Uri &uri) { return this->addInst(Insts::dref(share(uri))); }
+    Fluent to(const Uri &uri) { return this->addInst(Insts::to(share(uri))); }
+    Fluent from(const Uri &uri) { return this->addInst(Insts::from(share(uri))); }
 
     /*Fluent explain() { return this->addInst(new ExplainInst()); }
 
