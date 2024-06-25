@@ -151,7 +151,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keyword">const</span> RESPONSE_CODE publish(<span class="keyword">const</span> <a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a> &amp;message)<span class="keyword"> override </span>{</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keywordflow">return</span> MUTEX_SUBSCRIPTIONS.read&lt;RESPONSE_CODE&gt;([<span class="keyword">this</span>, message] {</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keyword">const</span> ptr&lt;Message&gt; mess_ptr = share&lt;Message&gt;(message);</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keyword">const</span> ptr&lt;Message&gt; mess_ptr = share&lt;Message&gt;(<a class="code hl_struct" href="structfhatos_1_1Message.html">Message</a>(message));</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;subscription: SUBSCRIPTIONS) {</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>          <span class="keywordflow">if</span> (subscription-&gt;pattern.matches(message.target)) {</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>            <span class="keywordflow">try</span> {</div>
