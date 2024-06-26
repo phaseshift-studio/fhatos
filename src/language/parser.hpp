@@ -72,7 +72,7 @@ namespace fhatos {
     static Pair<string, string> tryParseObjType(const string &token, const bool brackets = true) {
       const size_t s_index = token.find_first_of(brackets ? '[' : '(') + 1;
       const size_t e_index = s_index > 1 && token[token.length() - 1] == (brackets ? ']' : ')') ? 2 : 0;
-      LOG(INFO, "%i -- %i : %s", s_index, e_index, token.c_str());
+      // LOG(DEBUG, "%i -- %i : %s\n", s_index, e_index, token.c_str());
       const string type = token.substr(0, s_index == 0 ? 0 : s_index - 1);
       const size_t len = type.empty() ? token.length() : token.length() - (type.length() + e_index);
       const string value = token.substr(s_index > 1 ? s_index : 0, len);
@@ -188,9 +188,9 @@ namespace fhatos {
       StringHelper::trim(key);
       StringHelper::trim(value);
       map.insert({Parser::tryParseObj(key).value(), Parser::tryParseObj(value).value()});
-      Obj::RecMap<> map2 = Obj::RecMap<>(); // necessary to reverse entries
+      Obj::RecMap_p<> map2 = share(Obj::RecMap<>()); // necessary to reverse entries
       for (const auto &pair: map) {
-        map2.insert(pair);
+        map2->insert(pair);
       }
       delete ss;
       return Option<Rec_p>{Rec::to_rec(map2, share(baseType->resolve(type.c_str())))};

@@ -28,14 +28,11 @@
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  template<typename PRINTER>
+  template<typename PRINTER = FOS_DEFAULT_PRINTER>
   class Console final : public Thread {
   public:
-    Ansi<PRINTER> *ansi;
-    Parser *parser;
-
     explicit Console(const ID &id = ID("console")) :
-        Thread(id), ansi(new Ansi<PRINTER>(PRINTER::singleton())), parser(new Parser(id)) {}
+        Thread(id) {}
 
     void setup() override { Thread::setup(); }
 
@@ -81,12 +78,12 @@ namespace fhatos {
     }
     void stop() override { Thread::stop(); }
     ///// printers
-    void printException(const std::exception &ex) const { this->ansi->printf("!r[ERROR]!! %s", ex.what()); }
-    void printPrompt() const { this->ansi->print("!mfhatos!!> "); }
-    void printResults(const ptr<Fluent<>> &fluent) const {
-      fluent->forEach<Obj>([this](const Obj_p obj) { this->printResult(obj); });
+    void printException(const std::exception &ex) const { PRINTER::singleton()->printf("!r[ERROR]!! %s", ex.what()); }
+    void printPrompt() const { PRINTER::singleton()->print("!mfhatos!!> "); }
+    void printResults(const Fluent<> &fluent) const {
+      fluent.forEach<Obj>([this](const Obj_p obj) { this->printResult(obj); });
     }
-    void printResult(const Obj_p &obj) const { this->ansi->printf("!g==>!!%s\n", obj->toString().c_str()); }
+    void printResult(const Obj_p &obj) const { PRINTER::singleton()->printf("!g==>!!%s\n", obj->toString().c_str()); }
   };
 } // namespace fhatos
 

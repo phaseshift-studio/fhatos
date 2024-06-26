@@ -30,6 +30,7 @@
 #ifndef FL_REAL_TYPE
 #define FL_REAL_TYPE float
 #include <any>
+#include <unordered_map>
 #endif
 #ifndef FL_INT_TYPE
 #define FL_INT_TYPE int
@@ -175,26 +176,29 @@ namespace fhatos {
     Any _value;
     ptr<fURI> _furi;
     //////////////////////////////////////////
+  public:
+    static fURI_p RESOLVE(fURI_p base, fURI_p furi) { return share(RESOLVE(*base, *furi)); }
+    static fURI RESOLVE(fURI &base, fURI &furi) {
+      if (base.equals(furi))
+        return base;
+      else {
+        return base.resolve(furi.toString().c_str());
+      }
+    }
     struct obj_hash {
-      size_t operator()(const Obj_p &obj) const {
-        return static_cast<std::string::value_type>(obj->o_domain()) ^ obj->_furi->toString().size() ^
-               obj->toString().length() ^ obj->toString()[0];
+      size_t operator()(const Obj_p &obj) const { return obj->hash(); }
+    };
+
+    struct obj_comp : public std::less<> {
+      template<class K1 = Obj, class K2 = Obj>
+      auto operator()(K1 &k1, K2 &k2) const {
+        return k1.hash() < k2.hash();
       }
     };
 
     struct obj_equal_to : std::binary_function<Obj_p &, Obj_p &, bool> {
       bool operator()(const Obj_p &a, const Obj_p &b) const { return *a == *b; }
     };
-
-
-  public:
-    static fURI_p RESOLVE(fURI_p base, fURI_p furi) {
-      if (base->equals(*furi))
-        return base;
-      else {
-        return share(base->resolve(furi->toString().c_str()));
-      }
-    }
 
     template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap = OrderedMap<K, V, H, Q>;
@@ -310,6 +314,8 @@ namespace fhatos {
       return this->value<List<Obj_p>>();
     }
 
+    const size_t hash() const { return std::hash<std::string>{}(this->toString()); }
+
     const string toString(const bool includeType = true) const {
       string objString;
       switch (this->o_range()) {
@@ -405,14 +411,14 @@ namespace fhatos {
         // case OType::STR:
         //   return Obj(this->str_value() + rhs.str_value(), this->id());
         case OType::REC: {
-          auto map = RecMap<>();
+          RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
           auto itB = rhs.rec_value()->begin();
           for (auto itA = this->rec_value()->begin(); itA != this->rec_value()->end(); ++itA) {
-            map.insert(std::make_pair(share(Obj((*itA->first) * (*itB->first), itA->first->id())),
-                                      share(Obj((*itA->second) * (*itB->second), itA->second->id()))));
+            map->insert(std::make_pair(share(Obj(*itA->first * *itB->first, itA->first->id())),
+                                       share(Obj(*itA->second * *itB->second, itA->second->id()))));
             ++itB;
           }
-          return Obj(share(map), this->id());
+          return Rec(map, this->id());
         }
         default:
           throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_range()));
@@ -463,8 +469,8 @@ namespace fhatos {
         case OType::REC: {
           auto pairsA = this->rec_value();
           auto pairsB = other.rec_value();
-          // if (pairsA.size() != pairsB.size())
-          //  return false;
+          if (pairsA->size() != pairsB->size())
+            return false;
           auto itB = pairsB->begin();
           for (const auto &itA: *pairsA) {
             if (*itA.first != *itB->first || *itA.second != *itB->second)
@@ -613,9 +619,9 @@ namespace fhatos {
       return share(Obj(value, furi));
     }
 
-    static Rec_p to_rec(const RecMap<> &map, const fURI_p &furi = REC_FURI) {
+    static Rec_p to_rec(const RecMap_p<> &map, const fURI_p &furi = REC_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::REC));
-      return share(Obj(share(map), furi));
+      return share(Obj(map, furi));
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const fURI_p &furi = REC_FURI) {

@@ -19,7 +19,7 @@
 #include <fhatos.hpp>
 #include <process/router/local_router.hpp>
 #include <structure/console/console.hpp>
-//#include <language/lexy_parser.hpp>
+// #include <language/lexy_parser.hpp>
 
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
@@ -28,23 +28,23 @@ using namespace fhatos;
 
 using namespace fhatos;
 int main(int arg, char **argsv) {
-  //_logging = LOG_TYPE::DEBUG;
+  LOGGING_LEVEL = LOG_TYPE::INFO;
   try {
     fKernel<>::bootloader({
-    //fWIFI::singleton(),
-   // fKernel<>::singleton(),
-    //fFS<>::singleton(),
-    //fOTA<>::singleton(),
-});
-    //fScheduler<>::singleton()->spawn(new fLog());
-    //fScheduler<>::singleton()->spawn(fSerial<>::singleton());
-    //fScheduler<>::singleton()->spawn(new fPing<>());
-    //fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
-    Scheduler<>::singleton()->spawn(new Console<CPrinter>());
-    Scheduler<>::singleton()->barrier("no_processes", []{ return Scheduler<>::singleton()->count() == 0; });
+        // fWIFI::singleton(),
+        // fKernel<>::singleton(),
+        // fFS<>::singleton(),
+        // fOTA<>::singleton(),
+    });
+    // fScheduler<>::singleton()->spawn(new fLog());
+    // fScheduler<>::singleton()->spawn(fSerial<>::singleton());
+    // fScheduler<>::singleton()->spawn(new fPing<>());
+    // fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
+    Scheduler<>::singleton()->spawn(new Console<Ansi<CPrinter>>());
+    Scheduler<>::singleton()->barrier("no_processes", [] { return Scheduler<>::singleton()->count() == 0; });
   } catch (fError e) {
-    LOG(ERROR,"main() error: %s\n",e.what());
-   // LOG_EXCEPTION(e);
+    LOG(ERROR, "main() error: %s\n", e.what());
+    // LOG_EXCEPTION(e);
   }
 };
 #else
@@ -65,7 +65,5 @@ void setup() {
 }
 
 
-void loop() {
-
-}
+void loop() {}
 #endif

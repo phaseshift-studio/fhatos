@@ -115,8 +115,8 @@ namespace fhatos {
   using Triple = std::tuple<A, B, C>;
   template<typename A, typename B, typename C, typename D>
   using Quadruple = std::tuple<A, B, C, D>;
-  template<typename K, typename V>
-  using Map = std::map<K, V>;
+  template<typename K, typename V, typename C = std::less<>, typename A = std::allocator<std::pair<const K, V>>>
+  using Map = std::map<K, V, C, A>;
   template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
   using OrderedMap = tsl::ordered_map<K, V, H, E>;
 

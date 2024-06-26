@@ -380,8 +380,11 @@ namespace fhatos {
     bool isLocal(const fURI &other) const { return this->host() == other.host(); }
 
     const fURI resolve(const char *relativePath) const {
-      return (strlen(relativePath) > 0 && relativePath[0] == '/') ? this->path(relativePath) : this->extend(relativePath);
+      return (strlen(relativePath) > 0 && relativePath[0] == '/') ? this->path(relativePath)
+                                                                  : this->extend(relativePath);
     }
+
+    const fURI resolve(const fURI base) const { return base.resolve(this->toString().c_str()); }
   };
 
   class ID final : public fURI {

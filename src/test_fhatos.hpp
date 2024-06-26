@@ -145,9 +145,10 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 
 template<typename _OBJ = Obj>
 static void FOS_CHECK_RESULTS(const List<_OBJ> &expected, const Fluent<> &fluent,
-                              const Map<Uri, Obj> &expectedReferences = {}, const bool clearRouter = true) {
+                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+                              const bool clearRouter = true) {
   const ptr<List<ptr<_OBJ>>> result = FOS_TEST_RESULT<_OBJ>(fluent);
-  TEST_ASSERT_EQUAL_INT(expected.size(), result->size());
+  TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected vs. actual result size");
   for (const _OBJ &obj: expected) {
     auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<_OBJ> element) {
       if (obj.isReal()) {
@@ -160,6 +161,8 @@ static void FOS_CHECK_RESULTS(const List<_OBJ> &expected, const Fluent<> &fluent
     }
   }
   if (!expectedReferences.empty()) {
+    TEST_ASSERT_EQUAL_INT_MESSAGE(expectedReferences.size(), FOS_DEFAULT_ROUTER::singleton()->retainSize(),
+                                  "Expected vs. actual router retain message size");
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       FOS_DEFAULT_ROUTER::singleton()->subscribe(

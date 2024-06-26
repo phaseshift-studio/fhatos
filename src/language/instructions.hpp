@@ -102,7 +102,7 @@ namespace fhatos {
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
     static Obj_p as(const Uri_p type) {
       return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) {
-        Obj_p t = ROUTER::singleton()->read("123", type->apply(lhs)->uri_value());
+        Obj_p t = ROUTER::singleton()->read("123", type->apply(lhs)->uri_value().resolve(*lhs->id()));
         if (t->apply(lhs)->isNoObj()) {
           LOG(ERROR, "[!ytyping!!] %s is not a %s[%s]\n", lhs->toString().c_str(), type->toString().c_str(),
               t->toString().c_str());
@@ -127,6 +127,10 @@ namespace fhatos {
       return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
         return ROUTER::singleton()->read("123", uri->apply(lhs)->uri_value());
       });
+    }
+
+    static Obj_p type(const Obj_p &rhs) {
+      return Obj::to_inst("type", {rhs}, [rhs](const Obj_p &lhs) { return share(Uri(fURI(*rhs->apply(lhs)->id()))); });
     }
 
     template<typename PRINTER = FOS_DEFAULT_PRINTER>
@@ -174,6 +178,8 @@ namespace fhatos {
         return Insts::as(args.at(0));
       if (type == INST_FURI->resolve("define"))
         return Insts::define(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("type"))
+        return Insts::type(args.at(0));
       if (type == INST_FURI->resolve("is"))
         return Insts::is(args.at(0));
       if (type == INST_FURI->resolve("plus"))

@@ -180,7 +180,7 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Int>({0}, Fluent(Parser::tryParseObj("__(0).define(even,__().mod(2).is(eq(0))").value()), {},
+    FOS_CHECK_RESULTS<Int>({0}, Fluent(Parser::tryParseObj("__(0).define(/int/even,__().mod(2).is(eq(0))").value()), {},
                            false);
     FOS_CHECK_RESULTS<Int>({Int(32, "even")}, Fluent(Parser::tryParseObj("__(32).as(even)").value()), {}, false);
     // FOS_CHECK_RESULTS<Uri>({Uri(fURI("even"))}, Fluent(parser->parse("__(even[32]).as()")), {}, true);
