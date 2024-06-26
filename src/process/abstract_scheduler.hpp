@@ -91,7 +91,7 @@ namespace fhatos {
       LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
     }
 
-    virtual bool spawn(Process *process) { throw fError("Member function spawn() must be implemented"); }
+    virtual bool spawn(Process *process) { throw fError("%s\n","Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
       return this->publish(this->id().query("?destroy"), share<const Uri>(Uri(processPattern)), TRANSIENT_MESSAGE);
     }

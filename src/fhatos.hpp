@@ -243,7 +243,7 @@ namespace fhatos {
   ///////////////////
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING DEBUG
+#define FOS_LOGGING INFO
 #endif
   static LOG_TYPE LOGGING_LEVEL = FOS_LOGGING;
   static const Map<string, LOG_TYPE> STR_LOGTYPE = {
