@@ -2,6 +2,35 @@ OPTION(BUILD_DOCS "Build documentation" ON) # ON/OFF
 IF (TASKSCH_BUILD_WITH_DOCS)
     ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/docs)
 ENDIF ()
+OPTION(BUILD_CODE_RUNNERS "Build code runners" ON) # ON/OFF
+IF (BUILD_CODE_RUNNERS)
+    SET(TOTAL 0)
+    FUNCTION(MAKE_CODE_RUNNERS PACKAGE PACKAGE_RUNNERS)
+        SET(COUNTER 0)
+        MESSAGE(STATUS "${.m}Processing " ${PACKAGE} " with " ${PACKAGE_RUNNERS}${..})
+        FOREACH (PACKAGE_RUNNER ${PACKAGE_RUNNERS})
+            MATH(EXPR COUNTER "${COUNTER}+1")
+            MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_RUNNER}${..}")
+            ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}/${PACKAGE_RUNNER}.cpp)
+            ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
+            SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES
+                    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs/build"
+                    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs/build"
+                    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs/build"
+                    OUTPUT_NAME ${PACKAGE_RUNNER}
+                    SUFFIX ".out")
+            MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+        ENDFOREACH ()
+        MATH(EXPR COUNTER "${COUNTER}+${TOTAL}")
+        SET(TOTAL ${COUNTER} PARENT_SCOPE)
+    ENDFUNCTION(MAKE_CODE_RUNNERS)
+    ####################################
+    ########### TEST SUITES ############
+    ####################################
+    MAKE_CODE_RUNNERS(runners main_runner)
+    MESSAGE(STATUS "Total runners produced: ${.g}${TOTAL}${..}")
+ENDIF ()
+#####################################################################
 IF (BUILD_DOCS)
     MESSAGE("${.r}=====> PROCESSING DOCUMENTATION${..}")
     MESSAGE(CHECK_START "${.y}CMaking Doxygen Documentation${..}")
@@ -29,3 +58,4 @@ IF (BUILD_DOCS)
     ENDIF ()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF ()
+

@@ -21,23 +21,38 @@ actuators.
 A simple mm-ADT program is defined below. The program is a specialization of the poly-type `rec` called `thread`,
 where `thread` is abstractly defined as
 
-~~~~~~~~~~~~~~~{.cpp}
+```.cpp
 thread[setup => bcode[_]]
        loop  => bcode[_]]
-~~~~~~~~~~~~~~~
+```
 
 The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`. The scheduler spawns
 the program on an individual `thread` accessible via the target fURI. Once spawned, the `setup` function prints the
 thread's id and halts.
 
-~~~~~~~~~~~~~~~{.cpp}
+```.cpp
 fhatos> start[thread[setup => id[].print[_]]]
           .to[esp32@127.0.0.1/scheduler/threads/logger]    
-~~~~~~~~~~~~~~~
+```
 
-~~~~~~~~~~~~~~~{.cpp}
+```.cpp
 fhatos> start[].from[esp32@127.0.0.1/scheduler/threads/logger]
 ==>thread[setup  => thread[id[].log[_]]
           status => 'running' ]
-~~~~~~~~~~~~~~~
+```
 
+> [!note]
+> The following is a list of common FhatOS fURI endpoints, where `fos:` is the namespace prefix
+> for `furi://fhatos.org/`.
+> * `fos:types/+` (the base types of mm-ADT)
+> * `fos:types/+/+` (user defined base-extending types)
+> * `furi://+` (the machines in the cluster)
+> * `furi://+/+` (the kernel processes of the machines in the cluster)
+> * `furi://+/scheduler/thread/` (the threads in the cluster)
+
+<!-- CODE:BASH:START -->
+<!-- ../build/docs/build/main_runner.out -->
+<!-- CODE:END -->
+<!-- OUTPUT:START -->
+...
+<!-- OUTPUT:END -->
