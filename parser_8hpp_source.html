@@ -169,7 +169,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keyword">static</span> Pair&lt;string, string&gt; tryParseObjType(<span class="keyword">const</span> <span class="keywordtype">string</span> &amp;token, <span class="keyword">const</span> <span class="keywordtype">bool</span> brackets = <span class="keyword">true</span>) {</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> s_index = token.find_first_of(brackets ? <span class="charliteral">&#39;[&#39;</span> : <span class="charliteral">&#39;(&#39;</span>) + 1;</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> e_index = s_index &gt; 1 &amp;&amp; token[token.length() - 1] == (brackets ? <span class="charliteral">&#39;]&#39;</span> : <span class="charliteral">&#39;)&#39;</span>) ? 2 : 0;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      LOG(INFO, <span class="stringliteral">&quot;%i -- %i : %s&quot;</span>, s_index, e_index, token.c_str());</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      <span class="comment">// LOG(DEBUG, &quot;%i -- %i : %s\n&quot;, s_index, e_index, token.c_str());</span></div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="keyword">const</span> <span class="keywordtype">string</span> type = token.substr(0, s_index == 0 ? 0 : s_index - 1);</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> len = type.empty() ? token.length() : token.length() - (type.length() + e_index);</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      <span class="keyword">const</span> <span class="keywordtype">string</span> value = token.substr(s_index &gt; 1 ? s_index : 0, len);</div>
@@ -283,9 +283,9 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      StringHelper::trim(key);</div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      StringHelper::trim(value);</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      map.insert({Parser::tryParseObj(key).value(), Parser::tryParseObj(value).value()});</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      Obj::RecMap&lt;&gt; map2 = Obj::RecMap&lt;&gt;(); <span class="comment">// necessary to reverse entries</span></div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      Obj::RecMap_p&lt;&gt; map2 = share(Obj::RecMap&lt;&gt;()); <span class="comment">// necessary to reverse entries</span></div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;pair: map) {</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        map2.insert(pair);</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        map2-&gt;insert(pair);</div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      }</div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      <span class="keyword">delete</span> ss;</div>
 <div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      <span class="keywordflow">return</span> Option&lt;Rec_p&gt;{Rec::to_rec(map2, share(baseType-&gt;resolve(type.c_str())))};</div>
@@ -376,7 +376,7 @@ $(function(){ initResizable(false); });
 </div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:579</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:585</div></div>
 <div class="ttc" id="aclassfhatos_1_1Parser_html"><div class="ttname"><a href="classfhatos_1_1Parser.html">fhatos::Parser</a></div><div class="ttdef"><b>Definition</b> parser.hpp:31</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 </div><!-- fragment --></div><!-- contents -->

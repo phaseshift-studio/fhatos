@@ -125,6 +125,8 @@ Inheritance diagram for fhatos::Obj:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__comp.html">obj_comp</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__equal__to.html">obj_equal_to</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__hash.html">obj_hash</a></td></tr>
@@ -244,6 +246,9 @@ const InstFunction&#160;</td><td class="memItemRight" valign="bottom"><b>inst_f<
 <tr class="memitem:ad12ce52a16ea5ba2016e962798b745a7" id="r_ad12ce52a16ea5ba2016e962798b745a7"><td class="memItemLeft" align="right" valign="top"><a id="ad12ce52a16ea5ba2016e962798b745a7" name="ad12ce52a16ea5ba2016e962798b745a7"></a>
 List&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bcode_value</b> () const</td></tr>
 <tr class="separator:ad12ce52a16ea5ba2016e962798b745a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a415b7137dc38081bfd14005b7043fef2" id="r_a415b7137dc38081bfd14005b7043fef2"><td class="memItemLeft" align="right" valign="top"><a id="a415b7137dc38081bfd14005b7043fef2" name="a415b7137dc38081bfd14005b7043fef2"></a>
+const size_t&#160;</td><td class="memItemRight" valign="bottom"><b>hash</b> () const</td></tr>
+<tr class="separator:a415b7137dc38081bfd14005b7043fef2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae76aa56e0bcfb6a56334c5a186822b7d" id="r_ae76aa56e0bcfb6a56334c5a186822b7d"><td class="memItemLeft" align="right" valign="top"><a id="ae76aa56e0bcfb6a56334c5a186822b7d" name="ae76aa56e0bcfb6a56334c5a186822b7d"></a>
 const string&#160;</td><td class="memItemRight" valign="bottom"><b>toString</b> (const bool includeType=true) const</td></tr>
 <tr class="separator:ae76aa56e0bcfb6a56334c5a186822b7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -335,6 +340,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a0446cf1b0e44cc4395117754554a1e4f" id="r_a0446cf1b0e44cc4395117754554a1e4f"><td class="memItemLeft" align="right" valign="top"><a id="a0446cf1b0e44cc4395117754554a1e4f" name="a0446cf1b0e44cc4395117754554a1e4f"></a>
 static fURI_p&#160;</td><td class="memItemRight" valign="bottom"><b>RESOLVE</b> (fURI_p base, fURI_p furi)</td></tr>
 <tr class="separator:a0446cf1b0e44cc4395117754554a1e4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb20073b15bf8dd8ca54e690174f330f" id="r_afb20073b15bf8dd8ca54e690174f330f"><td class="memItemLeft" align="right" valign="top"><a id="afb20073b15bf8dd8ca54e690174f330f" name="afb20073b15bf8dd8ca54e690174f330f"></a>
+static <a class="el" href="classfhatos_1_1fURI.html">fURI</a>&#160;</td><td class="memItemRight" valign="bottom"><b>RESOLVE</b> (<a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;base, <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;furi)</td></tr>
+<tr class="separator:afb20073b15bf8dd8ca54e690174f330f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad18d2635f5b80344ff9a0cd3a029925f" id="r_ad18d2635f5b80344ff9a0cd3a029925f"><td class="memItemLeft" align="right" valign="top"><a id="ad18d2635f5b80344ff9a0cd3a029925f" name="ad18d2635f5b80344ff9a0cd3a029925f"></a>
 static Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_noobj</b> ()</td></tr>
 <tr class="memdesc:ad18d2635f5b80344ff9a0cd3a029925f"><td class="mdescLeft">&#160;</td><td class="mdescRight">STATIC TYPE CONSTRAINED CONSTRUCTORS. <br /></td></tr>
@@ -360,9 +368,9 @@ static Uri_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_uri</b> (c
 <tr class="memitem:a6f515d755bfad3a989e55168bb6e44b8" id="r_a6f515d755bfad3a989e55168bb6e44b8"><td class="memItemLeft" align="right" valign="top"><a id="a6f515d755bfad3a989e55168bb6e44b8" name="a6f515d755bfad3a989e55168bb6e44b8"></a>
 static Uri_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_uri</b> (const char *value, const fURI_p &amp;furi=URI_FURI)</td></tr>
 <tr class="separator:a6f515d755bfad3a989e55168bb6e44b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48c1002e8fdf8e3f5a570803b905eff3" id="r_a48c1002e8fdf8e3f5a570803b905eff3"><td class="memItemLeft" align="right" valign="top"><a id="a48c1002e8fdf8e3f5a570803b905eff3" name="a48c1002e8fdf8e3f5a570803b905eff3"></a>
-static Rec_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_rec</b> (const RecMap&lt;&gt; &amp;map, const fURI_p &amp;furi=REC_FURI)</td></tr>
-<tr class="separator:a48c1002e8fdf8e3f5a570803b905eff3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31287985edcd65884077d7fb7210c609" id="r_a31287985edcd65884077d7fb7210c609"><td class="memItemLeft" align="right" valign="top"><a id="a31287985edcd65884077d7fb7210c609" name="a31287985edcd65884077d7fb7210c609"></a>
+static Rec_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_rec</b> (const RecMap_p&lt;&gt; &amp;map, const fURI_p &amp;furi=REC_FURI)</td></tr>
+<tr class="separator:a31287985edcd65884077d7fb7210c609"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a4f56f3aaa0a48df932563e04bdc773" id="r_a5a4f56f3aaa0a48df932563e04bdc773"><td class="memItemLeft" align="right" valign="top"><a id="a5a4f56f3aaa0a48df932563e04bdc773" name="a5a4f56f3aaa0a48df932563e04bdc773"></a>
 static Rec_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_rec</b> (const std::initializer_list&lt; Pair&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a>, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; &amp;xrec, const fURI_p &amp;furi=REC_FURI)</td></tr>
 <tr class="separator:a5a4f56f3aaa0a48df932563e04bdc773"><td class="memSeparator" colspan="2">&#160;</td></tr>
