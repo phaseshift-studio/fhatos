@@ -106,6 +106,7 @@ $(function(){ initResizable(false); });
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;fhatos.hpp&gt;</code><br />
 <code>#include &lt;structure/furi.hpp&gt;</code><br />
+<code>#include &lt;util/ptr_helper.hpp&gt;</code><br />
 <code>#include &lt;util/uuid.hpp&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;variant&gt;</code><br />
@@ -123,6 +124,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__comp.html">fhatos::Obj::obj_comp</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__equal__to.html">fhatos::Obj::obj_equal_to</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Obj_1_1Types.html">fhatos::Obj::Types&lt; ROUTER &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
@@ -202,6 +205,12 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::Objs</b> = <
 <tr class="memitem:aab00026088bb9701d89a846a5e49a4de" id="r_aab00026088bb9701d89a846a5e49a4de"><td class="memItemLeft" align="right" valign="top"><a id="aab00026088bb9701d89a846a5e49a4de" name="aab00026088bb9701d89a846a5e49a4de"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::Objs_p</b> = Obj_p</td></tr>
 <tr class="separator:aab00026088bb9701d89a846a5e49a4de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb707427853ecb10f5feee826b1510a0" id="r_aeb707427853ecb10f5feee826b1510a0"><td class="memItemLeft" align="right" valign="top"><a id="aeb707427853ecb10f5feee826b1510a0" name="aeb707427853ecb10f5feee826b1510a0"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::Type</b> = <a class="el" href="classfhatos_1_1Obj.html">Obj</a></td></tr>
+<tr class="separator:aeb707427853ecb10f5feee826b1510a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad43b25747d438069d1eed0845f2fe614" id="r_ad43b25747d438069d1eed0845f2fe614"><td class="memItemLeft" align="right" valign="top"><a id="ad43b25747d438069d1eed0845f2fe614" name="ad43b25747d438069d1eed0845f2fe614"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::Type_p</b> = Obj_p</td></tr>
+<tr class="separator:ad43b25747d438069d1eed0845f2fe614"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40a95275d2b290ba3bfc00f580d216aa" id="r_a40a95275d2b290ba3bfc00f580d216aa"><td class="memItemLeft" align="right" valign="top"><a id="a40a95275d2b290ba3bfc00f580d216aa" name="a40a95275d2b290ba3bfc00f580d216aa"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::BObj</b> = Triple&lt;<a class="el" href="#a48680c360c0948acdfc2bab032a0139e">OType</a>, fbyte *, uint32_t&gt;</td></tr>
 <tr class="separator:a40a95275d2b290ba3bfc00f580d216aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -211,9 +220,9 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstFunction
 <tr class="memitem:a2b897072a2d959b0856b124b7d51cf22" id="r_a2b897072a2d959b0856b124b7d51cf22"><td class="memItemLeft" align="right" valign="top"><a id="a2b897072a2d959b0856b124b7d51cf22" name="a2b897072a2d959b0856b124b7d51cf22"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstArgs</b> = List&lt;ptr&lt;<a class="el" href="classfhatos_1_1Obj.html">Obj</a>&gt;&gt;</td></tr>
 <tr class="separator:a2b897072a2d959b0856b124b7d51cf22"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab28f48be77a381d5ed322a21d49a8916" id="r_ab28f48be77a381d5ed322a21d49a8916"><td class="memItemLeft" align="right" valign="top"><a id="ab28f48be77a381d5ed322a21d49a8916" name="ab28f48be77a381d5ed322a21d49a8916"></a>
+<tr class="memitem:ac82739d258e35b41af083d139539c724" id="r_ac82739d258e35b41af083d139539c724"><td class="memItemLeft" align="right" valign="top"><a id="ac82739d258e35b41af083d139539c724" name="ac82739d258e35b41af083d139539c724"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstOpcode</b> = string</td></tr>
-<tr class="separator:ab28f48be77a381d5ed322a21d49a8916"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ac82739d258e35b41af083d139539c724"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e6dd6727494a152b20bdaac540719d2" id="r_a3e6dd6727494a152b20bdaac540719d2"><td class="memItemLeft" align="right" valign="top"><a id="a3e6dd6727494a152b20bdaac540719d2" name="a3e6dd6727494a152b20bdaac540719d2"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>fhatos::InstValue</b> = Pair&lt;InstArgs, InstFunction&gt;</td></tr>
 <tr class="separator:a3e6dd6727494a152b20bdaac540719d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -248,12 +257,6 @@ Enumerations</h2></td></tr>
 , <b>MANY_TO_ONE</b>
 , <br />
 &#160;&#160;<b>MANY_TO_MANY</b>
-, <b>NOINST</b> = 0
-, <b>ONE_TO_ONE</b>
-, <b>ONE_TO_MANY</b>
-, <br />
-&#160;&#160;<b>MANY_TO_ONE</b>
-, <b>MANY_TO_MANY</b>
 <br />
  }</td></tr>
 <tr class="separator:a03c40cb756f3366f6b858579773159d1"><td class="memSeparator" colspan="2">&#160;</td></tr>

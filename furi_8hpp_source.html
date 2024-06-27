@@ -492,9 +492,9 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>    <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *furiCharacters) : <a class="code hl_class" href="classfhatos_1_1fURI.html">fURI</a>(furiCharacters) {</div>
 <div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>      <span class="keywordflow">try</span> {</div>
 <div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>        <span class="keywordflow">if</span> (strchr(furiCharacters, <span class="charliteral">&#39;#&#39;</span>)) {</div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>          <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;%s\n&quot;</span>,<span class="stringliteral">&quot;IDs can not contain pattern symbols: #&quot;</span>);</div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>          <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;%s\n&quot;</span>, <span class="stringliteral">&quot;IDs can not contain pattern symbols: #&quot;</span>);</div>
 <div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (strchr(furiCharacters, <span class="charliteral">&#39;+&#39;</span>)) {</div>
-<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>          <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;%s\n&quot;</span>,<span class="stringliteral">&quot;IDs can not contain pattern symbols: +&quot;</span>);</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>          <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;%s\n&quot;</span>, <span class="stringliteral">&quot;IDs can not contain pattern symbols: +&quot;</span>);</div>
 <div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>        }</div>
 <div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>      } <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a> &amp;e) {</div>
 <div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>        <span class="keywordflow">if</span> (this-&gt;_length &gt; 0) {</div>
@@ -560,17 +560,24 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>    <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> _id;</div>
 <div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>  };</div>
 </div>
-<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span> </div>
-<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span><span class="preprocessor">#undef FOS_MAX_FURI_SEGMENT_LENGTH</span></div>
-<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span> </div>
-<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span> </div>
+<div class="foldopen" id="foldopen00461" data-start="{" data-end="};">
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno"><a class="line" href="structfhatos_1_1furi__comp.html">  461</a></span>  <span class="keyword">struct </span><a class="code hl_struct" href="structfhatos_1_1furi__comp.html">furi_comp</a> : <span class="keyword">public</span> std::less&lt;ptr&lt;fURI&gt;&gt; {</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>    <span class="keyword">auto</span> operator()(<span class="keyword">const</span> ptr&lt;fURI&gt; &amp;a, <span class="keyword">const</span> ptr&lt;fURI&gt; &amp;b)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> a-&gt;toString() &lt; b-&gt;toString(); }</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>  };</div>
+</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span> </div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span><span class="preprocessor">#undef FOS_MAX_FURI_SEGMENT_LENGTH</span></div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span> </div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1BaseIDed_html"><div class="ttname"><a href="classfhatos_1_1BaseIDed.html">fhatos::BaseIDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:439</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:390</div></div>
 <div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:445</div></div>
 <div class="ttc" id="aclassfhatos_1_1Pattern_html"><div class="ttname"><a href="classfhatos_1_1Pattern.html">fhatos::Pattern</a></div><div class="ttdef"><b>Definition</b> furi.hpp:419</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:30</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:90</div></div>
+<div class="ttc" id="astructfhatos_1_1furi__comp_html"><div class="ttname"><a href="structfhatos_1_1furi__comp.html">fhatos::furi_comp</a></div><div class="ttdef"><b>Definition</b> furi.hpp:461</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

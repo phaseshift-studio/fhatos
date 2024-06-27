@@ -17,5 +17,6 @@ var searchData=
   ['fsoc_14',['fSoC',['../classfhatos_1_1fSoC.html',1,'fhatos']]],
   ['ftelnet_15',['fTelnet',['../classfhatos_1_1fTelnet.html',1,'fhatos']]],
   ['furi_16',['fURI',['../classfhatos_1_1fURI.html',1,'fhatos']]],
-  ['fwifi_17',['fWIFI',['../classfhatos_1_1fWIFI.html',1,'fhatos']]]
+  ['furi_5fcomp_17',['furi_comp',['../structfhatos_1_1furi__comp.html',1,'fhatos']]],
+  ['fwifi_18',['fWIFI',['../classfhatos_1_1fWIFI.html',1,'fhatos']]]
 ];

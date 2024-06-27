@@ -110,18 +110,8 @@ $(function(){ initResizable(false); });
 Inheritance diagram for fhatos::Obj:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classfhatos_1_1Obj.png" usemap="#fhatos::Obj_map" alt=""/>
-  <map id="fhatos::Obj_map" name="fhatos::Obj_map">
-<area href="classfhatos_1_1Bytecode.html" alt="fhatos::Bytecode" shape="rect" coords="0,112,220,136"/>
-<area href="classfhatos_1_1Inst.html" alt="fhatos::Inst" shape="rect" coords="460,112,680,136"/>
-<area href="classfhatos_1_1Objs.html" alt="fhatos::Objs" shape="rect" coords="690,112,910,136"/>
-<area href="classfhatos_1_1ManyToManyInst.html" alt="fhatos::ManyToManyInst" shape="rect" coords="0,168,220,192"/>
-<area href="classfhatos_1_1ManyToOneInst.html" alt="fhatos::ManyToOneInst" shape="rect" coords="230,168,450,192"/>
-<area href="classfhatos_1_1NoInst.html" alt="fhatos::NoInst" shape="rect" coords="460,168,680,192"/>
-<area href="classfhatos_1_1OneToManyInst.html" alt="fhatos::OneToManyInst" shape="rect" coords="690,168,910,192"/>
-<area href="classfhatos_1_1OneToOneInst.html" alt="fhatos::OneToOneInst" shape="rect" coords="920,168,1140,192"/>
-  </map>
-</div></div>
+  <img src="classfhatos_1_1Obj.png" alt=""/>
+ </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -130,6 +120,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__equal__to.html">obj_equal_to</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__hash.html">obj_hash</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Obj_1_1Types.html">Types</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -171,7 +163,7 @@ template&lt;class T , class  = typename std::enable_if_t&lt;std::is_same_v&lt;bo
 &#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::initializer_list&lt; Pair&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a>, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; &amp;xrec, const char *furi=REC_FURI-&gt;toString().c_str())</td></tr>
 <tr class="separator:a4cc4302253f1594a07a3fedd7878bc32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca7126900983c3b1443d5a2071c472d6" id="r_aca7126900983c3b1443d5a2071c472d6"><td class="memItemLeft" align="right" valign="top"><a id="aca7126900983c3b1443d5a2071c472d6" name="aca7126900983c3b1443d5a2071c472d6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const List&lt; <a class="el" href="classfhatos_1_1Inst.html">Inst</a> &gt; &amp;bcode, const char *furi=BCODE_FURI-&gt;toString().c_str())</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const List&lt; <a class="el" href="classfhatos_1_1Obj.html">Inst</a> &gt; &amp;bcode, const char *furi=BCODE_FURI-&gt;toString().c_str())</td></tr>
 <tr class="separator:aca7126900983c3b1443d5a2071c472d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44f2b2916be7b9128b10cd3bfb578543" id="r_a44f2b2916be7b9128b10cd3bfb578543"><td class="memItemLeft" align="right" valign="top"><a id="a44f2b2916be7b9128b10cd3bfb578543" name="a44f2b2916be7b9128b10cd3bfb578543"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const List&lt; Inst_p &gt; &amp;bcode, const char *furi=BCODE_FURI-&gt;toString().c_str())</td></tr>

@@ -230,7 +230,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>            <span class="keywordflow">if</span> (<span class="keyword">false</span>) { <span class="comment">// parent-&gt;inst()-&gt;itype() == IType::MANY_TO_ONE) {</span></div>
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>              <span class="keywordflow">if</span> (!this-&gt;barrier-&gt;first) {</div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>                LOG(DEBUG, <span class="stringliteral">&quot;!uCreating barrier!!: %s\n&quot;</span>, parent-&gt;inst()-&gt;toString().c_str());</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>                this-&gt;barrier-&gt;first = share(<a class="code hl_class" href="classfhatos_1_1Inst.html">Inst</a>(*parent-&gt;inst()));</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>                this-&gt;barrier-&gt;first = share(<a class="code hl_class" href="classfhatos_1_1Obj.html">Inst</a>(*parent-&gt;inst()));</div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>                this-&gt;barrier-&gt;second = <span class="keyword">new</span> List&lt;ptr&lt;Obj&gt;&gt;();</div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>              }</div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>              LOG(DEBUG, <span class="stringliteral">&quot;Adding to barrier: %s =&gt; %s\n&quot;</span>, parent-&gt;toString().c_str(),</div>
@@ -268,9 +268,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Inst_html"><div class="ttname"><a href="classfhatos_1_1Inst.html">fhatos::Inst</a></div><div class="ttdef"><b>Definition</b> bytecode.hpp:39</div></div>
 <div class="ttc" id="aclassfhatos_1_1Monad_html"><div class="ttname"><a href="classfhatos_1_1Monad.html">fhatos::Monad</a></div><div class="ttdef"><b>Definition</b> processor.hpp:32</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:174</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:176</div></div>
 <div class="ttc" id="aclassfhatos_1_1Processor_html"><div class="ttname"><a href="classfhatos_1_1Processor.html">fhatos::Processor</a></div><div class="ttdef"><b>Definition</b> processor.hpp:69</div></div>
 <div class="ttc" id="aclassfhatos_1_1Processor_html_aca55b9ff7c54f493102ddd2d6cf101df"><div class="ttname"><a href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">fhatos::Processor::execute</a></div><div class="ttdeci">int execute(const int steps=-1)</div><div class="ttdef"><b>Definition</b> processor.hpp:106</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>

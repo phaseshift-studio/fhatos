@@ -92,7 +92,7 @@ $(function(){ initResizable(false); });
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_src_2fhatos"></a> <b>FhatOS</b> (pronounced <em>fat</em>) is a <a href="https://en.wikipedia.org/wiki/Distributed_operating_system">distributed operating system</a> for <a href="https://en.wikipedia.org/wiki/ESP8266">ESP8266</a> and <a href="https://en.wikipedia.org/wiki/ESP32">ESP32</a> processors with support for sandboxed deployments on Linux and MacOSX systems. All FhatOS resources, from individual datum, files, processes exist within a single <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URI</a> address space called <b>furi</b> (pronounced "fury" or "fhat uri"). Processes communicate via a publish-subscribe message passing protocol that rides atop <a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> with various levels of access from thread local, to machine local and ultimately, globally via cluster remote.</p>
 <h2><a class="anchor" id="autotoc_md1"></a>
-Software and Device Drivers</h2>
+A Simple mm-ADT Program</h2>
 <p>FhatOS software can be written in C/C++ or mm-ADT (multi-model abstract data type). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 <em>mono-types</em> (<b>bool</b>, <b>int</b>, <b>real</b>, <b>uri</b>, and <b>str</b>) and 2 <em>poly-types</em> (<b>lst</b> and <b>rec</b>). mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written ( typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.</p>
 <p>A simple mm-ADT program is defined below. The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
 <div class="fragment"><div class="line">thread[setup =&gt; bcode[_]]</div>
@@ -103,12 +103,21 @@ Software and Device Drivers</h2>
 </div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; start[].from[esp32@127.0.0.1/scheduler/threads/logger]</div>
 <div class="line">==&gt;thread[setup  =&gt; thread[<span class="keywordtype">id</span>[].log[_]]</div>
 <div class="line">          status =&gt; <span class="stringliteral">&#39;running&#39;</span> ]</div>
-</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>The following is a list of common FhatOS fURI endpoints, where <code>fos:</code> is the namespace prefix for <code>furi://fhatos.org/</code>.<ul>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>
+fURI and MQTT</h2>
+<p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is a publish/subscribe message passing protocol that has found extensive usage in embedded systems. Hierarchically specified <em>topics</em> can be <em>subscribed</em> and <em>published</em> to. In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic. FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware. There exist three MQTT routers:</p>
+<ol type="1">
+<li><code>BCodeRouter</code>: An MQTT router scoped to a single thread of execution.</li>
+<li><code>LocalRouter</code>: An MQTT router scoped to the set of all threads on a machine.</li>
+<li><code>GlobalRouter</code>: An MQTT router scoped to the set of all threads across the cluster.</li>
+</ol>
+<dl class="section note"><dt>Note</dt><dd>The following is a list of common FhatOS fURI endpoints, where <code>fos:</code> is the namespace prefix for <code>furi://fhatos.org/</code>.<ul>
 <li><code>fos:types/+</code> (the base types of mm-ADT)</li>
 <li><code>fos:types/+/+</code> (user defined base-extending types)</li>
 <li><code>furi://+</code> (the machines in the cluster)</li>
 <li><code>furi://+/+</code> (the kernel processes of the machines in the cluster)</li>
-<li><code>furi://+/scheduler/thread/</code> (the threads in the cluster)</li>
+<li><code>furi://+/scheduler/thread/</code> (the machine's threads)</li>
+<li><code>furi://#/scheduler/thread/</code> (the cluster's threads)</li>
 </ul>
 </dd></dl>
 <p>... </p>
