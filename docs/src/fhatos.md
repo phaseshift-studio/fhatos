@@ -9,7 +9,7 @@ processes exist within a single [URI](https://en.wikipedia.org/wiki/Uniform_Reso
 rides atop [MQTT](https://en.wikipedia.org/wiki/MQTT) with various levels of access from thread local, to machine local
 and ultimately, globally via cluster remote.
 
-### Software and Device Drivers
+### A Simple mm-ADT Program
 
 FhatOS software can be written in C/C++ or mm-ADT (multi-model abstract data type). mm-ADT is a cluster-oriented
 programming language and virtual machine founded on 5 _mono-types_ (**bool**, **int**, **real**, **uri**, and **str**)
@@ -41,6 +41,15 @@ fhatos> start[].from[esp32@127.0.0.1/scheduler/threads/logger]
           status => 'running' ]
 ```
 
+### fURI and MQTT
+
+[MQTT](https://en.wikipedia.org/wiki/MQTT) is a publish/subscribe message passing protocol that has found extensive
+usage in embedded systems. Hierarchically specified _topics_ can be _subscribed_ and _published_ to. In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic. FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware. There exist three MQTT routers:
+
+1. `BCodeRouter`: An MQTT router scoped to a single thread of execution.
+2. `LocalRouter`: An MQTT router scoped to the set of all threads on a machine.
+3. `GlobalRouter`: An MQTT router scoped to the set of all threads across the cluster.
+
 > [!note]
 > The following is a list of common FhatOS fURI endpoints, where `fos:` is the namespace prefix
 > for `furi://fhatos.org/`.
@@ -48,7 +57,8 @@ fhatos> start[].from[esp32@127.0.0.1/scheduler/threads/logger]
 > * `fos:types/+/+` (user defined base-extending types)
 > * `furi://+` (the machines in the cluster)
 > * `furi://+/+` (the kernel processes of the machines in the cluster)
-> * `furi://+/scheduler/thread/` (the threads in the cluster)
+> * `furi://+/scheduler/thread/` (the machine's threads)
+> * `furi://#/scheduler/thread/` (the cluster's threads)
 
 <!-- CODE:BASH:START -->
 <!-- ../build/docs/build/main_runner.out -->

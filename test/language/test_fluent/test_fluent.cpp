@@ -150,6 +150,8 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
+      Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
+      Obj::Types<>::addToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
       FOS_RUN_TEST(test_ref_dref); //
       FOS_RUN_TEST(test_plus); //
       // FOS_RUN_TEST(test_fluent); //

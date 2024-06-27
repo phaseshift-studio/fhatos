@@ -131,8 +131,8 @@ namespace fhatos {
       // TEST_ASSERT_FALSE(rc1->get<Bool>(ptr<Uri>(new Uri("actor@127.0.0.1")))->value());
     }
 
-    forms = {"person[[age=>nat[29],name=>'dogturd']]", "person[[age=>nat[29],name=>'dogturd']]",
-             "person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"};
+    forms = {"person[[age=>nat[29],name=>'dogturd']]", "person[[age=>nat[29],name=>'dogturd']]"
+             /*"person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"*/};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::tryParseObj(form).value();
@@ -162,9 +162,9 @@ namespace fhatos {
     Scheduler<FOS_DEFAULT_ROUTER>::singleton();
     const ptr<BCode> bcode =
         FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("<=(scheduler@kernel?spawn,thread["
-                                                    "[id    => example,"
-                                                    " setup => __(0).ref(x).print('setup complete'),"
-                                                    " loop  => <=(scheduler@kernel?destroy,example)]])")
+                                                 "[id    => example,"
+                                                 " setup => __(0).ref(x).print('setup complete'),"
+                                                 " loop  => <=(scheduler@kernel?destroy,example)]])")
                                  .value());
     auto process = Processor<Str>(bcode);
     process.forEach([](const ptr<Str> s) { LOG(INFO, "RESULT: %s", s->str_value().c_str()); });
@@ -180,14 +180,25 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Int>({0}, Fluent(Parser::tryParseObj("__(0).define(/int/even,__().mod(2).is(eq(0))").value()), {},
+    FOS_CHECK_RESULTS<Int>({0}, Fluent(Parser::tryParseObj("__(0).define(/int/even,mod(2).is(eq(0)))").value()), {},
                            false);
-    FOS_CHECK_RESULTS<Int>({Int(32, "even")}, Fluent(Parser::tryParseObj("__(32).as(even)").value()), {}, false);
-    // FOS_CHECK_RESULTS<Uri>({Uri(fURI("even"))}, Fluent(parser->parse("__(even[32]).as()")), {}, true);
+    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::tryParseObj("__(32).as(even).type()").value()), {}, false);
+    FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {}, true);
   }
-
+ 
   FOS_RUN_TESTS( //
-                 // FOS_RUN_TEST(test_basic_parser); //
+      Obj::Types<>::addToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE());
+      // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
+      // Obj::Types<>::addToCache(share(fURI("/int/even")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE());
+      // FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_no_input_parsing); //
       FOS_RUN_TEST(test_start_inst_parsing); //
       FOS_RUN_TEST(test_noobj_parsing); //

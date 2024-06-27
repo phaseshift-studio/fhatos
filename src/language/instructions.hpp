@@ -27,6 +27,7 @@
 #include <process/router/local_router.hpp>
 #include <process/router/publisher.hpp>
 
+
 namespace fhatos {
   struct Insts {
     Insts() = delete;
@@ -63,6 +64,10 @@ namespace fhatos {
     static Obj_p is(const Obj_p xbool) {
       return Obj::to_inst(
           "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); });
+    }
+
+    static Obj_p noop() {
+      return Obj::to_inst("noop", {}, [](const Obj_p &lhs) { return lhs; });
     }
 
 
@@ -102,12 +107,6 @@ namespace fhatos {
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
     static Obj_p as(const Uri_p type) {
       return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) {
-        Obj_p t = ROUTER::singleton()->read("123", type->apply(lhs)->uri_value().resolve(*lhs->id()));
-        if (t->apply(lhs)->isNoObj()) {
-          LOG(ERROR, "[!ytyping!!] %s is not a %s[%s]\n", lhs->toString().c_str(), type->toString().c_str(),
-              t->toString().c_str());
-          return Obj::to_noobj();
-        }
         return lhs->as(share(type->uri_value()));
       });
     }
@@ -129,8 +128,8 @@ namespace fhatos {
       });
     }
 
-    static Obj_p type(const Obj_p &rhs) {
-      return Obj::to_inst("type", {rhs}, [rhs](const Obj_p &lhs) { return share(Uri(fURI(*rhs->apply(lhs)->id()))); });
+    static Uri_p type() {
+      return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); });
     }
 
     template<typename PRINTER = FOS_DEFAULT_PRINTER>
@@ -143,7 +142,7 @@ namespace fhatos {
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p publish(const Obj_p &target, const Obj_p &payload) {
+    static Obj_p publish(const Uri_p &target, const Obj_p &payload) {
       return Obj::to_inst("publish", {target, payload}, [target, payload](const Obj_p &lhs) {
         ROUTER::singleton()->publish(Message{.source = "123",
                                              .target = fURI(target->apply(lhs)->uri_value()),
@@ -154,7 +153,7 @@ namespace fhatos {
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p subscibe(const Obj_p &pattern, const Obj_p &onRecv) {
+    static Obj_p subscibe(const Obj_p &pattern, const BCode_p &onRecv) {
       return Obj::to_inst("subscribe", {pattern, onRecv}, [pattern, onRecv](const Obj_p &lhs) {
         ROUTER::singleton()->subscribe(
             Subscription{.mailbox = nullptr,
@@ -174,12 +173,16 @@ namespace fhatos {
       };*/
 
     static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
+      if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
+        return Insts::start(args);
+      if (type == INST_FURI->resolve("noop"))
+        return Insts::noop();
       if (type == INST_FURI->resolve("as"))
         return Insts::as(args.at(0));
       if (type == INST_FURI->resolve("define"))
         return Insts::define(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("type"))
-        return Insts::type(args.at(0));
+        return Insts::type();
       if (type == INST_FURI->resolve("is"))
         return Insts::is(args.at(0));
       if (type == INST_FURI->resolve("plus"))
@@ -210,13 +213,16 @@ namespace fhatos {
         return Insts::subscibe(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("print"))
         return Insts::print(args.at(0));
-      if (type == INST_FURI->resolve("start"))
-        return Insts::start(args);
+
       if (type == INST_FURI->resolve("switch"))
         return Insts::bswitch(args.at(0));
       if (type == INST_FURI->resolve("explain"))
         return Insts::explain();
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
+    }
+    static const BCode_p NO_OP_BCODE() {
+      static BCode_p p = share(BCode({Insts::noop()}));
+      return p;
     }
   };
 

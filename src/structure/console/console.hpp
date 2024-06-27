@@ -31,8 +31,7 @@ namespace fhatos {
   template<typename PRINTER = FOS_DEFAULT_PRINTER>
   class Console final : public Thread {
   public:
-    explicit Console(const ID &id = ID("console")) :
-        Thread(id) {}
+    explicit Console(const ID &id = ID("console")) : Thread(id) {}
 
     void setup() override { Thread::setup(); }
 
@@ -51,7 +50,7 @@ namespace fhatos {
           if (line == ":quit") {
             this->stop();
             return;
-          } else if (line.starts_with(":log ")) {
+          } else if (strstr(line.c_str(), ":log ")) {
             string level = line.substr(5);
             if (!STR_LOGTYPE.count(level)) {
               this->printException(fError("A valid log level required (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str()));

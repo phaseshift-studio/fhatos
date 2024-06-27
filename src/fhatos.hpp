@@ -200,6 +200,8 @@ namespace fhatos {
 #define FOS_LOG_OBJ(obj)                                                                                               \
   LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
       OTYPE_STR.at((obj)->otype()), (obj)->type()->toString().c_str());
+#define NOTE(message) LOG(INFO,(message))
+
 
 #ifndef FOS_MAILBOX_WARNING_SIZE
 #define FOS_MAILBOX_WARNING_SIZE 15
@@ -243,7 +245,7 @@ namespace fhatos {
   ///////////////////
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING INFO
+#define FOS_LOGGING DEBUG
 #endif
   static LOG_TYPE LOGGING_LEVEL = FOS_LOGGING;
   static const Map<string, LOG_TYPE> STR_LOGTYPE = {

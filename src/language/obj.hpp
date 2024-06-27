@@ -38,6 +38,7 @@
 
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
+#include <util/ptr_helper.hpp>
 #include <util/uuid.hpp>
 #include <utility>
 #include <variant>
@@ -101,16 +102,17 @@ namespace fhatos {
   using BCode_p = Obj_p;
   using Objs = Obj;
   using Objs_p = Obj_p;
+  using Type = Obj;
+  using Type_p = Obj_p;
   //
   using BObj = Triple<OType, fbyte *, uint32_t>;
   class PtrSerializer;
-  class Type;
   // Inst structures
   using InstFunction = Function<Obj_p, Obj_p>;
   using InstArgs = List<ptr<Obj>>;
   using InstOpcode = string;
   using InstValue = Pair<InstArgs, InstFunction>;
-
+  class LocalRouter;
 
   static const Map<OType, const char *> OTYPE_STR = {{{OType::NOOBJ, "noobj"},
                                                       {OType::NOINST, "noinst"},
@@ -205,7 +207,11 @@ namespace fhatos {
     template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
     virtual ~Obj() = default;
-    explicit Obj(const Any &value, const fURI_p &furi) : _value(value), _furi(furi) {}
+    explicit Obj(const Any &value, const fURI_p &furi) : _value(value), _furi(furi) {
+      _furi = share(_furi->path(this->_furi->path(0, 1).c_str()));
+      Obj::Types<>::verifyType(ptr<Obj>(this, NonDeleter<Obj>()), furi);
+      this->_furi = furi;
+    }
     /////
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
@@ -564,9 +570,7 @@ namespace fhatos {
       return share(temp);
     }
 
-    Obj_p as(const fURI_p &furi) const {
-      return share(Obj(this->_value, share(this->_furi->resolve(furi->toString().c_str()))));
-    }
+    Obj_p as(const fURI_p &furi) const { return share(Obj(this->_value, share(furi->resolve(*this->id())))); }
     Obj_p as(const char *furi) const { return this->as(share(fURI(furi))); }
 
     const Inst_p nextInst(Inst_p currentInst) const {
@@ -625,7 +629,6 @@ namespace fhatos {
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const fURI_p &furi = REC_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::REC));
       RecMap<> map = RecMap<>();
       for (const auto &pair: xrec) {
         map.insert(make_pair(share(pair.first), share(pair.second)));
@@ -641,8 +644,7 @@ namespace fhatos {
     static Inst_p to_inst(const string opcode, const List<Obj_p> &args, const InstFunction &function,
                           const fURI_p &furi = nullptr) {
       const fURI_p fix = !furi ? share(fURI(string("/inst/") + opcode)) : furi;
-      assert(fix->path(0, 1) == OTYPE_STR.at(OType::INST));
-      return share(Obj(std::make_pair(args, function), fix));
+      return to_inst(std::make_pair(args, function), fix);
     }
 
     static BCode_p to_bcode(const List<Obj_p> &insts, const fURI_p &furi = BCODE_FURI) {
@@ -667,8 +669,63 @@ namespace fhatos {
       }
       return newList;
     }
+
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    template<typename ROUTER = FOS_DEFAULT_ROUTER>
+    class Types {
+      using TypeCacheMap = Map<const fURI_p, Type_p, furi_comp>;
+      static ptr<TypeCacheMap> TYPE_CACHE() {
+        static ptr<TypeCacheMap> singleton = ptr<TypeCacheMap>(new TypeCacheMap());
+        return singleton;
+      }
+
+
+    public:
+      static void addToCache(const fURI_p &typeId, const BCode_p &bcode) {
+        TYPE_CACHE()->erase(typeId);
+        TYPE_CACHE()->insert({typeId, bcode});
+      }
+      static void clearCache() { TYPE_CACHE()->clear(); }
+      static Option<fError> verifyType(const ptr<Obj> obj, const fURI_p &typeId, const bool doThrow = true) {
+        bool success = true;
+        NOTE((string("Here:") + typeId->toString() + "---" + typeId->path(0, 1) + ":::" + obj->_furi->toString() + "\n")
+                 .c_str());
+        if (typeId->pathLength() > 0 && (typeId->path(0, 1) == "inst" || typeId->path(0, 1) == "bcode")) {
+          success = true;
+        } else if (typeId->pathLength() == 1) {
+          success = obj->o_range() == STR_OTYPE.at(typeId->path());
+        } else {
+          Type_p type;
+          if (TYPE_CACHE()->count(typeId)) {
+            type = TYPE_CACHE()->at(typeId);
+          } else {
+            type = ROUTER::singleton()->read("123", *typeId);
+            if (nullptr == type || nullptr == type.get()) {
+              throw fError("Type %s has not been defined\n", typeId->toString().c_str());
+            } else {
+              TYPE_CACHE()->insert({typeId, type});
+            }
+          }
+          if (success) {
+            success = !type->apply(obj)->isNoObj();
+          }
+        }
+        if (doThrow) {
+          if (!success)
+            throw fError("Obj %s is not a %s\n", obj->toString().c_str(), typeId->toString().c_str());
+          return Option<fError>();
+        } else {
+          return success ? Option<fError>()
+                         : Option<fError>(fError("Obj %s can be interpreted as a %s\n", obj->toString().c_str(),
+                                                 typeId->toString().c_str()));
+        }
+      }
+    };
   };
   static Uri u(const char *uri) { return Uri(fURI(uri)); }
+
 
 } // namespace fhatos
 

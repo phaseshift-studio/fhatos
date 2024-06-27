@@ -117,7 +117,7 @@ namespace fhatos {
 
     template<typename OBJ = Obj>
     ptr<OBJ> read(const ID &source, const ID &target) {
-      auto *thing = new std::atomic<OBJ*>(nullptr);
+      auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
@@ -131,11 +131,16 @@ namespace fhatos {
           break;
         }
       }
-      ptr<OBJ> ret = ptr<OBJ>(thing->load());
-      delete thing;
-      delete done;
       unsubscribe(source, target);
-      return ret;
+      if (nullptr == thing->load()) {
+        delete done;
+        return ptr<Obj>(nullptr);
+      } else {
+        ptr<OBJ> ret = ptr<OBJ>(thing->load());
+        delete thing;
+        delete done;
+        return ret;
+      }
     }
 
     virtual RESPONSE_CODE write(const ptr<const Obj> &obj, const ID &source, const ID &target) {

@@ -33,7 +33,7 @@ namespace fhatos {
     /* const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
      FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
-   //  FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3 /*,int_t("nat")))));
+   //  FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3,int_t("nat")))));
      FOS_TEST_ASSERT_EXCEPTION(__().lt(2).bcode->apply(share(Bool(true, "/bool/truth"))));*/
   }
 
@@ -138,6 +138,14 @@ namespace fhatos {
   }*/
 
   FOS_RUN_TESTS( //
+      Obj::Types<>::addToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE());
+      Obj::Types<>::addToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE());
+
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //
       FOS_RUN_TEST(test_str); //

@@ -396,9 +396,9 @@ namespace fhatos {
     ID(const char *furiCharacters) : fURI(furiCharacters) {
       try {
         if (strchr(furiCharacters, '#')) {
-          throw fError("%s\n","IDs can not contain pattern symbols: #");
+          throw fError("%s\n", "IDs can not contain pattern symbols: #");
         } else if (strchr(furiCharacters, '+')) {
-          throw fError("%s\n","IDs can not contain pattern symbols: +");
+          throw fError("%s\n", "IDs can not contain pattern symbols: +");
         }
       } catch (const fError &e) {
         if (this->_length > 0) {
@@ -456,6 +456,10 @@ namespace fhatos {
 
   protected:
     ID _id;
+  };
+
+  struct furi_comp : public std::less<ptr<fURI>> {
+    auto operator()(const ptr<fURI> &a, const ptr<fURI> &b) const { return a->toString() < b->toString(); }
   };
 } // namespace fhatos
 
