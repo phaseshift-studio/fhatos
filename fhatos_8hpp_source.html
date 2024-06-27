@@ -288,7 +288,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="preprocessor">#define FOS_LOG_OBJ(obj)                                                                                               \</span></div>
 <div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span><span class="preprocessor">  LOG(DEBUG, &quot;[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n&quot;, (obj)-&gt;toString().c_str(),                     \</span></div>
 <div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span><span class="preprocessor">      OTYPE_STR.at((obj)-&gt;otype()), (obj)-&gt;type()-&gt;toString().c_str());</span></div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span><span class="preprocessor">#define NOTE(message) LOG(INFO,(message))</span></div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span><span class="preprocessor">#define NOTE(message) LOG(INFO, &quot;%s\n&quot;, (message))</span></div>
 <div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span> </div>
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span><span class="preprocessor">#ifndef FOS_MAILBOX_WARNING_SIZE</span></div>
@@ -329,7 +329,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  <span class="comment">// !!TO REMOVE!! //</span></div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
 <div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span><span class="preprocessor">#ifndef FOS_LOGGING</span></div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="preprocessor">#define FOS_LOGGING DEBUG</span></div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="preprocessor">#define FOS_LOGGING ERROR</span></div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>  <span class="keyword">static</span> LOG_TYPE LOGGING_LEVEL = FOS_LOGGING;</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  <span class="keyword">static</span> <span class="keyword">const</span> Map&lt;string, LOG_TYPE&gt; STR_LOGTYPE = {</div>
