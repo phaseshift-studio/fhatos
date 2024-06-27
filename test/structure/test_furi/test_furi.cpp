@@ -49,9 +49,9 @@ namespace fhatos {
   }
 
   void test_furi_equals() {
-  /// STRING EQUALS
-  TEST_ASSERT_EQUAL_STRING("a",fURI("a").toString().c_str());
-  TEST_ASSERT_EQUAL_STRING("/a",fURI("/a").toString().c_str());
+    /// STRING EQUALS
+    TEST_ASSERT_EQUAL_STRING("a", fURI("a").toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("/a", fURI("/a").toString().c_str());
     /// TRUE
     TEST_ASSERT_TRUE(fURI("").equals(fURI("")));
     TEST_ASSERT_TRUE(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
@@ -131,6 +131,11 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/b"), fURI("127.0.0.1").resolve("a").resolve("/b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("127.0.0.1").resolve(""));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("127.0.0.1").resolve("/"));
+    ///
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/rec/thread"), fURI("thread").resolve(fURI("/rec")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/thread"), fURI("/thread").resolve(fURI("/rec")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/thread"), fURI("/thread").resolve(fURI("/rec")));
+    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("abc@127.0.0.1//rec/thread"),fURI("abc@127.0.0.1//rec/thread").resolve(fURI("/rec")));
   }
 
   void test_furi_path() {

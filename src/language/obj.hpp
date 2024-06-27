@@ -690,8 +690,6 @@ namespace fhatos {
       static void clearCache() { TYPE_CACHE()->clear(); }
       static Option<fError> verifyType(const ptr<Obj> obj, const fURI_p &typeId, const bool doThrow = true) {
         bool success = true;
-        NOTE((string("Here:") + typeId->toString() + "---" + typeId->path(0, 1) + ":::" + obj->_furi->toString() + "\n")
-                 .c_str());
         if (typeId->pathLength() > 0 && (typeId->path(0, 1) == "inst" || typeId->path(0, 1) == "bcode")) {
           success = true;
         } else if (typeId->pathLength() == 1) {

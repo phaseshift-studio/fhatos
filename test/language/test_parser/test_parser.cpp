@@ -161,10 +161,9 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler<FOS_DEFAULT_ROUTER>::singleton();
     const ptr<BCode> bcode =
-        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("<=(scheduler@kernel?spawn,thread["
-                                                 "[id    => example,"
-                                                 " setup => __(0).ref(x).print('setup complete'),"
-                                                 " loop  => <=(scheduler@kernel?destroy,example)]])")
+        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("<=(scheduler/threads?spawn,abc@127.0.0.1//rec/thread["
+                                                 "[setup => __(0).print('setup complete'),"
+                                                 " loop  => <=(scheduler@kernel?destroy,abc@127.0.0.1//rec/thread)]])")
                                  .value());
     auto process = Processor<Str>(bcode);
     process.forEach([](const ptr<Str> s) { LOG(INFO, "RESULT: %s", s->str_value().c_str()); });
@@ -185,7 +184,7 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::tryParseObj("__(32).as(even).type()").value()), {}, false);
     FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {}, true);
   }
- 
+
   FOS_RUN_TESTS( //
       Obj::Types<>::addToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
       Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
