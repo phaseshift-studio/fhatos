@@ -32,11 +32,11 @@ namespace fhatos {
   struct Insts {
     Insts() = delete;
     static Obj_p start(const List<Obj_p> &starts) {
-      return Obj::to_inst("start", starts, [](const ptr<Obj> &start) { return start; });
+      return Obj::to_inst("start", starts, [](const Obj_p &start) { return start; });
     }
 
     static Obj_p explain() {
-      return Obj::to_inst("explain", {}, [](const ptr<Obj>) { return nullptr; });
+      return Obj::to_inst("explain", {}, [](const Obj_p) { return nullptr; });
     }
 
     static Obj_p plus(const Obj_p rhs) {
@@ -51,15 +51,25 @@ namespace fhatos {
       return Obj::to_inst("mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); });
     }
 
-    static Obj_p bswitch(const Obj_p rec) {
+    static Obj_p bswitch(const Rec_p rec) {
       return Obj::to_inst("switch", {rec}, [rec](const Obj_p &lhs) {
-        for (const auto &pair: *rec->rec_value()) {
-          if (!pair.first->apply(lhs)->isNoObj())
-            return pair.second->apply(lhs);
+        for (const auto &[key, value]: *rec->rec_value()) {
+          if (!key->apply(lhs)->isNoObj())
+            return value->apply(lhs);
         }
         return Obj::to_noobj();
       });
     }
+
+   /* static Objs_p bunion(const Rec_p rec) {
+      return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
+        for (const auto &[key, value]: *rec->rec_value()) {
+          if (!key->apply(lhs)->isNoObj())
+            return value->apply(lhs);
+        }
+        return Obj::to_noobj();
+      });
+    }*/
 
     static Obj_p is(const Obj_p xbool) {
       return Obj::to_inst(

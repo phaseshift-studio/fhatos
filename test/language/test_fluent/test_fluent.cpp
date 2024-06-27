@@ -109,10 +109,13 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Real>({46.5f}, __(1.121f).plus(10.002f).plus(_).plus(_.plus(2.0f)));
     FOS_CHECK_RESULTS<Real>({54.4f, 50.4f, 46.4f}, __({1.05f, 2.05f, 3.05f}).plus(10.05f).plus(_).plus(_.plus(2.0f)));
     //
-    FOS_CHECK_RESULTS<Uri>({fURI("http://fhatos.org/a/b")},
-                           __(fURI("http://fhatos.org")).plus(fURI("/a")).plus(fURI("/b")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).plus(u("/a")).plus(u("b")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).plus(u("/a")).plus(u("/b")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b/")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b/")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b")));
     //
-    FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b"}, __("http://fhatos.org").plus("/a").plus("/b"));
     FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b", "fhat.pig/a/b"},
                            __(List<Obj>{"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));
     //
@@ -131,14 +134,14 @@ namespace fhatos {
                            {{u("/int/nat"), _.is(_.gt(0))}});
     FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.is(_.gt(0))), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).as(u("/int/nat")), {{u("/int/nat"), _.is(_.gt(0))}}, false);
-    FOS_CHECK_RESULTS<Uri>({u("/int/nat")}, __(1).as(u("/int/nat")).type(_), {{u("/int/nat"), _.is(_.gt(0))}}, false);
+    FOS_CHECK_RESULTS<Uri>({u("/int/nat")}, __(1).as(u("/int/nat")).type(), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     FOS_CHECK_RESULTS<Int>({Int(6, "/int/nat2")},
                            __(1)
                                .as(u("nat"))
                                .plus(Int(2, "nat"))
                                .to(u("x"))
                                .plus(Int(3, "nat"))
-                               .type(_)
+                               .type()
                                .from(_)
                                .define(u("/int/nat2"), _.is(_.gt(0)))
                                .from(u("x"))

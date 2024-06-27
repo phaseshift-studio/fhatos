@@ -39,6 +39,15 @@ namespace private_fhatos {
         i++;
       }
     }
+    size_t dl = strlen(deliminator);
+    char *substr = new char[dl];
+    strncpy(substr, text + (strlen(text) - dl), dl);
+    substr[dl] = '\0';
+    if (strcmp(substr, deliminator) == 0) {
+      result[i] = strdup("");
+      i++;
+    }
+    delete[] substr;
     delete token;
     delete freeable_copy;
     return i;
@@ -117,10 +126,8 @@ namespace fhatos {
       } else {
         uint8_t counter = 0;
         uint8_t length = strlen(furiCharacters);
-        if (furiCharacters[0] == '/')
-          counter++;
         for (uint8_t i = 0; i < length; i++) {
-          if ((furiCharacters[i]) == '/' && ((i == length - 1) || furiCharacters[i + 1] != '/'))
+          if (furiCharacters[i] == '/')
             counter++;
         }
         const char *scheme = strstr(furiCharacters, "://");
@@ -165,9 +172,27 @@ namespace fhatos {
     // const bool operator==(const fURI other) const { return this->equals(other); }
 
     const fURI extend(const char *segments) const {
-      return ((string(segments).length() == 0) || (string(segments).length() == 1 && segments[0] == '/'))
+      if (strlen(segments) == 0)
+        return *this;
+      if (segments[0] == '/' || this->pathLength() == 0)
+        return fURI(this->path("").toString() + "/" + string(segments));
+      char **s2 = new char *[0];
+      int l2 = private_fhatos::split(segments, "/", s2);
+      string result = this->pathLength() > 0 ? string(this->retract().toString()) : string(this->toString());
+      for (int i = 0; i < l2; i++) {
+        if (strcmp(s2[i], "..") == 0) {
+          result = string(fURI(result).retract().toString());
+        } else {
+          result.append("/").append(s2[i]);
+        }
+      }
+      delete[] s2;
+      return fURI(result);
+      /*
+      ((string(segments).length() == 0) || (string(segments).length() == 1 && segments[0] == '/'))
                  ? fURI(*this)
                  : fURI(string(this->toString()).append("/").append(segments));
+                 */
     }
 
     const fURI retract(const bool fromRight = true) const {
@@ -373,18 +398,13 @@ namespace fhatos {
       return true;
     }
 
-    const fURI operator/(const char *cstr) const { return this->extend(cstr); }
-
     bool operator<(const fURI &furi) const { return this->toString() < furi.toString(); }
 
     bool isLocal(const fURI &other) const { return this->host() == other.host(); }
 
-    const fURI resolve(const char *relativePath) const {
-      return (strlen(relativePath) > 0 && relativePath[0] == '/') ? this->path(relativePath)
-                                                                  : this->extend(relativePath);
-    }
+    const fURI resolve(const char *relativePath) const { return this->extend(relativePath); }
 
-    const fURI resolve(const fURI base) const { return base.resolve(this->toString().c_str()); }
+    const fURI resolve(const fURI base) const { return this->resolve(base.toString().c_str()); }
   };
 
   class ID final : public fURI {

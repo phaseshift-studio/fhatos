@@ -31,6 +31,7 @@
 #define FL_REAL_TYPE float
 #include <any>
 #include <unordered_map>
+#include <util/mutex_deque.hpp>
 #endif
 #ifndef FL_INT_TYPE
 #define FL_INT_TYPE int
@@ -141,18 +142,18 @@ namespace fhatos {
                                                 {"inst", OType::INST},
                                                 {"bcode", OType::BCODE}}};
 
-  static const fURI_p OBJ_FURI = fURI_p(new fURI("/obj"));
-  static const fURI_p NOOBJ_FURI = fURI_p(new fURI("/noobj"));
-  static const fURI_p TYPE_FURI = fURI_p(new fURI("/type"));
-  static const fURI_p BOOL_FURI = fURI_p(new fURI("/bool"));
-  static const fURI_p INT_FURI = fURI_p(new fURI("/int"));
-  static const fURI_p REAL_FURI = fURI_p(new fURI("/real"));
-  static const fURI_p URI_FURI = fURI_p(new fURI("/uri"));
-  static const fURI_p STR_FURI = fURI_p(new fURI("/str"));
-  static const fURI_p REC_FURI = fURI_p(new fURI("/rec"));
-  static const fURI_p INST_FURI = fURI_p(new fURI("/inst"));
-  static const fURI_p BCODE_FURI = fURI_p(new fURI("/bcode"));
-  static const fURI_p OBJS_FURI = fURI_p(new fURI("/objs"));
+  static const fURI_p OBJ_FURI = fURI_p(new fURI("/obj/"));
+  static const fURI_p NOOBJ_FURI = fURI_p(new fURI("/noobj/"));
+  static const fURI_p TYPE_FURI = fURI_p(new fURI("/type/"));
+  static const fURI_p BOOL_FURI = fURI_p(new fURI("/bool/"));
+  static const fURI_p INT_FURI = fURI_p(new fURI("/int/"));
+  static const fURI_p REAL_FURI = fURI_p(new fURI("/real/"));
+  static const fURI_p URI_FURI = fURI_p(new fURI("/uri/"));
+  static const fURI_p STR_FURI = fURI_p(new fURI("/str/"));
+  static const fURI_p REC_FURI = fURI_p(new fURI("/rec/"));
+  static const fURI_p INST_FURI = fURI_p(new fURI("/inst/"));
+  static const fURI_p BCODE_FURI = fURI_p(new fURI("/bcode/"));
+  static const fURI_p OBJS_FURI = fURI_p(new fURI("/objs/"));
 
   enum class IType : uint8_t {
     NOINST = 0,
@@ -208,7 +209,8 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
     virtual ~Obj() = default;
     explicit Obj(const Any &value, const fURI_p &furi) : _value(value), _furi(furi) {
-      _furi = share(_furi->path(this->_furi->path(0, 1).c_str()));
+      _furi = share(_furi->path(
+          (this->_furi->pathLength() > 1 ? this->_furi->path(0, 1) + "/" : this->_furi->path(0, 1)).c_str()));
       Obj::Types<>::verifyType(ptr<Obj>(this, NonDeleter<Obj>()), furi);
       this->_furi = furi;
     }
@@ -237,6 +239,8 @@ namespace fhatos {
       }
       this->_value = map;
     }
+    Obj(const MutexDeque<Obj_p> &objs, const char *furi = OBJS_FURI->toString().c_str()) :
+        Obj(Any(objs), RESOLVE(OBJS_FURI, share(fURI(furi)))) {}
     Obj(const List<Inst> &bcode, const char *furi = BCODE_FURI->toString().c_str()) :
         Obj(Any(bcode), RESOLVE(BCODE_FURI, share(fURI(furi)))) {
       List<Obj_p> list = this->bcode_value();
@@ -256,6 +260,10 @@ namespace fhatos {
     template<typename VALUE>
     const VALUE value() const {
       return std::any_cast<VALUE>(this->_value);
+    }
+    MutexDeque<Obj_p> objs_value() const {
+      assert(OType::OBJS == o_range());
+      return this->value<MutexDeque<Obj_p>>();
     }
     const bool bool_value() const {
       assert(OType::BOOL == o_range());
@@ -386,11 +394,29 @@ namespace fhatos {
           objString = "!bØ!!";
           break;
         }
+        case OType::OBJS: {
+          objString += "!m<!!";
+
+          auto *first = new std::atomic<bool>(true);
+          auto *temp = new std::atomic<string *>(&objString);
+          this->objs_value().forEach([first, temp](const Obj_p &o) {
+            if (first->load()) {
+              first->store(false);
+            } else {
+              temp->load()->append("!m,!!");
+            }
+            temp->load()->append(o->toString());
+          });
+          objString += "!m>!!";
+          delete temp;
+          delete first;
+          break;
+        }
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_range()));
       }
       return includeType
-                 ? (this->_furi->pathLength() > 1
+                 ? (this->_furi->pathLength() > 1 && !this->_furi->lastSegment().empty()
                         ? (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!b/!!")) +
                               ("!b" + this->_furi->lastSegment() + "!g[!!" + objString + "!g]!!")
                         : (this->_furi->user()->empty() ? "" : ("!b" + this->_furi->user().value() + "!g@!!")) +
@@ -439,9 +465,9 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() + rhs.real_value(), this->id());
         case OType::URI:
-          return Obj(this->uri_value().extend(rhs.uri_value().path().c_str()), this->id());
+          return Obj(fURI(this->uri_value()).extend(fURI(rhs.uri_value()).toString().c_str()), this->id());
         case OType::STR:
-          return Obj(this->str_value() + rhs.str_value(), this->id());
+          return Obj(string(this->str_value()) + string(rhs.str_value()), this->id());
         case OType::REC: {
           RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
           for (const auto &pair: *this->rec_value()) {
@@ -529,17 +555,17 @@ namespace fhatos {
     Obj_p apply(const Obj_p &lhs) {
       switch (this->o_range()) {
         case OType::BOOL:
-          return shared_from_this();
+          return ptr<Obj>(this, NonDeleter<Obj>());
         case OType::INT:
-          return shared_from_this();
+          return ptr<Obj>(this, NonDeleter<Obj>());
         case OType::REAL:
-          return shared_from_this();
+          return ptr<Obj>(this, NonDeleter<Obj>());
         case OType::URI:
-          return shared_from_this();
+          return ptr<Obj>(this, NonDeleter<Obj>());
         case OType::STR:
-          return shared_from_this();
+          return ptr<Obj>(this, NonDeleter<Obj>());
         case OType::REC:
-          return shared_from_this();
+          return ptr<Obj>(this, NonDeleter<Obj>());
         case OType::INST:
           return this->inst_f()(lhs);
         case OType::BCODE: {
@@ -570,7 +596,9 @@ namespace fhatos {
       return share(temp);
     }
 
-    Obj_p as(const fURI_p &furi) const { return share(Obj(this->_value, share(furi->resolve(*this->id())))); }
+    Obj_p as(const fURI_p &furi) const {
+      return share(Obj(this->_value, share(this->_furi->resolve(furi->toString().c_str()))));
+    }
     Obj_p as(const char *furi) const { return this->as(share(fURI(furi))); }
 
     const Inst_p nextInst(Inst_p currentInst) const {
@@ -692,8 +720,8 @@ namespace fhatos {
         bool success = true;
         if (typeId->pathLength() > 0 && (typeId->path(0, 1) == "inst" || typeId->path(0, 1) == "bcode")) {
           success = true;
-        } else if (typeId->pathLength() == 1) {
-          success = obj->o_range() == STR_OTYPE.at(typeId->path());
+        } else if (typeId->pathLength() == 2 && typeId->lastSegment().empty()) {
+          success = obj->o_range() == STR_OTYPE.at(typeId->path(0, 1));
         } else {
           Type_p type;
           if (TYPE_CACHE()->count(typeId)) {
