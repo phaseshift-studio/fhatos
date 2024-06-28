@@ -438,6 +438,7 @@ namespace fhatos {
       return ansi ? objString : Ansi<FOS_DEFAULT_PRINTER>::singleton()->strip(objString.c_str());
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
+    // operator const Obj_p &() { return shared_from_this(); }
     bool operator&&(const Obj &rhs) const { return this->bool_value() && rhs.bool_value(); }
     bool operator||(const Obj &rhs) const { return this->bool_value() || rhs.bool_value(); }
     bool operator>(const Obj &rhs) const {
