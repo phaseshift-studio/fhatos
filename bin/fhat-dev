@@ -101,7 +101,7 @@ test_native() {
 test_esp32() {
   if [[ $platform == "esp32" || $platform = " " ]]; then
     # platformio run --target clean
-    platformio test ${environ} -vv ${filter}
+    platformio test ${environ} -v ${filter}
   fi
 }
 
