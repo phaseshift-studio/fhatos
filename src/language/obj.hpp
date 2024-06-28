@@ -237,10 +237,10 @@ namespace fhatos {
     Obj(const string &xstr, const char *furi = STR_FURI->toString().c_str()) :
         Obj(Any(xstr), RESOLVE(STR_FURI, share(fURI(furi)))) {}
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *furi = REC_FURI->toString().c_str()) :
-        Obj(Any(xrec), RESOLVE(REC_FURI, share(fURI(furi)))) {
-      auto map = ptr<RecMap<>>(new RecMap<>());
-      for (const auto &pair: xrec) {
-        map->insert(make_pair(share(pair.first), share(pair.second)));
+        Obj(Any(share(RecMap<>())), RESOLVE(REC_FURI, share(fURI(furi)))) {
+      auto map = std::any_cast<ptr<RecMap<>>>(this->_value);
+      for (const auto &[key, val]: xrec) {
+        map->insert(make_pair(share(key), share(val)));
       }
       this->_value = map;
     }
@@ -266,75 +266,78 @@ namespace fhatos {
       }
     }
     //////////////////////////////////////////////////////////////
-    const OType o_type() const { return STR_OTYPE.at(this->_id->path(0, 1)); } // TODO
+    OType o_type() const { return STR_OTYPE.at(this->_id->path(0, 1)); }
     template<typename VALUE>
     const VALUE value() const {
       return std::any_cast<VALUE>(this->_value);
     }
     List<Obj_p> objs_value() const {
-      assert(OType::OBJS == o_type());
+      Types<>::verifyOType(*this, OType::OBJS, __LINE__);
       return this->value<List<Obj_p>>();
     }
     const bool bool_value() const {
-      assert(OType::BOOL == o_type());
+      Types<>::verifyOType(*this, OType::BOOL, __LINE__);
       return this->value<bool>();
     }
     const FL_INT_TYPE int_value() const {
-      assert(OType::INT == o_type());
+      Types<>::verifyOType(*this, OType::INT, __LINE__);
       return this->value<FL_INT_TYPE>();
     }
     const FL_REAL_TYPE real_value() const {
-      assert(OType::REAL == o_type());
+      Types<>::verifyOType(*this, OType::REAL, __LINE__);
       return this->value<FL_REAL_TYPE>();
     }
     const fURI uri_value() const {
-      assert(OType::URI == o_type());
+      Types<>::verifyOType(*this, OType::URI, __LINE__);
       return this->value<fURI>();
     }
     const string str_value() const {
-      assert(OType::STR == o_type());
+      Types<>::verifyOType(*this, OType::STR, __LINE__);
       return this->value<string>();
     }
     RecMap_p<> rec_value() const {
-      assert(OType::REC == o_type());
-      return this->value<RecMap_p<>>();
+      Types<>::verifyOType(*this, OType::REC, __LINE__);
+      return this->value<ptr<RecMap<>>>();
     }
     Obj_p rec_get(const Obj_p &key) const {
-      assert(OType::REC == o_type());
+      Types<>::verifyOType(*this, OType::REC, __LINE__);
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
     Obj_p rec_get(const Obj &key) const { return Obj::rec_get(share(key)); }
     void rec_set(const Obj_p &key, const Obj_p &val) const {
-      assert(OType::REC == o_type());
+      Types<>::verifyOType(*this, OType::REC, __LINE__);
       this->rec_value()->erase(key);
       if (!val->isNoObj())
         this->rec_value()->insert({key, val});
     }
     void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
-    void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
+    void rec_delete(const Obj &key) const {
+      Types<>::verifyOType(*this, OType::REC, __LINE__);
+      Obj::rec_set(share(key), Obj::to_noobj());
+    }
     const InstValue inst_value() const {
-      assert(OType::INST == o_type());
+      Types<>::verifyOType(*this, OType::INST, __LINE__);
       return this->value<InstValue>();
     }
     const string inst_op() const {
-      assert(OType::INST == o_type());
+      Types<>::verifyOType(*this, OType::INST, __LINE__);
       return this->_id->lastSegment();
     }
     const List<Obj_p> inst_args() const {
-      assert(OType::INST == o_type());
+      Types<>::verifyOType(*this, OType::INST, __LINE__);
       return this->inst_value().first;
     }
     Obj_p inst_arg(const uint8_t index) const {
-      assert(OType::INST == o_type());
+      Types<>::verifyOType(*this, OType::INST, __LINE__);
       return this->inst_value().first.at(index);
     }
 
     const InstFunction inst_f() const {
-      assert(OType::INST == o_type());
+      Types<>::verifyOType(*this, OType::INST, __LINE__);
       return this->inst_value().second;
     }
     List<Obj_p> bcode_value() const {
-      assert(OType::BCODE == o_type());
+      Types<>::verifyOType(*this, OType::BCODE, __LINE__);
       return this->value<List<Obj_p>>();
     }
 
@@ -344,7 +347,7 @@ namespace fhatos {
 
     const size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
-    const string toString(const bool includeType = true) const {
+    const string toString(const bool includeType = true, const bool ansi = true) const {
       string objString;
       switch (this->o_type()) {
         case OType::BOOL:
@@ -425,20 +428,48 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_type()));
       }
-      return includeType
-                 ? (this->_id->pathLength() > 1 && !this->_id->lastSegment().empty()
-                        ? (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!b/!!")) +
-                              ("!b" + this->_id->lastSegment() + "!g[!!" + objString + "!g]!!")
-                        : (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!!")) + objString)
-                 : objString;
+      objString =
+          includeType
+              ? (this->_id->pathLength() > 1 && !this->_id->lastSegment().empty()
+                     ? (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!b/!!")) +
+                           ("!b" + this->_id->lastSegment() + "!g[!!" + objString + "!g]!!")
+                     : (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!!")) + objString)
+              : objString;
+      return ansi ? objString : Ansi<FOS_DEFAULT_PRINTER>::singleton()->strip(objString.c_str());
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     bool operator&&(const Obj &rhs) const { return this->bool_value() && rhs.bool_value(); }
     bool operator||(const Obj &rhs) const { return this->bool_value() || rhs.bool_value(); }
-    bool operator<(const Obj &rhs) const { return this->int_value() < rhs.int_value(); }
-    bool operator>(const Obj &rhs) const { return this->int_value() > rhs.int_value(); }
-    bool operator<=(const Obj &rhs) const { return this->int_value() <= rhs.int_value(); }
-    bool operator>=(const Obj &rhs) const { return this->int_value() >= rhs.int_value(); }
+    bool operator>(const Obj &rhs) const {
+      switch (this->o_type()) {
+        case OType::INT:
+          return this->int_value() > rhs.int_value();
+        case OType::REAL:
+          return this->real_value() > rhs.real_value();
+        case OType::URI:
+          return this->uri_value().toString() > rhs.uri_value().toString();
+        case OType::STR:
+          return this->str_value() > rhs.str_value();
+        default:
+          throw fError("Unknown obj type in >: %s\n", OTYPE_STR.at(this->o_type()));
+      }
+    }
+    bool operator<(const Obj &rhs) const {
+      switch (this->o_type()) {
+        case OType::INT:
+          return this->int_value() < rhs.int_value();
+        case OType::REAL:
+          return this->real_value() < rhs.real_value();
+        case OType::URI:
+          return this->uri_value().toString() < rhs.uri_value().toString();
+        case OType::STR:
+          return this->str_value() < rhs.str_value();
+        default:
+          throw fError("Unknown obj type in >: %s\n", OTYPE_STR.at(this->o_type()));
+      }
+    }
+    bool operator<=(const Obj &rhs) const { return *this == rhs || *this < rhs; }
+    bool operator>=(const Obj &rhs) const { return *this == rhs || *this > rhs; }
     Obj operator*(const Obj &rhs) const {
       switch (this->o_type()) {
         case OType::BOOL:
@@ -449,7 +480,7 @@ namespace fhatos {
           return Obj(this->real_value() * rhs.real_value(), this->id());
         // case OType::URI:
         //   return Obj(this->uri_value().extend(rhs.uri_value().path().c_str()), this->id());
-        // case OType::STR:
+        //   case OType::STR:
         //   return Obj(this->str_value() + rhs.str_value(), this->id());
         case OType::REC: {
           RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
@@ -587,8 +618,8 @@ namespace fhatos {
             list.push_back(shared_from_this());
             return lhs->split(list);
           } else {*/
-            return this->inst_f()(lhs);
-        //  }
+          return this->inst_f()(lhs);
+          //  }
         }
         case OType::BCODE: {
           ptr<Obj> currentObj = lhs;
@@ -738,6 +769,11 @@ namespace fhatos {
         TYPE_CACHE()->insert({typeId, bcode});
       }
       static void clearCache() { TYPE_CACHE()->clear(); }
+      static void verifyOType(const Obj &obj, const OType otype, const int LINE_NUMBER = __LINE__) {
+        if (obj.o_type() != otype)
+          throw fError("Obj %s %s can not be accessed as a %s [line:%i]", OTYPE_STR.at(obj.o_type()),
+                       obj.toString(true, false).c_str(), OTYPE_STR.at(otype), LINE_NUMBER);
+      }
       static Option<fError> verifyType(const ptr<Obj> obj, const fURI_p &typeId, const bool doThrow = true) {
         bool success = true;
         if (typeId->pathLength() > 0 && (typeId->path(0, 1) == "inst" || typeId->path(0, 1) == "bcode")) {

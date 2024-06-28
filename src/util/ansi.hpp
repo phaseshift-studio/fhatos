@@ -47,8 +47,8 @@ namespace fhatos {
   class Ansi {
   public:
     static Ansi *singleton() {
-      static auto ansi = Ansi<>();
-      return &ansi;
+      static Ansi *ansi = new Ansi<PRINTER>();
+      return ansi;
     }
 
   protected:

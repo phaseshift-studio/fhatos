@@ -39,38 +39,42 @@ namespace fhatos {
       return Obj::to_inst("explain", {}, [](const Obj_p) { return nullptr; });
     }
 
-    static Obj_p plus(const Obj_p rhs) {
+    static Obj_p plus(const Obj_p &rhs) {
       return Obj::to_inst("plus", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs + *rhs->apply(lhs)); });
     }
 
-    static Obj_p mult(const Obj_p rhs) {
+    static Obj_p mult(const Obj_p &rhs) {
       return Obj::to_inst("mult", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs * *rhs->apply(lhs)); });
     }
 
-    static Obj_p mod(const Obj_p rhs) {
+    static Obj_p mod(const Obj_p &rhs) {
       return Obj::to_inst("mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); });
     }
 
-    static Obj_p bswitch(const Rec_p rec) {
+    static Obj_p bswitch(const Rec_p &rec) {
       return Obj::to_inst("switch", {rec}, [rec](const Obj_p &lhs) {
-        for (const auto &[key, value]: *rec->rec_value()) {
-          if (!key->apply(lhs)->isNoObj())
-            return value->apply(lhs);
+        try {
+          for (const auto &[key, value]: *rec->rec_value()) {
+            if (!key->apply(lhs)->isNoObj())
+              return value->apply(lhs);
+          }
+        } catch (std::bad_any_cast e) {
+          LOG_EXCEPTION(e);
         }
         return Obj::to_noobj();
       });
     }
 
-    static Obj_p map(const BCode_p bcode) {
+    static Obj_p map(const BCode_p &bcode) {
       return Obj::to_inst("map", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); });
     }
 
-    static Obj_p filter(const BCode_p bcode) {
+    static Obj_p filter(const BCode_p &bcode) {
       return Obj::to_inst("filter", {bcode},
                           [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; });
     }
 
-    static Obj_p side(const BCode_p bcode) {
+    static Obj_p side(const BCode_p &bcode) {
       return Obj::to_inst("side", {bcode}, [bcode](const Obj_p &lhs) {
         bcode->apply(lhs);
         return lhs;
@@ -87,7 +91,7 @@ namespace fhatos {
        });
      }*/
 
-    static Obj_p is(const Obj_p xbool) {
+    static Obj_p is(const Obj_p &xbool) {
       return Obj::to_inst(
           "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); });
     }
@@ -97,32 +101,32 @@ namespace fhatos {
     }
 
 
-    static Obj_p neq(const Obj_p rhs) {
+    static Obj_p neq(const Obj_p &rhs) {
       return Obj::to_inst("neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); });
     }
 
-    static Obj_p eq(const Obj_p rhs) {
+    static Obj_p eq(const Obj_p &rhs) {
       return Obj::to_inst("eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); });
     }
 
-    static Obj_p gte(const Obj_p rhs) {
+    static Obj_p gte(const Obj_p &rhs) {
       return Obj::to_inst("gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); });
     }
 
-    static Obj_p gt(const Obj_p rhs) {
+    static Obj_p gt(const Obj_p &rhs) {
       return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); });
     }
 
-    static Obj_p lte(const Obj_p rhs) {
+    static Obj_p lte(const Obj_p &rhs) {
       return Obj::to_inst("gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); });
     }
 
-    static Obj_p lt(const Obj_p rhs) {
+    static Obj_p lt(const Obj_p &rhs) {
       return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); });
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p define(const Obj_p uri, const BCode_p type) {
+    static Obj_p define(const Obj_p &uri, const BCode_p &type) {
       return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
         ROUTER::singleton()->publish(Message{.source = "123",
                                              .target = uri->uri_value(),
@@ -132,7 +136,7 @@ namespace fhatos {
       });
     }
 
-    static Obj_p as(const Uri_p type) {
+    static Obj_p as(const Uri_p &type) {
       return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) { return lhs->as(share(type->uri_value())); });
     }
 
@@ -158,7 +162,7 @@ namespace fhatos {
     }
 
     template<typename PRINTER = FOS_DEFAULT_PRINTER>
-    static Obj_p print(const Obj_p toprint) {
+    static Obj_p print(const Obj_p &toprint) {
       return Obj::to_inst("print", {toprint}, [toprint](const Obj_p &lhs) {
         const Obj_p done = toprint->apply(lhs);
         PRINTER::singleton()->printf("%s\n", done->toString().c_str());
