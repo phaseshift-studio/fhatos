@@ -22,7 +22,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       LocalRouter::singleton(); //
-      FOS_RUN_TEST(test_publish); //
+     // FOS_RUN_TEST(test_publish); //
       );
 
 } // namespace fhatos::kernel

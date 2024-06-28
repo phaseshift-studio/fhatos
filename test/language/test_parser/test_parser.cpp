@@ -54,7 +54,7 @@ namespace fhatos {
   void test_bool_parsing() {
     for (const auto &pair: List<Pair<string, bool>>({{"true", true}, {"false", false}})) {
       const ptr<Bool> b = Parser::tryParseObj(pair.first).value();
-      TEST_ASSERT_EQUAL(OType::BOOL, b->o_range());
+      TEST_ASSERT_EQUAL(OType::BOOL, b->o_type());
       TEST_ASSERT_EQUAL_INT(pair.second, b->bool_value());
     }
   }
@@ -62,7 +62,7 @@ namespace fhatos {
   void test_int_parsing() {
     for (auto &pair: List<Pair<string, int>>({{"45", 45}, {"0", 0}, {"-12", -12}})) {
       const ptr<Int> i = Parser::tryParseObj(pair.first).value();
-      TEST_ASSERT_EQUAL(OType::INT, i->o_range());
+      TEST_ASSERT_EQUAL(OType::INT, i->o_type());
       TEST_ASSERT_EQUAL_INT(pair.second, i->int_value());
       // delete i;
     }
@@ -71,7 +71,7 @@ namespace fhatos {
                                                     {"zero[0]", Int(0, "/int/zero")},
                                                     {"z[-100]", Int(-100, "/int/z")}})) {
       const ptr<Int> i = Parser::tryParseObj(pair.first).value();
-      TEST_ASSERT_EQUAL(OType::INT, i->o_range());
+      TEST_ASSERT_EQUAL(OType::INT, i->o_type());
       TEST_ASSERT_EQUAL_STRING(pair.second.id()->toString().c_str(), i->id()->toString().c_str());
       TEST_ASSERT_EQUAL_INT(pair.second.int_value(), i->int_value());
     }
@@ -88,7 +88,7 @@ namespace fhatos {
     // REAL
     for (auto pair: List<Pair<string, float>>({{"45.54", 45.54}, {"0.0", 0.0}, {"-12.534678", -12.534678}})) {
       const ptr<Real> r = Parser::tryParseObj(pair.first).value();
-      TEST_ASSERT_EQUAL(OType::REAL, r->o_range());
+      TEST_ASSERT_EQUAL(OType::REAL, r->o_type());
       TEST_ASSERT_FLOAT_WITHIN(0.01, pair.second, r->real_value());
     }
   }
@@ -100,14 +100,14 @@ namespace fhatos {
                                               {"blah.com", fURI("blah.com")},
                                               {"/abc_2467", fURI("/abc_2467")}})) {
       const ptr<Uri> u = Parser::tryParseObj(pair.first).value();
-      TEST_ASSERT_EQUAL(OType::URI, u->o_range());
+      TEST_ASSERT_EQUAL(OType::URI, u->o_type());
       TEST_ASSERT_EQUAL_STRING(pair.second.toString().c_str(), u->uri_value().toString().c_str());
     }
   }
 
   void test_str_parsing() {
     const ptr<Str> s = Parser::tryParseObj("'fhatty-the-pig'").value();
-    TEST_ASSERT_EQUAL(OType::STR, s->o_range());
+    TEST_ASSERT_EQUAL(OType::STR, s->o_type());
     TEST_ASSERT_EQUAL_STRING("fhatty-the-pig", s->str_value().c_str());
   }
 
@@ -124,7 +124,7 @@ namespace fhatos {
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const ptr<Rec> rc1 = Parser::tryParseObj(form).value();
-      TEST_ASSERT_EQUAL(OType::REC, rc1->o_range());
+      TEST_ASSERT_EQUAL(OType::REC, rc1->o_type());
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value());
       // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Int>(new Int(13)))->otype());
       // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Str>(new Str("no key")))->otype());
@@ -136,22 +136,22 @@ namespace fhatos {
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::tryParseObj(form).value();
-      TEST_ASSERT_EQUAL(OType::REC, rc2->o_range());
+      TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
       // TEST_ASSERT_EQUAL_STRING("person", rc2->id()->lastSegment().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u("age"))->int_value());
       TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u("name"))->str_value().c_str());
-      TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_range()); // TODO
+      TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
       TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
       // TEST_ASSERT_TRUE(rc2->rec_get(Obj::to_uri("actor@127.0.0.1"))->isNoObj());
     }
     ///////////////////////////////////
     const ptr<Rec> rc2 = Parser::tryParseObj("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]").value();
-    TEST_ASSERT_EQUAL(OType::REC, rc2->o_range());
+    TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
     TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
     //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
     TEST_ASSERT_TRUE(rc2->rec_get("actor@127.0.0.1")->isNoObj()); // it's a string, not a uri
     const ptr<Rec> rc3 = rc2->rec_get(u("actor@127.0.0.1"));
-    TEST_ASSERT_EQUAL(OType::REC, rc3->o_range());
+    TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
     TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",

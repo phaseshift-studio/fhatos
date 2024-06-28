@@ -38,7 +38,7 @@ namespace fhatos {
       // TODO: have constructed processes NOT running or check is process ID already in scheduler
       process->setup();
       if (!process->running()) {
-        LOG(ERROR, "!RUnable to spawn running %s: %s!!\n", P_TYPE_STR(process->type), process->id().toString().c_str());
+        LOG(ERROR, "!RUnable to spawn running %s: %s!!\n", P_TYPE_STR(process->type), process->id()->toString().c_str());
         return false;
       }
       //////////////////////////////////////////////////
@@ -71,11 +71,11 @@ namespace fhatos {
           break;
         }
         default: {
-          LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n", process->id().toString().c_str(), process->type);
+          LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n", process->id()->toString().c_str(), process->type);
           return false;
         }
       }
-      LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
+      LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n", process->id()->toString().c_str(), P_TYPE_STR(process->type));
       /*LOG(NONE,
           "\t!yFree memory\n"
           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
@@ -88,7 +88,7 @@ namespace fhatos {
     }
 
   private:
-    explicit Scheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) : AbstractScheduler<ROUTER>(id) {
+    explicit Scheduler(const ID_p &id = share(ROUTER::mintID("scheduler", "kernel"))) : AbstractScheduler<ROUTER>(id) {
     }
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
@@ -102,7 +102,7 @@ namespace fhatos {
         Option<Fiber *> fiber = fibers->get(counter);
         if (fiber.has_value()) {
           if (!fiber.value()->running())
-            Scheduler::singleton()->destroy(fiber.value()->id());
+            Scheduler::singleton()->destroy(*fiber.value()->id());
           else
             fiber.value()->loop();
           counter = (counter + 1) % fibers->size();
@@ -120,7 +120,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      Scheduler<>::singleton()->destroy(thread->id());
+      Scheduler<>::singleton()->destroy(*thread->id());
     }
   };
 } // namespace fhatos

@@ -87,7 +87,9 @@ namespace fhatos {
 
     Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(Obj::cast(starts))); }
     Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(starts)); }
-
+    Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
+    Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
+    Fluent side(const BCode &bcode) const { return this->addInst(Insts::side(share(bcode))); }
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////

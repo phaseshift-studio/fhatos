@@ -30,17 +30,17 @@ namespace fhatos {
     ~Publisher() = default;
 
   public:
-    const ID __id;
+    const ID_p __id;
     Mailbox<ptr<Mail>> *mailbox;
 
     explicit Publisher(const IDed *ided, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(ided->id()), mailbox(mailbox) {}
-    explicit Publisher(const ID &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
+    explicit Publisher(const ID_p &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
 
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message>&>& onRecv,
                                     const QoS qos = QoS::_1) {
       return ROUTER::singleton()->subscribe(Subscription{.mailbox = this->mailbox,
-                                                         .source = this->__id,
+                                                         .source = *this->__id,
                                                          .pattern = /*makeTopic(*/relativePattern/*)*/,
                                                          .qos = qos,
                                                          .onRecv = onRecv});
@@ -90,10 +90,10 @@ namespace fhatos {
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
-      return ROUTER::singleton()->unsubscribe(this->__id, /*makeTopic(*/relativePattern/*)*/);
+      return ROUTER::singleton()->unsubscribe(*this->__id, /*makeTopic(*/relativePattern/*)*/);
     }
 
-    virtual RESPONSE_CODE unsubscribeSource() { return ROUTER::singleton()->unsubscribeSource(this->__id); }
+    virtual RESPONSE_CODE unsubscribeSource() { return ROUTER::singleton()->unsubscribeSource(*this->__id); }
 
     /////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ namespace fhatos {
     /// PUBLISH
      RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj>& payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
-      return ROUTER::singleton()->publish(Message{.source = this->__id, .target = /*makeTopic(*/relativeTarget/*)*/, .payload = share(Obj(*payload)), .retain = retain});
+      return ROUTER::singleton()->publish(Message{.source = *this->__id, .target = /*makeTopic(*/relativeTarget/*)*/, .payload = share(Obj(*payload)), .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////

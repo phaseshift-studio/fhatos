@@ -80,7 +80,7 @@ namespace fhatos {
       LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
       if (startInst->inst_op() == "start") {
         for (const ptr<Obj> &startObj: startInst->inst_value().first) {
-          const ptr<Monad> monad = ptr<Monad>(new Monad(startObj, startInst));
+          const ptr<Monad> monad = ptr<Monad>(new Monad(startObj, this->bcode->nextInst(startInst)));
           this->running->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
         }

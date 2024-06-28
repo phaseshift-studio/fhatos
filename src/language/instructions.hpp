@@ -61,15 +61,31 @@ namespace fhatos {
       });
     }
 
-   /* static Objs_p bunion(const Rec_p rec) {
-      return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
-        for (const auto &[key, value]: *rec->rec_value()) {
-          if (!key->apply(lhs)->isNoObj())
-            return value->apply(lhs);
-        }
-        return Obj::to_noobj();
+    static Obj_p map(const BCode_p bcode) {
+      return Obj::to_inst("map", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); });
+    }
+
+    static Obj_p filter(const BCode_p bcode) {
+      return Obj::to_inst("filter", {bcode},
+                          [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; });
+    }
+
+    static Obj_p side(const BCode_p bcode) {
+      return Obj::to_inst("side", {bcode}, [bcode](const Obj_p &lhs) {
+        bcode->apply(lhs);
+        return lhs;
       });
-    }*/
+    }
+
+    /* static Objs_p bunion(const Rec_p rec) {
+       return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
+         for (const auto &[key, value]: *rec->rec_value()) {
+           if (!key->apply(lhs)->isNoObj())
+             return value->apply(lhs);
+         }
+         return Obj::to_noobj();
+       });
+     }*/
 
     static Obj_p is(const Obj_p xbool) {
       return Obj::to_inst(
@@ -106,19 +122,18 @@ namespace fhatos {
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p define(const Obj_p uri, const Obj_p type) {
+    static Obj_p define(const Obj_p uri, const BCode_p type) {
       return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
-        ROUTER::singleton()->publish(
-            Message{.source = "123", .target = uri->uri_value(), .payload = type, .retain = RETAIN_MESSAGE});
+        ROUTER::singleton()->publish(Message{.source = "123",
+                                             .target = uri->uri_value(),
+                                             .payload = lhs->isBytecode() && type->isNoOpBytecode() ? lhs : type,
+                                             .retain = RETAIN_MESSAGE});
         return lhs;
       });
     }
 
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
     static Obj_p as(const Uri_p type) {
-      return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) {
-        return lhs->as(share(type->uri_value()));
-      });
+      return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) { return lhs->as(share(type->uri_value())); });
     }
 
     template<typename ROUTER = FOS_DEFAULT_ROUTER>
@@ -185,6 +200,12 @@ namespace fhatos {
     static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(args);
+      if (type == INST_FURI->resolve("map"))
+        return Insts::map(args.at(0));
+      if (type == INST_FURI->resolve("filter"))
+        return Insts::filter(args.at(0));
+      if (type == INST_FURI->resolve("side"))
+        return Insts::side(args.at(0));
       if (type == INST_FURI->resolve("noop"))
         return Insts::noop();
       if (type == INST_FURI->resolve("as"))
@@ -231,7 +252,7 @@ namespace fhatos {
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
     }
     static const BCode_p NO_OP_BCODE() {
-      static BCode_p p = share(BCode({Insts::noop()}));
+      static BCode_p p = BCode::to_bcode({Insts::noop()});
       return p;
     }
   };

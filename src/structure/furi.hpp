@@ -21,6 +21,7 @@
 
 #include <fhatos.hpp>
 #include <string.h>
+#include <util/ptr_helper.hpp>
 // #include <memory>
 // #include <utility>
 
@@ -365,6 +366,10 @@ namespace fhatos {
       return fURI(string(furi.toString()).append(query));
     }
 
+    /* const fURI query(const char* key, const char* value, const char* delim="&") {
+
+     }*/
+
     virtual bool colocated(const fURI &other) const { return this->host() == other.host(); }
 
     // const char *c_str() const { return this->toString().c_str(); }
@@ -432,6 +437,7 @@ namespace fhatos {
       }
     }
   };
+  using ID_p = ptr<ID>;
 
   using SourceID = ID;
   using TargetID = ID;
@@ -456,26 +462,30 @@ namespace fhatos {
     }
   };
 
+  using fURI_p = ptr<fURI>;
   class BaseIDed {
   public:
-    virtual const ID id() const { return nullptr; }
+    virtual ID_p id() const { return nullptr; }
     virtual bool equals(const BaseIDed &other) const { return false; }
   };
+  using Patter_p = ptr<Pattern>;
 
   class IDed : public BaseIDed {
   public:
     virtual ~IDed() = default;
 
-    explicit IDed(const ID &id) : _id(id) {}
+    explicit IDed(const fURI_p &furi) : _id(share(ID(*furi))) {}
+    explicit IDed(const ID_p &id) : _id(id) {}
 
-    virtual const ID id() const override { return this->_id; }
+    ID_p id() const override { return this->_id; }
 
     // const String toString() const { return this->id().toString(); }
 
-    bool equals(const BaseIDed &other) const override { return this->_id.equals(other.id()); }
+    bool equals(const BaseIDed &other) const override { return this->_id->equals(*other.id()); }
+
 
   protected:
-    ID _id;
+    ptr<ID> _id;
   };
 
   struct furi_comp : public std::less<ptr<fURI>> {

@@ -26,19 +26,19 @@ namespace fhatos {
   class ObjHelper final {
   public:
     ObjHelper() = delete;
-    static const char *typeChars(const ptr<Obj> &obj) { return OTYPE_STR.at(obj->o_range()); }
+    static const char *typeChars(const ptr<Obj> &obj) { return OTYPE_STR.at(obj->o_type()); }
 
     static fError *sameTypes(const ptr<Obj> &a, const ptr<Obj> &b) {
       // LOG(DEBUG,"%s %s\n",a->toString().c_str(),b->toString().c_str());
-      return (a->o_range() == b->o_range() &&
-              a->o_domain() == b->o_domain() /*&& a->_furi->v_furi()->equals(*b->type()->v_furi()*/)
+      return (a->o_type() == b->o_type() &&
+              a->o_type() == b->o_type() /*&& a->_furi->v_furi()->equals(*b->type()->v_furi()*/)
                  ? nullptr
                  : new fError("Types are not equivalent: %s != %s\n", a->toString().c_str(), b->toString().c_str());
     }
 
     template<OType O_DOMAIN, OType O_RANGE, typename OBJ = Obj>
     static ptr<OBJ> checkType(const ptr<Obj> a) {
-      if (a->o_domain() != O_DOMAIN && a->o_range() != O_RANGE)
+      if (a->o_type() != O_DOMAIN && a->o_type() != O_RANGE)
         throw fError("Expected %s and received %s: %s\n", OTYPE_STR.at(O_RANGE), typeChars(a), a->toString().c_str());
       return a;
     }
@@ -51,8 +51,8 @@ namespace fhatos {
               "\t!gsize!!  (bytes) : %lu\n"
               "\t!gbcode!!         : %s\n"
               "\t!gvalue!!         : %s",
-              obj.id()->lastSegment().c_str(), obj.id()->toString().c_str(), OTYPE_STR.at(obj.o_range()),
-              OTYPE_STR.at(obj.o_domain()), sizeof(obj), FOS_BOOL_STR(obj.isBytecode()),
+              obj.id()->lastSegment().c_str(), obj.id()->toString().c_str(), OTYPE_STR.at(obj.o_type()),
+              OTYPE_STR.at(obj.o_type()), sizeof(obj), FOS_BOOL_STR(obj.isBytecode()),
               obj.isBytecode() ? obj.toString().c_str() : obj.toString(false).c_str());
       return string(a);
     }

@@ -75,7 +75,7 @@ namespace fhatos {
     /// PROCESS METHODS
     virtual void setup() override {
       if (this->_running) {
-        LOG(ERROR, "Actor %s has already started [setup()]\n", this->id().toString().c_str());
+        LOG(ERROR, "Actor %s has already started [setup()]\n", this->id()->toString().c_str());
         return;
       }
       ///////////////////////////////////////////////////////
@@ -87,20 +87,20 @@ namespace fhatos {
 
     virtual void stop() override {
       if (!this->_running) {
-        LOG(ERROR, "Actor %s has already stopped [stop()]\n", this->id().toString().c_str());
+        LOG(ERROR, "Actor %s has already stopped [stop()]\n", this->id()->toString().c_str());
         return;
       }
       PROCESS::stop();
       ///////////////////////////////////////////////////////
-      if (const RESPONSE_CODE _rc = ROUTER::singleton()->unsubscribeSource(this->id())) {
-        LOG(ERROR, "Actor %s stop error: %s\n", this->id().toString().c_str(), RESPONSE_CODE_STR(_rc));
+      if (const RESPONSE_CODE _rc = ROUTER::singleton()->unsubscribeSource(*this->id())) {
+        LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), RESPONSE_CODE_STR(_rc));
       }
       this->inbox.clear();
     }
 
     virtual void loop() override {
       if (!this->running()) {
-        LOG(ERROR, "Actor %s has already stopped [loop()]\n", this->id().toString().c_str());
+        LOG(ERROR, "Actor %s has already stopped [loop()]\n", this->id()->toString().c_str());
         return;
       }
       ///////////////////////////////////////////////////////

@@ -47,21 +47,21 @@ namespace fhatos {
     Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) :
+    explicit AbstractScheduler(const ID_p &id = ROUTER::mintID("scheduler", "kernel")) :
         IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
       //////////////// SPAWN
-      this->subscribe(id.query("?spawn"), [this](const ptr<Message> &message) {
+      this->subscribe(id->query("?spawn"), [this](const ptr<Message> &message) {
         if (message->payload->id()->lastSegment() == "thread") {
           // const auto b = new fBcode<Thread,
           // ROUTER>(((Rec*)message->payload.get())->get<Uri>(share<Uri>(Uri(fURI("id"))))->v_furi(), message->payload);
           //  this->spawn(b);
         } else {
           LOG_TASK(ERROR, this, "obj type can not be spawned: [stype:%s][utype:%s]\n",
-                   OTYPE_STR.at(message->payload->o_range()), message->payload->id()->toString().c_str());
+                   OTYPE_STR.at(message->payload->o_type()), message->payload->id()->toString().c_str());
         }
       });
       //////////////// DESTROY
-      this->subscribe(id.query("?destroy"), [this](const ptr<Message> &message) {
+      this->subscribe(this->id()->query("?destroy"), [this](const ptr<Message> &message) {
         const Uri_p uri = share(Uri(*message->payload));
         LOG_TASK(DEBUG, this, "received ?destroy=%s from %s\n", uri->toString().c_str(),
                  message->source.toString().c_str());
@@ -78,7 +78,7 @@ namespace fhatos {
     void shutdown() {
       while (this->next()) {
       }
-      THREADS->forEach([this](const Thread *thread) { this->destroy(thread->id()); });
+      THREADS->forEach([this](const Thread *thread) { this->destroy(*thread->id()); });
       this->barrier("shutting_down");
     }
 
@@ -93,7 +93,7 @@ namespace fhatos {
 
     virtual bool spawn(Process *process) { throw fError("%s\n","Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
-      return this->publish(this->id().query("?destroy"), share<const Uri>(Uri(processPattern)), TRANSIENT_MESSAGE);
+      return this->publish(this->id()->query("?destroy"), share<const Uri>(Uri(processPattern)), TRANSIENT_MESSAGE);
     }
 
   protected:
@@ -107,29 +107,29 @@ namespace fhatos {
     virtual bool _destroy(const Pattern &processPattern) {
       bool success = DESTROY_MUTEX.lockUnlock<bool>([this, processPattern]() {
         THREADS->remove_if([processPattern, this](Thread *process) {
-          if (process->id().matches(processPattern)) {
+          if (process->id()->matches(processPattern)) {
             process->stop();
-            LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
+            LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(), P_TYPE_STR(process->type));
             // ptr<Thread> temp = ptr<Thread>(process);
             return true;
           }
           return false;
         });
         FIBERS->remove_if([processPattern, this](Fiber *process) {
-          if (process->id().matches(processPattern)) {
+          if (process->id()->matches(processPattern)) {
             if (process->running())
               process->stop();
-            LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
+            LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(), P_TYPE_STR(process->type));
             // delete process;
             return true;
           }
           return false;
         });
         COROUTINES->remove_if([processPattern, this](Coroutine *process) {
-          if (process->id().matches(processPattern)) {
+          if (process->id()->matches(processPattern)) {
             if (process->running())
               process->stop();
-            LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id().toString().c_str(), P_TYPE_STR(process->type));
+            LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(), P_TYPE_STR(process->type));
             // delete process;
             return true;
           }
@@ -140,11 +140,11 @@ namespace fhatos {
       if (DEBUG == LOG_TYPE::FOS_LOGGING) {
         LOG(DEBUG, "!b[Current Processes]!!\n");
         LOG(DEBUG, FOS_TAB_2 "!yThreads!!:\n");
-        THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
+        THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
         LOG(DEBUG, FOS_TAB_2 "!yFibers!!:\n");
-        FIBERS->forEach([](const Fiber *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
+        FIBERS->forEach([](const Fiber *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
         LOG(DEBUG, FOS_TAB_2 "!yCoroutines!!:\n");
-        COROUTINES->forEach([](const Coroutine *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id().toString().c_str()); });
+        COROUTINES->forEach([](const Coroutine *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
       }
       return success;
     }
@@ -153,25 +153,25 @@ namespace fhatos {
     const List<Process *> *find(const Pattern &processPattern = Pattern("#")) const {
       const auto results = new List<Process *>();
       auto temp = reinterpret_cast<List<Process *> *>(
-          THREADS->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
+          THREADS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
       delete temp;
       temp = reinterpret_cast<List<Process *> *>(
-          FIBERS->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
+          FIBERS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
       delete temp;
       temp = reinterpret_cast<List<Process *> *>(
-          COROUTINES->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
+          COROUTINES->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
       delete temp;
       temp = reinterpret_cast<List<Process *> *>(
-          KERNELS->match([processPattern](const Process *p) { return p->id().matches(processPattern); }));
+          KERNELS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
       for (Process *p: *temp) {
         results->push_back(p);
       }
@@ -184,20 +184,20 @@ namespace fhatos {
         return THREADS->size() + FIBERS->size() + COROUTINES->size() /*+ KERNELS->size()*/;
       auto *counter = new std::atomic(0);
       THREADS->forEach([counter, processPattern](const Thread *process) {
-        if (process->id().matches(processPattern))
+        if (process->id()->matches(processPattern))
           counter->fetch_add(1);
       });
       FIBERS->forEach([counter, processPattern](const Fiber *process) {
-        if (process->id().matches(processPattern))
+        if (process->id()->matches(processPattern))
           counter->fetch_add(1);
       });
 
       COROUTINES->forEach([counter, processPattern](const Coroutine *process) {
-        if (process->id().matches(processPattern))
+        if (process->id()->matches(processPattern))
           counter->fetch_add(1);
       });
       /* KERNELS->forEach([counter, processPattern](const KernelProcess *process) {
-         if (process->id().matches(processPattern))
+         if (process->id()->matches(processPattern))
            counter->fetch_add(1);
        });*/
       const int temp = counter->load();

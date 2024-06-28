@@ -26,7 +26,7 @@ IF (BUILD_TESTS)
             MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
+            ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
             TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map)
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

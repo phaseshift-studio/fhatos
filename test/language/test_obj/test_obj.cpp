@@ -27,7 +27,7 @@ namespace fhatos {
     TEST_ASSERT_TRUE(boolA->bool_value());
     TEST_ASSERT_FALSE(boolA->isBytecode());
     TEST_ASSERT_FALSE(boolA->isNoObj());
-    TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_range());
+    TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_type());
     FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
     ///
     /* const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
@@ -50,7 +50,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("/int/", intA->id()->toString().c_str());
     TEST_ASSERT_EQUAL_STRING("", intA->id()->lastSegment().c_str());
     TEST_ASSERT_EQUAL_STRING("int", intA->id()->path(0, 1).c_str());
-    TEST_ASSERT_EQUAL(OType::INT, intA->o_range());
+    TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
     TEST_ASSERT_FALSE(intA->isNoObj());
     ///
     FOS_TEST_ASSERT_EQUAL_FURI(*intC->id(), *intA->as(share(fURI("age")))->id());
@@ -90,7 +90,7 @@ namespace fhatos {
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.isBytecode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
-    TEST_ASSERT_EQUAL(OType::STR, strA.o_range());
+    TEST_ASSERT_EQUAL(OType::STR, strA.o_type());
   }
 
   void test_rec() {
@@ -138,6 +138,11 @@ namespace fhatos {
 
   }*/
 
+  void test_inst_bcode() {
+    Fluent f = __(*BCode::to_bcode({Insts::plus(share(Int(1)))})).plus(2).mult(3);
+    f.forEach<Obj>([](const Obj_p &x) { LOG(INFO, "%s\n", x->toString().c_str()); });
+  }
+
   FOS_RUN_TESTS( //
       Obj::Types<>::addToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
       Obj::Types<>::addToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
@@ -151,9 +156,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_int); //
       FOS_RUN_TEST(test_str); //
       FOS_RUN_TEST(test_rec); //
-      // FOS_RUN_TEST(test_base_obj_strings);
-
-      // FOS_RUN_TEST(test_int); //
+      // FOS_RUN_TEST(test_inst_bcode); //
   )
 
 

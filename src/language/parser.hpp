@@ -71,7 +71,7 @@ namespace fhatos {
     static Pair<string, string> tryParseObjType(const string &token, const bool brackets = true) {
       string typeToken;
       string valueToken;
-      if (token.ends_with(brackets ? "]" : ")")) {
+      if (!token.empty() && token[token.length() - 1] == (brackets ? ']' : ')')) {
         bool onType = true;
         auto ss = stringstream(token);
         while (!ss.eof()) {
@@ -255,9 +255,11 @@ namespace fhatos {
       return Option<Inst_p>(Insts::to_inst(baseType->resolve(typeToken.c_str()), args));
     }
 
-    static Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken, const fURI_p &baseType = BCODE_FURI) {
+    static Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
+                                         const fURI_p &baseType = BCODE_FURI) {
       LOG(DEBUG, "Attempting bcode parse on %s\n", valueToken.c_str());
-      if ((valueToken[0] == '_' && valueToken[1] == '_') || (valueToken[valueToken.length() - 1] == ')' && valueToken.find('('))) {
+      if ((valueToken[0] == '_' && valueToken[1] == '_') ||
+          (valueToken[valueToken.length() - 1] == ')' && valueToken.find('('))) {
         List<Inst_p> insts;
         auto ss = stringstream(valueToken);
         while (!ss.eof()) {

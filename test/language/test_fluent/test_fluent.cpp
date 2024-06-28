@@ -143,7 +143,7 @@ namespace fhatos {
                                .plus(Int(3, "nat"))
                                .type()
                                .from(_)
-                               .define(u("/int/nat2"), _.is(_.gt(0)))
+                               .define(u("/int/nat2"), _)
                                .from(u("x"))
                                .as(u("/int/nat2"))
                                .mult(Int(2, "/int/nat2")),

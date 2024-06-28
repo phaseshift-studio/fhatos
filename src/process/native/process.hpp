@@ -49,7 +49,7 @@ namespace fhatos {
   public:
     const PType type;
 
-    explicit Process(const ID &id, const PType pType) : IDed(id), type(pType) {}
+    explicit Process(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
 
     //~Process() { this->stop(); }
 

@@ -126,7 +126,6 @@ namespace fhatos {
   }
 
   void test_furi_resolve() {
-    //  FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"), fURI("127.0.0.1/b/c").resolve(fURI("fhat@fhat.org/b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1/").resolve("/a"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1").resolve("/a"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1/").resolve("a"));
@@ -164,7 +163,11 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d/"), fURI("/a/b/c").resolve(fURI("../d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d/"), fURI("/a/b/c").resolve(fURI("../../d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d"), fURI("/a/b/c").resolve(fURI("../../d")));
-    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("abc@127.0.0.1//rec/thread"),fURI("abc@127.0.0.1//rec/thread").resolve(fURI("/rec")));
+
+    /////////////////
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://fhat@127.0.0.1/b/c"), fURI("foi://fhat@127.0.0.1/a").resolve(fURI("b/c")));
+   // FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/b/c"),
+   //                            fURI("foi://fhat@127.0.0.1/a").resolve(fURI("foi://fhat@fhat.org/b/c")));
   }
 
   void test_furi_path() {

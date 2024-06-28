@@ -106,7 +106,7 @@ static ptr<List<ptr<_OBJ>>> FOS_TEST_RESULT(const Fluent<> &fluent, const bool p
     int index = 0;
     for (const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTYPE_STR.at(obj->o_range()));
+                       OTYPE_STR.at(obj->o_type()));
     }
   }
   return result;
@@ -133,7 +133,7 @@ static const void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
-                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->o_range()), obj->id()->toString().c_str());
+                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->o_type()), obj->id()->toString().c_str());
   return obj;
 }
 

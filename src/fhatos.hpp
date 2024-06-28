@@ -160,7 +160,7 @@ namespace fhatos {
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s\n", (ex).what())
 #define LOG_TASK(logtype, process, format, ...)                                                                        \
-  LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id().toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                                 \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \

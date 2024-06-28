@@ -19,7 +19,7 @@ namespace fhatos {
       this->mutex = mutex;
     }
     void setup() {
-      FOS_TEST_MESSAGE("%s up and running", this->id().toString().c_str());
+      FOS_TEST_MESSAGE("%s up and running", this->id()->toString().c_str());
       TEST_ASSERT_FALSE(this->running());
       Process::setup();
       TEST_ASSERT_TRUE(this->running());
@@ -32,7 +32,7 @@ namespace fhatos {
       } else {
         this->stop();
         TEST_ASSERT_FALSE(this->running());
-        FOS_TEST_MESSAGE("%s done and stopping", this->id().toString().c_str());
+        FOS_TEST_MESSAGE("%s done and stopping", this->id()->toString().c_str());
       }
     }
   };
