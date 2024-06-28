@@ -48,7 +48,7 @@ namespace private_fhatos {
       result[i] = strdup("");
       i++;
     }
-    delete[] substr;
+    // delete substr;
     delete token;
     delete freeable_copy;
     return i;
@@ -116,8 +116,6 @@ namespace fhatos {
       this->_length = furi._length;
     };
 
-    // fURI(const IDed &ided) : fURI(ided._id) {}
-
     fURI(const string &furiString) : fURI(furiString.c_str()) {}
 
     fURI(const char *furiCharacters) {
@@ -156,11 +154,6 @@ namespace fhatos {
 
     const bool operator!=(const fURI &other) const { return !this->equals(other); }
 
-    fURI(const fURI &parent, const char *extension) :
-        fURI(parent.toString() + "/" + extension){
-            // this->__segments[this->__length++] = strdup(extension);
-        };
-
     virtual ~fURI() {
       if (this->_length > 0) {
         for (uint8_t i = 0; i < this->_length; i++) {
@@ -187,13 +180,9 @@ namespace fhatos {
           result.append("/").append(s2[i]);
         }
       }
-      delete[] s2;
+      // if (l2 > 0)
+      //   delete s2;
       return fURI(result);
-      /*
-      ((string(segments).length() == 0) || (string(segments).length() == 1 && segments[0] == '/'))
-                 ? fURI(*this)
-                 : fURI(string(this->toString()).append("/").append(segments));
-                 */
     }
 
     const fURI retract(const bool fromRight = true) const {
@@ -203,14 +192,14 @@ namespace fhatos {
       if (fromRight) {
         for (uint8_t i = 0; i < this->_length - 1; i++) {
           if (i > 0)
-            path = path + "/";
-          path = path + this->_segments[i];
+            path += "/";
+          path += this->_segments[i];
         }
       } else {
         for (uint8_t i = 1; i < this->_length; i++) {
           if (i > 1)
-            path = path + "/";
-          path = path + this->_segments[i];
+            path += "/";
+          path += this->_segments[i];
         }
       }
       return fURI(path);
@@ -245,18 +234,6 @@ namespace fhatos {
       }
       return temp.empty() ? temp : temp.substr(0, temp.length() - 1);
     }
-
-    /* const string path() const {
-       string temp;
-       if (this->_length > 1) {
-         for (uint8_t i = 1; i < this->_length; i++) {
-           if (i > 1)
-             temp = temp + "/";
-           temp = temp + this->_segments[i];
-         }
-       }
-       return temp;
-     }*/
 
     const fURI user(const char *user) const {
       return this->authority(
@@ -303,7 +280,7 @@ namespace fhatos {
     }
 
     const string scheme() const {
-      const int colonIndex = string(this->_segments[0]).find(':');
+      const size_t colonIndex = string(this->_segments[0]).find_first_of(':');
       if (std::string::npos == colonIndex) {
         return string("");
       } else {
@@ -433,7 +410,7 @@ namespace fhatos {
           delete _segments;
         }
         this->_length = 0;
-        throw e;
+        throw;
       }
     }
   };
@@ -489,7 +466,7 @@ namespace fhatos {
   };
 
   struct furi_comp : public std::less<ptr<fURI>> {
-    auto operator()(const ptr<fURI> &a, const ptr<fURI> &b) const { return a->toString() < b->toString(); }
+    auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 } // namespace fhatos
 

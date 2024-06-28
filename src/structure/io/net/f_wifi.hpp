@@ -113,7 +113,7 @@ namespace fhatos {
             "\tBroadcast:       %s\n"
             "\tChannel:         %i\n"
             "\tMax connections: %i\n",
-            this->id().toString().c_str(), ssid,
+            this->id()->toString().c_str(), ssid,
             WiFi.softAPIP().toString().c_str(), WiFi.softAPmacAddress().c_str(),
             hideSSID ? "false" : "true", WiFi.channel(), maxConnections);
       }
@@ -157,9 +157,9 @@ namespace fhatos {
         attempts++;
         if (multi.run() == WL_CONNECTED) {
           this->_id =
-              *(new ID(fWIFI::idFromIP("kernel", "wifi").toString().c_str()));
-          WiFiClass::hostname(this->id().user().value().c_str());
-          const bool mdnsStatus = MDNS.begin(this->id().user().value().c_str());
+              ptr<ID>(new ID(fWIFI::idFromIP("kernel", "wifi").toString().c_str()));
+          WiFiClass::hostname(this->id()->user().value().c_str());
+          const bool mdnsStatus = MDNS.begin(this->id()->user().value().c_str());
           LOG(NONE,
               "\tID             : %s\n"
               "\tStatus         : %s\n"
@@ -172,18 +172,18 @@ namespace fhatos {
               "\tSubnet mask    : %s\n"
               "\tDNS address    : %s\n"
               "\tChannel        : %i\n",
-              this->id().toString().c_str(),
+              this->id()->toString().c_str(),
               WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
               WiFi.SSID().c_str(), WiFi.macAddress().c_str(),
               WiFi.localIP().toString().c_str(), WiFi.getHostname(),
-              mdnsStatus ? (this->id().user().value() + ".local").c_str()
+              mdnsStatus ? (this->id()->user().value() + ".local").c_str()
               : "<error>",
               WiFi.gatewayIP().toString().c_str(),
               WiFi.subnetMask().toString().c_str(),
               WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
             LOG_TASK(ERROR, this, "Unable to create mDNS hostname %s\n",
-                     this->id().user()->c_str());
+                     this->id()->user()->c_str());
           }
           LOG(INFO, "\tConnection attempts: %i\n", attempts);
           attempts = 100;

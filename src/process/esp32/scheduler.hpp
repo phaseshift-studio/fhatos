@@ -38,7 +38,7 @@ namespace fhatos {
       process->setup();
       if (!process->running()) {
         LOG(ERROR, "!RUnable to spawn running %s: %s!!\n",
-            P_TYPE_STR(process->type), process->id().toString().c_str());
+            P_TYPE_STR(process->type), process->id()->toString().c_str());
         return false;
       }
       //////////////////////////////////////////////////
@@ -50,8 +50,8 @@ namespace fhatos {
           const BaseType_t threadResult = xTaskCreatePinnedToCore(
             THREAD_FUNCTION, // Function that should be called
             process->id()
-            .user()
-            .value_or(process->id().toString())
+            ->user()
+            .value_or(process->id()->toString())
             .c_str(), // Name of the task (for debugging)
             10000, // Stack size (bytes)
             process, // Parameter to pass
@@ -86,12 +86,12 @@ namespace fhatos {
         }
         default: {
           LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n",
-              process->id().toString().c_str(), process->type);
+              process->id()->toString().c_str(), process->type);
           return false;
         }
       }
       LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n",
-          process->id().toString().c_str(),
+          process->id()->toString().c_str(),
           P_TYPE_STR(process->type));
       LOG(NONE,
           "\t!yFree memory\n"
@@ -106,7 +106,7 @@ namespace fhatos {
 
   private:
   private:
-    explicit Scheduler(const ID &id = ROUTER::mintID("scheduler", "kernel")) : AbstractScheduler<ROUTER>(id) {
+    explicit Scheduler(const ID_p &id = share(ROUTER::mintID("scheduler", "kernel"))) : AbstractScheduler<ROUTER>(id) {
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
@@ -121,7 +121,7 @@ namespace fhatos {
         Option<Fiber *> fiber = fibers->get(counter);
         if (fiber.has_value()) {
           if (!fiber.value()->running())
-            Scheduler::singleton()->destroy(fiber.value()->id());
+            Scheduler::singleton()->destroy(*fiber.value()->id());
           else
             fiber.value()->loop();
           counter = (counter + 1) % fibers->size();
@@ -144,7 +144,7 @@ namespace fhatos {
         thread->loop();
         vTaskDelay(1); // feeds the watchdog for the task
       }
-      Scheduler::singleton()->destroy(thread->id());
+      Scheduler::singleton()->destroy(*thread->id());
       vTaskDelete(nullptr);
     }
   };

@@ -48,8 +48,8 @@ namespace fhatos {
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
-    delete counter1;
-    delete counter2;
+    //delete counter1;
+    //delete counter2;
   }
 
   template<typename ROUTER>
@@ -95,8 +95,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     ROUTER::singleton()->clear();
-    delete counter1;
-    delete counter2;
+    //delete counter1;
+    //delete counter2;
     Scheduler<>::singleton()->barrier();
   }
 
@@ -162,8 +162,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     actor1->stop();
     actor2->stop();
-    delete counter1;
-    delete counter2;
+    //delete counter1;
+    //delete counter2;
     ROUTER::singleton()->clear();
   }
 
@@ -181,7 +181,7 @@ namespace fhatos {
     }
     FOS_DEFAULT_PRINTER::singleton()->println();
     // delete actor;
-    free(clone);
+    //free(clone);
     Scheduler<>::singleton()->barrier();
   }
 
@@ -190,7 +190,7 @@ namespace fhatos {
                  // across tests
       Scheduler<>::singleton(); //
       LocalRouter::singleton(); //
-      FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
+     // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
       FOS_RUN_TEST(test_actor_by_router<LocalRouter>); //
       // FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
       //  FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //

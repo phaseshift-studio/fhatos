@@ -18,9 +18,11 @@ echo -e "${FHATOS} Development Script"
 
 if [[ -z $2 ]]; then
   environ=" "
+  platform=" "
   echo -e "  [processing ${GREEN}all environments${NC}]"
 else
   environ="--environment $2"
+  platform="$2"
   echo -e "  [processing ${GREEN}$environ${NC}]"
 fi
 
@@ -32,39 +34,89 @@ else
   echo -e "  [filtering tests: ${GREEN}$filter${NC}]"
 fi
 
+clean_native() {
+  if [[ $platform == "native" || $platform = " " ]]; then
+     rm -rf build/
+     rm CMakeCache.txt
+     rm Makefile
+     rm -rf CMakeFiles/
+     rm -rf Testing/
+     rm *.cmake
+     rm -rf _deps/
+     rm -rf include/
+     rm CMakeDoxyfile.in
+     rm docs/CMakeCache.txt
+     rm docs/cmake_install.cmake
+     rm docs/Makefile
+     rm -rf docs/build/
+     rm -rf docs/CMakeFiles/
+     rm -rf docs/Testing/
+     rm docs/*.cmake
+     rm test/CMakeCache.txt
+     rm test/cmake_install.cmake
+     rm test/Makefile
+     rm -rf test/build/
+     rm -rf test/CMakeFiles/
+     rm -rf test/Testing/
+     rm test/*.cmake
+     platformio run --target clean
+    echo -e "${RED}IMPORTANT${NC}"
+    echo -e "    ...next operation builds project from scratch ${GREEN}cmake${NC} ${RED}=>${NC} ${GREEN}cmake_install.cmake${NC} ${RED}=>${NC} ${GREEN}make${NC} ${RED}=>${NC} ${GREEN}platformio${NC}]"
+  fi
+}
+
+clean_esp32() {
+  if [[ $platform == "esp32" || $platform == " " ]]; then
+    platformio run --target clean
+  fi
+}
+
+make_native() {
+  if [[ $platform == "native" || $platform = " " ]]; then
+    mkdir build;
+    cd build || exit;
+    cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
+    cmake -P cmake_install.cmake; make;
+    cd ..;
+  fi
+}
+
+make_esp32() {
+  if [[ $platform == "esp32" || $platform = " " ]]; then
+    platformio run ${environ}
+  fi
+}
+
+test_native() {
+  if [[ $platform == "native" || $platform = " " ]]; then
+    make_native
+    cd build || exit;
+    cd test || exit;
+    ctest
+    cd ..
+    cd ..
+  fi
+}
+
+test_esp32() {
+  if [[ $platform == "esp32" || $platform = " " ]]; then
+    # platformio run --target clean
+    platformio test ${environ} -vv ${filter}
+  fi
+}
+
 if [[ $1 == "clean" ]]; then
-   rm -rf build/
-   rm CMakeCache.txt
-   rm Makefile
-   rm -rf CMakeFiles/
-   rm -rf Testing/
-   rm *.cmake
-   rm -rf _deps/
-   rm -rf include/
-   rm CMakeDoxyfile.in
-   rm docs/CMakeCache.txt
-   rm docs/cmake_install.cmake
-   rm docs/Makefile
-   rm -rf docs/build/
-   rm -rf docs/CMakeFiles/
-   rm -rf docs/Testing/
-   rm docs/*.cmake
-   rm test/CMakeCache.txt
-   rm test/cmake_install.cmake
-   rm test/Makefile
-   rm -rf test/build/
-   rm -rf test/CMakeFiles/
-   rm -rf test/Testing/
-   rm test/*.cmake
-   platformio run --target clean
-  echo -e "${RED}IMPORTANT${NC}"
-  echo -e "    ...next operation builds project from scratch ${GREEN}cmake${NC} ${RED}=>${NC} ${GREEN}cmake_install.cmake${NC} ${RED}=>${NC} ${GREEN}make${NC} ${RED}=>${NC} ${GREEN}platformio${NC}]"
+  clean_native
+  clean_esp32
 elif [[ $1 == "test" ]]; then
-  platformio run --target clean ${environ}; rm -rf build; mkdir build; cd build || exit; cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF; cmake -P cmake_install.cmake; make; cd ..; platformio test ${environ} -v ${filter}
+  test_native
+  test_esp32
 elif [[ $1 == "build" ]]; then
-  platformio run --target clean ${environ}; mkdir build; cd build || exit; cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON; cmake -P cmake_install.cmake; make; cd ..; platformio run ${environ}
+  make_native
+  make_esp32
 elif [[ $1 == "upload" ]]; then
-  platformio run --target clean ${environ}; mkdir build; cd build || exit; cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=OFF; cmake -P cmake_install.cmake; make; cd ..; platformio run ${environ} --target upload
+  clean_esp32
+  platformio run ${environ} --target upload
 else
    echo -e "usage: 
   fhat-dev {clean | test | build | upload} {esp32 | native | <empty>}

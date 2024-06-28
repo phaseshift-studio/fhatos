@@ -8,8 +8,7 @@
 namespace fhatos {
   void test_furi_memory_leaks() {
 #ifndef NATIVE
-#define FOS_TEST_PRINTER Serial
-    FOS_TEST_PRINTER.flush();
+    FOS_TEST_PRINTER::singleton()->flush();
     int sketchMemory = -1;
     int heapMemory = -1;
 #endif
@@ -35,11 +34,11 @@ namespace fhatos {
       heapMemory = ESP.getFreeHeap();
       if (i % 1000 == 0) {
         FOS_TEST_MESSAGE("fURI count: %i\t[free sketch:%i][free heap:%i]", i, sketchMemory, heapMemory);
-        FOS_TEST_PRINTER.flush();
+        FOS_TEST_PRINTER::singleton()->flush();
       }
     }
     FOS_TEST_MESSAGE("FINAL [free sketch:%i][free heap:%i]", ESP.getFreeSketchSpace(), ESP.getFreeHeap());
-#define FOS_TEST_PRINTER ansi
+#define FOS_TEST_PRINTER FOS_DEFAULT_PRINTER
 #else
       if (i % 1000 == 0) {
         FOS_TEST_MESSAGE("fURI count: %i\t", i);

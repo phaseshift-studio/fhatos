@@ -27,29 +27,32 @@ IF (NOT WIN32)
     SET(BoldCyan "${Esc}[1;36m")
     SET(BoldWhite "${Esc}[1;37m")
 ENDIF ()
-######## PROJECT LIBRARY
-MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} Library${..}")
-IF (NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE "RELEASE")
+######## PROJECT LIBRARY (NATIVE)
+OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
+IF (BUILD_NATIVE)
+    MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (NATIVE)${..}")
+    IF (NOT CMAKE_BUILD_TYPE)
+        SET(CMAKE_BUILD_TYPE "RELEASE")
+    ENDIF ()
+    MESSAGE(STATUS "Build type: ${.g}${CMAKE_BUILD_TYPE}${..}")
+    INCLUDE_DIRECTORIES(src include)
+    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
+    SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+            OUTPUT_NAME ${PROJECT_NAME}
+            SUFFIX ".out"
+    )
+    TARGET_SOURCES(${PROJECT_NAME} PRIVATE src/main.cpp)
+    TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
+    ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
+    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
+    IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
+    ENDIF ()
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF ()
-MESSAGE(STATUS "Build type: ${.g}${CMAKE_BUILD_TYPE}${..}")
-INCLUDE_DIRECTORIES(src include)
-ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-        OUTPUT_NAME ${PROJECT_NAME}
-        SUFFIX ".out"
-)
-TARGET_SOURCES(${PROJECT_NAME} PRIVATE src/main.cpp)
-TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
-ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
-IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
-ENDIF ()
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################

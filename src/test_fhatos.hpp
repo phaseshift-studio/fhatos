@@ -18,19 +18,36 @@
 
 #ifndef fhatos_test_fhatos_hpp
 #define fhatos_test_fhatos_hpp
-#ifdef NATIVE
-#include <fhatos.hpp>
-#include <language/fluent.hpp>
-#include <language/obj.hpp>
-#include <test_fhatos_native.hpp>
-#else
-#include <unity.h>
-//
-#include <fhatos.hpp>
-#include <language/fluent.hpp>
 
-static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
-#define FOS_TEST_PRINTER ansi // Serial
+#include <fhatos.hpp>
+#include <language/fluent.hpp>
+#include <unity.h>
+////////////////////////////////////////////////////////
+//////////////////////// NATIVE ////////////////////////
+////////////////////////////////////////////////////////
+#ifdef NATIVE
+namespace fhatos {
+#define FOS_RUN_TEST(x)                                                                                                \
+  { RUN_TEST(x); }
+
+#define FOS_RUN_TESTS(x)                                                                                               \
+  void RUN_UNITY_TESTS() {                                                                                             \
+    LOG(NONE, ANSI_ART);                                                                                               \
+    UNITY_BEGIN();                                                                                                     \
+    x;                                                                                                                 \
+    UNITY_END();                                                                                                       \
+  }
+} // namespace fhatos
+
+#define SETUP_AND_LOOP()                                                                                               \
+  int main(int arg, char **argsv) { fhatos::RUN_UNITY_TESTS(); };
+void setUp() {}
+void tearDown() {}
+#else
+/////////////////////////////////////////////////////
+//////////////////////// ESP ////////////////////////
+/////////////////////////////////////////////////////
+
 
 #define SETUP_AND_LOOP()                                                                                               \
   void setup() {                                                                                                       \
@@ -39,29 +56,6 @@ static fhatos::Ansi<HardwareSerial> ansi(&::Serial);
     fhatos::RUN_UNITY_TESTS();                                                                                         \
   }                                                                                                                    \
   void loop() {}
-
-#define FOS_TEST_MESSAGE(format, ...)                                                                                  \
-  FOS_TEST_PRINTER.printf("  !rline %i!!\t", __LINE__);                                                                \
-  FOS_TEST_PRINTER.printf((format), ##__VA_ARGS__);                                                                    \
-  FOS_TEST_PRINTER.println();
-
-#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
-  FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                           \
-  TEST_ASSERT_TRUE((x).equals(y));
-
-#define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
-  FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
-  TEST_ASSERT_FALSE((x).equals(y))
-
-#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
-
-#define FOS_TEST_ASSERT_EXCEPTION(x)                                                                                   \
-  try {                                                                                                                \
-    x;                                                                                                                 \
-    TEST_ASSERT(false);                                                                                                \
-  } catch (fhatos::fError e) {                                                                                         \
-    TEST_ASSERT(true);                                                                                                 \
-  }
 
 namespace fhatos {
 #define FOS_RUN_TEST(x)                                                                                                \
@@ -82,9 +76,60 @@ namespace fhatos {
     UNITY_END();                                                                                                       \
   }
 } // namespace fhatos
+
 #endif
 
 using namespace fhatos;
+
+#define FOS_TEST_PRINTER FOS_DEFAULT_PRINTER
+
+#define FOS_PRINT_FLUENT(fluent)                                                                                       \
+  FOS_TEST_MESSAGE("!yTesting!!: %s", (fluent).toString().c_str())                                                     \
+  (fluent)
+
+#define FOS_TEST_MESSAGE(format, ...)                                                                                  \
+  if (FOS_LOGGING < ERROR) {                                                                                           \
+    FOS_TEST_PRINTER::singleton()->printf("  !rline %i!!\t", __LINE__);                                                \
+    FOS_TEST_PRINTER::singleton()->printf((format), ##__VA_ARGS__);                                                    \
+    FOS_TEST_PRINTER::singleton()->printf("\n");                                                                       \
+  }
+
+#define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
+  FOS_TEST_MESSAGE("!b%s!! =!r?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                           \
+  TEST_ASSERT_TRUE((x).equals(y));
+
+#define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
+  FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
+  TEST_ASSERT_FALSE((x).equals(y))
+
+#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
+
+#define FOS_TEST_ASSERT_EXCEPTION(x)                                                                                   \
+  try {                                                                                                                \
+    x;                                                                                                                 \
+    TEST_ASSERT(false);                                                                                                \
+  } catch (fError & e) {                                                                                               \
+    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
+    TEST_ASSERT(true);                                                                                                 \
+  }
+
+#define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
+  {                                                                                                                    \
+    const bool test = *(objA) == *(objB);                                                                              \
+    FOS_TEST_MESSAGE("!yTesting equality!! : %s %s %s", (objA)->toString().c_str(),                                    \
+                     test ? "==" : "!=", (objB)->toString().c_str());                                                  \
+    if (!test)                                                                                                         \
+      TEST_FAIL();                                                                                                     \
+  }
+
+#define FOS_TEST_OBJ_NOT_EQUAL(objA, objB)                                                                             \
+  {                                                                                                                    \
+    const bool test = *(objA) == *(objB);                                                                              \
+    FOS_TEST_MESSAGE("!yTesting not equal!!: %s %s %s", (objA)->toString().c_str(),                                    \
+                     test ? "==" : "!=", (objB)->toString().c_str());                                                  \
+    if (test)                                                                                                          \
+      TEST_FAIL();                                                                                                     \
+  }
 
 static void FOS_CHECK_ARGS(const List<Obj_p> &expectedArgs, const Inst_p &inst) {
   FOS_TEST_MESSAGE("!yTesting!! instruction: %s", inst->toString().c_str());
@@ -98,15 +143,15 @@ static void FOS_CHECK_ARGS(const List<Obj_p> &expectedArgs, const Inst_p &inst) 
   }
 }
 
-template<typename _OBJ = Obj>
-static ptr<List<ptr<_OBJ>>> FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
+
+template<typename OBJ = Obj>
+static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
   ptr<List<Obj_p>> result = fluent.toList<Obj>();
   if (printResult) {
     int index = 0;
     for (const auto &obj: *result) {
-      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTYPE_STR.at(obj->o_type()));
+      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(), OTYPE_STR.at(obj->o_type()));
     }
   }
   return result;
@@ -133,7 +178,7 @@ static const void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]", obj->toString().c_str(),
-                   /*obj->id().toString().c_str(),*/ OTYPE_STR.at(obj->o_type()), obj->id()->toString().c_str());
+                   obj->id()->toString().c_str(), OTYPE_STR.at(obj->o_type()), obj->id()->toString().c_str());
   return obj;
 }
 
@@ -143,14 +188,14 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   return obj;
 }
 
-template<typename _OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<_OBJ> &expected, const Fluent<> &fluent,
+template<typename OBJ = Obj>
+static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent<> &fluent,
                               const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
                               const bool clearRouter = true) {
-  const ptr<List<ptr<_OBJ>>> result = FOS_TEST_RESULT<_OBJ>(fluent);
+  const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected vs. actual result size");
-  for (const _OBJ &obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<_OBJ> element) {
+  for (const OBJ &obj: expected) {
+    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<OBJ> element) {
       if (obj.isReal()) {
         return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
       } else
