@@ -133,7 +133,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      <span class="comment">// TODO: have constructed processes NOT running or check is process ID already in scheduler</span></div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      process-&gt;setup();</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      <span class="keywordflow">if</span> (!process-&gt;running()) {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        LOG(ERROR, <span class="stringliteral">&quot;!RUnable to spawn running %s: %s!!\n&quot;</span>, P_TYPE_STR(process-&gt;type), process-&gt;id().toString().c_str());</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        LOG(ERROR, <span class="stringliteral">&quot;!RUnable to spawn running %s: %s!!\n&quot;</span>, P_TYPE_STR(process-&gt;type), process-&gt;id()-&gt;toString().c_str());</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      }</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      <span class="keywordtype">bool</span> success = <span class="keyword">false</span>;</div>
@@ -164,11 +164,11 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>          <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        }</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        <span class="keywordflow">default</span>: {</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>          LOG(ERROR, <span class="stringliteral">&quot;!m%s!! has an unknown process type: !r%i!!\n&quot;</span>, process-&gt;id().toString().c_str(), process-&gt;type);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>          LOG(ERROR, <span class="stringliteral">&quot;!m%s!! has an unknown process type: !r%i!!\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(), process-&gt;type);</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>          <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        }</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      }</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      LOG(success ? INFO : ERROR, <span class="stringliteral">&quot;!M%s!! %s spawned\n&quot;</span>, process-&gt;id().toString().c_str(), P_TYPE_STR(process-&gt;type));</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      LOG(success ? INFO : ERROR, <span class="stringliteral">&quot;!M%s!! %s spawned\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(), P_TYPE_STR(process-&gt;type));</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <span class="comment">/*LOG(NONE,</span></div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="comment">          &quot;\t!yFree memory\n&quot;</span></div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="comment">          &quot;\t  !b[inst:&quot; FOS_BYTES_MB_STR &quot;][heap: &quot; FOS_BYTES_MB_STR &quot;][psram: &quot; FOS_BYTES_MB_STR &quot;][flash: &quot;</span></div>
@@ -181,7 +181,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    }</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keyword">explicit</span> Scheduler(<span class="keyword">const</span> ID &amp;<span class="keywordtype">id</span> = ROUTER::mintID(<span class="stringliteral">&quot;scheduler&quot;</span>, <span class="stringliteral">&quot;kernel&quot;</span>)) : AbstractScheduler&lt;ROUTER&gt;(id) {</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keyword">explicit</span> Scheduler(<span class="keyword">const</span> ID_p &amp;<span class="keywordtype">id</span> = share(ROUTER::mintID(<span class="stringliteral">&quot;scheduler&quot;</span>, <span class="stringliteral">&quot;kernel&quot;</span>))) : AbstractScheduler&lt;ROUTER&gt;(id) {</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    std::thread *FIBER_THREAD_HANDLE = <span class="keyword">nullptr</span>;</div>
@@ -192,7 +192,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>        Option&lt;Fiber *&gt; fiber = fibers-&gt;get(counter);</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>        <span class="keywordflow">if</span> (fiber.has_value()) {</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>          <span class="keywordflow">if</span> (!fiber.value()-&gt;running())</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>            Scheduler::singleton()-&gt;destroy(fiber.value()-&gt;id());</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>            Scheduler::singleton()-&gt;destroy(*fiber.value()-&gt;id());</div>
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>          <span class="keywordflow">else</span></div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>            fiber.value()-&gt;loop();</div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>          counter = (counter + 1) % fibers-&gt;size();</div>
@@ -207,7 +207,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      <span class="keywordflow">while</span> (thread-&gt;running()) {</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        thread-&gt;loop();</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>      }</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>      Scheduler&lt;&gt;::singleton()-&gt;destroy(thread-&gt;id());</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>      Scheduler&lt;&gt;::singleton()-&gt;destroy(*thread-&gt;id());</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    }</div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  };</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>} <span class="comment">// namespace fhatos</span></div>
