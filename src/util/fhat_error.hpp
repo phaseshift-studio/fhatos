@@ -70,7 +70,10 @@ namespace fhatos {
   public:
     template<typename... Args>
     explicit fError(const char *format, Args... args) noexcept {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
       sprintf(_message, format, args...);
+#pragma clang diagnostic pop
     };
     virtual const char *what() const _NOEXCEPT { return this->_message; }
   };

@@ -272,40 +272,40 @@ namespace fhatos {
       return std::any_cast<VALUE>(this->_value);
     }
     List<Obj_p> objs_value() const {
-      assert(OType::OBJS == o_range());
+      assert(OType::OBJS == o_type());
       return this->value<List<Obj_p>>();
     }
     const bool bool_value() const {
-      assert(OType::BOOL == o_range());
+      assert(OType::BOOL == o_type());
       return this->value<bool>();
     }
     const FL_INT_TYPE int_value() const {
-      assert(OType::INT == o_range());
+      assert(OType::INT == o_type());
       return this->value<FL_INT_TYPE>();
     }
     const FL_REAL_TYPE real_value() const {
-      assert(OType::REAL == o_range());
+      assert(OType::REAL == o_type());
       return this->value<FL_REAL_TYPE>();
     }
     const fURI uri_value() const {
-      assert(OType::URI == o_range());
+      assert(OType::URI == o_type());
       return this->value<fURI>();
     }
     const string str_value() const {
-      assert(OType::STR == o_range());
+      assert(OType::STR == o_type());
       return this->value<string>();
     }
     RecMap_p<> rec_value() const {
-      assert(OType::REC == o_range());
+      assert(OType::REC == o_type());
       return this->value<RecMap_p<>>();
     }
     Obj_p rec_get(const Obj_p &key) const {
-      assert(OType::REC == o_range());
+      assert(OType::REC == o_type());
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
     Obj_p rec_get(const Obj &key) const { return Obj::rec_get(share(key)); }
     void rec_set(const Obj_p &key, const Obj_p &val) const {
-      assert(OType::REC == o_range());
+      assert(OType::REC == o_type());
       this->rec_value()->erase(key);
       if (!val->isNoObj())
         this->rec_value()->insert({key, val});
@@ -313,28 +313,28 @@ namespace fhatos {
     void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
     void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
     const InstValue inst_value() const {
-      assert(OType::INST == o_range());
+      assert(OType::INST == o_type());
       return this->value<InstValue>();
     }
     const string inst_op() const {
-      assert(OType::INST == o_range());
+      assert(OType::INST == o_type());
       return this->_id->lastSegment();
     }
     const List<Obj_p> inst_args() const {
-      assert(OType::INST == o_range());
+      assert(OType::INST == o_type());
       return this->inst_value().first;
     }
     Obj_p inst_arg(const uint8_t index) const {
-      assert(OType::INST == o_range());
+      assert(OType::INST == o_type());
       return this->inst_value().first.at(index);
     }
 
     const InstFunction inst_f() const {
-      assert(OType::INST == o_range());
+      assert(OType::INST == o_type());
       return this->inst_value().second;
     }
     List<Obj_p> bcode_value() const {
-      assert(OType::BCODE == o_range());
+      assert(OType::BCODE == o_type());
       return this->value<List<Obj_p>>();
     }
 
