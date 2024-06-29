@@ -24,11 +24,13 @@
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
 #include FOS_MODULE(kernel/f_kernel.hpp)
-using namespace fhatos;
+#include FOS_MQTT(mqtt_router.hpp)
 
 using namespace fhatos;
+
 int main(int arg, char **argsv) {
   LOGGING_LEVEL = LOG_TYPE::INFO;
+  MqttRouter::singleton();
   try {
     fKernel<>::bootloader({
         // fWIFI::singleton(),

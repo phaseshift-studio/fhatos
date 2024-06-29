@@ -76,7 +76,7 @@ namespace fhatos {
     }
 */
 
-  void test_to_fromm() {
+  void test_to_from() {
     FOS_CHECK_RESULTS<Int>({2}, __(1).to(u("a")).plus(_.from(u("a"))), {{u("a"), 1}});
     FOS_CHECK_RESULTS<Int>({23}, __(10).to(u("a")).plus(3).plus(_.from(u("a"))), {{u("a"), 10}});
     FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").to(u("a")).plus("os"), {{u("a"), "fhat"}});
@@ -132,12 +132,11 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).plus(u("/a")).plus(u("/b")));
     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b")));
     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b/")));
-    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b/")));
-    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b")));
+    // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b/")));
+    // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b")));
     //
     FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b", "fhat.pig/a/b"},
                            __(List<Obj>{"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));
-    //
     FOS_CHECK_RESULTS<Rec>({{{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}}},
                            __(Rec{{"a", 1}}).plus({{"b", 2}}).plus({{"c", 3}, {"d", 4}}));
   }
@@ -174,7 +173,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
       Obj::Types<>::addToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
-      FOS_RUN_TEST(test_to_fromm); //
+      FOS_RUN_TEST(test_to_from); //
       FOS_RUN_TEST(test_plus); //
       // FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_mult); //

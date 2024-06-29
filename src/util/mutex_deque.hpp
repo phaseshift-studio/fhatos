@@ -34,7 +34,7 @@ namespace fhatos {
     template<typename A = void *>
     A lockUnlock(const bool withMutex, Supplier<A> function) {
       if (withMutex)
-        return _mutex.lockUnlock(function,WAIT_TIME_MS);
+        return _mutex.lockUnlock(function, WAIT_TIME_MS);
       else {
         A temp = function();
         return temp;
@@ -44,9 +44,8 @@ namespace fhatos {
   public:
     // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) {}
 
-    Option<T> find(Predicate<T> predicate,
-                   const bool withMutex = true) const {
-      return lockUnlock<Option<T> >(withMutex, [this, predicate]() {
+    Option<T> find(Predicate<T> predicate, const bool withMutex = true) {
+      return lockUnlock<Option<T>>(withMutex, [this, predicate]() {
         T *temp = nullptr;
         for (T t: _deque) {
           if (predicate(t)) {
@@ -59,7 +58,7 @@ namespace fhatos {
     }
 
     Option<T> pop_front(const bool withMutex = true) {
-      return lockUnlock<Option<T> >(withMutex, [this]() {
+      return lockUnlock<Option<T>>(withMutex, [this]() {
         if (_deque.empty()) {
           return Option<T>();
         } else {
@@ -92,7 +91,7 @@ namespace fhatos {
     }
 
     Option<T> get(int index, const bool withMutex = true) {
-      return lockUnlock<Option<T> >(withMutex, [this,index]() {
+      return lockUnlock<Option<T>>(withMutex, [this, index]() {
         int counter = 0;
         for (const T &t: _deque) {
           if (counter++ == index) {
@@ -106,8 +105,7 @@ namespace fhatos {
 
     void remove_if(Predicate<T> predicate, const bool withMutex = true) {
       lockUnlock<void *>(withMutex, [this, predicate]() {
-        _deque.erase(std::remove_if(_deque.begin(), _deque.end(),
-                                    [predicate](T t) { return predicate(t); }),
+        _deque.erase(std::remove_if(_deque.begin(), _deque.end(), [predicate](T t) { return predicate(t); }),
                      _deque.end());
         return nullptr;
       });
@@ -118,7 +116,7 @@ namespace fhatos {
     }
 
     Option<T> pop_back(const bool withMutex = true) {
-      return lockUnlock<Option<T> >(withMutex, [this]() {
+      return lockUnlock<Option<T>>(withMutex, [this]() {
         if (_deque.empty())
           return Option<T>();
         T t = _deque.back();

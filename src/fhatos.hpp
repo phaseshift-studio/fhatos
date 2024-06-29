@@ -227,12 +227,15 @@ namespace fhatos {
 
 #if defined(ESP32)
 #define FOS_PROCESS(proc) <process/esp32/proc>
+#define FOS_MQTT(mqtt) <process/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(ESP8266)
 #define FOS_PROCESS(proc) <process/esp8266/proc>
+#define FOS_MQTT(mqtt) <process/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(NATIVE)
 #define FOS_PROCESS(proc) <process/native/proc>
+#define FOS_MQTT(mqtt) <process/router/native/mqtt>
 #define FOS_UTIL(utl) <util/std/utl>
 #else
 #error "Unknown architecture."

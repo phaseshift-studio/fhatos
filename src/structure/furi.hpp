@@ -160,7 +160,7 @@ namespace fhatos {
           delete this->_segments[i];
         }
       }
-      delete this->_segments;
+      delete[] this->_segments;
     }
 
     // const bool operator==(const fURI other) const { return this->equals(other); }
@@ -180,8 +180,10 @@ namespace fhatos {
           result.append("/").append(s2[i]);
         }
       }
-      // if (l2 > 0)
-      //   delete s2;
+      /*for (int i = 0; i < l2; i++) {
+        delete s2[i];
+      }
+      delete[] s2;*/
       return fURI(result);
     }
 

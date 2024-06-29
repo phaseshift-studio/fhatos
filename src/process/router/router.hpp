@@ -53,8 +53,10 @@ namespace fhatos {
 
     void execute(const ptr<Message> &message) const { onRecv(message); }
   };
+  using Subscription_ptr = ptr<Subscription>;
+  using Message_ptr = ptr<Message>;
 
-  using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
+  using Mail = Pair<const Subscription_ptr, const Message_ptr>;
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
   //////////////////////////////////////////////
