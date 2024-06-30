@@ -34,8 +34,8 @@
 namespace fhatos {
   class LocalRouter final : public Router {
   protected:
-    List<Subscription_ptr> SUBSCRIPTIONS;
-    Map<ID, const Message_ptr> RETAINS;
+    List<Subscription_p> SUBSCRIPTIONS;
+    Map<ID, const Message_p> RETAINS;
     Mutex<> MUTEX_RETAIN;
     MutexRW<> MUTEX_SUBSCRIPTIONS;
 

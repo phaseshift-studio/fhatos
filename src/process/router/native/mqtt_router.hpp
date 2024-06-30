@@ -20,7 +20,8 @@ using namespace mqtt;
 namespace fhatos {
   class MqttRouter final : public Router {
   public:
-    static MqttRouter *singleton(const char *serverAddr = MQTT_BROKER_ADDR, const Message_ptr &willMessage = nullptr) {
+    static MqttRouter *singleton(const char *serverAddr = MQTT_BROKER_ADDR,
+                                 const Message_p &willMessage = ptr<Message>(nullptr)) {
       static MqttRouter singleton = MqttRouter(serverAddr, willMessage);
       // singleton.setup();
       return &singleton;
@@ -29,12 +30,12 @@ namespace fhatos {
   protected:
     const char *serverAddr;
     async_client *xmqtt;
-    MutexDeque<Subscription_ptr> _SUBSCRIPTIONS;
-    MutexDeque<Message_ptr> _PUBLICATIONS;
-    Message_ptr willMessage;
+    MutexDeque<Subscription_p> _SUBSCRIPTIONS;
+    MutexDeque<Message_p> _PUBLICATIONS;
+    Message_p willMessage;
 
     explicit MqttRouter(const char *serverAddr = MQTT_BROKER_ADDR,
-                        const Message_ptr &willMessage = ptr<Message>(nullptr)) : Router() {
+                        const Message_p &willMessage = ptr<Message>(nullptr)) : Router() {
       this->serverAddr = serverAddr;
       this->xmqtt = new async_client(this->serverAddr, "", mqtt::create_options(MQTTVERSION_5));
       this->willMessage = willMessage;
@@ -48,19 +49,19 @@ namespace fhatos {
             message(this->willMessage->target.toString(), this->willMessage->payload.get(), this->willMessage->retain));
       try {
         this->xmqtt->set_message_callback([this](const ptr<const message> &mqttMessage) {
-          _SUBSCRIPTIONS.forEach([mqttMessage](const Subscription_ptr &subscription) {
+          _SUBSCRIPTIONS.forEach([mqttMessage](const Subscription_p &subscription) {
             const binary_ref ref = mqttMessage->get_payload_ref();
             const ptr<BObj> bobj = share(BObj(ref.length(), (unsigned char *) ref.data()));
             if (ID(mqttMessage->get_topic_ref().c_str()).matches(subscription->pattern)) {
-              const Message message{.source = ID("none"),
-                                    .target = ID(mqttMessage->get_topic().c_str()),
-                                    .payload = Obj::deserialize<Obj>(bobj),
-                                    .retain = mqttMessage->is_retained()};
-              LOG_RECEIVE(RESPONSE_CODE::OK, *subscription, message);
+              const Message_p message = share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
+                                                         .target = ID(mqttMessage->get_topic().c_str()),
+                                                         .payload = Obj::deserialize<Obj>(bobj),
+                                                         .retain = mqttMessage->is_retained()});
+              LOG_RECEIVE(RESPONSE_CODE::OK, *subscription, *message);
               if (subscription->mailbox) {
-                subscription->mailbox->push(share(Mail(subscription, share(message)))); // if mailbox, put in mailbox
+                subscription->mailbox->push(share(Mail(subscription, message))); // if mailbox, put in mailbox
               } else {
-                subscription->onRecv(share(message)); // else, evaluate callback
+                subscription->onRecv(message); // else, evaluate callback
               }
               // delete[] results;
             }
@@ -89,7 +90,7 @@ namespace fhatos {
 
     const RESPONSE_CODE clear() override {
       _SUBSCRIPTIONS.forEach(
-          [this](const Subscription_ptr &subscription) { this->xmqtt->unsubscribe(subscription->pattern.toString()); });
+          [this](const Subscription_p &subscription) { this->xmqtt->unsubscribe(subscription->pattern.toString()); });
       _SUBSCRIPTIONS.clear();
       _PUBLICATIONS.clear();
       return RESPONSE_CODE::OK;
@@ -99,7 +100,7 @@ namespace fhatos {
       ptr<BObj> bobj = message.payload->serialize();
       delivery_token_ptr ret =
           this->xmqtt->publish(message.target.toString(), bobj->second, bobj->first, 1, message.retain);
-      ret->wait();
+      // ret->wait();
       const RESPONSE_CODE _rc = (RESPONSE_CODE) ret->get_return_code();
       /*const RESPONSE_CODE _rc =
           _PUBLICATIONS.push_back(share(message)) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;*/
@@ -119,7 +120,7 @@ namespace fhatos {
 
       if (!_rc) {
         try {
-          if (this->xmqtt->subscribe(subscription.pattern.toString(), (int) subscription.qos) &&
+          if (this->xmqtt->subscribe(subscription.pattern.toString(), (uint) subscription.qos) &&
               _SUBSCRIPTIONS.push_back(share(Subscription(subscription))))
             _rc = RESPONSE_CODE::OK;
           else

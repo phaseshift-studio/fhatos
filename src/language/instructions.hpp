@@ -240,7 +240,7 @@ namespace fhatos {
       if (type == INST_FURI->resolve("to"))
         return Insts::to(args.at(0));
       if (type == INST_FURI->resolve("from"))
-        return Insts::to(args.at(0));
+        return Insts::from(args.at(0));
       if (type == INST_FURI->resolve("pub"))
         return Insts::pub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("sub"))

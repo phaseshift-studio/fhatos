@@ -189,33 +189,36 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton(); //
-      GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION; //
-      Obj::Types::writeToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE());
-      // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
-      // Obj::Types<>::addToCache(share(fURI("/int/even")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE());
-      // FOS_RUN_TEST(test_basic_parser); //
-      FOS_RUN_TEST(test_no_input_parsing); //
-      FOS_RUN_TEST(test_start_inst_parsing); //
-      FOS_RUN_TEST(test_noobj_parsing); //
-      FOS_RUN_TEST(test_bool_parsing); //
-      FOS_RUN_TEST(test_int_parsing); //
-      FOS_RUN_TEST(test_real_parsing); //
-      FOS_RUN_TEST(test_uri_parsing); //
-      FOS_RUN_TEST(test_str_parsing); //
-      FOS_RUN_TEST(test_rec_parsing); //
-      FOS_RUN_TEST(test_nested_bytecode_parsing); //
-      // FOS_RUN_TEST(test_bcode_parsing); //
-      FOS_RUN_TEST(test_define_as_parsing); //
-  )
+      for (fhatos::Router *router //
+           : List<Router *>{fhatos::LocalRouter::singleton(), //
+                            fhatos::MqttRouter::singleton()}) {
+        GLOBAL_OPTIONS->ROUTING = router; //
+        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        Obj::Types::writeToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE()); //
+        // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
+        // Obj::Types<>::addToCache(share(fURI("/int/even")), Insts::NO_OP_BCODE());
+        Obj::Types::writeToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE()); //
+        // FOS_RUN_TEST(test_basic_parser); //
+        FOS_RUN_TEST(test_no_input_parsing); //
+        FOS_RUN_TEST(test_start_inst_parsing); //
+        FOS_RUN_TEST(test_noobj_parsing); //
+        FOS_RUN_TEST(test_bool_parsing); //
+        FOS_RUN_TEST(test_int_parsing); //
+        FOS_RUN_TEST(test_real_parsing); //
+        FOS_RUN_TEST(test_uri_parsing); //
+        FOS_RUN_TEST(test_str_parsing); //
+        FOS_RUN_TEST(test_rec_parsing); //
+        FOS_RUN_TEST(test_nested_bytecode_parsing); //
+        // FOS_RUN_TEST(test_bcode_parsing); //
+        FOS_RUN_TEST(test_define_as_parsing); //
+      })
 }; // namespace fhatos
 
 SETUP_AND_LOOP();

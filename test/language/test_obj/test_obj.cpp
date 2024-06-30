@@ -146,21 +146,23 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
-      Obj::Types::writeToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE());
-      Obj::Types::writeToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE());
-
-      FOS_RUN_TEST(test_bool); //
-      FOS_RUN_TEST(test_int); //
-      FOS_RUN_TEST(test_str); //
-      FOS_RUN_TEST(test_rec); //
-      // FOS_RUN_TEST(test_inst_bcode); //
-  )
+      for (Router *router //
+           : List<Router*>{LocalRouter::singleton(), MqttRouter::singleton()}) { //
+        GLOBAL_OPTIONS->ROUTING = router; //
+        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        Obj::Types::writeToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE()); //
+        FOS_RUN_TEST(test_bool); //
+        FOS_RUN_TEST(test_int); //
+        FOS_RUN_TEST(test_str); //
+        FOS_RUN_TEST(test_rec); //
+        // FOS_RUN_TEST(test_inst_bcode); //
+      })
 
 
 }; // namespace fhatos

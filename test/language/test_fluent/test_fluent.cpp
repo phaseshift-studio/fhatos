@@ -173,16 +173,19 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton(); //
-      GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION; //
-      Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
-      Obj::Types::writeToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
-      FOS_RUN_TEST(test_to_from); //
-      FOS_RUN_TEST(test_plus); //
-      FOS_RUN_TEST(test_mult); //
-      FOS_RUN_TEST(test_relational_predicates); //
-      FOS_RUN_TEST(test_define_as_type); //
-  )
+      for (fhatos::Router *router //
+           : List<Router *>{fhatos::LocalRouter::singleton(), //
+                            fhatos::MqttRouter::singleton()}) { //
+        GLOBAL_OPTIONS->ROUTING = router; //
+        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
+        Obj::Types::writeToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
+        FOS_RUN_TEST(test_to_from); //
+        FOS_RUN_TEST(test_plus); //
+        FOS_RUN_TEST(test_mult); //
+        FOS_RUN_TEST(test_relational_predicates); //
+        FOS_RUN_TEST(test_define_as_type); //
+      })
 } // namespace fhatos
 
 SETUP_AND_LOOP();

@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 #include <language/fluent.hpp>
 #include <unity.h>
+#include <util/options.hpp>
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
@@ -34,6 +35,7 @@ namespace fhatos {
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     LOG(NONE, ANSI_ART);                                                                                               \
+    fhatos::GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;                                                         \
     UNITY_BEGIN();                                                                                                     \
     x;                                                                                                                 \
     UNITY_END();                                                                                                       \
@@ -83,7 +85,6 @@ namespace fhatos {
 using namespace fhatos;
 
 #define FOS_TEST_PRINTER FOS_DEFAULT_PRINTER
-
 #define FOS_PRINT_FLUENT(fluent)                                                                                       \
   FOS_TEST_MESSAGE("!yTesting!!: %s", (fluent).toString().c_str())                                                     \
   (fluent)

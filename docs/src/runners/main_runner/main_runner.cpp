@@ -8,7 +8,7 @@
 
 using namespace fhatos;
 int main(int arg, char **argsv) {
-  Fluent<>(Parser::tryParseObj("__(1,2,3).plus(10)").value()).forEach<Obj>([](const Obj_p o) {
+  Fluent(Parser::tryParseObj("__(1,2,3).plus(10)").value()).forEach<Obj>([](const Obj_p o) {
     Ansi<CPrinter>::singleton()->on(false);
    printf("==>%s\n",  Ansi<CPrinter>::singleton()->strip(o->toString().c_str()));
   });

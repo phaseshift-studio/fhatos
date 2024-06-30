@@ -41,25 +41,26 @@ namespace fhatos {
   enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
   struct Subscription;
-  using Subscription_ptr = ptr<Subscription>;
-  using Message_ptr = ptr<Message>;
+  using Subscription_p = ptr<Subscription>;
+  using Message_p = ptr<Message>;
   struct Subscription {
-    using Mail = Pair<const Subscription_ptr, const Message_ptr>;
-    using Mail_ptr = ptr<Mail>;
-    Mailbox<Mail_ptr> *mailbox;
+    using Mail = Pair<const Subscription_p, const Message_p>;
+    using Mail_p = ptr<Mail>;
+    Mailbox<Mail_p> *mailbox;
     ID source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    Consumer<const Message_ptr> onRecv;
-    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst("noop", {}, [](Obj_p x) { return x; }, INST_FURI)});
+    Consumer<const Message_p> onRecv = [](const Message_p) {};
+    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst("noop", {}, [](const Obj_p &x) { return x; }, INST_FURI)});
 
     bool match(const ID &target) const { return this->pattern.matches(target); }
 
-    void execute(const Message_ptr &message) const { onRecv(message); }
+    void execute(const Message_p &message) const { onRecv(message); }
   };
 
 
-  using Mail = Pair<const Subscription_ptr, const Message_ptr>;
+  using Mail = Pair<const Subscription_p, const Message_p>;
+  using Mail_p = ptr<Mail>;
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
   //////////////////////////////////////////////
