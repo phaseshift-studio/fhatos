@@ -32,10 +32,10 @@
 #include <util/obj_helper.hpp>
 
 namespace fhatos {
-  class LocalRouter : public Router {
+  class LocalRouter final : public Router {
   protected:
-    List<ptr<Subscription>> SUBSCRIPTIONS;
-    Map<ID, const ptr<Message>> RETAINS;
+    List<Subscription_ptr> SUBSCRIPTIONS;
+    Map<ID, const Message_ptr> RETAINS;
     Mutex<> MUTEX_RETAIN;
     MutexRW<> MUTEX_SUBSCRIPTIONS;
 
@@ -45,13 +45,9 @@ namespace fhatos {
       return &singleton;
     }
 
-    const uint retainSize() {
-      return RETAINS.size();
-    }
+    uint retainSize() { return RETAINS.size(); }
 
-    const uint subscriptionSize() {
-      return SUBSCRIPTIONS.size();
-    }
+    uint subscriptionSize() { return SUBSCRIPTIONS.size(); }
 
     const RESPONSE_CODE clear() override {
       SUBSCRIPTIONS.clear();
@@ -69,8 +65,9 @@ namespace fhatos {
             try {
               if (subscription->mailbox) {
                 _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
-                if(subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
-                  LOG(ERROR,"Actor mailbox size is beyond warning size of %i: [size:%i]\n",FOS_MAILBOX_WARNING_SIZE,subscription->mailbox->size());
+                if (subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
+                  LOG(ERROR, "Actor mailbox size is beyond warning size of %i: [size:%i]\n", FOS_MAILBOX_WARNING_SIZE,
+                      subscription->mailbox->size());
                 }
               } else {
                 subscription->onRecv(mess_ptr);
@@ -90,7 +87,7 @@ namespace fhatos {
             RETAINS.insert({mess_ptr->target, mess_ptr});
             return nullptr;
           });
-          LOG(DEBUG,"Total number of retained messages [size:%i]\n", RETAINS.size());
+          LOG(DEBUG, "Total number of retained messages [size:%i]\n", RETAINS.size());
         }
         LOG_PUBLISH(_rc, message);
         return _rc;
@@ -150,7 +147,8 @@ namespace fhatos {
                                                  (nullptr == pattern || sub->pattern.equals(*pattern));
                                         }),
                               SUBSCRIPTIONS.end());
-          const auto _rc2 = share<RESPONSE_CODE>(((SUBSCRIPTIONS.size() < size) || pattern== nullptr) ? OK : NO_SUBSCRIPTION);
+          const auto _rc2 =
+              share<RESPONSE_CODE>(((SUBSCRIPTIONS.size() < size) || pattern == nullptr) ? OK : NO_SUBSCRIPTION);
           LOG_UNSUBSCRIBE(*_rc2, source, pattern);
           return _rc2;
         });
@@ -159,6 +157,8 @@ namespace fhatos {
         return share<RESPONSE_CODE>(MUTEX_TIMEOUT);
       }
     }
+
+    const string toString() const override { return "LocalRouter"; }
   };
 } // namespace fhatos
 #endif

@@ -35,7 +35,7 @@ namespace fhatos {
   public:
     const ID source;
     const ID target;
-    const ptr<const Obj> payload;
+    const ptr<Obj> payload;
     const bool retain;
 
     template<OType otype>

@@ -4,6 +4,8 @@
 #include <test_fhatos.hpp>
 //
 #include <language/obj.hpp>
+#include <process/router/local_router.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
 #include <unity.h>
 
 namespace fhatos {
@@ -144,13 +146,14 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      Obj::Types<>::addToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE());
+      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
+      Obj::Types::addToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE());
 
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //

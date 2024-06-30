@@ -225,7 +225,6 @@ namespace fhatos {
       auto args = List<ptr<Obj>>();
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
-        Obj_p argObj;
         string arg;
         int paren = 0;
         int bracket = 0;

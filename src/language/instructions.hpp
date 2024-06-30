@@ -21,7 +21,6 @@
 
 #include <fhatos.hpp>
 //
-#include <atomic>
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
 #include <process/router/local_router.hpp>
@@ -125,13 +124,13 @@ namespace fhatos {
       return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); });
     }
 
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
     static Obj_p define(const Obj_p &uri, const BCode_p &type) {
       return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
-        ROUTER::singleton()->publish(Message{.source = "123",
-                                             .target = uri->uri_value(),
-                                             .payload = lhs->isBytecode() && type->isNoOpBytecode() ? lhs : type,
-                                             .retain = RETAIN_MESSAGE});
+        GLOBAL_OPTIONS->router<Router>()->publish(
+            Message{.source = "*source*",
+                    .target = uri->uri_value(),
+                    .payload = lhs->isBytecode() && type->isNoOpBytecode() ? lhs : type,
+                    .retain = RETAIN_MESSAGE});
         return lhs;
       });
     }
@@ -140,20 +139,18 @@ namespace fhatos {
       return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) { return lhs->as(share(type->uri_value())); });
     }
 
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
     static Obj_p to(const Uri_p &uri) {
       return Obj::to_inst("to", {uri}, [uri](const Obj_p &lhs) {
-        RESPONSE_CODE _rc = ROUTER::singleton()->write(lhs, "123", uri->apply(lhs)->uri_value());
+        RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, "*source*", uri->apply(lhs)->uri_value());
         if (_rc)
           LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
         return lhs;
       });
     }
 
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
-        return ROUTER::singleton()->read("123", uri->apply(lhs)->uri_value());
+        return GLOBAL_OPTIONS->router<Router>()->read("*source*", uri->apply(lhs)->uri_value());
       });
     }
 
@@ -161,37 +158,37 @@ namespace fhatos {
       return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); });
     }
 
-    template<typename PRINTER = FOS_DEFAULT_PRINTER>
     static Obj_p print(const Obj_p &toprint) {
       return Obj::to_inst("print", {toprint}, [toprint](const Obj_p &lhs) {
         const Obj_p done = toprint->apply(lhs);
-        PRINTER::singleton()->printf("%s\n", done->toString().c_str());
+        GLOBAL_OPTIONS->printer<>()->printf("%s\n", done->toString().c_str());
         return lhs;
       });
     }
 
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p publish(const Uri_p &target, const Obj_p &payload) {
-      return Obj::to_inst("publish", {target, payload}, [target, payload](const Obj_p &lhs) {
-        ROUTER::singleton()->publish(Message{.source = "123",
-                                             .target = fURI(target->apply(lhs)->uri_value()),
-                                             .payload = Obj_p(payload) /*->apply(incoming)*/,
-                                             .retain = TRANSIENT_MESSAGE});
+    static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
+      return Obj::to_inst("pub", {target, payload}, [target, payload](const Obj_p &lhs) {
+        GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = "*source*",
+                                                          .target = fURI(target->apply(lhs)->uri_value()),
+                                                          .payload = Obj_p(payload) /*->apply(incoming)*/,
+                                                          .retain = TRANSIENT_MESSAGE});
         return lhs;
       });
     }
 
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
-    static Obj_p subscibe(const Obj_p &pattern, const BCode_p &onRecv) {
-      return Obj::to_inst("subscribe", {pattern, onRecv}, [pattern, onRecv](const Obj_p &lhs) {
-        ROUTER::singleton()->subscribe(
-            Subscription{.mailbox = nullptr,
-                         .source = "123",
-                         .pattern = fURI(pattern->apply(lhs)->uri_value()),
-                         .onRecv = [onRecv](const ptr<Message> &message) {
-                           const Obj_p outgoing = onRecv->apply(ptr<Obj>((Obj *) message->payload.get()));
-                           LOG(INFO, "subscription result: %s\n", outgoing->toString().c_str());
-                         }});
+    static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
+      return Obj::to_inst("sub", {pattern, onRecv}, [pattern, onRecv](const Obj_p &lhs) {
+        GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = nullptr,
+                                                                 .source = "*source*",
+                                                                 .pattern = fURI(pattern->apply(lhs)->uri_value()),
+                                                                 .onRecv =
+                                                                     [onRecv](const ptr<Message> &message) {
+                                                                       const Obj_p outgoing =
+                                                                           onRecv->apply(message->payload);
+                                                                       // LOG(INFO, "subscription result: %s\n",
+                                                                       // outgoing->toString().c_str());
+                                                                     },
+                                                                 .onRecvBCode = onRecv});
         return lhs;
       });
     }
@@ -242,10 +239,10 @@ namespace fhatos {
         return Insts::to(args.at(0));
       if (type == INST_FURI->resolve("from"))
         return Insts::to(args.at(0));
-      if (type == INST_FURI->resolve("publish"))
-        return Insts::publish(args.at(0), args.at(1));
-      if (type == INST_FURI->resolve("subscribe"))
-        return Insts::subscibe(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("pub"))
+        return Insts::pub(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("sub"))
+        return Insts::sub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("print"))
         return Insts::print(args.at(0));
 

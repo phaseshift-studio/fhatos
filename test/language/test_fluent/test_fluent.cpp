@@ -4,6 +4,8 @@
 // #include <atomic>
 #include <language/fluent.hpp>
 #include <language/instructions.hpp>
+#include <process/router/local_router.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
 #include <test_fhatos.hpp>
 
 namespace fhatos {
@@ -171,8 +173,9 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
-      Obj::Types<>::addToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
+      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
+      Obj::Types::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
+      Obj::Types::addToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
       FOS_RUN_TEST(test_to_from); //
       FOS_RUN_TEST(test_plus); //
       // FOS_RUN_TEST(test_fluent); //

@@ -26,9 +26,9 @@
 #include <util/ansi.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
+#include FOS_MQTT(mqtt_router.hpp)
 
 namespace fhatos {
-  template<typename PRINTER = FOS_DEFAULT_PRINTER>
   class Console final : public Thread {
   public:
     explicit Console(const ID &id = ID("console")) : Thread(id) {}
@@ -50,26 +50,42 @@ namespace fhatos {
           if (line == ":quit") {
             this->stop();
             return;
-          } else if (strstr(line.c_str(), ":log ")) {
-            string level = line.substr(5);
-            if (!STR_LOGTYPE.count(level)) {
-              this->printException(fError("A valid log level required (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str()));
+          } else if (strstr(line.c_str(), ":log")) {
+            if (line.length() < 6) {
+              this->printResult(Obj::to_str(LOGTYPE_STR.at((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
             } else {
-              LOGGING_LEVEL = STR_LOGTYPE.at(level);
+              string level = line.substr(5);
+              if (!STR_LOGTYPE.count(level)) {
+                this->printException(fError("Invalid log level (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str()));
+              } else {
+                GLOBAL_OPTIONS->LOGGING = STR_LOGTYPE.at(level);
+              }
+            }
+          } else if (strstr(line.c_str(), ":router")) {
+            if (line.length() < 9) {
+              this->printResult(Obj::to_str(GLOBAL_OPTIONS->router<Router>()->toString()));
+            } else {
+              string router = line.substr(8);
+              if (router == "LocalRouter")
+                GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
+              else if (router == "MqttRouter")
+                GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
+              else
+                this->printException(fError("Invalid logger (LocalRouter,MqttRouter): %s\n", router.c_str()));
             }
           }
         } else {
           try {
-            const Obj_p obj = Parser::tryParseObj(line).value();
-            if (obj->isBytecode()) {
-              const Fluent<> fluent = Fluent<>(obj->as("/bcode"));
-              this->printResults(fluent);
+            const Option<Obj_p> obj = Parser::tryParseObj(line);
+            if (obj.has_value()) {
+              if (obj.value()->isBytecode())
+                this->printResults(Fluent(obj.value()));
+              else
+                this->printResult(obj.value());
             } else {
-              this->printResult(obj);
+              this->printException(fError("Unable to parse input: %s\n", line.c_str()));
             }
           } catch (const std::exception &e) {
-            // do nothing (log error for now)
-            // LOG_EXCEPTION(e);
             this->printException(e);
           }
         }
@@ -77,12 +93,16 @@ namespace fhatos {
     }
     void stop() override { Thread::stop(); }
     ///// printers
-    void printException(const std::exception &ex) const { PRINTER::singleton()->printf("!r[ERROR]!! %s", ex.what()); }
-    void printPrompt() const { PRINTER::singleton()->print("!mfhatos!!> "); }
-    void printResults(const Fluent<> &fluent) const {
+    void printException(const std::exception &ex) const {
+      GLOBAL_OPTIONS->printer()->printf("!r[ERROR]!! %s", ex.what());
+    }
+    void printPrompt() const { GLOBAL_OPTIONS->printer()->print("!mfhatos!!> "); }
+    void printResults(const Fluent &fluent) const {
       fluent.forEach<Obj>([this](const Obj_p obj) { this->printResult(obj); });
     }
-    void printResult(const Obj_p &obj) const { PRINTER::singleton()->printf("!g==>!!%s\n", obj->toString().c_str()); }
+    void printResult(const Obj_p &obj) const {
+      GLOBAL_OPTIONS->printer()->printf("!g==>!!%s\n", obj->toString().c_str());
+    }
   };
 } // namespace fhatos
 

@@ -38,23 +38,26 @@ namespace fhatos {
   ///////////////////////////////////////////////////
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
-
   enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
+  struct Subscription;
+  using Subscription_ptr = ptr<Subscription>;
+  using Message_ptr = ptr<Message>;
   struct Subscription {
-    using Mail = Pair<const ptr<Subscription>, const ptr<Message>>;
-    Mailbox<ptr<Mail>> *mailbox;
+    using Mail = Pair<const Subscription_ptr, const Message_ptr>;
+    using Mail_ptr = ptr<Mail>;
+    Mailbox<Mail_ptr> *mailbox;
     ID source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    Consumer<const ptr<Message> &> onRecv;
+    Consumer<const Message_ptr> onRecv;
+    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst("noop", {}, [](Obj_p x) {  return x; }, INST_FURI)});
 
-    const bool match(const ID &target) const { return this->pattern.matches(target); }
+    bool match(const ID &target) const { return this->pattern.matches(target); }
 
-    void execute(const ptr<Message> &message) const { onRecv(message); }
+    void execute(const Message_ptr &message) const { onRecv(message); }
   };
-  using Subscription_ptr = ptr<Subscription>;
-  using Message_ptr = ptr<Message>;
+
 
   using Mail = Pair<const Subscription_ptr, const Message_ptr>;
   //////////////////////////////////////////////
@@ -117,10 +120,12 @@ namespace fhatos {
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
     virtual const RESPONSE_CODE clear() FP_OK_RESULT;
 
+    virtual const string toString() const { return "Router"; }
+
     template<typename OBJ = Obj>
     ptr<OBJ> read(const ID &source, const ID &target) {
       auto *thing = new std::atomic<OBJ *>(nullptr);
-      auto *done = new std::atomic<bool>(false);
+      auto *done = new std::atomic_bool(false);
       this->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
                          thing->store(new OBJ(*message->payload));
@@ -135,8 +140,9 @@ namespace fhatos {
       }
       unsubscribe(source, target);
       if (nullptr == thing->load()) {
+        delete thing;
         delete done;
-        return ptr<Obj>(nullptr);
+        return ptr<OBJ>(nullptr);
       } else {
         ptr<OBJ> ret = ptr<OBJ>(thing->load());
         delete thing;
@@ -145,7 +151,7 @@ namespace fhatos {
       }
     }
 
-    virtual RESPONSE_CODE write(const ptr<const Obj> &obj, const ID &source, const ID &target) {
+    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &source, const ID &target) {
       return this->publish(Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };

@@ -55,6 +55,7 @@
 #include <set>
 #include <string>
 #include <tsl/ordered_map.h>
+#include <util/options.hpp>
 
 
 namespace fhatos {
@@ -162,26 +163,24 @@ namespace fhatos {
 #define LOG_TASK(logtype, process, format, ...)                                                                        \
   LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gsubscribe!m[qos:%i]!!=>[!b%s!!]\n",                                 \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",     \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
-      (subscription)->pattern.toString().c_str())
+      (subscription)->pattern.toString().c_str(), (subscription)->onRecvBCode->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gunsubscribe!!=>[!b%s!!]\n",                                         \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? INFO : ERROR), "[%s][!b%s!!]=!gpublish!m[retain:%s]!!=!r%s!!=>[!b%s!!]\n",                         \
+  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
       ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
   LOG(((rc) == OK ? INFO : ERROR),                                                                                     \
       (((subscription).pattern.equals((message).target))                                                               \
-           ? "[%s][!b%s!!]<=!greceive!m[pattern|target:%s]!!=!r%s!!=[!b%s!!]"                                          \
-             "\n"                                                                                                      \
-           : "[%s][!b%s!!]<=!greceive!m[pattern:%s][target:%s]!!=!r%s!!=[!b%"                                          \
-             "s!!]\n"),                                                                                                \
+           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!m=[!b%s!m]!!\n"                              \
+           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!m=[!b%s!m]!!\n"),                            \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((subscription).source.toString().c_str()), ((subscription).pattern.toString().c_str()),                         \
       ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
@@ -243,19 +242,31 @@ namespace fhatos {
 #define FOS_ROUTER(rout) <process/router/rout>
 #define FOS_MODULE(modu) <structure/modu>
 
-  ///////////////////
-  // !!TO REMOVE!! //
-  ///////////////////
-
 #ifndef FOS_LOGGING
 #define FOS_LOGGING ERROR
 #endif
-  static LOG_TYPE LOGGING_LEVEL = FOS_LOGGING;
+
+#ifndef FOS_DEFAULT_ROUTER
+#define FOS_DEFAULT_ROUTER MqttRouter
+#endif
+
+#ifndef FOS_DEFAULT_PRINTER
+#define FOS_DEFAULT_PRINTER Ansi<CPrinter>
+#endif
+
+#define FOS_TYPE_FUNCTION                                                                                              \
+  [](void *typeId) { return (void *) GLOBAL_OPTIONS->router<Router>()->read(ID("*source*"), *((ID *) typeId)).get(); };
+
+  ///////////////////
+  // !!TO REMOVE!! //
+  ///////////////////
   static const Map<string, LOG_TYPE> STR_LOGTYPE = {
       {{"DEBUG", LOG_TYPE::DEBUG}, {"INFO", LOG_TYPE::INFO}, {"ERROR", LOG_TYPE::ERROR}, {"NONE", LOG_TYPE::NONE}}};
+  static const Map<LOG_TYPE, string> LOGTYPE_STR = {
+      {{LOG_TYPE::DEBUG, "DEBUG"}, {LOG_TYPE::INFO, "INFO"}, {LOG_TYPE::ERROR, "ERROR"}, {LOG_TYPE::NONE, "NONE"}}};
 
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-    if ((uint8_t) type < (uint8_t) LOGGING_LEVEL)
+    if ((uint8_t) type < (uint8_t) GLOBAL_OPTIONS->logger<LOG_TYPE>())
       return;
     va_list arg;
     va_start(arg, format);

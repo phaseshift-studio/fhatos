@@ -182,21 +182,23 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Int>({0}, Fluent(Parser::tryParseObj("__(0).define(/int/even,mod(2).is(eq(0)))").value()), {},
                            false);
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::tryParseObj("__(32).as(even).type()").value()), {}, false);
-    FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {}, true);
+    FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {},
+                           true);
   }
 
   FOS_RUN_TESTS( //
-      Obj::Types<>::addToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE());
+      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
+      Obj::Types::addToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE());
       // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
       // Obj::Types<>::addToCache(share(fURI("/int/even")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE());
-      Obj::Types<>::addToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE());
+      Obj::Types::addToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE());
       // FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_no_input_parsing); //
       FOS_RUN_TEST(test_start_inst_parsing); //

@@ -145,7 +145,7 @@ static void FOS_CHECK_ARGS(const List<Obj_p> &expectedArgs, const Inst_p &inst) 
 
 
 template<typename OBJ = Obj>
-static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent<> &fluent, const bool printResult = true) {
+static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
   ptr<List<Obj_p>> result = fluent.toList<Obj>();
   if (printResult) {
@@ -189,7 +189,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 }
 
 template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent<> &fluent,
+static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
                               const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
                               const bool clearRouter = true) {
   const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
@@ -212,7 +212,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent<> &fluent,
       const Obj temp = value;
       FOS_DEFAULT_ROUTER::singleton()->subscribe(
           Subscription{.mailbox = nullptr,
-                       .source = ID("anon"),
+                       .source = ID("*source*"),
                        .pattern = key.uri_value(),
                        .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(temp == *message->payload); }});
     }

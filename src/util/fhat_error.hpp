@@ -75,7 +75,7 @@ namespace fhatos {
       sprintf(_message, format, args...);
 #pragma clang diagnostic pop
     };
-    virtual const char *what() const _NOEXCEPT { return this->_message; }
+    const char *what() const _NOEXCEPT override { return this->_message; }
   };
 }
 #endif

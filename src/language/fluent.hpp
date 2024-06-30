@@ -26,8 +26,6 @@
 #include <language/processor.hpp>
 
 namespace fhatos {
-  template<typename ALGEBRA = FOS_DEFAULT_ALGEBRA, typename ROUTER = FOS_DEFAULT_ROUTER,
-           typename PRINTER = FOS_DEFAULT_PRINTER>
   class Fluent {
     //////////////////////////////////////////////////////////////////////////////
     /////////////////////////    PUBLIC   ////////////////////////////////////////
@@ -66,13 +64,13 @@ namespace fhatos {
     const Obj_p bcode;
 
   protected:
-    Fluent<> addInst(const Obj_p &inst) const {
+    Fluent addInst(const Obj_p &inst) const {
       List<Obj_p> newList = List<Obj_p>();
       for (const auto &oldInst: this->bcode->bcode_value()) {
         newList.push_back(share(Obj(*oldInst)));
       }
       newList.push_back(share(Obj(*inst)));
-      return Fluent<>(Obj::to_bcode(newList));
+      return Fluent(Obj::to_bcode(newList));
     }
 
   public:
@@ -140,12 +138,12 @@ namespace fhatos {
 
     //  Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 
-    Fluent publish(const Obj &target, const Obj &payload) {
-      return this->addInst(Insts::publish(share(target), share(payload)));
+    Fluent pub(const Obj &target, const Obj &payload) {
+      return this->addInst(Insts::pub(share(target), share(payload)));
     }
 
-    Fluent subscribe(const Obj &pattern, const Obj &onRecv) {
-      return this->addInst(Insts::subscibe(share(pattern), share(onRecv)));
+    Fluent sub(const Obj &pattern, const Obj &onRecv) {
+      return this->addInst(Insts::sub(share(pattern), share(onRecv)));
     }
 
     /*Fluent select(const List<ptr<Uri>> &uris) { return this->addInst(ptr<Inst>(new SelectInst<ROUTER>(uris))); }
@@ -174,8 +172,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
-
-  static Fluent<> __(const List<Obj> &starts) {
+  static Fluent __(const List<Obj> &starts) {
     if (starts.empty()) {
       return Fluent(Obj::to_bcode(List<Obj_p>{}));
     } else {
@@ -183,11 +180,11 @@ namespace fhatos {
     }
   };
 
-  static Fluent<> __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); };
+  static Fluent __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); };
 
-  static Fluent<> __() { return __(List<Obj>{}); };
+  static Fluent __() { return __(List<Obj>{}); };
 
-  inline static Fluent<> _ = __();
+  inline static Fluent _ = __();
 } // namespace fhatos
 
 #endif

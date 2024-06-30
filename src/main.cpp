@@ -17,20 +17,23 @@
  ******************************************************************************/
 
 #include <fhatos.hpp>
-#include <process/router/local_router.hpp>
 #include <structure/console/console.hpp>
-// #include <language/lexy_parser.hpp>
-
+#include <util/options.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
-#include FOS_MODULE(kernel/f_kernel.hpp)
+#include FOS_MODULE(kernel / f_kernel.hpp)
 #include FOS_MQTT(mqtt_router.hpp)
 
 using namespace fhatos;
 
+
 int main(int arg, char **argsv) {
-  LOGGING_LEVEL = LOG_TYPE::INFO;
-  MqttRouter::singleton();
+
+  GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
+  GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
+  GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
+  GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
+
   try {
     fKernel<>::bootloader({
         // fWIFI::singleton(),
@@ -42,16 +45,16 @@ int main(int arg, char **argsv) {
     // fScheduler<>::singleton()->spawn(fSerial<>::singleton());
     // fScheduler<>::singleton()->spawn(new fPing<>());
     // fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
-    Scheduler<>::singleton()->spawn(new Console<Ansi<CPrinter>>());
+    Scheduler<>::singleton()->spawn(new Console());
     Scheduler<>::singleton()->barrier("no_processes", [] { return Scheduler<>::singleton()->count() == 0; });
-  } catch (fError e) {
+  } catch (const fError &e) {
     LOG(ERROR, "main() error: %s\n", e.what());
     // LOG_EXCEPTION(e);
   }
 };
 #else
-#include FOS_MODULE(kernel/f_kernel.hpp)
-#include FOS_MODULE(io/net/f_wifi.hpp)
+#include FOS_MODULE(kernel / f_kernel.hpp)
+#include FOS_MODULE(io / net / f_wifi.hpp)
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)

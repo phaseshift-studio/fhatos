@@ -108,7 +108,7 @@ namespace fhatos {
   using Type = Obj;
   using Type_p = Obj_p;
   //
-  using BObj = Triple<OType, fbyte *, uint32_t>;
+  using BObj = Pair<uint32_t, fbyte *>;
   class PtrSerializer;
   // Inst structures
   using InstFunction = Function<Obj_p, Obj_p>;
@@ -216,7 +216,7 @@ namespace fhatos {
     explicit Obj(const Any &value, const fURI_p &furi) : IDed(furi), _value(value) {
       _id = share(
           (ID) _id->path((this->_id->pathLength() > 1 ? this->_id->path(0, 1) + "/" : this->_id->path(0, 1)).c_str()));
-      Types<>::verifyType(PtrHelper::no_delete<Obj>(this), furi);
+      Types::verifyType(PtrHelper::no_delete<Obj>(this), furi);
       this->_id = share((ID) *furi);
     }
     /////
@@ -272,72 +272,72 @@ namespace fhatos {
       return std::any_cast<VALUE>(this->_value);
     }
     List<Obj_p> objs_value() const {
-      Types<>::verifyOType(*this, OType::OBJS, __LINE__);
+      Types::verifyOType(*this, OType::OBJS, __LINE__);
       return this->value<List<Obj_p>>();
     }
     const bool bool_value() const {
-      Types<>::verifyOType(*this, OType::BOOL, __LINE__);
+      Types::verifyOType(*this, OType::BOOL, __LINE__);
       return this->value<bool>();
     }
     const FL_INT_TYPE int_value() const {
-      Types<>::verifyOType(*this, OType::INT, __LINE__);
+      Types::verifyOType(*this, OType::INT, __LINE__);
       return this->value<FL_INT_TYPE>();
     }
     const FL_REAL_TYPE real_value() const {
-      Types<>::verifyOType(*this, OType::REAL, __LINE__);
+      Types::verifyOType(*this, OType::REAL, __LINE__);
       return this->value<FL_REAL_TYPE>();
     }
     const fURI uri_value() const {
-      Types<>::verifyOType(*this, OType::URI, __LINE__);
+      Types::verifyOType(*this, OType::URI, __LINE__);
       return this->value<fURI>();
     }
     const string str_value() const {
-      Types<>::verifyOType(*this, OType::STR, __LINE__);
+      Types::verifyOType(*this, OType::STR, __LINE__);
       return this->value<string>();
     }
     RecMap_p<> rec_value() const {
-      Types<>::verifyOType(*this, OType::REC, __LINE__);
+      Types::verifyOType(*this, OType::REC, __LINE__);
       return this->value<ptr<RecMap<>>>();
     }
     Obj_p rec_get(const Obj_p &key) const {
-      Types<>::verifyOType(*this, OType::REC, __LINE__);
+      Types::verifyOType(*this, OType::REC, __LINE__);
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
     Obj_p rec_get(const Obj &key) const { return Obj::rec_get(share(key)); }
     void rec_set(const Obj_p &key, const Obj_p &val) const {
-      Types<>::verifyOType(*this, OType::REC, __LINE__);
+      Types::verifyOType(*this, OType::REC, __LINE__);
       this->rec_value()->erase(key);
       if (!val->isNoObj())
         this->rec_value()->insert({key, val});
     }
     void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
     void rec_delete(const Obj &key) const {
-      Types<>::verifyOType(*this, OType::REC, __LINE__);
+      Types::verifyOType(*this, OType::REC, __LINE__);
       Obj::rec_set(share(key), Obj::to_noobj());
     }
     const InstValue inst_value() const {
-      Types<>::verifyOType(*this, OType::INST, __LINE__);
+      Types::verifyOType(*this, OType::INST, __LINE__);
       return this->value<InstValue>();
     }
     const string inst_op() const {
-      Types<>::verifyOType(*this, OType::INST, __LINE__);
+      Types::verifyOType(*this, OType::INST, __LINE__);
       return this->_id->lastSegment();
     }
     const List<Obj_p> inst_args() const {
-      Types<>::verifyOType(*this, OType::INST, __LINE__);
+      Types::verifyOType(*this, OType::INST, __LINE__);
       return this->inst_value().first;
     }
     Obj_p inst_arg(const uint8_t index) const {
-      Types<>::verifyOType(*this, OType::INST, __LINE__);
+      Types::verifyOType(*this, OType::INST, __LINE__);
       return this->inst_value().first.at(index);
     }
 
     const InstFunction inst_f() const {
-      Types<>::verifyOType(*this, OType::INST, __LINE__);
+      Types::verifyOType(*this, OType::INST, __LINE__);
       return this->inst_value().second;
     }
     List<Obj_p> bcode_value() const {
-      Types<>::verifyOType(*this, OType::BCODE, __LINE__);
+      Types::verifyOType(*this, OType::BCODE, __LINE__);
       return this->value<List<Obj_p>>();
     }
 
@@ -734,15 +734,16 @@ namespace fhatos {
       return share(Obj(insts, furi));
     }
 
-    template<typename SERIALIZER = PtrSerializer>
     const ptr<BObj> serialize() const {
-      return SERIALIZER::singleton()->serialize(this);
+      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
+      memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
+      return share(BObj{sizeof(*this), bytes});
     }
 
-    /*template<typename SERIALIZER = PtrSerializer, typename _OBJ>
-    static const ptr<_OBJ> deserialize(const BObj *bobj) {
-      return SERIALIZER::singleton()->deserialize(this);
-    }*/
+    template<typename OBJ>
+    static const ptr<OBJ> deserialize(const ptr<BObj> bobj) {
+      return ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
+    }
 
     static List<Obj_p> cast(const List<Obj> &list) {
       List<Obj_p> newList = List<Obj_p>();
@@ -755,7 +756,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    template<typename ROUTER = FOS_DEFAULT_ROUTER>
+
     class Types {
       using TypeCacheMap = Map<const fURI_p, Type_p, furi_comp>;
       static ptr<TypeCacheMap> TYPE_CACHE() {
@@ -765,17 +766,19 @@ namespace fhatos {
 
 
     public:
+      static Function<fURI_p, Obj_p> typeFunction;
       static void addToCache(const fURI_p &typeId, const BCode_p &bcode) {
         TYPE_CACHE()->erase(typeId);
         TYPE_CACHE()->insert({typeId, bcode});
       }
+      static void setTypeFunction(Function<fURI_p, Obj_p>& typeFunction) { Types::typeFunction = typeFunction; }
       static void clearCache() { TYPE_CACHE()->clear(); }
       static void verifyOType(const Obj &obj, const OType otype, const int LINE_NUMBER = __LINE__) {
         if (obj.o_type() != otype)
           throw fError("Obj %s %s can not be accessed as a %s [line:%i]", OTYPE_STR.at(obj.o_type()),
                        obj.toString(true, false).c_str(), OTYPE_STR.at(otype), LINE_NUMBER);
       }
-      static Option<fError> verifyType(const ptr<Obj> obj, const fURI_p &typeId, const bool doThrow = true) {
+      static Option<fError> verifyType(const Obj_p &obj, const fURI_p &typeId, const bool doThrow = true) {
         bool success = true;
         if (typeId->pathLength() > 0 && (typeId->path(0, 1) == "inst" || typeId->path(0, 1) == "bcode")) {
           success = true;
@@ -786,7 +789,7 @@ namespace fhatos {
           if (TYPE_CACHE()->count(typeId)) {
             type = TYPE_CACHE()->at(typeId);
           } else {
-            type = ROUTER::singleton()->read("123", *typeId);
+            type = share(Obj(*(Obj*)GLOBAL_OPTIONS->TYPE_FUNCTION(typeId.get())));
             if (nullptr == type || nullptr == type.get()) {
               throw fError("Type %s has not been defined\n", typeId->toString().c_str());
             } else {

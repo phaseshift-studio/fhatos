@@ -20,99 +20,87 @@ using namespace mqtt;
 namespace fhatos {
   class MqttRouter final : public Router {
   public:
-    static MqttRouter *singleton() {
-      static MqttRouter singleton = MqttRouter();
-      singleton.setup();
+    static MqttRouter *singleton(const char *serverAddr = MQTT_BROKER_ADDR, const Message_ptr &willMessage = nullptr) {
+      static MqttRouter singleton = MqttRouter(serverAddr, willMessage);
+      // singleton.setup();
       return &singleton;
     }
 
   protected:
-    const char *server;
-    uint16_t port;
+    const char *serverAddr;
     async_client *xmqtt;
     MutexDeque<Subscription_ptr> _SUBSCRIPTIONS;
     MutexDeque<Message_ptr> _PUBLICATIONS;
-    string willTopic;
-    string willMessage;
-    bool willRetain{};
-    uint8_t willQoS{};
+    Message_ptr willMessage;
 
-    explicit MqttRouter(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "router/mqtt"),
-                        const char *server = MQTT_BROKER_ADDR) : Router() {
-      this->server = server;
-      this->xmqtt = new async_client(this->server, "", mqtt::create_options(MQTTVERSION_5));
+    explicit MqttRouter(const char *serverAddr = MQTT_BROKER_ADDR,
+                        const Message_ptr &willMessage = ptr<Message>(nullptr)) : Router() {
+      this->serverAddr = serverAddr;
+      this->xmqtt = new async_client(this->serverAddr, "", mqtt::create_options(MQTTVERSION_5));
+      this->willMessage = willMessage;
+      auto connection_options = connect_options_builder()
+                                    .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
+                                    .clean_start(false)
+                                    .keep_alive_interval(std::chrono::seconds(20))
+                                    .automatic_reconnect();
+      if (willMessage.get())
+        connection_options.will(
+            message(this->willMessage->target.toString(), this->willMessage->payload.get(), this->willMessage->retain));
+      try {
+        this->xmqtt->set_message_callback([this](const ptr<const message> &mqttMessage) {
+          _SUBSCRIPTIONS.forEach([mqttMessage](const Subscription_ptr &subscription) {
+            const binary_ref ref = mqttMessage->get_payload_ref();
+            const ptr<BObj> bobj = share(BObj(ref.length(), (unsigned char *) ref.data()));
+            if (ID(mqttMessage->get_topic_ref().c_str()).matches(subscription->pattern)) {
+              const Message message{.source = ID("none"),
+                                    .target = ID(mqttMessage->get_topic().c_str()),
+                                    .payload = Obj::deserialize<Obj>(bobj),
+                                    .retain = mqttMessage->is_retained()};
+              LOG_RECEIVE(RESPONSE_CODE::OK, *subscription, message);
+              if (subscription->mailbox) {
+                subscription->mailbox->push(share(Mail(subscription, share(message)))); // if mailbox, put in mailbox
+              } else {
+                subscription->onRecv(share(message)); // else, evaluate callback
+              }
+              // delete[] results;
+            }
+          });
+        });
+        this->xmqtt->set_connected_handler([this](const string &cause) {
+          LOG(INFO,
+              "\n!b[MQTT Router Configuration]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
+              "!bClient name!!   : %s\n" FOS_TAB_2 "!bWill topic!!    : %s\n" FOS_TAB_2
+              "!bWill message!!  : %s\n" FOS_TAB_2 "!bWill QoS!!      : %i\n" FOS_TAB_2 "!bWill retain!!   : %s\n",
+              this->serverAddr, this->xmqtt->get_client_id().c_str(),
+              nullptr != this->willMessage.get() ? this->willMessage->target.toString().c_str() : "<none>",
+              nullptr != this->willMessage.get() ? this->willMessage->payload->toString().c_str() : "<none>",
+              GRANTED_QOS_1, nullptr != this->willMessage.get() ? FOS_BOOL_STR(this->willMessage->retain) : "<none>");
+        });
+        this->xmqtt->connect(connection_options.finalize());
+      } catch (const mqtt::exception &e) {
+        LOG(ERROR, "Unable to connect to remote server. Mqtt support not provided: %s\n", e.what());
+      }
     }
 
   public:
-    ~MqttRouter() = default;
-
-    void setWill(const ID &willTopic, const string &willMessage, const bool willRetain = false,
-                 const uint8_t willQoS = 1) {
-      this->willTopic = willTopic.toString();
-      this->willMessage = willMessage;
-      this->willRetain = willRetain;
-      this->willQoS = willQoS;
-    }
-
-    void setup() {
-      uint8_t counter = 0;
-      // message will = message(willTopic, willMessage, willQoS, willRetain);
-      auto connection_options = connect_options_builder()
-                                    .properties({{mqtt::property::SESSION_EXPIRY_INTERVAL, 604800}})
-                                    .clean_start(false)
-                                    // .will(std::move(will))
-                                    .keep_alive_interval(std::chrono::seconds(20))
-                                    .automatic_reconnect()
-                                    .finalize();
-      while (!this->xmqtt->is_connected() && (++counter < MQTT_MAX_RETRIES)) {
-        // Attempt to connect
-        try {
-          this->xmqtt->connect(connection_options);
-          if (this->xmqtt->is_connected()) {
-            LOG(INFO, "!b[MQTT Router Configuration]!!\n");
-            LOG(NONE,
-                "\tBroker address          : %s:%i\n"
-                "\tClient name             : %s\n"
-                "\tWill topic              : %s\n"
-                "\tWill message            : %s\n"
-                "\tWill QoS                : %i\n"
-                "\tWill retain             : %s\n",
-                this->server, this->port, this->xmqtt->get_client_id().c_str(),
-                this->willTopic.empty() ? "<none>" : this->willTopic.c_str(),
-                this->willTopic.empty() ? "<none>" : this->willMessage.c_str(), this->willTopic.empty() ? -1 : willQoS,
-                FOS_BOOL_STR(!this->willTopic.empty() && this->willRetain));
-
-          } else {
-            LOG(ERROR, "%s [retry in %ims]\n", this->server, MQTT_CONNECTION_RETRY);
-            // Wait 5 seconds before retrying
-            //   delay(MQTT_CONNECTION_RETRY);
-          }
-        } catch (const mqtt::exception &exc) {
-          LOG(ERROR,
-              "Unable to connect to remote server. Mqtt support not "
-              "provided: %s.\n",
-              exc.what());
-        }
-      }
-      if (counter > MQTT_MAX_RETRIES) {
-        // this->stop();
-        LOG(ERROR, "Unable to connect to remote server. Mqtt support not "
-                   "provided.\n");
-      }
-    }
+    ~MqttRouter() override = default;
 
     const RESPONSE_CODE clear() override {
-      _SUBSCRIPTIONS.forEach([this](const Subscription_ptr &subscription) {
-        this->xmqtt->unsubscribe(subscription->pattern.toString().c_str());
-      });
+      _SUBSCRIPTIONS.forEach(
+          [this](const Subscription_ptr &subscription) { this->xmqtt->unsubscribe(subscription->pattern.toString()); });
       _SUBSCRIPTIONS.clear();
       _PUBLICATIONS.clear();
       return RESPONSE_CODE::OK;
     }
 
     const RESPONSE_CODE publish(const Message &message) override {
-      const RESPONSE_CODE _rc =
-          _PUBLICATIONS.push_back(share(message)) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;
+      ptr<BObj> bobj = message.payload->serialize();
+      delivery_token_ptr ret =
+          this->xmqtt->publish(message.target.toString(), bobj->second, bobj->first, 1, message.retain);
+      ret->wait();
+      const RESPONSE_CODE _rc = (RESPONSE_CODE) ret->get_return_code();
+      /*const RESPONSE_CODE _rc =
+          _PUBLICATIONS.push_back(share(message)) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;*/
       LOG_PUBLISH(_rc, message);
       return _rc;
     }
@@ -129,7 +117,7 @@ namespace fhatos {
 
       if (!_rc) {
         try {
-          if (this->xmqtt->subscribe(subscription.pattern.toString().c_str(), (int) subscription.qos) &&
+          if (this->xmqtt->subscribe(subscription.pattern.toString(), (int) subscription.qos) &&
               _SUBSCRIPTIONS.push_back(share(Subscription(subscription))))
             _rc = RESPONSE_CODE::OK;
           else
@@ -149,47 +137,22 @@ namespace fhatos {
 
     const RESPONSE_CODE unsubscribeSource(const ID &source) override { return unsubscribeX(source, nullptr); }
 
-     void stop() {
-      LOG(INFO, "Disconnecting MQTT from %s\n", this->server);
+    void stop() {
+      LOG(INFO, "Disconnecting MQTT from %s\n", this->serverAddr);
       _SUBSCRIPTIONS.forEach([this](const auto &sub) { this->unsubscribe(sub->source, sub->pattern); });
       _PUBLICATIONS.clear();
       _SUBSCRIPTIONS.clear();
       this->xmqtt->disconnect();
-      //  PROCESS::stop();
-    }
-
-    void testConnection() {
-      if (!this->xmqtt->is_connected()) {
-        LOG(INFO, "Reconnecting to MQTT broker after connection loss\n");
-        this->setup();
-      }
     }
 
     const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
-      RESPONSE_CODE _rc;
+      RESPONSE_CODE _rc = RESPONSE_CODE::OK;
       try {
         const uint16_t size = _SUBSCRIPTIONS.size();
-        /*while (true) {
-          Option<Subscription<MESSAGE>> s = _SUBSCRIPTIONS.find(
-              [source, pattern](const Subscription<MESSAGE> &sub) {
-                return sub.source.equals(source) &&
-                       (nullptr == pattern || sub.pattern.equals(*pattern));
-              });
-          if (!s.has_value())
-            break;
-          //else
-            //_SUBSCRIPTIONS.remove(s.value());
-        }*/
-
-        /*_SUBSCRIPTIONS.remove_if(
-             [source, pattern](const Subscription<MESSAGE> &sub) {
-               return sub.source.equals(source) &&
-                      (nullptr == pattern || sub.pattern.equals(*pattern));
-             });*/
         if (pattern &&
             !(_SUBSCRIPTIONS.find([pattern](const auto &sub) { return sub->pattern.equals(*pattern); }).has_value())) {
-          _rc = this->xmqtt->unsubscribe(pattern->toString().c_str()) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;
-            }
+          _rc = this->xmqtt->unsubscribe(pattern->toString()) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;
+        }
         return !_rc ? _rc : (_SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK : RESPONSE_CODE::NO_SUBSCRIPTION);
       } catch (const std::runtime_error &e) {
         LOG_EXCEPTION(e);
@@ -198,6 +161,8 @@ namespace fhatos {
       LOG_UNSUBSCRIBE(_rc, source, pattern);
       return _rc;
     }
+
+    const string toString() const override { return "MqttRouter"; }
   };
 } // namespace fhatos
 
