@@ -27,6 +27,7 @@
 ////////////////////////////////////////////////////////
 #ifdef NATIVE
 namespace fhatos {
+
 #define FOS_RUN_TEST(x)                                                                                                \
   { RUN_TEST(x); }
 
@@ -206,18 +207,20 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
     }
   }
   if (!expectedReferences.empty()) {
-    TEST_ASSERT_EQUAL_INT_MESSAGE(expectedReferences.size(), FOS_DEFAULT_ROUTER::singleton()->retainSize(),
-                                  "Expected vs. actual router retain message size");
-    for (const auto &[key, value]: expectedReferences) {
-      const Obj temp = value;
-      FOS_DEFAULT_ROUTER::singleton()->subscribe(
-          Subscription{.mailbox = nullptr,
-                       .source = ID("*source*"),
-                       .pattern = key.uri_value(),
-                       .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(temp == *message->payload); }});
+    if (GLOBAL_OPTIONS->router<Router>()->retainSize() != -1) {
+      TEST_ASSERT_EQUAL_INT_MESSAGE(expectedReferences.size(), GLOBAL_OPTIONS->router<Router>()->retainSize(),
+                                    "Expected vs. actual router retain message size");
+      for (const auto &[key, value]: expectedReferences) {
+        const Obj temp = value;
+        GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{
+            .mailbox = nullptr,
+            .source = ID(FOS_DEFAULT_SOURCE_ID),
+            .pattern = key.uri_value(),
+            .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(temp == *message->payload); }});
+      }
     }
   }
   if (clearRouter)
-    FOS_DEFAULT_ROUTER::singleton()->clear();
+    GLOBAL_OPTIONS->router<Router>()->clear();
 }
 #endif

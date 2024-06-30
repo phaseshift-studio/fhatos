@@ -45,9 +45,9 @@ namespace fhatos {
       return &singleton;
     }
 
-    uint retainSize() { return RETAINS.size(); }
+    uint retainSize() const override { return RETAINS.size(); }
 
-    uint subscriptionSize() { return SUBSCRIPTIONS.size(); }
+    uint subscriptionSize() const { return SUBSCRIPTIONS.size(); }
 
     const RESPONSE_CODE clear() override {
       SUBSCRIPTIONS.clear();

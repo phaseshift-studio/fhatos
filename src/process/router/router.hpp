@@ -51,7 +51,7 @@ namespace fhatos {
     Pattern pattern;
     QoS qos = QoS::_1;
     Consumer<const Message_ptr> onRecv;
-    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst("noop", {}, [](Obj_p x) {  return x; }, INST_FURI)});
+    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst("noop", {}, [](Obj_p x) { return x; }, INST_FURI)});
 
     bool match(const ID &target) const { return this->pattern.matches(target); }
 
@@ -119,6 +119,7 @@ namespace fhatos {
     virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) FP_OK_RESULT;
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
     virtual const RESPONSE_CODE clear() FP_OK_RESULT;
+    virtual uint retainSize() const { return -1; }
 
     virtual const string toString() const { return "Router"; }
 

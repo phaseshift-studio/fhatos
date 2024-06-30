@@ -219,6 +219,10 @@ namespace fhatos {
 #define FOS_DEFAULT_SERIALIZER fhatos::PtrSerializer
 #endif
 
+#ifndef FOS_DEFAULT_SOURCE_ID
+#define FOS_DEFAULT_SOURCE_ID STR([anon])
+#endif
+
 
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
@@ -255,7 +259,7 @@ namespace fhatos {
 #endif
 
 #define FOS_TYPE_FUNCTION                                                                                              \
-  [](void *typeId) { return (void *) GLOBAL_OPTIONS->router<Router>()->read(ID("*source*"), *((ID *) typeId)).get(); };
+  [](void *typeId) { return (void *) GLOBAL_OPTIONS->router<Router>()->read(ID(FOS_DEFAULT_SOURCE_ID), *((ID *) typeId)).get(); };
 
   ///////////////////
   // !!TO REMOVE!! //

@@ -147,13 +147,13 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
-      Obj::Types::addToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE());
 
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //

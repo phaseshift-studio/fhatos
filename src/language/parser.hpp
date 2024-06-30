@@ -238,17 +238,24 @@ namespace fhatos {
           } else if (ss.peek() == ']') {
             bracket--;
           }
-          arg += ss.get();
-          if (ss.peek() == ',' && paren == 0 && bracket == 0) {
-            ss.get(); // drop arg separating comma
-            break;
+          char temp = ss.get();
+          if (ss.eof())
+            arg = arg.substr(0, arg.length() - 2);
+          else {
+            arg += temp;
+            if (ss.peek() == ',' && paren == 0 && bracket == 0) {
+              ss.get(); // drop arg separating comma
+              break;
+            }
           }
         }
-        Option<Obj_p> arg_p = Parser::tryParseObj(arg);
-        if (arg_p.has_value())
-          args.push_back(arg_p.value());
-        else {
-          LOG(ERROR, "Unable to parse %s inst argument: %s\n", typeToken.c_str(), arg.c_str());
+        if (!arg.empty()) {
+          Option<Obj_p> arg_p = Parser::tryParseObj(arg);
+          if (arg_p.has_value())
+            args.push_back(arg_p.value());
+          else {
+            LOG(ERROR, "Unable to parse %s inst argument: %s\n", typeToken.c_str(), arg.c_str());
+          }
         }
       }
       return Option<Inst_p>(Insts::to_inst(baseType->resolve(typeToken.c_str()), args));

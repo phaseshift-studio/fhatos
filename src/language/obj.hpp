@@ -183,13 +183,9 @@ namespace fhatos {
     Any _value;
     //////////////////////////////////////////
   public:
-    static fURI_p RESOLVE(fURI_p base, fURI_p furi) { return share(fURI(RESOLVE(*base, *furi))); }
-    static fURI RESOLVE(fURI &base, fURI &furi) {
-      if (base.equals(furi))
-        return base;
-      else {
-        return base.resolve(furi.toString().c_str());
-      }
+    static fURI_p RESOLVE(fURI_p base, const fURI_p &furi) { return share(fURI(RESOLVE(*base, *furi))); }
+    static fURI RESOLVE(fURI &base, const fURI &furi) {
+      return base.equals(furi) ? base : base.resolve(furi.toString().c_str());
     }
     struct obj_hash {
       size_t operator()(const Obj_p &obj) const { return obj->hash(); }
@@ -767,38 +763,44 @@ namespace fhatos {
 
     public:
       static Function<fURI_p, Obj_p> typeFunction;
-      static void addToCache(const fURI_p &typeId, const BCode_p &bcode) {
+      static void writeToCache(const fURI_p &typeId, const Obj_p obj) {
         TYPE_CACHE()->erase(typeId);
-        TYPE_CACHE()->insert({typeId, bcode});
+        TYPE_CACHE()->insert({typeId, obj});
       }
-      static void setTypeFunction(Function<fURI_p, Obj_p>& typeFunction) { Types::typeFunction = typeFunction; }
+      static Option<Obj_p> readFromCache(const fURI_p &typeId) {
+        return TYPE_CACHE()->count(typeId) ? Option<Obj_p>(TYPE_CACHE()->at(typeId)) : Option<Obj_p>();
+      }
+      static void setTypeFunction(Function<fURI_p, Obj_p> &typeFunction) { Types::typeFunction = typeFunction; }
       static void clearCache() { TYPE_CACHE()->clear(); }
+      static Option<Type_p> findType(const fURI_p &typeId) {
+        Type_p type;
+        Option<Type_p> typeOption = Types::readFromCache(typeId);
+        if (typeOption.has_value()) {
+          return typeOption;
+        } else {
+          type = ptr<Type>((Type *) GLOBAL_OPTIONS->TYPE_FUNCTION(typeId.get()));
+          if (nullptr == type || nullptr == type.get())
+            return Option<Type_p>();
+          else {
+            Types::writeToCache(typeId, type);
+            return Option<Type_p>(type);
+          }
+        }
+      }
       static void verifyOType(const Obj &obj, const OType otype, const int LINE_NUMBER = __LINE__) {
         if (obj.o_type() != otype)
           throw fError("Obj %s %s can not be accessed as a %s [line:%i]", OTYPE_STR.at(obj.o_type()),
                        obj.toString(true, false).c_str(), OTYPE_STR.at(otype), LINE_NUMBER);
       }
       static Option<fError> verifyType(const Obj_p &obj, const fURI_p &typeId, const bool doThrow = true) {
-        bool success = true;
+        bool success;
         if (typeId->pathLength() > 0 && (typeId->path(0, 1) == "inst" || typeId->path(0, 1) == "bcode")) {
           success = true;
         } else if (typeId->pathLength() == 2 && typeId->lastSegment().empty()) {
           success = obj->o_type() == STR_OTYPE.at(typeId->path(0, 1));
         } else {
-          Type_p type;
-          if (TYPE_CACHE()->count(typeId)) {
-            type = TYPE_CACHE()->at(typeId);
-          } else {
-            type = share(Obj(*(Obj*)GLOBAL_OPTIONS->TYPE_FUNCTION(typeId.get())));
-            if (nullptr == type || nullptr == type.get()) {
-              throw fError("Type %s has not been defined\n", typeId->toString().c_str());
-            } else {
-              TYPE_CACHE()->insert({typeId, type});
-            }
-          }
-          if (success) {
-            success = !type->apply(obj)->isNoObj();
-          }
+          Option<Type_p> type = findType(typeId);
+          success = type.has_value() && !type.value()->apply(obj)->isNoObj();
         }
         if (doThrow) {
           if (!success)

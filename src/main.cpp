@@ -21,7 +21,7 @@
 #include <util/options.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #ifdef NATIVE
-#include FOS_MODULE(kernel / f_kernel.hpp)
+#include FOS_MODULE(kernel/f_kernel.hpp)
 #include FOS_MQTT(mqtt_router.hpp)
 
 using namespace fhatos;

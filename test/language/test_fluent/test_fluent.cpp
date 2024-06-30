@@ -173,15 +173,14 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
-      Obj::Types::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
-      Obj::Types::addToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
+      GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton(); //
+      GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION; //
+      Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
+      Obj::Types::writeToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
       FOS_RUN_TEST(test_to_from); //
       FOS_RUN_TEST(test_plus); //
-      // FOS_RUN_TEST(test_fluent); //
       FOS_RUN_TEST(test_mult); //
       FOS_RUN_TEST(test_relational_predicates); //
-      // FOS_RUN_TEST(test_select); //
       FOS_RUN_TEST(test_define_as_type); //
   )
 } // namespace fhatos

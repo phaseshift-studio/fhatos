@@ -7,6 +7,8 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/parser.hpp>
 #include <language/processor.hpp>
+#include <process/router/local_router.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
 
 namespace fhatos {
 
@@ -187,18 +189,19 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
-      Obj::Types::addToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE());
+      GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton(); //
+      GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION; //
+      Obj::Types::writeToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE());
       // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
       // Obj::Types<>::addToCache(share(fURI("/int/even")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE());
-      Obj::Types::addToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE());
+      Obj::Types::writeToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE());
       // FOS_RUN_TEST(test_basic_parser); //
       FOS_RUN_TEST(test_no_input_parsing); //
       FOS_RUN_TEST(test_start_inst_parsing); //

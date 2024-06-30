@@ -127,10 +127,11 @@ namespace fhatos {
     static Obj_p define(const Obj_p &uri, const BCode_p &type) {
       return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
         GLOBAL_OPTIONS->router<Router>()->publish(
-            Message{.source = "*source*",
+            Message{.source = FOS_DEFAULT_SOURCE_ID,
                     .target = uri->uri_value(),
                     .payload = lhs->isBytecode() && type->isNoOpBytecode() ? lhs : type,
                     .retain = RETAIN_MESSAGE});
+        Obj::Types::writeToCache(share(uri->uri_value()), type);
         return lhs;
       });
     }
@@ -141,7 +142,8 @@ namespace fhatos {
 
     static Obj_p to(const Uri_p &uri) {
       return Obj::to_inst("to", {uri}, [uri](const Obj_p &lhs) {
-        RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, "*source*", uri->apply(lhs)->uri_value());
+        fURI var = uri->apply(lhs)->uri_value();
+        RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, FOS_DEFAULT_SOURCE_ID, var);
         if (_rc)
           LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
         return lhs;
@@ -150,7 +152,7 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
-        return GLOBAL_OPTIONS->router<Router>()->read("*source*", uri->apply(lhs)->uri_value());
+        return GLOBAL_OPTIONS->router<Router>()->read(FOS_DEFAULT_SOURCE_ID, uri->apply(lhs)->uri_value());
       });
     }
 
@@ -168,7 +170,7 @@ namespace fhatos {
 
     static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
       return Obj::to_inst("pub", {target, payload}, [target, payload](const Obj_p &lhs) {
-        GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = "*source*",
+        GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
                                                           .target = fURI(target->apply(lhs)->uri_value()),
                                                           .payload = Obj_p(payload) /*->apply(incoming)*/,
                                                           .retain = TRANSIENT_MESSAGE});
@@ -179,7 +181,7 @@ namespace fhatos {
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
       return Obj::to_inst("sub", {pattern, onRecv}, [pattern, onRecv](const Obj_p &lhs) {
         GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = nullptr,
-                                                                 .source = "*source*",
+                                                                 .source = FOS_DEFAULT_SOURCE_ID,
                                                                  .pattern = fURI(pattern->apply(lhs)->uri_value()),
                                                                  .onRecv =
                                                                      [onRecv](const ptr<Message> &message) {
@@ -245,7 +247,6 @@ namespace fhatos {
         return Insts::sub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("print"))
         return Insts::print(args.at(0));
-
       if (type == INST_FURI->resolve("switch"))
         return Insts::bswitch(args.at(0));
       if (type == INST_FURI->resolve("explain"))

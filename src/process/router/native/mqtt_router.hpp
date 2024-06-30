@@ -77,6 +77,8 @@ namespace fhatos {
               GRANTED_QOS_1, nullptr != this->willMessage.get() ? FOS_BOOL_STR(this->willMessage->retain) : "<none>");
         });
         this->xmqtt->connect(connection_options.finalize());
+        while (!this->xmqtt->is_connected()) {
+        }
       } catch (const mqtt::exception &e) {
         LOG(ERROR, "Unable to connect to remote server. Mqtt support not provided: %s\n", e.what());
       }
