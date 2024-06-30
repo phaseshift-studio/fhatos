@@ -1,7 +1,7 @@
 var searchData=
 [
   ['mailbox_0',['Mailbox',['../structfhatos_1_1Mailbox.html',1,'fhatos']]],
-  ['mailbox_3c_20mail_5fptr_20_3e_1',['Mailbox&lt; Mail_ptr &gt;',['../structfhatos_1_1Mailbox.html',1,'fhatos']]],
+  ['mailbox_3c_20mail_5fp_20_3e_1',['Mailbox&lt; Mail_p &gt;',['../structfhatos_1_1Mailbox.html',1,'fhatos']]],
   ['mailbox_3c_20ptr_3c_20mail_20_3e_20_3e_2',['Mailbox&lt; ptr&lt; Mail &gt; &gt;',['../structfhatos_1_1Mailbox.html',1,'fhatos']]],
   ['message_3',['Message',['../structfhatos_1_1Message.html',1,'fhatos']]],
   ['metarouter_4',['MetaRouter',['../classfhatos_1_1MetaRouter.html',1,'fhatos']]],
@@ -19,8 +19,8 @@ var searchData=
   ['mutexdeque_3c_20fhatos_3a_3amessage_20_3e_16',['MutexDeque&lt; fhatos::Message &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
   ['mutexdeque_3c_20fhatos_3a_3asubscription_20_3e_17',['MutexDeque&lt; fhatos::Subscription &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
   ['mutexdeque_3c_20fhatos_3a_3athread_20_2a_20_3e_18',['MutexDeque&lt; fhatos::Thread * &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
-  ['mutexdeque_3c_20message_5fptr_20_3e_19',['MutexDeque&lt; Message_ptr &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
+  ['mutexdeque_3c_20message_5fp_20_3e_19',['MutexDeque&lt; Message_p &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
   ['mutexdeque_3c_20ptr_3c_20mail_20_3e_20_3e_20',['MutexDeque&lt; ptr&lt; Mail &gt; &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
-  ['mutexdeque_3c_20subscription_5fptr_20_3e_21',['MutexDeque&lt; Subscription_ptr &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
+  ['mutexdeque_3c_20subscription_5fp_20_3e_21',['MutexDeque&lt; Subscription_p &gt;',['../classfhatos_1_1MutexDeque.html',1,'fhatos']]],
   ['mutexrw_22',['MutexRW',['../classfhatos_1_1MutexRW.html',1,'fhatos']]]
 ];
