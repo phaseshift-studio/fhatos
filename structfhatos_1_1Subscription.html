@@ -102,24 +102,27 @@ $(function(){ initResizable(false); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a867199ffb1fb310bf54eeaa95f0401b8" id="r_a867199ffb1fb310bf54eeaa95f0401b8"><td class="memItemLeft" align="right" valign="top"><a id="a867199ffb1fb310bf54eeaa95f0401b8" name="a867199ffb1fb310bf54eeaa95f0401b8"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Mail</b> = Pair&lt;const ptr&lt;<a class="el" href="structfhatos_1_1Subscription.html">Subscription</a>&gt;, const ptr&lt;<a class="el" href="structfhatos_1_1Message.html">Message</a>&gt;&gt;</td></tr>
-<tr class="separator:a867199ffb1fb310bf54eeaa95f0401b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a157b5872becc023817cae5e933c37745" id="r_a157b5872becc023817cae5e933c37745"><td class="memItemLeft" align="right" valign="top"><a id="a157b5872becc023817cae5e933c37745" name="a157b5872becc023817cae5e933c37745"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Mail</b> = Pair&lt;const Subscription_ptr, const Message_ptr&gt;</td></tr>
+<tr class="separator:a157b5872becc023817cae5e933c37745"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1920f8b53a3d4e2ddf271d3c4b6acaef" id="r_a1920f8b53a3d4e2ddf271d3c4b6acaef"><td class="memItemLeft" align="right" valign="top"><a id="a1920f8b53a3d4e2ddf271d3c4b6acaef" name="a1920f8b53a3d4e2ddf271d3c4b6acaef"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Mail_ptr</b> = ptr&lt;Mail&gt;</td></tr>
+<tr class="separator:a1920f8b53a3d4e2ddf271d3c4b6acaef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0f2803f7e11d35223f6633532811cb91" id="r_a0f2803f7e11d35223f6633532811cb91"><td class="memItemLeft" align="right" valign="top"><a id="a0f2803f7e11d35223f6633532811cb91" name="a0f2803f7e11d35223f6633532811cb91"></a>
-const bool&#160;</td><td class="memItemRight" valign="bottom"><b>match</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;target) const</td></tr>
-<tr class="separator:a0f2803f7e11d35223f6633532811cb91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab639fc80066e98c5898a13167a1a9f11" id="r_ab639fc80066e98c5898a13167a1a9f11"><td class="memItemLeft" align="right" valign="top"><a id="ab639fc80066e98c5898a13167a1a9f11" name="ab639fc80066e98c5898a13167a1a9f11"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>execute</b> (const ptr&lt; <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &amp;message) const</td></tr>
-<tr class="separator:ab639fc80066e98c5898a13167a1a9f11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaf411c7db55a1befd8d2b6f1d885e5d" id="r_aeaf411c7db55a1befd8d2b6f1d885e5d"><td class="memItemLeft" align="right" valign="top"><a id="aeaf411c7db55a1befd8d2b6f1d885e5d" name="aeaf411c7db55a1befd8d2b6f1d885e5d"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>match</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;target) const</td></tr>
+<tr class="separator:aeaf411c7db55a1befd8d2b6f1d885e5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a780da4a5d7849d8f7a6acb441015d48c" id="r_a780da4a5d7849d8f7a6acb441015d48c"><td class="memItemLeft" align="right" valign="top"><a id="a780da4a5d7849d8f7a6acb441015d48c" name="a780da4a5d7849d8f7a6acb441015d48c"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>execute</b> (const Message_ptr &amp;message) const</td></tr>
+<tr class="separator:a780da4a5d7849d8f7a6acb441015d48c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a52ec29fdf9b736e7b3fec2dfb72c7c8b" id="r_a52ec29fdf9b736e7b3fec2dfb72c7c8b"><td class="memItemLeft" align="right" valign="top"><a id="a52ec29fdf9b736e7b3fec2dfb72c7c8b" name="a52ec29fdf9b736e7b3fec2dfb72c7c8b"></a>
-<a class="el" href="structfhatos_1_1Mailbox.html">Mailbox</a>&lt; ptr&lt; Mail &gt; &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>mailbox</b></td></tr>
-<tr class="separator:a52ec29fdf9b736e7b3fec2dfb72c7c8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaddafbfdc660ef6e2a726b5b9cd9c8bd" id="r_aaddafbfdc660ef6e2a726b5b9cd9c8bd"><td class="memItemLeft" align="right" valign="top"><a id="aaddafbfdc660ef6e2a726b5b9cd9c8bd" name="aaddafbfdc660ef6e2a726b5b9cd9c8bd"></a>
+<a class="el" href="structfhatos_1_1Mailbox.html">Mailbox</a>&lt; Mail_ptr &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>mailbox</b></td></tr>
+<tr class="separator:aaddafbfdc660ef6e2a726b5b9cd9c8bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7df53f5ad073e3459248697ee35d4dd2" id="r_a7df53f5ad073e3459248697ee35d4dd2"><td class="memItemLeft" align="right" valign="top"><a id="a7df53f5ad073e3459248697ee35d4dd2" name="a7df53f5ad073e3459248697ee35d4dd2"></a>
 <a class="el" href="classfhatos_1_1ID.html">ID</a>&#160;</td><td class="memItemRight" valign="bottom"><b>source</b></td></tr>
 <tr class="separator:a7df53f5ad073e3459248697ee35d4dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,9 +132,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a882bb785223fce487e90edec8dfd6ce7" id="r_a882bb785223fce487e90edec8dfd6ce7"><td class="memItemLeft" align="right" valign="top"><a id="a882bb785223fce487e90edec8dfd6ce7" name="a882bb785223fce487e90edec8dfd6ce7"></a>
 QoS&#160;</td><td class="memItemRight" valign="bottom"><b>qos</b> = QoS::_1</td></tr>
 <tr class="separator:a882bb785223fce487e90edec8dfd6ce7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac05828d386a2a3f7124b9fc3240df50b" id="r_ac05828d386a2a3f7124b9fc3240df50b"><td class="memItemLeft" align="right" valign="top"><a id="ac05828d386a2a3f7124b9fc3240df50b" name="ac05828d386a2a3f7124b9fc3240df50b"></a>
-Consumer&lt; const ptr&lt; <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &amp; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>onRecv</b></td></tr>
-<tr class="separator:ac05828d386a2a3f7124b9fc3240df50b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2afd4ba8731a7b8693a75a54ca7db235" id="r_a2afd4ba8731a7b8693a75a54ca7db235"><td class="memItemLeft" align="right" valign="top"><a id="a2afd4ba8731a7b8693a75a54ca7db235" name="a2afd4ba8731a7b8693a75a54ca7db235"></a>
+Consumer&lt; const Message_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>onRecv</b></td></tr>
+<tr class="separator:a2afd4ba8731a7b8693a75a54ca7db235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdb12321bb06e9267a65fd4906d28b53" id="r_abdb12321bb06e9267a65fd4906d28b53"><td class="memItemLeft" align="right" valign="top"><a id="abdb12321bb06e9267a65fd4906d28b53" name="abdb12321bb06e9267a65fd4906d28b53"></a>
+BCode_p&#160;</td><td class="memItemRight" valign="bottom"><b>onRecvBCode</b> = BCode::to_bcode({Obj::to_inst(&quot;noop&quot;, {}, [](Obj_p x) { return x; }, INST_FURI)})</td></tr>
+<tr class="separator:abdb12321bb06e9267a65fd4906d28b53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>
 <li>/github/workspace/src/process/router/<a class="el" href="router_8hpp_source.html">router.hpp</a></li>
