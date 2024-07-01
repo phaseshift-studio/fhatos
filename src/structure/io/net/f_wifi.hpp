@@ -60,11 +60,7 @@ namespace fhatos {
     static ID idFromIP(const string &user, const string &path = "") {
       if (!fWIFI::singleton()->running())
         fWIFI::singleton()->setup();
-      return {
-        (user + "@" + fWIFI::ip().c_str() +
-         (path.empty() ? "" : ("/" + path)))
-        .c_str()
-      };
+      return  ID(path + "/" + user).authority(fWIFI::ip().c_str());
     }
 
     static fWIFI *singleton(const ID &id = ID("wifi@127.0.0.1"),

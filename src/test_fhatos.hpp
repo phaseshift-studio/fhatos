@@ -74,6 +74,9 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
+    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::DEBUG;                                                                         \
+    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
+    GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
     LOG(NONE, ANSI_ART);                                                                                               \
     UNITY_BEGIN();                                                                                                     \
     uint32_t __test_freeSketch;                                                                                        \
@@ -197,7 +200,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   return obj;
 }
 
-static void FOS_TEST_ERROR(const string& monoid) {
+static void FOS_TEST_ERROR(const string &monoid) {
   try {
     Fluent(Parser::tryParseObj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());

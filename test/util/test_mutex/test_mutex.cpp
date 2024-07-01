@@ -112,10 +112,8 @@ namespace fhatos {
       temp = m.pop_front().value_or(-1);
     }
     TEST_ASSERT_EQUAL(sum, mutexSum);
-    // Scheduler<>::singleton()->join();
+     Scheduler::singleton()->shutdown();
   }
-
-  void test_deque() {}
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_mutex_deque_methods); //

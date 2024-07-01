@@ -53,12 +53,13 @@ int main(int arg, char **argsv) {
   }
 };
 #else
-#include FOS_MODULE(kernel / f_kernel.hpp)
-#include FOS_MODULE(io / net / f_wifi.hpp)
+#include FOS_MODULE(kernel/f_kernel.hpp)
+#include FOS_MODULE(io/net/f_wifi.hpp)
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 #include FOS_ROUTER(local_router.hpp)
+#include FOS_MQTT(mqtt_router.hpp)
 #include <language/fluent.hpp>
 #include <language/instructions.hpp>
 using namespace fhatos;

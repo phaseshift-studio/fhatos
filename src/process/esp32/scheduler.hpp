@@ -25,8 +25,7 @@
 #include <process/abstract_scheduler.hpp>
 
 namespace fhatos {
-  template<typename ROUTER = Router>
-  class Scheduler final : public AbstractScheduler<ROUTER> {
+  class Scheduler final : public AbstractScheduler {
   public:
     static Scheduler *singleton() {
       static Scheduler scheduler = Scheduler();
@@ -106,7 +105,7 @@ namespace fhatos {
 
   private:
   private:
-    explicit Scheduler(const ID_p &id = share(ROUTER::mintID("scheduler", "kernel"))) : AbstractScheduler<ROUTER>(id) {
+    explicit Scheduler(const ID_p &id = share(Router::mintID("scheduler", "kernel"))) : AbstractScheduler(id) {
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;

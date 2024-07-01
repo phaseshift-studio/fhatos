@@ -38,12 +38,12 @@
 
 namespace fhatos {
   template<typename PROCESS = Thread>
-  class MqttRouter : public Router<PROCESS> {
+  class MqttRouter : public Router {
   protected:
     MqttRouter(const ID &id = Router::mintID("kernel", "router/mqtt"),
                const char *domain = STR(MQTT_BROKER_ADDR),
                const uint16_t port = MQTT_BROKER_PORT)
-      : Router<PROCESS>(id) {
+      : Router(id) {
       auto *client = new WiFiClient();
       this->xmqtt = new PubSubClient(domain, port, *client);
       this->server = (char *) domain;

@@ -67,7 +67,7 @@ namespace fhatos {
         this->yield();
         this->loop();
       }
-      this->publish(queryId, "", TRANSIENT_MESSAGE);
+      this->publish(queryId, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }
 
     uint16_t size() override { return inbox.size(); }
