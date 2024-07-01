@@ -23,9 +23,9 @@
 //
 #include <language/algebra.hpp>
 #include <language/obj.hpp>
+#include <language/types.hpp>
 #include <process/router/local_router.hpp>
 #include <process/router/publisher.hpp>
-#include <language/types.hpp>
 
 
 namespace fhatos {
@@ -127,12 +127,7 @@ namespace fhatos {
 
     static Obj_p define(const Obj_p &uri, const BCode_p &type) {
       return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
-        GLOBAL_OPTIONS->router<Router>()->publish(
-            Message{.source = FOS_DEFAULT_SOURCE_ID,
-                    .target = uri->uri_value(),
-                    .payload = lhs->isBytecode() && type->isNoOpBytecode() ? lhs : type,
-                    .retain = RETAIN_MESSAGE});
-        Types::writeToCache(uri->uri_value(), type);
+        Types::writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
         return lhs;
       });
     }
@@ -153,7 +148,8 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
-        return GLOBAL_OPTIONS->router<Router>()->read(uri->apply(lhs)->uri_value());
+        return GLOBAL_OPTIONS->router<Router>()->read(
+            uri->apply(lhs)->uri_value()); // Types::readFromCache(uri->uri_value()).value_or(Obj::to_noobj());//
       });
     }
 
@@ -173,7 +169,7 @@ namespace fhatos {
       return Obj::to_inst("pub", {target, payload}, [target, payload](const Obj_p &lhs) {
         GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
                                                           .target = fURI(target->apply(lhs)->uri_value()),
-                                                          .payload = Obj_p(payload) /*->apply(incoming)*/,
+                                                          .payload = payload->isNoOpBytecode() ? lhs : payload,
                                                           .retain = TRANSIENT_MESSAGE});
         return lhs;
       });

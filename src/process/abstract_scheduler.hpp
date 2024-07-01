@@ -47,13 +47,20 @@ namespace fhatos {
 
   public:
     explicit AbstractScheduler(const ID_p &id = share(Router::mintID("127.0.0.1", "kernel/scheduler"))) :
-        IDed(id), Publisher(this, this), Mailbox() {
+        IDed(id), Publisher(this, this), Mailbox() {}
+    ~AbstractScheduler() override {
+      delete COROUTINES;
+      delete FIBERS;
+      delete THREADS;
+      delete KERNELS;
+    };
+
+    void setup() {
       //////////////// SPAWN
-      this->subscribe(id->query("?spawn"), [this](const ptr<Message> &message) {
+      this->subscribe(this->id()->query("?spawn"), [this](const ptr<Message> &message) {
         if (message->payload->id()->lastSegment() == "thread") {
-          // const auto b = new fBcode<Thread,
-          // ROUTER>(((Rec*)message->payload.get())->get<Uri>(share<Uri>(Uri(fURI("id"))))->v_furi(), message->payload);
-          //  this->spawn(b);
+          const auto b = new fBcode<Thread>("abc", message->payload);
+          this->spawn(b);
         } else {
           LOG_TASK(ERROR, this, "obj type can not be spawned: [stype:%s][utype:%s]\n",
                    OTYPE_STR.at(message->payload->o_type()), message->payload->id()->toString().c_str());
@@ -66,14 +73,7 @@ namespace fhatos {
                  message->source.toString().c_str());
         this->_destroy(uri->uri_value());
       });
-
     }
-    ~AbstractScheduler() override {
-      delete COROUTINES;
-      delete FIBERS;
-      delete THREADS;
-      delete KERNELS;
-    };
 
     void shutdown() {
       while (this->next()) {
@@ -91,7 +91,7 @@ namespace fhatos {
       LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
     }
 
-    virtual bool spawn(Process *process) { throw fError("%s\n","Member function spawn() must be implemented"); }
+    virtual bool spawn(Process *process) { throw fError("%s\n", "Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
       return this->publish(this->id()->query("?destroy"), share<const Uri>(Uri(processPattern)), TRANSIENT_MESSAGE);
     }

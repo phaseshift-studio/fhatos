@@ -175,12 +175,11 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler::singleton();
     const ptr<BCode> bcode =
-        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("<=(scheduler/threads?spawn,abc@127.0.0.1//rec/thread["
-                                                 "[setup => __(0).print('setup complete'),"
-                                                 " loop  => <=(scheduler@kernel?destroy,abc@127.0.0.1//rec/thread)]])")
+        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("__(0).pub(127.0.0.1@kernel/scheduler?spawn,"
+                                                 "thread[[setup => __(0).print('setup complete'),"
+                                                 " loop  => __(0).pub(127.0.0.1@kernel/scheduler?destroy,abc)]])")
                                  .value());
-    auto process = Processor<Str>(bcode);
-    process.forEach([](const ptr<Str> s) { LOG(INFO, "RESULT: %s", s->str_value().c_str()); });
+    Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
     Scheduler::singleton()->barrier("wait");
   }
 
@@ -201,11 +200,14 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+
       Types::singleton(); //
       for (fhatos::Router * router
            : List<Router *>{fhatos::LocalRouter::singleton(), //
                             /*fhatos::MqttRouter::singleton()*/}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
+        GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton(); //
+        Scheduler::singleton(); //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         Types::writeToCache("/int/zero", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
@@ -229,8 +231,8 @@ namespace fhatos {
         FOS_RUN_TEST(test_str_parsing); //
         FOS_RUN_TEST(test_rec_parsing); //
         FOS_RUN_TEST(test_nested_bytecode_parsing); //
-       // FOS_RUN_TEST(test_bcode_parsing); //
         FOS_RUN_TEST(test_define_as_parsing); //
+        FOS_RUN_TEST(test_bcode_parsing); //
       })
 }; // namespace fhatos
 

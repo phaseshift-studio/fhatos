@@ -159,14 +159,15 @@ namespace fhatos {
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(ex) LOG(ERROR, "%s\n", (ex).what())
+#define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
 #define LOG_TASK(logtype, process, format, ...)                                                                        \
   LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",     \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
-      (subscription)->pattern.toString().c_str(), (subscription)->onRecvBCode->toString().c_str())
+      (subscription)->pattern.toString().c_str(),                                                                      \
+      (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
@@ -252,7 +253,9 @@ namespace fhatos {
 #endif
 
 #define FOS_TYPE_FUNCTION                                                                                              \
-  [](void *typeId) { return (void *) GLOBAL_OPTIONS->router<Router>()->read(ID(FOS_DEFAULT_SOURCE_ID), *((ID *) typeId)).get(); };
+  [](void *typeId) {                                                                                                   \
+    return (void *) GLOBAL_OPTIONS->router<Router>()->read(ID(FOS_DEFAULT_SOURCE_ID), *((ID *) typeId)).get();         \
+  };
 
   ///////////////////
   // !!TO REMOVE!! //

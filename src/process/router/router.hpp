@@ -51,7 +51,7 @@ namespace fhatos {
     Pattern pattern;
     QoS qos = QoS::_1;
     Consumer<const Message_p> onRecv = [](const Message_p) {};
-    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst("noop", {}, [](const Obj_p &x) { return x; }, INST_FURI)});
+    BCode_p onRecvBCode = nullptr;
 
     bool match(const ID &target) const { return this->pattern.matches(target); }
 

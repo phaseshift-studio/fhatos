@@ -35,17 +35,23 @@ namespace fhatos {
         if (nullptr == type || nullptr == type.get())
           return Option<Type_p>();
         else {
-          writeToCache(typeId, type);
+          writeToCache(typeId, type, false);
           return Option<Type_p>(type);
         }
       }
     }
-    static void writeToCache(const fURI &typeId, const Obj_p obj) {
+    static void writeToCache(const fURI &typeId, const Obj_p obj, const bool writeThrough = true) {
       TYPE_CACHE()->erase(typeId);
       TYPE_CACHE()->insert({typeId, obj});
+      if (writeThrough)
+        GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
     }
-    static Option<Obj_p> readFromCache(const fURI &typeId) {
-      return TYPE_CACHE()->count(typeId) ? Option<Obj_p>(TYPE_CACHE()->at(typeId)) : Option<Obj_p>();
+    static Option<Obj_p> readFromCache(const fURI &typeId, const bool readThrough = true) {
+      if (TYPE_CACHE()->count(typeId))
+        return Option<Obj_p>(TYPE_CACHE()->at(typeId));
+      if (readThrough)
+        return GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
+      return Option<Obj_p>();
     }
     static bool test(const Obj &obj, const OType otype, const fURI &typeId, bool doThrow = true) noexcept(false) {
       const OType typeOType = STR_OTYPE.at(typeId.path(0, 1));
@@ -56,8 +62,8 @@ namespace fhatos {
           throw fError("Obj %s is not a %s\n", obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
-      if(typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
-       return true;
+      if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
+        return true;
       }
       Option<Type_p> type = findType(typeId);
       if (type.has_value()) {

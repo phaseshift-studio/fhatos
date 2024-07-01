@@ -30,6 +30,7 @@ namespace fhatos {
   public:
     static Scheduler *singleton() {
       static Scheduler scheduler = Scheduler();
+      scheduler.setup();
       return &scheduler;
     }
 

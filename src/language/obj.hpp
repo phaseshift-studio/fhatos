@@ -194,7 +194,7 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Obj : public IDed, public std::enable_shared_from_this<Obj> {
+  class Obj : public IDed /*, public std::enable_shared_from_this<Obj>*/ {
   protected:
     Any _value;
     //////////////////////////////////////////
@@ -232,7 +232,9 @@ namespace fhatos {
     explicit Obj(const Any &value, const fURI_p &typeId) : Obj(value, STR_OTYPE.at(typeId->path(0, 1)), *typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const int lineNumber = __LINE__) {
-      return fError("Unexecpted internal value for %s [line:%i]\n", obj->toString().c_str(), lineNumber);
+      // if(true) exit(1);
+      return fError("Unexpected internal value for %s [%s]\n", OTYPE_STR.at(obj->o_type()),
+                    (string(__FILE__) + ":" + std::to_string(lineNumber)).c_str());
     }
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
@@ -254,9 +256,9 @@ namespace fhatos {
         Obj(Any(share(RecMap<>())), OType::REC, OTYPE_FURI.at(OType::REC)->resolve(typeId)) {
       auto map = std::any_cast<ptr<RecMap<>>>(this->_value);
       for (const auto &[key, val]: xrec) {
-        map->insert(make_pair(share(key), share(val)));
+        map->insert(make_pair(share(Obj(key)), share(Obj(val))));
       }
-      this->_value = map;
+      // this->_value = map;
     }
     Obj(const List<Inst> &bcode, const char *typeId = "") :
         Obj(Obj::cast(bcode), OType::BCODE, OTYPE_FURI.at(OType::BCODE)->resolve(typeId)) {}
@@ -284,32 +286,68 @@ namespace fhatos {
         throw TYPE_ERROR(this, __LINE__);
       return this->value<List<Obj_p>>();
     }
-    const bool bool_value() const { return this->value<bool>(); }
-    const FL_INT_TYPE int_value() const { return this->value<FL_INT_TYPE>(); }
-    const FL_REAL_TYPE real_value() const { return this->value<FL_REAL_TYPE>(); }
-    const fURI uri_value() const { return this->value<fURI>(); }
-    const string str_value() const { return this->value<string>(); }
-    RecMap_p<> rec_value() const { return this->value<ptr<RecMap<>>>(); }
+    const bool bool_value() const {
+      if (this->o_type() != OType::BOOL)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<bool>();
+    }
+    const FL_INT_TYPE int_value() const {
+      if (this->o_type() != OType::INT)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<FL_INT_TYPE>();
+    }
+    const FL_REAL_TYPE real_value() const {
+      if (this->o_type() != OType::REAL)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<FL_REAL_TYPE>();
+    }
+    const fURI uri_value() const {
+      if (this->o_type() != OType::URI)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<fURI>();
+    }
+    const string str_value() const {
+      if (this->o_type() != OType::STR)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<string>();
+    }
+    RecMap_p<> rec_value() const {
+      if (this->o_type() != OType::REC)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<RecMap_p<>>();
+    }
     Obj_p rec_get(const Obj_p &key) const {
-
       return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
     Obj_p rec_get(const Obj &key) const { return Obj::rec_get(share(key)); }
     void rec_set(const Obj_p &key, const Obj_p &val) const {
-
       this->rec_value()->erase(key);
       if (!val->isNoObj())
         this->rec_value()->insert({key, val});
     }
     void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
     void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
-    const InstValue inst_value() const { return this->value<InstValue>(); }
-    const string inst_op() const { return this->_id->lastSegment(); }
+    const InstValue inst_value() const {
+      if (this->o_type() != OType::INST)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<InstValue>();
+    }
+    const string inst_op() const {
+      if (this->o_type() != OType::INST)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->_id->lastSegment();
+    }
     const List<Obj_p> inst_args() const { return this->inst_value().first; }
     Obj_p inst_arg(const uint8_t index) const { return this->inst_value().first.at(index); }
 
     const InstFunction inst_f() const { return this->inst_value().second; }
-    List<Obj_p> bcode_value() const { return this->value<List<Obj_p>>(); }
+    List<Obj_p> bcode_value() const {
+      if (this->o_type() == OType::NOOBJ)
+        return {};
+      if (this->o_type() != OType::BCODE)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<List<Obj_p>>();
+    }
 
     fURI_p bcode_domain() const { return this->bcode_value().empty() ? OBJ_FURI : this->bcode_value().front()->id(); }
 
@@ -413,6 +451,8 @@ namespace fhatos {
     bool operator||(const Obj &rhs) const { return this->bool_value() || rhs.bool_value(); }
     bool operator>(const Obj &rhs) const {
       switch (this->o_type()) {
+        case OType::NOOBJ:
+          return false;
         case OType::INT:
           return this->int_value() > rhs.int_value();
         case OType::REAL:
@@ -427,6 +467,8 @@ namespace fhatos {
     }
     bool operator<(const Obj &rhs) const {
       switch (this->o_type()) {
+        case OType::NOOBJ:
+          return false;
         case OType::INT:
           return this->int_value() < rhs.int_value();
         case OType::REAL:
@@ -443,6 +485,8 @@ namespace fhatos {
     bool operator>=(const Obj &rhs) const { return *this == rhs || *this > rhs; }
     Obj operator*(const Obj &rhs) const {
       switch (this->o_type()) {
+        case OType::NOOBJ:
+          return *Obj::to_noobj();
         case OType::BOOL:
           return Obj(this->bool_value() && rhs.bool_value(), this->id());
         case OType::INT:
@@ -469,6 +513,8 @@ namespace fhatos {
     }
     Obj operator+(const Obj &rhs) const {
       switch (this->o_type()) {
+        case OType::NOOBJ:
+          return *Obj::to_noobj();
         case OType::BOOL:
           return Obj(this->bool_value() || rhs.bool_value(), this->id());
         case OType::INT:
@@ -499,6 +545,8 @@ namespace fhatos {
       if (!this->_id->equals(*other._id)) // type check
         return false;
       switch (this->o_type()) {
+        case OType::NOOBJ:
+          return other.isNoObj();
         case OType::BOOL:
           return this->bool_value() == other.bool_value();
         case OType::INT:
@@ -506,7 +554,7 @@ namespace fhatos {
         case OType::REAL:
           return this->real_value() == other.real_value();
         case OType::URI:
-          return this->uri_value() == other.uri_value();
+          return this->uri_value().equals(other.uri_value());
         case OType::STR:
           return this->str_value() == other.str_value();
         case OType::REC: {
@@ -685,7 +733,7 @@ namespace fhatos {
     }
 
     Obj_p as(const fURI_p &furi) const { return this->as(furi->toString().c_str()); }
-    Obj_p as(const char *furi) const { return share(Obj(this->_value, share(this->_id->resolve(furi)))); }
+    Obj_p as(const char *furi) const { return share(Obj(this->_value, this->o_type(), this->_id->resolve(furi))); }
 
     const Inst_p nextInst(Inst_p currentInst) const {
       if (currentInst->isNoObj())

@@ -92,7 +92,7 @@ namespace fhatos {
       }
       PROCESS::stop();
       ///////////////////////////////////////////////////////
-      if (const RESPONSE_CODE _rc = this->unsubscribeSource(*this->id())) {
+      if (const RESPONSE_CODE _rc = this->unsubscribeSource()) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), RESPONSE_CODE_STR(_rc));
       }
       this->inbox.clear();

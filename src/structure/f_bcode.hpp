@@ -25,42 +25,41 @@ namespace fhatos {
   template<typename PROCESS = Thread>
   class fBcode final : public Actor<PROCESS> {
   public:
-    std::atomic<bool> *setupComplete = new std::atomic<bool>(false);
+    std::atomic_bool *setupComplete = new std::atomic_bool(false);
     const ptr<Obj> rec;
     ptr<BCode> SETUP_BCODE;
     ptr<BCode> LOOP_BCODE;
 
-    fBcode(const ID &id, const ptr<Rec> &rec) :
+    fBcode(const ID &id, const Rec_p &rec) :
         Actor<PROCESS>(
             id,
             // setup
             [this](const Actor<PROCESS> *actor) {
-              bool done = ((fBcode *) actor)->setupComplete->load();
-              ((fBcode *) actor)->setupComplete->store(true);
-              if (!done) {
                 try {
-                  Processor<Obj>(SETUP_BCODE).forEach([this](const Obj *obj) {
-                    LOG(DEBUG, "%s setup: %s\n", this->id().toString().c_str(), obj->toString().c_str());
+                  LOG(DEBUG, "Executing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
+                  Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
+                    LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
                   });
-                } catch (fError &error) {
+                  LOG(DEBUG, "Completeing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
+                } catch (std::exception &error) {
                   LOG_EXCEPTION(error);
+                  this->stop();
                 }
-              } else {
-                LOG_TASK(ERROR, this, "setup() already executed\n");
-              }
             },
             // loop
-            [this](const Actor<PROCESS> *actor) {
+            [this, rec](const Actor<PROCESS> *actor) {
               try {
-                Processor<Obj>(LOOP_BCODE).forEach([this](const Obj *obj) {
-                  LOG(DEBUG, "%s loop: %s\n", this->id().toString().c_str(), obj->toString().c_str());
+                Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
+                  LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
                 });
-              } catch (fError &error) {
+              } catch (std::exception &error) {
                 LOG_EXCEPTION(error);
+                this->stop();
               }
             }),
-        rec(rec), SETUP_BCODE(rec->rec_get(share(Uri("setup")))),
-        LOOP_BCODE(rec->rec_get(share(Uri("loop")))) {}
+        rec(rec), SETUP_BCODE(rec->rec_get(share(u("setup")))), LOOP_BCODE(rec->rec_get(share(u("loop")))) {
+      LOG(DEBUG, "bcode program created: %s\n", rec->toString().c_str());
+    }
   };
 } // namespace fhatos
 #endif

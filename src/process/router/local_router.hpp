@@ -65,6 +65,7 @@ namespace fhatos {
             try {
               if (subscription->mailbox) {
                 _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
+                LOG(DEBUG, "Message from %s delivered to %s\n", message.source.toString().c_str(), subscription->source.toString().c_str());
                 if (subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
                   LOG(ERROR, "Actor mailbox size is beyond warning size of %i: [size:%i]\n", FOS_MAILBOX_WARNING_SIZE,
                       subscription->mailbox->size());
