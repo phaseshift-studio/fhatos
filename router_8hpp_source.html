@@ -234,7 +234,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>      <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> == thing-&gt;load()) {</div>
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        <span class="keyword">delete</span> thing;</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        <span class="keyword">delete</span> done;</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>        <span class="keywordflow">return</span> ptr&lt;OBJ&gt;(<span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">Obj::to_noobj</a>();</div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>      } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>        ptr&lt;OBJ&gt; ret = ptr&lt;OBJ&gt;(thing-&gt;load());</div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        <span class="keyword">delete</span> thing;</div>
@@ -254,6 +254,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span> </div>
 <div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:394</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:746</div></div>
 <div class="ttc" id="aclassfhatos_1_1Pattern_html"><div class="ttname"><a href="classfhatos_1_1Pattern.html">fhatos::Pattern</a></div><div class="ttdef"><b>Definition</b> furi.hpp:424</div></div>
 <div class="ttc" id="aclassfhatos_1_1Router_html"><div class="ttname"><a href="classfhatos_1_1Router.html">fhatos::Router</a></div><div class="ttdef"><b>Definition</b> router.hpp:107</div></div>
 <div class="ttc" id="aobj_8hpp_html_a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec"><div class="ttname"><a href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">fhatos::OType::OBJ</a></div><div class="ttdeci">@ OBJ</div><div class="ttdoc">The base type of all types is the obj.</div></div>
