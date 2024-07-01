@@ -240,20 +240,14 @@ namespace fhatos {
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
     template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *typeId = "") :
-        Obj(Any(xbool), OType::BOOL, OTYPE_FURI.at(OType::BOOL)->resolve(typeId)) {}
-    Obj(const FL_INT_TYPE xint, const char *typeId = "") :
-        Obj(Any(xint), OType::INT, OTYPE_FURI.at(OType::INT)->resolve(typeId)) {}
-    Obj(const FL_REAL_TYPE xreal, const char *typeId = "") :
-        Obj(Any(xreal), OType::REAL, OTYPE_FURI.at(OType::REAL)->resolve(typeId)) {}
-    Obj(const fURI &xuri, const char *typeId = "") :
-        Obj(Any(xuri), OType::URI, OTYPE_FURI.at(OType::URI)->resolve(typeId)) {}
-    Obj(const char *xstr, const char *typeId = "") :
-        Obj(Any(string(xstr)), OType::STR, OTYPE_FURI.at(OType::STR)->resolve(typeId)) {}
-    Obj(const string &xstr, const char *typeId = "") :
-        Obj(Any(xstr), OType::STR, OTYPE_FURI.at(OType::STR)->resolve(typeId)) {}
+    Obj(const T xbool, const char *typeId = "") : Obj(Any(xbool), OType::BOOL, BOOL_FURI->resolve(typeId)) {}
+    Obj(const FL_INT_TYPE xint, const char *typeId = "") : Obj(Any(xint), OType::INT, INT_FURI->resolve(typeId)) {}
+    Obj(const FL_REAL_TYPE xreal, const char *typeId = "") : Obj(Any(xreal), OType::REAL, REAL_FURI->resolve(typeId)) {}
+    Obj(const fURI &xuri, const char *typeId = "") : Obj(Any(xuri), OType::URI, URI_FURI->resolve(typeId)) {}
+    Obj(const char *xstr, const char *typeId = "") : Obj(Any(string(xstr)), OType::STR, STR_FURI->resolve(typeId)) {}
+    Obj(const string &xstr, const char *typeId = "") : Obj(Any(xstr), OType::STR, STR_FURI->resolve(typeId)) {}
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *typeId = "") :
-        Obj(Any(share(RecMap<>())), OType::REC, OTYPE_FURI.at(OType::REC)->resolve(typeId)) {
+        Obj(Any(share(RecMap<>())), OType::REC, REC_FURI->resolve(typeId)) {
       auto map = std::any_cast<ptr<RecMap<>>>(this->_value);
       for (const auto &[key, val]: xrec) {
         map->insert(make_pair(share(Obj(key)), share(Obj(val))));
@@ -261,9 +255,8 @@ namespace fhatos {
       // this->_value = map;
     }
     Obj(const List<Inst> &bcode, const char *typeId = "") :
-        Obj(Obj::cast(bcode), OType::BCODE, OTYPE_FURI.at(OType::BCODE)->resolve(typeId)) {}
-    Obj(const InstList &bcode, const char *typeId = "") :
-        Obj(Any(bcode), OType::BCODE, OTYPE_FURI.at(OType::BCODE)->resolve(typeId)) {}
+        Obj(Any(Obj::cast(bcode)), OType::BCODE, BCODE_FURI->resolve(typeId)) {}
+    Obj(const InstList &bcode, const char *typeId = "") : Obj(Any(bcode), OType::BCODE, BCODE_FURI->resolve(typeId)) {}
 
     /*Obj(const List<Obj_p> &objList) : IDed(OBJS_FURI), _value(objList) {
       if (objList.empty())
@@ -826,6 +819,9 @@ namespace fhatos {
     static const ptr<OBJ> deserialize(const ptr<BObj> bobj) {
       return ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
     }
+
+    static Obj_p clone(const Obj &obj) { return share(Obj(obj)); }
+    static Obj_p clone(const Obj_p &obj) { return share(Obj(*obj)); }
 
     static List<Obj_p> cast(const List<Obj> &list) {
       List<Obj_p> newList = List<Obj_p>();

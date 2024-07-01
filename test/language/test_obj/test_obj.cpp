@@ -175,10 +175,10 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       for (Router *router //
-           : List<Router *>({LocalRouter::singleton()/*, MqttRouter::singleton()*/})) { //
+           : List<Router *>({LocalRouter::singleton(), MqttRouter::singleton()})) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-       Types::writeToCache("/bool/truth", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/bool/truth", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/int/age", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/str/first_name", Insts::NO_OP_BCODE()); //
@@ -190,7 +190,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_str); //
         FOS_RUN_TEST(test_rec); //
         // FOS_RUN_TEST(test_inst_bcode); //
-      })
+      });
 
 
 }; // namespace fhatos

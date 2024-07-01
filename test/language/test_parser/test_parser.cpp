@@ -49,9 +49,10 @@ namespace fhatos {
   }
 
   void test_noobj_parsing() {
-    // const Obj_p n = ObjParser::tryParseObj("Ø").value();
-    // TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_range());
-    // TEST_ASSERT_EQUAL_STRING("!bØ!!", n->toString().c_str());
+    const Obj_p n = Parser::tryParseObj("Ø").value();
+    TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_type());
+    TEST_ASSERT_TRUE(n->isNoObj());
+    TEST_ASSERT_EQUAL_STRING("!bØ!!", n->toString().c_str());
   }
 
   void test_bool_parsing() {
@@ -129,9 +130,9 @@ namespace fhatos {
       const ptr<Rec> rc1 = Parser::tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc1->o_type());
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value());
-      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Int>(new Int(13)))->otype());
-      // TEST_ASSERT_EQUAL(OType::NOOBJ, rc1->get<Str>(ptr<Str>(new Str("no key")))->otype());
-      // TEST_ASSERT_FALSE(rc1->get<Bool>(ptr<Uri>(new Uri("actor@127.0.0.1")))->value());
+      TEST_ASSERT_TRUE(rc1->rec_get(ptr<Int>(new Int(13)))->isNoObj());
+      TEST_ASSERT_TRUE(rc1->rec_get(ptr<Str>(new Str("no key")))->isNoObj());
+      TEST_ASSERT_FALSE(rc1->rec_get(share(u("actor@127.0.0.1")))->bool_value());
     }
 
     forms = {"person[[age=>nat[29],name=>'dogturd']]", "person[[age=>nat[29],name=>'dogturd']]"
@@ -140,7 +141,7 @@ namespace fhatos {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-      // TEST_ASSERT_EQUAL_STRING("person", rc2->id()->lastSegment().c_str());
+      TEST_ASSERT_EQUAL_STRING("person", rc2->id()->lastSegment().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u("age"))->int_value());
       TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u("name"))->str_value().c_str());
       TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
@@ -172,11 +173,11 @@ namespace fhatos {
 
   void test_bcode_parsing() {
     Scheduler::singleton();
-    const ptr<BCode> bcode =
-        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("__(0).pub(127.0.0.1@kernel/scheduler?spawn,"
-                                                 "thread[[setup => __(0).print('setup complete'),"
-                                                 " loop  => __(0).pub(127.0.0.1@kernel/scheduler?destroy,abc)]])")
-                                 .value());
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
+        Parser::tryParseObj("__(0).pub(127.0.0.1@kernel/scheduler?spawn,"
+                            "thread[[setup => __(0).print('setup complete'),"
+                            "        loop  => __(0).pub(127.0.0.1@kernel/scheduler?destroy,abc)]])")
+            .value());
     Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
     Scheduler::singleton()->barrier("wait");
   }
@@ -198,10 +199,10 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-
-      Types::singleton(); for (fhatos::Router * router
-                               : List<Router *>{fhatos::LocalRouter::singleton(), //
-                                                /*fhatos::MqttRouter::singleton()*/}) { //
+      Types::singleton(); //
+      for (fhatos::Router * router //
+           : List<Router *>{fhatos::LocalRouter::singleton(), //
+                            fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         Scheduler::singleton(); //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //

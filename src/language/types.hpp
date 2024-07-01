@@ -38,35 +38,27 @@ namespace fhatos {
       };
       return &factory;
     }
-    static Option<Type_p> findType(const fURI &typeId) {
-      Type_p type;
-      Option<Type_p> typeOption = readFromCache(typeId);
-      if (typeOption.has_value()) {
-        return typeOption;
-      } else {
-        type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
-        if (nullptr == type || nullptr == type.get())
-          return Option<Type_p>();
-        else {
-          writeToCache(typeId, type, false);
-          return Option<Type_p>(type);
-        }
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    static void writeToCache(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) {
+      TYPE_CACHE()->erase(typeId);
+      if (!obj->isNoObj()) {
+        TYPE_CACHE()->insert({typeId, Obj::clone(obj)});
+        if (writeThrough)
+          GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
       }
     }
-    static void writeToCache(const fURI &typeId, const Obj_p obj, const bool writeThrough = true) {
-      TYPE_CACHE()->erase(typeId);
-      TYPE_CACHE()->insert({typeId, obj});
-      if (writeThrough)
-        GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
-    }
     static Option<Obj_p> readFromCache(const fURI &typeId, const bool readThrough = true) {
-      if (TYPE_CACHE()->count(typeId))
+      if (TYPE_CACHE()->count(typeId) && !TYPE_CACHE()->at(typeId)->isNoObj())
         return Option<Obj_p>(TYPE_CACHE()->at(typeId));
-      if (readThrough)
-        return GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
+      if (readThrough) {
+        const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
+        return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
+      }
       return Option<Obj_p>();
     }
-    static bool test(const Obj &obj, const OType otype, const fURI &typeId, bool doThrow = true) noexcept(false) {
+    static bool test(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) noexcept(false) {
       const OType typeOType = STR_OTYPE.at(typeId.path(0, 1));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;
@@ -79,7 +71,7 @@ namespace fhatos {
       if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
         return true;
       }
-      Option<Type_p> type = findType(typeId);
+      const Option<Type_p> type = readFromCache(typeId);
       if (type.has_value()) {
         if (obj.match(*type, false)) {
           return true;
@@ -99,18 +91,3 @@ namespace fhatos {
   };
 } // namespace fhatos
 #endif
-
-
-/*static Obj_p make(const Any value, const OType otype, const fURI_p &typeId) noexcept(false) {
-    Obj_p obj = share(Obj(value, OTYPE_FURI.at(otype)));
-    if (test(obj, typeId)) {
-      return share(Obj(value, typeId));
-    }
-    return Obj::to_noobj();
-  }
-  static Bool_p make(const bool xbool, const fURI_p &typeId) { return make(xbool, OType::BOOL, typeId); }
-  static Int_p make(const FL_INT_TYPE xint, const fURI_p &typeId) { return make(xint, OType::INT, typeId); }
-  static Real_p make(const FL_REAL_TYPE xreal, const fURI_p &typeId) { return make(xreal, OType::REAL, typeId); }
-  static Uri_p make(const fURI &xuri, const fURI_p &typeId) { return make(xuri, OType::URI, typeId); }
-  static Str_p make(const string &xstr, const fURI_p &typeId) { return make(xstr, OType::STR, typeId); }
-  static Rec_p make(const RecMap<> xmap, const fURI_p &typeId) { return make(xmap, OType::REC, typeId); }*/

@@ -31,7 +31,7 @@ int main(int arg, char **argsv) {
 
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
-  GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
+  GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
   Types::singleton();
 
   try {

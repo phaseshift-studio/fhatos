@@ -144,7 +144,7 @@ namespace fhatos {
       if (nullptr == thing->load()) {
         delete thing;
         delete done;
-        return ptr<OBJ>(nullptr);
+        return Obj::to_noobj();
       } else {
         ptr<OBJ> ret = ptr<OBJ>(thing->load());
         delete thing;

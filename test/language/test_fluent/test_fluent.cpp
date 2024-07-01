@@ -176,8 +176,8 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       Types::singleton(); //
       for (fhatos::Router * router //
-           : List<Router *>{fhatos::LocalRouter::singleton() //
-                            /* fhatos::MqttRouter::singleton()*/}) { //
+           : List<Router *>{fhatos::LocalRouter::singleton(), //
+                            fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
