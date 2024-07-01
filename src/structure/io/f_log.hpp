@@ -29,15 +29,15 @@
 
 namespace fhatos {
 
-template <typename PROCESS = Coroutine, typename ROUTER = FOS_DEFAULT_ROUTER>
+template <typename PROCESS = Coroutine, typename ROUTER = Router>
 class fLog : public Actor<PROCESS, ROUTER> {
 public:
-  explicit fLog(const ID &id = FOS_DEFAULT_ROUTER::mintID("log"))
+  explicit fLog(const ID &id = Router::mintID("log"))
       : Actor<PROCESS, ROUTER>(id) {};
 
   void setup() override {
     PROCESS::setup();
-    const ID serialID = FOS_DEFAULT_ROUTER::mintID("log");
+    const ID serialID = Router::mintID("log");
     // INFO LOGGING
     this->subscribe(
         this->id().extend("INFO"), [this, serialID](const auto &message) {

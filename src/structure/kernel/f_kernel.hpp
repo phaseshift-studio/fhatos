@@ -26,8 +26,8 @@
 #include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
-  class fKernel : public Actor<PROCESS, ROUTER> {
+  template<typename PROCESS = Thread>
+  class fKernel : public Actor<PROCESS> {
   public:
     static const bool bootloader(const List<Process *> &processes) {
 #ifndef NATIVE
@@ -37,7 +37,7 @@ namespace fhatos {
       LOG(INFO, "!R[kernel mode]!! !gBootloader started!!\n");
       bool success = true;
       for (auto *process: processes) {
-        success = success & Scheduler<>::singleton()->spawn(process);
+        success = success & Scheduler::singleton()->spawn(process);
       }
       LOG(INFO, "!R[kernel mode]!! !gBootloader finished!!\n");
       return success;
@@ -49,7 +49,7 @@ namespace fhatos {
     }
 
   protected:
-    explicit fKernel(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel")) : Actor<PROCESS, ROUTER>(id) {
+    explicit fKernel(const ID &id = Router::mintID("kernel")) : Actor<PROCESS>(id) {
     }
   };
 };

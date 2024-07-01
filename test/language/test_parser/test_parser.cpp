@@ -7,6 +7,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/parser.hpp>
 #include <language/processor.hpp>
+#include <language/types.hpp>
 #include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 
@@ -158,10 +159,21 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
     TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",
                              FOS_DEFAULT_PRINTER::singleton()->strip(rc2->toString().c_str()));
+
+    ////// match testing
+    Fluent(
+        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("__(0).define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
+        .iterate();
+    /*  FOS_CHECK_RESULTS<Rec>({*Parser::tryParseObj("person[[name=>'fhat',age=>29]]").value()},
+                             Fluent(Parser::tryParseObj("__([name=>'fhat',age=>29]).as(/rec/person)").value()), {},
+                             false);*/
+    //    FOS_TEST_ASSERT_EXCEPTION(Fluent(Parser::tryParseObj("__([name=>10,age=>23]).as(/rec/person)").value()).iterate());
+    FOS_TEST_ASSERT_EXCEPTION(
+        Fluent(Parser::tryParseObj("__([name=>'fhat',age=>-1]).as(/rec/person)").value()).iterate());
   }
 
   void test_bcode_parsing() {
-    Scheduler<FOS_DEFAULT_ROUTER>::singleton();
+    Scheduler::singleton();
     const ptr<BCode> bcode =
         FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("<=(scheduler/threads?spawn,abc@127.0.0.1//rec/thread["
                                                  "[setup => __(0).print('setup complete'),"
@@ -169,7 +181,7 @@ namespace fhatos {
                                  .value());
     auto process = Processor<Str>(bcode);
     process.forEach([](const ptr<Str> s) { LOG(INFO, "RESULT: %s", s->str_value().c_str()); });
-    Scheduler<>::singleton()->barrier("wait");
+    Scheduler::singleton()->barrier("wait");
   }
 
   void test_nested_bytecode_parsing() {
@@ -189,22 +201,23 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      for (fhatos::Router *router //
+      Types::singleton(); //
+      for (fhatos::Router * router
            : List<Router *>{fhatos::LocalRouter::singleton(), //
-                            fhatos::MqttRouter::singleton()}) {
+                            /*fhatos::MqttRouter::singleton()*/}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Obj::Types::writeToCache(share(fURI("/int/zero")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/int/z")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/rec/person")), Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/zero", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/z", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/rec/person", Insts::NO_OP_BCODE()); //
         // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
-        // Obj::Types<>::addToCache(share(fURI("/int/even")), Insts::NO_OP_BCODE());
-        Obj::Types::writeToCache(share(fURI("/rec/atype")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/rec/btype")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/rec/ctype")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/bool/abool")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/rec/thread")), Insts::NO_OP_BCODE()); //
+        // Types<>::addToCache("/int/even")), Insts::NO_OP_BCODE());
+        Types::writeToCache("/rec/atype", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/rec/btype", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/rec/ctype", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/bool/abool", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/rec/thread", Insts::NO_OP_BCODE()); //
         // FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //
@@ -216,7 +229,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_str_parsing); //
         FOS_RUN_TEST(test_rec_parsing); //
         FOS_RUN_TEST(test_nested_bytecode_parsing); //
-        // FOS_RUN_TEST(test_bcode_parsing); //
+       // FOS_RUN_TEST(test_bcode_parsing); //
         FOS_RUN_TEST(test_define_as_parsing); //
       })
 }; // namespace fhatos

@@ -25,7 +25,7 @@
 #include <process/abstract_scheduler.hpp>
 
 namespace fhatos {
-  template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  template<typename ROUTER = Router>
   class Scheduler final : public AbstractScheduler<ROUTER> {
   public:
     static Scheduler *singleton() {

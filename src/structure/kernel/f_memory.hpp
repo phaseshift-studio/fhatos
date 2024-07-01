@@ -28,7 +28,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER >
+  template<typename PROCESS = Fiber, typename ROUTER = Router >
   class fMemory : public Actor<PROCESS, ROUTER> {
   public:
     static fMemory *singleton() {
@@ -54,7 +54,7 @@ namespace fhatos {
     }
 
   protected:
-    fMemory(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "memory")) : Actor<PROCESS, ROUTER>(id) {
+    fMemory(const ID &id = Router::mintID("kernel", "memory")) : Actor<PROCESS, ROUTER>(id) {
     }
   };
 };

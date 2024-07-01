@@ -26,11 +26,11 @@
 
 namespace fhatos {
 
-template <typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER>
+template <typename PROCESS = Fiber, typename ROUTER = Router>
 class fSerial : public Actor<PROCESS, ROUTER> {
 
 protected:
- explicit fSerial(const ID &id = FOS_DEFAULT_ROUTER::mintID("serial"))
+ explicit fSerial(const ID &id = Router::mintID("serial"))
       : Actor<PROCESS, ROUTER>(id) {}
 
 public:

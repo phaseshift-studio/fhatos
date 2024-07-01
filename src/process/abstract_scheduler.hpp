@@ -34,8 +34,7 @@
 
 
 namespace fhatos {
-  template<typename ROUTER = FOS_DEFAULT_ROUTER>
-  class AbstractScheduler : public IDed, public Publisher<ROUTER>, public Mailbox<ptr<Mail>> {
+  class AbstractScheduler : public IDed, public Publisher, public Mailbox<ptr<Mail>> {
 
   protected:
     Mutex<> DESTROY_MUTEX;
@@ -47,8 +46,8 @@ namespace fhatos {
     Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID_p &id = ROUTER::mintID("scheduler", "kernel")) :
-        IDed(id), Publisher<ROUTER>(this, this), Mailbox() {
+    explicit AbstractScheduler(const ID_p &id = share(Router::mintID("127.0.0.1", "kernel/scheduler"))) :
+        IDed(id), Publisher(this, this), Mailbox() {
       //////////////// SPAWN
       this->subscribe(id->query("?spawn"), [this](const ptr<Message> &message) {
         if (message->payload->id()->lastSegment() == "thread") {
@@ -67,6 +66,7 @@ namespace fhatos {
                  message->source.toString().c_str());
         this->_destroy(uri->uri_value());
       });
+
     }
     ~AbstractScheduler() override {
       delete COROUTINES;

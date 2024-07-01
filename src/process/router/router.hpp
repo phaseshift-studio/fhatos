@@ -125,7 +125,7 @@ namespace fhatos {
     virtual const string toString() const { return "Router"; }
 
     template<typename OBJ = Obj>
-    ptr<OBJ> read(const ID &source, const ID &target) {
+    ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic_bool(false);
       this->subscribe(
@@ -153,7 +153,7 @@ namespace fhatos {
       }
     }
 
-    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &source, const ID &target) {
+    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
       return this->publish(Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };

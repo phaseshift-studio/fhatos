@@ -206,9 +206,6 @@ namespace fhatos {
 #define FOS_MAILBOX_WARNING_SIZE 15
 #endif
 
-#ifndef FOS_DEFAULT_ROUTER
-#define FOS_DEFAULT_ROUTER fhatos::LocalRouter
-#endif
 #ifndef FOS_DEFAULT_ALGEBRA
 #define FOS_DEFAULT_ALGEBRA fhatos::Algebra
 #endif
@@ -248,10 +245,6 @@ namespace fhatos {
 
 #ifndef FOS_LOGGING
 #define FOS_LOGGING ERROR
-#endif
-
-#ifndef FOS_DEFAULT_ROUTER
-#define FOS_DEFAULT_ROUTER MqttRouter
 #endif
 
 #ifndef FOS_DEFAULT_PRINTER

@@ -22,8 +22,8 @@
 #include <process/actor/actor.hpp>
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER>
-  class fBcode final : public Actor<PROCESS, ROUTER> {
+  template<typename PROCESS = Thread>
+  class fBcode final : public Actor<PROCESS> {
   public:
     std::atomic<bool> *setupComplete = new std::atomic<bool>(false);
     const ptr<Obj> rec;
@@ -31,10 +31,10 @@ namespace fhatos {
     ptr<BCode> LOOP_BCODE;
 
     fBcode(const ID &id, const ptr<Rec> &rec) :
-        Actor<PROCESS, ROUTER>(
+        Actor<PROCESS>(
             id,
             // setup
-            [this](const Actor<PROCESS, ROUTER> *actor) {
+            [this](const Actor<PROCESS> *actor) {
               bool done = ((fBcode *) actor)->setupComplete->load();
               ((fBcode *) actor)->setupComplete->store(true);
               if (!done) {
@@ -50,7 +50,7 @@ namespace fhatos {
               }
             },
             // loop
-            [this](const Actor<PROCESS, ROUTER> *actor) {
+            [this](const Actor<PROCESS> *actor) {
               try {
                 Processor<Obj>(LOOP_BCODE).forEach([this](const Obj *obj) {
                   LOG(DEBUG, "%s loop: %s\n", this->id().toString().c_str(), obj->toString().c_str());

@@ -27,10 +27,10 @@
 #include FOS_MODULE(io/net/f_wifi.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
+  template<typename PROCESS = Thread, typename ROUTER = Router >
   class fSoC final : public Actor<PROCESS, ROUTER> {
   protected:
-    explicit fSoC(const ID &id = FOS_DEFAULT_ROUTER::mintID("soc"))
+    explicit fSoC(const ID &id = Router::mintID("soc"))
       : Actor<PROCESS, ROUTER>(id) {
     }
 

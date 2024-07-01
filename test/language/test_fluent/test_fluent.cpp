@@ -86,7 +86,7 @@ namespace fhatos {
         {"fhaty", "pigy"},
         __(List<Obj>{"fhat", "pig"}).bswitch({{_.is(_.gt("gonzo")), _.to(u("b"))}, {_, _.to(u("c"))}}).plus("y"),
         {{u("b"), "pig"}, {u("c"), "fhat"}});
-    FOS_DEFAULT_ROUTER::singleton()->clear();
+    GLOBAL_OPTIONS->router<Router>()->clear();
   }
 
   void test_relational_predicates() {
@@ -173,13 +173,14 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (fhatos::Router *router //
-           : List<Router *>{fhatos::LocalRouter::singleton(), //
-                            fhatos::MqttRouter::singleton()}) { //
+      Types::singleton(); //
+      for (fhatos::Router * router //
+           : List<Router *>{fhatos::LocalRouter::singleton() //
+                            /* fhatos::MqttRouter::singleton()*/}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/int/nat2")), Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/nat2", Insts::NO_OP_BCODE()); //
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //

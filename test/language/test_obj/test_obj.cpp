@@ -32,6 +32,9 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_type());
     FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
     ///
+    TEST_ASSERT_TRUE(boolA->match(boolA));
+    TEST_ASSERT_TRUE(Obj::to_bool(true)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({}))})));
+    TEST_ASSERT_FALSE(Obj::to_bool(false)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({}))})));
     /* const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
      FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
@@ -76,6 +79,12 @@ namespace fhatos {
     /// relations
     FOS_TEST_OBJ_GT(intD, intA->as("nat"));
     FOS_TEST_OBJ_LT(intB->as("/int/nat"), intD);
+    /// match
+    TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_int(22)));
+    TEST_ASSERT_TRUE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("nat")));
+    TEST_ASSERT_FALSE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("age")));
+    TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})));
+    TEST_ASSERT_FALSE(Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));
     ////// BYTECODE
     /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age")).bcode->bcode_value(), "/bcode/age"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
@@ -115,6 +124,25 @@ namespace fhatos {
     recA.rec_delete("b");
     TEST_ASSERT_TRUE(recA.rec_get("b")->isNoObj());
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recA).c_str());
+    // match
+    TEST_ASSERT_TRUE(Obj::to_rec({{"a", 1}, {"b", 2}})->match(Obj::to_rec({{"a", 1}, {"b", 2}})));
+    TEST_ASSERT_FALSE(Obj::to_rec({{"a", 1}, {"b", 2}})->match(Obj::to_rec({{"a", 1}, {"b", 2}, {"c", 3}})));
+    TEST_ASSERT_TRUE(
+        Obj::to_rec({{"a", 1}, {"b", 2}})
+            ->match(Obj::to_rec(
+                {{"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})}, {"b", 2}})));
+    TEST_ASSERT_FALSE(
+        Obj::to_rec({{"a", 1}, {"b", 2}})
+            ->match(Obj::to_rec(
+                {{"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(3))}))})}, {"b", 2}})));
+    TEST_ASSERT_TRUE(
+        Obj::to_rec({{"a", 1}, {"b", 2}})
+            ->match(Obj::to_rec({{"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})},
+                                 {*Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("b"))}))}), 2}})));
+    TEST_ASSERT_FALSE(
+        Obj::to_rec({{"a", 1}, {"b", 2}})
+            ->match(Obj::to_rec({{"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})},
+                                 {*Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), 2}})));
   }
 
   /*void test_base_obj_strings() {
@@ -147,16 +175,16 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       for (Router *router //
-           : List<Router*>{LocalRouter::singleton(), MqttRouter::singleton()}) { //
+           : List<Router *>{LocalRouter::singleton(), MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Obj::Types::writeToCache(share(fURI("/bool/truth")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/int/age")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/int/nat")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/str/first_name")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/str/letter")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/rec/mail")), Insts::NO_OP_BCODE()); //
-        Obj::Types::writeToCache(share(fURI("/real/cost")), Insts::NO_OP_BCODE()); //
+       Types::writeToCache("/bool/truth", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/age", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/str/first_name", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/str/letter", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/rec/mail", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/real/cost", Insts::NO_OP_BCODE()); //
         FOS_RUN_TEST(test_bool); //
         FOS_RUN_TEST(test_int); //
         FOS_RUN_TEST(test_str); //

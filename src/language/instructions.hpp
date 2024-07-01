@@ -25,6 +25,7 @@
 #include <language/obj.hpp>
 #include <process/router/local_router.hpp>
 #include <process/router/publisher.hpp>
+#include <language/types.hpp>
 
 
 namespace fhatos {
@@ -131,7 +132,7 @@ namespace fhatos {
                     .target = uri->uri_value(),
                     .payload = lhs->isBytecode() && type->isNoOpBytecode() ? lhs : type,
                     .retain = RETAIN_MESSAGE});
-        Obj::Types::writeToCache(share(uri->uri_value()), type);
+        Types::writeToCache(uri->uri_value(), type);
         return lhs;
       });
     }
@@ -143,7 +144,7 @@ namespace fhatos {
     static Obj_p to(const Uri_p &uri) {
       return Obj::to_inst("to", {uri}, [uri](const Obj_p &lhs) {
         fURI var = uri->apply(lhs)->uri_value();
-        RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, FOS_DEFAULT_SOURCE_ID, var);
+        RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, var);
         if (_rc)
           LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
         return lhs;
@@ -152,7 +153,7 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
-        return GLOBAL_OPTIONS->router<Router>()->read(FOS_DEFAULT_SOURCE_ID, uri->apply(lhs)->uri_value());
+        return GLOBAL_OPTIONS->router<Router>()->read(uri->apply(lhs)->uri_value());
       });
     }
 
@@ -259,7 +260,7 @@ namespace fhatos {
     }
   };
 
-  /*template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  /*template<typename ROUTER = Router>
   static Objp select(List<Obj> uris) {}
   class SelectInst final : public OneToOneInst {
   public:
@@ -287,7 +288,7 @@ namespace fhatos {
                       }}) {}
   };*/
 
-  /*template<typename ROUTER = FOS_DEFAULT_ROUTER>
+  /*template<typename ROUTER = Router>
   class AsInst final : public OneToOneInst {
   public:
     explicit AsInst(const ptr<Type> &utype = NoObj::self_ptr<Type>()) :

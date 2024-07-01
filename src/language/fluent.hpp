@@ -55,6 +55,10 @@ namespace fhatos {
       return ptr<List<ptr<E>>>(list);
     }
 
+    void iterate() {
+      this->forEach<Obj>([](const Obj_p end) {});
+    }
+
     string toString() const { return this->bcode->toString(); }
 
     //////////////////////////////////////////////////////////////////////////////

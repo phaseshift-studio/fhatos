@@ -36,7 +36,7 @@ namespace fhatos {
 #define TAB "  "
   /////////////////////////////////////////////////////////////////////
 
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
+  template<typename PROCESS = Thread, typename ROUTER = Router >
   class fTelnet : public Actor<PROCESS, ROUTER> {
   public:
     static fTelnet *singleton() {
@@ -44,7 +44,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit fTelnet(const ID &id = FOS_DEFAULT_ROUTER::mintID("telnet"),
+    explicit fTelnet(const ID &id = Router::mintID("telnet"),
                      const uint16_t port = 23, const bool useAnsi = true)
       : Actor<PROCESS, ROUTER>(id), port(port), useAnsi(useAnsi),
         currentTopic(new ID(id)), previousMessage(nullptr) {

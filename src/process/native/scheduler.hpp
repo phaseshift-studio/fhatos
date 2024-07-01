@@ -26,8 +26,7 @@
 
 
 namespace fhatos {
-  template<typename ROUTER = FOS_DEFAULT_ROUTER>
-  class Scheduler final : public AbstractScheduler<ROUTER> {
+  class Scheduler final : public AbstractScheduler {
   public:
     static Scheduler *singleton() {
       static Scheduler scheduler = Scheduler();
@@ -88,7 +87,7 @@ namespace fhatos {
     }
 
   private:
-    explicit Scheduler(const ID_p &id = share(ROUTER::mintID("scheduler", "kernel"))) : AbstractScheduler<ROUTER>(id) {
+    explicit Scheduler(const ID_p &id = share(Router::mintID("127.0.0.1", "kernel/scheduler"))) : AbstractScheduler(id) {
     }
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
@@ -120,7 +119,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      Scheduler<>::singleton()->destroy(*thread->id());
+      Scheduler::singleton()->destroy(*thread->id());
     }
   };
 } // namespace fhatos

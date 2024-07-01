@@ -30,12 +30,12 @@
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER>
-  class Actor : public PROCESS, public Publisher<ROUTER>, public Mailbox<ptr<Mail>> {
+  template<typename PROCESS = Thread>
+  class Actor : public PROCESS, public Publisher, public Mailbox<ptr<Mail>> {
   public:
-    explicit Actor(const ID &id, const Consumer<Actor<PROCESS, ROUTER> *> setupFunction = nullptr,
-                   const Consumer<Actor<PROCESS, ROUTER> *> loopFunction = nullptr) :
-        _setupFunction(setupFunction), _loopFunction(loopFunction), PROCESS(id), Publisher<ROUTER>(this, this) {
+    explicit Actor(const ID &id, const Consumer<Actor<PROCESS> *> setupFunction = nullptr,
+                   const Consumer<Actor<PROCESS> *> loopFunction = nullptr) :
+        _setupFunction(setupFunction), _loopFunction(loopFunction), PROCESS(id), Publisher(this, this) {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       // static_assert(std::is_base_of_v<Router, ROUTER>);
     }
@@ -51,7 +51,7 @@ namespace fhatos {
       return {bytes, sizeof(*this)};
     }
 
-    static Actor<PROCESS, ROUTER> *deserialize(const fbyte *bytes) { return (Actor<PROCESS, ROUTER> *) bytes; }
+    static Actor<PROCESS> *deserialize(const fbyte *bytes) { return (Actor<PROCESS> *) bytes; }
 
     // PAYLOAD BOX METHODS
     bool push(const ptr<Mail> mail) override { return this->running() && this->inbox.push_back(mail); }
@@ -92,7 +92,7 @@ namespace fhatos {
       }
       PROCESS::stop();
       ///////////////////////////////////////////////////////
-      if (const RESPONSE_CODE _rc = ROUTER::singleton()->unsubscribeSource(*this->id())) {
+      if (const RESPONSE_CODE _rc = this->unsubscribeSource(*this->id())) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), RESPONSE_CODE_STR(_rc));
       }
       this->inbox.clear();

@@ -27,10 +27,10 @@
 
 namespace fhatos {
 
-template <typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER> class fOTA : public PROCESS {
+template <typename PROCESS = Fiber, typename ROUTER = Router> class fOTA : public PROCESS {
 
 private:
-  explicit fOTA(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "ota"),
+  explicit fOTA(const ID &id = Router::mintID("kernel", "ota"),
        const uint16_t port = 3232)
       : PROCESS(id), port(port) {
     ArduinoOTA.setHostname(id.toString().c_str());

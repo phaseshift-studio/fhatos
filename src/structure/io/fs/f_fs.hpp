@@ -37,7 +37,7 @@ namespace fhatos {
 #endif
   /////////////////////////////////////////////////////////////////////
 
-  template<typename PROCESS = Fiber, typename ROUTER = FOS_DEFAULT_ROUTER >
+  template<typename PROCESS = Fiber, typename ROUTER = Router >
   class fFS final : public Actor<PROCESS, ROUTER> {
   public:
     static fFS *singleton() {
@@ -45,7 +45,7 @@ namespace fhatos {
       return &singleton;
     }
 
-    explicit fFS(const ID &id = FOS_DEFAULT_ROUTER::mintID("kernel", "fs"))
+    explicit fFS(const ID &id = Router::mintID("kernel", "fs"))
       : Actor<PROCESS, ROUTER>(id) {
     }
 

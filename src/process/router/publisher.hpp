@@ -24,7 +24,6 @@
 #include <process/router/router.hpp>
 
 namespace fhatos {
-  template<typename ROUTER>
   class Publisher {
   protected:
     ~Publisher() = default;
@@ -39,7 +38,7 @@ namespace fhatos {
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message>&>& onRecv,
                                     const QoS qos = QoS::_1) {
-      return ROUTER::singleton()->subscribe(Subscription{.mailbox = this->mailbox,
+      return  GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = this->mailbox,
                                                          .source = *this->__id,
                                                          .pattern = /*makeTopic(*/relativePattern/*)*/,
                                                          .qos = qos,
@@ -90,10 +89,10 @@ namespace fhatos {
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
-      return ROUTER::singleton()->unsubscribe(*this->__id, /*makeTopic(*/relativePattern/*)*/);
+      return GLOBAL_OPTIONS->router<Router>()->unsubscribe(*this->__id, /*makeTopic(*/relativePattern/*)*/);
     }
 
-    virtual RESPONSE_CODE unsubscribeSource() { return ROUTER::singleton()->unsubscribeSource(*this->__id); }
+    virtual RESPONSE_CODE unsubscribeSource() { return GLOBAL_OPTIONS->router<Router>()->unsubscribeSource(*this->__id); }
 
     /////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +100,7 @@ namespace fhatos {
     /// PUBLISH
      RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj>& payload,
                                 const bool retain = TRANSIENT_MESSAGE) const {
-      return ROUTER::singleton()->publish(Message{.source = *this->__id, .target = /*makeTopic(*/relativeTarget/*)*/, .payload = share(Obj(*payload)), .retain = retain});
+      return GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = *this->__id, .target = /*makeTopic(*/relativeTarget/*)*/, .payload = share(Obj(*payload)), .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -149,12 +148,12 @@ namespace fhatos {
 */
     //////////
 
-    const RESPONSE_CODE write(const ptr<const Obj> obj, const TargetID &relativeTarget) const {
+    /*const RESPONSE_CODE write(const ptr<const Obj> obj, const TargetID &relativeTarget) const {
       return this->publish(relativeTarget, obj, RETAIN_MESSAGE);
     }
 
     template<typename OBJ = Obj>
-    const ptr<const OBJ> read(const ID &relativeTarget) const {
+     ptr<const OBJ> read(const ID &relativeTarget) {
       auto *thing = new std::atomic<ptr<const OBJ>>(nullptr);
       auto *done = new std::atomic<bool>(false);
       this->subscribe(relativeTarget, [thing, done](const ptr<Message> &message) {
@@ -173,11 +172,11 @@ namespace fhatos {
       delete done;
       unsubscribe(relativeTarget);
       return ret;
-    }
+    }*/
 
   private:
     const Pattern makeTopic(const Pattern &relativeTopic) const {
-      return relativeTopic.empty() ? Pattern(this->__id)
+      return relativeTopic.empty() ? Pattern(*this->__id)
                                    : Pattern(this->__id->resolve(relativeTopic.toString().c_str()));
     }
   };

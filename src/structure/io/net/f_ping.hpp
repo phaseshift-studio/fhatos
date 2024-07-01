@@ -26,7 +26,7 @@
 #include <ESPping.h>
 
 namespace fhatos {
-  template<typename ROUTER = FOS_DEFAULT_ROUTER >
+  template<typename ROUTER = Router >
   struct PingRoutine final : public Coroutine, public Publisher<ROUTER> {
     string ip;
     uint16_t counter = 0;
@@ -74,10 +74,10 @@ namespace fhatos {
     }
   };
 
-  template<typename PROCESS = Thread, typename ROUTER = FOS_DEFAULT_ROUTER >
+  template<typename PROCESS = Thread, typename ROUTER = Router >
   class fPing final : public Actor<PROCESS, ROUTER> {
   public:
-    explicit fPing(const ID &id = FOS_DEFAULT_ROUTER::mintID("ping"))
+    explicit fPing(const ID &id = Router::mintID("ping"))
       : Actor<PROCESS, ROUTER>(id) {
     }
 
