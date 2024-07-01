@@ -230,7 +230,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    }</div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keyword">static</span> Obj_p as(<span class="keyword">const</span> Uri_p &amp;type) {</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;as&quot;</span>, {type}, [type](<span class="keyword">const</span> Obj_p &amp;lhs) { <span class="keywordflow">return</span> lhs-&gt;as(share(type-&gt;uri_value())); });</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      <span class="keywordflow">return</span> Obj::to_inst(<span class="stringliteral">&quot;as&quot;</span>, {type}, [type](<span class="keyword">const</span> Obj_p &amp;lhs) { <span class="keywordflow">return</span> lhs-&gt;as(type-&gt;uri_value().toString().c_str()); });</div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    }</div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keyword">static</span> Obj_p to(<span class="keyword">const</span> Uri_p &amp;uri) {</div>
@@ -405,7 +405,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span> </div>
 <div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:197</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:751</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:753</div></div>
 <div class="ttc" id="aclassfhatos_1_1Router_html"><div class="ttname"><a href="classfhatos_1_1Router.html">fhatos::Router</a></div><div class="ttdef"><b>Definition</b> router.hpp:107</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:30</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:100</div></div>
