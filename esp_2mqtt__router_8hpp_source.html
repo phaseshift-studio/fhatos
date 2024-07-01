@@ -134,12 +134,12 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">namespace </span>fhatos {</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> PROCESS = Thread&gt;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">class </span>MqttRouter : <span class="keyword">public</span> Router&lt;PROCESS&gt; {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">class </span>MqttRouter : <span class="keyword">public</span> Router {</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keyword">protected</span>:</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    MqttRouter(<span class="keyword">const</span> ID &amp;<span class="keywordtype">id</span> = Router::mintID(<span class="stringliteral">&quot;kernel&quot;</span>, <span class="stringliteral">&quot;router/mqtt&quot;</span>),</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>               <span class="keyword">const</span> <span class="keywordtype">char</span> *domain = STR(MQTT_BROKER_ADDR),</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>               <span class="keyword">const</span> uint16_t port = MQTT_BROKER_PORT)</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      : Router&lt;PROCESS&gt;(id) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      : Router(id) {</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      <span class="keyword">auto</span> *client = <span class="keyword">new</span> WiFiClient();</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      this-&gt;xmqtt = <span class="keyword">new</span> PubSubClient(domain, port, *client);</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      this-&gt;server = (<span class="keywordtype">char</span> *) domain;</div>
