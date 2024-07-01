@@ -125,8 +125,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfhatos_1_1Obj_1_1obj__hash.html">obj_hash</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Obj_1_1Types.html">Types</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -147,40 +145,40 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>InstList_p</b> = ptr
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aca024e1816eb00bbaa13e0f2a52c22a9" id="r_aca024e1816eb00bbaa13e0f2a52c22a9"><td class="memItemLeft" align="right" valign="top"><a id="aca024e1816eb00bbaa13e0f2a52c22a9" name="aca024e1816eb00bbaa13e0f2a52c22a9"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const Any &amp;value, const fURI_p &amp;furi)</td></tr>
-<tr class="separator:aca024e1816eb00bbaa13e0f2a52c22a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e9d11f39e89b0637f9a336c14e32919" id="r_a3e9d11f39e89b0637f9a336c14e32919"><td class="memTemplParams" colspan="2"><a id="a3e9d11f39e89b0637f9a336c14e32919" name="a3e9d11f39e89b0637f9a336c14e32919"></a>
+<tr class="memitem:af36e6e5b733e6c62f3082f36562c9a9d" id="r_af36e6e5b733e6c62f3082f36562c9a9d"><td class="memItemLeft" align="right" valign="top"><a id="af36e6e5b733e6c62f3082f36562c9a9d" name="af36e6e5b733e6c62f3082f36562c9a9d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (Any value, const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> otype, const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId)</td></tr>
+<tr class="separator:af36e6e5b733e6c62f3082f36562c9a9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9402c08c7a8d02ef21984160cbe58921" id="r_a9402c08c7a8d02ef21984160cbe58921"><td class="memItemLeft" align="right" valign="top"><a id="a9402c08c7a8d02ef21984160cbe58921" name="a9402c08c7a8d02ef21984160cbe58921"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const Any &amp;value, const fURI_p &amp;typeId)</td></tr>
+<tr class="separator:a9402c08c7a8d02ef21984160cbe58921"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a545f9aefadd19278f46721c89c93d3ef" id="r_a545f9aefadd19278f46721c89c93d3ef"><td class="memTemplParams" colspan="2"><a id="a545f9aefadd19278f46721c89c93d3ef" name="a545f9aefadd19278f46721c89c93d3ef"></a>
 template&lt;class T , class  = typename std::enable_if_t&lt;std::is_same_v&lt;bool, T&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a3e9d11f39e89b0637f9a336c14e32919"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Obj</b> (const T xbool, const char *furi=BOOL_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:a3e9d11f39e89b0637f9a336c14e32919"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee39f03c8d0d30dedbbc5759d7c4e714" id="r_aee39f03c8d0d30dedbbc5759d7c4e714"><td class="memItemLeft" align="right" valign="top"><a id="aee39f03c8d0d30dedbbc5759d7c4e714" name="aee39f03c8d0d30dedbbc5759d7c4e714"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_INT_TYPE xint, const char *furi=INT_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:aee39f03c8d0d30dedbbc5759d7c4e714"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a698df51fa55da4e9645cb77d27f3e225" id="r_a698df51fa55da4e9645cb77d27f3e225"><td class="memItemLeft" align="right" valign="top"><a id="a698df51fa55da4e9645cb77d27f3e225" name="a698df51fa55da4e9645cb77d27f3e225"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_REAL_TYPE xreal, const char *furi=REAL_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:a698df51fa55da4e9645cb77d27f3e225"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7279ed784be7de1f9c1a9c4183425837" id="r_a7279ed784be7de1f9c1a9c4183425837"><td class="memItemLeft" align="right" valign="top"><a id="a7279ed784be7de1f9c1a9c4183425837" name="a7279ed784be7de1f9c1a9c4183425837"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;xuri, const char *furi=URI_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:a7279ed784be7de1f9c1a9c4183425837"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1125c0c35c3ff4131d7f565e6921be5" id="r_aa1125c0c35c3ff4131d7f565e6921be5"><td class="memItemLeft" align="right" valign="top"><a id="aa1125c0c35c3ff4131d7f565e6921be5" name="aa1125c0c35c3ff4131d7f565e6921be5"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const char *xstr, const char *furi=STR_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:aa1125c0c35c3ff4131d7f565e6921be5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a441ebb3fe4b82899a21d3fb9e55efc23" id="r_a441ebb3fe4b82899a21d3fb9e55efc23"><td class="memItemLeft" align="right" valign="top"><a id="a441ebb3fe4b82899a21d3fb9e55efc23" name="a441ebb3fe4b82899a21d3fb9e55efc23"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const string &amp;xstr, const char *furi=STR_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:a441ebb3fe4b82899a21d3fb9e55efc23"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cc4302253f1594a07a3fedd7878bc32" id="r_a4cc4302253f1594a07a3fedd7878bc32"><td class="memItemLeft" align="right" valign="top"><a id="a4cc4302253f1594a07a3fedd7878bc32" name="a4cc4302253f1594a07a3fedd7878bc32"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::initializer_list&lt; Pair&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a>, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; &amp;xrec, const char *furi=REC_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:a4cc4302253f1594a07a3fedd7878bc32"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca7126900983c3b1443d5a2071c472d6" id="r_aca7126900983c3b1443d5a2071c472d6"><td class="memItemLeft" align="right" valign="top"><a id="aca7126900983c3b1443d5a2071c472d6" name="aca7126900983c3b1443d5a2071c472d6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const List&lt; <a class="el" href="classfhatos_1_1Obj.html">Inst</a> &gt; &amp;bcode, const char *furi=BCODE_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:aca7126900983c3b1443d5a2071c472d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc104e14a8a90ce0aa3ef815725c3e30" id="r_afc104e14a8a90ce0aa3ef815725c3e30"><td class="memItemLeft" align="right" valign="top"><a id="afc104e14a8a90ce0aa3ef815725c3e30" name="afc104e14a8a90ce0aa3ef815725c3e30"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const InstList &amp;bcode, const char *furi=BCODE_FURI-&gt;toString().c_str())</td></tr>
-<tr class="separator:afc104e14a8a90ce0aa3ef815725c3e30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1e9db6200a8a35b8a414d512a63a90a" id="r_ac1e9db6200a8a35b8a414d512a63a90a"><td class="memItemLeft" align="right" valign="top"><a id="ac1e9db6200a8a35b8a414d512a63a90a" name="ac1e9db6200a8a35b8a414d512a63a90a"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const List&lt; Obj_p &gt; &amp;objList)</td></tr>
-<tr class="separator:ac1e9db6200a8a35b8a414d512a63a90a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a545f9aefadd19278f46721c89c93d3ef"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Obj</b> (const T xbool, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:a545f9aefadd19278f46721c89c93d3ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaf12c64bbf74a3c27892a4bb5fc8ea2" id="r_aeaf12c64bbf74a3c27892a4bb5fc8ea2"><td class="memItemLeft" align="right" valign="top"><a id="aeaf12c64bbf74a3c27892a4bb5fc8ea2" name="aeaf12c64bbf74a3c27892a4bb5fc8ea2"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_INT_TYPE xint, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:aeaf12c64bbf74a3c27892a4bb5fc8ea2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec8dde5ddea8d2f85af2594fdff14ea4" id="r_aec8dde5ddea8d2f85af2594fdff14ea4"><td class="memItemLeft" align="right" valign="top"><a id="aec8dde5ddea8d2f85af2594fdff14ea4" name="aec8dde5ddea8d2f85af2594fdff14ea4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const FL_REAL_TYPE xreal, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:aec8dde5ddea8d2f85af2594fdff14ea4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa2afe43247ee0e9908d6c3b94242700" id="r_aaa2afe43247ee0e9908d6c3b94242700"><td class="memItemLeft" align="right" valign="top"><a id="aaa2afe43247ee0e9908d6c3b94242700" name="aaa2afe43247ee0e9908d6c3b94242700"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;xuri, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:aaa2afe43247ee0e9908d6c3b94242700"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cf33faf9b8c560e22b083e6a96b038d" id="r_a3cf33faf9b8c560e22b083e6a96b038d"><td class="memItemLeft" align="right" valign="top"><a id="a3cf33faf9b8c560e22b083e6a96b038d" name="a3cf33faf9b8c560e22b083e6a96b038d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const char *xstr, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:a3cf33faf9b8c560e22b083e6a96b038d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74341c20832be18c58c0f9d2b69af141" id="r_a74341c20832be18c58c0f9d2b69af141"><td class="memItemLeft" align="right" valign="top"><a id="a74341c20832be18c58c0f9d2b69af141" name="a74341c20832be18c58c0f9d2b69af141"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const string &amp;xstr, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:a74341c20832be18c58c0f9d2b69af141"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2025ea7b6bfce2661c8ce5e60173898f" id="r_a2025ea7b6bfce2661c8ce5e60173898f"><td class="memItemLeft" align="right" valign="top"><a id="a2025ea7b6bfce2661c8ce5e60173898f" name="a2025ea7b6bfce2661c8ce5e60173898f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const std::initializer_list&lt; Pair&lt; const <a class="el" href="classfhatos_1_1Obj.html">Obj</a>, <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &gt; &amp;xrec, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:a2025ea7b6bfce2661c8ce5e60173898f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab911ae4b5e5341ebe7b6b5604b80152f" id="r_ab911ae4b5e5341ebe7b6b5604b80152f"><td class="memItemLeft" align="right" valign="top"><a id="ab911ae4b5e5341ebe7b6b5604b80152f" name="ab911ae4b5e5341ebe7b6b5604b80152f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const List&lt; <a class="el" href="classfhatos_1_1Obj.html">Inst</a> &gt; &amp;bcode, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:ab911ae4b5e5341ebe7b6b5604b80152f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b4f2be3ee861d0dbff82ab9f087ef15" id="r_a1b4f2be3ee861d0dbff82ab9f087ef15"><td class="memItemLeft" align="right" valign="top"><a id="a1b4f2be3ee861d0dbff82ab9f087ef15" name="a1b4f2be3ee861d0dbff82ab9f087ef15"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Obj</b> (const InstList &amp;bcode, const char *typeId=&quot;&quot;)</td></tr>
+<tr class="separator:a1b4f2be3ee861d0dbff82ab9f087ef15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33fa0487ef8a02403b4a19ed0a5508f4" id="r_a33fa0487ef8a02403b4a19ed0a5508f4"><td class="memItemLeft" align="right" valign="top"><a id="a33fa0487ef8a02403b4a19ed0a5508f4" name="a33fa0487ef8a02403b4a19ed0a5508f4"></a>
 <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>o_type</b> () const</td></tr>
 <tr class="separator:a33fa0487ef8a02403b4a19ed0a5508f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -329,6 +327,12 @@ Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>apply</b> (const Obj
 <tr class="memitem:a138228df3dea0c6e76fb0c555ed78d3d" id="r_a138228df3dea0c6e76fb0c555ed78d3d"><td class="memItemLeft" align="right" valign="top"><a id="a138228df3dea0c6e76fb0c555ed78d3d" name="a138228df3dea0c6e76fb0c555ed78d3d"></a>
 const Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>split</b> (const Any &amp;newValue, const std::variant&lt; ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;, const char * &gt; &amp;newType=std::variant&lt; ptr&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &gt;, const char * &gt;(nullptr)) const</td></tr>
 <tr class="separator:a138228df3dea0c6e76fb0c555ed78d3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c5520910dd9d58e3d0e336398c1bc4b" id="r_a8c5520910dd9d58e3d0e336398c1bc4b"><td class="memItemLeft" align="right" valign="top"><a id="a8c5520910dd9d58e3d0e336398c1bc4b" name="a8c5520910dd9d58e3d0e336398c1bc4b"></a>
+const <a class="el" href="classfhatos_1_1fURI.html">fURI</a>&#160;</td><td class="memItemRight" valign="bottom"><b>type</b> () const</td></tr>
+<tr class="separator:a8c5520910dd9d58e3d0e336398c1bc4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30455e1af3034679b40bb2d92f757654" id="r_a30455e1af3034679b40bb2d92f757654"><td class="memItemLeft" align="right" valign="top"><a id="a30455e1af3034679b40bb2d92f757654" name="a30455e1af3034679b40bb2d92f757654"></a>
+const bool&#160;</td><td class="memItemRight" valign="bottom"><b>match</b> (const Obj_p &amp;pattern, const bool sameType=true) const</td></tr>
+<tr class="separator:a30455e1af3034679b40bb2d92f757654"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf1a7da8cab518e6b1e21845c9349da1" id="r_abf1a7da8cab518e6b1e21845c9349da1"><td class="memItemLeft" align="right" valign="top"><a id="abf1a7da8cab518e6b1e21845c9349da1" name="abf1a7da8cab518e6b1e21845c9349da1"></a>
 Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>as</b> (const fURI_p &amp;furi) const</td></tr>
 <tr class="separator:abf1a7da8cab518e6b1e21845c9349da1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -355,12 +359,9 @@ const ptr&lt; BObj &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>se
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a498af769ff5e47445993d366d117788f" id="r_a498af769ff5e47445993d366d117788f"><td class="memItemLeft" align="right" valign="top"><a id="a498af769ff5e47445993d366d117788f" name="a498af769ff5e47445993d366d117788f"></a>
-static fURI_p&#160;</td><td class="memItemRight" valign="bottom"><b>RESOLVE</b> (fURI_p base, const fURI_p &amp;furi)</td></tr>
-<tr class="separator:a498af769ff5e47445993d366d117788f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e5af81e2c1c1d4608873a119bccb030" id="r_a8e5af81e2c1c1d4608873a119bccb030"><td class="memItemLeft" align="right" valign="top"><a id="a8e5af81e2c1c1d4608873a119bccb030" name="a8e5af81e2c1c1d4608873a119bccb030"></a>
-static <a class="el" href="classfhatos_1_1fURI.html">fURI</a>&#160;</td><td class="memItemRight" valign="bottom"><b>RESOLVE</b> (<a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;base, const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;furi)</td></tr>
-<tr class="separator:a8e5af81e2c1c1d4608873a119bccb030"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9f66634dcf4d16a4b603a2f046e142d" id="r_aa9f66634dcf4d16a4b603a2f046e142d"><td class="memItemLeft" align="right" valign="top"><a id="aa9f66634dcf4d16a4b603a2f046e142d" name="aa9f66634dcf4d16a4b603a2f046e142d"></a>
+static <a class="el" href="classfhatos_1_1fError.html">fError</a>&#160;</td><td class="memItemRight" valign="bottom"><b>TYPE_ERROR</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *obj, const int lineNumber=__LINE__)</td></tr>
+<tr class="separator:aa9f66634dcf4d16a4b603a2f046e142d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad18d2635f5b80344ff9a0cd3a029925f" id="r_ad18d2635f5b80344ff9a0cd3a029925f"><td class="memItemLeft" align="right" valign="top"><a id="ad18d2635f5b80344ff9a0cd3a029925f" name="ad18d2635f5b80344ff9a0cd3a029925f"></a>
 static Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_noobj</b> ()</td></tr>
 <tr class="memdesc:ad18d2635f5b80344ff9a0cd3a029925f"><td class="mdescLeft">&#160;</td><td class="mdescRight">STATIC TYPE CONSTRAINED CONSTRUCTORS. <br /></td></tr>

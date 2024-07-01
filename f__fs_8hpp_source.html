@@ -131,7 +131,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#define FOS_DEFAULT_FILE_SYSTEM LittleFS</span></div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> PROCESS = Fiber, <span class="keyword">typename</span> ROUTER = FOS_DEFAULT_ROUTER &gt;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> PROCESS = Fiber, <span class="keyword">typename</span> ROUTER = Router &gt;</div>
 <div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="classfhatos_1_1fFS.html">   41</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1fFS.html">fFS</a> final : <span class="keyword">public</span> <a class="code hl_class" href="classfhatos_1_1Actor.html">Actor</a>&lt;PROCESS, ROUTER&gt; {</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keyword">public</span>:</div>
@@ -140,7 +140,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      <span class="keywordflow">return</span> &amp;singleton;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    }</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1fFS.html">fFS</a>(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;<span class="keywordtype">id</span> = FOS_DEFAULT_ROUTER::mintID(<span class="stringliteral">&quot;kernel&quot;</span>, <span class="stringliteral">&quot;fs&quot;</span>))</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1fFS.html">fFS</a>(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;<span class="keywordtype">id</span> = Router::mintID(<span class="stringliteral">&quot;kernel&quot;</span>, <span class="stringliteral">&quot;fs&quot;</span>))</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      : <a class="code hl_class" href="classfhatos_1_1Actor.html">Actor&lt;PROCESS, ROUTER&gt;</a>(<span class="keywordtype">id</span>) {</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    }</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
@@ -162,7 +162,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        StringPrinter printer(&amp;temp);</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <a class="code hl_class" href="classfhatos_1_1Ansi.html">Ansi&lt;StringPrinter&gt;</a> ansi(&amp;printer);</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        info-&gt;print(ansi);</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        this-&gt;<a class="code hl_function" href="classfhatos_1_1Publisher.html#af501f32c3c0e7e4b13d3a27ac6eb61a7">publish</a>(target, <span class="keywordtype">string</span>(temp.c_str()),RETAIN_MESSAGE);</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        this-&gt;<a class="code hl_function" href="classfhatos_1_1Publisher.html#a62dcc24b5c0a89801fc5e98a2e64ce40">publish</a>(target, <span class="keywordtype">string</span>(temp.c_str()),RETAIN_MESSAGE);</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        ansi.flush();</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <span class="keyword">delete</span> info;</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      };</div>
@@ -185,7 +185,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>                          FOS_BYTES_MB(part-&gt;size), part-&gt;address, FOS_BOOL_STR(part-&gt;encrypted));</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                      }</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>                      esp_partition_iterator_release(itty);</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                      this-&gt;<a class="code hl_function" href="classfhatos_1_1Publisher.html#af501f32c3c0e7e4b13d3a27ac6eb61a7">publish</a>(target, <span class="keywordtype">string</span>(temp.c_str()),RETAIN_MESSAGE);</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                      this-&gt;<a class="code hl_function" href="classfhatos_1_1Publisher.html#a62dcc24b5c0a89801fc5e98a2e64ce40">publish</a>(target, <span class="keywordtype">string</span>(temp.c_str()),RETAIN_MESSAGE);</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                      ansi.flush();</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>                    });</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      this-&gt;onQuery(this-&gt;<span class="keywordtype">id</span>().extend(<span class="stringliteral">&quot;files&quot;</span>).extend(<span class="stringliteral">&quot;#&quot;</span>), {{<span class="stringliteral">&quot;?&quot;</span>, handler}});</div>
@@ -199,7 +199,7 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1Actor_html"><div class="ttname"><a href="classfhatos_1_1Actor.html">fhatos::Actor</a></div><div class="ttdef"><b>Definition</b> actor.hpp:34</div></div>
 <div class="ttc" id="aclassfhatos_1_1Ansi_html"><div class="ttname"><a href="classfhatos_1_1Ansi.html">fhatos::Ansi</a></div><div class="ttdef"><b>Definition</b> ansi.hpp:47</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:394</div></div>
-<div class="ttc" id="aclassfhatos_1_1Publisher_html_af501f32c3c0e7e4b13d3a27ac6eb61a7"><div class="ttname"><a href="classfhatos_1_1Publisher.html#af501f32c3c0e7e4b13d3a27ac6eb61a7">fhatos::Publisher&lt; FOS_DEFAULT_ROUTER &gt;::publish</a></div><div class="ttdeci">RESPONSE_CODE publish(const ID &amp;relativeTarget, const ptr&lt; const Obj &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</div><div class="ttdef"><b>Definition</b> publisher.hpp:102</div></div>
+<div class="ttc" id="aclassfhatos_1_1Publisher_html_a62dcc24b5c0a89801fc5e98a2e64ce40"><div class="ttname"><a href="classfhatos_1_1Publisher.html#a62dcc24b5c0a89801fc5e98a2e64ce40">fhatos::Publisher::publish</a></div><div class="ttdeci">RESPONSE_CODE publish(const ID &amp;relativeTarget, const ptr&lt; const Obj &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</div><div class="ttdoc">PUBLISH.</div><div class="ttdef"><b>Definition</b> publisher.hpp:101</div></div>
 <div class="ttc" id="aclassfhatos_1_1fFS_html"><div class="ttname"><a href="classfhatos_1_1fFS.html">fhatos::fFS</a></div><div class="ttdef"><b>Definition</b> f_fs.hpp:41</div></div>
 <div class="ttc" id="aclassfhatos_1_1fFS_html_aadf47335bd0b6361c0d7348ad978b841"><div class="ttname"><a href="classfhatos_1_1fFS.html#aadf47335bd0b6361c0d7348ad978b841">fhatos::fFS::setup</a></div><div class="ttdeci">virtual void setup() override</div><div class="ttdoc">PROCESS METHODS.</div><div class="ttdef"><b>Definition</b> f_fs.hpp:58</div></div>
 <div class="ttc" id="aclassfhatos_1_1qFS_html"><div class="ttname"><a href="classfhatos_1_1qFS.html">fhatos::qFS</a></div><div class="ttdef"><b>Definition</b> q_fs.hpp:89</div></div>

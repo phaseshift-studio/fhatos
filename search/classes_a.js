@@ -8,5 +8,5 @@ var searchData=
   ['processor_5',['Processor',['../classfhatos_1_1Processor.html',1,'fhatos']]],
   ['ptrhelper_6',['PtrHelper',['../classfhatos_1_1PtrHelper.html',1,'fhatos']]],
   ['publisher_7',['Publisher',['../classfhatos_1_1Publisher.html',1,'fhatos']]],
-  ['publisher_3c_20fos_5fdefault_5frouter_20_3e_8',['Publisher&lt; FOS_DEFAULT_ROUTER &gt;',['../classfhatos_1_1Publisher.html',1,'fhatos']]]
+  ['publisher_3c_20router_20_3e_8',['Publisher&lt; Router &gt;',['../classfhatos_1_1Publisher.html',1,'fhatos']]]
 ];

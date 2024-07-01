@@ -136,7 +136,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">template</span>&lt;<span class="keyword">typename</span> PROCESS = Thread&gt;</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">class </span>MqttRouter : <span class="keyword">public</span> Router&lt;PROCESS&gt; {</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keyword">protected</span>:</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    MqttRouter(<span class="keyword">const</span> ID &amp;<span class="keywordtype">id</span> = FOS_DEFAULT_ROUTER::mintID(<span class="stringliteral">&quot;kernel&quot;</span>, <span class="stringliteral">&quot;router/mqtt&quot;</span>),</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    MqttRouter(<span class="keyword">const</span> ID &amp;<span class="keywordtype">id</span> = Router::mintID(<span class="stringliteral">&quot;kernel&quot;</span>, <span class="stringliteral">&quot;router/mqtt&quot;</span>),</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>               <span class="keyword">const</span> <span class="keywordtype">char</span> *domain = STR(MQTT_BROKER_ADDR),</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>               <span class="keyword">const</span> uint16_t port = MQTT_BROKER_PORT)</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      : Router&lt;PROCESS&gt;(id) {</div>
