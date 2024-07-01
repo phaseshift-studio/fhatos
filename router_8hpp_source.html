@@ -145,7 +145,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_class" href="classfhatos_1_1Pattern.html">Pattern</a> pattern;</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    QoS qos = QoS::_1;</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    Consumer&lt;const Message_p&gt; onRecv = [](<span class="keyword">const</span> Message_p) {};</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    BCode_p onRecvBCode = BCode::to_bcode({Obj::to_inst(<span class="stringliteral">&quot;noop&quot;</span>, {}, [](<span class="keyword">const</span> Obj_p &amp;x) { <span class="keywordflow">return</span> x; }, INST_FURI)});</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    BCode_p onRecvBCode = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordtype">bool</span> match(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;target)<span class="keyword"> const </span>{ <span class="keywordflow">return</span> this-&gt;pattern.matches(target); }</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>

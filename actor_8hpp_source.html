@@ -188,7 +188,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>      PROCESS::stop();</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> RESPONSE_CODE _rc = this-&gt;unsubscribeSource(*this-&gt;<span class="keywordtype">id</span>())) {</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> RESPONSE_CODE _rc = this-&gt;unsubscribeSource()) {</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        LOG(ERROR, <span class="stringliteral">&quot;Actor %s stop error: %s\n&quot;</span>, this-&gt;<span class="keywordtype">id</span>()-&gt;toString().c_str(), RESPONSE_CODE_STR(_rc));</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      }</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      this-&gt;inbox.clear();</div>
