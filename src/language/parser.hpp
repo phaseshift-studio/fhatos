@@ -34,7 +34,7 @@ namespace fhatos {
     Parser() = delete;
     static Option<Obj_p> tryParseObj(const string &token) {
       StringHelper::trim(token);
-      LOG(DEBUG, "!RPARSING!!: !g!_%s!!\n", token.c_str());
+      LOG(DEBUG_MORE, "!RPARSING!!: !g!_%s!!\n", token.c_str());
       if (token.empty())
         return {};
       const Pair<string, string> typeValue = tryParseObjType(token);
@@ -92,20 +92,20 @@ namespace fhatos {
       }
       StringHelper::trim(typeToken);
       StringHelper::trim(valueToken);
-      LOG(DEBUG, "\n" FOS_TAB_2 "!rtype token!!: %s\n" FOS_TAB_2 "!rvalue token!!: %s\n", typeToken.c_str(),
+      LOG(DEBUG_MORE, "\n" FOS_TAB_2 "!rtype token!!: %s\n" FOS_TAB_2 "!rvalue token!!: %s\n", typeToken.c_str(),
           valueToken.c_str());
       return {typeToken, valueToken};
     }
 
     static Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken,
                                          const fURI_p &baseType = NOOBJ_FURI) {
-      LOG(DEBUG, "Attempting noobj parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting noobj parse on %s\n", valueToken.c_str());
       return valueToken == "Ø" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>{};
     }
 
     static Option<Bool_p> tryParseBool(const string &valueToken, const string &typeToken,
                                        const fURI_p &baseType = BOOL_FURI) {
-      LOG(DEBUG, "Attempting bool parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting bool parse on %s\n", valueToken.c_str());
       return ((strcmp("true", valueToken.c_str()) == 0) || (strcmp("false", valueToken.c_str()) == 0))
                  ? Option<Bool_p>{Bool::to_bool(strcmp("true", valueToken.c_str()) == 0,
                                                 share(baseType->resolve(typeToken.c_str())))}
@@ -113,7 +113,7 @@ namespace fhatos {
     }
     static Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken,
                                      const fURI_p &baseType = INT_FURI) {
-      LOG(DEBUG, "Attempting int parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting int parse on %s\n", valueToken.c_str());
       if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find('.') != string::npos)
         return {};
       for (int i = 1; i < valueToken.length(); i++) {
@@ -124,7 +124,7 @@ namespace fhatos {
     }
     static Option<Real_p> tryParseReal(const string &valueToken, const string &typeToken,
                                        const fURI_p &baseType = REAL_FURI) {
-      LOG(DEBUG, "Attempting real parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting real parse on %s\n", valueToken.c_str());
       if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find('.') == string::npos)
         return {};
       for (int i = 1; i < valueToken.length(); i++) {
@@ -135,18 +135,18 @@ namespace fhatos {
     }
     static Option<Uri_p> tryParseUri(const string &valueToken, const string &typeToken,
                                      const fURI_p &baseType = URI_FURI) {
-      LOG(DEBUG, "Attempting uri parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting uri parse on %s\n", valueToken.c_str());
       return Option<Uri_p>{Uri::to_uri(valueToken, share(baseType->resolve(typeToken.c_str())))};
     }
     static Option<Str_p> tryParseStr(const string &token, const string &type, const fURI_p &baseType = STR_FURI) {
-      LOG(DEBUG, "Attempting str parse on %s\n", token.c_str());
+      LOG(DEBUG_MORE, "Attempting str parse on %s\n", token.c_str());
       return (token[0] == '\'' && token[token.length() - 1] == '\'')
                  ? Option<Uri_p>{Str::to_str(token.substr(1, token.length() - 2),
                                              share(baseType->resolve(type.c_str())))}
                  : Option<Uri_p>{};
     }
     static Option<Rec_p> tryParseRec(const string &token, const string &type, const fURI_p &baseType = REC_FURI) {
-      LOG(DEBUG, "Attempting rec parse on %s\n", token.c_str());
+      LOG(DEBUG_MORE, "Attempting rec parse on %s\n", token.c_str());
       if (token[0] != '[' || token[token.length() - 1] != ']' || token.find("=>") == string::npos)
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
@@ -221,7 +221,7 @@ namespace fhatos {
     }
     static Option<Inst_p> tryParseInst(const string &valueToken, const string &typeToken,
                                        const fURI_p &baseType = INST_FURI) {
-      LOG(DEBUG, "Attempting inst parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting inst parse on %s\n", valueToken.c_str());
       auto args = List<ptr<Obj>>();
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
@@ -263,7 +263,7 @@ namespace fhatos {
 
     static Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
                                          const fURI_p &baseType = BCODE_FURI) {
-      LOG(DEBUG, "Attempting bcode parse on %s\n", valueToken.c_str());
+      LOG(DEBUG_MORE, "Attempting bcode parse on %s\n", valueToken.c_str());
       if ((valueToken[0] == '_' && valueToken[1] == '_') ||
           (valueToken[valueToken.length() - 1] == ')' && valueToken.find('('))) {
         List<Inst_p> insts;

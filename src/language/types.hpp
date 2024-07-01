@@ -6,6 +6,7 @@
 #include <process/router/router.hpp>
 #include <util/options.hpp>
 
+
 namespace fhatos {
   class Types {
   private:
@@ -18,6 +19,18 @@ namespace fhatos {
     }
 
   public:
+    enum class TYPE_SET { BASE, PROCESS };
+    static void registerTypeSet(const TYPE_SET typeSet) {
+      switch (typeSet) {
+        case TYPE_SET::BASE:
+          break;
+        case TYPE_SET::PROCESS: {
+          Types::writeToCache("/rec/thread",
+                              Rec::to_rec({{u("setup"), *Obj::to_bcode({})}, {u("loop"), *Obj::to_bcode({})}}));
+          break;
+        }
+      }
+    }
     static Types *singleton() {
       static Types factory = Types();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI &typeId) {
@@ -55,11 +68,12 @@ namespace fhatos {
     }
     static bool test(const Obj &obj, const OType otype, const fURI &typeId, bool doThrow = true) noexcept(false) {
       const OType typeOType = STR_OTYPE.at(typeId.path(0, 1));
-      if (typeOType == OType::INST || typeOType == OType::BCODE)
+      if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;
       if (otype != typeOType) {
         if (doThrow)
-          throw fError("Obj %s is not a %s\n", obj.toString().c_str(), typeId.toString().c_str());
+          throw fError("Obj %s is not a %s [%s:%i]\n", obj.toString().c_str(), typeId.toString().c_str(), __FILE__,
+                       __LINE__);
         return false;
       }
       if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
@@ -71,7 +85,8 @@ namespace fhatos {
           return true;
         }
         if (doThrow) {
-          throw fError("Obj %s is not a %s\n", obj.toString().c_str(), typeId.toString().c_str());
+          throw fError("Obj %s is not a %s [%s:%i]\n", obj.toString().c_str(), typeId.toString().c_str(), __FILE__,
+                       __LINE__);
         }
         return false;
       }

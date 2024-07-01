@@ -95,7 +95,13 @@ namespace fhatos {
   using TriFunction = std::function<D(A, B, C)>;
   template<typename A>
   using Predicate = std::function<bool(A)>;
-
+  //
+  template<typename A>
+  using IdentityFunction = Function<A, A>;
+  template<typename A>
+  static IdentityFunction<A> id_f() {
+    return [](const A a) { return a; };
+  }
   ///////////////////////
   /// CONTAINER TYPES ///
   ///////////////////////
@@ -137,7 +143,7 @@ namespace fhatos {
   ////////////
   // MACROS //
   ////////////
-  enum LOG_TYPE { NONE = 0, DEBUG = 1, INFO = 2, ERROR = 3 };
+  enum LOG_TYPE { NONE = 0, DEBUG_MORE = 1, DEBUG = 2, INFO = 3, ERROR = 4 };
 
 #define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "
@@ -260,10 +266,16 @@ namespace fhatos {
   ///////////////////
   // !!TO REMOVE!! //
   ///////////////////
-  static const Map<string, LOG_TYPE> STR_LOGTYPE = {
-      {{"DEBUG", LOG_TYPE::DEBUG}, {"INFO", LOG_TYPE::INFO}, {"ERROR", LOG_TYPE::ERROR}, {"NONE", LOG_TYPE::NONE}}};
-  static const Map<LOG_TYPE, string> LOGTYPE_STR = {
-      {{LOG_TYPE::DEBUG, "DEBUG"}, {LOG_TYPE::INFO, "INFO"}, {LOG_TYPE::ERROR, "ERROR"}, {LOG_TYPE::NONE, "NONE"}}};
+  static const Map<string, LOG_TYPE> STR_LOGTYPE = {{{"DEBUG_MORE", LOG_TYPE::DEBUG_MORE},
+                                                     {"DEBUG", LOG_TYPE::DEBUG},
+                                                     {"INFO", LOG_TYPE::INFO},
+                                                     {"ERROR", LOG_TYPE::ERROR},
+                                                     {"NONE", LOG_TYPE::NONE}}};
+  static const Map<LOG_TYPE, string> LOGTYPE_STR = {{{LOG_TYPE::DEBUG_MORE, "DEBUG_MORE"},
+                                                     {LOG_TYPE::DEBUG, "DEBUG"},
+                                                     {LOG_TYPE::INFO, "INFO"},
+                                                     {LOG_TYPE::ERROR, "ERROR"},
+                                                     {LOG_TYPE::NONE, "NONE"}}};
 
   static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
     if ((uint8_t) type < (uint8_t) GLOBAL_OPTIONS->logger<LOG_TYPE>())
@@ -284,13 +296,15 @@ namespace fhatos {
       va_end(arg);
     }
     if (type == NONE)
-      FOS_DEFAULT_PRINTER::singleton()->print("");
+      GLOBAL_OPTIONS->printer()->print("");
     else if (type == ERROR)
-      FOS_DEFAULT_PRINTER::singleton()->print("!r[ERROR]!!  ");
+      GLOBAL_OPTIONS->printer()->print("!r[ERROR]!!  ");
     else if (type == INFO)
-      FOS_DEFAULT_PRINTER::singleton()->print("!g[INFO]!!  ");
-    else
-      FOS_DEFAULT_PRINTER::singleton()->print("!y[DEBUG]!!  ");
+      GLOBAL_OPTIONS->printer()->print("!g[INFO]!!  ");
+    else if (type == DEBUG)
+      GLOBAL_OPTIONS->printer()->print("!y[DEBUG]!!  ");
+    else if (type == DEBUG_MORE)
+      GLOBAL_OPTIONS->printer()->print("!y[DEBUG_MORE]!!  ");
     FOS_DEFAULT_PRINTER::singleton()->print(buffer);
     if (buffer != temp) {
       delete[] buffer;

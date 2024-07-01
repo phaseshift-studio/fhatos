@@ -133,7 +133,7 @@ namespace fhatos {
     }
 
     static Obj_p as(const Uri_p &type) {
-      return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) { return lhs->as(share(type->uri_value())); });
+      return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) { return lhs->as(type->uri_value().toString().c_str()); });
     }
 
     static Obj_p to(const Uri_p &uri) {

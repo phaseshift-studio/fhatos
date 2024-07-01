@@ -32,7 +32,7 @@ int main(int arg, char **argsv) {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
   GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
-  GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;
+  Types::singleton();
 
   try {
     fKernel<>::bootloader({
@@ -45,8 +45,8 @@ int main(int arg, char **argsv) {
     // fScheduler<>::singleton()->spawn(fSerial<>::singleton());
     // fScheduler<>::singleton()->spawn(new fPing<>());
     // fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
-    Scheduler<>::singleton()->spawn(new Console());
-    Scheduler<>::singleton()->barrier("no_processes", [] { return Scheduler<>::singleton()->count() == 0; });
+    Scheduler::singleton()->spawn(new Console());
+    Scheduler::singleton()->barrier("no_processes", [] { return Scheduler::singleton()->count() == 0; });
   } catch (const fError &e) {
     LOG(ERROR, "main() error: %s\n", e.what());
     // LOG_EXCEPTION(e);

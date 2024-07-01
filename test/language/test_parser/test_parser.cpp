@@ -164,12 +164,10 @@ namespace fhatos {
     Fluent(
         FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("__(0).define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
-    /*  FOS_CHECK_RESULTS<Rec>({*Parser::tryParseObj("person[[name=>'fhat',age=>29]]").value()},
-                             Fluent(Parser::tryParseObj("__([name=>'fhat',age=>29]).as(/rec/person)").value()), {},
-                             false);*/
-    //    FOS_TEST_ASSERT_EXCEPTION(Fluent(Parser::tryParseObj("__([name=>10,age=>23]).as(/rec/person)").value()).iterate());
-    FOS_TEST_ASSERT_EXCEPTION(
-        Fluent(Parser::tryParseObj("__([name=>'fhat',age=>-1]).as(/rec/person)").value()).iterate());
+    FOS_CHECK_RESULTS<Rec>({*Parser::tryParseObj("person[[name=>'fhat',age=>29]]").value()},
+                           Fluent(Parser::tryParseObj("__([name=>'fhat',age=>29]).as(person)").value()), {}, false);
+    FOS_TEST_ERROR("__([name=>10,age=>23]).as(person)");
+    FOS_TEST_ERROR("__([name=>'fhat',age=>-1]).as(person)");
   }
 
   void test_bcode_parsing() {
@@ -201,26 +199,24 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
 
-      Types::singleton(); //
-      for (fhatos::Router * router
-           : List<Router *>{fhatos::LocalRouter::singleton(), //
-                            /*fhatos::MqttRouter::singleton()*/}) { //
+      Types::singleton(); for (fhatos::Router * router
+                               : List<Router *>{fhatos::LocalRouter::singleton(), //
+                                                /*fhatos::MqttRouter::singleton()*/}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
-        GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton(); //
         Scheduler::singleton(); //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         Types::writeToCache("/int/zero", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/int/z", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/rec/person", Insts::NO_OP_BCODE()); //
+        Types::singleton()->registerTypeSet(Types::TYPE_SET::PROCESS); //
         // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
         // Types<>::addToCache("/int/even")), Insts::NO_OP_BCODE());
         Types::writeToCache("/rec/atype", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/rec/btype", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/rec/ctype", Insts::NO_OP_BCODE()); //
         Types::writeToCache("/bool/abool", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/rec/thread", Insts::NO_OP_BCODE()); //
-        // FOS_RUN_TEST(test_basic_parser); //
+        //  FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //
         FOS_RUN_TEST(test_noobj_parsing); //

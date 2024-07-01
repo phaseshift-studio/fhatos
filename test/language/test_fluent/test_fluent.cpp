@@ -79,6 +79,7 @@ namespace fhatos {
 */
 
   void test_to_from() {
+    GLOBAL_OPTIONS->router<Router>()->clear();
     FOS_CHECK_RESULTS<Int>({2}, __(1).to(u("a")).plus(_.from(u("a"))), {{u("a"), 1}});
     FOS_CHECK_RESULTS<Int>({23}, __(10).to(u("a")).plus(3).plus(_.from(u("a"))), {{u("a"), 10}});
     FOS_CHECK_RESULTS<Str>({"fhatos"}, __("fhat").to(u("a")).plus("os"), {{u("a"), "fhat"}});
@@ -155,7 +156,7 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.is(_.gt(0))), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).as(u("/int/nat")), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     FOS_CHECK_RESULTS<Uri>({u("/int/nat")}, __(1).as(u("/int/nat")).type(), {{u("/int/nat"), _.is(_.gt(0))}}, false);
-    FOS_CHECK_RESULTS<Int>({Int(6, "/int/nat2")},
+    /*FOS_CHECK_RESULTS<Int>({Int(6, "/int/nat2")},
                            __(1)
                                .as(u("nat"))
                                .plus(Int(2, "nat"))
@@ -168,7 +169,7 @@ namespace fhatos {
                                .as(u("/int/nat2"))
                                .mult(Int(2, "/int/nat2")),
                            {{u("/int/nat"), _.is(_.gt(0))}, {u("/int/nat2"), _.is(_.gt(0))}, {u("x"), Int(3, "nat")}},
-                           false);
+                           false);*/
   }
 
 

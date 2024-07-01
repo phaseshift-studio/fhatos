@@ -83,12 +83,12 @@ namespace fhatos {
     m.remove_if([](int i) { return i % 2 == 0; });
     TEST_ASSERT_FALSE(m.empty());
     TEST_ASSERT_EQUAL(50, m.size());
-    Scheduler<>::singleton()->shutdown();
+    Scheduler::singleton()->shutdown();
   }
 
   void test_mutex_deque_concurrently() {
     int WORKER_COUNT = 10;
-    Scheduler<> *s = Scheduler<>::singleton();
+    Scheduler *s = Scheduler::singleton();
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
     MutexDeque<int> m = MutexDeque<int>();
     TEST_ASSERT_EQUAL(0, m.size());
@@ -96,7 +96,7 @@ namespace fhatos {
     for (int i = 0; i < WORKER_COUNT; i++) {
       TEST_ASSERT_TRUE(s->spawn(new Worker(i, &m)));
     }
-    Scheduler<>::singleton()->barrier("no_workers", [] { return Scheduler<>::singleton()->count("worker/+") == 0; });
+    Scheduler::singleton()->barrier("no_workers", [] { return Scheduler::singleton()->count("worker/+") == 0; });
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
     TEST_ASSERT_EQUAL(10 * WORKER_COUNT, m.size());
     TEST_ASSERT_FALSE(m.empty());

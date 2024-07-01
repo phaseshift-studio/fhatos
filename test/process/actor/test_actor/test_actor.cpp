@@ -21,7 +21,7 @@ namespace fhatos {
   void test_actor_throughput() {
     std::atomic<int> *counter1 = new std::atomic<int>(0);
     std::atomic<int> *counter2 = new std::atomic<int>(0);
-    auto *actor1 = new Actor<Thread, ROUTER>(ID("actor1@127.0.0.1"), [counter1](Actor<Thread, ROUTER> *self) {
+    auto *actor1 = new Actor<Thread>(ID("actor1@127.0.0.1"), [counter1](Actor<Thread> *self) {
       self->subscribe(ID("actor1@127.0.0.1"), [counter1, self](const ptr<Message> &message) {
         self->publish(ID("actor2@127.0.0.1"), share(Int(counter1->load())), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
@@ -31,7 +31,7 @@ namespace fhatos {
         // TEST_ASSERT_EQUAL(counter1->first, counter1->second);
       });
     });
-    auto *actor2 = new Actor<Thread, ROUTER>(ID("actor2@127.0.0.1"), [counter2](Actor<Thread, ROUTER> *self) {
+    auto *actor2 = new Actor<Thread>(ID("actor2@127.0.0.1"), [counter2](Actor<Thread> *self) {
       self->subscribe(ID("actor2@127.0.0.1"), [self, counter2](const ptr<Message> &message) {
         FOS_TEST_ASSERT_EQUAL_FURI(ID("actor1@127.0.0.1"), message->source);
         FOS_TEST_ASSERT_EQUAL_FURI(*self->id(), message->target);
@@ -41,10 +41,10 @@ namespace fhatos {
         // Scheduler<>::singleton()->destroy(self->id());
       });
     });
-    Scheduler<>::singleton()->spawn(actor1);
-    Scheduler<>::singleton()->spawn(actor2);
+    Scheduler::singleton()->spawn(actor1);
+    Scheduler::singleton()->spawn(actor2);
     actor1->publish("actor2@127.0.0.1", share(Str("START")), TRANSIENT_MESSAGE);
-    Scheduler<>::singleton()->barrier("no_actors");
+    Scheduler::singleton()->barrier("no_actors");
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
@@ -52,12 +52,11 @@ namespace fhatos {
     //delete counter2;
   }
 
-  template<typename ROUTER>
   void test_actor_by_router() {
     std::atomic<int> *counter1 = new std::atomic<int>(0);
     std::atomic<int> *counter2 = new std::atomic<int>(0);
-    auto *actor1 = new Actor<Thread, ROUTER>("actor1@127.0.0.1");
-    auto *actor2 = new Actor<Thread, ROUTER>("actor2@127.0.0.1");
+    auto *actor1 = new Actor<Thread>("actor1@127.0.0.1");
+    auto *actor2 = new Actor<Thread>("actor2@127.0.0.1");
     actor1->setup();
     actor2->setup();
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), *actor1->id());
@@ -94,23 +93,22 @@ namespace fhatos {
     actor2->loop();
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
-    ROUTER::singleton()->clear();
+    GLOBAL_OPTIONS->router<Router>()->clear();
     //delete counter1;
     //delete counter2;
-    Scheduler<>::singleton()->barrier();
+    Scheduler::singleton()->barrier();
   }
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  template<typename ROUTER>
   void test_message_retain() {
-    ROUTER::singleton()->clear();
+    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto *actor1 = new Actor<Thread, ROUTER>("actor1@127.0.0.1");
-    auto *actor2 = new Actor<Thread, ROUTER>("actor2@127.0.0.1");
+    auto *actor1 = new Actor<Thread>("actor1@127.0.0.1");
+    auto *actor2 = new Actor<Thread>("actor2@127.0.0.1");
     actor1->setup();
     actor2->setup();
 
@@ -164,14 +162,13 @@ namespace fhatos {
     actor2->stop();
     //delete counter1;
     //delete counter2;
-    ROUTER::singleton()->clear();
+    GLOBAL_OPTIONS->router<Router>()->clear();
   }
 
-  template<typename ROUTER>
   void test_actor_serialization() {
-    auto *actor = new Actor<Thread, ROUTER>("abc");
+    auto *actor = new Actor<Thread>("abc");
     const Pair<fbyte *, uint> buffer = actor->serialize();
-    Actor<Thread, ROUTER> *clone = Actor<Thread, ROUTER>::deserialize(buffer.first);
+    Actor<Thread> *clone = Actor<Thread>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(*actor->id(), *clone->id());
     FOS_DEFAULT_PRINTER::singleton()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
     for (int i = 0; i < buffer.second; i++) {
@@ -182,20 +179,20 @@ namespace fhatos {
     FOS_DEFAULT_PRINTER::singleton()->println();
     // delete actor;
     //free(clone);
-    Scheduler<>::singleton()->barrier();
+    Scheduler::singleton()->barrier();
   }
 
   FOS_RUN_TESTS( //
                  // called outside test functions as singletons alter memory
                  // across tests
-      Scheduler<>::singleton(); //
+      Scheduler::singleton(); //
       LocalRouter::singleton(); //
      // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
-      FOS_RUN_TEST(test_actor_by_router<LocalRouter>); //
+      FOS_RUN_TEST(test_actor_by_router); //
       // FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
       //  FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //
-      FOS_RUN_TEST(test_message_retain<LocalRouter>); //
-      FOS_RUN_TEST(test_actor_serialization<LocalRouter>); //
+      FOS_RUN_TEST(test_message_retain); //
+      FOS_RUN_TEST(test_actor_serialization); //
   );
 
 } // namespace fhatos

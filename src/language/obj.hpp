@@ -671,6 +671,8 @@ namespace fhatos {
     const fURI type() const { return this->_id->authority(""); }
 
     const bool match(const Obj_p &pattern, const bool sameType = true) const {
+      if (pattern->isNoOpBytecode())
+        return true;
       if (pattern->isBytecode() && !this->isBytecode())
         return !pattern->apply(PtrHelper::no_delete<Obj>((Obj *) this))->isNoObj();
       if (sameType && (this->type() != pattern->type()))
@@ -695,7 +697,7 @@ namespace fhatos {
             return false;
           auto itB = pairsB->begin();
           for (const auto &itA: *pairsA) {
-            LOG(INFO, "TESTING^^^^ %s vs. %s\n", itA.second->toString().c_str(), itB->second->toString().c_str());
+            LOG(DEBUG_MORE, "MATCHING: %s vs. %s\n", itA.second->toString().c_str(), itB->second->toString().c_str());
             if (!itA.first->match(itB->first) || !itA.second->match(itB->second))
               return false;
             ++itB;
@@ -795,7 +797,7 @@ namespace fhatos {
       for (const auto &pair: xrec) {
         map.insert(make_pair(share(pair.first), share(pair.second)));
       }
-      return share(Rec(share(map), furi));
+      return to_rec(share(map), furi);
     }
 
     static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {

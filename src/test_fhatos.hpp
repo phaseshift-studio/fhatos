@@ -21,6 +21,7 @@
 
 #include <fhatos.hpp>
 #include <language/fluent.hpp>
+#include <language/parser.hpp>
 #include <unity.h>
 #include <util/options.hpp>
 ////////////////////////////////////////////////////////
@@ -34,8 +35,10 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
+    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::DEBUG;                                                                         \
+    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
+    GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
     LOG(NONE, ANSI_ART);                                                                                               \
-    fhatos::GLOBAL_OPTIONS->TYPE_FUNCTION = FOS_TYPE_FUNCTION;                                                         \
     UNITY_BEGIN();                                                                                                     \
     x;                                                                                                                 \
     UNITY_END();                                                                                                       \
@@ -106,9 +109,13 @@ using namespace fhatos;
 
 #define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
 
-#define FOS_TEST_ASSERT_EXCEPTION(x)                                                                                   \
+#define FOS_TEST_ASSERT_EXCEPTION(x, s)                                                                                \
   try {                                                                                                                \
-    x;                                                                                                                 \
+    if ((s)) {                                                                                                         \
+      Fluent(Parser::tryParseObj((STR(x))).value()).iterate();                                                         \
+    } else {                                                                                                           \
+      x;                                                                                                               \
+    }                                                                                                                  \
     TEST_ASSERT(false);                                                                                                \
   } catch (fError & e) {                                                                                               \
     FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
@@ -188,6 +195,16 @@ template<typename T>
 static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   FOS_PRINT_OBJ<T>(obj.get());
   return obj;
+}
+
+static void FOS_TEST_ERROR(const string& monoid) {
+  try {
+    Fluent(Parser::tryParseObj(monoid).value()).iterate();
+    TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
+  } catch (fError error) {
+    LOG_EXCEPTION(error);
+    TEST_ASSERT_TRUE(true);
+  }
 }
 
 template<typename OBJ = Obj>
