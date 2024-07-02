@@ -150,9 +150,9 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>InstArgs</b> = List&
 <tr class="memitem:a7be69e7288906e38847a1d679bc520f9" id="r_a7be69e7288906e38847a1d679bc520f9"><td class="memItemLeft" align="right" valign="top"><a id="a7be69e7288906e38847a1d679bc520f9" name="a7be69e7288906e38847a1d679bc520f9"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>InstFunction</b> = Function&lt;Obj_p, Obj_p&gt;</td></tr>
 <tr class="separator:a7be69e7288906e38847a1d679bc520f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2987848a8bf008b5fccdce532dda3a73" id="r_a2987848a8bf008b5fccdce532dda3a73"><td class="memItemLeft" align="right" valign="top"><a id="a2987848a8bf008b5fccdce532dda3a73" name="a2987848a8bf008b5fccdce532dda3a73"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>InstSeed</b> = Any</td></tr>
-<tr class="separator:a2987848a8bf008b5fccdce532dda3a73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6d97b9a6f26848cbe80c0af9128d2b6" id="r_ad6d97b9a6f26848cbe80c0af9128d2b6"><td class="memItemLeft" align="right" valign="top"><a id="ad6d97b9a6f26848cbe80c0af9128d2b6" name="ad6d97b9a6f26848cbe80c0af9128d2b6"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>InstSeed</b> = Obj_p</td></tr>
+<tr class="separator:ad6d97b9a6f26848cbe80c0af9128d2b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7729a934f926de02af32cc75aa5d21b" id="r_ae7729a934f926de02af32cc75aa5d21b"><td class="memItemLeft" align="right" valign="top"><a id="ae7729a934f926de02af32cc75aa5d21b" name="ae7729a934f926de02af32cc75aa5d21b"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>InstQuad</b> = Quadruple&lt;InstArgs, InstFunction, IType, InstSeed&gt;</td></tr>
 <tr class="separator:ae7729a934f926de02af32cc75aa5d21b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -209,9 +209,9 @@ template&lt;class T , class  = typename std::enable_if_t&lt;std::is_same_v&lt;bo
 template&lt;typename VALUE &gt; </td></tr>
 <tr class="memitem:a4c380b3551165ed5ce7254a54f69ee45"><td class="memTemplItemLeft" align="right" valign="top">const VALUE&#160;</td><td class="memTemplItemRight" valign="bottom"><b>value</b> () const</td></tr>
 <tr class="separator:a4c380b3551165ed5ce7254a54f69ee45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b0ecae8996e424a8a0a689d3f8e4f46" id="r_a3b0ecae8996e424a8a0a689d3f8e4f46"><td class="memItemLeft" align="right" valign="top"><a id="a3b0ecae8996e424a8a0a689d3f8e4f46" name="a3b0ecae8996e424a8a0a689d3f8e4f46"></a>
-List&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>objs_value</b> () const</td></tr>
-<tr class="separator:a3b0ecae8996e424a8a0a689d3f8e4f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac53105bd3f3e8fe62e13a92c3a8f8416" id="r_ac53105bd3f3e8fe62e13a92c3a8f8416"><td class="memItemLeft" align="right" valign="top"><a id="ac53105bd3f3e8fe62e13a92c3a8f8416" name="ac53105bd3f3e8fe62e13a92c3a8f8416"></a>
+List_p&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>objs_value</b> () const</td></tr>
+<tr class="separator:ac53105bd3f3e8fe62e13a92c3a8f8416"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a80fa8089ce78a3f20dbe64092ff4c1" id="r_a9a80fa8089ce78a3f20dbe64092ff4c1"><td class="memItemLeft" align="right" valign="top"><a id="a9a80fa8089ce78a3f20dbe64092ff4c1" name="a9a80fa8089ce78a3f20dbe64092ff4c1"></a>
 const bool&#160;</td><td class="memItemRight" valign="bottom"><b>bool_value</b> () const</td></tr>
 <tr class="separator:a9a80fa8089ce78a3f20dbe64092ff4c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -272,10 +272,9 @@ const InstFunction&#160;</td><td class="memItemRight" valign="bottom"><b>inst_f<
 <tr class="memitem:a0021e89d3315d1c7ac5fc7a1aa9eff38" id="r_a0021e89d3315d1c7ac5fc7a1aa9eff38"><td class="memItemLeft" align="right" valign="top"><a id="a0021e89d3315d1c7ac5fc7a1aa9eff38" name="a0021e89d3315d1c7ac5fc7a1aa9eff38"></a>
 const IType&#160;</td><td class="memItemRight" valign="bottom"><b>inst_itype</b> () const</td></tr>
 <tr class="separator:a0021e89d3315d1c7ac5fc7a1aa9eff38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a038b5248c4a61e3da825be7a06ca509c" id="r_a038b5248c4a61e3da825be7a06ca509c"><td class="memTemplParams" colspan="2"><a id="a038b5248c4a61e3da825be7a06ca509c" name="a038b5248c4a61e3da825be7a06ca509c"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a038b5248c4a61e3da825be7a06ca509c"><td class="memTemplItemLeft" align="right" valign="top">const InstSeed&#160;</td><td class="memTemplItemRight" valign="bottom"><b>inst_seed</b> () const</td></tr>
-<tr class="separator:a038b5248c4a61e3da825be7a06ca509c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58daf8ddb1fd9160539dc39f27a9d9a0" id="r_a58daf8ddb1fd9160539dc39f27a9d9a0"><td class="memItemLeft" align="right" valign="top"><a id="a58daf8ddb1fd9160539dc39f27a9d9a0" name="a58daf8ddb1fd9160539dc39f27a9d9a0"></a>
+const Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>inst_seed</b> () const</td></tr>
+<tr class="separator:a58daf8ddb1fd9160539dc39f27a9d9a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad12ce52a16ea5ba2016e962798b745a7" id="r_ad12ce52a16ea5ba2016e962798b745a7"><td class="memItemLeft" align="right" valign="top"><a id="ad12ce52a16ea5ba2016e962798b745a7" name="ad12ce52a16ea5ba2016e962798b745a7"></a>
 List&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bcode_value</b> () const</td></tr>
 <tr class="separator:ad12ce52a16ea5ba2016e962798b745a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -450,12 +449,18 @@ static Rec_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_rec</b> (c
 <tr class="memitem:a21d9954edfa4e234eead1172e6f2c68c" id="r_a21d9954edfa4e234eead1172e6f2c68c"><td class="memItemLeft" align="right" valign="top"><a id="a21d9954edfa4e234eead1172e6f2c68c" name="a21d9954edfa4e234eead1172e6f2c68c"></a>
 static Inst_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_inst</b> (const InstQuad &amp;value, const fURI_p &amp;furi=INST_FURI)</td></tr>
 <tr class="separator:a21d9954edfa4e234eead1172e6f2c68c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ed65fe6fe61bd7b54d45a658a2d288b" id="r_a2ed65fe6fe61bd7b54d45a658a2d288b"><td class="memItemLeft" align="right" valign="top"><a id="a2ed65fe6fe61bd7b54d45a658a2d288b" name="a2ed65fe6fe61bd7b54d45a658a2d288b"></a>
-static Inst_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_inst</b> (const string &amp;opcode, const List&lt; Obj_p &gt; &amp;args, const InstFunction &amp;function, const IType itype, const Any seed=Any(nullptr), const fURI_p &amp;furi=nullptr)</td></tr>
-<tr class="separator:a2ed65fe6fe61bd7b54d45a658a2d288b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fa4d2e97a9b4436fd67cae30bc40db9" id="r_a2fa4d2e97a9b4436fd67cae30bc40db9"><td class="memItemLeft" align="right" valign="top"><a id="a2fa4d2e97a9b4436fd67cae30bc40db9" name="a2fa4d2e97a9b4436fd67cae30bc40db9"></a>
-static BCode_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_bcode</b> (const List&lt; Obj_p &gt; &amp;insts, const fURI_p &amp;furi=BCODE_FURI)</td></tr>
-<tr class="separator:a2fa4d2e97a9b4436fd67cae30bc40db9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb8d78560331d55eb2b36e615cd2d7b4" id="r_adb8d78560331d55eb2b36e615cd2d7b4"><td class="memItemLeft" align="right" valign="top"><a id="adb8d78560331d55eb2b36e615cd2d7b4" name="adb8d78560331d55eb2b36e615cd2d7b4"></a>
+static Inst_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_inst</b> (const string &amp;opcode, const List&lt; Obj_p &gt; &amp;args, const InstFunction &amp;function, const IType itype, const Obj_p seed=<a class="el" href="#ad18d2635f5b80344ff9a0cd3a029925f">Obj::to_noobj</a>(), const fURI_p &amp;furi=nullptr)</td></tr>
+<tr class="separator:adb8d78560331d55eb2b36e615cd2d7b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2700a5145a4273876c28e990abf67519" id="r_a2700a5145a4273876c28e990abf67519"><td class="memItemLeft" align="right" valign="top"><a id="a2700a5145a4273876c28e990abf67519" name="a2700a5145a4273876c28e990abf67519"></a>
+static BCode_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_bcode</b> (const List&lt; Inst_p &gt; &amp;insts, const fURI_p &amp;furi=BCODE_FURI)</td></tr>
+<tr class="separator:a2700a5145a4273876c28e990abf67519"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43262053f02f594c598fbfdb515b138f" id="r_a43262053f02f594c598fbfdb515b138f"><td class="memItemLeft" align="right" valign="top"><a id="a43262053f02f594c598fbfdb515b138f" name="a43262053f02f594c598fbfdb515b138f"></a>
+static Objs_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_objs</b> (const List_p&lt; Obj_p &gt; &amp;objs, const fURI_p &amp;furi=OBJS_FURI)</td></tr>
+<tr class="separator:a43262053f02f594c598fbfdb515b138f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a059ab7c7aef709be1246017797f2eac6" id="r_a059ab7c7aef709be1246017797f2eac6"><td class="memItemLeft" align="right" valign="top"><a id="a059ab7c7aef709be1246017797f2eac6" name="a059ab7c7aef709be1246017797f2eac6"></a>
+static Objs_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_objs</b> (const List&lt; Obj_p &gt; &amp;objs, const fURI_p &amp;furi=OBJS_FURI)</td></tr>
+<tr class="separator:a059ab7c7aef709be1246017797f2eac6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8c7d49f3ebe9c113520cd366b69d4bf" id="r_ac8c7d49f3ebe9c113520cd366b69d4bf"><td class="memTemplParams" colspan="2"><a id="ac8c7d49f3ebe9c113520cd366b69d4bf" name="ac8c7d49f3ebe9c113520cd366b69d4bf"></a>
 template&lt;typename <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> &gt; </td></tr>
 <tr class="memitem:ac8c7d49f3ebe9c113520cd366b69d4bf"><td class="memTemplItemLeft" align="right" valign="top">static const ptr&lt; <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>deserialize</b> (const ptr&lt; BObj &gt; bobj)</td></tr>
