@@ -174,9 +174,9 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler::singleton();
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
-        Parser::tryParseObj("__(0).pub(127.0.0.1@kernel/scheduler?spawn,"
+        Parser::tryParseObj("__(0).pub(127.0.0.1/kernel/scheduler/thread/abc,"
                             "thread[[setup => __(0).print('setup complete'),"
-                            "        loop  => __(0).pub(127.0.0.1@kernel/scheduler?destroy,abc)]])")
+                            "        loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
             .value());
     Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
     Scheduler::singleton()->barrier("wait");

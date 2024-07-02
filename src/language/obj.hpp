@@ -175,6 +175,11 @@ namespace fhatos {
 
   enum class IType : uint8_t {
     NOINST = 0,
+    ZERO_TO_ONE,
+    ZERO_TO_MANY,
+    ONE_TO_ZERO,
+    MANY_TO_ZERO,
+    MANY_TO_NONE,
     ONE_TO_ONE,
     ONE_TO_MANY,
     MANY_TO_ONE,
@@ -182,6 +187,10 @@ namespace fhatos {
   }; // TYPE
   static const Map<IType, const char *> ITYPE_STR = {{
       {IType::NOINST, "0->0 (null)"},
+      {IType::ZERO_TO_ONE, "f()->y (supplier)"},
+      {IType::ZERO_TO_MANY, "f()->y* (source)"},
+      {IType::ONE_TO_ZERO, "f(x)->0 (consumer)"},
+      {IType::MANY_TO_ZERO, "f(x)->y* (terminal)"},
       {IType::ONE_TO_ONE, "f(x)->y (map)"},
       {IType::ONE_TO_MANY, "f(x)->y* (flatmap)"},
       {IType::MANY_TO_ONE, "f(x*)->y (reduce)"},
@@ -218,6 +227,10 @@ namespace fhatos {
     using RecMap = OrderedMap<K, V, H, Q>;
     template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
+    using InstArgs = List<Obj_p>;
+    using InstFunction = Function<Obj_p, Obj_p>;
+    using InstSeed = Any;
+    using InstQuad = Quadruple<InstArgs, InstFunction, IType, InstSeed>;
     using InstList = List<Inst_p>;
     using InstList_p = ptr<InstList>;
     virtual ~Obj() override = default;
@@ -255,7 +268,7 @@ namespace fhatos {
       // this->_value = map;
     }
     Obj(const List<Inst> &bcode, const char *typeId = "") :
-        Obj(Any(Obj::cast(bcode)), OType::BCODE, BCODE_FURI->resolve(typeId)) {}
+        Obj(Any(PtrHelper::clone(bcode)), OType::BCODE, BCODE_FURI->resolve(typeId)) {}
     Obj(const InstList &bcode, const char *typeId = "") : Obj(Any(bcode), OType::BCODE, BCODE_FURI->resolve(typeId)) {}
 
     /*Obj(const List<Obj_p> &objList) : IDed(OBJS_FURI), _value(objList) {
@@ -320,20 +333,25 @@ namespace fhatos {
     }
     void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
     void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
-    const InstValue inst_value() const {
+    const InstQuad inst_value() const {
       if (this->o_type() != OType::INST)
         throw TYPE_ERROR(this, __LINE__);
-      return this->value<InstValue>();
+      return this->value<InstQuad>();
     }
     const string inst_op() const {
       if (this->o_type() != OType::INST)
         throw TYPE_ERROR(this, __LINE__);
       return this->_id->lastSegment();
     }
-    const List<Obj_p> inst_args() const { return this->inst_value().first; }
-    Obj_p inst_arg(const uint8_t index) const { return this->inst_value().first.at(index); }
+    const InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
+    Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
-    const InstFunction inst_f() const { return this->inst_value().second; }
+    const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
+    const IType inst_itype() const { return std::get<2>(this->inst_value()); }
+    template<typename T>
+    const InstSeed inst_seed() const {
+      return std::get<3>(this->inst_value());
+    }
     List<Obj_p> bcode_value() const {
       if (this->o_type() == OType::NOOBJ)
         return {};
@@ -382,7 +400,7 @@ namespace fhatos {
         }
         case OType::INST: {
           bool first = true;
-          for (const auto &arg: this->inst_value().first) {
+          for (const auto &arg: this->inst_args()) {
             if (first) {
               first = false;
             } else {
@@ -570,6 +588,8 @@ namespace fhatos {
           auto argsB = other.inst_args();
           if (argsA.size() != argsB.size())
             return false;
+          if (this->inst_itype() != other.inst_itype())
+            return false;
           auto itB = argsB.begin();
           for (const auto &itA: argsA) {
             if (*itA != **itB)
@@ -606,6 +626,7 @@ namespace fhatos {
     bool isObjs() const { return this->o_type() == OType::OBJS; }
     bool isBytecode() const { return this->o_type() == OType::BCODE; }
     bool isNoOpBytecode() const { return this->o_type() == OType::BCODE && this->bcode_value().empty(); }
+    bool isType() const { return !this->_value.has_value(); }
     Obj_p apply(const Obj_p &lhs) {
       /*if(lhs.isType() && (!this->isBytecode() && !this->isInst()) ) {
         Types<>::verifyType(PtrHelper::no_delete<Obj>(this),lhs->_furi);
@@ -702,6 +723,8 @@ namespace fhatos {
           auto argsB = pattern->inst_args();
           if (argsA.size() != argsB.size())
             return false;
+          if (this->inst_itype() != pattern->inst_itype())
+            return false;
           auto itB = argsB.begin();
           for (const auto &itA: argsA) {
             if (!itA->match(*itB))
@@ -793,15 +816,15 @@ namespace fhatos {
       return to_rec(share(map), furi);
     }
 
-    static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
+    static Inst_p to_inst(const InstQuad &value, const fURI_p &furi = INST_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::INST));
       return share(Obj(value, furi));
     }
 
-    static Inst_p to_inst(const string opcode, const List<Obj_p> &args, const InstFunction &function,
-                          const fURI_p &furi = nullptr) {
+    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunction &function,
+                          const IType itype, const Any seed = Any(nullptr), const fURI_p &furi = nullptr) {
       const fURI_p fix = !furi ? share(fURI(string("/inst/") + opcode)) : furi;
-      return to_inst(std::make_pair(args, function), fix);
+      return to_inst({args, function, itype, seed}, fix);
     }
 
     static BCode_p to_bcode(const List<Obj_p> &insts, const fURI_p &furi = BCODE_FURI) {
@@ -818,17 +841,6 @@ namespace fhatos {
     template<typename OBJ>
     static const ptr<OBJ> deserialize(const ptr<BObj> bobj) {
       return ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
-    }
-
-    static Obj_p clone(const Obj &obj) { return share(Obj(obj)); }
-    static Obj_p clone(const Obj_p &obj) { return share(Obj(*obj)); }
-
-    static List<Obj_p> cast(const List<Obj> &list) {
-      List<Obj_p> newList = List<Obj_p>();
-      for (const auto &obj: list) {
-        newList.push_back(share(Obj(obj)));
-      }
-      return newList;
     }
   };
   static Uri u(const char *uri) { return Uri(fURI(uri)); }

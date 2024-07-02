@@ -22,8 +22,14 @@ A simple mm-ADT program is defined below. The program is a specialization of the
 where `thread` is abstractly defined as
 
 ```.cpp
-thread[setup => bcode[_]]
-       loop  => bcode[_]]
+thread[[setup => __]
+        loop  => __]]
+```
+
+```.cpp
+fhatos> __(0).define(/rec/person,
+                     [name=>as(/str/),
+                      age=>is(gt(0))]) 
 ```
 
 The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`. The scheduler spawns
@@ -31,14 +37,17 @@ the program on an individual `thread` accessible via the target fURI. Once spawn
 thread's id and halts.
 
 ```.cpp
-fhatos> start[thread[setup => id[].print[_]]]
-          .to[esp32@127.0.0.1/scheduler/threads/logger]    
+fhatos> __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,
+                  thread[[setup => __(0).print('setup complete'),
+                          loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
 ```
 
 ```.cpp
-fhatos> start[].from[esp32@127.0.0.1/scheduler/threads/logger]
-==>thread[setup  => thread[id[].log[_]]
-          status => 'running' ]
+fhatos> __(0).from(127.0.0.1/kernel/scheduler/thread/abc)
+==> thread[[setup => __(0).print('setup complete'),
+            loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
+fhatos> __(0).from(127.0.0.1/kernel/scheduler/thread/abc/loop)
+==> __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)
 ```
 
 ### fURI and MQTT

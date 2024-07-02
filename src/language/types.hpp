@@ -44,7 +44,7 @@ namespace fhatos {
     static void writeToCache(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) {
       TYPE_CACHE()->erase(typeId);
       if (!obj->isNoObj()) {
-        TYPE_CACHE()->insert({typeId, Obj::clone(obj)});
+        TYPE_CACHE()->insert({typeId, PtrHelper::clone<Obj>(obj)});
         if (writeThrough)
           GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
       }

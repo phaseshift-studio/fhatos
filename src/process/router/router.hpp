@@ -107,11 +107,11 @@ namespace fhatos {
   class Router {
   public:
     virtual ~Router() = default;
-    static ID mintID(const char *user, const char *path = "") {
+    static ID mintID(const char *authority, const char *path = "") {
 #ifdef NATIVE
-      return ID(path).user(user);
+      return ID(authority).path(path);
 #else
-      return fWIFI::idFromIP(user, path);
+      return fWIFI::idFromIP(authority, path);
 #endif
     }
 

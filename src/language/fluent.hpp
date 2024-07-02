@@ -87,7 +87,7 @@ namespace fhatos {
     operator const Obj &() const { return *this->bcode; }
     //  operator const ptr<Bytecode> &() const { return this->bcode; }
 
-    Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(Obj::cast(starts))); }
+    Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(PtrHelper::clone<Obj>(starts))); }
     Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(starts)); }
     Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
     Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
@@ -180,7 +180,7 @@ namespace fhatos {
     if (starts.empty()) {
       return Fluent(Obj::to_bcode(List<Obj_p>{}));
     } else {
-      return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(Obj::cast(starts))}));
+      return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(PtrHelper::clone<Obj>(starts))}));
     }
   };
 

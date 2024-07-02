@@ -164,8 +164,7 @@ namespace fhatos {
     }
 
     // const bool operator==(const fURI other) const { return this->equals(other); }
-
-    const fURI extend(const char *segments) const {
+    const fURI resolve(const char *segments) const {
       if (strlen(segments) == 0)
         return *this;
       if (segments[0] == '/' || this->pathLength() == 0)
@@ -185,6 +184,15 @@ namespace fhatos {
       }
       delete[] s2;*/
       return fURI(result);
+    }
+    const fURI extend(const char *segments) const {
+      if (strlen(segments) == 0)
+        return *this;
+      string newURI = this->toString();
+      if (segments[0] != '/')
+        newURI += '/';
+      newURI += segments;
+      return fURI(newURI);
     }
 
     const fURI retract(const bool fromRight = true) const {
@@ -385,8 +393,6 @@ namespace fhatos {
     bool operator<(const fURI &furi) const { return this->toString() < furi.toString(); }
 
     bool isLocal(const fURI &other) const { return this->host() == other.host(); }
-
-    const fURI resolve(const char *relativePath) const { return this->extend(relativePath); }
 
     const fURI resolve(const fURI base) const { return this->resolve(base.toString().c_str()); }
   };

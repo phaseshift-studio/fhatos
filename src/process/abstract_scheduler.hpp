@@ -35,7 +35,6 @@
 
 namespace fhatos {
   class AbstractScheduler : public IDed, public Publisher, public Mailbox<ptr<Mail>> {
-
   protected:
     Mutex<> DESTROY_MUTEX;
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
@@ -57,23 +56,28 @@ namespace fhatos {
 
     void setup() {
       //////////////// SPAWN
-      this->subscribe(this->id()->query("?spawn"), [this](const ptr<Message> &message) {
-        if (message->payload->id()->lastSegment() == "thread") {
-          const auto b = new fBcode<Thread>("abc", message->payload);
-          this->spawn(b);
+      const fURI threadPattern = this->id()->extend("thread/+");
+      this->subscribe(threadPattern, [this, threadPattern](const ptr<Message> &message) {
+        const Obj_p obj = message->payload;
+        const fURI threadId = message->target.path(this->id()->pathLength() + 1, this->id()->pathLength() + 2);
+        if (obj->isNoObj()) {
+          LOG(DEBUG,"Destroy thread initiated: %s\n",message->target.toString().c_str());
+          this->_destroy(fURI(message->target.lastSegment()));
         } else {
-          LOG_TASK(ERROR, this, "obj type can not be spawned: [stype:%s][utype:%s]\n",
-                   OTYPE_STR.at(message->payload->o_type()), message->payload->id()->toString().c_str());
-        }
-      });
-      //////////////// DESTROY
-      this->subscribe(this->id()->query("?destroy"), [this](const ptr<Message> &message) {
-        const Uri_p uri = share(Uri(*message->payload));
-        LOG_TASK(DEBUG, this, "received ?destroy=%s from %s\n", uri->toString().c_str(),
-                 message->source.toString().c_str());
-        this->_destroy(uri->uri_value());
+          if (obj->id()->lastSegment() != "thread") {
+            LOG(ERROR, "Provided obj must be a /rec/thread: %s\n", OTYPE_STR.at(obj->o_type()));
+          } else {
+            const auto b = new fBcode<Thread>(threadId, obj);
+            if (!this->spawn(b)) {
+              LOG_TASK(ERROR, this, "obj type can not be spawned: [stype:%s][utype:%s]\n",
+                       OTYPE_STR.at(message->payload->o_type()), message->payload->id()->toString().c_str());
+            }
+          }
+
+        };
       });
     }
+
 
     void shutdown() {
       while (this->next()) {
@@ -82,18 +86,18 @@ namespace fhatos {
       this->barrier("shutting_down");
     }
 
-    void barrier(const char *label = "unlabled", const Supplier<bool> &passPredicate = nullptr) {
+    void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
       LOG(INFO, "!MScheduler at barrier: <%s>!!\n", label);
       while (this->next()) {
       }
-      while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && THREADS->size(false) > 0)) {
+      while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
       }
       LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
     }
 
     virtual bool spawn(Process *process) { throw fError("%s\n", "Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
-      return this->publish(this->id()->query("?destroy"), share<const Uri>(Uri(processPattern)), TRANSIENT_MESSAGE);
+      return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }
 
   protected:

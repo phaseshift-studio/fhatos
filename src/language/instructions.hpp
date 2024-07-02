@@ -32,170 +32,210 @@ namespace fhatos {
   struct Insts {
     Insts() = delete;
     static Obj_p start(const List<Obj_p> &starts) {
-      return Obj::to_inst("start", starts, [](const Obj_p &start) { return start; });
+      return Obj::to_inst("start", starts, [](const Obj_p &start) { return start; }, IType::ZERO_TO_MANY);
     }
 
     static Obj_p explain() {
-      return Obj::to_inst("explain", {}, [](const Obj_p) { return nullptr; });
+      return Obj::to_inst("explain", {}, [](const Obj_p) { return nullptr; }, IType::MANY_TO_ONE);
     }
 
     static Obj_p plus(const Obj_p &rhs) {
-      return Obj::to_inst("plus", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs + *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "plus", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs + *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p mult(const Obj_p &rhs) {
-      return Obj::to_inst("mult", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs * *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "mult", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs * *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p mod(const Obj_p &rhs) {
-      return Obj::to_inst("mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p bswitch(const Rec_p &rec) {
-      return Obj::to_inst("switch", {rec}, [rec](const Obj_p &lhs) {
-        try {
-          for (const auto &[key, value]: *rec->rec_value()) {
-            if (!key->apply(lhs)->isNoObj())
-              return value->apply(lhs);
-          }
-        } catch (std::bad_any_cast e) {
-          LOG_EXCEPTION(e);
-        }
-        return Obj::to_noobj();
-      });
-    }
-
-    static Obj_p map(const BCode_p &bcode) {
-      return Obj::to_inst("map", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); });
-    }
-
-    static Obj_p filter(const BCode_p &bcode) {
-      return Obj::to_inst("filter", {bcode},
-                          [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; });
-    }
-
-    static Obj_p side(const BCode_p &bcode) {
-      return Obj::to_inst("side", {bcode}, [bcode](const Obj_p &lhs) {
-        bcode->apply(lhs);
-        return lhs;
-      });
+      return Obj::to_inst(
+          "switch", {rec},
+          [rec](const Obj_p &lhs) {
+            try {
+              for (const auto &[key, value]: *rec->rec_value()) {
+                if (!key->apply(lhs)->isNoObj())
+                  return value->apply(lhs);
+              }
+            } catch (std::bad_any_cast e) {
+              LOG_EXCEPTION(e);
+            }
+            return Obj::to_noobj();
+          },
+          IType::ONE_TO_MANY);
     }
 
     /* static Objs_p bunion(const Rec_p rec) {
-       return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
-         for (const auto &[key, value]: *rec->rec_value()) {
-           if (!key->apply(lhs)->isNoObj())
-             return value->apply(lhs);
-         }
-         return Obj::to_noobj();
-       });
-     }*/
+   return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
+     for (const auto &[key, value]: *rec->rec_value()) {
+       if (!key->apply(lhs)->isNoObj())
+         return value->apply(lhs);
+     }
+     return Obj::to_noobj();
+   });
+ }*/
+
+    static Obj_p map(const BCode_p &bcode) {
+      return Obj::to_inst("map", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); }, IType::ONE_TO_ONE);
+    }
+
+    static Obj_p filter(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "filter", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; },
+          IType::ONE_TO_MANY);
+    }
+
+    static Obj_p side(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "side", {bcode},
+          [bcode](const Obj_p &lhs) {
+            bcode->apply(lhs);
+            return lhs;
+          },
+          IType::ONE_TO_ONE);
+    }
 
     static Obj_p is(const Obj_p &xbool) {
       return Obj::to_inst(
-          "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); });
+          "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); },
+          IType::ONE_TO_MANY);
     }
 
     static Obj_p noop() {
-      return Obj::to_inst("noop", {}, [](const Obj_p &lhs) { return lhs; });
+      return Obj::to_inst("noop", {}, [](const Obj_p &lhs) { return lhs; }, IType::ONE_TO_ONE);
     }
 
 
     static Obj_p neq(const Obj_p &rhs) {
-      return Obj::to_inst("neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p eq(const Obj_p &rhs) {
-      return Obj::to_inst("eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); });
+      return Obj::to_inst(
+          "eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p gte(const Obj_p &rhs) {
-      return Obj::to_inst("gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p gt(const Obj_p &rhs) {
-      return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p lte(const Obj_p &rhs) {
-      return Obj::to_inst("gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p lt(const Obj_p &rhs) {
-      return Obj::to_inst("gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); });
+      return Obj::to_inst(
+          "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p define(const Obj_p &uri, const BCode_p &type) {
-      return Obj::to_inst("define", {uri, type}, [uri, type](const Obj_p &lhs) {
-        Types::writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
-        return lhs;
-      });
+      return Obj::to_inst(
+          "define", {uri, type},
+          [uri, type](const Obj_p &lhs) {
+            Types::writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
+            return lhs;
+          },
+          IType::ZERO_TO_ONE);
     }
 
     static Obj_p as(const Uri_p &type) {
-      return Obj::to_inst("as", {type}, [type](const Obj_p &lhs) { return lhs->as(type->uri_value().toString().c_str()); });
+      return Obj::to_inst(
+          "as", {type}, [type](const Obj_p &lhs) { return lhs->as(type->uri_value().toString().c_str()); },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p to(const Uri_p &uri) {
-      return Obj::to_inst("to", {uri}, [uri](const Obj_p &lhs) {
-        fURI var = uri->apply(lhs)->uri_value();
-        RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, var);
-        if (_rc)
-          LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
-        return lhs;
-      });
+      return Obj::to_inst(
+          "to", {uri},
+          [uri](const Obj_p &lhs) {
+            fURI var = uri->apply(lhs)->uri_value();
+            RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, var);
+            if (_rc)
+              LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
+            return lhs;
+          },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p from(const Uri_p &uri) {
-      return Obj::to_inst("from", {uri}, [uri](const Obj_p &lhs) {
-        return GLOBAL_OPTIONS->router<Router>()->read(
-            uri->apply(lhs)->uri_value()); // Types::readFromCache(uri->uri_value()).value_or(Obj::to_noobj());//
-      });
+      return Obj::to_inst(
+          "from", {uri},
+          [uri](const Obj_p &lhs) { return GLOBAL_OPTIONS->router<Router>()->read(uri->apply(lhs)->uri_value()); },
+          IType::ONE_TO_ONE);
     }
 
     static Uri_p type() {
-      return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); });
+      return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p print(const Obj_p &toprint) {
-      return Obj::to_inst("print", {toprint}, [toprint](const Obj_p &lhs) {
-        const Obj_p done = toprint->apply(lhs);
-        GLOBAL_OPTIONS->printer<>()->printf("%s\n", done->toString().c_str());
-        return lhs;
-      });
+      return Obj::to_inst(
+          "print", {toprint},
+          [toprint](const Obj_p &lhs) {
+            const Obj_p done = toprint->apply(lhs);
+            GLOBAL_OPTIONS->printer<>()->printf("%s\n", done->toString().c_str());
+            return lhs;
+          },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
-      return Obj::to_inst("pub", {target, payload}, [target, payload](const Obj_p &lhs) {
-        GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
-                                                          .target = fURI(target->apply(lhs)->uri_value()),
-                                                          .payload = payload->isNoOpBytecode() ? lhs : payload,
-                                                          .retain = TRANSIENT_MESSAGE});
-        return lhs;
-      });
+      return Obj::to_inst(
+          "pub", {target, payload},
+          [target, payload](const Obj_p &lhs) {
+            GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
+                                                              .target = fURI(target->apply(lhs)->uri_value()),
+                                                              .payload = payload->isNoOpBytecode() ? lhs : payload,
+                                                              .retain = TRANSIENT_MESSAGE});
+            return lhs;
+          },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
-      return Obj::to_inst("sub", {pattern, onRecv}, [pattern, onRecv](const Obj_p &lhs) {
-        GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = nullptr,
-                                                                 .source = FOS_DEFAULT_SOURCE_ID,
-                                                                 .pattern = fURI(pattern->apply(lhs)->uri_value()),
-                                                                 .onRecv =
-                                                                     [onRecv](const ptr<Message> &message) {
-                                                                       const Obj_p outgoing =
+      return Obj::to_inst(
+          "sub", {pattern, onRecv},
+          [pattern, onRecv](const Obj_p &lhs) {
+            GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = nullptr,
+                                                                     .source = FOS_DEFAULT_SOURCE_ID,
+                                                                     .pattern = fURI(pattern->apply(lhs)->uri_value()),
+                                                                     .onRecv =
+                                                                         [onRecv](const ptr<Message> &message) {
+                                                                           //  const Obj_p outgoing =
                                                                            onRecv->apply(message->payload);
-                                                                       // LOG(INFO, "subscription result: %s\n",
-                                                                       // outgoing->toString().c_str());
-                                                                     },
-                                                                 .onRecvBCode = onRecv});
-        return lhs;
-      });
+                                                                           // LOG(INFO, "subscription result: %s\n",
+                                                                           // outgoing->toString().c_str());
+                                                                         },
+                                                                     .onRecvBCode = onRecv});
+            return lhs;
+          },
+          IType::ONE_TO_ONE);
     }
-    /*  class CountInst final : public ManyToOneInst {
-      public:
-        explicit CountInst() :
-            ManyToOneInst("count", {}, [](const Obj *obj) { return new Int(((Objs *) obj)->value()->size()); }) {}
-      };*/
+    static Int_p count() {
+      return Obj::to_inst(
+          "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value().size()); }, IType::MANY_TO_ONE);
+    }
+
+    static Objs_p barrier(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "barrier", {bcode}, [bcode](const Objs_p &lhs) { return bcode->apply(lhs); }, IType::MANY_TO_MANY);
+    }
+
+    //
 
     static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
@@ -216,9 +256,9 @@ namespace fhatos {
         return Insts::type();
       if (type == INST_FURI->resolve("is"))
         return Insts::is(args.at(0));
-      if (type == INST_FURI->resolve("plus"))
+      if (type == INST_FURI->resolve("plus") || type == INST_FURI->resolve("+"))
         return Insts::plus(args.at(0));
-      if (type == INST_FURI->resolve("mult"))
+      if (type == INST_FURI->resolve("mult") || type == INST_FURI->resolve("*") || type == INST_FURI->resolve("."))
         return Insts::mult(args.at(0));
       if (type == INST_FURI->resolve("mod"))
         return Insts::mod(args.at(0));

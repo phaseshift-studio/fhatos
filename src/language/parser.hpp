@@ -225,7 +225,7 @@ namespace fhatos {
       auto args = List<ptr<Obj>>();
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
-        string arg;
+        string argToken;
         int paren = 0;
         int bracket = 0;
         while (!ss.eof()) {
@@ -240,21 +240,21 @@ namespace fhatos {
           }
           char temp = ss.get();
           if (ss.eof())
-            arg = arg.substr(0, arg.length() - 2);
+            argToken = argToken.substr(0, argToken.length() - 2);
           else {
-            arg += temp;
+            argToken += temp;
             if (ss.peek() == ',' && paren == 0 && bracket == 0) {
               ss.get(); // drop arg separating comma
               break;
             }
           }
         }
-        if (!arg.empty()) {
-          Option<Obj_p> arg_p = Parser::tryParseObj(arg);
+        if (!argToken.empty()) {
+          Option<Obj_p> arg_p = Parser::tryParseObj(argToken);
           if (arg_p.has_value())
             args.push_back(arg_p.value());
           else {
-            LOG(ERROR, "Unable to parse %s inst argument: %s\n", typeToken.c_str(), arg.c_str());
+            LOG(ERROR, "Unable to parse %s inst argument: %s\n", typeToken.c_str(), argToken.c_str());
           }
         }
       }
@@ -296,8 +296,8 @@ namespace fhatos {
           if (inst.has_value()) {
             insts.push_back(inst.value());
           }
-          if (ss.peek() == '.') {
-            ss.get(); // drop instruction separating period
+          if (ss.peek() == '.' || ss.peek() == '*') {
+            ss.get(); // drop instruction mult
           }
         }
         return Option<BCode_p>{BCode::to_bcode(insts, share(baseType->resolve(typeToken.c_str())))};
