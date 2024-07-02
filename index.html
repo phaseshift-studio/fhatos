@@ -95,14 +95,20 @@ $(function(){ initResizable(false); });
 A Simple mm-ADT Program</h2>
 <p>FhatOS software can be written in C/C++ or mm-ADT (multi-model abstract data type). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 <em>mono-types</em> (<b>bool</b>, <b>int</b>, <b>real</b>, <b>uri</b>, and <b>str</b>) and 2 <em>poly-types</em> (<b>lst</b> and <b>rec</b>). mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written ( typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.</p>
 <p>A simple mm-ADT program is defined below. The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
-<div class="fragment"><div class="line">thread[setup =&gt; bcode[_]]</div>
-<div class="line">       loop  =&gt; bcode[_]]</div>
+<div class="fragment"><div class="line">thread[[setup =&gt; __]</div>
+<div class="line">        loop  =&gt; __]]</div>
+</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; __(0).define(/rec/person,</div>
+<div class="line">                     [name=&gt;as(/str/),</div>
+<div class="line">                      age=&gt;is(gt(0))]) </div>
 </div><!-- fragment --><p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
-<div class="fragment"><div class="line">fhatos&gt; start[thread[setup =&gt; <span class="keywordtype">id</span>[].print[_]]]</div>
-<div class="line">          .to[esp32@127.0.0.1/scheduler/threads/logger]    </div>
-</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; start[].from[esp32@127.0.0.1/scheduler/threads/logger]</div>
-<div class="line">==&gt;thread[setup  =&gt; thread[<span class="keywordtype">id</span>[].log[_]]</div>
-<div class="line">          status =&gt; <span class="stringliteral">&#39;running&#39;</span> ]</div>
+<div class="fragment"><div class="line">fhatos&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,</div>
+<div class="line">                  thread[[setup =&gt; __(0).print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
+<div class="line">                          loop  =&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])<span class="stringliteral">&quot;)</span></div>
+</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; __(0).from(127.0.0.1/kernel/scheduler/thread/abc)</div>
+<div class="line">==&gt; thread[[setup =&gt; __(0).print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
+<div class="line">            loop  =&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])<span class="stringliteral">&quot;)</span></div>
+<div class="line"><span class="stringliteral">fhatos&gt; __(0).from(127.0.0.1/kernel/scheduler/thread/abc/loop)</span></div>
+<div class="line"><span class="stringliteral">==&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)</span></div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>
 fURI and MQTT</h2>
 <p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is a publish/subscribe message passing protocol that has found extensive usage in embedded systems. Hierarchically specified <em>topics</em> can be <em>subscribed</em> and <em>published</em> to. In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic. FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware. There exist three MQTT routers:</p>
