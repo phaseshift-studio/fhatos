@@ -94,6 +94,8 @@ $(function(){ initResizable(false); });
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="classfhatos_1_1Router-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">fhatos::Router Class Reference</div></div>
 </div><!--header-->
@@ -137,15 +139,30 @@ virtual const string&#160;</td><td class="memItemRight" valign="bottom"><b>toStr
 template&lt;typename <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a>  = Obj&gt; </td></tr>
 <tr class="memitem:a77f7b4f47ecb7e15270ed3ee89d29ab1"><td class="memTemplItemLeft" align="right" valign="top">ptr&lt; <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf34d534adfb78a9e6432be4621a93eec">OBJ</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>read</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;target, const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source=FOS_DEFAULT_SOURCE_ID)</td></tr>
 <tr class="separator:a77f7b4f47ecb7e15270ed3ee89d29ab1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aecf37b63d031a1597eb9fcbf477d425b" id="r_aecf37b63d031a1597eb9fcbf477d425b"><td class="memItemLeft" align="right" valign="top"><a id="aecf37b63d031a1597eb9fcbf477d425b" name="aecf37b63d031a1597eb9fcbf477d425b"></a>
-virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>write</b> (const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;obj, const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;target, const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source=FOS_DEFAULT_SOURCE_ID)</td></tr>
-<tr class="separator:aecf37b63d031a1597eb9fcbf477d425b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4362d90bc51b7d3228a5b35b372883d" id="r_ac4362d90bc51b7d3228a5b35b372883d"><td class="memItemLeft" align="right" valign="top"><a id="ac4362d90bc51b7d3228a5b35b372883d" name="ac4362d90bc51b7d3228a5b35b372883d"></a>
+virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>write</b> (const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;obj, const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;target, const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source)</td></tr>
+<tr class="separator:ac4362d90bc51b7d3228a5b35b372883d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace95985e048ef74a369aee21ad0e212b" id="r_ace95985e048ef74a369aee21ad0e212b"><td class="memItemLeft" align="right" valign="top"><a id="ace95985e048ef74a369aee21ad0e212b" name="ace95985e048ef74a369aee21ad0e212b"></a>
+virtual RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>write</b> (const ptr&lt; <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &gt; &amp;obj, const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;target)</td></tr>
+<tr class="separator:ace95985e048ef74a369aee21ad0e212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a9c175d72ff3097521fc3af837b7b2cb2" id="r_a9c175d72ff3097521fc3af837b7b2cb2"><td class="memItemLeft" align="right" valign="top"><a id="a9c175d72ff3097521fc3af837b7b2cb2" name="a9c175d72ff3097521fc3af837b7b2cb2"></a>
 static <a class="el" href="classfhatos_1_1ID.html">ID</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mintID</b> (const char *authority, const char *path=&quot;&quot;)</td></tr>
 <tr class="separator:a9c175d72ff3097521fc3af837b7b2cb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a1bfba1ae83c59c207581ad124ada47c9" id="r_a1bfba1ae83c59c207581ad124ada47c9"><td class="memItemLeft" align="right" valign="top"><a id="a1bfba1ae83c59c207581ad124ada47c9" name="a1bfba1ae83c59c207581ad124ada47c9"></a>
+ROUTER_LEVEL&#160;</td><td class="memItemRight" valign="bottom"><b>_level</b></td></tr>
+<tr class="separator:a1bfba1ae83c59c207581ad124ada47c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:aaef12cf9a9fc9ab7fab525864f4ac14c" id="r_aaef12cf9a9fc9ab7fab525864f4ac14c"><td class="memItemLeft" align="right" valign="top"><a id="aaef12cf9a9fc9ab7fab525864f4ac14c" name="aaef12cf9a9fc9ab7fab525864f4ac14c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Router</b> (const ROUTER_LEVEL level)</td></tr>
+<tr class="separator:aaef12cf9a9fc9ab7fab525864f4ac14c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/github/workspace/src/process/router/<a class="el" href="router_8hpp_source.html">router.hpp</a></li>
