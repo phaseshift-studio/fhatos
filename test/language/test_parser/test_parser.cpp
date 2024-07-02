@@ -56,83 +56,124 @@ namespace fhatos {
   }
 
   void test_bool_parsing() {
-    for (const auto &pair: List<Pair<string, bool>>({{"true", true}, {"false", false}})) {
-      const ptr<Bool> b = Parser::tryParseObj(pair.first).value();
+    Types::writeToCache("/bool/fact", Obj::to_bcode({}));
+    for (const auto &trip: List<Triple<string, bool, fURI>>({{"true", true, *BOOL_FURI},
+                                                             {"false", false, *BOOL_FURI},
+                                                             {"fact[true]", true, BOOL_FURI->resolve("fact")}})) {
+      const Bool_p b = Parser::tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::BOOL, b->o_type());
-      TEST_ASSERT_EQUAL_INT(pair.second, b->bool_value());
+      TEST_ASSERT_EQUAL(get<1>(trip), b->bool_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *b->id());
     }
   }
 
   void test_int_parsing() {
-    for (auto &pair: List<Pair<string, int>>({{"45", 45}, {"0", 0}, {"-12", -12}})) {
-      const ptr<Int> i = Parser::tryParseObj(pair.first).value();
+    Types::writeToCache("/int/zero", Obj::to_bcode({}));
+    Types::writeToCache("/int/nat", Obj::to_bcode({}));
+    for (auto &trip: List<Triple<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
+                                                              {"0", 0, *INT_FURI},
+                                                              {"-12", -12, *INT_FURI},
+                                                              {"nat[100]", 100, INT_FURI->resolve("nat")},
+                                                              {"zero[0]", 0, INT_FURI->resolve("zero")},
+                                                              {"zero[2]", 2, INT_FURI->resolve("/int/zero")},
+                                                              {"/int/zero[0]", 0, INT_FURI->resolve("zero")},
+                                                              {"/int/zero[98]", 98, INT_FURI->resolve("/int/zero")},
+                                                              {"/int/zero[001]", 1, INT_FURI->extend("zero")}})) {
+      const ptr<Int> i = Parser::tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::INT, i->o_type());
-      TEST_ASSERT_EQUAL_INT(pair.second, i->int_value());
-      // delete i;
+      TEST_ASSERT_EQUAL_INT(get<1>(trip), i->int_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *i->id());
     }
-    // TYPED INT
-    for (const auto &pair: List<Pair<string, Int>>({{"nat[100]", Int(100, "/int/nat")},
-                                                    {"zero[0]", Int(0, "/int/zero")},
-                                                    {"z[-100]", Int(-100, "/int/z")}})) {
-      const ptr<Int> i = Parser::tryParseObj(pair.first).value();
-      TEST_ASSERT_EQUAL(OType::INT, i->o_type());
-      TEST_ASSERT_EQUAL_STRING(pair.second.id()->toString().c_str(), i->id()->toString().c_str());
-      TEST_ASSERT_EQUAL_INT(pair.second.int_value(), i->int_value());
-    }
-    // ID/TYPE INT
-    /* const ptr<Int> i = FOS_PRINT_OBJ(Parser::parseObj<Int>("x@/nat[25]"));
-     TEST_ASSERT_EQUAL(OType::INT, i->o_range());
-     // TODO:    FOS_TEST_ASSERT_EQUAL_FURI(fURI("x@/int/nat"), *i->id());
-     // FOS_TEST_ASSERT_EQUAL_FURI(fURI("x"), i->id());
-     TEST_ASSERT_EQUAL_INT(25, i->int_value());*/
-    // TODO: TEST_ASSERT_EQUAL_STRING("x@/nat[25]", FOS_DEFAULT_PRINTER::singleton()->strip(i->toString().c_str()));
   }
 
   void test_real_parsing() {
+    Types::writeToCache("/real/zero", Obj::to_bcode({}));
+    Types::writeToCache("/real/nat", Obj::to_bcode({}));
     // REAL
-    for (auto pair: List<Pair<string, float>>({{"45.54", 45.54}, {"0.0", 0.0}, {"-12.534678", -12.534678}})) {
-      const ptr<Real> r = Parser::tryParseObj(pair.first).value();
+    for (auto &trip:
+         List<Triple<string, FL_REAL_TYPE, fURI>>({{"45.1", 45.1f, *REAL_FURI},
+                                                   {"0.0000", 0.0f, *REAL_FURI},
+                                                   {"-12.1", -12.1f, *REAL_FURI},
+                                                   {"nat[10.0]", 10.0f, REAL_FURI->resolve("nat")},
+                                                   {"zero[0.21]", 0.21f, REAL_FURI->resolve("zero")},
+                                                   {"zero[2.0]", 2.0f, REAL_FURI->resolve("/real/zero")},
+                                                   {"/real/zero[1.1]", 1.1f, REAL_FURI->resolve("zero")},
+                                                   {"/real/zero[98.00]", 98.00f, REAL_FURI->resolve("/real/zero")},
+                                                   {"/real/zero[001.1]", 1.1f, REAL_FURI->extend("zero")}})) {
+      const Real_p r = Parser::tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::REAL, r->o_type());
-      TEST_ASSERT_FLOAT_WITHIN(0.01, pair.second, r->real_value());
+      TEST_ASSERT_EQUAL_INT(get<1>(trip), r->real_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *r->id());
     }
   }
 
   void test_uri_parsing() {
-    for (auto pair: List<Pair<string, fURI>>({{"blah.com", fURI("blah.com")},
-                                              {"ga", fURI("ga")},
-                                              {"x", fURI("x")},
-                                              {"blah.com", fURI("blah.com")},
-                                              {"/abc_2467", fURI("/abc_2467")}})) {
-      const ptr<Uri> u = Parser::tryParseObj(pair.first).value();
+    Types::writeToCache("/uri/x", Obj::to_bcode({}));
+    Types::writeToCache("/uri/furi:", Obj::to_bcode({}));
+    for (auto &trip:
+         List<Triple<string, fURI, fURI>>({{"blah.com", fURI("blah.com"), *URI_FURI},
+                                           {"ga", fURI("ga"), *URI_FURI},
+                                           {"x[x]", fURI("x"), URI_FURI->resolve("x")},
+                                           {"furi:[blah.com]", fURI("blah.com"), URI_FURI->resolve("furi:")},
+                                           {"/abc_2467", fURI("/abc_2467"), *URI_FURI}})) {
+      const Uri_p u = Parser::tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::URI, u->o_type());
-      TEST_ASSERT_EQUAL_STRING(pair.second.toString().c_str(), u->uri_value().toString().c_str());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<1>(trip), u->uri_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *u->id());
     }
   }
 
   void test_str_parsing() {
-    const ptr<Str> s = Parser::tryParseObj("'fhatty-the-pig'").value();
-    TEST_ASSERT_EQUAL(OType::STR, s->o_type());
-    TEST_ASSERT_EQUAL_STRING("fhatty-the-pig", s->str_value().c_str());
+    Types::writeToCache("/str/name", Obj::to_bcode({}));
+    Types::writeToCache("/str/origin", Obj::to_bcode({}));
+    for (auto &trip: List<Triple<string, string, fURI>>(
+             {{"'bob'", "bob", *STR_FURI},
+              {"'ga'", "ga", *STR_FURI},
+              {"name['fhat']", "fhat", STR_FURI->resolve("name")},
+              {"'a long and winding\nroad of\nstuff'", "a long and winding\nroad of\nstuff", *STR_FURI},
+              {"origin['abc_2467']", "abc_2467", STR_FURI->resolve("origin")}})) {
+      const Str_p s = Parser::tryParseObj(std::get<0>(trip)).value();
+      TEST_ASSERT_EQUAL(OType::STR, s->o_type());
+      TEST_ASSERT_EQUAL_STRING(get<1>(trip).c_str(), s->str_value().c_str());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *s->id());
+    }
   }
 
   void test_lst_parsing() {
     // LST
-    List<string> forms = {"['a',13,actor@127.0.0.1,false]",
-                          "['a' , 13,actor@127.0.0.1 , false ]",
-                          "['a', 13 , actor@127.0.0.1,false]",
-                          "['a' ,    13 , actor@127.0.0.1 ,    false  ]",
-                          "['a',    13 ,actor@127.0.0.1,   false]",
-                          "atype[['a',13 ,actor@127.0.0.1,   false]]",
-                          "btype[['a',  nat[13] , actor@127.0.0.1,   abool[false]]]",
-                          "ctype[['a',    13 ,  actor@127.0.0.1,   false]]"};
-    for (const string &form: forms) {
-      FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", form.c_str());
-      const Lst_p lt1 = Parser::tryParseObj(form).value();
-      TEST_ASSERT_EQUAL(OType::LST, lt1->o_type());
-      TEST_ASSERT_EQUAL_STRING("a", lt1->lst_get(share(Int(0)))->str_value().c_str());
-      TEST_ASSERT_EQUAL_INT(13, lt1->lst_get(share(Int(1)))->int_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor@127.0.0.1"), lt1->lst_get(share(Int(2)))->uri_value());
-      TEST_ASSERT_FALSE(lt1->lst_get(share(Int(3)))->bool_value());
+    Types::writeToCache("/lst/atype", Obj::to_bcode({})); //
+    Types::writeToCache("/lst/btype", Obj::to_bcode({})); //
+    Types::writeToCache("/lst/ctype", Obj::to_bcode({})); //
+    for (auto &trip: List<Triple<string, List<Obj_p>, fURI>>(
+             {{"['a',13,actor@127.0.0.1,false]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               *LST_FURI},
+              {"['a' , 13,actor@127.0.0.1 , false ]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               *LST_FURI},
+              {"['a' ,    13 , actor@127.0.0.1 ,    false  ]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               *LST_FURI},
+              {"['a',    13 ,actor@127.0.0.1,   false]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               *LST_FURI},
+              {"atype[['a',13 ,actor@127.0.0.1,   false]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               LST_FURI->resolve("atype")},
+              {"btype[['a',  nat[13] , actor@127.0.0.1,   abool[false]]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               LST_FURI->resolve("btype")},
+              {"ctype[['a',    13 ,  actor@127.0.0.1,   false]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+               LST_FURI->resolve("ctype")}})) {
+      FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", std::get<0>(trip).c_str());
+      const Lst_p l = Parser::tryParseObj(std::get<0>(trip)).value();
+      TEST_ASSERT_EQUAL(OType::LST, l->o_type());
+      TEST_ASSERT_EQUAL_STRING("a", l->lst_get(share(Int(0)))->str_value().c_str());
+      TEST_ASSERT_EQUAL_INT(13, l->lst_get(share(Int(1)))->int_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor@127.0.0.1"), l->lst_get(share(Int(2)))->uri_value());
+      TEST_ASSERT_FALSE(l->lst_get(share(Int(3)))->bool_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *l->id());
     }
   }
 
@@ -183,8 +224,7 @@ namespace fhatos {
                              GLOBAL_OPTIONS->printer<>()->strip(rc2->toString().c_str()));
 
     ////// match testing
-    Fluent(
-        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
+    Fluent(FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
     FOS_CHECK_RESULTS<Rec>({*Parser::tryParseObj("person[[name=>'fhat',age=>29]]").value()},
                            Fluent(Parser::tryParseObj("__([name=>'fhat',age=>29]).as(person)").value()), {}, false);
@@ -212,8 +252,7 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Int>({}, Fluent(Parser::tryParseObj("define(/int/even,mod(2).is(eq(0)))").value()), {},
-                           false);
+    FOS_CHECK_RESULTS<Int>({}, Fluent(Parser::tryParseObj("define(/int/even,mod(2).is(eq(0)))").value()), {}, false);
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::tryParseObj("__(32).as(even).type()").value()), {}, false);
     FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {},
                            true);
@@ -227,16 +266,10 @@ namespace fhatos {
         GLOBAL_OPTIONS->ROUTING = router; //
         Scheduler::singleton(); //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::writeToCache("/int/zero", Obj::to_bcode({})); //
-        Types::writeToCache("/int/nat", Obj::to_bcode({})); //
-        Types::writeToCache("/int/z", Obj::to_bcode({})); //
         Types::writeToCache("/rec/person", Obj::to_bcode({})); //
         Types::singleton()->registerTypeSet(Types::TYPE_SET::PROCESS); //
         // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
         // Types<>::addToCache("/int/even")), Obj::to_bcode({}));
-        Types::writeToCache("/lst/atype", Obj::to_bcode({})); //
-        Types::writeToCache("/lst/btype", Obj::to_bcode({})); //
-        Types::writeToCache("/lst/ctype", Obj::to_bcode({})); //
         Types::writeToCache("/rec/atype", Obj::to_bcode({})); //
         Types::writeToCache("/rec/btype", Obj::to_bcode({})); //
         Types::writeToCache("/rec/ctype", Obj::to_bcode({})); //
