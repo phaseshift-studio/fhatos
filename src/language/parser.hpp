@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_parser_hpp
@@ -56,6 +56,9 @@ namespace fhatos {
       b = tryParseStr(valueToken, typeToken, STR_FURI);
       if (b.has_value())
         return b.value();
+      b = tryParseLst(valueToken, typeToken, LST_FURI);
+      if (b.has_value())
+        return b.value();
       b = tryParseRec(valueToken, typeToken, REC_FURI);
       if (b.has_value())
         return b.value();
@@ -88,6 +91,7 @@ namespace fhatos {
         }
         valueToken = typeToken.empty() ? token : valueToken.substr(0, valueToken.length() - 2);
       } else {
+        typeToken = "";
         valueToken = token;
       }
       StringHelper::trim(typeToken);
@@ -114,7 +118,8 @@ namespace fhatos {
     static Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken,
                                      const fURI_p &baseType = INT_FURI) {
       LOG(DEBUG_MORE, "Attempting int parse on %s\n", valueToken.c_str());
-      if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find('.') != string::npos)
+      if ((valueToken[0] != '-' && !isdigit(valueToken[0])) ||
+          1 == std::count(valueToken.begin(), valueToken.end(), '.'))
         return {};
       for (int i = 1; i < valueToken.length(); i++) {
         if (!isdigit(valueToken[i]))
@@ -144,6 +149,39 @@ namespace fhatos {
                  ? Option<Uri_p>{Str::to_str(token.substr(1, token.length() - 2),
                                              share(baseType->resolve(type.c_str())))}
                  : Option<Uri_p>{};
+    }
+    static Option<Lst_p> tryParseLst(const string &token, const string &type, const fURI_p &baseType = LST_FURI) {
+      LOG(DEBUG_MORE, "Attempting lst parse on %s\n", token.c_str());
+      if (token[0] != '[' || token[token.length() - 1] != ']')
+        return {};
+      auto ss = stringstream(token.substr(1, token.length() - 2));
+      string value;
+      Obj::LstList<> list = Obj::LstList<>();
+      int bracketCounter = 0;
+      int parenCounter = 0;
+      while (!ss.eof()) {
+        if (bracketCounter == 0 && ss.peek() == ',') {
+          list.push_back(Parser::tryParseObj(value).value());
+          ss.get();
+          value.clear();
+        } else if (bracketCounter == 0 && StringHelper::lookAhead("=>", &ss)) {
+          return {};
+        } else {
+          if (ss.peek() == '[')
+            bracketCounter++;
+          if (ss.peek() == ']')
+            bracketCounter--;
+          if (ss.peek() == '(')
+            parenCounter++;
+          if (ss.peek() == ')')
+            parenCounter--;
+          if (!ss.eof())
+            value += (char) ss.get();
+        }
+      }
+      StringHelper::trim(value);
+      list.push_back(Parser::tryParseObj(value).value());
+      return Option<Lst_p>{Lst::to_lst(share(list), share(baseType->resolve(type.c_str())))};
     }
     static Option<Rec_p> tryParseRec(const string &token, const string &type, const fURI_p &baseType = REC_FURI) {
       LOG(DEBUG_MORE, "Attempting rec parse on %s\n", token.c_str());
@@ -264,6 +302,8 @@ namespace fhatos {
     static Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
                                          const fURI_p &baseType = BCODE_FURI) {
       LOG(DEBUG_MORE, "Attempting bcode parse on %s\n", valueToken.c_str());
+      if (typeToken.empty() && valueToken == "_")
+        return {Obj::to_bcode({})}; // special character for 'no instructions' (no common parse pattern)
       if ((valueToken[0] == '_' && valueToken[1] == '_') ||
           (valueToken[valueToken.length() - 1] == ')' && valueToken.find('('))) {
         List<Inst_p> insts;

@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_hpp
@@ -55,6 +55,7 @@
 #include <set>
 #include <string>
 #include <tsl/ordered_map.h>
+#include <util/logger.hpp>
 #include <util/options.hpp>
 
 
@@ -143,7 +144,7 @@ namespace fhatos {
   ////////////
   // MACROS //
   ////////////
-  enum LOG_TYPE { NONE = 0, DEBUG_MORE = 1, DEBUG = 2, INFO = 3, ERROR = 4 };
+
 
 #define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "
@@ -164,37 +165,11 @@ namespace fhatos {
 #define FSTR(a) STR(a)
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
-#define LOG(logtype, format, ...) MAIN_LOG((logtype), (format), ##__VA_ARGS__)
+#define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
 #define LOG_TASK(logtype, process, format, ...)                                                                        \
   LOG((logtype), (string("[!M%s!!] ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
-#define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",     \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
-      (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
-      (subscription)->pattern.toString().c_str(),                                                                      \
-      (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
-#define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
-      nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
-#define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? INFO : ERROR), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
-      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
-      ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
-#define LOG_RECEIVE(rc, subscription, message)                                                                         \
-  LOG(((rc) == OK ? INFO : ERROR),                                                                                     \
-      (((subscription).pattern.equals((message).target))                                                               \
-           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!m=[!b%s!m]!!\n"                              \
-           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!m=[!b%s!m]!!\n"),                            \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
-      ((subscription).source.toString().c_str()), ((subscription).pattern.toString().c_str()),                         \
-      ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
-                                                        : ((message).target.toString().c_str()),                       \
-      ((subscription).pattern.equals((message).target)) ? ((message).source.toString().c_str())                        \
-                                                        : ((message).payload->toString)().c_str(),                     \
-      ((message).source.toString().c_str()))
+
 #define FOS_LOG_INST(inst)                                                                                             \
   LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
       (inst)->opcode().c_str(),                                                                                        \
@@ -213,20 +188,9 @@ namespace fhatos {
 #define FOS_MAILBOX_WARNING_SIZE 15
 #endif
 
-#ifndef FOS_DEFAULT_ALGEBRA
-#define FOS_DEFAULT_ALGEBRA fhatos::Algebra
-#endif
-#ifndef FOS_DEFAULT_PRINTER
-#define FOS_DEFAULT_PRINTER fhatos::Ansi<fhatos::CPrinter>
-#endif
-#ifndef FOS_DEFAULT_SERIALIZER
-#define FOS_DEFAULT_SERIALIZER fhatos::PtrSerializer
-#endif
-
 #ifndef FOS_DEFAULT_SOURCE_ID
-#define FOS_DEFAULT_SOURCE_ID STR([anon])
+#define FOS_DEFAULT_SOURCE_ID STR(<anon>)
 #endif
-
 
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
@@ -249,66 +213,5 @@ namespace fhatos {
 #endif
 #define FOS_ROUTER(rout) <process/router/rout>
 #define FOS_MODULE(modu) <structure/modu>
-
-#ifndef FOS_LOGGING
-#define FOS_LOGGING ERROR
-#endif
-
-#ifndef FOS_DEFAULT_PRINTER
-#define FOS_DEFAULT_PRINTER Ansi<CPrinter>
-#endif
-
-#define FOS_TYPE_FUNCTION                                                                                              \
-  [](void *typeId) {                                                                                                   \
-    return (void *) GLOBAL_OPTIONS->router<Router>()->read(ID(FOS_DEFAULT_SOURCE_ID), *((ID *) typeId)).get();         \
-  };
-
-  ///////////////////
-  // !!TO REMOVE!! //
-  ///////////////////
-  static const Map<string, LOG_TYPE> STR_LOGTYPE = {{{"DEBUG_MORE", LOG_TYPE::DEBUG_MORE},
-                                                     {"DEBUG", LOG_TYPE::DEBUG},
-                                                     {"INFO", LOG_TYPE::INFO},
-                                                     {"ERROR", LOG_TYPE::ERROR},
-                                                     {"NONE", LOG_TYPE::NONE}}};
-  static const Map<LOG_TYPE, string> LOGTYPE_STR = {{{LOG_TYPE::DEBUG_MORE, "DEBUG_MORE"},
-                                                     {LOG_TYPE::DEBUG, "DEBUG"},
-                                                     {LOG_TYPE::INFO, "INFO"},
-                                                     {LOG_TYPE::ERROR, "ERROR"},
-                                                     {LOG_TYPE::NONE, "NONE"}}};
-
-  static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-    if ((uint8_t) type < (uint8_t) GLOBAL_OPTIONS->logger<LOG_TYPE>())
-      return;
-    va_list arg;
-    va_start(arg, format);
-    char temp[128];
-    char *buffer = temp;
-    const size_t len = vsnprintf(temp, sizeof(temp), format, arg);
-    va_end(arg);
-    if (len > sizeof(temp) - 1) {
-      buffer = new (std::nothrow) char[len + 1];
-      if (!buffer) {
-        return;
-      }
-      va_start(arg, format);
-      vsnprintf(buffer, len + 1, format, arg);
-      va_end(arg);
-    }
-    if (type == NONE)
-      GLOBAL_OPTIONS->printer()->print("");
-    else if (type == ERROR)
-      GLOBAL_OPTIONS->printer()->print("!r[ERROR]!!  ");
-    else if (type == INFO)
-      GLOBAL_OPTIONS->printer()->print("!g[INFO]!!  ");
-    else if (type == DEBUG)
-      GLOBAL_OPTIONS->printer()->print("!y[DEBUG]!!  ");
-    else if (type == DEBUG_MORE)
-      GLOBAL_OPTIONS->printer()->print("!y[DEBUG_MORE]!!  ");
-    FOS_DEFAULT_PRINTER::singleton()->print(buffer);
-    if (buffer != temp) {
-      delete[] buffer;
-    }
-  }
 } // namespace fhatos
 #endif

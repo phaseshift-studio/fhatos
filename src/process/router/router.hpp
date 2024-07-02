@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_router_hpp
@@ -33,6 +33,34 @@
 
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
+
+#define LOG_SUBSCRIBE(rc, subscription)                                                                                \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",     \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
+      (subscription)->pattern.toString().c_str(),                                                                      \
+      (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
+#define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
+      nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
+#define LOG_PUBLISH(rc, message)                                                                                       \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
+      ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
+#define LOG_RECEIVE(rc, subscription, message)                                                                         \
+  LOG(((rc) == OK ? DEBUG : ERROR),                                                                                     \
+      (((subscription).pattern.equals((message).target))                                                               \
+           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!m=[!b%s!m]!!\n"                              \
+           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!m=[!b%s!m]!!\n"),                            \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      ((subscription).source.toString().c_str()), ((subscription).pattern.toString().c_str()),                         \
+      ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
+                                                        : ((message).target.toString().c_str()),                       \
+      ((subscription).pattern.equals((message).target)) ? ((message).source.toString().c_str())                        \
+                                                        : ((message).payload->toString)().c_str(),                     \
+      ((message).source.toString().c_str()))
 
 namespace fhatos {
   ///////////////////////////////////////////////////
@@ -104,9 +132,16 @@ namespace fhatos {
 #define FP_OK_RESULT                                                                                                   \
   { return RESPONSE_CODE::OK; }
 
+  enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2 };
+
   class Router {
+  protected:
+    Router(const ROUTER_LEVEL level) : _level(level) {}
+
   public:
     virtual ~Router() = default;
+    ROUTER_LEVEL _level;
+
     static ID mintID(const char *authority, const char *path = "") {
 #ifdef NATIVE
       return ID(authority).path(path);
@@ -135,7 +170,7 @@ namespace fhatos {
                        }});
       const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
-        if (time(nullptr) - startTimestamp > 5) {
+        if (time(nullptr) - startTimestamp > (uint8_t) this->_level) {
           LOG(ERROR, "Read timeout on target !y%s!!\n", target.toString().c_str());
           break;
         }
@@ -153,8 +188,13 @@ namespace fhatos {
       }
     }
 
-    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &target, const ID &source) {
       return this->publish(Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
+    }
+
+    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &target) {
+      return this->publish(
+          Message{.source = FOS_DEFAULT_SOURCE_ID, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };
 } // namespace fhatos

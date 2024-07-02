@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_f_bcode_hpp
@@ -47,7 +47,7 @@ namespace fhatos {
                 }
             },
             // loop
-            [this, rec](const Actor<PROCESS> *actor) {
+            [this](const Actor<PROCESS> *actor) {
               try {
                 Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
                   LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
@@ -57,7 +57,7 @@ namespace fhatos {
                 this->stop();
               }
             }),
-        rec(rec), SETUP_BCODE(rec->rec_get(share(u("setup")))), LOOP_BCODE(rec->rec_get(share(u("loop")))) {
+        rec(rec), SETUP_BCODE(rec->rec_get(u_p("setup"))), LOOP_BCODE(rec->rec_get(u_p("loop"))) {
       LOG(DEBUG, "bcode program created: %s\n", rec->toString().c_str());
     }
   };

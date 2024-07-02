@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_processor_hpp
@@ -29,6 +29,8 @@
 #endif
 
 namespace fhatos {
+  class Monad;
+  using Monad_p = ptr<Monad>;
   class Monad {
   protected:
     const Obj_p _obj;
@@ -38,7 +40,7 @@ namespace fhatos {
   public:
     explicit Monad(const Obj_p obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
 
-    List<ptr<Monad>> split(const ptr<BCode> &bcode) const {
+    List<Monad_p> split(const ptr<BCode> &bcode) const {
       if (this->_inst->isNoObj() || this->_obj->isNoObj()) {
         return List<ptr<Monad>>{};
       } else {
@@ -48,8 +50,8 @@ namespace fhatos {
       }
     }
 
-    ptr<Obj> obj() const { return this->_obj; }
-    ptr<Inst> inst() const { return this->_inst; }
+    Obj_p obj() const { return this->_obj; }
+    Inst_p inst() const { return this->_inst; }
     long bulk() const { return this->_bulk; }
 
     bool halted() const { return this->_inst->isNoObj(); }
@@ -69,20 +71,29 @@ namespace fhatos {
   class Processor {
   protected:
     const BCode_p bcode;
-    List<ptr<Monad>> *running = new List<ptr<Monad>>();
+    List<Monad_p> *running = new List<ptr<Monad>>();
     List<Obj_p> *halted = new List<Obj_p>();
     Pair<Inst_p, List<Obj_p> *> *barrier;
 
   public:
     explicit Processor(const BCode_p &bcode) :
         bcode(bcode), barrier(new Pair<Inst_p, List<ptr<Obj>> *>(nullptr, nullptr)) {
-      const Inst_p startInst = this->bcode->bcode_value().at(0);
-      LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
-      if (startInst->inst_op() == "start") {
-        for (const ptr<Obj> &startObj: startInst->inst_args()) {
-          const ptr<Monad> monad = ptr<Monad>(new Monad(startObj, this->bcode->nextInst(startInst)));
-          this->running->push_back(monad);
-          LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
+      if (!this->bcode->bcode_value().empty()) {
+        const Inst_p startInst = this->bcode->bcode_value().at(0);
+        LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
+        Inst_p nextInst = this->bcode->nextInst(startInst);
+        if (startInst->inst_op() == "start") {
+          for (const Obj_p &startObj: startInst->inst_args()) {
+            const Monad_p monad = Monad_p(new Monad(startObj, nextInst));
+            this->running->push_back(monad);
+            LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
+          }
+        } else {
+          if (startInst->inst_itype() == IType::ZERO_TO_ONE || startInst->inst_itype() == IType::ZERO_TO_MANY) {
+            const Monad_p monad = Monad_p(new Monad(startInst->apply(Obj::to_noobj()), nextInst));
+            this->running->push_back(monad);
+            LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
+          }
         }
       }
     }

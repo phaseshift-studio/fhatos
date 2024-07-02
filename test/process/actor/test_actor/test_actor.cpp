@@ -48,8 +48,8 @@ namespace fhatos {
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
-    //delete counter1;
-    //delete counter2;
+    // delete counter1;
+    // delete counter2;
   }
 
   void test_actor_by_router() {
@@ -94,8 +94,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     GLOBAL_OPTIONS->router<Router>()->clear();
-    //delete counter1;
-    //delete counter2;
+    // delete counter1;
+    // delete counter2;
     Scheduler::singleton()->barrier();
   }
 
@@ -160,8 +160,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     actor1->stop();
     actor2->stop();
-    //delete counter1;
-    //delete counter2;
+    // delete counter1;
+    // delete counter2;
     GLOBAL_OPTIONS->router<Router>()->clear();
   }
 
@@ -170,15 +170,15 @@ namespace fhatos {
     const Pair<fbyte *, uint> buffer = actor->serialize();
     Actor<Thread> *clone = Actor<Thread>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(*actor->id(), *clone->id());
-    FOS_DEFAULT_PRINTER::singleton()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
+    GLOBAL_OPTIONS->printer<>()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
     for (int i = 0; i < buffer.second; i++) {
-      FOS_DEFAULT_PRINTER::singleton()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
+      GLOBAL_OPTIONS->printer<>()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
       if ((i + 1) % 10 == 0)
-        FOS_DEFAULT_PRINTER::singleton()->printf("\n" FOS_TAB);
+        GLOBAL_OPTIONS->printer<>()->printf("\n" FOS_TAB);
     }
-    FOS_DEFAULT_PRINTER::singleton()->println();
+    GLOBAL_OPTIONS->printer<>()->println();
     // delete actor;
-    //free(clone);
+    // free(clone);
     Scheduler::singleton()->barrier();
   }
 
@@ -187,7 +187,7 @@ namespace fhatos {
                  // across tests
       Scheduler::singleton(); //
       LocalRouter::singleton(); //
-     // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
+      // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
       FOS_RUN_TEST(test_actor_by_router); //
       // FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
       //  FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //

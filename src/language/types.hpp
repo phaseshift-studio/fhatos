@@ -1,3 +1,21 @@
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #ifndef fhatos_types_hpp
 #define fhatos_types_hpp
 
@@ -27,6 +45,8 @@ namespace fhatos {
         case TYPE_SET::PROCESS: {
           Types::writeToCache("/rec/thread",
                               Rec::to_rec({{u("setup"), *Obj::to_bcode({})}, {u("loop"), *Obj::to_bcode({})}}));
+          Types::writeToCache("/rec/fiber",
+                              Rec::to_rec({{u("setup"), *Obj::to_bcode({})}, {u("loop"), *Obj::to_bcode({})}}));
           break;
         }
       }
@@ -47,6 +67,7 @@ namespace fhatos {
         TYPE_CACHE()->insert({typeId, PtrHelper::clone<Obj>(obj)});
         if (writeThrough)
           GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
+        LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
       }
     }
     static Option<Obj_p> readFromCache(const fURI &typeId, const bool readThrough = true) {
@@ -64,8 +85,7 @@ namespace fhatos {
         return true;
       if (otype != typeOType) {
         if (doThrow)
-          throw fError("Obj %s is not a %s [%s:%i]\n", obj.toString().c_str(), typeId.toString().c_str(), __FILE__,
-                       __LINE__);
+          throw fError("%s is not a !b%s!!\n", obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
       if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
@@ -76,16 +96,13 @@ namespace fhatos {
         if (obj.match(*type, false)) {
           return true;
         }
-        if (doThrow) {
-          throw fError("Obj %s is not a %s [%s:%i]\n", obj.toString().c_str(), typeId.toString().c_str(), __FILE__,
-                       __LINE__);
-        }
+        if (doThrow)
+          throw fError("%s is not a !b%s!!\n", obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
 
-      if (doThrow) {
+      if (doThrow)
         throw fError("Undefined type %s\n", typeId.toString().c_str());
-      }
       return false;
     }
   };

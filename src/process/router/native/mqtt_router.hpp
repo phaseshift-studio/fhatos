@@ -1,3 +1,21 @@
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #ifndef fhatos_mqtt_router_hpp
 #define fhatos_mqtt_router_hpp
 
@@ -35,7 +53,7 @@ namespace fhatos {
     Message_p willMessage;
 
     explicit MqttRouter(const char *serverAddr = MQTT_BROKER_ADDR,
-                        const Message_p &willMessage = ptr<Message>(nullptr)) : Router() {
+                        const Message_p &willMessage = ptr<Message>(nullptr)) : Router(ROUTER_LEVEL::GLOBAL_ROUTER) {
       this->serverAddr = serverAddr;
       this->xmqtt = new async_client(this->serverAddr, "", mqtt::create_options(MQTTVERSION_5));
       this->willMessage = willMessage;
@@ -54,9 +72,9 @@ namespace fhatos {
             const ptr<BObj> bobj = share(BObj(ref.length(), (unsigned char *) ref.data()));
             if (ID(mqttMessage->get_topic_ref().c_str()).matches(subscription->pattern)) {
               const Message_p message = share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
-                                                         .target = ID(mqttMessage->get_topic().c_str()),
-                                                         .payload = Obj::deserialize<Obj>(bobj),
-                                                         .retain = mqttMessage->is_retained()});
+                                                      .target = ID(mqttMessage->get_topic().c_str()),
+                                                      .payload = Obj::deserialize<Obj>(bobj),
+                                                      .retain = mqttMessage->is_retained()});
               LOG_RECEIVE(RESPONSE_CODE::OK, *subscription, *message);
               if (subscription->mailbox) {
                 subscription->mailbox->push(share(Mail(subscription, message))); // if mailbox, put in mailbox

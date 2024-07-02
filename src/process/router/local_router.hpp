@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_local_router_hpp
@@ -38,6 +38,7 @@ namespace fhatos {
     Map<ID, const Message_p> RETAINS;
     Mutex<> MUTEX_RETAIN;
     MutexRW<> MUTEX_SUBSCRIPTIONS;
+    LocalRouter() : Router(ROUTER_LEVEL::LOCAL_ROUTER) {}
 
   public:
     static LocalRouter *singleton() {
@@ -65,7 +66,8 @@ namespace fhatos {
             try {
               if (subscription->mailbox) {
                 _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
-                LOG(DEBUG, "Message from %s delivered to %s\n", message.source.toString().c_str(), subscription->source.toString().c_str());
+                LOG(DEBUG, "Message from %s delivered to %s\n", message.source.toString().c_str(),
+                    subscription->source.toString().c_str());
                 if (subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
                   LOG(ERROR, "Actor mailbox size is beyond warning size of %i: [size:%i]\n", FOS_MAILBOX_WARNING_SIZE,
                       subscription->mailbox->size());

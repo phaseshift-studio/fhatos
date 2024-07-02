@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_test_fhatos_hpp
@@ -97,9 +97,9 @@ using namespace fhatos;
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < ERROR) {                                                                                           \
-    FOS_TEST_PRINTER::singleton()->printf("  !rline %i!!\t", __LINE__);                                                \
-    FOS_TEST_PRINTER::singleton()->printf((format), ##__VA_ARGS__);                                                    \
-    FOS_TEST_PRINTER::singleton()->printf("\n");                                                                       \
+    GLOBAL_OPTIONS->printer<>()->printf("  !rline %i!!\t", __LINE__);                                                  \
+    GLOBAL_OPTIONS->printer<>()->printf((format), ##__VA_ARGS__);                                                      \
+    GLOBAL_OPTIONS->printer<>()->printf("\n");                                                                         \
   }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \

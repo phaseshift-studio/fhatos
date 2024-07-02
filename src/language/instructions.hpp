@@ -1,19 +1,19 @@
 /*******************************************************************************
- FhatOS: A Distributed Operating System
- Copyright (c) 2024 PhaseShift Studio, LLC
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
 #ifndef fhatos_instructions_hpp
@@ -112,32 +112,32 @@ namespace fhatos {
     }
 
 
-    static Obj_p neq(const Obj_p &rhs) {
+    static Bool_p neq(const Obj_p &rhs) {
       return Obj::to_inst(
           "neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p eq(const Obj_p &rhs) {
+    static Bool_p eq(const Obj_p &rhs) {
       return Obj::to_inst(
           "eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p gte(const Obj_p &rhs) {
+    static Bool_p gte(const Obj_p &rhs) {
       return Obj::to_inst(
           "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p gt(const Obj_p &rhs) {
+    static Bool_p gt(const Obj_p &rhs) {
       return Obj::to_inst(
           "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p lte(const Obj_p &rhs) {
+    static Bool_p lte(const Obj_p &rhs) {
       return Obj::to_inst(
           "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p lt(const Obj_p &rhs) {
+    static Bool_p lt(const Obj_p &rhs) {
       return Obj::to_inst(
           "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
@@ -190,7 +190,7 @@ namespace fhatos {
             GLOBAL_OPTIONS->printer<>()->printf("%s\n", done->toString().c_str());
             return lhs;
           },
-          IType::ONE_TO_ONE);
+          toprint->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
     }
 
     static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
@@ -203,7 +203,7 @@ namespace fhatos {
                                                               .retain = TRANSIENT_MESSAGE});
             return lhs;
           },
-          IType::ONE_TO_ONE);
+          target->uri_value().isAbsolute() && !payload->isNoOpBytecode() ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
@@ -223,7 +223,7 @@ namespace fhatos {
                                                                      .onRecvBCode = onRecv});
             return lhs;
           },
-          IType::ONE_TO_ONE);
+          pattern->uri_value().isAbsolute() ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
     static Int_p count() {
       return Obj::to_inst(
@@ -288,11 +288,9 @@ namespace fhatos {
         return Insts::bswitch(args.at(0));
       if (type == INST_FURI->resolve("explain"))
         return Insts::explain();
+      if (type == INST_FURI->resolve("count"))
+        return Insts::count();
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
-    }
-    static const BCode_p NO_OP_BCODE() {
-      static BCode_p p = BCode::to_bcode({Insts::noop()});
-      return p;
     }
   };
 

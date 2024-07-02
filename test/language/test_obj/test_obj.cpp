@@ -97,7 +97,7 @@ namespace fhatos {
   }
 
   void test_str() {
-    const Str strA = Str("fhat", "first_name");
+    const Str strA = *Obj::to_str("fhat", share(fURI("/str/first_name")));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.isBytecode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
@@ -105,9 +105,12 @@ namespace fhatos {
   }
 
   void test_rec() {
-    const Rec recA = Rec({{"a", 1}, {"b", 2}});
-    const Rec recB = Rec({{"a", 1}, {"b", 2}});
-    const Rec recC = Rec({{Str("a", "letter"), 1}, {Str("b", "letter"), 2}}, "mail");
+    const Rec recA = *Obj::to_rec({{"a", 1}, {"b", 2}});
+    const Rec recB = *Obj::to_rec({{"a", 1}, {"b", 2}});
+    const Rec recC =
+        Obj(share(Obj::RecMap<>({make_pair<const Obj_p, Obj_p>(Obj::to_str("a", share(fURI("/str/letter"))), share(Int(1))),
+                           make_pair<const Obj_p, Obj_p>(Obj::to_str("b", share(fURI("/str/letter"))), share(Int(2)))})),
+            share(fURI("/rec/mail")));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recC).c_str());
     TEST_ASSERT_TRUE(recA == recB);
     TEST_ASSERT_FALSE(recA != recB);
@@ -178,13 +181,13 @@ namespace fhatos {
            : List<Router *>({LocalRouter::singleton(), MqttRouter::singleton()})) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::writeToCache("/bool/truth", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/int/age", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/str/first_name", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/str/letter", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/rec/mail", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/real/cost", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/bool/truth", Obj::to_bcode({})); //
+        Types::writeToCache("/int/age", Obj::to_bcode({})); //
+        Types::writeToCache("/int/nat", Obj::to_bcode({})); //
+        Types::writeToCache("/str/first_name", Obj::to_bcode({})); //
+        Types::writeToCache("/str/letter", Obj::to_bcode({})); //
+        Types::writeToCache("/rec/mail", Obj::to_bcode({})); //
+        Types::writeToCache("/real/cost", Obj::to_bcode({})); //
         FOS_RUN_TEST(test_bool); //
         FOS_RUN_TEST(test_int); //
         FOS_RUN_TEST(test_str); //

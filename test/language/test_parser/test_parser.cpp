@@ -115,6 +115,27 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("fhatty-the-pig", s->str_value().c_str());
   }
 
+  void test_lst_parsing() {
+    // LST
+    List<string> forms = {"['a',13,actor@127.0.0.1,false]",
+                          "['a' , 13,actor@127.0.0.1 , false ]",
+                          "['a', 13 , actor@127.0.0.1,false]",
+                          "['a' ,    13 , actor@127.0.0.1 ,    false  ]",
+                          "['a',    13 ,actor@127.0.0.1,   false]",
+                          "atype[['a',13 ,actor@127.0.0.1,   false]]",
+                          "btype[['a',  nat[13] , actor@127.0.0.1,   abool[false]]]",
+                          "ctype[['a',    13 ,  actor@127.0.0.1,   false]]"};
+    for (const string &form: forms) {
+      FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", form.c_str());
+      const Lst_p lt1 = Parser::tryParseObj(form).value();
+      TEST_ASSERT_EQUAL(OType::LST, lt1->o_type());
+      TEST_ASSERT_EQUAL_STRING("a", lt1->lst_get(share(Int(0)))->str_value().c_str());
+      TEST_ASSERT_EQUAL_INT(13, lt1->lst_get(share(Int(1)))->int_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor@127.0.0.1"), lt1->lst_get(share(Int(2)))->uri_value());
+      TEST_ASSERT_FALSE(lt1->lst_get(share(Int(3)))->bool_value());
+    }
+  }
+
   void test_rec_parsing() {
     // REC
     List<string> forms = {"['a'=>13,actor@127.0.0.1=>false]",
@@ -159,11 +180,11 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
     TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",
-                             FOS_DEFAULT_PRINTER::singleton()->strip(rc2->toString().c_str()));
+                             GLOBAL_OPTIONS->printer<>()->strip(rc2->toString().c_str()));
 
     ////// match testing
     Fluent(
-        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("__(0).define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
+        FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
     FOS_CHECK_RESULTS<Rec>({*Parser::tryParseObj("person[[name=>'fhat',age=>29]]").value()},
                            Fluent(Parser::tryParseObj("__([name=>'fhat',age=>29]).as(person)").value()), {}, false);
@@ -174,9 +195,9 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler::singleton();
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
-        Parser::tryParseObj("__(0).pub(127.0.0.1/kernel/scheduler/thread/abc,"
-                            "thread[[setup => __(0).print('setup complete'),"
-                            "        loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
+        Parser::tryParseObj("pub(127.0.0.1/kernel/scheduler/thread/abc,"
+                            "  thread[[setup => __(0).print('setup complete'),"
+                            "          loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
             .value());
     Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
     Scheduler::singleton()->barrier("wait");
@@ -191,7 +212,7 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Int>({0}, Fluent(Parser::tryParseObj("__(0).define(/int/even,mod(2).is(eq(0)))").value()), {},
+    FOS_CHECK_RESULTS<Int>({}, Fluent(Parser::tryParseObj("define(/int/even,mod(2).is(eq(0)))").value()), {},
                            false);
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::tryParseObj("__(32).as(even).type()").value()), {}, false);
     FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {},
@@ -206,17 +227,20 @@ namespace fhatos {
         GLOBAL_OPTIONS->ROUTING = router; //
         Scheduler::singleton(); //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::writeToCache("/int/zero", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/int/nat", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/int/z", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/rec/person", Insts::NO_OP_BCODE()); //
+        Types::writeToCache("/int/zero", Obj::to_bcode({})); //
+        Types::writeToCache("/int/nat", Obj::to_bcode({})); //
+        Types::writeToCache("/int/z", Obj::to_bcode({})); //
+        Types::writeToCache("/rec/person", Obj::to_bcode({})); //
         Types::singleton()->registerTypeSet(Types::TYPE_SET::PROCESS); //
         // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
-        // Types<>::addToCache("/int/even")), Insts::NO_OP_BCODE());
-        Types::writeToCache("/rec/atype", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/rec/btype", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/rec/ctype", Insts::NO_OP_BCODE()); //
-        Types::writeToCache("/bool/abool", Insts::NO_OP_BCODE()); //
+        // Types<>::addToCache("/int/even")), Obj::to_bcode({}));
+        Types::writeToCache("/lst/atype", Obj::to_bcode({})); //
+        Types::writeToCache("/lst/btype", Obj::to_bcode({})); //
+        Types::writeToCache("/lst/ctype", Obj::to_bcode({})); //
+        Types::writeToCache("/rec/atype", Obj::to_bcode({})); //
+        Types::writeToCache("/rec/btype", Obj::to_bcode({})); //
+        Types::writeToCache("/rec/ctype", Obj::to_bcode({})); //
+        Types::writeToCache("/bool/abool", Obj::to_bcode({})); //
         //  FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //
@@ -226,6 +250,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_real_parsing); //
         FOS_RUN_TEST(test_uri_parsing); //
         FOS_RUN_TEST(test_str_parsing); //
+        FOS_RUN_TEST(test_lst_parsing); //
         FOS_RUN_TEST(test_rec_parsing); //
         FOS_RUN_TEST(test_nested_bytecode_parsing); //
         FOS_RUN_TEST(test_define_as_parsing); //

@@ -13,29 +13,29 @@
 namespace fhatos {
   void test_threads() {
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("thread/abc/thread-1")->size());
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->spawn(new Thread("abc/thread-1"));
+    Scheduler::singleton()->spawn(new Thread("thread/abc/thread-1"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-1")->size());
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->spawn(new Thread("abc/thread-2"));
+    Scheduler::singleton()->spawn(new Thread("thread/abc/thread-2"));
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("abc/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("abc/thread-2")->size());
-    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->find("abc/+")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("+/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("+/thread-2")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-2")->size());
+    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->find("thread/abc/+")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/+/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/+/thread-2")->size());
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->destroy("abc/thread-1");
-    Scheduler::singleton()->barrier("thread-1_dead", [] { return Scheduler::singleton()->count("abc/thread-1") == 0; });
+    Scheduler::singleton()->destroy("thread/abc/thread-1");
+    Scheduler::singleton()->barrier("thread-1_dead", [] { return Scheduler::singleton()->count("thread/abc/thread-1") == 0; });
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("abc/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("abc/thread-2")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("abc/+")->size());
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("+/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("+/thread-2")->size());
-    Scheduler::singleton()->destroy("abc/thread-2");
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("thread/abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-2")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/+")->size());
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("thread/+/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/+/thread-2")->size());
+    Scheduler::singleton()->destroy("thread/abc/thread-2");
     Scheduler::singleton()->barrier("thread-2_dead");
   }
 
