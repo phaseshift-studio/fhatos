@@ -106,11 +106,19 @@ namespace fhatos {
   ///////////////////////
   /// CONTAINER TYPES ///
   ///////////////////////
+  template<typename A>
+  using ptr = std::shared_ptr<A>;
+  template<typename A>
+  ptr<A> share(const A a) {
+    return std::make_shared<A>(a);
+  }
   using Any = std::any;
   template<typename A>
   using Option = std::optional<A>;
   template<typename A>
   using List = std::vector<A>;
+  template<typename A>
+  using List_p = ptr<List<A>>;
   template<typename A>
   using Set = std::set<A>;
   template<typename A>
@@ -128,13 +136,6 @@ namespace fhatos {
   template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
   using OrderedMap = tsl::ordered_map<K, V, H, E>;
 
-  template<typename A>
-  using ptr = std::shared_ptr<A>;
-
-  template<typename A>
-  ptr<A> share(const A a) {
-    return std::make_shared<A>(a);
-  }
 
   using string = std::string;
   using fbyte = uint8_t;

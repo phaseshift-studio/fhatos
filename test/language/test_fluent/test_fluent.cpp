@@ -140,8 +140,10 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).plus(u("/a")).plus(u("/b")));
     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b")));
     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b/")));
-    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//../b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b/")));
-     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//../b/.")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b")).plus(u(".")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//../b/")},
+                           __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b/")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//../b/.")},
+                           __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b")).plus(u(".")));
     //
     FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b", "fhat.pig/a/b"},
                            __(List<Obj>{"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));
@@ -159,6 +161,11 @@ namespace fhatos {
     // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b/")));
     // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b")));
     // FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}}));
+  }
+
+  void test_count() {
+    FOS_CHECK_RESULTS<Uri>({3}, __(List<Obj>{5, 4, 7}).plus(2).count());
+    FOS_CHECK_RESULTS<Uri>({1}, __(List<Obj>{5, 4, 7}).plus(2).count().count());
   }
 
   /* void test_where() { FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13)))); }*/
@@ -198,6 +205,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //
+        FOS_RUN_TEST(test_count); //
         FOS_RUN_TEST(test_relational_predicates); //
         FOS_RUN_TEST(test_define_as_type); //
       })

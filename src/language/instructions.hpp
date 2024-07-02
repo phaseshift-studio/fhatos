@@ -149,7 +149,7 @@ namespace fhatos {
             Types::writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },
-          IType::ZERO_TO_ONE);
+          IType::ZERO_TO_ONE, Obj::to_noobj());
     }
 
     static Obj_p as(const Uri_p &type) {
@@ -227,7 +227,8 @@ namespace fhatos {
     }
     static Int_p count() {
       return Obj::to_inst(
-          "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value().size()); }, IType::MANY_TO_ONE);
+          "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
+          Obj::to_objs(List<Obj_p>{}));
     }
 
     static Objs_p barrier(const BCode_p &bcode) {
@@ -246,6 +247,8 @@ namespace fhatos {
         return Insts::filter(args.at(0));
       if (type == INST_FURI->resolve("side"))
         return Insts::side(args.at(0));
+      if (type == INST_FURI->resolve("count"))
+        return Insts::count();
       if (type == INST_FURI->resolve("noop"))
         return Insts::noop();
       if (type == INST_FURI->resolve("as"))

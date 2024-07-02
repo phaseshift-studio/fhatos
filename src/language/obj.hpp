@@ -161,7 +161,6 @@ namespace fhatos {
                                                  {OType::INST, share(fURI("/inst/"))},
                                                  {OType::BCODE, share(fURI("/bcode/"))},
                                                  {OType::TYPE, share(fURI("/type/"))}}};
-
   static const fURI_p OBJ_FURI = fURI_p(new fURI("/obj/"));
   static const fURI_p NOOBJ_FURI = fURI_p(new fURI("/noobj/"));
   static const fURI_p TYPE_FURI = fURI_p(new fURI("/type/"));
@@ -235,7 +234,7 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
     using InstArgs = List<Obj_p>;
     using InstFunction = Function<Obj_p, Obj_p>;
-    using InstSeed = Any;
+    using InstSeed = Obj_p;
     using InstQuad = Quadruple<InstArgs, InstFunction, IType, InstSeed>;
     using InstList = List<Inst_p>;
     using InstList_p = ptr<InstList>;
@@ -299,10 +298,14 @@ namespace fhatos {
     const VALUE value() const {
       return std::any_cast<VALUE>(this->_value);
     }
-    List<Obj_p> objs_value() const {
-      if (this->o_type() != OType::OBJS)
-        throw TYPE_ERROR(this, __LINE__);
-      return this->value<List<Obj_p>>();
+    List_p<Obj_p> objs_value() const {
+      try {
+        if (this->o_type() != OType::OBJS)
+          throw TYPE_ERROR(this, __LINE__);
+        return this->value<List_p<Obj_p>>();
+      } catch (std::exception &) {
+        throw;
+      }
     }
     const bool bool_value() const {
       if (this->o_type() != OType::BOOL)
@@ -378,10 +381,7 @@ namespace fhatos {
 
     const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
     const IType inst_itype() const { return std::get<2>(this->inst_value()); }
-    template<typename T>
-    const InstSeed inst_seed() const {
-      return std::get<3>(this->inst_value());
-    }
+    const Obj_p inst_seed() const { return std::get<3>(this->inst_value()); }
     List<Obj_p> bcode_value() const {
       if (this->o_type() == OType::NOOBJ)
         return {};
@@ -477,7 +477,7 @@ namespace fhatos {
         case OType::OBJS: {
           objString += "!m<!!";
           bool first = true;
-          for (const auto &obj: this->objs_value()) {
+          for (const auto &obj: *this->objs_value()) {
             if (first) {
               first = false;
             } else {
@@ -957,18 +957,27 @@ namespace fhatos {
 
     static Inst_p to_inst(const InstQuad &value, const fURI_p &furi = INST_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::INST));
-      return share(Obj(value, furi));
+      return share(Inst(value, furi));
     }
 
     static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunction &function,
-                          const IType itype, const Any seed = Any(nullptr), const fURI_p &furi = nullptr) {
+                          const IType itype, const Obj_p seed = Obj::to_noobj(), const fURI_p &furi = nullptr) {
       const fURI_p fix = !furi ? share(fURI(string("/inst/") + opcode)) : furi;
       return to_inst({args, function, itype, seed}, fix);
     }
 
-    static BCode_p to_bcode(const List<Obj_p> &insts, const fURI_p &furi = BCODE_FURI) {
+    static BCode_p to_bcode(const List<Inst_p> &insts, const fURI_p &furi = BCODE_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::BCODE));
-      return share(Obj(insts, furi));
+      return share(BCode(insts, furi));
+    }
+
+    static Objs_p to_objs(const List_p<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {
+      assert(furi->path(0, 1) == OTYPE_STR.at(OType::OBJS));
+      return share(Objs(objs, furi));
+    }
+
+    static Objs_p to_objs(const List<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {
+      return Obj::to_objs(share(objs), furi);
     }
 
     const ptr<BObj> serialize() const {

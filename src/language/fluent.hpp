@@ -115,6 +115,7 @@ namespace fhatos {
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
+    Fluent count() { return this->addInst(Insts::count()); };
     Fluent to(const Uri &uri) { return this->addInst(Insts::to(share(uri))); }
     Fluent from(const Uri &uri) { return this->addInst(Insts::from(share(uri))); }
 
@@ -128,9 +129,7 @@ namespace fhatos {
     //////////////////////////// BRANCHING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) {
-      return this->bswitch(Rec(recPairs));
-    }
+    Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) { return this->bswitch(Rec(recPairs)); }
 
     Fluent bswitch(const Rec &branches) { return this->addInst(Insts::bswitch(share(branches))); }
 
