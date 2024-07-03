@@ -157,8 +157,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="comment">          return Obj::to_noobj();;</span></div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="comment">        }</span></div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="comment">        default: {</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="comment">          throw fError(&quot;Algebra doesn&#39;t define %s + %s&quot;, OTYPE_STR.at(incoming-&gt;o_range()),</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="comment">                       OTYPE_STR.at(control-&gt;o_domain()));</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="comment">          throw fError(&quot;Algebra doesn&#39;t define %s + %s&quot;, OTypes.toChars(incoming-&gt;o_range()),</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="comment">                       OTypes.toChars(control-&gt;o_domain()));</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="comment">        }</span></div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="comment">      }</span></div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="comment">    }</span></div>
@@ -194,7 +194,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>            case OType::STR:</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>              return ptr&lt;Obj&gt;(new Bool(((Str *) lhs.get())-&gt;value() &gt; ((Str *) rhs.get())-&gt;value()));</div>
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>            default:</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTYPE_STR.at(lhs-&gt;otype()), REL_TO_STR(rel));</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTypes.toChars(lhs-&gt;otype()), REL_TO_STR(rel));</div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>          }</div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        }</div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        case RELATION_PREDICATE::GTE: {</div>
@@ -209,7 +209,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>            case OType::STR:</div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>              return ptr&lt;Obj&gt;(new Bool(((Str *) lhs.get())-&gt;value() &gt;= ((Str *) rhs.get())-&gt;value()));</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>            default:</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTYPE_STR.at(lhs-&gt;otype()), REL_TO_STR(rel));</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTypes.toChars(lhs-&gt;otype()), REL_TO_STR(rel));</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>          }</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>        }</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        case RELATION_PREDICATE::LT: {</div>
@@ -224,7 +224,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>            case OType::STR:</div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>              return ptr&lt;Obj&gt;(new Bool(((Str *) lhs.get())-&gt;value() &lt; ((Str *) rhs.get())-&gt;value()));</div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>            default:</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTYPE_STR.at(lhs-&gt;otype()), REL_TO_STR(rel));</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTypes.toChars(lhs-&gt;otype()), REL_TO_STR(rel));</div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>          }</div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>        }</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>        case RELATION_PREDICATE::LTE: {</div>
@@ -239,11 +239,11 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>            case OType::STR:</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>              return ptr&lt;Obj&gt;(new Bool(((Str *) lhs.get())-&gt;value() &lt;= ((Str *) rhs.get())-&gt;value()));</div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>            default:</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTYPE_STR.at(lhs-&gt;otype()), REL_TO_STR(rel));</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>              throw fError(&quot;Unable to relate %s by %s\n&quot;, OTypes.toChars(lhs-&gt;otype()), REL_TO_STR(rel));</div>
 <div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>          }</div>
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>        }</div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>        default: {</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>          throw fError(&quot;Algebra doesn&#39;t define %s + %s&quot;, OTYPE_STR.at(lhs-&gt;otype()), OTYPE_STR.at(rhs-&gt;otype()));</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>          throw fError(&quot;Algebra doesn&#39;t define %s + %s&quot;, OTypes.toChars(lhs-&gt;otype()), OTypes.toChars(rhs-&gt;otype()));</div>
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        }</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      }</div>
 <div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    }</div>
@@ -289,7 +289,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>              return castLHS-&gt;split(castLHS-&gt;value().append(castRHS-&gt;value()));</div>
 <div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>            }</div>
 <div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>            default: {</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>              throw fError(&quot;Algebra doesn&#39;t define %s + %s&quot;, OTYPE_STR.at(lhs-&gt;otype()), OTYPE_STR.at(rhs-&gt;otype()));</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>              throw fError(&quot;Algebra doesn&#39;t define %s + %s&quot;, OTypes.toChars(lhs-&gt;otype()), OTypes.toChars(rhs-&gt;otype()));</div>
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>            }</div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>          }</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        }</div>
@@ -324,7 +324,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>              return ptr&lt;Rec&gt;(rec);</div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>            }</div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>            default: {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>              throw fError(&quot;Algebra doesn&#39;t define %s * %s&quot;, OTYPE_STR.at(lhs-&gt;otype()), OTYPE_STR.at(rhs-&gt;otype()));</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>              throw fError(&quot;Algebra doesn&#39;t define %s * %s&quot;, OTypes.toChars(lhs-&gt;otype()), OTypes.toChars(rhs-&gt;otype()));</div>
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>            }</div>
 <div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>          }</div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>          case COMPOSITION_OPERATOR::MOD: {</div>
@@ -332,14 +332,14 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>              case OType::INT:</div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>                return ((Int *) lhs.get())-&gt;split(((Int *) lhs.get())-&gt;value() % ((Int *) rhs.get())-&gt;value());</div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>              default: {</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>                throw fError(&quot;Algebra doesn&#39;t define %s %% %s&quot;, OTYPE_STR.at(lhs-&gt;otype()), OTYPE_STR.at(rhs-&gt;otype()));</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>                throw fError(&quot;Algebra doesn&#39;t define %s %% %s&quot;, OTypes.toChars(lhs-&gt;otype()), OTypes.toChars(rhs-&gt;otype()));</div>
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>              }</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>            }</div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>          }</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>        }</div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        default: {</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>          throw fError(&quot;Algebra does not support composition %s on %s&quot;, COMP_TO_STR(comp), OTYPE_STR.at(lhs-&gt;otype()),</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>                       OTYPE_STR.at(rhs-&gt;otype()));</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>          throw fError(&quot;Algebra does not support composition %s on %s&quot;, COMP_TO_STR(comp), OTypes.toChars(lhs-&gt;otype()),</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>                       OTypes.toChars(rhs-&gt;otype()));</div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        }</div>
 <div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>      }</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    }</div>

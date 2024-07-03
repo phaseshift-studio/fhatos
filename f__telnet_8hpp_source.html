@@ -191,7 +191,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>              (line.length() == 2) ? <span class="stringliteral">&quot;&quot;</span> : line.substring(2).c_str();</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>          BinaryObj&lt;&gt; conversion = BinaryObj&lt;&gt;::interpret(payload);</div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>          LOG(DEBUG, <span class="stringliteral">&quot;Telnet publishing: %s::%s\n&quot;</span>,</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>              OTYPE_STR.at(conversion.type()),</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>              OTypes.toChars(conversion.type()),</div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>              conversion.toString().c_str());</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>          tthis-&gt;publish(*tthis-&gt;currentTopic, &amp;conversion, TRANSIENT_MESSAGE);</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (line.startsWith(<span class="stringliteral">&quot;?&quot;</span>)) {</div>
@@ -304,8 +304,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Actor_html"><div class="ttname"><a href="classfhatos_1_1Actor.html">fhatos::Actor</a></div><div class="ttdef"><b>Definition</b> actor.hpp:34</div></div>
 <div class="ttc" id="aclassfhatos_1_1Ansi_html"><div class="ttname"><a href="classfhatos_1_1Ansi.html">fhatos::Ansi</a></div><div class="ttdef"><b>Definition</b> ansi.hpp:47</div></div>
-<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:408</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:202</div></div>
+<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:410</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:188</div></div>
 <div class="ttc" id="aclassfhatos_1_1Parser_html"><div class="ttname"><a href="classfhatos_1_1Parser.html">fhatos::Parser</a></div><div class="ttdef"><b>Definition</b> parser.hpp:32</div></div>
 <div class="ttc" id="aclassfhatos_1_1fTelnet_html"><div class="ttname"><a href="classfhatos_1_1fTelnet.html">fhatos::fTelnet</a></div><div class="ttdef"><b>Definition</b> f_telnet.hpp:40</div></div>
 <div class="ttc" id="aclassfhatos_1_1fTelnet_html_a08c78fe7a10f337792baa9e008d05ae2"><div class="ttname"><a href="classfhatos_1_1fTelnet.html#a08c78fe7a10f337792baa9e008d05ae2">fhatos::fTelnet::setup</a></div><div class="ttdeci">virtual void setup() override</div><div class="ttdoc">PROCESS METHODS.</div><div class="ttdef"><b>Definition</b> f_telnet.hpp:62</div></div>

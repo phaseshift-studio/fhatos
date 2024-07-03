@@ -257,7 +257,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  <span class="keywordflow">if</span> (printResult) {</div>
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    <span class="keywordtype">int</span> index = 0;</div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;obj: *result) {</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>      FOS_TEST_MESSAGE(FOS_TAB_2 <span class="stringliteral">&quot;!g=%i!!=&gt;%s [!y%s!!]&quot;</span>, index++, obj-&gt;toString().c_str(), OTYPE_STR.at(obj-&gt;o_type()));</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>      FOS_TEST_MESSAGE(FOS_TAB_2 <span class="stringliteral">&quot;!g=%i!!=&gt;%s [!y%s!!]&quot;</span>, index++, obj-&gt;toString().c_str(), OTypes.toChars(obj-&gt;o_type()));</div>
 <div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    }</div>
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  }</div>
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  <span class="keywordflow">return</span> result;</div>
@@ -284,7 +284,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span><span class="keyword">static</span> <span class="keyword">const</span> T *FOS_PRINT_OBJ(<span class="keyword">const</span> T *obj) {</div>
 <div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  FOS_TEST_MESSAGE(<span class="stringliteral">&quot;!yTesting!!: %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]&quot;</span>, obj-&gt;toString().c_str(),</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>                   obj-&gt;id()-&gt;toString().c_str(), OTYPE_STR.at(obj-&gt;o_type()), obj-&gt;id()-&gt;toString().c_str());</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>                   obj-&gt;id()-&gt;toString().c_str(), OTypes.toChars(obj-&gt;o_type()), obj-&gt;id()-&gt;toString().c_str());</div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  <span class="keywordflow">return</span> obj;</div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>}</div>
 <div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span> </div>
@@ -340,9 +340,9 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>}</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:29</div></div>
-<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:408</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:202</div></div>
-<div class="ttc" id="aclassfhatos_1_1Router_html"><div class="ttname"><a href="classfhatos_1_1Router.html">fhatos::Router</a></div><div class="ttdef"><b>Definition</b> router.hpp:137</div></div>
+<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:410</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:188</div></div>
+<div class="ttc" id="aclassfhatos_1_1Router_html"><div class="ttname"><a href="classfhatos_1_1Router.html">fhatos::Router</a></div><div class="ttdef"><b>Definition</b> router.hpp:140</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 <div class="ttc" id="astructfhatos_1_1Subscription_html"><div class="ttname"><a href="structfhatos_1_1Subscription.html">fhatos::Subscription</a></div><div class="ttdef"><b>Definition</b> router.hpp:74</div></div>
 </div><!-- fragment --></div><!-- contents -->

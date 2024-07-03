@@ -160,12 +160,12 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>          this-&gt;_destroy(threadId);</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>          if (obj-&gt;o_type() != OType::REC) {</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>            LOG(ERROR, <span class="stringliteral">&quot;Provided obj must be a /rec/thread: %s\n&quot;</span>, OTYPE_STR.at(obj-&gt;o_type()));</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>            LOG(ERROR, <span class="stringliteral">&quot;Provided obj must be a /rec/thread: %s\n&quot;</span>, OTypes.toChars(obj-&gt;o_type()));</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>          } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            const auto b = new fBcode&lt;Thread&gt;(threadId, obj);</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            if (!this-&gt;spawn(b)) {</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>              LOG_TASK(ERROR, this, <span class="stringliteral">&quot;Process obj %s can not be spawned: [stype:%s][utype:%s]\n&quot;</span>,</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                       OTYPE_STR.at(message-&gt;payload-&gt;o_type()), message-&gt;payload-&gt;id()-&gt;toString().c_str());</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                       OTypes.toChars(message-&gt;payload-&gt;o_type()), message-&gt;payload-&gt;id()-&gt;toString().c_str());</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>            }</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>          }</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        };</div>
@@ -322,12 +322,12 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
 <div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1AbstractScheduler_html"><div class="ttname"><a href="classfhatos_1_1AbstractScheduler.html">fhatos::AbstractScheduler</a></div><div class="ttdef"><b>Definition</b> abstract_scheduler.hpp:37</div></div>
-<div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:466</div></div>
+<div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:468</div></div>
 <div class="ttc" id="aclassfhatos_1_1MutexDeque_html"><div class="ttname"><a href="classfhatos_1_1MutexDeque.html">fhatos::MutexDeque</a></div><div class="ttdef"><b>Definition</b> mutex_deque.hpp:28</div></div>
 <div class="ttc" id="aclassfhatos_1_1MutexRW_html"><div class="ttname"><a href="classfhatos_1_1MutexRW.html">fhatos::MutexRW</a></div><div class="ttdef"><b>Definition</b> mutex_rw.hpp:28</div></div>
 <div class="ttc" id="aclassfhatos_1_1Publisher_html"><div class="ttname"><a href="classfhatos_1_1Publisher.html">fhatos::Publisher</a></div><div class="ttdef"><b>Definition</b> publisher.hpp:27</div></div>
 <div class="ttc" id="aclassfhatos_1_1Publisher_html_a77d46f9dd75a1aa5f74152544f2f49f0"><div class="ttname"><a href="classfhatos_1_1Publisher.html#a77d46f9dd75a1aa5f74152544f2f49f0">fhatos::Publisher::subscribe</a></div><div class="ttdeci">virtual RESPONSE_CODE subscribe(const Pattern &amp;relativePattern, const Consumer&lt; const ptr&lt; Message &gt; &amp; &gt; &amp;onRecv, const QoS qos=QoS::_1)</div><div class="ttdoc">SUBSCRIBE.</div><div class="ttdef"><b>Definition</b> publisher.hpp:39</div></div>
-<div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:100</div></div>
+<div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:102</div></div>
 <div class="ttc" id="astructfhatos_1_1Mailbox_html"><div class="ttname"><a href="structfhatos_1_1Mailbox.html">fhatos::Mailbox</a></div><div class="ttdef"><b>Definition</b> mailbox.hpp:26</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
