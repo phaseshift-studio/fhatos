@@ -64,12 +64,12 @@ namespace fhatos {
           this->_destroy(threadId);
         } else {
           if (obj->o_type() != OType::REC) {
-            LOG(ERROR, "Provided obj must be a /rec/thread: %s\n", OTYPE_STR.at(obj->o_type()));
+            LOG(ERROR, "Provided obj must be a /rec/thread: %s\n", OTypes.toChars(obj->o_type()));
           } else {
             const auto b = new fBcode<Thread>(threadId, obj);
             if (!this->spawn(b)) {
               LOG_TASK(ERROR, this, "Process obj %s can not be spawned: [stype:%s][utype:%s]\n",
-                       OTYPE_STR.at(message->payload->o_type()), message->payload->id()->toString().c_str());
+                       OTypes.toChars(message->payload->o_type()), message->payload->id()->toString().c_str());
             }
           }
         };

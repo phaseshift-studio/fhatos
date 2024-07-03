@@ -95,6 +95,8 @@ namespace private_fhatos {
 ///////////////////////////
 
 // furi://coil@127.0.0.1/devices/device/property
+// furi:/int/age
+// furi://127.0.01/car/wheel/
 
 namespace fhatos {
   class fURI {

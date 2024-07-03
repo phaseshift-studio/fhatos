@@ -178,12 +178,12 @@ namespace fhatos {
       (inst)->opcode().c_str(),                                                                                        \
       (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
                                : (inst)->v_args().at(0)->type()->v_furi()->toString().c_str(),                         \
-      (inst)->v_args().empty() ? OTYPE_STR.at(OType::NOOBJ) : OTYPE_STR.at((inst)->v_args().at(0)->otype()),           \
+      (inst)->v_args().empty() ? OTypes.toChars(OType::NOOBJ) : OTypes.toChars((inst)->v_args().at(0)->otype()),           \
       (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->isBytecode()),                         \
       (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
 #define FOS_LOG_OBJ(obj)                                                                                               \
   LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
-      OTYPE_STR.at((obj)->otype()), (obj)->type()->toString().c_str());
+      OTypes.toChars((obj)->otype()), (obj)->type()->toString().c_str());
 #define NOTE(message) LOG(INFO, "%s\n", (message))
 
 

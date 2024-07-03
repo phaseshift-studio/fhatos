@@ -75,8 +75,8 @@ namespace fhatos {
   protected:
     const BCode_p bcode;
     List<Monad_p> *running = new List<Monad_p>();
-    List<Obj_p> *halted = new List<Obj_p>();
     Deque<Monad_p> *barriers = new Deque<Monad_p>();
+    List<Obj_p> *halted = new List<Obj_p>();
 
   public:
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
@@ -120,16 +120,15 @@ namespace fhatos {
           const ptr<Monad> monad = this->running->back();
           this->running->pop_back();
           if (monad->halted()) {
-            LOG(DEBUG_MORE, FOS_TAB_5 "!gHalting!! monad: %s\n", monad->toString().c_str());
+            LOG(TRACE, FOS_TAB_5 "!gHalting!! monad: %s\n", monad->toString().c_str());
             this->halted->push_back(monad->obj());
           } else {
             if (Insts::isBarrier(monad->inst())) {
               /// MANY-TO-? BARRIER PROCESSING
-              LOG(DEBUG_MORE, "Adding to barrier: %s => %s\n", monad->toString().c_str(),
-                  monad->inst()->toString().c_str());
+              LOG(TRACE, "Adding to barrier: %s => %s\n", monad->toString().c_str(), monad->inst()->toString().c_str());
               this->barriers->front()->obj()->objs_value()->push_back(monad->obj());
             } else {
-              LOG(DEBUG_MORE, FOS_TAB_5 "!gSplitting!! monad: %s\n", monad->toString().c_str());
+              LOG(TRACE, FOS_TAB_5 "!gSplitting!! monad: %s\n", monad->toString().c_str());
               monad->split(this->bcode, this->running);
             }
           }

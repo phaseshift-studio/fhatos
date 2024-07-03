@@ -87,7 +87,7 @@ namespace fhatos {
       return Option<Obj_p>();
     }
     bool test(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) noexcept(false) {
-      const OType typeOType = STR_OTYPE.at(typeId.path(0, 1));
+      const OType typeOType = OTypes.toEnum(typeId.path(0, 1).c_str());
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;
       if (otype != typeOType) {

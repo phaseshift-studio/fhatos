@@ -53,14 +53,10 @@ namespace fhatos {
             return;
           } else if (strstr(line.c_str(), ":log")) {
             if (line.length() < 6) {
-              this->printResult(Obj::to_str(LOGTYPE_STR.at((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
+              this->printResult(Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
             } else {
               string level = line.substr(5);
-              if (!STR_LOGTYPE.count(level)) {
-                this->printException(fError("Invalid log level (NONE,DEBUG,INFO,ERROR): %s\n", level.c_str()));
-              } else {
-                GLOBAL_OPTIONS->LOGGING = STR_LOGTYPE.at(level);
-              }
+              GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(level.c_str());
             }
           } else if (strstr(line.c_str(), ":router")) {
             if (line.length() < 9) {

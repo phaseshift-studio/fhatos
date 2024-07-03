@@ -24,33 +24,33 @@
 #include <process/actor/mailbox.hpp>
 #include <process/router/message.hpp>
 #include <structure/furi.hpp>
+#include <util/enums.hpp>
 #ifndef NATIVE
 #include <structure/io/net/f_wifi.hpp>
 #endif
 #include FOS_PROCESS(thread.hpp)
 
-#include <util/obj_helper.hpp>
 
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",     \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",    \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
       (subscription)->pattern.toString().c_str(),                                                                      \
       (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                 \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",              \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
       ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
-  LOG(((rc) == OK ? DEBUG : ERROR),                                                                                     \
+  LOG(((rc) == OK ? DEBUG : ERROR),                                                                                    \
       (((subscription).pattern.equals((message).target))                                                               \
            ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!m=[!b%s!m]!!\n"                              \
            : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!m=[!b%s!m]!!\n"),                            \
@@ -133,7 +133,10 @@ namespace fhatos {
   { return RESPONSE_CODE::OK; }
 
   enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2 };
-
+  static const Enums<ROUTER_LEVEL> ROUTER_LEVELS =
+      Enums<ROUTER_LEVEL>({{ROUTER_LEVEL::BCODE_ROUTER, "bcode_router"},
+                                {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
+                                {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"}});
   class Router {
   protected:
     Router(const ROUTER_LEVEL level) : _level(level) {}

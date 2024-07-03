@@ -63,8 +63,8 @@ namespace fhatos {
           return Obj::to_noobj();;
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(incoming->o_range()),
-                       OTYPE_STR.at(control->o_domain()));
+          throw fError("Algebra doesn't define %s + %s", OTypes.toChars(incoming->o_range()),
+                       OTypes.toChars(control->o_domain()));
         }
       }
     }
@@ -103,7 +103,7 @@ namespace fhatos {
             case OType::STR:
               return ptr<Obj>(new Bool(((Str *) lhs.get())->value() > ((Str *) rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTypes.toChars(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::GTE: {
@@ -118,7 +118,7 @@ namespace fhatos {
             case OType::STR:
               return ptr<Obj>(new Bool(((Str *) lhs.get())->value() >= ((Str *) rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTypes.toChars(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LT: {
@@ -133,7 +133,7 @@ namespace fhatos {
             case OType::STR:
               return ptr<Obj>(new Bool(((Str *) lhs.get())->value() < ((Str *) rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTypes.toChars(lhs->otype()), REL_TO_STR(rel));
           }
         }
         case RELATION_PREDICATE::LTE: {
@@ -148,11 +148,11 @@ namespace fhatos {
             case OType::STR:
               return ptr<Obj>(new Bool(((Str *) lhs.get())->value() <= ((Str *) rhs.get())->value()));
             default:
-              throw fError("Unable to relate %s by %s\n", OTYPE_STR.at(lhs->otype()), REL_TO_STR(rel));
+              throw fError("Unable to relate %s by %s\n", OTypes.toChars(lhs->otype()), REL_TO_STR(rel));
           }
         }
         default: {
-          throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
+          throw fError("Algebra doesn't define %s + %s", OTypes.toChars(lhs->otype()), OTypes.toChars(rhs->otype()));
         }
       }
     }
@@ -201,7 +201,7 @@ namespace fhatos {
               return castLHS->split(castLHS->value().append(castRHS->value()));
             }
             default: {
-              throw fError("Algebra doesn't define %s + %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
+              throw fError("Algebra doesn't define %s + %s", OTypes.toChars(lhs->otype()), OTypes.toChars(rhs->otype()));
             }
           }
         }
@@ -236,7 +236,7 @@ namespace fhatos {
               return ptr<Rec>(rec);
             }
             default: {
-              throw fError("Algebra doesn't define %s * %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
+              throw fError("Algebra doesn't define %s * %s", OTypes.toChars(lhs->otype()), OTypes.toChars(rhs->otype()));
             }
           }
           case COMPOSITION_OPERATOR::MOD: {
@@ -244,14 +244,14 @@ namespace fhatos {
               case OType::INT:
                 return ((Int *) lhs.get())->split(((Int *) lhs.get())->value() % ((Int *) rhs.get())->value());
               default: {
-                throw fError("Algebra doesn't define %s %% %s", OTYPE_STR.at(lhs->otype()), OTYPE_STR.at(rhs->otype()));
+                throw fError("Algebra doesn't define %s %% %s", OTypes.toChars(lhs->otype()), OTypes.toChars(rhs->otype()));
               }
             }
           }
         }
         default: {
-          throw fError("Algebra does not support composition %s on %s", COMP_TO_STR(comp), OTYPE_STR.at(lhs->otype()),
-                       OTYPE_STR.at(rhs->otype()));
+          throw fError("Algebra does not support composition %s on %s", COMP_TO_STR(comp), OTypes.toChars(lhs->otype()),
+                       OTypes.toChars(rhs->otype()));
         }
       }
     }

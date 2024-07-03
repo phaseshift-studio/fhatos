@@ -61,27 +61,6 @@ namespace fhatos {
       }
       return true;
     }
-
-    /*
-      *   static bool lookAhead(const string token, std::stringstream *ss, const bool replace = false) {
-            string capture = "";
-            for (int i = 0; i < token.size(); i++) {
-              if (token[i] != ss->peek()) {
-                for (int j = 0; j <= i; j++) {
-                  ss += token[j];
-                }
-                return false;
-              }
-              capture += ss->get();
-            }
-            if (replace) {
-              for (int j = 0; j < capture.size(); j++) {
-                ss += capture[j];
-              }
-            }
-            return true;
-          }
-     */
   };
 } // namespace fhatos
 

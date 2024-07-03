@@ -78,6 +78,19 @@ namespace fhatos {
     /// A valueless obj
     TYPE
   };
+  static const Enums<OType> OTypes = Enums<OType>({{OType::OBJ, "obj"},
+                                                             {OType::NOOBJ, "noobj"},
+                                                             {OType::OBJS, "objs"},
+                                                             {OType::BOOL, "bool"},
+                                                             {OType::INT, "int"},
+                                                             {OType::REAL, "real"},
+                                                             {OType::URI, "uri"},
+                                                             {OType::STR, "str"},
+                                                             {OType::LST, "lst"},
+                                                             {OType::REC, "rec"},
+                                                             {OType::INST, "inst"},
+                                                             {OType::BCODE, "bcode"},
+                                                             {OType::TYPE, "type"}});
 
   class Obj;
   using Obj_p = ptr<Obj>;
@@ -138,33 +151,6 @@ namespace fhatos {
   using InstValue = Quadruple<InstArgs, InstFunction, IType, InstSeed>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-
-  static const Map<OType, const char *> OTYPE_STR = {{{OType::NOOBJ, "noobj"},
-                                                      {OType::OBJ, "obj"},
-                                                      {OType::OBJS, "objs"},
-                                                      {OType::URI, "uri"},
-                                                      {OType::BOOL, "bool"},
-                                                      {OType::INT, "int"},
-                                                      {OType::REAL, "real"},
-                                                      {OType::STR, "str"},
-                                                      {OType::LST, "lst"},
-                                                      {OType::REC, "rec"},
-                                                      {OType::INST, "inst"},
-                                                      {OType::BCODE, "bcode"},
-                                                      {OType::TYPE, "type"}}};
-  static const Map<string, OType> STR_OTYPE = {{{"noobj", OType::NOOBJ},
-                                                {"obj", OType::OBJ},
-                                                {"objs", OType::OBJS},
-                                                {"uri", OType::URI},
-                                                {"bool", OType::BOOL},
-                                                {"int", OType::INT},
-                                                {"real", OType::REAL},
-                                                {"str", OType::STR},
-                                                {"lst", OType::LST},
-                                                {"rec", OType::REC},
-                                                {"inst", OType::INST},
-                                                {"bcode", OType::BCODE},
-                                                {"type", OType::TYPE}}};
   static const Map<OType, fURI_p> OTYPE_FURI = {{{OType::NOOBJ, share(fURI("/noobj/"))},
                                                  {OType::OBJ, share(fURI("/obj/"))},
                                                  {OType::OBJS, share(fURI("/objs/"))},
@@ -237,11 +223,12 @@ namespace fhatos {
         throw;
       }
     }
-    explicit Obj(const Any &value, const fURI_p &typeId) : Obj(value, STR_OTYPE.at(typeId->path(0, 1)), *typeId) {}
+    explicit Obj(const Any &value, const fURI_p &typeId) :
+        Obj(value, OTypes.toEnum(typeId->path(0, 1).c_str()), *typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const int lineNumber = __LINE__) {
       // if(true) exit(1);
-      return fError("Unexpected internal value for %s [%s]\n", OTYPE_STR.at(obj->o_type()),
+      return fError("Unexpected internal value for %s [%s]\n", OTypes.toChars(obj->o_type()),
                     (string(__FILE__) + ":" + std::to_string(lineNumber)).c_str());
     }
     //////////////////////////////////////////////////////////////
@@ -283,7 +270,7 @@ namespace fhatos {
       }
     }*/
     //////////////////////////////////////////////////////////////
-    OType o_type() const { return STR_OTYPE.at(this->_id->path(0, 1)); }
+    OType o_type() const { return OTypes.toEnum(this->_id->path(0, 1).c_str()); }
     template<typename VALUE>
     const VALUE value() const {
       try {
@@ -479,7 +466,7 @@ namespace fhatos {
           break;
         }
         default:
-          throw fError("Unknown obj type in toString(): %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()));
       }
       objString =
           includeType
@@ -507,7 +494,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() > rhs.str_value();
         default:
-          throw fError("Unknown obj type in >: %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in >: %s\n", OTypes.toChars(this->o_type()));
       }
     }
     bool operator<(const Obj &rhs) const {
@@ -523,7 +510,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() < rhs.str_value();
         default:
-          throw fError("Unknown obj type in >: %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in >: %s\n", OTypes.toChars(this->o_type()));
       }
     }
     bool operator<=(const Obj &rhs) const { return *this == rhs || *this < rhs; }
@@ -562,7 +549,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()));
       }
     }
     Obj operator+(const Obj &rhs) const {
@@ -600,7 +587,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()));
       }
     }
     Obj operator-(const Obj &rhs) const {
@@ -636,7 +623,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("Unknown obj type in +: %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()));
       }
     }
     Obj operator%(const Obj &other) const { return Obj(this->int_value() % other.int_value(), this->id()); }
@@ -714,7 +701,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in ==: %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in ==: %s\n", OTypes.toChars(this->o_type()));
       }
     }
     bool isNoObj() const { return this->o_type() == OType::NOOBJ; }
@@ -768,7 +755,7 @@ namespace fhatos {
         case OType::NOOBJ:
           return Obj::to_noobj();
         default:
-          throw fError("Unknown obj type in apply(): %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in apply(): %s\n", OTypes.toChars(this->o_type()));
       }
     }
     const Obj_p
@@ -813,7 +800,7 @@ namespace fhatos {
             return false;
           auto itB = objsB->begin();
           for (const auto &itA: *objsA) {
-            LOG(DEBUG_MORE, "MATCHING: %s vs. %s\n", itA->toString().c_str(), (*itB)->toString().c_str());
+            LOG(TRACE, "MATCHING: %s vs. %s\n", itA->toString().c_str(), (*itB)->toString().c_str());
             if (!itA->match(*itB) || !itA->match(*itB))
               return false;
             ++itB;
@@ -827,7 +814,7 @@ namespace fhatos {
             return false;
           auto itB = pairsB->begin();
           for (const auto &itA: *pairsA) {
-            LOG(DEBUG_MORE, "MATCHING: %s vs. %s\n", itA.second->toString().c_str(), itB->second->toString().c_str());
+            LOG(TRACE, "MATCHING: %s vs. %s\n", itA.second->toString().c_str(), itB->second->toString().c_str());
             if (!itA.first->match(itB->first) || !itA.second->match(itB->second))
               return false;
             ++itB;
@@ -861,7 +848,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in match(): %s\n", OTYPE_STR.at(this->o_type()));
+          throw fError("Unknown obj type in match(): %s\n", OTypes.toChars(this->o_type()));
       }
       return false;
     }
@@ -885,42 +872,42 @@ namespace fhatos {
     static Obj_p to_noobj() { return share(Obj(nullptr, NOOBJ_FURI)); }
 
     static Bool_p to_bool(const bool value, const fURI_p &furi = BOOL_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::BOOL));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::BOOL));
       return share(Obj(value, furi));
     }
 
     static Int_p to_int(const FL_INT_TYPE value, const fURI_p &furi = INT_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::INT));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::INT));
       return share(Obj(value, furi));
     }
 
     static Real_p to_real(const FL_REAL_TYPE value, const fURI_p &furi = REAL_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::REAL));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::REAL));
       return share(Obj(value, furi));
     }
 
     static Str_p to_str(const string &value, const fURI_p &furi = STR_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::STR));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::STR));
       return share(Obj(Any(value), furi));
     }
 
     static Str_p to_str(const char *value, const fURI_p &furi = STR_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::STR));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::STR));
       return share(Obj(Any(string(value)), furi));
     }
 
     static Uri_p to_uri(const fURI &value, const fURI_p &furi = URI_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::URI));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::URI));
       return share(Obj(value, furi));
     }
 
     static Uri_p to_uri(const char *value, const fURI_p &furi = URI_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::URI));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::URI));
       return share(Obj(value, furi));
     }
 
     static Lst_p to_lst(const LstList_p<> &xlst, const fURI_p &furi = LST_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::LST));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::LST));
       return share(Obj(xlst, furi));
     }
 
@@ -933,7 +920,7 @@ namespace fhatos {
     }
 
     static Rec_p to_rec(const RecMap_p<> &map, const fURI_p &furi = REC_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::REC));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::REC));
       return share(Obj(map, furi));
     }
 
@@ -946,7 +933,7 @@ namespace fhatos {
     }
 
     static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::INST));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::INST));
       return share(Inst(value, furi));
     }
 
@@ -957,12 +944,12 @@ namespace fhatos {
     }
 
     static BCode_p to_bcode(const List<Inst_p> &insts, const fURI_p &furi = BCODE_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::BCODE));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::BCODE));
       return share(BCode(insts, furi));
     }
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {
-      assert(furi->path(0, 1) == OTYPE_STR.at(OType::OBJS));
+      assert(furi->path(0, 1) == OTypes.toChars(OType::OBJS));
       return share(Objs(objs, furi));
     }
 

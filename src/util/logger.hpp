@@ -19,8 +19,9 @@
 #ifndef fhatos_logger_hpp
 #define fhatos_logger_hpp
 
-#include <map>
+#include <list>
 #include <string>
+#include <util/enums.hpp>
 #include <util/options.hpp>
 
 #ifndef FOS_LOGGING
@@ -29,20 +30,14 @@
 
 
 namespace fhatos {
-
-  enum LOG_TYPE { NONE = 0, DEBUG_MORE = 1, DEBUG = 2, INFO = 3, ERROR = 4 };
-  static const std::map<std::string, LOG_TYPE> STR_LOGTYPE = {{{"DEBUG_MORE", LOG_TYPE::DEBUG_MORE},
-                                                               {"DEBUG", LOG_TYPE::DEBUG},
-                                                               {"INFO", LOG_TYPE::INFO},
-                                                               {"ERROR", LOG_TYPE::ERROR},
-                                                               {"NONE", LOG_TYPE::NONE}}};
-  static const std::map<LOG_TYPE, std::string> LOGTYPE_STR = {{{LOG_TYPE::DEBUG_MORE, "DEBUG_MORE"},
-                                                               {LOG_TYPE::DEBUG, "DEBUG"},
-                                                               {LOG_TYPE::INFO, "INFO"},
-                                                               {LOG_TYPE::ERROR, "ERROR"},
-                                                               {LOG_TYPE::NONE, "NONE"}}};
-
-
+  enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
+  static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
+                                                                      {TRACE, "TRACE"},
+                                                                      {DEBUG, "DEBUG"},
+                                                                      {INFO, "INFO"},
+                                                                      {WARN, "WARN"},
+                                                                      {ERROR, "ERROR"},
+                                                                      {NONE, "NONE"}});
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
@@ -71,8 +66,8 @@ namespace fhatos {
         GLOBAL_OPTIONS->printer()->print("!g[INFO]!!  ");
       else if (type == DEBUG)
         GLOBAL_OPTIONS->printer()->print("!y[DEBUG]!!  ");
-      else if (type == DEBUG_MORE)
-        GLOBAL_OPTIONS->printer()->print("!y[DEBUG_MORE]!!  ");
+      else if (type == TRACE)
+        GLOBAL_OPTIONS->printer()->print("!y[TRACE]!!  ");
       GLOBAL_OPTIONS->printer()->print(buffer);
       if (buffer != temp) {
         delete[] buffer;
