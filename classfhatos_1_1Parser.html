@@ -92,50 +92,57 @@ $(function(){ initResizable(false); });
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classfhatos_1_1Parser-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">fhatos::Parser Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a89f15a8eea8084bdf47272b232e0e920" id="r_a89f15a8eea8084bdf47272b232e0e920"><td class="memItemLeft" align="right" valign="top"><a id="a89f15a8eea8084bdf47272b232e0e920" name="a89f15a8eea8084bdf47272b232e0e920"></a>
+Option&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObj</b> (const string &amp;token)</td></tr>
+<tr class="separator:a89f15a8eea8084bdf47272b232e0e920"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a9d402ce80d14a855eeaf624b5dc6b6" id="r_a4a9d402ce80d14a855eeaf624b5dc6b6"><td class="memItemLeft" align="right" valign="top"><a id="a4a9d402ce80d14a855eeaf624b5dc6b6" name="a4a9d402ce80d14a855eeaf624b5dc6b6"></a>
+Pair&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObjType</b> (const string &amp;token, const bool brackets=true)</td></tr>
+<tr class="separator:a4a9d402ce80d14a855eeaf624b5dc6b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51f3abbbcd1c11e81540d8ab4acc786f" id="r_a51f3abbbcd1c11e81540d8ab4acc786f"><td class="memItemLeft" align="right" valign="top"><a id="a51f3abbbcd1c11e81540d8ab4acc786f" name="a51f3abbbcd1c11e81540d8ab4acc786f"></a>
+Option&lt; NoObj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseNoObj</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=NOOBJ_FURI)</td></tr>
+<tr class="separator:a51f3abbbcd1c11e81540d8ab4acc786f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a778d995c6c357920cd8e833867027e54" id="r_a778d995c6c357920cd8e833867027e54"><td class="memItemLeft" align="right" valign="top"><a id="a778d995c6c357920cd8e833867027e54" name="a778d995c6c357920cd8e833867027e54"></a>
+Option&lt; Bool_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseBool</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=BOOL_FURI)</td></tr>
+<tr class="separator:a778d995c6c357920cd8e833867027e54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb6d5a490d3bb88d4c39840fef36f78c" id="r_abb6d5a490d3bb88d4c39840fef36f78c"><td class="memItemLeft" align="right" valign="top"><a id="abb6d5a490d3bb88d4c39840fef36f78c" name="abb6d5a490d3bb88d4c39840fef36f78c"></a>
+Option&lt; Int_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseInt</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=INT_FURI)</td></tr>
+<tr class="separator:abb6d5a490d3bb88d4c39840fef36f78c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6755cf32935a2b7dc4bcf9856af9163" id="r_aa6755cf32935a2b7dc4bcf9856af9163"><td class="memItemLeft" align="right" valign="top"><a id="aa6755cf32935a2b7dc4bcf9856af9163" name="aa6755cf32935a2b7dc4bcf9856af9163"></a>
+Option&lt; Real_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseReal</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=REAL_FURI)</td></tr>
+<tr class="separator:aa6755cf32935a2b7dc4bcf9856af9163"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe3b60f433469886b35b6bea7bb5edd7" id="r_abe3b60f433469886b35b6bea7bb5edd7"><td class="memItemLeft" align="right" valign="top"><a id="abe3b60f433469886b35b6bea7bb5edd7" name="abe3b60f433469886b35b6bea7bb5edd7"></a>
+Option&lt; Uri_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseUri</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=URI_FURI)</td></tr>
+<tr class="separator:abe3b60f433469886b35b6bea7bb5edd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e64590160eac11dcfb5799c2dde9807" id="r_a7e64590160eac11dcfb5799c2dde9807"><td class="memItemLeft" align="right" valign="top"><a id="a7e64590160eac11dcfb5799c2dde9807" name="a7e64590160eac11dcfb5799c2dde9807"></a>
+Option&lt; Str_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseStr</b> (const string &amp;token, const string &amp;type, const fURI_p &amp;baseType=STR_FURI)</td></tr>
+<tr class="separator:a7e64590160eac11dcfb5799c2dde9807"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2b138679486dd445ea8a8da3704e63a" id="r_ae2b138679486dd445ea8a8da3704e63a"><td class="memItemLeft" align="right" valign="top"><a id="ae2b138679486dd445ea8a8da3704e63a" name="ae2b138679486dd445ea8a8da3704e63a"></a>
+Option&lt; Lst_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseLst</b> (const string &amp;token, const string &amp;type, const fURI_p &amp;baseType=LST_FURI)</td></tr>
+<tr class="separator:ae2b138679486dd445ea8a8da3704e63a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab293032e5fc2099c9f3a4abb916c82ab" id="r_ab293032e5fc2099c9f3a4abb916c82ab"><td class="memItemLeft" align="right" valign="top"><a id="ab293032e5fc2099c9f3a4abb916c82ab" name="ab293032e5fc2099c9f3a4abb916c82ab"></a>
+Option&lt; Rec_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseRec</b> (const string &amp;token, const string &amp;type, const fURI_p &amp;baseType=REC_FURI)</td></tr>
+<tr class="separator:ab293032e5fc2099c9f3a4abb916c82ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fe0e81441dcfbf0bf4eb82627c8941e" id="r_a0fe0e81441dcfbf0bf4eb82627c8941e"><td class="memItemLeft" align="right" valign="top"><a id="a0fe0e81441dcfbf0bf4eb82627c8941e" name="a0fe0e81441dcfbf0bf4eb82627c8941e"></a>
+Option&lt; Inst_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseInst</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=INST_FURI)</td></tr>
+<tr class="separator:a0fe0e81441dcfbf0bf4eb82627c8941e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a768fffe9d189f3963cddfb4e8ecbe07f" id="r_a768fffe9d189f3963cddfb4e8ecbe07f"><td class="memItemLeft" align="right" valign="top"><a id="a768fffe9d189f3963cddfb4e8ecbe07f" name="a768fffe9d189f3963cddfb4e8ecbe07f"></a>
+Option&lt; BCode_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseBCode</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=BCODE_FURI)</td></tr>
+<tr class="separator:a768fffe9d189f3963cddfb4e8ecbe07f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ae6984095bbe2dfecadd3bf8ef1359dca" id="r_ae6984095bbe2dfecadd3bf8ef1359dca"><td class="memItemLeft" align="right" valign="top"><a id="ae6984095bbe2dfecadd3bf8ef1359dca" name="ae6984095bbe2dfecadd3bf8ef1359dca"></a>
-static Option&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObj</b> (const string &amp;token)</td></tr>
-<tr class="separator:ae6984095bbe2dfecadd3bf8ef1359dca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7601362c325d88d882c384617a32c0e5" id="r_a7601362c325d88d882c384617a32c0e5"><td class="memItemLeft" align="right" valign="top"><a id="a7601362c325d88d882c384617a32c0e5" name="a7601362c325d88d882c384617a32c0e5"></a>
-static Pair&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObjType</b> (const string &amp;token, const bool brackets=true)</td></tr>
-<tr class="separator:a7601362c325d88d882c384617a32c0e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af743da8a5b86afa0ffcb00e0c69566c9" id="r_af743da8a5b86afa0ffcb00e0c69566c9"><td class="memItemLeft" align="right" valign="top"><a id="af743da8a5b86afa0ffcb00e0c69566c9" name="af743da8a5b86afa0ffcb00e0c69566c9"></a>
-static Option&lt; NoObj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseNoObj</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=NOOBJ_FURI)</td></tr>
-<tr class="separator:af743da8a5b86afa0ffcb00e0c69566c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ef915299c774cbfd1cb0084e4eeabc6" id="r_a8ef915299c774cbfd1cb0084e4eeabc6"><td class="memItemLeft" align="right" valign="top"><a id="a8ef915299c774cbfd1cb0084e4eeabc6" name="a8ef915299c774cbfd1cb0084e4eeabc6"></a>
-static Option&lt; Bool_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseBool</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=BOOL_FURI)</td></tr>
-<tr class="separator:a8ef915299c774cbfd1cb0084e4eeabc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a863b13ad58978a8216c5602b5d6ca6cf" id="r_a863b13ad58978a8216c5602b5d6ca6cf"><td class="memItemLeft" align="right" valign="top"><a id="a863b13ad58978a8216c5602b5d6ca6cf" name="a863b13ad58978a8216c5602b5d6ca6cf"></a>
-static Option&lt; Int_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseInt</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=INT_FURI)</td></tr>
-<tr class="separator:a863b13ad58978a8216c5602b5d6ca6cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a653719489925cfcc8a9aff244dffd7a4" id="r_a653719489925cfcc8a9aff244dffd7a4"><td class="memItemLeft" align="right" valign="top"><a id="a653719489925cfcc8a9aff244dffd7a4" name="a653719489925cfcc8a9aff244dffd7a4"></a>
-static Option&lt; Real_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseReal</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=REAL_FURI)</td></tr>
-<tr class="separator:a653719489925cfcc8a9aff244dffd7a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaff5717c992ecf8aa52797e3fa0c2bcd" id="r_aaff5717c992ecf8aa52797e3fa0c2bcd"><td class="memItemLeft" align="right" valign="top"><a id="aaff5717c992ecf8aa52797e3fa0c2bcd" name="aaff5717c992ecf8aa52797e3fa0c2bcd"></a>
-static Option&lt; Uri_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseUri</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=URI_FURI)</td></tr>
-<tr class="separator:aaff5717c992ecf8aa52797e3fa0c2bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afee1e952e888155c4820252174dbba56" id="r_afee1e952e888155c4820252174dbba56"><td class="memItemLeft" align="right" valign="top"><a id="afee1e952e888155c4820252174dbba56" name="afee1e952e888155c4820252174dbba56"></a>
-static Option&lt; Str_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseStr</b> (const string &amp;token, const string &amp;type, const fURI_p &amp;baseType=STR_FURI)</td></tr>
-<tr class="separator:afee1e952e888155c4820252174dbba56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24a1951fc2864d02ecb6dfbe0754f6c4" id="r_a24a1951fc2864d02ecb6dfbe0754f6c4"><td class="memItemLeft" align="right" valign="top"><a id="a24a1951fc2864d02ecb6dfbe0754f6c4" name="a24a1951fc2864d02ecb6dfbe0754f6c4"></a>
-static Option&lt; Lst_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseLst</b> (const string &amp;token, const string &amp;type, const fURI_p &amp;baseType=LST_FURI)</td></tr>
-<tr class="separator:a24a1951fc2864d02ecb6dfbe0754f6c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48e0acd4509ec795eb023544f8a025e7" id="r_a48e0acd4509ec795eb023544f8a025e7"><td class="memItemLeft" align="right" valign="top"><a id="a48e0acd4509ec795eb023544f8a025e7" name="a48e0acd4509ec795eb023544f8a025e7"></a>
-static Option&lt; Rec_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseRec</b> (const string &amp;token, const string &amp;type, const fURI_p &amp;baseType=REC_FURI)</td></tr>
-<tr class="separator:a48e0acd4509ec795eb023544f8a025e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a0f56c3f8b544903117530704130a2d" id="r_a8a0f56c3f8b544903117530704130a2d"><td class="memItemLeft" align="right" valign="top"><a id="a8a0f56c3f8b544903117530704130a2d" name="a8a0f56c3f8b544903117530704130a2d"></a>
-static Option&lt; Inst_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseInst</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=INST_FURI)</td></tr>
-<tr class="separator:a8a0f56c3f8b544903117530704130a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af443dee58034d8483c1b7a51b1c4bbb1" id="r_af443dee58034d8483c1b7a51b1c4bbb1"><td class="memItemLeft" align="right" valign="top"><a id="af443dee58034d8483c1b7a51b1c4bbb1" name="af443dee58034d8483c1b7a51b1c4bbb1"></a>
-static Option&lt; BCode_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseBCode</b> (const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=BCODE_FURI)</td></tr>
-<tr class="separator:af443dee58034d8483c1b7a51b1c4bbb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb125e5eb43f075739be4092cf68cce9" id="r_afb125e5eb43f075739be4092cf68cce9"><td class="memItemLeft" align="right" valign="top"><a id="afb125e5eb43f075739be4092cf68cce9" name="afb125e5eb43f075739be4092cf68cce9"></a>
+static <a class="el" href="classfhatos_1_1Parser.html">Parser</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>singleton</b> ()</td></tr>
+<tr class="separator:afb125e5eb43f075739be4092cf68cce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/github/workspace/src/language/<a class="el" href="parser_8hpp_source.html">parser.hpp</a></li>
