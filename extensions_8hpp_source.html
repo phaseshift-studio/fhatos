@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FhatOS: /github/workspace/src/util/options.hpp Source File</title>
+<title>FhatOS: /github/workspace/src/language/extensions.hpp Source File</title>
 <link rel="icon" href="fhatos-logo.svg" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -86,12 +86,12 @@ $(function(){ initResizable(false); });
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_b7878ad5ecbf2506f4125b9d34c97e45.html">util</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_12e7c1f46e3afdc1d764d914cad30ebf.html">language</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div id="doc-content">
 <div class="header">
-  <div class="headertitle"><div class="title">options.hpp</div></div>
+  <div class="headertitle"><div class="title">extensions.hpp</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">/*******************************************************************************</span></div>
@@ -112,48 +112,40 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="comment">  along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment"> ******************************************************************************/</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#ifndef fhatos_options_hpp</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#define fhatos_options_hpp</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#ifndef fhatos_extensions_hpp</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#define fhatos_extensions_hpp</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">namespace </span>fhatos {</div>
-<div class="foldopen" id="foldopen00024" data-start="{" data-end="};">
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classfhatos_1_1Options.html">   24</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1Options.html">Options</a> final : <span class="keyword">public</span> std::enable_shared_from_this&lt;Options&gt; {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    uint8_t LOGGING;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    <span class="keywordtype">void</span> *ROUTING;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <a class="code hl_class" href="classfhatos_1_1Ansi.html">Ansi&lt;&gt;</a> *PRINTING;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;fhatos.hpp&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;<a class="code" href="obj_8hpp.html">language/obj.hpp</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;structure/furi.hpp&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">namespace </span>fhatos {</div>
+<div class="foldopen" id="foldopen00028" data-start="{" data-end="};">
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="classfhatos_1_1Extensions.html">   28</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1Extensions.html">Extensions</a> {</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1Options.html">Options</a>() {}</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ROUTER&gt;</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    ROUTER *router() {</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> == ROUTING)</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;No router secified in global options\n&quot;</span>);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>      <span class="keywordflow">return</span> (ROUTER *) this-&gt;ROUTING;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    }</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> LOGGER&gt;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    LOGGER logger() {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      <span class="keywordflow">return</span> (LOGGER) this-&gt;LOGGING;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    }</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> PRINTER = Ansi&lt;&gt;&gt;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    PRINTER *printer() {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> == PRINTING)</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;No printer secified in global options\n&quot;</span>);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">return</span> (PRINTER *) this-&gt;PRINTING;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    }</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  };</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <a class="code hl_class" href="classfhatos_1_1Extensions.html">Extensions</a>() = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keyword">static</span> List&lt;Pair&lt;ID, Type_p&gt;&gt; exts(<span class="keyword">const</span> <a class="code hl_class" href="classfhatos_1_1ID.html">ID</a> &amp;extId) {</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      <span class="keyword">static</span> Map_p&lt;ID, List&lt;Pair&lt;ID, Type_p&gt;&gt;&gt; _exts =</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>          share(Map&lt;<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>, List&lt;Pair&lt;ID, Type_p&gt;&gt;&gt;{{<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/ext/process&quot;</span>),</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>                                                 {{<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/rec/thread&quot;</span>), TYPE_PARSER(<span class="stringliteral">&quot;[setup=&gt;_,loop=&gt;_]&quot;</span>)},</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>                                                  {<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/rec/fiber&quot;</span>), TYPE_PARSER(<span class="stringliteral">&quot;[setup=&gt;_,loop=&gt;_]&quot;</span>)},</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>                                                  {<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/rec/coroutine&quot;</span>), TYPE_PARSER(<span class="stringliteral">&quot;[setup=&gt;_,loop=&gt;_]&quot;</span>)}}},</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>                                                {<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/ext/collection&quot;</span>),</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>                                                 {{<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/lst/pair&quot;</span>), TYPE_PARSER(<span class="stringliteral">&quot;[_,_]&quot;</span>)},</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                                                  {<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/lst/trip&quot;</span>), TYPE_PARSER(<span class="stringliteral">&quot;[_,_,_]&quot;</span>)},</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>                                                  {<a class="code hl_class" href="classfhatos_1_1ID.html">ID</a>(<span class="stringliteral">&quot;/lst/quad&quot;</span>), TYPE_PARSER(<span class="stringliteral">&quot;[_,_,_,_]&quot;</span>)}}}});</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      <span class="keywordflow">return</span> _exts-&gt;at(extId);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    }</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  };</div>
 </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keyword">static</span> std::shared_ptr&lt;Options&gt; GLOBAL_OPTIONS = std::shared_ptr&lt;Options&gt;(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Options.html">Options</a>());</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Ansi_html"><div class="ttname"><a href="classfhatos_1_1Ansi.html">fhatos::Ansi</a></div><div class="ttdef"><b>Definition</b> ansi.hpp:47</div></div>
-<div class="ttc" id="aclassfhatos_1_1Options_html"><div class="ttname"><a href="classfhatos_1_1Options.html">fhatos::Options</a></div><div class="ttdef"><b>Definition</b> options.hpp:24</div></div>
-<div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aclassfhatos_1_1Extensions_html"><div class="ttname"><a href="classfhatos_1_1Extensions.html">fhatos::Extensions</a></div><div class="ttdef"><b>Definition</b> extensions.hpp:28</div></div>
+<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:406</div></div>
+<div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
