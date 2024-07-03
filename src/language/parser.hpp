@@ -20,7 +20,7 @@
 #define fhatos_parser_hpp
 
 #include <fhatos.hpp>
-#include <language/fluent.hpp>
+#include <language/instructions.hpp>
 #include <language/obj.hpp>
 #include <regex>
 #include <sstream>
@@ -33,6 +33,7 @@ namespace fhatos {
   public:
     Parser() = delete;
     static Option<Obj_p> tryParseObj(const string &token) {
+      //TYPE_PARSER = [](const string &bcode) { return Parser::tryParseObj(bcode).value(); };
       StringHelper::trim(token);
       LOG(DEBUG_MORE, "!RPARSING!!: !g!_%s!!\n", token.c_str());
       if (token.empty())

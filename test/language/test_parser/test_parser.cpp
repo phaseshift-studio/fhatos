@@ -56,7 +56,7 @@ namespace fhatos {
   }
 
   void test_bool_parsing() {
-    Types::writeToCache("/bool/fact", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/bool/fact", Obj::to_bcode({}));
     for (const auto &trip: List<Triple<string, bool, fURI>>({{"true", true, *BOOL_FURI},
                                                              {"false", false, *BOOL_FURI},
                                                              {"fact[true]", true, BOOL_FURI->resolve("fact")}})) {
@@ -68,8 +68,8 @@ namespace fhatos {
   }
 
   void test_int_parsing() {
-    Types::writeToCache("/int/zero", Obj::to_bcode({}));
-    Types::writeToCache("/int/nat", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/int/zero", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({}));
     for (auto &trip: List<Triple<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
                                                               {"0", 0, *INT_FURI},
                                                               {"-12", -12, *INT_FURI},
@@ -87,8 +87,8 @@ namespace fhatos {
   }
 
   void test_real_parsing() {
-    Types::writeToCache("/real/zero", Obj::to_bcode({}));
-    Types::writeToCache("/real/nat", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/real/zero", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/real/nat", Obj::to_bcode({}));
     // REAL
     for (auto &trip:
          List<Triple<string, FL_REAL_TYPE, fURI>>({{"45.1", 45.1f, *REAL_FURI},
@@ -108,8 +108,8 @@ namespace fhatos {
   }
 
   void test_uri_parsing() {
-    Types::writeToCache("/uri/x", Obj::to_bcode({}));
-    Types::writeToCache("/uri/furi:", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/uri/x", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/uri/furi:", Obj::to_bcode({}));
     for (auto &trip:
          List<Triple<string, fURI, fURI>>({{"blah.com", fURI("blah.com"), *URI_FURI},
                                            {"ga", fURI("ga"), *URI_FURI},
@@ -124,8 +124,8 @@ namespace fhatos {
   }
 
   void test_str_parsing() {
-    Types::writeToCache("/str/name", Obj::to_bcode({}));
-    Types::writeToCache("/str/origin", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/str/name", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/str/origin", Obj::to_bcode({}));
     for (auto &trip: List<Triple<string, string, fURI>>(
              {{"'bob'", "bob", *STR_FURI},
               {"'ga'", "ga", *STR_FURI},
@@ -141,9 +141,9 @@ namespace fhatos {
 
   void test_lst_parsing() {
     // LST
-    Types::writeToCache("/lst/atype", Obj::to_bcode({})); //
-    Types::writeToCache("/lst/btype", Obj::to_bcode({})); //
-    Types::writeToCache("/lst/ctype", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/lst/atype", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/lst/btype", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/lst/ctype", Obj::to_bcode({})); //
     for (auto &trip: List<Triple<string, List<Obj_p>, fURI>>(
              {{"['a',13,actor@127.0.0.1,false]",
                {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
@@ -241,6 +241,7 @@ namespace fhatos {
             .value());
     Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
     Scheduler::singleton()->barrier("wait");
+    Scheduler::singleton()->stop();
   }
 
   void test_nested_bytecode_parsing() {
@@ -266,14 +267,16 @@ namespace fhatos {
         GLOBAL_OPTIONS->ROUTING = router; //
         Scheduler::singleton(); //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::writeToCache("/rec/person", Obj::to_bcode({})); //
-        Types::singleton()->registerTypeSet(Types::TYPE_SET::PROCESS); //
-        // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
-        // Types<>::addToCache("/int/even")), Obj::to_bcode({}));
-        Types::writeToCache("/rec/atype", Obj::to_bcode({})); //
-        Types::writeToCache("/rec/btype", Obj::to_bcode({})); //
-        Types::writeToCache("/rec/ctype", Obj::to_bcode({})); //
-        Types::writeToCache("/bool/abool", Obj::to_bcode({})); //
+        TYPE_PARSER = [](const string &bcode) { return Parser::tryParseObj(bcode).value(); };
+        Types::singleton()->loadExt("/ext/process"); //
+        Types::singleton()->writeToCache("/rec/person",
+                                         Obj::to_bcode({})); //
+                                                             // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
+                                                             // Types<>::addToCache("/int/even")), Obj::to_bcode({}));
+        Types::singleton()->writeToCache("/rec/atype", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/rec/btype", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/rec/ctype", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/bool/abool", Obj::to_bcode({})); //
         //  FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //

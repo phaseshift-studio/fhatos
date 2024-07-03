@@ -200,8 +200,8 @@ namespace fhatos {
                             fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::writeToCache("/int/nat", Obj::to_bcode({})); //
-        Types::writeToCache("/int/nat2", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/int/nat2", Obj::to_bcode({})); //
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //

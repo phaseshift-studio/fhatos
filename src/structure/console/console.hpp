@@ -21,6 +21,7 @@
 
 #include <fhatos.hpp>
 #include <iostream>
+#include <language/fluent.hpp>
 #include <language/parser.hpp>
 #include <structure/furi.hpp>
 #include <util/ansi.hpp>

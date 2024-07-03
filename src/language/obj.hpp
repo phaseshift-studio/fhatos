@@ -81,7 +81,6 @@ namespace fhatos {
     TYPE
   };
 
-
   class Obj;
   using Obj_p = ptr<Obj>;
   using NoObj = Obj;
@@ -197,9 +196,9 @@ namespace fhatos {
       {IType::MANY_TO_ONE, "f(x*)->y (reduce)"},
       {IType::MANY_TO_MANY, "f(x*)->y* (barrier)"},
   }};
-  class Obj;
   static TriFunction<const Obj &, const OType, const fURI &, bool> TYPE_CHECKER = [](const Obj &, const OType,
                                                                                      const fURI &) { return true; };
+  static Function<const string &, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////

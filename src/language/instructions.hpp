@@ -27,7 +27,6 @@
 #include <process/router/local_router.hpp>
 #include <process/router/publisher.hpp>
 
-
 namespace fhatos {
   struct Insts {
     Insts() = delete;
@@ -146,7 +145,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {uri, type},
           [uri, type](const Obj_p &lhs) {
-            Types::writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
+            Types::singleton()->writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },
           IType::ZERO_TO_ONE, Obj::to_noobj());

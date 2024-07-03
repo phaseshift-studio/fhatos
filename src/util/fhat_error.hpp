@@ -20,7 +20,6 @@
 #define fhatos_fhat_error_hpp
 
 #include <exception>
-#include <functional>
 
 namespace fhatos {
 #ifndef NATIVE
@@ -63,17 +62,22 @@ namespace fhatos {
 
 ////////////////////////////////
 #else
+#define FOS_ERROR_MESSAGE_SIZE 250
   class _LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST fError final : public std::exception {
   protected:
-    char _message[250];
+    char _message[FOS_ERROR_MESSAGE_SIZE];
 
   public:
-    template<typename... Args>
-    explicit fError(const char *format, Args... args) noexcept {
-      sprintf(_message, format, args...);
+    explicit fError(const char *format, ...) noexcept {
+      va_list arg;
+      va_start(arg, format);
+      int length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
+      _message[length] = '\0';
+      va_end(arg);
     };
     const char *what() const _NOEXCEPT override { return this->_message; }
   };
 }
+#undef FOS_ERROR_MESSAGE_SIZE
 #endif
 #endif

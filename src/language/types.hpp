@@ -20,6 +20,7 @@
 #define fhatos_types_hpp
 
 #include <fhatos.hpp>
+#include <language/extensions.hpp>
 #include <language/obj.hpp>
 #include <process/router/router.hpp>
 #include <util/options.hpp>
@@ -37,31 +38,28 @@ namespace fhatos {
     }
 
   public:
-    enum class TYPE_SET { BASE, PROCESS };
-    static void registerTypeSet(const TYPE_SET typeSet) {
-      switch (typeSet) {
-        case TYPE_SET::BASE:
-          break;
-        case TYPE_SET::PROCESS: {
-          Types::writeToCache("/rec/thread",
-                              Rec::to_rec({{u("setup"), *Obj::to_bcode({})}, {u("loop"), *Obj::to_bcode({})}}));
-          Types::writeToCache("/rec/fiber",
-                              Rec::to_rec({{u("setup"), *Obj::to_bcode({})}, {u("loop"), *Obj::to_bcode({})}}));
-          break;
-        }
-      }
-    }
     static Types *singleton() {
       static Types factory = Types();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI &typeId) {
-        return Types::test(obj, otype, typeId);
+        return Types::singleton()->test(obj, otype, typeId);
       };
       return &factory;
     }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    static void writeToCache(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) {
+    void loadExt(const ID &extId) const {
+      for (const Pair<ID, Type_p> &pair: Extensions::exts(extId)) {
+        this->writeToCache(pair.first, pair.second, true);
+      }
+    }
+    void writeToCache(const std::initializer_list<Pair<fURI, string>> &types, const bool writeThrough = true) const {
+      for (const auto &pair: types) {
+        writeToCache(pair.first, TYPE_PARSER(pair.second), writeThrough);
+      }
+    }
+
+    void writeToCache(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) const {
       TYPE_CACHE()->erase(typeId);
       if (!obj->isNoObj()) {
         TYPE_CACHE()->insert({typeId, PtrHelper::clone<Obj>(obj)});
@@ -70,7 +68,7 @@ namespace fhatos {
         LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
       }
     }
-    static Option<Obj_p> readFromCache(const fURI &typeId, const bool readThrough = true) {
+    Option<Obj_p> readFromCache(const fURI &typeId, const bool readThrough = true) {
       if (TYPE_CACHE()->count(typeId) && !TYPE_CACHE()->at(typeId)->isNoObj())
         return Option<Obj_p>(TYPE_CACHE()->at(typeId));
       if (readThrough) {
@@ -79,7 +77,7 @@ namespace fhatos {
       }
       return Option<Obj_p>();
     }
-    static bool test(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) noexcept(false) {
+    bool test(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) noexcept(false) {
       const OType typeOType = STR_OTYPE.at(typeId.path(0, 1));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;

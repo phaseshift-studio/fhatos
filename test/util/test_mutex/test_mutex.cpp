@@ -83,7 +83,7 @@ namespace fhatos {
     m.remove_if([](int i) { return i % 2 == 0; });
     TEST_ASSERT_FALSE(m.empty());
     TEST_ASSERT_EQUAL(50, m.size());
-    Scheduler::singleton()->shutdown();
+    Scheduler::singleton()->stop();
   }
 
   void test_mutex_deque_concurrently() {
@@ -112,7 +112,7 @@ namespace fhatos {
       temp = m.pop_front().value_or(-1);
     }
     TEST_ASSERT_EQUAL(sum, mutexSum);
-     Scheduler::singleton()->shutdown();
+     Scheduler::singleton()->stop();
   }
 
   FOS_RUN_TESTS( //

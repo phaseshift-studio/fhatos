@@ -34,15 +34,15 @@
 
 
 namespace fhatos {
-  class AbstractScheduler : public IDed, public Publisher, public Mailbox<ptr<Mail>> {
+  class AbstractScheduler : public IDed, public Publisher, public Mailbox<Mail_p> {
   protected:
-    MutexRW<> DESTROY_MUTEX;
+    MutexRW<> RW_PROCESS_MUTEX;
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
     MutexDeque<Fiber *> *FIBERS = new MutexDeque<Fiber *>();
     MutexDeque<Thread *> *THREADS = new MutexDeque<Thread *>();
     MutexDeque<KernelProcess *> *KERNELS = new MutexDeque<KernelProcess *>();
-    MutexDeque<ptr<Mail>> inbox;
-    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
+    MutexDeque<Mail_p> inbox;
+    Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
     explicit AbstractScheduler(const ID_p &id = share(Router::mintID("127.0.0.1", "kernel/scheduler"))) :
@@ -60,7 +60,7 @@ namespace fhatos {
         const Obj_p obj = message->payload;
         const fURI threadId = message->target.path(this->id()->pathLength());
         if (obj->isNoObj()) {
-          LOG(DEBUG, "Destroy thread initiated: %s\n", threadId.toString().c_str());
+          LOG(DEBUG, "Initiating thread destruction: %s\n", threadId.toString().c_str());
           this->_destroy(threadId);
         } else {
           if (obj->o_type() != OType::REC) {
@@ -77,22 +77,24 @@ namespace fhatos {
     }
 
 
-    void shutdown() {
+    void stop() {
       while (this->next()) {
       }
-      DESTROY_MUTEX.write<bool>([this]() {
+      this->unsubscribeSource();
+      RW_PROCESS_MUTEX.write<bool>([this]() {
         THREADS->forEach([this](const Thread *thread) { this->_destroy(*thread->id()); });
         return share(true);
       });
       this->barrier("shutting_down");
+      std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay so _destroy can finish
     }
 
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
       LOG(INFO, "!MScheduler at barrier: <%s>!!\n", label);
-        while (this->next()) {
-        }
-        while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
-        }
+      while (this->next()) {
+      }
+      while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
+      }
       LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
     }
 
@@ -110,7 +112,7 @@ namespace fhatos {
       return true;
     }
     virtual bool _destroy(const Pattern &processPattern) {
-      bool success = DESTROY_MUTEX
+      bool success = RW_PROCESS_MUTEX
                          .write<Bool>([this, processPattern]() {
                            THREADS->remove_if([processPattern, this](Thread *process) {
                              if (process->id()->matches(processPattern)) {
@@ -161,7 +163,7 @@ namespace fhatos {
 
   public:
     const List<Process *> *find(const Pattern &processPattern = Pattern("#")) {
-      return DESTROY_MUTEX.read<List<Process *> *>([this, processPattern]() {
+      return RW_PROCESS_MUTEX.read<List<Process *> *>([this, processPattern]() {
         const auto results = new List<Process *>();
         auto temp = reinterpret_cast<List<Process *> *>(
             THREADS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
@@ -192,7 +194,7 @@ namespace fhatos {
     }
 
     const int count(const Pattern &processPattern = Pattern("#")) {
-      return DESTROY_MUTEX.read<int>([this, processPattern]() {
+      return RW_PROCESS_MUTEX.read<int>([this, processPattern]() {
         if (processPattern.equals(Pattern("#")))
           return THREADS->size() + FIBERS->size() + COROUTINES->size() /*+ KERNELS->size()*/;
         auto *counter = new std::atomic(0);

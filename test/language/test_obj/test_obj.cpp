@@ -181,13 +181,13 @@ namespace fhatos {
            : List<Router *>({LocalRouter::singleton(), MqttRouter::singleton()})) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::writeToCache("/bool/truth", Obj::to_bcode({})); //
-        Types::writeToCache("/int/age", Obj::to_bcode({})); //
-        Types::writeToCache("/int/nat", Obj::to_bcode({})); //
-        Types::writeToCache("/str/first_name", Obj::to_bcode({})); //
-        Types::writeToCache("/str/letter", Obj::to_bcode({})); //
-        Types::writeToCache("/rec/mail", Obj::to_bcode({})); //
-        Types::writeToCache("/real/cost", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/bool/truth", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/int/age", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
+       Types::singleton()->writeToCache("/str/first_name", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/str/letter", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/rec/mail", Obj::to_bcode({})); //
+        Types::singleton()->writeToCache("/real/cost", Obj::to_bcode({})); //
         FOS_RUN_TEST(test_bool); //
         FOS_RUN_TEST(test_int); //
         FOS_RUN_TEST(test_str); //

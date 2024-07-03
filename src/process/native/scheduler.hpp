@@ -35,7 +35,7 @@ namespace fhatos {
     }
 
     bool spawn(Process *process) override {
-      return *DESTROY_MUTEX.write<bool>([this, process]() {
+      return *RW_PROCESS_MUTEX.write<bool>([this, process]() {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
         if (!process->running()) {
