@@ -6,7 +6,6 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/parser.hpp>
-#include <language/processor.hpp>
 #include <language/types.hpp>
 #include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
@@ -17,23 +16,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  void test_basic_parser() {
-    try {
-      //  parser.parseToFluent("__(actor@127.9.9.1).<=(__.plus(temp),'hello').plus(dmc).=>(__,__)")
-      //     ->forEach<Uri>([](const ptr<Uri> uri) { LOG(INFO, "==>%s\n", uri->value().toString().c_str()); });
-      FOS_TEST_MESSAGE("=========================\n");
-      Processor<Int>(Parser::tryParseObj("__(15).plus(__)").value()).forEach([](const ptr<Int> &i) {
-        LOG(INFO, "==>%s\n", i->toString().c_str());
-      });
-      FOS_TEST_MESSAGE("=========================\n");
-      Processor<Int> *p = new Processor<Int>(Parser::tryParseObj("__(15).plus(1).plus(__.plus(5))").value());
-      p->forEach([](const ptr<Int> &i) { LOG(INFO, "==>%s\n", i->toString().c_str()); });
-    } catch (fError error) {
-      LOG_EXCEPTION(error);
-    }
-  }
-
-  void test_no_input_parsing() { TEST_ASSERT_FALSE(Parser::tryParseObj("").has_value()); }
+  void test_no_input_parsing() { TEST_ASSERT_FALSE(Parser::singleton()->tryParseObj("").has_value()); }
 
   void test_start_inst_parsing() {
     // FOS_CHECK_ARGS<Obj>({15}, parser->parse("__(15)")->startInst());
@@ -49,7 +32,7 @@ namespace fhatos {
   }
 
   void test_noobj_parsing() {
-    const Obj_p n = Parser::tryParseObj("Ø").value();
+    const Obj_p n = Parser::singleton()->tryParseObj("Ø").value();
     TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_type());
     TEST_ASSERT_TRUE(n->isNoObj());
     TEST_ASSERT_EQUAL_STRING("!bØ!!", n->toString().c_str());
@@ -60,7 +43,7 @@ namespace fhatos {
     for (const auto &trip: List<Triple<string, bool, fURI>>({{"true", true, *BOOL_FURI},
                                                              {"false", false, *BOOL_FURI},
                                                              {"fact[true]", true, BOOL_FURI->resolve("fact")}})) {
-      const Bool_p b = Parser::tryParseObj(get<0>(trip)).value();
+      const Bool_p b = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::BOOL, b->o_type());
       TEST_ASSERT_EQUAL(get<1>(trip), b->bool_value());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *b->id());
@@ -79,7 +62,7 @@ namespace fhatos {
                                                               {"/int/zero[0]", 0, INT_FURI->resolve("zero")},
                                                               {"/int/zero[98]", 98, INT_FURI->resolve("/int/zero")},
                                                               {"/int/zero[001]", 1, INT_FURI->extend("zero")}})) {
-      const ptr<Int> i = Parser::tryParseObj(get<0>(trip)).value();
+      const ptr<Int> i = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::INT, i->o_type());
       TEST_ASSERT_EQUAL_INT(get<1>(trip), i->int_value());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *i->id());
@@ -100,7 +83,7 @@ namespace fhatos {
                                                    {"/real/zero[1.1]", 1.1f, REAL_FURI->resolve("zero")},
                                                    {"/real/zero[98.00]", 98.00f, REAL_FURI->resolve("/real/zero")},
                                                    {"/real/zero[001.1]", 1.1f, REAL_FURI->extend("zero")}})) {
-      const Real_p r = Parser::tryParseObj(get<0>(trip)).value();
+      const Real_p r = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::REAL, r->o_type());
       TEST_ASSERT_EQUAL_INT(get<1>(trip), r->real_value());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *r->id());
@@ -116,7 +99,7 @@ namespace fhatos {
                                            {"x[x]", fURI("x"), URI_FURI->resolve("x")},
                                            {"furi:[blah.com]", fURI("blah.com"), URI_FURI->resolve("furi:")},
                                            {"/abc_2467", fURI("/abc_2467"), *URI_FURI}})) {
-      const Uri_p u = Parser::tryParseObj(std::get<0>(trip)).value();
+      const Uri_p u = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::URI, u->o_type());
       FOS_TEST_ASSERT_EQUAL_FURI(get<1>(trip), u->uri_value());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *u->id());
@@ -132,7 +115,7 @@ namespace fhatos {
               {"name['fhat']", "fhat", STR_FURI->resolve("name")},
               {"'a long and winding\nroad of\nstuff'", "a long and winding\nroad of\nstuff", *STR_FURI},
               {"origin['abc_2467']", "abc_2467", STR_FURI->resolve("origin")}})) {
-      const Str_p s = Parser::tryParseObj(std::get<0>(trip)).value();
+      const Str_p s = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::STR, s->o_type());
       TEST_ASSERT_EQUAL_STRING(get<1>(trip).c_str(), s->str_value().c_str());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *s->id());
@@ -141,9 +124,10 @@ namespace fhatos {
 
   void test_lst_parsing() {
     // LST
-    Types::singleton()->writeToCache("/lst/atype", Obj::to_bcode({})); //
-    Types::singleton()->writeToCache("/lst/btype", Obj::to_bcode({})); //
-    Types::singleton()->writeToCache("/lst/ctype", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/lst/atype", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/lst/btype", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/lst/ctype", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/bool/abool", Obj::to_bcode({}));
     for (auto &trip: List<Triple<string, List<Obj_p>, fURI>>(
              {{"['a',13,actor@127.0.0.1,false]",
                {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
@@ -167,7 +151,7 @@ namespace fhatos {
                {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
                LST_FURI->resolve("ctype")}})) {
       FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", std::get<0>(trip).c_str());
-      const Lst_p l = Parser::tryParseObj(std::get<0>(trip)).value();
+      const Lst_p l = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::LST, l->o_type());
       TEST_ASSERT_EQUAL_STRING("a", l->lst_get(share(Int(0)))->str_value().c_str());
       TEST_ASSERT_EQUAL_INT(13, l->lst_get(share(Int(1)))->int_value());
@@ -179,6 +163,12 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
+    Types::singleton()->writeToCache("/rec/person", //
+                                     Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/rec/atype", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/rec/btype", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/rec/ctype", Obj::to_bcode({}));
+    Types::singleton()->writeToCache("/bool/abool", Obj::to_bcode({}));
     List<string> forms = {"['a'=>13,actor@127.0.0.1=>false]",
                           "['a' => 13,actor@127.0.0.1 => false ]",
                           "['a'=> 13 , actor@127.0.0.1=>false]",
@@ -189,7 +179,7 @@ namespace fhatos {
                           "ctype[['a'=>    13 ,  actor@127.0.0.1=>   false]]"};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
-      const ptr<Rec> rc1 = Parser::tryParseObj(form).value();
+      const ptr<Rec> rc1 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc1->o_type());
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value());
       TEST_ASSERT_TRUE(rc1->rec_get(ptr<Int>(new Int(13)))->isNoObj());
@@ -201,7 +191,7 @@ namespace fhatos {
              /*"person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"*/};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
-      const Rec_p rc2 = Parser::tryParseObj(form).value();
+      const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
       TEST_ASSERT_EQUAL_STRING("person", rc2->id()->lastSegment().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u("age"))->int_value());
@@ -211,7 +201,7 @@ namespace fhatos {
       // TEST_ASSERT_TRUE(rc2->rec_get(Obj::to_uri("actor@127.0.0.1"))->isNoObj());
     }
     ///////////////////////////////////
-    const ptr<Rec> rc2 = Parser::tryParseObj("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]").value();
+    const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]").value();
     TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
     TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
     //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
@@ -224,10 +214,12 @@ namespace fhatos {
                              GLOBAL_OPTIONS->printer<>()->strip(rc2->toString().c_str()));
 
     ////// match testing
-    Fluent(FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
+    Fluent(FOS_PRINT_OBJ<BCode>(
+               Parser::singleton()->tryParseObj("define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
-    FOS_CHECK_RESULTS<Rec>({*Parser::tryParseObj("person[[name=>'fhat',age=>29]]").value()},
-                           Fluent(Parser::tryParseObj("__([name=>'fhat',age=>29]).as(person)").value()), {}, false);
+    FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
+                           Fluent(Parser::singleton()->tryParseObj("__([name=>'fhat',age=>29]).as(person)").value()),
+                           {}, false);
     FOS_TEST_ERROR("__([name=>10,age=>23]).as(person)");
     FOS_TEST_ERROR("__([name=>'fhat',age=>-1]).as(person)");
   }
@@ -235,17 +227,18 @@ namespace fhatos {
   void test_bcode_parsing() {
     Scheduler::singleton();
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
-        Parser::tryParseObj("pub(127.0.0.1/kernel/scheduler/thread/abc,"
-                            "  thread[[setup => __(0).print('setup complete'),"
-                            "          loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
+        Parser::singleton()
+            ->tryParseObj("pub(127.0.0.1/kernel/scheduler/thread/abc,"
+                          "  thread[[setup => __(0).print('setup complete'),"
+                          "          loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
             .value());
     Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
     Scheduler::singleton()->barrier("wait");
-    Scheduler::singleton()->stop();
+    // Scheduler::singleton()->stop();
   }
 
   void test_nested_bytecode_parsing() {
-    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::tryParseObj("__().plus(mult(plus(3)))").value());
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()->tryParseObj("__().plus(mult(plus(3)))").value());
     TEST_ASSERT_EQUAL_INT(2, bcode->bcode_value().size());
     TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value().at(1)->inst_arg(0)->bcode_value().size());
     //   TEST_ASSERT_EQUAL_INT(
@@ -253,30 +246,21 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Int>({}, Fluent(Parser::tryParseObj("define(/int/even,mod(2).is(eq(0)))").value()), {}, false);
-    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::tryParseObj("__(32).as(even).type()").value()), {}, false);
-    FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, Fluent(Parser::tryParseObj("__(even[32]).type()").value()), {},
-                           true);
+    FOS_CHECK_RESULTS<Int>({}, Fluent(Parser::singleton()->tryParseObj("define(/int/even,mod(2).is(eq(0)))").value()),
+                           {}, false);
+    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, Fluent(Parser::singleton()->tryParseObj("__(32).as(even).type()").value()),
+                           {}, false);
+    FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))},
+                           Fluent(Parser::singleton()->tryParseObj("__(even[32]).type()").value()), {}, true);
   }
 
   FOS_RUN_TESTS( //
-      Types::singleton(); //
-      for (fhatos::Router * router //
+      for (fhatos::Router *router //
            : List<Router *>{fhatos::LocalRouter::singleton(), //
                             fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
-        Scheduler::singleton(); //
+        //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        TYPE_PARSER = [](const string &bcode) { return Parser::tryParseObj(bcode).value(); };
-        Types::singleton()->loadExt("/ext/process"); //
-        Types::singleton()->writeToCache("/rec/person",
-                                         Obj::to_bcode({})); //
-                                                             // DON'T ADD TO CACHE AS IT'S DEFINED IN TEST CASE
-                                                             // Types<>::addToCache("/int/even")), Obj::to_bcode({}));
-        Types::singleton()->writeToCache("/rec/atype", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/rec/btype", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/rec/ctype", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/bool/abool", Obj::to_bcode({})); //
         //  FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //

@@ -118,10 +118,7 @@ namespace fhatos {
     Fluent count() { return this->addInst(Insts::count()); };
     Fluent to(const Uri &uri) { return this->addInst(Insts::to(share(uri))); }
     Fluent from(const Uri &uri) { return this->addInst(Insts::from(share(uri))); }
-
-    /*Fluent explain() { return this->addInst(new ExplainInst()); }
-
-    Fluent count() { return this->addInst(new CountInst()); }*/
+    /*Fluent explain() { return this->addInst(new ExplainInst()); }*/
 
     Fluent print(const Obj &toPrint) { return this->addInst(Insts::print(share(toPrint))); }
 

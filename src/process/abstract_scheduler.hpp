@@ -149,15 +149,13 @@ namespace fhatos {
                            return share(Bool(true));
                          })
                          ->bool_value();
-      if (DEBUG == LOG_TYPE::FOS_LOGGING) {
-        LOG(DEBUG, "!b[Current Processes]!!\n");
-        LOG(DEBUG, FOS_TAB_2 "!yThreads!!:\n");
-        THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
-        LOG(DEBUG, FOS_TAB_2 "!yFibers!!:\n");
-        FIBERS->forEach([](const Fiber *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
-        LOG(DEBUG, FOS_TAB_2 "!yCoroutines!!:\n");
-        COROUTINES->forEach([](const Coroutine *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
-      }
+      LOG(DEBUG, "!b[Current Processes]!!\n");
+      LOG(DEBUG, FOS_TAB_2 "!yThreads!!:\n");
+      THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
+      LOG(DEBUG, FOS_TAB_2 "!yFibers!!:\n");
+      FIBERS->forEach([](const Fiber *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
+      LOG(DEBUG, FOS_TAB_2 "!yCoroutines!!:\n");
+      COROUTINES->forEach([](const Coroutine *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
       return success;
     }
 

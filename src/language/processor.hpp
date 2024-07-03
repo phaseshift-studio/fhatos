@@ -40,13 +40,21 @@ namespace fhatos {
   public:
     explicit Monad(const Obj_p obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
 
-    List<Monad_p> split(const ptr<BCode> &bcode) const {
-      if (this->_inst->isNoObj() || this->_obj->isNoObj()) {
-        return List<ptr<Monad>>{};
-      } else {
-        const ptr<Obj> nextObj = this->_inst->apply(this->_obj);
-        const Inst_p nextInst = bcode->nextInst(this->_inst);
-        return List<ptr<Monad>>{ptr<Monad>(new Monad(nextObj, nextInst))};
+    void split(const ptr<BCode> &bcode, List<Monad_p> *running) const {
+      const ptr<Obj> nextObj = this->_inst->apply(this->_obj);
+      const Inst_p nextInst = bcode->nextInst(this->_inst);
+      if (nextObj->isObjs()) {
+        for (const auto &obj: *nextObj->objs_value()) {
+          if (!obj->isNoObj()) {
+            const Monad_p monad = Monad_p(new Monad(obj, nextInst));
+            running->push_back(monad);
+            LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
+          }
+        }
+      } else if (!nextObj->isNoObj()) {
+        const Monad_p monad = Monad_p(new Monad(nextObj, nextInst));
+        running->push_back(monad);
+        LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
       }
     }
 
@@ -60,45 +68,26 @@ namespace fhatos {
     string toString() const {
       return string("!MM!y[!!") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "!y]!!";
     }
-
-    // const Inst<Obj, A> *at() const { return this->inst; }
-    // const bool equals(const Monad<ObjX> &other) const {
-    //   return this->value.equals(other.get());
-    // }
   };
 
   template<typename E>
   class Processor {
   protected:
     const BCode_p bcode;
-    List<Monad_p> *running = new List<ptr<Monad>>();
+    List<Monad_p> *running = new List<Monad_p>();
     List<Obj_p> *halted = new List<Obj_p>();
-    Deque<Pair<Inst_p, Objs_p>> *barriers = new Deque<Pair<Inst_p, Objs_p>>();
+    Deque<Monad_p> *barriers = new Deque<Monad_p>();
 
   public:
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
-      if (!this->bcode->bcode_value().empty()) {
-        for (Inst_p &inst: bcode->bcode_value()) {
-          if (inst->inst_itype() == IType::MANY_TO_MANY || inst->inst_itype() == IType::MANY_TO_ONE) {
-            this->barriers->push_back({inst, inst->inst_seed()});
-            LOG(DEBUG_MORE, "Adding barrier from %s\n", inst->toString().c_str());
-          }
-        }
-        const Inst_p startInst = this->bcode->bcode_value().at(0);
-        LOG(DEBUG, "startInst: %s in %s\n", startInst->toString().c_str(), this->bcode->toString().c_str());
-        Inst_p nextInst = this->bcode->nextInst(startInst);
-        if (startInst->inst_op() == "start") {
-          for (const Obj_p &startObj: startInst->inst_args()) {
-            const Monad_p monad = Monad_p(new Monad(startObj, nextInst));
-            this->running->push_back(monad);
-            LOG(DEBUG, FOS_TAB_2 "!mStarting!! monad: %s\n", monad->toString().c_str());
-          }
-        } else {
-          if (startInst->inst_itype() == IType::ZERO_TO_ONE || startInst->inst_itype() == IType::ZERO_TO_MANY) {
-            const Monad_p monad = Monad_p(new Monad(startInst->apply(startInst->inst_seed()), nextInst));
-            this->running->push_back(monad);
-            LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
-          }
+      for (const Inst_p &inst: bcode->bcode_value()) {
+        const Monad_p monad = share(Monad(inst->inst_seed(), inst));
+        if (Insts::isBarrier(inst)) {
+          this->barriers->push_back(monad);
+          LOG(DEBUG, "Adding barrier monad: %s\n", monad->toString().c_str());
+        } else if (Insts::isInitial(inst)) {
+          this->running->push_back(monad);
+          LOG(DEBUG, "Adding initial monad: %s\n", monad->toString().c_str());
         }
       }
     }
@@ -120,52 +109,35 @@ namespace fhatos {
     }
 
     int execute(const int steps = -1) {
-      int killed = 0;
       int counter = 0;
       while ((!this->running->empty() || !this->barriers->empty()) && (counter++ < steps || steps == -1)) {
         if (this->running->empty() && !this->barriers->empty()) {
-          Inst_p barrier = this->barriers->front().first;
-          Objs_p objs = this->barriers->front().second;
+          const Monad_p barrier = this->barriers->front();
           this->barriers->pop_front();
-          LOG(DEBUG, "Processing barrier: %s (%s)\n", barrier->toString().c_str(), objs->toString().c_str());
-          const Obj_p objB = barrier->apply(objs);
-          LOG(DEBUG, "Barrier reduction: %s\n", objB->toString().c_str());
-          const Inst_p postBarrierInst = bcode->nextInst(barrier);
-          if (objB->isObjs()) { // unroll ?-TO-MANY OBJS barrier
-            for (const auto &obj: *objB->objs_value()) {
-              this->running->push_back(ptr<Monad>(new Monad(obj, postBarrierInst)));
-            }
-          } else
-            this->running->push_back(ptr<Monad>(new Monad(objB, postBarrierInst)));
+          LOG(DEBUG, "Processing barrier: %s\n", barrier->toString().c_str());
+          barrier->split(this->bcode, this->running);
         } else {
-          const ptr<Monad> parent = this->running->back();
+          const ptr<Monad> monad = this->running->back();
           this->running->pop_back();
-          if (parent->dead()) {
-            killed++;
-            LOG(DEBUG, FOS_TAB_5 "!rKilling!! monad: %s\n", parent->toString().c_str());
-          } else if (parent->halted()) {
-            LOG(DEBUG, FOS_TAB_5 "!gHalting!! monad: %s\n", parent->toString().c_str());
-            this->halted->push_back(parent->obj());
+          if (monad->halted()) {
+            LOG(DEBUG_MORE, FOS_TAB_5 "!gHalting!! monad: %s\n", monad->toString().c_str());
+            this->halted->push_back(monad->obj());
           } else {
-            if (parent->inst()->inst_itype() == IType::MANY_TO_MANY ||
-                parent->inst()->inst_itype() == IType::MANY_TO_ONE) {
+            if (Insts::isBarrier(monad->inst())) {
               /// MANY-TO-? BARRIER PROCESSING
-              LOG(DEBUG, "Adding to barrier: %s => %s\n", parent->toString().c_str(),
-                  parent->inst()->toString().c_str());
-              this->barriers->front().second->objs_value()->push_back(parent->obj());
+              LOG(DEBUG_MORE, "Adding to barrier: %s => %s\n", monad->toString().c_str(),
+                  monad->inst()->toString().c_str());
+              this->barriers->front()->obj()->objs_value()->push_back(monad->obj());
             } else {
-              for (const ptr<Monad> &child: parent->split(this->bcode)) {
-                LOG(DEBUG, FOS_TAB_3 "!ySplitting!! monad : %s => %s\n", parent->toString().c_str(),
-                    child->toString().c_str());
-                this->running->push_back(child);
-              }
+              LOG(DEBUG_MORE, FOS_TAB_5 "!gSplitting!! monad: %s\n", monad->toString().c_str());
+              monad->split(this->bcode, this->running);
             }
           }
         }
       }
 
-      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!ghalted!!:%i] [!yrunning!!:%i] [!rkilled!!:%i]\n",
-          this->running->size(), this->halted->size(), killed);
+      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]\n", this->running->size(),
+          this->halted->size());
       return this->halted->size();
     }
 

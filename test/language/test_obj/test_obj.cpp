@@ -5,8 +5,9 @@
 //
 #include <language/obj.hpp>
 #include <process/router/local_router.hpp>
+#include FOS_PROCESS(scheduler.hpp)
 #include FOS_MQTT(mqtt_router.hpp)
-#include <unity.h>
+#include <language/types.hpp>
 
 namespace fhatos {
 
@@ -15,6 +16,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_bool() {
+    Types::singleton()->writeToCache("/bool/truth", Obj::to_bcode({})); //
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
     const Bool_p boolB = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
@@ -43,6 +45,8 @@ namespace fhatos {
   }
 
   void test_int() {
+    Types::singleton()->writeToCache("/int/age", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
     const Int_p intA = share(Int(1));
     const Int_p intB = share<Int>(Int(1));
     const Int_p intC = share(Int(1, "/int/age"));
@@ -97,6 +101,8 @@ namespace fhatos {
   }
 
   void test_str() {
+    Types::singleton()->writeToCache("/str/first_name", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/str/letter", Obj::to_bcode({})); //
     const Str strA = *Obj::to_str("fhat", share(fURI("/str/first_name")));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.isBytecode());
@@ -105,11 +111,14 @@ namespace fhatos {
   }
 
   void test_rec() {
+    Types::singleton()->writeToCache("/rec/mail", Obj::to_bcode({})); //
+    Types::singleton()->writeToCache("/real/cost", Obj::to_bcode({})); //
     const Rec recA = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recB = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recC =
-        Obj(share(Obj::RecMap<>({make_pair<const Obj_p, Obj_p>(Obj::to_str("a", share(fURI("/str/letter"))), share(Int(1))),
-                           make_pair<const Obj_p, Obj_p>(Obj::to_str("b", share(fURI("/str/letter"))), share(Int(2)))})),
+        Obj(share(Obj::RecMap<>(
+                {make_pair<const Obj_p, Obj_p>(Obj::to_str("a", share(fURI("/str/letter"))), share(Int(1))),
+                 make_pair<const Obj_p, Obj_p>(Obj::to_str("b", share(fURI("/str/letter"))), share(Int(2)))})),
             share(fURI("/rec/mail")));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recC).c_str());
     TEST_ASSERT_TRUE(recA == recB);
@@ -181,13 +190,6 @@ namespace fhatos {
            : List<Router *>({LocalRouter::singleton(), MqttRouter::singleton()})) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::singleton()->writeToCache("/bool/truth", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/int/age", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
-       Types::singleton()->writeToCache("/str/first_name", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/str/letter", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/rec/mail", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/real/cost", Obj::to_bcode({})); //
         FOS_RUN_TEST(test_bool); //
         FOS_RUN_TEST(test_int); //
         FOS_RUN_TEST(test_str); //

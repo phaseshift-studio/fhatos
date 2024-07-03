@@ -29,8 +29,12 @@ namespace fhatos {
   class Scheduler final : public AbstractScheduler {
   public:
     static Scheduler *singleton() {
+      static bool _setup = false;
       static Scheduler scheduler = Scheduler();
-      scheduler.setup();
+      if (!_setup) {
+        scheduler.setup();
+        _setup = true;
+      }
       return &scheduler;
     }
 

@@ -1,9 +1,12 @@
+#include <process/native/scheduler.hpp>
 #ifndef fhatos_test_fluent_hpp
 #define fhatos_test_fluent_hpp
 
 // #include <atomic>
 #include <language/fluent.hpp>
-#include <language/instructions.hpp>
+#include <language/obj.hpp>
+#include <language/parser.hpp>
+#include <language/types.hpp>
 #include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 #include <test_fhatos.hpp>
@@ -171,6 +174,8 @@ namespace fhatos {
   /* void test_where() { FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13)))); }*/
 
   void test_define_as_type() {
+    Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
+   // Types::singleton()->writeToCache("/int/nat2", Obj::to_bcode({})); //
     FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).define(u("/int/nat"), _.is(_.gt(0))).as(u("/int/nat")),
                            {{u("/int/nat"), _.is(_.gt(0))}});
     FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.is(_.gt(0))), {{u("/int/nat"), _.is(_.gt(0))}}, false);
@@ -194,14 +199,11 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      Types::singleton(); //
       for (fhatos::Router * router //
            : List<Router *>{fhatos::LocalRouter::singleton(), //
                             fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
-        Types::singleton()->writeToCache("/int/nat2", Obj::to_bcode({})); //
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //

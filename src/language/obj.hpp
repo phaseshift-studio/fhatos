@@ -73,8 +73,6 @@ namespace fhatos {
     REC,
     /// An instruction type denoting an opcode, arguments, and a function
     INST,
-    /// A "null" instruction type used to halt a processing monad
-    NOINST,
     /// A sequence of instructions denoting a program
     BCODE,
     /// A valueless obj
@@ -85,7 +83,6 @@ namespace fhatos {
   using Obj_p = ptr<Obj>;
   using NoObj = Obj;
   using NoObj_p = Obj_p;
-  using fURI_p = ptr<fURI>;
   using Bool = Obj;
   using Bool_p = Obj_p;
   using Int = Obj;
@@ -108,18 +105,41 @@ namespace fhatos {
   using Objs_p = Obj_p;
   using Type = Obj;
   using Type_p = Obj_p;
-  //
   using BObj = Pair<uint32_t, fbyte *>;
-  class PtrSerializer;
-  // Inst structures
+  enum class IType : uint8_t {
+    ZERO_TO_ZERO,
+    ZERO_TO_ONE,
+    ZERO_TO_MANY,
+    ONE_TO_ZERO,
+    MANY_TO_ZERO,
+    ONE_TO_ONE,
+    ONE_TO_MANY,
+    MANY_TO_ONE,
+    MANY_TO_MANY,
+  }; // TYPE
+  static const Map<IType, const char *> ITYPE_STR = {{
+      {IType::ZERO_TO_ZERO, "0->0 (Ø)"},
+      {IType::ZERO_TO_ONE, "f(Ø)->y (supplier)"},
+      {IType::ZERO_TO_MANY, "f(Ø)->y* (source)"},
+      {IType::ONE_TO_ZERO, "f(x)->Ø (consumer)"},
+      {IType::MANY_TO_ZERO, "f(x*)->Ø (terminal)"},
+      {IType::ONE_TO_ONE, "f(x)->y (map)"},
+      {IType::ONE_TO_MANY, "f(x)->y* (flatmap)"},
+      {IType::MANY_TO_ONE, "f(x*)->y (reduce)"},
+      {IType::MANY_TO_MANY, "f(x*)->y* (barrier)"},
+  }};
+  //
   using InstFunction = Function<Obj_p, Obj_p>;
   using InstArgs = List<ptr<Obj>>;
   using InstOpcode = string;
-  using InstValue = Pair<InstArgs, InstFunction>;
-  class LocalRouter;
+  using InstArgs = List<Obj_p>;
+  using InstFunction = Function<Obj_p, Obj_p>;
+  using InstSeed = Obj_p;
+  using InstValue = Quadruple<InstArgs, InstFunction, IType, InstSeed>;
+  using InstList = List<Inst_p>;
+  using InstList_p = ptr<InstList>;
 
   static const Map<OType, const char *> OTYPE_STR = {{{OType::NOOBJ, "noobj"},
-                                                      {OType::NOINST, "noinst"},
                                                       {OType::OBJ, "obj"},
                                                       {OType::OBJS, "objs"},
                                                       {OType::URI, "uri"},
@@ -133,7 +153,6 @@ namespace fhatos {
                                                       {OType::BCODE, "bcode"},
                                                       {OType::TYPE, "type"}}};
   static const Map<string, OType> STR_OTYPE = {{{"noobj", OType::NOOBJ},
-                                                {"noinst", OType::NOINST},
                                                 {"obj", OType::OBJ},
                                                 {"objs", OType::OBJS},
                                                 {"uri", OType::URI},
@@ -147,7 +166,6 @@ namespace fhatos {
                                                 {"bcode", OType::BCODE},
                                                 {"type", OType::TYPE}}};
   static const Map<OType, fURI_p> OTYPE_FURI = {{{OType::NOOBJ, share(fURI("/noobj/"))},
-                                                 {OType::NOINST, share(fURI("/noinst/"))},
                                                  {OType::OBJ, share(fURI("/obj/"))},
                                                  {OType::OBJS, share(fURI("/objs/"))},
                                                  {OType::URI, share(fURI("/uri/"))},
@@ -173,32 +191,10 @@ namespace fhatos {
   static const fURI_p INST_FURI = fURI_p(new fURI("/inst/"));
   static const fURI_p BCODE_FURI = fURI_p(new fURI("/bcode/"));
   static const fURI_p OBJS_FURI = fURI_p(new fURI("/objs/"));
-
-  enum class IType : uint8_t {
-    ZERO_TO_ZERO,
-    ZERO_TO_ONE,
-    ZERO_TO_MANY,
-    ONE_TO_ZERO,
-    MANY_TO_ZERO,
-    ONE_TO_ONE,
-    ONE_TO_MANY,
-    MANY_TO_ONE,
-    MANY_TO_MANY,
-  }; // TYPE
-  static const Map<IType, const char *> ITYPE_STR = {{
-      {IType::ZERO_TO_ZERO, "0->0 (Ø)"},
-      {IType::ZERO_TO_ONE, "f(Ø)->y (supplier)"},
-      {IType::ZERO_TO_MANY, "f(Ø)->y* (source)"},
-      {IType::ONE_TO_ZERO, "f(x)->Ø (consumer)"},
-      {IType::MANY_TO_ZERO, "f(x*)->Ø (terminal)"},
-      {IType::ONE_TO_ONE, "f(x)->y (map)"},
-      {IType::ONE_TO_MANY, "f(x)->y* (flatmap)"},
-      {IType::MANY_TO_ONE, "f(x*)->y (reduce)"},
-      {IType::MANY_TO_MANY, "f(x*)->y* (barrier)"},
-  }};
-  static TriFunction<const Obj &, const OType, const fURI &, bool> TYPE_CHECKER = [](const Obj &, const OType,
-                                                                                     const fURI &) { return true; };
-  static Function<const string &, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
+  static TriFunction<const Obj &, const OType, const fURI &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
+                                                                                     const fURI &) { return nullptr; };
+  static Function<const string, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
+  static BiFunction<const fURI, Type_p, Type_p> TYPE_DEFINER = [](const fURI &, const Type_p &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
@@ -212,7 +208,7 @@ namespace fhatos {
       size_t operator()(const Obj_p &obj) const { return obj->hash(); }
     };
 
-    struct obj_comp : public std::less<> {
+    struct obj_comp : std::less<> {
       template<class K1 = Obj, class K2 = Obj>
       auto operator()(K1 &k1, K2 &k2) const {
         return k1.hash() < k2.hash();
@@ -222,27 +218,23 @@ namespace fhatos {
     struct obj_equal_to : std::binary_function<Obj_p &, Obj_p &, bool> {
       bool operator()(const Obj_p &a, const Obj_p &b) const { return *a == *b; }
     };
-    template<typename V = ptr<Obj>>
+    template<typename V = Obj_p>
     using LstList = List<V>;
-    template<typename V = ptr<Obj>>
-    using LstList_p = ptr<List<V>>;
-    template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
+    template<typename V = Obj_p>
+    using LstList_p = List_p<V>;
+    template<typename K = ptr<Obj>, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap = OrderedMap<K, V, H, Q>;
-    template<typename K = ptr<Obj>, typename V = ptr<Obj>, typename H = obj_hash, typename Q = obj_equal_to>
+    template<typename K = ptr<Obj>, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
-    using InstArgs = List<Obj_p>;
-    using InstFunction = Function<Obj_p, Obj_p>;
-    using InstSeed = Obj_p;
-    using InstQuad = Quadruple<InstArgs, InstFunction, IType, InstSeed>;
-    using InstList = List<Inst_p>;
-    using InstList_p = ptr<InstList>;
-    virtual ~Obj() override = default;
+
+    ~Obj() override = default;
     explicit Obj(Any value, const OType otype, const fURI &typeId) :
         IDed(OTYPE_FURI.at(otype)), _value(std::move(value)) {
-      if (TYPE_CHECKER(*this, otype, typeId))
+      try {
+        TYPE_CHECKER(*this, otype, typeId);
         this->_id = share(ID(typeId));
-      else {
-        throw fError("Obj %s is not a %s\n", this->toString().c_str(), typeId.toString().c_str());
+      } catch (fError &) {
+        throw;
       }
     }
     explicit Obj(const Any &value, const fURI_p &typeId) : Obj(value, STR_OTYPE.at(typeId->path(0, 1)), *typeId) {}
@@ -294,16 +286,16 @@ namespace fhatos {
     OType o_type() const { return STR_OTYPE.at(this->_id->path(0, 1)); }
     template<typename VALUE>
     const VALUE value() const {
-      return std::any_cast<VALUE>(this->_value);
+      try {
+        return std::any_cast<VALUE>(this->_value);
+      } catch (const std::bad_any_cast &) {
+        throw TYPE_ERROR(this, __LINE__);
+      }
     }
     List_p<Obj_p> objs_value() const {
-      try {
-        if (this->o_type() != OType::OBJS)
-          throw TYPE_ERROR(this, __LINE__);
-        return this->value<List_p<Obj_p>>();
-      } catch (std::exception &) {
-        throw;
-      }
+      if (this->o_type() != OType::OBJS)
+        throw TYPE_ERROR(this, __LINE__);
+      return this->value<List_p<Obj_p>>();
     }
     const bool bool_value() const {
       if (this->o_type() != OType::BOOL)
@@ -364,10 +356,10 @@ namespace fhatos {
     }
     void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
     void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
-    const InstQuad inst_value() const {
+    const InstValue inst_value() const {
       if (this->o_type() != OType::INST)
         throw TYPE_ERROR(this, __LINE__);
-      return this->value<InstQuad>();
+      return this->value<InstValue>();
     }
     const string inst_op() const {
       if (this->o_type() != OType::INST)
@@ -953,13 +945,13 @@ namespace fhatos {
       return to_rec(share(map), furi);
     }
 
-    static Inst_p to_inst(const InstQuad &value, const fURI_p &furi = INST_FURI) {
+    static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
       assert(furi->path(0, 1) == OTYPE_STR.at(OType::INST));
       return share(Inst(value, furi));
     }
 
     static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunction &function,
-                          const IType itype, const Obj_p seed = Obj::to_noobj(), const fURI_p &furi = nullptr) {
+                          const IType itype, const Obj_p &seed = Obj::to_noobj(), const fURI_p &furi = nullptr) {
       const fURI_p fix = !furi ? share(fURI(string("/inst/") + opcode)) : furi;
       return to_inst({args, function, itype, seed}, fix);
     }

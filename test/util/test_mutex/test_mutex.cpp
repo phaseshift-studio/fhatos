@@ -18,14 +18,14 @@ namespace fhatos {
     Worker(int index, MutexDeque<int> *mutex) : Thread(ID(string("worker/").append(std::to_string(index)))) {
       this->mutex = mutex;
     }
-    void setup() {
+    void setup() override {
       FOS_TEST_MESSAGE("%s up and running", this->id()->toString().c_str());
       TEST_ASSERT_FALSE(this->running());
-      Process::setup();
+      Thread::setup();
       TEST_ASSERT_TRUE(this->running());
     }
 
-    void loop() {
+    void loop() override {
       TEST_ASSERT_TRUE(this->running());
       if (counter++ < 10) {
         this->mutex->push_back(counter);
@@ -39,7 +39,7 @@ namespace fhatos {
 
   ///////////////////// UTILITY METHOD
 
-  void populateMutex(MutexDeque<int> *m, BiConsumer<MutexDeque<int> *, int> tester) {
+  void populateMutex(MutexDeque<int> *m, const BiConsumer<MutexDeque<int> *, int>& tester) {
     for (int i = 0; i < 100; i++) {
       tester(m, i);
     }

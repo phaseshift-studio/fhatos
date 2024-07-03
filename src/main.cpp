@@ -17,13 +17,15 @@
  ******************************************************************************/
 
 #include <fhatos.hpp>
-#include <language/extensions.hpp>
+#include <language/types.hpp>
 #include <structure/console/console.hpp>
 #include <util/options.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#ifdef NATIVE
-#include FOS_MODULE(kernel/f_kernel.hpp)
+#include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
+#ifdef NATIVE
+#include <structure/kernel/f_kernel.hpp>
+
 
 using namespace fhatos;
 
@@ -33,6 +35,8 @@ int main(int arg, char **argsv) {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
   GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
+  Scheduler::singleton();
+  Parser::singleton();
   Types::singleton()->loadExt("/ext/process");
   Types::singleton()->loadExt("/ext/collection");
   LOG(INFO, ANSI_ART);

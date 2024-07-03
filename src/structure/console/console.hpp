@@ -77,7 +77,7 @@ namespace fhatos {
           }
         } else {
           try {
-            const Option<Obj_p> obj = Parser::tryParseObj(line);
+            const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
             if (obj.has_value()) {
               if (obj.value()->isBytecode())
                 this->printResults(Fluent(obj.value()));

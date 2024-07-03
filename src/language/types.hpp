@@ -39,11 +39,20 @@ namespace fhatos {
 
   public:
     static Types *singleton() {
-      static Types factory = Types();
-      TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI &typeId) {
-        return Types::singleton()->test(obj, otype, typeId);
-      };
-      return &factory;
+      static bool _setup = false;
+      static Types types = Types();
+      if (!_setup) {
+        TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI typeId) {
+          Types::singleton()->test(obj, otype, typeId, true);
+          return ID_p(new ID(typeId));
+        };
+        /*TYPE_DEFINER = [](const fURI &id, const Type_p &type) {
+          Types::singleton()->writeToCache(id, type, true);
+          return type;
+        };*/
+        _setup = true;
+      }
+      return &types;
     }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////

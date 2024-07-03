@@ -21,17 +21,17 @@
 
 #include <fhatos.hpp>
 //
-#include <language/algebra.hpp>
 #include <language/obj.hpp>
 #include <language/types.hpp>
 #include <process/router/local_router.hpp>
-#include <process/router/publisher.hpp>
 
 namespace fhatos {
   struct Insts {
     Insts() = delete;
     static Obj_p start(const List<Obj_p> &starts) {
-      return Obj::to_inst("start", starts, [](const Obj_p &start) { return start; }, IType::ZERO_TO_MANY);
+      return Obj::to_inst(
+          "start", starts, [](const Obj_p &start) { return start; }, IType::ZERO_TO_MANY,
+          (starts.empty() ? Obj::to_noobj() : (1 == starts.size() ? starts.at(0) : Obj::to_objs(starts))));
     }
 
     static Obj_p explain() {
@@ -145,10 +145,11 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {uri, type},
           [uri, type](const Obj_p &lhs) {
-            Types::singleton()->writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
+            Types::singleton()->writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type, true);
+            // TYPE_DEFINER(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },
-          IType::ZERO_TO_ONE, Obj::to_noobj());
+          type->isNoOpBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE, Obj::to_noobj());
     }
 
     static Obj_p as(const Uri_p &type) {
@@ -235,14 +236,22 @@ namespace fhatos {
           "barrier", {bcode}, [bcode](const Objs_p &lhs) { return bcode->apply(lhs); }, IType::MANY_TO_MANY);
     }
 
-    //
+    ///// HELPER METHODS
+    static bool isBarrier(const Inst_p &inst) {
+      return inst->inst_itype() == IType::MANY_TO_MANY || inst->inst_itype() == IType::MANY_TO_ONE;
+    }
+    static bool isInitial(const Inst_p &inst) {
+      return inst->inst_itype() == IType::ZERO_TO_ONE || inst->inst_itype() == IType::ZERO_TO_MANY;
+    }
 
+    static constexpr const char *MAP_T = "map";
+    static constexpr const char *FILTER_T = "filter";
     static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(args);
-      if (type == INST_FURI->resolve("map"))
+      if (type == INST_FURI->resolve(MAP_T))
         return Insts::map(args.at(0));
-      if (type == INST_FURI->resolve("filter"))
+      if (type == INST_FURI->resolve(FILTER_T))
         return Insts::filter(args.at(0));
       if (type == INST_FURI->resolve("side"))
         return Insts::side(args.at(0));

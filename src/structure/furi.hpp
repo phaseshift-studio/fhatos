@@ -98,6 +98,8 @@ namespace private_fhatos {
 
 namespace fhatos {
   class fURI {
+    using fURI_p = ptr<fURI>;
+
   protected:
     char **_segments;
     uint8_t _length;

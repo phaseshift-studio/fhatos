@@ -23,6 +23,7 @@
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
 #include <unity.h>
+#include FOS_PROCESS(scheduler.hpp)
 #include <util/options.hpp>
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
@@ -35,9 +36,12 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
-    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::DEBUG;                                                                         \
+    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;                                                                          \
     GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
     GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
+    Parser::singleton();                                                                                               \
+    Types::singleton()->loadExt("/ext/process");                                                                       \
+    Scheduler::singleton();                                                                                            \
     LOG(NONE, ANSI_ART);                                                                                               \
     UNITY_BEGIN();                                                                                                     \
     x;                                                                                                                 \
@@ -202,7 +206,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 
 static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    Fluent(Parser::tryParseObj(monoid).value()).iterate();
+    Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
   } catch (fError error) {
     LOG_EXCEPTION(error);

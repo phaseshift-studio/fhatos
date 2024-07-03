@@ -18,6 +18,7 @@
 
 #ifndef fhatos_f_bcode_hpp
 #define fhatos_f_bcode_hpp
+#include <language/fluent.hpp>
 #include <language/obj.hpp>
 #include <process/actor/actor.hpp>
 
@@ -35,16 +36,16 @@ namespace fhatos {
             id,
             // setup
             [this](const Actor<PROCESS> *actor) {
-                try {
-                  LOG(DEBUG, "Executing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
-                  Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
-                    LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
-                  });
-                  LOG(DEBUG, "Completeing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
-                } catch (std::exception &error) {
-                  LOG_EXCEPTION(error);
-                  this->stop();
-                }
+              try {
+                LOG(DEBUG, "Executing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
+                Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
+                  LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
+                });
+                LOG(DEBUG, "Completeing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
+              } catch (std::exception &error) {
+                LOG_EXCEPTION(error);
+                this->stop();
+              }
             },
             // loop
             [this](const Actor<PROCESS> *actor) {
