@@ -64,7 +64,7 @@ namespace fhatos {
         va_end(arg);
       }
       if (type == NONE)
-        GLOBAL_OPTIONS->printer()->print("");
+        GLOBAL_OPTIONS->printer<>()->print("");
       else if (type == ERROR)
         GLOBAL_OPTIONS->printer()->print("!r[ERROR]!!  ");
       else if (type == INFO)

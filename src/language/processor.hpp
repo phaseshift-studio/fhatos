@@ -130,7 +130,13 @@ namespace fhatos {
           LOG(DEBUG, "Processing barrier: %s (%s)\n", barrier->toString().c_str(), objs->toString().c_str());
           const Obj_p objB = barrier->apply(objs);
           LOG(DEBUG, "Barrier reduction: %s\n", objB->toString().c_str());
-          this->running->push_back(ptr<Monad>(new Monad(objB, bcode->nextInst(barrier))));
+          const Inst_p postBarrierInst = bcode->nextInst(barrier);
+          if (objB->isObjs()) { // unroll ?-TO-MANY OBJS barrier
+            for (const auto &obj: *objB->objs_value()) {
+              this->running->push_back(ptr<Monad>(new Monad(obj, postBarrierInst)));
+            }
+          } else
+            this->running->push_back(ptr<Monad>(new Monad(objB, postBarrierInst)));
         } else {
           const ptr<Monad> parent = this->running->back();
           this->running->pop_back();
