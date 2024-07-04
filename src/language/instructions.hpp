@@ -145,7 +145,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {uri, type},
           [uri, type](const Obj_p &lhs) {
-            Types::singleton()->writeToCache(uri->uri_value(), type->isNoOpBytecode() ? lhs : type, true);
+            Types::singleton()->saveType(uri->uri_value(), type->isNoOpBytecode() ? lhs : type, true);
             // TYPE_DEFINER(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },

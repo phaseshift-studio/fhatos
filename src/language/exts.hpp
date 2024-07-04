@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_extensions_hpp
-#define fhatos_extensions_hpp
+#ifndef fhatos_exts_hpp
+#define fhatos_exts_hpp
 
 
 #include <fhatos.hpp>
@@ -25,10 +25,10 @@
 #include <structure/furi.hpp>
 
 namespace fhatos {
-  class Extensions {
+  class Exts {
 
   public:
-    Extensions() = delete;
+    Exts() = delete;
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
           share(Map<ID, List<Pair<ID, Type_p>>>{{ID("/ext/process"),

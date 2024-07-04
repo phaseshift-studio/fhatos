@@ -125,12 +125,14 @@ namespace fhatos {
   using Queue = std::queue<A>;
   template<typename A>
   using Deque = std::deque<A>;
+  template<typename A>
+  using Deque_p = ptr<std::deque<A>>;
   template<typename K, typename V>
   using Pair = std::pair<K, V>;
   template<typename A, typename B, typename C>
-  using Triple = std::tuple<A, B, C>;
+  using Trip = std::tuple<A, B, C>;
   template<typename A, typename B, typename C, typename D>
-  using Quadruple = std::tuple<A, B, C, D>;
+  using Quad = std::tuple<A, B, C, D>;
   template<typename K, typename V, typename C = std::less<>, typename A = std::allocator<std::pair<const K, V>>>
   using Map = std::map<K, V, C, A>;
   template<typename K, typename V, typename C = std::less<>, typename A = std::allocator<std::pair<const K, V>>>
@@ -178,7 +180,7 @@ namespace fhatos {
       (inst)->opcode().c_str(),                                                                                        \
       (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
                                : (inst)->v_args().at(0)->type()->v_furi()->toString().c_str(),                         \
-      (inst)->v_args().empty() ? OTypes.toChars(OType::NOOBJ) : OTypes.toChars((inst)->v_args().at(0)->otype()),           \
+      (inst)->v_args().empty() ? OTypes.toChars(OType::NOOBJ) : OTypes.toChars((inst)->v_args().at(0)->otype()),       \
       (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->isBytecode()),                         \
       (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
 #define FOS_LOG_OBJ(obj)                                                                                               \

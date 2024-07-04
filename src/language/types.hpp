@@ -20,30 +20,35 @@
 #define fhatos_types_hpp
 
 #include <fhatos.hpp>
-#include <language/extensions.hpp>
+#include <language/exts.hpp>
 #include <language/obj.hpp>
 #include <process/router/router.hpp>
+#include <util/mutex_rw.hpp>
 #include <util/options.hpp>
-
 
 namespace fhatos {
   class Types {
   private:
-    Types() = default;
+    explicit Types() = default;
 
   protected:
-    static ptr<Map<fURI, Type_p>> TYPE_CACHE() {
-      static ptr<Map<fURI, Type_p>> cache = share(Map<fURI, Type_p>());
-      return cache;
-    }
+    Map<fURI, Type_p> *CACHE = new Map<fURI, Type_p>();
+    MutexRW<> *CACHE_MUTEX = new MutexRW<>();
 
   public:
+    ~Types() {
+      if (!CACHE->empty()) {
+        LOG_EXCEPTION(fError("Unabled to clear type cache\n"));
+      }
+      delete CACHE;
+      delete CACHE_MUTEX;
+    }
     static Types *singleton() {
       static bool _setup = false;
       static Types types = Types();
       if (!_setup) {
-        TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI typeId) {
-          Types::singleton()->test(obj, otype, typeId, true);
+        TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI& typeId) {
+          singleton()->checkType(obj, otype, typeId, true);
           return ID_p(new ID(typeId));
         };
         /*TYPE_DEFINER = [](const fURI &id, const Type_p &type) {
@@ -58,35 +63,41 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     void loadExt(const ID &extId) const {
-      for (const Pair<ID, Type_p> &pair: Extensions::exts(extId)) {
-        this->writeToCache(pair.first, pair.second, true);
+      for (const Pair<ID, Type_p> &pair: Exts::exts(extId)) {
+        this->saveType(pair.first, pair.second, true);
       }
     }
-    void writeToCache(const std::initializer_list<Pair<fURI, string>> &types, const bool writeThrough = true) const {
+    const void saveType(const std::initializer_list<Pair<fURI, string>> &types, const bool writeThrough = true) const {
       for (const auto &pair: types) {
-        writeToCache(pair.first, TYPE_PARSER(pair.second), writeThrough);
+        saveType(pair.first, TYPE_PARSER(pair.second), writeThrough);
       }
     }
-
-    void writeToCache(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) const {
-      TYPE_CACHE()->erase(typeId);
-      if (!obj->isNoObj()) {
-        TYPE_CACHE()->insert({typeId, PtrHelper::clone<Obj>(obj)});
-        if (writeThrough)
-          GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
-        LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
-      }
+    const void saveType(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) const {
+      CACHE_MUTEX->write<void>([this, typeId, obj, writeThrough] {
+        CACHE->erase(typeId);
+        if (!obj->isNoObj()) {
+          CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
+          if (writeThrough)
+            GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
+          LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
+        }
+        return share(nullptr);
+      });
     }
-    Option<Obj_p> readFromCache(const fURI &typeId, const bool readThrough = true) {
-      if (TYPE_CACHE()->count(typeId) && !TYPE_CACHE()->at(typeId)->isNoObj())
-        return Option<Obj_p>(TYPE_CACHE()->at(typeId));
-      if (readThrough) {
-        const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
-        return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
-      }
-      return Option<Obj_p>();
+    const Option<Obj_p> loadType(const fURI &typeId, const bool readThrough = true) const {
+      return CACHE_MUTEX->read<Option<Obj_p>>([this, typeId, readThrough] {
+        if (CACHE->count(typeId) && !CACHE->at(typeId)->isNoObj())
+          return Option<Obj_p>(CACHE->at(typeId));
+        if (readThrough) {
+          const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
+          return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
+        }
+        return Option<Obj_p>();
+      });
     }
-    bool test(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) noexcept(false) {
+    // bool checkType(const Obj &obj, const OType otype, const Type_p type, const bool doThrow =true) const {}
+    bool checkType(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) const
+        noexcept(false) {
       const OType typeOType = OTypes.toEnum(typeId.path(0, 1).c_str());
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;
@@ -98,7 +109,7 @@ namespace fhatos {
       if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
         return true;
       }
-      const Option<Type_p> type = readFromCache(typeId);
+      const Option<Type_p> type = loadType(typeId);
       if (type.has_value()) {
         if (obj.match(*type, false)) {
           return true;
@@ -107,7 +118,6 @@ namespace fhatos {
           throw fError("%s is not a !b%s!!\n", obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
-
       if (doThrow)
         throw fError("Undefined type %s\n", typeId.toString().c_str());
       return false;

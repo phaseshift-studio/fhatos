@@ -39,8 +39,8 @@ namespace fhatos {
   }
 
   void test_bool_parsing() {
-    Types::singleton()->writeToCache("/bool/fact", Obj::to_bcode({}));
-    for (const auto &trip: List<Triple<string, bool, fURI>>({{"true", true, *BOOL_FURI},
+    Types::singleton()->saveType("/bool/fact", Obj::to_bcode({}));
+    for (const auto &trip: List<Trip<string, bool, fURI>>({{"true", true, *BOOL_FURI},
                                                              {"false", false, *BOOL_FURI},
                                                              {"fact[true]", true, BOOL_FURI->resolve("fact")}})) {
       const Bool_p b = Parser::singleton()->tryParseObj(get<0>(trip)).value();
@@ -51,9 +51,9 @@ namespace fhatos {
   }
 
   void test_int_parsing() {
-    Types::singleton()->writeToCache("/int/zero", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({}));
-    for (auto &trip: List<Triple<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
+    Types::singleton()->saveType("/int/zero", Obj::to_bcode({}));
+    Types::singleton()->saveType("/int/nat", Obj::to_bcode({}));
+    for (auto &trip: List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
                                                               {"0", 0, *INT_FURI},
                                                               {"-12", -12, *INT_FURI},
                                                               {"nat[100]", 100, INT_FURI->resolve("nat")},
@@ -70,11 +70,11 @@ namespace fhatos {
   }
 
   void test_real_parsing() {
-    Types::singleton()->writeToCache("/real/zero", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/real/nat", Obj::to_bcode({}));
+    Types::singleton()->saveType("/real/zero", Obj::to_bcode({}));
+    Types::singleton()->saveType("/real/nat", Obj::to_bcode({}));
     // REAL
     for (auto &trip:
-         List<Triple<string, FL_REAL_TYPE, fURI>>({{"45.1", 45.1f, *REAL_FURI},
+         List<Trip<string, FL_REAL_TYPE, fURI>>({{"45.1", 45.1f, *REAL_FURI},
                                                    {"0.0000", 0.0f, *REAL_FURI},
                                                    {"-12.1", -12.1f, *REAL_FURI},
                                                    {"nat[10.0]", 10.0f, REAL_FURI->resolve("nat")},
@@ -91,10 +91,10 @@ namespace fhatos {
   }
 
   void test_uri_parsing() {
-    Types::singleton()->writeToCache("/uri/x", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/uri/furi:", Obj::to_bcode({}));
+    Types::singleton()->saveType("/uri/x", Obj::to_bcode({}));
+    Types::singleton()->saveType("/uri/furi:", Obj::to_bcode({}));
     for (auto &trip:
-         List<Triple<string, fURI, fURI>>({{"blah.com", fURI("blah.com"), *URI_FURI},
+         List<Trip<string, fURI, fURI>>({{"blah.com", fURI("blah.com"), *URI_FURI},
                                            {"ga", fURI("ga"), *URI_FURI},
                                            {"x[x]", fURI("x"), URI_FURI->resolve("x")},
                                            {"furi:[blah.com]", fURI("blah.com"), URI_FURI->resolve("furi:")},
@@ -107,9 +107,9 @@ namespace fhatos {
   }
 
   void test_str_parsing() {
-    Types::singleton()->writeToCache("/str/name", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/str/origin", Obj::to_bcode({}));
-    for (auto &trip: List<Triple<string, string, fURI>>(
+    Types::singleton()->saveType("/str/name", Obj::to_bcode({}));
+    Types::singleton()->saveType("/str/origin", Obj::to_bcode({}));
+    for (auto &trip: List<Trip<string, string, fURI>>(
              {{"'bob'", "bob", *STR_FURI},
               {"'ga'", "ga", *STR_FURI},
               {"name['fhat']", "fhat", STR_FURI->resolve("name")},
@@ -124,11 +124,11 @@ namespace fhatos {
 
   void test_lst_parsing() {
     // LST
-    Types::singleton()->writeToCache("/lst/atype", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/lst/btype", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/lst/ctype", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/bool/abool", Obj::to_bcode({}));
-    for (auto &trip: List<Triple<string, List<Obj_p>, fURI>>(
+    Types::singleton()->saveType("/lst/atype", Obj::to_bcode({}));
+    Types::singleton()->saveType("/lst/btype", Obj::to_bcode({}));
+    Types::singleton()->saveType("/lst/ctype", Obj::to_bcode({}));
+    Types::singleton()->saveType("/bool/abool", Obj::to_bcode({}));
+    for (auto &trip: List<Trip<string, List<Obj_p>, fURI>>(
              {{"['a',13,actor@127.0.0.1,false]",
                {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
                *LST_FURI},
@@ -163,12 +163,12 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
-    Types::singleton()->writeToCache("/rec/person", //
+    Types::singleton()->saveType("/rec/person", //
                                      Obj::to_bcode({})); //
-    Types::singleton()->writeToCache("/rec/atype", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/rec/btype", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/rec/ctype", Obj::to_bcode({}));
-    Types::singleton()->writeToCache("/bool/abool", Obj::to_bcode({}));
+    Types::singleton()->saveType("/rec/atype", Obj::to_bcode({}));
+    Types::singleton()->saveType("/rec/btype", Obj::to_bcode({}));
+    Types::singleton()->saveType("/rec/ctype", Obj::to_bcode({}));
+    Types::singleton()->saveType("/bool/abool", Obj::to_bcode({}));
     List<string> forms = {"['a'=>13,actor@127.0.0.1=>false]",
                           "['a' => 13,actor@127.0.0.1 => false ]",
                           "['a'=> 13 , actor@127.0.0.1=>false]",

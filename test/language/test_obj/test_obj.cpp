@@ -16,7 +16,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_bool() {
-    Types::singleton()->writeToCache("/bool/truth", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/bool/truth", Obj::to_bcode({})); //
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
     const Bool_p boolB = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
@@ -45,8 +45,8 @@ namespace fhatos {
   }
 
   void test_int() {
-    Types::singleton()->writeToCache("/int/age", Obj::to_bcode({})); //
-    Types::singleton()->writeToCache("/int/nat", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/int/age", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/int/nat", Obj::to_bcode({})); //
     const Int_p intA = share(Int(1));
     const Int_p intB = share<Int>(Int(1));
     const Int_p intC = share(Int(1, "/int/age"));
@@ -101,8 +101,8 @@ namespace fhatos {
   }
 
   void test_str() {
-    Types::singleton()->writeToCache("/str/first_name", Obj::to_bcode({})); //
-    Types::singleton()->writeToCache("/str/letter", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/str/first_name", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/str/letter", Obj::to_bcode({})); //
     const Str strA = *Obj::to_str("fhat", share(fURI("/str/first_name")));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.isBytecode());
@@ -111,8 +111,8 @@ namespace fhatos {
   }
 
   void test_rec() {
-    Types::singleton()->writeToCache("/rec/mail", Obj::to_bcode({})); //
-    Types::singleton()->writeToCache("/real/cost", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/rec/mail", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/real/cost", Obj::to_bcode({})); //
     const Rec recA = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recB = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recC =

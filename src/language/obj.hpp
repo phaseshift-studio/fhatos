@@ -79,18 +79,18 @@ namespace fhatos {
     TYPE
   };
   static const Enums<OType> OTypes = Enums<OType>({{OType::OBJ, "obj"},
-                                                             {OType::NOOBJ, "noobj"},
-                                                             {OType::OBJS, "objs"},
-                                                             {OType::BOOL, "bool"},
-                                                             {OType::INT, "int"},
-                                                             {OType::REAL, "real"},
-                                                             {OType::URI, "uri"},
-                                                             {OType::STR, "str"},
-                                                             {OType::LST, "lst"},
-                                                             {OType::REC, "rec"},
-                                                             {OType::INST, "inst"},
-                                                             {OType::BCODE, "bcode"},
-                                                             {OType::TYPE, "type"}});
+                                                   {OType::NOOBJ, "noobj"},
+                                                   {OType::OBJS, "objs"},
+                                                   {OType::BOOL, "bool"},
+                                                   {OType::INT, "int"},
+                                                   {OType::REAL, "real"},
+                                                   {OType::URI, "uri"},
+                                                   {OType::STR, "str"},
+                                                   {OType::LST, "lst"},
+                                                   {OType::REC, "rec"},
+                                                   {OType::INST, "inst"},
+                                                   {OType::BCODE, "bcode"},
+                                                   {OType::TYPE, "type"}});
 
   class Obj;
   using Obj_p = ptr<Obj>;
@@ -148,22 +148,9 @@ namespace fhatos {
   using InstArgs = List<Obj_p>;
   using InstFunction = Function<Obj_p, Obj_p>;
   using InstSeed = Obj_p;
-  using InstValue = Quadruple<InstArgs, InstFunction, IType, InstSeed>;
+  using InstValue = Quad<InstArgs, InstFunction, IType, InstSeed>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const Map<OType, fURI_p> OTYPE_FURI = {{{OType::NOOBJ, share(fURI("/noobj/"))},
-                                                 {OType::OBJ, share(fURI("/obj/"))},
-                                                 {OType::OBJS, share(fURI("/objs/"))},
-                                                 {OType::URI, share(fURI("/uri/"))},
-                                                 {OType::BOOL, share(fURI("/bool/"))},
-                                                 {OType::INT, share(fURI("/int/"))},
-                                                 {OType::REAL, share(fURI("/real/"))},
-                                                 {OType::STR, share(fURI("/str/"))},
-                                                 {OType::LST, share(fURI("/lst/"))},
-                                                 {OType::REC, share(fURI("/rec/"))},
-                                                 {OType::INST, share(fURI("/inst/"))},
-                                                 {OType::BCODE, share(fURI("/bcode/"))},
-                                                 {OType::TYPE, share(fURI("/type/"))}}};
   static const fURI_p OBJ_FURI = fURI_p(new fURI("/obj/"));
   static const fURI_p NOOBJ_FURI = fURI_p(new fURI("/noobj/"));
   static const fURI_p TYPE_FURI = fURI_p(new fURI("/type/"));
@@ -177,6 +164,19 @@ namespace fhatos {
   static const fURI_p INST_FURI = fURI_p(new fURI("/inst/"));
   static const fURI_p BCODE_FURI = fURI_p(new fURI("/bcode/"));
   static const fURI_p OBJS_FURI = fURI_p(new fURI("/objs/"));
+  static const Map<OType, fURI_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
+                                                 {OType::OBJ, OBJ_FURI},
+                                                 {OType::OBJS, OBJS_FURI},
+                                                 {OType::URI, URI_FURI},
+                                                 {OType::BOOL, BOOL_FURI},
+                                                 {OType::INT, INT_FURI},
+                                                 {OType::REAL, REAL_FURI},
+                                                 {OType::STR, STR_FURI},
+                                                 {OType::LST, LST_FURI},
+                                                 {OType::REC, REC_FURI},
+                                                 {OType::INST, INST_FURI},
+                                                 {OType::BCODE, BCODE_FURI},
+                                                 {OType::TYPE, TYPE_FURI}}};
   static TriFunction<const Obj &, const OType, const fURI &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
                                                                                      const fURI &) { return nullptr; };
   static Function<const string, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
