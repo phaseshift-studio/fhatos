@@ -118,8 +118,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;fhatos.hpp&gt;</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="comment">//</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;<a class="code" href="obj_8hpp.html">language/obj.hpp</a>&gt;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;language/types.hpp&gt;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;process/router/local_router.hpp&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;process/router/router.hpp&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;util/options.hpp&gt;</span></div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keyword">namespace </span>fhatos {</div>
 <div class="foldopen" id="foldopen00029" data-start="{" data-end="};">
@@ -242,8 +242,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>      <span class="keywordflow">return</span> Obj::to_inst(</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>          <span class="stringliteral">&quot;define&quot;</span>, {uri, type},</div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          [uri, type](<span class="keyword">const</span> Obj_p &amp;lhs) {</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>            Types::singleton()-&gt;saveType(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>            <span class="comment">// TYPE_DEFINER(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type);</span></div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>            <span class="comment">// Types::singleton()-&gt;saveType(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type, true);</span></div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>            TYPE_SAVER(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type);</div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>            <span class="keywordflow">return</span> lhs;</div>
 <div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>          },</div>
 <div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>          type-&gt;isNoOpBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE, <a class="code hl_function" href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">Obj::to_noobj</a>());</div>
@@ -452,8 +452,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span> </div>
 <div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:188</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:872</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:187</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:871</div></div>
 <div class="ttc" id="aclassfhatos_1_1Router_html"><div class="ttname"><a href="classfhatos_1_1Router.html">fhatos::Router</a></div><div class="ttdef"><b>Definition</b> router.hpp:140</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 <div class="ttc" id="aclassfhatos_1_1fURI_html"><div class="ttname"><a href="classfhatos_1_1fURI.html">fhatos::fURI</a></div><div class="ttdef"><b>Definition</b> furi.hpp:102</div></div>
