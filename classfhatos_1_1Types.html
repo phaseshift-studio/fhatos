@@ -94,7 +94,7 @@ $(function(){ initResizable(false); });
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
-<a href="#pro-static-methods">Static Protected Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classfhatos_1_1Types-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">fhatos::Types Class Reference</div></div>
 </div><!--header-->
@@ -105,18 +105,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac7f7568e8cddd19accbf6db9f6686a74" id="r_ac7f7568e8cddd19accbf6db9f6686a74"><td class="memItemLeft" align="right" valign="top"><a id="ac7f7568e8cddd19accbf6db9f6686a74" name="ac7f7568e8cddd19accbf6db9f6686a74"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>loadExt</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;extId) const</td></tr>
 <tr class="separator:ac7f7568e8cddd19accbf6db9f6686a74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97d15b0195de4b5177f766065bf59911" id="r_a97d15b0195de4b5177f766065bf59911"><td class="memItemLeft" align="right" valign="top"><a id="a97d15b0195de4b5177f766065bf59911" name="a97d15b0195de4b5177f766065bf59911"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>writeToCache</b> (const std::initializer_list&lt; Pair&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a>, string &gt; &gt; &amp;types, const bool writeThrough=true) const</td></tr>
-<tr class="separator:a97d15b0195de4b5177f766065bf59911"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affb07a9f6a5ac87836658817dc30be85" id="r_affb07a9f6a5ac87836658817dc30be85"><td class="memItemLeft" align="right" valign="top"><a id="affb07a9f6a5ac87836658817dc30be85" name="affb07a9f6a5ac87836658817dc30be85"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>writeToCache</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId, const Obj_p &amp;obj, const bool writeThrough=true) const</td></tr>
-<tr class="separator:affb07a9f6a5ac87836658817dc30be85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad389f46ad41e51a64c8cddafc3d98130" id="r_ad389f46ad41e51a64c8cddafc3d98130"><td class="memItemLeft" align="right" valign="top"><a id="ad389f46ad41e51a64c8cddafc3d98130" name="ad389f46ad41e51a64c8cddafc3d98130"></a>
-Option&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>readFromCache</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId, const bool readThrough=true)</td></tr>
-<tr class="separator:ad389f46ad41e51a64c8cddafc3d98130"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a33595f1322b7f20c98dbbc4c6877931a" id="r_a33595f1322b7f20c98dbbc4c6877931a"><td class="memItemLeft" align="right" valign="top"><a id="a33595f1322b7f20c98dbbc4c6877931a" name="a33595f1322b7f20c98dbbc4c6877931a"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>test</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &amp;obj, const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> otype, const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId, const bool doThrow=true) noexcept(false)</td></tr>
-<tr class="separator:a33595f1322b7f20c98dbbc4c6877931a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72d3cae610164104263b8f42c6ea507c" id="r_a72d3cae610164104263b8f42c6ea507c"><td class="memItemLeft" align="right" valign="top"><a id="a72d3cae610164104263b8f42c6ea507c" name="a72d3cae610164104263b8f42c6ea507c"></a>
+const void&#160;</td><td class="memItemRight" valign="bottom"><b>saveType</b> (const std::initializer_list&lt; Pair&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a>, string &gt; &gt; &amp;types, const bool writeThrough=true) const</td></tr>
+<tr class="separator:a72d3cae610164104263b8f42c6ea507c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc103ec3f30135c904b1dbe1be942756" id="r_afc103ec3f30135c904b1dbe1be942756"><td class="memItemLeft" align="right" valign="top"><a id="afc103ec3f30135c904b1dbe1be942756" name="afc103ec3f30135c904b1dbe1be942756"></a>
+const void&#160;</td><td class="memItemRight" valign="bottom"><b>saveType</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId, const Obj_p &amp;obj, const bool writeThrough=true) const</td></tr>
+<tr class="separator:afc103ec3f30135c904b1dbe1be942756"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d215c9326fc283928c838a649ce386f" id="r_a6d215c9326fc283928c838a649ce386f"><td class="memItemLeft" align="right" valign="top"><a id="a6d215c9326fc283928c838a649ce386f" name="a6d215c9326fc283928c838a649ce386f"></a>
+const Option&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>loadType</b> (const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId, const bool readThrough=true) const</td></tr>
+<tr class="separator:a6d215c9326fc283928c838a649ce386f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1fc876fb6681529df66815973d3e03a" id="r_ac1fc876fb6681529df66815973d3e03a"><td class="memItemLeft" align="right" valign="top"><a id="ac1fc876fb6681529df66815973d3e03a" name="ac1fc876fb6681529df66815973d3e03a"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkType</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> &amp;obj, const <a class="el" href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">OType</a> otype, const <a class="el" href="classfhatos_1_1fURI.html">fURI</a> &amp;typeId, const bool doThrow=true) const noexcept(false)</td></tr>
+<tr class="separator:ac1fc876fb6681529df66815973d3e03a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -124,11 +124,14 @@ Static Public Member Functions</h2></td></tr>
 static <a class="el" href="classfhatos_1_1Types.html">Types</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>singleton</b> ()</td></tr>
 <tr class="separator:a4d5abe70b9efa1cfe8940a6588460377"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-methods" name="pro-static-methods"></a>
-Static Protected Member Functions</h2></td></tr>
-<tr class="memitem:ae2040885aaf4ce4753dd9dc96e1b5739" id="r_ae2040885aaf4ce4753dd9dc96e1b5739"><td class="memItemLeft" align="right" valign="top"><a id="ae2040885aaf4ce4753dd9dc96e1b5739" name="ae2040885aaf4ce4753dd9dc96e1b5739"></a>
-static ptr&lt; Map&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a>, Type_p &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>TYPE_CACHE</b> ()</td></tr>
-<tr class="separator:ae2040885aaf4ce4753dd9dc96e1b5739"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:af4a099ec7bf0cb7c40988bccd09e1ade" id="r_af4a099ec7bf0cb7c40988bccd09e1ade"><td class="memItemLeft" align="right" valign="top"><a id="af4a099ec7bf0cb7c40988bccd09e1ade" name="af4a099ec7bf0cb7c40988bccd09e1ade"></a>
+Map&lt; <a class="el" href="classfhatos_1_1fURI.html">fURI</a>, Type_p &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>CACHE</b> = new Map&lt;<a class="el" href="classfhatos_1_1fURI.html">fURI</a>, Type_p&gt;()</td></tr>
+<tr class="separator:af4a099ec7bf0cb7c40988bccd09e1ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a9fd2911c333de003ae38828b7110db" id="r_a9a9fd2911c333de003ae38828b7110db"><td class="memItemLeft" align="right" valign="top"><a id="a9a9fd2911c333de003ae38828b7110db" name="a9a9fd2911c333de003ae38828b7110db"></a>
+<a class="el" href="classfhatos_1_1MutexRW.html">MutexRW</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>CACHE_MUTEX</b> = new <a class="el" href="classfhatos_1_1MutexRW.html">MutexRW</a>&lt;&gt;()</td></tr>
+<tr class="separator:a9a9fd2911c333de003ae38828b7110db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/github/workspace/src/language/<a class="el" href="types_8hpp_source.html">types.hpp</a></li>

@@ -242,7 +242,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>      <span class="keywordflow">return</span> Obj::to_inst(</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>          <span class="stringliteral">&quot;define&quot;</span>, {uri, type},</div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          [uri, type](<span class="keyword">const</span> Obj_p &amp;lhs) {</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>            Types::singleton()-&gt;writeToCache(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>            Types::singleton()-&gt;saveType(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>            <span class="comment">// TYPE_DEFINER(uri-&gt;uri_value(), type-&gt;isNoOpBytecode() ? lhs : type);</span></div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>            <span class="keywordflow">return</span> lhs;</div>
 <div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>          },</div>
