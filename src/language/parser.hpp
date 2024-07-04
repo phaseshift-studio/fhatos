@@ -22,7 +22,6 @@
 #include <fhatos.hpp>
 #include <language/instructions.hpp>
 #include <language/obj.hpp>
-#include <regex>
 #include <sstream>
 #include <util/string_helper.hpp>
 
@@ -57,7 +56,7 @@ namespace fhatos {
       const string typeToken = typeValue.first;
       const string valueToken = typeValue.second;
       Option<Obj_p> b;
-      b = tryParseNoObj(valueToken, typeToken, NOOBJ_FURI);
+      b = tryParseNoObj(valueToken);
       if (b.has_value())
         return b.value();
       b = tryParseBool(valueToken, typeToken, BOOL_FURI);
@@ -117,8 +116,7 @@ namespace fhatos {
       return {typeToken, valueToken};
     }
 
-    Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken,
-                                  const fURI_p &baseType = NOOBJ_FURI) {
+    Option<NoObj_p> tryParseNoObj(const string &valueToken) {
       LOG(TRACE, "Attempting noobj parse on %s\n", valueToken.c_str());
       return valueToken == "Ø" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>{};
     }
@@ -215,7 +213,6 @@ namespace fhatos {
       //////////////////////////////////// {
       Obj::RecMap<> map = Obj::RecMap<>();
       bool onKey = false;
-
       int bracketCounter = 0;
       int parenCounter = 0;
       while (!ss.eof()) {
@@ -287,7 +284,7 @@ namespace fhatos {
           } else if (ss.peek() == ']') {
             bracket--;
           }
-          char temp = ss.get();
+          const char temp = ss.get();
           if (ss.eof())
             argToken = argToken.substr(0, argToken.length() - 2);
           else {
@@ -299,7 +296,7 @@ namespace fhatos {
           }
         }
         if (!argToken.empty()) {
-          Option<Obj_p> arg_p = Parser::tryParseObj(argToken);
+          const Option<Obj_p> arg_p = Parser::tryParseObj(argToken);
           if (arg_p.has_value())
             args.push_back(arg_p.value());
           else {

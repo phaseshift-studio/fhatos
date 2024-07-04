@@ -7,7 +7,6 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/router/local_router.hpp>
-// #include <process/router/meta_router.hpp>
 #include <atomic>
 #include <process/router/router.hpp>
 

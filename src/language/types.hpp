@@ -37,9 +37,7 @@ namespace fhatos {
 
   public:
     ~Types() {
-      if (!CACHE->empty()) {
-        LOG_EXCEPTION(fError("Unabled to clear type cache\n"));
-      }
+      CACHE->clear();
       delete CACHE;
       delete CACHE_MUTEX;
     }
@@ -47,14 +45,14 @@ namespace fhatos {
       static bool _setup = false;
       static Types types = Types();
       if (!_setup) {
-        TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI& typeId) {
+        TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI &typeId) {
           singleton()->checkType(obj, otype, typeId, true);
           return ID_p(new ID(typeId));
         };
-        /*TYPE_DEFINER = [](const fURI &id, const Type_p &type) {
-          Types::singleton()->writeToCache(id, type, true);
+        TYPE_SAVER = [](const fURI &id, const Type_p &type) {
+          singleton()->saveType(id, type, true);
           return type;
-        };*/
+        };
         _setup = true;
       }
       return &types;

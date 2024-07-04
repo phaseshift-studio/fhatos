@@ -26,7 +26,6 @@
 #ifndef fhatos_obj_hpp
 #define fhatos_obj_hpp
 
-
 #ifndef FL_REAL_TYPE
 #define FL_REAL_TYPE float
 #include <any>
@@ -180,7 +179,7 @@ namespace fhatos {
   static TriFunction<const Obj &, const OType, const fURI &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
                                                                                      const fURI &) { return nullptr; };
   static Function<const string, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
-  static BiFunction<const fURI, Type_p, Type_p> TYPE_DEFINER = [](const fURI &, const Type_p &) { return nullptr; };
+  static BiFunction<const fURI, Type_p, Type_p> TYPE_SAVER = [](const fURI &, const Type_p &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
@@ -957,15 +956,16 @@ namespace fhatos {
       return Obj::to_objs(share(objs), furi);
     }
 
-    const ptr<BObj> serialize() const {
+    ptr<BObj> serialize() const {
       auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
       memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
       return share(BObj{sizeof(*this), bytes});
     }
 
     template<typename OBJ>
-    static const ptr<OBJ> deserialize(const ptr<BObj> bobj) {
-      return ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
+    static ptr<OBJ> deserialize(const ptr<BObj> bobj) {
+      ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
+      return obj;
     }
   };
   static Uri u(const char *uri) { return Uri(fURI(uri)); }

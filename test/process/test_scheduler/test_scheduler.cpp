@@ -3,7 +3,6 @@
 
 #include <test_fhatos.hpp>
 //
-#include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
 #include <structure/furi.hpp>
 #include FOS_PROCESS(scheduler.hpp)

@@ -22,8 +22,8 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
-#include <language/types.hpp>
-#include <process/router/local_router.hpp>
+#include <process/router/router.hpp>
+#include <util/options.hpp>
 
 namespace fhatos {
   struct Insts {
@@ -145,8 +145,8 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {uri, type},
           [uri, type](const Obj_p &lhs) {
-            Types::singleton()->saveType(uri->uri_value(), type->isNoOpBytecode() ? lhs : type, true);
-            // TYPE_DEFINER(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
+            // Types::singleton()->saveType(uri->uri_value(), type->isNoOpBytecode() ? lhs : type, true);
+            TYPE_SAVER(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },
           type->isNoOpBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE, Obj::to_noobj());

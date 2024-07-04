@@ -27,6 +27,7 @@
 #include <util/ansi.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
+#include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 
 namespace fhatos {

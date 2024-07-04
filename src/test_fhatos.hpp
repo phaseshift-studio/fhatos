@@ -24,6 +24,8 @@
 #include <language/parser.hpp>
 #include <unity.h>
 #include FOS_PROCESS(scheduler.hpp)
+#include <language/types.hpp>
+#include <process/router/local_router.hpp>
 #include <util/options.hpp>
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
@@ -167,7 +169,8 @@ static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool prin
   if (printResult) {
     int index = 0;
     for (const auto &obj: *result) {
-      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(), OTypes.toChars(obj->o_type()));
+      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
+                       OTypes.toChars(obj->o_type()));
     }
   }
   return result;
