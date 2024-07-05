@@ -58,7 +58,6 @@
 #include <util/logger.hpp>
 #include <util/options.hpp>
 
-
 namespace fhatos {
   static const char *ANSI_ART = "!r            !_PhaseShift Studio Presents!! \n"
                                 "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
@@ -150,7 +149,7 @@ namespace fhatos {
   // MACROS //
   ////////////
 
-
+#define FOS_MAX_FURI_SEGMENTS 10
 #define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "
 #define FOS_TAB_3 "   "

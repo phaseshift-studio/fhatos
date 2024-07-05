@@ -61,6 +61,66 @@ namespace fhatos {
       }
       return true;
     }
+    static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
+      char *copy;
+      const char *freeable_copy = copy = strdup(text);
+      char *token;
+      int i = offset;
+
+      while ((token = strsep(&copy, deliminator)) != nullptr) {
+        if (strlen(token) > 0) {
+          result[i] = strdup(token);
+          i++;
+        }
+      }
+      size_t dl = strlen(deliminator);
+      char *substr = new char[dl];
+      strncpy(substr, text + (strlen(text) - dl), dl);
+      substr[dl] = '\0';
+      if (strcmp(substr, deliminator) == 0) {
+        result[i] = strdup("");
+        i++;
+      }
+      // delete substr;
+      delete token;
+      delete freeable_copy;
+      return i;
+    }
+
+    static bool match(const char *id_cstr, const char *pattern_cstr) {
+      if (strstr(pattern_cstr, "#") == nullptr && strstr(pattern_cstr, "+") == nullptr)
+        return strcmp(id_cstr, pattern_cstr) == 0;
+      if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
+        return true;
+      char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
+      char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
+      int idLength = split(id_cstr, "/", idParts);
+      if (id_cstr[strlen(id_cstr) - 1] == '/')
+        idLength++;
+      const int patternLength = split(pattern_cstr, "/", patternParts);
+      // LOG(DEBUG, "Matching: %s <=> %s\n", id, pattern);
+      const bool result = [idParts, patternParts, idLength, patternLength]() {
+        for (int i = 0; i < idLength; i++) {
+          if (i >= patternLength)
+            return false;
+          //   LOG(DEBUG, "\t%s <=%i=> %s\n", idParts[i], i, patternParts[i]);
+          if (strcmp(patternParts[i], "#") == 0)
+            return true;
+          if ((strcmp(patternParts[i], "+") != 0) && (strcmp(patternParts[i], idParts[i]) != 0))
+            return false;
+        }
+        return patternLength == idLength;
+      }();
+      for (uint8_t i = 0; i < idLength; i++) {
+        delete[] idParts[i];
+      }
+      delete[] idParts;
+      for (uint8_t i = 0; i < patternLength; i++) {
+        delete[] patternParts[i];
+      }
+      delete[] patternParts;
+      return result;
+    }
   };
 } // namespace fhatos
 

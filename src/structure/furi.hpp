@@ -21,11 +21,10 @@
 
 #include <fhatos.hpp>
 #include <string.h>
+#include <util/uri.hpp>
 #include <util/ptr_helper.hpp>
 // #include <memory>
 // #include <utility>
-
-#define FOS_MAX_FURI_SEGMENTS 20
 
 namespace private_fhatos {
   static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
@@ -233,8 +232,6 @@ namespace fhatos {
       return private_fhatos::match(this->toString().c_str(), pattern.toString().c_str());
     }
 
-    // bool parentOf(const fURI &furi) const;
-    // bool childOf(const fURI &furi) const { return furi.parentOf(*this); }
     const string segment(const uint8_t index) const { return string(this->_segments[index]); }
 
     const string lastSegment() const { return string(this->_segments[this->_length - 1]); }

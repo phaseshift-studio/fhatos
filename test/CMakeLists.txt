@@ -50,6 +50,7 @@ IF (BUILD_TESTS)
     ####################################
     ########### TEST SUITES ############
     ####################################
+    MAKE_TESTS(abc "test_abc")
     MAKE_TESTS(language "test_fluent;test_obj;test_parser")
     MAKE_TESTS(process "test_scheduler")
     MAKE_TESTS(process/actor "test_actor")
