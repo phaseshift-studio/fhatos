@@ -206,6 +206,26 @@ namespace fhatos {
       return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); }, IType::ONE_TO_ONE);
     }
 
+    static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode) {
+      return Obj::to_inst(
+          "group", {keyCode, valueCode},
+          [keyCode, valueCode](const Objs_p &barrier) {
+            Obj::RecMap<> map = Obj::RecMap<>();
+            for (const Obj_p &obj: *barrier->objs_value()) {
+              const Obj_p key = keyCode->apply(obj);
+              const Obj_p value = valueCode->apply(obj);
+              if (map.count(key)) {
+                Lst_p list = map.at(key);
+                list->lst_value()->push_back(value);
+              } else {
+                map.insert({key, Obj::to_lst({value})});
+              }
+            }
+            return Obj::to_rec(share(map));
+          },
+          IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
+    }
+
     static Obj_p print(const Obj_p &toprint) {
       return Obj::to_inst(
           "print", {toprint},
@@ -295,6 +315,8 @@ namespace fhatos {
         return Insts::side(args.at(0));
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
+      if (type == INST_FURI->resolve("group"))
+        return Insts::group(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("get"))
         return Insts::get(args.at(0));
       if (type == INST_FURI->resolve("set"))

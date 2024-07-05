@@ -26,6 +26,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
 #include <process/router/local_router.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
 #include <util/options.hpp>
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////

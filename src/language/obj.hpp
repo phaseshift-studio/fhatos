@@ -929,6 +929,10 @@ namespace fhatos {
       return to_lst(share(list), furi);
     }
 
+    static Lst_p to_lst(const std::initializer_list<Obj_p> &xlst, const fURI_p &furi = LST_FURI) {
+      return to_lst(share(LstList<>(xlst)), furi);
+    }
+
     static Rec_p to_rec(const RecMap_p<> &map, const fURI_p &furi = REC_FURI) {
       assert(furi->path(0, 1) == OTypes.toChars(OType::REC));
       return share(Obj(map, furi));
@@ -965,6 +969,10 @@ namespace fhatos {
 
     static Objs_p to_objs(const List<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {
       return Obj::to_objs(share(objs), furi);
+    }
+
+    static Objs_p to_objs(const List<Obj> &objs, const fURI_p &furi = OBJS_FURI) {
+      return Obj::to_objs(share(PtrHelper::clone(objs)), furi);
     }
 
     ptr<BObj> serialize() const {
