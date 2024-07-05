@@ -15,7 +15,7 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-
+#pragma once
 #ifndef fhatos_abstract_scheduler_hpp
 #define fhatos_abstract_scheduler_hpp
 

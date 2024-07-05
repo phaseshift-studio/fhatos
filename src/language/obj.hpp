@@ -22,7 +22,7 @@
  *  @author Marko A. Rodriguez
  *  @date   2024-05-01
  ***********************************************/
-
+#pragma once
 #ifndef fhatos_obj_hpp
 #define fhatos_obj_hpp
 
