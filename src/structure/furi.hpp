@@ -21,8 +21,8 @@
 
 #include <fhatos.hpp>
 #include <string.h>
-#include <util/uri.hpp>
 #include <util/ptr_helper.hpp>
+#include <util/uri.hpp>
 // #include <memory>
 // #include <utility>
 
@@ -199,7 +199,7 @@ namespace fhatos {
     }
 
     const bool isAbsolute() const {
-      return !this->authority().empty() || (this->pathLength() > 0 && this->path().starts_with("/"));
+      return this->pathLength() > 0 && this->segment(0).empty();
     }
 
     const bool isRelative() const { return !isAbsolute(); }

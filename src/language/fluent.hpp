@@ -93,6 +93,8 @@ namespace fhatos {
     Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
     Fluent side(const BCode &bcode) const { return this->addInst(Insts::side(share(bcode))); }
     Fluent get(const Obj &key) const { return this->addInst(Insts::get(share(key))); }
+    Fluent set(const Obj &key, const Obj &value) const { return this->addInst(Insts::set(share(key), share(value))); }
+
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////
@@ -162,11 +164,9 @@ namespace fhatos {
     }*/
 
     Fluent as(const Obj &utype) { return this->addInst(Insts::as(share(utype))); }
-
     Fluent type() { return this->addInst(Insts::type()); }
-
-    Fluent define(const Obj &type, const Obj &typeDefinition) {
-      return this->addInst(Insts::define(share(type), share(typeDefinition)));
+    Fluent define(const Obj &typeId, const Obj &type) {
+      return this->addInst(Insts::define(share(typeId), share(type)));
     }
   };
 
@@ -179,12 +179,9 @@ namespace fhatos {
     } else {
       return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(PtrHelper::clone<Obj>(starts))}));
     }
-  };
-
-  static Fluent __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); };
-
-  static Fluent __() { return __(List<Obj>{}); };
-
+  }
+  static Fluent __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); }
+  static Fluent __() { return __(List<Obj>{}); }
   inline static Fluent _ = __();
 } // namespace fhatos
 

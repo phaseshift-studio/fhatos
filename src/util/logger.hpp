@@ -43,10 +43,10 @@ namespace fhatos {
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
       if ((uint8_t) type < (uint8_t) GLOBAL_OPTIONS->logger<LOG_TYPE>())
         return;
-      char buffer[255];
+      char buffer[512];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(buffer, 255, format, arg);
+      int length = vsnprintf(buffer, 512, format, arg);
       buffer[length] = '\0';
       va_end(arg);
       if (type == NONE)

@@ -225,10 +225,9 @@ namespace fhatos {
     explicit Obj(const Any &value, const fURI_p &typeId) :
         Obj(value, OTypes.toEnum(typeId->path(0, 1).c_str()), *typeId) {}
     /////
-    static fError TYPE_ERROR(const Obj *obj, const int lineNumber = __LINE__) {
+    static fError TYPE_ERROR(const Obj *obj, const char *function) {
       // if(true) exit(1);
-      return fError("Unexpected internal value for %s [%s]\n", OTypes.toChars(obj->o_type()),
-                    (string(__FILE__) + ":" + std::to_string(lineNumber)).c_str());
+      return fError("%s unexpectedly acccessed for %s\n", OTypes.toChars(obj->o_type()), function);
     }
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
@@ -275,60 +274,60 @@ namespace fhatos {
       try {
         return std::any_cast<VALUE>(this->_value);
       } catch (const std::bad_any_cast &) {
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       }
     }
     List_p<Obj_p> objs_value() const {
       if (this->o_type() != OType::OBJS)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<List_p<Obj_p>>();
     }
     const bool bool_value() const {
       if (this->o_type() != OType::BOOL)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<bool>();
     }
     const FL_INT_TYPE int_value() const {
       if (this->o_type() != OType::INT)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<FL_INT_TYPE>();
     }
     const FL_REAL_TYPE real_value() const {
       if (this->o_type() != OType::REAL)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<FL_REAL_TYPE>();
     }
     const fURI uri_value() const {
       if (this->o_type() != OType::URI)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<fURI>();
     }
     const string str_value() const {
       if (this->o_type() != OType::STR)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<string>();
     }
     LstList_p<> lst_value() const {
       if (this->o_type() != OType::LST)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<LstList_p<>>();
     }
 
     Obj_p lst_get(const Int_p &index) const {
       if (this->o_type() != OType::LST)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->lst_value()->at(index->int_value());
     }
 
     void lst_set(const Int_p &index, const Obj_p &obj) const {
       if (this->o_type() != OType::LST)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       this->lst_value()->insert(this->lst_value()->begin() + index->int_value(), obj);
     }
 
     RecMap_p<> rec_value() const {
       if (this->o_type() != OType::REC)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<RecMap_p<>>();
     }
     Obj_p rec_get(const Obj_p &key) const {
@@ -344,12 +343,12 @@ namespace fhatos {
     void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
     const InstValue inst_value() const {
       if (this->o_type() != OType::INST)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<InstValue>();
     }
     const string inst_op() const {
       if (this->o_type() != OType::INST)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->_id->lastSegment();
     }
     const InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
@@ -362,7 +361,7 @@ namespace fhatos {
       if (this->o_type() == OType::NOOBJ)
         return {};
       if (this->o_type() != OType::BCODE)
-        throw TYPE_ERROR(this, __LINE__);
+        throw TYPE_ERROR(this, __FUNCTION__);
       return this->value<List<Obj_p>>();
     }
 
@@ -708,9 +707,9 @@ namespace fhatos {
         case OType::STR:
           return Str(this->str_value()[key.int_value()]);
         case OType::LST:
-          return *this->lst_value()->at(key.int_value());
+          return *this->lst_get(share(key));
         case OType::REC:
-          return *this->rec_value()->at(share(key));
+          return *this->rec_get(share(key));
         default:
           throw fError("Unknown obj type in []: %s\n", OTypes.toChars(this->o_type()));
       }

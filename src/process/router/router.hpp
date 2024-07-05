@@ -132,11 +132,12 @@ namespace fhatos {
 #define FP_OK_RESULT                                                                                                   \
   { return RESPONSE_CODE::OK; }
 
-  enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2 };
+  enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2, UNIVERSAL_ROUTER = 3 };
   static const Enums<ROUTER_LEVEL> ROUTER_LEVELS =
       Enums<ROUTER_LEVEL>({{ROUTER_LEVEL::BCODE_ROUTER, "bcode_router"},
-                                {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
-                                {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"}});
+                           {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
+                           {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"},
+                           {ROUTER_LEVEL::UNIVERSAL_ROUTER, "universal_router"}});
   class Router {
   protected:
     Router(const ROUTER_LEVEL level) : _level(level) {}

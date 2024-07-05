@@ -52,14 +52,18 @@ namespace fhatos {
           if (line == ":quit") {
             this->stop();
             return;
-          } else if (strstr(line.c_str(), ":log")) {
-            if (line.length() < 6) {
-              this->printResult(Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
-            } else {
-              string level = line.substr(5);
-              GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(level.c_str());
+          } else if (strstr(line.c_str(), ":log ")) {
+            try {
+              if (line.length() < 6) {
+                this->printResult(Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
+              } else {
+                string level = line.substr(5);
+                GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(level.c_str());
+              }
+            } catch (const fError &e) {
+              this->printException(e);
             }
-          } else if (strstr(line.c_str(), ":router")) {
+          } else if (strstr(line.c_str(), ":router ")) {
             if (line.length() < 9) {
               this->printResult(Obj::to_str(GLOBAL_OPTIONS->router<Router>()->toString()));
             } else {
@@ -75,14 +79,10 @@ namespace fhatos {
         } else {
           try {
             const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
-            if (obj.has_value()) {
-              if (obj.value()->isBytecode())
-                this->printResults(Fluent(obj.value()));
-              else
-                this->printResult(obj.value());
-            } else {
-              this->printException(fError("Unable to parse input: %s\n", line.c_str()));
-            }
+            if (obj.value()->isBytecode())
+              this->printResults(Fluent(obj.value()));
+            else
+              this->printResult(obj.value());
           } catch (const std::exception &e) {
             this->printException(e);
           }
@@ -96,7 +96,7 @@ namespace fhatos {
     }
     void printPrompt() const { GLOBAL_OPTIONS->printer()->print("!mfhatos!!> "); }
     void printResults(const Fluent &fluent) const {
-      fluent.forEach<Obj>([this](const Obj_p obj) { this->printResult(obj); });
+      fluent.forEach<Obj>([this](const Obj_p& obj) { this->printResult(obj); });
     }
     void printResult(const Obj_p &obj) const {
       GLOBAL_OPTIONS->printer()->printf("!g==>!!%s\n", obj->toString().c_str());

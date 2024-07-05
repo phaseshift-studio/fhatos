@@ -22,40 +22,39 @@
 #include <fhatos.hpp>
 //
 #include <process/router/local_router.hpp>
-#include <process/router/mqtt_router.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
 #include <process/router/router.hpp>
 #include <process/router/message.hpp>
-#include <structure/io/net/f_wifi.hpp>
 
 namespace fhatos {
-  template<typename LOCAL_ROUTER = LocalRouter<>,
-    typename REMOTE_ROUTER = MqttRouter<> >
-  class MetaRouter : public Router<> {
+  template<typename LOCAL_ROUTER = LocalRouter,
+    typename GLOBAL_ROUTER = MqttRouter >
+  class MetaRouter : public Router {
   protected:
-    Router<> *select(const ID &target) {
+    Router *select(const ID &target) {
       return false && this->id().isLocal(target)
-               ? (Router<> *) LOCAL_ROUTER::singleton()
-               : (Router<> *) REMOTE_ROUTER::singleton();
+               ? (Router *) LOCAL_ROUTER::singleton()
+               : (Router *) GLOBAL_ROUTER::singleton();
     }
 
   public:
     inline static MetaRouter *singleton() {
       static MetaRouter singleton = MetaRouter();
       LOCAL_ROUTER::singleton();
-      REMOTE_ROUTER::singleton();
+      GLOBAL_ROUTER::singleton();
       return &singleton;
     }
 
-    MetaRouter(const ID &id = Router::mintID("kernel", "router/meta")) : Router<>(id) {
+    MetaRouter(const ID &id = Router::mintID("kernel", "router/meta")) : Router(id) {
     }
 
     ~MetaRouter() { this->clear(); }
 
-    virtual RESPONSE_CODE clear() override {
+   /* virtual RESPONSE_CODE clear() override {
       RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
-      RESPONSE_CODE __rc2 = REMOTE_ROUTER::singleton()->clear();
+      RESPONSE_CODE __rc2 = GLOBAL_ROUTER::singleton()->clear();
       return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
-    }
+    }*/
 
     virtual const RESPONSE_CODE publish(const Message &message) override {
       return this->select(message.target)->publish(message);
@@ -75,7 +74,7 @@ namespace fhatos {
       const RESPONSE_CODE local =
           LOCAL_ROUTER::singleton()->unsubscribeSource(source);
       const RESPONSE_CODE remote =
-          REMOTE_ROUTER::singleton()->unsubscribeSource(source);
+          GLOBAL_ROUTER::singleton()->unsubscribeSource(source);
       return local ? local : remote;
     }
   };

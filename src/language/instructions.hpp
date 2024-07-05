@@ -62,7 +62,7 @@ namespace fhatos {
                 if (!key->apply(lhs)->isNoObj())
                   return value->apply(lhs);
               }
-            } catch (std::bad_any_cast e) {
+            } catch (const std::bad_any_cast &e) {
               LOG_EXCEPTION(e);
             }
             return Obj::to_noobj();
@@ -102,6 +102,13 @@ namespace fhatos {
 
     static Obj_p get(const Obj_p &key) {
       return Obj::to_inst("get", {key}, [key](const Obj_p &lhs) { return share((*lhs)[*key]); }, IType::ONE_TO_ONE);
+    }
+
+    static Obj_p set(const Obj_p &key, const Obj_p &value) {
+      return Obj::to_inst(
+          "set", {key, value},
+          [key, value](const Obj_p &lhs) { return share((*lhs)[*key->apply(lhs)] = *value->apply(lhs)); },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p is(const Obj_p &xbool) {
@@ -145,20 +152,20 @@ namespace fhatos {
           "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p define(const Obj_p &uri, const BCode_p &type) {
+    static Obj_p define(const Obj_p &typeId, const BCode_p &type) {
       return Obj::to_inst(
-          "define", {uri, type},
-          [uri, type](const Obj_p &lhs) {
-            // Types::singleton()->saveType(uri->uri_value(), type->isNoOpBytecode() ? lhs : type, true);
-            TYPE_SAVER(uri->uri_value(), type->isNoOpBytecode() ? lhs : type);
+          "define", {typeId, type},
+          [typeId, type](const Obj_p &lhs) {
+            TYPE_SAVER(typeId->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },
-          type->isNoOpBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE, Obj::to_noobj());
+          areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
     }
 
-    static Obj_p as(const Uri_p &type) {
+    static Obj_p as(const Uri_p &typeId) {
       return Obj::to_inst(
-          "as", {type}, [type](const Obj_p &lhs) { return lhs->as(type->uri_value().toString().c_str()); },
+          "as", {typeId},
+          [typeId](const Obj_p &lhs) { return lhs->as(typeId->apply(lhs)->uri_value().toString().c_str()); },
           IType::ONE_TO_ONE);
     }
 
@@ -166,7 +173,7 @@ namespace fhatos {
       return Obj::to_inst(
           "to", {uri},
           [uri](const Obj_p &lhs) {
-            fURI var = uri->apply(lhs)->uri_value();
+            const fURI var = uri->apply(lhs)->uri_value();
             RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, var);
             if (_rc)
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
@@ -207,27 +214,33 @@ namespace fhatos {
                                                               .retain = TRANSIENT_MESSAGE});
             return lhs;
           },
-          target->uri_value().isAbsolute() && !payload->isNoOpBytecode() ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+          areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
       return Obj::to_inst(
           "sub", {pattern, onRecv},
           [pattern, onRecv](const Obj_p &lhs) {
-            GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = nullptr,
-                                                                     .source = FOS_DEFAULT_SOURCE_ID,
-                                                                     .pattern = fURI(pattern->apply(lhs)->uri_value()),
-                                                                     .onRecv =
-                                                                         [onRecv](const ptr<Message> &message) {
-                                                                           //  const Obj_p outgoing =
-                                                                           onRecv->apply(message->payload);
-                                                                           // LOG(INFO, "subscription result: %s\n",
-                                                                           // outgoing->toString().c_str());
-                                                                         },
-                                                                     .onRecvBCode = onRecv});
+            if (onRecv->isNoObj()) {
+              GLOBAL_OPTIONS->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID,
+                                                            fURI(pattern->apply(lhs)->uri_value()));
+            } else {
+              GLOBAL_OPTIONS->router<Router>()->subscribe(
+                  Subscription{.mailbox = nullptr,
+                               .source = FOS_DEFAULT_SOURCE_ID,
+                               .pattern = fURI(pattern->apply(lhs)->uri_value()),
+                               .onRecv =
+                                   [onRecv](const ptr<Message> &message) {
+                                     //  const Obj_p outgoing =
+                                     onRecv->apply(message->payload);
+                                     // LOG(INFO, "subscription result: %s\n",
+                                     // outgoing->toString().c_str());
+                                   },
+                               .onRecvBCode = onRecv});
+            }
             return lhs;
           },
-          pattern->uri_value().isAbsolute() ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+          areInitialArgs(pattern) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
     static Int_p count() {
       return Obj::to_inst(
@@ -247,6 +260,14 @@ namespace fhatos {
     static bool isInitial(const Inst_p &inst) {
       return inst->inst_itype() == IType::ZERO_TO_ONE || inst->inst_itype() == IType::ZERO_TO_MANY;
     }
+    static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
+                               const Obj_p &objC = Obj::to_noobj(), const Obj_p &objD = Obj::to_noobj()) {
+      bool result = /*objA->isUri() ? objA->uri_value().isAbsolute() :*/ !objA->isNoOpBytecode();
+      result = result && /*(objB->isUri() ? objB->uri_value().isAbsolute() :*/ !objB->isNoOpBytecode();
+      result = result && /*(objC->isUri() ? objC->uri_value().isAbsolute() :*/ !objC->isNoOpBytecode();
+      result = result && /*(objD->isUri() ? objD->uri_value().isAbsolute() :*/ !objD->isNoOpBytecode();
+      return result;
+    }
 
     static constexpr const char *MAP_T = "map";
     static constexpr const char *FILTER_T = "filter";
@@ -263,6 +284,8 @@ namespace fhatos {
         return Insts::count();
       if (type == INST_FURI->resolve("get"))
         return Insts::get(args.at(0));
+      if (type == INST_FURI->resolve("set"))
+        return Insts::set(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("noop"))
         return Insts::noop();
       if (type == INST_FURI->resolve("as"))
