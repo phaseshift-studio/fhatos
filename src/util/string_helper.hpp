@@ -121,6 +121,24 @@ namespace fhatos {
       delete[] patternParts;
       return result;
     }
+
+    /*
+    * std::string SubString(const std::string& string, int beginIndex, int endIndex) {
+        int size = (int)string.size();
+        if (beginIndex < 0 || beginIndex > size - 1)
+            return "-1"; // Index out of bounds
+        if (endIndex < 0 || endIndex > size - 1)
+            return "-1"; // Index out of bounds
+        if (beginIndex > endIndex)
+            return "-1"; // Begin index should not be bigger that end.
+
+        std::string substr;
+        for (int i = 0; i < size; i++)
+            if (i >= beginIndex && i <= endIndex)
+                substr += (char)string[i];
+        return substr;
+    }
+     */
   };
 } // namespace fhatos
 

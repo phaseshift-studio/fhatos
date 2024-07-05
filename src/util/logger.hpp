@@ -32,32 +32,23 @@
 namespace fhatos {
   enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
   static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
-                                                                      {TRACE, "TRACE"},
-                                                                      {DEBUG, "DEBUG"},
-                                                                      {INFO, "INFO"},
-                                                                      {WARN, "WARN"},
-                                                                      {ERROR, "ERROR"},
-                                                                      {NONE, "NONE"}});
+                                                            {TRACE, "TRACE"},
+                                                            {DEBUG, "DEBUG"},
+                                                            {INFO, "INFO"},
+                                                            {WARN, "WARN"},
+                                                            {ERROR, "ERROR"},
+                                                            {NONE, "NONE"}});
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
       if ((uint8_t) type < (uint8_t) GLOBAL_OPTIONS->logger<LOG_TYPE>())
         return;
+      char buffer[255];
       va_list arg;
       va_start(arg, format);
-      char temp[128];
-      char *buffer = temp;
-      const size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+      int length = vsnprintf(buffer, 255, format, arg);
+      buffer[length] = '\0';
       va_end(arg);
-      if (len > sizeof(temp) - 1) {
-        buffer = new (std::nothrow) char[len + 1];
-        if (!buffer) {
-          return;
-        }
-        va_start(arg, format);
-        vsnprintf(buffer, len + 1, format, arg);
-        va_end(arg);
-      }
       if (type == NONE)
         GLOBAL_OPTIONS->printer<>()->print("");
       else if (type == ERROR)
@@ -69,9 +60,6 @@ namespace fhatos {
       else if (type == TRACE)
         GLOBAL_OPTIONS->printer()->print("!y[TRACE]!!  ");
       GLOBAL_OPTIONS->printer()->print(buffer);
-      if (buffer != temp) {
-        delete[] buffer;
-      }
     }
   };
 } // namespace fhatos

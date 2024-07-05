@@ -92,6 +92,7 @@ namespace fhatos {
     Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
     Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
     Fluent side(const BCode &bcode) const { return this->addInst(Insts::side(share(bcode))); }
+    Fluent get(const Obj &key) const { return this->addInst(Insts::get(share(key))); }
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////

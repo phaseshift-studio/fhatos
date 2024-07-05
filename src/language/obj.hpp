@@ -703,6 +703,18 @@ namespace fhatos {
           throw fError("Unknown obj type in ==: %s\n", OTypes.toChars(this->o_type()));
       }
     }
+    Obj operator[](Obj &key) const {
+      switch (this->o_type()) {
+        case OType::STR:
+          return Str(this->str_value()[key.int_value()]);
+        case OType::LST:
+          return *this->lst_value()->at(key.int_value());
+        case OType::REC:
+          return *this->rec_value()->at(share(key));
+        default:
+          throw fError("Unknown obj type in []: %s\n", OTypes.toChars(this->o_type()));
+      }
+    }
     bool isNoObj() const { return this->o_type() == OType::NOOBJ; }
     bool isBool() const { return this->o_type() == OType::BOOL; }
     bool isInt() const { return this->o_type() == OType::INT; }

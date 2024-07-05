@@ -100,6 +100,10 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
+    static Obj_p get(const Obj_p &key) {
+      return Obj::to_inst("get", {key}, [key](const Obj_p &lhs) { return share((*lhs)[*key]); }, IType::ONE_TO_ONE);
+    }
+
     static Obj_p is(const Obj_p &xbool) {
       return Obj::to_inst(
           "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); },
@@ -257,6 +261,8 @@ namespace fhatos {
         return Insts::side(args.at(0));
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
+      if (type == INST_FURI->resolve("get"))
+        return Insts::get(args.at(0));
       if (type == INST_FURI->resolve("noop"))
         return Insts::noop();
       if (type == INST_FURI->resolve("as"))
