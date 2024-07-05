@@ -107,7 +107,20 @@ namespace fhatos {
     static Obj_p set(const Obj_p &key, const Obj_p &value) {
       return Obj::to_inst(
           "set", {key, value},
-          [key, value](const Obj_p &lhs) { return share((*lhs)[*key->apply(lhs)] = *value->apply(lhs)); },
+          [key, value](const Obj_p &lhs) {
+            switch (lhs->o_type()) {
+              case OType::LST: {
+                lhs->lst_set(key, value);
+                return lhs;
+              }
+              case OType::REC: {
+                lhs->rec_set(key, value);
+                return lhs;
+              }
+              default:
+                throw fError("Unknown obj type in []: %s\n", OTypes.toChars(lhs->o_type()));
+            }
+          },
           IType::ONE_TO_ONE);
     }
 
