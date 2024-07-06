@@ -28,10 +28,10 @@
 namespace fhatos {
   struct Insts {
     Insts() = delete;
-    static Obj_p start(const List<Obj_p> &starts) {
+    static Obj_p start(const Objs_p &starts) {
       return Obj::to_inst(
-          "start", starts, [](const Obj_p &start) { return start; }, IType::ZERO_TO_MANY,
-          (starts.empty() ? Obj::to_noobj() : (1 == starts.size() ? starts.at(0) : Obj::to_objs(starts))));
+          "start", {starts}, [](const Objs_p &start) { return start; }, IType::ZERO_TO_MANY,
+          (starts->objs_value()->empty() ? Obj::to_noobj() : starts));
     }
 
     static Obj_p explain() {
@@ -206,10 +206,10 @@ namespace fhatos {
       return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); }, IType::ONE_TO_ONE);
     }
 
-    static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode) {
+    static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
       return Obj::to_inst(
-          "group", {keyCode, valueCode},
-          [keyCode, valueCode](const Objs_p &barrier) {
+          "group", {keyCode, valueCode, reduceCode},
+          [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
             Obj::RecMap<> map = Obj::RecMap<>();
             for (const Obj_p &obj: *barrier->objs_value()) {
               const Obj_p key = keyCode->apply(obj);
@@ -221,9 +221,13 @@ namespace fhatos {
                 map.insert({key, Obj::to_lst({value})});
               }
             }
+            /*Obj::RecMap<> map2 = Obj::RecMap<>();
+            for (const auto &pair: map) {
+              map2.insert({pair.first, reduceCode->apply(pair.second)});
+            }*/
             return Obj::to_rec(share(map));
           },
-          IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
+          IType::MANY_TO_ONE, Obj::to_lst(List_p<Obj_p>({})));
     }
 
     static Obj_p print(const Obj_p &toprint) {
@@ -306,7 +310,7 @@ namespace fhatos {
     static constexpr const char *FILTER_T = "filter";
     static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
-        return Insts::start(args);
+        return Insts::start(Objs::to_objs(args));
       if (type == INST_FURI->resolve(MAP_T))
         return Insts::map(args.at(0));
       if (type == INST_FURI->resolve(FILTER_T))
@@ -316,7 +320,7 @@ namespace fhatos {
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
       if (type == INST_FURI->resolve("group"))
-        return Insts::group(args.at(0), args.at(1));
+        return Insts::group(args.at(0), args.at(1), args.at(2));
       if (type == INST_FURI->resolve("get"))
         return Insts::get(args.at(0));
       if (type == INST_FURI->resolve("set"))
@@ -333,7 +337,7 @@ namespace fhatos {
         return Insts::is(args.at(0));
       if (type == INST_FURI->resolve("plus") || type == INST_FURI->resolve("+"))
         return Insts::plus(args.at(0));
-      if (type == INST_FURI->resolve("mult") || type == INST_FURI->resolve("*") || type == INST_FURI->resolve("."))
+      if (type == INST_FURI->resolve("mult") || type == INST_FURI->resolve("*"))
         return Insts::mult(args.at(0));
       if (type == INST_FURI->resolve("mod"))
         return Insts::mod(args.at(0));

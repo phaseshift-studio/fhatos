@@ -166,6 +166,14 @@ namespace fhatos {
       delete[] this->_segments;
     }
 
+    const string name() const {
+      for (int i = this->length()-1; i >= 0; i--) {
+        if (strlen(this->_segments[i]) > 0)
+          return string(this->_segments[i]);
+      }
+      return "none";
+    }
+
     // const bool operator==(const fURI other) const { return this->equals(other); }
     const fURI resolve(const char *segments) const {
       if (strlen(segments) == 0)
@@ -198,9 +206,7 @@ namespace fhatos {
       return fURI(newURI);
     }
 
-    const bool isAbsolute() const {
-      return this->pathLength() > 0 && this->segment(0).empty();
-    }
+    const bool isAbsolute() const { return this->pathLength() > 0 && this->segment(0).empty(); }
 
     const bool isRelative() const { return !isAbsolute(); }
 

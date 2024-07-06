@@ -87,8 +87,8 @@ namespace fhatos {
     operator const Obj &() const { return *this->bcode; }
     //  operator const ptr<Bytecode> &() const { return this->bcode; }
 
-    Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(PtrHelper::clone<Obj>(starts))); }
-    Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(starts)); }
+    Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))); }
+    Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(Obj::to_objs(starts))); }
     Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
     Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
     Fluent side(const BCode &bcode) const { return this->addInst(Insts::side(share(bcode))); }
@@ -177,7 +177,7 @@ namespace fhatos {
     if (starts.empty()) {
       return Fluent(Obj::to_bcode(List<Obj_p>{}));
     } else {
-      return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(PtrHelper::clone<Obj>(starts))}));
+      return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));
     }
   }
   static Fluent __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); }

@@ -76,7 +76,7 @@ make_native() {
     mkdir build;
     cd build || exit;
     cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
-    cmake -P cmake_install.cmake; make;
+    cmake -P cmake_install.cmake; make make -j8 -o1; # j8 parallel and o1 low optimization level
     cd ..;
   fi
 }

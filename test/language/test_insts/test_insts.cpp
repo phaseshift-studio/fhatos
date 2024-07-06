@@ -23,49 +23,73 @@
 #include <test_fhatos.hpp>
 
 namespace fhatos {
-  void testInst(const Inst_p &inst, const Obj_p &lhs, const Obj_p &expected) {
-    LOG(INFO, "Testing %s => %s = %s\n", lhs->toString().c_str(), inst->toString().c_str(),
+  void testObj(const Obj_p &lhs, const Obj_p &rhs, const Obj_p &expected) {
+    LOG(INFO, "Testing %s => %s = %s\n", lhs->toString().c_str(), rhs->toString().c_str(),
         expected->toString().c_str());
-    const Obj_p result = inst->apply(lhs);
+    const Obj_p result = rhs->apply(lhs);
     if (*result != *expected) {
       LOG(ERROR, "%s does not equal %s\n", result->toString().c_str(), expected->toString().c_str());
       TEST_FAIL();
     }
   }
-
+  void testInst(const Obj_p &lhs, const Inst_p &inst, const Obj_p &expected) { testObj(lhs, inst, expected); }
+  ////////////////////////////////////////////////////////////////////////////////////
   void test_plus() {
-    testInst(Insts::plus(Obj::to_int(10)), //
-             Obj::to_int(22), //
+    testInst(Obj::to_int(22), //
+             Insts::plus(Obj::to_int(10)), //
              Obj::to_int(32));
-    testInst(Insts::plus(Obj::to_bcode({})), //
-             Obj::to_int(16), //
+    testInst(Obj::to_int(16), //
+             Insts::plus(Obj::to_bcode({})), //
              Obj::to_int(32));
   }
 
   void test_mult() {
-    testInst(Insts::mult(Obj::to_int(10)), //
-             Obj::to_int(22), //
+    // int => mult[int]
+    testInst(Obj::to_int(22), //
+             Insts::mult(Obj::to_int(10)), //
              Obj::to_int(220));
-    testInst(Insts::mult(Obj::to_bcode({})), //
-             Obj::to_int(16), //
+    // int => mult[bcode]
+    testInst(Obj::to_int(16), //
+             Insts::mult(Obj::to_bcode({})), //
              Obj::to_int(256));
   }
 
-  void test_group() {
-    testInst(Insts::group(Obj::to_bcode({}), Obj::to_bcode({})), //
-             Obj::to_objs({1, 2, 3, 3}), //
-             Objs::to_rec({{1, {1}}, {2, {2}}, {3, {3, 3}}}));
+  void test_apply() {
+    testObj(o_p(6), o_p(5), o_p(5));
+    testObj(o_p(3), o_p("a"), o_p("a"));
+    testObj(o_p("a"), o_p("b"), o_p("b"));
+    testObj(o_p(u("http://fhatos.org")), o_p({1, 2, 3}), o_p({1, 2, 3}));
+    /// bcode => mult[int]
+    testInst(Obj::to_bcode({Insts::plus(o_p(5))}), //
+             Insts::mult(o_p(10)), //
+             Obj::to_bcode({Insts::plus(o_p(5)), Insts::mult(o_p(10))}));
+    /// bcode => mult[bcode]
+    testInst(Obj::to_bcode({Insts::plus(o_p(5))}), //
+             Insts::mult(Obj::to_bcode({Insts::plus(o_p(3))})), //
+             Obj::to_bcode({Insts::plus(o_p(5)), Insts::mult(Obj::to_bcode({Insts::plus(o_p(3))}))}));
   }
- 
+
+
+  void test_group() {
+    testInst(Obj::to_objs({1, 2, 3, 3}), //
+             Insts::group(Obj::to_bcode({}), Obj::to_bcode({}), Obj::to_bcode({})), //
+             Objs::to_rec({{1, *Obj::to_lst({1})}, {2, *Obj::to_lst({2})}, {3, *Obj::to_lst({3, 3})}}));
+    /* testInst(Insts::group(Obj::to_bcode({}), Obj::to_bcode({}), Obj::to_bcode({Insts::start({}), Insts::count()})),
+       // Obj::to_objs({1, 2, 3, 3}), // Objs::to_rec({{1, 1}, {2, 1}, {3, 2}}));*/
+  }
+
+
   FOS_RUN_TESTS( //
       for (fhatos::Router *router //
            : List<Router *>{fhatos::LocalRouter::singleton(), //
                             fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        // FOS_RUN_TEST(test_as);//
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //
         FOS_RUN_TEST(test_group); //
+        FOS_RUN_TEST(test_apply); //
       })
 } // namespace fhatos
 
