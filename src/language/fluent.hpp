@@ -21,7 +21,7 @@
 
 #include <fhatos.hpp>
 //
-#include <language/instructions.hpp>
+#include <language/insts.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
 
@@ -55,8 +55,8 @@ namespace fhatos {
       return ptr<List<ptr<E>>>(list);
     }
 
-    void iterate() {
-      this->forEach<Obj>([](const Obj_p end) {});
+    void iterate() const {
+      this->forEach<Obj>([](const Obj_p &end) {});
     }
 
     string toString() const { return this->bcode->toString(); }
@@ -68,7 +68,7 @@ namespace fhatos {
     const Obj_p bcode;
 
   protected:
-    Fluent addInst(const Obj_p &inst) const {
+    [[nodiscard]] Fluent addInst(const Obj_p &inst) const {
       List<Obj_p> newList = List<Obj_p>();
       for (const auto &oldInst: this->bcode->bcode_value()) {
         newList.push_back(share(Obj(*oldInst)));
@@ -82,12 +82,11 @@ namespace fhatos {
     ///////////////////////// INSTRUCTIONS ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
 
-    // operator const Obj &() const { return *ObjHelper::clone<Bytecode>(this->bcode.get()); }
-
     operator const Obj &() const { return *this->bcode; }
-    //  operator const ptr<Bytecode> &() const { return this->bcode; }
 
-    Fluent start(const List<Obj> &starts) const { return this->addInst(Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))); }
+    Fluent start(const List<Obj> &starts) const {
+      return this->addInst(Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts))));
+    }
     Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(Obj::to_objs(starts))); }
     Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
     Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
@@ -99,53 +98,55 @@ namespace fhatos {
     //////////////////////////// COMPOSITION ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent plus(const Obj &rhs) { return this->addInst(Insts::plus(share(rhs))); }
-    Fluent mult(const Obj &rhs) { return this->addInst(Insts::mult(share(rhs))); }
+    Fluent plus(const Obj &rhs) const { return this->addInst(Insts::plus(share(rhs))); }
+    Fluent mult(const Obj &rhs) const { return this->addInst(Insts::mult(share(rhs))); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// RELATIONS ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent eq(const Obj &rhs) { return this->addInst(Insts::eq(share(rhs))); }
-    Fluent lte(const Obj &rhs) { return this->addInst(Insts::lte(share(rhs))); }
-    Fluent lt(const Obj &rhs) { return this->addInst(Insts::lt(share(rhs))); }
-    Fluent gte(const Obj &rhs) { return this->addInst(Insts::gte(share(rhs))); }
-    Fluent gt(const Obj &rhs) { return this->addInst(Insts::gt(share(rhs))); }
-    Fluent neq(const Obj &rhs) { return this->addInst(Insts::neq(share(rhs))); }
-    Fluent mod(const Obj &rhs) { return this->addInst(Insts::mod(share(rhs))); }
+    Fluent eq(const Obj &rhs) const { return this->addInst(Insts::eq(share(rhs))); }
+    Fluent lte(const Obj &rhs) const { return this->addInst(Insts::lte(share(rhs))); }
+    Fluent lt(const Obj &rhs) const { return this->addInst(Insts::lt(share(rhs))); }
+    Fluent gte(const Obj &rhs) const { return this->addInst(Insts::gte(share(rhs))); }
+    Fluent gt(const Obj &rhs) const { return this->addInst(Insts::gt(share(rhs))); }
+    Fluent neq(const Obj &rhs) const { return this->addInst(Insts::neq(share(rhs))); }
+    Fluent mod(const Obj &rhs) const { return this->addInst(Insts::mod(share(rhs))); }
 
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// SIDE-EFFECT ////////////////////////////
     /////////////////////////////////////////////////////////////////////
 
-    Fluent count() { return this->addInst(Insts::count()); };
-    Fluent to(const Uri &uri) { return this->addInst(Insts::to(share(uri))); }
-    Fluent from(const Uri &uri) { return this->addInst(Insts::from(share(uri))); }
+    Fluent count() const { return this->addInst(Insts::count()); };
+    Fluent to(const Uri &uri) const { return this->addInst(Insts::to(share(uri))); }
+    Fluent from(const Uri &uri) const { return this->addInst(Insts::from(share(uri))); }
     /*Fluent explain() { return this->addInst(new ExplainInst()); }*/
 
-    Fluent print(const Obj &toPrint) { return this->addInst(Insts::print(share(toPrint))); }
+    Fluent print(const Obj &toPrint) const { return this->addInst(Insts::print(share(toPrint))); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// BRANCHING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) { return this->bswitch(Rec(recPairs)); }
+    Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) const {
+      return this->bswitch(Rec(recPairs));
+    }
 
-    Fluent bswitch(const Rec &branches) { return this->addInst(Insts::bswitch(share(branches))); }
+    Fluent bswitch(const Rec &branches) const { return this->addInst(Insts::bswitch(share(branches))); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// FILTERING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent is(const Obj &test) { return this->addInst(Insts::is(share(test))); }
+    Fluent is(const Obj &test) const { return this->addInst(Insts::is(share(test))); }
 
     //  Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 
-    Fluent pub(const Obj &target, const Obj &payload) {
+    Fluent pub(const Obj &target, const Obj &payload) const {
       return this->addInst(Insts::pub(share(target), share(payload)));
     }
 
-    Fluent sub(const Obj &pattern, const Obj &onRecv) {
+    Fluent sub(const Obj &pattern, const Obj &onRecv) const {
       return this->addInst(Insts::sub(share(pattern), share(onRecv)));
     }
 
@@ -163,9 +164,9 @@ namespace fhatos {
       return this->addInst(ptr<Inst>(new SelectInst<ROUTER>(share<Rec>(branches))));
     }*/
 
-    Fluent as(const Obj &utype) { return this->addInst(Insts::as(share(utype))); }
-    Fluent type() { return this->addInst(Insts::type()); }
-    Fluent define(const Obj &typeId, const Obj &type) {
+    Fluent as(const Obj &utype) const { return this->addInst(Insts::as(share(utype))); }
+    Fluent type() const { return this->addInst(Insts::type()); }
+    Fluent define(const Obj &typeId, const Obj &type) const {
       return this->addInst(Insts::define(share(typeId), share(type)));
     }
   };
@@ -174,11 +175,8 @@ namespace fhatos {
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
   static Fluent __(const List<Obj> &starts) {
-    if (starts.empty()) {
-      return Fluent(Obj::to_bcode(List<Obj_p>{}));
-    } else {
-      return Fluent(Obj::to_bcode(List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));
-    }
+    return Fluent(Obj::to_bcode(
+        starts.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));
   }
   static Fluent __(const Obj &start) { return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start}); }
   static Fluent __() { return __(List<Obj>{}); }

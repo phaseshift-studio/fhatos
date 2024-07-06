@@ -20,7 +20,7 @@
 #define fhatos_parser_hpp
 
 #include <fhatos.hpp>
-#include <language/instructions.hpp>
+#include <language/insts.hpp>
 #include <language/obj.hpp>
 #include <sstream>
 #include <util/string_helper.hpp>

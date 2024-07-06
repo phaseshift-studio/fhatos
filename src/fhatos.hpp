@@ -139,11 +139,9 @@ namespace fhatos {
   template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
   using OrderedMap = tsl::ordered_map<K, V, H, E>;
 
-
   using string = std::string;
   using fbyte = uint8_t;
   using uint = unsigned int;
-
 
   ////////////
   // MACROS //
@@ -186,7 +184,6 @@ namespace fhatos {
   LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
       OTypes.toChars((obj)->otype()), (obj)->type()->toString().c_str());
 #define NOTE(message) LOG(INFO, "%s\n", (message))
-
 
 #ifndef FOS_MAILBOX_WARNING_SIZE
 #define FOS_MAILBOX_WARNING_SIZE 15
