@@ -112,8 +112,8 @@ Inheritance diagram for fhatos::Obj:</div>
  <div class="center">
   <img src="classfhatos_1_1Obj.png" usemap="#fhatos::Obj_map" alt=""/>
   <map id="fhatos::Obj_map" name="fhatos::Obj_map">
-<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="0,56,106,80"/>
-<area href="classfhatos_1_1BaseIDed.html" alt="fhatos::BaseIDed" shape="rect" coords="0,0,106,24"/>
+<area href="classfhatos_1_1IDed.html" alt="fhatos::IDed" shape="rect" coords="0,56,220,80"/>
+<area href="classfhatos_1_1BaseIDed.html" alt="fhatos::BaseIDed" shape="rect" coords="0,0,220,24"/>
   </map>
 </div></div>
 <table class="memberdecls">
@@ -260,6 +260,12 @@ const Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>inst_seed</b> 
 <tr class="memitem:ad12ce52a16ea5ba2016e962798b745a7" id="r_ad12ce52a16ea5ba2016e962798b745a7"><td class="memItemLeft" align="right" valign="top"><a id="ad12ce52a16ea5ba2016e962798b745a7" name="ad12ce52a16ea5ba2016e962798b745a7"></a>
 List&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bcode_value</b> () const</td></tr>
 <tr class="separator:ad12ce52a16ea5ba2016e962798b745a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ee214cd184961df0bd61957bc359918" id="r_a6ee214cd184961df0bd61957bc359918"><td class="memItemLeft" align="right" valign="top"><a id="a6ee214cd184961df0bd61957bc359918" name="a6ee214cd184961df0bd61957bc359918"></a>
+const BCode_p&#160;</td><td class="memItemRight" valign="bottom"><b>add_inst</b> (const Inst_p &amp;inst, const bool mutate=true)</td></tr>
+<tr class="separator:a6ee214cd184961df0bd61957bc359918"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7e87abaeebbbfbbb7ae4ea713c5653c" id="r_ae7e87abaeebbbfbbb7ae4ea713c5653c"><td class="memItemLeft" align="right" valign="top"><a id="ae7e87abaeebbbfbbb7ae4ea713c5653c" name="ae7e87abaeebbbfbbb7ae4ea713c5653c"></a>
+const BCode_p&#160;</td><td class="memItemRight" valign="bottom"><b>add_bcode</b> (const BCode_p &amp;bcode, const bool mutate=true)</td></tr>
+<tr class="separator:ae7e87abaeebbbfbbb7ae4ea713c5653c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e2b7e74160e31e8c4f2375ac4d28ceb" id="r_a8e2b7e74160e31e8c4f2375ac4d28ceb"><td class="memItemLeft" align="right" valign="top"><a id="a8e2b7e74160e31e8c4f2375ac4d28ceb" name="a8e2b7e74160e31e8c4f2375ac4d28ceb"></a>
 fURI_p&#160;</td><td class="memItemRight" valign="bottom"><b>bcode_domain</b> () const</td></tr>
 <tr class="separator:a8e2b7e74160e31e8c4f2375ac4d28ceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -391,9 +397,9 @@ ptr&lt; BObj &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>serializ
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:afe69a4c833d651733b4c2b09843c094b" id="r_afe69a4c833d651733b4c2b09843c094b"><td class="memItemLeft" align="right" valign="top"><a id="afe69a4c833d651733b4c2b09843c094b" name="afe69a4c833d651733b4c2b09843c094b"></a>
-static <a class="el" href="classfhatos_1_1fError.html">fError</a>&#160;</td><td class="memItemRight" valign="bottom"><b>TYPE_ERROR</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *obj, const char *function)</td></tr>
-<tr class="separator:afe69a4c833d651733b4c2b09843c094b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed2a85c6a2a01c496eef25047afc3222" id="r_aed2a85c6a2a01c496eef25047afc3222"><td class="memItemLeft" align="right" valign="top"><a id="aed2a85c6a2a01c496eef25047afc3222" name="aed2a85c6a2a01c496eef25047afc3222"></a>
+static <a class="el" href="classfhatos_1_1fError.html">fError</a>&#160;</td><td class="memItemRight" valign="bottom"><b>TYPE_ERROR</b> (const <a class="el" href="classfhatos_1_1Obj.html">Obj</a> *obj, const char *function, const int lineNumber=__LINE__)</td></tr>
+<tr class="separator:aed2a85c6a2a01c496eef25047afc3222"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad18d2635f5b80344ff9a0cd3a029925f" id="r_ad18d2635f5b80344ff9a0cd3a029925f"><td class="memItemLeft" align="right" valign="top"><a id="ad18d2635f5b80344ff9a0cd3a029925f" name="ad18d2635f5b80344ff9a0cd3a029925f"></a>
 static Obj_p&#160;</td><td class="memItemRight" valign="bottom"><b>to_noobj</b> ()</td></tr>
 <tr class="memdesc:ad18d2635f5b80344ff9a0cd3a029925f"><td class="mdescLeft">&#160;</td><td class="mdescRight">STATIC TYPE CONSTRAINED CONSTRUCTORS. <br /></td></tr>
