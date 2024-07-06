@@ -269,7 +269,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keywordtype">void</span> printf(<span class="keyword">const</span> <span class="keywordtype">char</span> *format, ...) {</div>
 <div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>      va_list arg;</div>
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>      va_start(arg, format);</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      <span class="keywordtype">char</span> temp[255];</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      <span class="keywordtype">char</span> temp[512];</div>
 <div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>      <span class="keywordtype">char</span> *buffer = temp;</div>
 <div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      <span class="keywordtype">size_t</span> len = vsnprintf(temp, <span class="keyword">sizeof</span>(temp), format, arg);</div>
 <div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      va_end(arg);</div>
