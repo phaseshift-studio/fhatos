@@ -34,10 +34,6 @@ int main(int arg, char **argsv) {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
   GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
-  Scheduler::singleton();
-  Parser::singleton();
-  Types::singleton()->loadExt("/ext/process");
-  Types::singleton()->loadExt("/ext/collection");
   try {
     fKernel<>::bootloader({
         // fWIFI::singleton(),
@@ -45,10 +41,11 @@ int main(int arg, char **argsv) {
         // fFS<>::singleton(),
         // fOTA<>::singleton(),
     });
-    // fScheduler<>::singleton()->spawn(new fLog());
-    // fScheduler<>::singleton()->spawn(fSerial<>::singleton());
-    // fScheduler<>::singleton()->spawn(new fPing<>());
-    // fScheduler<>::singleton()->spawn(fTelnet<>::singleton());
+    Scheduler::singleton();
+    Parser::singleton();
+    Types::singleton()->loadExt("/ext/process");
+    Types::singleton()->loadExt("/ext/collection");
+    //////
     Scheduler::singleton()->spawn(new Console());
     Scheduler::singleton()->barrier("no_processes", [] { return Scheduler::singleton()->count() == 0; });
   } catch (const fError &e) {

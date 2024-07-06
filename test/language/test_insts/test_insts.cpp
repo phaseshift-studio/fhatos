@@ -78,6 +78,13 @@ namespace fhatos {
        // Obj::to_objs({1, 2, 3, 3}), // Objs::to_rec({{1, 1}, {2, 1}, {3, 2}}));*/
   }
 
+  void test_barrier() {
+    // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
+    testInst(Obj::to_objs({o_p(1), o_p(2), o_p("a"), Obj::to_lst({o_p("x"), o_p(u("abc"))})}), //
+             Insts::barrier(Obj::to_bcode({Insts::count()})), //
+             Obj::to_objs({4}));
+  }
+
 
   FOS_RUN_TESTS( //
       for (fhatos::Router *router //
@@ -90,6 +97,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_mult); //
         FOS_RUN_TEST(test_group); //
         FOS_RUN_TEST(test_apply); //
+        FOS_RUN_TEST(test_barrier); //
       })
 } // namespace fhatos
 

@@ -99,7 +99,8 @@ namespace fhatos {
 
     const RESPONSE_CODE subscribe(const Subscription &subscription) override {
       try {
-        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
+        /////////////// SUBSCRIPTION
+        RESPONSE_CODE _rc = *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
           RESPONSE_CODE _rc = OK;
           for (const auto &sub: SUBSCRIPTIONS) {
             if (sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern)) {
@@ -111,22 +112,24 @@ namespace fhatos {
             const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
             SUBSCRIPTIONS.push_back(sub_ptr);
             LOG_SUBSCRIBE(_rc, sub_ptr);
-            MUTEX_RETAIN.lockUnlock<void *>([this, subscription, sub_ptr]() {
-              LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS.size());
-              for (const auto &[target, message]: RETAINS) {
-                if (target.matches(subscription.pattern)) {
-                  if (subscription.mailbox) {
-                    subscription.mailbox->push(share<Mail>(Mail(sub_ptr, message)));
-                  } else {
-                    subscription.onRecv(message);
-                  }
-                }
-              }
-              return nullptr;
-            });
           }
           return share<RESPONSE_CODE>(_rc);
         });
+        /////////////// SUBSCRIPTION RETAINS
+        MUTEX_RETAIN.lockUnlock<void *>([this, subscription]() {
+          LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS.size());
+          for (const auto &[target, message]: RETAINS) {
+            if (target.matches(subscription.pattern)) {
+              if (subscription.mailbox) {
+                subscription.mailbox->push(share<Mail>(Mail(share(subscription), message)));
+              } else {
+                subscription.onRecv(message);
+              }
+            }
+          }
+          return nullptr;
+        });
+        return _rc;
       } catch (const fError &e) {
         LOG_EXCEPTION(e);
         return MUTEX_TIMEOUT;

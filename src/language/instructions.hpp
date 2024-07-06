@@ -287,7 +287,12 @@ namespace fhatos {
 
     static Objs_p barrier(const BCode_p &bcode) {
       return Obj::to_inst(
-          "barrier", {bcode}, [bcode](const Objs_p &lhs) { return bcode->apply(lhs); }, IType::MANY_TO_MANY);
+          "barrier", {bcode},
+          [bcode](const Objs_p &lhs) {
+            const Obj_p obj = bcode->apply(lhs);
+            return obj->isObjs() ? obj : Obj::to_objs({bcode->apply(lhs)});
+          },
+          IType::MANY_TO_MANY);
     }
 
     ///// HELPER METHODS
@@ -369,6 +374,8 @@ namespace fhatos {
         return Insts::explain();
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
+      if (type == INST_FURI->resolve("barrier"))
+        return Insts::barrier(args.at(0));
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
     }
   };
