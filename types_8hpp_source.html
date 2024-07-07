@@ -170,7 +170,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="keywordflow">if</span> (!obj-&gt;isNoObj()) {</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>          CACHE-&gt;insert({typeId, PtrHelper::clone&lt;Obj&gt;(obj)});</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>          <span class="keywordflow">if</span> (writeThrough)</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>            GLOBAL_OPTIONS-&gt;router&lt;<a class="code hl_class" href="classfhatos_1_1Router.html">Router</a>&gt;()-&gt;write(obj, typeId);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>            GLOBAL_OPTIONS-&gt;router&lt;<a class="code hl_class" href="classfhatos_1_1Router.html">Router</a>&gt;()-&gt;write(Obj::to_uri(typeId), obj);</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>          LOG(INFO, <span class="stringliteral">&quot;Type defined !b%s!!!g[!!%s!g]!!\n&quot;</span>, typeId.toString().c_str(), obj-&gt;toString().c_str());</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>        }</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>        <span class="keywordflow">return</span> share(<span class="keyword">nullptr</span>);</div>
@@ -181,7 +181,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        <span class="keywordflow">if</span> (CACHE-&gt;count(typeId) &amp;&amp; !CACHE-&gt;at(typeId)-&gt;isNoObj())</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>          <span class="keywordflow">return</span> Option&lt;Obj_p&gt;(CACHE-&gt;at(typeId));</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        <span class="keywordflow">if</span> (readThrough) {</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>          <span class="keyword">const</span> Type_p type = GLOBAL_OPTIONS-&gt;router&lt;<a class="code hl_class" href="classfhatos_1_1Router.html">Router</a>&gt;()-&gt;read&lt;Obj&gt;(typeId);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>          <span class="keyword">const</span> Type_p type = GLOBAL_OPTIONS-&gt;router&lt;<a class="code hl_class" href="classfhatos_1_1Router.html">Router</a>&gt;()-&gt;read&lt;Obj&gt;(Obj::to_uri(typeId));</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>          <span class="keywordflow">return</span> type-&gt;isNoObj() ? Option&lt;Obj_p&gt;() : Option&lt;Obj_p&gt;(type);</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        <span class="keywordflow">return</span> Option&lt;Obj_p&gt;();</div>

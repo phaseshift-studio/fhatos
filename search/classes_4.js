@@ -12,11 +12,10 @@ var searchData=
   ['fota_9',['fOTA',['../classfhatos_1_1fOTA.html',1,'fhatos']]],
   ['fping_10',['fPing',['../classfhatos_1_1fPing.html',1,'fhatos']]],
   ['fserial_11',['fSerial',['../classfhatos_1_1fSerial.html',1,'fhatos']]],
-  ['fsimple_12',['fSimple',['../classfhatos_1_1fSimple.html',1,'fhatos']]],
-  ['fsinfo_13',['FSInfo',['../structfhatos_1_1FSInfo.html',1,'fhatos']]],
-  ['fsoc_14',['fSoC',['../classfhatos_1_1fSoC.html',1,'fhatos']]],
-  ['ftelnet_15',['fTelnet',['../classfhatos_1_1fTelnet.html',1,'fhatos']]],
-  ['furi_16',['fURI',['../classfhatos_1_1fURI.html',1,'fhatos']]],
-  ['furi_5fcomp_17',['furi_comp',['../structfhatos_1_1furi__comp.html',1,'fhatos']]],
-  ['fwifi_18',['fWIFI',['../classfhatos_1_1fWIFI.html',1,'fhatos']]]
+  ['fsinfo_12',['FSInfo',['../structfhatos_1_1FSInfo.html',1,'fhatos']]],
+  ['fsoc_13',['fSoC',['../classfhatos_1_1fSoC.html',1,'fhatos']]],
+  ['ftelnet_14',['fTelnet',['../classfhatos_1_1fTelnet.html',1,'fhatos']]],
+  ['furi_15',['fURI',['../classfhatos_1_1fURI.html',1,'fhatos']]],
+  ['furi_5fcomp_16',['furi_comp',['../structfhatos_1_1furi__comp.html',1,'fhatos']]],
+  ['fwifi_17',['fWIFI',['../classfhatos_1_1fWIFI.html',1,'fhatos']]]
 ];
