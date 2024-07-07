@@ -164,22 +164,23 @@ namespace fhatos {
     virtual const string toString() const { return "Router"; }
 
     template<typename OBJ = Obj>
-    ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+    ptr<OBJ> read(const Uri_p &target, const Uri_p &source = u_p(FOS_DEFAULT_SOURCE_ID)) {
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic_bool(false);
-      this->subscribe(
-          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
-                         thing->store(new OBJ(*message->payload));
-                         done->store(true);
-                       }});
+      this->subscribe(Subscription{.source = source->uri_value(),
+                                   .pattern = target->uri_value(),
+                                   .onRecv = [thing, done](const ptr<Message> &message) {
+                                     thing->store(new OBJ(*message->payload));
+                                     done->store(true);
+                                   }});
       const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
         if (time(nullptr) - startTimestamp > (uint8_t) this->_level) {
-          LOG(ERROR, "Read timeout on target !y%s!!\n", target.toString().c_str());
+          LOG(ERROR, "Target undefined !y%s!!\n", target->toString().c_str());
           break;
         }
       }
-      unsubscribe(source, target);
+      unsubscribe(source->uri_value(), target->uri_value());
       if (nullptr == thing->load()) {
         delete thing;
         delete done;
@@ -192,13 +193,14 @@ namespace fhatos {
       }
     }
 
-    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &target, const ID &source) {
-      return this->publish(Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
+    virtual RESPONSE_CODE write(const Uri_p &target, const Obj_p &obj, const Uri_p &source) {
+      return this->publish(Message{
+          .source = source->uri_value(), .target = target->uri_value(), .payload = obj, .retain = RETAIN_MESSAGE});
     }
 
-    virtual RESPONSE_CODE write(const ptr<Obj> &obj, const ID &target) {
-      return this->publish(
-          Message{.source = FOS_DEFAULT_SOURCE_ID, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
+    virtual RESPONSE_CODE write(const Uri_p &target, const Obj_p &obj) {
+      return this->publish(Message{
+          .source = FOS_DEFAULT_SOURCE_ID, .target = target->uri_value(), .payload = obj, .retain = RETAIN_MESSAGE});
     }
   };
 } // namespace fhatos

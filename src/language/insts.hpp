@@ -186,8 +186,7 @@ namespace fhatos {
       return Obj::to_inst(
           "to", {uri},
           [uri](const Obj_p &lhs) {
-            const fURI var = uri->apply(lhs)->uri_value();
-            RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(lhs, var);
+            RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(uri->apply(lhs), lhs);
             if (_rc)
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
             return lhs;
@@ -198,8 +197,10 @@ namespace fhatos {
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
           "from", {uri},
-          [uri](const Obj_p &lhs) { return GLOBAL_OPTIONS->router<Router>()->read(uri->apply(lhs)->uri_value()); },
-          IType::ONE_TO_ONE);
+          [uri](const Obj_p &lhs) {
+            return GLOBAL_OPTIONS->router<Router>()->read(uri->apply(lhs));
+          },
+          areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Uri_p type() {
@@ -342,7 +343,7 @@ namespace fhatos {
         return Insts::is(args.at(0));
       if (type == INST_FURI->resolve("plus") || type == INST_FURI->resolve("+"))
         return Insts::plus(args.at(0));
-      if (type == INST_FURI->resolve("mult") || type == INST_FURI->resolve("*"))
+      if (type == INST_FURI->resolve("mult"))
         return Insts::mult(args.at(0));
       if (type == INST_FURI->resolve("mod"))
         return Insts::mod(args.at(0));
@@ -360,7 +361,7 @@ namespace fhatos {
         return Insts::lt(args.at(0));
       if (type == INST_FURI->resolve("to"))
         return Insts::to(args.at(0));
-      if (type == INST_FURI->resolve("from"))
+      if (type == INST_FURI->resolve("from") || type == INST_FURI->resolve("*"))
         return Insts::from(args.at(0));
       if (type == INST_FURI->resolve("pub"))
         return Insts::pub(args.at(0), args.at(1));
@@ -376,6 +377,23 @@ namespace fhatos {
         return Insts::count();
       if (type == INST_FURI->resolve("barrier"))
         return Insts::barrier(args.at(0));
+      const Obj_p userInst = GLOBAL_OPTIONS->router<Router>()->read<Obj>(Obj::to_uri(INST_FURI->resolve(type)));
+      if (!userInst->isNoObj()) {
+        return Obj::to_inst(
+            type.name(), args,
+            [userInst, args](const Obj_p &lhs) {
+              int counter = 0;
+              for (const Obj_p &arg: args) {
+                GLOBAL_OPTIONS->router<Router>()->write(u_p((string("_") + to_string(counter++)).c_str()), arg);
+              }
+              const Obj_p ret = userInst->lst_value()->at(0)->apply(lhs);
+              for (int i = 0; i < counter; i++) {
+                GLOBAL_OPTIONS->router<Router>()->write(u_p((string("_") + to_string(i)).c_str()), Obj::to_noobj());
+              }
+              return ret;
+            },
+            IType::ONE_TO_ONE);
+      }
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
     }
   };

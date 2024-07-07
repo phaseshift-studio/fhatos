@@ -207,20 +207,16 @@ namespace fhatos {
     using LstList = List<V>;
     template<typename V = Obj_p>
     using LstList_p = List_p<V>;
-    template<typename K = ptr<Obj>, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
+    template<typename K = Obj_p, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap = OrderedMap<K, V, H, Q>;
-    template<typename K = ptr<Obj>, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
+    template<typename K = Obj_p, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
     ~Obj() override = default;
-    explicit Obj(Any value, const OType otype, const fURI &typeId) :
+    explicit Obj(const Any value, const OType otype, const fURI &typeId) :
         IDed(OTYPE_FURI.at(otype)), _value(std::move(value)) {
-      try {
-        TYPE_CHECKER(*this, otype, typeId);
-        this->_id = share(ID(typeId));
-      } catch (fError &) {
-        throw;
-      }
+      TYPE_CHECKER(*this, otype, typeId);
+      this->_id = share(ID(typeId));
     }
     explicit Obj(const Any &value, const fURI_p &typeId) :
         Obj(value, OTypes.toEnum(typeId->path(0, 1).c_str()), *typeId) {}
@@ -460,17 +456,17 @@ namespace fhatos {
           if (this->bcode_value().empty())
             objString = "_";
           else {
-            objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
+            //objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
             bool first = true;
             for (const auto &inst: this->bcode_value()) {
               if (first) {
                 first = false;
               } else {
-                objString += "!m.!!";
+                objString += "!g.!!";
               }
               objString += inst->toString();
             }
-            objString += "!m]!!";
+            //objString += "!g]!!";
           }
           break;
         }
@@ -506,8 +502,16 @@ namespace fhatos {
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     // operator const Obj_p &() { return shared_from_this(); }
-    bool operator&&(const Obj &rhs) const { return this->bool_value() && rhs.bool_value(); }
-    bool operator||(const Obj &rhs) const { return this->bool_value() || rhs.bool_value(); }
+    bool operator&&(const Obj &rhs) const {
+      if (this->isBool() && rhs.isBool())
+        return this->bool_value() && rhs.bool_value();
+      throw fError("Unknown obj type in &&: %s\n", OTypes.toChars(this->o_type()));
+    }
+    bool operator||(const Obj &rhs) const {
+      if (this->isBool() && rhs.isBool())
+        return this->bool_value() || rhs.bool_value();
+      throw fError("Unknown obj type in ||: %s\n", OTypes.toChars(this->o_type()));
+    }
     bool operator>(const Obj &rhs) const {
       switch (this->o_type()) {
         case OType::NOOBJ:
@@ -810,10 +814,10 @@ namespace fhatos {
             return lhs->add_bcode(this->shared_from_this(), true);
           ptr<Obj> currentObj = lhs;
           for (const Inst_p &currentInst: this->bcode_value()) {
-            if (currentInst->isNoObj() || currentObj->isNoObj())
-              break;
             LOG(TRACE, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
             currentObj = currentInst->apply(currentObj);
+            if (currentObj->isNoObj())
+              break;
           }
           return currentObj; //(currentObj->type() == OType::URI) ? relativeUri((ptr<Uri>currentObj) : currentObj;
         }

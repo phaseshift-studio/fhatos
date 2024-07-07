@@ -76,7 +76,7 @@ namespace fhatos {
         if (!obj->isNoObj()) {
           CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
           if (writeThrough)
-            GLOBAL_OPTIONS->router<Router>()->write(obj, typeId);
+            GLOBAL_OPTIONS->router<Router>()->write(Obj::to_uri(typeId), obj);
           LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
         }
         return share(nullptr);
@@ -87,7 +87,7 @@ namespace fhatos {
         if (CACHE->count(typeId) && !CACHE->at(typeId)->isNoObj())
           return Option<Obj_p>(CACHE->at(typeId));
         if (readThrough) {
-          const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
+          const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(Obj::to_uri(typeId));
           return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
         }
         return Option<Obj_p>();

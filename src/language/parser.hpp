@@ -310,6 +310,12 @@ namespace fhatos {
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
                                   const fURI_p &baseType = BCODE_FURI) {
       LOG(TRACE, "Attempting bcode parse on %s\n", valueToken.c_str());
+      if (typeToken.empty() && valueToken[0] == '*') {
+        const Option<Obj_p> uri = tryParseObj(valueToken.substr(1));
+        if (uri.has_value())
+          return Option<BCode_p>{
+              BCode::to_bcode({Insts::from(uri.value())}, share(baseType->resolve(typeToken.c_str())))};
+      }
       if (typeToken.empty() && valueToken == "_")
         return {Obj::to_bcode({})}; // special character for 'no instructions' (no common parse pattern)
       if ((valueToken[0] == '_' && valueToken[1] == '_') ||

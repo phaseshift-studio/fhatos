@@ -47,7 +47,7 @@ int main(int arg, char **argsv) {
     Types::singleton()->loadExt("/ext/collection");
     //////
     Scheduler::singleton()->spawn(new Console());
-    Scheduler::singleton()->barrier("no_processes", [] { return Scheduler::singleton()->count() == 0; });
+    Scheduler::singleton()->barrier("main_barrier", [] { return Scheduler::singleton()->count() == 0; });
   } catch (const fError &e) {
     LOG(ERROR, "main() error: %s\n", e.what());
     // LOG_EXCEPTION(e);

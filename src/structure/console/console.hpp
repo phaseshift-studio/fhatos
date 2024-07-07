@@ -92,7 +92,7 @@ namespace fhatos {
     void stop() override { Thread::stop(); }
     ///// printers
     void printException(const std::exception &ex) const {
-      GLOBAL_OPTIONS->printer()->printf("!r[ERROR]!! %s\n", ex.what());
+      GLOBAL_OPTIONS->printer()->printf("!r[ERROR]!! %s", ex.what());
     }
     void printPrompt() const { GLOBAL_OPTIONS->printer()->print("!mfhatos!!> "); }
     void printResults(const Fluent &fluent) const {
