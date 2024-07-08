@@ -175,7 +175,7 @@ namespace fhatos {
 
   void test_define_as_type() {
     Types::singleton()->saveType("/int/nat", Obj::to_bcode({})); //
-   // Types::singleton()->writeToCache("/int/nat2", Obj::to_bcode({})); //
+    // Types::singleton()->writeToCache("/int/nat2", Obj::to_bcode({})); //
     FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).define(u("/int/nat"), _.is(_.gt(0))).as(u("/int/nat")),
                            {{u("/int/nat"), _.is(_.gt(0))}});
     FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.is(_.gt(0))), {{u("/int/nat"), _.is(_.gt(0))}}, false);
@@ -199,7 +199,7 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (fhatos::Router * router //
+      for (fhatos::Router *router //
            : List<Router *>{fhatos::LocalRouter::singleton(), //
                             fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //

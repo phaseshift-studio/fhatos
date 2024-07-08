@@ -28,8 +28,8 @@ namespace fhatos {
   public:
     std::atomic_bool *setupComplete = new std::atomic_bool(false);
     const ptr<Obj> rec;
-    ptr<BCode> SETUP_BCODE;
-    ptr<BCode> LOOP_BCODE;
+    const ptr<BCode> SETUP_BCODE;
+    const ptr<BCode> LOOP_BCODE;
 
     fBcode(const ID &id, const Rec_p &rec) :
         Actor<PROCESS>(
@@ -42,7 +42,7 @@ namespace fhatos {
                   LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
                 });
                 LOG(DEBUG, "Completeing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
-              } catch (std::exception &error) {
+              } catch (const std::exception &error) {
                 LOG_EXCEPTION(error);
                 this->stop();
               }
@@ -53,7 +53,7 @@ namespace fhatos {
                 Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
                   LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
                 });
-              } catch (std::exception &error) {
+              } catch (const std::exception &error) {
                 LOG_EXCEPTION(error);
                 this->stop();
               }

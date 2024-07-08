@@ -36,17 +36,18 @@ int main(int arg, char **argsv) {
   GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
   try {
     fKernel<>::bootloader({
+      new Console(ID("/home/root/process/console"))
         // fWIFI::singleton(),
         // fKernel<>::singleton(),
         // fFS<>::singleton(),
         // fOTA<>::singleton(),
     });
-    Scheduler::singleton();
     Parser::singleton();
     Types::singleton()->loadExt("/ext/process");
     Types::singleton()->loadExt("/ext/collection");
     //////
-    Scheduler::singleton()->spawn(new Console());
+    Router::write(ID("/home/root/~"), Obj::to_str("home of root"));
+    Scheduler::singleton()->spawn(new Console(ID("/home/root/process/")));
     Scheduler::singleton()->barrier("main_barrier", [] { return Scheduler::singleton()->count() == 0; });
   } catch (const fError &e) {
     LOG(ERROR, "main() error: %s\n", e.what());

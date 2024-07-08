@@ -34,24 +34,52 @@ namespace fhatos {
       Serial.begin(FOS_SERIAL_BAUDRATE);
 #endif
       LOG(NONE, ANSI_ART);
-      LOG(INFO, "!R[kernel mode]!! !gBootloader started!!\n");
-      bool success = true;
-      for (auto *process: processes) {
-        success = success & Scheduler::singleton()->spawn(process);
+      LOG(INFO, "!g[kernel mode] !bBootloader started!!\n");
+      const fKernel<> *kernel = fKernel<>::singleton("/kernel/");
+      bool success = Scheduler::singleton()->spawn((Process *) kernel);
+      if (!success) {
+        LOG(ERROR, "!rUnable to construct !b%s!!\n", kernel->id()->toString().c_str());
+      } else {
+        for (auto *process: processes) {
+          success = success & Scheduler::singleton()->spawn(process);
+          if (!success) {
+            LOG(ERROR, "!rUnable to construct !b%s!!\n", process->id()->toString().c_str());
+            break;
+          }
+        }
       }
-      LOG(INFO, "!R[kernel mode]!! !gBootloader finished!!\n");
+      LOG(INFO, "!g[kernel mode] !bBootloader finished!!\n");
       return success;
     }
 
-    static fKernel *singleton() {
-      static fKernel kernel = fKernel();
+    static fKernel *singleton(const ID &id = ID("/kernel/")) {
+      static fKernel kernel = fKernel(id);
       return &kernel;
     }
 
-  protected:
-    explicit fKernel(const ID &id = Router::mintID("kernel")) : Actor<PROCESS>(id) {
+    void setup() override {
+      PROCESS::setup();
+      this->subscribe("user/#", [this](const Message_p &message) {
+        const Obj_p obj = message->payload;
+        const fURI userId = message->target.path(this->id()->pathLength());
+        if (obj->isNoObj()) {
+          LOG(DEBUG, "!yInitiating user destruction: !b%s!!\n", userId.toString().c_str());
+          Router::destroy(ID(string("/home/") + userId.toString()), *this->id());
+        } else {
+          if (obj->o_type() != OType::REC) {
+            LOG(ERROR, "Provided obj must be a /rec/user %s\n", OTypes.toChars(obj->o_type()));
+          } else {
+            LOG(DEBUG, "!gInitiating user construction: !b%s!!\n", userId.toString().c_str());
+            Router::write(ID(string("/home/") + userId.toString()),
+                          Obj::to_str(string("home location of ") + userId.toString()));
+          }
+        };
+      });
     }
+
+  protected:
+    explicit fKernel(const ID &id = ID("/kernel/")) : Actor<PROCESS>(id) {}
   };
-};
+}; // namespace fhatos
 
 #endif

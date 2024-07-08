@@ -310,48 +310,47 @@ namespace fhatos {
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
                                   const fURI_p &baseType = BCODE_FURI) {
       LOG(TRACE, "Attempting bcode parse on %s\n", valueToken.c_str());
-      if (typeToken.empty() && valueToken[0] == '*') {
-        const Option<Obj_p> uri = tryParseObj(valueToken.substr(1));
-        if (uri.has_value())
-          return Option<BCode_p>{
-              BCode::to_bcode({Insts::from(uri.value())}, share(baseType->resolve(typeToken.c_str())))};
-      }
       if (typeToken.empty() && valueToken == "_")
         return {Obj::to_bcode({})}; // special character for 'no instructions' (no common parse pattern)
       if ((valueToken[0] == '_' && valueToken[1] == '_') ||
-          (valueToken[valueToken.length() - 1] == ')' && valueToken.find('('))) {
+          (valueToken[valueToken.length() - 1] == ')' && valueToken.find('(') != string::npos) ||
+          valueToken.find('*') != string::npos) {
         List<Inst_p> insts;
         auto ss = stringstream(valueToken);
         while (!ss.eof()) {
           int paren = 0;
           int bracket = 0;
+          bool quote = false;
           string instToken;
           while (!ss.eof()) {
             char c = ss.get();
             instToken += c;
-            if (c == '(') {
+            if (c == '(')
               paren++;
-            } else if (c == ')') {
+            else if (c == ')')
               paren--;
-              if (paren == 0 && bracket == 0) {
-                break;
-              }
-            } else if (c == '[') {
+            else if (c == '[')
               bracket++;
-            } else if (c == ']') {
+            else if (c == ']')
               bracket--;
-              if (paren == 0 && bracket == 0) {
-                break;
-              }
+            else if (c == '\'')
+              quote = !quote;
+            ///////////////////////////////////////////////////////////////
+            if (ss.peek() == '.' && paren == 0 && bracket == 0 && !quote) {
+              ss.get();
+              break;
             }
           }
-          const Pair<string, string> typeValue = tryParseObjType(instToken, false);
-          Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
+          if (instToken[instToken.length() - 1] == '\0')
+            instToken = instToken.substr(0, instToken.length() - 1);
+          Pair<string, string> typeValue;
+          if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
+            typeValue = {"*", instToken.substr(1)};
+          else
+            typeValue = tryParseObjType(instToken, false);
+          const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
           if (inst.has_value()) {
             insts.push_back(inst.value());
-          }
-          if (ss.peek() == '.' || ss.peek() == '*') {
-            ss.get(); // drop instruction mult
           }
         }
         return Option<BCode_p>{BCode::to_bcode(insts, share(baseType->resolve(typeToken.c_str())))};

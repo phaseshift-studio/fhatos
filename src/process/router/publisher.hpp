@@ -36,13 +36,14 @@ namespace fhatos {
     explicit Publisher(const ID_p &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
 
     /// SUBSCRIBE
-    virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message>&>& onRecv,
+    virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message> &> &onRecv,
                                     const QoS qos = QoS::_1) {
-      return  GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = this->mailbox,
-                                                         .source = *this->__id,
-                                                         .pattern = /*makeTopic(*/relativePattern/*)*/,
-                                                         .qos = qos,
-                                                         .onRecv = onRecv});
+      return GLOBAL_OPTIONS->router<Router>()->subscribe(
+          Subscription{.mailbox = this->mailbox,
+                       .source = *this->__id,
+                       .pattern = this->__id->extend(relativePattern.toString().c_str()),
+                       .qos = qos,
+                       .onRecv = onRecv});
     }
 
     /*Publisher<ROUTER> *onQuery(const Pattern &queryPattern, const Runnable &runnable) {
@@ -89,63 +90,70 @@ namespace fhatos {
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
-      return GLOBAL_OPTIONS->router<Router>()->unsubscribe(*this->__id, /*makeTopic(*/relativePattern/*)*/);
+      return GLOBAL_OPTIONS->router<Router>()->unsubscribe(*this->__id,
+                                                           this->__id->extend(relativePattern.toString().c_str()));
     }
 
-    virtual RESPONSE_CODE unsubscribeSource() { return GLOBAL_OPTIONS->router<Router>()->unsubscribeSource(*this->__id); }
+    virtual RESPONSE_CODE unsubscribeSource() {
+      return GLOBAL_OPTIONS->router<Router>()->unsubscribeSource(*this->__id);
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////
 
     /// PUBLISH
-     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj>& payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = *this->__id, .target = /*makeTopic(*/relativeTarget/*)*/, .payload = share(Obj(*payload)), .retain = retain});
+    RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj> &payload,
+                          const bool retain = TRANSIENT_MESSAGE) const {
+      return GLOBAL_OPTIONS->router<Router>()->publish(
+          Message{.source = *this->__id,
+                  .target = this->__id->extend(relativeTarget.toString().c_str()),
+                  .payload = PtrHelper::clone(*payload),
+                  .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
-   /* template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
-    const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
-    }
+    /* template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
+     const RESPONSE_CODE publish(const ID &relativeTarget, const bool payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const int payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
-    }
+     const RESPONSE_CODE publish(const ID &relativeTarget, const int payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const long payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>((int) payload), retain);
-    }
+     const RESPONSE_CODE publish(const ID &relativeTarget, const long payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>((int) payload), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const float payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
-    }
+     const RESPONSE_CODE publish(const ID &relativeTarget, const float payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const double payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>((float) payload), retain);
-    }
+     const RESPONSE_CODE publish(const ID &relativeTarget, const double payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>((float) payload), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>(string(payload)), retain);
-    }
+     const RESPONSE_CODE publish(const ID &relativeTarget, const char *payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>(string(payload)), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const string &payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
-    }
+     const RESPONSE_CODE publish(const ID &relativeTarget, const string &payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, new BinaryObj<>(payload), retain);
+     }
 
-    const RESPONSE_CODE publish(const ID &relativeTarget, const OBJ_OR_BYTECODE &payload,
-                                const bool retain = TRANSIENT_MESSAGE) const {
-      return this->publish(relativeTarget, BinaryObj<>::fromObj(payload), retain);
-    }
-*/
+     const RESPONSE_CODE publish(const ID &relativeTarget, const OBJ_OR_BYTECODE &payload,
+                                 const bool retain = TRANSIENT_MESSAGE) const {
+       return this->publish(relativeTarget, BinaryObj<>::fromObj(payload), retain);
+     }
+ */
     //////////
 
     /*const RESPONSE_CODE write(const ptr<const Obj> obj, const TargetID &relativeTarget) const {

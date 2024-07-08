@@ -178,8 +178,11 @@ namespace fhatos {
                                                  {OType::TYPE, TYPE_FURI}}};
   static TriFunction<const Obj &, const OType, const fURI &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
                                                                                      const fURI &) { return nullptr; };
-  static Function<const string, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
-  static BiFunction<const fURI, Type_p, Type_p> TYPE_SAVER = [](const fURI &, const Type_p &) { return nullptr; };
+  static Function<const string &, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
+  static BiFunction<const fURI &, const Type_p, Type_p> TYPE_WRITER = [](const fURI &, const Type_p &) {
+    return nullptr;
+  };
+  static Function<const fURI &, Type_p> TYPE_READER = [](const fURI &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
@@ -456,7 +459,7 @@ namespace fhatos {
           if (this->bcode_value().empty())
             objString = "_";
           else {
-            //objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
+            // objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
             bool first = true;
             for (const auto &inst: this->bcode_value()) {
               if (first) {
@@ -466,7 +469,7 @@ namespace fhatos {
               }
               objString += inst->toString();
             }
-            //objString += "!g]!!";
+            // objString += "!g]!!";
           }
           break;
         }
@@ -507,6 +510,9 @@ namespace fhatos {
         return this->bool_value() && rhs.bool_value();
       throw fError("Unknown obj type in &&: %s\n", OTypes.toChars(this->o_type()));
     }
+    /*Obj_p operator*() {
+      return TYPE_READER(*this->_id);
+    }*/
     bool operator||(const Obj &rhs) const {
       if (this->isBool() && rhs.isBool())
         return this->bool_value() || rhs.bool_value();
@@ -815,6 +821,8 @@ namespace fhatos {
           ptr<Obj> currentObj = lhs;
           for (const Inst_p &currentInst: this->bcode_value()) {
             LOG(TRACE, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
+            if (currentInst->isNoObj())
+              break;
             currentObj = currentInst->apply(currentObj);
             if (currentObj->isNoObj())
               break;
@@ -1047,8 +1055,10 @@ namespace fhatos {
     }
   };
   static Uri u(const char *uri) { return Uri(fURI(uri)); }
-  static ptr<Uri> u_p(const char *uri) { return share(Uri(fURI(uri))); }
-  static ptr<Obj> o_p(const Obj &obj) { return share(obj); }
+  static Uri u(const fURI &uri) { return Uri(uri); }
+  static Uri_p u_p(const char *uri) { return share(Uri(fURI(uri))); }
+  static Uri_p u_p(const string uri) { return share(Uri(fURI(uri))); }
+  static Obj_p o_p(const Obj &obj) { return share(obj); }
 
 } // namespace fhatos
 

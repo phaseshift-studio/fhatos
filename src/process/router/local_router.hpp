@@ -129,6 +129,16 @@ namespace fhatos {
           }
           return nullptr;
         });
+        ////////////////////////////////////////////
+        /*Obj::LstList_p<> subs = share(Obj::LstList<>());
+        for (Subscription_p s: SUBSCRIPTIONS) {
+          subs->push_back(
+              Obj::to_rec({{u("source"), u(s->source)}, {u("pattern"), u(s->pattern)}, {u("qos"), (int) s->qos}}));
+        }
+        this->publish(Message{.source = "/kernel/router/local",
+                              .target = "/kernel/router/local/subscription",
+                              .payload = Obj::to_lst(subs),
+                              .retain = RETAIN_MESSAGE});*/
         return _rc;
       } catch (const fError &e) {
         LOG_EXCEPTION(e);

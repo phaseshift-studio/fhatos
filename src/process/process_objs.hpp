@@ -16,3 +16,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#ifndef fhatos_process_objs_hpp
+#define fhatos_process_objs_hpp
+
+#include <language/obj.hpp>
+
+namespace fhatos {
+
+class ProcessObj: public Obj{
+
+ProcessObj(const Uri_p id) {
+
+}
+
+};
+
+}
+
+#endif

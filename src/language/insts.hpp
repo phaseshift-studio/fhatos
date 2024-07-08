@@ -169,7 +169,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {typeId, type},
           [typeId, type](const Obj_p &lhs) {
-            TYPE_SAVER(typeId->uri_value(), type->isNoOpBytecode() ? lhs : type);
+            TYPE_WRITER(typeId->uri_value(), type->isNoOpBytecode() ? lhs : type);
             return lhs;
           },
           areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
@@ -186,7 +186,7 @@ namespace fhatos {
       return Obj::to_inst(
           "to", {uri},
           [uri](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = GLOBAL_OPTIONS->router<Router>()->write(uri->apply(lhs), lhs);
+            RESPONSE_CODE _rc = Router::write(uri->apply(lhs)->uri_value(), lhs);
             if (_rc)
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
             return lhs;
@@ -196,10 +196,7 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
-          "from", {uri},
-          [uri](const Obj_p &lhs) {
-            return GLOBAL_OPTIONS->router<Router>()->read(uri->apply(lhs));
-          },
+          "from", {uri}, [uri](const Obj_p &lhs) { return Router::read(uri->apply(lhs)->uri_value()); },
           areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
@@ -247,7 +244,7 @@ namespace fhatos {
           "pub", {target, payload},
           [target, payload](const Obj_p &lhs) {
             GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
-                                                              .target = fURI(target->apply(lhs)->uri_value()),
+                                                              .target = target->apply(lhs)->uri_value(),
                                                               .payload = payload->isNoOpBytecode() ? lhs : payload,
                                                               .retain = TRANSIENT_MESSAGE});
             return lhs;
@@ -260,20 +257,13 @@ namespace fhatos {
           "sub", {pattern, onRecv},
           [pattern, onRecv](const Obj_p &lhs) {
             if (onRecv->isNoObj()) {
-              GLOBAL_OPTIONS->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID,
-                                                            fURI(pattern->apply(lhs)->uri_value()));
+              GLOBAL_OPTIONS->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID, pattern->apply(lhs)->uri_value());
             } else {
               GLOBAL_OPTIONS->router<Router>()->subscribe(
                   Subscription{.mailbox = nullptr,
                                .source = FOS_DEFAULT_SOURCE_ID,
-                               .pattern = fURI(pattern->apply(lhs)->uri_value()),
-                               .onRecv =
-                                   [onRecv](const ptr<Message> &message) {
-                                     //  const Obj_p outgoing =
-                                     onRecv->apply(message->payload);
-                                     // LOG(INFO, "subscription result: %s\n",
-                                     // outgoing->toString().c_str());
-                                   },
+                               .pattern = pattern->apply(lhs)->uri_value(),
+                               .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
                                .onRecvBCode = onRecv});
             }
             return lhs;
@@ -377,18 +367,18 @@ namespace fhatos {
         return Insts::count();
       if (type == INST_FURI->resolve("barrier"))
         return Insts::barrier(args.at(0));
-      const Obj_p userInst = GLOBAL_OPTIONS->router<Router>()->read<Obj>(Obj::to_uri(INST_FURI->resolve(type)));
+      const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(type));
       if (!userInst->isNoObj()) {
         return Obj::to_inst(
             type.name(), args,
             [userInst, args](const Obj_p &lhs) {
               int counter = 0;
               for (const Obj_p &arg: args) {
-                GLOBAL_OPTIONS->router<Router>()->write(u_p((string("_") + to_string(counter++)).c_str()), arg);
+                Router::write(ID((string("_") + to_string(counter++)).c_str()), arg);
               }
               const Obj_p ret = userInst->lst_value()->at(0)->apply(lhs);
               for (int i = 0; i < counter; i++) {
-                GLOBAL_OPTIONS->router<Router>()->write(u_p((string("_") + to_string(i)).c_str()), Obj::to_noobj());
+                Router::destroy(ID((string("_") + to_string(i)).c_str()));
               }
               return ret;
             },

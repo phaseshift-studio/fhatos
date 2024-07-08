@@ -45,14 +45,15 @@ namespace fhatos {
       static bool _setup = false;
       static Types types = Types();
       if (!_setup) {
-        TYPE_CHECKER = [](const Obj &obj, const OType otype, const fURI &typeId) {
+        TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID &typeId) {
           singleton()->checkType(obj, otype, typeId, true);
           return ID_p(new ID(typeId));
         };
-        TYPE_SAVER = [](const fURI &id, const Type_p &type) {
+        TYPE_WRITER = [](const ID &id, const Type_p &type) {
           singleton()->saveType(id, type, true);
           return type;
         };
+        TYPE_READER = [](const ID &typeId) { return singleton()->loadType(typeId, true).value_or(Obj::to_noobj()); };
         _setup = true;
       }
       return &types;
@@ -70,31 +71,31 @@ namespace fhatos {
         saveType(pair.first, TYPE_PARSER(pair.second), writeThrough);
       }
     }
-    const void saveType(const fURI &typeId, const Obj_p &obj, const bool writeThrough = true) const {
+    const void saveType(const ID &typeId, const Obj_p &obj, const bool writeThrough = true) const {
       CACHE_MUTEX->write<void>([this, typeId, obj, writeThrough] {
         CACHE->erase(typeId);
         if (!obj->isNoObj()) {
           CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
           if (writeThrough)
-            GLOBAL_OPTIONS->router<Router>()->write(Obj::to_uri(typeId), obj);
+            GLOBAL_OPTIONS->router<Router>()->write(typeId, obj);
           LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
         }
         return share(nullptr);
       });
     }
-    const Option<Obj_p> loadType(const fURI &typeId, const bool readThrough = true) const {
+    const Option<Obj_p> loadType(const ID &typeId, const bool readThrough = true) const {
       return CACHE_MUTEX->read<Option<Obj_p>>([this, typeId, readThrough] {
         if (CACHE->count(typeId) && !CACHE->at(typeId)->isNoObj())
           return Option<Obj_p>(CACHE->at(typeId));
         if (readThrough) {
-          const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(Obj::to_uri(typeId));
+          const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
           return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
         }
         return Option<Obj_p>();
       });
     }
     // bool checkType(const Obj &obj, const OType otype, const Type_p type, const bool doThrow =true) const {}
-    bool checkType(const Obj &obj, const OType otype, const fURI &typeId, const bool doThrow = true) const
+    bool checkType(const Obj &obj, const OType otype, const ID &typeId, const bool doThrow = true) const
         noexcept(false) {
       const OType typeOType = OTypes.toEnum(typeId.path(0, 1).c_str());
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)

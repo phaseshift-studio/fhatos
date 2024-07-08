@@ -33,7 +33,7 @@
 namespace fhatos {
   class Console final : public Thread {
   public:
-    explicit Console(const ID &id = ID("thread/console")) : Thread(id) {}
+    explicit Console(const ID &id = ID("console")) : Thread(id) {}
 
     void setup() override { Thread::setup(); }
 
@@ -96,7 +96,14 @@ namespace fhatos {
     }
     void printPrompt() const { GLOBAL_OPTIONS->printer()->print("!mfhatos!!> "); }
     void printResults(const Fluent &fluent) const {
-      fluent.forEach<Obj>([this](const Obj_p& obj) { this->printResult(obj); });
+      fluent.forEach<Obj>([this](const Obj_p &obj) {
+        if (obj->isLst()) {
+          for (const auto &o: *obj->lst_value()) {
+            this->printResult(o);
+          }
+        } else
+          this->printResult(obj);
+      });
     }
     void printResult(const Obj_p &obj) const {
       GLOBAL_OPTIONS->printer()->printf("!g==>!!%s\n", obj->toString().c_str());

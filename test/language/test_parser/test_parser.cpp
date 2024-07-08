@@ -264,14 +264,25 @@ namespace fhatos {
                            Fluent(Parser::singleton()->tryParseObj("__(even[32]).type()").value()), {}, true);
   }
 
+  void test_to_from() {
+    if (GLOBAL_OPTIONS->router<Router>()->toString() != "MqttRouter") {
+      FOS_CHECK_RESULTS<Int>({10}, {"__(y).to(x)", "__(z).to(y)", "__(10).to(z)"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({10}, {"from(z)"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({10}, {"from(from(y))"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({Int(10)}, {"from(from(from(x)))"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({Int(10)}, {"*z"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({Int(10)}, {"**y"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({Int(10)}, {"***x"}, {});
+    }
+  }
+
   FOS_RUN_TESTS( //
       for (fhatos::Router *router //
            : List<Router *>{fhatos::LocalRouter::singleton(), //
                             fhatos::MqttRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
-        //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        //  FOS_RUN_TEST(test_basic_parser); //
+        // FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //
         FOS_RUN_TEST(test_noobj_parsing); //
@@ -284,6 +295,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_rec_parsing); //
         FOS_RUN_TEST(test_nested_bytecode_parsing); //
         FOS_RUN_TEST(test_define_as_parsing); //
+        FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_bcode_parsing); //
       })
 }; // namespace fhatos

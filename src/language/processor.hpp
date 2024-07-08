@@ -34,14 +34,14 @@ namespace fhatos {
   class Monad {
   protected:
     const Obj_p _obj;
-    const Obj_p _inst;
+    const Inst_p _inst;
     const long _bulk = 1;
 
   public:
     explicit Monad(const Obj_p obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
 
-    void split(const ptr<BCode> &bcode, List<Monad_p> *running) const {
-      const ptr<Obj> nextObj = this->_inst->apply(this->_obj);
+    void split(const BCode_p &bcode, List<Monad_p> *running) const {
+      const Obj_p nextObj = this->_inst->apply(this->_obj);
       const Inst_p nextInst = bcode->nextInst(this->_inst);
       if (nextObj->isObjs()) {
         for (const auto &obj: *nextObj->objs_value()) {
@@ -84,10 +84,10 @@ namespace fhatos {
         const Monad_p monad = share(Monad(inst->inst_seed(), inst));
         if (Insts::isBarrier(inst)) {
           this->barriers->push_back(monad);
-          LOG(DEBUG, "Adding barrier monad: %s\n", monad->toString().c_str());
+          LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", monad->toString().c_str());
         } else if (Insts::isInitial(inst)) {
           this->running->push_back(monad);
-          LOG(DEBUG, "Adding initial monad: %s\n", monad->toString().c_str());
+          LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", monad->toString().c_str());
         }
       }
     }
@@ -95,11 +95,9 @@ namespace fhatos {
     const ptr<E> next(const int steps = -1) {
       while (true) {
         if (this->halted->empty()) {
-          if (this->running->empty()) {
+          if (this->running->empty())
             return nullptr; // ptr<E>((E*)new NoObj());
-          } else {
-            this->execute(steps);
-          }
+          this->execute(steps);
         } else {
           const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted->back());
           this->halted->pop_back();

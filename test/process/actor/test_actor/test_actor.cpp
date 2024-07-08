@@ -61,7 +61,7 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor1@127.0.0.1"), *actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor2@127.0.0.1"), *actor2->id());
     RESPONSE_CODE rc =
-        actor1->subscribe(*actor1->id(), [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
+        actor1->subscribe("", [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
           FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
           FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());

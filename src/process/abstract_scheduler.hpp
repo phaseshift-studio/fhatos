@@ -45,7 +45,7 @@ namespace fhatos {
     Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID_p &id = share(Router::mintID("127.0.0.1", "kernel/scheduler"))) :
+    explicit AbstractScheduler(const ID_p &id = share(ID("/kernel/scheduler/"))) :
         IDed(id), Publisher(this, this), Mailbox() {}
     ~AbstractScheduler() override {
       delete COROUTINES;
@@ -56,11 +56,11 @@ namespace fhatos {
 
     void setup() {
       //////////////// SPAWN
-      this->subscribe(this->id()->extend("thread/#"), [this](const ptr<Message> &message) {
+      this->subscribe("thread/#", [this](const Message_p &message) {
         const Obj_p obj = message->payload;
-        const fURI threadId = message->target.path(this->id()->pathLength());
+        const ID threadId = message->target.retract(false).retract(false).retract(false);
         if (obj->isNoObj()) {
-          LOG(DEBUG, "Initiating thread destruction: %s\n", threadId.toString().c_str());
+          LOG(DEBUG, "!yInitiating thread destruction: !b%s!!\n", threadId.toString().c_str());
           this->_destroy(threadId);
         } else {
           if (obj->o_type() != OType::REC) {
@@ -74,6 +74,7 @@ namespace fhatos {
           }
         };
       });
+      LOG(INFO, "!mScheduler located at !b%s!!\n", this->_id->toString().c_str());
     }
 
 
@@ -100,7 +101,7 @@ namespace fhatos {
 
     virtual bool spawn(Process *process) { throw fError("%s\n", "Member function spawn() must be implemented"); }
     virtual bool destroy(const ID &processPattern) {
-      return this->publish(this->id()->extend(processPattern.toString().c_str()), Obj::to_noobj(), TRANSIENT_MESSAGE);
+      return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }
 
   protected:
@@ -120,6 +121,7 @@ namespace fhatos {
                                LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
                                // ptr<Thread> temp = ptr<Thread>(process);
+                               // Router::destroy(*process->id(), *this->id());
                                return true;
                              }
                              return false;

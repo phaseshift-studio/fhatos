@@ -55,6 +55,11 @@ namespace fhatos {
             this->THREADS->push_back(static_cast<Thread *>(process));
             dynamic_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
             success = true;
+            /*this->publish(*this->id(),
+                          Obj::to_rec({{u(this->id()->resolve("thread")), THREADS->size()},
+                                       {u(this->id()->resolve("fiber")), FIBERS->size()},
+                                       {u(this->id()->resolve("coroutine")), COROUTINES->size()}}),
+                          RETAIN_MESSAGE);*/
             break;
           }
           case FIBER: {
@@ -92,13 +97,19 @@ namespace fhatos {
             FOS_BYTES_MB(ESP.getFreeHeap()),
             FOS_BYTES_MB(ESP.getFreePsram()),
             FOS_BYTES_MB(ESP.getFlashChipSize()));*/
+        /* if (success) {
+           this->publish(
+               *this->id(),
+               Obj::to_rec(
+                   {{u("thread"), THREADS->size()}, {u("fiber"), FIBERS->size()}, {u("coroutine"),
+         COROUTINES->size()}}), RETAIN_MESSAGE);
+         }*/
         return share(success);
       });
     }
 
   private:
-    explicit Scheduler(const ID_p &id = share(Router::mintID("127.0.0.1", "kernel/scheduler"))) :
-        AbstractScheduler(id) {}
+    explicit Scheduler(const ID_p &id = share(ID("/kernel/scheduler/"))) : AbstractScheduler(id) {}
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
     //////////////////////////////////////////////////////

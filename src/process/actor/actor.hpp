@@ -29,6 +29,8 @@
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
 
+#include <language/exts.hpp>
+
 namespace fhatos {
   template<typename PROCESS = Thread>
   class Actor : public PROCESS, public Publisher, public Mailbox<ptr<Mail>> {
@@ -44,6 +46,10 @@ namespace fhatos {
        this->Publisher<ROUTER>::~Publisher();
        this->Mailbox<Mail>::~Mailbox();
      }*/
+
+  /*  Exts extension() {
+      return Exts
+    }*/
 
     Pair<fbyte *, uint> serialize() const {
       auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));

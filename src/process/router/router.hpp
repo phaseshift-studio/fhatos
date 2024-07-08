@@ -140,7 +140,7 @@ namespace fhatos {
                            {ROUTER_LEVEL::UNIVERSAL_ROUTER, "universal_router"}});
   class Router {
   protected:
-    Router(const ROUTER_LEVEL level) : _level(level) {}
+    explicit Router(const ROUTER_LEVEL level) : _level(level) {}
 
   public:
     virtual ~Router() = default;
@@ -160,27 +160,26 @@ namespace fhatos {
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
     virtual const RESPONSE_CODE clear() FP_OK_RESULT;
     virtual uint retainSize() const { return -1; }
-
     virtual const string toString() const { return "Router"; }
 
     template<typename OBJ = Obj>
-    ptr<OBJ> read(const Uri_p &target, const Uri_p &source = u_p(FOS_DEFAULT_SOURCE_ID)) {
+    static ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+      auto *router = GLOBAL_OPTIONS->router<Router>();
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic_bool(false);
-      this->subscribe(Subscription{.source = source->uri_value(),
-                                   .pattern = target->uri_value(),
-                                   .onRecv = [thing, done](const ptr<Message> &message) {
-                                     thing->store(new OBJ(*message->payload));
-                                     done->store(true);
-                                   }});
+      router->subscribe(
+          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
+                         thing->store(new OBJ(*message->payload));
+                         done->store(true);
+                       }});
       const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
-        if (time(nullptr) - startTimestamp > (uint8_t) this->_level) {
-          LOG(ERROR, "Target undefined !y%s!!\n", target->toString().c_str());
+        if ((time(nullptr) - startTimestamp) > ((uint8_t) router->_level)+1) {
+          LOG(ERROR, "Target undefined !y%s!!\n", target.toString().c_str());
           break;
         }
       }
-      unsubscribe(source->uri_value(), target->uri_value());
+      router->unsubscribe(source, target);
       if (nullptr == thing->load()) {
         delete thing;
         delete done;
@@ -193,14 +192,14 @@ namespace fhatos {
       }
     }
 
-    virtual RESPONSE_CODE write(const Uri_p &target, const Obj_p &obj, const Uri_p &source) {
-      return this->publish(Message{
-          .source = source->uri_value(), .target = target->uri_value(), .payload = obj, .retain = RETAIN_MESSAGE});
+    static RESPONSE_CODE write(const ID &target, const Obj_p &obj, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+      return GLOBAL_OPTIONS->router<Router>()->publish(
+          Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
 
-    virtual RESPONSE_CODE write(const Uri_p &target, const Obj_p &obj) {
-      return this->publish(Message{
-          .source = FOS_DEFAULT_SOURCE_ID, .target = target->uri_value(), .payload = obj, .retain = RETAIN_MESSAGE});
+    static RESPONSE_CODE destroy(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+      return GLOBAL_OPTIONS->router<Router>()->publish(
+          Message{.source = source, .target = target, .payload = Obj::to_noobj(), .retain = RETAIN_MESSAGE});
     }
   };
 } // namespace fhatos

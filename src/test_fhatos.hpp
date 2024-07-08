@@ -34,12 +34,16 @@
 #ifdef NATIVE
 namespace fhatos {
 
+#ifndef FOS_LOG_TYPE
+#define FOS_LOG_TYPE INFO
+#endif
+
 #define FOS_RUN_TEST(x)                                                                                                \
   { RUN_TEST(x); }
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
-    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;                                                                          \
+    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::DEBUG;                                                                          \
     GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
     GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
     Parser::singleton();                                                                                               \
@@ -217,7 +221,7 @@ static void FOS_TEST_ERROR(const string &monoid) {
     TEST_ASSERT_TRUE(true);
   }
 }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
                               const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
@@ -251,5 +255,19 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
   }
   if (clearRouter)
     GLOBAL_OPTIONS->router<Router>()->clear();
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename OBJ = Obj>
+static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &monoids,
+                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+                              const bool clearRouter = true) {
+  const string &finalString = monoids.back();
+  for (int i = 0; i < monoids.size() - 1; i++) {
+    LOG(DEBUG, FOS_TAB_2 "!yPre-monoid!!: %s\n", monoids.at(i).c_str());
+    Fluent(Parser::singleton()->tryParseObj(monoids.at(i)).value()).iterate();
+  }
+  LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
+  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->tryParseObj(finalString).value()),
+                                expectedReferences, clearRouter);
 }
 #endif
