@@ -131,14 +131,14 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="classfhatos_1_1Monad.html">   34</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classfhatos_1_1Monad.html">Monad</a> {</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keyword">protected</span>:</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keyword">const</span> Obj_p _obj;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">const</span> Obj_p _inst;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">const</span> Inst_p _inst;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">const</span> <span class="keywordtype">long</span> _bulk = 1;</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keyword">public</span>:</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classfhatos_1_1Monad.html">Monad</a>(<span class="keyword">const</span> Obj_p obj, <span class="keyword">const</span> Inst_p &amp;inst) : _obj(obj), _inst(inst) {}</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">void</span> split(<span class="keyword">const</span> ptr&lt;BCode&gt; &amp;bcode, List&lt;Monad_p&gt; *running)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>      <span class="keyword">const</span> ptr&lt;Obj&gt; nextObj = this-&gt;_inst-&gt;apply(this-&gt;_obj);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">void</span> split(<span class="keyword">const</span> BCode_p &amp;bcode, List&lt;Monad_p&gt; *running)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>      <span class="keyword">const</span> Obj_p nextObj = this-&gt;_inst-&gt;apply(this-&gt;_obj);</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      <span class="keyword">const</span> Inst_p nextInst = bcode-&gt;nextInst(this-&gt;_inst);</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      <span class="keywordflow">if</span> (nextObj-&gt;isObjs()) {</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;obj: *nextObj-&gt;objs_value()) {</div>
@@ -183,10 +183,10 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>        <span class="keyword">const</span> Monad_p monad = share(<a class="code hl_class" href="classfhatos_1_1Monad.html">Monad</a>(inst-&gt;inst_seed(), inst));</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        <span class="keywordflow">if</span> (Insts::isBarrier(inst)) {</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>          this-&gt;barriers-&gt;push_back(monad);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>          LOG(DEBUG, <span class="stringliteral">&quot;Adding barrier monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>          LOG(DEBUG, FOS_TAB_2 <span class="stringliteral">&quot;!yBarrier!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (Insts::isInitial(inst)) {</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>          this-&gt;running-&gt;push_back(monad);</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>          LOG(DEBUG, <span class="stringliteral">&quot;Adding initial monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>          LOG(DEBUG, FOS_TAB_2 <span class="stringliteral">&quot;!mStarting!!   monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        }</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    }</div>
@@ -194,70 +194,68 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keyword">const</span> ptr&lt;E&gt; next(<span class="keyword">const</span> <span class="keywordtype">int</span> steps = -1) {</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        <span class="keywordflow">if</span> (this-&gt;halted-&gt;empty()) {</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>          <span class="keywordflow">if</span> (this-&gt;running-&gt;empty()) {</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>          <span class="keywordflow">if</span> (this-&gt;running-&gt;empty())</div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>            <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; <span class="comment">// ptr&lt;E&gt;((E*)new NoObj());</span></div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>          } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>            this-&gt;<a class="code hl_function" href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">execute</a>(steps);</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>          }</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>          <span class="keyword">const</span> ptr&lt;E&gt; end = std::dynamic_pointer_cast&lt;E&gt;(this-&gt;halted-&gt;back());</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>          this-&gt;halted-&gt;pop_back();</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>          <span class="keywordflow">return</span> end;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        }</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      }</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    }</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
-<div class="foldopen" id="foldopen00111" data-start="{" data-end="}">
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">  111</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">execute</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> steps = -1) {</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      <span class="keywordtype">int</span> counter = 0;</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      <span class="keywordflow">while</span> ((!this-&gt;running-&gt;empty() || !this-&gt;barriers-&gt;empty()) &amp;&amp; (counter++ &lt; steps || steps == -1)) {</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        <span class="keywordflow">if</span> (this-&gt;running-&gt;empty() &amp;&amp; !this-&gt;barriers-&gt;empty()) {</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>          <span class="keyword">const</span> Monad_p barrier = this-&gt;barriers-&gt;front();</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>          this-&gt;barriers-&gt;pop_front();</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>          LOG(DEBUG, <span class="stringliteral">&quot;Processing barrier: %s\n&quot;</span>, barrier-&gt;toString().c_str());</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>          barrier-&gt;split(this-&gt;bcode, this-&gt;running);</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>          <span class="keyword">const</span> ptr&lt;Monad&gt; monad = this-&gt;running-&gt;back();</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>          this-&gt;running-&gt;pop_back();</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>          <span class="keywordflow">if</span> (monad-&gt;halted()) {</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>            LOG(TRACE, FOS_TAB_5 <span class="stringliteral">&quot;!gHalting!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>            this-&gt;halted-&gt;push_back(monad-&gt;obj());</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>          } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>            <span class="keywordflow">if</span> (Insts::isBarrier(monad-&gt;inst())) {</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>              LOG(TRACE, <span class="stringliteral">&quot;Adding to barrier: %s =&gt; %s\n&quot;</span>, monad-&gt;toString().c_str(), monad-&gt;inst()-&gt;toString().c_str());</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>              this-&gt;barriers-&gt;front()-&gt;obj()-&gt;objs_value()-&gt;push_back(monad-&gt;obj());</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>              LOG(TRACE, FOS_TAB_5 <span class="stringliteral">&quot;!gSplitting!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>              monad-&gt;split(this-&gt;bcode, this-&gt;running);</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>            }</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>          }</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>        }</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      }</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      LOG(DEBUG, FOS_TAB_2 <span class="stringliteral">&quot;Exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]\n&quot;</span>, this-&gt;running-&gt;size(),</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>          this-&gt;halted-&gt;size());</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>      <span class="keywordflow">return</span> this-&gt;halted-&gt;size();</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    }</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>          this-&gt;<a class="code hl_function" href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">execute</a>(steps);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>          <span class="keyword">const</span> ptr&lt;E&gt; end = std::dynamic_pointer_cast&lt;E&gt;(this-&gt;halted-&gt;back());</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>          this-&gt;halted-&gt;pop_back();</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>          <span class="keywordflow">return</span> end;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        }</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      }</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    }</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="foldopen" id="foldopen00109" data-start="{" data-end="}">
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno"><a class="line" href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">  109</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">execute</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> steps = -1) {</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>      <span class="keywordtype">int</span> counter = 0;</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      <span class="keywordflow">while</span> ((!this-&gt;running-&gt;empty() || !this-&gt;barriers-&gt;empty()) &amp;&amp; (counter++ &lt; steps || steps == -1)) {</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        <span class="keywordflow">if</span> (this-&gt;running-&gt;empty() &amp;&amp; !this-&gt;barriers-&gt;empty()) {</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>          <span class="keyword">const</span> Monad_p barrier = this-&gt;barriers-&gt;front();</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>          this-&gt;barriers-&gt;pop_front();</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>          LOG(DEBUG, <span class="stringliteral">&quot;Processing barrier: %s\n&quot;</span>, barrier-&gt;toString().c_str());</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>          barrier-&gt;split(this-&gt;bcode, this-&gt;running);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>          <span class="keyword">const</span> ptr&lt;Monad&gt; monad = this-&gt;running-&gt;back();</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>          this-&gt;running-&gt;pop_back();</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>          <span class="keywordflow">if</span> (monad-&gt;halted()) {</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>            LOG(TRACE, FOS_TAB_5 <span class="stringliteral">&quot;!gHalting!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>            this-&gt;halted-&gt;push_back(monad-&gt;obj());</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>          } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>            <span class="keywordflow">if</span> (Insts::isBarrier(monad-&gt;inst())) {</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>              LOG(TRACE, <span class="stringliteral">&quot;Adding to barrier: %s =&gt; %s\n&quot;</span>, monad-&gt;toString().c_str(), monad-&gt;inst()-&gt;toString().c_str());</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>              this-&gt;barriers-&gt;front()-&gt;obj()-&gt;objs_value()-&gt;push_back(monad-&gt;obj());</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>              LOG(TRACE, FOS_TAB_5 <span class="stringliteral">&quot;!gSplitting!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>              monad-&gt;split(this-&gt;bcode, this-&gt;running);</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>            }</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>          }</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>        }</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>      }</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      LOG(DEBUG, FOS_TAB_2 <span class="stringliteral">&quot;Exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]\n&quot;</span>, this-&gt;running-&gt;size(),</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>          this-&gt;halted-&gt;size());</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      <span class="keywordflow">return</span> this-&gt;halted-&gt;size();</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    }</div>
 </div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    <span class="keywordtype">void</span> forEach(<span class="keyword">const</span> Consumer&lt;<span class="keyword">const</span> ptr&lt;E&gt;&gt; &amp;consumer, <span class="keyword">const</span> <span class="keywordtype">int</span> steps = -1) {</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>      <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        <span class="keyword">const</span> ptr&lt;E&gt; end = this-&gt;next(steps);</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        <span class="keywordflow">if</span> (end &amp;&amp; !end-&gt;isNoObj()) {</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          consumer(end);</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>          <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        }</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>      }</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    }</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  };</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    <span class="keywordtype">void</span> forEach(<span class="keyword">const</span> Consumer&lt;<span class="keyword">const</span> ptr&lt;E&gt;&gt; &amp;consumer, <span class="keyword">const</span> <span class="keywordtype">int</span> steps = -1) {</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>      <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        <span class="keyword">const</span> ptr&lt;E&gt; end = this-&gt;next(steps);</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>        <span class="keywordflow">if</span> (end &amp;&amp; !end-&gt;isNoObj()) {</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>          consumer(end);</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        }</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>      }</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    }</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  };</div>
 </div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Monad_html"><div class="ttname"><a href="classfhatos_1_1Monad.html">fhatos::Monad</a></div><div class="ttdef"><b>Definition</b> processor.hpp:34</div></div>
 <div class="ttc" id="aclassfhatos_1_1Processor_html"><div class="ttname"><a href="classfhatos_1_1Processor.html">fhatos::Processor</a></div><div class="ttdef"><b>Definition</b> processor.hpp:74</div></div>
-<div class="ttc" id="aclassfhatos_1_1Processor_html_aca55b9ff7c54f493102ddd2d6cf101df"><div class="ttname"><a href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">fhatos::Processor::execute</a></div><div class="ttdeci">int execute(const int steps=-1)</div><div class="ttdef"><b>Definition</b> processor.hpp:111</div></div>
+<div class="ttc" id="aclassfhatos_1_1Processor_html_aca55b9ff7c54f493102ddd2d6cf101df"><div class="ttname"><a href="classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df">fhatos::Processor::execute</a></div><div class="ttdeci">int execute(const int steps=-1)</div><div class="ttdef"><b>Definition</b> processor.hpp:109</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
