@@ -38,11 +38,10 @@ using namespace mqtt;
 namespace fhatos {
   class MqttRouter final : public Router {
   public:
-    static MqttRouter *singleton(const char *serverAddr = MQTT_BROKER_ADDR,
+    static MqttRouter *singleton(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
                                  const Message_p &willMessage = ptr<Message>(nullptr)) {
-      static MqttRouter singleton = MqttRouter(serverAddr, willMessage);
-      // singleton.setup();
-      return &singleton;
+      static MqttRouter *mqtt = new MqttRouter(id, serverAddr, willMessage);
+      return mqtt;
     }
 
   protected:
@@ -52,8 +51,9 @@ namespace fhatos {
     MutexDeque<Message_p> _PUBLICATIONS;
     Message_p willMessage;
 
-    explicit MqttRouter(const char *serverAddr = MQTT_BROKER_ADDR,
-                        const Message_p &willMessage = ptr<Message>(nullptr)) : Router(ROUTER_LEVEL::GLOBAL_ROUTER) {
+    explicit MqttRouter(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
+                        const Message_p &willMessage = ptr<Message>(nullptr)) :
+        Router(id, ROUTER_LEVEL::GLOBAL_ROUTER) {
       this->serverAddr = serverAddr;
       this->xmqtt = new async_client(this->serverAddr, "", mqtt::create_options(MQTTVERSION_5));
       this->willMessage = willMessage;
@@ -67,12 +67,13 @@ namespace fhatos {
             message(this->willMessage->target.toString(), this->willMessage->payload.get(), this->willMessage->retain));
       try {
         this->xmqtt->set_message_callback([this](const ptr<const message> &mqttMessage) {
-          _SUBSCRIPTIONS.forEach([mqttMessage](const Subscription_p &subscription) {
+          const ID mqttTopic = ID(mqttMessage->get_topic());
+          _SUBSCRIPTIONS.forEach([mqttMessage, mqttTopic](const Subscription_p &subscription) {
             const binary_ref ref = mqttMessage->get_payload_ref();
             const ptr<BObj> bobj = share(BObj(ref.length(), (unsigned char *) ref.data()));
-            if (ID(mqttMessage->get_topic_ref().c_str()).matches(subscription->pattern)) {
+            if (mqttTopic.matches(subscription->pattern)) {
               const Message_p message = share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
-                                                      .target = ID(mqttMessage->get_topic().c_str()),
+                                                      .target = mqttTopic,
                                                       .payload = Obj::deserialize<Obj>(bobj),
                                                       .retain = mqttMessage->is_retained()});
               LOG_RECEIVE(RESPONSE_CODE::OK, *subscription, *message);
@@ -157,7 +158,7 @@ namespace fhatos {
 
     const RESPONSE_CODE unsubscribeSource(const ID &source) override { return unsubscribeX(source, nullptr); }
 
-    void stop() {
+    void stop() override {
       LOG(INFO, "Disconnecting MQTT from %s\n", this->serverAddr);
       _SUBSCRIPTIONS.forEach([this](const auto &sub) { this->unsubscribe(sub->source, sub->pattern); });
       _PUBLICATIONS.clear();

@@ -25,35 +25,32 @@
 #include FOS_MQTT(mqtt_router.hpp)
 #ifdef NATIVE
 #include <structure/kernel/f_kernel.hpp>
-
+#include <sys.hpp>
 
 using namespace fhatos;
-
 
 int main(int arg, char **argsv) {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
-  GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
+  GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton("/process/router/local/");
+  GLOBAL_OPTIONS->URI_PATTERN = {"/{{user}}/struc/{{structure}}", "/{{user}}/proc/{{process}}"};
   try {
-    fKernel<>::bootloader({
-      new Console(ID("/home/root/process/console"))
-        // fWIFI::singleton(),
-        // fKernel<>::singleton(),
-        // fFS<>::singleton(),
-        // fOTA<>::singleton(),
-    });
-    Parser::singleton();
-    Types::singleton()->loadExt("/ext/process");
-    Types::singleton()->loadExt("/ext/collection");
+    GLOBAL_OPTIONS->printer<>()->println(ANSI_ART);
+    GLOBAL_OPTIONS->printer<>()->printf(FOS_TAB_2 "Use %s for noobj\n", Obj::to_noobj()->toString().c_str());
+    Scheduler::singleton("/scheduler/")
+        ->onBoot({//
+                  LocalRouter::singleton("/process/router/local/"), //
+                  MqttRouter::singleton("/process/router/mqtt/"), //
+                  Types::singleton("/lang/type/"), //
+                  Parser::singleton("/lang/parser/"), //
+                  new Console("/process/repl/")});
     //////
-    Router::write(ID("/home/root/~"), Obj::to_str("home of root"));
-    Scheduler::singleton()->spawn(new Console(ID("/home/root/process/")));
     Scheduler::singleton()->barrier("main_barrier", [] { return Scheduler::singleton()->count() == 0; });
   } catch (const fError &e) {
-    LOG(ERROR, "main() error: %s\n", e.what());
     // LOG_EXCEPTION(e);
+    LOG(ERROR, "main() error: %s\n", e.what());
   }
-};
+}
 #else
 #include FOS_MODULE(kernel / f_kernel.hpp)
 #include FOS_MODULE(io / net / f_wifi.hpp)

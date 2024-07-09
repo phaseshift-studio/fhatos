@@ -252,6 +252,19 @@ namespace fhatos {
           areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
+    static Obj_p pub_retain(const Uri_p &target, const Obj_p &payload) {
+      return Obj::to_inst(
+          "pub^", {target, payload},
+          [target, payload](const Obj_p &lhs) {
+            GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
+                                                              .target = target->apply(lhs)->uri_value(),
+                                                              .payload = payload->isNoOpBytecode() ? lhs : payload,
+                                                              .retain = RETAIN_MESSAGE});
+            return lhs;
+          },
+          areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+    }
+
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
       return Obj::to_inst(
           "sub", {pattern, onRecv},
@@ -355,6 +368,8 @@ namespace fhatos {
         return Insts::from(args.at(0));
       if (type == INST_FURI->resolve("pub"))
         return Insts::pub(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("pub^"))
+        return Insts::pub_retain(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("sub"))
         return Insts::sub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("print"))

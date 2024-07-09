@@ -24,7 +24,6 @@
 #include <atomic>
 #include <structure/furi.hpp>
 #include <util/mutex_deque.hpp>
-#include FOS_UTIL(mutex.hpp)
 #include FOS_PROCESS(process.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
@@ -45,8 +44,7 @@ namespace fhatos {
     Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID_p &id = share(ID("/kernel/scheduler/"))) :
-        IDed(id), Publisher(this, this), Mailbox() {}
+    explicit AbstractScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
     ~AbstractScheduler() override {
       delete COROUTINES;
       delete FIBERS;
@@ -54,23 +52,39 @@ namespace fhatos {
       delete KERNELS;
     };
 
+    bool onBoot(const List<Process *> &processes) {
+      bool success = true;
+      for (Process *process: processes) {
+        success = success && this->spawn(process);
+      }
+      return success;
+    }
+
     void setup() {
       //////////////// SPAWN
-      this->subscribe("thread/#", [this](const Message_p &message) {
+      this->subscribe("", [this](const Message_p &message) {
+        if (message->payload->isNoObj()) {
+          this->stop();
+        } else if (message->payload->id()->equals(ID("/rec/thread"))) {
+          const auto b = new fBcode<Thread>(message->payload->rec_get(u_p("id"))->uri_value(), message->payload);
+          if (!this->spawn(b)) {
+            LOG_TASK(ERROR, this, "Process obj %s can not be spawned: [stype:%s][utype:%s]\n",
+                     OTypes.toChars(message->payload->o_type()), message->payload->id()->toString().c_str());
+          }
+        } else {
+          LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), message->payload));
+        }
+      });
+      this->subscribe("/thread/#", [this](const Message_p &message) {
         const Obj_p obj = message->payload;
-        const ID threadId = message->target.retract(false).retract(false).retract(false);
+        const ID threadId = message->target;
         if (obj->isNoObj()) {
           LOG(DEBUG, "!yInitiating thread destruction: !b%s!!\n", threadId.toString().c_str());
           this->_destroy(threadId);
         } else {
           if (obj->o_type() != OType::REC) {
-            LOG(ERROR, "Provided obj must be a /rec/thread: %s\n", OTypes.toChars(obj->o_type()));
+            LOG(ERROR, "Provided obj must be a !b/rec/thread!!, not a !b%s!!\n", OTypes.toChars(obj->o_type()));
           } else {
-            const auto b = new fBcode<Thread>(threadId, obj);
-            if (!this->spawn(b)) {
-              LOG_TASK(ERROR, this, "Process obj %s can not be spawned: [stype:%s][utype:%s]\n",
-                       OTypes.toChars(message->payload->o_type()), message->payload->id()->toString().c_str());
-            }
           }
         };
       });
@@ -91,12 +105,12 @@ namespace fhatos {
     }
 
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
-      LOG(INFO, "!MScheduler at barrier: <%s>!!\n", label);
+      LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
       while (this->next()) {
       }
       while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
       }
-      LOG(INFO, "!MScheduler completed barrier: <%s>!!\n", label);
+      LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }
 
     virtual bool spawn(Process *process) { throw fError("%s\n", "Member function spawn() must be implemented"); }

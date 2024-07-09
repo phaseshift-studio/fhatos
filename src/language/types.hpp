@@ -22,42 +22,44 @@
 #include <fhatos.hpp>
 #include <language/exts.hpp>
 #include <language/obj.hpp>
+#include <process/native/coroutine.hpp>
 #include <process/router/router.hpp>
 #include <util/mutex_rw.hpp>
 #include <util/options.hpp>
 
 namespace fhatos {
-  class Types {
+  class Types : public Coroutine {
   private:
-    explicit Types() = default;
+    explicit Types(const ID &id = ID("/type/")) : Coroutine(id) {}
 
   protected:
     Map<fURI, Type_p> *CACHE = new Map<fURI, Type_p>();
     MutexRW<> *CACHE_MUTEX = new MutexRW<>();
 
   public:
-    ~Types() {
+    ~Types() override {
       CACHE->clear();
       delete CACHE;
       delete CACHE_MUTEX;
     }
-    static Types *singleton() {
-      static bool _setup = false;
-      static Types types = Types();
-      if (!_setup) {
-        TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID &typeId) {
-          singleton()->checkType(obj, otype, typeId, true);
-          return ID_p(new ID(typeId));
-        };
-        TYPE_WRITER = [](const ID &id, const Type_p &type) {
-          singleton()->saveType(id, type, true);
-          return type;
-        };
-        TYPE_READER = [](const ID &typeId) { return singleton()->loadType(typeId, true).value_or(Obj::to_noobj()); };
-        _setup = true;
-      }
-      return &types;
+    static Types *singleton(const ID &id = ID("/type/")) {
+      static Types *types = new Types(id);
+      return types;
     }
+
+    void setup() override {
+      Coroutine::setup();
+      TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID &typeId) {
+        singleton()->checkType(obj, otype, typeId, true);
+        return ID_p(new ID(typeId));
+      };
+      TYPE_WRITER = [](const ID &id, const Type_p &type) {
+        singleton()->saveType(id, type, true);
+        return type;
+      };
+      TYPE_READER = [](const ID &typeId) { return singleton()->loadType(typeId, true).value_or(Obj::to_noobj()); };
+    }
+
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////

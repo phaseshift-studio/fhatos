@@ -21,8 +21,8 @@
 
 #include <fhatos.hpp>
 //
-#include <structure/furi.hpp>
 #include <language/obj.hpp>
+#include <structure/furi.hpp>
 
 #define RETAIN_MESSAGE true
 #define TRANSIENT_MESSAGE false
@@ -44,23 +44,21 @@ namespace fhatos {
     }
 
     bool isQuery(const char *query = "?") const {
-      return !this->retain &&
-             payload->isNoObj() &&
-             target.query() == query &&
-             !target.equals(source);
+      return !this->retain && payload->isNoObj() && target.query() == query && !target.equals(source);
     }
 
-    [[nodiscard]] bool isReflexive() const {
-      return target.query("").equals(source.query(""));
-    }
+    [[nodiscard]] bool isReflexive() const { return target.query("").equals(source.query("")); }
 
     [[nodiscard]] string toString() const {
       char temp[100];
-      sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(),
-              payload->toString().c_str(), FOS_BOOL_STR(retain),
-              target.toString().c_str());
+      sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(), payload->toString().c_str(),
+              FOS_BOOL_STR(retain), target.toString().c_str());
       return {temp};
-    };
+    }
+
+    static fError UNKNOWN_PAYLOAD(const ID &id, const Obj_p &payload) {
+      return fError("!m%s!! unable to process payload %s\n", id.toString().c_str(), payload->toString().c_str());
+    }
   };
 } // namespace fhatos
 

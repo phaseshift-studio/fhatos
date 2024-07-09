@@ -28,7 +28,7 @@
 #ifndef NATIVE
 #include <structure/io/net/f_wifi.hpp>
 #endif
-#include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(coroutine.hpp)
 
 
 #define RETAIN_MESSAGE true
@@ -138,9 +138,10 @@ namespace fhatos {
                            {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
                            {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"},
                            {ROUTER_LEVEL::UNIVERSAL_ROUTER, "universal_router"}});
-  class Router {
+  class Router : public Coroutine {
   protected:
-    explicit Router(const ROUTER_LEVEL level) : _level(level) {}
+    explicit Router(const ID &id = ID("router"), const ROUTER_LEVEL level = ROUTER_LEVEL::LOCAL_ROUTER) :
+        Coroutine(id), _level(level) {}
 
   public:
     virtual ~Router() = default;
@@ -174,7 +175,7 @@ namespace fhatos {
                        }});
       const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
-        if ((time(nullptr) - startTimestamp) > ((uint8_t) router->_level)+1) {
+        if ((time(nullptr) - startTimestamp) > ((uint8_t) router->_level) + 1) {
           LOG(ERROR, "Target undefined !y%s!!\n", target.toString().c_str());
           break;
         }

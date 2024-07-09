@@ -1,5 +1,5 @@
 /*******************************************************************************
-  FhatOS: A Distributed Operating System
+FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -15,22 +15,27 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+#pragma once
+#ifndef fhatos_sys_hpp
+#define fhatos_sys_hpp
 
-#ifndef fhatos_process_objs_hpp
-#define fhatos_process_objs_hpp
-
-#include <language/obj.hpp>
 
 namespace fhatos {
+  class Sys {
+  public:
+    static Sys *singleton() {
+      static Sys sys = Sys();
+      return &sys;
+    }
 
-class ProcessObj: public Obj{
-
-ProcessObj(const Uri_p id) {
-
-}
-
-};
-
-}
+    bool boot(List<Process *> processes) {
+      bool success = true;
+      for (Process *process: processes) {
+        success = success && Scheduler::singleton()->spawn(process);
+      }
+      return success;
+    }
+  };
+} // namespace fhatos
 
 #endif

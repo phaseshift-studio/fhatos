@@ -77,13 +77,7 @@ namespace private_fhatos {
       }
       return patternLength == idLength;
     }();
-    for (uint8_t i = 0; i < idLength; i++) {
-      delete[] idParts[i];
-    }
     delete[] idParts;
-    for (uint8_t i = 0; i < patternLength; i++) {
-      delete[] patternParts[i];
-    }
     delete[] patternParts;
     return result;
   }

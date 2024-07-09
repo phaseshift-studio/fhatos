@@ -20,12 +20,15 @@
 #define fhatos_options_hpp
 #include <memory>
 
+using namespace std;
+
 namespace fhatos {
-  class Options final : public std::enable_shared_from_this<Options> {
+  class Options final : public enable_shared_from_this<Options> {
   public:
     uint8_t LOGGING;
     void *ROUTING;
     Ansi<> *PRINTING;
+    pair<string, string> URI_PATTERN;
 
     explicit Options() {}
 

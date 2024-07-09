@@ -11,31 +11,32 @@
 
 namespace fhatos {
   void test_threads() {
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("thread/abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/thread/#"));
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("/thread/abc/thread-1")->size());
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->spawn(new Thread("thread/abc/thread-1"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-1")->size());
+    Scheduler::singleton()->spawn(new Thread("/thread/abc/thread-1"));
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/thread/#"));
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/abc/thread-1")->size());
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->spawn(new Thread("thread/abc/thread-2"));
-    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-2")->size());
-    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->find("thread/abc/+")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/+/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/+/thread-2")->size());
+    Scheduler::singleton()->spawn(new Thread("/thread/abc/thread-2"));
+    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/thread/#"));
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/abc/thread-2")->size());
+    TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->find("/thread/abc/+")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/+/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/+/thread-2")->size());
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->destroy("thread/abc/thread-1");
-    Scheduler::singleton()->barrier("thread-1_dead", [] { return Scheduler::singleton()->count("thread/abc/thread-1") == 0; });
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("#"));
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("thread/abc/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/thread-2")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/abc/+")->size());
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("thread/+/thread-1")->size());
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("thread/+/thread-2")->size());
-    Scheduler::singleton()->destroy("thread/abc/thread-2");
-    Scheduler::singleton()->barrier("thread-2_dead");
+    Scheduler::singleton()->destroy("/thread/abc/thread-1");
+    Scheduler::singleton()->barrier("thread-1_dead",
+                                    [] { return Scheduler::singleton()->count("/thread/abc/thread-1") == 0; });
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/thread/#"));
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("/thread/abc/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/abc/thread-2")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/abc/+")->size());
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->find("/thread/+/thread-1")->size());
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->find("/thread/+/thread-2")->size());
+    Scheduler::singleton()->destroy("/thread/abc/thread-2");
+    Scheduler::singleton()->barrier("thread-2_dead", [] { return Scheduler::singleton()->count("/thread/#") == 0; });
   }
 
   /* template<typename ROUTER>
@@ -62,11 +63,17 @@ namespace fhatos {
    }*/
 
   FOS_RUN_TESTS( //
-      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton(); //
-      Scheduler::singleton(); //
-      FOS_RUN_TEST(test_threads); //
-      //  FOS_RUN_TEST(test_bcode<LocalRouter>); //
-  );
+      for (Router *router //
+           : List<Router *>{
+               fhatos::LocalRouter::singleton() //
+             // fhatos::MqttRouter::singleton() //
+           }) {
+        //
+        GLOBAL_OPTIONS->ROUTING = router; //
+        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        FOS_RUN_TEST(test_threads); //
+        //  FOS_RUN_TEST(test_bcode<LocalRouter>); //
+      });
 
 } // namespace fhatos
 

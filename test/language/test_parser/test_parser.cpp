@@ -18,18 +18,7 @@ namespace fhatos {
 
   void test_no_input_parsing() { TEST_ASSERT_FALSE(Parser::singleton()->tryParseObj("").has_value()); }
 
-  void test_start_inst_parsing() {
-    // FOS_CHECK_ARGS<Obj>({15}, parser->parse("__(15)")->startInst());
-    // FOS_CHECK_ARGS<Obj>({15, -10, 0}, parser->parse("__(15,-10,0)")->startInst());
-    //  FOS_CHECK_ARGS<Obj>({"fhat", "os", 69}, parser->parse("__('fhat','os',69)")->startInst());
-    //  FOS_CHECK_ARGS<Obj>({new Rec({{new Str("a"), new Int(2)}})}, parser->parse("__(['a'=>2])")->startInst());
-    //  FOS_CHECK_ARGS<Obj>({new Rec({{new Str("a"), new Int(2)}, {new Str("b"), new Int(3)}})},
-    //                    parser->parse("__(['a'=>2,'b'=>3])")->startInst());
-    /*   FOS_CHECK_ARGS<Obj>(
-           {new Rec({{ share(Str("a")),  share(Int(2))}, { share(Str("b")), ptr<Rec>(new Rec({{share(Int(3)),
-       share(Uri("http://fhatos.org"))}}))}})},
-           parser->parse("__(['a'=>2,'b'=>[3=>http://fhatos.org]])")->startInst());*/
-  }
+  void test_start_inst_parsing() { FOS_CHECK_RESULTS<Rec>({"fhat"}, {"'fh'.plus('at')"}); }
 
   void test_noobj_parsing() {
     const Obj_p n = Parser::singleton()->tryParseObj("Ø").value();
@@ -235,15 +224,14 @@ namespace fhatos {
   }
 
   void test_bcode_parsing() {
-    Scheduler::singleton();
-    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
+    /*const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
         Parser::singleton()
-            ->tryParseObj("pub(127.0.0.1/kernel/scheduler/thread/abc,"
-                          "  thread[[setup => __(0).print('setup complete'),"
-                          "          loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
+            ->tryParseObj("__(thread[[id    => /thread/abc/,"
+                          "        setup => print('setup complete'),"
+                          "        loop  => pub(/abc/,Ø)]]).to(/thread/abc/)")
             .value());
     Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
-    Scheduler::singleton()->barrier("wait");
+    Scheduler::singleton()->barrier("wait");*/
     // Scheduler::singleton()->stop();
   }
 

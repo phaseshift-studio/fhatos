@@ -33,17 +33,20 @@
 
 namespace fhatos {
   class LocalRouter final : public Router {
+
+  private:
+    explicit LocalRouter(const ID &id = ID("/router/local/")) : Router(id, ROUTER_LEVEL::LOCAL_ROUTER) {}
+
   protected:
     List<Subscription_p> SUBSCRIPTIONS;
     Map<ID, const Message_p> RETAINS;
     Mutex<> MUTEX_RETAIN;
     MutexRW<> MUTEX_SUBSCRIPTIONS;
-    LocalRouter() : Router(ROUTER_LEVEL::LOCAL_ROUTER) {}
 
   public:
-    static LocalRouter *singleton() {
-      static LocalRouter singleton = LocalRouter();
-      return &singleton;
+    static LocalRouter *singleton(const ID &id = ID("/router/local/")) {
+      static LocalRouter *local = new LocalRouter(id);
+      return local;
     }
 
     uint retainSize() const override { return RETAINS.size(); }

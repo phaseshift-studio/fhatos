@@ -24,18 +24,21 @@
 ///
 #include <process/abstract_scheduler.hpp>
 
-
 namespace fhatos {
   class Scheduler final : public AbstractScheduler {
+
+  private:
+    explicit Scheduler(const ID &id = ID("/scheduler/")) : AbstractScheduler(id) {}
+
   public:
-    static Scheduler *singleton() {
+    static Scheduler *singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
-      static Scheduler scheduler = Scheduler();
+      static Scheduler* scheduler = new Scheduler(id);
       if (!_setup) {
-        scheduler.setup();
+        scheduler->setup();
         _setup = true;
       }
-      return &scheduler;
+      return scheduler;
     }
 
     bool spawn(Process *process) override {
@@ -107,9 +110,6 @@ namespace fhatos {
         return share(success);
       });
     }
-
-  private:
-    explicit Scheduler(const ID_p &id = share(ID("/kernel/scheduler/"))) : AbstractScheduler(id) {}
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
     //////////////////////////////////////////////////////

@@ -43,13 +43,14 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
-    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::DEBUG;                                                                          \
-    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
+    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                         \
     GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
-    Parser::singleton();                                                                                               \
-    Types::singleton()->loadExt("/ext/process");                                                                       \
-    Scheduler::singleton();                                                                                            \
+    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
     LOG(NONE, ANSI_ART);                                                                                               \
+    Scheduler::singleton()->onBoot(                                                                                    \
+        {LocalRouter::singleton(), MqttRouter::singleton(), Parser::singleton(), Types::singleton()});                 \
+    Types::singleton()->loadExt("/ext/process");                                                                       \
+                                                                                                                       \
     UNITY_BEGIN();                                                                                                     \
     x;                                                                                                                 \
     UNITY_END();                                                                                                       \

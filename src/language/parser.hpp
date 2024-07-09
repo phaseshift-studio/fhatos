@@ -28,22 +28,22 @@
 namespace fhatos {
   using namespace std;
 
-  class Parser {
+  class Parser final : public Coroutine {
   private:
-    Parser() = default;
+    explicit Parser(const ID &id = ID("/parser/")) : Coroutine(id) {}
 
   public:
-    static Parser *singleton() {
-      static bool _setup = false;
-      static Parser parser = Parser();
-      if (!_setup) {
-        TYPE_PARSER = [](const string &bcode) {
-          Option<Type_p> type = Parser::singleton()->tryParseObj(bcode);
-          return type.has_value() ? type.value() : nullptr;
-        };
-        _setup = true;
-      }
-      return &parser;
+    static Parser *singleton(const ID &id = ID("/parser/")) {
+      static Parser* parser = new Parser(id);
+      return parser;
+    }
+
+    void setup() override {
+      Coroutine::setup();
+      TYPE_PARSER = [](const string &bcode) {
+        Option<Type_p> type = Parser::singleton()->tryParseObj(bcode);
+        return type.has_value() ? type.value() : Obj::to_noobj();
+      };
     }
 
     Option<Obj_p> tryParseObj(const string &token) {
@@ -304,7 +304,8 @@ namespace fhatos {
           }
         }
       }
-      return Option<Inst_p>(Insts::to_inst(baseType->resolve(typeToken.c_str()), args));
+      const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
+      return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
@@ -343,14 +344,22 @@ namespace fhatos {
           }
           if (instToken[instToken.length() - 1] == '\0')
             instToken = instToken.substr(0, instToken.length() - 1);
-          Pair<string, string> typeValue;
-          if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
-            typeValue = {"*", instToken.substr(1)};
-          else
-            typeValue = tryParseObjType(instToken, false);
-          const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
-          if (inst.has_value()) {
-            insts.push_back(inst.value());
+          ///////////// parse and obj and wrap in a start() ??
+          if (insts.empty() && instToken[0] != '*' && instToken.find_first_of('(') == string::npos &&
+              instToken.find_first_of(')') == string::npos) {
+            insts.push_back(Insts::start(Obj::to_objs({tryParseObj(instToken).value()})));
+          } else {
+            /// parse a * dereference and wrap in a from() ??
+            Pair<string, string> typeValue;
+            if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
+              typeValue = {"*", instToken.substr(1)};
+            // parse an instruction
+            else
+              typeValue = tryParseObjType(instToken, false);
+            const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
+            if (inst.has_value()) {
+              insts.push_back(inst.value());
+            }
           }
         }
         return Option<BCode_p>{BCode::to_bcode(insts, share(baseType->resolve(typeToken.c_str())))};

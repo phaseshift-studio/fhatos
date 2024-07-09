@@ -30,66 +30,75 @@
 #include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 
-namespace fhatos {
-  class Console final : public Thread {
-  public:
-    explicit Console(const ID &id = ID("console")) : Thread(id) {}
+#include <process/actor/actor.hpp>
 
-    void setup() override { Thread::setup(); }
+namespace fhatos {
+  class Console final : public Actor<Thread> {
+  public:
+    explicit Console(const ID &id = ID("console")) : Actor<Thread>(id) {}
+
+    void setup() override {
+      Actor<Thread>::setup();
+      this->subscribe("", [this](const Message_p &message) {
+        if (message->payload->isNoObj()) {
+          this->stop();
+        } else {
+          LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), message->payload));
+        }
+      });
+    }
 
     void loop() override {
-      Thread::loop();
+      Actor<Thread>::loop();
+      this->printPrompt();
       string line;
-      while (true) {
-        this->printPrompt();
-        line.clear();
-        std::getline(std::cin, line);
-        StringHelper::trim(line);
-        /////
-        if (line.empty()) {
-          // do nothing
-        } else if (line[0] == ':') {
-          if (line == ":quit") {
-            this->stop();
-            return;
-          } else if (strstr(line.c_str(), ":log ")) {
-            try {
-              if (line.length() < 6) {
-                this->printResult(Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
-              } else {
-                string level = line.substr(5);
-                GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(level.c_str());
-              }
-            } catch (const fError &e) {
-              this->printException(e);
-            }
-          } else if (strstr(line.c_str(), ":router ")) {
-            if (line.length() < 9) {
-              this->printResult(Obj::to_str(GLOBAL_OPTIONS->router<Router>()->toString()));
-            } else {
-              string router = line.substr(8);
-              if (router == "LocalRouter")
-                GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
-              else if (router == "MqttRouter")
-                GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
-              else
-                this->printException(fError("Invalid logger (LocalRouter,MqttRouter): %s\n", router.c_str()));
-            }
-          }
-        } else {
+      std::getline(std::cin, line);
+      StringHelper::trim(line);
+      /////
+      if (line.empty()) {
+        // do nothing
+      } else if (line[0] == ':') {
+        if (line == ":quit") {
+          this->stop();
+          return;
+        } else if (strstr(line.c_str(), ":log ")) {
           try {
-            const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
-            if (obj.value()->isBytecode())
-              this->printResults(Fluent(obj.value()));
-            else
-              this->printResult(obj.value());
-          } catch (const std::exception &e) {
+            if (line.length() < 6) {
+              this->printResult(Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
+            } else {
+              string level = line.substr(5);
+              GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(level.c_str());
+            }
+          } catch (const fError &e) {
             this->printException(e);
           }
+        } else if (strstr(line.c_str(), ":router ")) {
+          if (line.length() < 9) {
+            this->printResult(Obj::to_str(GLOBAL_OPTIONS->router<Router>()->toString()));
+          } else {
+            string router = line.substr(8);
+            if (router == "LocalRouter")
+              GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
+            else if (router == "MqttRouter")
+              GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
+            else
+              this->printException(fError("Invalid logger (LocalRouter,MqttRouter): %s\n", router.c_str()));
+          }
+        }
+      } else {
+        try {
+          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
+          if (obj.value()->isBytecode())
+            this->printResults(Fluent(obj.value()));
+          else
+            this->printResult(obj.value());
+        } catch (const std::exception &e) {
+          this->printException(e);
         }
       }
     }
-    void stop() override { Thread::stop(); }
+
+    void stop() override { Actor<Thread>::stop(); }
     ///// printers
     void printException(const std::exception &ex) const {
       GLOBAL_OPTIONS->printer()->printf("!r[ERROR]!! %s", ex.what());
