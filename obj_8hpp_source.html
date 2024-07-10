@@ -1119,28 +1119,35 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l01044" name="l01044"></a><span class="lineno"> 1044</span>    }</div>
 <div class="line"><a id="l01045" name="l01045"></a><span class="lineno"> 1045</span> </div>
 <div class="line"><a id="l01046" name="l01046"></a><span class="lineno"> 1046</span>    ptr&lt;BObj&gt; serialize()<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span>      <span class="keyword">auto</span> *bytes = <span class="keyword">static_cast&lt;</span>fbyte *<span class="keyword">&gt;</span>(malloc(<span class="keyword">sizeof</span>(*<span class="keyword">this</span>)));</div>
-<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>      memcpy(bytes, <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>fbyte *<span class="keyword">&gt;</span>(<span class="keyword">this</span>), <span class="keyword">sizeof</span>(*<span class="keyword">this</span>));</div>
-<div class="line"><a id="l01049" name="l01049"></a><span class="lineno"> 1049</span>      <span class="keywordflow">return</span> share(BObj{<span class="keyword">sizeof</span>(*this), bytes});</div>
-<div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span>    }</div>
-<div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span> </div>
-<div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> OBJ&gt;</div>
-<div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span>    <span class="keyword">static</span> ptr&lt;OBJ&gt; deserialize(<span class="keyword">const</span> ptr&lt;BObj&gt; bobj) {</div>
-<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>      ptr&lt;OBJ&gt; obj = ptr&lt;OBJ&gt;(<span class="keyword">new</span> Obj(*((OBJ *) bobj-&gt;second)));</div>
-<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>      <span class="keywordflow">return</span> obj;</div>
-<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span>    }</div>
-<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>  };</div>
+<div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span>      <span class="keywordflow">if</span> (this-&gt;isNoObj()) {</div>
+<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>        <span class="keyword">auto</span> *bytes = <span class="keyword">new</span> fbyte[1];</div>
+<div class="line"><a id="l01049" name="l01049"></a><span class="lineno"> 1049</span>        bytes[0] = <span class="charliteral">&#39;x&#39;</span>;</div>
+<div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span>        <span class="keywordflow">return</span> share(BObj{1, bytes});</div>
+<div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span>      }</div>
+<div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>      <span class="keyword">auto</span> *bytes = <span class="keyword">static_cast&lt;</span>fbyte *<span class="keyword">&gt;</span>(malloc(<span class="keyword">sizeof</span>(*<span class="keyword">this</span>)));</div>
+<div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span>      memcpy(bytes, <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>fbyte *<span class="keyword">&gt;</span>(<span class="keyword">this</span>), <span class="keyword">sizeof</span>(*<span class="keyword">this</span>));</div>
+<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>      <span class="keywordflow">return</span> share(BObj{<span class="keyword">sizeof</span>(*this), bytes});</div>
+<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>    }</div>
+<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span> </div>
+<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> OBJ&gt;</div>
+<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span>    <span class="keyword">static</span> ptr&lt;OBJ&gt; deserialize(<span class="keyword">const</span> ptr&lt;BObj&gt; bobj) {</div>
+<div class="line"><a id="l01059" name="l01059"></a><span class="lineno"> 1059</span>      <span class="keywordflow">if</span>(bobj-&gt;first == 1 &amp;&amp; bobj-&gt;second[0] == <span class="charliteral">&#39;x&#39;</span>)</div>
+<div class="line"><a id="l01060" name="l01060"></a><span class="lineno"> 1060</span>        <span class="keywordflow">return</span> <a class="code hl_function" href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">Obj::to_noobj</a>();</div>
+<div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span>      ptr&lt;OBJ&gt; obj = ptr&lt;OBJ&gt;(<span class="keyword">new</span> Obj(*((OBJ *) bobj-&gt;second)));</div>
+<div class="line"><a id="l01062" name="l01062"></a><span class="lineno"> 1062</span>      <span class="keywordflow">return</span> obj;</div>
+<div class="line"><a id="l01063" name="l01063"></a><span class="lineno"> 1063</span>    }</div>
+<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>  };</div>
 </div>
-<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span>  <span class="keyword">static</span> Uri u(<span class="keyword">const</span> <span class="keywordtype">char</span> *uri) { <span class="keywordflow">return</span> Uri(fURI(uri)); }</div>
-<div class="line"><a id="l01059" name="l01059"></a><span class="lineno"> 1059</span>  <span class="keyword">static</span> Uri u(<span class="keyword">const</span> fURI &amp;uri) { <span class="keywordflow">return</span> Uri(uri); }</div>
-<div class="line"><a id="l01060" name="l01060"></a><span class="lineno"> 1060</span>  <span class="keyword">static</span> Uri_p u_p(<span class="keyword">const</span> <span class="keywordtype">char</span> *uri) { <span class="keywordflow">return</span> share(Uri(fURI(uri))); }</div>
-<div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span>  <span class="keyword">static</span> Uri_p u_p(<span class="keyword">const</span> <span class="keywordtype">string</span> uri) { <span class="keywordflow">return</span> share(Uri(fURI(uri))); }</div>
-<div class="line"><a id="l01062" name="l01062"></a><span class="lineno"> 1062</span>  <span class="keyword">static</span> Obj_p o_p(<span class="keyword">const</span> Obj &amp;obj) { <span class="keywordflow">return</span> share(obj); }</div>
-<div class="line"><a id="l01063" name="l01063"></a><span class="lineno"> 1063</span> </div>
-<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l01065" name="l01065"></a><span class="lineno"> 1065</span> </div>
-<div class="line"><a id="l01066" name="l01066"></a><span class="lineno"> 1066</span> </div>
-<div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01065" name="l01065"></a><span class="lineno"> 1065</span>  <span class="keyword">static</span> Uri u(<span class="keyword">const</span> <span class="keywordtype">char</span> *uri) { <span class="keywordflow">return</span> Uri(fURI(uri)); }</div>
+<div class="line"><a id="l01066" name="l01066"></a><span class="lineno"> 1066</span>  <span class="keyword">static</span> Uri u(<span class="keyword">const</span> fURI &amp;uri) { <span class="keywordflow">return</span> Uri(uri); }</div>
+<div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span>  <span class="keyword">static</span> Uri_p u_p(<span class="keyword">const</span> <span class="keywordtype">char</span> *uri) { <span class="keywordflow">return</span> share(Uri(fURI(uri))); }</div>
+<div class="line"><a id="l01068" name="l01068"></a><span class="lineno"> 1068</span>  <span class="keyword">static</span> Uri_p u_p(<span class="keyword">const</span> <span class="keywordtype">string</span> uri) { <span class="keywordflow">return</span> share(Uri(fURI(uri))); }</div>
+<div class="line"><a id="l01069" name="l01069"></a><span class="lineno"> 1069</span>  <span class="keyword">static</span> Obj_p o_p(<span class="keyword">const</span> Obj &amp;obj) { <span class="keywordflow">return</span> share(obj); }</div>
+<div class="line"><a id="l01070" name="l01070"></a><span class="lineno"> 1070</span> </div>
+<div class="line"><a id="l01071" name="l01071"></a><span class="lineno"> 1071</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l01072" name="l01072"></a><span class="lineno"> 1072</span> </div>
+<div class="line"><a id="l01073" name="l01073"></a><span class="lineno"> 1073</span> </div>
+<div class="line"><a id="l01074" name="l01074"></a><span class="lineno"> 1074</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:407</div></div>
 <div class="ttc" id="aclassfhatos_1_1IDed_html"><div class="ttname"><a href="classfhatos_1_1IDed.html">fhatos::IDed</a></div><div class="ttdef"><b>Definition</b> furi.hpp:465</div></div>
 <div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:191</div></div>
