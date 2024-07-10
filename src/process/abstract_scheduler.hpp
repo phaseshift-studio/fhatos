@@ -60,34 +60,51 @@ namespace fhatos {
       return success;
     }
 
-    void setup() {
+    virtual void setup() {
+      OBJ_HANDLER = [this](const ID &target, const Obj_p &obj) {
+        if (obj->id()->equals("/rec/thread")) {
+          const auto code = new fBcode<>(target, obj);
+          if (this->spawn(code)) {
+            this->subscribe(target, [this, target](const Message_p &message) {
+              if (message->payload->isNoObj()) {
+                this->_destroy(target);
+                //this->unsubscribe(target);
+              }
+            });
+          } else {
+            LOG_TASK(ERROR, this, "Process obj %s can not be spawned: %s\n", OTypes.toChars(obj->o_type()),
+                     obj->id()->toString().c_str());
+          }
+        }
+        return obj;
+      };
       //////////////// SPAWN
-      this->subscribe("", [this](const Message_p &message) {
+      /*this->subscribe(*this->id(), [this](const Message_p &message) {
         if (message->payload->isNoObj()) {
           this->stop();
-        } else if (message->payload->id()->equals(ID("/rec/thread"))) {
-          const auto b = new fBcode<Thread>(message->payload->rec_get(u_p("id"))->uri_value(), message->payload);
-          if (!this->spawn(b)) {
-            LOG_TASK(ERROR, this, "Process obj %s can not be spawned: [stype:%s][utype:%s]\n",
-                     OTypes.toChars(message->payload->o_type()), message->payload->id()->toString().c_str());
-          }
         } else {
           LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), message->payload));
         }
-      });
-      this->subscribe("/thread/#", [this](const Message_p &message) {
+      });*/
+      /*this->subscribe("", [this](const Message_p &message) {
         const Obj_p obj = message->payload;
-        const ID threadId = message->target;
-        if (obj->isNoObj()) {
-          LOG(DEBUG, "!yInitiating thread destruction: !b%s!!\n", threadId.toString().c_str());
-          this->_destroy(threadId);
-        } else {
-          if (obj->o_type() != OType::REC) {
-            LOG(ERROR, "Provided obj must be a !b/rec/thread!!, not a !b%s!!\n", OTypes.toChars(obj->o_type()));
+        if (obj->id()->equals(ID("/rec/thread"))) {
+          const ID threadId = obj->rec_get(u_p("id"))->uri_value();
+          const auto b = new fBcode<Thread>(obj->rec_get(u_p("id"))->uri_value(), obj);
+          if (!this->spawn(b)) {
+            LOG_TASK(ERROR, this, "Process obj %s can not be spawned: %s\n", OTypes.toChars(obj->o_type()),
+                     obj->id()->toString().c_str());
           } else {
+            this->subscribe(threadId, [this, threadId](const Message_p &message) {
+              if (message->payload->isNoObj()) {
+                this->_destroy(threadId);
+              }
+            });
           }
-        };
-      });
+        } else {
+          LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), obj));
+        }
+      });*/
       LOG(INFO, "!mScheduler located at !b%s!!\n", this->_id->toString().c_str());
     }
 

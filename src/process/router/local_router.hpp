@@ -35,7 +35,12 @@ namespace fhatos {
   class LocalRouter final : public Router {
 
   private:
-    explicit LocalRouter(const ID &id = ID("/router/local/")) : Router(id, ROUTER_LEVEL::LOCAL_ROUTER) {}
+    explicit LocalRouter(const ID &id = ID("/router/local/")) : Router(id, ROUTER_LEVEL::LOCAL_ROUTER) {
+      this->subscribe(Subscription{
+          .source = id, .pattern = id, .qos = QoS::_1, .onRecv = [id](const Message_p &message) {
+            LOG(INFO, "LocalRouter %s subscription received: %s\n", id.toString().c_str(), message->toString().c_str());
+          }});
+    }
 
   protected:
     List<Subscription_p> SUBSCRIPTIONS;
@@ -45,8 +50,8 @@ namespace fhatos {
 
   public:
     static LocalRouter *singleton(const ID &id = ID("/router/local/")) {
-      static LocalRouter *local = new LocalRouter(id);
-      return local;
+      static LocalRouter local = LocalRouter(id);
+      return &local;
     }
 
     uint retainSize() const override { return RETAINS.size(); }
@@ -54,16 +59,19 @@ namespace fhatos {
     uint subscriptionSize() const { return SUBSCRIPTIONS.size(); }
 
     const RESPONSE_CODE clear() override {
-      SUBSCRIPTIONS.clear();
+      // SUBSCRIPTIONS.clear();
       RETAINS.clear();
       return (RETAINS.empty() && SUBSCRIPTIONS.empty()) ? OK : ROUTER_ERROR;
     }
 
     const RESPONSE_CODE publish(const Message &message) override {
-      return MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
+      auto _rc = MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
         //////////////
         RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
-        const ptr<Message> mess_ptr = share<Message>(Message(message));
+        const Message_p mess_ptr = share<Message>(Message{.source = message.source,
+                                                          .target = message.target,
+                                                          .payload = message.payload,
+                                                          .retain = message.retain});
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(message.target)) {
             try {
@@ -98,6 +106,8 @@ namespace fhatos {
         LOG_PUBLISH(_rc, message);
         return _rc;
       });
+      OBJ_HANDLER(message.target, message.payload);
+      return _rc;
     }
 
     const RESPONSE_CODE subscribe(const Subscription &subscription) override {

@@ -26,7 +26,6 @@ namespace fhatos {
   template<typename PROCESS = Thread>
   class fBcode final : public Actor<PROCESS> {
   public:
-    std::atomic_bool *setupComplete = new std::atomic_bool(false);
     const ptr<Obj> rec;
     const ptr<BCode> SETUP_BCODE;
     const ptr<BCode> LOOP_BCODE;
@@ -35,7 +34,11 @@ namespace fhatos {
         Actor<PROCESS>(
             id,
             // setup
-            [this](const Actor<PROCESS> *actor) {
+            [this](Actor<PROCESS> *actor) {
+              /*this->subscribe("", [actor](const Message_p &message) {
+                if (message->payload->isNoObj())
+                  actor->stop();
+              });*/
               try {
                 LOG(DEBUG, "Executing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
                 Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
@@ -48,7 +51,7 @@ namespace fhatos {
               }
             },
             // loop
-            [this](const Actor<PROCESS> *actor) {
+            [this](Actor<PROCESS> *actor) {
               try {
                 Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
                   LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());

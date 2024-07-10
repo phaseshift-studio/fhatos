@@ -182,6 +182,7 @@ namespace fhatos {
   static BiFunction<const fURI &, const Type_p, Type_p> TYPE_WRITER = [](const fURI &, const Type_p &) {
     return nullptr;
   };
+  static BiFunction<const ID &, const Obj_p &, Obj_p> OBJ_HANDLER = [](const ID &, const Obj_p &) { return nullptr; };
   static Function<const fURI &, Type_p> TYPE_READER = [](const fURI &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////

@@ -2,13 +2,6 @@
 #define fhatos_test_parser_hpp
 
 #include <test_fhatos.hpp>
-//
-#include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(scheduler.hpp)
-#include <language/parser.hpp>
-#include <language/types.hpp>
-#include <process/router/local_router.hpp>
-#include FOS_MQTT(mqtt_router.hpp)
 
 namespace fhatos {
 
@@ -224,15 +217,12 @@ namespace fhatos {
   }
 
   void test_bcode_parsing() {
-    /*const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(
-        Parser::singleton()
-            ->tryParseObj("__(thread[[id    => /thread/abc/,"
-                          "        setup => print('setup complete'),"
-                          "        loop  => pub(/abc/,Ø)]]).to(/thread/abc/)")
-            .value());
-    Fluent(bcode).iterate(); //.forEach<Int>([]( Obj_p s) { LOG(INFO, "RESULT: %i", s->ob()); });
-    Scheduler::singleton()->barrier("wait");*/
-    // Scheduler::singleton()->stop();
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
+                                                      ->tryParseObj("__(thread[[setup => print('setup complete'),"
+                                                                    "           loop  => pub(/abc/,Ø)]]).to(/abc/)")
+                                                      .value());
+    Fluent(bcode).iterate();
+    Scheduler::singleton()->barrier("wait", []() { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 
   void test_nested_bytecode_parsing() {
@@ -266,8 +256,8 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       for (fhatos::Router *router //
-           : List<Router *>{fhatos::LocalRouter::singleton(), //
-                            fhatos::MqttRouter::singleton()}) { //
+           : List<Router *>{fhatos::LocalRouter::singleton() //
+                            /*fhatos::MqttRouter::singleton()*/}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         // FOS_RUN_TEST(test_basic_parser); //

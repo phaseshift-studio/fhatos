@@ -141,7 +141,8 @@ namespace fhatos {
   class Router : public Coroutine {
   protected:
     explicit Router(const ID &id = ID("router"), const ROUTER_LEVEL level = ROUTER_LEVEL::LOCAL_ROUTER) :
-        Coroutine(id), _level(level) {}
+        Coroutine(id), _level(level) {
+    }
 
   public:
     virtual ~Router() = default;

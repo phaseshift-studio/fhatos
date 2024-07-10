@@ -33,13 +33,15 @@ namespace fhatos {
   public:
     static Scheduler *singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
-      static Scheduler* scheduler = new Scheduler(id);
+      static Scheduler *scheduler = new Scheduler(id);
       if (!_setup) {
         scheduler->setup();
         _setup = true;
       }
       return scheduler;
     }
+
+    void setup() override { AbstractScheduler::setup(); }
 
     bool spawn(Process *process) override {
       return *RW_PROCESS_MUTEX.write<bool>([this, process]() {
@@ -58,11 +60,6 @@ namespace fhatos {
             this->THREADS->push_back(static_cast<Thread *>(process));
             dynamic_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
             success = true;
-            /*this->publish(*this->id(),
-                          Obj::to_rec({{u(this->id()->resolve("thread")), THREADS->size()},
-                                       {u(this->id()->resolve("fiber")), FIBERS->size()},
-                                       {u(this->id()->resolve("coroutine")), COROUTINES->size()}}),
-                          RETAIN_MESSAGE);*/
             break;
           }
           case FIBER: {

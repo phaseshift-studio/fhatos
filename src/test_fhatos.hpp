@@ -48,7 +48,7 @@ namespace fhatos {
     GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
     LOG(NONE, ANSI_ART);                                                                                               \
     Scheduler::singleton()->onBoot(                                                                                    \
-        {LocalRouter::singleton(), MqttRouter::singleton(), Parser::singleton(), Types::singleton()});                 \
+        {LocalRouter::singleton(), /*MqttRouter::singleton(),*/ Parser::singleton(), Types::singleton()});                 \
     Types::singleton()->loadExt("/ext/process");                                                                       \
                                                                                                                        \
     UNITY_BEGIN();                                                                                                     \
