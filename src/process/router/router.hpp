@@ -141,8 +141,7 @@ namespace fhatos {
   class Router : public Coroutine {
   protected:
     explicit Router(const ID &id = ID("router"), const ROUTER_LEVEL level = ROUTER_LEVEL::LOCAL_ROUTER) :
-        Coroutine(id), _level(level) {
-    }
+        Coroutine(id), _level(level) {}
 
   public:
     virtual ~Router() = default;
@@ -166,11 +165,11 @@ namespace fhatos {
 
     template<typename OBJ = Obj>
     static ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      auto *router = GLOBAL_OPTIONS->router<Router>();
+      Router *router = GLOBAL_OPTIONS->router<Router>();
       auto *thing = new std::atomic<OBJ *>(nullptr);
       auto *done = new std::atomic_bool(false);
       router->subscribe(
-          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const ptr<Message> &message) {
+          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const Message_p &message) {
                          thing->store(new OBJ(*message->payload));
                          done->store(true);
                        }});

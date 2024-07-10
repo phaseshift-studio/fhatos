@@ -44,7 +44,7 @@ namespace fhatos {
     void setup() override { AbstractScheduler::setup(); }
 
     bool spawn(Process *process) override {
-      return *RW_PROCESS_MUTEX.write<bool>([this, process]() {
+      bool success = *RW_PROCESS_MUTEX.write<bool>([this, process]() {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
         if (!process->running()) {
@@ -106,6 +106,15 @@ namespace fhatos {
          }*/
         return share(success);
       });
+      if (success) {
+        this->subscribe(*process->id(), [this, process](const Message_p &message) {
+          if (message->payload->isNoObj()) {
+            process->stop();
+            this->unsubscribe(*process->id());
+          }
+        });
+      }
+      return success;
     }
 
     std::thread *FIBER_THREAD_HANDLE = nullptr;
@@ -137,7 +146,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      Scheduler::singleton()->destroy(*thread->id());
+      Scheduler::singleton()->_destroy(*thread->id());
     }
   };
 } // namespace fhatos

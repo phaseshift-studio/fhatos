@@ -161,7 +161,7 @@ namespace fhatos {
     }
 
     const string name() const {
-      for (int i = this->length()-1; i >= 0; i--) {
+      for (int i = this->length() - 1; i >= 0; i--) {
         if (strlen(this->_segments[i]) > 0)
           return string(this->_segments[i]);
       }

@@ -60,21 +60,15 @@ namespace fhatos {
       return success;
     }
 
+    static bool isThread(const Obj_p &obj) { return obj->id()->equals("/rec/thread"); }
+    static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/rec/fiber"); }
+
     virtual void setup() {
       OBJ_HANDLER = [this](const ID &target, const Obj_p &obj) {
-        if (obj->id()->equals("/rec/thread")) {
-          const auto code = new fBcode<>(target, obj);
-          if (this->spawn(code)) {
-            this->subscribe(target, [this, target](const Message_p &message) {
-              if (message->payload->isNoObj()) {
-                this->_destroy(target);
-                //this->unsubscribe(target);
-              }
-            });
-          } else {
-            LOG_TASK(ERROR, this, "Process obj %s can not be spawned: %s\n", OTypes.toChars(obj->o_type()),
-                     obj->id()->toString().c_str());
-          }
+        if (isThread(obj)) {
+          this->spawn(new fBcode<Thread>(target, obj));
+        } else if (isFiber(obj)) {
+          this->spawn(new fBcode<Fiber>(target, obj));
         }
         return obj;
       };
@@ -148,11 +142,10 @@ namespace fhatos {
                          .write<Bool>([this, processPattern]() {
                            THREADS->remove_if([processPattern, this](Thread *process) {
                              if (process->id()->matches(processPattern)) {
-                               process->stop();
+                               if (process->running())
+                                 process->stop();
                                LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
-                               // ptr<Thread> temp = ptr<Thread>(process);
-                               // Router::destroy(*process->id(), *this->id());
                                return true;
                              }
                              return false;
@@ -163,7 +156,6 @@ namespace fhatos {
                                  process->stop();
                                LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
-                               // delete process;
                                return true;
                              }
                              return false;
@@ -174,7 +166,6 @@ namespace fhatos {
                                  process->stop();
                                LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
-                               // delete process;
                                return true;
                              }
                              return false;

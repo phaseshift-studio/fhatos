@@ -167,8 +167,8 @@ namespace fhatos {
                           "['a' =>    13 , actor@127.0.0.1 =>    false  ]",
                           "['a'=>    13 ,actor@127.0.0.1=>   false]",
                           "atype[['a'=>13 ,actor@127.0.0.1=>   false]]",
-                          "btype[['a'=>  nat[13] , actor@127.0.0.1=>   abool[false]]]",
-                          "ctype[['a'=>    13 ,  actor@127.0.0.1=>   false]]"};
+                          "btype[['a'=>  nat[13] , actor@127.0.0.1=>   abool[false]]  ]",
+                          "ctype[  ['a'=>    13 ,  actor@127.0.0.1=>   false]]"};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const ptr<Rec> rc1 = Parser::singleton()->tryParseObj(form).value();
@@ -216,15 +216,6 @@ namespace fhatos {
     FOS_TEST_ERROR("__([name=>'fhat',age=>-1]).as(person)");
   }
 
-  void test_bcode_parsing() {
-    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
-                                                      ->tryParseObj("__(thread[[setup => print('setup complete'),"
-                                                                    "           loop  => pub(/abc/,Ø)]]).to(/abc/)")
-                                                      .value());
-    Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier("wait", []() { return Scheduler::singleton()->count("/abc/") == 0; });
-  }
-
   void test_nested_bytecode_parsing() {
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()->tryParseObj("__().plus(mult(plus(3)))").value());
     TEST_ASSERT_EQUAL_INT(2, bcode->bcode_value().size());
@@ -254,11 +245,23 @@ namespace fhatos {
     }
   }
 
+  void test_bcode_parsing() {
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
+                                                      ->tryParseObj("__(thread[[setup => print('setup complete'),"
+                                                                    "           loop  => pub(/abc/,Ø)]]).to(/abc/)")
+                                                      .value());
+    Fluent(bcode).iterate();
+    Scheduler::singleton()->barrier("wait", [] { return Scheduler::singleton()->count("/abc/") == 0; });
+  }
+
+
   FOS_RUN_TESTS( //
-      for (fhatos::Router *router //
-           : List<Router *>{fhatos::LocalRouter::singleton() //
-                            /*fhatos::MqttRouter::singleton()*/}) { //
+      for (Router *router //
+           : List<Router *>{LocalRouter::singleton(), //
+                            MqttRouter::singleton(), //
+                            MetaRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
+        router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         // FOS_RUN_TEST(test_basic_parser); //
         FOS_RUN_TEST(test_no_input_parsing); //

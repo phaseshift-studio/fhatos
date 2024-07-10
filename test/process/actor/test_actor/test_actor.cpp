@@ -42,9 +42,7 @@ namespace fhatos {
     Scheduler::singleton()->spawn(actor1);
     Scheduler::singleton()->spawn(actor2);
     actor1->publish("/app/actor2@127.0.0.1", share(Str("START")), TRANSIENT_MESSAGE);
-    Scheduler::singleton()->barrier("no_actors",[] {
-      Scheduler::singleton()->count("/app/#") == 0;
-    });
+    Scheduler::singleton()->barrier("no_actors", [] { return Scheduler::singleton()->count("/app/#") == 0; });
     ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
@@ -80,10 +78,10 @@ namespace fhatos {
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(OK, rc);
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
+   /* TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
                       actor1->subscribe("/app/actor1@127.0.0.1", [](const ptr<Message> &message) {
                         TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
-                      }));
+                      }));*/
 
     actor2->publish(*actor1->id(), share(Str("ping")), TRANSIENT_MESSAGE);
     actor1->loop();
@@ -95,7 +93,7 @@ namespace fhatos {
     GLOBAL_OPTIONS->router<Router>()->clear();
     // delete counter1;
     // delete counter2;
-    Scheduler::singleton()->barrier("here",[]() { return Scheduler::singleton()->count("/app/#") == 0; });
+    Scheduler::singleton()->barrier("here", []() { return Scheduler::singleton()->count("/app/#") == 0; });
   }
 
   //////////////////////////////////////////////////////////
@@ -180,13 +178,22 @@ namespace fhatos {
     Scheduler::singleton()->barrier("done", []() { return Scheduler::singleton()->count("/abc") == 0; });
   }
 
-  FOS_RUN_TESTS(
-      // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
-      FOS_RUN_TEST(test_actor_by_router); //
-      // FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
-      //  FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //
-      FOS_RUN_TEST(test_message_retain); //
-      FOS_RUN_TEST(test_actor_serialization); //
+  FOS_RUN_TESTS( //
+      for (Router *router //
+           : List<Router *>{LocalRouter::singleton(), //
+                           // MqttRouter::singleton(), //
+                            MetaRouter::singleton()}) {
+        //
+        GLOBAL_OPTIONS->ROUTING = router; //
+        router->clear();
+        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
+        FOS_RUN_TEST(test_actor_by_router); //
+        // FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
+        //  FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //
+        FOS_RUN_TEST(test_message_retain); //
+        FOS_RUN_TEST(test_actor_serialization); //
+      } //
   );
 
 } // namespace fhatos

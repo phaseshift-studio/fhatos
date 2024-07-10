@@ -87,10 +87,12 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (fhatos::Router *router //
-           : List<Router *>{fhatos::LocalRouter::singleton(), //
-                            fhatos::MqttRouter::singleton()}) { //
+      for (Router *router //
+           : List<Router *>{LocalRouter::singleton(), //
+                            MqttRouter::singleton(), //
+                            MetaRouter::singleton()}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
+        router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         // FOS_RUN_TEST(test_as);//
         FOS_RUN_TEST(test_plus); //

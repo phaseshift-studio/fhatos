@@ -23,59 +23,54 @@
 //
 #include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
-#include <process/router/router.hpp>
 #include <process/router/message.hpp>
+#include <process/router/router.hpp>
 
 namespace fhatos {
-  template<typename LOCAL_ROUTER = LocalRouter,
-    typename GLOBAL_ROUTER = MqttRouter >
   class MetaRouter : public Router {
   protected:
-    Router *select(const ID &target) {
-      return false && this->id().isLocal(target)
-               ? (Router *) LOCAL_ROUTER::singleton()
-               : (Router *) GLOBAL_ROUTER::singleton();
+    Router *_local;
+    Router *_global;
+    Router *select(const ID &target) const {
+      if (!target.empty() && target.toString()[0] == '/')
+        return this->_local;
+      if (target.length() <= 1)
+        return this->_local;
+      return this->_global;
     }
 
   public:
-    inline static MetaRouter *singleton() {
-      static MetaRouter singleton = MetaRouter();
-      LOCAL_ROUTER::singleton();
-      GLOBAL_ROUTER::singleton();
+    inline static MetaRouter *singleton(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
+                                        Router *global = MqttRouter::singleton()) {
+      static MetaRouter singleton = MetaRouter(id, local, global);
       return &singleton;
     }
 
-    MetaRouter(const ID &id = Router::mintID("kernel", "router/meta")) : Router(id) {
-    }
+    MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
+               Router *global = MqttRouter::singleton()) : Router(id), _local(local), _global(global) {}
 
     ~MetaRouter() { this->clear(); }
 
-   /* virtual RESPONSE_CODE clear() override {
-      RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
-      RESPONSE_CODE __rc2 = GLOBAL_ROUTER::singleton()->clear();
-      return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
-    }*/
+    /* virtual RESPONSE_CODE clear() override {
+       RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
+       RESPONSE_CODE __rc2 = GLOBAL_ROUTER::singleton()->clear();
+       return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
+     }*/
 
     virtual const RESPONSE_CODE publish(const Message &message) override {
       return this->select(message.target)->publish(message);
     }
 
-    virtual const RESPONSE_CODE
-    subscribe(const Subscription &subscription) override {
+    virtual const RESPONSE_CODE subscribe(const Subscription &subscription) override {
       return this->select(subscription.pattern)->subscribe(subscription);
     }
 
-    virtual const RESPONSE_CODE unsubscribe(const ID &source,
-                                            const Pattern &pattern) override {
+    virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
       return this->select(pattern)->unsubscribe(source, pattern);
     }
 
     virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
-      const RESPONSE_CODE local =
-          LOCAL_ROUTER::singleton()->unsubscribeSource(source);
-      const RESPONSE_CODE remote =
-          GLOBAL_ROUTER::singleton()->unsubscribeSource(source);
-      return local ? local : remote;
+      return this->select(source)->unsubscribeSource(source);
     }
   };
 } // namespace fhatos

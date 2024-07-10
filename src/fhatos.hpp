@@ -143,6 +143,9 @@ namespace fhatos {
   using fbyte = uint8_t;
   using uint = unsigned int;
 
+  enum OPTIONS { router, printer, logger };
+  static Map<OPTIONS, Any> GLOBAL = Map<OPTIONS,Any>();
+
   ////////////
   // MACROS //
   ////////////

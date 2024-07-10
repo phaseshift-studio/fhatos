@@ -68,10 +68,8 @@ namespace fhatos {
       auto _rc = MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
         //////////////
         RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
-        const Message_p mess_ptr = share<Message>(Message{.source = message.source,
-                                                          .target = message.target,
-                                                          .payload = message.payload,
-                                                          .retain = message.retain});
+        const Message_p mess_ptr = share<Message>(Message{
+            .source = message.source, .target = message.target, .payload = message.payload, .retain = message.retain});
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(message.target)) {
             try {
@@ -115,17 +113,14 @@ namespace fhatos {
         /////////////// SUBSCRIPTION
         RESPONSE_CODE _rc = *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
           RESPONSE_CODE _rc = OK;
-          for (const auto &sub: SUBSCRIPTIONS) {
-            if (sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern)) {
-              _rc = REPEAT_SUBSCRIPTION;
-              break;
-            }
-          }
-          if (!_rc) {
-            const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
-            SUBSCRIPTIONS.push_back(sub_ptr);
-            LOG_SUBSCRIBE(_rc, sub_ptr);
-          }
+          /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
+          erase_if(SUBSCRIPTIONS, [subscription](Subscription_p &sub) {
+            return sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern);
+          });
+          /////////////// ADD NEW SUBSCRIPTION
+          const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
+          SUBSCRIPTIONS.push_back(sub_ptr);
+          LOG_SUBSCRIBE(_rc, sub_ptr);
           return share<RESPONSE_CODE>(_rc);
         });
         /////////////// SUBSCRIPTION RETAINS

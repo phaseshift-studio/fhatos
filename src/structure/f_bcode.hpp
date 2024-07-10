@@ -35,10 +35,6 @@ namespace fhatos {
             id,
             // setup
             [this](Actor<PROCESS> *actor) {
-              /*this->subscribe("", [actor](const Message_p &message) {
-                if (message->payload->isNoObj())
-                  actor->stop();
-              });*/
               try {
                 LOG(DEBUG, "Executing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
                 Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {

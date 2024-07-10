@@ -1044,6 +1044,11 @@ namespace fhatos {
     }
 
     ptr<BObj> serialize() const {
+      if (this->isNoObj()) {
+        auto *bytes = new fbyte[1];
+        bytes[0] = 'x';
+        return share(BObj{1, bytes});
+      }
       auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
       memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
       return share(BObj{sizeof(*this), bytes});
@@ -1051,6 +1056,8 @@ namespace fhatos {
 
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> bobj) {
+      if(bobj->first == 1 && bobj->second[0] == 'x')
+        return Obj::to_noobj();
       ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
       return obj;
     }

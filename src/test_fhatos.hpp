@@ -26,6 +26,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
 #include <process/router/local_router.hpp>
+#include <process/router/meta_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 #include <util/options.hpp>
 ////////////////////////////////////////////////////////
@@ -47,8 +48,8 @@ namespace fhatos {
     GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
     GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
     LOG(NONE, ANSI_ART);                                                                                               \
-    Scheduler::singleton()->onBoot(                                                                                    \
-        {LocalRouter::singleton(), /*MqttRouter::singleton(),*/ Parser::singleton(), Types::singleton()});                 \
+    Scheduler::singleton()->onBoot({LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton(),        \
+                                    Parser::singleton(), Types::singleton()});                                         \
     Types::singleton()->loadExt("/ext/process");                                                                       \
                                                                                                                        \
     UNITY_BEGIN();                                                                                                     \
@@ -228,7 +229,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
                               const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
                               const bool clearRouter = true) {
   const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
-  TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected vs. actual result size");
+  TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const OBJ &obj: expected) {
     auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<OBJ> element) {
       if (obj.isReal()) {
@@ -243,14 +244,16 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
   if (!expectedReferences.empty()) {
     if (GLOBAL_OPTIONS->router<Router>()->retainSize() != -1) {
       TEST_ASSERT_EQUAL_INT_MESSAGE(expectedReferences.size(), GLOBAL_OPTIONS->router<Router>()->retainSize(),
-                                    "Expected vs. actual router retain message size");
+                                    "Router retain message count");
       for (const auto &[key, value]: expectedReferences) {
         const Obj temp = value;
         GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{
             .mailbox = nullptr,
             .source = ID(FOS_DEFAULT_SOURCE_ID),
             .pattern = key.uri_value(),
-            .onRecv = [temp](const ptr<Message> &message) { TEST_ASSERT_TRUE(temp == *message->payload); }});
+            .onRecv = [temp](const ptr<Message> &message) {
+              TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload, "Router retain message payload equality");
+            }});
       }
     }
   }
