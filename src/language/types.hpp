@@ -25,7 +25,6 @@
 #include <process/native/coroutine.hpp>
 #include <process/router/router.hpp>
 #include <util/mutex_rw.hpp>
-#include <util/options.hpp>
 
 namespace fhatos {
   class Types : public Coroutine {
@@ -79,19 +78,23 @@ namespace fhatos {
         if (!obj->isNoObj()) {
           CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
           if (writeThrough)
-           Router::write(typeId, obj);
-          LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
+            Router::write(typeId, obj);
+          LOG_TASK(INFO, this, "!b%s!!!g[!!%s!g]!! !ytype!! defined\n", typeId.toString().c_str(),
+                   obj->toString().c_str());
         }
         return share(nullptr);
       });
     }
     const Option<Obj_p> loadType(const ID &typeId, const bool readThrough = true) const {
       return CACHE_MUTEX->read<Option<Obj_p>>([this, typeId, readThrough] {
-        if (CACHE->count(typeId) && !CACHE->at(typeId)->isNoObj())
-          return Option<Obj_p>(CACHE->at(typeId));
-        if (readThrough) {
-          const Type_p type = Router::read<Obj>(typeId);
-          return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
+        try {
+          if (CACHE->count(typeId) && !CACHE->at(typeId)->isNoObj())
+            return Option<Obj_p>(CACHE->at(typeId));
+          if (readThrough) {
+            const Type_p type = Router::read<Obj>(typeId);
+            return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
+          }
+        } catch (const fError &) {
         }
         return Option<Obj_p>();
       });
@@ -104,7 +107,8 @@ namespace fhatos {
         return true;
       if (otype != typeOType) {
         if (doThrow)
-          throw fError("%s is not a !b%s!!\n", obj.toString().c_str(), typeId.toString().c_str());
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", Types::singleton()->id()->toString().c_str(),
+                       obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
       if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
@@ -116,12 +120,13 @@ namespace fhatos {
           return true;
         }
         if (doThrow)
-          throw fError("%s is not a !b%s!g[!!%s!g]!!\n", obj.toString().c_str(), typeId.toString().c_str(),
-                       type.value()->toString().c_str());
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!\n", Types::singleton()->id()->toString().c_str(),
+                       obj.toString().c_str(), typeId.toString().c_str(), type.value()->toString().c_str());
         return false;
       }
       if (doThrow)
-        throw fError("Undefined type !b%s!!\n", typeId.toString().c_str());
+        throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!\n", Types::singleton()->id()->toString().c_str(),
+                     typeId.toString().c_str());
       return false;
     }
   };

@@ -25,19 +25,16 @@
 #include <process/router/local_router.hpp>
 #include <process/router/meta_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
-#ifdef NATIVE
-#include <structure/kernel/f_kernel.hpp>
-#include <sys.hpp>
 
 using namespace fhatos;
 
-int main(int arg, char **argsv) {
+void setup() {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
   try {
-    GLOBAL_OPTIONS->printer<>()->println(ANSI_ART);
-    GLOBAL_OPTIONS->printer<>()->printf(FOS_TAB_2 "Use %s for noobj\n", Obj::to_noobj()->toString().c_str());
-    Scheduler::singleton("/scheduler/")
+    GLOBAL_OPTIONS->printer<>()->print(ANSI_ART);
+    GLOBAL_OPTIONS->printer<>()->printf(FOS_TAB_4 "Use %s for noobj\n", Obj::to_noobj()->toString().c_str());
+    Scheduler::singleton("/sys/scheduler/")
         ->onBoot({//
                   LocalRouter::singleton("/sys/router/local/"), //
                   MqttRouter::singleton("/sys/router/mqtt/"), //
@@ -48,30 +45,19 @@ int main(int arg, char **argsv) {
                   new Console("/home/root/repl/")});
     //////
     Types::singleton()->loadExt("/ext/process");
+    Terminal::currentOut(share(ID("/home/root/repl/")));
     Scheduler::singleton()->barrier("main_barrier");
   } catch (const fError &e) {
     // LOG_EXCEPTION(e);
     LOG(ERROR, "main() error: %s\n", e.what());
   }
 }
-#else
-#include FOS_MODULE(kernel / f_kernel.hpp)
-#include FOS_MODULE(io / net / f_wifi.hpp)
-#include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(fiber.hpp)
-#include FOS_PROCESS(scheduler.hpp)
-#include FOS_ROUTER(local_router.hpp)
-#include FOS_MQTT(mqtt_router.hpp)
-#include <language/fluent.hpp>
-#include <language/instructions.hpp>
-using namespace fhatos;
-
-void setup() {
-  fKernel<>::bootloader({
-      fWIFI::singleton(),
-  });
-}
-
 
 void loop() {}
+
+#ifdef NATIVE
+int main(int arg, char **argsv) {
+  setup();
+  loop();
+}
 #endif

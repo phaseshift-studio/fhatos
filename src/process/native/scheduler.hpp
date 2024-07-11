@@ -48,8 +48,8 @@ namespace fhatos {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
         if (!process->running()) {
-          LOG(ERROR, "!RUnable to spawn running %s: %s!!\n", P_TYPE_STR(process->type),
-              process->id()->toString().c_str());
+          LOG_TASK(ERROR, this, "!RUnable to spawn running %s: %s!!\n", P_TYPE_STR(process->type),
+                   process->id()->toString().c_str());
           return share(false);
         }
         //////////////////////////////////////////////////
@@ -82,13 +82,13 @@ namespace fhatos {
             break;
           }
           default: {
-            LOG(ERROR, "!m%s!! has an unknown process type: !r%i!!\n", process->id()->toString().c_str(),
-                process->type);
+            LOG_TASK(ERROR, this, "!b%s!! has an unknown process type: !r%i!!\n", process->id()->toString().c_str(),
+                     process->type);
             return share(false);
           }
         }
-        LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n", process->id()->toString().c_str(),
-            P_TYPE_STR(process->type));
+        LOG_TASK(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+                 P_TYPE_STR(process->type));
         /*LOG(NONE,
             "\t!yFree memory\n"
             "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "

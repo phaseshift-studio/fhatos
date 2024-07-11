@@ -77,7 +77,7 @@ namespace fhatos {
           this->spawn(new fBcode<Coroutine>(target, payload));
         }
       };
-      LOG(INFO, "!mScheduler located at !b%s!!\n", this->_id->toString().c_str());
+      LOG_TASK(INFO, this, "!yscheduler!! loaded\n");
     }
 
     void stop() {
@@ -94,10 +94,10 @@ namespace fhatos {
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
       /// barrier break with noobj
-      this->subscribe("", [this, label](const Message_p &message) {
+      /*this->subscribe("", [this, label](const Message_p &message) {
         if (message->payload->isNoObj())
           this->stop();
-      });
+      });*/
       while (this->next()) {
       }
       while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
@@ -125,7 +125,7 @@ namespace fhatos {
                              if (process->id()->matches(processPattern)) {
                                if (process->running())
                                  process->stop();
-                               LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
+                               LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
                                return true;
                              }
@@ -135,7 +135,7 @@ namespace fhatos {
                              if (process->id()->matches(processPattern)) {
                                if (process->running())
                                  process->stop();
-                               LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
+                               LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
                                return true;
                              }
@@ -145,7 +145,7 @@ namespace fhatos {
                              if (process->id()->matches(processPattern)) {
                                if (process->running())
                                  process->stop();
-                               LOG_TASK(INFO, this, "!m%s!! %s destroyed\n", process->id()->toString().c_str(),
+                               LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
                                         P_TYPE_STR(process->type));
                                return true;
                              }

@@ -72,9 +72,9 @@ namespace fhatos {
 
   private:
     fURI makeTopic(const fURI &relativeTopic) const {
-      return !relativeTopic.toString().empty() && relativeTopic.toString()[0] == '/'
-                 ? relativeTopic
-                 : this->__id->extend(relativeTopic.toString().c_str());
+      if (relativeTopic.empty())
+        return relativeTopic;
+      return relativeTopic.toString()[0] == '/' ? relativeTopic : this->__id->extend(relativeTopic.toString().c_str());
     }
   };
 } // namespace fhatos

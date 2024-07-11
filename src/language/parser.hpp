@@ -46,6 +46,27 @@ namespace fhatos {
       };
     }
 
+    static bool closedExpression(const string &line) {
+      auto ss = stringstream(line);
+      uint8_t parens = 0;
+      uint8_t brackets = 0;
+      bool quotes = false;
+      while (!ss.eof()) {
+        char c = ss.get();
+        if (c == '(' && !quotes)
+          parens++;
+        else if (c == ')' && !quotes)
+          parens--;
+        else if (c == '[' && !quotes)
+          brackets++;
+        else if (c == ']' && !quotes)
+          brackets--;
+        else if (c == '\'')
+          quotes = !quotes;
+      }
+      return parens == 0 && brackets == 0 && !quotes;
+    }
+
     Option<Obj_p> tryParseObj(const string &token) {
       //
       StringHelper::trim(token);
@@ -338,9 +359,9 @@ namespace fhatos {
               quote = !quote;
             ///////////////////////////////////////////////////////////////
             if (paren == 0 && bracket == 0 && !quote) {
-             // if (ss.peek() == '+') {
-             //   break;
-             // }
+              // if (ss.peek() == '+') {
+              //   break;
+              // }
               if (ss.peek() == '.') {
                 ss.get();
                 break;

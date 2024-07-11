@@ -36,10 +36,13 @@
 namespace fhatos {
   class Console final : public Actor<Thread> {
   protected:
-    Map<string, Pair<Consumer<Obj_p>, Runnable>> MENU_MAP = Map<string, Pair<Consumer<Obj_p>, Runnable>>();
+    string _line;
+    Map<string, Pair<Consumer<Obj_p>, Runnable>> _MENU_MAP = Map<string, Pair<Consumer<Obj_p>, Runnable>>();
     ///// printers
     void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
-    void printPrompt() const { Terminal::out(*this->id(), "!mfhatos!!> "); }
+    void printPrompt(const bool blank = false) const {
+      Terminal::out(*this->id(), blank ? "        " : "!mfhatos!g>!! ");
+    }
     void printResults(const Fluent &fluent) const {
       fluent.forEach<Obj>([this](const Obj_p &obj) {
         if (obj->isLst()) {
@@ -57,41 +60,48 @@ namespace fhatos {
 
   public:
     explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id) {
-      MENU_MAP[":quit"] = {[this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }};
-      MENU_MAP[":output"] = {[this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
-                             [] {
-                               GLOBAL_OPTIONS->printer<>()->printf(
-                                   "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
-                                   Terminal::singleton()->id()->extend("out").toString().c_str());
-                             }};
+      _MENU_MAP[":quit"] = {[this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }};
+      _MENU_MAP[":output"] = {[this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
+                              [] {
+                                GLOBAL_OPTIONS->printer<>()->printf(
+                                    "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
+                                    Terminal::singleton()->id()->extend("out").toString().c_str());
+                              }};
     }
 
     void loop() override {
       Actor<Thread>::loop();
-      this->printPrompt();
-      string line;
-      std::getline(std::cin, line);
-      StringHelper::trim(line);
-      if (line.empty()) {
+      this->printPrompt(!this->_line.empty());
+      string temp;
+      std::getline(std::cin, temp);
+      this->_line.append(temp);
+      StringHelper::trim(this->_line);
+      if (this->_line.empty()) {
         ///////// DO NOTHING ON EMPTY LINE
-      } else if (line[0] == ':') {
+        return;
+      }
+      if (!Parser::closedExpression(this->_line))
+        return;
+      if (this->_line[0] == ':') {
         ///////// HANDLE MENU INTERACTIONS
-        const string::size_type index = line.find_first_of(' ');
-        const string command = index == string::npos ? line : line.substr(0, index);
+        const string::size_type index = _line.find_first_of(' ');
+        const string command = index == string::npos ? this->_line : this->_line.substr(0, index);
         StringHelper::trim(command);
-        if (!MENU_MAP.count(command)) {
-          this->printException(fError("Unknown console command: %s\n", command.c_str()));
+        if (!_MENU_MAP.count(command)) {
+          this->printException(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
+                                      this->id()->toString().c_str(), command.c_str()));
         } else if (index == string::npos) {
-          MENU_MAP[command].second();
+          _MENU_MAP[command].second();
         } else {
-          const string value = line.substr(index);
+          const string value = this->_line.substr(index);
           StringHelper::trim(value);
-          MENU_MAP[command].first(Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+          _MENU_MAP[command].first(Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
         }
+        this->_line.clear();
       } else {
         ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
         try {
-          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
+          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
           if (obj.value()->isBytecode())
             this->printResults(Fluent(obj.value()));
           else
@@ -99,6 +109,7 @@ namespace fhatos {
         } catch (const std::exception &e) {
           this->printException(e);
         }
+        this->_line.clear();
       }
     }
   };

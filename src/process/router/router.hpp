@@ -176,7 +176,6 @@ namespace fhatos {
       const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
         if ((time(nullptr) - startTimestamp) > ((uint8_t) router->_level) + 1) {
-          LOG(ERROR, "No obj at !b%s!!\n", target.toString().c_str());
           break;
         }
       }
