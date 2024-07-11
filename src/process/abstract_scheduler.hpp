@@ -44,7 +44,8 @@ namespace fhatos {
     Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
+    explicit AbstractScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {
+    }
     ~AbstractScheduler() override {
       delete COROUTINES;
       delete FIBERS;
@@ -62,61 +63,41 @@ namespace fhatos {
 
     static bool isThread(const Obj_p &obj) { return obj->id()->equals("/rec/thread"); }
     static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/rec/fiber"); }
+    static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/rec/coroutine"); }
 
     virtual void setup() {
-      OBJ_HANDLER = [this](const ID &target, const Obj_p &obj) {
-        if (isThread(obj)) {
-          this->spawn(new fBcode<Thread>(target, obj));
-        } else if (isFiber(obj)) {
-          this->spawn(new fBcode<Fiber>(target, obj));
+      MESSAGE_INTERCEPT = [this](const ID &source, const ID &target, const Obj_p &payload, const bool retain) {
+        if (!retain || !payload->isRec())
+          return;
+        if (isThread(payload)) {
+          this->spawn(new fBcode<Thread>(target, payload));
+        } else if (isFiber(payload)) {
+          this->spawn(new fBcode<Fiber>(target, payload));
+        } else if (isCoroutine(payload)) {
+          this->spawn(new fBcode<Coroutine>(target, payload));
         }
-        return obj;
       };
-      //////////////// SPAWN
-      /*this->subscribe(*this->id(), [this](const Message_p &message) {
-        if (message->payload->isNoObj()) {
-          this->stop();
-        } else {
-          LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), message->payload));
-        }
-      });*/
-      /*this->subscribe("", [this](const Message_p &message) {
-        const Obj_p obj = message->payload;
-        if (obj->id()->equals(ID("/rec/thread"))) {
-          const ID threadId = obj->rec_get(u_p("id"))->uri_value();
-          const auto b = new fBcode<Thread>(obj->rec_get(u_p("id"))->uri_value(), obj);
-          if (!this->spawn(b)) {
-            LOG_TASK(ERROR, this, "Process obj %s can not be spawned: %s\n", OTypes.toChars(obj->o_type()),
-                     obj->id()->toString().c_str());
-          } else {
-            this->subscribe(threadId, [this, threadId](const Message_p &message) {
-              if (message->payload->isNoObj()) {
-                this->_destroy(threadId);
-              }
-            });
-          }
-        } else {
-          LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), obj));
-        }
-      });*/
       LOG(INFO, "!mScheduler located at !b%s!!\n", this->_id->toString().c_str());
     }
-
 
     void stop() {
       while (this->next()) {
       }
+      for (Process *process: *this->find("#")) {
+        this->destroy(*process->id());
+      }
       this->unsubscribeSource();
-      RW_PROCESS_MUTEX.write<bool>([this]() {
-        THREADS->forEach([this](const Thread *thread) { this->_destroy(*thread->id()); });
-        return share(true);
-      });
       this->barrier("shutting_down");
       std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay so _destroy can finish
     }
 
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
+      /// barrier break with noobj
+      this->subscribe("", [this, label](const Message_p &message) {
+        if (message->payload->isNoObj())
+          this->stop();
+      });
       while (this->next()) {
       }
       while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {

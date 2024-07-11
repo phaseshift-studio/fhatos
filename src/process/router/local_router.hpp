@@ -51,6 +51,7 @@ namespace fhatos {
   public:
     static LocalRouter *singleton(const ID &id = ID("/router/local/")) {
       static LocalRouter local = LocalRouter(id);
+      GLOBAL_OPTIONS->ROUTING = &local;
       return &local;
     }
 
@@ -104,7 +105,7 @@ namespace fhatos {
         LOG_PUBLISH(_rc, message);
         return _rc;
       });
-      OBJ_HANDLER(message.target, message.payload);
+      MESSAGE_INTERCEPT(message.source, message.target, message.payload, message.retain);
       return _rc;
     }
 

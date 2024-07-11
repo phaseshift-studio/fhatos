@@ -144,12 +144,19 @@ namespace fhatos {
   using uint = unsigned int;
 
   enum OPTIONS { router, printer, logger };
-  static Map<OPTIONS, Any> GLOBAL = Map<OPTIONS,Any>();
+  static Map<OPTIONS, Any> GLOBAL = Map<OPTIONS, Any>();
 
   ////////////
   // MACROS //
   ////////////
-
+#define FOS_SAFE_FREE(p)                                                                                               \
+  {                                                                                                                    \
+    if (p) {                                                                                                           \
+      free(p);                                                                                                         \
+      (p) = nullptr;                                                                                                   \
+    }                                                                                                                  \
+  }                                                                                                                    \
+  ((void) 0);
 #define FOS_MAX_FURI_SEGMENTS 10
 #define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "

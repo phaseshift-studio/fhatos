@@ -20,7 +20,6 @@
 #define fhatos_logger_hpp
 
 #include <list>
-#include <string>
 #include <util/enums.hpp>
 #include <util/options.hpp>
 

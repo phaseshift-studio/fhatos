@@ -132,16 +132,16 @@ namespace fhatos {
 #define FP_OK_RESULT                                                                                                   \
   { return RESPONSE_CODE::OK; }
 
-  enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2, UNIVERSAL_ROUTER = 3 };
-  static const Enums<ROUTER_LEVEL> ROUTER_LEVELS =
-      Enums<ROUTER_LEVEL>({{ROUTER_LEVEL::BCODE_ROUTER, "bcode_router"},
-                           {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
-                           {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"},
-                           {ROUTER_LEVEL::UNIVERSAL_ROUTER, "universal_router"}});
+  enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2, META_ROUTER = 3 };
+  static const Enums<ROUTER_LEVEL> ROUTER_LEVELS = Enums<ROUTER_LEVEL>({{ROUTER_LEVEL::BCODE_ROUTER, "bcode_router"},
+                                                                        {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
+                                                                        {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"},
+                                                                        {ROUTER_LEVEL::META_ROUTER, "meta_router"}});
   class Router : public Coroutine {
   protected:
     explicit Router(const ID &id = ID("router"), const ROUTER_LEVEL level = ROUTER_LEVEL::LOCAL_ROUTER) :
-        Coroutine(id), _level(level) {}
+        Coroutine(id), _level(level) {
+    }
 
   public:
     virtual ~Router() = default;
@@ -176,7 +176,7 @@ namespace fhatos {
       const time_t startTimestamp = time(nullptr);
       while (!done->load()) {
         if ((time(nullptr) - startTimestamp) > ((uint8_t) router->_level) + 1) {
-          LOG(ERROR, "Target undefined !y%s!!\n", target.toString().c_str());
+          LOG(ERROR, "No obj at !b%s!!\n", target.toString().c_str());
           break;
         }
       }

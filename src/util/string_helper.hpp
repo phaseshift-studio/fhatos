@@ -61,6 +61,7 @@ namespace fhatos {
       }
       return true;
     }
+
     static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
       char *copy;
       const char *freeable_copy = copy = strdup(text);

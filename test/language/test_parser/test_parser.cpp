@@ -238,17 +238,17 @@ namespace fhatos {
       FOS_CHECK_RESULTS<Int>({10}, {"__(y).to(x)", "__(z).to(y)", "__(10).to(z)"}, {}, false);
       FOS_CHECK_RESULTS<Int>({10}, {"from(z)"}, {}, false);
       FOS_CHECK_RESULTS<Int>({10}, {"from(from(y))"}, {}, false);
-      FOS_CHECK_RESULTS<Int>({Int(10)}, {"from(from(from(x)))"}, {}, false);
-      FOS_CHECK_RESULTS<Int>({Int(10)}, {"*z"}, {}, false);
-      FOS_CHECK_RESULTS<Int>({Int(10)}, {"**y"}, {}, false);
-      FOS_CHECK_RESULTS<Int>({Int(10)}, {"***x"}, {});
+      FOS_CHECK_RESULTS<Int>({10}, {"from(from(from(x)))"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({10}, {"*z"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({10}, {"**y"}, {}, false);
+      FOS_CHECK_RESULTS<Int>({10}, {"***x"}, {});
     }
   }
 
   void test_bcode_parsing() {
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
-                                                      ->tryParseObj("__(thread[[setup => print('setup complete'),"
-                                                                    "           loop  => pub(/abc/,Ø)]]).to(/abc/)")
+                                                      ->tryParseObj("thread[[setup => print('setup complete'),"
+                                                                    "        loop  => pub(/abc/,Ø)]].to(/abc/)")
                                                       .value());
     Fluent(bcode).iterate();
     Scheduler::singleton()->barrier("wait", [] { return Scheduler::singleton()->count("/abc/") == 0; });

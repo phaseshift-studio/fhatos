@@ -29,81 +29,17 @@
 #include FOS_PROCESS(thread.hpp)
 #include <process/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
+#include <structure/io/terminal.hpp>
 
 #include <process/actor/actor.hpp>
 
 namespace fhatos {
   class Console final : public Actor<Thread> {
-  public:
-    explicit Console(const ID &id = ID("console")) : Actor<Thread>(id) {}
-
-    void setup() override {
-      Actor<Thread>::setup();
-      this->subscribe("", [this](const Message_p &message) {
-        if (message->payload->isNoObj()) {
-          this->stop();
-        } else {
-          LOG_EXCEPTION(Message::UNKNOWN_PAYLOAD(*this->id(), message->payload));
-        }
-      });
-    }
-
-    void loop() override {
-      Actor<Thread>::loop();
-      this->printPrompt();
-      string line;
-      std::getline(std::cin, line);
-      StringHelper::trim(line);
-      /////
-      if (line.empty()) {
-        // do nothing
-      } else if (line[0] == ':') {
-        if (line == ":quit") {
-          this->stop();
-          return;
-        } else if (strstr(line.c_str(), ":log ")) {
-          try {
-            if (line.length() < 6) {
-              this->printResult(Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) GLOBAL_OPTIONS->LOGGING)));
-            } else {
-              string level = line.substr(5);
-              GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(level.c_str());
-            }
-          } catch (const fError &e) {
-            this->printException(e);
-          }
-        } else if (strstr(line.c_str(), ":router ")) {
-          if (line.length() < 9) {
-            this->printResult(Obj::to_str(GLOBAL_OPTIONS->router<Router>()->toString()));
-          } else {
-            string router = line.substr(8);
-            if (router == "LocalRouter")
-              GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
-            else if (router == "MqttRouter")
-              GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
-            else
-              this->printException(fError("Invalid logger (LocalRouter,MqttRouter): %s\n", router.c_str()));
-          }
-        }
-      } else {
-        try {
-          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
-          if (obj.value()->isBytecode())
-            this->printResults(Fluent(obj.value()));
-          else
-            this->printResult(obj.value());
-        } catch (const std::exception &e) {
-          this->printException(e);
-        }
-      }
-    }
-
-    void stop() override { Actor<Thread>::stop(); }
+  protected:
+    Map<string, Pair<Consumer<Obj_p>, Runnable>> MENU_MAP = Map<string, Pair<Consumer<Obj_p>, Runnable>>();
     ///// printers
-    void printException(const std::exception &ex) const {
-      GLOBAL_OPTIONS->printer()->printf("!r[ERROR]!! %s", ex.what());
-    }
-    void printPrompt() const { GLOBAL_OPTIONS->printer()->print("!mfhatos!!> "); }
+    void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
+    void printPrompt() const { Terminal::out(*this->id(), "!mfhatos!!> "); }
     void printResults(const Fluent &fluent) const {
       fluent.forEach<Obj>([this](const Obj_p &obj) {
         if (obj->isLst()) {
@@ -115,7 +51,55 @@ namespace fhatos {
       });
     }
     void printResult(const Obj_p &obj) const {
-      GLOBAL_OPTIONS->printer()->printf("!g==>!!%s\n", obj->toString().c_str());
+      const string output = obj->toString(); //.c_str();// ->c_str();
+      Terminal::out(*this->id(), "!g==>!!%s\n", output.c_str());
+    }
+
+  public:
+    explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id) {
+      MENU_MAP[":quit"] = {[this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }};
+      MENU_MAP[":output"] = {[this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
+                             [] {
+                               GLOBAL_OPTIONS->printer<>()->printf(
+                                   "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
+                                   Terminal::singleton()->id()->extend("out").toString().c_str());
+                             }};
+    }
+
+    void loop() override {
+      Actor<Thread>::loop();
+      this->printPrompt();
+      string line;
+      std::getline(std::cin, line);
+      StringHelper::trim(line);
+      if (line.empty()) {
+        ///////// DO NOTHING ON EMPTY LINE
+      } else if (line[0] == ':') {
+        ///////// HANDLE MENU INTERACTIONS
+        const string::size_type index = line.find_first_of(' ');
+        const string command = index == string::npos ? line : line.substr(0, index);
+        StringHelper::trim(command);
+        if (!MENU_MAP.count(command)) {
+          this->printException(fError("Unknown console command: %s\n", command.c_str()));
+        } else if (index == string::npos) {
+          MENU_MAP[command].second();
+        } else {
+          const string value = line.substr(index);
+          StringHelper::trim(value);
+          MENU_MAP[command].first(Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+        }
+      } else {
+        ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
+        try {
+          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(line);
+          if (obj.value()->isBytecode())
+            this->printResults(Fluent(obj.value()));
+          else
+            this->printResult(obj.value());
+        } catch (const std::exception &e) {
+          this->printException(e);
+        }
+      }
     }
   };
 } // namespace fhatos

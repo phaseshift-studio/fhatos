@@ -34,7 +34,7 @@ namespace fhatos {
 
   public:
     static Parser *singleton(const ID &id = ID("/parser/")) {
-      static Parser* parser = new Parser(id);
+      static Parser *parser = new Parser(id);
       return parser;
     }
 
@@ -342,23 +342,26 @@ namespace fhatos {
               break;
             }
           }
+          if (instToken.empty())
+            continue;
           if (instToken[instToken.length() - 1] == '\0')
             instToken = instToken.substr(0, instToken.length() - 1);
-          ///////////// parse and obj and wrap in a start() ??
-          if (insts.empty() && instToken[0] != '*' && instToken.find_first_of('(') == string::npos &&
-              instToken.find_first_of(')') == string::npos) {
+          /// parse a * dereference and wrap in a from() ??
+          Pair<string, string> typeValue;
+          if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
+            typeValue = {"*", instToken.substr(1)};
+          else
+            typeValue = tryParseObjType(instToken, false);
+          ///////////// parse an obj and wrap in a start() ??
+          if (instToken[0] != '*' && instToken[typeValue.first.length()] != '(') {
             insts.push_back(Insts::start(Obj::to_objs({tryParseObj(instToken).value()})));
           } else {
-            /// parse a * dereference and wrap in a from() ??
-            Pair<string, string> typeValue;
-            if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
-              typeValue = {"*", instToken.substr(1)};
-            // parse an instruction
-            else
-              typeValue = tryParseObjType(instToken, false);
+            /////////// parse an instruction
             const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
             if (inst.has_value()) {
               insts.push_back(inst.value());
+            } else {
+              return Option<BCode_p>();
             }
           }
         }

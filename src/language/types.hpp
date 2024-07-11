@@ -79,7 +79,7 @@ namespace fhatos {
         if (!obj->isNoObj()) {
           CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
           if (writeThrough)
-            GLOBAL_OPTIONS->router<Router>()->write(typeId, obj);
+           Router::write(typeId, obj);
           LOG(INFO, "Type defined !b%s!!!g[!!%s!g]!!\n", typeId.toString().c_str(), obj->toString().c_str());
         }
         return share(nullptr);
@@ -90,7 +90,7 @@ namespace fhatos {
         if (CACHE->count(typeId) && !CACHE->at(typeId)->isNoObj())
           return Option<Obj_p>(CACHE->at(typeId));
         if (readThrough) {
-          const Type_p type = GLOBAL_OPTIONS->router<Router>()->read<Obj>(typeId);
+          const Type_p type = Router::read<Obj>(typeId);
           return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
         }
         return Option<Obj_p>();
@@ -116,11 +116,12 @@ namespace fhatos {
           return true;
         }
         if (doThrow)
-          throw fError("%s is not a !b%s!!\n", obj.toString().c_str(), typeId.toString().c_str());
+          throw fError("%s is not a !b%s!g[!!%s!g]!!\n", obj.toString().c_str(), typeId.toString().c_str(),
+                       type.value()->toString().c_str());
         return false;
       }
       if (doThrow)
-        throw fError("Undefined type %s\n", typeId.toString().c_str());
+        throw fError("Undefined type !b%s!!\n", typeId.toString().c_str());
       return false;
     }
   };

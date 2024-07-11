@@ -182,7 +182,8 @@ namespace fhatos {
   static BiFunction<const fURI &, const Type_p, Type_p> TYPE_WRITER = [](const fURI &, const Type_p &) {
     return nullptr;
   };
-  static BiFunction<const ID &, const Obj_p &, Obj_p> OBJ_HANDLER = [](const ID &, const Obj_p &) { return nullptr; };
+  static QuadConsumer<const ID &, const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
+      [](const ID &source, const ID &target, const Obj_p &payload, const bool retain) { return nullptr; };
   static Function<const fURI &, Type_p> TYPE_READER = [](const fURI &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
@@ -1056,7 +1057,7 @@ namespace fhatos {
 
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> bobj) {
-      if(bobj->first == 1 && bobj->second[0] == 'x')
+      if (bobj->first == 1 && bobj->second[0] == 'x')
         return Obj::to_noobj();
       ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
       return obj;

@@ -19,9 +19,11 @@
 #include <fhatos.hpp>
 #include <language/types.hpp>
 #include <structure/console/console.hpp>
+#include <structure/io/terminal.hpp>
 #include <util/options.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/router/local_router.hpp>
+#include <process/router/meta_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 #ifdef NATIVE
 #include <structure/kernel/f_kernel.hpp>
@@ -32,20 +34,21 @@ using namespace fhatos;
 int main(int arg, char **argsv) {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
-  GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton("/process/router/local/");
-  GLOBAL_OPTIONS->URI_PATTERN = {"/{{user}}/struc/{{structure}}", "/{{user}}/proc/{{process}}"};
   try {
     GLOBAL_OPTIONS->printer<>()->println(ANSI_ART);
     GLOBAL_OPTIONS->printer<>()->printf(FOS_TAB_2 "Use %s for noobj\n", Obj::to_noobj()->toString().c_str());
     Scheduler::singleton("/scheduler/")
         ->onBoot({//
-                  LocalRouter::singleton("/process/router/local/"), //
-                  MqttRouter::singleton("/process/router/mqtt/"), //
-                  Types::singleton("/lang/type/"), //
-                  Parser::singleton("/lang/parser/"), //
-                  new Console("/process/repl/")});
+                  LocalRouter::singleton("/sys/router/local/"), //
+                  MqttRouter::singleton("/sys/router/mqtt/"), //
+                  MetaRouter::singleton("/sys/router/meta"), //
+                  Terminal::singleton("/sys/io/terminal/"), //
+                  Types::singleton("/sys/lang/type/"), //
+                  Parser::singleton("/sys/lang/parser/"), //
+                  new Console("/home/root/repl/")});
     //////
-    Scheduler::singleton()->barrier("main_barrier", [] { return Scheduler::singleton()->count() == 0; });
+    Types::singleton()->loadExt("/ext/process");
+    Scheduler::singleton()->barrier("main_barrier");
   } catch (const fError &e) {
     // LOG_EXCEPTION(e);
     LOG(ERROR, "main() error: %s\n", e.what());
