@@ -337,9 +337,14 @@ namespace fhatos {
             else if (c == '\'')
               quote = !quote;
             ///////////////////////////////////////////////////////////////
-            if (ss.peek() == '.' && paren == 0 && bracket == 0 && !quote) {
-              ss.get();
-              break;
+            if (paren == 0 && bracket == 0 && !quote) {
+             // if (ss.peek() == '+') {
+             //   break;
+             // }
+              if (ss.peek() == '.') {
+                ss.get();
+                break;
+              }
             }
           }
           if (instToken.empty())
@@ -350,6 +355,8 @@ namespace fhatos {
           Pair<string, string> typeValue;
           if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
             typeValue = {"*", instToken.substr(1)};
+          else if (instToken.length() > 1 && instToken[0] == '+' && instToken[1] != '(')
+            typeValue = {"+", instToken.substr(1)};
           else
             typeValue = tryParseObjType(instToken, false);
           ///////////// parse an obj and wrap in a start() ??

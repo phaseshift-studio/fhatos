@@ -225,7 +225,7 @@ namespace fhatos {
             }*/
             return Obj::to_rec(share(map));
           },
-          IType::MANY_TO_ONE, Obj::to_lst(List_p<Obj_p>({})));
+          IType::MANY_TO_ONE, Obj::to_objs(List_p<Obj_p>({})));
     }
 
     static Obj_p print(const Obj_p &toprint) {
@@ -252,19 +252,6 @@ namespace fhatos {
           areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
-    static Obj_p pub_retain(const Uri_p &target, const Obj_p &payload) {
-      return Obj::to_inst(
-          "pub^", {target, payload},
-          [target, payload](const Obj_p &lhs) {
-            GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
-                                                              .target = target->apply(lhs)->uri_value(),
-                                                              .payload = payload->isNoOpBytecode() ? lhs : payload,
-                                                              .retain = RETAIN_MESSAGE});
-            return lhs;
-          },
-          areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
-    }
-
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
       return Obj::to_inst(
           "sub", {pattern, onRecv},
@@ -283,6 +270,41 @@ namespace fhatos {
           },
           areInitialArgs(pattern) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
+
+    static Int_p sum() {
+      return Obj::to_inst(
+          "sum", {},
+          [](const Objs_p &lhs) {
+            Obj_p current = Obj::to_noobj();
+            for (const Obj_p &obj: *lhs->objs_value()) {
+              if (current->isNoObj()) {
+                current = obj;
+              } else {
+                current = share(*obj + *current);
+              }
+            }
+            return current;
+          },
+          IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
+    }
+
+    static Int_p prod() {
+      return Obj::to_inst(
+          "prod", {},
+          [](const Objs_p &lhs) {
+            Obj_p current = Obj::to_noobj();
+            for (const Obj_p &obj: *lhs->objs_value()) {
+              if (current->isNoObj()) {
+                current = obj;
+              } else {
+                current = share(*obj * *current);
+              }
+            }
+            return current;
+          },
+          IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
+    }
+
     static Int_p count() {
       return Obj::to_inst(
           "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
@@ -328,6 +350,10 @@ namespace fhatos {
         return Insts::side(args.at(0));
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
+      if (type == INST_FURI->resolve("sum"))
+        return Insts::sum();
+      if (type == INST_FURI->resolve("prod"))
+        return Insts::prod();
       if (type == INST_FURI->resolve("group"))
         return Insts::group(args.at(0), args.at(1), args.at(2));
       if (type == INST_FURI->resolve("get"))
@@ -368,8 +394,6 @@ namespace fhatos {
         return Insts::from(args.at(0));
       if (type == INST_FURI->resolve("pub"))
         return Insts::pub(args.at(0), args.at(1));
-      if (type == INST_FURI->resolve("pub^"))
-        return Insts::pub_retain(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("sub"))
         return Insts::sub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("print"))
