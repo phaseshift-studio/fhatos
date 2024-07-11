@@ -143,8 +143,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <span class="comment">// TODO: have constructed processes NOT running or check is process ID already in scheduler</span></div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        process-&gt;setup();</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">if</span> (!process-&gt;running()) {</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>          LOG(ERROR, <span class="stringliteral">&quot;!RUnable to spawn running %s: %s!!\n&quot;</span>, P_TYPE_STR(process-&gt;type),</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>              process-&gt;id()-&gt;toString().c_str());</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>          LOG_TASK(ERROR, <span class="keyword">this</span>, <span class="stringliteral">&quot;!RUnable to spawn running %s: %s!!\n&quot;</span>, P_TYPE_STR(process-&gt;type),</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                   process-&gt;id()-&gt;toString().c_str());</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>          <span class="keywordflow">return</span> share(<span class="keyword">false</span>);</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        }</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordtype">bool</span> success = <span class="keyword">false</span>;</div>
@@ -175,13 +175,13 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>            <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>          }</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>          <span class="keywordflow">default</span>: {</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>            LOG(ERROR, <span class="stringliteral">&quot;!m%s!! has an unknown process type: !r%i!!\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>                process-&gt;type);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>            LOG_TASK(ERROR, <span class="keyword">this</span>, <span class="stringliteral">&quot;!b%s!! has an unknown process type: !r%i!!\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>                     process-&gt;type);</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>            <span class="keywordflow">return</span> share(<span class="keyword">false</span>);</div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>          }</div>
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        }</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        LOG(success ? INFO : ERROR, <span class="stringliteral">&quot;!M%s!! %s spawned\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>            P_TYPE_STR(process-&gt;type));</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        LOG_TASK(success ? INFO : ERROR, this, <span class="stringliteral">&quot;!b%s!! !y%s!! spawned\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>                 P_TYPE_STR(process-&gt;type));</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        <span class="comment">/*LOG(NONE,</span></div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="comment">            &quot;\t!yFree memory\n&quot;</span></div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="comment">            &quot;\t  !b[inst:&quot; FOS_BYTES_MB_STR &quot;][heap: &quot; FOS_BYTES_MB_STR &quot;][psram: &quot; FOS_BYTES_MB_STR &quot;][flash: &quot;</span></div>

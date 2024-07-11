@@ -174,7 +174,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>          this-&gt;spawn(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1fBcode.html">fBcode&lt;Coroutine&gt;</a>(target, payload));</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        }</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      };</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      LOG(INFO, <span class="stringliteral">&quot;!mScheduler located at !b%s!!\n&quot;</span>, this-&gt;_id-&gt;toString().c_str());</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!yscheduler!! loaded\n&quot;</span>);</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    }</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordtype">void</span> stop() {</div>
@@ -191,10 +191,10 @@ $(function(){ initResizable(false); });
 <div class="foldopen" id="foldopen00094" data-start="{" data-end="}">
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="classfhatos_1_1AbstractScheduler.html#a5fa8ed51438a91a7a88143b471e9c688">   94</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classfhatos_1_1AbstractScheduler.html#a5fa8ed51438a91a7a88143b471e9c688">barrier</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *label = <span class="stringliteral">&quot;unlabeled&quot;</span>, <span class="keyword">const</span> Supplier&lt;bool&gt; &amp;passPredicate = <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      LOG(INFO, <span class="stringliteral">&quot;!mScheduler at barrier: &lt;!y%s!m&gt;!!\n&quot;</span>, label);</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      this-&gt;<a class="code hl_function" href="classfhatos_1_1Publisher.html#a77d46f9dd75a1aa5f74152544f2f49f0">subscribe</a>(<span class="stringliteral">&quot;&quot;</span>, [<span class="keyword">this</span>, label](<span class="keyword">const</span> Message_p &amp;message) {</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        <span class="keywordflow">if</span> (message-&gt;payload-&gt;isNoObj())</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>          this-&gt;stop();</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>      });</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      <span class="comment">/*this-&gt;subscribe(&quot;&quot;, [this, label](const Message_p &amp;message) {</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="comment">        if (message-&gt;payload-&gt;isNoObj())</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="comment">          this-&gt;stop();</span></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span><span class="comment">      });*/</span></div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>      <span class="keywordflow">while</span> (this-&gt;next()) {</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>      }</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      <span class="keywordflow">while</span> (this-&gt;next() || (passPredicate &amp;&amp; !passPredicate()) || (!passPredicate &amp;&amp; this-&gt;count() &gt; 0)) {</div>
@@ -223,7 +223,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>                             <span class="keywordflow">if</span> (process-&gt;id()-&gt;matches(processPattern)) {</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>                               <span class="keywordflow">if</span> (process-&gt;running())</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>                                 process-&gt;stop();</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>                               LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!m%s!! %s destroyed\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>                               LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!b%s !y%s!! destroyed\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>                                        P_TYPE_STR(process-&gt;type));</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>                               <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>                             }</div>
@@ -233,7 +233,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>                             <span class="keywordflow">if</span> (process-&gt;id()-&gt;matches(processPattern)) {</div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>                               <span class="keywordflow">if</span> (process-&gt;running())</div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>                                 process-&gt;stop();</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>                               LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!m%s!! %s destroyed\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>                               LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!b%s !y%s!! destroyed\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>                                        P_TYPE_STR(process-&gt;type));</div>
 <div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>                               <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>                             }</div>
@@ -243,7 +243,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>                             <span class="keywordflow">if</span> (process-&gt;id()-&gt;matches(processPattern)) {</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>                               <span class="keywordflow">if</span> (process-&gt;running())</div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>                                 process-&gt;stop();</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>                               LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!m%s!! %s destroyed\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>                               LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!b%s !y%s!! destroyed\n&quot;</span>, process-&gt;id()-&gt;toString().c_str(),</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>                                        P_TYPE_STR(process-&gt;type));</div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>                               <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>                             }</div>
@@ -338,7 +338,6 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1Process_html"><div class="ttname"><a href="classfhatos_1_1Process.html">fhatos::Process</a></div><div class="ttdef"><b>Definition</b> process.hpp:45</div></div>
 <div class="ttc" id="aclassfhatos_1_1Publisher_html"><div class="ttname"><a href="classfhatos_1_1Publisher.html">fhatos::Publisher</a></div><div class="ttdef"><b>Definition</b> publisher.hpp:27</div></div>
 <div class="ttc" id="aclassfhatos_1_1Publisher_html_a62dcc24b5c0a89801fc5e98a2e64ce40"><div class="ttname"><a href="classfhatos_1_1Publisher.html#a62dcc24b5c0a89801fc5e98a2e64ce40">fhatos::Publisher::publish</a></div><div class="ttdeci">RESPONSE_CODE publish(const ID &amp;relativeTarget, const ptr&lt; const Obj &gt; &amp;payload, const bool retain=TRANSIENT_MESSAGE) const</div><div class="ttdoc">PUBLISH.</div><div class="ttdef"><b>Definition</b> publisher.hpp:63</div></div>
-<div class="ttc" id="aclassfhatos_1_1Publisher_html_a77d46f9dd75a1aa5f74152544f2f49f0"><div class="ttname"><a href="classfhatos_1_1Publisher.html#a77d46f9dd75a1aa5f74152544f2f49f0">fhatos::Publisher::subscribe</a></div><div class="ttdeci">virtual RESPONSE_CODE subscribe(const Pattern &amp;relativePattern, const Consumer&lt; const ptr&lt; Message &gt; &amp; &gt; &amp;onRecv, const QoS qos=QoS::_1)</div><div class="ttdoc">SUBSCRIBE.</div><div class="ttdef"><b>Definition</b> publisher.hpp:40</div></div>
 <div class="ttc" id="aclassfhatos_1_1fBcode_html"><div class="ttname"><a href="classfhatos_1_1fBcode.html">fhatos::fBcode</a></div><div class="ttdef"><b>Definition</b> f_bcode.hpp:27</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 <div class="ttc" id="astructfhatos_1_1Mailbox_html"><div class="ttname"><a href="structfhatos_1_1Mailbox.html">fhatos::Mailbox</a></div><div class="ttdef"><b>Definition</b> mailbox.hpp:26</div></div>
