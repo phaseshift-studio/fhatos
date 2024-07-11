@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FhatOS: fhatos::Actor&lt; PROCESS &gt; Class Template Reference</title>
+<title>FhatOS: fhatos::Terminal Class Reference</title>
 <link rel="icon" href="fhatos-logo.svg" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -86,26 +86,26 @@ $(function(){ initResizable(false); });
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>fhatos</b></li><li class="navelem"><a class="el" href="classfhatos_1_1Actor.html">Actor</a></li>  </ul>
+<li class="navelem"><b>fhatos</b></li><li class="navelem"><a class="el" href="classfhatos_1_1Terminal.html">Terminal</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div id="doc-content">
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
-<a href="classfhatos_1_1Actor-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">fhatos::Actor&lt; PROCESS &gt; Class Template Reference</div></div>
+<a href="classfhatos_1_1Terminal-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">fhatos::Terminal Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="dynheader">
-Inheritance diagram for fhatos::Actor&lt; PROCESS &gt;:</div>
+Inheritance diagram for fhatos::Terminal:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classfhatos_1_1Actor.png" usemap="#fhatos::Actor_3C_20PROCESS_20_3E_map" alt=""/>
-  <map id="fhatos::Actor_3C_20PROCESS_20_3E_map" name="fhatos::Actor_3C_20PROCESS_20_3E_map">
+  <img src="classfhatos_1_1Terminal.png" usemap="#fhatos::Terminal_map" alt=""/>
+  <map id="fhatos::Terminal_map" name="fhatos::Terminal_map">
+<area href="classfhatos_1_1Actor.html" alt="fhatos::Actor&lt; Thread &gt;" shape="rect" coords="482,224,665,248"/>
 <area href="classfhatos_1_1Thread.html" alt="fhatos::Thread" shape="rect" coords="289,168,472,192"/>
 <area href="classfhatos_1_1Publisher.html" alt="fhatos::Publisher" shape="rect" coords="482,168,665,192"/>
 <area href="structfhatos_1_1Mailbox.html" alt="fhatos::Mailbox&lt; ptr&lt; Mail &gt; &gt;" shape="rect" coords="675,168,858,192"/>
@@ -122,31 +122,92 @@ Inheritance diagram for fhatos::Actor&lt; PROCESS &gt;:</div>
   </map>
 </div></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a10db248de261fdbe24e4ae4faf267b8b" id="r_a10db248de261fdbe24e4ae4faf267b8b"><td class="memItemLeft" align="right" valign="top"><a id="a10db248de261fdbe24e4ae4faf267b8b" name="a10db248de261fdbe24e4ae4faf267b8b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Actor</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id, const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; PROCESS &gt; * &gt; &amp;setupFunction=nullptr, const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; PROCESS &gt; * &gt; &amp;loopFunction=nullptr)</td></tr>
-<tr class="separator:a10db248de261fdbe24e4ae4faf267b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a908b25059eee79be23fc6e0545c65b3a" id="r_a908b25059eee79be23fc6e0545c65b3a"><td class="memItemLeft" align="right" valign="top"><a id="a908b25059eee79be23fc6e0545c65b3a" name="a908b25059eee79be23fc6e0545c65b3a"></a>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a04bcad3d155438d45e0ccc961e5a4540" id="r_a04bcad3d155438d45e0ccc961e5a4540"><td class="memItemLeft" align="right" valign="top"><a id="a04bcad3d155438d45e0ccc961e5a4540" name="a04bcad3d155438d45e0ccc961e5a4540"></a>
+static <a class="el" href="classfhatos_1_1Terminal.html">Terminal</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>singleton</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id=&quot;/io/terminal/&quot;)</td></tr>
+<tr class="separator:a04bcad3d155438d45e0ccc961e5a4540"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a838c1bb5b0a511f5b321ea8f5044a0ee" id="r_a838c1bb5b0a511f5b321ea8f5044a0ee"><td class="memItemLeft" align="right" valign="top"><a id="a838c1bb5b0a511f5b321ea8f5044a0ee" name="a838c1bb5b0a511f5b321ea8f5044a0ee"></a>
+static ID_p&#160;</td><td class="memItemRight" valign="bottom"><b>currentOut</b> ()</td></tr>
+<tr class="separator:a838c1bb5b0a511f5b321ea8f5044a0ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeae4430d39908431000fa2fc4c084ce7" id="r_aeae4430d39908431000fa2fc4c084ce7"><td class="memItemLeft" align="right" valign="top"><a id="aeae4430d39908431000fa2fc4c084ce7" name="aeae4430d39908431000fa2fc4c084ce7"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>currentOut</b> (const ID_p &amp;source)</td></tr>
+<tr class="separator:aeae4430d39908431000fa2fc4c084ce7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf6641500dba01cc250e5181da849ae6" id="r_adf6641500dba01cc250e5181da849ae6"><td class="memItemLeft" align="right" valign="top"><a id="adf6641500dba01cc250e5181da849ae6" name="adf6641500dba01cc250e5181da849ae6"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>out</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source, const char *format,...)</td></tr>
+<tr class="separator:adf6641500dba01cc250e5181da849ae6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afffb23fca0afc4e961f5311a96a5d7e5" id="r_afffb23fca0afc4e961f5311a96a5d7e5"><td class="memItemLeft" align="right" valign="top"><a id="afffb23fca0afc4e961f5311a96a5d7e5" name="afffb23fca0afc4e961f5311a96a5d7e5"></a>
+static string&#160;</td><td class="memItemRight" valign="bottom"><b>in</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source)</td></tr>
+<tr class="separator:afffb23fca0afc4e961f5311a96a5d7e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_static_methods_classfhatos_1_1Actor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_methods_classfhatos_1_1Actor')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor&lt; Thread &gt;</a></td></tr>
+<tr class="memitem:ac35ce5c115f8eb55ed71cd34a884bde1 inherit pub_static_methods_classfhatos_1_1Actor" id="r_ac35ce5c115f8eb55ed71cd34a884bde1"><td class="memItemLeft" align="right" valign="top">
+static <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; <a class="el" href="classfhatos_1_1Thread.html">Thread</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>deserialize</b> (const fbyte *bytes)</td></tr>
+<tr class="separator:ac35ce5c115f8eb55ed71cd34a884bde1 inherit pub_static_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:aded8aa6a6a66d0ebc4cfd29090fb20b2" id="r_aded8aa6a6a66d0ebc4cfd29090fb20b2"><td class="memItemLeft" align="right" valign="top"><a id="aded8aa6a6a66d0ebc4cfd29090fb20b2" name="aded8aa6a6a66d0ebc4cfd29090fb20b2"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Terminal</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id=<a class="el" href="classfhatos_1_1ID.html">ID</a>(&quot;/io/terminal/&quot;))</td></tr>
+<tr class="separator:aded8aa6a6a66d0ebc4cfd29090fb20b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_methods_classfhatos_1_1Actor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_classfhatos_1_1Actor')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor&lt; Thread &gt;</a></td></tr>
+<tr class="memitem:a1579dfb1167737bb5a5ea185399fa3e9 inherit pro_methods_classfhatos_1_1Actor" id="r_a1579dfb1167737bb5a5ea185399fa3e9"><td class="memItemLeft" align="right" valign="top">Option&lt; ptr&lt; Mail &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#a1579dfb1167737bb5a5ea185399fa3e9">pop</a> () override</td></tr>
+<tr class="separator:a1579dfb1167737bb5a5ea185399fa3e9 inherit pro_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0830bbeea47256767999c0d4b91ad0fc inherit pro_methods_classfhatos_1_1Actor" id="r_a0830bbeea47256767999c0d4b91ad0fc"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#a0830bbeea47256767999c0d4b91ad0fc">next</a> ()</td></tr>
+<tr class="separator:a0830bbeea47256767999c0d4b91ad0fc inherit pro_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:a5a695edeabee72a6965e9b311ece5a92" id="r_a5a695edeabee72a6965e9b311ece5a92"><td class="memItemLeft" align="right" valign="top"><a id="a5a695edeabee72a6965e9b311ece5a92" name="a5a695edeabee72a6965e9b311ece5a92"></a>
+ID_p&#160;</td><td class="memItemRight" valign="bottom"><b>_currentOutput</b></td></tr>
+<tr class="separator:a5a695edeabee72a6965e9b311ece5a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_attribs_classfhatos_1_1Actor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1Actor')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor&lt; Thread &gt;</a></td></tr>
+<tr class="memitem:aefff5e35d9ca35a0abc741c3372a29b7 inherit pro_attribs_classfhatos_1_1Actor" id="r_aefff5e35d9ca35a0abc741c3372a29b7"><td class="memItemLeft" align="right" valign="top">
+<a class="el" href="classfhatos_1_1MutexDeque.html">MutexDeque</a>&lt; ptr&lt; Mail &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>inbox</b></td></tr>
+<tr class="separator:aefff5e35d9ca35a0abc741c3372a29b7 inherit pro_attribs_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a402532dfb0670320e857e1032a60795e inherit pro_attribs_classfhatos_1_1Actor" id="r_a402532dfb0670320e857e1032a60795e"><td class="memItemLeft" align="right" valign="top">
+Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_setupFunction</b></td></tr>
+<tr class="separator:a402532dfb0670320e857e1032a60795e inherit pro_attribs_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0b61b930bf466667fee7a03eb804d20 inherit pro_attribs_classfhatos_1_1Actor" id="r_ae0b61b930bf466667fee7a03eb804d20"><td class="memItemLeft" align="right" valign="top">
+Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_loopFunction</b></td></tr>
+<tr class="separator:ae0b61b930bf466667fee7a03eb804d20 inherit pro_attribs_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_attribs_classfhatos_1_1Process"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1Process')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1Process.html">fhatos::Process</a></td></tr>
+<tr class="memitem:a1f93190bc7c070078ce3e23d45400709 inherit pro_attribs_classfhatos_1_1Process" id="r_a1f93190bc7c070078ce3e23d45400709"><td class="memItemLeft" align="right" valign="top">
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>_running</b> = false</td></tr>
+<tr class="separator:a1f93190bc7c070078ce3e23d45400709 inherit pro_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa375c39e294dc35bb647aeb447b0a925 inherit pro_attribs_classfhatos_1_1Process" id="r_aa375c39e294dc35bb647aeb447b0a925"><td class="memItemLeft" align="right" valign="top">
+std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><b>_running</b> = std::atomic_bool(false)</td></tr>
+<tr class="separator:aa375c39e294dc35bb647aeb447b0a925 inherit pro_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_attribs_classfhatos_1_1IDed"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1IDed')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1IDed.html">fhatos::IDed</a></td></tr>
+<tr class="memitem:a2e74e5d34e04a8dd95d8fb9c6d579456 inherit pro_attribs_classfhatos_1_1IDed" id="r_a2e74e5d34e04a8dd95d8fb9c6d579456"><td class="memItemLeft" align="right" valign="top">
+ptr&lt; <a class="el" href="classfhatos_1_1ID.html">ID</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_id</b></td></tr>
+<tr class="separator:a2e74e5d34e04a8dd95d8fb9c6d579456 inherit pro_attribs_classfhatos_1_1IDed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_methods_classfhatos_1_1Actor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1Actor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor&lt; Thread &gt;</a></td></tr>
+<tr class="memitem:a10db248de261fdbe24e4ae4faf267b8b inherit pub_methods_classfhatos_1_1Actor" id="r_a10db248de261fdbe24e4ae4faf267b8b"><td class="memItemLeft" align="right" valign="top">
+&#160;</td><td class="memItemRight" valign="bottom"><b>Actor</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id, const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; <a class="el" href="classfhatos_1_1Thread.html">Thread</a> &gt; * &gt; &amp;setupFunction=nullptr, const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; <a class="el" href="classfhatos_1_1Thread.html">Thread</a> &gt; * &gt; &amp;loopFunction=nullptr)</td></tr>
+<tr class="separator:a10db248de261fdbe24e4ae4faf267b8b inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a908b25059eee79be23fc6e0545c65b3a inherit pub_methods_classfhatos_1_1Actor" id="r_a908b25059eee79be23fc6e0545c65b3a"><td class="memItemLeft" align="right" valign="top">
 Pair&lt; fbyte *, uint &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>serialize</b> () const</td></tr>
-<tr class="separator:a908b25059eee79be23fc6e0545c65b3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bf73733b8eb61979e6cfe9949d3753b" id="r_a3bf73733b8eb61979e6cfe9949d3753b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3bf73733b8eb61979e6cfe9949d3753b">push</a> (const ptr&lt; Mail &gt; mail) override</td></tr>
-<tr class="separator:a3bf73733b8eb61979e6cfe9949d3753b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a719565872be4409bb28785eb080ede70" id="r_a719565872be4409bb28785eb080ede70"><td class="memItemLeft" align="right" valign="top"><a id="a719565872be4409bb28785eb080ede70" name="a719565872be4409bb28785eb080ede70"></a>
+<tr class="separator:a908b25059eee79be23fc6e0545c65b3a inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3bf73733b8eb61979e6cfe9949d3753b inherit pub_methods_classfhatos_1_1Actor" id="r_a3bf73733b8eb61979e6cfe9949d3753b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#a3bf73733b8eb61979e6cfe9949d3753b">push</a> (const ptr&lt; Mail &gt; mail) override</td></tr>
+<tr class="separator:a3bf73733b8eb61979e6cfe9949d3753b inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a719565872be4409bb28785eb080ede70 inherit pub_methods_classfhatos_1_1Actor" id="r_a719565872be4409bb28785eb080ede70"><td class="memItemLeft" align="right" valign="top">
 void&#160;</td><td class="memItemRight" valign="bottom"><b>query</b> (const <a class="el" href="classfhatos_1_1ID.html">TargetID</a> &amp;queryId, const Consumer&lt; const <a class="el" href="structfhatos_1_1Message.html">Message</a> &gt; &amp;onRecv=nullptr)</td></tr>
-<tr class="separator:a719565872be4409bb28785eb080ede70"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a101653eebe5c86d188a9b97348ad06dd" id="r_a101653eebe5c86d188a9b97348ad06dd"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a101653eebe5c86d188a9b97348ad06dd">size</a> () override</td></tr>
-<tr class="separator:a101653eebe5c86d188a9b97348ad06dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b191f56b15319ff1ea1383d2030d6d9" id="r_a3b191f56b15319ff1ea1383d2030d6d9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3b191f56b15319ff1ea1383d2030d6d9">setup</a> () override</td></tr>
-<tr class="memdesc:a3b191f56b15319ff1ea1383d2030d6d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">PROCESS METHODS.  <br /></td></tr>
-<tr class="separator:a3b191f56b15319ff1ea1383d2030d6d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad317cb423d89e8867a12a3c88c995792" id="r_ad317cb423d89e8867a12a3c88c995792"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad317cb423d89e8867a12a3c88c995792">stop</a> () override</td></tr>
-<tr class="separator:ad317cb423d89e8867a12a3c88c995792"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab743c1096fe2f11d46c6dfa02146d0c0" id="r_ab743c1096fe2f11d46c6dfa02146d0c0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab743c1096fe2f11d46c6dfa02146d0c0">loop</a> () override</td></tr>
-<tr class="separator:ab743c1096fe2f11d46c6dfa02146d0c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a641604a4b96922de4482fc98ddecb154" id="r_a641604a4b96922de4482fc98ddecb154"><td class="memItemLeft" align="right" valign="top"><a id="a641604a4b96922de4482fc98ddecb154" name="a641604a4b96922de4482fc98ddecb154"></a>
+<tr class="separator:a719565872be4409bb28785eb080ede70 inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a101653eebe5c86d188a9b97348ad06dd inherit pub_methods_classfhatos_1_1Actor" id="r_a101653eebe5c86d188a9b97348ad06dd"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#a101653eebe5c86d188a9b97348ad06dd">size</a> () override</td></tr>
+<tr class="separator:a101653eebe5c86d188a9b97348ad06dd inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b191f56b15319ff1ea1383d2030d6d9 inherit pub_methods_classfhatos_1_1Actor" id="r_a3b191f56b15319ff1ea1383d2030d6d9"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#a3b191f56b15319ff1ea1383d2030d6d9">setup</a> () override</td></tr>
+<tr class="memdesc:a3b191f56b15319ff1ea1383d2030d6d9 inherit pub_methods_classfhatos_1_1Actor"><td class="mdescLeft">&#160;</td><td class="mdescRight">PROCESS METHODS.  <br /></td></tr>
+<tr class="separator:a3b191f56b15319ff1ea1383d2030d6d9 inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad317cb423d89e8867a12a3c88c995792 inherit pub_methods_classfhatos_1_1Actor" id="r_ad317cb423d89e8867a12a3c88c995792"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#ad317cb423d89e8867a12a3c88c995792">stop</a> () override</td></tr>
+<tr class="separator:ad317cb423d89e8867a12a3c88c995792 inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab743c1096fe2f11d46c6dfa02146d0c0 inherit pub_methods_classfhatos_1_1Actor" id="r_ab743c1096fe2f11d46c6dfa02146d0c0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classfhatos_1_1Actor.html#ab743c1096fe2f11d46c6dfa02146d0c0">loop</a> () override</td></tr>
+<tr class="separator:ab743c1096fe2f11d46c6dfa02146d0c0 inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a641604a4b96922de4482fc98ddecb154 inherit pub_methods_classfhatos_1_1Actor" id="r_a641604a4b96922de4482fc98ddecb154"><td class="memItemLeft" align="right" valign="top">
 void&#160;</td><td class="memItemRight" valign="bottom"><b>onLoop</b> (const Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a> * &gt; &amp;loopFunction)</td></tr>
-<tr class="separator:a641604a4b96922de4482fc98ddecb154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a641604a4b96922de4482fc98ddecb154 inherit pub_methods_classfhatos_1_1Actor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfhatos_1_1Thread"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1Thread')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1Thread.html">fhatos::Thread</a></td></tr>
 <tr class="memitem:aaddf14eb1781893bb554651bb19bf16f inherit pub_methods_classfhatos_1_1Thread" id="r_aaddf14eb1781893bb554651bb19bf16f"><td class="memItemLeft" align="right" valign="top">
 &#160;</td><td class="memItemRight" valign="bottom"><b>Thread</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id)</td></tr>
@@ -222,45 +283,6 @@ RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>publish</b> 
 <tr class="memitem:a0587eac89d803c39080fa5265f42f8b4 inherit pub_methods_structfhatos_1_1Mailbox" id="r_a0587eac89d803c39080fa5265f42f8b4"><td class="memItemLeft" align="right" valign="top">
 void&#160;</td><td class="memItemRight" valign="bottom"><b>clear</b> ()</td></tr>
 <tr class="separator:a0587eac89d803c39080fa5265f42f8b4 inherit pub_methods_structfhatos_1_1Mailbox"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ac35ce5c115f8eb55ed71cd34a884bde1" id="r_ac35ce5c115f8eb55ed71cd34a884bde1"><td class="memItemLeft" align="right" valign="top"><a id="ac35ce5c115f8eb55ed71cd34a884bde1" name="ac35ce5c115f8eb55ed71cd34a884bde1"></a>
-static <a class="el" href="classfhatos_1_1Actor.html">Actor</a>&lt; PROCESS &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>deserialize</b> (const fbyte *bytes)</td></tr>
-<tr class="separator:ac35ce5c115f8eb55ed71cd34a884bde1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
-Protected Member Functions</h2></td></tr>
-<tr class="memitem:a1579dfb1167737bb5a5ea185399fa3e9" id="r_a1579dfb1167737bb5a5ea185399fa3e9"><td class="memItemLeft" align="right" valign="top">Option&lt; ptr&lt; Mail &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1579dfb1167737bb5a5ea185399fa3e9">pop</a> () override</td></tr>
-<tr class="separator:a1579dfb1167737bb5a5ea185399fa3e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0830bbeea47256767999c0d4b91ad0fc" id="r_a0830bbeea47256767999c0d4b91ad0fc"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0830bbeea47256767999c0d4b91ad0fc">next</a> ()</td></tr>
-<tr class="separator:a0830bbeea47256767999c0d4b91ad0fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
-Protected Attributes</h2></td></tr>
-<tr class="memitem:aefff5e35d9ca35a0abc741c3372a29b7" id="r_aefff5e35d9ca35a0abc741c3372a29b7"><td class="memItemLeft" align="right" valign="top"><a id="aefff5e35d9ca35a0abc741c3372a29b7" name="aefff5e35d9ca35a0abc741c3372a29b7"></a>
-<a class="el" href="classfhatos_1_1MutexDeque.html">MutexDeque</a>&lt; ptr&lt; Mail &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>inbox</b></td></tr>
-<tr class="separator:aefff5e35d9ca35a0abc741c3372a29b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a402532dfb0670320e857e1032a60795e" id="r_a402532dfb0670320e857e1032a60795e"><td class="memItemLeft" align="right" valign="top"><a id="a402532dfb0670320e857e1032a60795e" name="a402532dfb0670320e857e1032a60795e"></a>
-Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_setupFunction</b> = nullptr</td></tr>
-<tr class="separator:a402532dfb0670320e857e1032a60795e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0b61b930bf466667fee7a03eb804d20" id="r_ae0b61b930bf466667fee7a03eb804d20"><td class="memItemLeft" align="right" valign="top"><a id="ae0b61b930bf466667fee7a03eb804d20" name="ae0b61b930bf466667fee7a03eb804d20"></a>
-Consumer&lt; <a class="el" href="classfhatos_1_1Actor.html">Actor</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_loopFunction</b> = nullptr</td></tr>
-<tr class="separator:ae0b61b930bf466667fee7a03eb804d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_attribs_classfhatos_1_1Process"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1Process')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1Process.html">fhatos::Process</a></td></tr>
-<tr class="memitem:a1f93190bc7c070078ce3e23d45400709 inherit pro_attribs_classfhatos_1_1Process" id="r_a1f93190bc7c070078ce3e23d45400709"><td class="memItemLeft" align="right" valign="top">
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>_running</b> = false</td></tr>
-<tr class="separator:a1f93190bc7c070078ce3e23d45400709 inherit pro_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa375c39e294dc35bb647aeb447b0a925 inherit pro_attribs_classfhatos_1_1Process" id="r_aa375c39e294dc35bb647aeb447b0a925"><td class="memItemLeft" align="right" valign="top">
-std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><b>_running</b> = std::atomic_bool(false)</td></tr>
-<tr class="separator:aa375c39e294dc35bb647aeb447b0a925 inherit pro_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_attribs_classfhatos_1_1IDed"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classfhatos_1_1IDed')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classfhatos_1_1IDed.html">fhatos::IDed</a></td></tr>
-<tr class="memitem:a2e74e5d34e04a8dd95d8fb9c6d579456 inherit pro_attribs_classfhatos_1_1IDed" id="r_a2e74e5d34e04a8dd95d8fb9c6d579456"><td class="memItemLeft" align="right" valign="top">
-ptr&lt; <a class="el" href="classfhatos_1_1ID.html">ID</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_id</b></td></tr>
-<tr class="separator:a2e74e5d34e04a8dd95d8fb9c6d579456 inherit pro_attribs_classfhatos_1_1IDed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_attribs_classfhatos_1_1Thread"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_attribs_classfhatos_1_1Thread')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classfhatos_1_1Thread.html">fhatos::Thread</a></td></tr>
 <tr class="memitem:a54342b31d88c2241f0a689dac1f72773 inherit pub_attribs_classfhatos_1_1Thread" id="r_a54342b31d88c2241f0a689dac1f72773"><td class="memItemLeft" align="right" valign="top">
 TaskHandle_t&#160;</td><td class="memItemRight" valign="bottom"><b>handle</b></td></tr>
@@ -280,215 +302,8 @@ const ID_p&#160;</td><td class="memItemRight" valign="bottom"><b>__id</b></td></
 <a class="el" href="structfhatos_1_1Mailbox.html">Mailbox</a>&lt; ptr&lt; Mail &gt; &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>mailbox</b></td></tr>
 <tr class="separator:ae76c711ffd61a8dd6136b4f4ca4eb9db inherit pub_attribs_classfhatos_1_1Publisher"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab743c1096fe2f11d46c6dfa02146d0c0" name="ab743c1096fe2f11d46c6dfa02146d0c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab743c1096fe2f11d46c6dfa02146d0c0">&#9670;&#160;</a></span>loop()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::loop </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Reimplemented from <a class="el" href="classfhatos_1_1Process.html">fhatos::Process</a>.</p>
-
-</div>
-</div>
-<a id="a0830bbeea47256767999c0d4b91ad0fc" name="a0830bbeea47256767999c0d4b91ad0fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0830bbeea47256767999c0d4b91ad0fc">&#9670;&#160;</a></span>next()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual bool <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::next </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>delete mail-&gt;second.payload;</p>
-
-</div>
-</div>
-<a id="a1579dfb1167737bb5a5ea185399fa3e9" name="a1579dfb1167737bb5a5ea185399fa3e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1579dfb1167737bb5a5ea185399fa3e9">&#9670;&#160;</a></span>pop()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">Option&lt; ptr&lt; Mail &gt; &gt; <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::pop </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Reimplemented from <a class="el" href="structfhatos_1_1Mailbox.html">fhatos::Mailbox&lt; ptr&lt; Mail &gt; &gt;</a>.</p>
-
-</div>
-</div>
-<a id="a3bf73733b8eb61979e6cfe9949d3753b" name="a3bf73733b8eb61979e6cfe9949d3753b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3bf73733b8eb61979e6cfe9949d3753b">&#9670;&#160;</a></span>push()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::push </td>
-          <td>(</td>
-          <td class="paramtype">const ptr&lt; Mail &gt;</td>          <td class="paramname"><span class="paramname"><em>mail</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Reimplemented from <a class="el" href="structfhatos_1_1Mailbox.html">fhatos::Mailbox&lt; ptr&lt; Mail &gt; &gt;</a>.</p>
-
-</div>
-</div>
-<a id="a3b191f56b15319ff1ea1383d2030d6d9" name="a3b191f56b15319ff1ea1383d2030d6d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b191f56b15319ff1ea1383d2030d6d9">&#9670;&#160;</a></span>setup()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::setup </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>PROCESS METHODS. </p>
-
-<p>Reimplemented from <a class="el" href="classfhatos_1_1Process.html">fhatos::Process</a>.</p>
-
-<p>Reimplemented in <a class="el" href="classfhatos_1_1fFS.html#aadf47335bd0b6361c0d7348ad978b841">fhatos::fFS&lt; PROCESS, ROUTER &gt;</a>, <a class="el" href="classfhatos_1_1fKernel.html#a5d81462c4ca16c78752e1f38dac7f23d">fhatos::fKernel&lt; PROCESS &gt;</a>, <a class="el" href="classfhatos_1_1fLog.html#af05496256d995d9101cade427320d2a3">fhatos::fLog&lt; PROCESS, ROUTER &gt;</a>, <a class="el" href="classfhatos_1_1fMemory.html#aa1861d6b9c4cc72ae7b2df7c1c746006">fhatos::fMemory&lt; PROCESS, ROUTER &gt;</a>, <a class="el" href="classfhatos_1_1fPing.html#a4b368767e3baeed21562f9b1228dadfb">fhatos::fPing&lt; PROCESS, ROUTER &gt;</a>, <a class="el" href="classfhatos_1_1fSerial.html#aef710b6bd4ed2715868d2220030ff4ec">fhatos::fSerial&lt; PROCESS, ROUTER &gt;</a>, <a class="el" href="classfhatos_1_1fSoC.html#a0b911977cec88880195901265328887b">fhatos::fSoC&lt; PROCESS, ROUTER &gt;</a>, and <a class="el" href="classfhatos_1_1fTelnet.html#a08c78fe7a10f337792baa9e008d05ae2">fhatos::fTelnet&lt; PROCESS, ROUTER &gt;</a>.</p>
-
-</div>
-</div>
-<a id="a101653eebe5c86d188a9b97348ad06dd" name="a101653eebe5c86d188a9b97348ad06dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a101653eebe5c86d188a9b97348ad06dd">&#9670;&#160;</a></span>size()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::size </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Reimplemented from <a class="el" href="structfhatos_1_1Mailbox.html">fhatos::Mailbox&lt; ptr&lt; Mail &gt; &gt;</a>.</p>
-
-</div>
-</div>
-<a id="ad317cb423d89e8867a12a3c88c995792" name="ad317cb423d89e8867a12a3c88c995792"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad317cb423d89e8867a12a3c88c995792">&#9670;&#160;</a></span>stop()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename PROCESS  = Thread&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void <a class="el" href="classfhatos_1_1Actor.html">fhatos::Actor</a>&lt; PROCESS &gt;::stop </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Reimplemented from <a class="el" href="classfhatos_1_1Process.html">fhatos::Process</a>.</p>
-
-</div>
-</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/github/workspace/src/process/actor/<a class="el" href="actor_8hpp_source.html">actor.hpp</a></li>
+<li>/github/workspace/src/structure/io/<a class="el" href="terminal_8hpp_source.html">terminal.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
