@@ -157,7 +157,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#define FOS_ERROR_MESSAGE_SIZE 250</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="keyword">class </span>_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST fError final : <span class="keyword">public</span> std::exception {</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="keyword">class </span><span class="comment">/*_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST*/</span> fError final : <span class="keyword">public</span> std::exception {</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keyword">protected</span>:</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">char</span> _message[FOS_ERROR_MESSAGE_SIZE];</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
@@ -169,7 +169,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      _message[length] = <span class="charliteral">&#39;\0&#39;</span>;</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      va_end(arg);</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    };</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keyword">const</span> <span class="keywordtype">char</span> *what() const _NOEXCEPT<span class="keyword"> override </span>{ <span class="keywordflow">return</span> this-&gt;_message; }</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keyword">const</span> <span class="keywordtype">char</span> *what() const noexcept<span class="keyword"> override </span>{ <span class="keywordflow">return</span> this-&gt;_message; }</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  };</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>}</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="preprocessor">#undef FOS_ERROR_MESSAGE_SIZE</span></div>

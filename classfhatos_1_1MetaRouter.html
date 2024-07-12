@@ -126,6 +126,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a96b7e81b9e6a1f5ef661884350fb330c" id="r_a96b7e81b9e6a1f5ef661884350fb330c"><td class="memItemLeft" align="right" valign="top"><a id="a96b7e81b9e6a1f5ef661884350fb330c" name="a96b7e81b9e6a1f5ef661884350fb330c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>MetaRouter</b> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;id=<a class="el" href="classfhatos_1_1ID.html">ID</a>(&quot;/router/meta&quot;), <a class="el" href="classfhatos_1_1Router.html">Router</a> *local=LocalRouter::singleton(), <a class="el" href="classfhatos_1_1Router.html">Router</a> *global=MqttRouter::singleton())</td></tr>
 <tr class="separator:a96b7e81b9e6a1f5ef661884350fb330c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a873d32455e4eb0a89b0b7b689208c613" id="r_a873d32455e4eb0a89b0b7b689208c613"><td class="memItemLeft" align="right" valign="top">const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a873d32455e4eb0a89b0b7b689208c613">clear</a> () override</td></tr>
+<tr class="separator:a873d32455e4eb0a89b0b7b689208c613"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc9fca3306e42b7cd059abe36c0b2f4a" id="r_adc9fca3306e42b7cd059abe36c0b2f4a"><td class="memItemLeft" align="right" valign="top">virtual const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc9fca3306e42b7cd059abe36c0b2f4a">publish</a> (const <a class="el" href="structfhatos_1_1Message.html">Message</a> &amp;message) override</td></tr>
 <tr class="separator:adc9fca3306e42b7cd059abe36c0b2f4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb7cf04bd2dc1b4467c59660710536c6" id="r_aeb7cf04bd2dc1b4467c59660710536c6"><td class="memItemLeft" align="right" valign="top">virtual const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb7cf04bd2dc1b4467c59660710536c6">subscribe</a> (const <a class="el" href="structfhatos_1_1Subscription.html">Subscription</a> &amp;subscription) override</td></tr>
@@ -135,9 +137,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a37ac334514b7e037f70967af26c4c35e" id="r_a37ac334514b7e037f70967af26c4c35e"><td class="memItemLeft" align="right" valign="top">virtual const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a37ac334514b7e037f70967af26c4c35e">unsubscribeSource</a> (const <a class="el" href="classfhatos_1_1ID.html">ID</a> &amp;source) override</td></tr>
 <tr class="separator:a37ac334514b7e037f70967af26c4c35e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfhatos_1_1Router"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classfhatos_1_1Router')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classfhatos_1_1Router.html">fhatos::Router</a></td></tr>
-<tr class="memitem:a91d91791a0b285cf44f37f913f173808 inherit pub_methods_classfhatos_1_1Router" id="r_a91d91791a0b285cf44f37f913f173808"><td class="memItemLeft" align="right" valign="top">
-virtual const RESPONSE_CODE&#160;</td><td class="memItemRight" valign="bottom"><b>clear</b> () FP_OK_RESULT</td></tr>
-<tr class="separator:a91d91791a0b285cf44f37f913f173808 inherit pub_methods_classfhatos_1_1Router"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a011eba271262641764f5f636533fbac6 inherit pub_methods_classfhatos_1_1Router" id="r_a011eba271262641764f5f636533fbac6"><td class="memItemLeft" align="right" valign="top">
 virtual uint&#160;</td><td class="memItemRight" valign="bottom"><b>retainSize</b> () const</td></tr>
 <tr class="separator:a011eba271262641764f5f636533fbac6 inherit pub_methods_classfhatos_1_1Router"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -260,6 +259,33 @@ const PType&#160;</td><td class="memItemRight" valign="bottom"><b>type</b></td><
 <tr class="separator:a94db30740900513a6e48815dbc6c0227 inherit pub_attribs_classfhatos_1_1Process"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a873d32455e4eb0a89b0b7b689208c613" name="a873d32455e4eb0a89b0b7b689208c613"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a873d32455e4eb0a89b0b7b689208c613">&#9670;&#160;</a></span>clear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const RESPONSE_CODE fhatos::MetaRouter::clear </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented from <a class="el" href="classfhatos_1_1Router.html">fhatos::Router</a>.</p>
+
+</div>
+</div>
 <a id="adc9fca3306e42b7cd059abe36c0b2f4a" name="adc9fca3306e42b7cd059abe36c0b2f4a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adc9fca3306e42b7cd059abe36c0b2f4a">&#9670;&#160;</a></span>publish()</h2>
 
