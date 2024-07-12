@@ -46,7 +46,7 @@ jobs:
       run: |
         pio lib install
         export PATH=$PATH:$HOME/.local/bin
-        sudo ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
+#        sudo ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
         sudo ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
         sudo ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
 
@@ -66,7 +66,7 @@ jobs:
       run: |
         export PATH=$PATH:$HOME/.local/bin
         chmod 777 bin/fhat-dev
-        sudo bin/fhat-dev test
+        sudo bin/fhat-dev test native
 
  #   - name: Cmake
  #     working-directory: ${{github.workspace}}
