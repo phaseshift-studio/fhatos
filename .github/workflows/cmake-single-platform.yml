@@ -53,8 +53,16 @@ jobs:
         CC: clang
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        chmod 777 bin/fhat-dev
-        sudo bin/fhat-dev build
+        mkdir build
+        cd build
+        cmake ..
+        make -o1 -j8
+
+    - name: Deploy MQTT Broker
+      working-directory: ${{github.workspace}}
+      run: |
+        sudo apt-get install mosquitto
+        /usr/local/opt/mosquitto/sbin/mosquitto -c conf/mosquitto.conf &
 
     - name: Fhat-Dev Test
       working-directory: ${{github.workspace}}
@@ -62,10 +70,12 @@ jobs:
         CC: clang
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        chmod 777 bin/fhat-dev
-        sudo bin/fhat-dev test native
+        cd build/test
+        ctest
 
-#        sudo ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
+#  chmod 777 bin/fhat-dev
+  #        sudo bin/fhat-dev build
+  # sudo ln -s ~/.platformio/penv/bin/pio ~/.local/bin/pio
  #       sudo ln -s ~/.platformio/penv/bin/piodebuggdb ~/.local/bin/piodebuggdb
 #        sudo ln -s ~/.platformio/penv/bin/platformio ~/.local/bin/platformio
  #   - name: Cmake

@@ -72,6 +72,19 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
+MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
+FETCHCONTENT_DECLARE(
+        paho-mqtt3c
+        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
+        GIT_TAG v1.3.13
+)
+FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqtt3c)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/paho-mqtt3c)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/paho-mqtt3c)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+####################################
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqttpp3
@@ -84,19 +97,6 @@ INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include/mqtt DESTIN
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
 ADD_COMPILE_OPTIONS("-Wno-dev")
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-####################################
-MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
-FETCHCONTENT_DECLARE(
-        paho-mqtt3c
-        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
-        GIT_TAG v1.3.13
-)
-FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqtt3c)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/paho-mqtt3c)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/paho-mqtt3c)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 
