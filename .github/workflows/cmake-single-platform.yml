@@ -47,6 +47,14 @@ jobs:
         pio lib install
         export PATH=$PATH:$HOME/.local/bin
 
+    - name: Install MQTT C Library
+      working-directory: ${{github.workspace}}
+      run: |
+        git clone https://github.com/eclipse/paho.mqtt.c.git
+        cd org.eclipse.paho.mqtt.c.git
+        make
+        sudo make install
+
     - name: Fhat-Dev Build
       working-directory: ${{github.workspace}}
       env:
