@@ -27,9 +27,18 @@
 namespace fhatos {
   class Scheduler final : public AbstractScheduler {
   public:
-    static Scheduler *singleton() {
-      static Scheduler scheduler = Scheduler();
-      return &scheduler;
+    static Scheduler *singleton(const ID& id = ID("/scheduler/")) {
+      static bool _setup = false;
+      static Scheduler *scheduler = new Scheduler(id);
+      if (!_setup) {
+        scheduler->setup();
+        _setup = true;
+      }
+      return scheduler;
+    }
+
+     void feedLocalWatchdog() override {
+      vTaskDelay(1); // feeds the watchdog for the task
     }
 
     virtual bool spawn(Process *process) override {
@@ -89,9 +98,7 @@ namespace fhatos {
           return false;
         }
       }
-      LOG(success ? INFO : ERROR, "!M%s!! %s spawned\n",
-          process->id()->toString().c_str(),
-          P_TYPE_STR(process->type));
+      LOG_SPAWN(success,process);
       LOG(NONE,
           "\t!yFree memory\n"
           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
@@ -105,7 +112,7 @@ namespace fhatos {
 
   private:
   private:
-    explicit Scheduler(const ID_p &id = share(Router::mintID("scheduler", "kernel"))) : AbstractScheduler(id) {
+    explicit Scheduler(const ID &id = Router::mintID("scheduler", "kernel")) : AbstractScheduler(id) {
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
@@ -143,7 +150,7 @@ namespace fhatos {
         thread->loop();
         vTaskDelay(1); // feeds the watchdog for the task
       }
-      Scheduler::singleton()->destroy(*thread->id());
+      Scheduler::singleton()->_destroy(*thread->id());
       vTaskDelete(nullptr);
     }
   };

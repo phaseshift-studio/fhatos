@@ -36,8 +36,15 @@
 #define MQTT_MAX_PACKET_SIZE 500
 #define JSON_DOCUMENT_SIZE 250
 
+#ifndef MQTT_BROKER_ADDR
+#define MQTT_BROKER_ADDR "localhost:1883"
+#endif
+
+#ifndef MQTT_BROKER_PORT
+#define MQTT_BROKER_PORT 1883
+#endif
+
 namespace fhatos {
-  template<typename PROCESS = Thread>
   class MqttRouter : public Router {
   protected:
     MqttRouter(const ID &id = Router::mintID("kernel", "router/mqtt"),
@@ -63,14 +70,14 @@ namespace fhatos {
                 JsonDocument doc;
                 deserializeJson(doc, payload, length);
                 const Message message{
-                  .source = ID(doc["source"].as<String>()),
+                  .source = ID(doc["source"].as<String>().c_str()),
                   .target = targetId,
-                  .payload = {
-                    .type = (OType) doc["type"].as<uint>(),
-                    .data = (const fbyte *) strdup(
-                      doc["data"].as<const char *>()),
-                    .length = doc["length"].as<uint>()
-                  },
+                  .payload = Obj::deserialize<Obj>(
+                  std::shared_ptr<
+                  Pair<uint,unsigned char*>>(
+                  new Pair<uint,unsigned char*>(
+                  doc["length"].as<uint>(),
+                  ( unsigned char*)doc["data"].as<const char *>()))),
                   .retain = doc["retain"].as<bool>()
                 };
                 LOG_RECEIVE(RESPONSE_CODE::OK, subscription, message);
@@ -78,7 +85,7 @@ namespace fhatos {
                   subscription.mailbox->push(
                     share(Mail(share(subscription), share(message)))); // if mailbox, put in mailbox
                 } else {
-                  subscription.onRecv(message); // else, evaluate callback
+                  subscription.onRecv(share(message)); // else, evaluate callback
                 }
                 // delete[] results;
               }
@@ -104,20 +111,20 @@ namespace fhatos {
       delete this->server;
     }
 
-    static MqttRouter *singleton() {
-      static MqttRouter singleton = MqttRouter();
+    static MqttRouter *singleton(const ID& id = "/router/mqtt/") {
+      static MqttRouter singleton = MqttRouter(id);
       return &singleton;
     }
 
     void setWill(const ID &willTopic, const String &willMessage,
                  const bool willRetain = false, const uint8_t willQoS = 1) {
-      this->willTopic = willTopic;
+      this->willTopic = String(willTopic.toString().c_str());
       this->willMessage = willMessage;
       this->willRetain = willRetain;
       this->willQoS = willQoS;
     }
 
-    virtual RESPONSE_CODE clear() override {
+    virtual const RESPONSE_CODE clear() override {
       _SUBSCRIPTIONS.forEach([this](const Subscription &subscription) {
         this->xmqtt->unsubscribe(subscription.pattern.toString().c_str());
       });
@@ -158,7 +165,7 @@ namespace fhatos {
           _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
         }
       }
-      LOG_SUBSCRIBE(_rc, subscription);
+      LOG_SUBSCRIBE(_rc, &subscription);
       return _rc;
     }
 
@@ -194,13 +201,13 @@ namespace fhatos {
                 "\tWill message            : %s\n"
                 "\tWill QoS                : %i\n"
                 "\tWill retain             : %s\n",
-                this->id().toString().c_str(), this->server, this->port,
+                this->id()->toString().c_str(), this->server, this->port,
                 fWIFI::singleton()->ip().c_str(),
                 this->willTopic.isEmpty() ? "<none>" : this->willTopic.c_str(),
                 this->willTopic.isEmpty() ? "<none>" : this->willMessage.c_str(),
                 this->willTopic.isEmpty() ? -1 : willQoS,
                 FOS_BOOL_STR(!this->willTopic.isEmpty() && this->willRetain));
-            PROCESS::setup();
+            Router::setup();
           } else {
             LOG(ERROR, "%s:%i [retry in %ims]\n", this->server, this->port,
                 MQTT_CONNECTION_RETRY);
@@ -226,7 +233,7 @@ namespace fhatos {
       _PUBLICATIONS.clear();
       _SUBSCRIPTIONS.clear();
       this->xmqtt->disconnect();
-      PROCESS::stop();
+      Router::stop();
     }
 
     virtual void loop() override {
@@ -236,9 +243,9 @@ namespace fhatos {
         if (m.has_value()) {
           JsonDocument doc;
           doc["source"] = m->source.toString();
-          doc["type"] = (const uint) m->payload->type;
-          doc["data"] = m->payload->data;
-          doc["length"] = m->payload->length;
+          doc["type"] = (const uint) m->payload->o_type();
+          doc["data"] = m->payload->serialize()->second;
+          doc["length"] = m->payload->serialize()->first;
           doc["retain"] = m->retain;
           char buffer[512];
           const uint length = serializeJson(doc, buffer);

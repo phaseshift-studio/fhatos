@@ -30,7 +30,7 @@
 #define JSON_DOCUMENT_SIZE 250
 
 #ifndef MQTT_BROKER_ADDR
-#define MQTT_BROKER_ADDR "mqtt://localhost:1883"
+#define MQTT_BROKER_ADDR localhost:1883
 #endif
 
 using namespace mqtt;
@@ -38,10 +38,10 @@ using namespace mqtt;
 namespace fhatos {
   class MqttRouter final : public Router {
   public:
-    static MqttRouter *singleton(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
+    static MqttRouter *singleton(const ID &id = ID("/router/mqtt/"), const char *serverAddr = STR(MQTT_BROKER_ADDR),
                                  const Message_p &willMessage = ptr<Message>(nullptr)) {
-      static MqttRouter *mqtt = new MqttRouter(id, serverAddr, willMessage);
-      return mqtt;
+      static MqttRouter mqtt = MqttRouter(id, serverAddr, willMessage);
+      return &mqtt;
     }
 
   protected:
@@ -51,10 +51,12 @@ namespace fhatos {
     MutexDeque<Message_p> _PUBLICATIONS;
     Message_p willMessage;
 
-    explicit MqttRouter(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
+    explicit MqttRouter(const ID &id = ID("/router/mqtt/"), const char *serverAddr =  STR(MQTT_BROKER_ADDR),
                         const Message_p &willMessage = ptr<Message>(nullptr)) :
         Router(id, ROUTER_LEVEL::GLOBAL_ROUTER) {
-      this->serverAddr = serverAddr;
+      this->serverAddr = string(serverAddr).find_first_of("mqtt://") == string::npos
+                             ? string("mqtt://").append(string(serverAddr)).c_str()
+                             : serverAddr;
       this->xmqtt = new async_client(this->serverAddr, "", mqtt::create_options(MQTTVERSION_5));
       this->willMessage = willMessage;
       auto connection_options = connect_options_builder()

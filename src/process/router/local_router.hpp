@@ -36,10 +36,11 @@ namespace fhatos {
 
   private:
     explicit LocalRouter(const ID &id = ID("/router/local/")) : Router(id, ROUTER_LEVEL::LOCAL_ROUTER) {
-      this->subscribe(Subscription{
+
+      /* this->subscribe(Subscription{
           .source = id, .pattern = id, .qos = QoS::_1, .onRecv = [id](const Message_p &message) {
             LOG(INFO, "LocalRouter %s subscription received: %s\n", id.toString().c_str(), message->toString().c_str());
-          }});
+          }});*/
     }
 
   protected:
@@ -115,9 +116,10 @@ namespace fhatos {
         RESPONSE_CODE _rc = *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
           RESPONSE_CODE _rc = OK;
           /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-          erase_if(SUBSCRIPTIONS, [subscription](Subscription_p &sub) {
-            return sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern);
-          });
+          SUBSCRIPTIONS.erase(
+              remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(), [subscription](Subscription_p &sub) {
+                return sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern);
+              }), SUBSCRIPTIONS.end());
           /////////////// ADD NEW SUBSCRIPTION
           const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
           SUBSCRIPTIONS.push_back(sub_ptr);

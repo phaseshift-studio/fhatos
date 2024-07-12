@@ -25,7 +25,6 @@ namespace fhatos {
         self->publish(ID("/app/actor2@127.0.0.1"), share(Int(counter1->load())), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
           self->stop();
-        // Scheduler<>::singleton()->destroy(self->id());
         // TEST_ASSERT_EQUAL(counter1->first, counter1->second);
       });
     });
@@ -36,7 +35,6 @@ namespace fhatos {
         self->publish(ID("/app/actor1@127.0.0.1"), share(Int(counter2->load())), TRANSIENT_MESSAGE);
         if (counter2->fetch_add(1) > 198)
           self->stop();
-        // Scheduler<>::singleton()->destroy(self->id());
       });
     });
     Scheduler::singleton()->spawn(actor1);
@@ -180,17 +178,12 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       for (Router *router //
-           : List<Router *>{LocalRouter::singleton(), //
-                           // MqttRouter::singleton(), //
-                            MetaRouter::singleton()}) {
+           : List<Router *>{/*FOS_TEST_ROUTERS*/LocalRouter::singleton()}) {
         //
         GLOBAL_OPTIONS->ROUTING = router; //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        // FOS_RUN_TEST(test_actor_throughput<LocalRouter>); //
         FOS_RUN_TEST(test_actor_by_router); //
-        // FOS_RUN_TEST(test_actor_by_router<MqttRouter<>>);  //
-        //  FOS_RUN_TEST(test_actor_by_router<MetaRouter<>>);  //
         FOS_RUN_TEST(test_message_retain); //
         FOS_RUN_TEST(test_actor_serialization); //
       } //

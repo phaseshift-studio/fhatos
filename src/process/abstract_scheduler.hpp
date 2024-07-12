@@ -31,6 +31,12 @@
 #include "router/publisher.hpp"
 #include "structure/f_bcode.hpp"
 
+#define LOG_SPAWN(success, process)                                                                                    \
+  {                                                                                                                    \
+    LOG_TASK((success) ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", (process)->id()->toString().c_str(),           \
+             P_TYPE_STR((process)->type));                                                                             \
+  }
+
 
 namespace fhatos {
   class AbstractScheduler : public IDed, public Publisher, public Mailbox<Mail_p> {
@@ -44,8 +50,7 @@ namespace fhatos {
     Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {
-    }
+    explicit AbstractScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
     ~AbstractScheduler() override {
       delete COROUTINES;
       delete FIBERS;
@@ -86,10 +91,16 @@ namespace fhatos {
       for (Process *process: *this->find("#")) {
         this->destroy(*process->id());
       }
+      while (this->next()) {
+      }
       this->unsubscribeSource();
       this->barrier("shutting_down");
-      std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay so _destroy can finish
+#ifdef NATIVE
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _destroy can finish
+#endif
     }
+
+    virtual void feedLocalWatchdog() {}
 
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
@@ -99,8 +110,10 @@ namespace fhatos {
           this->stop();
       });*/
       while (this->next()) {
+        this->feedLocalWatchdog();
       }
       while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
+        this->feedLocalWatchdog();
       }
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }

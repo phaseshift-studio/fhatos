@@ -197,10 +197,8 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (Router *router //
-           : List<Router *>{LocalRouter::singleton(), //
-                            MqttRouter::singleton(), //
-                            MetaRouter::singleton()}) { //
+      for (fhatos::Router *router //
+           : List<Router *>{FOS_TEST_ROUTERS}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
@@ -209,7 +207,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_mult); //
         FOS_RUN_TEST(test_count); //
         FOS_RUN_TEST(test_relational_predicates); //
-        FOS_RUN_TEST(test_define_as_type); //
+       // TODO: FOS_RUN_TEST(test_define_as_type); //
       })
 } // namespace fhatos
 

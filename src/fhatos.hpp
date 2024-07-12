@@ -39,6 +39,12 @@
 
 #ifndef NATIVE
 #include <Arduino.h>
+#ifndef FOS_SERIAL_BAUDRATE
+#define FOS_SERIAL_BAUDRATE 115200
+#endif
+#ifndef FOS_SERIAL_TIMEOUT
+#define FOS_SERIAL_TIMEOUT 10
+#endif
 #endif
 #include <util/ansi.hpp>
 #include <util/fhat_error.hpp>
@@ -145,7 +151,6 @@ namespace fhatos {
 
   enum OPTIONS { router, printer, logger };
   static Map<OPTIONS, Any> GLOBAL = Map<OPTIONS, Any>();
-
   ////////////
   // MACROS //
   ////////////

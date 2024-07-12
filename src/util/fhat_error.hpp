@@ -63,7 +63,7 @@ namespace fhatos {
 ////////////////////////////////
 #else
 #define FOS_ERROR_MESSAGE_SIZE 250
-  class _LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST fError final : public std::exception {
+  class /*_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST*/ fError final : public std::exception {
   protected:
     char _message[FOS_ERROR_MESSAGE_SIZE];
 
@@ -75,7 +75,7 @@ namespace fhatos {
       _message[length] = '\0';
       va_end(arg);
     };
-    const char *what() const _NOEXCEPT override { return this->_message; }
+    const char *what() const noexcept override { return this->_message; }
   };
 }
 #undef FOS_ERROR_MESSAGE_SIZE

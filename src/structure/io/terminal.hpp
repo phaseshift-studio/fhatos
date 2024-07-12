@@ -59,6 +59,11 @@ namespace fhatos {
 
     static void currentOut(const ID_p &source) { Terminal::singleton()->_currentOutput = source; }
 
+    template<typename PRINTER = Ansi<>>
+    static PRINTER *printer() {
+      return GLOBAL_OPTIONS->printer<>();
+    }
+
     static void out(const ID &source, const char *format, ...) {
       char buffer[512];
       va_list arg;
@@ -67,7 +72,7 @@ namespace fhatos {
       buffer[length] = '\0';
       va_end(arg);
       GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = source, //
-                                                        .target = Terminal::singleton()->id()->extend("/out"), //
+                                                        .target = Terminal::singleton()->id()->extend("out"), //
                                                         .payload = Obj::to_str(buffer),
                                                         .retain = TRANSIENT_MESSAGE});
     }

@@ -12,7 +12,7 @@ IF (BUILD_CODE_RUNNERS)
             MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_RUNNER}${..}")
             ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}/${PACKAGE_RUNNER}.cpp)
-            ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator" "-Wno-error=format-security")
+            ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator")
             TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} tsl::ordered_map paho-mqttpp3)
             SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs/build"

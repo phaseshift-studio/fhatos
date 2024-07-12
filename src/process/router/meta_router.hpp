@@ -33,14 +33,14 @@ namespace fhatos {
     Router *_global;
     Router *select(const ID &target) const {
       if (!target.empty() && target.toString()[0] == '/')
-        return this->_local;
+        return this->_local; //   /abc/
       if (target.length() <= 1)
-        return this->_local;
-      return this->_global;
+        return this->_local; //   abc
+      return this->_global; //   127.0.0.1/abc/
     }
 
   public:
-    inline static MetaRouter *singleton(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
+     static MetaRouter *singleton(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
                                         Router *global = MqttRouter::singleton()) {
       static MetaRouter singleton = MetaRouter(id, local, global);
       return &singleton;
@@ -49,13 +49,11 @@ namespace fhatos {
     MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
                Router *global = MqttRouter::singleton()) : Router(id), _local(local), _global(global) {}
 
-    ~MetaRouter() { this->clear(); }
-
-    /* virtual RESPONSE_CODE clear() override {
-       RESPONSE_CODE __rc1 = LOCAL_ROUTER::singleton()->clear();
-       RESPONSE_CODE __rc2 = GLOBAL_ROUTER::singleton()->clear();
-       return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
-     }*/
+    const RESPONSE_CODE clear() override {
+      RESPONSE_CODE __rc1 = this->_local->clear();
+      RESPONSE_CODE __rc2 = this->_global->clear();
+      return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
+    }
 
     virtual const RESPONSE_CODE publish(const Message &message) override {
       return this->select(message.target)->publish(message);

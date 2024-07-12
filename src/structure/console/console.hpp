@@ -36,7 +36,8 @@
 namespace fhatos {
   class Console final : public Actor<Thread> {
   protected:
-    string _line;
+    string _line = "";
+    bool _newInput = true;
     Map<string, Pair<Consumer<Obj_p>, Runnable>> _MENU_MAP = Map<string, Pair<Consumer<Obj_p>, Runnable>>();
     ///// printers
     void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
@@ -53,66 +54,82 @@ namespace fhatos {
           this->printResult(obj);
       });
     }
-    void printResult(const Obj_p &obj) const {
-      const string output = obj->toString(); //.c_str();// ->c_str();
-      Terminal::out(*this->id(), "!g==>!!%s\n", output.c_str());
-    }
+    void printResult(const Obj_p &obj) const { Terminal::out(*this->id(), "!g==>!!%s\n", obj->toString().c_str()); }
 
   public:
     explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id) {
       _MENU_MAP[":quit"] = {[this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }};
       _MENU_MAP[":output"] = {[this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
                               [] {
-                                GLOBAL_OPTIONS->printer<>()->printf(
+                                Terminal::printer<>()->printf(
                                     "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
                                     Terminal::singleton()->id()->extend("out").toString().c_str());
                               }};
+      _MENU_MAP[":shutdown"] = {[this](const Obj_p &) { Scheduler::singleton()->stop(); },
+                                [this]() { Scheduler::singleton()->stop(); }};
     }
 
     void loop() override {
       Actor<Thread>::loop();
-      this->printPrompt(!this->_line.empty());
-      string temp;
-      std::getline(std::cin, temp);
-      this->_line.append(temp);
-      StringHelper::trim(this->_line);
-      if (this->_line.empty()) {
-        ///////// DO NOTHING ON EMPTY LINE
+      if (this->_newInput)
+        this->printPrompt(!this->_line.empty());
+      this->_newInput = false;
+      int x;
+#ifdef NATIVE
+      if ((x = getchar()) == EOF)
         return;
-      }
-      if (!Parser::closedExpression(this->_line))
+#else
+      if (Serial.available() > 0)
+        x = Serial.read();
+      else
         return;
-      if (this->_line[0] == ':') {
-        ///////// HANDLE MENU INTERACTIONS
-        const string::size_type index = _line.find_first_of(' ');
-        const string command = index == string::npos ? this->_line : this->_line.substr(0, index);
-        StringHelper::trim(command);
-        if (!_MENU_MAP.count(command)) {
-          this->printException(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
-                                      this->id()->toString().c_str(), command.c_str()));
-        } else if (index == string::npos) {
-          _MENU_MAP[command].second();
+#endif
+        if ('\x04' == (char) x) /// CNTRL-D (clear line)
+          this->_line.clear();
+        else if ('\n' == (char) x)
+          this->_newInput = true;
+        else {
+          this->_line += (char) x;
+          return;
+        }
+        StringHelper::trim(this->_line);
+        if (this->_line.empty()) {
+          ///////// DO NOTHING ON EMPTY LINE
+          return;
+        }
+        if (!Parser::closedExpression(this->_line))
+          return;
+        if (this->_line[0] == ':') {
+          ///////// HANDLE MENU INTERACTIONS
+          const string::size_type index = _line.find_first_of(' ');
+          const string command = index == string::npos ? this->_line : this->_line.substr(0, index);
+          StringHelper::trim(command);
+          if (!_MENU_MAP.count(command)) {
+            this->printException(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
+                                        this->id()->toString().c_str(), command.c_str()));
+          } else if (index == string::npos) {
+            _MENU_MAP[command].second();
+          } else {
+            const string value = this->_line.substr(index);
+            StringHelper::trim(value);
+            _MENU_MAP[command].first(Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+          }
+          this->_line.clear();
         } else {
-          const string value = this->_line.substr(index);
-          StringHelper::trim(value);
-          _MENU_MAP[command].first(Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+          ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
+          try {
+            const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
+            if (obj.value()->isBytecode())
+              this->printResults(Fluent(obj.value()));
+            else
+              this->printResult(obj.value());
+          } catch (const std::exception &e) {
+            this->printException(e);
+          }
+          this->_line.clear();
         }
-        this->_line.clear();
-      } else {
-        ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
-        try {
-          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
-          if (obj.value()->isBytecode())
-            this->printResults(Fluent(obj.value()));
-          else
-            this->printResult(obj.value());
-        } catch (const std::exception &e) {
-          this->printException(e);
-        }
-        this->_line.clear();
       }
-    }
-  };
-} // namespace fhatos
+    };
+  } // namespace fhatos
 
 #endif

@@ -29,6 +29,7 @@
 #include <structure/io/net/f_wifi.hpp>
 #endif
 #include FOS_PROCESS(coroutine.hpp)
+#include FOS_PROCESS(thread.hpp)
 
 
 #define RETAIN_MESSAGE true
@@ -137,11 +138,11 @@ namespace fhatos {
                                                                         {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
                                                                         {ROUTER_LEVEL::GLOBAL_ROUTER, "global_router"},
                                                                         {ROUTER_LEVEL::META_ROUTER, "meta_router"}});
+  //template<typename PROCESS = Coroutine>
   class Router : public Coroutine {
   protected:
     explicit Router(const ID &id = ID("router"), const ROUTER_LEVEL level = ROUTER_LEVEL::LOCAL_ROUTER) :
-        Coroutine(id), _level(level) {
-    }
+        Coroutine(id), _level(level) {}
 
   public:
     virtual ~Router() = default;

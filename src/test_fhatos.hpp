@@ -34,34 +34,55 @@
 ////////////////////////////////////////////////////////
 #ifdef NATIVE
 namespace fhatos {
-
 #ifndef FOS_LOG_TYPE
 #define FOS_LOG_TYPE INFO
 #endif
 
+#ifndef FOS_TEST_ROUTERS
+#ifdef NATIVE
+#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
+#else
+#define FOS_TEST_ROUTERS LocalRouter::singleton()
+#endif
+#endif
+
 #define FOS_RUN_TEST(x)                                                                                                \
-  { RUN_TEST(x); }
+  {                                                                                                                    \
+    try {                                                                                                              \
+      RUN_TEST(x);                                                                                                     \
+    } catch (const std::exception &e) {                                                                                \
+      LOG(ERROR, "Failed test due to %s: %s\n", e.what(), STR(x));                                                     \
+      throw;                                                                                                           \
+    }                                                                                                                  \
+  }
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
-    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                         \
-    GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
-    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
-    LOG(NONE, ANSI_ART);                                                                                               \
-    Scheduler::singleton()->onBoot({LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton(),        \
-                                    Parser::singleton(), Types::singleton()});                                         \
-    Types::singleton()->loadExt("/ext/process");                                                                       \
-                                                                                                                       \
-    UNITY_BEGIN();                                                                                                     \
-    x;                                                                                                                 \
-    UNITY_END();                                                                                                       \
+    try {                                                                                                              \
+      GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                       \
+      GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                          \
+      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                              \
+      LOG(NONE, ANSI_ART);                                                                                             \
+      Scheduler::singleton()->onBoot({FOS_TEST_ROUTERS, Parser::singleton(), Types::singleton()});                     \
+      Types::singleton()->loadExt("/ext/process");                                                                     \
+      UNITY_BEGIN();                                                                                                   \
+      x;                                                                                                               \
+      UNITY_END();                                                                                                     \
+    } catch (std::exception & e) {                                                                                     \
+      LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
+    }                                                                                                                  \
   }
 } // namespace fhatos
 
 #define SETUP_AND_LOOP()                                                                                               \
-  int main(int arg, char **argsv) { fhatos::RUN_UNITY_TESTS(); };
-void setUp() {}
-void tearDown() {}
+  using namespace fhatos;                                                                                              \
+  int main(int arg, char **argsv) { fhatos::RUN_UNITY_TESTS(); };                                                      \
+  void setUp() {}                                                                                                      \
+  void tearDown() {                                                                                                    \
+    for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                           \
+      router->clear();                                                                                                 \
+    }                                                                                                                  \
+  }
 #else
 /////////////////////////////////////////////////////
 //////////////////////// ESP ////////////////////////
@@ -87,10 +108,12 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
-    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::DEBUG;                                                                         \
-    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
+    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                         \
     GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
+    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
     LOG(NONE, ANSI_ART);                                                                                               \
+    Scheduler::singleton()->onBoot({LocalRouter::singleton(), Parser::singleton(), Types::singleton()});               \
+    Types::singleton()->loadExt("/ext/process");                                                                       \
     UNITY_BEGIN();                                                                                                     \
     uint32_t __test_freeSketch;                                                                                        \
     uint32_t __test_freeHeap;                                                                                          \
@@ -243,8 +266,9 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
   }
   if (!expectedReferences.empty()) {
     if (GLOBAL_OPTIONS->router<Router>()->retainSize() != -1) {
-      TEST_ASSERT_EQUAL_INT_MESSAGE(expectedReferences.size(), GLOBAL_OPTIONS->router<Router>()->retainSize(),
-                                    "Router retain message count");
+      TEST_ASSERT_EQUAL_INT_MESSAGE(
+          expectedReferences.size(), GLOBAL_OPTIONS->router<Router>()->retainSize(),
+          (string("Router retain message count: ") + GLOBAL_OPTIONS->router<Router>()->id()->toString()).c_str());
       for (const auto &[key, value]: expectedReferences) {
         const Obj temp = value;
         GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{
@@ -252,7 +276,9 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
             .source = ID(FOS_DEFAULT_SOURCE_ID),
             .pattern = key.uri_value(),
             .onRecv = [temp](const ptr<Message> &message) {
-              TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload, "Router retain message payload equality");
+              TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload, (string("Router retain message payload equality: ") +
+                                                                   GLOBAL_OPTIONS->router<Router>()->id()->toString())
+                                                                      .c_str());
             }});
       }
     }

@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 #include <language/exts.hpp>
 #include <language/obj.hpp>
-#include <process/native/coroutine.hpp>
+#include FOS_PROCESS(coroutine.hpp)
 #include <process/router/router.hpp>
 #include <util/mutex_rw.hpp>
 
@@ -116,7 +116,7 @@ namespace fhatos {
       }
       const Option<Type_p> type = loadType(typeId);
       if (type.has_value()) {
-        if (obj.match(*type, false)) {
+        if (obj.match(type.value(), false)) {
           return true;
         }
         if (doThrow)

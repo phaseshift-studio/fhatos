@@ -187,7 +187,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       for (Router *router //
-           : List<Router *>({LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()})) { //
+           : List<Router *>({FOS_TEST_ROUTERS})) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //

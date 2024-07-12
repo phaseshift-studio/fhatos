@@ -30,7 +30,7 @@ namespace fhatos {
   class CPrinter {
   public:
     static CPrinter *singleton() {
-      static auto printer = CPrinter();
+      static CPrinter printer = CPrinter();
       return &printer;
     }
 
@@ -47,8 +47,16 @@ namespace fhatos {
   class Ansi {
   public:
     static Ansi *singleton() {
-      static Ansi *ansi = new Ansi<PRINTER>();
-      return ansi;
+      static Ansi ansi = Ansi<PRINTER>();
+#ifndef NATIVE
+      static bool _setup = false;
+      if (!_setup) {
+        _setup = true;
+        Serial.begin(FOS_SERIAL_BAUDRATE);
+        Serial.setTimeout(FOS_SERIAL_TIMEOUT);
+      }
+#endif
+      return &ansi;
     }
 
   protected:
