@@ -51,7 +51,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         git clone https://github.com/eclipse/paho.mqtt.c.git
-        cd org.eclipse.paho.mqtt.c.git
+        cd paho.mqtt.c
         make
         sudo make install
 
