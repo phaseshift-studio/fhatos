@@ -37,15 +37,14 @@ the program on an individual `thread` accessible via the target fURI. Once spawn
 thread's id and halts.
 
 ```.cpp
-fhatos> __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,
-                  thread[[setup => __(0).print('setup complete'),
-                          loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
+fhatos> thread[[setup => print('setup complete'),
+                loop  => stop(_)]].to(/abc/)")
 ```
 
 ```.cpp
 fhatos> __(0).from(127.0.0.1/kernel/scheduler/thread/abc)
-==> thread[[setup => __(0).print('setup complete'),
-            loop  => __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
+==> thread[[setup => print('setup complete'),
+            loop  => pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
 fhatos> __(0).from(127.0.0.1/kernel/scheduler/thread/abc/loop)
 ==> __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)
 ```

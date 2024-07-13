@@ -129,20 +129,46 @@ namespace fhatos {
     MANY_TO_ONE,
     MANY_TO_MANY,
   }; // TYPE
+  static const Enums<IType> IDomain = Enums<IType>({{IType::ZERO_TO_ZERO, "Ø"},
+                                                    {IType::ZERO_TO_ONE, "Ø"},
+                                                    {IType::ZERO_TO_MANY, "Ø"},
+                                                    {IType::ONE_TO_ZERO, "o"},
+                                                    {IType::MANY_TO_ZERO, "Œ"},
+                                                    {IType::ONE_TO_ONE, "o"},
+                                                    {IType::ONE_TO_MANY, "o"},
+                                                    {IType::MANY_TO_ONE, "Œ"},
+                                                    {IType::MANY_TO_MANY, "Œ"}});
+  static const Enums<IType> IRange = Enums<IType>({{IType::ZERO_TO_ZERO, "Ø"},
+                                                   {IType::ZERO_TO_ONE, "o"},
+                                                   {IType::ZERO_TO_MANY, "Œ"},
+                                                   {IType::ONE_TO_ZERO, "Ø"},
+                                                   {IType::MANY_TO_ZERO, "Ø"},
+                                                   {IType::ONE_TO_ONE, "o"},
+                                                   {IType::ONE_TO_MANY, "Œ"},
+                                                   {IType::MANY_TO_ONE, "o"},
+                                                   {IType::MANY_TO_MANY, "Œ"}});
+  static const Enums<IType> ISignature = Enums<IType>({{IType::ZERO_TO_ZERO, "Ø->Ø"},
+                                                       {IType::ZERO_TO_ONE, "Ø->o"},
+                                                       {IType::ZERO_TO_MANY, "Ø->Œ"},
+                                                       {IType::ONE_TO_ZERO, "o->Ø"},
+                                                       {IType::MANY_TO_ZERO, "Œ->Ø"},
+                                                       {IType::ONE_TO_ONE, "o->o"},
+                                                       {IType::ONE_TO_MANY, "o->Œ"},
+                                                       {IType::MANY_TO_ONE, "Œ->o"},
+                                                       {IType::MANY_TO_MANY, "Œ->Œ"}});
+
   static const Map<IType, const char *> ITYPE_STR = {{
-      {IType::ZERO_TO_ZERO, "0->0 (Ø)"},
-      {IType::ZERO_TO_ONE, "f(Ø)->y (supplier)"},
-      {IType::ZERO_TO_MANY, "f(Ø)->y* (source)"},
-      {IType::ONE_TO_ZERO, "f(x)->Ø (consumer)"},
-      {IType::MANY_TO_ZERO, "f(x*)->Ø (terminal)"},
-      {IType::ONE_TO_ONE, "f(x)->y (map)"},
-      {IType::ONE_TO_MANY, "f(x)->y* (flatmap)"},
-      {IType::MANY_TO_ONE, "f(x*)->y (reduce)"},
-      {IType::MANY_TO_MANY, "f(x*)->y* (barrier)"},
+      {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
+      {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
+      {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
+      {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
+      {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
+      {IType::ONE_TO_ONE, "o->o (map)"},
+      {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
+      {IType::MANY_TO_ONE, "Œ->o (reduce)"},
+      {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
   }};
   //
-  using InstFunction = Function<Obj_p, Obj_p>;
-  using InstArgs = List<ptr<Obj>>;
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
   using InstFunction = Function<Obj_p, Obj_p>;
@@ -359,6 +385,11 @@ namespace fhatos {
     const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
     const IType inst_itype() const { return std::get<2>(this->inst_value()); }
     const Obj_p inst_seed() const { return std::get<3>(this->inst_value()); }
+    const IType bcode_itype() const {
+      const IType domain = this->bcode_value().front()->inst_itype();
+      const IType range = this->bcode_value().back()->inst_itype();
+      return ISignature.toEnum((string(IDomain.toChars(domain)) + "->" + IRange.toChars(range)).c_str());
+    }
     List<Obj_p> bcode_value() const {
       if (this->isNoObj())
         return {};
@@ -813,10 +844,20 @@ namespace fhatos {
           return PtrHelper::no_delete<Uri>(this);
         case OType::STR:
           return PtrHelper::no_delete<Str>(this);
-        case OType::LST:
-          return PtrHelper::no_delete<Lst>(this);
-        case OType::REC:
-          return PtrHelper::no_delete<Rec>(this);
+        case OType::LST: {
+          LstList_p<Obj_p> newValues = share(LstList<Obj_p>());
+          for (const auto &obj: *this->lst_value()) {
+            newValues->push_back(obj->apply(lhs));
+          }
+          return Obj::to_lst(newValues);
+        }
+        case OType::REC: {
+          RecMap_p<> newPairs = share(RecMap<>());
+          for (const auto &pair: *this->rec_value()) {
+            newPairs->insert({pair.first->apply(lhs), pair.second->apply(lhs)});
+          }
+          return Obj::to_rec(newPairs);
+        }
         case OType::INST: {
           if (lhs->isBytecode()) {
             List<Obj_p> newArgs = List<Obj_p>();

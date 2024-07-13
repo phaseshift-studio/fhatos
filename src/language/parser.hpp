@@ -66,7 +66,9 @@ namespace fhatos {
       }
       return parens == 0 && brackets == 0 && !quotes;
     }
-
+    static bool dotType(const string type) {
+      return !type.empty() && type[type.length() - 1] == '.'; // dot type
+    }
     Option<Obj_p> tryParseObj(const string &token) {
       //
       StringHelper::trim(token);
@@ -76,29 +78,32 @@ namespace fhatos {
       const Pair<string, string> typeValue = tryParseObjType(token);
       const string typeToken = typeValue.first;
       const string valueToken = typeValue.second;
+      const bool dot_type = dotType(typeToken);
       Option<Obj_p> b;
-      b = tryParseNoObj(valueToken);
-      if (b.has_value())
-        return b.value();
-      b = tryParseBool(valueToken, typeToken, BOOL_FURI);
-      if (b.has_value())
-        return b.value();
-      b = tryParseInt(valueToken, typeToken, INT_FURI);
-      if (b.has_value())
-        return b.value();
-      b = tryParseReal(valueToken, typeToken, REAL_FURI);
-      if (b.has_value())
-        return b.value();
-      b = tryParseStr(valueToken, typeToken, STR_FURI);
-      if (b.has_value())
-        return b.value();
-      b = tryParseLst(valueToken, typeToken, LST_FURI);
-      if (b.has_value())
-        return b.value();
-      b = tryParseRec(valueToken, typeToken, REC_FURI);
-      if (b.has_value())
-        return b.value();
-      b = tryParseBCode(valueToken, typeToken, BCODE_FURI);
+      if (!dot_type) { // dot type
+        b = tryParseNoObj(valueToken);
+        if (b.has_value())
+          return b.value();
+        b = tryParseBool(valueToken, typeToken, BOOL_FURI);
+        if (b.has_value())
+          return b.value();
+        b = tryParseInt(valueToken, typeToken, INT_FURI);
+        if (b.has_value())
+          return b.value();
+        b = tryParseReal(valueToken, typeToken, REAL_FURI);
+        if (b.has_value())
+          return b.value();
+        b = tryParseStr(valueToken, typeToken, STR_FURI);
+        if (b.has_value())
+          return b.value();
+        b = tryParseLst(valueToken, typeToken, LST_FURI);
+        if (b.has_value())
+          return b.value();
+        b = tryParseRec(valueToken, typeToken, REC_FURI);
+        if (b.has_value())
+          return b.value();
+      }
+      b = dot_type ? tryParseBCode(token, "", BCODE_FURI) : tryParseBCode(valueToken, typeToken, BCODE_FURI);
       if (b.has_value())
         return b.value();
       b = tryParseUri(valueToken, typeToken, URI_FURI);
@@ -325,8 +330,12 @@ namespace fhatos {
           }
         }
       }
-      const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
-      return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
+      try {
+        const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
+        return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
+      } catch (const fError &) {
+        return Option<Inst_p>();
+      }
     }
 
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
@@ -334,9 +343,10 @@ namespace fhatos {
       LOG(TRACE, "Attempting bcode parse on %s\n", valueToken.c_str());
       if (typeToken.empty() && valueToken == "_")
         return {Obj::to_bcode({})}; // special character for 'no instructions' (no common parse pattern)
-      if ((valueToken[0] == '_' && valueToken[1] == '_') ||
-          (valueToken[valueToken.length() - 1] == ')' && valueToken.find('(') != string::npos) ||
-          valueToken.find('*') != string::npos) {
+      if ((valueToken[0] == '_' && valueToken[1] == '_') || //
+          valueToken.find('.') != string::npos || //
+          valueToken.find('*') != string::npos || //
+          (valueToken.find('(') != string::npos && valueToken.find(')') != string::npos)) {
         List<Inst_p> insts;
         auto ss = stringstream(valueToken);
         while (!ss.eof()) {
@@ -378,11 +388,12 @@ namespace fhatos {
             typeValue = {"*", instToken.substr(1)};
           else if (instToken.length() > 1 && instToken[0] == '+' && instToken[1] != '(')
             typeValue = {"+", instToken.substr(1)};
-          else
+          else if (typeToken.empty() || typeToken[typeToken.length() - 1] != '.')
             typeValue = tryParseObjType(instToken, false);
           ///////////// parse an obj and wrap in a start() ??
           if (instToken[0] != '*' && instToken[typeValue.first.length()] != '(') {
-            insts.push_back(Insts::start(Obj::to_objs({tryParseObj(instToken).value()})));
+            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({tryParseObj(instToken).value()}))
+                                          : Insts::map(tryParseObj(instToken).value()));
           } else {
             /////////// parse an instruction
             const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);

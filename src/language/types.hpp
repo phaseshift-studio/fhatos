@@ -79,8 +79,14 @@ namespace fhatos {
           CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
           if (writeThrough)
             Router::write(typeId, obj);
-          LOG_TASK(INFO, this, "!b%s!!!g[!!%s!g]!! !ytype!! defined\n", typeId.toString().c_str(),
-                   obj->toString().c_str());
+          if (OType::INST == OTypes.toEnum(typeId.path(0, 1).c_str())) {
+            const Inst_p inst = Insts::to_inst(typeId,*obj->lst_value());
+            LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId.toString().c_str(),
+                     obj->lst_value()->front()->toString().c_str(), ISignature.toChars(inst->inst_itype()));
+          } else {
+            LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId.toString().c_str(),
+                     obj->toString().c_str());
+          }
         }
         return share(nullptr);
       });

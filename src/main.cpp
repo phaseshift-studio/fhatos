@@ -50,7 +50,7 @@ void setup() {
         // ->printer()
         ->withSplash(ANSI_ART)
         ->withNote("Use !bØ!! for noobj")
-        ->withNote("Use :help for console commands")
+        ->withNote("Use !y:help!! for console commands")
         ->usingScheduler(Scheduler::singleton("/sys/scheduler/"))
         ->onBoot({FOS_ROUTERS, //
                   Terminal::singleton("/sys/io/terminal/"), //
@@ -60,7 +60,7 @@ void setup() {
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
-    Terminal::printer<>()->println("!rS!gH!yU!mT!yT!bI!rN!gG !cD!mO!gW!bN!! !mFhat!gOS!!");
+    Terminal::printer<>()->println("\n" FOS_TAB_4 "!rS!gH!yU!mT!yT!bI!rN!gG !cD!mO!gW!bN!! !mFhat!gOS!!");
   } catch (const std::exception &e) {
     LOG(ERROR, "[!rS!gH!yU!mT!yT!bI!rN!gG !cD!mO!gW!bN!!] Critical FhatOS error: %s\n", e.what());
     throw;

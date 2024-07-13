@@ -35,7 +35,7 @@ namespace fhatos {
     }
 
     static Obj_p explain() {
-      return Obj::to_inst("explain", {}, [](const Obj_p) { return nullptr; }, IType::MANY_TO_ONE);
+      return Obj::to_inst("explain", {}, [](const Obj_p &) { return nullptr; }, IType::MANY_TO_ONE);
     }
 
     static Obj_p plus(const Obj_p &rhs) {
@@ -191,7 +191,7 @@ namespace fhatos {
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
             return lhs;
           },
-          IType::ONE_TO_ONE);
+          areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Obj_p from(const Uri_p &uri) {
@@ -406,6 +406,7 @@ namespace fhatos {
         return Insts::count();
       if (type == INST_FURI->resolve("barrier"))
         return Insts::barrier(args.at(0));
+      /// try user defined inst
       const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(type));
       if (!userInst->isNoObj()) {
         return Obj::to_inst(
@@ -413,7 +414,7 @@ namespace fhatos {
             [userInst, args](const Obj_p &lhs) {
               int counter = 0;
               for (const Obj_p &arg: args) {
-                Router::write(ID((string("_") + to_string(counter++)).c_str()), arg);
+                Router::write(ID((string("_") + to_string(counter++)).c_str()), arg->apply(lhs));
               }
               const Obj_p ret = userInst->lst_value()->at(0)->apply(lhs);
               for (int i = 0; i < counter; i++) {
@@ -421,7 +422,7 @@ namespace fhatos {
               }
               return ret;
             },
-            IType::ONE_TO_ONE);
+            userInst->lst_value()->at(0)->bcode_itype());
       }
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
     }

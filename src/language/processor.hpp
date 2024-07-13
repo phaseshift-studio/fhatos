@@ -51,7 +51,7 @@ namespace fhatos {
             LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
-      } else if (!nextObj->isNoObj()) {
+      } else if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->inst_itype())) == 0)) {
         const Monad_p monad = Monad_p(new Monad(nextObj, nextInst));
         running->push_back(monad);
         LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
