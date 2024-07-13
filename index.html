@@ -101,12 +101,11 @@ A Simple mm-ADT Program</h2>
 <div class="line">                     [name=&gt;as(/str/),</div>
 <div class="line">                      age=&gt;is(gt(0))]) </div>
 </div><!-- fragment --><p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
-<div class="fragment"><div class="line">fhatos&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,</div>
-<div class="line">                  thread[[setup =&gt; __(0).print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
-<div class="line">                          loop  =&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])<span class="stringliteral">&quot;)</span></div>
+<div class="fragment"><div class="line">fhatos&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
+<div class="line">                loop  =&gt; stop(_)]].to(/abc/)<span class="stringliteral">&quot;)</span></div>
 </div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; __(0).from(127.0.0.1/kernel/scheduler/thread/abc)</div>
-<div class="line">==&gt; thread[[setup =&gt; __(0).print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
-<div class="line">            loop  =&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])<span class="stringliteral">&quot;)</span></div>
+<div class="line">==&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
+<div class="line">            loop  =&gt; pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])<span class="stringliteral">&quot;)</span></div>
 <div class="line"><span class="stringliteral">fhatos&gt; __(0).from(127.0.0.1/kernel/scheduler/thread/abc/loop)</span></div>
 <div class="line"><span class="stringliteral">==&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)</span></div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>

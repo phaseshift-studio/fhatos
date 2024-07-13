@@ -148,7 +148,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            LOG(DEBUG, FOS_TAB_2 <span class="stringliteral">&quot;!mGenerating!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>          }</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        }</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!nextObj-&gt;isNoObj()) {</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!nextObj-&gt;isNoObj() || (!nextInst-&gt;isNoObj() &amp;&amp; strcmp(<span class="stringliteral">&quot;Ø&quot;</span>,IDomain.toChars(nextInst-&gt;inst_itype())) == 0)) {</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keyword">const</span> Monad_p monad = Monad_p(<span class="keyword">new</span> <a class="code hl_class" href="classfhatos_1_1Monad.html">Monad</a>(nextObj, nextInst));</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        running-&gt;push_back(monad);</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        LOG(DEBUG, FOS_TAB_2 <span class="stringliteral">&quot;!mGenerating!! monad: %s\n&quot;</span>, monad-&gt;toString().c_str());</div>
