@@ -60,7 +60,7 @@ void setup() {
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
-    Terminal::printer<>()->println("\n" FOS_TAB_8 "!rS!gH!yU!mT!yT!bI!rN!gG !cD!mO!gW!bN!! !mFhat!gOS!!\n");
+    Terminal::printer<>()->println("\n" FOS_TAB_8 "!rS!gh!yU!mT!yt!bI!rN!gg !cD!mw!gW!bN!! !mFhat!gOS!!\n");
   } catch (const std::exception &e) {
     LOG(ERROR, "[!rS!gH!yu!mT!yt!bI!rn!gG !cd!mO!gw!bN!!] Critical FhatOS error: %s\n", e.what());
     throw;
