@@ -58,14 +58,6 @@ namespace fhatos {
       delete KERNELS;
     };
 
-    bool onBoot(const List<Process *> &processes) {
-      bool success = true;
-      for (Process *process: processes) {
-        success = success && this->spawn(process);
-      }
-      return success;
-    }
-
     static bool isThread(const Obj_p &obj) { return obj->id()->equals("/rec/thread"); }
     static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/rec/fiber"); }
     static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/rec/coroutine"); }
@@ -86,18 +78,24 @@ namespace fhatos {
     }
 
     void stop() {
-      while (this->next()) {
+      this->handle_messages();
+      for (Process *process: *this->find()) {
+        if (this->find(*process->id())->at(0)->type == PType::COROUTINE)
+          this->_destroy(*process->id());
+        else
+          this->destroy(*process->id());
+        this->handle_messages();
       }
-      for (Process *process: *this->find("#")) {
-        this->destroy(*process->id());
-      }
-      while (this->next()) {
-      }
+      this->handle_messages();
       this->unsubscribeSource();
-      this->barrier("shutting_down");
+      this->handle_messages();
+      this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _destroy can finish
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _destroy can finish
 #endif
+        this->handle_messages();
+        return true;
+      });
     }
 
     virtual void feedLocalWatchdog() {}
@@ -124,6 +122,10 @@ namespace fhatos {
     }
 
   protected:
+    void handle_messages() {
+      while (this->next()) {
+      }
+    }
     bool next() {
       const Option<ptr<Mail>> mail = this->pop();
       if (!mail.has_value())
@@ -136,30 +138,42 @@ namespace fhatos {
                          .write<Bool>([this, processPattern]() {
                            THREADS->remove_if([processPattern, this](Thread *process) {
                              if (process->id()->matches(processPattern)) {
-                               if (process->running())
-                                 process->stop();
-                               LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                        P_TYPE_STR(process->type));
+                               try {
+                                 if (process->running())
+                                   process->stop();
+                                 LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
+                                          P_TYPE_STR(process->type));
+                               } catch (const std::exception &e) {
+                                 LOG_EXCEPTION(e);
+                               }
                                return true;
                              }
                              return false;
                            });
                            FIBERS->remove_if([processPattern, this](Fiber *process) {
                              if (process->id()->matches(processPattern)) {
-                               if (process->running())
-                                 process->stop();
-                               LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                        P_TYPE_STR(process->type));
+                               try {
+                                 if (process->running())
+                                   process->stop();
+                                 LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
+                                          P_TYPE_STR(process->type));
+                               } catch (const std::exception &e) {
+                                 LOG_EXCEPTION(e);
+                               }
                                return true;
                              }
                              return false;
                            });
                            COROUTINES->remove_if([processPattern, this](Coroutine *process) {
                              if (process->id()->matches(processPattern)) {
-                               if (process->running())
-                                 process->stop();
-                               LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                        P_TYPE_STR(process->type));
+                               try {
+                                 if (process->running())
+                                   process->stop();
+                                 LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
+                                          P_TYPE_STR(process->type));
+                               } catch (const std::exception &e) {
+                                 LOG_EXCEPTION(e);
+                               }
                                return true;
                              }
                              return false;

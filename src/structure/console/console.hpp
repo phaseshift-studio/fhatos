@@ -20,53 +20,75 @@
 #define fhatos_console_hpp
 
 #include <fhatos.hpp>
-#include <iostream>
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
 #include <structure/furi.hpp>
-#include <util/ansi.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
-#include <process/router/local_router.hpp>
-#include FOS_MQTT(mqtt_router.hpp)
+#include <process/actor/actor.hpp>
 #include <structure/io/terminal.hpp>
 
-#include <process/actor/actor.hpp>
-
 namespace fhatos {
+  using Command = Trip<string, Consumer<Obj_p>, Runnable>;
+  static Map<string, Command> *_MENU_MAP = nullptr;
   class Console final : public Actor<Thread> {
   protected:
-    string _line = "";
+    string _line;
     bool _newInput = true;
-    Map<string, Pair<Consumer<Obj_p>, Runnable>> _MENU_MAP = Map<string, Pair<Consumer<Obj_p>, Runnable>>();
+    bool _nesting = true;
     ///// printers
     void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
     void printPrompt(const bool blank = false) const {
       Terminal::out(*this->id(), blank ? "        " : "!mfhatos!g>!! ");
     }
-    void printResults(const Fluent &fluent) const {
-      fluent.forEach<Obj>([this](const Obj_p &obj) {
-        if (obj->isLst()) {
-          for (const auto &o: *obj->lst_value()) {
-            this->printResult(o);
-          }
-        } else
-          this->printResult(obj);
-      });
+    void printResult(const Obj_p &obj, const uint8_t depth = 0) const {
+      if (obj->isObjs()) {
+        for (Obj_p &o: *obj->objs_value()) {
+          this->printResult(o, depth + 1);
+        }
+      } else if (this->_nesting && obj->isLst()) {
+        for (Obj_p &o: *obj->lst_value()) {
+          this->printResult(o, depth + 1);
+        }
+      } else {
+        for (uint8_t i = 1; i < depth; i++) {
+          Terminal::out(*this->id(), "!g=!!");
+        }
+        Terminal::out(*this->id(), "!g==>!!%s\n", obj->toString().c_str());
+      }
     }
-    void printResult(const Obj_p &obj) const { Terminal::out(*this->id(), "!g==>!!%s\n", obj->toString().c_str()); }
 
   public:
     explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id) {
-      _MENU_MAP[":quit"] = {[this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }};
-      _MENU_MAP[":output"] = {[this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
-                              [] {
-                                Terminal::printer<>()->printf(
-                                    "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
-                                    Terminal::singleton()->id()->extend("out").toString().c_str());
-                              }};
-      _MENU_MAP[":shutdown"] = {[this](const Obj_p &) { Scheduler::singleton()->stop(); },
-                                [this]() { Scheduler::singleton()->stop(); }};
+      if (!_MENU_MAP) {
+        _MENU_MAP = new Map<string, Command>();
+        _MENU_MAP->insert({":help",
+                           {"help menu", [this](const Obj_p &) { std::get<2>(_MENU_MAP->at(":help"))(); },
+                            [this]() {
+                              Terminal::printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+                              for (const auto &pair: *_MENU_MAP) {
+                                Terminal::printer<>()->printf("!y%-10s!! %s\n", pair.first.c_str(),
+                                                              std::get<0>(pair.second).c_str());
+                              }
+                            }}});
+        _MENU_MAP->insert(
+            {":quit", {"destroy console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
+        _MENU_MAP->insert(
+            {":output",
+             {"terminal output", [this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
+              [] {
+                Terminal::printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
+                                              Terminal::currentOut()->toString().c_str(),
+                                              Terminal::singleton()->id()->extend("out").toString().c_str());
+              }}});
+        _MENU_MAP->insert({":shutdown",
+                           {"destroy scheduler", [this](const Obj_p &) { Scheduler::singleton()->stop(); },
+                            [this]() { Scheduler::singleton()->stop(); }}});
+        _MENU_MAP->insert(
+            {":nesting",
+             {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
+              [this]() { Terminal::printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
+      }
     }
 
     void loop() override {
@@ -75,61 +97,56 @@ namespace fhatos {
         this->printPrompt(!this->_line.empty());
       this->_newInput = false;
       int x;
-#ifdef NATIVE
-      if ((x = getchar()) == EOF)
+      if ((x = Terminal::readChar()) == EOF)
         return;
-#else
-      if (Serial.available() > 0)
-        x = Serial.read();
-      else
+      if ('\x04' == (char) x) /// CNTRL-D (clear line)
+        this->_line.clear();
+      else if ('\n' == (char) x)
+        this->_newInput = true;
+      else {
+        this->_line += (char) x;
         return;
-#endif
-        if ('\x04' == (char) x) /// CNTRL-D (clear line)
-          this->_line.clear();
-        else if ('\n' == (char) x)
-          this->_newInput = true;
-        else {
-          this->_line += (char) x;
-          return;
-        }
-        StringHelper::trim(this->_line);
-        if (this->_line.empty()) {
-          ///////// DO NOTHING ON EMPTY LINE
-          return;
-        }
-        if (!Parser::closedExpression(this->_line))
-          return;
-        if (this->_line[0] == ':') {
-          ///////// HANDLE MENU INTERACTIONS
+      }
+      StringHelper::trim(this->_line);
+      if (this->_line.empty()) {
+        ///////// DO NOTHING ON EMPTY LINE
+        return;
+      }
+      if (!Parser::closedExpression(this->_line))
+        return;
+      if (this->_line[0] == ':') {
+        ///////// HANDLE MENU INTERACTIONS
+        try {
           const string::size_type index = _line.find_first_of(' ');
           const string command = index == string::npos ? this->_line : this->_line.substr(0, index);
           StringHelper::trim(command);
-          if (!_MENU_MAP.count(command)) {
+          if (!_MENU_MAP->count(command)) {
             this->printException(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
                                         this->id()->toString().c_str(), command.c_str()));
           } else if (index == string::npos) {
-            _MENU_MAP[command].second();
+            std::get<2>(_MENU_MAP->at(command))();
           } else {
             const string value = this->_line.substr(index);
             StringHelper::trim(value);
-            _MENU_MAP[command].first(Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+            std::get<1>(_MENU_MAP->at(command))(
+                Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
           }
-          this->_line.clear();
-        } else {
-          ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
-          try {
-            const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
-            if (obj.value()->isBytecode())
-              this->printResults(Fluent(obj.value()));
-            else
-              this->printResult(obj.value());
-          } catch (const std::exception &e) {
-            this->printException(e);
-          }
-          this->_line.clear();
+        } catch (std::exception &e) {
+          this->printException(e);
         }
+        this->_line.clear();
+      } else {
+        ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
+        try {
+          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
+          this->printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
+        } catch (const std::exception &e) {
+          this->printException(e);
+        }
+        this->_line.clear();
       }
-    };
-  } // namespace fhatos
+    }
+  };
+} // namespace fhatos
 
 #endif

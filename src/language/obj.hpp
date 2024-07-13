@@ -393,6 +393,19 @@ namespace fhatos {
       return Obj::to_bcode(insts);
     }
 
+    const Objs_p add_obj(const Obj_p &obj, const bool mutate = true) {
+      if (!this->isObjs())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if (obj->isObjs()) {
+        for (const Obj_p o: *obj->objs_value()) {
+          this->add_obj(o);
+        }
+      } else {
+        this->objs_value()->push_back(obj);
+      }
+      return shared_from_this();
+    }
+
     fURI_p bcode_domain() const { return OBJ_FURI; }
 
     fURI_p bcode_range() const { return OBJ_FURI; }

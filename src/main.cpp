@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include <fhatos.hpp>
+#include <structure/kernel.hpp>
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
 // routers
@@ -43,34 +44,32 @@ using namespace fhatos;
 void setup() {
   GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
-  /***
-   Kernel::begin();
-   Kernel::boot_loader()
-   Kernel::load_procs();
-   Kernel::load_modules();
-   Kernel::end();
-   ***/
   try {
-    Terminal::printer<>()->print(ANSI_ART);
-    Terminal::printer<>()->printf(FOS_TAB_4 "Use %s for noobj\n", Obj::to_noobj()->toString().c_str());
-    Scheduler::singleton("/sys/scheduler/")
+    Kernel::build()
+        // ->log_level()
+        // ->printer()
+        ->withSplash(ANSI_ART)
+        ->withNote("Use !bØ!! for noobj")
+        ->withNote("Use :help for console commands")
+        ->usingScheduler(Scheduler::singleton("/sys/scheduler/"))
         ->onBoot({FOS_ROUTERS, //
                   Terminal::singleton("/sys/io/terminal/"), //
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
-                  new Console("/home/root/repl/")});
-    //////
-    Types::singleton()->loadExt("/ext/process");
-    Terminal::currentOut(share(ID("/home/root/repl/")));
-    Scheduler::singleton()->barrier("main_barrier");
+                  new Console("/home/root/repl/")})
+        ->loadModules({"/ext/process"})
+        ->defaultOutput("/home/root/repl/")
+        ->done("kernel_barrier");
+    Terminal::printer<>()->println("!rS!gH!yU!mT!yT!bI!rN!gG !cD!mO!gW!bN!! !mFhat!gOS!!");
   } catch (const std::exception &e) {
-    // LOG_EXCEPTION(e);
     LOG(ERROR, "[!rS!gH!yU!mT!yT!bI!rN!gG !cD!mO!gW!bN!!] Critical FhatOS error: %s\n", e.what());
     throw;
   }
 }
 
-void loop() { throw fError("Global loop() should never be called (regardless of underlying platform)"); }
+void loop() {
+  // do nothing -- all looping handled by FhatOS scheduler
+}
 
 #ifdef NATIVE
 int main(int arg, char **argsv) {

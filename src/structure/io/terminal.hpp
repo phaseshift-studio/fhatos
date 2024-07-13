@@ -21,6 +21,7 @@
 #define fhatos_termainl_hpp
 
 #include <fhatos.hpp>
+#include <iostream>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
 
@@ -62,6 +63,14 @@ namespace fhatos {
     template<typename PRINTER = Ansi<>>
     static PRINTER *printer() {
       return GLOBAL_OPTIONS->printer<>();
+    }
+
+    static int readChar() {
+#ifdef NATIVE
+      return getchar();
+#else
+      return (Serial.available() > 0) ? Serial.read() : EOF;
+#endif
     }
 
     static void out(const ID &source, const char *format, ...) {

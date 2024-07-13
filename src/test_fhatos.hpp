@@ -28,6 +28,7 @@
 #include <process/router/local_router.hpp>
 #include <process/router/meta_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
+#include <structure/kernel.hpp>
 #include <util/options.hpp>
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
@@ -61,13 +62,17 @@ namespace fhatos {
     try {                                                                                                              \
       GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                       \
       GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                          \
-      GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                              \
-      LOG(NONE, ANSI_ART);                                                                                             \
-      Scheduler::singleton()->onBoot({FOS_TEST_ROUTERS, Parser::singleton(), Types::singleton()});                     \
-      Types::singleton()->loadExt("/ext/process");                                                                     \
+      Kernel::build()                                                                                                  \
+          ->withSplash(ANSI_ART)                                                                                       \
+          ->withNote("Use !bØ!! for noobj")                                                                            \
+          ->withNote("Use :help for console commands")                                                                 \
+          ->usingScheduler(Scheduler::singleton("/sys/scheduler/"))                                                    \
+          ->onBoot({FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})    \
+          ->loadModules({"/ext/process"}); /*->defaultOutput("/home/root/repl/")        */                             \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
+      /*Kernel::done("testing_barrier"); */                                                                            \
     } catch (std::exception & e) {                                                                                     \
       LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
     }                                                                                                                  \

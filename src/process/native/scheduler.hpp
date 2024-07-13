@@ -55,6 +55,12 @@ namespace fhatos {
         //////////////////////////////////////////////////
         ////// THREAD //////
         bool success = false;
+        this->subscribe(*process->id(), [this, process](const Message_p &message) {
+          if (message->payload->isNoObj()) {
+            process->stop();
+            this->unsubscribe(*process->id());
+          }
+        });
         switch (process->type) {
           case THREAD: {
             this->THREADS->push_back(static_cast<Thread *>(process));
@@ -106,14 +112,8 @@ namespace fhatos {
          }*/
         return share(success);
       });
-      if (success) {
-        this->subscribe(*process->id(), [this, process](const Message_p &message) {
-          if (message->payload->isNoObj()) {
-            process->stop();
-            this->unsubscribe(*process->id());
-          }
-        });
-      }
+      if (!success)
+        this->unsubscribe(*process->id());
       return success;
     }
 

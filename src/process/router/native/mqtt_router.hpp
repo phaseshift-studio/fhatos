@@ -30,7 +30,9 @@
 #define JSON_DOCUMENT_SIZE 250
 
 #ifndef MQTT_BROKER_ADDR
-#define MQTT_BROKER_ADDR localhost:1883
+#define MQTT_BROKER_ADDR                                                                                               \
+  localhost:                                                                                                           \
+  1883
 #endif
 
 using namespace mqtt;
@@ -51,7 +53,7 @@ namespace fhatos {
     MutexDeque<Message_p> _PUBLICATIONS;
     Message_p willMessage;
 
-    explicit MqttRouter(const ID &id = ID("/router/mqtt/"), const char *serverAddr =  STR(MQTT_BROKER_ADDR),
+    explicit MqttRouter(const ID &id = ID("/router/mqtt/"), const char *serverAddr = STR(MQTT_BROKER_ADDR),
                         const Message_p &willMessage = ptr<Message>(nullptr)) :
         Router(id, ROUTER_LEVEL::GLOBAL_ROUTER) {
       this->serverAddr = string(serverAddr).find_first_of("mqtt://") == string::npos
@@ -161,11 +163,12 @@ namespace fhatos {
     const RESPONSE_CODE unsubscribeSource(const ID &source) override { return unsubscribeX(source, nullptr); }
 
     void stop() override {
-      LOG(INFO, "Disconnecting MQTT from %s\n", this->serverAddr);
       _SUBSCRIPTIONS.forEach([this](const auto &sub) { this->unsubscribe(sub->source, sub->pattern); });
       _PUBLICATIONS.clear();
       _SUBSCRIPTIONS.clear();
       this->xmqtt->disconnect();
+      LOG_TASK(INFO, this, "!b%s !ymqtt client to %s!! disconnected\n", this->id()->toString().c_str(),
+               this->serverAddr);
     }
 
     const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {

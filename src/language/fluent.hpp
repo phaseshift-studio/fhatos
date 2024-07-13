@@ -55,6 +55,12 @@ namespace fhatos {
       return ptr<List<ptr<E>>>(list);
     }
 
+    Objs_p toObjs() const {
+      Objs_p objs = Obj::to_objs(List<Obj_p>{});
+      this->forEach<Obj>([objs](const Obj_p end) { objs->add_obj(end); });
+      return objs;
+    }
+
     void iterate() const {
       this->forEach<Obj>([](const Obj_p &end) {});
     }
