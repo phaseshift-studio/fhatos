@@ -82,7 +82,7 @@ namespace fhatos {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
     testInst(Obj::to_objs({o_p(1), o_p(2), o_p("a"), Obj::to_lst({o_p("x"), o_p(u("abc"))})}), //
              Insts::barrier(Obj::to_bcode({Insts::count()})), //
-             Obj::to_objs({4}));
+             Obj::to_objs({Int(4)}));
   }
 
 
