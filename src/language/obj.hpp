@@ -340,13 +340,11 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<LstList_p<>>();
     }
-
     Obj_p lst_get(const Int_p &index) const {
       if (!this->isLst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->lst_value()->at(index->int_value());
     }
-
     void lst_set(const Int_p &index, const Obj_p &obj) const {
       if (!this->isLst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -383,13 +381,21 @@ namespace fhatos {
     Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
     const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
-    const IType inst_itype() const { return std::get<2>(this->inst_value()); }
     const Obj_p inst_seed() const { return std::get<3>(this->inst_value()); }
-    const IType bcode_itype() const {
-      const IType domain = this->bcode_value().front()->inst_itype();
-      const IType range = this->bcode_value().back()->inst_itype();
-      return ISignature.toEnum((string(IDomain.toChars(domain)) + "->" + IRange.toChars(range)).c_str());
+    const IType itype() const {
+      if (this->isInst())
+        return std::get<2>(this->inst_value());
+      if (this->isBytecode()) {
+        const IType domain = this->bcode_value().front()->itype();
+        const IType range = this->bcode_value().back()->itype();
+        return ISignature.toEnum((string(IDomain.toChars(domain)) + "->" + IRange.toChars(range)).c_str());
+      }
+      if (this->isObjs())
+        return IType::ONE_TO_MANY;
+      return IType::ONE_TO_ONE;
     }
+
+
     List<Obj_p> bcode_value() const {
       if (this->isNoObj())
         return {};
@@ -767,7 +773,7 @@ namespace fhatos {
           auto argsB = other.inst_args();
           if (argsA.size() != argsB.size())
             return false;
-          if (this->inst_itype() != other.inst_itype())
+          if (this->itype() != other.itype())
             return false;
           auto itB = argsB.begin();
           for (const auto &itA: argsA) {
@@ -866,8 +872,7 @@ namespace fhatos {
             }
             // Quad<InstArgs, InstFunction, IType, InstSeed>;
             return lhs->add_inst(
-                Obj::to_inst(InstValue(newArgs, this->inst_f(), this->inst_itype(), this->inst_seed()), this->_id),
-                false);
+                Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed()), this->_id), false);
           } else
             return this->inst_f()(lhs);
         }
@@ -959,7 +964,7 @@ namespace fhatos {
           auto argsB = pattern->inst_args();
           if (argsA.size() != argsB.size())
             return false;
-          if (this->inst_itype() != pattern->inst_itype())
+          if (this->itype() != pattern->itype())
             return false;
           auto itB = argsB.begin();
           for (const auto &itA: argsA) {

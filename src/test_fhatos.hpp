@@ -223,7 +223,7 @@ static const void FOS_TEST_OBJ_GT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
 template<typename OBJ = Obj>
 static const void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
   const bool test = *objA < *objB;
-  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", objA->toString().c_str(),
+  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", objA->toString().c_str(),
                    test ? "<" : "!=", objB->toString().c_str());
   if (!test)
     TEST_FAIL();

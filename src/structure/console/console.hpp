@@ -35,7 +35,7 @@ namespace fhatos {
   protected:
     string _line;
     bool _newInput = true;
-    bool _nesting = true;
+    bool _nesting = false;
     ///// printers
     void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
     void printPrompt(const bool blank = false) const {
@@ -93,9 +93,11 @@ namespace fhatos {
 
     void loop() override {
       Actor<Thread>::loop();
+      //// PROMPT
       if (this->_newInput)
         this->printPrompt(!this->_line.empty());
       this->_newInput = false;
+      //// READ CHAR INPUT ONE-BY-ONE
       int x;
       if ((x = Terminal::readChar()) == EOF)
         return;
@@ -115,7 +117,7 @@ namespace fhatos {
       if (!Parser::closedExpression(this->_line))
         return;
       if (this->_line[0] == ':') {
-        ///////// HANDLE MENU INTERACTIONS
+        ///////// PARSE MENU COMMANDS
         try {
           const string::size_type index = _line.find_first_of(' ');
           const string command = index == string::npos ? this->_line : this->_line.substr(0, index);

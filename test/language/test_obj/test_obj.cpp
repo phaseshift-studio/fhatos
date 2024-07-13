@@ -100,6 +100,55 @@ namespace fhatos {
      FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, "/nat"))))*/
   }
 
+  void test_real() {
+    Types::singleton()->saveType("/real/money", Obj::to_bcode({})); //
+    Types::singleton()->saveType("/real/weight", Obj::to_bcode({})); //
+    const Real_p realA = share(Real(1.0f));
+    const Real_p realB = share<Real>(Real(1.0f));
+    const Real_p realC = share(Real(1.0f, "/real/money"));
+    const Real_p realD = ptr<Real>(new Real(2.0f, "weight"));
+    ///
+    const Real_p real5 = share(Real(5.0f, "money"));
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*real5).c_str());
+
+    TEST_ASSERT_FALSE(realA->isBytecode());
+    TEST_ASSERT_EQUAL_STRING("/real/", realA->id()->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("", realA->id()->lastSegment().c_str());
+    TEST_ASSERT_EQUAL_STRING("real", realA->id()->path(0, 1).c_str());
+    TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
+    TEST_ASSERT_FALSE(realA->isNoObj());
+    ///
+    FOS_TEST_ASSERT_EQUAL_FURI(*realC->id(), *realA->as(share(fURI("money")))->id());
+    FOS_TEST_OBJ_EQUAL(realA, realB);
+    FOS_TEST_OBJ_EQUAL(realB, realA);
+    FOS_TEST_OBJ_NOT_EQUAL(realB, realB->as("/real/money"));
+    FOS_TEST_OBJ_EQUAL(realC, realA->as("money"));
+    FOS_TEST_OBJ_EQUAL(realC, realB->as("/real/money"));
+    FOS_TEST_OBJ_EQUAL(realA->split(10.0f, "/real/money"), realB->split(10.0f, "money"));
+    FOS_TEST_OBJ_EQUAL(realA, realC->as("/real/"));
+    FOS_TEST_OBJ_EQUAL(realA, realA->as("/real/"));
+    FOS_TEST_OBJ_EQUAL(realA->split(2.0f)->as("money"), realC->split(2.0f));
+    FOS_TEST_OBJ_EQUAL(realA->split(2.0f)->as("/real/money"), realB->split(10.0f)->split(2.0f)->as("money"));
+    FOS_TEST_OBJ_NOT_EQUAL(realA->split(2.0f)->as("money"), realB->split(2.0f));
+    FOS_TEST_OBJ_NOT_EQUAL(realA->split(2.0f)->as("money"), realB->split(3.0f)->as("/real/money"));
+    /// apply
+    FOS_TEST_OBJ_EQUAL(realA, realA->apply(realB));
+    FOS_TEST_OBJ_EQUAL(realA, realA->apply(realA));
+    FOS_TEST_OBJ_EQUAL(realA->as("money"), realA->as("/real/money")->apply(realB));
+    FOS_TEST_OBJ_EQUAL(realC, realA->as("money")->apply(realB));
+    /// relations
+    FOS_TEST_OBJ_GT(realD, realA->as("weight"));
+    FOS_TEST_OBJ_LT(realB->as("/real/weight"), realD);
+    /// match
+    TEST_ASSERT_TRUE(Obj::to_real(22.1f)->match(Obj::to_real(22.1f)));
+    TEST_ASSERT_TRUE(Obj::to_real(22.1f)->as("weight")->match(Obj::to_real(22.1f)->as("weight")));
+    TEST_ASSERT_FALSE(Obj::to_real(22.1f)->as("money")->match(Obj::to_real(22.1f)->as("weight")));
+    TEST_ASSERT_TRUE(
+        Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(0.1f))}))})));
+    TEST_ASSERT_FALSE(
+        Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(23.1f))}))})));
+  }
+
   void test_str() {
     Types::singleton()->saveType("/str/first_name", Obj::to_bcode({})); //
     Types::singleton()->saveType("/str/letter", Obj::to_bcode({})); //
@@ -108,6 +157,37 @@ namespace fhatos {
     TEST_ASSERT_FALSE(strA.isBytecode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
     TEST_ASSERT_EQUAL(OType::STR, strA.o_type());
+  }
+
+  void test_lst() {
+    Types::singleton()->saveType(ID("/lst/ones"), (Obj::to_lst({Obj::to_int(1), Obj::to_int(1), Obj::to_int(1)})));
+    const Lst lstA = *Obj::to_lst({1, 2, 3, 4});
+    const Lst lstB = *Obj::to_lst({1, 2, 3, 4});
+    const Lst lstC = *Obj::to_lst({2, 3, 4});
+    FOS_TEST_OBJ_EQUAL(&lstA, &lstB);
+    FOS_TEST_OBJ_EQUAL(&lstB, &lstA);
+    FOS_TEST_OBJ_NOT_EQUAL(&lstA, &lstC);
+    FOS_TEST_OBJ_NOT_EQUAL(&lstB, &lstC);
+    TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
+    TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
+    lstC.lst_set(Obj::to_int(0), Obj::to_int(1));
+    FOS_TEST_OBJ_EQUAL(&lstC, &lstA);
+    lstC.lst_set(Obj::to_int(4), Obj::to_int(5));
+    FOS_TEST_OBJ_NOT_EQUAL(&lstC, &lstA);
+    for (int i = 0; i < 4; i++) {
+      FOS_TEST_OBJ_EQUAL(Obj::to_int(i+1), lstA.lst_get(Obj::to_int(i)));
+      FOS_TEST_OBJ_EQUAL(Obj::to_int(i+1), lstB.lst_get(Obj::to_int(i)));
+      FOS_TEST_OBJ_EQUAL(Obj::to_int(i+1), lstC.lst_get(Obj::to_int(i)));
+    }
+    const Lst lstD = *Obj::to_lst({1, 1, 1});
+    TEST_ASSERT_EQUAL_STRING("/lst/ones", lstD.as("/lst/ones")->id()->toString().c_str());
+    try {
+      Obj_p x = lstA.as("/lst/ones");
+      TEST_FAIL_MESSAGE("Should throw exception");
+    } catch (const fError& e) {
+      TEST_ASSERT_TRUE(true);
+    }
   }
 
   void test_rec() {
@@ -193,7 +273,9 @@ namespace fhatos {
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         FOS_RUN_TEST(test_bool); //
         FOS_RUN_TEST(test_int); //
+        FOS_RUN_TEST(test_real); //
         FOS_RUN_TEST(test_str); //
+        FOS_RUN_TEST(test_lst); //
         FOS_RUN_TEST(test_rec); //
         // FOS_RUN_TEST(test_inst_bcode); //
       });

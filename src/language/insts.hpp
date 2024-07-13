@@ -323,10 +323,10 @@ namespace fhatos {
 
     ///// HELPER METHODS
     static bool isBarrier(const Inst_p &inst) {
-      return inst->inst_itype() == IType::MANY_TO_MANY || inst->inst_itype() == IType::MANY_TO_ONE;
+      return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE;
     }
     static bool isInitial(const Inst_p &inst) {
-      return inst->inst_itype() == IType::ZERO_TO_ONE || inst->inst_itype() == IType::ZERO_TO_MANY;
+      return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY;
     }
     static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
                                const Obj_p &objC = Obj::to_noobj(), const Obj_p &objD = Obj::to_noobj()) {
@@ -422,7 +422,7 @@ namespace fhatos {
               }
               return ret;
             },
-            userInst->lst_value()->at(0)->bcode_itype());
+            userInst->lst_value()->at(0)->itype());
       }
       throw fError("Unknown instruction: %s\n", type.toString().c_str());
     }
