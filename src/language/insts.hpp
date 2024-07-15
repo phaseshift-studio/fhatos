@@ -220,6 +220,17 @@ namespace fhatos {
       return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); }, IType::ONE_TO_ONE);
     }
 
+    static Obj_p by(const Obj_p &bymod) {
+      return Obj::to_inst(
+          "by", {bymod},
+          [](const Obj_p x) {
+            if (true)
+              throw fError("by()-modulations are to be rewritten away");
+            return x;
+          },
+          IType::ONE_TO_ONE);
+    }
+
     static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
       return Obj::to_inst(
           "group", {keyCode, valueCode, reduceCode},
@@ -339,7 +350,7 @@ namespace fhatos {
           "barrier", {bcode},
           [bcode](const Objs_p &lhs) {
             const Obj_p obj = bcode->apply(lhs);
-            return obj->isObjs() ? obj : Obj::to_objs({bcode->apply(lhs)});
+            return obj->isObjs() ? obj : Obj::to_objs({obj});
           },
           IType::MANY_TO_MANY);
     }
@@ -438,7 +449,7 @@ namespace fhatos {
       if (!userInst->isNoObj()) {
         return Obj::to_inst(
             type.name(), args,
-            [userInst,args](const Obj_p &lhs) {
+            [userInst, args](const Obj_p &lhs) {
               int counter = 0;
               for (const Obj_p &arg: args) {
                 Router::write(ID((string("_") + to_string(counter++)).c_str()), arg->apply(lhs));

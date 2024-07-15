@@ -20,6 +20,7 @@
 #define fhatos_processor_hpp
 
 #include <fhatos.hpp>
+#include <language/rewriter.hpp>
 //
 #include <language/obj.hpp>
 #ifdef NATIVE
@@ -79,8 +80,8 @@ namespace fhatos {
     List<Obj_p> *halted = new List<Obj_p>();
 
   public:
-    explicit Processor(const BCode_p &bcode) : bcode(bcode) {
-      for (const Inst_p &inst: bcode->bcode_value()) {
+    explicit Processor(const BCode_p &bcode) : bcode(Rewriter({}).apply(bcode)) {
+      for (const Inst_p &inst: this->bcode->bcode_value()) {
         const Monad_p monad = share(Monad(inst->inst_seed(), inst));
         if (Insts::isBarrier(inst)) {
           this->barriers->push_back(monad);
@@ -149,6 +150,8 @@ namespace fhatos {
       }
     }
   };
+
+
 } // namespace fhatos
 
 #endif

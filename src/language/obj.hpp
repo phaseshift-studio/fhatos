@@ -243,8 +243,8 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
     ~Obj() override = default;
-    explicit Obj(const Any value, const OType otype, const fURI &typeId) :
-        IDed(OTYPE_FURI.at(otype)), _value(std::move(value)) {
+    explicit Obj(const Any& value, const OType otype, const fURI &typeId) :
+        IDed(OTYPE_FURI.at(otype)), _value(value) {
       TYPE_CHECKER(*this, otype, typeId);
       this->_id = share(ID(typeId));
     }
@@ -394,7 +394,6 @@ namespace fhatos {
         return IType::ONE_TO_MANY;
       return IType::ONE_TO_ONE;
     }
-
 
     List<Obj_p> bcode_value() const {
       if (this->isNoObj())

@@ -43,19 +43,17 @@ int main(int arg, char **argsv) {
   }
   LOG(INFO, "%s\n", argsv[1]);
   Terminal::printer<>()->println("```.cpp");
-
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];
       StringHelper::trim(x);
       Terminal::printer<>()->printf("fhatos> %s\n", x.c_str());
       const Option<Obj_p> obj = Parser::singleton()->tryParseObj(string(argsv[i]));
-      printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
+      printResult(Fluent(obj.value()).toObjs());
     } catch (std::exception &e) {
       LOG_EXCEPTION(e);
     }
   }
-
   Terminal::printer<>()->println("```");
   return 1;
 }

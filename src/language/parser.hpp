@@ -34,15 +34,14 @@ namespace fhatos {
 
   public:
     static Parser *singleton(const ID &id = ID("/parser/")) {
-      static Parser *parser = new Parser(id);
-      return parser;
+      static Parser parser =  Parser(id);
+      return &parser;
     }
 
     void setup() override {
       Coroutine::setup();
       TYPE_PARSER = [](const string &bcode) {
-        Option<Type_p> type = Parser::singleton()->tryParseObj(bcode);
-        return type.has_value() ? type.value() : Obj::to_noobj();
+        return Parser::singleton()->tryParseObj(bcode).value_or(Obj::to_noobj());
       };
     }
 
@@ -211,7 +210,10 @@ namespace fhatos {
       int parenCounter = 0;
       while (!ss.eof()) {
         if (bracketCounter == 0 && ss.peek() == ',') {
-          list.push_back(Parser::tryParseObj(value).value());
+          Option<Obj_p> element = Parser::tryParseObj(value);
+          if(!element.has_value())
+            return {};
+          list.push_back(element.value());
           ss.get();
           value.clear();
         } else if (bracketCounter == 0 && StringHelper::lookAhead("=>", &ss)) {
@@ -230,7 +232,10 @@ namespace fhatos {
         }
       }
       StringHelper::trim(value);
-      list.push_back(Parser::tryParseObj(value).value());
+      Option<Obj_p> element = Parser::tryParseObj(value);
+      if(!element.has_value())
+        return {};
+      list.push_back(element.value());
       return Option<Lst_p>{Lst::to_lst(share(list), share(baseType->resolve(type.c_str())))};
     }
     Option<Rec_p> tryParseRec(const string &token, const string &type, const fURI_p &baseType = REC_FURI) {
@@ -348,7 +353,7 @@ namespace fhatos {
         const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
         return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
       } catch (const fError &) {
-        return Option<Inst_p>();
+        return {};
       }
     }
 
@@ -414,7 +419,7 @@ namespace fhatos {
             if (inst.has_value()) {
               insts.push_back(inst.value());
             } else {
-              return Option<BCode_p>();
+              return {};
             }
           }
         }

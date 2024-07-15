@@ -157,6 +157,8 @@ namespace fhatos {
         ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
         try {
           const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
+          if(!obj.has_value())
+            throw fError("Unable to parse input: %s\n",this->_line.c_str());
           this->printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
         } catch (const std::exception &e) {
           this->printException(e);
