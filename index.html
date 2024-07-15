@@ -114,7 +114,7 @@ A FhatOS Language</h2>
 <div class="line">            loop  =&gt; stop(/abc/)]]</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
 A FhatOS Console</h2>
-<dl class="section important"><dt>Important</dt><dd>The FhatOS Console is a composite of 3 other actors:<ol type="1">
+<dl class="section note"><dt>Note</dt><dd>The FhatOS Console is a composite of 3 other actors:<ol type="1">
 <li>The <code>Terminal</code> (<code>/sys/io/terminal/</code>) provides thread-safe access to hardware I/O.</li>
 <li>The <code>Parser</code> (<code>/sys/lang/parser/</code>) converts string input to bytecode output.</li>
 <li>The <code>Processor</code> (<code>/sys/lang/processor/</code>) executes bytecode.</li>
@@ -131,20 +131,19 @@ fURI and MQTT</h2>
 <ol type="1">
 <li><code>MonadRouter</code>: An MQTT router scoped to an active monad (<b>thread</b>) processing a monoid (<b>program</b>).</li>
 <li><code>MonoidRouter</code>: An MQTT router scoped to a monoid (<b>program</b>).</li>
-<li><code>LocalRouter</code>: An MQTT router scoped to the current host (<b>machine</b>).</li>
-<li><code>GlobalRouter</code>: An MQTT router scoped to the current swarm (<b>cluster</b>).</li>
+<li><code>HostRouter</code>: An MQTT router scoped to the current host (<b>machine</b>).</li>
+<li><code>ClusterRouter</code>: An MQTT router scoped to the current intranet (<b>cluster</b>).</li>
+<li><code>GlobalRouter</code> : An MQTT router scoped to the Internet.</li>
 <li><code>MetaRouter</code>: An MQTT router dynamically scoped to other routers based on fURI endpoints.</li>
 </ol>
-<dl class="section note"><dt>Note</dt><dd>The following is a list of common FhatOS fURI endpoints, where <code>fos:</code> is the namespace prefix for <code>furi://fhatos.org/</code>.<ul>
-<li><code>fos:types/+</code> (the base types of mm-ADT)</li>
-<li><code>fos:types/+/+</code> (user defined base-extending types)</li>
-<li><code>furi://+</code> (the machines in the cluster)</li>
-<li><code>furi://+/+</code> (the kernel processes of the machines in the cluster)</li>
-<li><code>furi://+/scheduler/thread/</code> (the machine's threads)</li>
-<li><code>furi://#/scheduler/thread/</code> (the cluster's threads)</li>
+<dl class="section note"><dt>Note</dt><dd><ul>
+<li><code>abc</code> monad scoped fURI.</li>
+<li><code>~/abc</code> monoid scoped fURI ("home directory" of executing program).</li>
+<li><code>/abc</code> host scoped fURI (rooted at localhost).</li>
+<li><code>//abc</code> cluster scoped fURI (hosted on the intranet).</li>
+<li><code>//abc.org/</code> globally scoped fURI (hosted on the internet) </li>
 </ul>
 </dd></dl>
-<p>... </p>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"/>
 </div><!-- contents -->

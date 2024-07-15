@@ -174,7 +174,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>          <span class="keywordflow">if</span> (writeThrough)</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>            Router::write(typeId, obj);</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>          <span class="keywordflow">if</span> (OType::INST == OTypes.toEnum(typeId.path(0, 1).c_str())) {</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>            <span class="keyword">const</span> Inst_p inst = <a class="code hl_function" href="structfhatos_1_1Insts.html#af2ce25988df631f3139dfd75b15d1541">Insts::to_inst</a>(typeId,*obj-&gt;lst_value());</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>            <span class="keyword">const</span> Inst_p inst = <a class="code hl_function" href="structfhatos_1_1Insts.html#a44223071356a6ac67b629c9f04c93f15">Insts::to_inst</a>(typeId,*obj-&gt;lst_value());</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>            LOG_TASK(INFO, <span class="keyword">this</span>, <span class="stringliteral">&quot;!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n&quot;</span>, typeId.toString().c_str(),</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>                     obj-&gt;lst_value()-&gt;front()-&gt;toString().c_str(), ITypeSignatures.toChars(inst-&gt;itype()));</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>          } <span class="keywordflow">else</span> {</div>
@@ -242,7 +242,7 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
 <div class="ttc" id="aobj_8hpp_html_a48680c360c0948acdfc2bab032a0139e"><div class="ttname"><a href="obj_8hpp.html#a48680c360c0948acdfc2bab032a0139e">fhatos::OType</a></div><div class="ttdeci">OType</div><div class="ttdoc">The base types of mm-ADT.</div><div class="ttdef"><b>Definition</b> obj.hpp:53</div></div>
-<div class="ttc" id="astructfhatos_1_1Insts_html_af2ce25988df631f3139dfd75b15d1541"><div class="ttname"><a href="structfhatos_1_1Insts.html#af2ce25988df631f3139dfd75b15d1541">fhatos::Insts::to_inst</a></div><div class="ttdeci">static const Inst_p to_inst(const fURI &amp;type, const List&lt; Obj_p &gt; &amp;args)</div><div class="ttdef"><b>Definition</b> insts.hpp:363</div></div>
+<div class="ttc" id="astructfhatos_1_1Insts_html_a44223071356a6ac67b629c9f04c93f15"><div class="ttname"><a href="structfhatos_1_1Insts.html#a44223071356a6ac67b629c9f04c93f15">fhatos::Insts::to_inst</a></div><div class="ttdeci">static const Inst_p to_inst(const ID &amp;type, const List&lt; Obj_p &gt; &amp;args)</div><div class="ttdef"><b>Definition</b> insts.hpp:363</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
