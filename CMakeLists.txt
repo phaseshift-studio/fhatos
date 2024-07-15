@@ -108,4 +108,5 @@ ADD_SUBDIRECTORY(test)
 ####################################
 ########## DOCUMENTATION ###########
 ####################################
+SET(BUILD_DOCS ON)
 ADD_SUBDIRECTORY(docs)

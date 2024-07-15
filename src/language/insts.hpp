@@ -360,7 +360,7 @@ namespace fhatos {
       return result;
     }
 
-    static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
+    static const Inst_p to_inst(const ID &type, const List<Obj_p> &args) {
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
       if (type == INST_FURI->resolve("map"))

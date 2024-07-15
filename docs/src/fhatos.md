@@ -56,7 +56,7 @@ fhatos> */abc/
 
 ### A FhatOS Console
 
-> [!important]
+> [!note]
 > The FhatOS Console is a composite of 3 other actors:
 > 1. The `Terminal` (`/sys/io/terminal/`) provides thread-safe access to hardware I/O.
 > 2. The `Parser` (`/sys/lang/parser/`) converts string input to bytecode output.
@@ -80,23 +80,21 @@ There exist three MQTT routers:
 
 1. `MonadRouter`: An MQTT router scoped to an active monad (**thread**) processing a monoid (**program**).
 2. `MonoidRouter`: An MQTT router scoped to a monoid (**program**).
-3. `LocalRouter`: An MQTT router scoped to the current host (**machine**).
-4. `GlobalRouter`: An MQTT router scoped to the current swarm (**cluster**).
-5. `MetaRouter`: An MQTT router dynamically scoped to other routers based on fURI endpoints.
+3. `HostRouter`: An MQTT router scoped to the current host (**machine**).
+4. `ClusterRouter`: An MQTT router scoped to the current intranet (**cluster**).
+5. `GlobalRouter` : An MQTT router scoped to the Internet. 
+6. `MetaRouter`: An MQTT router dynamically scoped to other routers based on fURI endpoints.
 
 > [!note]
-> The following is a list of common FhatOS fURI endpoints, where `fos:` is the namespace prefix
-> for `furi://fhatos.org/`.
-> * `fos:types/+` (the base types of mm-ADT)
-> * `fos:types/+/+` (user defined base-extending types)
-> * `furi://+` (the machines in the cluster)
-> * `furi://+/+` (the kernel processes of the machines in the cluster)
-> * `furi://+/scheduler/thread/` (the machine's threads)
-> * `furi://#/scheduler/thread/` (the cluster's threads)
+> * `abc` monad scoped fURI.
+> * `~/abc` monoid scoped fURI ("home directory" of executing program).
+> * `/abc` host scoped fURI (rooted at localhost).
+> * `//abc` cluster scoped fURI (hosted on the intranet).
+> * `//abc.org/` globally scoped fURI (hosted on the internet)
 
 <!-- CODE:BASH:START -->
-<!-- ../build/docs/build/main_runner.out -->
+<!-- ./docs/build/main_runner.out "__(1,2,3,4).plus(10)" "16.to(a)" "*a" -->
 <!-- CODE:END -->
 <!-- OUTPUT:START -->
-...
+
 <!-- OUTPUT:END -->

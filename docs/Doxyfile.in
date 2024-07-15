@@ -579,6 +579,7 @@ EXTRACT_ANON_NSPACES   = NO
 # will be determined by the corresponding definition. By default unnamed
 # parameters remain unnamed in the output.
 # The default value is: YES.
+# The default value is: YES.
 
 RESOLVE_UNNAMED_PARAMS = YES
 
@@ -949,7 +950,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../src/ src/
+INPUT                  = src/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

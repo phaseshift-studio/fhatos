@@ -1,3 +1,4 @@
+FIND_PACKAGE(PythonInterp REQUIRED)
 OPTION(BUILD_DOCS "Build documentation" ON) # ON/OFF
 IF (TASKSCH_BUILD_WITH_DOCS)
     ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/docs)
@@ -35,6 +36,7 @@ ENDIF ()
 IF (BUILD_DOCS)
     MESSAGE("${.r}=====> PROCESSING DOCUMENTATION${..}")
     MESSAGE(CHECK_START "${.y}CMaking Doxygen Documentation${..}")
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs DESTINATION ${CMAKE_BINARY_DIR})
     FIND_PACKAGE(Doxygen)
     IF (DOXYGEN_FOUND)
         MESSAGE(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE} -- ${DOXYGEN_VERSION}")
@@ -55,7 +57,17 @@ IF (BUILD_DOCS)
                 COMMENT "Generating Doxygen Documentation"
                 VERBATIM)
         # Create CMake Target for generating doc.
-        ADD_CUSTOM_TARGET(docs ALL DEPENDS ${DOXYGEN_INDEX_FILE})
+        ADD_CUSTOM_TARGET(docs ALL DEPENDS ${DOXYGEN_INDEX_FILE} ${CMAKE_BINARY_DIR}/docs/build/main_runner.out)
+        ADD_CUSTOM_COMMAND(TARGET docs
+                POST_BUILD
+                DEPENDS
+                ${CMAKE_BINARY_DIR}/docs/src/fhatos.md
+                ${CMAKE_BINARY_DIR}/docs/build/main_runner.out
+                execute_process(
+                COMMAND markdown-code-runner /Users/marko/software/fhatos/build/docs/src/fhatos.md
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                COMMENT "Evaluating markdown-code-runner: ${R_DONE}")
+        )
     ENDIF ()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF ()
