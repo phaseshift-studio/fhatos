@@ -105,7 +105,19 @@ A FhatOS Language</h2>
 <p>A simple mm-ADT program is defined below. The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
 <div class="fragment"><div class="line">thread[[setup =&gt; __]</div>
 <div class="line">        loop  =&gt; __]]</div>
-</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/rec/person,[name=&gt;as(/str/),age=&gt;is(gt(0))]) </div>
+</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/<span class="keywordtype">int</span>/nat,is(gt(0)))</div>
+<div class="line">fhatos&gt; nat[10]</div>
+<div class="line">==&gt;nat[10]</div>
+<div class="line">fhatos&gt; nat[-5]</div>
+<div class="line">[ERROR]  [/sys/lang/type/] -5 is not a /<span class="keywordtype">int</span>/nat[is[gt[0]]]</div>
+<div class="line">fhatos&gt; nat[5.0]</div>
+<div class="line">[ERROR]  [/sys/lang/type/] /real/nat is an undefined type</div>
+</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/<span class="keywordtype">int</span>/nat,is(gt(0)))</div>
+<div class="line">fhatos&gt; define(/rec/person,[name=&gt;as(/str/),age=&gt;as(/<span class="keywordtype">int</span>/nat)])</div>
+<div class="line">fhatos&gt; person[[name=&gt;&#39;fhatty&#39;,age=&gt;0]]</div>
+<div class="line">[ERROR]  [/sys/lang/type/] 0 is not a /<span class="keywordtype">int</span>/nat[is[gt[0]]]</div>
+<div class="line">fhatos&gt; person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]</div>
+<div class="line">==&gt;person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]</div>
 </div><!-- fragment --><p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
 <div class="fragment"><div class="line">fhatos&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
 <div class="line">                loop  =&gt; stop(/abc/)]].to(/abc/)</div>
@@ -141,10 +153,19 @@ fURI and MQTT</h2>
 <li><code>~/abc</code> monoid scoped fURI ("home directory" of executing program).</li>
 <li><code>/abc</code> host scoped fURI (rooted at localhost).</li>
 <li><code>//abc</code> cluster scoped fURI (hosted on the intranet).</li>
-<li><code>//abc.org/</code> globally scoped fURI (hosted on the internet) </li>
+<li><code>//abc.org/</code> globally scoped fURI (hosted on the internet)</li>
 </ul>
 </dd></dl>
-</div></div><!-- PageDoc -->
+<div class="fragment"><div class="line">fhatos&gt; __(1,2,3,4).plus(10)</div>
+<div class="line">==&gt;11</div>
+<div class="line">==&gt;12</div>
+<div class="line">==&gt;13</div>
+<div class="line">==&gt;14</div>
+<div class="line">fhatos&gt; 16.to(b)</div>
+<div class="line">==&gt;16</div>
+<div class="line">fhatos&gt; *b.plus(45)</div>
+<div class="line">==&gt;61</div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"/>
 </div><!-- contents -->
 <!-- start footer part -->
