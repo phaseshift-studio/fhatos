@@ -34,7 +34,7 @@ namespace fhatos {
         Actor(id,
               [](Actor *actor) {
                 actor->subscribe("out", [actor](const Message_p &message) {
-                  if (Terminal::singleton()->_currentOutput->equals(message->source)) {
+                  if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
                     const string copy = string(message->payload->str_value());
                     if (message->target.name() == "no_color")
                       GLOBAL_OPTIONS->printer<>()->print(GLOBAL_OPTIONS->printer<>()->strip(copy.c_str()));

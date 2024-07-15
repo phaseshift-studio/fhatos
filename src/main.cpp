@@ -28,7 +28,6 @@
 #include <language/types.hpp>
 #include <structure/console/console.hpp>
 #include <structure/io/terminal.hpp>
-#include <util/options.hpp>
 
 #ifndef FOS_ROUTERS
 #ifdef NATIVE
@@ -42,17 +41,15 @@
 
 using namespace fhatos;
 void setup() {
-  GLOBAL_OPTIONS->LOGGING = LOG_TYPE::INFO;
-  GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
   try {
     Kernel::build()
-        // ->log_level()
-        // ->printer()
+        ->initialPrinter(Ansi<>::singleton())
+        ->initialLogLevel(INFO)
         ->withSplash(ANSI_ART)
         ->withNote("Use !bØ!! for noobj")
         ->withNote("Use !y:help!! for console commands")
-        ->usingScheduler(Scheduler::singleton("/sys/scheduler/"))
-        ->onBoot({FOS_ROUTERS, //
+        ->onBoot(Scheduler::singleton("/sys/scheduler/"), //
+                 {FOS_ROUTERS, //
                   Terminal::singleton("/sys/io/terminal/"), //
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
@@ -72,7 +69,7 @@ void loop() {
 }
 
 #ifdef NATIVE
-int main(int arg, char **argsv) {
+int main(int, char **) {
   setup();
   loop();
 }

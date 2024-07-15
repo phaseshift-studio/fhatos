@@ -32,6 +32,14 @@ namespace fhatos {
       static Kernel *kernel = new Kernel();
       return kernel;
     }
+    static Kernel *initialLogLevel(const LOG_TYPE level) {
+      GLOBAL_OPTIONS->LOGGING = level;
+      return Kernel::build();
+    }
+    static Kernel *initialPrinter(Ansi<> *ansi) {
+      GLOBAL_OPTIONS->PRINTING = ansi;
+      return Kernel::build();
+    }
     static Kernel *withSplash(const char *splash) {
       Terminal::printer<>()->print(splash);
       return Kernel::build();
@@ -40,8 +48,7 @@ namespace fhatos {
       Terminal::printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
-    static Kernel *usingScheduler(const Scheduler *scheduler) { return Kernel::build(); }
-    static Kernel *onBoot(const List<Process *> processes) {
+    static Kernel *onBoot(const Scheduler* scheduler, const List<Process *> processes) {
       bool success = true;
       for (Process *process: processes) {
         success = success && Scheduler::singleton()->spawn(process);

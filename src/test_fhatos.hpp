@@ -60,14 +60,14 @@ namespace fhatos {
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
-      GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                       \
-      GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                          \
       Kernel::build()                                                                                                  \
+          ->initialPrinter(Ansi<>::singleton())                                                                        \
+          ->initialLogLevel(INFO)                                                                                      \
           ->withSplash(ANSI_ART)                                                                                       \
           ->withNote("Use !bØ!! for noobj")                                                                            \
           ->withNote("Use :help for console commands")                                                                 \
-          ->usingScheduler(Scheduler::singleton("/sys/scheduler/"))                                                    \
-          ->onBoot({FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})    \
+          ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                            \
+                   {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})    \
           ->loadModules({"/ext/process"}); /*->defaultOutput("/home/root/repl/")        */                             \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \

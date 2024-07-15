@@ -36,6 +36,8 @@ namespace fhatos {
     string _line;
     bool _newInput = true;
     bool _nesting = false;
+    bool _color = true;
+
     ///// printers
     void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
     void printPrompt(const bool blank = false) const {
@@ -90,9 +92,13 @@ namespace fhatos {
                                               Terminal::singleton()->id()->extend("out").toString().c_str());
               }}});
         _MENU_MAP->insert(
+            {":color",
+             {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
+              [this] { Terminal::printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
+        _MENU_MAP->insert(
             {":nesting",
              {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
-              [this]() { Terminal::printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
+              [this] { Terminal::printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
         _MENU_MAP->insert({":shutdown",
                            {"destroy scheduler", [this](const Obj_p &) { Scheduler::singleton()->stop(); },
                             [this]() { Scheduler::singleton()->stop(); }}});

@@ -9,11 +9,20 @@ processes exist within a single [URI](https://en.wikipedia.org/wiki/Uniform_Reso
 rides atop [MQTT](https://en.wikipedia.org/wiki/MQTT) with various levels of access from thread local, to machine local
 and ultimately, globally via cluster remote.
 
-### A Simple mm-ADT Program
+### Booting FhatOS
 
-FhatOS software can be written in C/C++ or mm-ADT (multi-model abstract data type). mm-ADT is a cluster-oriented
-programming language and virtual machine founded on 5 _mono-types_ (**bool**, **int**, **real**, **uri**, and **str**)
-and 2 _poly-types_ (**lst** and **rec**). mm-ADT programs are sent via message to the FhatOS scheduler and then spawned
+#### Booting on Linux/Unix/Mac
+
+#### Booting on ESP32
+
+#### Booting on ESP8266
+
+### A FhatOS Language
+
+FhatOS software can be written in C/C++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a cluster-oriented
+programming language and virtual machine founded on 5 _mono-types_ (`bool`, `int`, `real`, `uri`, and `str`)
+and 2 _poly-types_ (**lst** and **rec**), where `rec` is a `lst` of 2-`obj` `lsts` with particular semantics regarding
+key uniqueness. mm-ADT programs are sent via message to the FhatOS scheduler and then spawned
 as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written (
 typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and
 actuators.
@@ -27,9 +36,7 @@ thread[[setup => __]
 ```
 
 ```.cpp
-fhatos> __(0).define(/rec/person,
-                     [name=>as(/str/),
-                      age=>is(gt(0))]) 
+fhatos> define(/rec/person,[name=>as(/str/),age=>is(gt(0))]) 
 ```
 
 The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`. The scheduler spawns
@@ -38,25 +45,44 @@ thread's id and halts.
 
 ```.cpp
 fhatos> thread[[setup => print('setup complete'),
-                loop  => stop(_)]].to(/abc/)")
+                loop  => stop(/abc/)]].to(/abc/)
 ```
 
 ```.cpp
-fhatos> __(0).from(127.0.0.1/kernel/scheduler/thread/abc)
+fhatos> */abc/
 ==> thread[[setup => print('setup complete'),
-            loop  => pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])")
-fhatos> __(0).from(127.0.0.1/kernel/scheduler/thread/abc/loop)
-==> __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)
+            loop  => stop(/abc/)]]
+```
+
+### A FhatOS Console
+
+> [!important]
+> The FhatOS Console is a composite of 3 other actors:
+> 1. The `Terminal` (`/sys/io/terminal/`) provides thread-safe access to hardware I/O.
+> 2. The `Parser` (`/sys/lang/parser/`) converts string input to bytecode output.
+> 3. The `Processor` (`/sys/lang/processor/`) executes bytecode.
+
+```
+terminal/in =[str]=> console 
+  =[str]=> parser =bcode<~/abc>=> 
+    processor =[objs]=> ~/abc 
+      <=[objs]= console 
+        =[str]=> terminal/out
 ```
 
 ### fURI and MQTT
 
 [MQTT](https://en.wikipedia.org/wiki/MQTT) is a publish/subscribe message passing protocol that has found extensive
-usage in embedded systems. Hierarchically specified _topics_ can be _subscribed_ and _published_ to. In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic. FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware. There exist three MQTT routers:
+usage in embedded systems. Hierarchically specified _topics_ can be _subscribed_ and _published_ to. In MQTT, there is
+no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic.
+FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware.
+There exist three MQTT routers:
 
-1. `BCodeRouter`: An MQTT router scoped to a single thread of execution.
-2. `LocalRouter`: An MQTT router scoped to the set of all threads on a machine.
-3. `GlobalRouter`: An MQTT router scoped to the set of all threads across the cluster.
+1. `MonadRouter`: An MQTT router scoped to an active monad (**thread**) processing a monoid (**program**).
+2. `MonoidRouter`: An MQTT router scoped to a monoid (**program**).
+3. `LocalRouter`: An MQTT router scoped to the current host (**machine**).
+4. `GlobalRouter`: An MQTT router scoped to the current swarm (**cluster**).
+5. `MetaRouter`: An MQTT router dynamically scoped to other routers based on fURI endpoints.
 
 > [!note]
 > The following is a list of common FhatOS fURI endpoints, where `fos:` is the namespace prefix
