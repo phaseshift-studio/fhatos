@@ -52,15 +52,14 @@ namespace fhatos {
                    process->id()->toString().c_str());
           return share(false);
         }
-        //////////////////////////////////////////////////
-        ////// THREAD //////
         bool success = false;
         this->subscribe(*process->id(), [this, process](const Message_p &message) {
           if (message->payload->isNoObj()) {
-            process->stop();
             this->unsubscribe(*process->id());
+            process->stop();
           }
         });
+        ////////////////////////////////
         switch (process->type) {
           case THREAD: {
             this->THREADS->push_back(static_cast<Thread *>(process));
@@ -95,21 +94,6 @@ namespace fhatos {
         }
         LOG_TASK(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                  P_TYPE_STR(process->type));
-        /*LOG(NONE,
-            "\t!yFree memory\n"
-            "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR "][flash: "
-            FOS_BYTES_MB_STR "]\n",
-            FOS_BYTES_MB(ESP.getFreeSketchSpace()),
-            FOS_BYTES_MB(ESP.getFreeHeap()),
-            FOS_BYTES_MB(ESP.getFreePsram()),
-            FOS_BYTES_MB(ESP.getFlashChipSize()));*/
-        /* if (success) {
-           this->publish(
-               *this->id(),
-               Obj::to_rec(
-                   {{u("thread"), THREADS->size()}, {u("fiber"), FIBERS->size()}, {u("coroutine"),
-         COROUTINES->size()}}), RETAIN_MESSAGE);
-         }*/
         return share(success);
       });
       if (!success)

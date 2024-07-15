@@ -164,6 +164,10 @@ namespace fhatos {
     virtual uint retainSize() const { return -1; }
     virtual const string toString() const { return "Router"; }
 
+    ///////////////////////////////////////////
+
+    static Router *current() { return GLOBAL_OPTIONS->router<Router>(); }
+
     template<typename OBJ = Obj>
     static ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
       Router *router = GLOBAL_OPTIONS->router<Router>();
@@ -191,6 +195,19 @@ namespace fhatos {
         delete done;
         return ret;
       }
+    }
+
+    static Rec_p readPattern(const Pattern &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+      Router *router = GLOBAL_OPTIONS->router<Router>();
+      Obj::RecMap<> *map = new Obj::RecMap<>();
+      router->subscribe(Subscription{.source = source, .pattern = target, .onRecv = [map](const Message_p &message) {
+                                       map->insert({Obj::to_uri(message->target), message->payload});
+                                     }});
+      const time_t startTimestamp = time(nullptr);
+      while ((time(nullptr) - startTimestamp) < static_cast<uint8_t>(router->_level)) {
+      }
+      router->unsubscribe(source, target);
+      return Obj::to_rec(Obj::RecMap_p<>(map));
     }
 
     static RESPONSE_CODE write(const ID &target, const Obj_p &obj, const ID &source = FOS_DEFAULT_SOURCE_ID) {

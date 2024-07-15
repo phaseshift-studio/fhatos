@@ -75,10 +75,10 @@ namespace fhatos {
   void test_uri_parsing() {
     Types::singleton()->saveType("/uri/x", Obj::to_bcode({}));
     Types::singleton()->saveType("/uri/furi:", Obj::to_bcode({}));
-    for (auto &trip: List<Trip<string, fURI, fURI>>({{"blah.com", fURI("blah.com"), *URI_FURI},
+    for (auto &trip: List<Trip<string, fURI, fURI>>({{"<blah.com>", fURI("blah.com"), *URI_FURI},
                                                      {"ga", fURI("ga"), *URI_FURI},
                                                      {"x[x]", fURI("x"), URI_FURI->resolve("x")},
-                                                     {"furi:[blah.com]", fURI("blah.com"), URI_FURI->resolve("furi:")},
+                                                     {"furi:[blah_com]", fURI("blah_com"), URI_FURI->resolve("furi:")},
                                                      {"/abc_2467", fURI("/abc_2467"), *URI_FURI}})) {
       const Uri_p u = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::URI, u->o_type());
@@ -110,42 +110,42 @@ namespace fhatos {
     Types::singleton()->saveType("/lst/ctype", Obj::to_bcode({}));
     Types::singleton()->saveType("/bool/abool", Obj::to_bcode({}));
     for (auto &trip: List<Trip<string, List<Obj_p>, fURI>>(
-             {{"['a',13,actor@127.0.0.1,false]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+             {{"['a',13,actor,false]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                *LST_FURI},
-              {"['a' , 13,actor@127.0.0.1 , false ]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"['a' , 13,actor , false ]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                *LST_FURI},
-              {"['a' ,    13 , actor@127.0.0.1 ,    false  ]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"['a' ,    13 , actor ,    false  ]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                *LST_FURI},
-              {"['a',    13 ,actor@127.0.0.1,   false]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"['a',    13 ,actor,   false]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                *LST_FURI},
-              {"atype[['a',13 ,actor@127.0.0.1,   false]]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"atype[['a',13 ,actor,   false]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                LST_FURI->resolve("atype")},
-              {"atype  [['a',13 ,actor@127.0.0.1,   false]]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"atype  [['a',13 ,actor,   false]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                LST_FURI->resolve("atype")},
-              {"btype[['a',  nat[13] , actor@127.0.0.1, abool   [false]]]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"btype[['a',  nat[13] , actor, abool   [false]]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                LST_FURI->resolve("btype")},
-              {"    btype[['a',  nat[13] ,actor@127.0.0.1,   abool [false]]]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"    btype[['a',  nat[13] ,actor,   abool [false]]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                LST_FURI->resolve("btype")},
-              {"ctype[['a',    13 , actor@127.0.0.1,  false]]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"ctype[['a',    13 , actor,  false]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                LST_FURI->resolve("ctype")},
-              {"   ctype    [['a',    13 ,actor@127.0.0.1,   false]]",
-               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor@127.0.0.1"), Obj::to_bool(false)},
+              {"   ctype    [['a',    13 ,actor,   false]]",
+               {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
                LST_FURI->resolve("ctype")}})) {
       FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", std::get<0>(trip).c_str());
       const Lst_p l = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::LST, l->o_type());
       TEST_ASSERT_EQUAL_STRING("a", l->lst_get(share(Int(0)))->str_value().c_str());
       TEST_ASSERT_EQUAL_INT(13, l->lst_get(share(Int(1)))->int_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor@127.0.0.1"), l->lst_get(share(Int(2)))->uri_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(fURI("actor"), l->lst_get(share(Int(2)))->uri_value());
       TEST_ASSERT_FALSE(l->lst_get(share(Int(3)))->bool_value());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *l->id());
     }
@@ -161,14 +161,14 @@ namespace fhatos {
     Types::singleton()->saveType("/rec/btype", Obj::to_bcode({}));
     Types::singleton()->saveType("/rec/ctype", Obj::to_bcode({}));
     Types::singleton()->saveType("/bool/abool", Obj::to_bcode({}));
-    List<string> forms = {"['a'=>13,actor@127.0.0.1=>false]",
-                          "['a' => 13,actor@127.0.0.1 => false ]",
-                          "['a'=> 13 , actor@127.0.0.1=>false]",
-                          "['a' =>    13 , actor@127.0.0.1 =>    false  ]",
-                          "['a'=>    13 ,actor@127.0.0.1=>   false]",
-                          "atype[['a'=>13 ,actor@127.0.0.1=>   false]]",
-                          "btype[['a'=>  nat[13] , actor@127.0.0.1=>   abool[false]]  ]",
-                          "ctype[  ['a'=>    13 ,  actor@127.0.0.1=>   false]]"};
+    List<string> forms = {"['a'=>13,actor=>false]",
+                          "['a' => 13,actor => false ]",
+                          "['a'=> 13 , actor=>false]",
+                          "['a' =>    13 , actor =>    false  ]",
+                          "['a'=>    13 ,actor=>   false]",
+                          "atype[['a'=>13 ,actor=>   false]]",
+                          "btype[['a'=>  nat[13] , actor=>   abool[false]]  ]",
+                          "ctype[  ['a'=>    13 ,  actor=>   false]]"};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const ptr<Rec> rc1 = Parser::singleton()->tryParseObj(form).value();
@@ -176,7 +176,7 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value());
       TEST_ASSERT_TRUE(rc1->rec_get(ptr<Int>(new Int(13)))->isNoObj());
       TEST_ASSERT_TRUE(rc1->rec_get(ptr<Str>(new Str("no key")))->isNoObj());
-      TEST_ASSERT_FALSE(rc1->rec_get(share(u("actor@127.0.0.1")))->bool_value());
+      TEST_ASSERT_FALSE(rc1->rec_get(share(u("actor")))->bool_value());
     }
 
     forms = {"person[[age=>nat[29],name=>'dogturd']]", "person[[age=>nat[29],name=>'dogturd']]"
@@ -193,16 +193,16 @@ namespace fhatos {
       // TEST_ASSERT_TRUE(rc2->rec_get(Obj::to_uri("actor@127.0.0.1"))->isNoObj());
     }
     ///////////////////////////////////
-    const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]").value();
+    const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,actor=>['b'=>1,'c'=>3]]").value();
     TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
     TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
     //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
-    TEST_ASSERT_TRUE(rc2->rec_get("actor@127.0.0.1")->isNoObj()); // it's a string, not a uri
-    const ptr<Rec> rc3 = rc2->rec_get(u("actor@127.0.0.1"));
+    TEST_ASSERT_TRUE(rc2->rec_get("actor")->isNoObj()); // it's a string, not a uri
+    const ptr<Rec> rc3 = rc2->rec_get(u("actor"));
     TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
-    TEST_ASSERT_EQUAL_STRING("['a'=>13,actor@127.0.0.1=>['b'=>1,'c'=>3]]",
+    TEST_ASSERT_EQUAL_STRING("['a'=>13,actor=>['b'=>1,'c'=>3]]",
                              GLOBAL_OPTIONS->printer<>()->strip(rc2->toString().c_str()));
 
     ////// match testing
@@ -247,12 +247,14 @@ namespace fhatos {
   }
 
   void test_bcode_parsing() {
+    Types::singleton()->loadExt("/ext/process");
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
                                                       ->tryParseObj("thread[[setup => print('setup complete'),"
-                                                                    "        loop  => pub(/abc/,Ø)]].to(/abc/)")
+                                                                    "        loop  => to(/abc/)]].to(/abc/)")
                                                       .value());
     Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier("wait", [] { return Scheduler::singleton()->count("/abc/") == 0; });
+    Scheduler::singleton()->barrier((Router::current()->id()->toString() + "_wait").c_str(),
+                                    [] { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 
 

@@ -231,8 +231,8 @@ static const void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
 
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][type:!y%s!!]", obj->toString().c_str(),
-                   OTypes.toChars(obj->o_type()), obj->id()->toString().c_str());
+  FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),
+                   OTypes.toChars(obj->o_type()), ITypeDescriptions.toChars(obj->itype()));
   return obj;
 }
 

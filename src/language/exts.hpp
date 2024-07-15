@@ -35,7 +35,7 @@ namespace fhatos {
                                                  {{ID("/rec/thread"), TYPE_PARSER("[setup=>_,loop=>_]")},
                                                   {ID("/rec/fiber"), TYPE_PARSER("[setup=>_,loop=>_]")},
                                                   {ID("/rec/coroutine"), TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                  {ID("/inst/stop"), TYPE_PARSER("[to(*_0)]")}}},
+                                                  {ID("/inst/stop"), TYPE_PARSER("[map(Ø).to(*_0)]")}}},
                                                 {ID("/ext/collection"),
                                                  {{ID("/lst/pair"), TYPE_PARSER("[_,_]")},
                                                   {ID("/lst/trip"), TYPE_PARSER("[_,_,_]")},

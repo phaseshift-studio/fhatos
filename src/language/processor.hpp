@@ -51,7 +51,7 @@ namespace fhatos {
             LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
-      } else if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->itype())) == 0)) {
+      } else /*if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->itype())) == 0))*/ {
         const Monad_p monad = Monad_p(new Monad(nextObj, nextInst));
         running->push_back(monad);
         LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
@@ -115,7 +115,7 @@ namespace fhatos {
           LOG(DEBUG, "Processing barrier: %s\n", barrier->toString().c_str());
           barrier->split(this->bcode, this->running);
         } else {
-          const ptr<Monad> monad = this->running->back();
+          const Monad_p monad = this->running->back();
           this->running->pop_back();
           if (monad->halted()) {
             LOG(TRACE, FOS_TAB_5 "!gHalting!! monad: %s\n", monad->toString().c_str());

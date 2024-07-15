@@ -204,6 +204,14 @@ namespace fhatos {
 
     const bool isRelative() const { return !isAbsolute(); }
 
+    virtual const bool isPattern() const {
+      for (uint8_t i = 0; i < this->_length; i++) {
+        if (strchr(this->_segments[i], '#') || strchr(this->_segments[i], '+'))
+          return true;
+      }
+      return false;
+    }
+
     const fURI retract(const bool fromRight = true) const {
       if (this->empty())
         return *this;
@@ -428,6 +436,8 @@ namespace fhatos {
         throw;
       }
     }
+
+    const bool isPattern() const override { return false; }
   };
   using ID_p = ptr<ID>;
 
@@ -446,7 +456,7 @@ namespace fhatos {
     Pattern(const char *furiCharacters) : fURI(furiCharacters){};
 
     bool colocated(const fURI &furi) const override {
-      return furi.authority() == "#" || furi.authority().find("+") > -1 || fURI::colocated(furi);
+      return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);
     }
 
     bool matches(const fURI &pattern) const override {

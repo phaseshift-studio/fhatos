@@ -24,6 +24,7 @@
 #include <language/obj.hpp>
 #include <process/router/router.hpp>
 #include <util/options.hpp>
+#include <utility>
 
 namespace fhatos {
   struct Insts {
@@ -84,6 +85,11 @@ namespace fhatos {
       return Obj::to_inst("map", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
+    static Obj_p flatmap(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "flatmap", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); }, IType::ONE_TO_MANY);
+    }
+
     static Obj_p filter(const BCode_p &bcode) {
       return Obj::to_inst(
           "filter", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; },
@@ -132,6 +138,10 @@ namespace fhatos {
 
     static Obj_p noop() {
       return Obj::to_inst("noop", {}, [](const Obj_p &lhs) { return lhs; }, IType::ONE_TO_ONE);
+    }
+
+    static NoObj_p end() {
+      return Obj::to_inst("end", {}, [](const Obj_p &) { return Obj::to_noobj(); }, IType::ONE_TO_ZERO);
     }
 
 
@@ -196,7 +206,13 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
-          "from", {uri}, [uri](const Obj_p &lhs) { return Router::read(uri->apply(lhs)->uri_value()); },
+          "from", {uri}, [uri](const Uri_p &lhs) { return Router::read(uri->apply(lhs)->uri_value()); },
+          areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+    }
+
+    static Rec_p rfrom(const Uri_p &uri) {
+      return Obj::to_inst(
+          "rfrom", {uri}, [uri](const Uri_p &lhs) { return Router::readPattern(uri->apply(lhs)->uri_value()); },
           areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
@@ -305,6 +321,13 @@ namespace fhatos {
           IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
     }
 
+    static Obj_p within(const BCode_p code) {
+      return nullptr;
+      /*return Obj::to_inst(
+         "within", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
+         Obj::to_objs(List<Obj_p>{}));*/
+    }
+
     static Int_p count() {
       return Obj::to_inst(
           "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
@@ -337,17 +360,17 @@ namespace fhatos {
       return result;
     }
 
-    static constexpr const char *MAP_T = "map";
-    static constexpr const char *FILTER_T = "filter";
     static const Inst_p to_inst(const fURI &type, const List<Obj_p> &args) {
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
-      if (type == INST_FURI->resolve(MAP_T))
+      if (type == INST_FURI->resolve("map"))
         return Insts::map(args.at(0));
-      if (type == INST_FURI->resolve(FILTER_T))
+      if (type == INST_FURI->resolve("filter"))
         return Insts::filter(args.at(0));
       if (type == INST_FURI->resolve("side"))
         return Insts::side(args.at(0));
+      if (type == INST_FURI->resolve("end"))
+        return Insts::end();
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
       if (type == INST_FURI->resolve("sum"))
@@ -392,10 +415,14 @@ namespace fhatos {
         return Insts::to(args.at(0));
       if (type == INST_FURI->resolve("from") || type == INST_FURI->resolve("*"))
         return Insts::from(args.at(0));
+      if (type == INST_FURI->resolve("rfrom") || type == INST_FURI->resolve("r*"))
+        return Insts::rfrom(args.at(0));
       if (type == INST_FURI->resolve("pub"))
         return Insts::pub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("sub"))
         return Insts::sub(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("within"))
+        return Insts::within(args.at(0));
       if (type == INST_FURI->resolve("print"))
         return Insts::print(args.at(0));
       if (type == INST_FURI->resolve("switch"))
@@ -411,7 +438,7 @@ namespace fhatos {
       if (!userInst->isNoObj()) {
         return Obj::to_inst(
             type.name(), args,
-            [userInst, args](const Obj_p &lhs) {
+            [userInst,args](const Obj_p &lhs) {
               int counter = 0;
               for (const Obj_p &arg: args) {
                 Router::write(ID((string("_") + to_string(counter++)).c_str()), arg->apply(lhs));

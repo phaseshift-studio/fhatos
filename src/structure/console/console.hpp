@@ -71,8 +71,16 @@ namespace fhatos {
                                                               std::get<0>(pair.second).c_str());
                               }
                             }}});
-        _MENU_MAP->insert(
-            {":quit", {"destroy console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
+        _MENU_MAP->insert({":log",
+                           {"log level",
+                            [this](const Uri_p &logType) {
+                              GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(logType->uri_value().toString().c_str());
+                              return logType;
+                            },
+                            [] {
+                              Terminal::printer<>()->printf("!ylog!!: !b%s!!\n",
+                                                            LOG_TYPES.toChars(GLOBAL_OPTIONS->logger<LOG_TYPE>()));
+                            }}});
         _MENU_MAP->insert(
             {":output",
              {"terminal output", [this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
@@ -81,13 +89,15 @@ namespace fhatos {
                                               Terminal::currentOut()->toString().c_str(),
                                               Terminal::singleton()->id()->extend("out").toString().c_str());
               }}});
-        _MENU_MAP->insert({":shutdown",
-                           {"destroy scheduler", [this](const Obj_p &) { Scheduler::singleton()->stop(); },
-                            [this]() { Scheduler::singleton()->stop(); }}});
         _MENU_MAP->insert(
             {":nesting",
              {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
               [this]() { Terminal::printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
+        _MENU_MAP->insert({":shutdown",
+                           {"destroy scheduler", [this](const Obj_p &) { Scheduler::singleton()->stop(); },
+                            [this]() { Scheduler::singleton()->stop(); }}});
+        _MENU_MAP->insert(
+            {":quit", {"destroy console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
 
