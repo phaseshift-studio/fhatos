@@ -107,7 +107,7 @@ A FhatOS Language</h2>
 <div class="line">        loop  =&gt; __]]</div>
 </div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/<span class="keywordtype">int</span>/nat,is(gt(0)))</div>
 <div class="line">fhatos&gt; nat[10]</div>
-<div class="line">==&gt;nat[10]</div>
+<div class="line">[ERROR]  <span class="keywordtype">int</span>[nat[10]] unexpectedly acccessed for bcode_value [line:402]</div>
 <div class="line">fhatos&gt; nat[-5]</div>
 <div class="line">[ERROR]  [/sys/lang/type/] -5 is not a /<span class="keywordtype">int</span>/nat[is[gt[0]]]</div>
 <div class="line">fhatos&gt; nat[5.0]</div>
@@ -117,7 +117,7 @@ A FhatOS Language</h2>
 <div class="line">fhatos&gt; person[[name=&gt;&#39;fhatty&#39;,age=&gt;0]]</div>
 <div class="line">[ERROR]  [/sys/lang/type/] 0 is not a /<span class="keywordtype">int</span>/nat[is[gt[0]]]</div>
 <div class="line">fhatos&gt; person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]</div>
-<div class="line">==&gt;person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]</div>
+<div class="line">[ERROR]  rec[person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]] unexpectedly acccessed for bcode_value [line:402]</div>
 </div><!-- fragment --><p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
 <div class="fragment"><div class="line">fhatos&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
 <div class="line">                loop  =&gt; stop(/abc/)]].to(/abc/)</div>
