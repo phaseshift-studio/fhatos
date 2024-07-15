@@ -92,29 +92,48 @@ $(function(){ initResizable(false); });
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_src_2fhatos"></a> <b>FhatOS</b> (pronounced <em>fat</em>) is a <a href="https://en.wikipedia.org/wiki/Distributed_operating_system">distributed operating system</a> for <a href="https://en.wikipedia.org/wiki/ESP8266">ESP8266</a> and <a href="https://en.wikipedia.org/wiki/ESP32">ESP32</a> processors with support for sandboxed deployments on Linux and MacOSX systems. All FhatOS resources, from individual datum, files, processes exist within a single <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URI</a> address space called <b>furi</b> (pronounced "fury" or "fhat uri"). Processes communicate via a publish-subscribe message passing protocol that rides atop <a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> with various levels of access from thread local, to machine local and ultimately, globally via cluster remote.</p>
 <h2><a class="anchor" id="autotoc_md1"></a>
-A Simple mm-ADT Program</h2>
-<p>FhatOS software can be written in C/C++ or mm-ADT (multi-model abstract data type). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 <em>mono-types</em> (<b>bool</b>, <b>int</b>, <b>real</b>, <b>uri</b>, and <b>str</b>) and 2 <em>poly-types</em> (<b>lst</b> and <b>rec</b>). mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written ( typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.</p>
+Booting FhatOS</h2>
+<h3><a class="anchor" id="autotoc_md2"></a>
+Booting on Linux/Unix/Mac</h3>
+<h3><a class="anchor" id="autotoc_md3"></a>
+Booting on ESP32</h3>
+<h3><a class="anchor" id="autotoc_md4"></a>
+Booting on ESP8266</h3>
+<h2><a class="anchor" id="autotoc_md5"></a>
+A FhatOS Language</h2>
+<p>FhatOS software can be written in C/C++ or mm-ADT (<b>multi-model abstract data type</b>). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 <em>mono-types</em> (<code>bool</code>, <code>int</code>, <code>real</code>, <code>uri</code>, and <code>str</code>) and 2 <em>poly-types</em> (<b>lst</b> and <b>rec</b>), where <code>rec</code> is a <code>lst</code> of 2-<code>obj</code> <code>lsts</code> with particular semantics regarding key uniqueness. mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written ( typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.</p>
 <p>A simple mm-ADT program is defined below. The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
 <div class="fragment"><div class="line">thread[[setup =&gt; __]</div>
 <div class="line">        loop  =&gt; __]]</div>
-</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; __(0).define(/rec/person,</div>
-<div class="line">                     [name=&gt;as(/str/),</div>
-<div class="line">                      age=&gt;is(gt(0))]) </div>
+</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/rec/person,[name=&gt;as(/str/),age=&gt;is(gt(0))]) </div>
 </div><!-- fragment --><p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
 <div class="fragment"><div class="line">fhatos&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
-<div class="line">                loop  =&gt; stop(_)]].to(/abc/)<span class="stringliteral">&quot;)</span></div>
-</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; __(0).from(127.0.0.1/kernel/scheduler/thread/abc)</div>
+<div class="line">                loop  =&gt; stop(/abc/)]].to(/abc/)</div>
+</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; */abc/</div>
 <div class="line">==&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
-<div class="line">            loop  =&gt; pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)]])<span class="stringliteral">&quot;)</span></div>
-<div class="line"><span class="stringliteral">fhatos&gt; __(0).from(127.0.0.1/kernel/scheduler/thread/abc/loop)</span></div>
-<div class="line"><span class="stringliteral">==&gt; __(0).pub(127.0.0.1/kernel/scheduler/thread/abc,Ø)</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>
+<div class="line">            loop  =&gt; stop(/abc/)]]</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
+A FhatOS Console</h2>
+<dl class="section important"><dt>Important</dt><dd>The FhatOS Console is a composite of 3 other actors:<ol type="1">
+<li>The <code>Terminal</code> (<code>/sys/io/terminal/</code>) provides thread-safe access to hardware I/O.</li>
+<li>The <code>Parser</code> (<code>/sys/lang/parser/</code>) converts string input to bytecode output.</li>
+<li>The <code>Processor</code> (<code>/sys/lang/processor/</code>) executes bytecode.</li>
+</ol>
+</dd></dl>
+<div class="fragment"><div class="line">terminal/in =[str]=&gt; console </div>
+<div class="line">  =[str]=&gt; parser =bcode&lt;~/abc&gt;=&gt; </div>
+<div class="line">    processor =[objs]=&gt; ~/abc </div>
+<div class="line">      &lt;=[objs]= console </div>
+<div class="line">        =[str]=&gt; terminal/out</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
 fURI and MQTT</h2>
 <p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is a publish/subscribe message passing protocol that has found extensive usage in embedded systems. Hierarchically specified <em>topics</em> can be <em>subscribed</em> and <em>published</em> to. In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic. FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware. There exist three MQTT routers:</p>
 <ol type="1">
-<li><code>BCodeRouter</code>: An MQTT router scoped to a single thread of execution.</li>
-<li><code>LocalRouter</code>: An MQTT router scoped to the set of all threads on a machine.</li>
-<li><code>GlobalRouter</code>: An MQTT router scoped to the set of all threads across the cluster.</li>
+<li><code>MonadRouter</code>: An MQTT router scoped to an active monad (<b>thread</b>) processing a monoid (<b>program</b>).</li>
+<li><code>MonoidRouter</code>: An MQTT router scoped to a monoid (<b>program</b>).</li>
+<li><code>LocalRouter</code>: An MQTT router scoped to the current host (<b>machine</b>).</li>
+<li><code>GlobalRouter</code>: An MQTT router scoped to the current swarm (<b>cluster</b>).</li>
+<li><code>MetaRouter</code>: An MQTT router dynamically scoped to other routers based on fURI endpoints.</li>
 </ol>
 <dl class="section note"><dt>Note</dt><dd>The following is a list of common FhatOS fURI endpoints, where <code>fos:</code> is the namespace prefix for <code>furi://fhatos.org/</code>.<ul>
 <li><code>fos:types/+</code> (the base types of mm-ADT)</li>
