@@ -249,25 +249,27 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        <span class="keywordflow">try</span> {</div>
 <div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>          <span class="keyword">const</span> Option&lt;Obj_p&gt; obj = Parser::singleton()-&gt;tryParseObj(this-&gt;_line);</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>          this-&gt;printResult(obj.value()-&gt;isBytecode() ? <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(obj.value()).toObjs() : obj.value());</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception &amp;e) {</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>          this-&gt;printException(e);</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        }</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>        this-&gt;_line.clear();</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>      }</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    }</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>          <span class="keywordflow">if</span>(!obj.has_value())</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>            <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;Unable to parse input: %s\n&quot;</span>,this-&gt;_line.c_str());</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>          this-&gt;printResult(obj.value()-&gt;isBytecode() ? <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(obj.value()).toObjs() : obj.value());</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception &amp;e) {</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>          this-&gt;printException(e);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>        }</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        this-&gt;_line.clear();</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>      }</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    }</div>
 </div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  };</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  };</div>
 </div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span> </div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Actor_html"><div class="ttname"><a href="classfhatos_1_1Actor.html">fhatos::Actor</a></div><div class="ttdef"><b>Definition</b> actor.hpp:36</div></div>
 <div class="ttc" id="aclassfhatos_1_1Console_html"><div class="ttname"><a href="classfhatos_1_1Console.html">fhatos::Console</a></div><div class="ttdef"><b>Definition</b> console.hpp:34</div></div>
 <div class="ttc" id="aclassfhatos_1_1Console_html_aadaa18686af59af6869bc36a3d0cdce4"><div class="ttname"><a href="classfhatos_1_1Console.html#aadaa18686af59af6869bc36a3d0cdce4">fhatos::Console::loop</a></div><div class="ttdeci">void loop() override</div><div class="ttdef"><b>Definition</b> console.hpp:110</div></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:29</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:415</div></div>
-<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:1012</div></div>
+<div class="ttc" id="aclassfhatos_1_1Obj_html_ad18d2635f5b80344ff9a0cd3a029925f"><div class="ttname"><a href="classfhatos_1_1Obj.html#ad18d2635f5b80344ff9a0cd3a029925f">fhatos::Obj::to_noobj</a></div><div class="ttdeci">static Obj_p to_noobj()</div><div class="ttdoc">STATIC TYPE CONSTRAINED CONSTRUCTORS.</div><div class="ttdef"><b>Definition</b> obj.hpp:1011</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
