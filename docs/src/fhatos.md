@@ -43,7 +43,7 @@ thread[[setup => __]
 ```.cpp
 fhatos> define(/int/nat,is(gt(0)))
 fhatos> nat[10]
-==>nat[10]
+[ERROR]  int[nat[10]] unexpectedly acccessed for bcode_value [line:402]
 fhatos> nat[-5]
 [ERROR]  [/sys/lang/type/] -5 is not a /int/nat[is[gt[0]]]
 fhatos> nat[5.0]
@@ -63,7 +63,7 @@ fhatos> define(/rec/person,[name=>as(/str/),age=>as(/int/nat)])
 fhatos> person[[name=>'fhatty',age=>0]]
 [ERROR]  [/sys/lang/type/] 0 is not a /int/nat[is[gt[0]]]
 fhatos> person[[name=>'fhatty',age=>1]]
-==>person[[name=>'fhatty',age=>1]]
+[ERROR]  rec[person[[name=>'fhatty',age=>1]]] unexpectedly acccessed for bcode_value [line:402]
 ```
 
 <!-- OUTPUT:END -->

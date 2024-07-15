@@ -34,7 +34,7 @@ namespace fhatos {
 
   public:
     static Parser *singleton(const ID &id = ID("/parser/")) {
-      static Parser parser =  Parser(id);
+      static Parser parser = Parser(id);
       return &parser;
     }
 
@@ -211,7 +211,7 @@ namespace fhatos {
       while (!ss.eof()) {
         if (bracketCounter == 0 && ss.peek() == ',') {
           Option<Obj_p> element = Parser::tryParseObj(value);
-          if(!element.has_value())
+          if (!element.has_value())
             return {};
           list.push_back(element.value());
           ss.get();
@@ -233,7 +233,7 @@ namespace fhatos {
       }
       StringHelper::trim(value);
       Option<Obj_p> element = Parser::tryParseObj(value);
-      if(!element.has_value())
+      if (!element.has_value())
         return {};
       list.push_back(element.value());
       return Option<Lst_p>{Lst::to_lst(share(list), share(baseType->resolve(type.c_str())))};
@@ -283,7 +283,11 @@ namespace fhatos {
             onKey = true;
             StringHelper::trim(key);
             StringHelper::trim(value);
-            map.insert({Parser::tryParseObj(key).value(), Parser::tryParseObj(value).value()});
+           const Option<Obj_p> k = Parser::tryParseObj(key);
+           const Option<Obj_p> v = Parser::tryParseObj(value);
+            if (!k.has_value() || !v.has_value())
+              return {};
+            map.insert({k.value(), v.value()});
             key.clear();
             value.clear();
           } else {
@@ -302,7 +306,11 @@ namespace fhatos {
       }
       StringHelper::trim(key);
       StringHelper::trim(value);
-      map.insert({Parser::tryParseObj(key).value(), Parser::tryParseObj(value).value()});
+     const Option<Obj_p> k = Parser::tryParseObj(key);
+     const Option<Obj_p> v = Parser::tryParseObj(value);
+      if (!k.has_value() || !v.has_value())
+        return {};
+      map.insert({k.value(), v.value()});
       ////
       Obj::RecMap_p<> map2 = share(Obj::RecMap<>()); // necessary to reverse entries
       for (const auto &pair: map) {
@@ -345,7 +353,7 @@ namespace fhatos {
           if (arg_p.has_value())
             args.push_back(arg_p.value());
           else {
-            LOG(ERROR, "Unable to parse %s inst argument: %s\n", typeToken.c_str(), argToken.c_str());
+            return {};
           }
         }
       }
@@ -411,8 +419,11 @@ namespace fhatos {
             typeValue = tryParseObjType(instToken, false);
           ///////////// parse an obj and wrap in a start() ??
           if (instToken[0] != '*' && instToken[typeValue.first.length()] != '(') {
-            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({tryParseObj(instToken).value()}))
-                                          : Insts::map(tryParseObj(instToken).value()));
+            const Option<Obj_p> element = tryParseObj(instToken);
+            if(!element.has_value())
+              return {};
+            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({element.value()}))
+                                          : Insts::map(element.value()));
           } else {
             /////////// parse an instruction
             const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
