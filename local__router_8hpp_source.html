@@ -173,7 +173,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>            <span class="keywordflow">try</span> {</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>              <span class="keywordflow">if</span> (subscription-&gt;mailbox) {</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                _rc = subscription-&gt;mailbox-&gt;push(share&lt;Mail&gt;(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                LOG(DEBUG, <span class="stringliteral">&quot;Message from %s delivered to %s\n&quot;</span>, message.source.toString().c_str(),</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                LOG(TRACE, <span class="stringliteral">&quot;Message from %s delivered to %s\n&quot;</span>, message.source.toString().c_str(),</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                    subscription-&gt;source.toString().c_str());</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                <span class="keywordflow">if</span> (subscription-&gt;mailbox-&gt;size() &gt; FOS_MAILBOX_WARNING_SIZE) {</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                  LOG(ERROR, <span class="stringliteral">&quot;Actor mailbox size is beyond warning size of %i: [size:%i]\n&quot;</span>, FOS_MAILBOX_WARNING_SIZE,</div>
@@ -281,11 +281,11 @@ $(function(){ initResizable(false); });
 </div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>} <span class="comment">// namespace fhatos</span></div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:407</div></div>
+<div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:415</div></div>
 <div class="ttc" id="aclassfhatos_1_1LocalRouter_html"><div class="ttname"><a href="classfhatos_1_1LocalRouter.html">fhatos::LocalRouter</a></div><div class="ttdef"><b>Definition</b> local_router.hpp:35</div></div>
 <div class="ttc" id="aclassfhatos_1_1MutexRW_html"><div class="ttname"><a href="classfhatos_1_1MutexRW.html">fhatos::MutexRW</a></div><div class="ttdef"><b>Definition</b> mutex_rw.hpp:28</div></div>
 <div class="ttc" id="aclassfhatos_1_1Mutex_html"><div class="ttname"><a href="classfhatos_1_1Mutex.html">fhatos::Mutex</a></div><div class="ttdef"><b>Definition</b> mutex.hpp:30</div></div>
-<div class="ttc" id="aclassfhatos_1_1Pattern_html"><div class="ttname"><a href="classfhatos_1_1Pattern.html">fhatos::Pattern</a></div><div class="ttdef"><b>Definition</b> furi.hpp:437</div></div>
+<div class="ttc" id="aclassfhatos_1_1Pattern_html"><div class="ttname"><a href="classfhatos_1_1Pattern.html">fhatos::Pattern</a></div><div class="ttdef"><b>Definition</b> furi.hpp:447</div></div>
 <div class="ttc" id="aclassfhatos_1_1Router_html"><div class="ttname"><a href="classfhatos_1_1Router.html">fhatos::Router</a></div><div class="ttdef"><b>Definition</b> router.hpp:142</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 <div class="ttc" id="astructfhatos_1_1Message_html"><div class="ttname"><a href="structfhatos_1_1Message.html">fhatos::Message</a></div><div class="ttdef"><b>Definition</b> message.hpp:34</div></div>
