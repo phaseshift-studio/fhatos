@@ -37,6 +37,7 @@ int main(int arg, char **argsv) {
                   new Console("/home/root/repl/")})
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/"); // ->done("kernel_barrier");
+    Terminal::printer<>()->on(false);
   } catch (const std::exception &e) {
     throw;
   }
@@ -44,10 +45,17 @@ int main(int arg, char **argsv) {
   Terminal::printer<>()->println("```.cpp");
 
   for (int i = 1; i < arg; i++) {
-    Terminal::printer<>()->printf("fhatos> %s\n", argsv[i]);
-    const Option<Obj_p> obj = Parser::singleton()->tryParseObj(string(argsv[i]));
-    printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
+    try {
+      string x = argsv[i];
+      StringHelper::trim(x);
+      Terminal::printer<>()->printf("fhatos> %s\n", x.c_str());
+      const Option<Obj_p> obj = Parser::singleton()->tryParseObj(string(argsv[i]));
+      printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
+    } catch (std::exception &e) {
+      LOG_EXCEPTION(e);
+    }
   }
+
   Terminal::printer<>()->println("```");
   return 1;
 }
