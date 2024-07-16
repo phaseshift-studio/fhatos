@@ -41,7 +41,7 @@ namespace fhatos {
   public:
     explicit Monad(const Obj_p obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
 
-    void split(const BCode_p &bcode, List<Monad_p> *running) const {
+    void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
       const Obj_p nextObj = this->_inst->apply(this->_obj);
       const Inst_p nextInst = bcode->nextInst(this->_inst);
       if (nextObj->isObjs()) {
@@ -52,7 +52,8 @@ namespace fhatos {
             LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
-      } else /*if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->itype())) == 0))*/ {
+      } else {
+        /*^..if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->itype())) == 0))*/
         const Monad_p monad = Monad_p(new Monad(nextObj, nextInst));
         running->push_back(monad);
         LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
@@ -74,13 +75,14 @@ namespace fhatos {
   template<typename E>
   class Processor {
   protected:
-    const BCode_p bcode;
-    List<Monad_p> *running = new List<Monad_p>();
+    BCode_p bcode;
+    Deque<Monad_p> *running = new Deque<Monad_p>();
     Deque<Monad_p> *barriers = new Deque<Monad_p>();
     List<Obj_p> *halted = new List<Obj_p>();
 
   public:
-    explicit Processor(const BCode_p &bcode) : bcode(Rewriter({}).apply(bcode)) {
+    explicit Processor(const BCode_p &bcode) : bcode(bcode) {
+      this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
       for (const Inst_p &inst: this->bcode->bcode_value()) {
         const Monad_p monad = share(Monad(inst->inst_seed(), inst));
         if (Insts::isBarrier(inst)) {
@@ -116,8 +118,8 @@ namespace fhatos {
           LOG(DEBUG, "Processing barrier: %s\n", barrier->toString().c_str());
           barrier->split(this->bcode, this->running);
         } else {
-          const Monad_p monad = this->running->back();
-          this->running->pop_back();
+          const Monad_p monad = this->running->front();
+          this->running->pop_front();
           if (monad->halted()) {
             LOG(TRACE, FOS_TAB_5 "!gHalting!! monad: %s\n", monad->toString().c_str());
             this->halted->push_back(monad->obj());

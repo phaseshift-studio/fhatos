@@ -36,11 +36,10 @@ namespace fhatos {
 
   private:
     explicit LocalRouter(const ID &id = ID("/router/local/")) : Router(id, ROUTER_LEVEL::LOCAL_ROUTER) {
-
       /* this->subscribe(Subscription{
           .source = id, .pattern = id, .qos = QoS::_1, .onRecv = [id](const Message_p &message) {
             LOG(INFO, "LocalRouter %s subscription received: %s\n", id.toString().c_str(), message->toString().c_str());
-          }});*/
+      }});*/
     }
 
   protected:
@@ -77,8 +76,8 @@ namespace fhatos {
             try {
               if (subscription->mailbox) {
                 _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
-                LOG(TRACE, "Message from %s delivered to %s\n", message.source.toString().c_str(),
-                    subscription->source.toString().c_str());
+                // LOG(TRACE, "Message from %s delivered to %s\n", message.source.toString().c_str(),
+                //     subscription->source.toString().c_str());
                 if (subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
                   LOG(ERROR, "Actor mailbox size is beyond warning size of %i: [size:%i]\n", FOS_MAILBOX_WARNING_SIZE,
                       subscription->mailbox->size());
@@ -116,10 +115,12 @@ namespace fhatos {
         RESPONSE_CODE _rc = *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
           RESPONSE_CODE _rc = OK;
           /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-          SUBSCRIPTIONS.erase(
-              remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(), [subscription](Subscription_p &sub) {
-                return sub->source.equals(subscription.source) && sub->pattern.equals(subscription.pattern);
-              }), SUBSCRIPTIONS.end());
+          SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
+                                        [subscription](Subscription_p &sub) {
+                                          return sub->source.equals(subscription.source) &&
+                                                 sub->pattern.equals(subscription.pattern);
+                                        }),
+                              SUBSCRIPTIONS.end());
           /////////////// ADD NEW SUBSCRIPTION
           const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
           SUBSCRIPTIONS.push_back(sub_ptr);

@@ -376,7 +376,7 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->_id->lastSegment();
     }
-    const InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
+    InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
     Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
     const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
@@ -1089,6 +1089,11 @@ namespace fhatos {
     static BCode_p to_bcode(const List<Inst_p> &insts, const fURI_p &furi = BCODE_FURI) {
       assert(furi->path(0, 1) == OTypes.toChars(OType::BCODE));
       return share(BCode(insts, furi));
+    }
+
+    static Objs_p to_objs(const fURI_p &furi = OBJS_FURI) {
+      assert(furi->path(0, 1) == OTypes.toChars(OType::OBJS));
+      return Obj::to_objs(share(List<Obj_p>()), furi);
     }
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {

@@ -247,7 +247,7 @@ static void FOS_TEST_ERROR(const string &monoid) {
     Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
   } catch (fError error) {
-    LOG_EXCEPTION(error);
+    LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
     TEST_ASSERT_TRUE(true);
   }
 }
@@ -304,5 +304,16 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &mon
   LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->tryParseObj(finalString).value()),
                                 expectedReferences, clearRouter);
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename OBJ = Obj>
+static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
+                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+                              const bool clearRouter = false) {
+
+  Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
+  if (!parse.has_value())
+    throw fError("Unable to parse: %s\n", monoid.c_str());
+  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
 }
 #endif

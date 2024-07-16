@@ -31,10 +31,68 @@ namespace fhatos {
     BCode_p apply(const BCode_p &bcode) {
       BCode_p running = bcode;
       for (const Rewrite &rw: this->_rewrites) {
-        LOG(DEBUG, "Apply rewrite %s\n", std::get<0>(rw).toString().c_str());
+        LOG(DEBUG, "Applying rewrite %s\n", std::get<0>(rw).toString().c_str());
         running = std::get<1>(rw)(running);
       }
       return running;
+    }
+    static void LOG_REWRITE(const ID &rewriteID, const BCode_p &original, const BCode_p &rewrite) {
+      LOG(DEBUG, "!g[!b%s!g]!! !yrewrote!! %s !r=to=>!! %s\n", rewriteID.toString().c_str(),
+          original->toString().c_str(), rewrite->toString().c_str());
+    }
+    static Rewrite explain() {
+      return Rewrite({ID("/lang/rewrite/explain"),
+                      [](const BCode_p &bcode) {
+                        if (bcode->bcode_value().back()->id()->equals(ID("/inst/explain"))) {
+                          string ex;
+                          for (const Inst_p &inst: bcode->bcode_value()) {
+                            ex += inst->toString() + "\t" + ITypeSignatures.toChars(inst->itype()) + "\n";
+                          }
+                          bcode->bcode_value().back()->inst_seed()->add_obj(Obj::to_str(ex));
+                        }
+                        return bcode;
+                      },
+                      {{}, {}}});
+    }
+    static Rewrite by() {
+      return Rewrite({ID("/lang/rewrite/by"),
+                      [](const BCode_p &bcode) {
+                        Inst_p prev = Obj::to_noobj();
+                        bool found = false;
+                        List<Inst_p> newInsts;
+                        for (const Inst_p &inst: bcode->bcode_value()) {
+                          if (inst->id()->equals(ID("/inst/by")) && !prev->isNoObj()) {
+                            found = true;
+                            // rewrite args
+                            bool done = false;
+                            List<Obj_p> newArgs;
+                            for (const Obj_p &arg: prev->inst_args()) {
+                              if (!done && arg->isNoObj()) {
+                                newArgs.push_back(inst->inst_arg(0));
+                                done = true;
+                              } else {
+                                newArgs.push_back(arg);
+                              }
+                            }
+                            if (!done)
+                              throw fError("Previous inst could not be by()-modulated: %s <=/= %s\n",
+                                           prev->toString().c_str(), inst->toString().c_str());
+                            // rewrite inst
+                            newInsts.pop_back();
+                            newInsts.push_back(Insts::to_inst(*prev->id(), newArgs));
+                          } else {
+                            newInsts.push_back(inst);
+                          }
+                          prev = newInsts.back();
+                        }
+                        if (found) {
+                          const BCode_p rewrite = Obj::to_bcode(newInsts);
+                          LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
+                          return rewrite;
+                        }
+                        return bcode;
+                      },
+                      {{}, {}}});
     }
   };
 } // namespace fhatos

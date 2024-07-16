@@ -132,6 +132,7 @@ namespace fhatos {
       }
       if (!Parser::closedExpression(this->_line))
         return;
+      LOG_TASK(DEBUG,this,"line to parse: %s\n",this->_line.c_str());
       if (this->_line[0] == ':') {
         ///////// PARSE MENU COMMANDS
         try {

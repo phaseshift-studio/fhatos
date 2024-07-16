@@ -36,7 +36,9 @@ namespace fhatos {
     }
 
     static Obj_p explain() {
-      return Obj::to_inst("explain", {}, [](const Obj_p &) { return nullptr; }, IType::MANY_TO_ONE);
+      return Obj::to_inst(
+          "explain", {}, [](const Objs_p &lhs) { return lhs->objs_value()->front(); }, IType::MANY_TO_ONE,
+          Obj::to_objs(List<Obj_p>({})));
     }
 
     static Obj_p plus(const Obj_p &rhs) {
@@ -223,10 +225,10 @@ namespace fhatos {
     static Obj_p by(const Obj_p &bymod) {
       return Obj::to_inst(
           "by", {bymod},
-          [](const Obj_p x) {
+          [](const Obj_p& THROW_ERROR) {
             if (true)
               throw fError("by()-modulations are to be rewritten away");
-            return x;
+            return THROW_ERROR;
           },
           IType::ONE_TO_ONE);
     }
@@ -237,8 +239,8 @@ namespace fhatos {
           [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
             Obj::RecMap<> map = Obj::RecMap<>();
             for (const Obj_p &obj: *barrier->objs_value()) {
-              const Obj_p key = keyCode->apply(obj);
-              const Obj_p value = valueCode->apply(obj);
+              const Obj_p key = keyCode->isNoObj() ? obj : keyCode->apply(obj);
+              const Obj_p value = valueCode->isNoObj() ? obj : valueCode->apply(obj);
               if (map.count(key)) {
                 Lst_p list = map.at(key);
                 list->lst_value()->push_back(value);
@@ -252,7 +254,7 @@ namespace fhatos {
             }*/
             return Obj::to_rec(share(map));
           },
-          IType::MANY_TO_ONE, Obj::to_objs(List_p<Obj_p>({})));
+          IType::MANY_TO_ONE, Obj::to_objs());
     }
 
     static Obj_p print(const Obj_p &toprint) {
@@ -264,6 +266,10 @@ namespace fhatos {
             return lhs;
           },
           toprint->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
+    }
+
+    static Obj_p flip(const Obj_p &rhs) {
+      return Obj::to_inst("flip", {rhs}, [rhs](const Obj_p &lhs) { return lhs->apply(rhs); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
@@ -389,7 +395,9 @@ namespace fhatos {
       if (type == INST_FURI->resolve("prod"))
         return Insts::prod();
       if (type == INST_FURI->resolve("group"))
-        return Insts::group(args.at(0), args.at(1), args.at(2));
+        return Insts::group(args.empty() ? Obj::to_noobj() : args.at(0),
+                            args.size() < 2 ? Obj::to_noobj() : args.at(1),
+                            args.size() < 3 ? Obj::to_noobj() : args.at(2));
       if (type == INST_FURI->resolve("get"))
         return Insts::get(args.at(0));
       if (type == INST_FURI->resolve("set"))
@@ -398,6 +406,8 @@ namespace fhatos {
         return Insts::noop();
       if (type == INST_FURI->resolve("as"))
         return Insts::as(args.at(0));
+      if (type == INST_FURI->resolve("by"))
+        return Insts::by(args.at(0));
       if (type == INST_FURI->resolve("define"))
         return Insts::define(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("type"))
@@ -430,6 +440,8 @@ namespace fhatos {
         return Insts::rfrom(args.at(0));
       if (type == INST_FURI->resolve("pub"))
         return Insts::pub(args.at(0), args.at(1));
+      if (type == INST_FURI->resolve("flip"))
+        return Insts::flip(args.at(0));
       if (type == INST_FURI->resolve("sub"))
         return Insts::sub(args.at(0), args.at(1));
       if (type == INST_FURI->resolve("within"))
