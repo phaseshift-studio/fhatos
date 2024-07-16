@@ -8,8 +8,7 @@ var searchData=
   ['actor_3c_20fiber_2c_20router_20_3e_5',['Actor&lt; Fiber, Router &gt;',['../classfhatos_1_1Actor.html',1,'fhatos']]],
   ['actor_3c_20thread_20_3e_6',['Actor&lt; Thread &gt;',['../classfhatos_1_1Actor.html',1,'fhatos']]],
   ['actor_3c_20thread_2c_20router_20_3e_7',['Actor&lt; Thread, Router &gt;',['../classfhatos_1_1Actor.html',1,'fhatos']]],
-  ['algebra_8',['Algebra',['../classfhatos_1_1Algebra.html',1,'fhatos']]],
-  ['and_20mqtt_9',['fURI and MQTT',['../index.html#autotoc_md7',1,'']]],
-  ['ansi_10',['Ansi',['../classfhatos_1_1Ansi.html',1,'fhatos']]],
-  ['ansi_3c_20esptelnet_20_3e_11',['Ansi&lt; ESPTelnet &gt;',['../classfhatos_1_1Ansi.html',1,'fhatos']]]
+  ['and_20mqtt_8',['fURI and MQTT',['../index.html#autotoc_md7',1,'']]],
+  ['ansi_9',['Ansi',['../classfhatos_1_1Ansi.html',1,'fhatos']]],
+  ['ansi_3c_20esptelnet_20_3e_10',['Ansi&lt; ESPTelnet &gt;',['../classfhatos_1_1Ansi.html',1,'fhatos']]]
 ];
