@@ -337,7 +337,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(Parser::singleton()-&gt;tryParseObj(monoid).value()).iterate();</div>
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    TEST_ASSERT_TRUE_MESSAGE(<span class="keyword">false</span>, (<span class="stringliteral">&quot;No exception thrown in &quot;</span> + monoid).c_str());</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  } <span class="keywordflow">catch</span> (<a class="code hl_class" href="classfhatos_1_1fError.html">fError</a> error) {</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    LOG_EXCEPTION(error);</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    LOG(INFO, <span class="stringliteral">&quot;Expected !rexception thrown!!: %s\n&quot;</span>, error.what());</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    TEST_ASSERT_TRUE(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  }</div>
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>}</div>
@@ -393,7 +393,17 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>  <span class="keywordflow">return</span> FOS_CHECK_RESULTS&lt;OBJ&gt;(expected, <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(Parser::singleton()-&gt;tryParseObj(finalString).value()),</div>
 <div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>                                expectedReferences, clearRouter);</div>
 <div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>}</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> OBJ = Obj&gt;</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span><span class="keyword">static</span> <span class="keywordtype">void</span> FOS_CHECK_RESULTS(<span class="keyword">const</span> List&lt;OBJ&gt; &amp;expected, <span class="keyword">const</span> <span class="keywordtype">string</span> &amp;monoid,</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>                              <span class="keyword">const</span> Map&lt;Uri, Obj, Obj::obj_comp&gt; &amp;expectedReferences = {},</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>                              <span class="keyword">const</span> <span class="keywordtype">bool</span> clearRouter = <span class="keyword">false</span>) {</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span> </div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>  Option&lt;Obj_p&gt; parse = Parser::singleton()-&gt;tryParseObj(monoid);</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>  <span class="keywordflow">if</span> (!parse.has_value())</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    <span class="keywordflow">throw</span> <a class="code hl_class" href="classfhatos_1_1fError.html">fError</a>(<span class="stringliteral">&quot;Unable to parse: %s\n&quot;</span>, monoid.c_str());</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>  <span class="keywordflow">return</span> FOS_CHECK_RESULTS&lt;OBJ&gt;(expected, <a class="code hl_class" href="classfhatos_1_1Fluent.html">Fluent</a>(parse.value()), expectedReferences, clearRouter);</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>}</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Fluent_html"><div class="ttname"><a href="classfhatos_1_1Fluent.html">fhatos::Fluent</a></div><div class="ttdef"><b>Definition</b> fluent.hpp:29</div></div>
 <div class="ttc" id="aclassfhatos_1_1ID_html"><div class="ttname"><a href="classfhatos_1_1ID.html">fhatos::ID</a></div><div class="ttdef"><b>Definition</b> furi.hpp:415</div></div>
 <div class="ttc" id="aclassfhatos_1_1Obj_html"><div class="ttname"><a href="classfhatos_1_1Obj.html">fhatos::Obj</a></div><div class="ttdoc">An mm-ADT abstract object from which all other types derive.</div><div class="ttdef"><b>Definition</b> obj.hpp:217</div></div>
