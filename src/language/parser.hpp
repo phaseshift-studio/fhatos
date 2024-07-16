@@ -159,7 +159,7 @@ namespace fhatos {
     Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken, const fURI_p &baseType = INT_FURI) {
       // LOG(TRACE, "Attempting int parse on %s\n", valueToken.c_str());
       if ((valueToken[0] != '-' && !isdigit(valueToken[0])) ||
-          1 == std::count(valueToken.begin(), valueToken.end(), '.'))
+          valueToken.find_first_of('.') != string::npos)
         return {};
       for (int i = 1; i < valueToken.length(); i++) {
         if (!isdigit(valueToken[i]))
