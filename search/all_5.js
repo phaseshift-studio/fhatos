@@ -1,10 +1,11 @@
 var searchData=
 [
-  ['i2c_0',['I2C',['../classfhatos_1_1I2C.html',1,'fhatos']]],
-  ['id_1',['ID',['../classfhatos_1_1ID.html',1,'fhatos']]],
-  ['ided_2',['IDed',['../classfhatos_1_1IDed.html',1,'fhatos']]],
-  ['inst_3',['INST',['../obj_8hpp.html#a48680c360c0948acdfc2bab032a0139eaf3f3ab32d17f94c82cc112c80d59845b',1,'fhatos']]],
-  ['insts_4',['Insts',['../structfhatos_1_1Insts.html',1,'fhatos']]],
-  ['int_5',['INT',['../obj_8hpp.html#a48680c360c0948acdfc2bab032a0139ea53f93baa3057821107c750323892fa92',1,'fhatos']]],
-  ['introduction_6',['Introduction',['../index.html',1,'']]]
+  ['enums_0',['Enums',['../structfhatos_1_1Enums.html',1,'fhatos']]],
+  ['error_20rec_20person_20name_20fhatty_20age_201_20unexpectedly_20acccessed_20for_20bcode_5fvalue_20line_3a402_1',['[ERROR]  rec[person[[name=&gt;&apos;fhatty&apos;,age=&gt;1]]] unexpectedly acccessed for bcode_value [line:402]',['../index.html#autotoc_md9',1,'']]],
+  ['error_20sys_20lang_20type_20real_20nat_20is_20an_20undefined_20type_2',['[ERROR]  [/sys/lang/type/] /real/nat is an undefined type',['../index.html#autotoc_md7',1,'']]],
+  ['esp32_3',['Booting on ESP32',['../index.html#autotoc_md3',1,'']]],
+  ['esp8266_4',['Booting on ESP8266',['../index.html#autotoc_md4',1,'']]],
+  ['execute_5',['execute',['../classfhatos_1_1Processor.html#aca55b9ff7c54f493102ddd2d6cf101df',1,'fhatos::Processor']]],
+  ['extends_6',['EXTENDS',['../classfhatos_1_1EXTENDS.html',1,'fhatos']]],
+  ['exts_7',['Exts',['../classfhatos_1_1Exts.html',1,'fhatos']]]
 ];

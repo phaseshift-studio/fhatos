@@ -105,26 +105,27 @@ A FhatOS Language</h2>
 <p>A simple mm-ADT program is defined below. The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
 <div class="fragment"><div class="line">thread[[setup =&gt; __]</div>
 <div class="line">        loop  =&gt; __]]</div>
-</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/<span class="keywordtype">int</span>/nat,is(gt(0)))</div>
-<div class="line">fhatos&gt; nat[10]</div>
-<div class="line">[ERROR]  <span class="keywordtype">int</span>[nat[10]] unexpectedly acccessed for bcode_value [line:402]</div>
-<div class="line">fhatos&gt; nat[-5]</div>
-<div class="line">[ERROR]  [/sys/lang/type/] -5 is not a /<span class="keywordtype">int</span>/nat[is[gt[0]]]</div>
-<div class="line">fhatos&gt; nat[5.0]</div>
-<div class="line">[ERROR]  [/sys/lang/type/] /real/nat is an undefined type</div>
-</div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; define(/<span class="keywordtype">int</span>/nat,is(gt(0)))</div>
-<div class="line">fhatos&gt; define(/rec/person,[name=&gt;as(/str/),age=&gt;as(/<span class="keywordtype">int</span>/nat)])</div>
-<div class="line">fhatos&gt; person[[name=&gt;&#39;fhatty&#39;,age=&gt;0]]</div>
-<div class="line">[ERROR]  [/sys/lang/type/] 0 is not a /<span class="keywordtype">int</span>/nat[is[gt[0]]]</div>
-<div class="line">fhatos&gt; person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]</div>
-<div class="line">[ERROR]  rec[person[[name=&gt;&#39;fhatty&#39;,age=&gt;1]]] unexpectedly acccessed for bcode_value [line:402]</div>
-</div><!-- fragment --><p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
+</div><!-- fragment --><p>++++ </p>
+<h1><a class="anchor" id="autotoc_md6"></a>
+[source,language="c++"]</h1>
+<p>fhatos&gt; define(/int/nat,is(gt(0))) fhatos&gt; nat[10] [ERROR] int[nat[10]] unexpectedly acccessed for bcode_value [line:402] fhatos&gt; nat[-5] [ERROR] [/sys/lang/type/] -5 is not a /int/nat[is[gt[0]]] fhatos&gt; nat[5.0] </p>
+<h1><a class="anchor" id="autotoc_md7"></a>
+[ERROR] [/sys/lang/type/] /real/nat is an undefined type</h1>
+<p>++++</p>
+<p>++++ </p>
+<h1><a class="anchor" id="autotoc_md8"></a>
+[source,language="c++"]</h1>
+<p>fhatos&gt; define(/int/nat,is(gt(0))) fhatos&gt; define(/rec/person,[name=&gt;as(/str/),age=&gt;as(/int/nat)]) fhatos&gt; person[[name=&gt;'fhatty',age=&gt;0]] [ERROR] [/sys/lang/type/] 0 is not a /int/nat[is[gt[0]]] fhatos&gt; person[[name=&gt;'fhatty',age=&gt;1]] </p>
+<h1><a class="anchor" id="autotoc_md9"></a>
+[ERROR] rec[person[[name=&gt;'fhatty',age=&gt;1]]] unexpectedly acccessed for bcode_value [line:402]</h1>
+<p>++++</p>
+<p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the thread's id and halts.</p>
 <div class="fragment"><div class="line">fhatos&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
 <div class="line">                loop  =&gt; stop(/abc/)]].to(/abc/)</div>
 </div><!-- fragment --><div class="fragment"><div class="line">fhatos&gt; */abc/</div>
 <div class="line">==&gt; thread[[setup =&gt; print(<span class="stringliteral">&#39;setup complete&#39;</span>),</div>
 <div class="line">            loop  =&gt; stop(/abc/)]]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
 A FhatOS Console</h2>
 <dl class="section note"><dt>Note</dt><dd>The FhatOS Console is a composite of 3 other actors:<ol type="1">
 <li>The <code>Terminal</code> (<code>/sys/io/terminal/</code>) provides thread-safe access to hardware I/O.</li>
@@ -137,7 +138,7 @@ A FhatOS Console</h2>
 <div class="line">    processor =[objs]=&gt; ~/abc </div>
 <div class="line">      &lt;=[objs]= console </div>
 <div class="line">        =[str]=&gt; terminal/out</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
 fURI and MQTT</h2>
 <p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is a publish/subscribe message passing protocol that has found extensive usage in embedded systems. Hierarchically specified <em>topics</em> can be <em>subscribed</em> and <em>published</em> to. In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic. FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware. There exist three MQTT routers:</p>
 <ol type="1">
@@ -156,15 +157,14 @@ fURI and MQTT</h2>
 <li><code>//abc.org/</code> globally scoped fURI (hosted on the internet)</li>
 </ul>
 </dd></dl>
-<div class="fragment"><div class="line">fhatos&gt; __(1,2,3,4).plus(10)</div>
-<div class="line">==&gt;11</div>
-<div class="line">==&gt;12</div>
-<div class="line">==&gt;13</div>
-<div class="line">==&gt;14</div>
-<div class="line">fhatos&gt; 16.to(b)</div>
-<div class="line">fhatos&gt; *b.plus(45)</div>
-<div class="line">==&gt;61</div>
-</div><!-- fragment --> </div></div><!-- PageDoc -->
+<p>++++ </p>
+<h1><a class="anchor" id="autotoc_md12"></a>
+[source,language="c++"]</h1>
+<p>fhatos&gt; __(1,2,3,4).plus(10) ==&gt;11 ==&gt;12 ==&gt;13 ==&gt;14 fhatos&gt; 16.to(b) fhatos&gt; *b.plus(45) </p>
+<h1><a class="anchor" id="autotoc_md13"></a>
+==&gt;61</h1>
+<p>++++ </p>
+</div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"/>
 </div><!-- contents -->
 <!-- start footer part -->
