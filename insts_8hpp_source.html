@@ -435,9 +435,9 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>          IType::MANY_TO_ONE, Obj::to_objs(List&lt;Obj_p&gt;{}));</div>
 <div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>    }</div>
 <div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span> </div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>    <span class="keyword">static</span> Obj_p match(<span class="keyword">const</span> Obj_p &amp;obj) {</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>    <span class="keyword">static</span> Obj_p window(<span class="keyword">const</span> Obj_p &amp;obj) {</div>
 <div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>      <span class="keywordflow">return</span> Obj::to_inst(</div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>          <span class="stringliteral">&quot;match&quot;</span>, {obj},</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>          <span class="stringliteral">&quot;window&quot;</span>, {obj},</div>
 <div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>          [obj](<span class="keyword">const</span> Obj_p &amp;lhs) {</div>
 <div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>            List&lt;Obj_p&gt; ret;</div>
 <div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>            <span class="keywordflow">if</span> (obj-&gt;isLst() &amp;&amp; lhs-&gt;isLst()) {</div>
@@ -578,8 +578,8 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>        <span class="keywordflow">return</span> Insts::count();</div>
 <div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>      <span class="keywordflow">if</span> (type == INST_FURI-&gt;resolve(<span class="stringliteral">&quot;barrier&quot;</span>))</div>
 <div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>        <span class="keywordflow">return</span> Insts::barrier(args.at(0));</div>
-<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>      <span class="keywordflow">if</span> (type == INST_FURI-&gt;resolve(<span class="stringliteral">&quot;match&quot;</span>))</div>
-<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>        <span class="keywordflow">return</span> Insts::match(args.at(0));</div>
+<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>      <span class="keywordflow">if</span> (type == INST_FURI-&gt;resolve(<span class="stringliteral">&quot;window&quot;</span>))</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>        <span class="keywordflow">return</span> Insts::window(args.at(0));</div>
 <div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>      <span class="keyword">const</span> Obj_p userInst = Router::read&lt;Obj&gt;(INST_FURI-&gt;resolve(type));</div>
 <div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>      <span class="keywordflow">if</span> (!userInst-&gt;isNoObj()) {</div>
 <div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>        <span class="keywordflow">return</span> Obj::to_inst(</div>
