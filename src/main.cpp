@@ -24,6 +24,7 @@
 #include <process/router/local_router.hpp>
 #include <process/router/meta_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
+#include FOS_FILE_SYSTEM(filesystem.hpp)
 // utilities
 #include <language/types.hpp>
 #include <structure/console/console.hpp>
@@ -53,6 +54,7 @@ void setup() {
                   Terminal::singleton("/sys/io/terminal/"), //
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
+FileSystem::singleton("/sys/io/filesystem"), //
                   new Console("/home/root/repl/")})
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/")

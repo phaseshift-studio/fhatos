@@ -43,6 +43,66 @@ namespace fhatos {
       return _exts->at(extId);
     }
   };
+
+  class Extension : public IDed {
+  protected:
+    Lst_p _imports;
+    Rec_p _prefixes;
+    Rec_p _typedefs;
+
+  public:
+    explicit Extension(const ID &id, const initializer_list<Uri> imports,
+                       const initializer_list<Pair<const Uri, Uri>> &prefixes,
+                       const initializer_list<Pair<const Uri, Obj>> &typedefs) :
+        IDed(share(id)), //
+        _imports(Obj::to_lst(imports)), //
+        _prefixes(Obj::to_rec(prefixes)), //
+        _typedefs(Obj::to_rec(typedefs)) {}
+    void load(const Router *router, const ID &source = FOS_DEFAULT_SOURCE_ID) const {
+      for (const auto &prefix: *_prefixes->rec_value()) {
+        router->write(prefix.first->uri_value(), prefix.second, source);
+      }
+      for (const auto &type: *_typedefs->rec_value()) {
+        router->write(type.first->uri_value(), type.second, source);
+      }
+    }
+    const Rec_p imports() const { return this->_imports; }
+    const Rec_p prefixes() const { return this->_prefixes; }
+    const Rec_p typedefs() const { return this->_typedefs; }
+    Rec_p to_obj() {
+      Obj::RecMap_p<Uri_p, Rec_p> map = share(Obj::RecMap<Uri_p, Rec_p>());
+      map->insert({u_p("prefixes"), this->_prefixes});
+      map->insert({u_p("types"), this->_typedefs});
+      return Obj::to_rec(map);
+    }
+  };
+
+  //////////////////////////////////////
+  Extension to_ext(const ID &id) {
+    if (id.equals("/ext/process/")) {
+      return Extension(ID("/ext/process/"),
+                       // imports
+                       {u("math:")},
+                       // prefixes
+                       {{u("thread:"), u("/type/rec/thread")},
+                        {u("fiber:"), u("/type/rec/fiber")},
+                        {u("coroutine:"), u("/type/rec/coroutine")}},
+                       // types
+                       {{u("thread:"), *TYPE_PARSER("[setup=>_,loop=>_]")},
+                        {u("fiber:"), *TYPE_PARSER("[setup=>_,loop=>_]")},
+                        {u("coroutine:"), *TYPE_PARSER("[setup=>_,loop=>_]")}});
+    }
+    if (id.equals("/ext/struct/")) {
+      return Extension(ID("/ext/struct/"),
+                       // imports
+                       {},
+                       // prefixes
+                       {{u("pair:"), u("/type/lst/pair")}},
+                       // types
+                       {{u("pair:"), *TYPE_PARSER("[_,_]")}});
+    };
+    throw fError("Unknown extension: %s\n", id.toString().c_str());
+  }
 } // namespace fhatos
 
 #endif

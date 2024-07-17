@@ -224,6 +224,7 @@ namespace fhatos {
 #define FOS_PROCESS(proc) <process/native/proc>
 #define FOS_MQTT(mqtt) <process/router/native/mqtt>
 #define FOS_UTIL(utl) <util/std/utl>
+#define FOS_FILE_SYSTEM(fs) <structure/io/filesystem/native/fs>
 #else
 #error "Unknown architecture."
 #endif

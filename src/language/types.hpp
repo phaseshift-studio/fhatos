@@ -28,14 +28,18 @@
 
 namespace fhatos {
   class Types : public Coroutine {
+
   private:
     explicit Types(const ID &id = ID("/type/")) : Coroutine(id) {}
 
   protected:
     Map<fURI, Type_p> *CACHE = new Map<fURI, Type_p>();
+    Map<const char *, ID_p> *PREFIXES = new Map<const char *, ID_p>();
     MutexRW<> *CACHE_MUTEX = new MutexRW<>();
 
   public:
+    using Def = Pair<ID, string>;
+    using Defs = List<Def>;
     ~Types() override {
       CACHE->clear();
       delete CACHE;
@@ -72,6 +76,20 @@ namespace fhatos {
         saveType(pair.first, TYPE_PARSER(pair.second), writeThrough);
       }
     }
+
+    const void savePrefix(const char *prefix, const ID &furi) {
+      if (PREFIXES->count(prefix)) {
+        if (!PREFIXES->at(prefix)->equals(furi))
+          LOG(WARN, "Overwriting namespace prefix from %s to %s\n", prefix, furi.toString().c_str());
+        PREFIXES->erase(prefix);
+      }
+      PREFIXES->insert({prefix, ptr<ID>(new ID(furi))});
+    }
+
+    const Option<ID_p> loadPrefix(const char *prefix) {
+      return PREFIXES->count(prefix) ? Option<ID_p>(PREFIXES->at(prefix)) : Option<ID_p>{};
+    }
+
     const void saveType(const ID &typeId, const Obj_p &obj, const bool writeThrough = true) const {
       CACHE_MUTEX->write<void>([this, typeId, obj, writeThrough] {
         CACHE->erase(typeId);
@@ -80,7 +98,7 @@ namespace fhatos {
           if (writeThrough)
             Router::write(typeId, obj);
           if (OType::INST == OTypes.toEnum(typeId.path(0, 1).c_str())) {
-            const Inst_p inst = Insts::to_inst(typeId,*obj->lst_value());
+            const Inst_p inst = Insts::to_inst(typeId, *obj->lst_value());
             LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId.toString().c_str(),
                      obj->lst_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
           } else {

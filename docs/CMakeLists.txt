@@ -47,7 +47,7 @@ IF (BUILD_DOCS)
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMAND asciidoctor ${FILES}
+            COMMAND asciidoctor -D ${CMAKE_BINARY_DIR}/docs/build -o index.html ${FILES}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMENT "Evaluating asciidoctor: ${FILES}")
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
