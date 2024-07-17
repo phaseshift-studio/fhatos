@@ -27,7 +27,7 @@ IF (BUILD_TESTS)
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
             ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE" "-Wno-ambiguous-reversed-operator")
-            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map paho-mqttpp3 paho-mqtt3c)
+            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework)# tsl::ordered_map paho-mqttpp3 paho-mqtt3c)
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

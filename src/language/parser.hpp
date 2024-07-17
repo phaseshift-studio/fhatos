@@ -158,8 +158,7 @@ namespace fhatos {
     }
     Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken, const fURI_p &baseType = INT_FURI) {
       // LOG(TRACE, "Attempting int parse on %s\n", valueToken.c_str());
-      if ((valueToken[0] != '-' && !isdigit(valueToken[0])) ||
-          valueToken.find_first_of('.') != string::npos)
+      if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find_first_of('.') != string::npos)
         return {};
       for (int i = 1; i < valueToken.length(); i++) {
         if (!isdigit(valueToken[i]))
@@ -283,8 +282,8 @@ namespace fhatos {
             onKey = true;
             StringHelper::trim(key);
             StringHelper::trim(value);
-           const Option<Obj_p> k = Parser::tryParseObj(key);
-           const Option<Obj_p> v = Parser::tryParseObj(value);
+            const Option<Obj_p> k = Parser::tryParseObj(key);
+            const Option<Obj_p> v = Parser::tryParseObj(value);
             if (!k.has_value() || !v.has_value())
               return {};
             map.insert({k.value(), v.value()});
@@ -306,8 +305,8 @@ namespace fhatos {
       }
       StringHelper::trim(key);
       StringHelper::trim(value);
-     const Option<Obj_p> k = Parser::tryParseObj(key);
-     const Option<Obj_p> v = Parser::tryParseObj(value);
+      const Option<Obj_p> k = Parser::tryParseObj(key);
+      const Option<Obj_p> v = Parser::tryParseObj(value);
       if (!k.has_value() || !v.has_value())
         return {};
       map.insert({k.value(), v.value()});
@@ -407,20 +406,20 @@ namespace fhatos {
           }
           if (instToken.empty())
             continue;
-          if (instToken[instToken.length() - 1] == '\0')
-            instToken = instToken.substr(0, instToken.length() - 1);
+          // if (instToken[instToken.length() - 1] == '\0')
+          // instToken = instToken.substr(0, instToken.length() - 1);
           /// parse a * dereference and wrap in a from() ??
           Pair<string, string> typeValue;
           if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
             typeValue = {"*", instToken.substr(1)};
-          else if (instToken.length() > 1 && instToken[0] == '+' && instToken[1] != '(')
-            typeValue = {"+", instToken.substr(1)};
+          /*else if (instToken.length() > 1 && instToken[0] == '+' && instToken[1] != '(')
+            typeValue = {"+", instToken.substr(1)};*/
           else if (typeToken.empty() || typeToken[typeToken.length() - 1] != '.')
             typeValue = tryParseObjType(instToken, false);
           ///////////// parse an obj and wrap in a start() ??
           if (instToken[0] != '*' && instToken[typeValue.first.length()] != '(') {
             const Option<Obj_p> element = tryParseObj(instToken);
-            if(!element.has_value())
+            if (!element.has_value())
               return {};
             insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({element.value()}))
                                           : Insts::map(element.value()));

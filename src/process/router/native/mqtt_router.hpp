@@ -90,7 +90,7 @@ namespace fhatos {
         });
         this->xmqtt->set_connected_handler([this](const string &cause) {
           LOG(INFO,
-              "\n!b[MQTT Router Configuration]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
+              "\n!g[!bMQTT Router Configuration!g]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
               "!bClient name!!   : %s\n" FOS_TAB_2 "!bWill topic!!    : %s\n" FOS_TAB_2
               "!bWill message!!  : %s\n" FOS_TAB_2 "!bWill QoS!!      : %i\n" FOS_TAB_2 "!bWill retain!!   : %s\n",
               this->serverAddr, this->xmqtt->get_client_id().c_str(),

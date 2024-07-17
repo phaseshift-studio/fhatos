@@ -78,7 +78,7 @@ namespace fhatos {
     BCode_p bcode;
     Deque<Monad_p> *running = new Deque<Monad_p>();
     Deque<Monad_p> *barriers = new Deque<Monad_p>();
-    List<Obj_p> *halted = new List<Obj_p>();
+    Deque<Obj_p> *halted = new Deque<Obj_p>();
 
   public:
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
@@ -102,8 +102,8 @@ namespace fhatos {
             return nullptr; // ptr<E>((E*)new NoObj());
           this->execute(steps);
         } else {
-          const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted->back());
-          this->halted->pop_back();
+          const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted->front());
+          this->halted->pop_front();
           return end;
         }
       }

@@ -529,7 +529,7 @@ namespace fhatos {
           break;
         }
         case OType::OBJS: {
-          objString += "!m<!!";
+          objString += "!m{!!";
           bool first = true;
           for (const auto &obj: *this->objs_value()) {
             if (first) {
@@ -539,7 +539,7 @@ namespace fhatos {
             }
             objString += obj->toString();
           };
-          objString += "!m>!!";
+          objString += "!m}!!";
           break;
         }
         default:

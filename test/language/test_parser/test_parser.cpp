@@ -269,6 +269,8 @@ namespace fhatos {
     FOS_TEST_ERROR("__(0,1,2,3).plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");
   }
 
+  void test_match_parsing() { FOS_CHECK_RESULTS<>(List<Obj>{{1, 2}, {2, 3}, {3, 4}}, "[1,2,3,4].match([_,_])"); }
+
 
   FOS_RUN_TESTS( //
       for (Router *router //
@@ -291,6 +293,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_bcode_parsing); //
         FOS_RUN_TEST(test_group_parsing); //
+        FOS_RUN_TEST(test_match_parsing); //
       })
 }; // namespace fhatos
 

@@ -95,7 +95,7 @@ namespace fhatos {
     static Obj_p filter(const BCode_p &bcode) {
       return Obj::to_inst(
           "filter", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; },
-          IType::ONE_TO_MANY);
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p side(const BCode_p &bcode) {
@@ -135,7 +135,7 @@ namespace fhatos {
     static Obj_p is(const Obj_p &xbool) {
       return Obj::to_inst(
           "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); },
-          IType::ONE_TO_MANY);
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p noop() {
@@ -225,7 +225,7 @@ namespace fhatos {
     static Obj_p by(const Obj_p &bymod) {
       return Obj::to_inst(
           "by", {bymod},
-          [](const Obj_p& THROW_ERROR) {
+          [](const Obj_p &THROW_ERROR) {
             if (true)
               throw fError("by()-modulations are to be rewritten away");
             return THROW_ERROR;
@@ -338,6 +338,32 @@ namespace fhatos {
           IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
     }
 
+    static Obj_p match(const Obj_p &obj) {
+      return Obj::to_inst(
+          "match", {obj},
+          [obj](const Obj_p &lhs) {
+            List<Obj_p> ret;
+            if (obj->isLst() && lhs->isLst()) {
+              for (int i = 0; i <= (lhs->lst_value()->size() - obj->lst_value()->size()); i++) {
+                bool match = true;
+                List<Obj_p> m;
+                for (int j = 0; j < obj->lst_value()->size(); j++) {
+                  const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j));
+                  match = !x->isNoObj() && match;
+                  if (!match)
+                    break;
+                  m.push_back(x);
+                }
+                if (match) {
+                  ret.push_back( Obj::to_lst(share(m)));
+                }
+              }
+            }
+            return Obj::to_objs(ret);
+          },
+          IType::ONE_TO_MANY);
+    }
+
     static Obj_p within(const BCode_p code) {
       return nullptr;
       /*return Obj::to_inst(
@@ -395,8 +421,7 @@ namespace fhatos {
       if (type == INST_FURI->resolve("prod"))
         return Insts::prod();
       if (type == INST_FURI->resolve("group"))
-        return Insts::group(args.empty() ? Obj::to_noobj() : args.at(0),
-                            args.size() < 2 ? Obj::to_noobj() : args.at(1),
+        return Insts::group(args.empty() ? Obj::to_noobj() : args.at(0), args.size() < 2 ? Obj::to_noobj() : args.at(1),
                             args.size() < 3 ? Obj::to_noobj() : args.at(2));
       if (type == INST_FURI->resolve("get"))
         return Insts::get(args.at(0));
@@ -456,6 +481,8 @@ namespace fhatos {
         return Insts::count();
       if (type == INST_FURI->resolve("barrier"))
         return Insts::barrier(args.at(0));
+      if (type == INST_FURI->resolve("match"))
+        return Insts::match(args.at(0));
       /// try user defined inst
       const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(type));
       if (!userInst->isNoObj()) {
