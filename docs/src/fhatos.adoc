@@ -1,4 +1,5 @@
 :imagesdir: ../images
+:favicon: {imagesdir}/fhatos-logo-small.png
 
 = FhatOS
 

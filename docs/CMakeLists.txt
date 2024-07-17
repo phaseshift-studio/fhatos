@@ -34,42 +34,36 @@ IF (BUILD_CODE_RUNNERS)
 ENDIF ()
 #####################################################################
 IF (BUILD_DOCS)
-    MESSAGE("${.r}=====> PROCESSING DOCUMENTATION${..}")
+    MESSAGE(CHECK_START "${.y}CMaking AsciiDoc Documentation${..}")
+    FILE(COPY ${CMAKE_SOURCE_DIR}/docs DESTINATION ${CMAKE_BINARY_DIR})
+    SET(DOCS_SRC ${CMAKE_BINARY_DIR}/docs/src)
+    ADD_CUSTOM_TARGET(asciidoc ALL DEPENDS main_runner)
+    SET(FILES ${DOCS_SRC}/fhatos.adoc)
+    ADD_CUSTOM_COMMAND(TARGET asciidoc
+            POST_BUILD
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMAND markdown-code-runner ${FILES}
+            COMMENT "Evaluating markdown-code-runner: ${FILES}")
+    ADD_CUSTOM_COMMAND(TARGET asciidoc
+            POST_BUILD
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMAND asciidoctor ${FILES}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Evaluating asciidoctor: ${FILES}")
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    UNSET(FILES)
+    ###
+    MESSAGE(CHECK_START "${.y}CMaking Markdown Documentation${..}")
+    SET(FILES ${DOCS_SRC}/fhatos.md)
+    ADD_CUSTOM_TARGET(markdown ALL DEPENDS main_runner)
+    ADD_CUSTOM_COMMAND(TARGET markdown
+            POST_BUILD
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMAND markdown-code-runner ${FILES}
+            COMMENT "Evaluating markdown-code-runner: ${R_DONE}")
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ###
     MESSAGE(CHECK_START "${.y}CMaking Doxygen Documentation${..}")
     FILE(COPY ${CMAKE_SOURCE_DIR}/docs DESTINATION ${CMAKE_BINARY_DIR})
-    FIND_PACKAGE(Doxygen)
-    IF (DOXYGEN_FOUND)
-        MESSAGE(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE} -- ${DOXYGEN_VERSION}")
-        # Set Doxygen input and output files.
-        SET(DOXYGEN_INPUT_DIR ${CMAKE_SOURCE_DIR}/docs)
-        SET(DOXYGEN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/docs/doxygen)
-        SET(DOXYGEN_INDEX_FILE ${CMAKE_BINARY_DIR}/docs/xml/index.xml)
-        SET(DOXYFILE_IN ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in)
-        SET(DOXYFILE_OUT ${CMAKE_BINARY_DIR}/docs/Doxyfile)
-        # Generate DoxyFile from the input file.
-        CONFIGURE_FILE(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
-        # Create Output directory.
-        FILE(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
-        # Command for generating doc from Doxygen config file.
-        ADD_CUSTOM_COMMAND(OUTPUT ${DOXYGEN_INDEX_FILE}
-                COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
-                MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
-                COMMENT "Generating Doxygen Documentation"
-                VERBATIM)
-        # Create CMake Target for generating doc.
-        ADD_CUSTOM_TARGET(docs ALL DEPENDS ${DOXYGEN_INDEX_FILE} ${CMAKE_BINARY_DIR}/docs/build/main_runner.out)
-        ADD_CUSTOM_COMMAND(TARGET docs
-                POST_BUILD
-                DEPENDS
-                ${CMAKE_SOURCE_DIR}/docs/src/fhatos.adoc
-                #${CMAKE_SOURCE_DIR}/docs/src/fhatos.md
-                ${CMAKE_BINARY_DIR}/docs/build/main_runner.out
-                execute_process(
-                COMMAND markdown-code-runner ${CMAKE_SOURCE_DIR}/docs/src/fhatos.adoc
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                COMMENT "Evaluating markdown-code-runner: ${R_DONE}")
-        )
-    ENDIF ()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF ()
-
