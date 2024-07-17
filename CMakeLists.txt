@@ -56,6 +56,24 @@ ENDIF ()
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################
+
+####################################
+####################################
+### YAML: YAML PARSER IMPLEMENTATION
+FETCHCONTENT_DECLARE(
+        yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG 0.8.0
+)
+FETCHCONTENT_GETPROPERTIES(yaml-cpp)
+IF (NOT yaml-cpp_POPULATED)
+    MESSAGE(STATUS "Fetching yaml-cpp...")
+    FETCHCONTENT_MAKEAVAILABLE(yaml-cpp)
+    #ADD_SUBDIRECTORY(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+ENDIF ()
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC yaml-cpp::yaml-cpp)
+####################################
+####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
 MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
 FETCHCONTENT_DECLARE(
@@ -72,6 +90,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
+#################################### C
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
@@ -85,7 +104,7 @@ INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINA
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-####################################
+#################################### C++
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqttpp3

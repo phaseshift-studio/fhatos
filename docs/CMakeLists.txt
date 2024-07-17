@@ -61,10 +61,11 @@ IF (BUILD_DOCS)
         ADD_CUSTOM_COMMAND(TARGET docs
                 POST_BUILD
                 DEPENDS
-                ${CMAKE_SOURCE_DIR}/docs/src/fhatos.md
+                ${CMAKE_SOURCE_DIR}/docs/src/fhatos.adoc
+                #${CMAKE_SOURCE_DIR}/docs/src/fhatos.md
                 ${CMAKE_BINARY_DIR}/docs/build/main_runner.out
                 execute_process(
-                COMMAND markdown-code-runner ${CMAKE_SOURCE_DIR}/docs/src/fhatos.md
+                COMMAND markdown-code-runner ${CMAKE_SOURCE_DIR}/docs/src/fhatos.adoc
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 COMMENT "Evaluating markdown-code-runner: ${R_DONE}")
         )

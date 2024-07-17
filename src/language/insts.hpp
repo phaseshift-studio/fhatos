@@ -338,9 +338,9 @@ namespace fhatos {
           IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
     }
 
-    static Obj_p match(const Obj_p &obj) {
+    static Obj_p window(const Obj_p &obj) {
       return Obj::to_inst(
-          "match", {obj},
+          "window", {obj},
           [obj](const Obj_p &lhs) {
             List<Obj_p> ret;
             if (obj->isLst() && lhs->isLst()) {
@@ -481,8 +481,8 @@ namespace fhatos {
         return Insts::count();
       if (type == INST_FURI->resolve("barrier"))
         return Insts::barrier(args.at(0));
-      if (type == INST_FURI->resolve("match"))
-        return Insts::match(args.at(0));
+      if (type == INST_FURI->resolve("window"))
+        return Insts::window(args.at(0));
       /// try user defined inst
       const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(type));
       if (!userInst->isNoObj()) {

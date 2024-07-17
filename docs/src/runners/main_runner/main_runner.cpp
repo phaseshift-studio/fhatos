@@ -41,8 +41,8 @@ int main(int arg, char **argsv) {
   } catch (const std::exception &e) {
     throw;
   }
-  LOG(INFO, "%s\n", argsv[1]);
-  Terminal::printer<>()->println("```.cpp");
+  LOG(INFO, "Processing %s\n", argsv[1]);
+  Terminal::printer<>()->println("++++\n[source,language=\"c++\"]\n----");
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];
@@ -54,7 +54,7 @@ int main(int arg, char **argsv) {
       LOG_EXCEPTION(e);
     }
   }
-  Terminal::printer<>()->println("```");
+  Terminal::printer<>()->print("----\n++++");
   return 1;
 }
 #endif
