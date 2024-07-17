@@ -80,9 +80,9 @@ FETCHCONTENT_DECLARE(
 )
 FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqtt3c)
-#ADD_LINK_OPTIONS("-Wno-dev")
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/paho-mqtt3c)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/paho-mqtt3c)
+ADD_LINK_OPTIONS("-Wno-dev")
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
@@ -108,5 +108,4 @@ ADD_SUBDIRECTORY(test)
 ####################################
 ########## DOCUMENTATION ###########
 ####################################
-SET(BUILD_DOCS ON)
 ADD_SUBDIRECTORY(docs)
