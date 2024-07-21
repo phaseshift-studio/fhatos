@@ -172,22 +172,26 @@ namespace fhatos {
     const fURI resolve(const char *segments) const {
       if (strlen(segments) == 0)
         return *this;
-      if (segments[0] == '/' || this->pathLength() == 0)
-        return fURI(this->path("").toString() + "/" + string(segments));
+      if(this->toString().find('/') == string::npos)
+        return fURI(segments);
+      if (this->pathLength() == 0 || segments[0] == '/')
+          return fURI(this->path("").toString() + "/" + string(segments));
       char **s2 = new char *[0];
-      int l2 = private_fhatos::split(segments, "/", s2);
+      const int l2 = private_fhatos::split(segments, "/", s2);
       string result = this->pathLength() > 0 ? string(this->retract().toString()) : string(this->toString());
       for (int i = 0; i < l2; i++) {
         if (strcmp(s2[i], "..") == 0) {
           result = string(fURI(result).retract().toString());
+        } else if (strcmp(s2[i], ".") == 0) {
+          // do nothing
         } else {
           result.append("/").append(s2[i]);
         }
       }
       /*for (int i = 0; i < l2; i++) {
         delete s2[i];
-      }
-      delete[] s2;*/
+      }*/
+      delete[] s2;
       return fURI(result);
     }
     const fURI extend(const char *segments) const {

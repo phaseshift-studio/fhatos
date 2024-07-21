@@ -91,10 +91,9 @@ namespace fhatos {
                                               Terminal::currentOut()->toString().c_str(),
                                               Terminal::singleton()->id()->extend("out").toString().c_str());
               }}});
-        _MENU_MAP->insert(
-            {":color",
-             {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
-              [this] { Terminal::printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
+        _MENU_MAP->insert({":color",
+                           {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
+                            [this] { Terminal::printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
         _MENU_MAP->insert(
             {":nesting",
              {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
@@ -132,7 +131,15 @@ namespace fhatos {
       }
       if (!Parser::closedExpression(this->_line))
         return;
-      LOG_TASK(DEBUG,this,"line to parse: %s\n",this->_line.c_str());
+      string replace_word = "###";
+      string replace_by = "";
+      size_t pos = this->_line.find(replace_word);
+      while (pos != string::npos) {
+        this->_line.replace(pos, replace_word.size(), replace_by);
+        pos = this->_line.find(replace_word, pos + replace_by.size());
+      }
+      LOG_TASK(DEBUG, this, "line to parse: %s\n", this->_line.c_str());
+      StringHelper::trim(this->_line);
       if (this->_line[0] == ':') {
         ///////// PARSE MENU COMMANDS
         try {
@@ -158,8 +165,8 @@ namespace fhatos {
         ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
         try {
           const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
-          if(!obj.has_value())
-            throw fError("Unable to parse input: %s\n",this->_line.c_str());
+          if (!obj.has_value())
+            throw fError("Unable to parse input: %s\n", this->_line.c_str());
           this->printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
         } catch (const std::exception &e) {
           this->printException(e);

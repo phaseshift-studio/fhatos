@@ -170,6 +170,8 @@ namespace fhatos {
       return this->addInst(ptr<Inst>(new SelectInst<ROUTER>(share<Rec>(branches))));
     }*/
 
+    Fluent block(const Obj &obj) const { return this->addInst(Insts::block(share(obj))); }
+
     Fluent as(const Obj &utype) const { return this->addInst(Insts::as(share(utype))); }
     Fluent type() const { return this->addInst(Insts::type()); }
     Fluent define(const Obj &typeId, const Obj &type) const {
@@ -180,6 +182,11 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////////////
   //////////////////////    STATIC HELPERS   ///////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////
+  static Fluent __(const initializer_list<Obj> &starts) {
+    List<Obj> s = List<Obj>(starts);
+    return Fluent(
+        Obj::to_bcode(s.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(s)))}));
+  }
   static Fluent __(const List<Obj> &starts) {
     return Fluent(Obj::to_bcode(
         starts.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));

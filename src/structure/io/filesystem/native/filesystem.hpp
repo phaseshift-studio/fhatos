@@ -31,7 +31,7 @@ namespace fhatos {
       return &fs;
     }
 
-    virtual const File_p file(const Uri_p& fpath) const override {
+    File_p file(const Uri_p &fpath) const override {
       auto p = fs::path(fpath->uri_value().toString());
       if (fs::exists(p)) {
         return share(File(fpath->uri_value()));
@@ -39,7 +39,7 @@ namespace fhatos {
       return Obj::to_noobj();
     };
 
-    virtual const Dir_p dir(const Uri_p &dpath) const override {
+    Dir_p dir(const Uri_p &dpath) const override {
       auto p = fs::path(dpath->uri_value().toString());
       if (fs::exists(p)) {
         return share(Dir(dpath->uri_value()));

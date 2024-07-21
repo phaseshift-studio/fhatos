@@ -49,6 +49,7 @@ namespace fhatos {
       auto ss = stringstream(line);
       uint8_t parens = 0;
       uint8_t brackets = 0;
+      uint8_t angles = 0;
       bool quotes = false;
       while (!ss.eof()) {
         char c = ss.get();
@@ -60,19 +61,26 @@ namespace fhatos {
           brackets++;
         else if (c == ']' && !quotes)
           brackets--;
+        //  else if (c == '<' && !quotes)
+        //    angles++;
+        //  else if (c == '>' && !quotes)
+        //    angles--;
         else if (c == '\'')
           quotes = !quotes;
       }
-      return parens == 0 && brackets == 0 && !quotes;
+      return parens == 0 && brackets == 0 && angles == 0 && !quotes &&
+             StringHelper::countSubstring(line, "###") % 2 == 0;
     }
     static bool dotType(const string &type) {
       return !type.empty() && type[type.length() - 1] == '.'; // dot type
     }
-    Option<Obj_p> tryParseObj(const string &token) {
+    Option<Obj_p> tryParseObj(const string &token, const string prev = "NONE") {
       //
+      if (token == prev)
+        throw fError("Unable to parse %s\n", token.c_str());
       StringHelper::trim(token);
       // LOG(TRACE, "!RPARSING!!: !g!_%s!!\n", token.c_str());
-      if (token.empty())
+      if (token.empty() || tryParseComment(token).has_value())
         return {};
       const Pair<string, string> typeValue = tryParseObjType(token);
       const string typeToken = typeValue.first;
@@ -120,10 +128,25 @@ namespace fhatos {
       if (!token.empty() && token[token.length() - 1] == (brackets ? ']' : ')')) {
         bool onType = true;
         auto ss = stringstream(token);
+        /////////////////////////////////////////////////////
+        // LOOK FOR SYNTACTIC SUGARS ON UNARY INSTRUCTIONS //
+        for (const auto &[k, v]: Insts::unarySugars()) {
+          if (StringHelper::lookAhead(k, &ss)) {
+            valueToken.append(k);
+            onType = false;
+            break;
+          }
+        }
+        ////////////////////////////////////////////////////
         while (!ss.eof()) {
           char c = ss.get();
           if (onType) {
             if (c == (brackets ? '[' : '(')) {
+              onType = false;
+            } else if (c == '.' || c == '|' || c == '*' || c == '<') {
+              valueToken.append(typeToken);
+              valueToken += c;
+              typeToken.clear();
               onType = false;
             } else {
               typeToken += c;
@@ -142,6 +165,10 @@ namespace fhatos {
       LOG(TRACE, "\n" FOS_TAB_2 "!rtype token!!: %s\n" FOS_TAB_2 "!rvalue token!!: %s\n", typeToken.c_str(),
           valueToken.c_str());
       return {typeToken, valueToken};
+    }
+
+    Option<NoObj_p> tryParseComment(const string &valueToken) {
+      return valueToken.substr(0, 3) == "---" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>();
     }
 
     Option<NoObj_p> tryParseNoObj(const string &valueToken) {
@@ -331,11 +358,10 @@ namespace fhatos {
             paren++;
           else if (ss.peek() == ')')
             paren--;
-          else if (ss.peek() == '[') {
+          else if (ss.peek() == '[')
             bracket++;
-          } else if (ss.peek() == ']') {
+          else if (ss.peek() == ']')
             bracket--;
-          }
           const char temp = ss.get();
           if (ss.eof())
             argToken = argToken.substr(0, argToken.length() - 2);
@@ -356,12 +382,12 @@ namespace fhatos {
           }
         }
       }
-      try {
-        const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
-        return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
-      } catch (const fError &) {
-        return {};
-      }
+      // try {
+      const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
+      return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
+      //} catch (const fError &) {
+      //  return {};
+      //}
     }
 
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
@@ -372,9 +398,14 @@ namespace fhatos {
       if ((valueToken[0] == '_' && valueToken[1] == '_') || //
           valueToken.find('.') != string::npos || //
           valueToken.find('*') != string::npos || //
+          valueToken.find('|') != string::npos || //
+          valueToken.find("~>") != string::npos || //
+          valueToken.find("->") != string::npos || //
+          valueToken.find("<-") != string::npos || //
+          valueToken.find("<->") != string::npos || //
           (valueToken.find('(') != string::npos && valueToken.find(')') != string::npos)) {
         List<Inst_p> insts;
-        auto ss = stringstream(valueToken);
+        std::stringstream ss = std::stringstream(valueToken);
         while (!ss.eof()) {
           int paren = 0;
           int bracket = 0;
@@ -395,36 +426,59 @@ namespace fhatos {
               quote = !quote;
             ///////////////////////////////////////////////////////////////
             if (paren == 0 && bracket == 0 && !quote) {
-              // if (ss.peek() == '+') {
-              //   break;
-              // }
               if (ss.peek() == '.') {
                 ss.get();
                 break;
-              }
+              } /*else if (ss.peek() == ';') {
+                ss.get();
+                break;
+              }*/
+              /*  else if (StringHelper::lookAhead("<->", &ss, false) || StringHelper::lookAhead("->", &ss, false) ||
+                         StringHelper::lookAhead("<-", &ss, false) || StringHelper::lookAhead("~>", &ss, false))
+                  break;*/
             }
           }
           if (instToken.empty())
             continue;
-          // if (instToken[instToken.length() - 1] == '\0')
-          // instToken = instToken.substr(0, instToken.length() - 1);
-          /// parse a * dereference and wrap in a from() ??
+          /// UNARY INSTRUCTIONS w/ SYNTACTIC SUGAR
           Pair<string, string> typeValue;
-          if (instToken.length() > 1 && instToken[0] == '*' && instToken[1] != '(')
-            typeValue = {"*", instToken.substr(1)};
-          /*else if (instToken.length() > 1 && instToken[0] == '+' && instToken[1] != '(')
-            typeValue = {"+", instToken.substr(1)};*/
-          else if (typeToken.empty() || typeToken[typeToken.length() - 1] != '.')
+          LOG(TRACE, "instToken: %s\n", instToken.c_str());
+          bool unary = false;
+          for (const auto &[k, v]: Insts::unarySugars()) {
+            const size_t size = k.size();
+            if (instToken.size() > size && instToken[size] != '(') {
+              unary = true;
+              for (size_t i = 0; i < k.size(); i++) {
+                if (instToken[i] != k[i]) {
+                  unary = false;
+                  break;
+                }
+              }
+              if (unary) {
+                typeValue = {v, instToken.substr(size)};
+                LOG(TRACE, "Unary inst found: %s:%s\n", typeValue.first.c_str(), typeValue.second.c_str());
+                break;
+              }
+            }
+          }
+          // TODO: end inst with ; sugar
+          // OBJ AS NULLARY INSTRUCTION
+          if (!unary && (typeToken.empty() || typeToken[typeToken.length() - 1] != '.'))
             typeValue = tryParseObjType(instToken, false);
-          ///////////// parse an obj and wrap in a start() ??
-          if (instToken[0] != '*' && instToken[typeValue.first.length()] != '(') {
-            const Option<Obj_p> element = tryParseObj(instToken);
-            if (!element.has_value())
+          LOG(TRACE, "typeValue: %s %s\n", typeValue.first.c_str(), typeValue.second.c_str());
+          if (!unary && instToken[typeValue.first.length()] != '(') { // OBJ AS ARGUMENT (START OR MAP)
+            const Option<Obj_p> obj = tryParseObj(instToken);
+            if (!obj.has_value())
               return {};
-            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({element.value()}))
-                                          : Insts::map(element.value()));
-          } else {
-            /////////// parse an instruction
+            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({obj.value()})) : Insts::map(obj.value()));
+          } else if (unary) { // SINGLE ARGUMENT INSTS WITHOUT PARENS (SYNTACTIC SUGAR)
+            const Option<Obj_p> arg = tryParseObj(typeValue.second);
+            if (arg.has_value()) {
+              insts.push_back(Insts::to_inst(INST_FURI->resolve(typeValue.first), {arg.value()}));
+            } else {
+              return {};
+            }
+          } else { // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
             const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
             if (inst.has_value()) {
               insts.push_back(inst.value());

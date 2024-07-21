@@ -24,7 +24,7 @@
 #include <util/options.hpp>
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING ERROR
+#define FOS_LOGGING INFO
 #endif
 
 
@@ -52,12 +52,14 @@ namespace fhatos {
         GLOBAL_OPTIONS->printer<>()->print("");
       else if (type == ERROR)
         GLOBAL_OPTIONS->printer()->print("!r[ERROR]!!  ");
+      else if (type == WARN)
+        GLOBAL_OPTIONS->printer()->print("!y[WARN]!!  ");
       else if (type == INFO)
         GLOBAL_OPTIONS->printer()->print("!g[INFO]!!  ");
       else if (type == DEBUG)
         GLOBAL_OPTIONS->printer()->print("!y[DEBUG]!!  ");
       else if (type == TRACE)
-        GLOBAL_OPTIONS->printer()->print("!y[TRACE]!!  ");
+        GLOBAL_OPTIONS->printer()->print("!r[TRACE]!!  ");
       GLOBAL_OPTIONS->printer()->print(buffer);
     }
   };

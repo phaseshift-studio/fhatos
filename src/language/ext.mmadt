@@ -1,0 +1,23 @@
+--- process extensions
+###
+/mmadt/ext/process/  .~>
+  [prefix/           => ~>
+    [|thread         => type/rec/thread,
+     |fiber          => type/rec/fiber],
+   type/             => ~>
+    [type/rec/thread => |[setup=>_,loop=>_],
+     type/rec/fiber  => |[setup=>_,loop=>_]]]
+###
+
+--- tuple extensions
+###
+/mmadt/ext/tuple/   .~>
+  [prefix/           => ~>
+    [|pair           => type/lst/pair,
+     |trip           => type/lst/trip,
+     |quad           => type/lst/quad],
+   type/             => ~>
+    [type/lst/pair?a=_&b=_         => |[*a,*b],
+     type/lst/trip?a=_&b=_&c=_     => |[*a,*b,*c],
+     type/lst/quad?a=_&b=_&c=_&d=_ => |[*a,*b,*c,*d]]]
+###

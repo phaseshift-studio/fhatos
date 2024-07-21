@@ -134,8 +134,8 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/b"), fURI("foi://127.0.0.1/").resolve("a").resolve("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/"), fURI("foi://127.0.0.1/").resolve(""));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1"), fURI("foi://127.0.0.1").resolve(""));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/"), fURI("127.0.0.1").resolve("/"));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/"), fURI("127.0.0.1/").resolve("/"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/"), fURI("127.0.0.1").resolve("/"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/b"), fURI("127.0.0.1/").resolve("b"));
     ///
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/thread"), fURI("/rec/").resolve("/thread"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/rec/thread"), fURI("/rec/").resolve(fURI("thread")));
@@ -162,11 +162,22 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d/"), fURI("/a/b/c").resolve(fURI("../d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d/"), fURI("/a/b/c").resolve(fURI("../../d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d"), fURI("/a/b/c").resolve(fURI("../../d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d"), fURI("/a/b/c/d").resolve(fURI("../../d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d/"), fURI("/a/b/c/d").resolve(fURI("../../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d/"), fURI("/a/b/c/d").resolve(fURI("../../../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d"), fURI("/a/b").resolve(fURI("./d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d/"), fURI("/a/b").resolve(fURI("./d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/d/"), fURI("/a/b").resolve(fURI("././d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d/"), fURI("/a/b").resolve(fURI("././../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("b"), fURI("a").resolve(fURI("b")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/c"), fURI("a").resolve(fURI("/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("b/c"), fURI("a").resolve(fURI("b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a").resolve(fURI("a")));
 
     /////////////////
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://fhat@127.0.0.1/b/c"), fURI("foi://fhat@127.0.0.1/a").resolve(fURI("b/c")));
-   // FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/b/c"),
-   //                            fURI("foi://fhat@127.0.0.1/a").resolve(fURI("foi://fhat@fhat.org/b/c")));
+    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/b/c"),
+    //                            fURI("foi://fhat@127.0.0.1/a").resolve(fURI("foi://fhat@fhat.org/b/c")));
   }
 
   void test_furi_path() {
@@ -259,12 +270,12 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat:pig@127.0.0.1/a/b"), fURI("fhat:pig@127.0.0.1").extend("a").extend("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat:pig@127.0.0.1/a/b"), fURI("fhat:pig@127.0.0.1").extend("a/").extend("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1").extend("a").extend("b"));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/c"), fURI("127.0.0.1/a/b").extend("/c"));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/c"), fURI("127.0.0.1/a/b").extend("c"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/b").extend("/c"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/b").extend("c"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/b/").extend("c"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a/b/c/"), fURI("127.0.0.1/a/b/").extend("c/"));
     //// FALSE
-    FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/b"), fURI("127.0.0.1").extend("a").extend("b/"));
+    FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1").extend("a").extend("b/"));
     FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/b/"), fURI("127.0.0.1").extend("b"));
   }
 

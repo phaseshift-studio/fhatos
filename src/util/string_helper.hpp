@@ -48,7 +48,17 @@ namespace fhatos {
       s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
     }
 
-    static bool lookAhead(const string &token, std::stringstream *ss) {
+    static uint8_t countSubstring(const string &str, const string &sub) {
+      if (sub.length() == 0)
+        return 0;
+      int count = 0;
+      for (size_t offset = str.find(sub); offset != std::string::npos; offset = str.find(sub, offset + sub.length())) {
+        ++count;
+      }
+      return count;
+    }
+
+    static bool lookAhead(const string &token, std::stringstream *ss, bool keep = true) {
       for (int i = 0; i < token.size(); i++) {
         if (token[i] != ss->peek()) {
           for (int j = 0; j <= i; j++) {
@@ -57,6 +67,11 @@ namespace fhatos {
           return false;
         } else {
           ss->get();
+        }
+      }
+      if (!keep) {
+        for (char c: token) {
+          ss += c;
         }
       }
       return true;

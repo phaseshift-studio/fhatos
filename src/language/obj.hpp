@@ -105,6 +105,8 @@ namespace fhatos {
   using Uri_p = Obj_p;
   using Str = Obj;
   using Str_p = Obj_p;
+  using Poly = Obj;
+  using Poly_p = Obj_p;
   using Rec = Obj;
   using Rec_p = Obj_p;
   using Lst = Obj;
@@ -243,8 +245,7 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
     ~Obj() override = default;
-    explicit Obj(const Any& value, const OType otype, const fURI &typeId) :
-        IDed(OTYPE_FURI.at(otype)), _value(value) {
+    explicit Obj(const Any &value, const OType otype, const fURI &typeId) : IDed(OTYPE_FURI.at(otype)), _value(value) {
       TYPE_CHECKER(*this, otype, typeId);
       this->_id = share(ID(typeId));
     }
@@ -845,8 +846,10 @@ namespace fhatos {
           return PtrHelper::no_delete<Int>(this);
         case OType::REAL:
           return PtrHelper::no_delete<Real>(this);
-        case OType::URI:
-          return PtrHelper::no_delete<Uri>(this);
+        case OType::URI: {
+          return lhs->isUri() ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
+                              : PtrHelper::no_delete<Uri>(this);
+        }
         case OType::STR:
           return PtrHelper::no_delete<Str>(this);
         case OType::LST: {
@@ -858,8 +861,8 @@ namespace fhatos {
         }
         case OType::REC: {
           RecMap_p<> newPairs = share(RecMap<>());
-          for (const auto &pair: *this->rec_value()) {
-            newPairs->insert({pair.first->apply(lhs), pair.second->apply(lhs)});
+          for (const auto &[key, value]: *this->rec_value()) {
+            newPairs->insert({key->apply(lhs), value->apply(lhs)});
           }
           return Obj::to_rec(newPairs);
         }

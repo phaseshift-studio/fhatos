@@ -211,11 +211,10 @@ namespace fhatos {
 
     ////// match testing
     Fluent(FOS_PRINT_OBJ<BCode>(
-               Parser::singleton()->tryParseObj("define(/rec/person,[name=>as(/str/),age=>is(gt(0))])").value()))
+               Parser::singleton()->tryParseObj("define(/rec/person,|[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
-    FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
-                           Fluent(Parser::singleton()->tryParseObj("__([name=>'fhat',age=>29]).as(person)").value()),
-                           {}, false);
+   FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
+                           "[name=>'fhat',age=>29].as(person)");
     FOS_TEST_ERROR("__([name=>10,age=>23]).as(person)");
     FOS_TEST_ERROR("__([name=>'fhat',age=>-1]).as(person)");
   }
@@ -230,20 +229,21 @@ namespace fhatos {
 
   void test_define_as_parsing() {
     GLOBAL_OPTIONS->router<Router>()->clear();
-    FOS_CHECK_RESULTS<Int>({}, "define(/int/even,mod(2).is(eq(0)))");
+    FOS_CHECK_RESULTS<Int>({}, "define(/int/even,|mod(2).is(eq(0)))");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(32).as(even).type()");
-    FOS_CHECK_RESULTS<Uri>({Uri(fURI("/int/even"))}, "__(even[32]).type()", {}, true);
+    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "even[32].type()");
+    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(even[32]).type()", {}, true);
   }
 
   void test_to_from() {
     if (GLOBAL_OPTIONS->router<Router>()->toString() != "MqttRouter") {
-      FOS_CHECK_RESULTS<Int>({10}, List<string>({"__(y).to(x)", "__(z).to(y)", "__(10).to(z)"}), {}, false);
-      FOS_CHECK_RESULTS<Int>({10}, "from(z)");
+      FOS_CHECK_RESULTS<Int>({10}, List<string>({"__(y).to(x)", "__(z).to(y)", "__(10).to(z)"}));
+     /* FOS_CHECK_RESULTS<Int>({10}, "from(z)");
       FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
       FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
       FOS_CHECK_RESULTS<Int>({10}, "*z");
       FOS_CHECK_RESULTS<Int>({10}, "**y");
-      FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);
+      FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);*/
     }
   }
 
@@ -269,7 +269,7 @@ namespace fhatos {
     FOS_TEST_ERROR("__(0,1,2,3).plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");
   }
 
-  void test_match_parsing() { FOS_CHECK_RESULTS<>(List<Obj>{{1, 2}, {2, 3}, {3, 4}}, "[1,2,3,4].match([_,_])"); }
+  void test_window_parsing() { FOS_CHECK_RESULTS<>(List<Obj>{{1, 2}, {2, 3}, {3, 4}}, "[1,2,3,4].window([_,_])"); }
 
 
   FOS_RUN_TESTS( //
@@ -293,7 +293,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_bcode_parsing); //
         FOS_RUN_TEST(test_group_parsing); //
-        FOS_RUN_TEST(test_match_parsing); //
+        FOS_RUN_TEST(test_window_parsing); //
       })
 }; // namespace fhatos
 

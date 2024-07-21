@@ -83,15 +83,18 @@ namespace fhatos {
   public:
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
       this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
+      bool first = true; // TODO HACK:: ZERO_TO_Y OR X_TO_Y instructions need to be determined based on location in bcode
       for (const Inst_p &inst: this->bcode->bcode_value()) {
-        const Monad_p monad = share(Monad(inst->inst_seed(), inst));
         if (Insts::isBarrier(inst)) {
+          const Monad_p monad = share(Monad(inst->inst_seed(), inst));
           this->barriers->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", monad->toString().c_str());
-        } else if (Insts::isInitial(inst)) {
+        } else if (Insts::isInitial(inst) && first) {
+          const Monad_p monad = share(Monad(inst->inst_seed(), inst));
           this->running->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", monad->toString().c_str());
         }
+        first = false;
       }
     }
 

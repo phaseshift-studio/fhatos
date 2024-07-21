@@ -75,6 +75,7 @@ namespace fhatos {
       /*Kernel::done("testing_barrier"); */                                                                            \
     } catch (std::exception & e) {                                                                                     \
       LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
+      TEST_FAIL();                                                                                                     \
     }                                                                                                                  \
   }
 } // namespace fhatos
@@ -276,15 +277,17 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
           (string("Router retain message count: ") + GLOBAL_OPTIONS->router<Router>()->id()->toString()).c_str());
       for (const auto &[key, value]: expectedReferences) {
         const Obj temp = value;
-        GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{
-            .mailbox = nullptr,
-            .source = ID(FOS_DEFAULT_SOURCE_ID),
-            .pattern = key.uri_value(),
-            .onRecv = [temp](const ptr<Message> &message) {
-              TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload, (string("Router retain message payload equality: ") +
-                                                                   GLOBAL_OPTIONS->router<Router>()->id()->toString())
-                                                                      .c_str());
-            }});
+        GLOBAL_OPTIONS->router<Router>()->subscribe(
+            Subscription{.mailbox = nullptr,
+                         .source = ID(FOS_DEFAULT_SOURCE_ID),
+                         .pattern = key.uri_value(),
+                         .onRecv = [temp](const ptr<Message> &message) {
+                           TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
+                                                    (string("Router retain message payload equality: ") +
+                                                     GLOBAL_OPTIONS->router<Router>()->id()->toString() + " " +
+                                                     temp.toString() + " != " + message->payload->toString())
+                                                        .c_str());
+                         }});
       }
     }
   }

@@ -23,12 +23,13 @@
 //
 #include <language/obj.hpp>
 #include <process/router/router.hpp>
+#include <util/obj_helper.hpp>
 #include <util/options.hpp>
 #include <utility>
 
 namespace fhatos {
   struct Insts {
-    Insts() = delete;
+    explicit Insts() = delete;
     static Obj_p start(const Objs_p &starts) {
       return Obj::to_inst(
           "start", {starts}, [](const Objs_p &start) { return start; }, IType::ZERO_TO_MANY,
@@ -98,6 +99,28 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
+    static Int_p size() {
+      return Obj::to_inst(
+          "size", {},
+          [](const Obj_p &lhs) {
+            switch (lhs->o_type()) {
+              case OType::LST:
+                return Obj::to_int(lhs->lst_value()->size());
+              case OType::REC:
+                return Obj::to_int(lhs->rec_value()->size());
+              case OType::STR:
+                return Obj::to_int(lhs->str_value().length());
+              case OType::BCODE:
+                return Obj::to_int(lhs->bcode_value().size());
+              case OType::NOOBJ:
+                return Obj::to_int(0);
+              default:
+                return Obj::to_int(1);
+            }
+          },
+          IType::ONE_TO_ONE);
+    }
+
     static Obj_p side(const BCode_p &bcode) {
       return Obj::to_inst(
           "side", {bcode},
@@ -109,7 +132,8 @@ namespace fhatos {
     }
 
     static Obj_p get(const Obj_p &key) {
-      return Obj::to_inst("get", {key}, [key](const Obj_p &lhs) { return share((*lhs)[*key]); }, IType::ONE_TO_ONE);
+      return Obj::to_inst(
+          "get", {key}, [key](const Obj_p &lhs) { return share((*lhs)[*key->apply(lhs)]); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p set(const Obj_p &key, const Obj_p &value) {
@@ -118,11 +142,11 @@ namespace fhatos {
           [key, value](const Obj_p &lhs) {
             switch (lhs->o_type()) {
               case OType::LST: {
-                lhs->lst_set(key, value);
+                lhs->lst_set(key->apply(lhs), value->apply(lhs));
                 return lhs;
               }
               case OType::REC: {
-                lhs->rec_set(key, value);
+                lhs->rec_set(key->apply(lhs), value->apply(lhs));
                 return lhs;
               }
               default:
@@ -143,7 +167,7 @@ namespace fhatos {
     }
 
     static NoObj_p end() {
-      return Obj::to_inst("end", {}, [](const Obj_p &) { return Obj::to_noobj(); }, IType::ONE_TO_ZERO);
+      return Obj::to_inst("end", {}, [](const Obj_p &) { return Obj::to_noobj(); }, IType::MANY_TO_ZERO);
     }
 
 
@@ -181,7 +205,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {typeId, type},
           [typeId, type](const Obj_p &lhs) {
-            TYPE_WRITER(typeId->uri_value(), type->isNoOpBytecode() ? lhs : type);
+            TYPE_WRITER(typeId->uri_value(), type->apply(lhs));
             return lhs;
           },
           areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
@@ -198,12 +222,35 @@ namespace fhatos {
       return Obj::to_inst(
           "to", {uri},
           [uri](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = Router::write(uri->apply(lhs)->uri_value(), lhs);
+            RESPONSE_CODE _rc = Router::write(uri->apply(lhs)->uri_value(), lhs->apply(uri));
             if (_rc)
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
             return lhs;
           },
           areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+    }
+
+    static Obj_p to_inv(const Obj_p &obj) {
+      return Obj::to_inst(
+          "to_inv", {obj},
+          [obj](const Obj_p &lhs) {
+            RESPONSE_CODE _rc = Router::write(lhs->apply(obj)->uri_value(), obj->apply(lhs));
+            if (_rc)
+              LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
+            return obj;
+          },
+          IType::ONE_TO_ONE);
+    }
+
+    static Obj_p both(const Uri_p &uri) {
+      return Obj::to_inst(
+          "both", {uri},
+          [uri](const Obj_p &lhs) {
+            Router::write(uri->apply(lhs)->uri_value(), lhs->apply(uri));
+            Router::write(lhs->apply(uri)->uri_value(), uri->apply(lhs));
+            return lhs;
+          },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p from(const Uri_p &uri) {
@@ -278,7 +325,7 @@ namespace fhatos {
           [target, payload](const Obj_p &lhs) {
             GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
                                                               .target = target->apply(lhs)->uri_value(),
-                                                              .payload = payload->isNoOpBytecode() ? lhs : payload,
+                                                              .payload = payload->apply(lhs),
                                                               .retain = TRANSIENT_MESSAGE});
             return lhs;
           },
@@ -355,7 +402,7 @@ namespace fhatos {
                   m.push_back(x);
                 }
                 if (match) {
-                  ret.push_back( Obj::to_lst(share(m)));
+                  ret.push_back(Obj::to_lst(share(m)));
                 }
               }
             }
@@ -387,6 +434,44 @@ namespace fhatos {
           IType::MANY_TO_MANY);
     }
 
+    static Objs_p block(const Obj_p &rhs) {
+      return Obj::to_inst("block", {rhs}, [rhs](const Objs_p &) { return rhs; }, IType::ONE_TO_ONE);
+    }
+
+    static Obj_p embed(const Obj_p &obj) {
+      return Obj::to_inst(
+          "embed", {obj},
+          [obj](const Uri_p &lhs) {
+            if (obj->isLst()) {
+              Router::write(lhs->uri_value(), obj);
+              const Lst_p lst2 = obj->apply(lhs);
+              for (uint8_t i = 0; i < lst2->lst_value()->size(); i++) {
+                const Uri_p u = Obj::to_uri(fURI(string("_") + std::to_string(i)))->apply(lhs);
+                Router::write(u->uri_value(), lst2->lst_value()->at(i));
+              }
+              return lst2;
+            } else if (obj->isRec()) {
+              const Obj::LstList_p<> links = share(Obj::LstList<>());
+              const Obj::RecMap_p<> rec2 = share(Obj::RecMap<>());
+              for (const auto &[key, val]: *obj->rec_value()) {
+                const Obj_p key2 = key->apply(lhs);
+                const Obj_p val2 = val->apply(lhs);
+                links->push_back(key2);
+                rec2->insert({key2, val2});
+                if (key2->isUri())
+                  Router::write(key2->uri_value(), val2);
+              }
+              Router::write(lhs->uri_value(), Obj::to_lst(links));
+              return Obj::to_rec(rec2);
+            } else {
+              const Obj_p o = obj->apply(lhs);
+              Router::write(o->isUri() ? o->uri_value() : lhs->uri_value(), obj);
+              return o;
+            }
+          },
+          IType::ONE_TO_ONE);
+    }
+
     ///// HELPER METHODS
     static bool isBarrier(const Inst_p &inst) {
       return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE;
@@ -394,6 +479,10 @@ namespace fhatos {
     static bool isInitial(const Inst_p &inst) {
       return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY;
     }
+    static bool isTerminal(const Inst_p &inst) {
+      return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO;
+    }
+
     static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
                                const Obj_p &objC = Obj::to_noobj(), const Obj_p &objD = Obj::to_noobj()) {
       bool result = /*objA->isUri() ? objA->uri_value().isAbsolute() :*/ !objA->isNoOpBytecode();
@@ -403,17 +492,31 @@ namespace fhatos {
       return result;
     }
 
+    static const List<Obj_p> &argCheck(const ID &opcode, const List<Obj_p> &args, const uint8_t expectedSize) {
+      if (args.size() != expectedSize)
+        throw fError("Incorrect number of arguments provided to %s: %i != %i\n", opcode.toString().c_str(), args.size(),
+                     expectedSize);
+      return args;
+    }
+
+    static const Map<string, string> unarySugars() {
+      static Map<string, string> map = {{"*", "from"}, {"~>", "embed"},  {"<->", "both"},
+                                        {"<-", "to"},  {"->", "to_inv"}, {"|", "block"}};
+      return map;
+    }
+
     static const Inst_p to_inst(const ID &type, const List<Obj_p> &args) {
+
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
-      if (type == INST_FURI->resolve("map"))
-        return Insts::map(args.at(0));
-      if (type == INST_FURI->resolve("filter"))
-        return Insts::filter(args.at(0));
-      if (type == INST_FURI->resolve("side"))
-        return Insts::side(args.at(0));
-      if (type == INST_FURI->resolve("end"))
+      if (type == INST_FURI->resolve("end") || type == INST_FURI->resolve(";"))
         return Insts::end();
+      if (type == INST_FURI->resolve("map"))
+        return Insts::map(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("filter"))
+        return Insts::filter(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("side"))
+        return Insts::side(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
       if (type == INST_FURI->resolve("sum"))
@@ -424,67 +527,77 @@ namespace fhatos {
         return Insts::group(args.empty() ? Obj::to_noobj() : args.at(0), args.size() < 2 ? Obj::to_noobj() : args.at(1),
                             args.size() < 3 ? Obj::to_noobj() : args.at(2));
       if (type == INST_FURI->resolve("get"))
-        return Insts::get(args.at(0));
+        return Insts::get(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("set"))
-        return Insts::set(args.at(0), args.at(1));
+        return Insts::set(argCheck(type, args, 2).at(0), args.at(1));
       if (type == INST_FURI->resolve("noop"))
         return Insts::noop();
       if (type == INST_FURI->resolve("as"))
-        return Insts::as(args.at(0));
+        return Insts::as(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("by"))
-        return Insts::by(args.at(0));
+        return Insts::by(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("define"))
-        return Insts::define(args.at(0), args.at(1));
+        return Insts::define(argCheck(type, args, 2).at(0), args.at(1));
       if (type == INST_FURI->resolve("type"))
         return Insts::type();
       if (type == INST_FURI->resolve("is"))
-        return Insts::is(args.at(0));
+        return Insts::is(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("plus") || type == INST_FURI->resolve("+"))
-        return Insts::plus(args.at(0));
+        return Insts::plus(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("mult"))
-        return Insts::mult(args.at(0));
+        return Insts::mult(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("mod"))
-        return Insts::mod(args.at(0));
+        return Insts::mod(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("eq"))
-        return Insts::eq(args.at(0));
+        return Insts::eq(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("neq"))
-        return Insts::neq(args.at(0));
+        return Insts::neq(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("gte"))
-        return Insts::gte(args.at(0));
+        return Insts::gte(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("gt"))
-        return Insts::gt(args.at(0));
+        return Insts::gt(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("lte"))
-        return Insts::lte(args.at(0));
+        return Insts::lte(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("lt"))
-        return Insts::lt(args.at(0));
-      if (type == INST_FURI->resolve("to"))
-        return Insts::to(args.at(0));
+        return Insts::lt(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("both") || type == INST_FURI->resolve("<->"))
+        return Insts::both(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("to") || type == INST_FURI->resolve("<-"))
+        return Insts::to(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("to_inv") || type == INST_FURI->resolve("->"))
+        return Insts::to_inv(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("from") || type == INST_FURI->resolve("*"))
-        return Insts::from(args.at(0));
+        return Insts::from(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("rfrom") || type == INST_FURI->resolve("r*"))
-        return Insts::rfrom(args.at(0));
+        return Insts::rfrom(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("pub"))
-        return Insts::pub(args.at(0), args.at(1));
+        return Insts::pub(argCheck(type, args, 2).at(0), args.at(1));
       if (type == INST_FURI->resolve("flip"))
-        return Insts::flip(args.at(0));
+        return Insts::flip(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("sub"))
-        return Insts::sub(args.at(0), args.at(1));
+        return Insts::sub(argCheck(type, args, 2).at(0), args.at(1));
       if (type == INST_FURI->resolve("within"))
-        return Insts::within(args.at(0));
+        return Insts::within(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("print"))
-        return Insts::print(args.at(0));
+        return Insts::print(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("switch"))
-        return Insts::bswitch(args.at(0));
+        return Insts::bswitch(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("explain"))
         return Insts::explain();
       if (type == INST_FURI->resolve("count"))
         return Insts::count();
+      if (type == INST_FURI->resolve("size"))
+        return Insts::size();
       if (type == INST_FURI->resolve("barrier"))
-        return Insts::barrier(args.at(0));
+        return Insts::barrier(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("block"))
+        return Insts::block(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("embed") || type == INST_FURI->resolve("~>"))
+        return Insts::embed(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("window"))
-        return Insts::window(args.at(0));
+        return Insts::window(argCheck(type, args, 1).at(0));
       /// try user defined inst
-      const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(type));
+      const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(static_cast<fURI>(type)));
       if (!userInst->isNoObj()) {
         return Obj::to_inst(
             type.name(), args,

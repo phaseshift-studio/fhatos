@@ -2,12 +2,18 @@ INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20)  # CMake version check
 PROJECT(fhatos)
+OPTION(USE_CCACHE "Use ccache" ON) # ON/OFF
+IF (USE_CCACHE)
+    SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+ENDIF ()
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 IF (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
-endif ()
-CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION)
+ENDIF ()
+##################################
+## DEFINE MM-ADT ANSI COLOR DSL ##
+##################################
 IF (NOT WIN32)
     STRING(ASCII 27 Esc)
     SET(.. "${Esc}[m")
@@ -27,14 +33,54 @@ IF (NOT WIN32)
     SET(BoldCyan "${Esc}[1;36m")
     SET(BoldWhite "${Esc}[1;37m")
 ENDIF ()
+MESSAGE("${.r}            PhaseShift Studio Presents \n"
+        "${.m} <`--'>____${.g}  ______ __  __  ______  ______  ${.b}______  ______${..} \n"
+        "${.m} /. .  `'  \\${.g}/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\${.b}/\\  __ \\/\\  "
+        "___\\${..} \n"
+        "${.m}(`')  ,     ${.m}@${.g} \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/${.b}\\ \\ \\_\\ \\ "
+        "\\___  \\${..} \n"
+        "${.m} `-._,     /${.g} \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ ${.b}\\ "
+        "\\_____\\/\\_____\\ \n"
+        "${.m}    )-)_/-(>${.g}  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+        "${.b}\\/_____/\\/_____/ \n"
+        "${.r}                                   A Dogturd Stynx Production${..} \n")
+CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER)
+##################################
+## TEST FOR INTERNET CONNECTION ##
+##################################
+MESSAGE(CHECK_START "${.y}Testing Internet connection${..}")
+IF (MSVC)
+    EXECUTE_PROCESS(
+            COMMAND ping www.google.com -n 2
+            ERROR_QUIET
+            RESULT_VARIABLE NO_CONNECTION
+    )
+ELSE ()
+    EXECUTE_PROCESS(
+            COMMAND ping www.google.com -c 2
+            ERROR_QUIET
+            RESULT_VARIABLE NO_CONNECTION
+    )
+ENDIF ()
+IF (NOT NO_CONNECTION EQUAL 0)
+    SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
+    MESSAGE(WARNING "${.r}Fetch offline mode${..}: requires already populated _deps")
+ELSE ()
+    SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
+    MESSAGE(NOTICE "${.g}Fetch online mode${..}: automatically populates _deps")
+ENDIF ()
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+##################################
+
 ######## PROJECT LIBRARY (NATIVE)
 OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF (BUILD_NATIVE)
+    MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (NATIVE)${..}")
     IF (NOT CMAKE_BUILD_TYPE)
         SET(CMAKE_BUILD_TYPE "RELEASE")
     ENDIF ()
-    MESSAGE(STATUS "Build type: ${.g}${CMAKE_BUILD_TYPE}${..}")
+    MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
     INCLUDE_DIRECTORIES(src include)
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
@@ -46,7 +92,19 @@ IF (BUILD_NATIVE)
     )
     TARGET_SOURCES(${PROJECT_NAME} PRIVATE src/main.cpp)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
+    ##### PRECOMPILED HEADERS #####
+    SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+    SET(HEADER_FILES
+            ${ROOT_SOURCE_DIR}/process/router/router.hpp
+            ${ROOT_SOURCE_DIR}/process/router/local_router.hpp
+            ${ROOT_SOURCE_DIR}/fhatos.hpp
+            ${ROOT_SOURCE_DIR}/language/obj.hpp
+            ${ROOT_SOURCE_DIR}/process/abstract_scheduler.hpp
+            ${ROOT_SOURCE_DIR}/structure/furi.hpp)
+    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE ${HEADER_FILES})
+    ###############################
     ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator")
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
@@ -60,18 +118,21 @@ ENDIF ()
 ####################################
 ####################################
 ### YAML: YAML PARSER IMPLEMENTATION
-FETCHCONTENT_DECLARE(
-        yaml-cpp
-        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG 0.8.0
-)
-FETCHCONTENT_GETPROPERTIES(yaml-cpp)
-IF (NOT yaml-cpp_POPULATED)
-    MESSAGE(STATUS "Fetching yaml-cpp...")
-    FETCHCONTENT_MAKEAVAILABLE(yaml-cpp)
-    #ADD_SUBDIRECTORY(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+OPTION(USE_YAML "YAML build" OFF) # ON/OFF
+IF (USE_YAML)
+    FETCHCONTENT_DECLARE(
+            yaml-cpp
+            GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+            GIT_TAG 0.8.0
+    )
+    FETCHCONTENT_GETPROPERTIES(yaml-cpp)
+    IF (NOT yaml-cpp_POPULATED)
+        MESSAGE(STATUS "Fetching yaml-cpp...")
+        FETCHCONTENT_MAKEAVAILABLE(yaml-cpp)
+        #ADD_SUBDIRECTORY(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+    ENDIF ()
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC yaml-cpp::yaml-cpp)
 ENDIF ()
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC yaml-cpp::yaml-cpp)
 ####################################
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION

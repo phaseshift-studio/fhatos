@@ -28,8 +28,8 @@ namespace fhatos {
 
   class AbstractFileSystem : public Actor<Thread> {
   public:
-    using Dir = Obj;
-    using File = Obj;
+    using Dir = Rec;
+    using File = Rec;
     using File_p = ptr<File>;
     using Dir_p = ptr<Dir>;
 
@@ -51,8 +51,8 @@ namespace fhatos {
                                                  "dirs=>lst:?dir:]")}});
     }
 
-    virtual const File_p file(const Uri_p& path) const { return nullptr; }
-    virtual const Dir_p dir(const Uri_p& path) const { return nullptr; }
+    virtual File_p file(const Uri_p &path) const { return nullptr; }
+    virtual Dir_p dir(const Uri_p &path) const { return nullptr; }
   };
 
 
