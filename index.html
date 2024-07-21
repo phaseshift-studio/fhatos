@@ -441,7 +441,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1>FhatOS: A Distributed Operating System for Embedded Systems (v0.1)</h1>
 <div class="details">
 <span id="author" class="author">Dogturd Stynx</span><br>
-<span id="email" class="email"><a href="mailto:dogturd@fhatos.org">dogturd@fhatos.org</a></span><br>
+<span id="email" class="email"><a href="mailto:dogturd.stynx@fhatos.org">dogturd.stynx@fhatos.org</a></span><br>
 <span id="revnumber">version 0.1</span>
 </div>
 </div>
@@ -449,10 +449,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>by Dogturd Stynx &lt;<a href="mailto:dogturd@fhatos.org">dogturd@fhatos.org</a>&gt;<br></p>
-</div>
-<div class="paragraph">
-<p><span class="image left"><img src="../images/fhatos-logo.png" alt="fhatos logo" width="120"></span> <strong>FhatOS</strong> (pronounced <em>fat</em>) is a <a href="https://en.wikipedia.org/wiki/Distributed_operating_system">distributed operating system</a> for <a href="https://en.wikipedia.org/wiki/ESP8266">ESP8266</a> and <a href="https://en.wikipedia.org/wiki/ESP32">ESP32</a> processors with support for sandboxed deployments on Linux and MacOSX systems. All FhatOS resources, from individual datum, files, processes exist within a single <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URI</a> address space called <strong>furi</strong> (pronounced "fury" or "fhat URI"). Processes communicate via a publish-subscribe message passing protocol that rides atop the <a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.</p>
+<p><span class="image left"><img src="../images/fhatos-logo.png" alt="fhatos logo" width="120"></span> <strong>FhatOS</strong> (pronounced <em>fat</em>) is a <a href="https://en.wikipedia.org/wiki/Distributed_operating_system">distributed operating system</a> for <a href="https://en.wikipedia.org/wiki/ESP8266">ESP8266</a> and <a href="https://en.wikipedia.org/wiki/ESP32">ESP32</a> processors with support for sandboxed deployments on Linux and MacOSX systems.
+All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URI</a> address space called <strong>furi</strong> (pronounced "fury" or "fhat URI").
+Processes communicate via a publish-subscribe message passing protocol that rides atop the <a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.</p>
 </div>
 </div>
 </div>
@@ -492,6 +491,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_booting_fhatos">Booting FhatOS</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-yaml" data-lang="yaml">Unresolved directive in fhatos.adoc - include::../../data/fhat_boot.yml[]</code></pre>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_booting_on_linuxunixmac">Booting on Linux/Unix/Mac</h3>
 
@@ -507,13 +511,62 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_a_fhatos_language">A FhatOS Language</h2>
+<h2 id="_fhatos_architecture">FhatOS Architecture</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>FhatOS software can be written in C/C++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 <strong>mono-types</strong> (<code>bool</code>, <code>int</code>, <code>real</code>, <code>uri</code>, and <code>str</code>) and 2 <strong>poly-types</strong> (<strong>lst</strong> and <strong>rec</strong>), where <code>rec</code> is a <code>lst</code> of 2-<code>obj</code> <code>lsts</code> with particular semantics regarding key uniqueness. mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written (typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.</p>
+<p>FhatOS is organized along a design principle that undersands computing as being composed of 3 fundamental phenomena: <strong>process</strong> (time), <strong>structure</strong> (space), and <strong>language</strong> (perspective). The core FhatOS kernel (typically denoted <code>/sys/</code>) can be divided along these lines as exemplified by the following resources:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>/sys/scheduler/</code> (<strong>process</strong>): provides all thread, fiber, and coroutine processes compute time on the underlying hardware processor.</p>
+</li>
+<li>
+<p><code>/sys/router/</code> (<strong>structure</strong>) : maintains the multi-level tuple space used for storing and retrieving resources in the fURI address space.</p>
+</li>
+<li>
+<p><code>/sys/mmadt/</code> (<strong>language</strong>): exposes parsing, type management, and caching functionality to all mm-ADT progams.</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>A simple mm-ADT program is defined below. The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
+<p>All resources off the specified kernel fURIs can be interacted with, but can not be shutdown. That is, <code>Ø-&gt;/sys/#</code> yields an error. Without these resources, FhatOS will not function propertly.</p>
+</div>
+<div class="paragraph">
+<p>User resources are typicaly structured as below:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>/io/</code>: location of input/output devices such as terminal, files, etc.</p>
+</li>
+<li>
+<p><code>/home/</code>: location of all user data and programs.</p>
+</li>
+<li>
+<p><code>/driver/</code>: location of all external device drivers.</p>
+</li>
+<li>
+<p><code>/log/</code>: location of all log output.</p>
+</li>
+<li>
+<p><code>/ext/</code>: location of various mm-ADT extensions.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The following subsections will provide a short overview of the aforementioned resources in reverse order: mm-ADT, router, and then scheduler.</p>
+</div>
+<div class="sect2">
+<h3 id="_the_mm_adt_language">The mm-ADT Language</h3>
+<div class="paragraph">
+<p>FhatOS software can be written in C/C++ or mm-ADT (<strong>multi-model abstract data type</strong>). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 <strong>mono-types</strong> (<code>bool</code>, <code>int</code>, <code>real</code>, <code>uri</code>, and <code>str</code>) and 2 <strong>poly-types</strong> (<strong>lst</strong> and <strong>rec</strong>), where <code>rec</code> is a <code>lst</code> of 2-<code>obj</code> <code>lsts</code> with particular semantics regarding key uniqueness. mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly.
+FhatOS provides a collection of device drivers and new device drivers can be written (typically in C/C++).
+Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.</p>
+</div>
+<div class="paragraph">
+<p>A simple mm-ADT program is defined below.
+The program is a specialization of the poly-type <code>rec</code> called <code>thread</code>, where <code>thread</code> is abstractly defined as</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -555,9 +608,9 @@ fhatos&gt; person[[name=&gt;'fhatty',age=&gt;1]]
 </div>
 <!-- OUTPUT:END -->
 <div class="paragraph">
-<p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>. The scheduler spawns
-the program on an individual <code>thread</code> accessible via the target fURI. Once spawned, the <code>setup</code> function prints the
-thread&#8217;s id and halts.</p>
+<p>The <code>thread</code> object is published to the fURI endpoint <code>esp32@127.0.0.1/scheduler/threads/logger</code>.
+The scheduler spawns the program on an individual <code>thread</code> accessible via the target fURI.
+Once spawned, the <code>setup</code> function prints the thread&#8217;s id and halts.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -572,15 +625,20 @@ thread&#8217;s id and halts.</p>
             loop  =&gt; stop(/abc/)]]</code></pre>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_the_router_structure">The Router Structure</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_the_scheduler_process">The Scheduler Process</h3>
+
+</div>
 <div class="sect2">
 <h3 id="_a_fhatos_console">A FhatOS Console</h3>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
+<div class="sidebarblock">
+<div class="content">
+<div class="title">FhatOS Console</div>
 <div class="paragraph">
 <p>The FhatOS Console is a composite of 3 other actors:</p>
 </div>
@@ -597,9 +655,7 @@ thread&#8217;s id and halts.</p>
 </li>
 </ol>
 </div>
-</td>
-</tr>
-</table>
+</div>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -614,9 +670,9 @@ thread&#8217;s id and halts.</p>
 <div class="sect2">
 <h3 id="_furi_and_mqtt">fURI and MQTT</h3>
 <div class="paragraph">
-<p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is a publish/subscribe message passing protocol that has found extensive
-usage in embedded systems. Hierarchically specified <em>topics</em> can be <strong>subscribed</strong> and <strong>published</strong> to. In MQTT, there is
-no direct communication between actors, though such behavior can be simulated if an actor&#8217;s mailbox is a unique topic.
+<p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is a publish/subscribe message passing protocol that has found extensive usage in embedded systems.
+Hierarchically specified <em>topics</em> can be <strong>subscribed</strong> and <strong>published</strong> to.
+In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor&#8217;s mailbox is a unique topic.
 FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware.
 There exist three MQTT routers:</p>
 </div>
@@ -642,14 +698,21 @@ There exist three MQTT routers:</p>
 </li>
 </ol>
 </div>
-<div class="admonitionblock note">
+<div class="sidebarblock">
+<div class="content">
+<div class="title">fURI Router Scope Patterns</div>
+<div class="admonitionblock tip">
 <table>
 <tr>
 <td class="icon">
-<div class="title">Note</div>
+<div class="title">Tip</div>
 </td>
 <td class="content">
-<div class="title">fURI Router Scope Patterns</div>
+The more <code>/</code> in the fURI prefix, the more distributed the fURI space.
+</td>
+</tr>
+</table>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -659,19 +722,23 @@ There exist three MQTT routers:</p>
 <p><code>~/abc</code> monoid scoped fURI ("home directory" of executing program).</p>
 </li>
 <li>
-<p><code>/abc</code> host scoped fURI (rooted at localhost).</p>
+<p><code>/abc</code> host scoped fURI (rooted at <code>localhost</code>).</p>
 </li>
 <li>
 <p><code>//abc</code> cluster scoped fURI (hosted on the intranet).</p>
 </li>
 <li>
-<p><code>//abc.org/</code> globally scoped fURI (hosted on the internet)</p>
+<p><code>//fhatos.org/abc</code> globally scoped fURI (hosted on the internet)</p>
 </li>
 </ul>
 </div>
-</td>
-</tr>
-</table>
+</div>
+</div>
+<div class="stemblock">
+<div class="title">Monoid power method</div>
+<div class="content">
+\[M = aM\]
+</div>
 </div>
 <!-- CODE:BASH:START -->
 <!-- ./docs/build/main_runner.out "__(1,2,3,4).plus(10)" "16.to(b)" "*b.plus(45)" -->
@@ -698,8 +765,32 @@ fhatos&gt; *b.plus(45)
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br>
-Last updated 2024-07-17 17:48:08 -0600
+Last updated 2024-07-20 00:11:33 -0600
 </div>
 </div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains("stemblock")) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
 </body>
 </html>

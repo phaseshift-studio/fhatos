@@ -1,16 +1,17 @@
 :imagesdir: ../images
 :favicon: {imagesdir}/fhatos-logo-small.png
 :author: Dogturd Stynx
-:email: dogturd@fhatos.org
+:email: dogturd.stynx@fhatos.org
 :revnumber: 0.1
 :highlightjs-languages: java
 :tabsize: 2
+:stem: latexmath
 
 = FhatOS: A Distributed Operating System for Embedded Systems (v{revnumber})
 
-by {author} <{email}> +
-
-image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat_) is a https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for https://en.wikipedia.org/wiki/ESP8266[ESP8266] and https://en.wikipedia.org/wiki/ESP32[ESP32] processors with support for sandboxed deployments on Linux and MacOSX systems. All FhatOS resources, from individual datum, files, processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address space called **furi** (pronounced "fury" or "fhat URI"). Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
+image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat_) is a https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for https://en.wikipedia.org/wiki/ESP8266[ESP8266] and https://en.wikipedia.org/wiki/ESP32[ESP32] processors with support for sandboxed deployments on Linux and MacOSX systems.
+All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address space called **furi** (pronounced "fury" or "fhat URI").
+Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
 
 == Features
 
@@ -25,7 +26,8 @@ image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat_) is a h
 
 == Booting FhatOS
 
-
+[source,yaml]
+include::../../data/fhat_boot.yml[]
 
 === Booting on Linux/Unix/Mac
 
@@ -33,17 +35,39 @@ image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat_) is a h
 
 === Booting on ESP8266
 
-== A FhatOS Language
+== FhatOS Architecture
 
-FhatOS software can be written in C/C\++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 **mono-types** (`bool`, `int`, `real`, `uri`, and `str`) and 2 **poly-types** (**lst** and **rec**), where `rec` is a `lst` of 2-`obj` `lsts` with particular semantics regarding key uniqueness. mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly. FhatOS provides a collection of device drivers and new device drivers can be written (typically in C/C++). Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.
+FhatOS is organized along a design principle that undersands computing as being composed of 3 fundamental phenomena: **process** (time), **structure** (space), and **language** (perspective). The core FhatOS kernel (typically denoted `/sys/`) can be divided along these lines as exemplified by the following resources:
 
-A simple mm-ADT program is defined below. The program is a specialization of the poly-type `rec` called `thread`, where `thread` is abstractly defined as
+. `/sys/scheduler/` (**process**): provides all thread, fiber, and coroutine processes compute time on the underlying hardware processor.
+. `/sys/router/` (**structure**) : maintains the multi-level tuple space used for storing and retrieving resources in the fURI address space.
+. `/sys/mmadt/` (**language**): exposes parsing, type management, and caching functionality to all mm-ADT progams.
+
+All resources off the specified kernel fURIs can be interacted with, but can not be shutdown. That is, `Ø\->/sys/#` yields an error. Without these resources, FhatOS will not function propertly.
+
+User resources are typicaly structured as below:
+
+. `/io/`: location of input/output devices such as terminal, files, etc.
+. `/home/`: location of all user data and programs.
+. `/driver/`: location of all external device drivers.
+. `/log/`: location of all log output.
+. `/ext/`: location of various mm-ADT extensions.
+
+The following subsections will provide a short overview of the aforementioned resources in reverse order: mm-ADT, router, and then scheduler.
+
+=== The mm-ADT Language
+
+FhatOS software can be written in C/C\++ or mm-ADT (**multi-model abstract data type**). mm-ADT is a cluster-oriented programming language and virtual machine founded on 5 **mono-types** (`bool`, `int`, `real`, `uri`, and `str`) and 2 **poly-types** (**lst** and **rec**), where `rec` is a `lst` of 2-`obj` `lsts` with particular semantics regarding key uniqueness. mm-ADT programs are sent via message to the FhatOS scheduler and then spawned as a process accordingly.
+FhatOS provides a collection of device drivers and new device drivers can be written (typically in C/C++).
+Provided drivers include pulse wave modulation, thermometer, gas, H-bridge, etc. sensors and actuators.
+
+A simple mm-ADT program is defined below.
+The program is a specialization of the poly-type `rec` called `thread`, where `thread` is abstractly defined as
 
 ```.cpp
 thread[[setup => __]
         loop  => __]]
 ```
-
 
 [subs="attributes+"]
 ++++
@@ -62,9 +86,9 @@ thread[[setup => __]
 <!-- OUTPUT:END -->
 ++++
 
-The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`. The scheduler spawns
-the program on an individual `thread` accessible via the target fURI. Once spawned, the `setup` function prints the
-thread's id and halts.
+The `thread` object is published to the fURI endpoint `esp32@127.0.0.1/scheduler/threads/logger`.
+The scheduler spawns the program on an individual `thread` accessible via the target fURI.
+Once spawned, the `setup` function prints the thread's id and halts.
 
 ```.cpp
 fhatos> thread[[setup => print('setup complete'),
@@ -77,17 +101,20 @@ fhatos> */abc/
             loop  => stop(/abc/)]]
 ```
 
+### The Router Structure
+
+### The Scheduler Process
+
 ### A FhatOS Console
 
-[NOTE]
-====
+.FhatOS Console
+****
 The FhatOS Console is a composite of 3 other actors:
 
-  . The `Terminal` (`/sys/io/terminal/`) provides thread-safe access to hardware I/O.
-  . The `Parser` (`/sys/lang/parser/`) converts string input to bytecode output.
-  . The `Processor` (`/sys/lang/processor/`) executes bytecode.
-====
-
+. The `Terminal` (`/sys/io/terminal/`) provides thread-safe access to hardware I/O.
+. The `Parser` (`/sys/lang/parser/`) converts string input to bytecode output.
+. The `Processor` (`/sys/lang/processor/`) executes bytecode.
+****
 
 ```
 terminal/in =[str]=> console
@@ -99,9 +126,9 @@ terminal/in =[str]=> console
 
 ### fURI and MQTT
 
-https://en.wikipedia.org/wiki/MQTT[MQTT] is a publish/subscribe message passing protocol that has found extensive
-usage in embedded systems. Hierarchically specified _topics_ can be **subscribed** and **published** to. In MQTT, there is
-no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic.
+https://en.wikipedia.org/wiki/MQTT[MQTT] is a publish/subscribe message passing protocol that has found extensive usage in embedded systems.
+Hierarchically specified _topics_ can be **subscribed** and **published** to.
+In MQTT, there is no direct communication between actors, though such behavior can be simulated if an actor's mailbox is a unique topic.
 FhatOS leverages MQTT, but from the vantage point of URIs instead of topics with message routing being location-aware.
 There exist three MQTT routers:
 
@@ -112,16 +139,22 @@ There exist three MQTT routers:
 . `GlobalRouter` : An MQTT router scoped to the Internet.
 . `MetaRouter`: An MQTT router dynamically scoped to other routers based on fURI endpoints.
 
-
-[NOTE]
 .fURI Router Scope Patterns
-====
-  * `abc` monad scoped fURI.
-  * `~/abc` monoid scoped fURI ("home directory" of executing program).
-  * `/abc` host scoped fURI (rooted at localhost).
-  * `//abc` cluster scoped fURI (hosted on the intranet).
-  * `//abc.org/` globally scoped fURI (hosted on the internet)
-====
+****
+TIP: The more `/` in the fURI prefix, the more distributed the fURI space.
+
+* `abc` monad scoped fURI.
+* `~/abc` monoid scoped fURI ("home directory" of executing program).
+* `/abc` host scoped fURI (rooted at `localhost`).
+* `//abc` cluster scoped fURI (hosted on the intranet).
+* `//fhatos.org/abc` globally scoped fURI (hosted on the internet)
+****
+
+.Monoid power method
+[stem]
+++++
+M = aM
+++++
 
 ++++
 <!-- CODE:BASH:START -->

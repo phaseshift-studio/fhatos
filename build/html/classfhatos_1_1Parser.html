@@ -122,12 +122,15 @@ Inheritance diagram for fhatos::Parser:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a362a230b27339e5d4a3198f54488aba0" id="r_a362a230b27339e5d4a3198f54488aba0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a362a230b27339e5d4a3198f54488aba0">setup</a> () override</td></tr>
 <tr class="separator:a362a230b27339e5d4a3198f54488aba0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89f15a8eea8084bdf47272b232e0e920" id="r_a89f15a8eea8084bdf47272b232e0e920"><td class="memItemLeft" align="right" valign="top"><a id="a89f15a8eea8084bdf47272b232e0e920" name="a89f15a8eea8084bdf47272b232e0e920"></a>
-Option&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObj</b> (const string &amp;token)</td></tr>
-<tr class="separator:a89f15a8eea8084bdf47272b232e0e920"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed5b229f72c413ca3a3d25167ab39440" id="r_aed5b229f72c413ca3a3d25167ab39440"><td class="memItemLeft" align="right" valign="top"><a id="aed5b229f72c413ca3a3d25167ab39440" name="aed5b229f72c413ca3a3d25167ab39440"></a>
+Option&lt; Obj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObj</b> (const string &amp;token, const string prev=&quot;NONE&quot;)</td></tr>
+<tr class="separator:aed5b229f72c413ca3a3d25167ab39440"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a9d402ce80d14a855eeaf624b5dc6b6" id="r_a4a9d402ce80d14a855eeaf624b5dc6b6"><td class="memItemLeft" align="right" valign="top"><a id="a4a9d402ce80d14a855eeaf624b5dc6b6" name="a4a9d402ce80d14a855eeaf624b5dc6b6"></a>
 Pair&lt; string, string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseObjType</b> (const string &amp;token, const bool brackets=true)</td></tr>
 <tr class="separator:a4a9d402ce80d14a855eeaf624b5dc6b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39439643647ef3e0a4a1c94b68539a7f" id="r_a39439643647ef3e0a4a1c94b68539a7f"><td class="memItemLeft" align="right" valign="top"><a id="a39439643647ef3e0a4a1c94b68539a7f" name="a39439643647ef3e0a4a1c94b68539a7f"></a>
+Option&lt; NoObj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseComment</b> (const string &amp;valueToken)</td></tr>
+<tr class="separator:a39439643647ef3e0a4a1c94b68539a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6d31d0818c962518c4f5bc466423702" id="r_af6d31d0818c962518c4f5bc466423702"><td class="memItemLeft" align="right" valign="top"><a id="af6d31d0818c962518c4f5bc466423702" name="af6d31d0818c962518c4f5bc466423702"></a>
 Option&lt; NoObj_p &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tryParseNoObj</b> (const string &amp;valueToken)</td></tr>
 <tr class="separator:af6d31d0818c962518c4f5bc466423702"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -299,7 +302,7 @@ ptr&lt; <a class="el" href="classfhatos_1_1ID.html">ID</a> &gt;&#160;</td><td cl
   </tr>
 </table>
 </div><div class="memdoc">
-<p>parse a * dereference and wrap in a from() ??</p>
+<p>UNARY INSTRUCTIONS w/ SYNTACTIC SUGAR</p>
 
 </div>
 </div>

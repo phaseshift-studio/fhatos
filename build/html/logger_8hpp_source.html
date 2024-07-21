@@ -120,7 +120,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;util/options.hpp&gt;</span></div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#ifndef FOS_LOGGING</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define FOS_LOGGING ERROR</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define FOS_LOGGING INFO</span></div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
@@ -149,18 +149,20 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        GLOBAL_OPTIONS-&gt;printer&lt;&gt;()-&gt;print(<span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == ERROR)</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!r[ERROR]!!  &quot;</span>);</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == INFO)</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!g[INFO]!!  &quot;</span>);</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == DEBUG)</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!y[DEBUG]!!  &quot;</span>);</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == TRACE)</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!y[TRACE]!!  &quot;</span>);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      GLOBAL_OPTIONS-&gt;printer()-&gt;print(buffer);</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    }</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  };</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == WARN)</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!y[WARN]!!  &quot;</span>);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == INFO)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!g[INFO]!!  &quot;</span>);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == DEBUG)</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!y[DEBUG]!!  &quot;</span>);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type == TRACE)</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        GLOBAL_OPTIONS-&gt;printer()-&gt;print(<span class="stringliteral">&quot;!r[TRACE]!!  &quot;</span>);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      GLOBAL_OPTIONS-&gt;printer()-&gt;print(buffer);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    }</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  };</div>
 </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>} <span class="comment">// namespace fhatos</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>} <span class="comment">// namespace fhatos</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassfhatos_1_1Logger_html"><div class="ttname"><a href="classfhatos_1_1Logger.html">fhatos::Logger</a></div><div class="ttdef"><b>Definition</b> logger.hpp:40</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
