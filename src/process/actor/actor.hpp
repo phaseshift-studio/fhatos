@@ -37,7 +37,7 @@ namespace fhatos {
   public:
     explicit Actor(const ID &id, const Consumer<Actor<PROCESS> *>& setupFunction = nullptr,
                    const Consumer<Actor<PROCESS> *>& loopFunction = nullptr) :
-        _setupFunction(setupFunction), _loopFunction(loopFunction), PROCESS(id), Publisher(this, this) {
+        _setupFunction(setupFunction), _loopFunction(loopFunction), PROCESS(id), Publisher(this, this), Mailbox<ptr<Mail>>() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       // static_assert(std::is_base_of_v<Router, ROUTER>);
     }

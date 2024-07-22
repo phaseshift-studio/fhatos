@@ -131,12 +131,11 @@ namespace fhatos {
       }
       if (!Parser::closedExpression(this->_line))
         return;
-      string replace_word = "###";
-      string replace_by = "";
-      size_t pos = this->_line.find(replace_word);
+      ///////// PARSE MULTI-LINE MONOIDS
+      size_t pos = this->_line.find("###");
       while (pos != string::npos) {
-        this->_line.replace(pos, replace_word.size(), replace_by);
-        pos = this->_line.find(replace_word, pos + replace_by.size());
+        this->_line.replace(pos, 3, "");
+        pos = this->_line.find("###", pos + 0);
       }
       LOG_TASK(DEBUG, this, "line to parse: %s\n", this->_line.c_str());
       StringHelper::trim(this->_line);

@@ -438,38 +438,45 @@ namespace fhatos {
       return Obj::to_inst("block", {rhs}, [rhs](const Objs_p &) { return rhs; }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p embed(const Obj_p &obj) {
+  private:
+    static Obj_p embed_function(const Uri_p &lhs, const Obj_p &rhs) {
+      if (rhs->isLst()) {
+        Router::write(lhs->uri_value(), rhs);
+        const Lst_p lst2 = rhs->apply(lhs);
+        for (uint8_t i = 0; i < lst2->lst_value()->size(); i++) {
+          const Uri_p u = Obj::to_uri(fURI(string("_") + std::to_string(i)))->apply(lhs);
+          Router::write(u->uri_value(), lst2->lst_value()->at(i));
+        }
+        return lst2;
+      } else if (rhs->isRec()) {
+        const Obj::LstList_p<> links = share(Obj::LstList<>());
+        const Obj::RecMap_p<> rec2 = share(Obj::RecMap<>());
+        for (const auto &[key, val]: *rhs->rec_value()) {
+          const Obj_p key2 = key->apply(lhs);
+          const Obj_p val2 = val->apply(lhs);
+          links->push_back(key2);
+          rec2->insert({key2, val2});
+          if (key2->isUri())
+            Router::write(key2->uri_value(), val2);
+        }
+        Router::write(lhs->uri_value(), Obj::to_lst(links));
+        return Obj::to_rec(rec2);
+      } else {
+        const Obj_p o = rhs->apply(lhs);
+        Router::write(o->isUri() ? o->uri_value() : lhs->uri_value(), rhs);
+        return o;
+      }
+    };
+
+  public:
+    static Obj_p embed(const Obj_p &rhs) {
       return Obj::to_inst(
-          "embed", {obj},
-          [obj](const Uri_p &lhs) {
-            if (obj->isLst()) {
-              Router::write(lhs->uri_value(), obj);
-              const Lst_p lst2 = obj->apply(lhs);
-              for (uint8_t i = 0; i < lst2->lst_value()->size(); i++) {
-                const Uri_p u = Obj::to_uri(fURI(string("_") + std::to_string(i)))->apply(lhs);
-                Router::write(u->uri_value(), lst2->lst_value()->at(i));
-              }
-              return lst2;
-            } else if (obj->isRec()) {
-              const Obj::LstList_p<> links = share(Obj::LstList<>());
-              const Obj::RecMap_p<> rec2 = share(Obj::RecMap<>());
-              for (const auto &[key, val]: *obj->rec_value()) {
-                const Obj_p key2 = key->apply(lhs);
-                const Obj_p val2 = val->apply(lhs);
-                links->push_back(key2);
-                rec2->insert({key2, val2});
-                if (key2->isUri())
-                  Router::write(key2->uri_value(), val2);
-              }
-              Router::write(lhs->uri_value(), Obj::to_lst(links));
-              return Obj::to_rec(rec2);
-            } else {
-              const Obj_p o = obj->apply(lhs);
-              Router::write(o->isUri() ? o->uri_value() : lhs->uri_value(), obj);
-              return o;
-            }
-          },
-          IType::ONE_TO_ONE);
+          "embed", {rhs}, [rhs](const Uri_p &lhs) { return embed_function(lhs, rhs); }, IType::ONE_TO_ONE);
+    }
+
+    static Obj_p embed_inv(const Obj_p &rhs) {
+      return Obj::to_inst(
+          "embed_inv", {rhs}, [rhs](const Uri_p &lhs) { return embed_function(rhs, lhs); }, IType::ONE_TO_ONE);
     }
 
     ///// HELPER METHODS
@@ -500,7 +507,7 @@ namespace fhatos {
     }
 
     static const Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"*", "from"}, {"~>", "embed"},  {"<->", "both"},
+      static Map<string, string> map = {{"*", "from"}, {"~>", "embed"},  {"<~", "embed_inv"}, {"<->", "both"},
                                         {"<-", "to"},  {"->", "to_inv"}, {"|", "block"}};
       return map;
     }
@@ -594,6 +601,8 @@ namespace fhatos {
         return Insts::block(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("embed") || type == INST_FURI->resolve("~>"))
         return Insts::embed(argCheck(type, args, 1).at(0));
+      if (type == INST_FURI->resolve("embed_inv") || type == INST_FURI->resolve("<~"))
+        return Insts::embed_inv(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("window"))
         return Insts::window(argCheck(type, args, 1).at(0));
       /// try user defined inst

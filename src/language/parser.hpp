@@ -400,6 +400,7 @@ namespace fhatos {
           valueToken.find('*') != string::npos || //
           valueToken.find('|') != string::npos || //
           valueToken.find("~>") != string::npos || //
+          valueToken.find("<~") != string::npos || //
           valueToken.find("->") != string::npos || //
           valueToken.find("<-") != string::npos || //
           valueToken.find("<->") != string::npos || //

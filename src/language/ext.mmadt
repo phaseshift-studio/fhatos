@@ -1,12 +1,12 @@
 --- process extensions
 ###
 /mmadt/ext/process/  .~>
-  [prefix/           => ~>
-    [|thread         => type/rec/thread,
-     |fiber          => type/rec/fiber],
-   type/             => ~>
-    [type/rec/thread => |[setup=>_,loop=>_],
-     type/rec/fiber  => |[setup=>_,loop=>_]]]
+  [prefix/            => ~>
+    [|thread          => type/rec/thread,
+     |fiber           => type/rec/fiber],
+   type/              => ~>
+    [type/rec/thread  => |[setup=>_,loop=>_],
+     type/rec/fiber   => |[setup=>_,loop=>_]]]
 ###
 
 --- tuple extensions
