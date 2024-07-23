@@ -1,3 +1,6 @@
+# Simple docs deployment which requires the docs be built locally and pushed to master.
+# The workflow copies the entire ./docs directory over to git-pages branch.
+# The key resources in ./docs are index.html and images/.
 name: Docs Deployment
 on:
   push:
