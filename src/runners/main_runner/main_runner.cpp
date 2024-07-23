@@ -43,7 +43,7 @@ int main(int arg, char **argsv) {
     throw;
   }
   LOG(INFO, "Processing %s\n", argsv[1]);
-  Terminal::printer<>()->println("++++\n[source,ruby]\n----");
+  Terminal::printer<>()->println("++++\n[source,mmadt]\n----");
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];
