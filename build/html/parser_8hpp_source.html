@@ -474,7 +474,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>        }</div>
 <div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>      }</div>
 <div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>      <span class="comment">// try {</span></div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>      <span class="keyword">const</span> Inst_p inst = <a class="code hl_function" href="structfhatos_1_1Insts.html#a44223071356a6ac67b629c9f04c93f15">Insts::to_inst</a>(baseType-&gt;resolve(typeToken.c_str()), args);</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>      <span class="keyword">const</span> Inst_p inst = <a class="code hl_function" href="structfhatos_1_1Insts.html#a19e137012861016dc830537b667a48f2">Insts::to_inst</a>(baseType-&gt;resolve(typeToken.c_str()), args);</div>
 <div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>      <span class="keywordflow">return</span> inst-&gt;isNoObj() ? Option&lt;Inst_p&gt;() : Option&lt;Inst_p&gt;(inst);</div>
 <div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>      <span class="comment">//} catch (const fError &amp;) {</span></div>
 <div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>      <span class="comment">//  return {};</span></div>
@@ -565,7 +565,7 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>          } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (unary) { <span class="comment">// SINGLE ARGUMENT INSTS WITHOUT PARENS (SYNTACTIC SUGAR)</span></div>
 <div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span>            <span class="keyword">const</span> Option&lt;Obj_p&gt; arg = tryParseObj(typeValue.second);</div>
 <div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>            <span class="keywordflow">if</span> (arg.has_value()) {</div>
-<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span>              insts.push_back(<a class="code hl_function" href="structfhatos_1_1Insts.html#a44223071356a6ac67b629c9f04c93f15">Insts::to_inst</a>(INST_FURI-&gt;resolve(typeValue.first), {arg.value()}));</div>
+<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span>              insts.push_back(<a class="code hl_function" href="structfhatos_1_1Insts.html#a19e137012861016dc830537b667a48f2">Insts::to_inst</a>(INST_FURI-&gt;resolve(typeValue.first), {arg.value()}));</div>
 <div class="line"><a id="l00479" name="l00479"></a><span class="lineno">  479</span>            } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00480" name="l00480"></a><span class="lineno">  480</span>              <span class="keywordflow">return</span> {};</div>
 <div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>            }</div>
@@ -601,7 +601,7 @@ $(function(){ initResizable(false); });
 <div class="ttc" id="aclassfhatos_1_1Parser_html_a768fffe9d189f3963cddfb4e8ecbe07f"><div class="ttname"><a href="classfhatos_1_1Parser.html#a768fffe9d189f3963cddfb4e8ecbe07f">fhatos::Parser::tryParseBCode</a></div><div class="ttdeci">Option&lt; BCode_p &gt; tryParseBCode(const string &amp;valueToken, const string &amp;typeToken, const fURI_p &amp;baseType=BCODE_FURI)</div><div class="ttdef"><b>Definition</b> parser.hpp:393</div></div>
 <div class="ttc" id="aclassfhatos_1_1fError_html"><div class="ttname"><a href="classfhatos_1_1fError.html">fhatos::fError</a></div><div class="ttdoc">EXCEPTION TYPES ///.</div><div class="ttdef"><b>Definition</b> fhat_error.hpp:29</div></div>
 <div class="ttc" id="aobj_8hpp_html"><div class="ttname"><a href="obj_8hpp.html">obj.hpp</a></div><div class="ttdoc">Foundation objects of mm-ADT.</div></div>
-<div class="ttc" id="astructfhatos_1_1Insts_html_a44223071356a6ac67b629c9f04c93f15"><div class="ttname"><a href="structfhatos_1_1Insts.html#a44223071356a6ac67b629c9f04c93f15">fhatos::Insts::to_inst</a></div><div class="ttdeci">static const Inst_p to_inst(const ID &amp;type, const List&lt; Obj_p &gt; &amp;args)</div><div class="ttdef"><b>Definition</b> insts.hpp:515</div></div>
+<div class="ttc" id="astructfhatos_1_1Insts_html_a19e137012861016dc830537b667a48f2"><div class="ttname"><a href="structfhatos_1_1Insts.html#a19e137012861016dc830537b667a48f2">fhatos::Insts::to_inst</a></div><div class="ttdeci">static Inst_p to_inst(const ID &amp;type, const List&lt; Obj_p &gt; &amp;args)</div><div class="ttdef"><b>Definition</b> insts.hpp:515</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
