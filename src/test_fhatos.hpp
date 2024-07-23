@@ -79,7 +79,6 @@ namespace fhatos {
     }                                                                                                                  \
   }
 } // namespace fhatos
-
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
   int main(int arg, char **argsv) { fhatos::RUN_UNITY_TESTS(); };                                                      \

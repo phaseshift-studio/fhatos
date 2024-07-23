@@ -54,7 +54,7 @@ void setup() {
                   Terminal::singleton("/sys/io/terminal/"), //
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
-FileSystem::singleton("/sys/io/filesystem"), //
+                  FileSystem::singleton("/sys/io/fs"), //
                   new Console("/home/root/repl/")})
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/")

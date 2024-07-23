@@ -68,6 +68,13 @@ namespace fhatos {
     char _message[FOS_ERROR_MESSAGE_SIZE];
 
   public:
+    /*explicit fError(const ID& id, const char *format, ...) noexcept {
+      va_list arg;
+      va_start(arg, format);
+      int length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
+      _message[length] = '\0';
+      va_end(arg);
+    };*/
     explicit fError(const char *format, ...) noexcept {
       va_list arg;
       va_start(arg, format);

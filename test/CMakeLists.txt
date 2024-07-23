@@ -12,8 +12,8 @@ IF (BUILD_TESTS)
             GIT_TAG v2.6.0
     )
     FETCHCONTENT_MAKEAVAILABLE(unity)
-    #INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
-    #INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/unity)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_SOURCE_DIR}/include/unity)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ###########################################
     ########### TEST SUITE BUILDER ############
@@ -59,6 +59,7 @@ IF (BUILD_TESTS)
     MAKE_TESTS(process/actor "test_actor")
     MAKE_TESTS(process/router "test_router")
     MAKE_TESTS(structure "test_furi")
+    MAKE_TESTS(structure/io "test_fs")
     MAKE_TESTS(util "test_mutex")
     MESSAGE(STATUS "Total tests produced: ${.g}${TOTAL}${..}")
 ENDIF ()

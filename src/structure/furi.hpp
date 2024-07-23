@@ -172,10 +172,10 @@ namespace fhatos {
     const fURI resolve(const char *segments) const {
       if (strlen(segments) == 0)
         return *this;
-      if(this->toString().find('/') == string::npos)
+      if (this->toString().find('/') == string::npos)
         return fURI(segments);
       if (this->pathLength() == 0 || segments[0] == '/')
-          return fURI(this->path("").toString() + "/" + string(segments));
+        return fURI(this->path("").toString() + "/" + string(segments));
       char **s2 = new char *[0];
       const int l2 = private_fhatos::split(segments, "/", s2);
       string result = this->pathLength() > 0 ? string(this->retract().toString()) : string(this->toString());
@@ -204,9 +204,9 @@ namespace fhatos {
       return fURI(newURI);
     }
 
-    const bool isAbsolute() const { return this->pathLength() > 0 && this->segment(0).empty(); }
+    bool isAbsolute() const { return this->pathLength() > 0 && this->segment(0).empty(); }
 
-    const bool isRelative() const { return !isAbsolute(); }
+    bool isRelative() const { return !isAbsolute(); }
 
     virtual const bool isPattern() const {
       for (uint8_t i = 0; i < this->_length; i++) {
@@ -471,6 +471,7 @@ namespace fhatos {
   using fURI_p = ptr<fURI>;
   class BaseIDed {
   public:
+    virtual ~BaseIDed() = default;
     virtual ID_p id() const { return nullptr; }
     virtual bool equals(const BaseIDed &other) const { return false; }
   };

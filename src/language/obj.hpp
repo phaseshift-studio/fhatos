@@ -1078,6 +1078,14 @@ namespace fhatos {
       return to_rec(share(map), furi);
     }
 
+    static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const fURI_p &furi = REC_FURI) {
+      RecMap<> map = RecMap<>();
+      for (const auto &pair: xrec) {
+        map.insert(make_pair(pair.first,pair.second));
+      }
+      return to_rec(share(map), furi);
+    }
+
     static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
       assert(furi->path(0, 1) == OTypes.toChars(OType::INST));
       return share(Inst(value, furi));
@@ -1101,7 +1109,8 @@ namespace fhatos {
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {
       assert(furi->path(0, 1) == OTypes.toChars(OType::OBJS));
-      return share(Objs(objs, furi));
+      Objs_p os = share(Objs(objs, furi));
+      return os;
     }
 
     static Objs_p to_objs(const List<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {

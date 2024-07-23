@@ -23,6 +23,7 @@
 #include <process/actor/actor.hpp>
 
 namespace fhatos {
+
   template<typename PROCESS = Thread>
   class fBcode final : public Actor<PROCESS> {
   public:
