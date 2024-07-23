@@ -24,6 +24,7 @@
 #include <language/insts.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
+#include <utility>
 
 namespace fhatos {
   class Fluent {
@@ -31,21 +32,27 @@ namespace fhatos {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent(const Obj_p &bcode) : bcode(bcode) {}
+    explicit Fluent(Obj_p bcode) : bcode(std::move(bcode)) {}
 
     explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
     const ptr<E> next() const {
+      if(!this->bcode->isBytecode())
+        return this->bcode;
       static Processor<E> proc = Processor<E>(this->bcode);
       return proc.next();
     }
 
     template<typename E = Obj>
     void forEach(const Consumer<const ptr<E>> &consumer) const {
-      Processor<E> proc = Processor<E>(this->bcode);
-      proc.forEach(consumer);
+      if(!this->bcode->isBytecode())
+        consumer(this->bcode);
+      else {
+        Processor<E> proc = Processor<E>(this->bcode);
+        proc.forEach(consumer);
+      }
     }
 
     template<typename E = Obj>

@@ -44,7 +44,10 @@ MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m}    )-)_/-(>${.g}  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
         "${.b}\\/_____/\\/_____/ \n"
         "${.r}                                   A Dogturd Stynx Production${..} \n")
-CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER)
+CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_PARALLEL_BUILD_LEVEL)
+## PARALLELISM LEVEL (HARDCODED TO 8)
+SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
+MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVEL}${..}")
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
 ##################################
@@ -103,7 +106,8 @@ IF (BUILD_NATIVE)
             ${ROOT_SOURCE_DIR}/structure/furi.hpp)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE ${HEADER_FILES})
     ###############################
-    ADD_DEFINITIONS("-DNATIVE" "-Wno-ambiguous-reversed-operator")
+    ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator")
+    ADD_DEFINITIONS("-DNATIVE")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")

@@ -82,6 +82,8 @@ namespace fhatos {
 
   public:
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
+      if(!this->bcode->isBytecode())
+        throw fError("Processor requires a bcode obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
       bool first = true; // TODO HACK:: ZERO_TO_Y OR X_TO_Y instructions need to be determined based on location in bcode
       for (const Inst_p &inst: this->bcode->bcode_value()) {
