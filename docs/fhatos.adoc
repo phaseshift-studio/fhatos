@@ -10,7 +10,7 @@
 :highlightjs-languages: mmadt,bash,cpp
 :stylesheet: ./css/fhatos.css
 :data-uri:
-:toc:
+:toc: left
 
 
 = FhatOS: A Distributed Operating System for Embedded Systems (v{revnumber})
