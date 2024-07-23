@@ -72,7 +72,7 @@ thread[[setup => __]
 [subs="attributes+"]
 ++++
 <!-- CODE:BASH:START -->
-<!-- ./docs/build/main_runner.out "define(/int/nat,is(gt(0)))" "nat[10]" "nat[-5]" "nat[5.0]" -->
+<!-- ./docs/build/main_runner.out "define(/int/nat,|is(gt(0)))" "nat[10]" "nat[-5]" "nat[5.0]" -->
 <!-- CODE:END -->
 <!-- OUTPUT:START -->
 <!-- OUTPUT:END -->
