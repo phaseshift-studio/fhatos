@@ -1,25 +1,26 @@
-#include <language/insts.hpp>
-#include <language/types.hpp>
-#include <process/native/scheduler.hpp>
-#include <structure/console/console.hpp>
-#include <structure/io/terminal.hpp>
-#include <structure/kernel.hpp>
 #ifndef fhatos_main_runner_cpp
 #define fhatos_main_runner_cpp
 
 #include <fhatos.hpp>
 #include <language/parser.hpp>
 #include <util/ansi.hpp>
+#include <language/insts.hpp>
+#include <language/types.hpp>
+#include <process/native/scheduler.hpp>
+#include <structure/console/console.hpp>
+#include <structure/io/terminal.hpp>
+#include <structure/kernel.hpp>
 
 using namespace fhatos;
 
 void printResult(const Obj_p &obj, const uint8_t depth = 0) {
+  if(obj->isNoObj())
+    return;
   if (obj->isObjs()) {
     for (Obj_p &o: *obj->objs_value()) {
       printResult(o, depth + 1);
     }
   } else {
-    Terminal::printer<>()->on(false);
     Terminal::printer<>()->printf("!g==>!!%s\n", obj->toString().c_str());
   }
 }
@@ -42,19 +43,22 @@ int main(int arg, char **argsv) {
     throw;
   }
   LOG(INFO, "Processing %s\n", argsv[1]);
-  Terminal::printer<>()->println("++++\n[source,language=\"c++\"]\n----");
+  Terminal::printer<>()->println("++++\n[source,ruby]\n----");
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];
       StringHelper::trim(x);
       Terminal::printer<>()->printf("fhatos> %s\n", x.c_str());
-      const Option<Obj_p> obj = Parser::singleton()->tryParseObj(string(argsv[i]));
-      printResult(Fluent(obj.value()).toObjs());
+      const Option<Obj_p> obj = Parser::singleton()->tryParseObj(argsv[i]);
+      if(obj.has_value()) {
+        printResult(Fluent(obj.value()).toObjs());
+      }
     } catch (std::exception &e) {
       LOG_EXCEPTION(e);
     }
   }
   Terminal::printer<>()->print("----\n++++");
-  return 1;
+  //Scheduler::singleton()->stop();
+  return 0;
 }
 #endif
