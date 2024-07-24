@@ -151,7 +151,7 @@ namespace fhatos {
           } else if (index == string::npos) {
             std::get<2>(_MENU_MAP->at(command))();
           } else {
-            const string value = this->_line.substr(index);
+             string value = this->_line.substr(index);
             StringHelper::trim(value);
             std::get<1>(_MENU_MAP->at(command))(
                 Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));

@@ -26,8 +26,17 @@ namespace fs = std::filesystem;
 namespace fhatos {
   class FileSystem : public AbstractFileSystem {
   private:
-    explicit FileSystem(const ID &id, const ID &root) :
-        AbstractFileSystem(id, root) {}
+    explicit FileSystem(const ID &id, const ID &root) : AbstractFileSystem(id, root) {
+      LOG(INFO, "Original working directory: %s\n", fs::current_path().c_str());
+      const fs::path p = fs::current_path().concat("/tmp");
+      // int removed = fs::remove_all(p);
+      // LOG(INFO, "Deleted existing working directory with %i items\n", removed);
+      // assert(fs::create_directory(p));
+      fs::current_path(p); //
+      LOG(INFO, "Creating new working directory: %s\n", p.c_str());
+      LOG(INFO, "Test working directory: %s\n", fs::current_path().c_str());
+      this->_root = share(ID(fs::current_path()));
+    }
 
   public:
     static FileSystem *singleton(const ID &id = ID("/sys/io/fs"), const ID &root = ID(fs::current_path())) {
@@ -47,16 +56,14 @@ namespace fhatos {
     Dir_p to_dir(const ID &path) const override {
       if (is_directory(fs::path(makeLocalPath(path).toString())))
         return Obj::to_uri(path, DIR_FURI);
-      throw fError("!g[!!%s!g]!! %s does not reference a directory\n",
+      throw fError("!g[!b%s!g]!! %s does not reference a directory\n",
                    FileSystem::singleton()->id()->toString().c_str(), path.toString().c_str());
     }
-    ID makeLocalPath(const ID &path) const override {
-      return ID(singleton()->_root->toString() + "/" + path.toString());
-    }
-    Dir_p root() const override { return to_dir(makeLocalPath("")); }
+    ID makeLocalPath(const ID &path) const override { return singleton()->_root->extend(path.toString().c_str()); }
+    Dir_p root() const override { return to_dir("/"); }
     Dir_p mkdir(const ID &path) const override {
       if (fs::is_directory(makeLocalPath(path).toString())) {
-        throw fError("!g[!!%s!g]!! %s already exists\n", FileSystem::singleton()->id()->toString().c_str(),
+        throw fError("!g[!b%s!g]!! %s already exists\n", FileSystem::singleton()->id()->toString().c_str(),
                      path.toString().c_str());
       }
       fs::create_directory(makeLocalPath(path).toString());
@@ -65,25 +72,27 @@ namespace fhatos {
     Objs_p ls(const Dir_p &dir, const Pattern &pattern) const override {
       auto *listing = new List<Uri_p>();
       for (const auto &p: fs::directory_iterator(fs::path(makeLocalPath(dir->uri_value()).toString()))) {
-        if ((p.is_directory() || p.is_regular_file()) && ID(p.path()).matches(pattern)) {
+        if ((fs::is_directory(p) || fs::is_regular_file(p)) /*&& ID(p.path()).matches(pattern)*/) {
           const ID pp =
               ID(p.path().string().substr(this->_root->toString().length() + 1)); // clip off local mount location
-          if (pp.matches(pattern)) {
-            listing->push_back(p.is_directory() ? to_dir(pp) : to_file(pp));
-          }
+          // if (pp.matches(pattern)) {
+          listing->push_back(fs::is_directory(p) ? to_dir(pp) : to_file(pp));
         }
       }
       return Obj::to_objs(ptr<List<Uri_p>>(listing));
     }
-    Objs_p more(const File_p &file) const override {
-      std::ifstream fstrm(makeLocalPath(file->uri_value()).toString());
-      return Obj::to_str(std::string((std::istreambuf_iterator<char>(fstrm)), std::istreambuf_iterator<char>()));
+    Obj_p more(const File_p &file) const override {
+      std::ifstream fstrm(fs::path(makeLocalPath(file->uri_value()).toString()));
+      std::stringstream buffer;
+      buffer << fstrm.rdbuf();
+      return Obj::to_str(buffer.str().c_str());
     }
-    void append(const File_p &file, const Obj_p &content) override {
+    File_p append(const File_p &file, const Obj_p &content) override {
       std::ofstream outfile;
-      outfile.open(this->id()->toString(), std::ios_base::app);
+      outfile.open(fs::path(makeLocalPath(file->uri_value()).toString()), std::ios_base::app);
       const string s = content->toString();
-      outfile.write(s.c_str(), s.length());
+      outfile << s.c_str();
+      return file;
     }
     File_p touch(const ID &path) const override {
       if (fs::is_regular_file(makeLocalPath(path).toString())) {

@@ -943,7 +943,7 @@ namespace fhatos {
           auto itB = objsB->begin();
           for (const auto &itA: *objsA) {
             LOG(TRACE, "MATCHING: %s vs. %s\n", itA->toString().c_str(), (*itB)->toString().c_str());
-            if (!itA->match(*itB) || !itA->match(*itB))
+            if (!itA->match(*itB))
               return false;
             ++itB;
           }
@@ -1067,7 +1067,12 @@ namespace fhatos {
 
     static Rec_p to_rec(const RecMap_p<> &map, const fURI_p &furi = REC_FURI) {
       assert(furi->path(0, 1) == OTypes.toChars(OType::REC));
-      return share(Obj(map, furi));
+      RecMap_p<> convert = share(RecMap<>());
+      for (const auto &[key, val]: *map) {
+        convert->insert({key->isUri() ? Obj::to_uri(furi->resolve(key->uri_value())) : key,
+                         val->isUri() ? Obj::to_uri(furi->resolve(val->uri_value())) : val});
+      }
+      return share(Obj(convert, furi));
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const fURI_p &furi = REC_FURI) {
@@ -1081,7 +1086,7 @@ namespace fhatos {
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const fURI_p &furi = REC_FURI) {
       RecMap<> map = RecMap<>();
       for (const auto &pair: xrec) {
-        map.insert(make_pair(pair.first,pair.second));
+        map.insert(make_pair(pair.first, pair.second));
       }
       return to_rec(share(map), furi);
     }

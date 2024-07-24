@@ -85,18 +85,16 @@ namespace fhatos {
       if(!this->bcode->isBytecode())
         throw fError("Processor requires a bcode obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
-      bool first = true; // TODO HACK:: ZERO_TO_Y OR X_TO_Y instructions need to be determined based on location in bcode
       for (const Inst_p &inst: this->bcode->bcode_value()) {
         if (Insts::isBarrier(inst)) {
           const Monad_p monad = share(Monad(inst->inst_seed(), inst));
           this->barriers->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", monad->toString().c_str());
-        } else if (Insts::isInitial(inst) && first) {
+        } else if (Insts::isInitial(inst)) {
           const Monad_p monad = share(Monad(inst->inst_seed(), inst));
           this->running->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", monad->toString().c_str());
         }
-        first = false;
       }
     }
 

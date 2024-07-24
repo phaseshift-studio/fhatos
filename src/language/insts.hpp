@@ -459,11 +459,11 @@ namespace fhatos {
           if (key2->isUri())
             Router::write(key2->uri_value(), val2);
         }
-        Router::write(lhs->uri_value(), Obj::to_lst(links));
+        Router::write(lhs->uri_value(), Obj::to_rec(rec2));
         return Obj::to_rec(rec2);
       } else {
         const Obj_p o = rhs->apply(lhs);
-        Router::write(o->isUri() ? o->uri_value() : lhs->uri_value(), rhs);
+        Router::write(o->isUri() ? o->apply(lhs)->uri_value() : lhs->uri_value(), o);
         return o;
       }
     };
@@ -512,7 +512,24 @@ namespace fhatos {
       return map;
     }
 
+    static Map<ID, Function<List<Obj_p>, Inst_p>> *INSTS_MAP() {
+      static Map<ID, Function<List<Obj_p>, Inst_p>> map = Map<ID, Function<List<Obj_p>, Inst_p>>();
+      return &map;
+    }
+    static void register_inst(const ID &type, const Function<List<Obj_p>, Inst_p> &func) {
+      INSTS_MAP()->insert({type, func});
+      LOG(INFO, "Instruction registered: %s\n", type.toString().c_str());
+      ID shortID = INST_FURI->resolve(type.name());
+      if (!INSTS_MAP()->count(shortID)) {
+        INSTS_MAP()->insert({shortID, func});
+        LOG(INFO, FOS_TAB_4 "Shorthand registered: !b%s!!\n", shortID.toString().c_str());
+      } else {
+        LOG(WARN, FOS_TAB_4 "Unable to register shorthand: !b%s!!\n", shortID.toString().c_str());
+      }
+    }
     static Inst_p to_inst(const ID &type, const List<Obj_p> &args) {
+      if (INSTS_MAP()->count(type)) // check registered instructions
+        return INSTS_MAP()->at(type)(args);
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
       if (type == INST_FURI->resolve("end") || type == INST_FURI->resolve(";"))

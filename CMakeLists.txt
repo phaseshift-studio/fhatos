@@ -104,7 +104,7 @@ IF (BUILD_NATIVE)
             ${ROOT_SOURCE_DIR}/language/obj.hpp
             ${ROOT_SOURCE_DIR}/process/abstract_scheduler.hpp
             ${ROOT_SOURCE_DIR}/structure/furi.hpp)
-    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE ${HEADER_FILES})
+    # TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE ${HEADER_FILES})
     ###############################
     ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator")
     ADD_DEFINITIONS("-DNATIVE")
