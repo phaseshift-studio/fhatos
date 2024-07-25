@@ -2,7 +2,7 @@ INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20)  # CMake version check
 PROJECT(fhatos)
-OPTION(USE_CCACHE "Use ccache" ON) # ON/OFF
+OPTION(USE_CCACHE "Use ccache" OFF) # ON/OFF
 IF (USE_CCACHE)
     SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 ENDIF ()
@@ -44,9 +44,9 @@ MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m}    )-)_/-(>${.g}  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
         "${.b}\\/_____/\\/_____/ \n"
         "${.r}                                   A Dogturd Stynx Production${..} \n")
-CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_PARALLEL_BUILD_LEVEL)
 ## PARALLELISM LEVEL (HARDCODED TO 8)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
+CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL)
 MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVEL}${..}")
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
@@ -67,10 +67,10 @@ ELSE ()
 ENDIF ()
 IF (NOT NO_CONNECTION EQUAL 0)
     SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
-    MESSAGE(WARNING "${.r}Fetch offline mode${..}: requires already populated _deps")
+    MESSAGE(WARNING "${.r}\\__Fetch offline mode${..}: requires already populated _deps")
 ELSE ()
     SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-    MESSAGE(NOTICE "${.g}Fetch online mode${..}: automatically populates _deps")
+    MESSAGE(NOTICE "${.g}\\__Fetch online mode${..}: automatically populates _deps")
 ENDIF ()
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ##################################

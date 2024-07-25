@@ -172,6 +172,8 @@ namespace fhatos {
     const fURI resolve(const char *segments) const {
       if (strlen(segments) == 0)
         return *this;
+      if (segments[0] == ':' || this->path()[this->path().length() - 1] == ':')
+        return fURI(this->toString() + segments);
       if (this->toString().find('/') == string::npos)
         return fURI(segments);
       if (this->pathLength() == 0 || segments[0] == '/')

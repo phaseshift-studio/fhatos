@@ -29,9 +29,9 @@ namespace fhatos {
   using Dir = Uri;
   using Dir_p = Uri_p;
 
-  static const fURI_p FILE_FURI = fURI_p(new fURI("/uri/file"));
-  static const fURI_p DIR_FURI = fURI_p(new fURI("/uri/dir"));
-  static const fURI_p INST_FS_FURI = fURI_p(new fURI("/inst/fs/"));
+  static const fURI_p FILE_FURI = fURI_p(new fURI("/uri/fs:file"));
+  static const fURI_p DIR_FURI = fURI_p(new fURI("/uri/fs:dir"));
+  static const fURI_p INST_FS_FURI = fURI_p(new fURI("/inst/fs:"));
 
   class AbstractFileSystem : public Actor<Coroutine> {
   public:
@@ -43,7 +43,7 @@ namespace fhatos {
       LOG_TASK(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->_root->toString().c_str());
       TYPE_WRITER(*FILE_FURI, Obj::to_bcode({}));
       TYPE_WRITER(*DIR_FURI, Obj::to_bcode({}));
-      this->publish(*this->id(), Obj::to_uri(*this->_root), RETAIN_MESSAGE);
+      this->publish(*this->id(), this->root()->apply(Obj::to_noobj()), RETAIN_MESSAGE);
       this->subscribe("#", [this](const Message_p &message) {
         if (message->retain) {
           const ID file = makeRouterPath(message->target);
@@ -81,9 +81,8 @@ namespace fhatos {
       });
       Insts::register_inst(INST_FS_FURI->resolve("append"), [this](List<Obj_p> args) {
         return Obj::to_inst(
-            "append",args,
-            [this, args](const Obj_p &lhs) { return this->append(lhs, args.at(0)->apply(lhs)); }, IType::ONE_TO_ONE,
-            Obj::to_noobj(), share(INST_FS_FURI->resolve("append")));
+            "append", args, [this, args](const Obj_p &lhs) { return this->append(lhs, args.at(0)->apply(lhs)); },
+            IType::ONE_TO_ONE, Obj::to_noobj(), share(INST_FS_FURI->resolve("append")));
       });
     }
 
@@ -93,9 +92,7 @@ namespace fhatos {
     virtual ID makeFilePath(const ID &path) const {
       return ID(path.toString().substr(this->id()->toString().length() + 1));
     }
-    virtual ID makeFhatPath(const ID &path) const {
-      return this->id()->extend(path.toString().c_str());
-    }
+    virtual ID makeFhatPath(const ID &path) const { return this->id()->extend(path.toString().c_str()); }
     virtual ID makeRouterPath(const ID &path) const { return ID(this->id()->toString() + "/" + path.toString()); }
     ////
     virtual Dir_p root() const { throw fError("must be implemented"); }

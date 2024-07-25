@@ -11,15 +11,16 @@
 :stylesheet: ./css/fhatos.css
 :data-uri:
 :toc: left
+:toclevels: 4
 
 
 = FhatOS: A Distributed Operating System for Embedded Systems (v{revnumber})
 
-image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat_) is a https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for https://en.wikipedia.org/wiki/ESP8266[ESP8266] and https://en.wikipedia.org/wiki/ESP32[ESP32] processors with support for sandboxed deployments on Linux and MacOSX systems.
+image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat-ahs_) is a https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for https://en.wikipedia.org/wiki/ESP8266[ESP8266] and https://en.wikipedia.org/wiki/ESP32[ESP32] processors with support for sandboxed deployments on Linux and MacOSX systems.
 All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address space called **furi** (pronounced "fury" or "fhat URI").
 Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
 
-== Features
+== FhatOS Features
 
 . A hardware agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for multi-tasking (https://en.wikipedia.org/wiki/Cooperative_multitasking[cooperative]) and multi-threading (https://en.wikipedia.org/wiki/Preemption_(computing)[premptive]) https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
 . An https://en.wikipedia.org/wiki/Actor_model[actor-oriented] https://en.wikipedia.org/wiki/Message_passing[message passing] communication infrastructure.
@@ -30,7 +31,7 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 . Runs in a https://en.wikipedia.org/wiki/Sandbox_(computer_security)[sandboxed] form on Linux and MacOS system.
 . A https://en.wikipedia.org/wiki/Bootloader[bootloader] driven by a single https://en.wikipedia.org//wiki/YAML[YAML] file.
 
-== Booting FhatOS
+== FhatOS Boot Loader
 
 [source,yaml]
 include::../data/fhat_boot.yml[]
@@ -211,3 +212,24 @@ fhatos> *b.plus(45)
 ++++
 <!-- OUTPUT:END -->
 ++++
+
+## FhatOS Modules
+
+### Kernel Modules
+
+#### mmADT Module (mmadt)
+##### Type Module (mmadt:type)
+##### Parser Module (mmadt:parser)
+#### Scheduler Module (scheduler)
+#### Router Module (router)
+
+### Core Modules
+
+#### FileSystem Module (fs)
+#### Terminal Module (terminal)
+#### REPL Module (repl)
+#### Logging Module (log)
+
+### Embedded Systems Modules
+#### Sensors
+#### Actuators
