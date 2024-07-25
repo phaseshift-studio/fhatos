@@ -172,6 +172,47 @@ namespace fhatos {
       return this->path(this->path() + (this->path().ends_with("/") ? "" : "/") + extension);
     }
 
+    UriX retract() const {
+      UriX newURI = UriX(*this);
+      if (this->_path_length > 0) {
+        newURI._path_length = newURI._path_length - 1;
+      } else {
+        newURI.sprefix = false;
+      }
+      return newURI;
+    }
+
+    UriX resolve(const UriX &other) const {
+      if (other._path_length == 0)
+        return *this;
+      if (other.path().find('.') == string::npos) {
+        string otherPath = other.path();
+        if (otherPath[0] == '/')
+          return this->path(other.path());
+        if (this->_path_length == 0)
+          return this->extend(other.path().c_str());
+        if (this->spostfix)
+          return this->extend(other.path().c_str());
+        if (this->path().find('/') == string::npos)
+          return this->path(other.path().c_str());
+        return this->retract().extend(other.path().c_str());
+      }
+      UriX newURI = UriX(*this);
+      if (!newURI.spostfix)
+        newURI = newURI.retract();
+      for (uint8_t i = 0; i < other._path_length; i++) {
+        if (strcmp(other.path(i), "..") == 0) {
+          newURI = newURI.retract();
+
+        } else if (strcmp(other.path(i), ".") != 0)
+          newURI = newURI.extend(other.path(i));
+        if (other.path()[other.path().length() - 1] == '/')
+          newURI = newURI.extend("");
+      }
+      return newURI;
+    }
+
+
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////

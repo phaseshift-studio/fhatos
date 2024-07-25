@@ -113,6 +113,66 @@ namespace fhatos {
     }
   }
 
+  void test_uri_memory_leaks() {
+#ifndef NATIVE
+    FOS_TEST_PRINTER::singleton()->flush();
+    int sketchMemory = -1;
+    int heapMemory = -1;
+#endif
+    for (int i = 0; i < 50000; i++) {
+      UriX a = UriX("127.0.0.1");
+      UriX b = UriX(a);
+      UriX c = UriX(b.toString());
+      UriX d = UriX(c.path(0));
+      UriX e = UriX(d.path(0)).extend("");
+      UriX f = UriX(e.toString());
+      TEST_ASSERT_TRUE(a.equals(a));
+      TEST_ASSERT_TRUE(a.equals(b));
+      TEST_ASSERT_TRUE(a.equals(c));
+      TEST_ASSERT_TRUE(a.equals(d));
+      TEST_ASSERT_TRUE(a.extend("").equals(e));
+      TEST_ASSERT_TRUE(a.equals(f));
+#ifndef NATIVE
+      if (sketchMemory != -1) {
+        TEST_ASSERT_EQUAL_INT32(sketchMemory, ESP.getFreeSketchSpace());
+        TEST_ASSERT_EQUAL_INT32(heapMemory, ESP.getFreeHeap());
+      }
+      sketchMemory = ESP.getFreeSketchSpace();
+      heapMemory = ESP.getFreeHeap();
+      if (i % 1000 == 0) {
+        FOS_TEST_MESSAGE("fURI count: %i\t[free sketch:%i][free heap:%i]", i, sketchMemory, heapMemory);
+        FOS_TEST_PRINTER::singleton()->flush();
+      }
+    }
+    FOS_TEST_MESSAGE("FINAL [free sketch:%i][free heap:%i]", ESP.getFreeSketchSpace(), ESP.getFreeHeap());
+#define FOS_TEST_PRINTER FOS_DEFAULT_PRINTER
+#else
+      if (i % 5000 == 0) {
+        FOS_TEST_MESSAGE("fURI count: %i\t", i);
+      }
+    }
+#endif
+  }
+
+  void test_uri_equals() {
+    /// STRING EQUALS
+    TEST_ASSERT_EQUAL_STRING("a", UriX("a").toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("/a", UriX("/a").toString().c_str());
+    /// TRUE
+    TEST_ASSERT_TRUE(UriX("").equals(UriX("")));
+    TEST_ASSERT_TRUE(UriX("127.0.0.1").equals(UriX("127.0.0.1")));
+    TEST_ASSERT_TRUE(UriX("127.0.0.1/a/b").equals(UriX("127.0.0.1/a/b")));
+    TEST_ASSERT_TRUE(UriX("fhat@127.0.0.1/a/b").equals(UriX("fhat@127.0.0.1/a/b")));
+    TEST_ASSERT_FALSE(UriX("127.0.0.1/a/b").equals(UriX("127.0.0.1/a/b/")));
+    TEST_ASSERT_TRUE(UriX("127.0.0.1/a/b/").equals(UriX("127.0.0.1/a/b/")));
+    // TEST_ASSERT_TRUE(UriX("127.0.0.1/a/b/").equals(UriX("127.0.0.1/a/b//"))); // TODO: this should be false
+    /// FALSE
+    TEST_ASSERT_FALSE(UriX("127.0.0.1").equals(UriX("127.1.1.2")));
+    TEST_ASSERT_FALSE(UriX("127.0.0.1/a").equals(UriX("127.0.0.1/b")));
+    FOS_TEST_ASSERT_NOT_EQUAL_FURI(UriX("127.0.0.1/a"), UriX("127.0.0.1/a/b"));
+    FOS_TEST_ASSERT_NOT_EQUAL_FURI(UriX("fhat@127.0.0.1/a"), UriX("pig@127.0.0.1/a"));
+  }
+
   void test_uri_scheme() {
     TEST_ASSERT_EQUAL_STRING("", UriX("127.0.0.1").scheme());
     TEST_ASSERT_EQUAL_STRING("fos", UriX("fos:person").scheme());
@@ -211,6 +271,24 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("c", UriX("//127.0.0.1///a//b////c").path(8));
   }
 
+  void test_uri_query() {
+    TEST_ASSERT_TRUE(0 == strlen(UriX("127.0.0.1").query()));
+    TEST_ASSERT_EQUAL_STRING("testing", UriX("127.0.0.1/a/b?testing").query());
+    TEST_ASSERT_EQUAL_STRING("testing=123", UriX("127.0.0.1?testing=123").query());
+    TEST_ASSERT_EQUAL_STRING("a=1;b=2", UriX("fhat@127.0.0.1?a=1;b=2").query());
+    TEST_ASSERT_EQUAL_STRING("a;b;c", UriX("/a/b/c?a;b;c").query());
+    TEST_ASSERT_EQUAL_STRING("query", UriX("127.0.0.1/a?query").query());
+    TEST_ASSERT_EQUAL_STRING("", UriX("127.0.0.1/a?").query());
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1/a"), UriX("127.0.0.1/a?query").query(""));
+    TEST_ASSERT_EQUAL_STRING("127.0.0.1/a?testing", UriX("127.0.0.1/a/b?testing").retract().toString().c_str());
+    ////////////////
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1/a?a=1"), UriX("127.0.0.1/a").query("a=1"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("fhat@127.0.0.1/a?a=1;b=2;c=3"), UriX("fhat@127.0.0.1/a").query("a=1;b=2;c=3"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a?a=1;b=2;c=3"), UriX("/a").query("a=1;b=2;c=3"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("?a,b,c"), UriX("").query("a,b,c"));
+  }
+
+
   ///////////////////////////////////////////
   ///////////////////////////////////////////
   ///////////////////////////////////////////
@@ -229,23 +307,92 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/a/b/c/"), UriX("//127.0.0.1/a/b/").extend("c/"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/a/b//c/"), UriX("//127.0.0.1/a/b/").extend("/c/"));
     ///
-   // FOS_TEST_ASSERT_EQUAL_FURI(UriX("a/b//c"), UriX("a/b").extend("/c"));
+    // FOS_TEST_ASSERT_EQUAL_FURI(UriX("a/b//c"), UriX("a/b").extend("/c"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("a/b/c"), UriX("a/b").extend("c"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("a/b/c"), UriX("a/b/").extend("c"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/b/c/"), UriX("/a/b/").extend("c/"));
-  //  FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/b//c/"), UriX("/a/b/").extend("/c/"));
+    //  FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/b//c/"), UriX("/a/b/").extend("/c/"));
+  }
+
+  void test_uri_resolve() {
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/a"), UriX("foi://127.0.0.1/").resolve("/a"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/a"), UriX("foi://127.0.0.1").resolve("/a"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/a"), UriX("foi://127.0.0.1/").resolve("a"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/a"), UriX("foi://127.0.0.1").resolve("a"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/b"), UriX("foi://127.0.0.1/").resolve("a").resolve("/b"));
+    // FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/a/"), UriX("foi://127.0.0.1/").resolve("a/"));
+    //    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/a/b"), UriX("foi://127.0.0.1/").resolve("a/").resolve("b"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/b"), UriX("foi://127.0.0.1/").resolve("a").resolve("b"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1/"), UriX("foi://127.0.0.1/").resolve(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://127.0.0.1"), UriX("foi://127.0.0.1").resolve(""));
+    // FOS_TEST_ASSERT_EQUAL_FURI(UriX("/"), UriX("127.0.0.1").resolve("/"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/b"), UriX("//127.0.0.1/").resolve("b"));
+    ///
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/thread"), UriX("/rec/").resolve("/thread"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/rec/thread"), UriX("/rec/").resolve(UriX("thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/thread"), UriX("rec").resolve(UriX("/thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("thread"), UriX("rec").resolve(UriX("thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/thread"), UriX("/rec").resolve(UriX("/thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/thread"), UriX("/rec").resolve(UriX("thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1/rec/thread"), UriX("127.0.0.1/rec/").resolve(UriX("thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1/thread"), UriX("127.0.0.1/rec").resolve(UriX("thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/thread"), UriX("//127.0.0.1/rec").resolve(UriX("/thread")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://123.0.0.4/types/int/nat/even"),
+                               UriX("foi://123.0.0.4/types/int/nat/").resolve("even"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://123.0.0.4/types/int/even"),
+                               UriX("foi://123.0.0.4/types/int/nat").resolve("even"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://123.0.0.4/types/int/even"),
+                               UriX("foi://123.0.0.4/types/int/nat/").resolve("../even"));
+    ////
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/b/d"), UriX("/a/b/c").resolve(UriX("d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d"), UriX("/a/b/c").resolve(UriX("/d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/b/d"), UriX("/a/b/c/").resolve(UriX("../d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d"), UriX("/a/b/c").resolve(UriX("../d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b/c").resolve(UriX("../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/b/d/"), UriX("/a/b/c/").resolve(UriX("../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b/c").resolve(UriX("../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d/"), UriX("/a/b/c").resolve(UriX("../../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d"), UriX("/a/b/c").resolve(UriX("../../d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d"), UriX("/a/b/c/d").resolve(UriX("../../d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b/c/d").resolve(UriX("../../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d/"), UriX("/a/b/c/d").resolve(UriX("../../../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d"), UriX("/a/b").resolve(UriX("./d")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b").resolve(UriX("./d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b").resolve(UriX("././d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d/"), UriX("/a/b").resolve(UriX("././../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("b"), UriX("a").resolve(UriX("b")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/b/c"), UriX("a").resolve(UriX("/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("b/c"), UriX("a").resolve(UriX("b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("a"), UriX("a").resolve(UriX("a")));
+    ///////////////// 
+    /*FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs:").resolve("root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs").resolve(":root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs:").resolve(":root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs::").resolve("root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs").resolve("::root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://inst/fs:root"), UriX("x://inst/fs").resolve(":root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root"), UriX("x://user@inst/fs:").resolve("root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root/more"), UriX("x://user@inst/fs:").resolve("root/more"));*/
+    /////////////////
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://fhat@127.0.0.1/b/c"), UriX("foi://fhat@127.0.0.1/a").resolve(UriX("b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://fhat@127.0.0.1/b/c"),
+                               UriX("foi://fhat@127.0.0.1/a").resolve(UriX("foi://fhat@fhat.org/b/c")));
   }
 
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_uri_components); //
+      FOS_RUN_TEST(test_uri_memory_leaks); //
+      FOS_RUN_TEST(test_uri_equals); //
       FOS_RUN_TEST(test_uri_scheme); //
       FOS_RUN_TEST(test_uri_user_password); //
       FOS_RUN_TEST(test_uri_host); //
       FOS_RUN_TEST(test_uri_authority); //
       FOS_RUN_TEST(test_uri_path); //
+      FOS_RUN_TEST(test_uri_query); //
       //
       FOS_RUN_TEST(test_uri_extend); //
+      FOS_RUN_TEST(test_uri_resolve); //
   )
 } // namespace fhatos
 
