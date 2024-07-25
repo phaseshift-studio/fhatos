@@ -26,7 +26,7 @@
 :root{
     --maincolor:#FFFFFF;
     --primarycolor:#000000;
-    --secondarycolor:#AAAAAA;
+    --secondarycolor: #7d7d7d;
     --tertiarycolor:#CCCCCC;
     --sidebarbackground:#CACACA;
     --linkcolor:#0D47A1;
@@ -45,10 +45,11 @@ h2,h3,h4,h5,h6{color:var(--secondarycolor) !important;font-family:"Noto Sans",sa
 a{text-decoration: none;}
 p{font-family: "Noto Sans",sans-serif ! important}
 #toc.toc2 a:link{color:var(--linkcolor);}
+
 blockquote{color:var(--secondarycolor) !important}
 .quoteblock{color:var(--black)}
 .quoteblock blockquote:before{color:var(--black)}
-code{color:var(--white);background-color: var(--secondarycolor) !important}
+code{color:var(--white);background-color: var(--tertiarycolor) !important}
 mark{background-color: var(--tertiarycolor)} /* Text highlighting color */
 
 /* Table styles */
@@ -57,7 +58,7 @@ td{background-color: var(--maincolor);color: var(--black) !important}
 
 
 #toc.toc2{background-color:var(--sidebarbackground);}
-#toctitle{color:var(--white);}
+#toctitle{color:var(--secondarycolor);}
 
 /* Responsiveness fixes */
 video {

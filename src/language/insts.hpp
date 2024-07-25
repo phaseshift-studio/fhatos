@@ -528,8 +528,7 @@ namespace fhatos {
       }
     }
     static Inst_p to_inst(const ID &type, const List<Obj_p> &args) {
-      if (INSTS_MAP()->count(type)) // check registered instructions
-        return INSTS_MAP()->at(type)(args);
+      LOG(TRACE, "Searching for inst: %s\n", type.toString().c_str());
       if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
       if (type == INST_FURI->resolve("end") || type == INST_FURI->resolve(";"))
@@ -621,6 +620,9 @@ namespace fhatos {
         return Insts::embed_inv(argCheck(type, args, 1).at(0));
       if (type == INST_FURI->resolve("window"))
         return Insts::window(argCheck(type, args, 1).at(0));
+      // check registered instructions
+      if (INSTS_MAP()->count(type))
+        return INSTS_MAP()->at(type)(args);
       /// try user defined inst
       const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(static_cast<fURI>(type)));
       if (!userInst->isNoObj()) {

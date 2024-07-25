@@ -16,19 +16,19 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_native_coroutine_hpp
-#define fhatos_native_coroutine_hpp
+#ifndef fhatos_coroutine_hpp
+#define fhatos_coroutine_hpp
 
 #include <fhatos.hpp>
+#include <process/x_process.hpp>
 //
-#include FOS_PROCESS(process.hpp)
 
 namespace fhatos {
-  class Coroutine : public Process {
+  class Coroutine : public XProcess {
   public:
-    explicit Coroutine(const ID &id) : Process(id, COROUTINE) {}
+    explicit Coroutine(const ID &id) : XProcess(id, COROUTINE) {}
 
-    void delay(const uint64_t milliseconds) override {
+    void delay(const uint64_t) override {
       // do nothing
     }
 

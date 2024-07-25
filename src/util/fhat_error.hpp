@@ -89,6 +89,10 @@ namespace fhatos {
       va_end(arg);
     };
     const char *what() const noexcept override { return this->_message; }
+
+    static fError X_REQUIRES_IMPLEMENTATION(const char *clazz, const char *member) {
+      return fError("Member is abstract and requires an implementation: %s::%s\n", clazz, member);
+    }
   };
 }
 #undef FOS_ERROR_MESSAGE_SIZE

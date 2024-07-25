@@ -71,13 +71,13 @@ namespace fhatos {
         this->saveType(pair.first, pair.second, true);
       }
     }
-    const void saveType(const std::initializer_list<Pair<fURI, string>> &types, const bool writeThrough = true) const {
+     void saveType(const std::initializer_list<Pair<fURI, string>> &types, const bool writeThrough = true) const {
       for (const auto &pair: types) {
         saveType(pair.first, TYPE_PARSER(pair.second), writeThrough);
       }
     }
 
-    const void savePrefix(const char *prefix, const ID &furi) {
+     void savePrefix(const char *prefix, const ID &furi) {
       if (PREFIXES->count(prefix)) {
         if (!PREFIXES->at(prefix)->equals(furi))
           LOG(WARN, "Overwriting namespace prefix from %s to %s\n", prefix, furi.toString().c_str());
@@ -90,7 +90,7 @@ namespace fhatos {
       return PREFIXES->count(prefix) ? Option<ID_p>(PREFIXES->at(prefix)) : Option<ID_p>{};
     }
 
-    const void saveType(const ID &typeId, const Obj_p &obj, const bool writeThrough = true) const {
+     void saveType(const ID &typeId, const Obj_p &obj, const bool writeThrough = true) const {
       CACHE_MUTEX->write<void>([this, typeId, obj, writeThrough] {
         CACHE->erase(typeId);
         if (!obj->isNoObj()) {

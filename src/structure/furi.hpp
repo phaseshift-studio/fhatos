@@ -32,18 +32,19 @@ namespace private_fhatos {
     const char *freeable_copy = copy = strdup(text);
     char *token;
     int i = offset;
-
-    while ((token = strsep(&copy, deliminator)) != nullptr) {
-      if (strlen(token) > 0) {
-        result[i] = strdup(token);
-        i++;
+    if (strstr(text, deliminator)) {
+      while ((token = strsep(&copy, deliminator)) != nullptr) {
+        if (strlen(token) > 0) {
+          result[i] = strdup(token);
+          i++;
+        }
       }
     }
     size_t dl = strlen(deliminator);
-    char *substr = new char[dl];
+    char *substr = new char[dl + 1];
     strncpy(substr, text + (strlen(text) - dl), dl);
     substr[dl] = '\0';
-    if (strcmp(substr, deliminator) == 0) {
+    if (strlen(substr) > 0 && strcmp(substr, deliminator) == 0) {
       result[i] = strdup("");
       i++;
     }
@@ -136,7 +137,7 @@ namespace fhatos {
             this->_segments[0] = strdup("");
             this->_length = private_fhatos::split(furiCharacters, "/", this->_segments, 1);
           } else if (scheme) {
-            this->_length = private_fhatos::split(scheme + 3, "/", this->_segments);
+            this->_length = private_fhatos::split(scheme + 2, "/", this->_segments);
             string schemeString = string(furiCharacters);
             this->_segments[0] = strdup(
                 (schemeString.substr(0, schemeString.find_first_of("://")) + "://" + string(_segments[0])).c_str());
@@ -174,27 +175,32 @@ namespace fhatos {
         return *this;
       if (segments[0] == ':' || this->path()[this->path().length() - 1] == ':')
         return fURI(this->toString() + segments);
+      if (this->pathLength() == 0 || (segments[0] == '/' && this->toString()[this->toString().length() - 1] == '/'))
+        return fURI(this->path("").toString() + "/" + string(segments));
+      if (this->pathLength() > 0 &&
+          ((segments[0] != '/' && segments[0] != '.') || this->path()[this->path().length() - 1] != '/'))
+        return this->retract().extend(segments);
+      if (segments[0] != '/' && segments[0] != '.' && this->toString()[this->toString().length() - 1] == '/')
+        return this->extend(segments);
       if (this->toString().find('/') == string::npos)
         return fURI(segments);
-      if (this->pathLength() == 0 || segments[0] == '/')
-        return fURI(this->path("").toString() + "/" + string(segments));
-      char **s2 = new char *[0];
+      char **s2 = new char *[FOS_MAX_FURI_SEGMENTS];
       const int l2 = private_fhatos::split(segments, "/", s2);
-      string result = this->pathLength() > 0 ? string(this->retract().toString()) : string(this->toString());
+      fURI result = fURI(this->pathLength() > 0 ? string(this->retract().toString()) : string(this->toString()));
       for (int i = 0; i < l2; i++) {
         if (strcmp(s2[i], "..") == 0) {
-          result = string(fURI(result).retract().toString());
+          result = fURI(result.retract());
         } else if (strcmp(s2[i], ".") == 0) {
           // do nothing
         } else {
-          result.append("/").append(s2[i]);
+          result = fURI(result.extend(s2[i]));
         }
       }
-      /*for (int i = 0; i < l2; i++) {
+      for (int i = 0; i < l2; i++) {
         delete s2[i];
-      }*/
+      }
       delete[] s2;
-      return fURI(result);
+      return result;
     }
     const fURI extend(const char *segments) const {
       if (strlen(segments) == 0)
@@ -250,7 +256,7 @@ namespace fhatos {
 
     const string lastSegment() const { return string(this->_segments[this->_length - 1]); }
 
-    const uint8_t pathLength() const { return this->_length == 0 ? 0 : this->_length - 1; }
+    uint8_t pathLength() const { return this->_length == 0 ? 0 : this->_length - 1; }
 
     const fURI path(const char *newPath) const { return fURI(this->authority()).extend(newPath); }
 

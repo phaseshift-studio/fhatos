@@ -24,7 +24,7 @@
 #include <process/actor/mailbox.hpp>
 #include <process/router/local_router.hpp>
 #include <process/router/message.hpp>
-#include <process/router/publisher.hpp>
+#include <process/actor/publisher.hpp>
 #include <process/router/router.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -38,7 +38,7 @@ namespace fhatos {
     explicit Actor(const ID &id, const Consumer<Actor<PROCESS> *>& setupFunction = nullptr,
                    const Consumer<Actor<PROCESS> *>& loopFunction = nullptr) :
         _setupFunction(setupFunction), _loopFunction(loopFunction), PROCESS(id), Publisher(this, this), Mailbox<ptr<Mail>>() {
-      static_assert(std::is_base_of_v<Process, PROCESS>);
+      static_assert(std::is_base_of_v<XProcess, PROCESS>);
       // static_assert(std::is_base_of_v<Router, ROUTER>);
     }
 

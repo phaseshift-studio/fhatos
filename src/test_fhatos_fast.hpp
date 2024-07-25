@@ -16,20 +16,12 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_test_fhatos_hpp
-#define fhatos_test_fhatos_hpp
+#ifndef fhatos_test_fhatos_fast_hpp
+#define fhatos_test_fhatos_fast_hpp
 
 #include <fhatos.hpp>
-#include <language/fluent.hpp>
-#include <language/parser.hpp>
 #include <unity.h>
-#include FOS_PROCESS(scheduler.hpp)
-#include <language/types.hpp>
-#include <process/router/local_router.hpp>
-#include <process/router/meta_router.hpp>
-#include FOS_MQTT(mqtt_router.hpp)
-#include <structure/kernel.hpp>
-#include <util/options.hpp>
+#include <util/ansi.hpp>
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
@@ -38,15 +30,6 @@ namespace fhatos {
 #ifndef FOS_LOG_TYPE
 #define FOS_LOG_TYPE INFO
 #endif
-
-#ifndef FOS_TEST_ROUTERS
-#ifdef NATIVE
-#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
-#else
-#define FOS_TEST_ROUTERS LocalRouter::singleton()
-#endif
-#endif
-
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -59,35 +42,23 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
+    GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();                                                                    \
     try {                                                                                                              \
-      Kernel::build()                                                                                                  \
-          ->initialPrinter(Ansi<>::singleton())                                                                        \
-          ->initialLogLevel(INFO)                                                                                      \
-          ->withSplash(ANSI_ART)                                                                                       \
-          ->withNote("Use !bØ!! for noobj")                                                                            \
-          ->withNote("Use :help for console commands")                                                                 \
-          ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                            \
-                   {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})    \
-          ->loadModules({"/ext/process"}); /*->defaultOutput("/home/root/repl/")        */                             \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
-      /*Kernel::done("testing_barrier"); */                                                                            \
     } catch (std::exception & e) {                                                                                     \
       LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
       TEST_FAIL();                                                                                                     \
     }                                                                                                                  \
   }
+
 } // namespace fhatos
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
-  int main(int, char **) { fhatos::RUN_UNITY_TESTS(); };                                                               \
+  int main(int, char **) { RUN_UNITY_TESTS(); };                                                                       \
   void setUp() {}                                                                                                      \
-  void tearDown() {                                                                                                    \
-    for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                           \
-      router->clear();                                                                                                 \
-    }                                                                                                                  \
-  }
+  void tearDown() {}
 #else
 /////////////////////////////////////////////////////
 //////////////////////// ESP ////////////////////////
@@ -183,124 +154,5 @@ using namespace fhatos;
     if (test)                                                                                                          \
       TEST_FAIL();                                                                                                     \
   }
-
-template<typename OBJ = Obj>
-static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  ptr<List<Obj_p>> result = fluent.toList<Obj>();
-  if (printResult) {
-    int index = 0;
-    for (const auto &obj: *result) {
-      FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTypes.toChars(obj->o_type()));
-    }
-  }
-  return result;
-}
-
-template<typename OBJ = Obj>
-static void FOS_TEST_OBJ_GT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
-  const bool test = *objA > *objB;
-  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", objA->toString().c_str(),
-                   test ? ">" : "!=", objB->toString().c_str());
-  if (!test)
-    TEST_FAIL();
-}
-
-template<typename OBJ = Obj>
-static void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
-  const bool test = *objA < *objB;
-  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", objA->toString().c_str(),
-                   test ? "<" : "!=", objB->toString().c_str());
-  if (!test)
-    TEST_FAIL();
-}
-
-template<typename T>
-static const T *FOS_PRINT_OBJ(const T *obj) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),
-                   OTypes.toChars(obj->o_type()), ITypeDescriptions.toChars(obj->itype()));
-  return obj;
-}
-
-template<typename T>
-static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
-  FOS_PRINT_OBJ<T>(obj.get());
-  return obj;
-}
-
-static void FOS_TEST_ERROR(const string &monoid) {
-  try {
-    Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
-    TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
-  } catch (fError error) {
-    LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
-    TEST_ASSERT_TRUE(true);
-  }
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
-                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              const bool clearRouter = true) {
-  const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
-  TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
-  for (const OBJ &obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<OBJ> element) {
-      if (obj.isReal()) {
-        return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
-      } else
-        return obj == *element;
-    });
-    if (result->end() == x) {
-      TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
-    }
-  }
-  if (!expectedReferences.empty()) {
-    TEST_ASSERT_EQUAL_INT_MESSAGE(
-        expectedReferences.size(), GLOBAL_OPTIONS->router<Router>()->retainSize(),
-        (string("Router retain message count: ") + GLOBAL_OPTIONS->router<Router>()->id()->toString()).c_str());
-    for (const auto &[key, value]: expectedReferences) {
-      const Obj temp = value;
-      GLOBAL_OPTIONS->router<Router>()->subscribe(
-          Subscription{.mailbox = nullptr,
-                       .source = ID(FOS_DEFAULT_SOURCE_ID),
-                       .pattern = key.uri_value(),
-                       .onRecv = [temp](const ptr<Message> &message) {
-                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
-                                                  (string("Router retain message payload equality: ") +
-                                                   GLOBAL_OPTIONS->router<Router>()->id()->toString() + " " +
-                                                   temp.toString() + " != " + message->payload->toString())
-                                                      .c_str());
-                       }});
-    }
-  }
-  if (clearRouter)
-    GLOBAL_OPTIONS->router<Router>()->clear();
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &monoids,
-                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              const bool clearRouter = true) {
-  const string &finalString = monoids.back();
-  for (size_t i = 0; i < monoids.size() - 1; i++) {
-    LOG(DEBUG, FOS_TAB_2 "!yPre-monoid!!: %s\n", monoids.at(i).c_str());
-    Fluent(Parser::singleton()->tryParseObj(monoids.at(i)).value()).iterate();
-  }
-  LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
-  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->tryParseObj(finalString).value()),
-                                expectedReferences, clearRouter);
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
-                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              const bool clearRouter = false) {
-
-  Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
-  if (!parse.has_value())
-    throw fError("Unable to parse: %s\n", monoid.c_str());
-  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
-}
 #endif

@@ -210,7 +210,7 @@ namespace fhatos {
     return nullptr;
   };
   static QuadConsumer<const ID &, const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
-      [](const ID &source, const ID &target, const Obj_p &payload, const bool retain) { return nullptr; };
+      [](const ID &, const ID &, const Obj_p &, const bool) { return nullptr; };
   static Function<const fURI &, Type_p> TYPE_READER = [](const fURI &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
@@ -298,7 +298,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     OType o_type() const { return OTypes.toEnum(this->_id->path(0, 1).c_str()); }
     template<typename VALUE>
-    const VALUE value() const {
+    VALUE value() const {
       try {
         return std::any_cast<VALUE>(this->_value);
       } catch (const std::bad_any_cast &) {
@@ -310,17 +310,17 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<List_p<Obj_p>>();
     }
-    const bool bool_value() const {
+    bool bool_value() const {
       if (!this->isBool())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<bool>();
     }
-    const FL_INT_TYPE int_value() const {
+    FL_INT_TYPE int_value() const {
       if (!this->isInt())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<FL_INT_TYPE>();
     }
-    const FL_REAL_TYPE real_value() const {
+    FL_REAL_TYPE real_value() const {
       if (!this->isReal())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<FL_REAL_TYPE>();
@@ -382,7 +382,7 @@ namespace fhatos {
 
     const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
     const Obj_p inst_seed() const { return std::get<3>(this->inst_value()); }
-    const IType itype() const {
+    IType itype() const {
       if (this->isInst())
         return std::get<2>(this->inst_value());
       if (this->isBytecode()) {
@@ -434,7 +434,7 @@ namespace fhatos {
       if (!this->isObjs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if (obj->isObjs()) {
-        for (const Obj_p o: *obj->objs_value()) {
+        for (const Obj_p& o: *obj->objs_value()) {
           this->add_obj(o);
         }
       } else {
@@ -447,7 +447,7 @@ namespace fhatos {
 
     fURI_p bcode_range() const { return OBJ_FURI; }
 
-    const size_t hash() const { return std::hash<std::string>{}(this->toString()); }
+    size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
     const string toString(const bool includeType = true, const bool ansi = true) const {
       string objString;

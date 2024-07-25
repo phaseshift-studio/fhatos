@@ -21,7 +21,7 @@
 
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include FOS_PROCESS(process.hpp)
+#include <process/x_process.hpp>
 #include <structure/io/terminal.hpp>
 
 #include <language/types.hpp>
@@ -48,9 +48,9 @@ namespace fhatos {
       Terminal::printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
-    static Kernel *onBoot(const Scheduler* scheduler, const List<Process *> processes) {
+    static Kernel *onBoot(const Scheduler *, const List<XProcess *> &processes) {
       bool success = true;
-      for (Process *process: processes) {
+      for (XProcess *process: processes) {
         success = success && Scheduler::singleton()->spawn(process);
       }
       return Kernel::build();

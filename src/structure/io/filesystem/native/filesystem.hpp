@@ -69,7 +69,7 @@ namespace fhatos {
       fs::create_directory(makeLocalPath(path).toString());
       return to_dir(path);
     }
-    Objs_p ls(const Dir_p &dir, const Pattern &pattern) const override {
+    Objs_p ls(const Dir_p &dir, const Pattern &) const override {
       auto *listing = new List<Uri_p>();
       for (const auto &p: fs::directory_iterator(fs::path(makeLocalPath(dir->uri_value()).toString()))) {
         if ((fs::is_directory(p) || fs::is_regular_file(p)) /*&& ID(p.path()).matches(pattern)*/) {

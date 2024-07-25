@@ -3,7 +3,6 @@
 
 #include <test_fhatos.hpp>
 //
-#include <process/abstract_scheduler.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include FOS_PROCESS(thread.hpp)
 #include <util/mutex_deque.hpp>

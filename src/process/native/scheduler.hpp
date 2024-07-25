@@ -22,28 +22,26 @@
 
 #include <fhatos.hpp>
 ///
-#include <process/abstract_scheduler.hpp>
+#include <process/x_scheduler.hpp>
 
 namespace fhatos {
-  class Scheduler final : public AbstractScheduler {
+  class Scheduler final : public XScheduler {
 
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")) : AbstractScheduler(id) {}
+    explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {}
 
   public:
     static Scheduler *singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
-      static Scheduler *scheduler = new Scheduler(id);
+      static Scheduler scheduler = Scheduler(id);
       if (!_setup) {
-        scheduler->setup();
+        scheduler.setup();
         _setup = true;
       }
-      return scheduler;
+      return &scheduler;
     }
 
-    void setup() override { AbstractScheduler::setup(); }
-
-    bool spawn(Process *process) override {
+    bool spawn(XProcess *process) override {
       bool success = *RW_PROCESS_MUTEX.write<bool>([this, process]() {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
@@ -83,7 +81,7 @@ namespace fhatos {
             break;
           }
           case KERNEL: {
-            success = this->KERNELS->push_back(dynamic_cast<KernelProcess *>(process));
+            success = this->KERNELS->push_back(dynamic_cast<XKernel *>(process));
             break;
           }
           default: {
@@ -105,7 +103,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
-    static void FIBER_FUNCTION(void *voidptr) {
+    static void FIBER_FUNCTION(void *) {
       auto *fibers = Scheduler::singleton()->FIBERS;
       int counter = 0;
       while (!fibers->empty()) {

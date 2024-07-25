@@ -142,7 +142,9 @@ namespace fhatos {
   class Router : public Coroutine {
   protected:
     explicit Router(const ID &id = ID("router"), const ROUTER_LEVEL level = ROUTER_LEVEL::LOCAL_ROUTER) :
-        Coroutine(id), _level(level) {}
+        Coroutine(id), _level(level) {
+      LOG(DEBUG, "Starting router: %s\n", id.toString().c_str());
+    }
 
   public:
     virtual ~Router() = default;
@@ -156,11 +158,11 @@ namespace fhatos {
 #endif
     }
 
-    virtual const RESPONSE_CODE publish(const Message &message) FP_OK_RESULT;
-    virtual const RESPONSE_CODE subscribe(const Subscription &subscription) FP_OK_RESULT;
-    virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) FP_OK_RESULT;
-    virtual const RESPONSE_CODE unsubscribeSource(const ID &source) FP_OK_RESULT;
-    virtual const RESPONSE_CODE clear() FP_OK_RESULT;
+    virtual RESPONSE_CODE publish(const Message &) FP_OK_RESULT;
+    virtual RESPONSE_CODE subscribe(const Subscription &) FP_OK_RESULT;
+    virtual RESPONSE_CODE unsubscribe(const ID &, const Pattern &) FP_OK_RESULT;
+    virtual RESPONSE_CODE unsubscribeSource(const ID &) FP_OK_RESULT;
+    virtual RESPONSE_CODE clear() FP_OK_RESULT;
     virtual uint retainSize() const { return -1; }
     virtual const string toString() const { return "Router"; }
 

@@ -88,7 +88,7 @@ namespace fhatos {
             }
           });
         });
-        this->xmqtt->set_connected_handler([this](const string &cause) {
+        this->xmqtt->set_connected_handler([this](const string &) {
           LOG(INFO,
               "\n!g[!bMQTT Router Configuration!g]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
               "!bClient name!!   : %s\n" FOS_TAB_2 "!bWill topic!!    : %s\n" FOS_TAB_2
@@ -109,7 +109,7 @@ namespace fhatos {
   public:
     ~MqttRouter() override = default;
 
-    const RESPONSE_CODE clear() override {
+    RESPONSE_CODE clear() override {
       _SUBSCRIPTIONS.forEach(
           [this](const Subscription_p &subscription) { this->xmqtt->unsubscribe(subscription->pattern.toString()); });
       _SUBSCRIPTIONS.clear();
@@ -117,9 +117,9 @@ namespace fhatos {
       return RESPONSE_CODE::OK;
     }
 
-    const RESPONSE_CODE publish(const Message &message) override {
+    RESPONSE_CODE publish(const Message &message) override {
       ptr<BObj> bobj = message.payload->serialize();
-      delivery_token_ptr ret =
+      //delivery_token_ptr ret =
           this->xmqtt->publish(message.target.toString(), bobj->second, bobj->first, 1, message.retain);
       const RESPONSE_CODE _rc = OK; //(RESPONSE_CODE) ret->get_return_code();
       /*const RESPONSE_CODE _rc =
@@ -128,7 +128,7 @@ namespace fhatos {
       return _rc;
     }
 
-    const RESPONSE_CODE subscribe(const Subscription &subscription) override {
+    RESPONSE_CODE subscribe(const Subscription &subscription) override {
       RESPONSE_CODE _rc =
           _SUBSCRIPTIONS
                   .find([subscription](const auto &sub) {
@@ -140,7 +140,7 @@ namespace fhatos {
 
       if (!_rc) {
         try {
-          if (this->xmqtt->subscribe(subscription.pattern.toString(), (uint) subscription.qos) &&
+          if (this->xmqtt->subscribe(subscription.pattern.toString(), static_cast<uint>(subscription.qos)) &&
               _SUBSCRIPTIONS.push_back(share(Subscription(subscription))))
             _rc = RESPONSE_CODE::OK;
           else
@@ -154,11 +154,11 @@ namespace fhatos {
       return _rc;
     }
 
-    const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
+    RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
       return unsubscribeX(source, &pattern);
     }
 
-    const RESPONSE_CODE unsubscribeSource(const ID &source) override { return unsubscribeX(source, nullptr); }
+    RESPONSE_CODE unsubscribeSource(const ID &source) override { return unsubscribeX(source, nullptr); }
 
     void stop() override {
       _SUBSCRIPTIONS.forEach([this](const auto &sub) { this->unsubscribe(sub->source, sub->pattern); });
@@ -169,7 +169,7 @@ namespace fhatos {
                this->serverAddr);
     }
 
-    const RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
+    RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
       RESPONSE_CODE _rc = RESPONSE_CODE::OK;
       try {
         const uint16_t size = _SUBSCRIPTIONS.size();

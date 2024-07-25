@@ -1,16 +1,23 @@
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20)  # CMake version check
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2)  # CMake version check
 PROJECT(fhatos)
-OPTION(USE_CCACHE "Use ccache" OFF) # ON/OFF
-IF (USE_CCACHE)
-    SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-ENDIF ()
+#OPTION(USE_CCACHE "Use ccache" OFF) # ON/OFF
+#IF (USE_CCACHE)
+#    SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+#ENDIF ()
+SET("-Wno-dev") # mqtt-c library warning
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 IF (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
 ENDIF ()
+IF (NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE "DEBUG")
+ENDIF ()
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
@@ -80,9 +87,6 @@ OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF (BUILD_NATIVE)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (NATIVE)${..}")
-    IF (NOT CMAKE_BUILD_TYPE)
-        SET(CMAKE_BUILD_TYPE "RELEASE")
-    ENDIF ()
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
     INCLUDE_DIRECTORIES(src include)
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})

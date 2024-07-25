@@ -20,6 +20,7 @@
 #include <structure/kernel.hpp>
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
+#include <process/x_process.hpp>
 // routers
 #include <process/router/local_router.hpp>
 #include <process/router/meta_router.hpp>
@@ -45,9 +46,9 @@ void setup() {
   try {
     Kernel::build()
         ->initialPrinter(Ansi<>::singleton())
-        ->initialLogLevel(INFO)
+        ->initialLogLevel(TRACE)
         ->withSplash(ANSI_ART)
-        ->withNote("Use !bØ!! for noobj")
+        ->withNote("Use !bØ!! for noobj abc")
         ->withNote("Use !y:help!! for console commands")
         ->onBoot(Scheduler::singleton("/sys/scheduler/"), //
                  {FOS_ROUTERS, //
@@ -59,9 +60,9 @@ void setup() {
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
-    Terminal::printer<>()->println("\n" FOS_TAB_8 "!rS!gh!yU!mT!yt!bI!rN!gg !cD!mo!gW!bN!! !mFhat!gOS!!\n");
+    Terminal::printer<>()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
   } catch (const std::exception &e) {
-    LOG(ERROR, "[!rS!gH!yu!mT!yt!bI!rn!gG !cd!mO!gw!bN!!] Critical FhatOS error: %s\n", e.what());
+    LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
     throw;
   }
 }

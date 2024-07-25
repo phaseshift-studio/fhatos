@@ -24,7 +24,6 @@
 #include <language/insts.hpp>
 #include <language/obj.hpp>
 #include <language/processor.hpp>
-#include <utility>
 
 namespace fhatos {
   class Fluent {
@@ -34,12 +33,12 @@ namespace fhatos {
   public:
     explicit Fluent(Obj_p bcode) : bcode(std::move(bcode)) {}
 
-    explicit Fluent(const ID &id = ID(*UUID::singleton()->mint(7))) : Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
+    explicit Fluent(const ID & = ID(*UUID::singleton()->mint(7))) : Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
     const ptr<E> next() const {
-      if(!this->bcode->isBytecode())
+      if (!this->bcode->isBytecode())
         return this->bcode;
       static Processor<E> proc = Processor<E>(this->bcode);
       return proc.next();
@@ -47,7 +46,7 @@ namespace fhatos {
 
     template<typename E = Obj>
     void forEach(const Consumer<const ptr<E>> &consumer) const {
-      if(!this->bcode->isBytecode())
+      if (!this->bcode->isBytecode())
         consumer(this->bcode);
       else {
         Processor<E> proc = Processor<E>(this->bcode);
@@ -58,18 +57,18 @@ namespace fhatos {
     template<typename E = Obj>
     ptr<List<ptr<E>>> toList() const {
       List<ptr<E>> *list = new List<ptr<E>>();
-      this->template forEach<E>([list](const ptr<E> end) { list->push_back(end); });
+      this->template forEach<E>([list](const ptr<E> &end) { list->push_back(end); });
       return ptr<List<ptr<E>>>(list);
     }
 
     Objs_p toObjs() const {
       Objs_p objs = Obj::to_objs(List<Obj_p>{});
-      this->forEach<Obj>([objs](const Obj_p end) { objs->add_obj(end); });
+      this->forEach<Obj>([objs](const Obj_p &end) { objs->add_obj(end); });
       return objs;
     }
 
     void iterate() const {
-      this->forEach<Obj>([](const Obj_p &end) {});
+      this->forEach<Obj>([](const Obj_p &) {});
     }
 
     string toString() const { return this->bcode->toString(); }

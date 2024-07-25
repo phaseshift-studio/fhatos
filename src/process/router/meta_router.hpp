@@ -40,34 +40,32 @@ namespace fhatos {
     }
 
   public:
-     static MetaRouter *singleton(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
-                                        Router *global = MqttRouter::singleton()) {
+    static MetaRouter *singleton(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
+                                 Router *global = MqttRouter::singleton()) {
       static MetaRouter singleton = MetaRouter(id, local, global);
       return &singleton;
     }
 
-    MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
+   explicit MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
                Router *global = MqttRouter::singleton()) : Router(id), _local(local), _global(global) {}
 
-    const RESPONSE_CODE clear() override {
+    RESPONSE_CODE clear() override {
       RESPONSE_CODE __rc1 = this->_local->clear();
       RESPONSE_CODE __rc2 = this->_global->clear();
       return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
     }
 
-    virtual const RESPONSE_CODE publish(const Message &message) override {
-      return this->select(message.target)->publish(message);
-    }
+    RESPONSE_CODE publish(const Message &message) override { return this->select(message.target)->publish(message); }
 
-    virtual const RESPONSE_CODE subscribe(const Subscription &subscription) override {
+    RESPONSE_CODE subscribe(const Subscription &subscription) override {
       return this->select(subscription.pattern)->subscribe(subscription);
     }
 
-    virtual const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
+    RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
       return this->select(pattern)->unsubscribe(source, pattern);
     }
 
-    virtual const RESPONSE_CODE unsubscribeSource(const ID &source) override {
+    RESPONSE_CODE unsubscribeSource(const ID &source) override {
       return this->select(source)->unsubscribeSource(source);
     }
   };

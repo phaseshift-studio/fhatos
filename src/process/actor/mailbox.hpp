@@ -34,7 +34,7 @@ namespace fhatos {
       }
     }
 
-    virtual bool push(const T message) { return true; }
+    virtual bool push(const T) { return true; }
 
     virtual uint16_t size() { return 0; }
 

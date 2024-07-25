@@ -19,17 +19,17 @@
 #ifndef fhatos_fiber_hpp
 #define fhatos_fiber_hpp
 
+#include <chrono>
 #include <fhatos.hpp>
-//
-#include FOS_PROCESS(process.hpp)
+#include <process/x_process.hpp>
+#include <thread>
 
 namespace fhatos {
-  class Fiber : public Process {
+  class Fiber : public XProcess {
   public:
     std::thread *xthread;
 
-    explicit Fiber(const ID &id) : Process(id, FIBER), xthread(nullptr) {
-    }
+    explicit Fiber(const ID &id) : XProcess(id, FIBER), xthread(nullptr) {}
 
     void delay(const uint64_t milliseconds) override {
       // delay to next fiber

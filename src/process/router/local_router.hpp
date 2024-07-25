@@ -27,10 +27,6 @@
 #include FOS_UTIL(mutex.hpp)
 #include <util/mutex_rw.hpp>
 
-#include FOS_PROCESS(coroutine.hpp)
-
-#include <util/obj_helper.hpp>
-
 namespace fhatos {
   class LocalRouter final : public Router {
 
@@ -59,13 +55,13 @@ namespace fhatos {
 
     uint subscriptionSize() const { return SUBSCRIPTIONS.size(); }
 
-    const RESPONSE_CODE clear() override {
+    RESPONSE_CODE clear() override {
       // SUBSCRIPTIONS.clear();
       RETAINS.clear();
       return (RETAINS.empty() && SUBSCRIPTIONS.empty()) ? OK : ROUTER_ERROR;
     }
 
-    const RESPONSE_CODE publish(const Message &message) override {
+    RESPONSE_CODE publish(const Message &message) override {
       auto _rc = MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
         //////////////
         RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
@@ -109,14 +105,14 @@ namespace fhatos {
       return _rc;
     }
 
-    const RESPONSE_CODE subscribe(const Subscription &subscription) override {
+    RESPONSE_CODE subscribe(const Subscription &subscription) override {
       try {
         /////////////// SUBSCRIPTION
         RESPONSE_CODE _rc = *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
           RESPONSE_CODE _rc = OK;
           /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
           SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
-                                        [subscription](Subscription_p &sub) {
+                                        [subscription](const Subscription_p &sub) {
                                           return sub->source.equals(subscription.source) &&
                                                  sub->pattern.equals(subscription.pattern);
                                         }),
@@ -158,11 +154,11 @@ namespace fhatos {
       }
     }
 
-    const RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
+    RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
       return *unsubscribeX(source, &pattern);
     }
 
-    const RESPONSE_CODE unsubscribeSource(const ID &source) override { return *unsubscribeX(source, nullptr); }
+    RESPONSE_CODE unsubscribeSource(const ID &source) override { return *unsubscribeX(source, nullptr); }
 
   protected:
     ptr<RESPONSE_CODE> unsubscribeX(const ID &source, const Pattern *pattern) {

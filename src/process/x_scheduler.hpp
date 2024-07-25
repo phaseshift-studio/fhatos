@@ -16,19 +16,19 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_abstract_scheduler_hpp
-#define fhatos_abstract_scheduler_hpp
+#ifndef fhatos_x_scheduler_hpp
+#define fhatos_x_scheduler_hpp
 
 #include <fhatos.hpp>
 //
 #include <atomic>
+#include <process/x_process.hpp>
 #include <structure/furi.hpp>
 #include <util/mutex_deque.hpp>
-#include FOS_PROCESS(process.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
-#include "router/publisher.hpp"
+#include <process/actor/publisher.hpp>
 #include "structure/f_bcode.hpp"
 
 #define LOG_SPAWN(success, process)                                                                                    \
@@ -39,19 +39,19 @@
 
 
 namespace fhatos {
-  class AbstractScheduler : public IDed, public Publisher, public Mailbox<Mail_p> {
+  class XScheduler : public IDed, public Publisher, public Mailbox<Mail_p> {
   protected:
     MutexRW<> RW_PROCESS_MUTEX;
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
     MutexDeque<Fiber *> *FIBERS = new MutexDeque<Fiber *>();
     MutexDeque<Thread *> *THREADS = new MutexDeque<Thread *>();
-    MutexDeque<KernelProcess *> *KERNELS = new MutexDeque<KernelProcess *>();
+    MutexDeque<XKernel *> *KERNELS = new MutexDeque<XKernel *>();
     MutexDeque<Mail_p> inbox;
     Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit AbstractScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
-    ~AbstractScheduler() override {
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
+    ~XScheduler() override {
       delete COROUTINES;
       delete FIBERS;
       delete THREADS;
@@ -63,7 +63,7 @@ namespace fhatos {
     static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/rec/coroutine"); }
 
     virtual void setup() {
-      MESSAGE_INTERCEPT = [this](const ID &source, const ID &target, const Obj_p &payload, const bool retain) {
+      MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->isRec())
           return;
         if (isThread(payload)) {
@@ -79,7 +79,7 @@ namespace fhatos {
 
     void stop() {
       this->handle_messages();
-      for (Process *process: *this->find()) {
+      for (XProcess *process: *this->find()) {
         if (this->find(*process->id())->at(0)->type == PType::COROUTINE)
           this->_destroy(*process->id());
         else
@@ -116,7 +116,7 @@ namespace fhatos {
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }
 
-    virtual bool spawn(Process *process) { throw fError("%s\n", "Member function spawn() must be implemented"); }
+    virtual bool spawn(XProcess *) { throw fError::X_REQUIRES_IMPLEMENTATION("Scheduler", "spawn"); }
     virtual bool destroy(const ID &processPattern) {
       return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }
@@ -192,30 +192,30 @@ namespace fhatos {
     }
 
   public:
-    const List<Process *> *find(const Pattern &processPattern = Pattern("#")) {
-      return RW_PROCESS_MUTEX.read<List<Process *> *>([this, processPattern]() {
-        const auto results = new List<Process *>();
-        auto temp = reinterpret_cast<List<Process *> *>(
-            THREADS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
-        for (Process *p: *temp) {
+    const List<XProcess *> *find(const Pattern &processPattern = Pattern("#")) {
+      return RW_PROCESS_MUTEX.read<List<XProcess *> *>([this, processPattern]() {
+        const auto results = new List<XProcess *>();
+        auto temp = reinterpret_cast<List<XProcess *> *>(
+            THREADS->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
+        for (XProcess *p: *temp) {
           results->push_back(p);
         }
         delete temp;
-        temp = reinterpret_cast<List<Process *> *>(
-            FIBERS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
-        for (Process *p: *temp) {
+        temp = reinterpret_cast<List<XProcess *> *>(
+            FIBERS->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
+        for (XProcess *p: *temp) {
           results->push_back(p);
         }
         delete temp;
-        temp = reinterpret_cast<List<Process *> *>(
-            COROUTINES->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
-        for (Process *p: *temp) {
+        temp = reinterpret_cast<List<XProcess *> *>(
+            COROUTINES->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
+        for (XProcess *p: *temp) {
           results->push_back(p);
         }
         delete temp;
-        temp = reinterpret_cast<List<Process *> *>(
-            KERNELS->match([processPattern](const Process *p) { return p->id()->matches(processPattern); }));
-        for (Process *p: *temp) {
+        temp = reinterpret_cast<List<XProcess *> *>(
+            KERNELS->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
+        for (XProcess *p: *temp) {
           results->push_back(p);
         }
         delete temp;
@@ -223,7 +223,7 @@ namespace fhatos {
       });
     }
 
-    const int count(const Pattern &processPattern = Pattern("#")) {
+    int count(const Pattern &processPattern = Pattern("#")) {
       return RW_PROCESS_MUTEX.read<int>([this, processPattern]() {
         if (processPattern.equals(Pattern("#")))
           return THREADS->size() + FIBERS->size() + COROUTINES->size() /*+ KERNELS->size()*/;

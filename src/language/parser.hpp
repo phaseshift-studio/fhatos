@@ -187,7 +187,7 @@ namespace fhatos {
       // LOG(TRACE, "Attempting int parse on %s\n", valueToken.c_str());
       if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find_first_of('.') != string::npos)
         return {};
-      for (int i = 1; i < valueToken.length(); i++) {
+      for (size_t i = 1; i < valueToken.length(); i++) {
         if (!isdigit(valueToken[i]))
           return {};
       }
@@ -198,7 +198,7 @@ namespace fhatos {
       if (valueToken[0] != '-' && !isdigit(valueToken[0]))
         return {};
       bool dotFound = false;
-      for (int i = 1; i < valueToken.length(); i++) {
+      for (size_t i = 1; i < valueToken.length(); i++) {
         if (valueToken[i] == '.') {
           if (dotFound)
             return {};

@@ -21,10 +21,11 @@
 
 
 #include <cstdarg>
+#include <random>
 #include <stdio.h>
 #include <string.h>
 #include <util/string_printer.hpp>
-
+using namespace std;
 namespace fhatos {
 
   class CPrinter {
@@ -68,7 +69,7 @@ namespace fhatos {
 
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
-    void color(const uint8_t fgcolor, const uint8_t bgcolor) {
+    void color(const uint8_t fgcolor, const uint8_t) {
       if (this->_on)
         this->printf("\033[0;%dm", fg_normal + fgcolor);
     }
@@ -165,7 +166,6 @@ namespace fhatos {
     }
 
     const char *strip(const char *s) {
-      std::string temp;
       auto *ansi = new Ansi<StringPrinter>(new StringPrinter(new std::string()));
       ansi->on(false);
       ansi->print(s);
@@ -229,6 +229,22 @@ namespace fhatos {
     void yellow(const bool bright = false) { color(YELLOW + (bright ? BRIGHT : 0), 0); }
 
     void black(const bool bright = false) { color(BLACK + (bright ? BRIGHT : 0), 0); }
+
+
+    static string sillyPrint(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
+      std::srand(std::time(nullptr));
+      const string colors = "rgbmcy";
+      string ret;
+      for (size_t i = 0; i < strlen(text); i++) {
+        if (rainbow)
+          ret = ret.append("!").append(string("") + colors[rand() % colors.length()]);
+        ret = ret.append(string("") +
+                         (char) (rollercoaster ? (std::rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
+      }
+      if (rainbow)
+        ret = ret.append("!!");
+      return ret;
+    }
   };
 } // namespace fhatos
 

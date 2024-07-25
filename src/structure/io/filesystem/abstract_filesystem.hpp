@@ -21,7 +21,6 @@
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/obj.hpp>
-#include <language/types.hpp>
 namespace fhatos {
 
   using File = Uri;
@@ -29,14 +28,14 @@ namespace fhatos {
   using Dir = Uri;
   using Dir_p = Uri_p;
 
-  static const fURI_p FILE_FURI = fURI_p(new fURI("/uri/fs:file"));
-  static const fURI_p DIR_FURI = fURI_p(new fURI("/uri/fs:dir"));
-  static const fURI_p INST_FS_FURI = fURI_p(new fURI("/inst/fs:"));
+  static const ID_p FILE_FURI = share(ID("/uri/fs:file"));
+  static const ID_p DIR_FURI = share(ID("/uri/fs:dir"));
+  static const ID_p INST_FS_FURI = share(ID("/inst/fs:"));
 
   class AbstractFileSystem : public Actor<Coroutine> {
   public:
     ID_p _root;
-    explicit AbstractFileSystem(const ID &id, const ID &localRoot) : Actor<Coroutine>(id), _root(share(localRoot)) {}
+    explicit AbstractFileSystem(const ID &id, const ID &localRoot) : Actor(id), _root(share(localRoot)) {}
 
     void setup() override {
       Actor::setup();
@@ -52,9 +51,9 @@ namespace fhatos {
         }
       });
       ///////////////////////////////////////////////////////////////////
-      Insts::register_inst(INST_FS_FURI->resolve("root"), [this](List<Obj_p> args) {
+      Insts::register_inst(INST_FS_FURI->resolve("root"), [this](List<Obj_p>) {
         return Obj::to_inst(
-            "root", {}, [this](const Obj_p &lhs) { return this->root(); }, IType::ZERO_TO_ONE, Obj::to_noobj(),
+            "root", {}, [this](const Obj_p &) { return this->root(); }, IType::ZERO_TO_ONE, Obj::to_noobj(),
             share(INST_FS_FURI->resolve("root")));
       });
       Insts::register_inst(INST_FS_FURI->resolve("ls"), [this](List<Obj_p> args) {
@@ -69,7 +68,7 @@ namespace fhatos {
         return Obj::to_inst(
             "mkdir", {args.at(0)},
             [this, args](const Obj_p &lhs) { return this->mkdir(args.at(0)->apply(lhs)->uri_value()); },
-            IType::ONE_TO_MANY, Obj::to_objs(), share(INST_FS_FURI->resolve("ls")));
+            IType::ONE_TO_MANY, Obj::to_objs(), share(INST_FS_FURI->resolve("mkdir")));
       });
       Insts::register_inst(INST_FS_FURI->resolve("more"), [this](List<Obj_p> args) {
         return Obj::to_inst(
@@ -86,9 +85,9 @@ namespace fhatos {
       });
     }
 
-    virtual File_p to_file(const ID &path) const { throw fError("must be implemented"); }
-    virtual Dir_p to_dir(const ID &path) const { throw fError("must be implemented"); }
-    virtual ID makeLocalPath(const ID &path) const { throw fError("must be implemented"); }
+    virtual File_p to_file(const ID &) const { throw fError("must be implemented"); }
+    virtual Dir_p to_dir(const ID &) const { throw fError("must be implemented"); }
+    virtual ID makeLocalPath(const ID &) const { throw fError("must be implemented"); }
     virtual ID makeFilePath(const ID &path) const {
       return ID(path.toString().substr(this->id()->toString().length() + 1));
     }
@@ -96,12 +95,12 @@ namespace fhatos {
     virtual ID makeRouterPath(const ID &path) const { return ID(this->id()->toString() + "/" + path.toString()); }
     ////
     virtual Dir_p root() const { throw fError("must be implemented"); }
-    virtual bool exists(const ID &path) const { throw fError("must be implemented"); }
-    virtual Dir_p mkdir(const ID &path) const { throw fError("must be implemented"); }
-    virtual Objs_p ls(const Dir_p &dir, const Pattern &pattern) const { throw fError("must be implemented"); }
-    virtual Obj_p more(const File_p &file) const { throw fError("must be implemented"); }
-    virtual File_p append(const File_p &file, const Obj_p &content) { throw fError("must be implemented"); }
-    virtual File_p touch(const ID &path) const { throw fError("must be implemented"); }
+    virtual bool exists(const ID &) const { throw fError("must be implemented"); }
+    virtual Dir_p mkdir(const ID &) const { throw fError("must be implemented"); }
+    virtual Objs_p ls(const Dir_p &, const Pattern &) const { throw fError("must be implemented"); }
+    virtual Obj_p more(const File_p &) const { throw fError("must be implemented"); }
+    virtual File_p append(const File_p &, const Obj_p &) { throw fError("must be implemented"); }
+    virtual File_p touch(const ID &) const { throw fError("must be implemented"); }
   };
 } // namespace fhatos
 

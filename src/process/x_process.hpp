@@ -16,13 +16,12 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_process_hpp
-#define fhatos_process_hpp
+#ifndef fhatos_x_process_hpp
+#define fhatos_x_process_hpp
 
 #include <fhatos.hpp>
+#include <atomic>
 #include <structure/furi.hpp>
-#include <thread>
-//
 
 namespace fhatos {
   enum PType { THREAD, FIBER, COROUTINE, KERNEL };
@@ -42,14 +41,15 @@ namespace fhatos {
     }
   }
 
-  class Process : public IDed {
+  class XProcess : public IDed {
+
   protected:
     std::atomic_bool _running = std::atomic_bool(false);
 
   public:
     const PType type;
 
-    explicit Process(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
+    explicit XProcess(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
 
     //~Process() { this->stop(); }
 
@@ -63,18 +63,12 @@ namespace fhatos {
 
     virtual void delay(const uint64_t milliseconds){};
 
-    virtual void yield(){};
+    virtual void yield(){}; // throw fError::X_REQUIRES_IMPLEMENTATION("XProcess", "yield"); };
   };
 
-  class KernelProcess : public Process {
+  class XKernel : public XProcess {
   public:
-    explicit KernelProcess(const ID &id) : Process(id, KERNEL) {}
-
-    void delay(const uint64_t milliseconds) override {
-      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-    }
-
-    void yield() override { std::this_thread::yield(); }
+    explicit XKernel(const ID &id) : XProcess(id, KERNEL) {}
   };
 } // namespace fhatos
 

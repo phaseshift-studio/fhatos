@@ -33,7 +33,7 @@ namespace fhatos {
     explicit Terminal(const ID &id = ID("/io/terminal/")) :
         Actor(id,
               [](Actor *actor) {
-                actor->subscribe("out", [actor](const Message_p &message) {
+                actor->subscribe("out", [](const Message_p &message) {
                   if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
                     const string copy = string(message->payload->str_value());
                     if (message->target.name() == "no_color")
@@ -86,7 +86,7 @@ namespace fhatos {
                                                         .retain = TRANSIENT_MESSAGE});
     }
 
-    static string in(const ID &source) {
+    static string in(const ID &) {
       /* GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = source, //
                                                          .target = Terminal::singleton()->id()->extend("/out"), //
                                                          .payload = Obj::to_str(toPrint)});*/

@@ -28,42 +28,34 @@
 #endif
 
 #include <string>
-
+using namespace std;
 namespace fhatos {
   class StringPrinter final EXTENDS {
   public:
-    explicit StringPrinter(std::string *xstring) : xstring(xstring), length(0), position(0) {
-    }
+    explicit StringPrinter(std::string *xstring) : xstring(xstring) {}
 
-    std::string *get() const {
-      return this->xstring;
-    }
+    string *get() const { return this->xstring; }
 
-    VIRTUAL int print(const char *c_str) {
-      const int length = strlen(c_str);
-      for (int i = 0; i < length; i++) {
+    VIRTUAL size_t print(const char *c_str) {
+      const size_t length = strlen(c_str);
+      for (size_t i = 0; i < length; i++) {
         this->write(c_str[i]);
       }
       return length;
     }
 
-    VIRTUAL int print(char c) {
-      return this->write(c);
-    }
+    VIRTUAL uint8_t print(char c) { return this->write(c); }
 
 
-    VIRTUAL void flush() {
-    };
+    VIRTUAL void flush(){};
 
     VIRTUAL size_t write(const uint8_t c) {
-      *xstring += (char) c;
+      *xstring += static_cast<char>(c);
       return 1;
     };
 
   private:
     std::string *xstring;
-    unsigned int length;
-    unsigned int position;
   };
 } // namespace fhatos
 

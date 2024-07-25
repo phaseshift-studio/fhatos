@@ -65,8 +65,8 @@ namespace fhatos {
       if (!_MENU_MAP) {
         _MENU_MAP = new Map<string, Command>();
         _MENU_MAP->insert({":help",
-                           {"help menu", [this](const Obj_p &) { std::get<2>(_MENU_MAP->at(":help"))(); },
-                            [this]() {
+                           {"help menu", [](const Obj_p &) { std::get<2>(_MENU_MAP->at(":help"))(); },
+                            []() {
                               Terminal::printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
                               for (const auto &pair: *_MENU_MAP) {
                                 Terminal::printer<>()->printf("!y%-10s!! %s\n", pair.first.c_str(),
@@ -75,7 +75,7 @@ namespace fhatos {
                             }}});
         _MENU_MAP->insert({":log",
                            {"log level",
-                            [this](const Uri_p &logType) {
+                            [](const Uri_p &logType) {
                               GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(logType->uri_value().toString().c_str());
                               return logType;
                             },
@@ -85,7 +85,7 @@ namespace fhatos {
                             }}});
         _MENU_MAP->insert(
             {":output",
-             {"terminal output", [this](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
+             {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
               [] {
                 Terminal::printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
                                               Terminal::currentOut()->toString().c_str(),
@@ -99,8 +99,8 @@ namespace fhatos {
              {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
               [this] { Terminal::printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
         _MENU_MAP->insert({":shutdown",
-                           {"destroy scheduler", [this](const Obj_p &) { Scheduler::singleton()->stop(); },
-                            [this]() { Scheduler::singleton()->stop(); }}});
+                           {"destroy scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
+                            []() { Scheduler::singleton()->stop(); }}});
         _MENU_MAP->insert(
             {":quit", {"destroy console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
@@ -116,9 +116,14 @@ namespace fhatos {
       int x;
       if ((x = Terminal::readChar()) == EOF)
         return;
-      if ('\x04' == (char) x) /// CNTRL-D (clear line)
+      LOG(TRACE, "key pressed: (dec) %i (hex) 0x%x (char) %c\n", x, x, x);
+      /*if (0x147 == (char) x) /// CTRL-DELETE (clear line)
         this->_line.clear();
-      else if ('\n' == (char) x)
+      else if (0x59 == (char) x) /// F1 (toggle logger)
+        std::get<1>(_MENU_MAP->at(":log"))(
+            Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) (GLOBAL_OPTIONS->logger<uint8_t>() + 1))));
+      else*/
+      if ('\n' == (char) x)
         this->_newInput = true;
       else {
         this->_line += (char) x;
@@ -151,7 +156,7 @@ namespace fhatos {
           } else if (index == string::npos) {
             std::get<2>(_MENU_MAP->at(command))();
           } else {
-             string value = this->_line.substr(index);
+            string value = this->_line.substr(index);
             StringHelper::trim(value);
             std::get<1>(_MENU_MAP->at(command))(
                 Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
@@ -166,7 +171,7 @@ namespace fhatos {
           const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
           if (!obj.has_value())
             throw fError("Unable to parse input: %s\n", this->_line.c_str());
-          this->printResult(obj.value()->isBytecode() ? Fluent(obj.value()).toObjs() : obj.value());
+          this->printResult(Fluent(obj.value()).toObjs());
         } catch (const std::exception &e) {
           this->printException(e);
         }
