@@ -73,7 +73,7 @@ namespace fhatos {
     const char *host() const { return this->_host ? this->_host : EMPTY_CHARS; }
     UriX host(const char *host) const {
       UriX newURI = UriX(*this);
-      newURI._host = 0 == strlen(host) ? nullptr : host;
+      newURI._host = (0 == strlen(host) ? nullptr : host);
       return newURI;
     }
     /// PORT

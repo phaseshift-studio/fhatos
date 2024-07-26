@@ -233,11 +233,14 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1/a"), UriX("1.1.1.1/a").authority("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1/a"), UriX("/a").authority("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1"), UriX("").authority("127.0.0.1"));
-    FOS_TEST_ASSERT_EQUAL_FURI(UriX("fhat@"), UriX("fhat@127.0.0.1").host(""));
-    FOS_TEST_ASSERT_EQUAL_FURI(UriX("127.0.0.1"), UriX("fhat@127.0.0.1").user(""));
-    TEST_ASSERT_EQUAL_STRING("", UriX("127.0.0.1").host("").toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("", UriX("fhat@127.0.0.1").user("").host("").toString().c_str());
-    TEST_ASSERT_TRUE(fURI("/a/b/c").authority().empty());*/
+    */
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("furi://fhat@"), UriX("furi://fhat@127.0.0.1").host(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("furi://127.0.0.1"), UriX("furi://fhat@127.0.0.1").user(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX(""), UriX("//127.0.0.1").host(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("furi:"), UriX("furi://fhat@127.0.0.1").user("").host(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX(""), UriX("furi://fhat@127.0.0.1").user("").host("").scheme(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("//bob@"), UriX("furi://fhat@127.0.0.1").user("").host("").scheme("").user("bob"));
+    TEST_ASSERT_TRUE(UriX("/a/b/c").authority().empty());
   }
 
   void test_uri_path() {
