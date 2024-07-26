@@ -212,7 +212,7 @@ namespace fhatos {
     /////
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/a"), UriX("/a").host("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/a/b/c"), UriX("/a/b/c").host("127.0.0.1"));
-    //  FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("/").host("127.0.0.1"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("//127.0.0.1/"), UriX("/").host("127.0.0.1"));
   }
 
   void test_uri_authority() {
