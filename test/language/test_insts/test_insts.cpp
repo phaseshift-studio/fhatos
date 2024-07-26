@@ -19,6 +19,8 @@
 #ifndef fhatos_test_insts_cpp
 #define fhatos_test_insts_cpp
 
+#define FOS_TEST_ON_BOOT
+
 #include <fhatos.hpp>
 #include <test_fhatos.hpp>
 

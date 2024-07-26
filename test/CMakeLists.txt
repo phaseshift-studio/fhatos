@@ -53,12 +53,11 @@ IF (BUILD_TESTS)
     ####################################
     ########### TEST SUITES ############
     ####################################
-    MAKE_TESTS(abc "test_abc")
     MAKE_TESTS(language "test_fluent;test_obj;test_parser;test_insts")
     MAKE_TESTS(process "test_scheduler")
     MAKE_TESTS(process/actor "test_actor")
     MAKE_TESTS(process/router "test_router")
-    MAKE_TESTS(structure "test_furi")
+    MAKE_TESTS(structure "test_furi;test_uri")
     MAKE_TESTS(structure/io "test_fs")
     MAKE_TESTS(util "test_mutex")
     MESSAGE(STATUS "Total tests produced: ${.g}${TOTAL}${..}")

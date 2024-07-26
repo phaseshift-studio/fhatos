@@ -17,8 +17,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include <test_fhatos_fast.hpp>
+#undef FOS_TEST_ON_BOOT
+#include <test_fhatos.hpp>
 #include <util/uri.hpp>
+
 namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////

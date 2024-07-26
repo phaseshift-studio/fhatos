@@ -20,9 +20,21 @@
 #define fhatos_test_fhatos_hpp
 
 #include <fhatos.hpp>
+#include <unity.h>
+
+/*
+ TODO: COME UP WITH A #define FEATURE MATRIX THAT INDIVIDUAL TESTS CAN INHERIT
+    e.g.
+      1. bare bones (test responisble for all imports and global structures/processes)
+      2. language only (no routers, processes, etc.)
+      3. process only
+      4. structure only
+      5. full boot environment
+*/
+
+#ifdef FOS_TEST_ON_BOOT
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
-#include <unity.h>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
 #include <process/router/local_router.hpp>
@@ -30,6 +42,33 @@
 #include FOS_MQTT(mqtt_router.hpp)
 #include <structure/kernel.hpp>
 #include <util/options.hpp>
+#include FOS_FILE_SYSTEM(filesystem.hpp)
+#ifndef FOS_TEST_ROUTERS
+#ifdef NATIVE
+#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
+#else
+#define FOS_TEST_ROUTERS LocalRouter::singleton()
+#endif
+#endif
+#define FOS_SETUP_ON_BOOT                                                                                              \
+  Kernel::build()                                                                                                      \
+      ->initialPrinter(Ansi<>::singleton())                                                                            \
+      ->initialLogLevel(INFO)                                                                                          \
+      ->withSplash(ANSI_ART)                                                                                           \
+      ->withNote("Use !bØ!! for noobj")                                                                                \
+      ->withNote("Use :help for console commands")                                                                     \
+      ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
+               {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})        \
+      ->loadModules({"/ext/process"}); /*->defaultOutput("/home/root/repl/")        */
+
+#define FOS_STOP_ON_BOOT                                                                                               \
+  for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                             \
+    router->clear();                                                                                                   \
+  }
+#else
+#define FOS_SETUP_ON_BOOT GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
+#define FOS_STOP_ON_BOOT ;
+#endif
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
@@ -39,13 +78,6 @@ namespace fhatos {
 #define FOS_LOG_TYPE INFO
 #endif
 
-#ifndef FOS_TEST_ROUTERS
-#ifdef NATIVE
-#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
-#else
-#define FOS_TEST_ROUTERS LocalRouter::singleton()
-#endif
-#endif
 
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
@@ -60,15 +92,7 @@ namespace fhatos {
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
-      Kernel::build()                                                                                                  \
-          ->initialPrinter(Ansi<>::singleton())                                                                        \
-          ->initialLogLevel(INFO)                                                                                      \
-          ->withSplash(ANSI_ART)                                                                                       \
-          ->withNote("Use !bØ!! for noobj")                                                                            \
-          ->withNote("Use :help for console commands")                                                                 \
-          ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                            \
-                   {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})    \
-          ->loadModules({"/ext/process"}); /*->defaultOutput("/home/root/repl/")        */                             \
+      FOS_SETUP_ON_BOOT;                                                                                               \
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
@@ -83,11 +107,7 @@ namespace fhatos {
   using namespace fhatos;                                                                                              \
   int main(int, char **) { fhatos::RUN_UNITY_TESTS(); };                                                               \
   void setUp() {}                                                                                                      \
-  void tearDown() {                                                                                                    \
-    for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                           \
-      router->clear();                                                                                                 \
-    }                                                                                                                  \
-  }
+  void tearDown() { FOS_STOP_ON_BOOT; }
 #else
 /////////////////////////////////////////////////////
 //////////////////////// ESP ////////////////////////
@@ -184,6 +204,7 @@ using namespace fhatos;
       TEST_FAIL();                                                                                                     \
   }
 
+#ifdef FOS_TEST_ON_BOOT
 template<typename OBJ = Obj>
 static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
@@ -303,4 +324,5 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
     throw fError("Unable to parse: %s\n", monoid.c_str());
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
 }
+#endif
 #endif

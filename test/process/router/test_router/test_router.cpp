@@ -1,10 +1,8 @@
 #ifndef fhatos_test_router_hpp
 #define fhatos_test_router_hpp
 
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
-//
-#include <process/actor/actor.hpp>
-#include <process/router/local_router.hpp>
 
 namespace fhatos {
 

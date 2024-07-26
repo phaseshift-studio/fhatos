@@ -1,11 +1,8 @@
 #ifndef fhatos_test_mutex_hpp
 #define fhatos_test_mutex_hpp
 
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
-//
-#include FOS_PROCESS(scheduler.hpp)
-#include FOS_PROCESS(thread.hpp)
-#include <util/mutex_deque.hpp>
 
 namespace fhatos {
 

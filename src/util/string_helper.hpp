@@ -19,6 +19,7 @@
 #ifndef string_helper_hpp
 #define string_helper_hpp
 
+#include <sstream>
 #include <string>
 
 namespace fhatos {
@@ -59,9 +60,9 @@ namespace fhatos {
     }
 
     static bool lookAhead(const string &token, std::stringstream *ss, bool keep = true) {
-      for (int i = 0; i < token.size(); i++) {
+      for (size_t i = 0; i < token.size(); i++) {
         if (token[i] != ss->peek()) {
-          for (int j = 0; j <= i; j++) {
+          for (size_t j = 0; j <= i; j++) {
             ss += token[j];
           }
           return false;
@@ -80,20 +81,21 @@ namespace fhatos {
     static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
       char *copy;
       const char *freeable_copy = copy = strdup(text);
-      char *token;
+      char *token = nullptr;
       int i = offset;
-
-      while ((token = strsep(&copy, deliminator)) != nullptr) {
-        if (strlen(token) > 0) {
-          result[i] = strdup(token);
-          i++;
+      if (strstr(text, deliminator)) {
+        while ((token = strsep(&copy, deliminator)) != nullptr) {
+          if (strlen(token) > 0) {
+            result[i] = strdup(token);
+            i++;
+          }
         }
       }
       size_t dl = strlen(deliminator);
-      char *substr = new char[dl];
+      char *substr = new char[dl + 1];
       strncpy(substr, text + (strlen(text) - dl), dl);
       substr[dl] = '\0';
-      if (strcmp(substr, deliminator) == 0) {
+      if (strlen(substr) > 0 && strcmp(substr, deliminator) == 0) {
         result[i] = strdup("");
         i++;
       }
@@ -110,13 +112,13 @@ namespace fhatos {
         return true;
       char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
       char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
-      int idLength = split(id_cstr, "/", idParts);
+      size_t idLength = split(id_cstr, "/", idParts);
       if (id_cstr[strlen(id_cstr) - 1] == '/')
         idLength++;
-      const int patternLength = split(pattern_cstr, "/", patternParts);
+      const size_t patternLength = split(pattern_cstr, "/", patternParts);
       // LOG(DEBUG, "Matching: %s <=> %s\n", id, pattern);
       const bool result = [idParts, patternParts, idLength, patternLength]() {
-        for (int i = 0; i < idLength; i++) {
+        for (size_t i = 0; i < idLength; i++) {
           if (i >= patternLength)
             return false;
           //   LOG(DEBUG, "\t%s <=%i=> %s\n", idParts[i], i, patternParts[i]);
@@ -137,24 +139,6 @@ namespace fhatos {
       delete[] patternParts;
       return result;
     }
-
-    /*
-    * std::string SubString(const std::string& string, int beginIndex, int endIndex) {
-        int size = (int)string.size();
-        if (beginIndex < 0 || beginIndex > size - 1)
-            return "-1"; // Index out of bounds
-        if (endIndex < 0 || endIndex > size - 1)
-            return "-1"; // Index out of bounds
-        if (beginIndex > endIndex)
-            return "-1"; // Begin index should not be bigger that end.
-
-        std::string substr;
-        for (int i = 0; i < size; i++)
-            if (i >= beginIndex && i <= endIndex)
-                substr += (char)string[i];
-        return substr;
-    }
-     */
   };
 } // namespace fhatos
 

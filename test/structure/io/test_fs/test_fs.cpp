@@ -19,20 +19,26 @@
 #ifndef fhatos_test_fs_cpp
 #define fhatos_test_fs_cpp
 
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
-//
-#include <structure/furi.hpp>
-#include FOS_FILE_SYSTEM(filesystem.hpp)
 
 namespace fhatos {
+  static fs::path base_directory;
+
   void stage() {
-    LOG(INFO, "Original working directory: %s\n", fs::current_path().c_str());
-    const fs::path p = fs::current_path().concat("/tmp");
-    int removed = fs::remove_all(p);
+    fs::current_path(base_directory);
+    LOG(INFO, "Original working directory: %s\n", base_directory.c_str());
+    const fs::path p = fs::path(base_directory.string().c_str()).concat("/tmp");
+    uintmax_t removed = fs::remove_all(p);
     LOG(INFO, "Deleted existing working directory with %i items\n", removed);
     TEST_ASSERT_TRUE(fs::create_directory(p));
     fs::current_path(p); //
     LOG(INFO, "Test working directory: %s\n", fs::current_path().c_str());
+  }
+
+  void unstage() {
+    fs::current_path(base_directory);
+    LOG(INFO, "Test complete, reverting to base directory: %s\n", fs::current_path().c_str());
   }
 
   void test_files() {
@@ -54,9 +60,12 @@ namespace fhatos {
       counter++;
     }
     TEST_ASSERT_EQUAL_INT(10, counter);
+    unstage();
   }
 
+
   FOS_RUN_TESTS( //
+      base_directory = fs::current_path(); //
       FOS_RUN_TEST(test_files); //
   );
 } // namespace fhatos

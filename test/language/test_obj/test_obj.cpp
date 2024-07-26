@@ -1,14 +1,8 @@
 #ifndef fhatos_test_obj_hpp
 #define fhatos_test_obj_hpp
 
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
-//
-#include <language/obj.hpp>
-#include <process/router/local_router.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include FOS_MQTT(mqtt_router.hpp)
-#include <language/types.hpp>
-
 namespace fhatos {
 
   //////////////////////////////////////////////////////////
@@ -81,8 +75,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(intA->as("age"), intA->as("/int/age")->apply(intB));
     FOS_TEST_OBJ_EQUAL(intC, intA->as("age")->apply(intB));
     /// relations
-    FOS_TEST_OBJ_GT(intD, intA->as("nat"));
-    FOS_TEST_OBJ_LT(intB->as("/int/nat"), intD);
+    TEST_ASSERT_GREATER_THAN_INT(intD->int_value(), intA->as("nat")->int_value());
+    TEST_ASSERT_LESS_THAN_INT(intB->as("/int/nat")->int_value(), intD->int_value());
     /// match
     TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_int(22)));
     TEST_ASSERT_TRUE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("nat")));
@@ -137,8 +131,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(realA->as("money"), realA->as("/real/money")->apply(realB));
     FOS_TEST_OBJ_EQUAL(realC, realA->as("money")->apply(realB));
     /// relations
-    FOS_TEST_OBJ_GT(realD, realA->as("weight"));
-    FOS_TEST_OBJ_LT(realB->as("/real/weight"), realD);
+    TEST_ASSERT_GREATER_THAN_FLOAT(realD->real_value(), realA->as("weight")->real_value());
+    TEST_ASSERT_LESS_THAN_FLOAT(realB->as("/real/weight")->real_value(), realD->real_value());
     /// match
     TEST_ASSERT_TRUE(Obj::to_real(22.1f)->match(Obj::to_real(22.1f)));
     TEST_ASSERT_TRUE(Obj::to_real(22.1f)->as("weight")->match(Obj::to_real(22.1f)->as("weight")));
@@ -176,16 +170,16 @@ namespace fhatos {
     lstC.lst_set(Obj::to_int(4), Obj::to_int(5));
     FOS_TEST_OBJ_NOT_EQUAL(&lstC, &lstA);
     for (int i = 0; i < 4; i++) {
-      FOS_TEST_OBJ_EQUAL(Obj::to_int(i+1), lstA.lst_get(Obj::to_int(i)));
-      FOS_TEST_OBJ_EQUAL(Obj::to_int(i+1), lstB.lst_get(Obj::to_int(i)));
-      FOS_TEST_OBJ_EQUAL(Obj::to_int(i+1), lstC.lst_get(Obj::to_int(i)));
+      FOS_TEST_OBJ_EQUAL(Obj::to_int(i + 1), lstA.lst_get(Obj::to_int(i)));
+      FOS_TEST_OBJ_EQUAL(Obj::to_int(i + 1), lstB.lst_get(Obj::to_int(i)));
+      FOS_TEST_OBJ_EQUAL(Obj::to_int(i + 1), lstC.lst_get(Obj::to_int(i)));
     }
     const Lst lstD = *Obj::to_lst({1, 1, 1});
     TEST_ASSERT_EQUAL_STRING("/lst/ones", lstD.as("/lst/ones")->id()->toString().c_str());
     try {
       Obj_p x = lstA.as("/lst/ones");
       TEST_FAIL_MESSAGE("Should throw exception");
-    } catch (const fError& e) {
+    } catch (const fError &e) {
       TEST_ASSERT_TRUE(true);
     }
   }
@@ -266,20 +260,14 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      for (Router *router //
-           : List<Router *>({FOS_TEST_ROUTERS})) { //
-        GLOBAL_OPTIONS->ROUTING = router; //
-        router->clear();
-        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        FOS_RUN_TEST(test_bool); //
-        FOS_RUN_TEST(test_int); //
-        FOS_RUN_TEST(test_real); //
-        FOS_RUN_TEST(test_str); //
-        FOS_RUN_TEST(test_lst); //
-        FOS_RUN_TEST(test_rec); //
-        // FOS_RUN_TEST(test_inst_bcode); //
-      });
-
+      FOS_RUN_TEST(test_bool); //
+      FOS_RUN_TEST(test_int); //
+      FOS_RUN_TEST(test_real); //
+      FOS_RUN_TEST(test_str); //
+      FOS_RUN_TEST(test_lst); //
+      FOS_RUN_TEST(test_rec); //
+      // FOS_RUN_TEST(test_inst_bcode); //
+  )
 
 }; // namespace fhatos
 

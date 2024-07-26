@@ -48,7 +48,7 @@ namespace fhatos {
               }
             },
             // loop
-            [this](Actor<PROCESS> *actor) {
+            [this](Actor<PROCESS> *) {
               try {
                 Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
                   LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());

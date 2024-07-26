@@ -27,15 +27,7 @@ namespace fhatos {
   class FileSystem : public AbstractFileSystem {
   private:
     explicit FileSystem(const ID &id, const ID &root) : AbstractFileSystem(id, root) {
-      LOG(INFO, "Original working directory: %s\n", fs::current_path().c_str());
-      const fs::path p = fs::current_path().concat("/tmp");
-      // int removed = fs::remove_all(p);
-      // LOG(INFO, "Deleted existing working directory with %i items\n", removed);
-      // assert(fs::create_directory(p));
-      fs::current_path(p); //
-      LOG(INFO, "Creating new working directory: %s\n", p.c_str());
-      LOG(INFO, "Test working directory: %s\n", fs::current_path().c_str());
-      this->_root = share(ID(fs::current_path()));
+      this->_root = share(ID(root));
     }
 
   public:

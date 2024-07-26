@@ -19,6 +19,9 @@
 #ifndef fhatos_uri_hpp
 #define fhatos_uri_hpp
 
+#include "string_helper.hpp"
+
+
 #include <fhatos.hpp>
 #include <sstream>
 
@@ -151,6 +154,9 @@ namespace fhatos {
       }
       return newURI;
     }
+
+    const char *name() const { return 0 == this->_path_length ? EMPTY_CHARS : this->_path[this->_path_length - 1]; }
+
     uint8_t path_length() const { return this->_path_length; }
     /// QUERY
     const char *query() const { return this->_query ? this->_query : EMPTY_CHARS; }
@@ -194,7 +200,7 @@ namespace fhatos {
         if (this->spostfix)
           return this->extend(other.path().c_str());
         if (this->path().find('/') == string::npos)
-          return this->path(other.path().c_str());
+          return this->path(other.path());
         return this->retract().extend(other.path().c_str());
       }
       UriX newURI = UriX(*this);
@@ -213,15 +219,13 @@ namespace fhatos {
     }
 
 
-    ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
-    ~UriX() {
-      /*for (uint8_t i = 0; i < this->_path_length; i++) {
-        delete this->_path[i];
-      }*/
-      //  delete[] this->_path;
+    bool match(const UriX &other) const {
+      return StringHelper::match(this->toString().c_str(), other.toString().c_str());
     }
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    ~UriX() = default;
     UriX(const char *uriChars) : UriX(string(uriChars)) {}
     UriX(const string &uriString) {
       this->_path = new const char *[10];
@@ -359,6 +363,7 @@ namespace fhatos {
       }
     }
 
+    bool operator!=(const UriX &other) const { return !this->equals(other); }
     bool operator==(const UriX &other) const {
       return this->toString() == other.toString();
     } // TODO: do field-wise comparisons

@@ -1,6 +1,8 @@
 #ifndef fhatos_test_parser_hpp
 #define fhatos_test_parser_hpp
 
+#define FOS_TEST_ON_BOOT
+
 #include <test_fhatos.hpp>
 
 namespace fhatos {
@@ -213,7 +215,7 @@ namespace fhatos {
     Fluent(FOS_PRINT_OBJ<BCode>(
                Parser::singleton()->tryParseObj("define(/rec/person,|[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
-   FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
+    FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
                            "[name=>'fhat',age=>29].as(person)");
     FOS_TEST_ERROR("__([name=>10,age=>23]).as(person)");
     FOS_TEST_ERROR("__([name=>'fhat',age=>-1]).as(person)");
@@ -238,12 +240,12 @@ namespace fhatos {
   void test_to_from() {
     if (GLOBAL_OPTIONS->router<Router>()->toString() != "MqttRouter") {
       FOS_CHECK_RESULTS<Int>({10}, List<string>({"__(y).to(x)", "__(z).to(y)", "__(10).to(z)"}));
-     /* FOS_CHECK_RESULTS<Int>({10}, "from(z)");
-      FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
-      FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
-      FOS_CHECK_RESULTS<Int>({10}, "*z");
-      FOS_CHECK_RESULTS<Int>({10}, "**y");
-      FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);*/
+      /* FOS_CHECK_RESULTS<Int>({10}, "from(z)");
+       FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
+       FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
+       FOS_CHECK_RESULTS<Int>({10}, "*z");
+       FOS_CHECK_RESULTS<Int>({10}, "**y");
+       FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);*/
     }
   }
 

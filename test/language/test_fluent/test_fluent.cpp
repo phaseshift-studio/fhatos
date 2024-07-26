@@ -2,13 +2,7 @@
 #ifndef fhatos_test_fluent_hpp
 #define fhatos_test_fluent_hpp
 
-// #include <atomic>
-#include <language/fluent.hpp>
-#include <language/obj.hpp>
-#include <language/parser.hpp>
-#include <language/types.hpp>
-#include <process/router/local_router.hpp>
-#include FOS_MQTT(mqtt_router.hpp)
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
 
 namespace fhatos {

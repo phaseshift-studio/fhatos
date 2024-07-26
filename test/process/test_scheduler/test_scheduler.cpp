@@ -1,12 +1,8 @@
 #ifndef fhatos_test_scheduler_hpp
 #define fhatos_test_scheduler_hpp
 
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
-//
-#include <process/router/local_router.hpp>
-#include <structure/furi.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include <language/fluent.hpp>
 
 
 namespace fhatos {

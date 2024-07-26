@@ -1,9 +1,9 @@
 #ifndef fhatos_test_furi_hpp
 #define fhatos_test_furi_hpp
 
-#include <test_fhatos_fast.hpp>
-//
+#undef FOS_TEST_ON_BOOT
 #include <structure/furi.hpp>
+#include <test_fhatos.hpp>
 
 namespace fhatos {
   void test_furi_memory_leaks() {
