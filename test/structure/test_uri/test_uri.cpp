@@ -366,15 +366,15 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/b/c"), UriX("a").resolve(UriX("/b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("b/c"), UriX("a").resolve(UriX("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("a"), UriX("a").resolve(UriX("a")));
-    ///////////////// 
-    /*FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs:").resolve("root"));
+    /////////////////
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs:").resolve("root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs:").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs::").resolve("root"));
-    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs").resolve("::root"));
+   // FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs").resolve("::root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://inst/fs:root"), UriX("x://inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root"), UriX("x://user@inst/fs:").resolve("root"));
-    FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root/more"), UriX("x://user@inst/fs:").resolve("root/more"));*/
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root/more"), UriX("x://user@inst/fs:").resolve("root/more"));
     /////////////////
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://fhat@127.0.0.1/b/c"), UriX("foi://fhat@127.0.0.1/a").resolve(UriX("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://fhat@127.0.0.1/b/c"),

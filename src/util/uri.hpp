@@ -29,9 +29,9 @@ namespace fhatos {
 
   enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY };
   const static Enums<URI_PART> URI_PARTS = {
-      {URI_PART::SCHEME, "scheme"},    {URI_PART::USER, "user"},   {URI_PART::PASSWORD, "password"},
-      {URI_PART::HOST, "host"},        {URI_PART::PORT, "port"},   {URI_PART::PATH, "path"},
-      {URI_PART::FRAGMENT, "frament"}, {URI_PART::QUERY, "query"},
+      {URI_PART::SCHEME, "scheme"},     {URI_PART::USER, "user"},   {URI_PART::PASSWORD, "password"},
+      {URI_PART::HOST, "host"},         {URI_PART::PORT, "port"},   {URI_PART::PATH, "path"},
+      {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
   };
 
   class UriX {
@@ -189,6 +189,17 @@ namespace fhatos {
     }
 
     UriX resolve(const UriX &other) const {
+      ///////////////////////////////////////////////////////////////
+      ////////////  mm-ADT specific resolution pattern //////////////
+      ///////////////////////////////////////////////////////////////
+      ///         /abc ~> :xyz => /abc:xyz  NOT /:xyz             ///
+      ///////////////////////////////////////////////////////////////
+      if ((!other.toString().empty() && other.toString()[0] == ':') ||
+          (!this->path().empty() &&
+           this->path()[this->path().length() - 1] == ':'))
+        return this->path(this->path() + other.toString());
+      ///////////////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////////////
       if (other._path_length == 0)
         return *this;
       if (other.path().find('.') == string::npos) {
