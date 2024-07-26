@@ -19,11 +19,10 @@
 #ifndef fhatos_uri_hpp
 #define fhatos_uri_hpp
 
-#include "string_helper.hpp"
-
-
 #include <fhatos.hpp>
+//
 #include <sstream>
+#include <util/string_helper.hpp>
 
 namespace fhatos {
 
@@ -110,13 +109,15 @@ namespace fhatos {
     string path(const uint8_t start, const uint8_t end) const {
       string path_str;
       if (this->_path) {
-        if (this->sprefix)
+        if (this->sprefix && start == 0)
           path_str += '/';
         for (uint8_t i = start; i < end && i < this->_path_length; i++) {
           path_str += this->_path[i];
-          if (i != end - 1 || i != this->_path_length - 1 || this->spostfix)
+          if (i != end - 1)
             path_str += '/';
         }
+        if (this->spostfix && end >= this->_path_length)
+          path_str += '/';
       }
       return path_str;
     }
@@ -157,6 +158,10 @@ namespace fhatos {
 
     const char *name() const { return 0 == this->_path_length ? EMPTY_CHARS : this->_path[this->_path_length - 1]; }
 
+    bool empty() const {
+      return this->_path_length == 0 && !this->_host && !this->_scheme && !this->_user && !this->_password &&
+             !this->_fragment && !this->_query;
+    }
     uint8_t path_length() const { return this->_path_length; }
     /// QUERY
     const char *query() const { return this->_query ? this->_query : EMPTY_CHARS; }
@@ -195,9 +200,8 @@ namespace fhatos {
       ///         /abc ~> :xyz => /abc:xyz  NOT /:xyz             ///
       ///////////////////////////////////////////////////////////////
       if ((!other.toString().empty() && other.toString()[0] == ':') ||
-          (!this->path().empty() &&
-           this->path()[this->path().length() - 1] == ':'))
-        return this->path(this->path() + other.toString());
+          (!this->toString().empty() && this->toString()[this->toString().length() - 1] == ':'))
+        return UriX(this->toString() + other.toString());
       ///////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////
       if (other._path_length == 0)
@@ -230,7 +234,7 @@ namespace fhatos {
     }
 
 
-    bool match(const UriX &other) const {
+    bool matches(const UriX &other) const {
       return StringHelper::match(this->toString().c_str(), other.toString().c_str());
     }
     ////////////////////////////////////////////////////////////////

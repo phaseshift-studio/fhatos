@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #undef FOS_TEST_ON_BOOT
+#include <structure/uri.hpp>
 #include <test_fhatos.hpp>
-#include <util/uri.hpp>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
@@ -246,13 +246,17 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("/a", UriX("//127.0.0.1/a").path().c_str());
     TEST_ASSERT_EQUAL_STRING("/a/b/c", UriX("//127.0.0.1/a/b/c").path().c_str());
     TEST_ASSERT_EQUAL_STRING("/a/b/c", UriX("//fhat@127.0.0.1/a/b/c").path().c_str());
+    TEST_ASSERT_EQUAL_STRING("/a/b", UriX("furi://fhat@127.0.0.1/a/b/c/d/e").path(0, 2).c_str());
     TEST_ASSERT_EQUAL_STRING("b", UriX("furi://fhat@127.0.0.1/a/b/c/d/e").path(1));
-    TEST_ASSERT_EQUAL_STRING("/c/d/", UriX("fos://fhat@127.0.0.1/a/b/c/d/e").path(2, 4).c_str());
-    TEST_ASSERT_EQUAL_STRING("/e", UriX("fos://fhat@127.0.0.1/a/b/c/d/e").path(4, 5).c_str());
-    TEST_ASSERT_EQUAL_STRING("/", UriX("//fhat@127.0.0.1/a/b/c/d/e").path(5, 6).c_str());
+    TEST_ASSERT_EQUAL_STRING("c/d", UriX("fos://fhat@127.0.0.1/a/b/c/d/e").path(2, 4).c_str());
+    TEST_ASSERT_EQUAL_STRING("e", UriX("fos://fhat@127.0.0.1/a/b/c/d/e").path(4, 5).c_str());
+    TEST_ASSERT_EQUAL_STRING("e/", UriX("fos://fhat@127.0.0.1/a/b/c/d/e/").path(4, 5).c_str());
+    TEST_ASSERT_EQUAL_STRING("", UriX("//fhat@127.0.0.1/a/b/c/d/e").path(5, 6).c_str());
     TEST_ASSERT_EQUAL_STRING("", UriX("//fhat@127.0.0.1/a/b/c/d/e").path(6));
     TEST_ASSERT_EQUAL_STRING("/a/b/c/d/e", UriX("/a/b/c/d/e").path().c_str());
     TEST_ASSERT_EQUAL_STRING("/a/b/c/d/e", UriX("//x@/a/b/c/d/e").path().c_str());
+    TEST_ASSERT_EQUAL_STRING("c/d", UriX("/a/b/c/d/e").path(2, 4).c_str());
+    TEST_ASSERT_EQUAL_STRING("c/d", UriX("//x@/a/b/c/d/e").path(2, 4).c_str());
     //
     TEST_ASSERT_EQUAL_INT(0, UriX("").path_length());
     TEST_ASSERT_EQUAL_INT(0, UriX("foi://fhat@127.0.0.1").path_length());
@@ -290,6 +294,12 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("?a,b,c"), UriX("").query("a,b,c"));
   }
 
+  void test_uri_empty() {
+    TEST_ASSERT_TRUE(UriX("").empty());
+    TEST_ASSERT_FALSE(UriX("fos:").empty());
+    TEST_ASSERT_FALSE(UriX("a/b/c").empty());
+    TEST_ASSERT_FALSE(UriX("http://a.com:34/b/c#det").empty());
+  }
 
   ///////////////////////////////////////////
   ///////////////////////////////////////////
@@ -358,6 +368,7 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d"), UriX("/a/b/c/d").resolve(UriX("../../d")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b/c/d").resolve(UriX("../../d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d/"), UriX("/a/b/c/d").resolve(UriX("../../../d/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("/d/"), UriX("/a/b/c/d").resolve(UriX("../.././.././d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d"), UriX("/a/b").resolve(UriX("./d")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b").resolve(UriX("./d/")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/a/d/"), UriX("/a/b").resolve(UriX("././d/")));
@@ -366,21 +377,36 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/b/c"), UriX("a").resolve(UriX("/b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("b/c"), UriX("a").resolve(UriX("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("a"), UriX("a").resolve(UriX("a")));
-    /////////////////
+    ///////////////// mm-ADT specific :-based resolution
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs:").resolve("root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs:root"), UriX("/inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs:").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs::").resolve("root"));
-   // FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs").resolve("::root"));
+    // FOS_TEST_ASSERT_EQUAL_FURI(UriX("/inst/fs::root"), UriX("/inst/fs").resolve("::root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://inst/fs:root"), UriX("x://inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root"), UriX("x://user@inst/fs:").resolve("root"));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs:root/more"), UriX("x://user@inst/fs:").resolve("root/more"));
+    FOS_TEST_ASSERT_EQUAL_FURI(UriX("x://user@inst/fs::root/more"), UriX("x://user@inst/fs:").resolve(":root/more"));
     /////////////////
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://fhat@127.0.0.1/b/c"), UriX("foi://fhat@127.0.0.1/a").resolve(UriX("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(UriX("foi://fhat@127.0.0.1/b/c"),
                                UriX("foi://fhat@127.0.0.1/a").resolve(UriX("foi://fhat@fhat.org/b/c")));
   }
 
+  void test_fhat_idioms() {
+    UriX nat("/int/nat");
+    TEST_ASSERT_EQUAL_STRING("nat", nat.name());
+    TEST_ASSERT_EQUAL_STRING("/int/nat", nat.toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("int", nat.path(0));
+    TEST_ASSERT_EQUAL_STRING("nat", nat.path(1));
+    TEST_ASSERT_EQUAL_STRING("", nat.path(3));
+    TEST_ASSERT_EQUAL_INT(2, nat.path_length());
+    TEST_ASSERT_EQUAL_STRING("/", nat.path(0, 0).c_str());
+    TEST_ASSERT_EQUAL_STRING("/int", nat.path(0, 1).c_str());
+    TEST_ASSERT_EQUAL_STRING("/int/nat", nat.path(0, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("nat", nat.path(1, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING("", nat.path(2, 2).c_str());
+  }
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_uri_components); //
@@ -392,10 +418,12 @@ namespace fhatos {
       FOS_RUN_TEST(test_uri_authority); //
       FOS_RUN_TEST(test_uri_path); //
       FOS_RUN_TEST(test_uri_query); //
+      FOS_RUN_TEST(test_uri_empty); //
       //
       FOS_RUN_TEST(test_uri_extend); //
       FOS_RUN_TEST(test_uri_resolve); //
-  )
+      //
+      FOS_RUN_TEST(test_fhat_idioms);)
 } // namespace fhatos
 
 SETUP_AND_LOOP();
