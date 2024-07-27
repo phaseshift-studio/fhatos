@@ -21,7 +21,6 @@
 
 #include <fhatos.hpp>
 #include <string.h>
-#include <structure/uri.hpp>
 #include <util/ptr_helper.hpp>
 // #include <memory>
 // #include <utility>
@@ -465,9 +464,9 @@ namespace fhatos {
     // Pattern(const ID &id) : Pattern(id.toString()) {
     // }
 
-    Pattern(const string &furiString) : fURI(furiString){};
+    Pattern(const string &uriString) : fURI(uriString){};
 
-    Pattern(const char *furiCharacters) : fURI(furiCharacters){};
+    Pattern(const char *uriChars) : fURI(uriChars){};
 
     bool colocated(const fURI &furi) const override {
       return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);

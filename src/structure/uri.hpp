@@ -234,7 +234,7 @@ namespace fhatos {
     }
 
 
-    bool matches(const UriX &other) const {
+    virtual bool matches(const UriX &other) const {
       return StringHelper::match(this->toString().c_str(), other.toString().c_str());
     }
     ////////////////////////////////////////////////////////////////
@@ -358,7 +358,8 @@ namespace fhatos {
           } else {
             token += t;
           }
-        }*/ else if (t != '\xFF') {
+        }*/
+        else if (t != '\xFF') {
           this->spostfix = false;
           token += t;
         }
@@ -413,10 +414,94 @@ namespace fhatos {
       }
       if (this->_query)
         uri.append("?").append(this->_query);
-     // if (this->_fragment)
-     //   uri.append("#").append(this->_fragment);
+      // if (this->_fragment)
+      //   uri.append("#").append(this->_fragment);
       return uri;
     }
+  };
+
+  class ID final : public UriX {
+  public:
+    ID(const UriX &id) : ID(id.toString()) {}
+
+    ID(const string &furiString) : UriX(furiString) {}
+
+    ID(const char *furiCharacters) : UriX(furiCharacters) {
+      try {
+        if (strchr(furiCharacters, '#')) {
+          throw fError("%s\n", "IDs can not contain pattern symbols: #");
+        } else if (strchr(furiCharacters, '+')) {
+          throw fError("%s\n", "IDs can not contain pattern symbols: +");
+        }
+      } catch (const fError &e) {
+        if (this->_path_length > 0) {
+          for (uint8_t i = 0; i < this->_path_length; i++) {
+            delete this->_path[i];
+          }
+          delete _path;
+        }
+        this->_path_length = 0;
+        throw;
+      }
+    }
+
+    // const bool isPattern() const override { return false; }
+  };
+
+  using ID_p = ptr<ID>;
+
+  using SourceID = ID;
+  using TargetID = ID;
+
+  class Pattern : public UriX {
+  public:
+    Pattern(const UriX &uri) : Pattern(uri.toString()) {}
+
+    // Pattern(const ID &id) : Pattern(id.toString()) {
+    // }
+
+    Pattern(const string &uriString) : UriX(uriString){};
+
+    Pattern(const char *uriChars) : UriX(uriChars){};
+
+    /* bool colocated(const fURI &furi) const override {
+       return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);
+     }*/
+
+    bool matches(const UriX &pattern) const override {
+      return StringHelper::match(pattern.toString().c_str(), this->toString().c_str());
+    }
+  };
+
+  using UriX_p = ptr<UriX>;
+  class BaseIDed {
+  public:
+    virtual ~BaseIDed() = default;
+    virtual ID_p id() const { return nullptr; }
+    virtual bool equals(const BaseIDed &other) const { return false; }
+  };
+  using Patter_p = ptr<Pattern>;
+
+  class IDed : public BaseIDed {
+  public:
+    ~IDed() override = default;
+
+    explicit IDed(const UriX_p &uri) : _id(share(ID(*uri))) {}
+    explicit IDed(const ID_p &id) : _id(id) {}
+
+    ID_p id() const override { return this->_id; }
+
+    // const String toString() const { return this->id().toString(); }
+
+    bool equals(const BaseIDed &other) const override { return this->_id->equals(*other.id()); }
+
+
+  protected:
+    ptr<ID> _id;
+  };
+
+  struct furi_comp : public std::less<UriX_p> {
+    auto operator()(const UriX_p &a, const UriX_p &b) const { return a->toString() < b->toString(); }
   };
 } // namespace fhatos
 
