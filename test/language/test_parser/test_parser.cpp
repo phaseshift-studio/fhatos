@@ -27,7 +27,7 @@ namespace fhatos {
   }
 
   void test_bool_parsing() {
-    Types::singleton()->saveType("/bool/fact", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/bool/fact"), Obj::to_bcode({}));
     for (const auto &trip: List<Trip<string, bool, fURI>>({{"true", true, *BOOL_FURI},
                                                            {"false", false, *BOOL_FURI},
                                                            {"fact[true]", true, BOOL_FURI->resolve("fact")}})) {
@@ -39,8 +39,8 @@ namespace fhatos {
   }
 
   void test_int_parsing() {
-    Types::singleton()->saveType("/int/zero", Obj::to_bcode({}));
-    Types::singleton()->saveType("/int/nat", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/int/zero"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode({}));
     for (auto &trip: List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
                                                             {"0", 0, *INT_FURI},
                                                             {"-12", -12, *INT_FURI},
@@ -58,8 +58,8 @@ namespace fhatos {
   }
 
   void test_real_parsing() {
-    Types::singleton()->saveType("/real/zero", Obj::to_bcode({}));
-    Types::singleton()->saveType("/real/nat", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/real/zero"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/real/nat"), Obj::to_bcode({}));
     // REAL
     for (auto &trip:
          List<Trip<string, FL_REAL_TYPE, fURI>>({{"45.1", 45.1f, *REAL_FURI},
@@ -79,8 +79,8 @@ namespace fhatos {
   }
 
   void test_uri_parsing() {
-    Types::singleton()->saveType("/uri/x", Obj::to_bcode({}));
-    Types::singleton()->saveType("/uri/furi:", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/uri/x"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/uri/furi:"), Obj::to_bcode({}));
     for (auto &trip: List<Trip<string, fURI, fURI>>({{"<blah.com>", fURI("blah.com"), *URI_FURI},
                                                      {"ga", fURI("ga"), *URI_FURI},
                                                      {"x[x]", fURI("x"), URI_FURI->resolve("x")},
@@ -94,8 +94,8 @@ namespace fhatos {
   }
 
   void test_str_parsing() {
-    Types::singleton()->saveType("/str/name", Obj::to_bcode({}));
-    Types::singleton()->saveType("/str/origin", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/str/name"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/str/origin"), Obj::to_bcode({}));
     for (auto &trip: List<Trip<string, string, fURI>>(
              {{"'bob'", "bob", *STR_FURI},
               {"'ga'", "ga", *STR_FURI},
@@ -111,10 +111,11 @@ namespace fhatos {
 
   void test_lst_parsing() {
     // LST
-    Types::singleton()->saveType("/lst/atype", Obj::to_bcode({}));
-    Types::singleton()->saveType("/lst/btype", Obj::to_bcode({}));
-    Types::singleton()->saveType("/lst/ctype", Obj::to_bcode({}));
-    Types::singleton()->saveType("/bool/abool", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/lst/atype"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/lst/btype"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/lst/ctype"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/bool/abool"), Obj::to_bcode({}));
     for (auto &trip: List<Trip<string, List<Obj_p>, fURI>>(
              {{"['a',13,actor,false]",
                {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
@@ -161,12 +162,12 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
-    Types::singleton()->saveType("/rec/person", //
-                                 Obj::to_bcode({})); //
-    Types::singleton()->saveType("/rec/atype", Obj::to_bcode({}));
-    Types::singleton()->saveType("/rec/btype", Obj::to_bcode({}));
-    Types::singleton()->saveType("/rec/ctype", Obj::to_bcode({}));
-    Types::singleton()->saveType("/bool/abool", Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/rec/person"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/rec/atype"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/rec/btype"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/rec/ctype"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/bool/abool"), Obj::to_bcode({}));
     List<string> forms = {"['a'=>13,actor=>false]",
                           "['a' => 13,actor => false ]",
                           "['a'=> 13 , actor=>false]",
@@ -177,38 +178,37 @@ namespace fhatos {
                           "ctype[  ['a'=>    13 ,  actor=>   false]]"};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
-      const ptr<Rec> rc1 = Parser::singleton()->tryParseObj(form).value();
+      const Rec_p rc1 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc1->o_type());
-      TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value());
-      TEST_ASSERT_TRUE(rc1->rec_get(ptr<Int>(new Int(13)))->isNoObj());
-      TEST_ASSERT_TRUE(rc1->rec_get(ptr<Str>(new Str("no key")))->isNoObj());
-      TEST_ASSERT_FALSE(rc1->rec_get(share(u("actor")))->bool_value());
+      TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value()); // a's value is 13
+      TEST_ASSERT_TRUE(rc1->rec_get(Obj::to_int(13))->isNoObj()); // no key is 13
+      TEST_ASSERT_TRUE(rc1->rec_get(Obj::to_str("no key"))->isNoObj()); // no key is no key
+      TEST_ASSERT_FALSE(rc1->rec_get(u_p("/rec/actor"))->bool_value());
     }
 
-    forms = {"person[[age=>nat[29],name=>'dogturd']]", "person[[age=>nat[29],name=>'dogturd']]"
+    forms = {"person[[:age=>nat[29],:name=>'dogturd']]", "person[[:age=>nat[29],:name=>'dogturd']]"
              /*"person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"*/};
     for (const string &form: forms) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
       TEST_ASSERT_EQUAL_STRING("person", rc2->id()->name());
-      TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u("age"))->int_value());
-      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u("name"))->str_value().c_str());
+      TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u("/rec/person:age"))->int_value());
+      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u("/rec/person:name"))->str_value().c_str());
       TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
       TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
-      // TEST_ASSERT_TRUE(rc2->rec_get(Obj::to_uri("actor@127.0.0.1"))->isNoObj());
     }
     ///////////////////////////////////
-    const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,actor=>['b'=>1,'c'=>3]]").value();
+    const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
     TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
     TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
     //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
-    TEST_ASSERT_TRUE(rc2->rec_get("actor")->isNoObj()); // it's a string, not a uri
-    const ptr<Rec> rc3 = rc2->rec_get(u("actor"));
+    TEST_ASSERT_TRUE(rc2->rec_get("/actor")->isNoObj()); // it's a string, not a uri
+    const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
     TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
-    TEST_ASSERT_EQUAL_STRING("['a'=>13,actor=>['b'=>1,'c'=>3]]",
+    TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
                              GLOBAL_OPTIONS->printer<>()->strip(rc2->toString().c_str()));
 
     ////// match testing
@@ -239,13 +239,13 @@ namespace fhatos {
 
   void test_to_from() {
     if (GLOBAL_OPTIONS->router<Router>()->toString() != "MqttRouter") {
-      FOS_CHECK_RESULTS<Int>({10}, List<string>({"__(y).to(x)", "__(z).to(y)", "__(10).to(z)"}));
-      /* FOS_CHECK_RESULTS<Int>({10}, "from(z)");
+      FOS_CHECK_RESULTS<Int>({10}, List<string>({"x .~> y", "y .~> z", "z .~> 10"})); // TODO: fix to() so it doesn't Ø on start
+       FOS_CHECK_RESULTS<Int>({10}, "from(z)");
        FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
        FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
        FOS_CHECK_RESULTS<Int>({10}, "*z");
        FOS_CHECK_RESULTS<Int>({10}, "**y");
-       FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);*/
+       FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);
     }
   }
 

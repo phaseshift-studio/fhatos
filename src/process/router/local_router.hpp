@@ -64,32 +64,33 @@ namespace fhatos {
     RESPONSE_CODE publish(const Message &message) override {
       auto _rc = MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
         //////////////
-        RESPONSE_CODE _rc = message.retain ? OK : NO_TARGETS;
-        const Message_p mess_ptr = share<Message>(Message{
-            .source = message.source, .target = message.target, .payload = message.payload, .retain = message.retain});
+        const Message_p mess_ptr = share<Message>(Message{.source = message.source,
+                                                            .target = message.target,
+                                                            .payload = PtrHelper::clone(message.payload),
+                                                            .retain = message.retain});
+        RESPONSE_CODE _rc = mess_ptr->retain ? OK : NO_TARGETS;
         for (const auto &subscription: SUBSCRIPTIONS) {
-          if (subscription->pattern.matches(message.target)) {
+          if (subscription->pattern.matches(mess_ptr->target)) {
             try {
               if (subscription->mailbox) {
                 _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
-                // LOG(TRACE, "Message from %s delivered to %s\n", message.source.toString().c_str(),
-                //     subscription->source.toString().c_str());
+                LOG(TRACE, "Message from !b%s!! delivered to mailbox !b%s!!\n", mess_ptr->source.toString().c_str(),
+                    subscription->source.toString().c_str());
                 if (subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
-                  LOG(ERROR, "Actor mailbox size is beyond warning size of %i: [size:%i]\n", FOS_MAILBOX_WARNING_SIZE,
-                      subscription->mailbox->size());
+                  LOG(WARN, "Mailbox !b%s!! reached warning size of %i: [size:%i]\n",
+                      subscription->source.toString().c_str(), FOS_MAILBOX_WARNING_SIZE, subscription->mailbox->size());
                 }
               } else {
                 subscription->onRecv(mess_ptr);
                 _rc = OK;
               }
-
             } catch (const fError &e) {
               LOG_EXCEPTION(e);
               _rc = MUTEX_TIMEOUT;
             }
           }
         }
-        if (message.retain) {
+        if (mess_ptr->retain) {
           MUTEX_RETAIN.lockUnlock<void *>([this, mess_ptr]() {
             if (RETAINS.count(mess_ptr->target))
               RETAINS.erase(mess_ptr->target);
@@ -98,7 +99,7 @@ namespace fhatos {
           });
           LOG(DEBUG, "Total number of retained messages [size:%i]\n", RETAINS.size());
         }
-        LOG_PUBLISH(_rc, message);
+        LOG_PUBLISH(_rc, *mess_ptr);
         return _rc;
       });
       MESSAGE_INTERCEPT(message.source, message.target, message.payload, message.retain);

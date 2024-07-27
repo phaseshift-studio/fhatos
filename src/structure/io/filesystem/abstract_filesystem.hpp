@@ -54,7 +54,7 @@ namespace fhatos {
       Insts::register_inst(INST_FS_FURI->resolve("root"), [this](List<Obj_p>) {
         return Obj::to_inst(
             "root", {}, [this](const Obj_p &) { return this->root(); }, IType::ZERO_TO_ONE, Obj::to_noobj(),
-            share(INST_FS_FURI->resolve("root")));
+            share<ID>(INST_FS_FURI->resolve("root")));
       });
       Insts::register_inst(INST_FS_FURI->resolve("ls"), [this](List<Obj_p> args) {
         return Obj::to_inst(
@@ -62,13 +62,13 @@ namespace fhatos {
             [this, args](const Obj_p &lhs) {
               return args.empty() ? this->ls(lhs, "#") : this->ls(args.at(0)->apply(lhs), "#");
             },
-            IType::ONE_TO_MANY, Obj::to_objs(), share(INST_FS_FURI->resolve("ls")));
+            IType::ONE_TO_MANY, Obj::to_objs(), share<ID>(INST_FS_FURI->resolve("ls")));
       });
       Insts::register_inst(INST_FS_FURI->resolve("mkdir"), [this](List<Obj_p> args) {
         return Obj::to_inst(
             "mkdir", {args.at(0)},
             [this, args](const Obj_p &lhs) { return this->mkdir(args.at(0)->apply(lhs)->uri_value()); },
-            IType::ONE_TO_MANY, Obj::to_objs(), share(INST_FS_FURI->resolve("mkdir")));
+            IType::ONE_TO_MANY, Obj::to_objs(), share<ID>(INST_FS_FURI->resolve("mkdir")));
       });
       Insts::register_inst(INST_FS_FURI->resolve("more"), [this](List<Obj_p> args) {
         return Obj::to_inst(
@@ -76,12 +76,12 @@ namespace fhatos {
             [this, args](const Obj_p &lhs) {
               return args.empty() ? this->more(lhs) : this->more(args.at(0)->apply(lhs));
             },
-            IType::ONE_TO_ONE, Obj::to_noobj(), share(INST_FS_FURI->resolve("more")));
+            IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("more")));
       });
       Insts::register_inst(INST_FS_FURI->resolve("append"), [this](List<Obj_p> args) {
         return Obj::to_inst(
             "append", args, [this, args](const Obj_p &lhs) { return this->append(lhs, args.at(0)->apply(lhs)); },
-            IType::ONE_TO_ONE, Obj::to_noobj(), share(INST_FS_FURI->resolve("append")));
+            IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("append")));
       });
     }
 

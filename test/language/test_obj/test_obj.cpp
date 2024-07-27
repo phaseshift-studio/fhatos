@@ -10,7 +10,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_bool() {
-    Types::singleton()->saveType("/bool/truth", Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/bool/truth"), Obj::to_bcode({})); //
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
     const Bool_p boolB = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
@@ -39,8 +39,8 @@ namespace fhatos {
   }
 
   void test_int() {
-    Types::singleton()->saveType("/int/age", Obj::to_bcode({})); //
-    Types::singleton()->saveType("/int/nat", Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/int/age"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode({})); //
     const Int_p intA = share(Int(1));
     const Int_p intB = share<Int>(Int(1));
     const Int_p intC = share(Int(1, "/int/age"));
@@ -98,8 +98,8 @@ namespace fhatos {
   }
 
   void test_real() {
-    Types::singleton()->saveType("/real/money", Obj::to_bcode({})); //
-    Types::singleton()->saveType("/real/weight", Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/real/money"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/real/weight"), Obj::to_bcode({})); //
     const Real_p realA = share(Real(1.0f));
     const Real_p realB = share<Real>(Real(1.0f));
     const Real_p realC = share(Real(1.0f, "/real/money"));
@@ -147,9 +147,9 @@ namespace fhatos {
   }
 
   void test_str() {
-    Types::singleton()->saveType("/str/first_name", Obj::to_bcode({})); //
-    Types::singleton()->saveType("/str/letter", Obj::to_bcode({})); //
-    const Str strA = *Obj::to_str("fhat", share(fURI("/str/first_name")));
+    Types::singleton()->saveType(id_p("/str/first_name"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/str/letter"), Obj::to_bcode({})); //
+    const Str strA = *Obj::to_str("fhat", id_p("/str/first_name"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.isBytecode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
@@ -157,7 +157,7 @@ namespace fhatos {
   }
 
   void test_lst() {
-    Types::singleton()->saveType(ID("/lst/ones"), (Obj::to_lst({Obj::to_int(1), Obj::to_int(1), Obj::to_int(1)})));
+    Types::singleton()->saveType(id_p("/lst/ones"), Obj::to_lst({1, 1, 1}));
     const Lst lstA = *Obj::to_lst({1, 2, 3, 4});
     const Lst lstB = *Obj::to_lst({1, 2, 3, 4});
     const Lst lstC = *Obj::to_lst({2, 3, 4});
@@ -168,35 +168,34 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
     TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
     TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
-    lstC.lst_set(Obj::to_int(0), Obj::to_int(1));
+    lstC.lst_set(o_p(0), o_p(1));
     FOS_TEST_OBJ_EQUAL(&lstC, &lstA);
-    lstC.lst_set(Obj::to_int(4), Obj::to_int(5));
+    lstC.lst_set(o_p(4), o_p(5));
     FOS_TEST_OBJ_NOT_EQUAL(&lstC, &lstA);
     for (int i = 0; i < 4; i++) {
-      FOS_TEST_OBJ_EQUAL(Obj::to_int(i + 1), lstA.lst_get(Obj::to_int(i)));
-      FOS_TEST_OBJ_EQUAL(Obj::to_int(i + 1), lstB.lst_get(Obj::to_int(i)));
-      FOS_TEST_OBJ_EQUAL(Obj::to_int(i + 1), lstC.lst_get(Obj::to_int(i)));
+      FOS_TEST_OBJ_EQUAL(o_p(i + 1), lstA.lst_get(o_p(i)));
+      FOS_TEST_OBJ_EQUAL(o_p(i + 1), lstB.lst_get(o_p(i)));
+      FOS_TEST_OBJ_EQUAL(o_p(i + 1), lstC.lst_get(o_p(i)));
     }
-    const Lst lstD = *Obj::to_lst({1, 1, 1});
-    TEST_ASSERT_EQUAL_STRING("/lst/ones", lstD.as("/lst/ones")->id()->toString().c_str());
+    const Lst_p lstD = Obj::to_lst({1, 1, 1});
+    TEST_ASSERT_EQUAL_STRING("/lst/ones", lstD->as("/lst/ones")->id()->toString().c_str());
     try {
       Obj_p x = lstA.as("/lst/ones");
       TEST_FAIL_MESSAGE("Should throw exception");
-    } catch (const fError &e) {
+    } catch (const fError &) {
       TEST_ASSERT_TRUE(true);
     }
   }
 
   void test_rec() {
-    Types::singleton()->saveType("/rec/mail", Obj::to_bcode({})); //
-    Types::singleton()->saveType("/real/cost", Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/rec/mail"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/real/cost"), Obj::to_bcode({})); //
     const Rec recA = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recB = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recC =
-        Obj(share(Obj::RecMap<>(
-                {make_pair<const Obj_p, Obj_p>(Obj::to_str("a", share(fURI("/str/letter"))), share(Int(1))),
-                 make_pair<const Obj_p, Obj_p>(Obj::to_str("b", share(fURI("/str/letter"))), share(Int(2)))})),
-            share(fURI("/rec/mail")));
+        Obj(share(Obj::RecMap<>({make_pair<const Obj_p, Obj_p>(Obj::to_str("a", id_p("/str/letter")), share(Int(1))),
+                                 make_pair<const Obj_p, Obj_p>(Obj::to_str("b", id_p("/str/letter")), share(Int(2)))})),
+            id_p("/rec/mail"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recC).c_str());
     TEST_ASSERT_TRUE(recA == recB);
     TEST_ASSERT_FALSE(recA != recB);
@@ -258,7 +257,7 @@ namespace fhatos {
   }*/
 
   void test_inst_bcode() {
-    Fluent f = __(*BCode::to_bcode({Insts::plus(share(Int(1)))})).plus(2).mult(3);
+    Fluent f = __(*BCode::to_bcode({Insts::plus(o_p(1))})).plus(2).mult(3);
     f.forEach<Obj>([](const Obj_p &x) { LOG(INFO, "%s\n", x->toString().c_str()); });
   }
 

@@ -13,8 +13,8 @@ namespace fhatos {
 
   template<typename ROUTER>
   void test_actor_throughput() {
-    std::atomic<int> *counter1 = new std::atomic<int>(0);
-    std::atomic<int> *counter2 = new std::atomic<int>(0);
+    auto counter1 = new std::atomic<int>(0);
+    auto counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread>(ID("/app/actor1@127.0.0.1"), [counter1](Actor<Thread> *self) {
       self->subscribe(ID("/app/actor1@127.0.0.1"), [counter1, self](const ptr<Message> &message) {
         self->publish(ID("/app/actor2@127.0.0.1"), share(Int(counter1->load())), TRANSIENT_MESSAGE);

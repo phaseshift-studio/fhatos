@@ -2,11 +2,11 @@ INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.2)  # CMake version check
 PROJECT(fhatos)
-#OPTION(USE_CCACHE "Use ccache" OFF) # ON/OFF
-#IF (USE_CCACHE)
-#    SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-#ENDIF ()
-SET("-Wno-dev") # mqtt-c library warning
+OPTION(USE_CCACHE "Use ccache" ON) # ON/OFF
+IF (USE_CCACHE)
+    SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+ENDIF ()
+SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 IF (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -101,14 +101,8 @@ IF (BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES
-            ${ROOT_SOURCE_DIR}/process/router/router.hpp
-            ${ROOT_SOURCE_DIR}/process/router/local_router.hpp
-            ${ROOT_SOURCE_DIR}/fhatos.hpp
-            ${ROOT_SOURCE_DIR}/language/obj.hpp
-            ${ROOT_SOURCE_DIR}/process/abstract_scheduler.hpp
-            ${ROOT_SOURCE_DIR}/structure/furi.hpp)
-    # TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE ${HEADER_FILES})
+    SET(HEADER_FILES ${ROOT_SOURCE_DIR}/cached_headers.hpp)
+    TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE ${HEADER_FILES})
     ###############################
     ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator")
     ADD_DEFINITIONS("-DNATIVE")

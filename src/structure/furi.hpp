@@ -49,7 +49,6 @@ namespace fhatos {
     const char *_fragment = nullptr;
 
   public:
-
     const char *scheme() const { return this->_scheme ? this->_scheme : EMPTY_CHARS; }
     fURI scheme(const char *scheme) {
       fURI newURI = fURI(*this);
@@ -194,7 +193,7 @@ namespace fhatos {
       return newURI;
     }
 
-    fURI resolve(const fURI &other) const {
+    virtual fURI resolve(const fURI &other) const {
       ///////////////////////////////////////////////////////////////
       ////////////  mm-ADT specific resolution pattern //////////////
       ///////////////////////////////////////////////////////////////
@@ -446,7 +445,6 @@ namespace fhatos {
         throw;
       }
     }
-
     // const bool isPattern() const override { return false; }
   };
 
@@ -488,7 +486,7 @@ namespace fhatos {
   public:
     ~IDed() override = default;
 
-    explicit IDed(const fURI_p &uri) : _id(share(ID(*uri))) {}
+    explicit IDed(const fURI_p &uri) : _id(share(ID(uri->toString()))) {}
     explicit IDed(const ID_p &id) : _id(id) {}
 
     ID_p id() const override { return this->_id; }
@@ -505,6 +503,8 @@ namespace fhatos {
   struct furi_comp : public std::less<fURI_p> {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
+
+  static ID_p id_p(const ID &id) { return share(id); }
 } // namespace fhatos
 
 #endif

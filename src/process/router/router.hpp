@@ -172,36 +172,34 @@ namespace fhatos {
 
     template<typename OBJ = Obj>
     static ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      Router *router = GLOBAL_OPTIONS->router<Router>();
-      auto *thing = new std::atomic<OBJ *>(nullptr);
-      auto *done = new std::atomic_bool(false);
+      auto *router = GLOBAL_OPTIONS->router<Router>();
+      auto *thing = new std::atomic<const Obj *>(nullptr);
       router->subscribe(
-          Subscription{.source = source, .pattern = target, .onRecv = [thing, done](const Message_p &message) {
-                         thing->store(new OBJ(*message->payload));
-                         done->store(true);
+          Subscription{.source = source, .pattern = target, .onRecv = [thing](const Message_p &message) {
+                         // TODO: try to not copy obj while still not accessing heap after delete
+                         const Obj *obj = new Obj(Any(message->payload->_value), message->payload->id());
+                         thing->store(obj);
                        }});
       const time_t startTimestamp = time(nullptr);
-      while (!done->load()) {
-        if ((time(nullptr) - startTimestamp) > ((uint8_t) router->_level) + 1) {
+      while (!thing->load()) {
+        if ((time(nullptr) - startTimestamp) > static_cast<uint8_t>(router->_level) + 1) {
           break;
         }
       }
       router->unsubscribe(source, target);
       if (nullptr == thing->load()) {
         delete thing;
-        delete done;
         return Obj::to_noobj();
       } else {
-        ptr<OBJ> ret = ptr<OBJ>(thing->load());
+        ptr<OBJ> ret = ptr<OBJ>((OBJ *) thing->load());
         delete thing;
-        delete done;
         return ret;
       }
     }
 
     static Rec_p readPattern(const Pattern &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      Router *router = GLOBAL_OPTIONS->router<Router>();
-      Obj::RecMap<> *map = new Obj::RecMap<>();
+      auto *router = GLOBAL_OPTIONS->router<Router>();
+      auto *map = new Obj::RecMap<>();
       router->subscribe(Subscription{.source = source, .pattern = target, .onRecv = [map](const Message_p &message) {
                                        map->insert({Obj::to_uri(message->target), message->payload});
                                      }});

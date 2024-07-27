@@ -24,6 +24,7 @@
 #include <random>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <util/string_printer.hpp>
 using namespace std;
 namespace fhatos {
@@ -232,7 +233,7 @@ namespace fhatos {
 
 
     static string sillyPrint(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
-      std::srand(std::time(nullptr));
+      std::srand(time(nullptr));
       const string colors = "rgbmcy";
       string ret;
       for (size_t i = 0; i < strlen(text); i++) {
