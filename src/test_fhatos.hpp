@@ -22,19 +22,49 @@
 #include <fhatos.hpp>
 #include <unity.h>
 
-#ifndef FOS_LOG_TYPE
-#define FOS_LOG_TYPE INFO
+#define FOS_INCLUDES 0
+#define FOS_SCHEDULER 1
+#define FOS_ROUTER 2
+#define FOS_LANGUAGE 3
+#define FOS_FULL_BOOT 4
+#define TEST_REQUIREMENTS FOS_FULL_BOOT
+
+#ifndef FOS_LOGGING
+#define FOS_LOGGING INFO
 #endif
 
 /*
- TODO: COME UP WITH A #define FEATURE MATRIX THAT INDIVIDUAL TESTS CAN INHERIT
-    e.g.
-      1. bare bones (test responisble for all imports and global structures/processes)
-      2. language only (no routers, processes, etc.)
-      3. process only
-      4. structure only
-      5. full boot environment
+#if TEST_REQUIREMENTS >= 4
+#include <structure/kernel.hpp>
+#endif
+
+#if TEST_REQUIREMENTS >= 3
+#include <language/fluent.hpp>
+#include <language/parser.hpp>
+#endif
+
+#if TEST_REQUIREMENTS >= 2
+#include <process/router/local_router.hpp>
+#include <process/router/meta_router.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
+#ifndef FOS_TEST_ROUTERS
+#ifdef NATIVE
+#define FOS_TEST_ROUTERS LocalRouter::singleton(),MqttRouter::singleton(),MetaRouter::singleton()
+#else
+#define FOS_TEST_ROUTERS LocalRouter::singleton()
+#endif
+#endif
+#define FOS_STOP_ON_BOOT                                                                                               \
+  for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                             \
+    router->clear();                                                                                                   \
+  }
+#endif
+
+#if TEST_REQUIREMENTS >= 1
+#include FOS_PROCESS(scheduler.hpp)
+#endif
 */
+
 
 #ifdef FOS_TEST_ON_BOOT
 #include <language/fluent.hpp>
@@ -57,7 +87,7 @@
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Kernel::build()                                                                                                      \
       ->initialPrinter(Ansi<>::singleton())                                                                            \
-      ->initialLogLevel(FOS_LOG_TYPE)                                                                                  \
+      ->initialLogLevel(FOS_LOGGING)                                                                                  \
       ->withSplash(ANSI_ART)                                                                                           \
       ->withNote("Use !bØ!! for noobj")                                                                                \
       ->withNote("Use :help for console commands")                                                                     \
@@ -72,7 +102,7 @@
 #else
 #define FOS_SETUP_ON_BOOT                                                                                              \
   GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();                                                                      \
-  GLOBAL_OPTIONS->LOGGING = FOS_LOG_TYPE
+  GLOBAL_OPTIONS->LOGGING = FOS_LOGGING
 #define FOS_STOP_ON_BOOT ;
 #endif
 ////////////////////////////////////////////////////////

@@ -31,13 +31,7 @@ namespace fhatos {
   protected:
     Router *_local;
     Router *_global;
-    Router *select(const ID &target) const {
-      if (!target.empty() && target.toString()[0] == '/')
-        return this->_local; //   /abc/
-      if (target.length() <= 1)
-        return this->_local; //   abc
-      return this->_global; //   127.0.0.1/abc/
-    }
+    Router *select(const ID &target) const { return (strlen(target.host()) == 0) ? this->_global : this->_local; }
 
   public:
     static MetaRouter *singleton(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
@@ -46,12 +40,12 @@ namespace fhatos {
       return &singleton;
     }
 
-   explicit MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
-               Router *global = MqttRouter::singleton()) : Router(id), _local(local), _global(global) {}
+    explicit MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
+                        Router *global = MqttRouter::singleton()) : Router(id), _local(local), _global(global) {}
 
     RESPONSE_CODE clear() override {
-      RESPONSE_CODE __rc1 = this->_local->clear();
-      RESPONSE_CODE __rc2 = this->_global->clear();
+      const RESPONSE_CODE __rc1 = this->_local->clear();
+      const RESPONSE_CODE __rc2 = this->_global->clear();
       return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
     }
 

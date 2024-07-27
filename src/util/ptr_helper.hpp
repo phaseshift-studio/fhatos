@@ -27,7 +27,7 @@ namespace fhatos {
   private:
     template<typename T = Obj>
     struct NonDeleter {
-      void operator()(const T *ptr) { /*LOG(INFO, "Deleting...not!\n");*/
+      void operator()(const T *) { /*LOG(INFO, "Deleting...not!\n");*/
       }
     };
 

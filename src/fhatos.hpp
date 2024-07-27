@@ -148,9 +148,10 @@ namespace fhatos {
   using string = std::string;
   using fbyte = uint8_t;
   using uint = unsigned int;
-  static const char* EMPTY_CHARS = "";
+  static const char *EMPTY_CHARS = "";
   enum OPTIONS { router, printer, logger };
   static Map<OPTIONS, Any> GLOBAL = Map<OPTIONS, Any>();
+
   ////////////
   // MACROS //
   ////////////

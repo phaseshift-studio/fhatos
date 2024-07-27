@@ -43,13 +43,13 @@ namespace fhatos {
       TYPE_WRITER(*FILE_FURI, Obj::to_bcode({}));
       TYPE_WRITER(*DIR_FURI, Obj::to_bcode({}));
       this->publish(*this->id(), this->root()->apply(Obj::to_noobj()), RETAIN_MESSAGE);
-      this->subscribe("#", [this](const Message_p &message) {
+      /*this->subscribe("#", [this](const Message_p &message) {
         if (message->retain) {
           const ID file = makeRouterPath(message->target);
           const File_p f = this->exists(file) ? this->to_file(file) : this->touch(file);
           this->append(f, message->payload);
         }
-      });
+      });*/
       ///////////////////////////////////////////////////////////////////
       Insts::register_inst(INST_FS_FURI->resolve("root"), [this](List<Obj_p>) {
         return Obj::to_inst(
@@ -85,8 +85,8 @@ namespace fhatos {
       });
     }
 
-    virtual File_p to_file(const ID &) const { throw fError("must be implemented"); }
-    virtual Dir_p to_dir(const ID &) const { throw fError("must be implemented"); }
+    virtual File_p to_file(const ID &) const { throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem","to_file"); }
+    virtual Dir_p to_dir(const ID &) const {  throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem","to_dir"); }
     virtual ID makeLocalPath(const ID &) const { throw fError("must be implemented"); }
     virtual ID makeFilePath(const ID &path) const {
       return ID(path.toString().substr(this->id()->toString().length() + 1));
@@ -94,7 +94,7 @@ namespace fhatos {
     virtual ID makeFhatPath(const ID &path) const { return this->id()->extend(path.toString().c_str()); }
     virtual ID makeRouterPath(const ID &path) const { return ID(this->id()->toString() + "/" + path.toString()); }
     ////
-    virtual Dir_p root() const { throw fError("must be implemented"); }
+    virtual Dir_p root() const {  throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem","root"); }
     virtual bool exists(const ID &) const { throw fError("must be implemented"); }
     virtual Dir_p mkdir(const ID &) const { throw fError("must be implemented"); }
     virtual Objs_p ls(const Dir_p &, const Pattern &) const { throw fError("must be implemented"); }

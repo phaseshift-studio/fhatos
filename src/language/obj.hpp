@@ -249,8 +249,7 @@ namespace fhatos {
       TYPE_CHECKER(*this, otype, typeId);
       this->_id = share(ID(typeId));
     }
-    explicit Obj(const Any &value, const fURI_p &typeId) :
-        Obj(value, OTypes.toEnum(typeId->path(0, 1).c_str()), *typeId) {}
+    explicit Obj(const Any &value, const fURI_p &typeId) : Obj(value, OTypes.toEnum(typeId->path(0)), *typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, const int lineNumber = __LINE__) {
       // if(true) exit(1);
@@ -296,7 +295,7 @@ namespace fhatos {
       }
     }*/
     //////////////////////////////////////////////////////////////
-    OType o_type() const { return OTypes.toEnum(this->_id->path(0, 1).c_str()); }
+    OType o_type() const { return OTypes.toEnum(this->_id->path(0)); }
     template<typename VALUE>
     VALUE value() const {
       try {
@@ -546,13 +545,9 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()));
       }
-      objString =
-          includeType
-              ? (this->_id->path_length() > 1 && !this->_id->name().empty()
-                     ? (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!b/!!")) +
-                           ("!b" + this->_id->name() + "!g[!!" + objString + "!g]!!")
-                     : (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!!")) + objString)
-              : objString;
+      objString = (includeType && this->_id->path_length() > 1)
+                      ? string("!b").append(this->_id->name()).append("!g[!!").append(objString).append("!g]!!")
+                      : objString;
       return ansi ? objString : GLOBAL_OPTIONS->printer<>()->strip(objString.c_str());
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
@@ -816,7 +811,7 @@ namespace fhatos {
     Obj operator[](Obj &key) const {
       switch (this->o_type()) {
         case OType::STR:
-          return Str(this->str_value()[key.int_value()]);
+          return Obj(this->str_value()[key.int_value()]);
         case OType::LST:
           return *this->lst_get(share(key));
         case OType::REC:
@@ -911,14 +906,14 @@ namespace fhatos {
                          : std::get<ptr<fURI>>(newType));
     }
 
-    const fURI type() const { return this->_id->authority(""); }
+    // const fURI type() const { return this->_id->authority(""); }
 
-    const bool match(const Obj_p &pattern, const bool sameType = true) const {
+    bool match(const Obj_p &pattern, const bool sameType = true) const {
       if (pattern->isNoOpBytecode())
         return true;
       if (pattern->isBytecode() && !this->isBytecode())
         return !pattern->apply(PtrHelper::no_delete<Obj>((Obj *) this))->isNoObj();
-      if (sameType && (this->type() != pattern->type()))
+      if (sameType && (this->id() != pattern->id()))
         return false;
       switch (this->o_type()) {
         case OType::NOOBJ:
@@ -1013,42 +1008,42 @@ namespace fhatos {
     static Obj_p to_noobj() { return share(Obj(nullptr, NOOBJ_FURI)); }
 
     static Bool_p to_bool(const bool value, const fURI_p &furi = BOOL_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::BOOL));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::BOOL));
       return share(Obj(value, furi));
     }
 
     static Int_p to_int(const FL_INT_TYPE value, const fURI_p &furi = INT_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::INT));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::INT));
       return share(Obj(value, furi));
     }
 
     static Real_p to_real(const FL_REAL_TYPE value, const fURI_p &furi = REAL_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::REAL));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::REAL));
       return share(Obj(value, furi));
     }
 
     static Str_p to_str(const string &value, const fURI_p &furi = STR_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::STR));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::STR));
       return share(Obj(Any(value), furi));
     }
 
     static Str_p to_str(const char *value, const fURI_p &furi = STR_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::STR));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::STR));
       return share(Obj(Any(string(value)), furi));
     }
 
     static Uri_p to_uri(const fURI &value, const fURI_p &furi = URI_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::URI));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::URI));
       return share(Obj(value, furi));
     }
 
     static Uri_p to_uri(const char *value, const fURI_p &furi = URI_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::URI));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::URI));
       return share(Obj(value, furi));
     }
 
     static Lst_p to_lst(const LstList_p<> &xlst, const fURI_p &furi = LST_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::LST));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::LST));
       return share(Obj(xlst, furi));
     }
 
@@ -1065,7 +1060,7 @@ namespace fhatos {
     }
 
     static Rec_p to_rec(const RecMap_p<> &map, const fURI_p &furi = REC_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::REC));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::REC));
       RecMap_p<> convert = share(RecMap<>());
       for (const auto &[key, val]: *map) {
         convert->insert({key->isUri() ? Obj::to_uri(furi->resolve(key->uri_value())) : key,
@@ -1091,7 +1086,7 @@ namespace fhatos {
     }
 
     static Inst_p to_inst(const InstValue &value, const fURI_p &furi = INST_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::INST));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::INST));
       return share(Inst(value, furi));
     }
 
@@ -1102,17 +1097,17 @@ namespace fhatos {
     }
 
     static BCode_p to_bcode(const List<Inst_p> &insts, const fURI_p &furi = BCODE_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::BCODE));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::BCODE));
       return share(BCode(insts, furi));
     }
 
     static Objs_p to_objs(const fURI_p &furi = OBJS_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::OBJS));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::OBJS));
       return Obj::to_objs(share(List<Obj_p>()), furi);
     }
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const fURI_p &furi = OBJS_FURI) {
-      assert(furi->path(0, 1) == OTypes.toChars(OType::OBJS));
+      fError::OTYPE_CHECK(furi->path(0),OTypes.toChars(OType::OBJS));
       Objs_p os = share(Objs(objs, furi));
       return os;
     }
@@ -1149,8 +1144,5 @@ namespace fhatos {
   static Uri_p u_p(const char *uri) { return share(Uri(fURI(uri))); }
   static Uri_p u_p(const string uri) { return share(Uri(fURI(uri))); }
   static Obj_p o_p(const Obj &obj) { return share(obj); }
-
 } // namespace fhatos
-
-
 #endif

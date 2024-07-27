@@ -105,7 +105,6 @@ namespace fhatos {
             {":quit", {"destroy console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
-
     void loop() override {
       Actor<Thread>::loop();
       //// PROMPT

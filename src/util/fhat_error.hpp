@@ -93,6 +93,13 @@ namespace fhatos {
     static fError X_REQUIRES_IMPLEMENTATION(const char *clazz, const char *member) {
       return fError("Member is abstract and requires an implementation: %s::%s\n", clazz, member);
     }
+
+    static void OTYPE_CHECK(const char *typeId, const char *otype) {
+      if (strcmp(typeId, otype) != 0)
+        throw fError("!b%s!! is not typed !y%s!!\n", typeId, otype);
+    }
+
+    // static fError ERROR_BY_IDED()
   };
 }
 #undef FOS_ERROR_MESSAGE_SIZE

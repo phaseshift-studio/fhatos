@@ -16,413 +16,410 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_furi_hpp
-#define fhatos_furi_hpp
+#ifndef fhatos_uri_hpp
+#define fhatos_uri_hpp
 
 #include <fhatos.hpp>
-#include <string.h>
-#include <util/ptr_helper.hpp>
-// #include <memory>
-// #include <utility>
-
-namespace private_fhatos {
-  static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
-    char *copy;
-    const char *freeable_copy = copy = strdup(text);
-    char *token;
-    int i = offset;
-    if (strstr(text, deliminator)) {
-      while ((token = strsep(&copy, deliminator)) != nullptr) {
-        if (strlen(token) > 0) {
-          result[i] = strdup(token);
-          i++;
-        }
-      }
-    }
-    size_t dl = strlen(deliminator);
-    char *substr = new char[dl + 1];
-    strncpy(substr, text + (strlen(text) - dl), dl);
-    substr[dl] = '\0';
-    if (strlen(substr) > 0 && strcmp(substr, deliminator) == 0) {
-      result[i] = strdup("");
-      i++;
-    }
-    // delete substr;
-    delete token;
-    delete freeable_copy;
-    return i;
-  }
-
-  static bool match(const char *id_cstr, const char *pattern_cstr) {
-    if (strstr(pattern_cstr, "#") == nullptr && strstr(pattern_cstr, "+") == nullptr)
-      return strcmp(id_cstr, pattern_cstr) == 0;
-    if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
-      return true;
-    char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
-    char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
-    int idLength = split(id_cstr, "/", idParts);
-    if (id_cstr[strlen(id_cstr) - 1] == '/')
-      idLength++;
-    const int patternLength = split(pattern_cstr, "/", patternParts);
-    // LOG(DEBUG, "Matching: %s <=> %s\n", id, pattern);
-    const bool result = [idParts, patternParts, idLength, patternLength]() {
-      for (int i = 0; i < idLength; i++) {
-        if (i >= patternLength)
-          return false;
-        //   LOG(DEBUG, "\t%s <=%i=> %s\n", idParts[i], i, patternParts[i]);
-        if (strcmp(patternParts[i], "#") == 0)
-          return true;
-        if ((strcmp(patternParts[i], "+") != 0) && (strcmp(patternParts[i], idParts[i]) != 0))
-          return false;
-      }
-      return patternLength == idLength;
-    }();
-    delete[] idParts;
-    delete[] patternParts;
-    return result;
-  }
-} // namespace private_fhatos
-
-///////////////////////////
-///// fURI/ID/Pattern /////
-///////////////////////////
-
-// furi://coil@127.0.0.1/devices/device/property
-// furi:/int/age
-// furi://127.0.01/car/wheel/
+//
+#include <sstream>
+#include <util/string_helper.hpp>
 
 namespace fhatos {
+
+  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY };
+  const static Enums<URI_PART> URI_PARTS = {
+      {URI_PART::SCHEME, "scheme"},     {URI_PART::USER, "user"},   {URI_PART::PASSWORD, "password"},
+      {URI_PART::HOST, "host"},         {URI_PART::PORT, "port"},   {URI_PART::PATH, "path"},
+      {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
+  };
+
   class fURI {
-    using fURI_p = ptr<fURI>;
 
   protected:
-    char **_segments;
-    uint8_t _length;
+    const char *_scheme = nullptr;
+    const char *_user = nullptr;
+    const char *_password = nullptr;
+    const char *_host = nullptr;
+    uint16_t _port = 0;
+    const char **_path = nullptr;
+    bool sprefix = false;
+    bool spostfix = false;
+    uint8_t _path_length = 0;
+    const char *_query = nullptr;
+    const char *_fragment = nullptr;
 
   public:
-    fURI() {
-      _length = 0;
-      _segments = nullptr;
+
+    const char *scheme() const { return this->_scheme ? this->_scheme : EMPTY_CHARS; }
+    fURI scheme(const char *scheme) {
+      fURI newURI = fURI(*this);
+      newURI._scheme = 0 == strlen(scheme) ? nullptr : scheme;
+      return newURI;
+    }
+    /// USER
+    const char *user() const { return this->_user ? this->_user : EMPTY_CHARS; }
+    fURI user(const char *user) const {
+      fURI newURI = fURI(*this);
+      newURI._user = 0 == strlen(user) ? nullptr : user;
+      return newURI;
+    }
+    /// PASSWORD
+    const char *password() const { return this->_password ? this->_password : EMPTY_CHARS; }
+    fURI password(const char *password) const {
+      fURI newURI = fURI(*this);
+      newURI._password = 0 == strlen(password) ? nullptr : password;
+      return newURI;
+    }
+    /// HOST
+    const char *host() const { return this->_host ? this->_host : EMPTY_CHARS; }
+    fURI host(const char *host) const {
+      fURI newURI = fURI(*this);
+      newURI._host = (0 == strlen(host) ? nullptr : host);
+      return newURI;
+    }
+    /// PORT
+    uint16_t port() const { return this->_port; }
+    fURI port(const uint16_t port) const {
+      fURI newURI = fURI(*this);
+      newURI._port = port;
+      return newURI;
+    }
+    /// AUTHORITY
+    string authority() const {
+      string _authority;
+      if (this->_user) {
+        _authority += this->_user;
+      }
+      if (this->_password) {
+        _authority += ':';
+        _authority += this->_password;
+      }
+      if (this->_host) {
+        if (this->_user || this->_password)
+          _authority += '@';
+        _authority += this->_host;
+      }
+      if (this->_port) {
+        _authority += ':';
+        _authority += to_string(this->_port);
+      }
+      return _authority;
     }
 
-    fURI(const fURI &furi) {
-      this->_segments = new char *[furi._length];
-      for (int i = 0; i < furi._length; i++) {
-        this->_segments[i] = strdup(furi._segments[i]);
-      }
-      this->_length = furi._length;
-    };
-
-    fURI(const string &furiString) : fURI(furiString.c_str()) {}
-
-    fURI(const char *furiCharacters) {
-      if ((strlen(furiCharacters) == 0) || (strlen(furiCharacters) == 1 && furiCharacters[0] == '/')) {
-        this->_length = 0;
-        this->_segments = new char *[0];
-      } else {
-        uint8_t counter = 0;
-        uint8_t length = strlen(furiCharacters);
-        for (uint8_t i = 0; i < length; i++) {
-          if (furiCharacters[i] == '/')
-            counter++;
+    /// PATH
+    string path(const uint8_t start, const uint8_t end) const {
+      string path_str;
+      if (this->_path) {
+        if (this->sprefix && start == 0)
+          path_str += '/';
+        for (uint8_t i = start; i < end && i < this->_path_length; i++) {
+          path_str += this->_path[i];
+          if (i != end - 1)
+            path_str += '/';
         }
-        const char *scheme = strstr(furiCharacters, "://");
-        this->_segments = new char *[counter + 1];
-        if (counter == 0) {
-          this->_segments[0] = strdup(furiCharacters);
-          this->_length = 1;
+        if (this->spostfix && end >= this->_path_length)
+          path_str += '/';
+      }
+      return path_str;
+    }
+    string path() const { return this->path(0, this->path_length()); }
+    const char *path(const uint8_t segment) const {
+      return (this->_path && this->_path_length > segment) ? this->_path[segment] : EMPTY_CHARS;
+    }
+    fURI path(const string &path) const {
+      fURI newURI = fURI(this->toString());
+      newURI._path = new const char *[20]; // TODO: make dynamic/intelligent
+      newURI._path_length = 0;
+      std::stringstream ss = std::stringstream(path);
+      string segment;
+      uint8_t i = 0;
+      while (!ss.eof()) {
+        char c = ss.get();
+        if (c == EOF)
+          break;
+        if (c == '/') {
+          newURI._path[i] = strdup(segment.c_str());
+          segment.clear();
+          i++;
         } else {
-          if (furiCharacters[0] == '/') {
-            this->_segments[0] = strdup("");
-            this->_length = private_fhatos::split(furiCharacters, "/", this->_segments, 1);
-          } else if (scheme) {
-            this->_length = private_fhatos::split(scheme + 2, "/", this->_segments);
-            string schemeString = string(furiCharacters);
-            this->_segments[0] = strdup(
-                (schemeString.substr(0, schemeString.find_first_of("://")) + "://" + string(_segments[0])).c_str());
-          } else {
-            this->_length = private_fhatos::split(furiCharacters, "/", this->_segments);
+          segment += c;
+        }
+      }
+      newURI.sprefix = false;
+      if (segment.empty()) {
+        newURI._path_length = i;
+        newURI.spostfix = true;
+      } else {
+        newURI._path[i] = strdup(segment.c_str());
+        newURI._path_length = i + 1;
+        newURI.spostfix = false;
+      }
+      return newURI;
+    }
+
+    const char *name() const { return 0 == this->_path_length ? EMPTY_CHARS : this->_path[this->_path_length - 1]; }
+
+    bool empty() const {
+      return this->_path_length == 0 && !this->_host && !this->_scheme && !this->_user && !this->_password &&
+             !this->_fragment && !this->_query;
+    }
+    uint8_t path_length() const { return this->_path_length; }
+    /// QUERY
+    const char *query() const { return this->_query ? this->_query : EMPTY_CHARS; }
+    fURI query(const char *query) const {
+      fURI newURI = fURI(*this);
+      newURI._query = 0 == strlen(query) ? nullptr : query;
+      return newURI;
+    }
+    /// FRAGMENT
+    const char *fragment() const { return this->_fragment ? this->_fragment : EMPTY_CHARS; }
+    fURI fragment(const char *fragment) const {
+      fURI newURI = fURI(*this);
+      newURI._fragment = 0 == strlen(fragment) ? nullptr : fragment;
+      return newURI;
+    }
+    ////////////////////////////////////////////////////////////////
+
+    fURI extend(const char *extension) const {
+      return this->path(this->path() + (this->path().ends_with("/") ? "" : "/") + extension);
+    }
+
+    fURI retract() const {
+      fURI newURI = fURI(*this);
+      if (this->_path_length > 0) {
+        newURI._path_length = newURI._path_length - 1;
+      } else {
+        newURI.sprefix = false;
+      }
+      return newURI;
+    }
+
+    fURI resolve(const fURI &other) const {
+      ///////////////////////////////////////////////////////////////
+      ////////////  mm-ADT specific resolution pattern //////////////
+      ///////////////////////////////////////////////////////////////
+      ///         /abc ~> :xyz => /abc:xyz  NOT /:xyz             ///
+      ///////////////////////////////////////////////////////////////
+      if ((!other.toString().empty() && other.toString()[0] == ':') ||
+          (!this->toString().empty() && this->toString()[this->toString().length() - 1] == ':'))
+        return fURI(this->toString() + other.toString());
+      ///////////////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////////////
+      if (other._path_length == 0)
+        return *this;
+      if (other.path().find('.') == string::npos) {
+        string otherPath = other.path();
+        if (otherPath[0] == '/')
+          return this->path(other.path());
+        if (this->_path_length == 0)
+          return this->extend(other.path().c_str());
+        if (this->spostfix)
+          return this->extend(other.path().c_str());
+        if (this->path().find('/') == string::npos)
+          return this->path(other.path());
+        return this->retract().extend(other.path().c_str());
+      }
+      fURI newURI = fURI(*this);
+      if (!newURI.spostfix)
+        newURI = newURI.retract();
+      for (uint8_t i = 0; i < other._path_length; i++) {
+        if (strcmp(other.path(i), "..") == 0) {
+          newURI = newURI.retract();
+
+        } else if (strcmp(other.path(i), ".") != 0)
+          newURI = newURI.extend(other.path(i));
+        if (other.path()[other.path().length() - 1] == '/')
+          newURI = newURI.extend("");
+      }
+      return newURI;
+    }
+
+
+    virtual bool matches(const fURI &other) const {
+      return StringHelper::match(this->toString().c_str(), other.toString().c_str());
+    }
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    virtual ~fURI() = default;
+    fURI(const char *uriChars) : fURI(string(uriChars)) {}
+    fURI(const string &uriString) {
+      this->_path = new const char *[10];
+      std::stringstream ss = std::stringstream(uriString);
+      string token;
+      URI_PART part = URI_PART::SCHEME;
+      bool hasUserInfo = uriString.find_first_of('@') != string::npos;
+      bool foundAuthority = false;
+      while (!ss.eof()) {
+        char t = ss.get();
+        if (!foundAuthority && t == '/' && ss.peek() == '/') {
+          foundAuthority = true;
+          if (part == URI_PART::SCHEME || part == URI_PART::USER) {
+            part = URI_PART::USER;
+            ss.get();
           }
+        } else if (t == ':') {
+          if (part == URI_PART::SCHEME) {
+            this->_scheme = strdup(token.c_str());
+            part = URI_PART::USER;
+            token.clear();
+          } else if (part == URI_PART::USER) {
+            if (hasUserInfo) {
+              this->_user = strdup(token.c_str());
+              part = URI_PART::PASSWORD;
+            } else {
+              this->_host = strdup(token.c_str());
+              part = URI_PART::PORT;
+            }
+            token.clear();
+          } else if (part == URI_PART::HOST) {
+            this->_host = strdup(token.c_str());
+            part = URI_PART::PORT;
+            token.clear();
+          } else {
+            token += t;
+          }
+        } else if (t == '@') {
+          if (part == URI_PART::USER || part == URI_PART::PASSWORD) {
+            if (this->_user) {
+              this->_password = strdup(token.c_str());
+            } else {
+              this->_user = strdup(token.c_str());
+            }
+            part = URI_PART::HOST;
+            token.clear();
+          } else {
+            token += t;
+          }
+        } else if (t == '/') {
+          if (part == URI_PART::PORT) {
+            this->_port = stoi(token);
+            part = URI_PART::PATH;
+            this->sprefix = true;
+            token.clear();
+          } else if (part == URI_PART::SCHEME || part == URI_PART::HOST || part == URI_PART::USER ||
+                     part == URI_PART::PASSWORD) {
+            if (foundAuthority) {
+              this->_host = strdup(token.c_str());
+              part = URI_PART::PATH;
+              this->sprefix = true;
+            } else {
+              if (!token.empty()) { // TODO: what about empty components?
+                this->_path[this->_path_length] = strdup(token.c_str());
+                this->_path_length = this->_path_length + 1;
+              } else {
+                this->sprefix = true;
+              }
+              part = URI_PART::PATH;
+            }
+            token.clear();
+          } else if (part == URI_PART::PATH) {
+            this->_path[this->_path_length] = strdup(token.c_str());
+            this->_path_length = this->_path_length + 1;
+            this->spostfix = true;
+            token.clear();
+          } else {
+            token += t;
+          }
+        } else if (t == '?') {
+          if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
+            if (!token.empty()) {
+              this->_path[this->_path_length] = strdup(token.c_str());
+              this->_path_length = this->_path_length + 1;
+            } else
+              this->spostfix = true;
+            part = URI_PART::QUERY;
+            this->_query = "";
+            token.clear();
+          } else if (part == URI_PART::HOST || part == URI_PART::USER) {
+            _host = strdup(token.c_str());
+            part = URI_PART::QUERY;
+            token.clear();
+          } else {
+            token += t;
+          }
+        } /*else if (t == '#') {
+          if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
+            if (!token.empty()) {
+              this->_path[this->_path_length] = strdup(token.c_str());
+              this->_path_length = this->_path_length + 1;
+            } else
+              this->spostfix = true;
+            part = URI_PART::FRAGMENT;
+            this->_fragment = "";
+            token.clear();
+          } else if (part == URI_PART::HOST || part == URI_PART::USER) {
+            _host = strdup(token.c_str());
+            part = URI_PART::FRAGMENT;
+            token.clear();
+          } else if (part == URI_PART::QUERY) {
+            this->_query = strdup(token.c_str());
+            part = URI_PART::FRAGMENT;
+            token.clear();
+          } else {
+            token += t;
+          }
+        }*/
+        else if (t != '\xFF') {
+          this->spostfix = false;
+          token += t;
         }
       }
-    };
-
-    const bool operator==(const fURI &other) const { return this->equals(other); }
-
-    const bool operator!=(const fURI &other) const { return !this->equals(other); }
-
-    virtual ~fURI() {
-      if (this->_length > 0) {
-        for (uint8_t i = 0; i < this->_length; i++) {
-          delete this->_segments[i];
+      if (!token.empty()) {
+        if ((!foundAuthority && part != URI_PART::FRAGMENT && part != URI_PART::QUERY) || part == URI_PART::PATH ||
+            part == URI_PART::SCHEME) {
+          this->_path[this->_path_length] = strdup(token.c_str());
+          this->_path_length = this->_path_length + 1;
+        } else if (part == URI_PART::HOST || part == URI_PART::USER) {
+          this->_host = strdup(token.c_str());
+        } else if (part == URI_PART::PORT) {
+          this->_port = stoi(token);
+        } else if (part == URI_PART::QUERY) {
+          this->_query = strdup(token.c_str());
+        } else if (part == URI_PART::FRAGMENT) {
+          this->_fragment = strdup(token.c_str());
         }
       }
-      delete[] this->_segments;
     }
 
-    /* const string name() const {
-       for (int i = this->length() - 1; i >= 0; i--) {
-         if (strlen(this->_segments[i]) > 0)
-           return string(this->_segments[i]);
-       }
-       return "none";
-     }*/
+    bool operator<(const fURI &other) const { return this->toString() < other.toString(); }
+    bool operator!=(const fURI &other) const { return !this->equals(other); }
+    bool operator==(const fURI &other) const {
+      return this->toString() == other.toString();
+    } // TODO: do field-wise comparisons
+    bool equals(const fURI &other) const { return *this == other; }
 
-    // const bool operator==(const fURI other) const { return this->equals(other); }
-    const fURI resolve(const char *segments) const {
-      if (strlen(segments) == 0)
-        return *this;
-      if (segments[0] == ':' || this->path()[this->path().length() - 1] == ':')
-        return fURI(this->toString() + segments);
-      if (segments[0] == '/')
-        return fURI(segments);
-      if (this->path_length() == 0 || (segments[0] == '/' && this->toString()[this->toString().length() - 1] == '/'))
-        return fURI(this->path("").toString() + "/" + string(segments));
-      if (this->path_length() > 0 &&
-          ((segments[0] != '/' && segments[0] != '.') || this->path()[this->path().length() - 1] != '/'))
-        return this->retract().extend(segments);
-      if (segments[0] != '/' && segments[0] != '.' && this->toString()[this->toString().length() - 1] == '/')
-        return this->extend(segments);
-      if (this->toString().find('/') == string::npos)
-        return fURI(segments);
-      char **s2 = new char *[FOS_MAX_FURI_SEGMENTS];
-      const int l2 = private_fhatos::split(segments, "/", s2);
-      fURI result = fURI(this->path_length() > 0 ? string(this->retract().toString()) : string(this->toString()));
-      for (int i = 0; i < l2; i++) {
-        if (strcmp(s2[i], "..") == 0) {
-          result = fURI(result.retract());
-        } else if (strcmp(s2[i], ".") == 0) {
-          // do nothing
-        } else {
-          result = fURI(result.extend(s2[i]));
-        }
-      }
-      for (int i = 0; i < l2; i++) {
-        delete s2[i];
-      }
-      delete[] s2;
-      return result;
-    }
-    const fURI extend(const char *segments) const {
-      if (strlen(segments) == 0)
-        return *this;
-      string newURI = this->toString();
-      if (segments[0] != '/')
-        newURI += '/';
-      newURI += segments;
-      return fURI(newURI);
-    }
-
-    bool isAbsolute() const { return this->path_length() > 0 && this->segment(0).empty(); }
-
-    bool isRelative() const { return !isAbsolute(); }
-
-    virtual const bool isPattern() const {
-      for (uint8_t i = 0; i < this->_length; i++) {
-        if (strchr(this->_segments[i], '#') || strchr(this->_segments[i], '+'))
-          return true;
-      }
-      return false;
-    }
-
-    const fURI retract(const bool fromRight = true) const {
-      if (this->empty())
-        return *this;
-      string path;
-      if (fromRight) {
-        for (uint8_t i = 0; i < this->_length - 1; i++) {
-          if (i > 0)
-            path += "/";
-          path += this->_segments[i];
-        }
-      } else {
-        for (uint8_t i = 1; i < this->_length; i++) {
-          if (i > 1)
-            path += "/";
-          path += this->_segments[i];
-        }
-      }
-      return fURI(path);
-    }
-
-    uint8_t length() const { return this->_length; }
-
-    bool empty() const { return 0 == this->_length; }
-
-    virtual bool matches(const fURI &pattern) const {
-      return private_fhatos::match(this->toString().c_str(), pattern.toString().c_str());
-    }
-
-    const string segment(const uint8_t index) const { return string(this->_segments[index]); }
-
-    const string name() const { return string(this->_segments[this->_length - 1]); }
-
-    uint8_t path_length() const { return this->_length == 0 ? 0 : this->_length - 1; }
-
-    const fURI path(const char *newPath) const { return fURI(this->authority()).extend(newPath); }
-
-    const string path(const uint8_t startSegment = 0, const uint8_t endSegment = UINT8_MAX - 1) const {
-      string temp;
-      if (this->_length > 1) {
-        uint8_t end = (endSegment + 1) > _length ? _length : (endSegment + 1);
-        for (uint8_t i = startSegment + 1; i < end; i++) {
-          temp += this->_segments[i];
-          temp += "/";
-        }
-      }
-      return temp.empty() ? temp : temp.substr(0, temp.length() - 1);
-    }
-
-    const fURI user(const char *user) const {
-      return this->authority(
-          this->host().empty() ? user : (strlen(user) == 0 ? this->host() : string(user) + "@" + this->host()));
-    }
-
-    const Option<string> user() const {
-      Option<Pair<string, string>> temp = this->user_password();
-      return temp.has_value() ? temp->first : Option<string>();
-    }
-
-    const Option<Pair<string, string>> user_password() const {
-      if (const int i = this->scheme("").authority().find('@'); i < 0)
-        return {};
-      else {
-        string userpass = this->scheme("").authority().substr(0, i);
-        const int j = userpass.find(':');
-        if (j < 0)
-          return {{userpass, string()}};
-        else
-          return {{userpass.substr(0, j), userpass.substr(j + 1)}};
-      }
-    }
-
-    const string host() const {
-      string temp = this->scheme("").authority();
-      if (temp.empty() || temp.at(temp.length() - 1) == '@')
-        return string();
-      int i = temp.find('@');
-      return (i < 0) ? temp : temp.substr(i + 1);
-    }
-
-    const fURI host(const char *host) const {
-      string temp;
-      const Option<Pair<string, string>> x = this->user_password();
-      if (x.has_value()) {
-        temp = temp + x.value().first;
-        if (!x.value().second.empty())
-          temp = temp + ":" + x.value().second;
-        temp = temp + "@";
-      }
-      temp = temp + host;
-      return this->authority(temp);
-    }
-
-    const string scheme() const {
-      const size_t colonIndex = string(this->_segments[0]).find_first_of(':');
-      if (std::string::npos == colonIndex) {
-        return string("");
-      } else {
-        return string(this->_segments[0]).substr(0, colonIndex);
-      }
-    }
-
-    const fURI scheme(const string &scheme) const {
-      const int index = string(this->_segments[0]).find_first_of(':');
-      const int colonSlashSlashIndex = string(this->_segments[0]).find("://");
-      if (std::string::npos == index) {
-        if (scheme.empty()) {
-          return *this;
-        } else {
-          return fURI(scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") +
-                      this->toString());
-        }
-      } else if (scheme.empty()) {
-        fURI temp = fURI(*this);
-        temp._segments[0] = strdup(
-            string(temp._segments[0]).substr(index + (std::string::npos == colonSlashSlashIndex ? 1 : 3)).c_str());
-        return temp;
-      } else {
-        fURI temp = fURI(*this);
-        temp._segments[0] = strdup((scheme + (this->host().empty() || this->user_password().has_value() ? "://" : ":") +
-                                    string(temp._segments[0]).substr(index + 1))
-                                       .c_str());
-        return temp;
-      }
-    }
-
-    const string authority() const { return this->_length > 0 ? string(this->_segments[0]) : string(); }
-
-    const fURI authority(const string &authority) const {
-      if (fURI temp = fURI(*this); temp._length == 0)
-        return fURI(authority);
-      else {
-        delete temp._segments[0];
-        temp._segments[0] = strdup(authority.c_str());
-        return temp;
-      }
-    }
-
-    bool hasQuery(const string &check = "?") const { return strstr(this->_segments[this->_length - 1], check.c_str()); }
-
-    const string query() const {
-      for (uint8_t i = 0; i < this->_length; i++) {
-        char *ptr = strchr(_segments[i], '?');
-        if (ptr) {
-          return string(ptr);
-        }
-      }
-      return string();
-    }
-
-    const fURI query(const char *query) const {
-      const string temp = string(this->toString().c_str());
-      const int index = temp.find('?');
-      const fURI furi = index < 0 ? *this : fURI(temp.substr(0, index));
-      return fURI(string(furi.toString()).append(query));
-    }
-
-    /* const fURI query(const char* key, const char* value, const char* delim="&") {
-
-     }*/
-
-    virtual bool colocated(const fURI &other) const { return this->host() == other.host(); }
-
-    // const char *c_str() const { return this->toString().c_str(); }
     const string toString() const {
-      string temp;
-      for (uint8_t i = 0; i < this->_length; i++) {
-        temp.append(this->_segments[i]);
-        if (i != this->_length - 1)
-          temp.append("/");
+      string uri;
+      if (this->_scheme)
+        uri.append(this->_scheme).append(":");
+      if (this->_host || this->_user) {
+        uri.append("//");
+        if (this->_user) {
+          uri.append(this->_user);
+          if (this->_password)
+            uri.append(":").append(this->_password);
+          uri.append("@");
+        }
+        if (this->_host) {
+          uri.append(this->_host);
+          if (this->_port > 0)
+            uri.append(":").append(std::to_string(this->_port));
+        }
       }
-      return temp;
-    }
-
-    bool equals(const fURI &other) const {
-      if (this->_length != other._length)
-        return false;
-      for (uint8_t i = 0; i < this->_length; i++) {
-        if (strcmp(this->_segments[i], other._segments[i]) != 0)
-          return false;
+      if (this->sprefix)
+        uri.append("/");
+      for (int i = 0; i < this->_path_length; i++) {
+        uri.append(this->_path[i]);
+        if (i < (this->_path_length - 1) || this->spostfix)
+          uri.append("/");
       }
-      return true;
+      if (this->_query)
+        uri.append("?").append(this->_query);
+      // if (this->_fragment)
+      //   uri.append("#").append(this->_fragment);
+      return uri;
     }
-
-    bool subfuri(const fURI furi) const {
-      if (this->_length <= furi._length)
-        return false;
-      for (uint8_t i = 0; i < furi._length; i++) {
-        if (strcmp(this->_segments[i], furi._segments[i]) != 0)
-          return false;
-      }
-      return true;
-    }
-
-    bool operator<(const fURI &furi) const { return this->toString() < furi.toString(); }
-
-    bool isLocal(const fURI &other) const { return this->host() == other.host(); }
-
-    const fURI resolve(const fURI base) const { return this->resolve(base.toString().c_str()); }
   };
 
   class ID final : public fURI {
@@ -439,19 +436,20 @@ namespace fhatos {
           throw fError("%s\n", "IDs can not contain pattern symbols: +");
         }
       } catch (const fError &e) {
-        if (this->_length > 0) {
-          for (uint8_t i = 0; i < this->_length; i++) {
-            delete this->_segments[i];
+        if (this->_path_length > 0) {
+          for (uint8_t i = 0; i < this->_path_length; i++) {
+            delete this->_path[i];
           }
-          delete _segments;
+          delete _path;
         }
-        this->_length = 0;
+        this->_path_length = 0;
         throw;
       }
     }
 
-    const bool isPattern() const override { return false; }
+    // const bool isPattern() const override { return false; }
   };
+
   using ID_p = ptr<ID>;
 
   using SourceID = ID;
@@ -459,7 +457,7 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
-    Pattern(const fURI &fURI) : Pattern(fURI.toString()) {}
+    Pattern(const fURI &uri) : Pattern(uri.toString()) {}
 
     // Pattern(const ID &id) : Pattern(id.toString()) {
     // }
@@ -468,12 +466,12 @@ namespace fhatos {
 
     Pattern(const char *uriChars) : fURI(uriChars){};
 
-    bool colocated(const fURI &furi) const override {
-      return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);
-    }
+    /* bool colocated(const fURI &furi) const override {
+       return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);
+     }*/
 
     bool matches(const fURI &pattern) const override {
-      return private_fhatos::match(pattern.toString().c_str(), this->toString().c_str());
+      return StringHelper::match(pattern.toString().c_str(), this->toString().c_str());
     }
   };
 
@@ -482,15 +480,15 @@ namespace fhatos {
   public:
     virtual ~BaseIDed() = default;
     virtual ID_p id() const { return nullptr; }
-    virtual bool equals(const BaseIDed &other) const { return false; }
+    virtual bool equals(const BaseIDed &) const { return false; }
   };
   using Patter_p = ptr<Pattern>;
 
   class IDed : public BaseIDed {
   public:
-    virtual ~IDed() = default;
+    ~IDed() override = default;
 
-    explicit IDed(const fURI_p &furi) : _id(share(ID(*furi))) {}
+    explicit IDed(const fURI_p &uri) : _id(share(ID(*uri))) {}
     explicit IDed(const ID_p &id) : _id(id) {}
 
     ID_p id() const override { return this->_id; }
@@ -504,11 +502,9 @@ namespace fhatos {
     ptr<ID> _id;
   };
 
-  struct furi_comp : public std::less<ptr<fURI>> {
+  struct furi_comp : public std::less<fURI_p> {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 } // namespace fhatos
-
-#undef FOS_MAX_FURI_SEGMENT_LENGTH
 
 #endif

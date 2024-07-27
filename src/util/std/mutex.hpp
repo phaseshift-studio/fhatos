@@ -46,7 +46,7 @@ namespace fhatos {
       }
     }
 
-    const bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
+     bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
       const long timestamp =
           std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
               .count();
@@ -62,7 +62,7 @@ namespace fhatos {
       }
     }
 
-    const bool unlock() {
+     bool unlock() {
       this->xmutex->unlock();
       return true;
     }

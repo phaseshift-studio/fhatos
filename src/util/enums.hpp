@@ -34,7 +34,7 @@ namespace fhatos {
         if (pair.first == e)
           return pair.second;
       }
-      throw fError("toChars enum not found: %i\n", e);
+      throw fError("!ychars!! not found for enum !b%i!!\n", e);
     }
 
     ENUM toEnum(const char *s) const {
@@ -42,7 +42,7 @@ namespace fhatos {
         if (strcmp(pair.second, s) == 0)
           return pair.first;
       }
-      throw fError("toEnum enum not found: %s\n", s);
+      throw fError("!yenum!! not found for chars !b%s!!\n", s);
     }
   };
 } // namespace fhatos

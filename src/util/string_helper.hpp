@@ -131,13 +131,7 @@ namespace fhatos {
         }
         return patternLength == idLength;
       }();
-      for (size_t i = 0; i < idLength; i++) {
-        delete[] idParts[i];
-      }
       delete[] idParts;
-      for (size_t i = 0; i < patternLength; i++) {
-        delete[] patternParts[i];
-      }
       delete[] patternParts;
       return result;
     }

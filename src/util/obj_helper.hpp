@@ -30,8 +30,7 @@ namespace fhatos {
 
     static fError *sameTypes(const ptr<Obj> &a, const ptr<Obj> &b) {
       // LOG(DEBUG,"%s %s\n",a->toString().c_str(),b->toString().c_str());
-      return (a->o_type() == b->o_type() &&
-              a->o_type() == b->o_type() /*&& a->_furi->v_furi()->equals(*b->type()->v_furi()*/)
+      return (a->o_type() == b->o_type() /*&& a->_furi->v_furi()->equals(*b->type()->v_furi()*/)
                  ? nullptr
                  : new fError("Types are not equivalent: %s != %s\n", a->toString().c_str(), b->toString().c_str());
     }
@@ -51,7 +50,7 @@ namespace fhatos {
               "\t!gsize!!  (bytes) : %lu\n"
               "\t!gbcode!!         : %s\n"
               "\t!gvalue!!         : %s",
-              obj.id()->name().c_str(), obj.id()->toString().c_str(), OTypes.toChars(obj.o_type()),
+              obj.id()->name(), obj.id()->toString().c_str(), OTypes.toChars(obj.o_type()),
               OTypes.toChars(obj.o_type()), sizeof(obj), FOS_BOOL_STR(obj.isBytecode()),
               obj.isBytecode() ? obj.toString().c_str() : obj.toString(false).c_str());
       return string(a);

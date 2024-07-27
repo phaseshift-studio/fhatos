@@ -97,7 +97,7 @@ namespace fhatos {
           CACHE->insert({typeId, PtrHelper::clone<Obj>(obj)});
           if (writeThrough)
             Router::write(typeId, obj);
-          if (OType::INST == OTypes.toEnum(typeId.path(0, 1).c_str())) {
+          if (OType::INST == OTypes.toEnum(typeId.path(0))) {
             const Inst_p inst = Insts::to_inst(typeId, *obj->lst_value());
             LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId.toString().c_str(),
                      obj->lst_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
@@ -123,10 +123,9 @@ namespace fhatos {
         return Option<Obj_p>();
       });
     }
-    // bool checkType(const Obj &obj, const OType otype, const Type_p type, const bool doThrow =true) const {}
     bool checkType(const Obj &obj, const OType otype, const ID &typeId, const bool doThrow = true) const
         noexcept(false) {
-      const OType typeOType = OTypes.toEnum(typeId.path(0, 1).c_str());
+      const OType typeOType = OTypes.toEnum(typeId.path(0));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;
       if (otype != typeOType) {
@@ -135,7 +134,7 @@ namespace fhatos {
                        obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
-      if (typeId.path_length() == 2 && typeId.name().empty()) {
+      if (typeId.path_length() == 1) { // base type (otype)
         return true;
       }
       const Option<Type_p> type = loadType(typeId);

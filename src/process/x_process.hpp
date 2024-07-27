@@ -61,7 +61,7 @@ namespace fhatos {
 
     bool running() const { return this->_running.load(); }
 
-    virtual void delay(const uint64_t milliseconds){};
+    virtual void delay(const uint64_t){}; // milliseconds
 
     virtual void yield(){}; // throw fError::X_REQUIRES_IMPLEMENTATION("XProcess", "yield"); };
   };

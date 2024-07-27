@@ -51,7 +51,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(intA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("/int/", intA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("", intA->id()->name().c_str());
+    TEST_ASSERT_EQUAL_STRING("", intA->id()->name());
     TEST_ASSERT_EQUAL_STRING("int", intA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
     TEST_ASSERT_FALSE(intA->isNoObj());
@@ -110,7 +110,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(realA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("/real/", realA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("", realA->id()->name().c_str());
+    TEST_ASSERT_EQUAL_STRING("", realA->id()->name());
     TEST_ASSERT_EQUAL_STRING("real", realA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
     TEST_ASSERT_FALSE(realA->isNoObj());

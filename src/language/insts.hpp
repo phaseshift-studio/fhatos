@@ -391,10 +391,10 @@ namespace fhatos {
           [obj](const Obj_p &lhs) {
             List<Obj_p> ret;
             if (obj->isLst() && lhs->isLst()) {
-              for (int i = 0; i <= (lhs->lst_value()->size() - obj->lst_value()->size()); i++) {
+              for (size_t i = 0; i <= (lhs->lst_value()->size() - obj->lst_value()->size()); i++) {
                 bool match = true;
                 List<Obj_p> m;
-                for (int j = 0; j < obj->lst_value()->size(); j++) {
+                for (size_t j = 0; j < obj->lst_value()->size(); j++) {
                   const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j));
                   match = !x->isNoObj() && match;
                   if (!match)
@@ -411,7 +411,7 @@ namespace fhatos {
           IType::ONE_TO_MANY);
     }
 
-    static Obj_p within(const BCode_p code) {
+    static Obj_p within(const BCode_p&) {
       return nullptr;
       /*return Obj::to_inst(
          "within", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
@@ -443,7 +443,7 @@ namespace fhatos {
       if (rhs->isLst()) {
         Router::write(lhs->uri_value(), rhs);
         const Lst_p lst2 = rhs->apply(lhs);
-        for (uint8_t i = 0; i < lst2->lst_value()->size(); i++) {
+        for (size_t i = 0; i < lst2->lst_value()->size(); i++) {
           const Uri_p u = Obj::to_uri(fURI(string("_") + std::to_string(i)))->apply(lhs);
           Router::write(u->uri_value(), lst2->lst_value()->at(i));
         }
