@@ -33,7 +33,7 @@ namespace fhatos {
     explicit Types(const ID &id = ID("/type/")) : Coroutine(id) {}
 
   protected:
-    Map<fURI_p, Type_p> *CACHE = new Map<fURI_p, Type_p>();
+    Map<ID_p, Type_p> *CACHE = new Map<ID_p, Type_p>();
     Map<const char *, ID_p> *PREFIXES = new Map<const char *, ID_p>();
     MutexRW<> *CACHE_MUTEX = new MutexRW<>();
 
@@ -69,15 +69,15 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     void loadExt(const ID &extId) const {
-      for (const Pair<ID, Type_p> &pair: Exts::exts(extId)) {
-        this->saveType(share(pair.first), pair.second, true);
+      for (const Pair<ID_p, Type_p> &pair: Exts::exts(extId)) {
+        this->saveType(pair.first, pair.second, true);
       }
     }
-    void saveType(const std::initializer_list<Pair<fURI, string>> &types, const bool writeThrough = true) const {
+   /* void saveType(const std::initializer_list<Pair<ID, string>> &types, const bool writeThrough = true) const {
       for (const auto &pair: types) {
-        saveType(share<ID>(pair.first), TYPE_PARSER(pair.second), writeThrough);
+        saveType(share(pair.first), TYPE_PARSER(pair.second), writeThrough);
       }
-    }
+    }*/
 
     void savePrefix(const char *prefix, const ID &furi) {
       if (PREFIXES->count(prefix)) {

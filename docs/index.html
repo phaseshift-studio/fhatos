@@ -320,11 +320,11 @@ The program is a specialization of the poly-type <code>rec</code> called <code>t
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; define(/int/nat,|is(gt(0)))
 fhatos&gt; nat[10]
-[ERROR]   is not typed int
+==&gt;nat[10]
 fhatos&gt; nat[-5]
-[ERROR]   is not typed int
+[ERROR]  [/sys/lang/type/] -5 is not a /int/nat[is[gt[0]]]
 fhatos&gt; nat[5.0]
-[ERROR]   is not typed real</code></pre>
+[ERROR]  [/sys/lang/type/] /real/nat is an undefined type</code></pre>
 </div>
 </div>
 <!-- OUTPUT:END -->
@@ -338,9 +338,9 @@ fhatos&gt; nat[5.0]
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; define(/int/nat,|is(gt(0)))
 fhatos&gt; define(/rec/person,|[name=&gt;as(/str/),age=&gt;as(/int/nat)])
 fhatos&gt; person[[name=&gt;'fhatty',age=&gt;0]]
-[ERROR]   is not typed rec
+[ERROR]  [/sys/lang/type/] 0 is not a /int/nat[is[gt[0]]]
 fhatos&gt; person[[name=&gt;'fhatty',age=&gt;1]]
-[ERROR]   is not typed rec</code></pre>
+==&gt;person[[/rec/name=&gt;'fhatty',/rec/age=&gt;1]]</code></pre>
 </div>
 </div>
 <!-- OUTPUT:END -->
@@ -559,7 +559,7 @@ fhatos&gt; *b.plus(45)
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br>
-Last updated 2024-07-27 11:37:51 -0600
+Last updated 2024-07-27 15:24:35 -0600
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
