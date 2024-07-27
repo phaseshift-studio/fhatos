@@ -22,7 +22,7 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 
 == FhatOS Features
 
-. A hardware agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for multi-tasking (https://en.wikipedia.org/wiki/Cooperative_multitasking[cooperative]) and multi-threading (https://en.wikipedia.org/wiki/Preemption_(computing)[premptive]) https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
+. A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for multi-tasking (https://en.wikipedia.org/wiki/Cooperative_multitasking[cooperative]) and multi-threading (https://en.wikipedia.org/wiki/Preemption_(computing)[premptive]) https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
 . An https://en.wikipedia.org/wiki/Actor_model[actor-oriented] https://en.wikipedia.org/wiki/Message_passing[message passing] communication infrastructure.
 . A memory architecture founded on a layered https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI]-addressed https://en.wikipedia.org/wiki/Tuple_space[tuple space].
 . A hardware agnostic https://en.wikipedia.org/wiki/Clustered_file_system[distributed file] system embedded in the URI address space.
@@ -88,11 +88,11 @@ thread[[setup => __]
 ----
 fhatos> define(/int/nat,|is(gt(0)))
 fhatos> nat[10]
-==>nat[10]
+[ERROR]   is not typed int
 fhatos> nat[-5]
-[ERROR]  [/sys/lang/type/] -5 is not a /int/nat[is[gt[0]]]
+[ERROR]   is not typed int
 fhatos> nat[5.0]
-[ERROR]  [/sys/lang/type/] /real/nat is an undefined type
+[ERROR]   is not typed real
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -110,9 +110,9 @@ fhatos> nat[5.0]
 fhatos> define(/int/nat,|is(gt(0)))
 fhatos> define(/rec/person,|[name=>as(/str/),age=>as(/int/nat)])
 fhatos> person[[name=>'fhatty',age=>0]]
-[ERROR]  [/sys/lang/type/] 0 is not a /int/nat[is[gt[0]]]
+[ERROR]   is not typed rec
 fhatos> person[[name=>'fhatty',age=>1]]
-==>person[[/rec/name=>'fhatty',/rec/age=>1]]
+[ERROR]   is not typed rec
 ----
 ++++
 <!-- OUTPUT:END -->
