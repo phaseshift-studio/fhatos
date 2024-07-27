@@ -14,8 +14,8 @@ namespace fhatos {
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
     const Bool_p boolB = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/bool/truth"), *boolA->id());
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/bool/truth"), *boolB->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/bool/truth"), *boolA->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/bool/truth"), *boolB->id());
     FOS_TEST_OBJ_NOT_EQUAL(boolA, boolB);
     FOS_TEST_OBJ_NOT_EQUAL(boolB, boolA);
     FOS_TEST_OBJ_EQUAL(boolA, boolA);
@@ -56,13 +56,13 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
     TEST_ASSERT_FALSE(intA->isNoObj());
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*intC->id(), *intA->as(share(fURI("age")))->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(*intC->id(), *intA->as(id_p("age"))->id());
     FOS_TEST_OBJ_EQUAL(intA, intB);
     FOS_TEST_OBJ_EQUAL(intB, intA);
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as("/int/age"));
     FOS_TEST_OBJ_EQUAL(intC, intA->as("age"));
     FOS_TEST_OBJ_EQUAL(intC, intB->as("/int/age"));
-    FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, share(fURI("/int/age"))));
+    FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, id_p("/int/age")));
     FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, "age"));
     FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, "/int/age"));
     FOS_TEST_OBJ_EQUAL(intA->split(10, "age"), intB->split(10, "age"));
@@ -115,7 +115,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
     TEST_ASSERT_FALSE(realA->isNoObj());
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*realC->id(), *realA->as(share(fURI("money")))->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(*realC->id(), *realA->as(id_p("money"))->id());
     FOS_TEST_OBJ_EQUAL(realA, realB);
     FOS_TEST_OBJ_EQUAL(realB, realA);
     FOS_TEST_OBJ_NOT_EQUAL(realB, realB->as("/real/money"));

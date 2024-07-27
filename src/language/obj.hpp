@@ -933,7 +933,6 @@ namespace fhatos {
         case OType::STR:
           return *this == *pattern;
         case OType::LST: {
-
           auto objsA = this->lst_value();
           auto objsB = pattern->lst_value();
           if (objsA->size() != objsB->size())
