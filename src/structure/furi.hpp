@@ -137,14 +137,17 @@ namespace fhatos {
         if (c == EOF)
           break;
         if (c == '/') {
-          newURI._path[i] = strdup(segment.c_str());
-          segment.clear();
-          i++;
+          if (segment.empty() && 0 == i) {
+            newURI.sprefix = true;
+          } else {
+            newURI._path[i] = strdup(segment.c_str());
+            segment.clear();
+            i++;
+          }
         } else {
           segment += c;
         }
       }
-      newURI.sprefix = false;
       if (segment.empty()) {
         newURI._path_length = i;
         newURI.spostfix = true;
