@@ -201,14 +201,14 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("a/b/c/d/e", fURI("/a/b/c/d/e").path().c_str());
     TEST_ASSERT_EQUAL_STRING("a/b/c/d/e", fURI("x@/a/b/c/d/e").path().c_str());
     //
-    TEST_ASSERT_EQUAL_INT(0, fURI("").pathLength());
-    TEST_ASSERT_EQUAL_INT(0, fURI("fhat@127.0.0.1").pathLength());
-    TEST_ASSERT_EQUAL_INT(1, fURI("fhat@127.0.0.1/a").pathLength());
-    TEST_ASSERT_EQUAL_INT(5, fURI("fhat@127.0.0.1/a/b/c/d/e").pathLength());
-    TEST_ASSERT_EQUAL_INT(5, fURI("/a/b/c/d/e").pathLength());
-    TEST_ASSERT_EQUAL_INT(5, fURI("x@/a/b/c/d/e").pathLength());
-    TEST_ASSERT_EQUAL_INT(4, fURI("a/b/c/d/e").pathLength());
-    TEST_ASSERT_EQUAL_INT(4, fURI("x@a/b/c/d/e").pathLength());
+    TEST_ASSERT_EQUAL_INT(0, fURI("").path_length());
+    TEST_ASSERT_EQUAL_INT(0, fURI("fhat@127.0.0.1").path_length());
+    TEST_ASSERT_EQUAL_INT(1, fURI("fhat@127.0.0.1/a").path_length());
+    TEST_ASSERT_EQUAL_INT(5, fURI("fhat@127.0.0.1/a/b/c/d/e").path_length());
+    TEST_ASSERT_EQUAL_INT(5, fURI("/a/b/c/d/e").path_length());
+    TEST_ASSERT_EQUAL_INT(5, fURI("x@/a/b/c/d/e").path_length());
+    TEST_ASSERT_EQUAL_INT(4, fURI("a/b/c/d/e").path_length());
+    TEST_ASSERT_EQUAL_INT(4, fURI("x@a/b/c/d/e").path_length());
   }
 
   void test_furi_segment() {

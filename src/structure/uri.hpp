@@ -328,6 +328,7 @@ namespace fhatos {
             } else
               this->spostfix = true;
             part = URI_PART::QUERY;
+            this->_query = "";
             token.clear();
           } else if (part == URI_PART::HOST || part == URI_PART::USER) {
             _host = strdup(token.c_str());
@@ -336,7 +337,7 @@ namespace fhatos {
           } else {
             token += t;
           }
-        } else if (t == '#') {
+        } /*else if (t == '#') {
           if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
             if (!token.empty()) {
               this->_path[this->_path_length] = strdup(token.c_str());
@@ -344,6 +345,7 @@ namespace fhatos {
             } else
               this->spostfix = true;
             part = URI_PART::FRAGMENT;
+            this->_fragment = "";
             token.clear();
           } else if (part == URI_PART::HOST || part == URI_PART::USER) {
             _host = strdup(token.c_str());
@@ -356,7 +358,7 @@ namespace fhatos {
           } else {
             token += t;
           }
-        } else if (t != '\xFF') {
+        }*/ else if (t != '\xFF') {
           this->spostfix = false;
           token += t;
         }
@@ -385,7 +387,6 @@ namespace fhatos {
     bool equals(const UriX &other) const { return *this == other; }
 
     const string toString() const {
-      LOG(INFO, "%i\n", this->_path_length);
       string uri;
       if (this->_scheme)
         uri.append(this->_scheme).append(":");
@@ -412,8 +413,8 @@ namespace fhatos {
       }
       if (this->_query)
         uri.append("?").append(this->_query);
-      if (this->_fragment)
-        uri.append("#").append(this->_fragment);
+     // if (this->_fragment)
+     //   uri.append("#").append(this->_fragment);
       return uri;
     }
   };

@@ -191,7 +191,7 @@ namespace fhatos {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-      TEST_ASSERT_EQUAL_STRING("person", rc2->id()->lastSegment().c_str());
+      TEST_ASSERT_EQUAL_STRING("person", rc2->id()->name().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u("age"))->int_value());
       TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u("name"))->str_value().c_str());
       TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO

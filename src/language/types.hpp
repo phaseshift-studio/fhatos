@@ -135,7 +135,7 @@ namespace fhatos {
                        obj.toString().c_str(), typeId.toString().c_str());
         return false;
       }
-      if (typeId.pathLength() == 2 && typeId.lastSegment().empty()) {
+      if (typeId.path_length() == 2 && typeId.name().empty()) {
         return true;
       }
       const Option<Type_p> type = loadType(typeId);

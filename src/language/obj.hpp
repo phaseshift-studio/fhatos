@@ -375,7 +375,7 @@ namespace fhatos {
     const string inst_op() const {
       if (!this->isInst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->_id->lastSegment();
+      return this->_id->name();
     }
     InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
     Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
@@ -434,7 +434,7 @@ namespace fhatos {
       if (!this->isObjs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if (obj->isObjs()) {
-        for (const Obj_p& o: *obj->objs_value()) {
+        for (const Obj_p &o: *obj->objs_value()) {
           this->add_obj(o);
         }
       } else {
@@ -548,9 +548,9 @@ namespace fhatos {
       }
       objString =
           includeType
-              ? (this->_id->pathLength() > 1 && !this->_id->lastSegment().empty()
+              ? (this->_id->path_length() > 1 && !this->_id->name().empty()
                      ? (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!b/!!")) +
-                           ("!b" + this->_id->lastSegment() + "!g[!!" + objString + "!g]!!")
+                           ("!b" + this->_id->name() + "!g[!!" + objString + "!g]!!")
                      : (this->_id->user()->empty() ? "" : ("!b" + this->_id->user().value() + "!g@!!")) + objString)
               : objString;
       return ansi ? objString : GLOBAL_OPTIONS->printer<>()->strip(objString.c_str());
@@ -904,12 +904,11 @@ namespace fhatos {
     split(const Any &newValue,
           const std::variant<ptr<fURI>, const char *> &newType = std::variant<ptr<fURI>, const char *>(nullptr)) const {
       const Obj temp = Obj(newValue, this->id());
-      if (nullptr != std::get<const char *>(newType)) {
-        return temp.as(std::holds_alternative<const char *>(newType)
-                           ? ptr<fURI>(new fURI(std::get<const char *>(newType)))
-                           : std::get<ptr<fURI>>(newType));
-      }
-      return share(temp);
+      if (std::holds_alternative<const char *>(newType) && nullptr == std::get<const char *>(newType))
+        return share(temp);
+      return temp.as(std::holds_alternative<const char *>(newType)
+                         ? ptr<fURI>(new fURI(std::get<const char *>(newType)))
+                         : std::get<ptr<fURI>>(newType));
     }
 
     const fURI type() const { return this->_id->authority(""); }

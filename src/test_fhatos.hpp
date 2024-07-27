@@ -22,6 +22,10 @@
 #include <fhatos.hpp>
 #include <unity.h>
 
+#ifndef FOS_LOG_TYPE
+#define FOS_LOG_TYPE INFO
+#endif
+
 /*
  TODO: COME UP WITH A #define FEATURE MATRIX THAT INDIVIDUAL TESTS CAN INHERIT
     e.g.
@@ -45,7 +49,7 @@
 #include FOS_FILE_SYSTEM(filesystem.hpp)
 #ifndef FOS_TEST_ROUTERS
 #ifdef NATIVE
-#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
+#define FOS_TEST_ROUTERS LocalRouter::singleton() /*MqttRouter::singleton(), MetaRouter::singleton()*/
 #else
 #define FOS_TEST_ROUTERS LocalRouter::singleton()
 #endif
@@ -53,7 +57,7 @@
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Kernel::build()                                                                                                      \
       ->initialPrinter(Ansi<>::singleton())                                                                            \
-      ->initialLogLevel(INFO)                                                                                          \
+      ->initialLogLevel(FOS_LOG_TYPE)                                                                                  \
       ->withSplash(ANSI_ART)                                                                                           \
       ->withNote("Use !bØ!! for noobj")                                                                                \
       ->withNote("Use :help for console commands")                                                                     \
@@ -66,7 +70,9 @@
     router->clear();                                                                                                   \
   }
 #else
-#define FOS_SETUP_ON_BOOT GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
+#define FOS_SETUP_ON_BOOT                                                                                              \
+  GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();                                                                      \
+  GLOBAL_OPTIONS->LOGGING = FOS_LOG_TYPE
 #define FOS_STOP_ON_BOOT ;
 #endif
 ////////////////////////////////////////////////////////
@@ -74,10 +80,6 @@
 ////////////////////////////////////////////////////////
 #ifdef NATIVE
 namespace fhatos {
-#ifndef FOS_LOG_TYPE
-#define FOS_LOG_TYPE INFO
-#endif
-
 
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
@@ -160,7 +162,7 @@ using namespace fhatos;
   if (FOS_LOGGING < ERROR) {                                                                                           \
     GLOBAL_OPTIONS->printer<>()->printf("  !rline %i!!\t", __LINE__);                                                  \
     GLOBAL_OPTIONS->printer<>()->printf((format), ##__VA_ARGS__);                                                      \
-    GLOBAL_OPTIONS->printer<>()->printf("\n");                                                                         \
+    GLOBAL_OPTIONS->printer<>()->println();                                                                            \
   }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
@@ -171,7 +173,15 @@ using namespace fhatos;
   FOS_TEST_MESSAGE("!b%s!! =!r/?!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
   TEST_ASSERT_FALSE((x).equals(y))
 
-#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y.toString().c_str()))
+#define FOS_TEST_ASSERT_EQUAL_CHAR_FURI(x, y) TEST_ASSERT_EQUAL_STRING((x), (y).toString().c_str())
+
+#define FOS_TEST_ASSERT_MATCH_FURI(x, y)                                                                               \
+  FOS_TEST_MESSAGE("!b%s!! =!r~!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                           \
+  TEST_ASSERT_TRUE((x).matches(y))
+
+#define FOS_TEST_ASSERT_NOT_MATCH_FURI(x, y)                                                                           \
+  FOS_TEST_MESSAGE("!b%s!! =!r/~!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
+  TEST_ASSERT_FALSE((x).matches(y))
 
 #define FOS_TEST_ASSERT_EXCEPTION(x, s)                                                                                \
   try {                                                                                                                \

@@ -106,10 +106,12 @@ namespace fhatos {
     }
 
     static bool match(const char *id_cstr, const char *pattern_cstr) {
-      if (strstr(pattern_cstr, "#") == nullptr && strstr(pattern_cstr, "+") == nullptr)
-        return strcmp(id_cstr, pattern_cstr) == 0;
-      if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
+      if (0 == strcmp(pattern_cstr, "#"))
         return true;
+      if (!strstr(pattern_cstr, "#") && !strstr(pattern_cstr, "+"))
+        return strcmp(id_cstr, pattern_cstr) == 0;
+      //if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
+        //return true;
       char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
       char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
       size_t idLength = split(id_cstr, "/", idParts);
@@ -129,11 +131,11 @@ namespace fhatos {
         }
         return patternLength == idLength;
       }();
-      for (uint8_t i = 0; i < idLength; i++) {
+      for (size_t i = 0; i < idLength; i++) {
         delete[] idParts[i];
       }
       delete[] idParts;
-      for (uint8_t i = 0; i < patternLength; i++) {
+      for (size_t i = 0; i < patternLength; i++) {
         delete[] patternParts[i];
       }
       delete[] patternParts;

@@ -74,7 +74,7 @@ namespace fhatos {
     static bool dotType(const string &type) {
       return !type.empty() && type[type.length() - 1] == '.'; // dot type
     }
-    Option<Obj_p> tryParseObj(const string &token, const string prev = "NONE") {
+    Option<Obj_p> tryParseObj(const string &token, const string& prev = "NONE") {
       //
       if (token == prev)
         throw fError("Unable to parse %s\n", token.c_str());

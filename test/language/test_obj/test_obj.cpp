@@ -51,7 +51,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(intA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("/int/", intA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("", intA->id()->lastSegment().c_str());
+    TEST_ASSERT_EQUAL_STRING("", intA->id()->name().c_str());
     TEST_ASSERT_EQUAL_STRING("int", intA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
     TEST_ASSERT_FALSE(intA->isNoObj());
@@ -62,7 +62,10 @@ namespace fhatos {
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as("/int/age"));
     FOS_TEST_OBJ_EQUAL(intC, intA->as("age"));
     FOS_TEST_OBJ_EQUAL(intC, intB->as("/int/age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, share(fURI("/int/age"))));
     FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, "age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(10, "/int/age"), intB->split(10, "/int/age"));
+    FOS_TEST_OBJ_EQUAL(intA->split(10, "age"), intB->split(10, "age"));
     FOS_TEST_OBJ_EQUAL(intA, intC->as("/int/"));
     FOS_TEST_OBJ_EQUAL(intA, intA->as("/int/"));
     FOS_TEST_OBJ_EQUAL(intA->split(2)->as("age"), intC->split(2));
@@ -107,7 +110,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(realA->isBytecode());
     TEST_ASSERT_EQUAL_STRING("/real/", realA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("", realA->id()->lastSegment().c_str());
+    TEST_ASSERT_EQUAL_STRING("", realA->id()->name().c_str());
     TEST_ASSERT_EQUAL_STRING("real", realA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
     TEST_ASSERT_FALSE(realA->isNoObj());

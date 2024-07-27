@@ -21,8 +21,8 @@
 
 #include <fhatos.hpp>
 #include <string.h>
+#include <structure/uri.hpp>
 #include <util/ptr_helper.hpp>
-#include <util/uri.hpp>
 // #include <memory>
 // #include <utility>
 
@@ -161,13 +161,13 @@ namespace fhatos {
       delete[] this->_segments;
     }
 
-    const string name() const {
-      for (int i = this->length() - 1; i >= 0; i--) {
-        if (strlen(this->_segments[i]) > 0)
-          return string(this->_segments[i]);
-      }
-      return "none";
-    }
+    /* const string name() const {
+       for (int i = this->length() - 1; i >= 0; i--) {
+         if (strlen(this->_segments[i]) > 0)
+           return string(this->_segments[i]);
+       }
+       return "none";
+     }*/
 
     // const bool operator==(const fURI other) const { return this->equals(other); }
     const fURI resolve(const char *segments) const {
@@ -175,9 +175,11 @@ namespace fhatos {
         return *this;
       if (segments[0] == ':' || this->path()[this->path().length() - 1] == ':')
         return fURI(this->toString() + segments);
-      if (this->pathLength() == 0 || (segments[0] == '/' && this->toString()[this->toString().length() - 1] == '/'))
+      if (segments[0] == '/')
+        return fURI(segments);
+      if (this->path_length() == 0 || (segments[0] == '/' && this->toString()[this->toString().length() - 1] == '/'))
         return fURI(this->path("").toString() + "/" + string(segments));
-      if (this->pathLength() > 0 &&
+      if (this->path_length() > 0 &&
           ((segments[0] != '/' && segments[0] != '.') || this->path()[this->path().length() - 1] != '/'))
         return this->retract().extend(segments);
       if (segments[0] != '/' && segments[0] != '.' && this->toString()[this->toString().length() - 1] == '/')
@@ -186,7 +188,7 @@ namespace fhatos {
         return fURI(segments);
       char **s2 = new char *[FOS_MAX_FURI_SEGMENTS];
       const int l2 = private_fhatos::split(segments, "/", s2);
-      fURI result = fURI(this->pathLength() > 0 ? string(this->retract().toString()) : string(this->toString()));
+      fURI result = fURI(this->path_length() > 0 ? string(this->retract().toString()) : string(this->toString()));
       for (int i = 0; i < l2; i++) {
         if (strcmp(s2[i], "..") == 0) {
           result = fURI(result.retract());
@@ -212,7 +214,7 @@ namespace fhatos {
       return fURI(newURI);
     }
 
-    bool isAbsolute() const { return this->pathLength() > 0 && this->segment(0).empty(); }
+    bool isAbsolute() const { return this->path_length() > 0 && this->segment(0).empty(); }
 
     bool isRelative() const { return !isAbsolute(); }
 
@@ -254,9 +256,9 @@ namespace fhatos {
 
     const string segment(const uint8_t index) const { return string(this->_segments[index]); }
 
-    const string lastSegment() const { return string(this->_segments[this->_length - 1]); }
+    const string name() const { return string(this->_segments[this->_length - 1]); }
 
-    uint8_t pathLength() const { return this->_length == 0 ? 0 : this->_length - 1; }
+    uint8_t path_length() const { return this->_length == 0 ? 0 : this->_length - 1; }
 
     const fURI path(const char *newPath) const { return fURI(this->authority()).extend(newPath); }
 

@@ -51,7 +51,7 @@ namespace fhatos {
               "\t!gsize!!  (bytes) : %lu\n"
               "\t!gbcode!!         : %s\n"
               "\t!gvalue!!         : %s",
-              obj.id()->lastSegment().c_str(), obj.id()->toString().c_str(), OTypes.toChars(obj.o_type()),
+              obj.id()->name().c_str(), obj.id()->toString().c_str(), OTypes.toChars(obj.o_type()),
               OTypes.toChars(obj.o_type()), sizeof(obj), FOS_BOOL_STR(obj.isBytecode()),
               obj.isBytecode() ? obj.toString().c_str() : obj.toString(false).c_str());
       return string(a);
