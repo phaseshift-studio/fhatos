@@ -88,11 +88,11 @@ thread[[setup => __]
 ----
 fhatos> define(/int/nat,|is(gt(0)))
 fhatos> nat[10]
-[ERROR]   is not typed int
+==>nat[10]
 fhatos> nat[-5]
-[ERROR]   is not typed int
+[ERROR]  [/sys/lang/type/] -5 is not a /int/nat[is[gt[0]]]
 fhatos> nat[5.0]
-[ERROR]   is not typed real
+[ERROR]  [/sys/lang/type/] /real/nat is an undefined type
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -110,9 +110,9 @@ fhatos> nat[5.0]
 fhatos> define(/int/nat,|is(gt(0)))
 fhatos> define(/rec/person,|[name=>as(/str/),age=>as(/int/nat)])
 fhatos> person[[name=>'fhatty',age=>0]]
-[ERROR]   is not typed rec
+[ERROR]  [/sys/lang/type/] 0 is not a /int/nat[is[gt[0]]]
 fhatos> person[[name=>'fhatty',age=>1]]
-[ERROR]   is not typed rec
+==>person[[/rec/name=>'fhatty',/rec/age=>1]]
 ----
 ++++
 <!-- OUTPUT:END -->
