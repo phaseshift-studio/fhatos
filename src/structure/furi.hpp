@@ -138,6 +138,7 @@ namespace fhatos {
       newURI._host = this->_host ? strdup(this->_host) : nullptr;
       newURI._port = this->_port;
       newURI._query = this->_query ? strdup(this->_query) : nullptr;
+      newURI._path_length = 0;
       std::stringstream ss = std::stringstream(dup);
       string segment;
       uint8_t i = 0;
@@ -146,7 +147,6 @@ namespace fhatos {
         if (c == EOF || c == '\0')
           break;
         if (c == '/') {
-          StringHelper::trim(segment);
           if (segment.empty() && 0 == i) {
             newURI.sprefix = true;
           } else {
@@ -158,7 +158,6 @@ namespace fhatos {
           segment += c;
         }
       }
-      StringHelper::trim(segment);
       if (segment.empty() || (segment.length() == 1 && segment[0] == '\0')) {
         newURI._path_length = i;
         newURI.spostfix = true;
@@ -200,10 +199,15 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
 
     fURI extend(const char *extension) const {
+      if (strlen(extension) == 0)
+        return *this;
       string newPath = this->path();
       if (!this->spostfix)
         newPath += "/";
-      return newPath.empty() ? this->path(extension) : this->path(newPath + extension);
+      if (newPath.empty())
+        return this->path(extension);
+      newPath += extension;
+      return this->path(newPath);
     }
 
     fURI retract() const {
