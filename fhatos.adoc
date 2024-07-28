@@ -206,8 +206,8 @@ fhatos> __(1,2,3,4).plus(10)
 ==>13
 ==>14
 fhatos> 16.to(b)
+==>16
 fhatos> *b.plus(45)
-==>61
 ----
 ++++
 <!-- OUTPUT:END -->
