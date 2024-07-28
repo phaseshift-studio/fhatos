@@ -19,7 +19,6 @@
 #ifndef fhatos_coroutine_hpp
 #define fhatos_coroutine_hpp
 
-#include <fhatos.hpp>
 #include <process/x_process.hpp>
 //
 

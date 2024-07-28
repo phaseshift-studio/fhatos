@@ -20,7 +20,6 @@
 #define fhatos_fiber_hpp
 
 #include <chrono>
-#include <fhatos.hpp>
 #include <process/x_process.hpp>
 #include <thread>
 

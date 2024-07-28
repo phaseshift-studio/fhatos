@@ -84,10 +84,10 @@ namespace fhatos {
       int i = offset;
       if (strstr(text, deliminator)) {
         while ((token = strsep(&copy, deliminator)) != nullptr) {
-          if (strlen(token) > 0) {
-            result[i] = strdup(token);
-            i++;
-          }
+          result[i] = (char *) malloc((strlen(token) + 1) * sizeof(char));
+          strcpy(result[i], token);
+          result[i][strlen(token)] = '\0';
+          i++;
         }
       }
       size_t dl = strlen(deliminator);
@@ -98,17 +98,18 @@ namespace fhatos {
         result[i] = strdup("");
         i++;
       }
-      delete token;
+      free(token);
+      free(copy);
       return i;
     }
 
-    static bool match(const char *id_cstr, const char *pattern_cstr) {
+    /*static bool match(const char *id_cstr, const char *pattern_cstr) {
       if (0 == strcmp(pattern_cstr, "#"))
         return true;
       if (!strstr(pattern_cstr, "#") && !strstr(pattern_cstr, "+"))
         return strcmp(id_cstr, pattern_cstr) == 0;
-      //if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
-        //return true;
+      // if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
+      // return true;
       char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
       char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
       size_t idLength = split(id_cstr, "/", idParts);
@@ -128,10 +129,16 @@ namespace fhatos {
         }
         return patternLength == idLength;
       }();
+      for (int i = 0; i < idLength; i++) {
+        free((void *) idParts[i]);
+      }
+      for (int i = 0; i < patternLength; i++) {
+        free((void *) patternParts[i]);
+      }
       delete[] idParts;
       delete[] patternParts;
       return result;
-    }
+    }*/
   };
 } // namespace fhatos
 

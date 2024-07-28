@@ -659,7 +659,7 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() + rhs.real_value(), this->id());
         case OType::URI:
-          return Obj(fURI(this->uri_value()).extend(fURI(rhs.uri_value()).toString().c_str()), this->id());
+          return Obj(this->uri_value().extend(rhs.uri_value().toString().c_str()), this->id());
         case OType::STR:
           return Obj(string(this->str_value()) + string(rhs.str_value()), this->id());
         case OType::LST: {

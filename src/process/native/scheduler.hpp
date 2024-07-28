@@ -50,7 +50,7 @@ namespace fhatos {
                    process->id()->toString().c_str());
           return share(false);
         }
-        bool success = false;
+        bool success;
         this->subscribe(*process->id(), [this, process](const Message_p &message) {
           if (message->payload->isNoObj()) {
             this->unsubscribe(*process->id());
@@ -70,8 +70,7 @@ namespace fhatos {
             LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
             if (!FIBER_THREAD_HANDLE) {
               FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
-              if (FIBER_THREAD_HANDLE)
-                success = true;
+              success = true;
             }
             dynamic_cast<Fiber *>(process)->xthread = FIBER_THREAD_HANDLE;
             break;

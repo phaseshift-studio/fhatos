@@ -247,13 +247,43 @@ namespace fhatos {
     }
 
 
-    virtual bool matches(const fURI &other) const {
-      return StringHelper::match(this->toString().c_str(), other.toString().c_str());
+    virtual bool matches(const fURI &pattern) const {
+      string patternStr = pattern.toString();
+      if (pattern.toString() == "#")
+        return true;
+      if (patternStr.find('+') == string::npos && patternStr.find('#') == string::npos) {
+        return this->toString() == patternStr;
+      }
+      if (strcmp(pattern.scheme(), "#") == 0)
+        return true;
+      if (strcmp(pattern.scheme(), "+") != 0 && strcmp(this->scheme(), pattern.scheme()) != 0)
+        return false;
+      if (strcmp(pattern.host(), "#") == 0)
+        return true;
+      if (strcmp(pattern.host(), "+") != 0 && strcmp(this->host(), pattern.host()) != 0)
+        return false;
+      if (strcmp(pattern.user(), "#") == 0)
+        return true;
+      if (strcmp(pattern.user(), "+") != 0 && strcmp(this->user(), pattern.user()) != 0)
+        return false;
+      if (strcmp(pattern.password(), "#") == 0)
+        return true;
+      if (strcmp(pattern.password(), "+") != 0 && strcmp(this->password(), pattern.password()) != 0)
+        return false;
+      for (size_t i = 0; i < pattern.path_length(); i++) {
+        if (this->_path_length <= i)
+          return false;
+        if (strcmp(pattern.path(i), "#") == 0)
+          return true;
+        if (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0)
+          return false;
+      }
+      return this->_path_length == pattern.path_length();
     }
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
-    ~fURI() {
+    virtual ~fURI() {
       free((void *) this->_scheme);
       free((void *) this->_host);
       free((void *) this->_user);
@@ -502,9 +532,7 @@ namespace fhatos {
        return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);
      }*/
 
-    bool matches(const fURI &pattern) const override {
-      return StringHelper::match(pattern.toString().c_str(), this->toString().c_str());
-    }
+    bool matches(const fURI &pattern) const override { return pattern.matches(*this); }
   };
 
   using fURI_p = ptr<fURI>;
