@@ -1036,12 +1036,12 @@ namespace fhatos {
     }
     static Rec_p to_rec(const RecMap_p<> &map, const ID_p &furi = REC_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::REC));
-      RecMap_p<> convert = share(RecMap<>());
-      for (const auto &[key, val]: *map) {
-        convert->insert({key->isUri() ? Obj::to_uri(furi->resolve(key->uri_value())) : key,
-                         val->isUri() ? Obj::to_uri(furi->resolve(val->uri_value())) : val});
-      }
-      return share(Obj(convert, furi));
+      /* RecMap_p<> convert = share(RecMap<>());
+       for (const auto &[key, val]: *map) {
+         convert->insert({key->isUri() ? Obj::to_uri(furi->resolve(key->uri_value())) : key,
+                          val->isUri() ? Obj::to_uri(furi->resolve(val->uri_value())) : val});
+       }*/
+      return share(Obj(map, furi));
     }
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &furi = REC_FURI) {
       RecMap<> map = RecMap<>();

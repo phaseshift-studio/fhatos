@@ -139,6 +139,7 @@ namespace fhatos {
       newURI._port = this->_port;
       newURI._query = this->_query ? strdup(this->_query) : nullptr;
       newURI._path_length = 0;
+      newURI._path = new char *[10];
       std::stringstream ss = std::stringstream(dup);
       string segment;
       uint8_t i = 0;
