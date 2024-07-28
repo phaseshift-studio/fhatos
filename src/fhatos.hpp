@@ -157,8 +157,9 @@ namespace fhatos {
   ////////////
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
-    if (p)                                                                                                             \
-      free((void*)p);                                                                                                         \
+    if ((p) != nullptr)                                                                                                \
+      (void) free((void *) (p));                                                                                     \
+    (p) = nullptr;                                                                                                     \
   }
 
 #define FOS_SAFE_DELETE(p)                                                                                             \

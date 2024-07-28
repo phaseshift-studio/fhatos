@@ -52,28 +52,32 @@ namespace fhatos {
     const char *scheme() const { return this->_scheme ? this->_scheme : EMPTY_CHARS; }
     fURI scheme(const char *scheme) {
       fURI newURI = fURI(*this);
-      newURI._scheme = 0 == strlen(scheme) ? nullptr : scheme;
+      free((void *) newURI._scheme);
+      newURI._scheme = 0 == strlen(scheme) ? nullptr : strdup(scheme);
       return newURI;
     }
     /// USER
     const char *user() const { return this->_user ? this->_user : EMPTY_CHARS; }
     fURI user(const char *user) const {
       fURI newURI = fURI(*this);
-      newURI._user = 0 == strlen(user) ? nullptr : user;
+      free((void *) newURI._user);
+      newURI._user = 0 == strlen(user) ? nullptr : strdup(user);
       return newURI;
     }
     /// PASSWORD
     const char *password() const { return this->_password ? this->_password : EMPTY_CHARS; }
     fURI password(const char *password) const {
       fURI newURI = fURI(*this);
-      newURI._password = 0 == strlen(password) ? nullptr : password;
+      free((void *) newURI._password);
+      newURI._password = 0 == strlen(password) ? nullptr : strdup(password);
       return newURI;
     }
     /// HOST
     const char *host() const { return this->_host ? this->_host : EMPTY_CHARS; }
     fURI host(const char *host) const {
       fURI newURI = fURI(*this);
-      newURI._host = (0 == strlen(host) ? nullptr : host);
+      free((void *) newURI._host);
+      newURI._host = (0 == strlen(host) ? nullptr : strdup(host));
       return newURI;
     }
     /// PORT
@@ -128,7 +132,6 @@ namespace fhatos {
     fURI path(const string &path) const {
       const char *dup = strdup(path.c_str());
       fURI newURI = fURI("");
-      ;
       newURI._scheme = this->_scheme ? strdup(this->_scheme) : nullptr;
       newURI._user = this->_user ? strdup(this->_user) : nullptr;
       newURI._password = this->_password ? strdup(this->_password) : nullptr;
@@ -251,14 +254,14 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
     ~fURI() {
-      // FOS_SAFE_FREE(this->_scheme);
-      // FOS_SAFE_FREE(this->_host);
-      // FOS_SAFE_FREE(this->_user);
-      // FOS_SAFE_FREE(this->_password);
-      // FOS_SAFE_FREE(this->_query);
-      // FOS_SAFE_FREE(this->_fragment);
+      free((void *) this->_scheme);
+      free((void *) this->_host);
+      free((void *) this->_user);
+      free((void *) this->_password);
+      free((void *) this->_query);
+      free((void *) this->_fragment);
       for (size_t i = 0; i < this->_path_length; i++) {
-        FOS_SAFE_FREE(_path[i]);
+        free((void *) _path[i]);
       }
       delete[] _path;
     };
@@ -327,7 +330,9 @@ namespace fhatos {
               this->sprefix = true;
             } else {
               if (!token.empty()) { // TODO: what about empty components?
-                this->_path[this->_path_length] = strdup(token.c_str());
+                this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
+                strcpy((char *) this->_path[this->_path_length], token.c_str());
+                ((char *) this->_path[this->_path_length])[token.length()] = '\0';
                 this->_path_length = this->_path_length + 1;
               } else {
                 this->sprefix = true;
@@ -336,7 +341,9 @@ namespace fhatos {
             }
             token.clear();
           } else if (part == URI_PART::PATH) {
-            this->_path[this->_path_length] = strdup(token.c_str());
+            this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
+            strcpy((char *) this->_path[this->_path_length], token.c_str());
+            ((char *) this->_path[this->_path_length])[token.length()] = '\0';
             this->_path_length = this->_path_length + 1;
             this->spostfix = true;
             token.clear();
@@ -346,12 +353,14 @@ namespace fhatos {
         } else if (t == '?') {
           if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
             if (!token.empty()) {
-              this->_path[this->_path_length] = strdup(token.c_str());
+              this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
+              strcpy((char *) this->_path[this->_path_length], token.c_str());
+              ((char *) this->_path[this->_path_length])[token.length()] = '\0';
               this->_path_length = this->_path_length + 1;
             } else
               this->spostfix = true;
             part = URI_PART::QUERY;
-            this->_query = "";
+            this->_query = strdup("");
             token.clear();
           } else if (part == URI_PART::HOST || part == URI_PART::USER) {
             _host = strdup(token.c_str());
@@ -390,13 +399,16 @@ namespace fhatos {
       if (!token.empty()) {
         if ((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) || part == URI_PART::PATH ||
             part == URI_PART::SCHEME) {
-          this->_path[this->_path_length] = strdup(token.c_str());
+          this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
+          strcpy((char *) this->_path[this->_path_length], token.c_str());
+          ((char *) this->_path[this->_path_length])[token.length()] = '\0';
           this->_path_length = this->_path_length + 1;
         } else if (part == URI_PART::HOST || part == URI_PART::USER) {
           this->_host = strdup(token.c_str());
         } else if (part == URI_PART::PORT) {
           this->_port = stoi(token);
         } else if (part == URI_PART::QUERY) {
+          free((void *) this->_query);
           this->_query = strdup(token.c_str());
         } // else if (part == URI_PART::FRAGMENT) {
         // this->_fragment = strdup(token.c_str());
