@@ -157,12 +157,16 @@ namespace fhatos {
   ////////////
 #define FOS_SAFE_FREE(p)                                                                                               \
   {                                                                                                                    \
-    if (p) {                                                                                                           \
-      free(p);                                                                                                         \
-      (p) = nullptr;                                                                                                   \
-    }                                                                                                                  \
-  }                                                                                                                    \
-  ((void) 0);
+    if (p)                                                                                                             \
+      free((void*)p);                                                                                                         \
+  }
+
+#define FOS_SAFE_DELETE(p)                                                                                             \
+  {                                                                                                                    \
+    if (p)                                                                                                             \
+      delete (p);                                                                                                      \
+  }
+
 #define FOS_MAX_FURI_SEGMENTS 10
 #define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "

@@ -79,8 +79,7 @@ namespace fhatos {
     }
 
     static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
-      char *copy;
-      const char *freeable_copy = copy = strdup(text);
+      char *copy = strdup(text);
       char *token = nullptr;
       int i = offset;
       if (strstr(text, deliminator)) {
@@ -99,9 +98,7 @@ namespace fhatos {
         result[i] = strdup("");
         i++;
       }
-      // delete substr;
       delete token;
-      delete freeable_copy;
       return i;
     }
 

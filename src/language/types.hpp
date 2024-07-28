@@ -57,11 +57,11 @@ namespace fhatos {
         return typeId;
       };
       TYPE_WRITER = [](const ID &id, const Type_p &type) {
-        singleton()->saveType(share(id), type, true);
+        singleton()->saveType(id_p(id), type, true);
         return type;
       };
       TYPE_READER = [](const ID &typeId) {
-        return singleton()->loadType(share(typeId), true).value_or(Obj::to_noobj());
+        return singleton()->loadType(id_p(typeId), true).value_or(Obj::to_noobj());
       };
     }
 
@@ -69,15 +69,15 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     void loadExt(const ID &extId) const {
-      for (const Pair<ID_p, Type_p> &pair: Exts::exts(extId)) {
-        this->saveType(pair.first, pair.second, true);
+      for (const Pair<ID, Type_p> &pair: Exts::exts(extId)) {
+        this->saveType(id_p(pair.first), pair.second, true);
       }
     }
-   /* void saveType(const std::initializer_list<Pair<ID, string>> &types, const bool writeThrough = true) const {
-      for (const auto &pair: types) {
-        saveType(share(pair.first), TYPE_PARSER(pair.second), writeThrough);
-      }
-    }*/
+    /* void saveType(const std::initializer_list<Pair<ID, string>> &types, const bool writeThrough = true) const {
+       for (const auto &pair: types) {
+         saveType(share(pair.first), TYPE_PARSER(pair.second), writeThrough);
+       }
+     }*/
 
     void savePrefix(const char *prefix, const ID &furi) {
       if (PREFIXES->count(prefix)) {

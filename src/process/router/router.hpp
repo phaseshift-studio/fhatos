@@ -152,7 +152,7 @@ namespace fhatos {
 
     static ID mintID(const char *authority, const char *path = "") {
 #ifdef NATIVE
-      return ID(authority).path(path);
+      return ID(ID(authority).path(path));
 #else
       return fWIFI::idFromIP(authority, path);
 #endif

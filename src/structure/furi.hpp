@@ -126,10 +126,18 @@ namespace fhatos {
       return (this->_path && this->_path_length > segment) ? this->_path[segment] : EMPTY_CHARS;
     }
     fURI path(const string &path) const {
-      fURI newURI = fURI(this->toString());
+      const char *dup = strdup(path.c_str());
+      fURI newURI = fURI("");
+      ;
+      newURI._scheme = this->_scheme ? strdup(this->_scheme) : nullptr;
+      newURI._user = this->_user ? strdup(this->_user) : nullptr;
+      newURI._password = this->_password ? strdup(this->_password) : nullptr;
+      newURI._host = this->_host ? strdup(this->_host) : nullptr;
+      newURI._port = this->_port;
+      newURI._query = this->_query ? strdup(this->_query) : nullptr;
       newURI._path = new const char *[20]; // TODO: make dynamic/intelligent
       newURI._path_length = 0;
-      std::stringstream ss = std::stringstream(path);
+      std::stringstream ss = std::stringstream(dup);
       string segment;
       uint8_t i = 0;
       while (!ss.eof()) {
@@ -156,6 +164,7 @@ namespace fhatos {
         newURI._path_length = i + 1;
         newURI.spostfix = false;
       }
+      FOS_SAFE_FREE(dup);
       return newURI;
     }
 
@@ -170,7 +179,8 @@ namespace fhatos {
     const char *query() const { return this->_query ? this->_query : EMPTY_CHARS; }
     fURI query(const char *query) const {
       fURI newURI = fURI(*this);
-      newURI._query = 0 == strlen(query) ? nullptr : query;
+      FOS_SAFE_FREE(newURI._query);
+      newURI._query = 0 == strlen(query) ? nullptr : strdup(query);
       return newURI;
     }
     /// FRAGMENT
@@ -183,16 +193,15 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
 
     fURI extend(const char *extension) const {
-      return this->path(this->path() + (this->path().ends_with("/") ? "" : "/") + extension);
+      return this->path(this->path() + (this->spostfix ? "" : "/") + extension);
     }
 
     fURI retract() const {
+      if (this->_path_length == 0)
+        return *this;
       fURI newURI = fURI(*this);
-      if (this->_path_length > 0) {
-        newURI._path_length = newURI._path_length - 1;
-      } else {
-        newURI.sprefix = false;
-      }
+      FOS_SAFE_FREE(newURI._path[newURI._path_length - 1]);
+      newURI._path_length = newURI._path_length - 1;
       return newURI;
     }
 
@@ -221,19 +230,17 @@ namespace fhatos {
           return this->path(other.path());
         return this->retract().extend(other.path().c_str());
       }
-      fURI newURI = fURI(*this);
-      if (!newURI.spostfix)
-        newURI = newURI.retract();
+      fURI *newURI = this->spostfix ? new fURI(*this) : new fURI(this->retract());
       for (uint8_t i = 0; i < other._path_length; i++) {
-        if (strcmp(other.path(i), "..") == 0) {
-          newURI = newURI.retract();
-
-        } else if (strcmp(other.path(i), ".") != 0)
-          newURI = newURI.extend(other.path(i));
-        if (other.path()[other.path().length() - 1] == '/')
-          newURI = newURI.extend("");
+        if (strcmp(other._path[i], "..") == 0)
+          newURI = new fURI(newURI->retract());
+        else if (strcmp(other._path[i], ".") != 0)
+          newURI = new fURI(newURI->extend(other._path[i]));
       }
-      return newURI;
+      newURI->spostfix = other.spostfix;
+      fURI x = fURI(*newURI);
+      delete newURI;
+      return x;
     }
 
 
@@ -243,14 +250,27 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
-    virtual ~fURI() = default;
-    fURI(const char *uriChars) : fURI(string(uriChars)) {}
-    fURI(const string &uriString) {
+    ~fURI() {
+      // FOS_SAFE_FREE(this->_scheme);
+      // FOS_SAFE_FREE(this->_host);
+      // FOS_SAFE_FREE(this->_user);
+      // FOS_SAFE_FREE(this->_password);
+      // FOS_SAFE_FREE(this->_query);
+      // FOS_SAFE_FREE(this->_fragment);
+      for (size_t i = 0; i < this->_path_length; i++) {
+        FOS_SAFE_FREE(_path[i]);
+      }
+      delete[] _path;
+    };
+    fURI(const fURI &other) : fURI(other.toString().c_str()) {}
+    fURI(const string &uriString) : fURI(uriString.c_str()) {}
+    fURI(const char *uriChars) {
+      const char *dups = strdup(uriChars);
       this->_path = new const char *[10];
-      std::stringstream ss = std::stringstream(uriString);
+      std::stringstream ss = std::stringstream(dups);
       string token;
       URI_PART part = URI_PART::SCHEME;
-      bool hasUserInfo = uriString.find_first_of('@') != string::npos;
+      bool hasUserInfo = strchr(dups, '@') != nullptr;
       bool foundAuthority = false;
       while (!ss.eof()) {
         char t = ss.get();
@@ -368,7 +388,7 @@ namespace fhatos {
         }
       }
       if (!token.empty()) {
-        if ((!foundAuthority && part != URI_PART::FRAGMENT && part != URI_PART::QUERY) || part == URI_PART::PATH ||
+        if ((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) || part == URI_PART::PATH ||
             part == URI_PART::SCHEME) {
           this->_path[this->_path_length] = strdup(token.c_str());
           this->_path_length = this->_path_length + 1;
@@ -378,10 +398,11 @@ namespace fhatos {
           this->_port = stoi(token);
         } else if (part == URI_PART::QUERY) {
           this->_query = strdup(token.c_str());
-        } else if (part == URI_PART::FRAGMENT) {
-          this->_fragment = strdup(token.c_str());
-        }
+        } // else if (part == URI_PART::FRAGMENT) {
+        // this->_fragment = strdup(token.c_str());
+        // }
       }
+      FOS_SAFE_FREE(dups);
     }
 
     bool operator<(const fURI &other) const { return this->toString() < other.toString(); }
@@ -427,9 +448,7 @@ namespace fhatos {
   class ID final : public fURI {
   public:
     ID(const fURI &id) : ID(id.toString()) {}
-
-    ID(const string &furiString) : fURI(furiString) {}
-
+    ID(const string &furiString) : ID(furiString.c_str()) {}
     ID(const char *furiCharacters) : fURI(furiCharacters) {
       try {
         if (strchr(furiCharacters, '#')) {
@@ -483,7 +502,7 @@ namespace fhatos {
     virtual ID_p id() const { return nullptr; }
     virtual bool equals(const BaseIDed &) const { return false; }
   };
-  using Patter_p = ptr<Pattern>;
+  using Pattern_p = ptr<Pattern>;
 
   class IDed : public BaseIDed {
   public:
@@ -507,7 +526,9 @@ namespace fhatos {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 
+  static ID_p id_p(const char *idChars) { return share(ID(idChars)); }
   static ID_p id_p(const ID &id) { return share(id); }
+  static ID_p id_p(const fURI &id) { return share(ID(id)); }
 } // namespace fhatos
 
 #endif

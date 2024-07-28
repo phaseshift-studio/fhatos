@@ -29,18 +29,18 @@ namespace fhatos {
 
   public:
     Exts() = delete;
-    static List<Pair<ID_p, Type_p>> exts(const ID &extId) {
-      static Map_p<ID_p, List<Pair<ID_p, Type_p>>> _exts =
-          share(Map<ID_p, List<Pair<ID_p, Type_p>>>{{id_p("/ext/process"),
-                                                     {{id_p("/rec/thread"), TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                      {id_p("/rec/fiber"), TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                      {id_p("/rec/coroutine"), TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                      {id_p("/inst/stop"), TYPE_PARSER("[map(Ø).to(*_0)]")}}},
-                                                    {id_p("/ext/collection"),
-                                                     {{id_p("/lst/pair"), TYPE_PARSER("[_,_]")},
-                                                      {id_p("/lst/trip"), TYPE_PARSER("[_,_,_]")},
-                                                      {id_p("/lst/quad"), TYPE_PARSER("[_,_,_,_]")}}}});
-      return _exts->at(share(extId));
+    static List<Pair<ID, Type_p>> exts(const ID &extId) {
+      static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
+          share(Map<ID, List<Pair<ID, Type_p>>>{{"/ext/process",
+                                                     {{"/rec/thread", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                      {"/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                      {"/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                      {"/inst/stop", TYPE_PARSER("[map(Ø).to(*_0)]")}}},
+                                                    {"/ext/collection",
+                                                     {{"/lst/pair", TYPE_PARSER("[_,_]")},
+                                                      {"/lst/trip", TYPE_PARSER("[_,_,_]")},
+                                                      {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}});
+      return _exts->at(extId);
     }
   };
 

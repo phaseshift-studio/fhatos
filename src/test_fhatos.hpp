@@ -87,13 +87,14 @@
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Kernel::build()                                                                                                      \
       ->initialPrinter(Ansi<>::singleton())                                                                            \
-      ->initialLogLevel(FOS_LOGGING)                                                                                  \
+      ->initialLogLevel(FOS_LOGGING)                                                                                   \
       ->withSplash(ANSI_ART)                                                                                           \
       ->withNote("Use !bØ!! for noobj")                                                                                \
       ->withNote("Use :help for console commands")                                                                     \
       ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
                {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})        \
-      ->loadModules({"/ext/process"}); /*->defaultOutput("/home/root/repl/")        */
+      ->loadModules({"/ext/process"})                                                                                  \
+      ->defaultOutput("/home/root/repl/")
 
 #define FOS_STOP_ON_BOOT                                                                                               \
   for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                             \
