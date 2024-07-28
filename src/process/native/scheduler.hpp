@@ -50,7 +50,6 @@ namespace fhatos {
                    process->id()->toString().c_str());
           return share(false);
         }
-        bool success;
         this->subscribe(*process->id(), [this, process](const Message_p &message) {
           if (message->payload->isNoObj()) {
             this->unsubscribe(*process->id());
@@ -58,6 +57,7 @@ namespace fhatos {
           }
         });
         ////////////////////////////////
+        bool success;
         switch (process->type) {
           case PType::THREAD: {
             this->THREADS->push_back(static_cast<Thread *>(process));

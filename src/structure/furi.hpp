@@ -41,7 +41,7 @@ namespace fhatos {
     const char *_password = nullptr;
     const char *_host = nullptr;
     uint16_t _port = 0;
-    const char **_path = nullptr;
+    char **_path = nullptr;
     bool sprefix = false;
     bool spostfix = false;
     uint8_t _path_length = 0;
@@ -130,7 +130,7 @@ namespace fhatos {
       return (this->_path && this->_path_length > segment) ? this->_path[segment] : EMPTY_CHARS;
     }
     fURI path(const string &path) const {
-      const char *dup = strdup(path.c_str());
+      char *dup = strdup(path.c_str());
       fURI newURI = fURI("");
       newURI._scheme = this->_scheme ? strdup(this->_scheme) : nullptr;
       newURI._user = this->_user ? strdup(this->_user) : nullptr;
@@ -138,34 +138,38 @@ namespace fhatos {
       newURI._host = this->_host ? strdup(this->_host) : nullptr;
       newURI._port = this->_port;
       newURI._query = this->_query ? strdup(this->_query) : nullptr;
-      newURI._path = new const char *[20]; // TODO: make dynamic/intelligent
-      newURI._path_length = 0;
       std::stringstream ss = std::stringstream(dup);
       string segment;
       uint8_t i = 0;
       while (!ss.eof()) {
         char c = ss.get();
-        if (c == EOF)
+        if (c == EOF || c == '\0')
           break;
         if (c == '/') {
+          StringHelper::trim(segment);
           if (segment.empty() && 0 == i) {
             newURI.sprefix = true;
           } else {
             newURI._path[i] = strdup(segment.c_str());
-            segment.clear();
             i++;
           }
+          segment.clear();
         } else {
           segment += c;
         }
       }
-      if (segment.empty()) {
+      StringHelper::trim(segment);
+      if (segment.empty() || (segment.length() == 1 && segment[0] == '\0')) {
         newURI._path_length = i;
         newURI.spostfix = true;
       } else {
         newURI._path[i] = strdup(segment.c_str());
         newURI._path_length = i + 1;
         newURI.spostfix = false;
+#ifndef NATIVE
+        int x = strlen(newURI._path[newURI._path_length - 1]);
+        newURI._path[newURI._path_length - 1][x - 1] = '\0';
+#endif
       }
       FOS_SAFE_FREE(dup);
       return newURI;
@@ -196,7 +200,10 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
 
     fURI extend(const char *extension) const {
-      return this->path(this->path() + (this->spostfix ? "" : "/") + extension);
+      string newPath = this->path();
+      if (!this->spostfix)
+        newPath += "/";
+      return newPath.empty() ? this->path(extension) : this->path(newPath + extension);
     }
 
     fURI retract() const {
@@ -299,156 +306,147 @@ namespace fhatos {
     fURI(const fURI &other) : fURI(other.toString().c_str()) {}
     fURI(const string &uriString) : fURI(uriString.c_str()) {}
     fURI(const char *uriChars) {
-      const char *dups = (const char *) malloc((strlen(uriChars) + 1) * sizeof(char));
-      strcpy((char *) dups, uriChars);
-      ((char *) dups)[strlen(uriChars)] = '\0';
-
-      this->_path = new const char *[10];
-      std::stringstream ss = std::stringstream(dups);
-      string token;
-      URI_PART part = URI_PART::SCHEME;
-      bool hasUserInfo = strchr(dups, '@') != nullptr;
-      bool foundAuthority = false;
-      while (!ss.eof()) {
-        char t = ss.get();
-        if (!foundAuthority && t == '/' && ss.peek() == '/') {
-          foundAuthority = true;
-          if (part == URI_PART::SCHEME || part == URI_PART::USER) {
-            part = URI_PART::USER;
-            ss.get();
-          }
-        } else if (t == ':') {
-          if (part == URI_PART::SCHEME) {
-            this->_scheme = strdup(token.c_str());
-            part = URI_PART::USER;
-            token.clear();
-          } else if (part == URI_PART::USER) {
-            if (hasUserInfo) {
-              this->_user = strdup(token.c_str());
-              part = URI_PART::PASSWORD;
-            } else {
+      if (strlen(uriChars) > 0) {
+        const char *dups = strdup(uriChars);
+        this->_path = new char *[10];
+        std::stringstream ss = std::stringstream(dups);
+        string token;
+        URI_PART part = URI_PART::SCHEME;
+        bool hasUserInfo = strchr(dups, '@') != nullptr;
+        bool foundAuthority = false;
+        while (!ss.eof()) {
+          char t = ss.get();
+          if (!foundAuthority && t == '/' && ss.peek() == '/') {
+            foundAuthority = true;
+            if (part == URI_PART::SCHEME || part == URI_PART::USER) {
+              part = URI_PART::USER;
+              ss.get();
+            }
+          } else if (t == ':') {
+            if (part == URI_PART::SCHEME) {
+              this->_scheme = strdup(token.c_str());
+              part = URI_PART::USER;
+              token.clear();
+            } else if (part == URI_PART::USER) {
+              if (hasUserInfo) {
+                this->_user = strdup(token.c_str());
+                part = URI_PART::PASSWORD;
+              } else {
+                this->_host = strdup(token.c_str());
+                part = URI_PART::PORT;
+              }
+              token.clear();
+            } else if (part == URI_PART::HOST) {
               this->_host = strdup(token.c_str());
               part = URI_PART::PORT;
-            }
-            token.clear();
-          } else if (part == URI_PART::HOST) {
-            this->_host = strdup(token.c_str());
-            part = URI_PART::PORT;
-            token.clear();
-          } else {
-            token += t;
-          }
-        } else if (t == '@') {
-          if (part == URI_PART::USER || part == URI_PART::PASSWORD) {
-            if (this->_user) {
-              this->_password = strdup(token.c_str());
+              token.clear();
             } else {
-              this->_user = strdup(token.c_str());
+              token += t;
             }
-            part = URI_PART::HOST;
-            token.clear();
-          } else {
-            token += t;
-          }
-        } else if (t == '/') {
-          if (part == URI_PART::PORT) {
-            this->_port = stoi(token);
-            part = URI_PART::PATH;
-            this->sprefix = true;
-            token.clear();
-          } else if (part == URI_PART::SCHEME || part == URI_PART::HOST || part == URI_PART::USER ||
-                     part == URI_PART::PASSWORD) {
-            if (foundAuthority) {
-              this->_host = strdup(token.c_str());
+          } else if (t == '@') {
+            if (part == URI_PART::USER || part == URI_PART::PASSWORD) {
+              if (this->_user) {
+                this->_password = strdup(token.c_str());
+              } else {
+                this->_user = strdup(token.c_str());
+              }
+              part = URI_PART::HOST;
+              token.clear();
+            } else {
+              token += t;
+            }
+          } else if (t == '/') {
+            if (part == URI_PART::PORT) {
+              this->_port = stoi(token);
               part = URI_PART::PATH;
               this->sprefix = true;
-            } else {
-              if (!token.empty()) { // TODO: what about empty components?
-                this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
-                strcpy((char *) this->_path[this->_path_length], token.c_str());
-                ((char *) this->_path[this->_path_length])[token.length()] = '\0';
-                this->_path_length = this->_path_length + 1;
-              } else {
+              token.clear();
+            } else if (part == URI_PART::SCHEME || part == URI_PART::HOST || part == URI_PART::USER ||
+                       part == URI_PART::PASSWORD) {
+              if (foundAuthority) {
+                this->_host = strdup(token.c_str());
+                part = URI_PART::PATH;
                 this->sprefix = true;
+              } else {
+                if (!token.empty()) { // TODO: what about empty components?
+                  this->_path[this->_path_length] = strdup(token.c_str());
+                  this->_path_length = this->_path_length + 1;
+                } else {
+                  this->sprefix = true;
+                }
+                part = URI_PART::PATH;
               }
-              part = URI_PART::PATH;
-            }
-            token.clear();
-          } else if (part == URI_PART::PATH) {
-            this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
-            strcpy((char *) this->_path[this->_path_length], token.c_str());
-            ((char *) this->_path[this->_path_length])[token.length()] = '\0';
-            this->_path_length = this->_path_length + 1;
-            this->spostfix = true;
-            token.clear();
-          } else {
-            token += t;
-          }
-        } else if (t == '?') {
-          if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
-            if (!token.empty()) {
-              this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
-              strcpy((char *) this->_path[this->_path_length], token.c_str());
-              ((char *) this->_path[this->_path_length])[token.length()] = '\0';
-              this->_path_length = this->_path_length + 1;
-            } else
-              this->spostfix = true;
-            part = URI_PART::QUERY;
-            this->_query = strdup("");
-            token.clear();
-          } else if (part == URI_PART::HOST || part == URI_PART::USER) {
-            _host = strdup(token.c_str());
-            part = URI_PART::QUERY;
-            token.clear();
-          } else {
-            token += t;
-          }
-        } /*else if (t == '#') {
-          if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
-            if (!token.empty()) {
+              token.clear();
+            } else if (part == URI_PART::PATH) {
               this->_path[this->_path_length] = strdup(token.c_str());
               this->_path_length = this->_path_length + 1;
-            } else
               this->spostfix = true;
-            part = URI_PART::FRAGMENT;
-            this->_fragment = "";
-            token.clear();
-          } else if (part == URI_PART::HOST || part == URI_PART::USER) {
-            _host = strdup(token.c_str());
-            part = URI_PART::FRAGMENT;
-            token.clear();
-          } else if (part == URI_PART::QUERY) {
-            this->_query = strdup(token.c_str());
-            part = URI_PART::FRAGMENT;
-            token.clear();
-          } else {
+              token.clear();
+            } else {
+              token += t;
+            }
+          } else if (t == '?') {
+            if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
+              if (!token.empty()) {
+                this->_path[this->_path_length] = strdup(token.c_str());
+                this->_path_length = this->_path_length + 1;
+              } else
+                this->spostfix = true;
+              part = URI_PART::QUERY;
+              this->_query = strdup("");
+              token.clear();
+            } else if (part == URI_PART::HOST || part == URI_PART::USER) {
+              _host = strdup(token.c_str());
+              part = URI_PART::QUERY;
+              token.clear();
+            } else {
+              token += t;
+            }
+          } /*else if (t == '#') {
+            if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
+              if (!token.empty()) {
+                this->_path[this->_path_length] = strdup(token.c_str());
+                this->_path_length = this->_path_length + 1;
+              } else
+                this->spostfix = true;
+              part = URI_PART::FRAGMENT;
+              this->_fragment = "";
+              token.clear();
+            } else if (part == URI_PART::HOST || part == URI_PART::USER) {
+              _host = strdup(token.c_str());
+              part = URI_PART::FRAGMENT;
+              token.clear();
+            } else if (part == URI_PART::QUERY) {
+              this->_query = strdup(token.c_str());
+              part = URI_PART::FRAGMENT;
+              token.clear();
+            } else {
+              token += t;
+            }
+          }*/
+          else if (t != '\xFF') {
+            this->spostfix = false;
             token += t;
           }
-        }*/
-        else if (t != '\xFF') {
-          this->spostfix = false;
-          token += t;
         }
+        if (!token.empty()) {
+          if ((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) ||
+              part == URI_PART::PATH || part == URI_PART::SCHEME) {
+            this->_path[this->_path_length] = strdup(token.c_str());
+            this->_path_length = this->_path_length + 1;
+          } else if (part == URI_PART::HOST || part == URI_PART::USER) {
+            this->_host = strdup(token.c_str());
+          } else if (part == URI_PART::PORT) {
+            this->_port = stoi(token);
+          } else if (part == URI_PART::QUERY) {
+            free((void *) this->_query);
+            this->_query = strdup(token.c_str());
+          } // else if (part == URI_PART::FRAGMENT) {
+          // this->_fragment = strdup(token.c_str());
+          // }
+        }
+        FOS_SAFE_FREE(dups);
       }
-      if (!token.empty()) {
-        if ((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) || part == URI_PART::PATH ||
-            part == URI_PART::SCHEME) {
-          this->_path[this->_path_length] = (const char *) malloc((token.length() + 1) * sizeof(char));
-          strcpy((char *) this->_path[this->_path_length], token.c_str());
-          ((char *) this->_path[this->_path_length])[token.length()] = '\0';
-          this->_path_length = this->_path_length + 1;
-        } else if (part == URI_PART::HOST || part == URI_PART::USER) {
-          this->_host = strdup(token.c_str());
-        } else if (part == URI_PART::PORT) {
-          this->_port = stoi(token);
-        } else if (part == URI_PART::QUERY) {
-          free((void *) this->_query);
-          this->_query = strdup(token.c_str());
-        } // else if (part == URI_PART::FRAGMENT) {
-        // this->_fragment = strdup(token.c_str());
-        // }
-      }
-      FOS_SAFE_FREE(dups);
     }
 
     bool operator<(const fURI &other) const { return this->toString() < other.toString(); }
@@ -479,7 +477,8 @@ namespace fhatos {
       if (this->sprefix)
         uri.append("/");
       for (int i = 0; i < this->_path_length; i++) {
-        uri.append(this->_path[i]);
+        if (strlen(this->_path[i]) > 0)
+          uri.append(this->_path[i]);
         if (i < (this->_path_length - 1) || this->spostfix)
           uri.append("/");
       }
@@ -502,14 +501,8 @@ namespace fhatos {
         } else if (strchr(furiCharacters, '+')) {
           throw fError("%s\n", "IDs can not contain pattern symbols: +");
         }
-      } catch (const fError &e) {
-        if (this->_path_length > 0) {
-          for (uint8_t i = 0; i < this->_path_length; i++) {
-            delete this->_path[i];
-          }
-          delete _path;
-        }
-        this->_path_length = 0;
+      } catch (const fError &) {
+        delete this;
         throw;
       }
     }

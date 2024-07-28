@@ -22,10 +22,10 @@
 
 #include <fhatos.hpp>
 ///
-#include <process/abstract_scheduler.hpp>
+#include <process/x_scheduler.hpp>
 
 namespace fhatos {
-  class Scheduler final : public AbstractScheduler {
+  class Scheduler final : public XScheduler {
   public:
     static Scheduler *singleton(const ID& id = ID("/scheduler/")) {
       static bool _setup = false;
@@ -41,26 +41,29 @@ namespace fhatos {
       vTaskDelay(1); // feeds the watchdog for the task
     }
 
-    virtual bool spawn(Process *process) override {
+    virtual bool spawn(XProcess *process) override {
       // TODO: have constructed processes NOT running or check is process ID already in scheduler
       process->setup();
       if (!process->running()) {
         LOG(ERROR, "!RUnable to spawn running %s: %s!!\n",
-            P_TYPE_STR(process->type), process->id()->toString().c_str());
+            ProcessTypes.toChars(process->type), process->id()->toString().c_str());
         return false;
       }
+      this->subscribe(*process->id(), [this, process](const Message_p &message) {
+        if (message->payload->isNoObj()) {
+          this->unsubscribe(*process->id());
+          process->stop();
+        }
+      });
       //////////////////////////////////////////////////
       ////// THREAD //////
       bool success = false;
       switch (process->type) {
-        case THREAD: {
+        case PType::THREAD: {
           this->THREADS->push_back(static_cast<Thread *>(process));
           const BaseType_t threadResult = xTaskCreatePinnedToCore(
             THREAD_FUNCTION, // Function that should be called
-            process->id()
-            ->user()
-            .value_or(process->id()->toString())
-            .c_str(), // Name of the task (for debugging)
+            process->id()->toString().c_str(), // Name of the task (for debugging)
             10000, // Stack size (bytes)
             process, // Parameter to pass
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
@@ -69,7 +72,7 @@ namespace fhatos {
           success = pdPASS == threadResult;
           break;
         }
-        case FIBER: {
+        case PType::FIBER: {
           success = this->FIBERS->push_back(static_cast<Fiber *>(process));
           LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
           if (!FIBER_THREAD_HANDLE) {
@@ -84,12 +87,12 @@ namespace fhatos {
           }
           break;
         }
-        case COROUTINE: {
+        case PType::COROUTINE: {
           success = this->COROUTINES->push_back(static_cast<Coroutine *>(process));
           break;
         }
-        case KERNEL: {
-          success = this->KERNELS->push_back(static_cast<KernelProcess *>(process));
+        case PType::KERNEL: {
+          success = this->KERNELS->push_back(static_cast<XKernel *>(process));
           break;
         }
         default: {
@@ -112,7 +115,7 @@ namespace fhatos {
 
   private:
   private:
-    explicit Scheduler(const ID &id = Router::mintID("scheduler", "kernel")) : AbstractScheduler(id) {
+    explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;

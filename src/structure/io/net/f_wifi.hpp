@@ -21,7 +21,8 @@
 
 #include <fhatos.hpp>
 //
-#include FOS_PROCESS(process.hpp)
+#include <process/x_process.hpp>
+#include FOS_PROCESS(coroutine.hpp)
 #include <structure/furi.hpp>
 //
 #if defined(ESP8266)
@@ -42,12 +43,12 @@
 #endif
 
 namespace fhatos {
-  class fWIFI : public KernelProcess {
+  class fWIFI : public Coroutine {
   private:
     explicit fWIFI(const ID &id = ID("wifi@127.0.0.1"),
                    const char *ssids = STR(WIFI_SSID),
                    const char *passwords = STR(WIFI_PASS))
-      : KernelProcess(id) {
+      : Coroutine(id) {
       this->ssids = ssids;
       this->passwords = passwords;
     }
@@ -60,7 +61,7 @@ namespace fhatos {
     static ID idFromIP(const string &user, const string &path = "") {
       if (!fWIFI::singleton()->running())
         fWIFI::singleton()->setup();
-      return  ID(path + "/" + user).authority(fWIFI::ip().c_str());
+      return  ID(path + "/" + user);
     }
 
     static fWIFI *singleton(const ID &id = ID("wifi@127.0.0.1"),
@@ -81,13 +82,13 @@ namespace fhatos {
     static bool reconnect() { return WiFi.reconnect(); }
 
     void setup() override {
-      KernelProcess::setup();
+      Coroutine::setup();
       this->setStation();
     }
 
     void stop() override {
       WiFi.disconnect();
-      KernelProcess::stop();
+      Coroutine::stop();
     }
 
   private:

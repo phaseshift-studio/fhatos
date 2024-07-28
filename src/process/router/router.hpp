@@ -26,7 +26,7 @@
 #include <structure/furi.hpp>
 #include <util/enums.hpp>
 #ifndef NATIVE
-#include <structure/io/net/f_wifi.hpp>
+//#include <structure/io/net/f_wifi.hpp>
 #else
 #endif
 #include FOS_PROCESS(coroutine.hpp)
@@ -151,11 +151,7 @@ namespace fhatos {
     ROUTER_LEVEL _level;
 
     static ID mintID(const char *authority, const char *path = "") {
-#ifdef NATIVE
       return ID(ID(authority).path(path));
-#else
-      return fWIFI::idFromIP(authority, path);
-#endif
     }
 
     virtual RESPONSE_CODE publish(const Message &) FP_OK_RESULT;

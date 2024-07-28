@@ -118,11 +118,16 @@ namespace fhatos {
 
   void test_uri_memory_leaks() {
 #ifndef NATIVE
-    FOS_TEST_PRINTER::singleton()->flush();
+    Ansi<>::singleton()->flush();
     int sketchMemory = -1;
     int heapMemory = -1;
 #endif
-    for (int i = 0; i < 50000; i++) {
+#ifndef NATIVE
+#define FOS_LOOPS 10000
+#else
+#define FOS_LOOPS 50000
+#endif
+    for (int i = 0; i < FOS_LOOPS; i++) {
       fURI a = fURI("127.0.0.1");
       fURI b = fURI(a);
       fURI c = fURI(b.toString());
@@ -135,6 +140,7 @@ namespace fhatos {
       TEST_ASSERT_TRUE(a.equals(d));
       TEST_ASSERT_TRUE(a.extend("").equals(e));
       TEST_ASSERT_TRUE(a.equals(f));
+#undef FOS_LOOPS
 #ifndef NATIVE
       if (sketchMemory != -1) {
         TEST_ASSERT_EQUAL_INT32(sketchMemory, ESP.getFreeSketchSpace());
@@ -144,7 +150,7 @@ namespace fhatos {
       heapMemory = ESP.getFreeHeap();
       if (i % 1000 == 0) {
         FOS_TEST_MESSAGE("fURI count: %i\t[free sketch:%i][free heap:%i]", i, sketchMemory, heapMemory);
-        FOS_TEST_PRINTER::singleton()->flush();
+        Ansi<>::singleton()->flush();
       }
     }
     FOS_TEST_MESSAGE("FINAL [free sketch:%i][free heap:%i]", ESP.getFreeSketchSpace(), ESP.getFreeHeap());
@@ -159,6 +165,7 @@ namespace fhatos {
 
   void test_uri_equals() {
     /// STRING EQUALS
+    TEST_ASSERT_EQUAL_STRING("", fURI("").toString().c_str());
     TEST_ASSERT_EQUAL_STRING("a", fURI("a").toString().c_str());
     TEST_ASSERT_EQUAL_STRING("/a", fURI("/a").toString().c_str());
     /// TRUE

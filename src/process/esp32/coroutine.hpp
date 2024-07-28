@@ -21,12 +21,12 @@
 
 #include <fhatos.hpp>
 //
-#include FOS_PROCESS(process.hpp)
+#include <process/x_process.hpp>
 
 namespace fhatos {
-class Coroutine : public Process {
+class Coroutine : public XProcess {
 public:
-  explicit Coroutine(const ID &id) : Process(id, COROUTINE) {}
+  explicit Coroutine(const ID &id) : XProcess(id, PType::COROUTINE) {}
 
   void delay(const uint64_t milliseconds) override {
     // do nothing

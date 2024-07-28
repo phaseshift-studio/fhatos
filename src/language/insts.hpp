@@ -23,7 +23,6 @@
 //
 #include <language/obj.hpp>
 #include <process/router/router.hpp>
-#include <util/obj_helper.hpp>
 #include <util/options.hpp>
 #include <utility>
 

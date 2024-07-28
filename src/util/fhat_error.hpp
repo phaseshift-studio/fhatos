@@ -20,7 +20,7 @@
 #define fhatos_fhat_error_hpp
 
 #include <exception>
-
+#define FOS_ERROR_MESSAGE_SIZE 250
 namespace fhatos {
 #ifndef NATIVE
   ///////////////////////
@@ -28,28 +28,21 @@ namespace fhatos {
   ///////////////////////
   class fError : public std::exception {
   protected:
-    char *_message;
+    char _message[FOS_ERROR_MESSAGE_SIZE];
 
   public:
     explicit fError(const char *format, ...) {
       va_list arg;
       va_start(arg, format);
-      char temp[64];
-      _message = temp;
-      size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+      int length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
+      _message[length] = '\0';
+      if (length >= FOS_ERROR_MESSAGE_SIZE) {
+        _message[FOS_ERROR_MESSAGE_SIZE - 1] = '\n';
+        _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
+        _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
+        _message[FOS_ERROR_MESSAGE_SIZE - 4] = '.';
+      }
       va_end(arg);
-      if (len > sizeof(temp) - 1) {
-        _message = new (std::nothrow) char[len + 1];
-        if (!_message) {
-          return;
-        }
-        va_start(arg, format);
-        vsnprintf(_message, len + 1, format, arg);
-        va_end(arg);
-      }
-      if (_message != temp) {
-        delete[] _message;
-      }
     };
 
     // ~fError() override { delete _message; }
@@ -57,12 +50,8 @@ namespace fhatos {
     [[nodiscard]] virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT override {
       return this->_message;
     }
-  };
-}
-
-////////////////////////////////
+    ////////////////////////////////
 #else
-#define FOS_ERROR_MESSAGE_SIZE 250
   class /*_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST*/ fError final : public std::exception {
   protected:
     char _message[FOS_ERROR_MESSAGE_SIZE];
@@ -87,9 +76,9 @@ namespace fhatos {
         _message[FOS_ERROR_MESSAGE_SIZE - 4] = '.';
       }
       va_end(arg);
-    };
-    const char *what() const noexcept override { return this->_message; }
-
+    }
+    const char *what() const noexcept override { return this->_message; };
+#endif
     static fError X_REQUIRES_IMPLEMENTATION(const char *clazz, const char *member) {
       return fError("Member is abstract and requires an implementation: %s::%s\n", clazz, member);
     }
@@ -98,10 +87,7 @@ namespace fhatos {
       if (strcmp(typeId, otype) != 0)
         throw fError("!b%s!! is not typed !y%s!!\n", typeId, otype);
     }
-
-    // static fError ERROR_BY_IDED()
   };
-}
+} // namespace fhatos
 #undef FOS_ERROR_MESSAGE_SIZE
-#endif
 #endif
