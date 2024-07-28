@@ -16,7 +16,7 @@ namespace fhatos {
     auto counter1 = new std::atomic<int>(0);
     auto counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread>(ID("/app/actor1@127.0.0.1"), [counter1](Actor<Thread> *self) {
-      self->subscribe(ID("/app/actor1@127.0.0.1"), [counter1, self](const ptr<Message> &message) {
+      self->subscribe(ID("/app/actor1@127.0.0.1"), [counter1, self](const ptr<Message> &) {
         self->publish(ID("/app/actor2@127.0.0.1"), share(Int(counter1->load())), TRANSIENT_MESSAGE);
         if (counter1->fetch_add(1) > 198)
           self->stop();
@@ -160,7 +160,7 @@ namespace fhatos {
     Actor<Thread> *clone = Actor<Thread>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(*actor->id(), *clone->id());
     GLOBAL_OPTIONS->printer<>()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
-    for (int i = 0; i < buffer.second; i++) {
+    for (uint i = 0; i < buffer.second; i++) {
       GLOBAL_OPTIONS->printer<>()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
       if ((i + 1) % 10 == 0)
         GLOBAL_OPTIONS->printer<>()->printf("\n" FOS_TAB);

@@ -107,7 +107,10 @@ namespace fhatos {
     }
 
   public:
-    ~MqttRouter() override = default;
+    ~MqttRouter() {
+      this->stop();
+      delete this->xmqtt;
+    }
 
     RESPONSE_CODE clear() override {
       _SUBSCRIPTIONS.forEach(
@@ -119,8 +122,8 @@ namespace fhatos {
 
     RESPONSE_CODE publish(const Message &message) override {
       ptr<BObj> bobj = message.payload->serialize();
-      //delivery_token_ptr ret =
-          this->xmqtt->publish(message.target.toString(), bobj->second, bobj->first, 1, message.retain);
+      // delivery_token_ptr ret =
+      this->xmqtt->publish(message.target.toString(), bobj->second, bobj->first, 1, message.retain);
       const RESPONSE_CODE _rc = OK; //(RESPONSE_CODE) ret->get_return_code();
       /*const RESPONSE_CODE _rc =
           _PUBLICATIONS.push_back(share(message)) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;*/

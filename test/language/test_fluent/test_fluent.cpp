@@ -82,13 +82,13 @@ namespace fhatos {
 
   void test_mult() {
     // URI
-  //  FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("b")));
-  //  FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("/b")));
-   // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b")));
-    //FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b/")));
-    // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b/")));
-    // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b")));
-    // FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}}));
+   FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("b")));
+   FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("/b")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b")));
+    // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b/")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b/")));
+    FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b")));
+    //FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}}));
   }
 
   void test_count() {
@@ -129,7 +129,7 @@ namespace fhatos {
         GLOBAL_OPTIONS->ROUTING = router; //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        //FOS_RUN_TEST(test_to_from); //
+        FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //
         FOS_RUN_TEST(test_count); //

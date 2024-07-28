@@ -83,6 +83,11 @@ namespace fhatos {
             "append", args, [this, args](const Obj_p &lhs) { return this->append(lhs, args.at(0)->apply(lhs)); },
             IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("append")));
       });
+      Insts::register_inst(INST_FS_FURI->resolve("touch"), [this](List<Obj_p> args) {
+        return Obj::to_inst(
+            "touch", args, [this, args](const Obj_p &lhs) { return this->touch(args.at(0)->apply(lhs)->uri_value()); },
+            IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("touch")));
+      });
     }
 
     virtual File_p to_file(const ID &) const { throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem","to_file"); }

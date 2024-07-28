@@ -227,7 +227,7 @@ namespace fhatos {
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
             return lhs;
           },
-          areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+         /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
     }
 
     static Obj_p to_inv(const Obj_p &obj) {
@@ -256,7 +256,7 @@ namespace fhatos {
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
           "from", {uri}, [uri](const Uri_p &lhs) { return Router::read(uri->apply(lhs)->uri_value()); },
-          areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+          /*areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
     }
 
     static Rec_p rfrom(const Uri_p &uri) {

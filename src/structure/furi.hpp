@@ -205,6 +205,7 @@ namespace fhatos {
       fURI newURI = fURI(*this);
       FOS_SAFE_FREE(newURI._path[newURI._path_length - 1]);
       newURI._path_length = newURI._path_length - 1;
+      newURI.spostfix = true;
       return newURI;
     }
 
@@ -298,7 +299,10 @@ namespace fhatos {
     fURI(const fURI &other) : fURI(other.toString().c_str()) {}
     fURI(const string &uriString) : fURI(uriString.c_str()) {}
     fURI(const char *uriChars) {
-      const char *dups = strdup(uriChars);
+      const char *dups = (const char *) malloc((strlen(uriChars) + 1) * sizeof(char));
+      strcpy((char *) dups, uriChars);
+      ((char *) dups)[strlen(uriChars)] = '\0';
+
       this->_path = new const char *[10];
       std::stringstream ss = std::stringstream(dups);
       string token;
@@ -566,9 +570,9 @@ namespace fhatos {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 
-  static ID_p id_p(const char *idChars) { return share(ID(idChars)); }
-  static ID_p id_p(const ID &id) { return share(id); }
-  static ID_p id_p(const fURI &id) { return share(ID(id)); }
+  [[maybe_unused]] static ID_p id_p(const char *idChars) { return share(ID(idChars)); }
+  [[maybe_unused]] static ID_p id_p(const ID &id) { return share(id); }
+  [[maybe_unused]] static ID_p id_p(const fURI &id) { return share(ID(id)); }
 } // namespace fhatos
 
 #endif

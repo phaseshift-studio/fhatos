@@ -254,7 +254,7 @@ namespace fhatos {
           if (ss.peek() == ')')
             parenCounter--;
           if (!ss.eof())
-            value += (char) ss.get();
+            value += static_cast<char>(ss.get());
         }
       }
       StringHelper::trim(value);
@@ -300,7 +300,7 @@ namespace fhatos {
             if (ss.peek() == ')')
               parenCounter--;
             if (!ss.eof())
-              key += (char) ss.get();
+              key += static_cast<char>(ss.get());
           }
         } else {
           ///////
@@ -326,7 +326,7 @@ namespace fhatos {
             if (ss.peek() == ')')
               parenCounter--;
             if (!ss.eof())
-              value += (char) ss.get();
+              value += static_cast<char>(ss.get());
           }
         }
       }
@@ -362,7 +362,7 @@ namespace fhatos {
             bracket++;
           else if (ss.peek() == ']')
             bracket--;
-          const char temp = ss.get();
+          const char temp = static_cast<char>(ss.get());
           if (ss.eof())
             argToken = argToken.substr(0, argToken.length() - 2);
           else {

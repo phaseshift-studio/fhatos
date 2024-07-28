@@ -89,7 +89,7 @@ IF (BUILD_NATIVE)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (NATIVE)${..}")
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
-    INCLUDE_DIRECTORIES(src include)
+    INCLUDE_DIRECTORIES(src)
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -163,7 +163,6 @@ FETCHCONTENT_DECLARE(
 )
 FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqtt3c)
-ADD_LINK_OPTIONS("-Wno-dev")
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)

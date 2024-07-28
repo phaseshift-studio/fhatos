@@ -32,14 +32,14 @@ namespace fhatos {
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
           share(Map<ID, List<Pair<ID, Type_p>>>{{"/ext/process",
-                                                     {{"/rec/thread", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                      {"/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                      {"/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                      {"/inst/stop", TYPE_PARSER("[map(Ø).to(*_0)]")}}},
-                                                    {"/ext/collection",
-                                                     {{"/lst/pair", TYPE_PARSER("[_,_]")},
-                                                      {"/lst/trip", TYPE_PARSER("[_,_,_]")},
-                                                      {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}});
+                                                 {{"/rec/thread", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                  {"/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                  {"/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                  {"/inst/stop", TYPE_PARSER("[map(Ø).to(*_0)]")}}},
+                                                {"/ext/collection",
+                                                 {{"/lst/pair", TYPE_PARSER("[_,_]")},
+                                                  {"/lst/trip", TYPE_PARSER("[_,_,_]")},
+                                                  {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}});
       return _exts->at(extId);
     }
   };
@@ -66,9 +66,9 @@ namespace fhatos {
         router->write(type.first->uri_value(), type.second, source);
       }
     }
-    const Rec_p imports() const { return this->_imports; }
-    const Rec_p prefixes() const { return this->_prefixes; }
-    const Rec_p typedefs() const { return this->_typedefs; }
+    Rec_p imports() const { return this->_imports; }
+    Rec_p prefixes() const { return this->_prefixes; }
+    Rec_p typedefs() const { return this->_typedefs; }
     Rec_p to_obj() {
       Obj::RecMap_p<Uri_p, Rec_p> map = share(Obj::RecMap<Uri_p, Rec_p>());
       map->insert({u_p("prefixes"), this->_prefixes});

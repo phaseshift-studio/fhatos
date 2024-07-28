@@ -45,11 +45,12 @@ namespace fhatos {
       const Obj_p nextObj = this->_inst->apply(this->_obj);
       const Inst_p nextInst = bcode->nextInst(this->_inst);
       if (nextObj->isObjs()) {
+        LOG(DEBUG, FOS_TAB_2 "!mUnrolling!! objs monad: %s\n", nextObj->toString().c_str());
         for (const auto &obj: *nextObj->objs_value()) {
           if (!obj->isNoObj()) {
             const Monad_p monad = Monad_p(new Monad(obj, nextInst));
             running->push_back(monad);
-            LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
+            LOG(DEBUG, FOS_TAB_4 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
       } else {
@@ -81,8 +82,13 @@ namespace fhatos {
     Deque<Obj_p> *halted = new Deque<Obj_p>();
 
   public:
+    ~Processor() {
+      FOS_SAFE_DELETE(this->running);
+      FOS_SAFE_DELETE(this->barriers);
+      FOS_SAFE_DELETE(this->halted);
+    }
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
-      if(!this->bcode->isBytecode())
+      if (!this->bcode->isBytecode())
         throw fError("Processor requires a bcode obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
       for (const Inst_p &inst: this->bcode->bcode_value()) {

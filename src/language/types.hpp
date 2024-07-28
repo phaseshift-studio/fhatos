@@ -20,11 +20,18 @@
 #define fhatos_types_hpp
 
 #include <fhatos.hpp>
-#include <language/exts.hpp>
+#include <language/insts.hpp>
 #include <language/obj.hpp>
 #include FOS_PROCESS(coroutine.hpp)
-#include <process/router/router.hpp>
 #include <util/mutex_rw.hpp>
+
+#ifndef FOS_USE_ROUTERS
+#define FOS_USE_ROUTERS true
+#endif
+
+#ifdef FOS_USE_ROUTERS
+#include <process/router/router.hpp>
+#endif
 
 namespace fhatos {
   class Types : public Coroutine {
@@ -34,7 +41,6 @@ namespace fhatos {
 
   protected:
     Map<ID_p, Type_p> *CACHE = new Map<ID_p, Type_p>();
-    Map<const char *, ID_p> *PREFIXES = new Map<const char *, ID_p>();
     MutexRW<> *CACHE_MUTEX = new MutexRW<>();
 
   public:
@@ -68,31 +74,18 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void loadExt(const ID &extId) const {
-      for (const Pair<ID, Type_p> &pair: Exts::exts(extId)) {
-        this->saveType(id_p(pair.first), pair.second, true);
-      }
-    }
-    /* void saveType(const std::initializer_list<Pair<ID, string>> &types, const bool writeThrough = true) const {
-       for (const auto &pair: types) {
-         saveType(share(pair.first), TYPE_PARSER(pair.second), writeThrough);
-       }
-     }*/
-
-    void savePrefix(const char *prefix, const ID &furi) {
-      if (PREFIXES->count(prefix)) {
-        if (!PREFIXES->at(prefix)->equals(furi))
-          LOG(WARN, "Overwriting namespace prefix from %s to %s\n", prefix, furi.toString().c_str());
-        PREFIXES->erase(prefix);
-      }
-      PREFIXES->insert({prefix, ptr<ID>(new ID(furi))});
+    void savePrefix(const char *prefix, const ID &furi, const bool writeThrough = true) const {
+      this->saveType(share(ID(prefix)), Uri::to_uri(furi), writeThrough);
     }
 
-    const Option<ID_p> loadPrefix(const char *prefix) {
-      return PREFIXES->count(prefix) ? Option<ID_p>(PREFIXES->at(prefix)) : Option<ID_p>{};
+    Option<ID_p> loadPrefix(const char *prefix, const bool readThrough) const {
+      const Option<Obj_p> option = this->loadType(share(ID(prefix)), readThrough);
+      if (option.has_value())
+        return Option<ID_p>(id_p(option.value()->uri_value()));
+      return Option<ID_p>();
     }
 
-    void saveType(const ID_p &typeId, const Obj_p &typeDef, const bool writeThrough = true) const {
+    void saveType(const ID_p &typeId, const Obj_p &typeDef, [[maybe_unused]] const bool writeThrough = true) const {
       CACHE_MUTEX->write<void>([this, typeId, typeDef, writeThrough] {
         if (!typeDef->isNoObj()) {
           if (CACHE->count(typeId)) {
@@ -101,8 +94,10 @@ namespace fhatos {
             CACHE->erase(typeId);
           }
           CACHE->insert({typeId, PtrHelper::clone<Obj>(typeDef)});
+#if FOS_USE_ROUTERS
           if (writeThrough)
             Router::write(*typeId, typeDef);
+#endif
           if (OType::INST == OTypes.toEnum(typeId->path(0))) {
             const Inst_p inst = Insts::to_inst(*typeId, *typeDef->lst_value());
             LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
@@ -114,23 +109,27 @@ namespace fhatos {
         } else { // delete type
           if (CACHE->count(typeId))
             CACHE->erase(typeId);
+#if FOS_USE_ROUTERS
           if (writeThrough)
             Router::write(*typeId, Obj::to_noobj());
+#endif
           LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! deleted\n", typeId->toString().c_str(),
                    typeDef->toString().c_str());
         }
         return share(nullptr);
       });
     }
-    const Option<Obj_p> loadType(const ID_p &typeId, const bool readThrough = true) const {
+    Option<Obj_p> loadType(const ID_p &typeId, [[maybe_unused]] const bool readThrough = true) const {
       return CACHE_MUTEX->read<Option<Obj_p>>([this, typeId, readThrough] {
         try {
           if (CACHE->count(typeId))
             return Option<Obj_p>(CACHE->at(typeId));
+#if FOS_USE_ROUTERS
           if (readThrough) {
             const Type_p type = Router::read<Obj>(*typeId);
             return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
           }
+#endif
         } catch (const fError &) {
         }
         return Option<Obj_p>();

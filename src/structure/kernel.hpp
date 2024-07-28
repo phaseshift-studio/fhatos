@@ -57,7 +57,9 @@ namespace fhatos {
     }
     static Kernel *loadModules(const List<ID> &modules) {
       for (const ID &id: modules) {
-        Types::singleton()->loadExt(id);
+        for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
+          Types::singleton()->saveType(id_p(pair.first), pair.second, true);
+        }
       }
       return Kernel::build();
     }

@@ -28,7 +28,7 @@ namespace fhatos {
   struct Rewriter {
     List<Rewrite> _rewrites;
     explicit Rewriter(const List<Rewrite> &rewrites) : _rewrites(rewrites) {}
-    BCode_p apply(const BCode_p &bcode) {
+    BCode_p apply(const BCode_p &bcode) const {
       BCode_p running = bcode;
       for (const Rewrite &rw: this->_rewrites) {
         LOG(DEBUG, "Applying rewrite %s\n", std::get<0>(rw).toString().c_str());

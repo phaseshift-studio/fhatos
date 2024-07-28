@@ -34,7 +34,7 @@
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
     LOG_TASK((success) ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", (process)->id()->toString().c_str(),           \
-             P_TYPE_STR((process)->type));                                                                             \
+             ProcessTypes.toChars((process)->type));                                                                   \
   }
 
 
@@ -78,17 +78,21 @@ namespace fhatos {
     }
 
     void stop() {
-      this->handle_messages();
-      for (XProcess *process: *this->find()) {
-        if (this->find(*process->id())->at(0)->type == PType::COROUTINE)
-          this->_destroy(*process->id());
-        else
-          this->destroy(*process->id());
+      auto *lists = new List<MutexDeque<XProcess *> *>();
+      lists->push_back(reinterpret_cast<MutexDeque<XProcess *> *>(COROUTINES));
+      lists->push_back(reinterpret_cast<MutexDeque<XProcess *> *>(FIBERS));
+      lists->push_back(reinterpret_cast<MutexDeque<XProcess *> *>(THREADS));
+      for (const auto &procs: *lists) {
         this->handle_messages();
+        procs->forEach([this](const auto &process) {
+          this->destroy(*process->id());
+          this->handle_messages();
+        });
       }
       this->handle_messages();
       this->unsubscribeSource();
       this->handle_messages();
+      delete lists;
       this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _destroy can finish
@@ -136,13 +140,14 @@ namespace fhatos {
     virtual bool _destroy(const Pattern &processPattern) {
       bool success = RW_PROCESS_MUTEX
                          .write<Bool>([this, processPattern]() {
-                           THREADS->remove_if([processPattern, this](Thread *process) {
+                           // auto &gaslight1 = *reinterpret_cast<MutexDeque<ptr<Thread>> *>(THREADS);
+                           THREADS->remove_if([processPattern, this](const auto &process) {
                              if (process->id()->matches(processPattern)) {
                                try {
                                  if (process->running())
                                    process->stop();
                                  LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                          P_TYPE_STR(process->type));
+                                          ProcessTypes.toChars(process->type));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -150,13 +155,14 @@ namespace fhatos {
                              }
                              return false;
                            });
-                           FIBERS->remove_if([processPattern, this](Fiber *process) {
+                           // auto &gaslight2 = *reinterpret_cast<MutexDeque<ptr<Fiber>> *>(FIBERS);
+                           FIBERS->remove_if([processPattern, this](const auto &process) {
                              if (process->id()->matches(processPattern)) {
                                try {
                                  if (process->running())
                                    process->stop();
                                  LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                          P_TYPE_STR(process->type));
+                                          ProcessTypes.toChars(process->type));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -164,13 +170,14 @@ namespace fhatos {
                              }
                              return false;
                            });
-                           COROUTINES->remove_if([processPattern, this](Coroutine *process) {
+                           // auto &gaslight3 = *reinterpret_cast<MutexDeque<ptr<Coroutine>> *>(COROUTINES);
+                           COROUTINES->remove_if([processPattern, this](const auto &process) {
                              if (process->id()->matches(processPattern)) {
                                try {
                                  if (process->running())
                                    process->stop();
                                  LOG_TASK(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                          P_TYPE_STR(process->type));
+                                          ProcessTypes.toChars(process->type));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -192,37 +199,6 @@ namespace fhatos {
     }
 
   public:
-    const List<XProcess *> *find(const Pattern &processPattern = Pattern("#")) {
-      return RW_PROCESS_MUTEX.read<List<XProcess *> *>([this, processPattern]() {
-        const auto results = new List<XProcess *>();
-        auto temp = reinterpret_cast<List<XProcess *> *>(
-            THREADS->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
-        for (XProcess *p: *temp) {
-          results->push_back(p);
-        }
-        delete temp;
-        temp = reinterpret_cast<List<XProcess *> *>(
-            FIBERS->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
-        for (XProcess *p: *temp) {
-          results->push_back(p);
-        }
-        delete temp;
-        temp = reinterpret_cast<List<XProcess *> *>(
-            COROUTINES->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
-        for (XProcess *p: *temp) {
-          results->push_back(p);
-        }
-        delete temp;
-        temp = reinterpret_cast<List<XProcess *> *>(
-            KERNELS->match([processPattern](const XProcess *p) { return p->id()->matches(processPattern); }));
-        for (XProcess *p: *temp) {
-          results->push_back(p);
-        }
-        delete temp;
-        return results;
-      });
-    }
-
     int count(const Pattern &processPattern = Pattern("#")) {
       return RW_PROCESS_MUTEX.read<int>([this, processPattern]() {
         if (processPattern.equals(Pattern("#")))

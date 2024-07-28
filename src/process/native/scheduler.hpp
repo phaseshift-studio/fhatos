@@ -46,7 +46,7 @@ namespace fhatos {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
         if (!process->running()) {
-          LOG_TASK(ERROR, this, "!RUnable to spawn running %s: %s!!\n", P_TYPE_STR(process->type),
+          LOG_TASK(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->type),
                    process->id()->toString().c_str());
           return share(false);
         }
@@ -59,13 +59,13 @@ namespace fhatos {
         });
         ////////////////////////////////
         switch (process->type) {
-          case THREAD: {
+          case PType::THREAD: {
             this->THREADS->push_back(static_cast<Thread *>(process));
             dynamic_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
             success = true;
             break;
           }
-          case FIBER: {
+          case PType::FIBER: {
             success = this->FIBERS->push_back(dynamic_cast<Fiber *>(process));
             LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
             if (!FIBER_THREAD_HANDLE) {
@@ -75,11 +75,11 @@ namespace fhatos {
             dynamic_cast<Fiber *>(process)->xthread = FIBER_THREAD_HANDLE;
             break;
           }
-          case COROUTINE: {
+          case PType::COROUTINE: {
             success = this->COROUTINES->push_back(dynamic_cast<Coroutine *>(process));
             break;
           }
-          case KERNEL: {
+          case PType::KERNEL: {
             success = this->KERNELS->push_back(dynamic_cast<XKernel *>(process));
             break;
           }
@@ -90,7 +90,7 @@ namespace fhatos {
           }
         }
         LOG_TASK(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                 P_TYPE_STR(process->type));
+                 ProcessTypes.toChars(process->type));
         return share(success);
       });
       if (!success)

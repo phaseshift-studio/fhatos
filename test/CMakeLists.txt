@@ -1,4 +1,4 @@
-OPTION(BUILD_TESTS "Build tests" OFF) # ON/OFF
+OPTION(BUILD_TESTS "Build tests" ON) # ON/OFF
 IF (BUILD_TESTS)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
     ENABLE_TESTING()
@@ -28,8 +28,7 @@ IF (BUILD_TESTS)
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
             ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE" "-Wno-ambiguous-reversed-operator") #  "-Wno-dev"
             TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map paho-mqttpp3)
-            #TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} PUBLIC ${ROOT_SOURCE_DIR}/test_fhatos.hpp)
-            #TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
+            TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

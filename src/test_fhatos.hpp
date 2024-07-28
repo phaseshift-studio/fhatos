@@ -22,11 +22,11 @@
 #include <fhatos.hpp>
 #include <unity.h>
 
-#define FOS_INCLUDES 0
+/*#define FOS_INCLUDES 0
 #define FOS_SCHEDULER 1
 #define FOS_ROUTER 2
 #define FOS_LANGUAGE 3
-#define FOS_FULL_BOOT 4
+#define FOS_FULL_BOOT 4*/
 #define TEST_REQUIREMENTS FOS_FULL_BOOT
 
 #ifndef FOS_LOGGING
@@ -64,7 +64,6 @@
 #include FOS_PROCESS(scheduler.hpp)
 #endif
 */
-
 
 #ifdef FOS_TEST_ON_BOOT
 #include <language/fluent.hpp>
@@ -291,7 +290,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   return obj;
 }
 
-static void FOS_TEST_ERROR(const string &monoid) {
+[[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
     Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());

@@ -69,8 +69,8 @@ namespace fhatos {
       });
     }
 
-    List<T> *match(const Predicate<T> predicate, const bool withMutex = true) {
-      auto *results = new List<T>();
+    List_p<T> match(const Predicate<T> predicate, const bool withMutex = true) {
+      auto results = share(List<T>());
       lockUnlock<void *>(withMutex, [this, results, predicate]() {
         for (const T &t: _deque) {
           if (predicate(t))
@@ -103,12 +103,21 @@ namespace fhatos {
       });
     }
 
-    void remove_if(Predicate<T> predicate, const bool withMutex = true) {
-      lockUnlock<void *>(withMutex, [this, predicate]() {
-        _deque.erase(std::remove_if(_deque.begin(), _deque.end(), [predicate](T t) { return predicate(t); }),
+    List_p<T> remove_if(Predicate<T> predicate, const bool withMutex = true) {
+      auto *removed = new List<T>();
+      lockUnlock<void *>(withMutex, [this, predicate, removed] {
+        _deque.erase(std::remove_if(_deque.begin(), _deque.end(),
+                                    [predicate, removed](T t) {
+                                      const bool r = predicate(t);
+                                      if (r)
+                                        removed->push_back(t);
+                                      return r;
+                                    }),
                      _deque.end());
         return nullptr;
       });
+      const List_p<T> removed_p = ptr<List<T>>(removed);
+      return removed_p;
     }
 
     void remove(const T &toRemove, const bool withMutex = true) {

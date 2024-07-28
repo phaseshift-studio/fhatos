@@ -4,6 +4,7 @@
 #define FOS_TEST_ON_BOOT
 
 #include <test_fhatos.hpp>
+#include <language/parser.hpp>
 
 namespace fhatos {
 
@@ -239,18 +240,21 @@ namespace fhatos {
 
   void test_to_from() {
     if (GLOBAL_OPTIONS->router<Router>()->toString() != "MqttRouter") {
-      FOS_CHECK_RESULTS<Int>({10}, List<string>({"x .~> y", "y .~> z", "z .~> 10"})); // TODO: fix to() so it doesn't Ø on start
-       FOS_CHECK_RESULTS<Int>({10}, "from(z)");
-       FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
-       FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
-       FOS_CHECK_RESULTS<Int>({10}, "*z");
-       FOS_CHECK_RESULTS<Int>({10}, "**y");
-       FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);
+      FOS_CHECK_RESULTS<Int>(
+          {10}, List<string>({"y.to(x)", "z.to(y)", "10.to(z)"})); // TODO: fix to() so it doesn't Ø on start
+      FOS_CHECK_RESULTS<Int>({10}, "from(z)");
+      FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
+      FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
+      FOS_CHECK_RESULTS<Int>({10}, "*z");
+      FOS_CHECK_RESULTS<Int>({10}, "**y");
+      FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);
     }
   }
 
   void test_bcode_parsing() {
-    Types::singleton()->loadExt("/ext/process");
+    for (const Pair<ID, Type_p> &pair: Exts::exts("/ext/process")) {
+      Types::singleton()->saveType(id_p(pair.first), pair.second, true);
+    }
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
                                                       ->tryParseObj("thread[[setup => print('setup complete'),"
                                                                     "        loop  => to(/abc/)]].to(/abc/)")

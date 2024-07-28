@@ -22,9 +22,9 @@
 #include <fhatos.hpp>
 //
 #include <process/actor/mailbox.hpp>
+#include <process/actor/publisher.hpp>
 #include <process/router/local_router.hpp>
 #include <process/router/message.hpp>
-#include <process/actor/publisher.hpp>
 #include <process/router/router.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -34,10 +34,27 @@
 namespace fhatos {
   template<typename PROCESS = Thread>
   class Actor : public PROCESS, public Publisher, public Mailbox<ptr<Mail>> {
+
+  protected:
+    MutexDeque<ptr<Mail>> inbox;
+    Consumer<Actor *> _setupFunction = nullptr;
+    Consumer<Actor *> _loopFunction = nullptr;
+    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
+
+    virtual bool next() {
+      const Option<ptr<Mail>> mail = this->pop();
+      if (!mail.has_value())
+        return false;
+      mail->get()->first->execute(mail->get()->second);
+      /// delete mail->second.payload;
+      return true;
+    }
+
   public:
-    explicit Actor(const ID &id, const Consumer<Actor<PROCESS> *>& setupFunction = nullptr,
-                   const Consumer<Actor<PROCESS> *>& loopFunction = nullptr) :
-        _setupFunction(setupFunction), _loopFunction(loopFunction), PROCESS(id), Publisher(this, this), Mailbox<ptr<Mail>>() {
+    explicit Actor(const ID &id, const Consumer<Actor<PROCESS> *> &setupFunction = nullptr,
+                   const Consumer<Actor<PROCESS> *> &loopFunction = nullptr) :
+        PROCESS(id), Publisher(this, this), Mailbox<ptr<Mail>>(), _setupFunction(setupFunction),
+        _loopFunction(loopFunction) {
       static_assert(std::is_base_of_v<XProcess, PROCESS>);
       // static_assert(std::is_base_of_v<Router, ROUTER>);
     }
@@ -47,9 +64,9 @@ namespace fhatos {
        this->Mailbox<Mail>::~Mailbox();
      }*/
 
-  /*  Exts extension() {
-      return Exts
-    }*/
+    /*  Exts extension() {
+        return Exts
+      }*/
 
     Pair<fbyte *, uint> serialize() const {
       auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
@@ -118,21 +135,6 @@ namespace fhatos {
     }
 
     void onLoop(const Consumer<Actor *> &loopFunction) { this->_loopFunction = loopFunction; }
-
-  protected:
-    MutexDeque<ptr<Mail>> inbox;
-    Consumer<Actor *> _setupFunction = nullptr;
-    Consumer<Actor *> _loopFunction = nullptr;
-    Option<ptr<Mail>> pop() override { return this->inbox.pop_front(); }
-
-    virtual bool next() {
-      const Option<ptr<Mail>> mail = this->pop();
-      if (!mail.has_value())
-        return false;
-      mail->get()->first->execute(mail->get()->second);
-      /// delete mail->second.payload;
-      return true;
-    }
   };
 } // namespace fhatos
 #endif

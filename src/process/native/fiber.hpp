@@ -28,7 +28,7 @@ namespace fhatos {
   public:
     std::thread *xthread;
 
-    explicit Fiber(const ID &id) : XProcess(id, FIBER), xthread(nullptr) {}
+    explicit Fiber(const ID &id) : XProcess(id, PType::FIBER), xthread(nullptr) {}
 
     void delay(const uint64_t milliseconds) override {
       // delay to next fiber

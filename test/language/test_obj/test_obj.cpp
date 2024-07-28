@@ -1,8 +1,12 @@
 #ifndef fhatos_test_obj_hpp
 #define fhatos_test_obj_hpp
 
-#define FOS_TEST_ON_BOOT
+#define FOS_USE_ROUTERS false
+#undef FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
+#include <language/types.hpp>
+#include <util/obj_helper.hpp>
+#include <language/insts.hpp>
 namespace fhatos {
 
   //////////////////////////////////////////////////////////
@@ -180,7 +184,8 @@ namespace fhatos {
     const Lst_p lstD = Obj::to_lst({1, 1, 1});
     TEST_ASSERT_EQUAL_STRING("/lst/ones", lstD->as("/lst/ones")->id()->toString().c_str());
     try {
-      Obj_p x = lstA.as("/lst/ones");
+      const Obj_p x = lstA.as("/lst/ones");
+      LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
       TEST_FAIL_MESSAGE("Should throw exception");
     } catch (const fError &) {
       TEST_ASSERT_TRUE(true);
@@ -256,11 +261,6 @@ namespace fhatos {
 
   }*/
 
-  void test_inst_bcode() {
-    Fluent f = __(*BCode::to_bcode({Insts::plus(o_p(1))})).plus(2).mult(3);
-    f.forEach<Obj>([](const Obj_p &x) { LOG(INFO, "%s\n", x->toString().c_str()); });
-  }
-
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //
@@ -268,7 +268,6 @@ namespace fhatos {
       FOS_RUN_TEST(test_str); //
       FOS_RUN_TEST(test_lst); //
       FOS_RUN_TEST(test_rec); //
-      // FOS_RUN_TEST(test_inst_bcode); //
   )
 
 }; // namespace fhatos

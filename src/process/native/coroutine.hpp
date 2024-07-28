@@ -25,7 +25,7 @@
 namespace fhatos {
   class Coroutine : public XProcess {
   public:
-    explicit Coroutine(const ID &id) : XProcess(id, COROUTINE) {}
+    explicit Coroutine(const ID &id) : XProcess(id, PType::COROUTINE) {}
 
     void delay(const uint64_t) override {
       // do nothing

@@ -19,27 +19,17 @@
 #ifndef fhatos_x_process_hpp
 #define fhatos_x_process_hpp
 
-#include <fhatos.hpp>
 #include <atomic>
+#include <fhatos.hpp>
 #include <structure/furi.hpp>
+#include <util/enums.hpp>
 
 namespace fhatos {
-  enum PType { THREAD, FIBER, COROUTINE, KERNEL };
 
-  static const char *P_TYPE_STR(const PType pType) {
-    switch (pType) {
-      case THREAD:
-        return "thread";
-      case FIBER:
-        return "fiber";
-      case COROUTINE:
-        return "coroutine";
-      case KERNEL:
-        return "kernel";
-      default:
-        return "<unknown process>";
-    }
-  }
+
+  enum class PType { THREAD, FIBER, COROUTINE, KERNEL };
+  static const Enums<PType> ProcessTypes = Enums<PType>(
+      {{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}, {PType::KERNEL, "kernel"}});
 
   class XProcess : public IDed {
 
@@ -51,7 +41,7 @@ namespace fhatos {
 
     explicit XProcess(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
 
-    //~Process() { this->stop(); }
+    virtual ~XProcess() = default;
 
     virtual void setup() { this->_running.store(true); };
 
@@ -68,7 +58,7 @@ namespace fhatos {
 
   class XKernel : public XProcess {
   public:
-    explicit XKernel(const ID &id) : XProcess(id, KERNEL) {}
+    explicit XKernel(const ID &id) : XProcess(id, PType::KERNEL) {}
   };
 } // namespace fhatos
 
