@@ -102,6 +102,9 @@ namespace fhatos {
           LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", monad->toString().c_str());
         }
       }
+      // start inst forced initial
+      if (this->running->empty())
+        this->running->push_back(share(Monad(bcode->bcode_value().front()->inst_seed(), bcode->bcode_value().front())));
     }
 
     const ptr<E> next(const int steps = -1) {

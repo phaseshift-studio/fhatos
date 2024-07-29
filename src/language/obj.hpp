@@ -893,11 +893,12 @@ namespace fhatos {
     // const fURI type() const { return this->_id->authority(""); }
 
     bool match(const Obj_p &pattern, const bool sameType = true) const {
+      LOG(TRACE, "!ymatching!!: %s vs. %s\n", this->toString().c_str(), pattern->toString().c_str());
       if (pattern->isNoOpBytecode())
         return true;
       if (pattern->isBytecode() && !this->isBytecode())
         return !pattern->apply(PtrHelper::no_delete<Obj>((Obj *) this))->isNoObj();
-      if (sameType && (this->id() != pattern->id()))
+      if (sameType && (*this->id() != *pattern->id()))
         return false;
       switch (this->o_type()) {
         case OType::NOOBJ:
@@ -919,7 +920,6 @@ namespace fhatos {
             return false;
           auto itB = objsB->begin();
           for (const auto &itA: *objsA) {
-            LOG(TRACE, "MATCHING: %s vs. %s\n", itA->toString().c_str(), (*itB)->toString().c_str());
             if (!itA->match(*itB))
               return false;
             ++itB;
@@ -933,7 +933,6 @@ namespace fhatos {
             return false;
           auto itB = pairsB->begin();
           for (const auto &itA: *pairsA) {
-            LOG(TRACE, "MATCHING: %s vs. %s\n", itA.second->toString().c_str(), itB->second->toString().c_str());
             if (!itA.first->match(itB->first) || !itA.second->match(itB->second))
               return false;
             ++itB;
@@ -989,7 +988,7 @@ namespace fhatos {
     }
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
     static Obj_p to_noobj() {
-      static Obj_p noobj = share(Obj(nullptr, NOOBJ_FURI));
+      static Obj_p noobj = share(Obj(Any(nullptr), NOOBJ_FURI));
       return noobj;
     }
     static Bool_p to_bool(const bool value, const ID_p &furi = BOOL_FURI) {
@@ -1006,11 +1005,11 @@ namespace fhatos {
     }
     static Str_p to_str(const string &value, const ID_p &furi = STR_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::STR));
-      return share(Obj(Any(value), furi));
+      return share(Obj(value, furi));
     }
     static Str_p to_str(const char *value, const ID_p &furi = STR_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::STR));
-      return share(Obj(Any(string(value)), furi));
+      return share(Obj(string(value), furi));
     }
     static Uri_p to_uri(const fURI &value, const ID_p &furi = URI_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::URI));
@@ -1018,7 +1017,7 @@ namespace fhatos {
     }
     static Uri_p to_uri(const char *value, const ID_p &furi = URI_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::URI));
-      return share(Obj(value, furi));
+      return share(Obj(fURI(value), furi));
     }
     static Lst_p to_lst(const LstList_p<> &xlst, const ID_p &furi = LST_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::LST));
@@ -1105,8 +1104,8 @@ namespace fhatos {
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
-  [[maybe_unused]] static Uri_p u_p(const char *uri) { return share(Uri(fURI(uri))); }
-  [[maybe_unused]] static Uri_p u_p(const string uri) { return share(Uri(fURI(uri))); }
-  [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share(obj); }
+  [[maybe_unused]] static Uri_p u_p(const char *uri) { return share<Uri>(Uri(fURI(uri))); }
+  [[maybe_unused]] static Uri_p u_p(const string uri) { return share<Uri>(Uri(fURI(uri))); }
+  [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share<Obj>(obj); }
 } // namespace fhatos
 #endif

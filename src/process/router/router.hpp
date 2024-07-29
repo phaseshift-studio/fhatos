@@ -173,7 +173,7 @@ namespace fhatos {
       router->subscribe(
           Subscription{.source = source, .pattern = target, .onRecv = [thing](const Message_p &message) {
                          // TODO: try to not copy obj while still not accessing heap after delete
-                         const Obj *obj = new Obj(Any(message->payload->_value), message->payload->id());
+                         const Obj *obj = new Obj(message->payload->_value, message->payload->id());
                          thing->store(obj);
                        }});
       const time_t startTimestamp = time(nullptr);

@@ -112,7 +112,7 @@ fhatos> define(/rec/person,|[name=>as(/str/),age=>as(/int/nat)])
 fhatos> person[[name=>'fhatty',age=>0]]
 [ERROR]  [/sys/lang/type/] 0 is not a /int/nat[is[gt[0]]]
 fhatos> person[[name=>'fhatty',age=>1]]
-==>person[[/rec/name=>'fhatty',/rec/age=>1]]
+==>person[[name=>'fhatty',age=>1]]
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -208,6 +208,7 @@ fhatos> __(1,2,3,4).plus(10)
 fhatos> 16.to(b)
 ==>16
 fhatos> *b.plus(45)
+[ERROR]  noobj[Ø] unexpectedly acccessed for uri_value [line:323]
 ----
 ++++
 <!-- OUTPUT:END -->

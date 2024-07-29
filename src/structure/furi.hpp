@@ -145,7 +145,7 @@ namespace fhatos {
       uint8_t i = 0;
       while (!ss.eof()) {
         char c = ss.get();
-        if (c == EOF || c == '\0')
+        if (c == EOF || c == '\0' || isspace(c))
           break;
         if (c == '/') {
           if (segment.empty() && 0 == i) {
@@ -159,23 +159,32 @@ namespace fhatos {
           segment += c;
         }
       }
-      if (segment.empty() || (segment.length() == 1 && segment[0] == '\0')) {
+      if (segment.empty() ||
+          (segment.length() == 1 && segment[0] == '\0' && segment[0] != EOF && !isspace(segment[0]))) {
         newURI._path_length = i;
         newURI.spostfix = true;
       } else {
         newURI._path[i] = strdup(segment.c_str());
         newURI._path_length = i + 1;
         newURI.spostfix = false;
-#ifndef NATIVE
-        int x = strlen(newURI._path[newURI._path_length - 1]);
-        newURI._path[newURI._path_length - 1][x - 1] = '\0';
-#endif
+        /*#ifndef NATIVE
+                int x = strlen(newURI._path[newURI._path_length - 1]);
+                newURI._path[newURI._path_length - 1][x - 1] = '\0';
+        #endif*/
       }
       FOS_SAFE_FREE(dup);
       return newURI;
     }
 
-    const char *name() const { return 0 == this->_path_length ? EMPTY_CHARS : this->_path[this->_path_length - 1]; }
+    const char *name() const {
+      if (0 == this->_path_length)
+        return EMPTY_CHARS;
+      for (int i = this->_path_length - 1; i >= 0; i--) {
+        if (strlen(this->_path[i]) > 0)
+          return this->_path[i];
+      }
+      return EMPTY_CHARS;
+    }
 
     bool empty() const {
       return this->_path_length == 0 && !this->_host && !this->_scheme && !this->_user && !this->_password &&
@@ -432,7 +441,7 @@ namespace fhatos {
               token += t;
             }
           }*/
-          else if (t != '\xFF') {
+          else if (t != '\xFF' && t != EOF) {
             this->spostfix = false;
             token += t;
           }

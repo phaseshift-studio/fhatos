@@ -31,6 +31,7 @@ namespace fhatos {
   class Parser final : public Coroutine {
   private:
     explicit Parser(const ID &id = ID("/parser/")) : Coroutine(id) {}
+    enum class PARSE_TOKENS { BRACKET, PAREN };
 
   public:
     static Parser *singleton(const ID &id = ID("/parser/")) {
@@ -61,34 +62,28 @@ namespace fhatos {
           brackets++;
         else if (c == ']' && !quotes)
           brackets--;
-        //  else if (c == '<' && !quotes)
-        //    angles++;
-        //  else if (c == '>' && !quotes)
-        //    angles--;
         else if (c == '\'')
           quotes = !quotes;
       }
       return parens == 0 && brackets == 0 && angles == 0 && !quotes &&
-             StringHelper::countSubstring(line, "###") % 2 == 0;
+             StringHelper::countSubstring(line, "===") % 2 == 0;
     }
     static bool dotType(const string &type) {
       return !type.empty() && type[type.length() - 1] == '.'; // dot type
     }
-    Option<Obj_p> tryParseObj(const string &token, const string& prev = "NONE") {
-      //
+    Option<Obj_p> tryParseObj(const string &token, const string &prev = "NONE") {
       if (token == prev)
-        throw fError("Unable to parse %s\n", token.c_str());
+        throw fError("Unable to parse !y%s!!\n", token.c_str());
       StringHelper::trim(token);
-      // LOG(TRACE, "!RPARSING!!: !g!_%s!!\n", token.c_str());
       if (token.empty() || tryParseComment(token).has_value())
         return {};
       const Pair<string, string> typeValue = tryParseObjType(token);
       const string typeToken = typeValue.first;
       const string valueToken = typeValue.second;
-      const bool dot_type = dotType(typeToken);
-      Option<Obj_p> b;
+      const bool dot_type = dotType(typeToken); // .obj. in bcode (apply)
+      Option<Obj_p> b = {};
       if (!dot_type) { // dot type
-        b = tryParseNoObj(valueToken);
+        b = tryParseNoObj(valueToken, typeToken, NOOBJ_FURI);
         if (b.has_value())
           return b.value();
         b = tryParseBool(valueToken, typeToken, BOOL_FURI);
@@ -122,10 +117,10 @@ namespace fhatos {
       return {};
     }
 
-    Pair<string, string> tryParseObjType(const string &token, const bool brackets = true) {
+    Pair<string, string> tryParseObjType(const string &token, const PARSE_TOKENS grouping = PARSE_TOKENS::BRACKET) {
       string typeToken;
       string valueToken;
-      if (!token.empty() && token[token.length() - 1] == (brackets ? ']' : ')')) {
+      if (!token.empty() && token[token.length() - 1] == (PARSE_TOKENS::BRACKET == grouping ? ']' : ')')) {
         bool onType = true;
         auto ss = stringstream(token);
         /////////////////////////////////////////////////////
@@ -139,11 +134,11 @@ namespace fhatos {
         }
         ////////////////////////////////////////////////////
         while (!ss.eof()) {
-          char c = ss.get();
+          char c = static_cast<char>(ss.get());
           if (onType) {
-            if (c == (brackets ? '[' : '(')) {
+            if (c == (PARSE_TOKENS::BRACKET == grouping ? '[' : '(')) {
               onType = false;
-            } else if (c == '.' || c == '|' || c == '*' || c == '<') {
+            } else if (c == '.') {
               valueToken.append(typeToken);
               valueToken += c;
               typeToken.clear();
@@ -162,8 +157,7 @@ namespace fhatos {
       }
       StringHelper::trim(typeToken);
       StringHelper::trim(valueToken);
-      LOG(TRACE, "\n" FOS_TAB_2 "!rtype token!!: %s\n" FOS_TAB_2 "!rvalue token!!: %s\n", typeToken.c_str(),
-          valueToken.c_str());
+      LOG(TRACE, "!ytype token!!: !g%s!!" FOS_TAB_3 "!yvalue token!!: !g%s!!\n", typeToken.c_str(), valueToken.c_str());
       return {typeToken, valueToken};
     }
 
@@ -171,20 +165,17 @@ namespace fhatos {
       return valueToken.substr(0, 3) == "---" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>();
     }
 
-    Option<NoObj_p> tryParseNoObj(const string &valueToken) {
-      // LOG(TRACE, "Attempting noobj parse on %s\n", valueToken.c_str());
-      return valueToken == "Ø" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>{};
+    Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken, const fURI_p & = NOOBJ_FURI) {
+      return typeToken.empty() && valueToken == "Ø" ? Option<NoObj_p>{Obj::to_noobj()} : Option<NoObj_p>{};
     }
 
     Option<Bool_p> tryParseBool(const string &valueToken, const string &typeToken, const fURI_p &baseType = BOOL_FURI) {
-      // LOG(TRACE, "Attempting bool parse on %s\n", valueToken.c_str());
       return ((strcmp("true", valueToken.c_str()) == 0) || (strcmp("false", valueToken.c_str()) == 0))
                  ? Option<Bool_p>{Bool::to_bool(strcmp("true", valueToken.c_str()) == 0,
                                                 share<ID>(baseType->resolve(typeToken.c_str())))}
                  : Option<Bool_p>{};
     }
     Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken, const fURI_p &baseType = INT_FURI) {
-      // LOG(TRACE, "Attempting int parse on %s\n", valueToken.c_str());
       if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find_first_of('.') != string::npos)
         return {};
       for (size_t i = 1; i < valueToken.length(); i++) {
@@ -194,7 +185,6 @@ namespace fhatos {
       return Option<Int_p>{Int::to_int(stoi(valueToken), share<ID>(baseType->resolve(typeToken.c_str())))};
     }
     Option<Real_p> tryParseReal(const string &valueToken, const string &typeToken, const fURI_p &baseType = REAL_FURI) {
-      // LOG(TRACE, "Attempting real parse on %s\n", valueToken.c_str());
       if (valueToken[0] != '-' && !isdigit(valueToken[0]))
         return {};
       bool dotFound = false;
@@ -211,293 +201,268 @@ namespace fhatos {
                       : Option<Real_p>{};
     }
     Option<Uri_p> tryParseUri(const string &valueToken, const string &typeToken, const fURI_p &baseType = URI_FURI) {
-      // LOG(TRACE, "Attempting uri parse on %s\n", valueToken.c_str());
       return (valueToken[0] == '<' && valueToken[valueToken.length() - 1] == '>')
-                 ? Option<Uri_p>{Uri::to_uri(valueToken.substr(1, valueToken.length() - 2),
-                                             share<ID>(baseType->resolve(typeToken.c_str())))}
+                 ? Option<Uri_p>{Uri::to_uri(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
+                                             id_p(baseType->resolve(typeToken)))}
                  : Option<Uri_p>{};
     }
 
-    Option<Str_p> tryParseStr(const string &token, const string &type, const fURI_p &baseType = STR_FURI) {
-      // LOG(TRACE, "Attempting str parse on %s\n", token.c_str());
-      return (token[0] == '\'' && token[token.length() - 1] == '\'')
-                 ? Option<Uri_p>{Str::to_str(token.substr(1, token.length() - 2),
-                                             share<ID>(baseType->resolve(type.c_str())))}
-                 : Option<Uri_p>{};
+    Option<Str_p> tryParseStr(const string &valueToken, const string &typeToken, const fURI_p &baseType = STR_FURI) {
+      return (valueToken[0] == '\'' && valueToken[valueToken.length() - 1] == '\'')
+                 ? Option<Str_p>{Str::to_str(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
+                                             id_p(baseType->resolve(typeToken)))}
+                 : Option<Str_p>{};
     }
     Option<Lst_p> tryParseLst(const string &token, const string &type, const fURI_p &baseType = LST_FURI) {
-      // LOG(TRACE, "Attempting lst parse on %s\n", token.c_str());
       if (token[0] != '[' || token[token.length() - 1] != ']')
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
       string value;
       Obj::LstList<> list = Obj::LstList<>();
+      bool quotes = false;
       int bracketCounter = 0;
       int parenCounter = 0;
       while (!ss.eof()) {
-        if (bracketCounter == 0 && ss.peek() == ',') {
-          Option<Obj_p> element = Parser::tryParseObj(value);
+        if (bracketCounter == 0 && parenCounter == 0 && !quotes && (ss.peek() == ',' || ss.peek() == EOF)) {
+          Option<Obj_p> element = this->tryParseObj(value);
           if (!element.has_value())
             return {};
           list.push_back(element.value());
-          ss.get();
+          if (ss.peek() == ',')
+            ss.get(); // consume comma
           value.clear();
-        } else if (bracketCounter == 0 && StringHelper::lookAhead("=>", &ss)) {
+        } else if (bracketCounter == 0 && parenCounter == 0 && !quotes && StringHelper::lookAhead("=>", &ss)) {
           return {};
         } else {
-          if (ss.peek() == '[')
+          char c = static_cast<char>(ss.get());
+          if (c == '[')
             bracketCounter++;
-          if (ss.peek() == ']')
+          else if (c == ']')
             bracketCounter--;
-          if (ss.peek() == '(')
+          else if (c == '(')
             parenCounter++;
-          if (ss.peek() == ')')
+          else if (c == ')')
             parenCounter--;
-          if (!ss.eof())
-            value += static_cast<char>(ss.get());
+          else if (c == '\'')
+            quotes = !quotes;
+          if (c != EOF)
+            value += c;
         }
       }
-      StringHelper::trim(value);
-      Option<Obj_p> element = Parser::tryParseObj(value);
-      if (!element.has_value())
-        return {};
-      list.push_back(element.value());
-      return Option<Lst_p>{Lst::to_lst(share(list), share<ID>(baseType->resolve(type.c_str())))};
+      return Option<Lst_p>{Lst::to_lst(share(list), id_p(baseType->resolve(type)))};
     }
     Option<Rec_p> tryParseRec(const string &token, const string &type, const fURI_p &baseType = REC_FURI) {
-      // LOG(TRACE, "Attempting rec parse on %s\n", token.c_str());
       if (token[0] != '[' || token[token.length() - 1] != ']' || token.find("=>") == string::npos)
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
+      Obj::RecMap<> map = Obj::RecMap<>();
       string key;
       string value;
-      while (!ss.eof()) {
-        if (StringHelper::lookAhead("=>", &ss)) {
-          break;
-        } else if (ss.peek() == ',') {
-          ss.get();
-          break;
-        }
-        key += ss.get();
-      }
-      StringHelper::trim(key);
-      //////////////////////////////////// {
-      Obj::RecMap<> map = Obj::RecMap<>();
-      bool onKey = false;
+      bool onKey = true;
+      bool quotes = false;
       int bracketCounter = 0;
       int parenCounter = 0;
-      while (!ss.eof()) {
+      while (!ss.eof() || (!onKey && !value.empty())) {
+        //// KEY PARSE
         if (onKey) {
-          if (bracketCounter == 0 && StringHelper::lookAhead("=>", &ss)) {
+          if (bracketCounter == 0 && parenCounter == 0 && StringHelper::lookAhead("=>", &ss)) {
             onKey = false;
-          } else {
-            if (ss.peek() == '[')
+          } else if (!ss.eof()) {
+            char c = static_cast<char>(ss.get());
+            if (c == '[')
               bracketCounter++;
-            if (ss.peek() == ']')
+            else if (c == ']')
               bracketCounter--;
-            if (ss.peek() == '(')
+            else if (c == '(')
               parenCounter++;
-            if (ss.peek() == ')')
+            else if (c == ')')
               parenCounter--;
-            if (!ss.eof())
-              key += static_cast<char>(ss.get());
+            else if (c == '\'')
+              quotes = !quotes;
+            if (c != EOF)
+              key += c;
           }
         } else {
-          ///////
-          if (bracketCounter == 0 && parenCounter == 0 && ss.peek() == ',') {
-            ss.get(); // drop k/v separating comma
-            onKey = true;
+          //// VALUE PARSE
+          if (bracketCounter == 0 && parenCounter == 0 && !quotes &&
+              (ss.eof() || ss.peek() == ',' || ss.peek() == EOF)) {
+            if (ss.peek() == ',')
+              ss.get(); // drop k/v separating comma
             StringHelper::trim(key);
             StringHelper::trim(value);
-            const Option<Obj_p> k = Parser::tryParseObj(key);
-            const Option<Obj_p> v = Parser::tryParseObj(value);
+            const Option<Obj_p> k = this->tryParseObj(key);
+            const Option<Obj_p> v = this->tryParseObj(value);
             if (!k.has_value() || !v.has_value())
               return {};
             map.insert({k.value(), v.value()});
             key.clear();
             value.clear();
+            onKey = true;
           } else {
-            if (ss.peek() == '[')
+            char c = static_cast<char>(ss.get());
+            if (c == '[')
               bracketCounter++;
-            if (ss.peek() == ']')
+            else if (c == ']')
               bracketCounter--;
-            if (ss.peek() == '(')
+            else if (c == '(')
               parenCounter++;
-            if (ss.peek() == ')')
+            else if (c == ')')
               parenCounter--;
-            if (!ss.eof())
-              value += static_cast<char>(ss.get());
+            else if (c == '\'')
+              quotes = !quotes;
+            if (c != EOF)
+              value += c;
           }
         }
       }
-      StringHelper::trim(key);
-      StringHelper::trim(value);
-      const Option<Obj_p> k = Parser::tryParseObj(key);
-      const Option<Obj_p> v = Parser::tryParseObj(value);
-      if (!k.has_value() || !v.has_value())
-        return {};
-      map.insert({k.value(), v.value()});
       ////
       Obj::RecMap_p<> map2 = share(Obj::RecMap<>()); // necessary to reverse entries
-      for (const auto &pair: map) {
-        map2->insert(pair);
+      for (const auto &[kk, vv]: map) {
+        map2->insert({PtrHelper::clone(kk), PtrHelper::clone(vv)});
       }
       ////
-      return Option<Rec_p>{Rec::to_rec(map2, share<ID>(baseType->resolve(type.c_str())))};
+      return Option<Rec_p>{Rec::to_rec(map2, id_p(baseType->resolve(type.c_str())))};
     }
     Option<Inst_p> tryParseInst(const string &valueToken, const string &typeToken, const fURI_p &baseType = INST_FURI) {
-      // LOG(TRACE, "Attempting inst parse on %s\n", valueToken.c_str());
       auto args = List<ptr<Obj>>();
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
         string argToken;
+        bool quote = false;
         int paren = 0;
         int bracket = 0;
         while (!ss.eof()) {
-          if (ss.peek() == '(')
+          const char c = static_cast<char>(ss.get());
+          if (c == '(')
             paren++;
-          else if (ss.peek() == ')')
+          else if (c == ')')
             paren--;
-          else if (ss.peek() == '[')
+          else if (c == '[')
             bracket++;
-          else if (ss.peek() == ']')
+          else if (c == ']')
             bracket--;
-          const char temp = static_cast<char>(ss.get());
-          if (ss.eof())
-            argToken = argToken.substr(0, argToken.length() - 2);
-          else {
-            argToken += temp;
-            if (ss.peek() == ',' && paren == 0 && bracket == 0) {
+          else if (c == '\'')
+            quote = !quote;
+          if (c != EOF) {
+            argToken += c;
+            if (ss.peek() == ',' && !quote && paren == 0 && bracket == 0) {
               ss.get(); // drop arg separating comma
               break;
             }
           }
         }
         if (!argToken.empty()) {
-          const Option<Obj_p> arg_p = Parser::tryParseObj(argToken);
+          const Option<Obj_p> arg_p = this->tryParseObj(argToken);
           if (arg_p.has_value())
             args.push_back(arg_p.value());
           else {
-            return {};
+            LOG(WARN, "Unable to parse potential argument to !b%s!g[!!%s!g]!!: %s\n", typeToken.c_str(),
+                valueToken.c_str(), argToken.c_str());
           }
         }
       }
-      // try {
       const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
       return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
-      //} catch (const fError &) {
-      //  return {};
-      //}
     }
 
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
                                   const fURI_p &baseType = BCODE_FURI) {
-      // LOG(TRACE, "Attempting bcode parse on %s\n", valueToken.c_str());
       if (typeToken.empty() && valueToken == "_")
-        return {Obj::to_bcode({})}; // special character for 'no instructions' (no common parse pattern)
-      if ((valueToken[0] == '_' && valueToken[1] == '_') || //
-          valueToken.find('.') != string::npos || //
-          valueToken.find('*') != string::npos || //
-          valueToken.find('|') != string::npos || //
-          valueToken.find("~>") != string::npos || //
-          valueToken.find("<~") != string::npos || //
-          valueToken.find("->") != string::npos || //
-          valueToken.find("<-") != string::npos || //
-          valueToken.find("<->") != string::npos || //
-          (valueToken.find('(') != string::npos && valueToken.find(')') != string::npos)) {
-        List<Inst_p> insts;
-        std::stringstream ss = std::stringstream(valueToken);
-        while (!ss.eof()) {
-          int paren = 0;
-          int bracket = 0;
-          bool quote = false;
-          string instToken;
-          while (!ss.eof()) {
-            char c = ss.get();
-            instToken += c;
-            if (c == '(')
-              paren++;
-            else if (c == ')')
-              paren--;
-            else if (c == '[')
-              bracket++;
-            else if (c == ']')
-              bracket--;
-            else if (c == '\'')
-              quote = !quote;
-            ///////////////////////////////////////////////////////////////
-            if (paren == 0 && bracket == 0 && !quote) {
-              if (ss.peek() == '.') {
-                ss.get();
-                break;
-              } /*else if (ss.peek() == ';') {
-                ss.get();
-                break;
-              }*/
-              /*  else if (StringHelper::lookAhead("<->", &ss, false) || StringHelper::lookAhead("->", &ss, false) ||
-                         StringHelper::lookAhead("<-", &ss, false) || StringHelper::lookAhead("~>", &ss, false))
-                  break;*/
-            }
-          }
-          if (instToken.empty())
-            continue;
-          /// UNARY INSTRUCTIONS w/ SYNTACTIC SUGAR
-          Pair<string, string> typeValue;
-          LOG(TRACE, "instToken: %s\n", instToken.c_str());
-          bool unary = false;
-          for (const auto &[k, v]: Insts::unarySugars()) {
-            const size_t size = k.size();
-            if (instToken.size() > size && instToken[size] != '(') {
-              unary = true;
-              for (size_t i = 0; i < k.size(); i++) {
-                if (instToken[i] != k[i]) {
-                  unary = false;
-                  break;
-                }
-              }
-              if (unary) {
-                typeValue = {v, instToken.substr(size)};
-                LOG(TRACE, "Unary inst found: %s:%s\n", typeValue.first.c_str(), typeValue.second.c_str());
-                break;
-              }
-            }
-          }
-          // TODO: end inst with ; sugar
-          // OBJ AS NULLARY INSTRUCTION
-          if (!unary && (typeToken.empty() || typeToken[typeToken.length() - 1] != '.'))
-            typeValue = tryParseObjType(instToken, false);
-          LOG(TRACE, "typeValue: %s %s\n", typeValue.first.c_str(), typeValue.second.c_str());
-          if (!unary && instToken[typeValue.first.length()] != '(') { // OBJ AS ARGUMENT (START OR MAP)
-            const Option<Obj_p> obj = tryParseObj(instToken);
-            if (!obj.has_value())
-              return {};
-            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({obj.value()})) : Insts::map(obj.value()));
-          } else if (unary) { // SINGLE ARGUMENT INSTS WITHOUT PARENS (SYNTACTIC SUGAR)
-            const Option<Obj_p> arg = tryParseObj(typeValue.second);
-            if (arg.has_value()) {
-              insts.push_back(Insts::to_inst(INST_FURI->resolve(typeValue.first), {arg.value()}));
-            } else {
-              return {};
-            }
-          } else { // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
-            const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
-            if (inst.has_value()) {
-              insts.push_back(inst.value());
-            } else {
-              return {};
-            }
+        return {Obj::to_bcode({})}; // special character for 'no instructions' (no general common parse pattern)
+      //////////////////////////////////////////////////////////////////////////////////////
+      //////////////// lookahead to determine if token is potentially bcode ////////////////
+      //////////////////////////////////////////////////////////////////////////////////////
+      bool mayBCode = (valueToken[0] == '_' && valueToken[1] == '_') || //
+                      valueToken.find('.') != string::npos || //
+                      (valueToken.find('(') != string::npos && valueToken.find(')') != string::npos);
+      if (!mayBCode) {
+        for (const auto &[k, v]: Insts::unarySugars()) {
+          if (valueToken.find(k) != string::npos || valueToken.find(v + "(") != string::npos) {
+            mayBCode = true;
+            break;
           }
         }
-        return Option<BCode_p>{BCode::to_bcode(insts, share<ID>(baseType->resolve(typeToken.c_str())))};
-      } else {
-        return {};
+        if (!mayBCode)
+          return {};
       }
+      //////////////////////////////////////////////////////////////////////////////////////
+      List<Inst_p> insts;
+      std::stringstream ss = std::stringstream(valueToken);
+      while (!ss.eof()) { // bcode-level (tokens are insts)
+        int paren = 0;
+        int bracket = 0;
+        bool quote = false;
+        bool unary = false;
+        bool fullbreak = false;
+        string instToken;
+        while (!ss.eof()) { // inst-level (tokens are chars)
+          if (paren == 0 && bracket == 0 && !quote) {
+            for (const auto &[k, v]: Insts::unarySugars()) {
+              if (StringHelper::lookAhead(k, &ss, instToken.empty())) {
+                if (!instToken.empty()) {
+                  LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), instToken.c_str());
+                  fullbreak = true;
+                  break;
+                }
+                instToken += v;
+                instToken += '(';
+                paren++;
+                unary = true;
+                break;
+              }
+            }
+          }
+          if (fullbreak || ss.eof())
+            break;
+          char c = static_cast<char>(ss.get());
+          if ((quote || !isspace(c)) && EOF != c)
+            instToken += c;
+          if (c == '(')
+            paren++;
+          else if (c == ')')
+            paren--;
+          else if (c == '[')
+            bracket++;
+          else if (c == ']')
+            bracket--;
+          else if (c == '\'')
+            quote = !quote;
+          ///////////////////////////////////////////////////////////////
+          if (paren == 0 && bracket == 0 && !quote && ss.peek() == '.') {
+            ss.get();
+            break;
+          }
+        }
+        if (instToken.empty())
+          continue;
+        if (unary)
+          instToken += ')';
+        LOG(TRACE, "Parsing !ginst token!!: !y%s!!\n", instToken.c_str());
+        // TODO: end inst with ; sugar
+        Pair<string, string> typeValue = tryParseObjType(instToken, PARSE_TOKENS::PAREN);
+        if (!unary && instToken[typeValue.first.length()] != '(') { // OBJ AS ARGUMENT (START OR MAP)
+          LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", instToken.c_str());
+          const Option<Obj_p> obj = tryParseObj(instToken);
+          if (!obj.has_value())
+            return {};
+          insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({obj.value()})) : Insts::map(obj.value()));
+        } else { // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
+          LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", typeValue.first.c_str(), typeValue.second.c_str());
+          const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
+          if (inst.has_value()) {
+            insts.push_back(inst.value());
+          } else {
+            return {};
+          }
+        }
+        instToken.clear();
+      }
+      return Option<BCode_p>{BCode::to_bcode(insts, id_p(baseType->resolve(typeToken)))};
     }
 
     Option<Uri_p> tryParseDEFAULT(const string &valueToken, const string &typeToken,
                                   const fURI_p &baseType = URI_FURI) {
-      // LOG(TRACE, "Attempting uri parse on %s\n", valueToken.c_str());
-      return Option<Uri_p>{Uri::to_uri(valueToken, share<ID>(baseType->resolve(typeToken.c_str())))};
+      return Option<Uri_p>{Uri::to_uri(valueToken, id_p(baseType->resolve(typeToken)))};
     }
   };
 } // namespace fhatos

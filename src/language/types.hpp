@@ -75,11 +75,11 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     void savePrefix(const char *prefix, const ID &furi, const bool writeThrough = true) const {
-      this->saveType(share(ID(prefix)), Uri::to_uri(furi), writeThrough);
+      this->saveType(id_p(prefix), Uri::to_uri(furi), writeThrough);
     }
 
     Option<ID_p> loadPrefix(const char *prefix, const bool readThrough) const {
-      const Option<Obj_p> option = this->loadType(share(ID(prefix)), readThrough);
+      const Option<Obj_p> option = this->loadType(id_p(prefix), readThrough);
       if (option.has_value())
         return Option<ID_p>(id_p(option.value()->uri_value()));
       return Option<ID_p>();
@@ -87,34 +87,38 @@ namespace fhatos {
 
     void saveType(const ID_p &typeId, const Obj_p &typeDef, [[maybe_unused]] const bool writeThrough = true) const {
       CACHE_MUTEX->write<void>([this, typeId, typeDef, writeThrough] {
-        if (!typeDef->isNoObj()) {
-          if (CACHE->count(typeId)) {
-            LOG_TASK(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
-                     CACHE->at(typeId)->toString().c_str());
-            CACHE->erase(typeId);
-          }
-          CACHE->insert({typeId, PtrHelper::clone<Obj>(typeDef)});
+        try {
+          if (!typeDef->isNoObj()) {
+            if (CACHE->count(typeId)) {
+              LOG_TASK(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
+                       CACHE->at(typeId)->toString().c_str());
+              CACHE->erase(typeId);
+            }
+            CACHE->insert({PtrHelper::clone<ID>(typeId), PtrHelper::clone<Obj>(typeDef)});
 #if FOS_USE_ROUTERS
-          if (writeThrough)
-            Router::write(*typeId, typeDef);
+            if (writeThrough)
+              Router::write(*typeId, typeDef);
 #endif
-          if (OType::INST == OTypes.toEnum(typeId->path(0))) {
-            const Inst_p inst = Insts::to_inst(*typeId, *typeDef->lst_value());
-            LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                     typeDef->lst_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
-          } else {
-            LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
+            if (OType::INST == OTypes.toEnum(typeId->path(0))) {
+              const Inst_p inst = Insts::to_inst(*typeId, *typeDef->lst_value());
+              LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
+                       typeDef->lst_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
+            } else {
+              LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
+                       typeDef->toString().c_str());
+            }
+          } else { // delete type
+            if (CACHE->count(typeId))
+              CACHE->erase(typeId);
+#if FOS_USE_ROUTERS
+            if (writeThrough)
+              Router::write(*typeId, Obj::to_noobj());
+#endif
+            LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! deleted\n", typeId->toString().c_str(),
                      typeDef->toString().c_str());
           }
-        } else { // delete type
-          if (CACHE->count(typeId))
-            CACHE->erase(typeId);
-#if FOS_USE_ROUTERS
-          if (writeThrough)
-            Router::write(*typeId, Obj::to_noobj());
-#endif
-          LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! deleted\n", typeId->toString().c_str(),
-                   typeDef->toString().c_str());
+        } catch (fError &e) {
+          LOG_TASK(ERROR, this, "Unable to save type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
         }
         return share(nullptr);
       });
@@ -130,11 +134,13 @@ namespace fhatos {
             return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
           }
 #endif
-        } catch (const fError &) {
+        } catch (fError &e) {
+          LOG_TASK(ERROR, this, "Unable to load type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
         }
         return Option<Obj_p>();
       });
     }
+
     bool checkType(const Obj &obj, const OType otype, const ID_p &typeId, const bool doThrow = true) const
         noexcept(false) {
       const OType typeOType = OTypes.toEnum(typeId->path(0));

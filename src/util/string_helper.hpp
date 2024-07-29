@@ -59,22 +59,18 @@ namespace fhatos {
       return count;
     }
 
-    static bool lookAhead(const string &token, std::stringstream *ss, bool keep = true) {
+    static bool lookAhead(const string &token, std::stringstream *ss, bool consume = true) {
+      std::stringstream::pos_type start = ss->tellg();
       for (size_t i = 0; i < token.size(); i++) {
         if (token[i] != ss->peek()) {
-          for (size_t j = 0; j <= i; j++) {
-            ss += token[j];
-          }
+          ss->seekg(start);
           return false;
         } else {
           ss->get();
         }
       }
-      if (!keep) {
-        for (char c: token) {
-          ss += c;
-        }
-      }
+      if (!consume)
+        ss->seekg(start);
       return true;
     }
 

@@ -48,7 +48,7 @@ void setup() {
   try {
     Kernel::build()
         ->initialPrinter(Ansi<>::singleton())
-        ->initialLogLevel(INFO)
+        ->initialLogLevel(TRACE)
         ->withSplash(ANSI_ART)
         ->withNote("Use !bØ!! for noobj abc")
         ->withNote("Use !y:help!! for console commands")
