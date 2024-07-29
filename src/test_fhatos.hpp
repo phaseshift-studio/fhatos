@@ -20,7 +20,7 @@
 #define fhatos_test_fhatos_hpp
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING TRACE
+#define FOS_LOGGING DEBUG
 #endif
 
 #include <fhatos.hpp>
