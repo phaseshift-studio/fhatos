@@ -130,7 +130,6 @@ namespace fhatos {
       return (this->_path && this->_path_length > segment) ? this->_path[segment] : EMPTY_CHARS;
     }
     fURI path(const string &path) const {
-      char *dup = strdup(path.c_str());
       fURI newURI = fURI("");
       newURI._scheme = this->_scheme ? strdup(this->_scheme) : nullptr;
       newURI._user = this->_user ? strdup(this->_user) : nullptr;
@@ -140,6 +139,7 @@ namespace fhatos {
       newURI._query = this->_query ? strdup(this->_query) : nullptr;
       newURI._path_length = 0;
       newURI._path = new char *[10];
+      char *dup = strdup(path.c_str());
       std::stringstream ss = std::stringstream(dup);
       string segment;
       uint8_t i = 0;
@@ -202,7 +202,9 @@ namespace fhatos {
     fURI extend(const char *extension) const {
       if (strlen(extension) == 0)
         return *this;
-      string newPath = this->path();
+      const std::unique_ptr<char, void (*)(void *)> newPathChars =
+          std::unique_ptr<char, void (*)(void *)>(strdup(this->path().c_str()), free);
+      string newPath = string(&*newPathChars);
       if (!this->spostfix)
         newPath += "/";
       if (newPath.empty())
@@ -214,7 +216,7 @@ namespace fhatos {
     fURI retract() const {
       if (this->_path_length == 0)
         return *this;
-      fURI newURI = fURI(*this);
+      fURI newURI = fURI(this->toString());
       FOS_SAFE_FREE(newURI._path[newURI._path_length - 1]);
       newURI._path_length = newURI._path_length - 1;
       newURI.spostfix = true;
@@ -235,16 +237,13 @@ namespace fhatos {
       if (other._path_length == 0)
         return *this;
       if (other.path().find('.') == string::npos) {
-        string otherPath = other.path();
-        if (otherPath[0] == '/')
-          return this->path(other.path());
-        if (this->_path_length == 0)
-          return this->extend(other.path().c_str());
+        const std::unique_ptr<char, void (*)(void *)> otherPathChars =
+            std::unique_ptr<char, void (*)(void *)>(strdup(other.path().c_str()), free);
+        if ((&*otherPathChars)[0] == '/' || this->path().find('/') == string::npos)
+          return this->path(&*otherPathChars);
         if (this->spostfix)
-          return this->extend(other.path().c_str());
-        if (this->path().find('/') == string::npos)
-          return this->path(other.path());
-        return this->retract().extend(other.path().c_str());
+          return this->extend(&*otherPathChars);
+        return this->retract().extend(&*otherPathChars);
       }
       fURI *newURI = this->spostfix ? new fURI(*this) : new fURI(this->retract());
       for (uint8_t i = 0; i < other._path_length; i++) {
@@ -264,9 +263,8 @@ namespace fhatos {
       string patternStr = pattern.toString();
       if (pattern.toString() == "#")
         return true;
-      if (patternStr.find('+') == string::npos && patternStr.find('#') == string::npos) {
+      if (patternStr.find('+') == string::npos && patternStr.find('#') == string::npos)
         return this->toString() == patternStr;
-      }
       if (strcmp(pattern.scheme(), "#") == 0)
         return true;
       if (strcmp(pattern.scheme(), "+") != 0 && strcmp(this->scheme(), pattern.scheme()) != 0)
@@ -313,7 +311,6 @@ namespace fhatos {
     fURI(const char *uriChars) {
       if (strlen(uriChars) > 0) {
         const char *dups = strdup(uriChars);
-        this->_path = new char *[10];
         std::stringstream ss = std::stringstream(dups);
         string token;
         URI_PART part = URI_PART::SCHEME;
@@ -374,6 +371,8 @@ namespace fhatos {
                 this->sprefix = true;
               } else {
                 if (!token.empty()) { // TODO: what about empty components?
+                  if (!this->_path)
+                    this->_path = new char *[10];
                   this->_path[this->_path_length] = strdup(token.c_str());
                   this->_path_length = this->_path_length + 1;
                 } else {
@@ -383,6 +382,8 @@ namespace fhatos {
               }
               token.clear();
             } else if (part == URI_PART::PATH) {
+              if (!this->_path)
+                this->_path = new char *[10];
               this->_path[this->_path_length] = strdup(token.c_str());
               this->_path_length = this->_path_length + 1;
               this->spostfix = true;
@@ -393,6 +394,8 @@ namespace fhatos {
           } else if (t == '?') {
             if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
               if (!token.empty()) {
+                if (!this->_path)
+                  this->_path = new char *[10];
                 this->_path[this->_path_length] = strdup(token.c_str());
                 this->_path_length = this->_path_length + 1;
               } else
@@ -437,6 +440,8 @@ namespace fhatos {
         if (!token.empty()) {
           if ((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) ||
               part == URI_PART::PATH || part == URI_PART::SCHEME) {
+            if (!this->_path)
+              this->_path = new char *[10];
             this->_path[this->_path_length] = strdup(token.c_str());
             this->_path_length = this->_path_length + 1;
           } else if (part == URI_PART::HOST || part == URI_PART::USER) {
