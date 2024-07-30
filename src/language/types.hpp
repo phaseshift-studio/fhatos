@@ -23,6 +23,7 @@
 #include <language/insts.hpp>
 #include <language/obj.hpp>
 #include FOS_PROCESS(coroutine.hpp)
+#include <process/actor/actor.hpp>
 #include <util/mutex_rw.hpp>
 
 #ifndef FOS_USE_ROUTERS
@@ -34,13 +35,13 @@
 #endif
 
 namespace fhatos {
-  class Types : public Coroutine {
+  class Types : public Actor<Coroutine> {
 
   private:
-    explicit Types(const ID &id = ID("/type/")) : Coroutine(id) {}
+    explicit Types(const ID &id = ID("/type/")) : Actor<Coroutine>(id) {}
 
   protected:
-    Map<ID_p, Type_p> *CACHE = new Map<ID_p, Type_p>();
+    Map<ID, Type_p> *CACHE = new Map<ID, Type_p>();
     MutexRW<> *CACHE_MUTEX = new MutexRW<>();
 
   public:
@@ -62,15 +63,15 @@ namespace fhatos {
         singleton()->checkType(obj, otype, typeId, true);
         return typeId;
       };
-      TYPE_WRITER = [](const ID &id, const Type_p &type) {
-        singleton()->saveType(id_p(id), type, true);
-        return type;
-      };
-      TYPE_READER = [](const ID &typeId) {
-        return singleton()->loadType(id_p(typeId), true).value_or(Obj::to_noobj());
-      };
+      const List<Pattern> baseTypes = {BOOL_FURI->resolve("#"), INT_FURI->resolve("#"), REAL_FURI->resolve("#"),
+                                       STR_FURI->resolve("#"),  URI_FURI->resolve("#"), LST_FURI->resolve("#"),
+                                       REC_FURI->resolve("#"),  INST_FURI->resolve("#")};
+      for (const Pattern &typeSub: baseTypes) {
+        this->subscribe(typeSub, [this](const Message_p &message) {
+          this->saveType(id_p(message->target), message->payload, true);
+        });
+      }
     }
-
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
@@ -89,12 +90,12 @@ namespace fhatos {
       CACHE_MUTEX->write<void>([this, typeId, typeDef, writeThrough] {
         try {
           if (!typeDef->isNoObj()) {
-            if (CACHE->count(typeId)) {
+            if (CACHE->count(*typeId)) {
               LOG_TASK(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
-                       CACHE->at(typeId)->toString().c_str());
-              CACHE->erase(typeId);
+                       CACHE->at(*typeId)->toString().c_str());
+              CACHE->erase(*typeId);
             }
-            CACHE->insert({PtrHelper::clone<ID>(typeId), PtrHelper::clone<Obj>(typeDef)});
+            CACHE->insert({ID(typeId->toString()), PtrHelper::clone<Obj>(typeDef)});
 #if FOS_USE_ROUTERS
             if (writeThrough)
               Router::write(*typeId, typeDef);
@@ -108,8 +109,8 @@ namespace fhatos {
                        typeDef->toString().c_str());
             }
           } else { // delete type
-            if (CACHE->count(typeId))
-              CACHE->erase(typeId);
+            if (CACHE->count(*typeId))
+              CACHE->erase(*typeId);
 #if FOS_USE_ROUTERS
             if (writeThrough)
               Router::write(*typeId, Obj::to_noobj());
@@ -126,8 +127,8 @@ namespace fhatos {
     Option<Obj_p> loadType(const ID_p &typeId, [[maybe_unused]] const bool readThrough = true) const {
       return CACHE_MUTEX->read<Option<Obj_p>>([this, typeId, readThrough] {
         try {
-          if (CACHE->count(typeId))
-            return Option<Obj_p>(CACHE->at(typeId));
+          if (CACHE->count(*typeId))
+            return Option<Obj_p>(CACHE->at(*typeId));
 #if FOS_USE_ROUTERS
           if (readThrough) {
             const Type_p type = Router::read<Obj>(*typeId);

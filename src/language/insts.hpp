@@ -204,7 +204,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {typeId, type},
           [typeId, type](const Obj_p &lhs) {
-            TYPE_WRITER(typeId->uri_value(), type->apply(lhs));
+            Router::write(typeId->uri_value(), type->apply(lhs));
             return lhs;
           },
           areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
@@ -226,7 +226,7 @@ namespace fhatos {
               LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
             return lhs;
           },
-         /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
+          /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
     }
 
     static Obj_p to_inv(const Obj_p &obj) {
@@ -410,7 +410,7 @@ namespace fhatos {
           IType::ONE_TO_MANY);
     }
 
-    static Obj_p within(const BCode_p&) {
+    static Obj_p within(const BCode_p &) {
       return nullptr;
       /*return Obj::to_inst(
          "within", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,

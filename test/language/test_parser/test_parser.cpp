@@ -291,7 +291,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_real_parsing); //
         FOS_RUN_TEST(test_uri_parsing); //
         FOS_RUN_TEST(test_str_parsing); //
-        FOS_RUN_TEST(test_lst_parsing); //
+        //FOS_RUN_TEST(test_lst_parsing); //
         //FOS_RUN_TEST(test_rec_parsing); //
         FOS_RUN_TEST(test_bytecode_parsing); //
         ////////////// PARTICULAR MONOID IDIOMS

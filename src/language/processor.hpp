@@ -104,7 +104,8 @@ namespace fhatos {
       }
       // start inst forced initial
       if (this->running->empty())
-        this->running->push_back(share(Monad(bcode->bcode_value().front()->inst_seed(), bcode->bcode_value().front())));
+        this->running->push_back(
+            share(Monad(this->bcode->bcode_value().front()->inst_seed(), this->bcode->bcode_value().front())));
     }
 
     const ptr<E> next(const int steps = -1) {

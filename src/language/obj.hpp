@@ -198,12 +198,8 @@ namespace fhatos {
   static TriFunction<const Obj &, const OType, const ID_p &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
                                                                                      const ID_p &) { return nullptr; };
   static Function<const string &, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
-  static BiFunction<const fURI &, const Type_p, Type_p> TYPE_WRITER = [](const fURI &, const Type_p &) {
-    return nullptr;
-  };
   static QuadConsumer<const ID &, const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
       [](const ID &, const ID &, const Obj_p &, const bool) { return nullptr; };
-  static Function<const fURI &, Type_p> TYPE_READER = [](const fURI &) { return nullptr; };
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
