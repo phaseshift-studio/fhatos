@@ -32,18 +32,19 @@ namespace fhatos {
     SIZE_TYPE READER_COUNT = 0;
 
   public:
+    explicit MutexRW(const char *label = "<anon>") : READER_LOCK(label) {}
+
     template<typename A>
-    ptr<A> write(const Supplier<ptr<A> > &supplier) {
-      Pair<RESPONSE_CODE, ptr<A> > result = std::make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
+    ptr<A> write(const Supplier<ptr<A>> &supplier) {
+      Pair<RESPONSE_CODE, ptr<A>> result = std::make_pair<RESPONSE_CODE, ptr<A>>(MUTEX_LOCKOUT, nullptr);
       while (result.first == MUTEX_LOCKOUT) {
-        result = READER_LOCK.template lockUnlock<Pair<RESPONSE_CODE, ptr<A> > >(
-          [this,supplier]() {
-            if (WRITER_LOCK)
-              return std::make_pair<RESPONSE_CODE, ptr<A> >(MUTEX_LOCKOUT, nullptr);
-            else {
-              return std::make_pair<RESPONSE_CODE, ptr<A> >(OK, supplier());
-            }
-          });
+        result = READER_LOCK.template lockUnlock<Pair<RESPONSE_CODE, ptr<A>>>([this, supplier]() {
+          if (WRITER_LOCK)
+            return std::make_pair<RESPONSE_CODE, ptr<A>>(MUTEX_LOCKOUT, nullptr);
+          else {
+            return std::make_pair<RESPONSE_CODE, ptr<A>>(OK, supplier());
+          }
+        });
       }
       return result.second;
     }

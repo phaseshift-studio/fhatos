@@ -58,7 +58,8 @@ namespace fhatos {
     static Kernel *loadModules(const List<ID> &modules) {
       for (const ID &id: modules) {
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
-          Types::singleton()->saveType(id_p(pair.first), pair.second, true);
+          GLOBAL_OPTIONS->router<Router>()->publish(
+              Message{.source = id, .target = pair.first, .payload = pair.second, .retain = true});
         }
       }
       return Kernel::build();
@@ -69,7 +70,7 @@ namespace fhatos {
     }
     static void done(const char *barrier = "kernel_barrier") {
       delete Kernel::build();
-      Scheduler::singleton()->barrier(barrier);
+      Scheduler::singleton()->barrier(barrier, nullptr, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
     }
   };
 } // namespace fhatos

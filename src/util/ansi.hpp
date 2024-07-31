@@ -231,6 +231,25 @@ namespace fhatos {
 
     void black(const bool bright = false) { color(BLACK + (bright ? BRIGHT : 0), 0); }
 
+    void up() {
+      if (this->_on)
+        this->print("\033[1A");
+    }
+
+    void down() {
+      if (this->_on)
+        this->print("\033[1B");
+    }
+
+    void left() {
+      if (this->_on)
+        this->print("\033[1D");
+    }
+
+    void right() {
+      if (this->_on)
+        this->print("\033[1C");
+    }
 
     static string sillyPrint(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
       std::srand(time(nullptr));

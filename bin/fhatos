@@ -5,5 +5,5 @@ OPCODE="start plus mult =>"
 if [[ $1 == "esp" ]]; then
   rlwrap --always-readline pio device monitor -b 115200 -f direct --echo
 else
-  rlwrap --complete-filenames  ~/software/fhatos/build/fhatos.out
+  rlwrap --complete-filenames  ~/software/fhatos/build/fhatos.out "$@"
 fi

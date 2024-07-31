@@ -841,7 +841,7 @@ namespace fhatos {
           for (const auto &[key, value]: *this->rec_value()) {
             newPairs->insert({key->apply(lhs), value->apply(lhs)});
           }
-          return Obj::to_rec(newPairs);
+          return Obj::to_rec(newPairs,this->_id);
         }
         case OType::INST: {
           if (lhs->isBytecode()) {

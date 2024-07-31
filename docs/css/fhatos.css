@@ -59,6 +59,8 @@ td{background-color: var(--maincolor);color: var(--black) !important}
 
 #toc.toc2{background-color:var(--sidebarbackground);}
 #toctitle{color:var(--secondarycolor);}
+.ulist ul{line-height:1.0em;}
+.ulist li{line-height:1.0em;}
 
 /* Responsiveness fixes */
 video {

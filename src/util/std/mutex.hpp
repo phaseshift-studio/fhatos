@@ -29,29 +29,33 @@ namespace fhatos {
   template<uint16_t WAIT_TIME_MS = 250>
   class Mutex {
   private:
-    std::mutex *xmutex = new std::mutex();
-    string user;
+    std::mutex xmutex = std::mutex();
+    const char *_label;
 
   public:
-    ~Mutex() { delete this->xmutex; }
-
+    explicit Mutex(const char *label = "<anon>") : _label(strdup(label)) {}
     template<typename T = void *>
     T lockUnlock(const Supplier<T> criticalFunction, const uint16_t millisecondsWait = WAIT_TIME_MS) {
-      if (this->lock(millisecondsWait)) {
-        T t = criticalFunction();
-        this->unlock();
-        return t;
-      } else {
-        throw fError("User %s unable to lock mutex: [!rline %i!!]", user.c_str(), __LINE__);
+      try {
+        if (this->lock(millisecondsWait)) {
+          T t = criticalFunction();
+          this->unlock();
+          return t;
+        } else {
+          throw fError("Unable to lock mutex %s\n", this->_label);
+        }
+      } catch (const std::exception &) {
+        this->xmutex.unlock();
+        throw;
       }
     }
 
-     bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
+    bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
       const long timestamp =
           std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
               .count();
       while (true) {
-        if (this->xmutex->try_lock()) {
+        if (this->xmutex.try_lock()) {
           return true;
         } else if ((std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::system_clock::now().time_since_epoch())
@@ -62,8 +66,8 @@ namespace fhatos {
       }
     }
 
-     bool unlock() {
-      this->xmutex->unlock();
+    bool unlock() {
+      this->xmutex.unlock();
       return true;
     }
   };

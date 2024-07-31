@@ -22,8 +22,10 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
+#include <process/actor/publisher.hpp>
 #include FOS_PROCESS(coroutine.hpp)
-#include <process/actor/actor.hpp>
+
+#include <unistd.h>
 #include <util/mutex_rw.hpp>
 
 #ifndef FOS_USE_ROUTERS
@@ -35,115 +37,104 @@
 #endif
 
 namespace fhatos {
-  class Types : public Actor<Coroutine> {
+  class Types : public Coroutine, Publisher {
 
-  private:
-    explicit Types(const ID &id = ID("/type/")) : Actor<Coroutine>(id) {}
+    explicit Types(const ID &id = ID("/type/")) : Coroutine(id), Publisher(this), CACHE_MUTEX(id.toString().c_str()) {}
 
   protected:
     Map<ID, Type_p> *CACHE = new Map<ID, Type_p>();
-    MutexRW<> *CACHE_MUTEX = new MutexRW<>();
+    MutexRW<> CACHE_MUTEX;
 
   public:
-    using Def = Pair<ID, string>;
-    using Defs = List<Def>;
     ~Types() override {
       CACHE->clear();
       delete CACHE;
-      delete CACHE_MUTEX;
     }
     static Types *singleton(const ID &id = ID("/type/")) {
-      static Types *types = new Types(id);
-      return types;
+      static Types types = Types(id);
+      return &types;
     }
 
     void setup() override {
       Coroutine::setup();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &typeId) {
-        singleton()->checkType(obj, otype, typeId, true);
+        singleton()->checkType(obj, otype, typeId, false);
         return typeId;
       };
       const List<Pattern> baseTypes = {BOOL_FURI->resolve("#"), INT_FURI->resolve("#"), REAL_FURI->resolve("#"),
                                        STR_FURI->resolve("#"),  URI_FURI->resolve("#"), LST_FURI->resolve("#"),
                                        REC_FURI->resolve("#"),  INST_FURI->resolve("#")};
       for (const Pattern &typeSub: baseTypes) {
-        this->subscribe(typeSub, [this](const Message_p &message) {
-          this->saveType(id_p(message->target), message->payload, true);
+        this->subscribe(typeSub, [](const Message_p &message) {
+          try {
+            if (!Types::singleton()->id()->equals(message->source))
+              Types::singleton()->saveType(id_p(message->target), message->payload, false);
+          } catch (const fError &e) {
+            LOG_EXCEPTION(e);
+          }
         });
       }
     }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void savePrefix(const char *prefix, const ID &furi, const bool writeThrough = true) const {
+    void savePrefix(const char *prefix, const ID &furi, const bool writeThrough = true) {
       this->saveType(id_p(prefix), Uri::to_uri(furi), writeThrough);
     }
 
-    Option<ID_p> loadPrefix(const char *prefix, const bool readThrough) const {
-      const Option<Obj_p> option = this->loadType(id_p(prefix), readThrough);
+    Option<ID_p> loadPrefix(const char *prefix, const bool readThrough) {
+      const Option<Obj_p> option = loadType(id_p(prefix), readThrough);
       if (option.has_value())
         return Option<ID_p>(id_p(option.value()->uri_value()));
       return Option<ID_p>();
     }
 
-    void saveType(const ID_p &typeId, const Obj_p &typeDef, [[maybe_unused]] const bool writeThrough = true) const {
-      CACHE_MUTEX->write<void>([this, typeId, typeDef, writeThrough] {
+    void saveType(const ID_p &typeId, const Obj_p &typeDef, [[maybe_unused]] const bool writeThrough = true) {
+      const ptr<bool> success = CACHE_MUTEX.write<bool>([this, typeId, typeDef, writeThrough] {
         try {
-          if (!typeDef->isNoObj()) {
-            if (CACHE->count(*typeId)) {
-              LOG_TASK(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
-                       CACHE->at(*typeId)->toString().c_str());
-              CACHE->erase(*typeId);
-            }
+          if (CACHE->count(*typeId)) {
+            LOG_TASK(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
+                     CACHE->at(*typeId)->toString().c_str());
+            CACHE->erase(*typeId);
+          }
+          if (!typeDef->isNoObj())
             CACHE->insert({ID(typeId->toString()), PtrHelper::clone<Obj>(typeDef)});
 #if FOS_USE_ROUTERS
-            if (writeThrough)
-              Router::write(*typeId, typeDef);
+          if (writeThrough)
+            this->publish(*typeId, typeDef, true);
 #endif
-            if (OType::INST == OTypes.toEnum(typeId->path(0))) {
-              const Inst_p inst = Insts::to_inst(*typeId, *typeDef->lst_value());
-              LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                       typeDef->lst_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
-            } else {
-              LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
-                       typeDef->toString().c_str());
-            }
-          } else { // delete type
-            if (CACHE->count(*typeId))
-              CACHE->erase(*typeId);
-#if FOS_USE_ROUTERS
-            if (writeThrough)
-              Router::write(*typeId, Obj::to_noobj());
-#endif
-            LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! deleted\n", typeId->toString().c_str(),
-                     typeDef->toString().c_str());
-          }
-        } catch (fError &e) {
+        } catch (const fError &e) {
           LOG_TASK(ERROR, this, "Unable to save type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
+          return share(false);
         }
-        return share(nullptr);
+        return share(true);
       });
-    }
-    Option<Obj_p> loadType(const ID_p &typeId, [[maybe_unused]] const bool readThrough = true) const {
-      return CACHE_MUTEX->read<Option<Obj_p>>([this, typeId, readThrough] {
-        try {
-          if (CACHE->count(*typeId))
-            return Option<Obj_p>(CACHE->at(*typeId));
-#if FOS_USE_ROUTERS
-          if (readThrough) {
-            const Type_p type = Router::read<Obj>(*typeId);
-            return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
-          }
-#endif
-        } catch (fError &e) {
-          LOG_TASK(ERROR, this, "Unable to load type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
+      if (*success) {
+        if (OType::INST == OTypes.toEnum(typeId->path(0))) {
+          const Inst_p inst = Insts::to_inst(*typeId, typeDef->bcode_value());
+          LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
+                   typeDef->bcode_value().front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
+        } else {
+          LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
+                   typeDef->toString().c_str());
         }
-        return Option<Obj_p>();
-      });
+      }
     }
 
-    bool checkType(const Obj &obj, const OType otype, const ID_p &typeId, const bool doThrow = true) const
-        noexcept(false) {
+    Option<Obj_p> loadType(const ID_p &typeId, [[maybe_unused]] const bool readThrough = true) {
+      const auto opt = CACHE_MUTEX.read<Option<Obj_p>>(
+          [this, typeId] { return CACHE->count(*typeId) ? Option<Obj_p>(CACHE->at(*typeId)) : Option<Obj_p>(); });
+      if (opt.has_value())
+        return opt;
+      Type_p type =
+#if FOS_USE_ROUTERS
+          readThrough ? Router::read<Obj>(*typeId) :
+#endif
+                      Obj::to_noobj();
+      return type->isNoObj() ? Option<Obj_p>() : Option<Obj_p>(type);
+    }
+
+    bool checkType(const Obj &obj, const OType otype, const ID_p &typeId, const bool doThrow = true) noexcept(false) {
       const OType typeOType = OTypes.toEnum(typeId->path(0));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;

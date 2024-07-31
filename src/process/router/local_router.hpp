@@ -30,13 +30,9 @@
 namespace fhatos {
   class LocalRouter final : public Router {
 
-  private:
-    explicit LocalRouter(const ID &id = ID("/router/local/")) : Router(id, ROUTER_LEVEL::LOCAL_ROUTER) {
-      /* this->subscribe(Subscription{
-          .source = id, .pattern = id, .qos = QoS::_1, .onRecv = [id](const Message_p &message) {
-            LOG(INFO, "LocalRouter %s subscription received: %s\n", id.toString().c_str(), message->toString().c_str());
-      }});*/
-    }
+    explicit LocalRouter(const ID &id = ID("/router/local/")) :
+        Router(id, ROUTER_LEVEL::LOCAL_ROUTER), MUTEX_RETAIN(id.toString().c_str()),
+        MUTEX_SUBSCRIPTIONS(id.toString().c_str()) {}
 
   protected:
     List<Subscription_p> SUBSCRIPTIONS;
@@ -47,7 +43,7 @@ namespace fhatos {
   public:
     static LocalRouter *singleton(const ID &id = ID("/router/local/")) {
       static LocalRouter local = LocalRouter(id);
-      GLOBAL_OPTIONS->ROUTING = &local;
+      GLOBAL_OPTIONS->ROUTING = &local; // TODO: be sure to remove this as meta router advances
       return &local;
     }
 
@@ -62,13 +58,14 @@ namespace fhatos {
     }
 
     RESPONSE_CODE publish(const Message &message) override {
-      auto _rc = MUTEX_SUBSCRIPTIONS.read<RESPONSE_CODE>([this, message] {
+      const Message_p mess_ptr = share<Message>(Message{.source = message.source,
+                                                        .target = message.target,
+                                                        .payload = PtrHelper::clone(message.payload),
+                                                        .retain = message.retain});
+      auto _rc = MUTEX_SUBSCRIPTIONS.read<Pair<RESPONSE_CODE, List<Subscription_p>>>([this, mess_ptr] {
         //////////////
-        const Message_p mess_ptr = share<Message>(Message{.source = message.source,
-                                                            .target = message.target,
-                                                            .payload = PtrHelper::clone(message.payload),
-                                                            .retain = message.retain});
         RESPONSE_CODE _rc = mess_ptr->retain ? OK : NO_TARGETS;
+        List<Subscription_p> subs;
         for (const auto &subscription: SUBSCRIPTIONS) {
           if (subscription->pattern.matches(mess_ptr->target)) {
             try {
@@ -81,7 +78,7 @@ namespace fhatos {
                       subscription->source.toString().c_str(), FOS_MAILBOX_WARNING_SIZE, subscription->mailbox->size());
                 }
               } else {
-                subscription->onRecv(mess_ptr);
+                subs.push_back(subscription);
                 _rc = OK;
               }
             } catch (const fError &e) {
@@ -100,10 +97,15 @@ namespace fhatos {
           LOG(DEBUG, "Total number of retained messages [size:%i]\n", RETAINS.size());
         }
         LOG_PUBLISH(_rc, *mess_ptr);
-        return _rc;
+        return std::make_pair(_rc, subs);
       });
+      // process messages of non-threaded subscriptions (prevents mutex dead-lock as this devolves to chained method
+      // calls)
+      for (const auto &sub: _rc.second) {
+        sub->onRecv(mess_ptr);
+      }
       MESSAGE_INTERCEPT(message.source, message.target, message.payload, message.retain);
-      return _rc;
+      return _rc.first;
     }
 
     RESPONSE_CODE subscribe(const Subscription &subscription) override {
@@ -125,29 +127,22 @@ namespace fhatos {
           return share<RESPONSE_CODE>(_rc);
         });
         /////////////// SUBSCRIPTION RETAINS
-        MUTEX_RETAIN.lockUnlock<void *>([this, subscription]() {
-          LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS.size());
-          for (const auto &[target, message]: RETAINS) {
-            if (target.matches(subscription.pattern)) {
-              if (subscription.mailbox) {
-                subscription.mailbox->push(share<Mail>(Mail(share(subscription), message)));
-              } else {
-                subscription.onRecv(message);
-              }
-            }
-          }
-          return nullptr;
-        });
-        ////////////////////////////////////////////
-        /*Obj::LstList_p<> subs = share(Obj::LstList<>());
-        for (Subscription_p s: SUBSCRIPTIONS) {
-          subs->push_back(
-              Obj::to_rec({{u("source"), u(s->source)}, {u("pattern"), u(s->pattern)}, {u("qos"), (int) s->qos}}));
+        for (const auto &mess: MUTEX_RETAIN.lockUnlock<List<Message_p>>([this, subscription] {
+               List<Message_p> messages;
+               LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS.size());
+               for (const auto &[target, message]: RETAINS) {
+                 if (target.matches(subscription.pattern)) {
+                   if (subscription.mailbox) {
+                     subscription.mailbox->push(share<Mail>(Mail(share(subscription), message)));
+                   } else {
+                     messages.push_back(message);
+                   }
+                 }
+               }
+               return messages;
+             })) {
+          subscription.onRecv(mess);
         }
-        this->publish(Message{.source = "/kernel/router/local",
-                              .target = "/kernel/router/local/subscription",
-                              .payload = Obj::to_lst(subs),
-                              .retain = RETAIN_MESSAGE});*/
         return _rc;
       } catch (const fError &e) {
         LOG_EXCEPTION(e);

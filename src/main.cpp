@@ -18,6 +18,7 @@
 
 #include <fhatos.hpp>
 #include <structure/kernel.hpp>
+#include <util/argv_parser.hpp>
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/x_process.hpp>
@@ -44,11 +45,12 @@
 #endif
 
 using namespace fhatos;
+static ArgvParser args = ArgvParser();
 void setup() {
   try {
     Kernel::build()
         ->initialPrinter(Ansi<>::singleton())
-        ->initialLogLevel(INFO)
+        ->initialLogLevel(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
         ->withSplash(ANSI_ART)
         ->withNote("Use !bØ!! for noobj abc")
         ->withNote("Use !y:help!! for console commands")
@@ -58,7 +60,7 @@ void setup() {
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
 #ifdef NATIVE
-                  FileSystem::singleton("/sys/io/fs"), //
+                  FileSystem::singleton("/sys/io/fs",ID(fs::current_path()).resolve(args.option("--fs",fs::current_path().c_str()))), //
 #endif
                   new Console("/home/root/repl/")})
         ->loadModules({"/ext/process"})
@@ -76,7 +78,8 @@ void loop() {
 }
 
 #ifdef NATIVE
-int main(int, char **) {
+int main(int argc, char **argv) {
+  args.init(argc, argv);
   setup();
   loop();
 }

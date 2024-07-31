@@ -56,6 +56,20 @@ namespace fhatos {
       return &terminal;
     }
 
+
+     void loading() const {
+      string bar;
+      int width = 10;
+      for (int i = 0; i < 100; i++) {
+        // time.sleep(0.1)
+        width = (i + 1) / 4;
+       // bar = "[" + "#" * width + " " * (25 - width) + "]";
+        bar = "#";
+        GLOBAL_OPTIONS->printer<>()->left();
+        GLOBAL_OPTIONS->printer<>()->print(bar.c_str());
+        GLOBAL_OPTIONS->printer<>()->flush();
+      }
+    }
     static ID_p currentOut() { return Terminal::singleton()->_currentOutput; }
 
     static void currentOut(const ID_p &source) { Terminal::singleton()->_currentOutput = source; }

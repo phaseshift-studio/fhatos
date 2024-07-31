@@ -104,9 +104,10 @@ namespace fhatos {
 
     virtual void feedLocalWatchdog() {}
 
-    void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr) {
+    void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
+                 const char *message = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
-      LOG(INFO, FOS_TAB_2 "!mHit!! <!yenter!!> !mto access terminal!! !gI!!/!cO!!");
+      if (message)LOG(INFO, message);
       /// barrier break with noobj
       /*this->subscribe("", [this, label](const Message_p &message) {
         if (message->payload->isNoObj())

@@ -204,7 +204,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {typeId, type},
           [typeId, type](const Obj_p &lhs) {
-            Router::write(typeId->uri_value(), type->apply(lhs));
+            Router::write(typeId->apply(lhs)->uri_value(), type->apply(lhs));
             return lhs;
           },
           areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
@@ -526,121 +526,126 @@ namespace fhatos {
         LOG(WARN, FOS_TAB_4 "Unable to register shorthand: !b%s!!\n", shortID.toString().c_str());
       }
     }
-    static Inst_p to_inst(const ID &type, const List<Obj_p> &args) {
-      LOG(TRACE, "Searching for inst: %s\n", type.toString().c_str());
-      if (type == INST_FURI->resolve("start") || type == INST_FURI->resolve("__"))
+    static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
+      LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
+      if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
-      if (type == INST_FURI->resolve("end") || type == INST_FURI->resolve(";"))
+      if (typeId == INST_FURI->resolve("end") || typeId == INST_FURI->resolve(";"))
         return Insts::end();
-      if (type == INST_FURI->resolve("map"))
-        return Insts::map(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("filter"))
-        return Insts::filter(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("side"))
-        return Insts::side(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("count"))
+      if (typeId == INST_FURI->resolve("map"))
+        return Insts::map(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("filter"))
+        return Insts::filter(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("side"))
+        return Insts::side(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("count"))
         return Insts::count();
-      if (type == INST_FURI->resolve("sum"))
+      if (typeId == INST_FURI->resolve("sum"))
         return Insts::sum();
-      if (type == INST_FURI->resolve("prod"))
+      if (typeId == INST_FURI->resolve("prod"))
         return Insts::prod();
-      if (type == INST_FURI->resolve("group"))
+      if (typeId == INST_FURI->resolve("group"))
         return Insts::group(args.empty() ? Obj::to_noobj() : args.at(0), args.size() < 2 ? Obj::to_noobj() : args.at(1),
                             args.size() < 3 ? Obj::to_noobj() : args.at(2));
-      if (type == INST_FURI->resolve("get"))
-        return Insts::get(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("set"))
-        return Insts::set(argCheck(type, args, 2).at(0), args.at(1));
-      if (type == INST_FURI->resolve("noop"))
+      if (typeId == INST_FURI->resolve("get"))
+        return Insts::get(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("set"))
+        return Insts::set(argCheck(typeId, args, 2).at(0), args.at(1));
+      if (typeId == INST_FURI->resolve("noop"))
         return Insts::noop();
-      if (type == INST_FURI->resolve("as"))
-        return Insts::as(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("by"))
-        return Insts::by(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("define"))
-        return Insts::define(argCheck(type, args, 2).at(0), args.at(1));
-      if (type == INST_FURI->resolve("type"))
+      if (typeId == INST_FURI->resolve("as"))
+        return Insts::as(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("by"))
+        return Insts::by(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("define"))
+        return Insts::define(argCheck(typeId, args, 2).at(0), args.at(1));
+      if (typeId == INST_FURI->resolve("type"))
         return Insts::type();
-      if (type == INST_FURI->resolve("is"))
-        return Insts::is(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("plus") || type == INST_FURI->resolve("+"))
-        return Insts::plus(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("mult"))
-        return Insts::mult(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("mod"))
-        return Insts::mod(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("eq"))
-        return Insts::eq(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("neq"))
-        return Insts::neq(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("gte"))
-        return Insts::gte(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("gt"))
-        return Insts::gt(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("lte"))
-        return Insts::lte(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("lt"))
-        return Insts::lt(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("both") || type == INST_FURI->resolve("<->"))
-        return Insts::both(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("to") || type == INST_FURI->resolve("<-"))
-        return Insts::to(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("to_inv") || type == INST_FURI->resolve("->"))
-        return Insts::to_inv(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("from") || type == INST_FURI->resolve("*"))
-        return Insts::from(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("rfrom") || type == INST_FURI->resolve("r*"))
-        return Insts::rfrom(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("pub"))
-        return Insts::pub(argCheck(type, args, 2).at(0), args.at(1));
-      if (type == INST_FURI->resolve("flip"))
-        return Insts::flip(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("sub"))
-        return Insts::sub(argCheck(type, args, 2).at(0), args.at(1));
-      if (type == INST_FURI->resolve("within"))
-        return Insts::within(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("print"))
-        return Insts::print(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("switch"))
-        return Insts::bswitch(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("explain"))
+      if (typeId == INST_FURI->resolve("is"))
+        return Insts::is(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("plus") || typeId == INST_FURI->resolve("+"))
+        return Insts::plus(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("mult"))
+        return Insts::mult(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("mod"))
+        return Insts::mod(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("eq"))
+        return Insts::eq(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("neq"))
+        return Insts::neq(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("gte"))
+        return Insts::gte(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("gt"))
+        return Insts::gt(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("lte"))
+        return Insts::lte(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("lt"))
+        return Insts::lt(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("both") || typeId == INST_FURI->resolve("<->"))
+        return Insts::both(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("to") || typeId == INST_FURI->resolve("<-"))
+        return Insts::to(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("to_inv") || typeId == INST_FURI->resolve("->"))
+        return Insts::to_inv(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("from") || typeId == INST_FURI->resolve("*"))
+        return Insts::from(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("rfrom") || typeId == INST_FURI->resolve("r*"))
+        return Insts::rfrom(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("pub"))
+        return Insts::pub(argCheck(typeId, args, 2).at(0), args.at(1));
+      if (typeId == INST_FURI->resolve("flip"))
+        return Insts::flip(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("sub"))
+        return Insts::sub(argCheck(typeId, args, 2).at(0), args.at(1));
+      if (typeId == INST_FURI->resolve("within"))
+        return Insts::within(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("print"))
+        return Insts::print(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("switch"))
+        return Insts::bswitch(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("explain"))
         return Insts::explain();
-      if (type == INST_FURI->resolve("count"))
+      if (typeId == INST_FURI->resolve("count"))
         return Insts::count();
-      if (type == INST_FURI->resolve("size"))
+      if (typeId == INST_FURI->resolve("size"))
         return Insts::size();
-      if (type == INST_FURI->resolve("barrier"))
-        return Insts::barrier(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("block"))
-        return Insts::block(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("embed") || type == INST_FURI->resolve("~>"))
-        return Insts::embed(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("embed_inv") || type == INST_FURI->resolve("<~"))
-        return Insts::embed_inv(argCheck(type, args, 1).at(0));
-      if (type == INST_FURI->resolve("window"))
-        return Insts::window(argCheck(type, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("barrier"))
+        return Insts::barrier(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("block"))
+        return Insts::block(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("embed") || typeId == INST_FURI->resolve("~>"))
+        return Insts::embed(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("embed_inv") || typeId == INST_FURI->resolve("<~"))
+        return Insts::embed_inv(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("window"))
+        return Insts::window(argCheck(typeId, args, 1).at(0));
       // check registered instructions
-      if (INSTS_MAP()->count(type))
-        return INSTS_MAP()->at(type)(args);
+      if (INSTS_MAP()->count(typeId))
+        return INSTS_MAP()->at(typeId)(args);
       /// try user defined inst
-      const Obj_p userInst = Router::read<Obj>(INST_FURI->resolve(static_cast<fURI>(type)));
-      if (!userInst->isNoObj()) {
+      const Obj_p userInstBCode = Router::read<Obj>(INST_FURI->resolve(typeId));
+      if (userInstBCode->isNoObj()) {
+        throw fError("Unknown instruction: %s\n", typeId.toString().c_str());
+      }
+      if (userInstBCode->isBytecode()) {
         return Obj::to_inst(
-            type.name(), args,
-            [userInst, args](const Obj_p &lhs) {
+            typeId.name(), args,
+            [userInstBCode, args](const Obj_p &lhs) {
               int counter = 0;
               for (const Obj_p &arg: args) {
                 Router::write(ID((string("_") + to_string(counter++)).c_str()), arg->apply(lhs));
               }
-              const Obj_p ret = userInst->lst_value()->at(0)->apply(lhs);
+              const Obj_p ret = userInstBCode->apply(lhs);
               for (int i = 0; i < counter; i++) {
                 Router::destroy(ID((string("_") + to_string(i)).c_str()));
               }
               return ret;
             },
-            userInst->lst_value()->at(0)->itype());
+            userInstBCode->bcode_value().front()->itype());
+      } else {
+        throw fError("!b%s!! does not resolve to bytecode: %s\n", typeId.toString().c_str(),
+                     userInstBCode->toString().c_str());
       }
-      throw fError("Unknown instruction: %s\n", type.toString().c_str());
     }
   };
 

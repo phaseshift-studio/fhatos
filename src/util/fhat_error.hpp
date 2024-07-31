@@ -20,7 +20,7 @@
 #define fhatos_fhat_error_hpp
 
 #include <exception>
-#define FOS_ERROR_MESSAGE_SIZE 250
+#define FOS_ERROR_MESSAGE_SIZE 500
 namespace fhatos {
 #ifndef NATIVE
   ///////////////////////
