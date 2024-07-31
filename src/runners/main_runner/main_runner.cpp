@@ -2,6 +2,8 @@
 #define fhatos_main_runner_cpp
 
 #include <fhatos.hpp>
+#include <chrono>
+#include <thread>
 #include <language/parser.hpp>
 #include <util/ansi.hpp>
 #include <language/insts.hpp>
@@ -56,6 +58,7 @@ int main(int arg, char **argsv) {
     } catch (std::exception &e) {
       LOG_EXCEPTION(e);
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
   Terminal::printer<>()->print("----\n++++");
   //Scheduler::singleton()->stop();
