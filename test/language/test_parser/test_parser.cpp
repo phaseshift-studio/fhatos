@@ -227,14 +227,17 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(32).as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "even[32].type()");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(even[32]).type()", {}, true);
+    FOS_TEST_ERROR("even[1]");
+    FOS_TEST_ERROR("even[3]");
+    FOS_TEST_ERROR("even[5]");
     /////////
     Fluent(FOS_PRINT_OBJ<BCode>(
                Parser::singleton()->tryParseObj("define(/rec/person,|[name=>as(/str/),age=>is(gt(0))])").value()))
         .iterate();
     FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
                            "[name=>'fhat',age=>29].as(person)");
-    FOS_TEST_ERROR("__([name=>10,age=>23]).as(person)");
-    FOS_TEST_ERROR("__([name=>'fhat',age=>-1]).as(person)");
+    FOS_TEST_ERROR("[name=>10,age=>23].as(person)");
+    FOS_TEST_ERROR("[name=>'fhat',age=>-1].as(person)");
   }
 
   void test_to_from() {
@@ -255,8 +258,8 @@ namespace fhatos {
       Types::singleton()->saveType(id_p(pair.first), pair.second, true);
     }
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
-                                                      ->tryParseObj("thread[[setup => print('setup complete'),"
-                                                                    "        loop  => to(/abc/)]].to(/abc/)")
+                                                      ->tryParseObj("thread[[setup => |print('setup complete'),"
+                                                                    "        loop  => |stop(/abc/)]].to(/abc/)")
                                                       .value());
     Fluent(bcode).iterate();
     Scheduler::singleton()->barrier((Router::current()->id()->toString() + "_wait").c_str(),

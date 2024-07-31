@@ -58,7 +58,7 @@ namespace fhatos {
     void setup() override {
       Coroutine::setup();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &typeId) {
-        singleton()->checkType(obj, otype, typeId, false);
+        singleton()->checkType(obj, otype, typeId, true);
         return typeId;
       };
       const List<Pattern> baseTypes = {BOOL_FURI->resolve("#"), INT_FURI->resolve("#"), REAL_FURI->resolve("#"),
