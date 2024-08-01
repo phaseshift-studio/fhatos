@@ -34,9 +34,11 @@ namespace fhatos {
 
   private:
     QueueHandle_t xmutex = xSemaphoreCreateMutex();
+    const char* _label;
 #endif
 
   public:
+  Mutex(const char* label = "<anon>"): _label(label) {}
 #if defined(ESP32)
     ~Mutex() { vSemaphoreDelete(this->xmutex); }
 #endif
@@ -50,11 +52,8 @@ namespace fhatos {
         T t = criticalFunction();
         if (pdTRUE == xSemaphoreGive(this->xmutex))
           return t;
-        else
-          throw fError("Unable to unlock mutex: %i", __LINE__);
-      } else {
-        throw fError("Unable to lock mutex: %i", __LINE__);
-      }
+       }
+        throw fError("Unable to lock mutex %s\n", this->_label);
 #elif defined(ESP8266)
     return T(criticalFunction());
 #endif

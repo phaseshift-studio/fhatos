@@ -841,7 +841,7 @@ namespace fhatos {
           for (const auto &[key, value]: *this->rec_value()) {
             newPairs->insert({key->apply(lhs), value->apply(lhs)});
           }
-          return Obj::to_rec(newPairs,this->_id);
+          return Obj::to_rec(newPairs, this->_id);
         }
         case OType::INST: {
           if (lhs->isBytecode()) {
@@ -1081,6 +1081,7 @@ namespace fhatos {
       return Obj::to_objs(share(PtrHelper::clone(objs)), furi);
     }
     ptr<BObj> serialize() const {
+      LOG(TRACE, "Serializing %s\n", this->toString().c_str());
       if (this->isNoObj()) {
         auto *bytes = new fbyte[1];
         bytes[0] = 'x';
@@ -1092,6 +1093,7 @@ namespace fhatos {
     }
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> bobj) {
+      LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
       if (bobj->first == 1 && bobj->second[0] == 'x')
         return Obj::to_noobj();
       ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
@@ -1101,7 +1103,7 @@ namespace fhatos {
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
   [[maybe_unused]] static Uri_p u_p(const char *uri) { return share<Uri>(Uri(fURI(uri))); }
-  [[maybe_unused]] static Uri_p u_p(const string uri) { return share<Uri>(Uri(fURI(uri))); }
+  [[maybe_unused]] static Uri_p u_p(const string& uri) { return share<Uri>(Uri(fURI(uri))); }
   [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share<Obj>(obj); }
 } // namespace fhatos
 #endif

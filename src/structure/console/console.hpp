@@ -91,6 +91,20 @@ namespace fhatos {
                                               Terminal::currentOut()->toString().c_str(),
                                               Terminal::singleton()->id()->extend("out").toString().c_str());
               }}});
+        _MENU_MAP->insert({":router",
+                           {"pubsub router",
+                            [](const Obj_p &obj) {
+                              if (obj->uri_value().matches("/sys/router/global"))
+                                GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
+                              else if (obj->uri_value().matches("/sys/router/local"))
+                                GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
+                              else
+                                GLOBAL_OPTIONS->ROUTING = MetaRouter::singleton();
+                            },
+                            [] {
+                              Terminal::printer<>()->printf("!yrouter!!: !b%s!!\n",
+                                                            GLOBAL_OPTIONS->router<Router>()->id()->toString().c_str());
+                            }}});
         _MENU_MAP->insert({":color",
                            {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
                             [this] { Terminal::printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});

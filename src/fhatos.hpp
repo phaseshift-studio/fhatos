@@ -212,7 +212,7 @@ namespace fhatos {
 #endif
 
 #ifndef FOS_DEFAULT_SOURCE_ID
-#define FOS_DEFAULT_SOURCE_ID STR(<anon>)
+#define FOS_DEFAULT_SOURCE_ID STR(anon)
 #endif
 
   ////////////////////////////

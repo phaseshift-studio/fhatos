@@ -122,7 +122,7 @@ namespace fhatos {
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }
 
-    virtual bool spawn(XProcess *) { throw fError::X_REQUIRES_IMPLEMENTATION("Scheduler", "spawn"); }
+    virtual bool spawn(XProcess *) = 0;
     virtual bool destroy(const ID &processPattern) {
       return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }

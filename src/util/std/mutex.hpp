@@ -28,12 +28,12 @@
 namespace fhatos {
   template<uint16_t WAIT_TIME_MS = 250>
   class Mutex {
-  private:
     std::mutex xmutex = std::mutex();
     const char *_label;
 
   public:
     explicit Mutex(const char *label = "<anon>") : _label(strdup(label)) {}
+    ~Mutex() { free((void*)this->_label); }
     template<typename T = void *>
     T lockUnlock(const Supplier<T> criticalFunction, const uint16_t millisecondsWait = WAIT_TIME_MS) {
       try {

@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_abstract_filesystem_hpp
-#define fhatos_abstract_filesystem_hpp
+#ifndef fhatos_x_filesystem_hpp
+#define fhatos_x_filesystem_hpp
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/obj.hpp>
@@ -32,10 +32,15 @@ namespace fhatos {
   static const ID_p DIR_FURI = share(ID("/uri/fs:dir"));
   static const ID_p INST_FS_FURI = share(ID("/inst/fs:"));
 
-  class AbstractFileSystem : public Actor<Coroutine> {
+  class XFileSystem : public Actor<Coroutine> {
+
+  protected:
+    const ID_p _root;
+    ID_p _current;
+
   public:
-    ID_p _root;
-    explicit AbstractFileSystem(const ID &id, const ID &localRoot) : Actor(id), _root(share(localRoot)) {}
+    explicit XFileSystem(const ID &id, const ID &localRoot) :
+        Actor(id), _root(id_p(localRoot.extend("/"))), _current(id_p(localRoot.extend("/"))) {}
 
     void setup() override {
       Actor::setup();
@@ -51,12 +56,12 @@ namespace fhatos {
         }
       });*/
       ///////////////////////////////////////////////////////////////////
-      Insts::register_inst(INST_FS_FURI->resolve("root"), [this](List<Obj_p>) {
+      Insts::register_inst(INST_FS_FURI->resolve("root"), [this](const List<Obj_p> &) {
         return Obj::to_inst(
             "root", {}, [this](const Obj_p &) { return this->root(); }, IType::ZERO_TO_ONE, Obj::to_noobj(),
             share<ID>(INST_FS_FURI->resolve("root")));
       });
-      Insts::register_inst(INST_FS_FURI->resolve("ls"), [this](List<Obj_p> args) {
+      Insts::register_inst(INST_FS_FURI->resolve("ls"), [this](const List<Obj_p> &args) {
         return Obj::to_inst(
             "ls", args,
             [this, args](const Obj_p &lhs) {
@@ -64,13 +69,13 @@ namespace fhatos {
             },
             IType::ONE_TO_MANY, Obj::to_objs(), share<ID>(INST_FS_FURI->resolve("ls")));
       });
-      Insts::register_inst(INST_FS_FURI->resolve("mkdir"), [this](List<Obj_p> args) {
+      Insts::register_inst(INST_FS_FURI->resolve("mkdir"), [this](const List<Obj_p> &args) {
         return Obj::to_inst(
             "mkdir", {args.at(0)},
             [this, args](const Obj_p &lhs) { return this->mkdir(args.at(0)->apply(lhs)->uri_value()); },
             IType::ONE_TO_MANY, Obj::to_objs(), share<ID>(INST_FS_FURI->resolve("mkdir")));
       });
-      Insts::register_inst(INST_FS_FURI->resolve("more"), [this](List<Obj_p> args) {
+      Insts::register_inst(INST_FS_FURI->resolve("more"), [this](const List<Obj_p> &args) {
         return Obj::to_inst(
             "more", args,
             [this, args](const Obj_p &lhs) {
@@ -78,34 +83,39 @@ namespace fhatos {
             },
             IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("more")));
       });
-      Insts::register_inst(INST_FS_FURI->resolve("append"), [this](List<Obj_p> args) {
+      Insts::register_inst(INST_FS_FURI->resolve("append"), [this](const List<Obj_p> &args) {
         return Obj::to_inst(
             "append", args, [this, args](const Obj_p &lhs) { return this->append(lhs, args.at(0)->apply(lhs)); },
             IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("append")));
       });
-      Insts::register_inst(INST_FS_FURI->resolve("touch"), [this](List<Obj_p> args) {
+      Insts::register_inst(INST_FS_FURI->resolve("touch"), [this](const List<Obj_p> &args) {
         return Obj::to_inst(
             "touch", args, [this, args](const Obj_p &lhs) { return this->touch(args.at(0)->apply(lhs)->uri_value()); },
             IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("touch")));
       });
+      Insts::register_inst(INST_FS_FURI->resolve("cd"), [this](const List<Obj_p> &args) {
+        return Obj::to_inst(
+            "cd", {args.at(0)},
+            [this, args](const Objs_p &lhs) { return this->cd(args.at(0)->apply(lhs)->uri_value()); },
+            IType::MANY_TO_ONE, Obj::to_objs(), id_p(INST_FS_FURI->resolve("cd")));
+      });
     }
 
-    virtual File_p to_file(const ID &) const { throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem", "to_file"); }
-    virtual Dir_p to_dir(const ID &) const { throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem", "to_dir"); }
-    virtual ID makeLocalPath(const ID &) const { throw fError("must be implemented"); }
-    virtual ID makeFilePath(const ID &path) const {
-      return ID(path.toString().substr(this->id()->toString().length() + 1));
+    virtual File_p to_file(const ID &) const = 0;
+    virtual Dir_p to_dir(const ID &) const = 0;
+    virtual ID makeNativePath(const ID &) const = 0;
+    virtual ID makeFhatPath(const ID &path) const {
+      return ID(path.toString().substr(this->_root->toString().length()));
     }
-    virtual ID makeFhatPath(const ID &path) const { return this->id()->extend(path.toString().c_str()); }
-    virtual ID makeRouterPath(const ID &path) const { return ID(this->id()->toString() + "/" + path.toString()); }
     ////
-    virtual Dir_p root() const { throw fError::X_REQUIRES_IMPLEMENTATION("XFileSystem", "root"); }
-    virtual bool exists(const ID &) const { throw fError("must be implemented"); }
-    virtual Dir_p mkdir(const ID &) const { throw fError("must be implemented"); }
-    virtual Objs_p ls(const Dir_p &, const Pattern &) const { throw fError("must be implemented"); }
-    virtual Obj_p more(const File_p &) const { throw fError("must be implemented"); }
-    virtual File_p append(const File_p &, const Obj_p &) { throw fError("must be implemented"); }
-    virtual File_p touch(const ID &) const { throw fError("must be implemented"); }
+    virtual Dir_p root() const = 0;
+    virtual bool exists(const ID &) const = 0;
+    virtual Dir_p mkdir(const ID &) const = 0;
+    virtual Objs_p ls(const Dir_p &, const Pattern &) const = 0;
+    virtual Obj_p more(const File_p &) const = 0;
+    virtual File_p append(const File_p &, const Obj_p &) = 0;
+    virtual File_p touch(const ID &) const = 0;
+    virtual Dir_p cd(const ID &) = 0;
   };
 } // namespace fhatos
 

@@ -37,8 +37,8 @@
 #ifndef FOS_ROUTERS
 #ifdef NATIVE
 #define FOS_ROUTERS                                                                                                    \
-  LocalRouter::singleton("/sys/router/local"), MqttRouter::singleton("/sys/router/global"),                            \
-      MetaRouter::singleton("/sys/router/meta")
+  /*LocalRouter::singleton("/sys/router/local"),*/ MqttRouter::singleton("/sys/router/global")                          \
+      //MetaRouter::singleton("/sys/router/meta")
 #else
 #define FOS_ROUTERS LocalRouter::singleton("/sys/router/local")
 #endif
@@ -60,7 +60,7 @@ void setup() {
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
 #ifdef NATIVE
-                  FileSystem::singleton("/sys/io/fs",ID(fs::current_path()).resolve(args.option("--fs",fs::current_path().c_str()))), //
+              //    FileSystem::singleton("/sys/io/fs",ID(fs::current_path()).resolve(args.option("--fs",fs::current_path().c_str()))), //
 #endif
                   new Console("/home/root/repl/")})
         ->loadModules({"/ext/process"})

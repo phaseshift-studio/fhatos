@@ -16,29 +16,37 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_argv_parser_hpp
-#define fhatos_argv_parser_hpp
+#ifndef fhatos_play_hpp
+#define fhatos_play_hpp
+
+#undef FOS_TEST_ON_BOOT
+
+#include <language/obj.hpp>
+#include <test_fhatos.hpp>
+
+using namespace std;
 
 namespace fhatos {
-  class ArgvParser {
-    Map<const string, string> _map = Map<const string, string>();
 
+  class Play {
   public:
-    void init(const int &argc, char **argv) {
-      for (int i = 1; i < argc; ++i) {
-        const string temp = string(argv[i]);
-        size_t j = temp.find_first_of('=');
-        if (j != string::npos) {
-          string key = temp.substr(0, j);
-          string value = temp.substr(j + 1);
-          this->_map.insert({key, value});
-        }
+    Play() {
+      GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;
+      GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
+      Obj_p s = /*Obj::to_bcode({});*/ Obj::to_rec({{"hi", 3}, {"bye", 4}, {"test",34}});
+      Obj_p t = Obj::deserialize<Obj>(s->serialize());
+      GLOBAL_OPTIONS->printer<>()->printf("%s and %s\n", s->toString().c_str(), t->toString().c_str());
+      for (int i = 0; i < 1000; i++) {
+        if (i % 100 == 0)
+          printf("%i\n", i);
       }
     }
-    string option(const string &option, const char *orElse) const {
-      return this->_map.count(option) ? this->_map.at(option) : orElse;
-    }
   };
-}; // namespace fhatos
+} // namespace fhatos
 
+int main(int argc, char **argv) {
+  Play *p = new Play();
+  delete p;
+  return 1;
+}
 #endif

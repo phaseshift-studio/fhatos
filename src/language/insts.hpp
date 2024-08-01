@@ -515,10 +515,10 @@ namespace fhatos {
       static Map<ID, Function<List<Obj_p>, Inst_p>> map = Map<ID, Function<List<Obj_p>, Inst_p>>();
       return &map;
     }
-    static void register_inst(const ID &type, const Function<List<Obj_p>, Inst_p> &func) {
-      INSTS_MAP()->insert({type, func});
-      LOG(INFO, "Instruction registered: %s\n", type.toString().c_str());
-      ID shortID = INST_FURI->resolve(type.name());
+    static void register_inst(const ID &typeId, const Function<List<Obj_p>, Inst_p> &func) {
+      INSTS_MAP()->insert({typeId, func});
+      LOG(INFO, "Instruction registered: %s\n", typeId.toString().c_str());
+      ID shortID = INST_FURI->resolve(typeId.name());
       if (!INSTS_MAP()->count(shortID)) {
         INSTS_MAP()->insert({shortID, func});
         LOG(INFO, FOS_TAB_4 "Shorthand registered: !b%s!!\n", shortID.toString().c_str());

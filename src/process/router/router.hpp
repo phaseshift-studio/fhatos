@@ -26,7 +26,7 @@
 #include <structure/furi.hpp>
 #include <util/enums.hpp>
 #ifndef NATIVE
-//#include <structure/io/net/f_wifi.hpp>
+// #include <structure/io/net/f_wifi.hpp>
 #else
 #endif
 #include FOS_PROCESS(coroutine.hpp)
@@ -46,7 +46,7 @@
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",              \
+  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
       ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
@@ -79,7 +79,7 @@ namespace fhatos {
     ID source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    Consumer<const Message_p> onRecv = [](const Message_p&) {};
+    Consumer<const Message_p> onRecv = [](const Message_p &) {};
     BCode_p onRecvBCode = nullptr;
 
     bool match(const ID &target) const { return this->pattern.matches(target); }
@@ -130,9 +130,6 @@ namespace fhatos {
   /////////////// ROUTER CLASS ///////////////
   ////////////////////////////////////////////
 
-#define FP_OK_RESULT                                                                                                   \
-  { return RESPONSE_CODE::OK; }
-
   enum class ROUTER_LEVEL { BCODE_ROUTER = 0, LOCAL_ROUTER = 1, GLOBAL_ROUTER = 2, META_ROUTER = 3 };
   static const Enums<ROUTER_LEVEL> ROUTER_LEVELS = Enums<ROUTER_LEVEL>({{ROUTER_LEVEL::BCODE_ROUTER, "bcode_router"},
                                                                         {ROUTER_LEVEL::LOCAL_ROUTER, "local_router"},
@@ -150,15 +147,13 @@ namespace fhatos {
     ~Router() override = default;
     ROUTER_LEVEL _level;
 
-    static ID mintID(const char *authority, const char *path = "") {
-      return ID(ID(authority).path(path));
-    }
+    static ID mintID(const char *authority, const char *path = "") { return ID(ID(authority).path(path)); }
 
-    virtual RESPONSE_CODE publish(const Message &) FP_OK_RESULT;
-    virtual RESPONSE_CODE subscribe(const Subscription &) FP_OK_RESULT;
-    virtual RESPONSE_CODE unsubscribe(const ID &, const Pattern &) FP_OK_RESULT;
-    virtual RESPONSE_CODE unsubscribeSource(const ID &) FP_OK_RESULT;
-    virtual RESPONSE_CODE clear() FP_OK_RESULT;
+    virtual RESPONSE_CODE publish(const Message &) = 0;
+    virtual RESPONSE_CODE subscribe(const Subscription &) = 0;
+    virtual RESPONSE_CODE unsubscribe(const ID &, const Pattern &) = 0;
+    virtual RESPONSE_CODE unsubscribeSource(const ID &) = 0;
+    virtual RESPONSE_CODE clear() = 0;
     virtual uint retainSize() const { return -1; }
     virtual const string toString() const { return "Router"; }
 
@@ -170,12 +165,11 @@ namespace fhatos {
     static ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
       auto *router = GLOBAL_OPTIONS->router<Router>();
       auto *thing = new std::atomic<const Obj *>(nullptr);
-      router->subscribe(
-          Subscription{.source = source, .pattern = target, .onRecv = [thing](const Message_p &message) {
-                         // TODO: try to not copy obj while still not accessing heap after delete
-                         const Obj *obj = new Obj(message->payload->_value, message->payload->id());
-                         thing->store(obj);
-                       }});
+      router->subscribe(Subscription{.source = source, .pattern = target, .onRecv = [thing](const Message_p &message) {
+                                       // TODO: try to not copy obj while still not accessing heap after delete
+                                       const Obj *obj = new Obj(message->payload->_value, message->payload->id());
+                                       thing->store(obj);
+                                     }});
       const time_t startTimestamp = time(nullptr);
       while (!thing->load()) {
         if ((time(nullptr) - startTimestamp) > static_cast<uint8_t>(router->_level) + 1) {
@@ -187,7 +181,7 @@ namespace fhatos {
         delete thing;
         return Obj::to_noobj();
       } else {
-        ptr<OBJ> ret = ptr<OBJ>((OBJ *) thing->load());
+        const ptr<OBJ> ret = ptr<OBJ>((OBJ *) thing->load());
         delete thing;
         return ret;
       }

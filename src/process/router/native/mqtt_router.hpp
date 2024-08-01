@@ -40,20 +40,26 @@ namespace fhatos {
   public:
     static MqttRouter *singleton(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
                                  const Message_p &willMessage = ptr<Message>(nullptr)) {
+      static bool done = false;
       static MqttRouter mqtt = MqttRouter(id, serverAddr, willMessage);
+      if (!done) {
+        GLOBAL_OPTIONS->ROUTING = &mqtt;
+        done = true;
+      }
       return &mqtt;
     }
 
   protected:
     const char *serverAddr;
     async_client *xmqtt;
-    MutexDeque<Subscription_p> _SUBSCRIPTIONS;
-    MutexDeque<Message_p> _PUBLICATIONS;
+    List<Subscription_p> SUBSCRIPTIONS;
+    MutexRW<> MUTEX_SUBSCRIPTIONS;
     Message_p willMessage;
 
     explicit MqttRouter(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
                         const Message_p &willMessage = ptr<Message>(nullptr)) :
-        Router(id, ROUTER_LEVEL::GLOBAL_ROUTER) {
+        Router(id, ROUTER_LEVEL::GLOBAL_ROUTER), SUBSCRIPTIONS(List<Subscription_p>()),
+        MUTEX_SUBSCRIPTIONS(MutexRW<>("mqtt-router")) {
       this->serverAddr = string(serverAddr).find_first_of("mqtt://") == string::npos
                              ? string("mqtt://").append(string(serverAddr)).c_str()
                              : serverAddr;
@@ -61,45 +67,75 @@ namespace fhatos {
       this->willMessage = willMessage;
       auto connection_options = connect_options_builder()
                                     .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
-                                    .clean_start(false)
+                                    .clean_start(true)
+                                    .clean_session(true)
+                                    .user_name("fhatos")
                                     .keep_alive_interval(std::chrono::seconds(20))
                                     .automatic_reconnect();
       if (willMessage.get())
         connection_options.will(
             message(this->willMessage->target.toString(), this->willMessage->payload.get(), this->willMessage->retain));
-      try {
-        this->xmqtt->set_message_callback([this](const ptr<const message> &mqttMessage) {
-          const ID mqttTopic = ID(mqttMessage->get_topic());
-          _SUBSCRIPTIONS.forEach([mqttMessage, mqttTopic](const Subscription_p &subscription) {
-            const binary_ref ref = mqttMessage->get_payload_ref();
-            const ptr<BObj> bobj = share(BObj(ref.length(), (unsigned char *) ref.data()));
-            if (mqttTopic.matches(subscription->pattern)) {
-              const Message_p message = share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
-                                                      .target = mqttTopic,
-                                                      .payload = Obj::deserialize<Obj>(bobj),
-                                                      .retain = mqttMessage->is_retained()});
-              LOG_RECEIVE(RESPONSE_CODE::OK, *subscription, *message);
-              if (subscription->mailbox) {
-                subscription->mailbox->push(share(Mail(subscription, message))); // if mailbox, put in mailbox
-              } else {
-                subscription->onRecv(message); // else, evaluate callback
+
+      this->xmqtt->set_message_callback([this](const ptr<const message> &mqttMessage) {
+        const binary_ref ref = mqttMessage->get_payload_ref();
+        const ptr<BObj> bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
+        const Message_p mess_ptr = share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
+                                                 .target = ID(mqttMessage->get_topic()),
+                                                 .payload = Obj::deserialize<Obj>(bobj),
+                                                 .retain = mqttMessage->is_retained()});
+        auto _rc = MUTEX_SUBSCRIPTIONS.read<Pair<RESPONSE_CODE, List<Subscription_p>>>([this, mess_ptr] {
+          //////////////
+          RESPONSE_CODE _rc = mess_ptr->retain ? OK : NO_TARGETS;
+          List<Subscription_p> subs;
+          for (const auto &subscription: SUBSCRIPTIONS) {
+            if (subscription->pattern.matches(mess_ptr->target)) {
+              try {
+                if (subscription->mailbox) {
+                  _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
+                  LOG(TRACE, "Message from !b%s!! delivered to mailbox !b%s!!\n", mess_ptr->source.toString().c_str(),
+                      subscription->source.toString().c_str());
+                  if (subscription->mailbox->size() > FOS_MAILBOX_WARNING_SIZE) {
+                    LOG(WARN, "Mailbox !b%s!! reached warning size of %i: [size:%i]\n",
+                        subscription->source.toString().c_str(), FOS_MAILBOX_WARNING_SIZE,
+                        subscription->mailbox->size());
+                  }
+                } else {
+                  subs.push_back(subscription);
+                  _rc = OK;
+                }
+              } catch (const fError &e) {
+                LOG_EXCEPTION(e);
+                _rc = MUTEX_TIMEOUT;
               }
-              // delete[] results;
             }
-          });
+          }
+          LOG_PUBLISH(_rc, *mess_ptr);
+          return std::make_pair(_rc, subs);
         });
-        this->xmqtt->set_connected_handler([this](const string &) {
-          LOG(INFO,
-              "\n!g[!bMQTT Router Configuration!g]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
-              "!bClient name!!   : %s\n" FOS_TAB_2 "!bWill topic!!    : %s\n" FOS_TAB_2
-              "!bWill message!!  : %s\n" FOS_TAB_2 "!bWill QoS!!      : %i\n" FOS_TAB_2 "!bWill retain!!   : %s\n",
-              this->serverAddr, this->xmqtt->get_client_id().c_str(),
-              nullptr != this->willMessage.get() ? this->willMessage->target.toString().c_str() : "<none>",
-              nullptr != this->willMessage.get() ? this->willMessage->payload->toString().c_str() : "<none>",
-              GRANTED_QOS_1, nullptr != this->willMessage.get() ? FOS_BOOL_STR(this->willMessage->retain) : "<none>");
-        });
+        // process messages of non-threaded subscriptions (prevents mutex dead-lock as this devolves to chained method
+        // calls)
+        for (const auto &sub: _rc.second) {
+          sub->onRecv(mess_ptr);
+          LOG(TRACE, "Message from !b%s!! executing for !b%s!!\n", mess_ptr->source.toString().c_str(),
+              sub->source.toString().c_str());
+        }
+        MESSAGE_INTERCEPT(mess_ptr->source, mess_ptr->target, mess_ptr->payload, mess_ptr->retain);
+      });
+      this->xmqtt->set_connected_handler([this](const string &) {
+        LOG(INFO,
+            "\n!g[!bMQTT Router Configuration!g]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
+            "!bClient name!!   : %s\n" FOS_TAB_2 "!bWill topic!!    : %s\n" FOS_TAB_2
+            "!bWill message!!  : %s\n" FOS_TAB_2 "!bWill QoS!!      : %i\n" FOS_TAB_2 "!bWill retain!!   : %s\n",
+            this->serverAddr, this->xmqtt->get_client_id().c_str(),
+            nullptr != this->willMessage.get() ? this->willMessage->target.toString().c_str() : "<none>",
+            nullptr != this->willMessage.get() ? this->willMessage->payload->toString().c_str() : "<none>",
+            GRANTED_QOS_1, nullptr != this->willMessage.get() ? FOS_BOOL_STR(this->willMessage->retain) : "<none>");
+      });
+      try {
         this->xmqtt->connect(connection_options.finalize());
         while (!this->xmqtt->is_connected()) {
+          sleep(1);
+          LOG(WARN, "Retrying connection to %s\n", this->serverAddr);
         }
       } catch (const mqtt::exception &e) {
         LOG(ERROR, "Unable to connect to remote server. Mqtt support not provided: %s\n", e.what());
@@ -107,54 +143,61 @@ namespace fhatos {
     }
 
   public:
-    ~MqttRouter() {
-      this->stop();
-      delete this->xmqtt;
-    }
-
     RESPONSE_CODE clear() override {
-      _SUBSCRIPTIONS.forEach(
-          [this](const Subscription_p &subscription) { this->xmqtt->unsubscribe(subscription->pattern.toString()); });
-      _SUBSCRIPTIONS.clear();
-      _PUBLICATIONS.clear();
-      return RESPONSE_CODE::OK;
+      /*for (const Subscription_p& sub: SUBSCRIPTIONS) {
+        this->xmqtt->unsubscribe(sub->pattern.toString());
+      }
+      SUBSCRIPTIONS.clear();*/
+      return OK;
     }
 
     RESPONSE_CODE publish(const Message &message) override {
-      ptr<BObj> bobj = message.payload->serialize();
-      // delivery_token_ptr ret =
+      const ptr<BObj> bobj = message.payload->serialize();
       this->xmqtt->publish(message.target.toString(), bobj->second, bobj->first, 1, message.retain);
       const RESPONSE_CODE _rc = OK; //(RESPONSE_CODE) ret->get_return_code();
-      /*const RESPONSE_CODE _rc =
-          _PUBLICATIONS.push_back(share(message)) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;*/
       LOG_PUBLISH(_rc, message);
       return _rc;
     }
 
     RESPONSE_CODE subscribe(const Subscription &subscription) override {
-      RESPONSE_CODE _rc =
-          _SUBSCRIPTIONS
-                  .find([subscription](const auto &sub) {
-                    return subscription.source.equals(sub->source) && subscription.pattern.equals(sub->pattern);
-                  })
-                  .has_value()
-              ? RESPONSE_CODE::REPEAT_SUBSCRIPTION
-              : RESPONSE_CODE::OK;
-
-      if (!_rc) {
-        try {
-          if (this->xmqtt->subscribe(subscription.pattern.toString(), static_cast<uint>(subscription.qos)) &&
-              _SUBSCRIPTIONS.push_back(share(Subscription(subscription))))
-            _rc = RESPONSE_CODE::OK;
-          else
-            _rc = RESPONSE_CODE::ROUTER_ERROR;
-        } catch (const std::runtime_error &e) {
-          LOG_EXCEPTION(e);
-          _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
-        }
+      const Subscription_p sub_ptr = share(subscription);
+      try {
+        /////////////// SUBSCRIPTION
+        RESPONSE_CODE _rc = *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, sub_ptr]() {
+          /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
+          SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
+                                        [sub_ptr](const Subscription_p &sub) {
+                                          return sub->source.equals(sub_ptr->source) &&
+                                                 sub->pattern.equals(sub_ptr->pattern);
+                                        }),
+                              SUBSCRIPTIONS.end());
+          /////////////// ADD NEW SUBSCRIPTION
+          bool found = false;
+          for (Subscription_p s: SUBSCRIPTIONS) {
+            if (s->pattern.equals(s->pattern)) {
+              found = true;
+              break;
+            }
+          }
+          RESPONSE_CODE _rc = OK;
+          if (!found) {
+            if (this->xmqtt->subscribe(sub_ptr->pattern.toString(), static_cast<uint>(sub_ptr->qos))) {
+              _rc = OK;
+            } else {
+              _rc = ROUTER_ERROR;
+            }
+          }
+          if (!_rc) {
+            SUBSCRIPTIONS.push_back(sub_ptr);
+            LOG_SUBSCRIBE(_rc, sub_ptr);
+          }
+          return share<RESPONSE_CODE>(_rc);
+        });
+        return _rc;
+      } catch (fError &e) {
+        LOG_EXCEPTION(e);
+        return ROUTER_ERROR;
       }
-      LOG_SUBSCRIBE(_rc, share(subscription));
-      return _rc;
     }
 
     RESPONSE_CODE unsubscribe(const ID &source, const Pattern &pattern) override {
@@ -164,29 +207,41 @@ namespace fhatos {
     RESPONSE_CODE unsubscribeSource(const ID &source) override { return unsubscribeX(source, nullptr); }
 
     void stop() override {
-      _SUBSCRIPTIONS.forEach([this](const auto &sub) { this->unsubscribe(sub->source, sub->pattern); });
-      _PUBLICATIONS.clear();
-      _SUBSCRIPTIONS.clear();
+      this->clear();
       this->xmqtt->disconnect();
       LOG_TASK(INFO, this, "!b%s !ymqtt client to %s!! disconnected\n", this->id()->toString().c_str(),
                this->serverAddr);
     }
 
     RESPONSE_CODE unsubscribeX(const ID &source, const Pattern *pattern) {
-      RESPONSE_CODE _rc = RESPONSE_CODE::OK;
       try {
-        const uint16_t size = _SUBSCRIPTIONS.size();
-        if (pattern &&
-            !(_SUBSCRIPTIONS.find([pattern](const auto &sub) { return sub->pattern.equals(*pattern); }).has_value())) {
-          _rc = this->xmqtt->unsubscribe(pattern->toString()) ? RESPONSE_CODE::OK : RESPONSE_CODE::ROUTER_ERROR;
-        }
-        return !_rc ? _rc : (_SUBSCRIPTIONS.size() < size ? RESPONSE_CODE::OK : RESPONSE_CODE::NO_SUBSCRIPTION);
-      } catch (const std::runtime_error &e) {
+        return *MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, source, pattern]() {
+          const uint16_t size = SUBSCRIPTIONS.size();
+          SUBSCRIPTIONS.erase(remove_if(SUBSCRIPTIONS.begin(), SUBSCRIPTIONS.end(),
+                                        [source, pattern](const auto &sub) {
+                                          return sub->source.equals(source) &&
+                                                 (nullptr == pattern || sub->pattern.equals(*pattern));
+                                        }),
+                              SUBSCRIPTIONS.end());
+          const auto _rc2 =
+              share<RESPONSE_CODE>(((SUBSCRIPTIONS.size() < size) || pattern == nullptr) ? OK : NO_SUBSCRIPTION);
+          LOG_UNSUBSCRIBE(*_rc2, source, pattern);
+          bool found = false;
+          for (Subscription_p s: SUBSCRIPTIONS) {
+            if (s->pattern.equals(*pattern)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            this->xmqtt->unsubscribe(pattern->toString());
+          }
+          return _rc2;
+        });
+      } catch (const fError &e) {
         LOG_EXCEPTION(e);
-        _rc = RESPONSE_CODE::MUTEX_TIMEOUT;
-      };
-      LOG_UNSUBSCRIBE(_rc, source, pattern);
-      return _rc;
+        return MUTEX_TIMEOUT;
+      }
     }
 
     const string toString() const override { return "MqttRouter"; }

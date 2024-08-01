@@ -43,7 +43,7 @@
 #include <util/options.hpp>
 #ifndef FOS_TEST_ROUTERS
 #ifdef NATIVE
-#define FOS_TEST_ROUTERS LocalRouter::singleton() /*MqttRouter::singleton(), MetaRouter::singleton()*/
+#define FOS_TEST_ROUTERS /*LocalRouter::singleton(),*/ MqttRouter::singleton()/*, MetaRouter::singleton()*/
 #else
 #define FOS_TEST_ROUTERS LocalRouter::singleton()
 #endif
