@@ -21,10 +21,10 @@
 
 #include <fhatos.hpp>
 //
-#include <process/router/local_router.hpp>
+#include <structure/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
-#include <process/router/message.hpp>
-#include <process/router/router.hpp>
+#include <structure/router/message.hpp>
+#include <structure/router/router.hpp>
 
 namespace fhatos {
   class MetaRouter : public Router {

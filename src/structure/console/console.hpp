@@ -22,9 +22,9 @@
 #include <fhatos.hpp>
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
-#include <process/router/local_router.hpp>
-#include <process/router/meta_router.hpp>
 #include <structure/furi.hpp>
+#include <structure/router/local_router.hpp>
+#include <structure/router/meta_router.hpp>
 #include <util/string_helper.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_PROCESS(thread.hpp)
@@ -87,14 +87,13 @@ namespace fhatos {
                               Options::singleton()->printer<>()->printf(
                                   "!ylog!!: !b%s!!\n", LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()));
                             }}});
-        _MENU_MAP->insert(
-            {":output",
-             {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
-              [] {
-                Options::singleton()->printer<>()->printf(
-                    "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
-                    Terminal::singleton()->id()->extend("out").toString().c_str());
-              }}});
+        _MENU_MAP->insert({":output",
+                           {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
+                            [] {
+                              Options::singleton()->printer<>()->printf(
+                                  "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
+                                  Terminal::singleton()->id()->extend("out").toString().c_str());
+                            }}});
         _MENU_MAP->insert({":router",
                            {"pubsub router",
                             [](const Obj_p &obj) {
@@ -137,7 +136,7 @@ namespace fhatos {
       int x;
       if ((x = Terminal::readChar()) == EOF)
         return;
-      //LOG(TRACE, "key pressed: (dec) %i (hex) 0x%x (char) %c\n", x, x, x);
+      // LOG(TRACE, "key pressed: (dec) %i (hex) 0x%x (char) %c\n", x, x, x);
       /*if (0x147 == (char) x) /// CTRL-DELETE (clear line)
         this->_line.clear();
       else if (0x59 == (char) x) /// F1 (toggle logger)

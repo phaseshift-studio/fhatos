@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
-#include <process/router/router.hpp>
+#include <structure/router/router.hpp>
 #include <util/options.hpp>
 #include <utility>
 

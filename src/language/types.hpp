@@ -33,7 +33,7 @@
 #endif
 
 #ifdef FOS_USE_ROUTERS
-#include <process/router/router.hpp>
+#include <structure/router/router.hpp>
 #endif
 
 namespace fhatos {

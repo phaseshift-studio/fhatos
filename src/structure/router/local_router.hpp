@@ -21,8 +21,8 @@
 
 #include <fhatos.hpp>
 //
-#include <process/router/message.hpp>
-#include <process/router/router.hpp>
+#include <structure/router/message.hpp>
+#include <structure/router/router.hpp>
 // #include <structure/io/net/f_wifi.hpp>
 #include FOS_UTIL(mutex.hpp)
 #include <util/mutex_rw.hpp>

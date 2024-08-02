@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 //
 #include <process/actor/mailbox.hpp>
-#include <process/router/message.hpp>
+#include <structure/router/message.hpp>
 #include <structure/furi.hpp>
 #include <util/enums.hpp>
 #ifndef NATIVE

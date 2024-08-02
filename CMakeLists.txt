@@ -102,7 +102,7 @@ IF (BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<set>;<string>;<tsl/ordered_map.h>;<mqtt/async_client.h>")
+    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<set>;<string>;<tsl/ordered_map.h>;<mqtt/async_client.h>;<libwebsockets.h>")
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
@@ -119,6 +119,17 @@ ENDIF ()
 ######## EXTERNAL LIBRARIES ########
 ####################################
 
+####################################
+####################################
+### LIBWEBSOCKETS: UNIVERSAL WEB PROTOCOL API
+MESSAGE(CHECK_START "${.y}CMaking libwebsockets library${..}")
+FIND_PACKAGE(libwebsockets CONFIG REQUIRED)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
+        websockets_shared
+        ${LIBWEBSOCKETS_DEP_LIBS})
+ADD_DEPENDENCIES(${PROJECT_NAME}
+        websockets_shared)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### YAML: YAML PARSER IMPLEMENTATION

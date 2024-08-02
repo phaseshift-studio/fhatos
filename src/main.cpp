@@ -23,11 +23,11 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/x_process.hpp>
 // routers
-#include <process/router/local_router.hpp>
+#include <structure/router/local_router.hpp>
 #ifdef NATIVE
 #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
-#include <process/router/meta_router.hpp>
+#include <structure/router/meta_router.hpp>
 #endif
 // utilities
 #include <language/types.hpp>

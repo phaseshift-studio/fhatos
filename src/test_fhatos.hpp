@@ -33,9 +33,9 @@
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
-#include <process/router/local_router.hpp>
+#include <structure/router/local_router.hpp>
 #ifdef NATIVE
-#include <process/router/meta_router.hpp>
+#include <structure/router/meta_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
 #endif

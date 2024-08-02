@@ -20,8 +20,8 @@
 #define fhatos_publisher_hpp
 
 #include <process/actor/mailbox.hpp>
-#include <process/router/message.hpp>
-#include <process/router/router.hpp>
+#include <structure/router/message.hpp>
+#include <structure/router/router.hpp>
 
 namespace fhatos {
   class Publisher {

@@ -20,14 +20,8 @@
 #define fhatos_processor_hpp
 
 #include <fhatos.hpp>
-#include <language/rewriter.hpp>
-//
 #include <language/obj.hpp>
-#ifdef NATIVE
-#include <assert.h>
-#else
-#include <esp_assert.h>
-#endif
+#include <language/rewriter.hpp>
 
 namespace fhatos {
   class Monad;

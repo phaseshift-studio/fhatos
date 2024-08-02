@@ -23,9 +23,9 @@
 //
 #include <process/actor/mailbox.hpp>
 #include <process/actor/publisher.hpp>
-#include <process/router/local_router.hpp>
-#include <process/router/message.hpp>
-#include <process/router/router.hpp>
+#include <structure/router/local_router.hpp>
+#include <structure/router/message.hpp>
+#include <structure/router/router.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
 

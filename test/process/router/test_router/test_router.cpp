@@ -3,7 +3,7 @@
 
 #undef FOS_TEST_ON_BOOT
 #include <language/parser.hpp>
-#include <process/router/local_router.hpp>
+#include <structure/router/local_router.hpp>
 #include <test_fhatos.hpp>
 #include <util/obj_helper.hpp>
 namespace fhatos {

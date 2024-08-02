@@ -21,7 +21,7 @@
 
 #include <fhatos.hpp>
 #include <mqtt/async_client.h>
-#include <process/router/router.hpp>
+#include <structure/router/router.hpp>
 
 #define MQTT_MAX_RETRIES 10
 #define MQTT_CONNECTION_RETRY 5000

@@ -28,8 +28,8 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
+#include <language/f_bcode.hpp>
 #include <process/actor/publisher.hpp>
-#include "structure/f_bcode.hpp"
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
@@ -107,7 +107,8 @@ namespace fhatos {
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
-      if (message)LOG(INFO, message);
+      if (message)
+        LOG(INFO, message);
       /// barrier break with noobj
       /*this->subscribe("", [this, label](const Message_p &message) {
         if (message->payload->isNoObj())
