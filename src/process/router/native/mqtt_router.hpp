@@ -40,12 +40,7 @@ namespace fhatos {
   public:
     static MqttRouter *singleton(const ID &id = ID("/router/mqtt/"), const char *serverAddr = MQTT_BROKER_ADDR,
                                  const Message_p &willMessage = ptr<Message>(nullptr)) {
-      static bool done = false;
       static MqttRouter mqtt = MqttRouter(id, serverAddr, willMessage);
-      if (!done) {
-        GLOBAL_OPTIONS->ROUTING = &mqtt;
-        done = true;
-      }
       return &mqtt;
     }
 

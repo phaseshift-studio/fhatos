@@ -29,7 +29,7 @@ namespace fhatos {
 
   public:
     uint8_t LOGGING;
-    void *ROUTING;
+    any ROUTING;
     Ansi<> *PRINTING;
     any PARSER;
 
@@ -40,9 +40,13 @@ namespace fhatos {
 
     template<typename ROUTER>
     ROUTER *router() {
-      if (nullptr == ROUTING)
+      if (!ROUTING.has_value())
         throw fError("No router secified in global options\n");
-      return (ROUTER *) this->ROUTING;
+      return std::any_cast<ROUTER *>(this->ROUTING);
+    }
+    template<typename ROUTER>
+    void router(const ROUTER *router) {
+      this->ROUTING = any(router);
     }
 
     template<typename LOGGER>
@@ -66,8 +70,8 @@ namespace fhatos {
       return std::any_cast<function<shared_ptr<OBJ>(string)>>(this->PARSER)(bcode);
     }
     template<typename OBJ>
-    void parser(const std::function<shared_ptr<OBJ>(string)> parse) {
-      PARSER = any(parse);
+    void parser(const std::function<shared_ptr<OBJ>(string)> parser) {
+      PARSER = any(parser);
     }
     //////////////////////////
   };

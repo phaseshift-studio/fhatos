@@ -529,9 +529,9 @@ namespace fhatos {
       objString = (includeType && (this->_id->path_length() > 1 || this->isNoObj()))
                       ? string("!b")
                             .append(this->isNoObj() ? this->_id->toString() : this->_id->name())
-                            .append("!g[!!")
+                            .append(this->isInst() ? "!g(!!" : "!g[!!")
                             .append(objString)
-                            .append("!g]!!")
+                            .append(this->isInst() ? "!g)!!" : "!g]!!")
                       : objString;
       return ansi ? objString : GLOBAL_OPTIONS->printer<>()->strip(objString.c_str());
     }

@@ -43,7 +43,7 @@
 #include <util/options.hpp>
 #ifndef FOS_TEST_ROUTERS
 #ifdef NATIVE
-#define FOS_TEST_ROUTERS /*LocalRouter::singleton(),*/ MqttRouter::singleton()/*, MetaRouter::singleton()*/
+#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
 #else
 #define FOS_TEST_ROUTERS LocalRouter::singleton()
 #endif
@@ -52,11 +52,13 @@
   Kernel::build()                                                                                                      \
       ->initialPrinter(Ansi<>::singleton())                                                                            \
       ->initialLogLevel(FOS_LOGGING)                                                                                   \
+      ->initialRouter(LocalRouter::singleton())                                                                        \
       ->withSplash(ANSI_ART)                                                                                           \
       ->withNote("Use !bØ!! for noobj")                                                                                \
       ->withNote("Use :help for console commands")                                                                     \
       ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
-               {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/")})        \
+               {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/"),         \
+                FileSystem::singleton("/sys/io/fs")})                                                                  \
       ->loadModules({"/ext/process"})                                                                                  \
       ->defaultOutput("/home/root/repl/")
 

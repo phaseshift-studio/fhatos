@@ -68,7 +68,7 @@ IF (MSVC)
     )
 ELSE ()
     EXECUTE_PROCESS(
-            COMMAND ping www.google.com -c 2
+            COMMAND ping www.google.com -c 2 -t 3
             ERROR_QUIET
             RESULT_VARIABLE NO_CONNECTION
     )

@@ -43,7 +43,6 @@ namespace fhatos {
   public:
     static LocalRouter *singleton(const ID &id = ID("/router/local/")) {
       static LocalRouter local = LocalRouter(id);
-      GLOBAL_OPTIONS->ROUTING = &local; // TODO: be sure to remove this as meta router advances
       return &local;
     }
 

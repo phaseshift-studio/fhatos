@@ -526,6 +526,28 @@ namespace fhatos {
         LOG(WARN, FOS_TAB_4 "Unable to register shorthand: !b%s!!\n", shortID.toString().c_str());
       }
     }
+    static Map<ID, Function<List<Obj_p>, Inst_p>> *CORE_INSTS() {
+      static Map<ID, Function<List<Obj_p>, Inst_p>> core_insts = {
+          {INST_FURI->resolve("start"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
+          {INST_FURI->resolve("__"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
+          {INST_FURI->resolve("end"), [](const List<Obj_p> &) { return end(); }},
+          {INST_FURI->resolve("map"), [](const List<Obj_p> &args) { return map(argCheck("map", args, 1).at(0)); }},
+          {INST_FURI->resolve("filter"),
+           [](const List<Obj_p> &args) { return filter(argCheck("filter", args, 1).at(0)); }},
+          {INST_FURI->resolve("side"), [](const List<Obj_p> &args) { return side(argCheck("side", args, 1).at(0)); }},
+          {INST_FURI->resolve("count"),
+           [](const List<Obj_p> &args) {
+             argCheck("count", args, 0);
+             return count();
+           }},
+          {INST_FURI->resolve("sum"),
+           [](const List<Obj_p> &args) {
+             argCheck("sum", args, 0);
+             return sum();
+           }},
+          {INST_FURI->resolve("plus"), [](const List<Obj_p> &args) { return plus(argCheck("plus", args, 1).at(0)); }}};
+      return &core_insts;
+    }
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))

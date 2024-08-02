@@ -33,11 +33,11 @@ namespace fhatos {
       return kernel;
     }
     static Kernel *initialLogLevel(const LOG_TYPE level) {
-      GLOBAL_OPTIONS->LOGGING = level;
+      Options::singleton()->LOGGING = level;
       return Kernel::build();
     }
     static Kernel *initialPrinter(Ansi<> *ansi) {
-      GLOBAL_OPTIONS->PRINTING = ansi;
+      Options::singleton()->PRINTING = ansi;
       return Kernel::build();
     }
     static Kernel *withSplash(const char *splash) {
@@ -55,10 +55,14 @@ namespace fhatos {
       }
       return Kernel::build();
     }
+    static Kernel *initialRouter(const Router *router) {
+      Options::singleton()->router<Router>(router);
+      return Kernel::build();
+    }
     static Kernel *loadModules(const List<ID> &modules) {
       for (const ID &id: modules) {
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
-          GLOBAL_OPTIONS->router<Router>()->publish(
+          Options::singleton()->router<Router>()->publish(
               Message{.source = id, .target = pair.first, .payload = pair.second, .retain = true});
         }
       }
@@ -70,7 +74,8 @@ namespace fhatos {
     }
     static void done(const char *barrier = "kernel_barrier") {
       delete Kernel::build();
-      Scheduler::singleton()->barrier(barrier, nullptr, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
+      Scheduler::singleton()->barrier(barrier, nullptr,
+                                      FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
     }
   };
 } // namespace fhatos

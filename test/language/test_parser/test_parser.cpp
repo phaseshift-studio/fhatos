@@ -24,7 +24,7 @@ namespace fhatos {
     const Obj_p n = Parser::singleton()->tryParseObj("Ø").value();
     TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_type());
     TEST_ASSERT_TRUE(n->isNoObj());
-    TEST_ASSERT_EQUAL_STRING("!bØ!!", n->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("!b/noobj/!g[!!!g]!!", n->toString().c_str());
   }
 
   void test_bool_parsing() {
@@ -120,7 +120,7 @@ namespace fhatos {
     Types::singleton()->saveType(id_p("/lst/atype"), Obj::to_bcode({}));
     Types::singleton()->saveType(id_p("/lst/btype"), Obj::to_bcode({}));
     Types::singleton()->saveType(id_p("/lst/ctype"), Obj::to_bcode({}));
-    // Types::singleton()->saveType(id_p("/bool/abool"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p("/bool/abool"), Obj::to_bcode({}));
     const auto lsts = List<Trip<string, List<Obj_p>, fURI>>(
         {{"['a',13,<actor>,false]",
           {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
@@ -140,12 +140,12 @@ namespace fhatos {
          {"atype  [['a',13 ,<actor>,   false]]",
           {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
           LST_FURI->resolve("atype")},
-         /*    {"btype[['a',  nat[13] , actor, abool   [false]]]",
-              {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-              LST_FURI->resolve("btype")},
-             {"    btype[['a',  nat[13] ,actor,   abool [false]]]",
-              {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-              LST_FURI->resolve("btype")},*/
+         {"btype[['a',  nat[13] , actor, abool   [false]]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("btype")},
+         {"    btype[['a',  nat[13] ,actor,   abool [false]]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("btype")},
          {"ctype[['a',    13 , <actor>,  false]]",
           {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
           LST_FURI->resolve("ctype")},
@@ -219,6 +219,13 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value().at(1)->inst_arg(0)->bcode_value().size());
     ///
     FOS_CHECK_RESULTS<Rec>({"fhat"}, "__([1,2,'fhat']).get(2)");
+
+    FOS_TEST_MESSAGE("Testing !yparenthese!! and !ybracket!! instructions...");
+    //// TEST PAREN AND BRACKET INSTRUCTIONS
+    FOS_CHECK_RESULTS({10}, "6.plus(4)");
+    //  FOS_CHECK_RESULTS({10}, "6.plus[4]");
+    //  FOS_CHECK_RESULTS({10}, "6.plus[1].plus[3]");
+    // FOS_CHECK_RESULTS({10}, "6.plus[1].plus(3)");
   }
 
   void test_define_as_parsing() {
@@ -285,7 +292,7 @@ namespace fhatos {
            : List<Router *>{FOS_TEST_ROUTERS}) { //
         GLOBAL_OPTIONS->ROUTING = router; //
         router->clear();
-        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        FOS_TEST_MESSAGE("!r!_Testing with %s!!\n", router->toString().c_str()); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //
         FOS_RUN_TEST(test_noobj_parsing); //
@@ -294,8 +301,8 @@ namespace fhatos {
         FOS_RUN_TEST(test_real_parsing); //
         FOS_RUN_TEST(test_uri_parsing); //
         FOS_RUN_TEST(test_str_parsing); //
-        //FOS_RUN_TEST(test_lst_parsing); //
-        //FOS_RUN_TEST(test_rec_parsing); //
+        FOS_RUN_TEST(test_lst_parsing); //
+        // FOS_RUN_TEST(test_rec_parsing); //
         FOS_RUN_TEST(test_bytecode_parsing); //
         ////////////// PARTICULAR MONOID IDIOMS
         FOS_RUN_TEST(test_define_as_parsing); //

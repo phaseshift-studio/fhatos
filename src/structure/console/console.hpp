@@ -22,8 +22,11 @@
 #include <fhatos.hpp>
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
+#include <process/router/local_router.hpp>
+#include <process/router/meta_router.hpp>
 #include <structure/furi.hpp>
 #include <util/string_helper.hpp>
+#include FOS_MQTT(mqtt_router.hpp)
 #include FOS_PROCESS(thread.hpp)
 #include <process/actor/actor.hpp>
 #include <structure/io/terminal.hpp>
