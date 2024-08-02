@@ -31,15 +31,7 @@ namespace fhatos {
   class Play {
   public:
     Play() {
-      GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;
-      GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();
-      Obj_p s = /*Obj::to_bcode({});*/ Obj::to_rec({{"hi", 3}, {"bye", 4}, {"test",34}});
-      Obj_p t = Obj::deserialize<Obj>(s->serialize());
-      GLOBAL_OPTIONS->printer<>()->printf("%s and %s\n", s->toString().c_str(), t->toString().c_str());
-      for (int i = 0; i < 1000; i++) {
-        if (i % 100 == 0)
-          printf("%i\n", i);
-      }
+      // NOTHING NOW
     }
   };
 } // namespace fhatos

@@ -36,10 +36,12 @@ namespace fhatos {
                 actor->subscribe("out", [](const Message_p &message) {
                   if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
                     const string copy = string(message->payload->str_value());
-                    if (strcmp(message->target.name(), "no_color") == 0)
-                      GLOBAL_OPTIONS->printer<>()->print(GLOBAL_OPTIONS->printer<>()->strip(copy.c_str()));
-                    else
-                      GLOBAL_OPTIONS->printer<>()->print(copy.c_str());
+                    if (strcmp(message->target.name(), "no_color") == 0) {
+                      const char *no = Options::singleton()->printer<>()->strip(copy.c_str());
+                      Options::singleton()->printer<>()->print(no);
+                      free((void *) no);
+                    } else
+                      Options::singleton()->printer<>()->print(copy.c_str());
                   }
                 });
                 actor->subscribe("in", [actor](const Message_p &message) {
@@ -60,11 +62,6 @@ namespace fhatos {
 
     static void currentOut(const ID_p &source) { Terminal::singleton()->_currentOutput = source; }
 
-    template<typename PRINTER = Ansi<>>
-    static PRINTER *printer() {
-      return GLOBAL_OPTIONS->printer<>();
-    }
-
     static int readChar() {
 #ifdef NATIVE
       return getchar();
@@ -80,10 +77,10 @@ namespace fhatos {
       int length = vsnprintf(buffer, 512, format, arg);
       buffer[length] = '\0';
       va_end(arg);
-      GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = source, //
-                                                        .target = Terminal::singleton()->id()->extend("out"), //
-                                                        .payload = Obj::to_str(buffer),
-                                                        .retain = TRANSIENT_MESSAGE});
+      Options::singleton()->router<Router>()->publish(Message{.source = source, //
+                                                              .target = Terminal::singleton()->id()->extend("out"), //
+                                                              .payload = Obj::to_str(buffer),
+                                                              .retain = TRANSIENT_MESSAGE});
     }
 
     static string in(const ID &) {

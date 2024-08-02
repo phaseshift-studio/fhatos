@@ -43,9 +43,9 @@ namespace fhatos {
     explicit MetaRouter(const ID &id = ID("/router/meta"), Router *local = LocalRouter::singleton(),
                         Router *global = MqttRouter::singleton()) : Router(id), _local(local), _global(global) {}
 
-    RESPONSE_CODE clear() override {
-      const RESPONSE_CODE __rc1 = this->_local->clear();
-      const RESPONSE_CODE __rc2 = this->_global->clear();
+    RESPONSE_CODE clear(const bool subscriptions = true, const bool retains = true) override {
+      const RESPONSE_CODE __rc1 = this->_local->clear(subscriptions, retains);
+      const RESPONSE_CODE __rc2 = this->_global->clear(subscriptions, retains);
       return __rc1 == RESPONSE_CODE::OK ? __rc2 : __rc1;
     }
 

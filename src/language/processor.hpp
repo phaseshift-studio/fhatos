@@ -48,14 +48,14 @@ namespace fhatos {
         LOG(DEBUG, FOS_TAB_2 "!mUnrolling!! objs monad: %s\n", nextObj->toString().c_str());
         for (const auto &obj: *nextObj->objs_value()) {
           if (!obj->isNoObj()) {
-            const Monad_p monad = Monad_p(new Monad(obj, nextInst));
+            const Monad_p monad = share<Monad>(Monad(obj, nextInst));
             running->push_back(monad);
             LOG(DEBUG, FOS_TAB_4 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
       } else {
         /*^..if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->itype())) == 0))*/
-        const Monad_p monad = Monad_p(new Monad(nextObj, nextInst));
+        const Monad_p monad = share<Monad>(Monad(nextObj, nextInst));
         running->push_back(monad);
         LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
       }

@@ -60,11 +60,12 @@ namespace fhatos {
                              : serverAddr;
       this->xmqtt = new async_client(this->serverAddr, "", mqtt::create_options(MQTTVERSION_5));
       this->willMessage = willMessage;
+      srand(time(nullptr));
       auto connection_options = connect_options_builder()
                                     .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
                                     .clean_start(true)
                                     .clean_session(true)
-                                    .user_name("fhatos")
+                                    .user_name(string("client_" + to_string(rand())))
                                     .keep_alive_interval(std::chrono::seconds(20))
                                     .automatic_reconnect();
       if (willMessage.get())
@@ -122,34 +123,39 @@ namespace fhatos {
       });
       /// MQTT CONNECTION ESTABLISHED CALLBACK
       this->xmqtt->set_connected_handler([this](const string &) {
-        LOG(INFO,
-            "\n!g[!bMQTT Router Configuration!g]!!\n" FOS_TAB_2 "!bBroker address!!: %s\n" FOS_TAB_2
-            "!bClient name!!   : %s\n" FOS_TAB_2 "!bWill topic!!    : %s\n" FOS_TAB_2
-            "!bWill message!!  : %s\n" FOS_TAB_2 "!bWill QoS!!      : %i\n" FOS_TAB_2 "!bWill retain!!   : %s\n",
-            this->serverAddr, this->xmqtt->get_client_id().c_str(),
-            nullptr != this->willMessage.get() ? this->willMessage->target.toString().c_str() : "<none>",
-            nullptr != this->willMessage.get() ? this->willMessage->payload->toString().c_str() : "<none>",
-            GRANTED_QOS_1, nullptr != this->willMessage.get() ? FOS_BOOL_STR(this->willMessage->retain) : "<none>");
+        LOG_TASK(INFO, this,
+                 "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
+                 "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
+                 "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
+                 this->serverAddr, this->xmqtt->get_client_id().c_str(),
+                 this->willMessage.get() ? this->willMessage->target.toString().c_str() : "<none>",
+                 this->willMessage.get() ? this->willMessage->payload->toString().c_str() : "<none>",
+                 this->willMessage.get() ? "1" : "<none>",
+                 this->willMessage.get() ? FOS_BOOL_STR(this->willMessage->retain) : "<none>");
       });
       /// MQTT CONNECTION
       try {
         this->xmqtt->connect(connection_options.finalize());
+        int counter = 0;
         while (!this->xmqtt->is_connected()) {
-          sleep(1);
-          LOG(WARN, "Retrying connection to %s\n", this->serverAddr);
+          if (counter++ > 10)
+            throw mqtt::exception(1);
+          sleep(2);
+          LOG_TASK(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->serverAddr);
         }
       } catch (const mqtt::exception &e) {
-        LOG(ERROR, "Unable to connect to remote server. Mqtt support not provided: %s\n", e.what());
+        LOG_TASK(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->serverAddr, e.what());
       }
     }
 
   public:
-    RESPONSE_CODE clear() override {
-      /*for (const Subscription_p& sub: SUBSCRIPTIONS) {
-        this->xmqtt->unsubscribe(sub->pattern.toString());
+    RESPONSE_CODE clear(const bool subscriptions = true, [[maybe_unused]] const bool retains = true) override {
+      if (subscriptions) {
+        for (const Subscription_p &sub: SUBSCRIPTIONS) {
+          this->unsubscribe(nullptr, sub->pattern);
+        }
       }
-      SUBSCRIPTIONS.clear();*/
-      return OK;
+      return (/*(!retains || RETAINS.empty()) &&*/ (!subscriptions || SUBSCRIPTIONS.empty())) ? OK : ROUTER_ERROR;
     }
 
     RESPONSE_CODE publish(const Message &message) override {

@@ -50,10 +50,12 @@ namespace fhatos {
 
     uint subscriptionSize() const { return SUBSCRIPTIONS.size(); }
 
-    RESPONSE_CODE clear() override {
-      // SUBSCRIPTIONS.clear();
-      RETAINS.clear();
-      return (RETAINS.empty() && SUBSCRIPTIONS.empty()) ? OK : ROUTER_ERROR;
+    RESPONSE_CODE clear(const bool subscriptions = true, const bool retains = true) override {
+      if (subscriptions)
+        SUBSCRIPTIONS.clear();
+      if (retains)
+        RETAINS.clear();
+      return ((!retains || RETAINS.empty()) && (!subscriptions || SUBSCRIPTIONS.empty())) ? OK : ROUTER_ERROR;
     }
 
     RESPONSE_CODE publish(const Message &message) override {

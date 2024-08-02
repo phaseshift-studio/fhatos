@@ -67,9 +67,7 @@
     router->clear();                                                                                                   \
   }
 #else
-#define FOS_SETUP_ON_BOOT                                                                                              \
-  GLOBAL_OPTIONS->PRINTING = Ansi<>::singleton();                                                                      \
-  GLOBAL_OPTIONS->LOGGING = FOS_LOGGING
+#define FOS_SETUP_ON_BOOT Options::singleton()->log_level(FOS_LOGGING);
 #define FOS_STOP_ON_BOOT ;
 #endif
 ////////////////////////////////////////////////////////
@@ -94,7 +92,7 @@ namespace fhatos {
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
       /*Kernel::done("testing_barrier"); */                                                                            \
-    } catch (std::exception & e) {                                                                                     \
+    } catch (const std::exception &e) {                                                                                \
       LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
       TEST_FAIL();                                                                                                     \
     }                                                                                                                  \
@@ -143,9 +141,8 @@ namespace fhatos {
 
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
-    GLOBAL_OPTIONS->LOGGING = LOG_TYPE::TRACE;                                                                         \
-    GLOBAL_OPTIONS->PRINTING = Ansi<CPrinter>::singleton();                                                            \
-    GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();                                                                \
+    Options::singleton()->log_level(LOG_TYPE::TRACE);                                                                  \
+    Options::singleton()->router<Router>(LocalRouter::singleton());                                                    \
     LOG(NONE, ANSI_ART);                                                                                               \
     Scheduler::singleton()->onBoot({LocalRouter::singleton(), Parser::singleton(), Types::singleton()});               \
     Types::singleton()->loadExt("/ext/process");                                                                       \
@@ -168,9 +165,9 @@ using namespace fhatos;
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < ERROR) {                                                                                           \
-    GLOBAL_OPTIONS->printer<>()->printf("  !rline %i!!\t", __LINE__);                                                  \
-    GLOBAL_OPTIONS->printer<>()->printf((format), ##__VA_ARGS__);                                                      \
-    GLOBAL_OPTIONS->printer<>()->println();                                                                            \
+    Options::singleton()->printer<>()->printf("  !rline %i!!\t", __LINE__);                                            \
+    Options::singleton()->printer<>()->printf((format), ##__VA_ARGS__);                                                \
+    Options::singleton()->printer<>()->println();                                                                      \
   }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
@@ -207,7 +204,7 @@ using namespace fhatos;
       x;                                                                                                               \
     }                                                                                                                  \
     TEST_ASSERT(false);                                                                                                \
-  } catch (fError & e) {                                                                                               \
+  } catch (const fError &e) {                                                                                          \
     FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
     TEST_ASSERT(true);                                                                                                 \
   }
@@ -280,7 +277,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   try {
     Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
-  } catch (fError error) {
+  } catch (const fError& error) {
     LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
     TEST_ASSERT_TRUE(true);
   }
@@ -305,25 +302,25 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
   }
   if (!expectedReferences.empty()) {
     TEST_ASSERT_EQUAL_INT_MESSAGE(
-        expectedReferences.size(), GLOBAL_OPTIONS->router<Router>()->retainSize(),
-        (string("Router retain message count: ") + GLOBAL_OPTIONS->router<Router>()->id()->toString()).c_str());
+        expectedReferences.size(), Options::singleton()->router<Router>()->retainSize(),
+        (string("Router retain message count: ") + Options::singleton()->router<Router>()->id()->toString()).c_str());
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
-      GLOBAL_OPTIONS->router<Router>()->subscribe(
+      Options::singleton()->router<Router>()->subscribe(
           Subscription{.mailbox = nullptr,
                        .source = ID(FOS_DEFAULT_SOURCE_ID),
                        .pattern = key.uri_value(),
                        .onRecv = [temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                                   (string("Router retain message payload equality: ") +
-                                                   GLOBAL_OPTIONS->router<Router>()->id()->toString() + " " +
+                                                   Options::singleton()->router<Router>()->id()->toString() + " " +
                                                    temp.toString() + " != " + message->payload->toString())
                                                       .c_str());
                        }});
     }
   }
   if (clearRouter)
-    GLOBAL_OPTIONS->router<Router>()->clear();
+    Options::singleton()->router<Router>()->clear(false, true);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>

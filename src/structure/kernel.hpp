@@ -33,19 +33,19 @@ namespace fhatos {
       return kernel;
     }
     static Kernel *initialLogLevel(const LOG_TYPE level) {
-      Options::singleton()->LOGGING = level;
+      Options::singleton()->log_level(level);
       return Kernel::build();
     }
     static Kernel *initialPrinter(Ansi<> *ansi) {
-      Options::singleton()->PRINTING = ansi;
+      Options::singleton()->printer(ansi);
       return Kernel::build();
     }
     static Kernel *withSplash(const char *splash) {
-      Terminal::printer<>()->print(splash);
+      Options::singleton()->printer<>()->print(splash);
       return Kernel::build();
     }
     static Kernel *withNote(const char *notes) {
-      Terminal::printer<>()->printf(FOS_TAB_4 "%s\n", notes);
+     Options::singleton()->printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
     static Kernel *onBoot(const Scheduler *, const List<XProcess *> &processes) {

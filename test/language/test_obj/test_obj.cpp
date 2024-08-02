@@ -3,10 +3,10 @@
 
 #define FOS_USE_ROUTERS false
 #undef FOS_TEST_ON_BOOT
-#include <test_fhatos.hpp>
-#include <language/types.hpp>
-#include <util/obj_helper.hpp>
 #include <language/insts.hpp>
+#include <language/types.hpp>
+#include <test_fhatos.hpp>
+#include <util/obj_helper.hpp>
 namespace fhatos {
 
   //////////////////////////////////////////////////////////
@@ -238,6 +238,22 @@ namespace fhatos {
                                  {*Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), 2}})));
   }
 
+  void test_serialization() {
+    const List<Obj_p> objs = {Obj::to_int(1),
+                              Obj::to_int(-453),
+                              Obj::to_real(12.035f),
+                              Obj::to_str("fhatos"),
+                              Obj::to_uri("aaaa"),
+                              Obj::to_lst({1, 7, "abc", u("hello/fhat/aus")}),
+                              Obj::to_rec({{u("a"), 2}, {u("b"), 3}}),
+                              Obj::to_noobj()};
+    for (const auto &objA: objs) {
+      const BObj_p bobj = objA->serialize();
+      const Obj_p objB = Obj::deserialize<Obj>(bobj);
+      FOS_TEST_OBJ_EQUAL(objA, objB);
+    }
+  }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_bool); //
       FOS_RUN_TEST(test_int); //
@@ -245,8 +261,8 @@ namespace fhatos {
       FOS_RUN_TEST(test_str); //
       FOS_RUN_TEST(test_lst); //
       FOS_RUN_TEST(test_rec); //
+      FOS_RUN_TEST(test_serialization); //
   )
-
 }; // namespace fhatos
 
 SETUP_AND_LOOP();

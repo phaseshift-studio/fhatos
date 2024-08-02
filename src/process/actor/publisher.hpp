@@ -39,21 +39,21 @@ namespace fhatos {
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message> &> &onRecv,
                                     const QoS qos = QoS::_1) {
-      return GLOBAL_OPTIONS->router<Router>()->subscribe(Subscription{.mailbox = this->mailbox,
-                                                                      .source = *this->__id,
-                                                                      .pattern = this->makeTopic(relativePattern),
-                                                                      .qos = qos,
-                                                                      .onRecv = onRecv});
+      return Options::singleton()->router<Router>()->subscribe(Subscription{.mailbox = this->mailbox,
+                                                                            .source = *this->__id,
+                                                                            .pattern = this->makeTopic(relativePattern),
+                                                                            .qos = qos,
+                                                                            .onRecv = onRecv});
     }
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
 
-      return GLOBAL_OPTIONS->router<Router>()->unsubscribe(*this->__id, this->makeTopic(relativePattern));
+      return Options::singleton()->router<Router>()->unsubscribe(*this->__id, this->makeTopic(relativePattern));
     }
 
     virtual RESPONSE_CODE unsubscribeSource() {
-      return GLOBAL_OPTIONS->router<Router>()->unsubscribeSource(*this->__id);
+      return Options::singleton()->router<Router>()->unsubscribeSource(*this->__id);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -62,10 +62,10 @@ namespace fhatos {
     /// PUBLISH
     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj> &payload,
                           const bool retain = TRANSIENT_MESSAGE) const {
-      return GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = *this->__id,
-                                                               .target = this->makeTopic(relativeTarget),
-                                                               .payload = PtrHelper::clone(*payload),
-                                                               .retain = retain});
+      return Options::singleton()->router<Router>()->publish(Message{.source = *this->__id,
+                                                                     .target = this->makeTopic(relativeTarget),
+                                                                     .payload = PtrHelper::clone(*payload),
+                                                                     .retain = retain});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////

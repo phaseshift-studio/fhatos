@@ -308,7 +308,7 @@ namespace fhatos {
           "print", {toprint},
           [toprint](const Obj_p &lhs) {
             const Obj_p done = toprint->apply(lhs);
-            GLOBAL_OPTIONS->printer<>()->printf("%s\n", done->toString().c_str());
+            Options::singleton()->printer<>()->printf("%s\n", done->toString().c_str());
             return lhs;
           },
           toprint->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
@@ -322,10 +322,10 @@ namespace fhatos {
       return Obj::to_inst(
           "pub", {target, payload},
           [target, payload](const Obj_p &lhs) {
-            GLOBAL_OPTIONS->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
-                                                              .target = target->apply(lhs)->uri_value(),
-                                                              .payload = payload->apply(lhs),
-                                                              .retain = TRANSIENT_MESSAGE});
+            Options::singleton()->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
+                                                                    .target = target->apply(lhs)->uri_value(),
+                                                                    .payload = payload->apply(lhs),
+                                                                    .retain = TRANSIENT_MESSAGE});
             return lhs;
           },
           areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
@@ -336,9 +336,9 @@ namespace fhatos {
           "sub", {pattern, onRecv},
           [pattern, onRecv](const Obj_p &lhs) {
             if (onRecv->isNoObj()) {
-              GLOBAL_OPTIONS->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID, pattern->apply(lhs)->uri_value());
+              Options::singleton()->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID, pattern->apply(lhs)->uri_value());
             } else {
-              GLOBAL_OPTIONS->router<Router>()->subscribe(
+               Options::singleton()->router<Router>()->subscribe(
                   Subscription{.mailbox = nullptr,
                                .source = FOS_DEFAULT_SOURCE_ID,
                                .pattern = pattern->apply(lhs)->uri_value(),

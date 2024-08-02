@@ -40,7 +40,7 @@ namespace fhatos {
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-      if ((uint8_t) type < (uint8_t) GLOBAL_OPTIONS->logger<LOG_TYPE>())
+      if ((uint8_t) type < (uint8_t) Options::singleton()->log_level<LOG_TYPE>())
         return;
       char buffer[512];
       va_list arg;
@@ -49,18 +49,18 @@ namespace fhatos {
       buffer[length] = '\0';
       va_end(arg);
       if (type == NONE)
-        GLOBAL_OPTIONS->printer<>()->print("");
+        Options::singleton()->printer<>()->print("");
       else if (type == ERROR)
-        GLOBAL_OPTIONS->printer()->print("!r[ERROR]!!  ");
+        Options::singleton()->printer()->print("!r[ERROR]!!  ");
       else if (type == WARN)
-        GLOBAL_OPTIONS->printer()->print("!y[WARN]!!  ");
+        Options::singleton()->printer()->print("!y[WARN]!!  ");
       else if (type == INFO)
-        GLOBAL_OPTIONS->printer()->print("!g[INFO]!!  ");
+        Options::singleton()->printer()->print("!g[INFO]!!  ");
       else if (type == DEBUG)
-        GLOBAL_OPTIONS->printer()->print("!y[DEBUG]!!  ");
+        Options::singleton()->printer()->print("!y[DEBUG]!!  ");
       else if (type == TRACE)
-        GLOBAL_OPTIONS->printer()->print("!r[TRACE]!!  ");
-      GLOBAL_OPTIONS->printer()->print(buffer);
+        Options::singleton()->printer()->print("!r[TRACE]!!  ");
+      Options::singleton()->printer()->print(buffer);
     }
   };
 } // namespace fhatos

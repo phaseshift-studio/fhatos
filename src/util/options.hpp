@@ -24,45 +24,60 @@
 using namespace std;
 
 namespace fhatos {
+
   class Options final {
+  private:
+    uint8_t LOGGING = 3; // INFO
+    void *ROUTING;
+    Ansi<> *PRINTING = Ansi<>::singleton();
+    any PARSER;
+
     explicit Options(){};
 
   public:
-    uint8_t LOGGING;
-    any ROUTING;
-    Ansi<> *PRINTING;
-    any PARSER;
-
     static Options *singleton() {
       static Options options = Options();
       return &options;
     }
 
+    //////////////////////////
+    //////// ROUTING ////////
     template<typename ROUTER>
     ROUTER *router() {
-      if (!ROUTING.has_value())
+      if (nullptr == ROUTING)
         throw fError("No router secified in global options\n");
-      return std::any_cast<ROUTER *>(this->ROUTING);
+      return (ROUTER *) this->ROUTING;
     }
     template<typename ROUTER>
     void router(const ROUTER *router) {
-      this->ROUTING = any(router);
+      this->ROUTING = (void *) router;
+    }
+    //////////////////////////
+    //////// LOGGING ////////
+    template<typename LOG_LEVEL>
+    LOG_LEVEL log_level() {
+      return (LOG_LEVEL) this->LOGGING;
     }
 
-    template<typename LOGGER>
-    LOGGER logger() {
-      return (LOGGER) this->LOGGING;
+    Options *log_level(const uint8_t log_level_enum) {
+      this->LOGGING = log_level_enum;
+      return this;
     }
-
+    //////////////////////////
+    //////// PRINTING ////////
     template<typename PRINTER = Ansi<>>
     PRINTER *printer() {
       if (nullptr == PRINTING)
         throw fError("No printer secified in global options\n");
       return (PRINTER *) this->PRINTING;
     }
-    //////////////////////////
-
-    /////// OBJ PARSER ///////
+    template<typename PRINTER = Ansi<>>
+    Options *printer(PRINTER *printer) {
+      this->PRINTING = printer;
+      return this;
+    }
+    ////////////////////////
+    /////// PARSING ///////
     template<typename OBJ>
     shared_ptr<OBJ> parser(const string &bcode) {
       if (!PARSER.has_value())
@@ -75,8 +90,5 @@ namespace fhatos {
     }
     //////////////////////////
   };
-
-  static Options *GLOBAL_OPTIONS = Options::singleton();
-
 } // namespace fhatos
 #endif

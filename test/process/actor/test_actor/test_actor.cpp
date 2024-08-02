@@ -83,7 +83,7 @@ namespace fhatos {
     actor2->loop();
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
-    GLOBAL_OPTIONS->router<Router>()->clear();
+     Options::singleton()->router<Router>()->clear();
     // delete counter1;
     // delete counter2;
     Scheduler::singleton()->barrier("here", []() { return Scheduler::singleton()->count("/app/#") == 0; });
@@ -151,7 +151,7 @@ namespace fhatos {
     actor2->stop();
     // delete counter1;
     // delete counter2;
-    GLOBAL_OPTIONS->router<Router>()->clear();
+     Options::singleton()->router<Router>()->clear();
   }
 
   void test_actor_serialization() {
@@ -159,13 +159,13 @@ namespace fhatos {
     const Pair<fbyte *, uint> buffer = actor->serialize();
     Actor<Thread> *clone = Actor<Thread>::deserialize(buffer.first);
     FOS_TEST_ASSERT_EQUAL_FURI(*actor->id(), *clone->id());
-    GLOBAL_OPTIONS->printer<>()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
+    Options::singleton()->printer<>()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
     for (uint i = 0; i < buffer.second; i++) {
-      GLOBAL_OPTIONS->printer<>()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
+       Options::singleton()->printer<>()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
       if ((i + 1) % 10 == 0)
-        GLOBAL_OPTIONS->printer<>()->printf("\n" FOS_TAB);
+         Options::singleton()->printer<>()->printf("\n" FOS_TAB);
     }
-    GLOBAL_OPTIONS->printer<>()->println();
+     Options::singleton()->printer<>()->println();
     // delete actor;
     // free(clone);
     Scheduler::singleton()->barrier("done", []() { return Scheduler::singleton()->count("/abc") == 0; });
@@ -175,7 +175,7 @@ namespace fhatos {
       for (Router *router //
            : List<Router *>{/*FOS_TEST_ROUTERS*/LocalRouter::singleton()}) {
         //
-        GLOBAL_OPTIONS->ROUTING = router; //
+        Options::singleton()->router<Router>(router); //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         FOS_RUN_TEST(test_actor_by_router); //

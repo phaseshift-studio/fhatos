@@ -210,7 +210,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
     TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
-                             GLOBAL_OPTIONS->printer<>()->strip(rc2->toString().c_str()));
+                              Options::singleton()->printer<>()->strip(rc2->toString().c_str()));
   }
 
   void test_bytecode_parsing() {
@@ -229,7 +229,6 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    GLOBAL_OPTIONS->router<Router>()->clear();
     FOS_CHECK_RESULTS<Int>({}, "define(/int/even,|mod(2).is(eq(0)))");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(32).as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "even[32].type()");
@@ -248,16 +247,14 @@ namespace fhatos {
   }
 
   void test_to_from() {
-    if (GLOBAL_OPTIONS->router<Router>()->toString() != "MqttRouter") {
-      FOS_CHECK_RESULTS<Int>(
-          {10}, List<string>({"y.to(x)", "z.to(y)", "10.to(z)"})); // TODO: fix to() so it doesn't Ø on start
-      FOS_CHECK_RESULTS<Int>({10}, "from(z)");
-      FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
-      FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
-      FOS_CHECK_RESULTS<Int>({10}, "*z");
-      FOS_CHECK_RESULTS<Int>({10}, "**y");
-      FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);
-    }
+    FOS_CHECK_RESULTS<Int>({10},
+                           List<string>({"y.to(x)", "z.to(y)", "10.to(z)"})); // TODO: fix to() so it doesn't Ø on start
+    FOS_CHECK_RESULTS<Int>({10}, "from(z)");
+    FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
+    FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
+    FOS_CHECK_RESULTS<Int>({10}, "*z");
+    FOS_CHECK_RESULTS<Int>({10}, "**y");
+    FOS_CHECK_RESULTS<Int>({10}, "***x", {}, true);
   }
 
   void test_process_thread_parsing() {
@@ -269,7 +266,7 @@ namespace fhatos {
                                                                     "        loop  => |stop(/abc/)]].to(/abc/)")
                                                       .value());
     Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier((Router::current()->id()->toString() + "_wait").c_str(),
+    Scheduler::singleton()->barrier(( Options::singleton()->router<Router>()->id()->toString() + "_wait").c_str(),
                                     [] { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 
@@ -290,7 +287,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       for (Router *router //
            : List<Router *>{FOS_TEST_ROUTERS}) { //
-        GLOBAL_OPTIONS->ROUTING = router; //
+        Options::singleton()->router<Router>(router); //
         router->clear();
         FOS_TEST_MESSAGE("!r!_Testing with %s!!\n", router->toString().c_str()); //
         FOS_RUN_TEST(test_no_input_parsing); //

@@ -75,7 +75,7 @@ namespace fhatos {
   struct Subscription {
     using Mail = Pair<const Subscription_p, const Message_p>;
     using Mail_p = ptr<Mail>;
-    Mailbox<Mail_p> *mailbox;
+    Mailbox<Mail_p> *mailbox = nullptr;
     ID source;
     Pattern pattern;
     QoS qos = QoS::_1;
@@ -153,17 +153,15 @@ namespace fhatos {
     virtual RESPONSE_CODE subscribe(const Subscription &) = 0;
     virtual RESPONSE_CODE unsubscribe(const ID &, const Pattern &) = 0;
     virtual RESPONSE_CODE unsubscribeSource(const ID &) = 0;
-    virtual RESPONSE_CODE clear() = 0;
+    virtual RESPONSE_CODE clear(const bool subscriptions = true, const bool retains = true) = 0;
     virtual uint retainSize() const { return -1; }
     virtual const string toString() const { return "Router"; }
 
     ///////////////////////////////////////////
 
-    static Router *current() { return GLOBAL_OPTIONS->router<Router>(); }
-
     template<typename OBJ = Obj>
     static ptr<OBJ> read(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      auto *router = GLOBAL_OPTIONS->router<Router>();
+      auto *router = Options::singleton()->router<Router>();
       auto *thing = new std::atomic<const Obj *>(nullptr);
       router->subscribe(Subscription{.source = source, .pattern = target, .onRecv = [thing](const Message_p &message) {
                                        // TODO: try to not copy obj while still not accessing heap after delete
@@ -188,7 +186,7 @@ namespace fhatos {
     }
 
     static Rec_p readPattern(const Pattern &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      auto *router = GLOBAL_OPTIONS->router<Router>();
+      auto *router = Options::singleton()->router<Router>();
       auto *map = new Obj::RecMap<>();
       router->subscribe(Subscription{.source = source, .pattern = target, .onRecv = [map](const Message_p &message) {
                                        map->insert({Obj::to_uri(message->target), message->payload});
@@ -201,19 +199,19 @@ namespace fhatos {
     }
 
     static RESPONSE_CODE write(const ID &target, const Obj_p &obj, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      return GLOBAL_OPTIONS->router<Router>()->publish(
+      return Options::singleton()->router<Router>()->publish(
           Message{.source = source, .target = target, .payload = obj, .retain = RETAIN_MESSAGE});
     }
 
     static RESPONSE_CODE destroy(const ID &target, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      return GLOBAL_OPTIONS->router<Router>()->publish(
+      return Options::singleton()->router<Router>()->publish(
           Message{.source = source, .target = target, .payload = Obj::to_noobj(), .retain = RETAIN_MESSAGE});
     }
     /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
     static BObj_p wrapSource(const SourceID &source, const Obj_p &obj) {
       string wrap = source.toString();
       wrap += '%';
-      wrap += obj->toString(true,false);
+      wrap += obj->toString(true, false);
       LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
       return share(BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}));
     }

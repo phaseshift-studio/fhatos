@@ -91,7 +91,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       for (Router *router //
            : List<Router *>{FOS_TEST_ROUTERS}) { //
-        GLOBAL_OPTIONS->ROUTING = router; //
+        Options::singleton()->router<Router>(router); //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         // FOS_RUN_TEST(test_as);//

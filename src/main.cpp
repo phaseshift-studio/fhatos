@@ -37,7 +37,8 @@
 #ifndef FOS_ROUTERS
 #ifdef NATIVE
 #define FOS_ROUTERS                                                                                                    \
-  LocalRouter::singleton("/sys/router/local"), MqttRouter::singleton("/sys/router/global"),                            \
+  LocalRouter::singleton("/sys/router/local"),                                                                         \
+      MqttRouter::singleton("/sys/router/global", args.option("--mqtt", "localhost:1883").c_str()),                    \
       MetaRouter::singleton("/sys/router/meta")
 #else
 #define FOS_ROUTERS LocalRouter::singleton("/sys/router/local")
@@ -70,7 +71,8 @@ void setup() {
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
-    Terminal::printer<>()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
+    Options::singleton()->printer<>()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n",
+                                              Ansi<>::sillyPrint("shutting down").c_str());
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
     throw;

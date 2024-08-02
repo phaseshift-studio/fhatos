@@ -533,7 +533,7 @@ namespace fhatos {
                             .append(objString)
                             .append(this->isInst() ? "!g)!!" : "!g]!!")
                       : objString;
-      return ansi ? objString : GLOBAL_OPTIONS->printer<>()->strip(objString.c_str());
+      return ansi ? objString : Options::singleton()->printer<>()->strip(objString.c_str());
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     // operator const Obj_p &() { return shared_from_this(); }
@@ -1094,7 +1094,10 @@ namespace fhatos {
       // auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
       // memcpy(bytes, reinterpret_cast<const fbyte *>(this->toString().c_str()), this->toString().length());
       const char *z = Ansi<>::singleton()->strip(this->toString().c_str());
-      return share(BObj{this->toString().length(), (fbyte *) strdup(z)});
+      BObj_p bobj =  share(BObj{this->toString().length(), (fbyte *) strdup(z)});
+      free((void*)z);
+      return bobj;
+
     }
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> &bobj) {

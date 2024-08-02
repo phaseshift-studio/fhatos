@@ -70,51 +70,56 @@ namespace fhatos {
         _MENU_MAP->insert({":help",
                            {"help menu", [](const Obj_p &) { std::get<2>(_MENU_MAP->at(":help"))(); },
                             []() {
-                              Terminal::printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-                              for (const auto &pair: *_MENU_MAP) {
-                                Terminal::printer<>()->printf("!y%-10s!! %s\n", pair.first.c_str(),
-                                                              std::get<0>(pair.second).c_str());
+                              Options::singleton()->printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+                              for (const auto &[command, description]: *_MENU_MAP) {
+                                Options::singleton()->printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
+                                                                          std::get<0>(description).c_str());
                               }
                             }}});
         _MENU_MAP->insert({":log",
                            {"log level",
-                            [](const Uri_p &logType) {
-                              GLOBAL_OPTIONS->LOGGING = LOG_TYPES.toEnum(logType->uri_value().toString().c_str());
-                              return logType;
+                            [](const Uri_p &log_level) {
+                              Options::singleton()->log_level(
+                                  LOG_TYPES.toEnum(log_level->uri_value().toString().c_str()));
+                              return log_level;
                             },
                             [] {
-                              Terminal::printer<>()->printf("!ylog!!: !b%s!!\n",
-                                                            LOG_TYPES.toChars(GLOBAL_OPTIONS->logger<LOG_TYPE>()));
+                              Options::singleton()->printer<>()->printf(
+                                  "!ylog!!: !b%s!!\n", LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()));
                             }}});
         _MENU_MAP->insert(
             {":output",
-             {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(share(ID(obj->uri_value()))); },
+             {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
               [] {
-                Terminal::printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
-                                              Terminal::currentOut()->toString().c_str(),
-                                              Terminal::singleton()->id()->extend("out").toString().c_str());
+                Options::singleton()->printer<>()->printf(
+                    "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
+                    Terminal::singleton()->id()->extend("out").toString().c_str());
               }}});
         _MENU_MAP->insert({":router",
                            {"pubsub router",
                             [](const Obj_p &obj) {
                               if (obj->uri_value().matches("/sys/router/global"))
-                                GLOBAL_OPTIONS->ROUTING = MqttRouter::singleton();
+                                Options::singleton()->router<Router>(MqttRouter::singleton());
                               else if (obj->uri_value().matches("/sys/router/local"))
-                                GLOBAL_OPTIONS->ROUTING = LocalRouter::singleton();
+                                Options::singleton()->router<Router>(LocalRouter::singleton());
                               else
-                                GLOBAL_OPTIONS->ROUTING = MetaRouter::singleton();
+                                Options::singleton()->router<Router>(MetaRouter::singleton());
                             },
                             [] {
-                              Terminal::printer<>()->printf("!yrouter!!: !b%s!!\n",
-                                                            GLOBAL_OPTIONS->router<Router>()->id()->toString().c_str());
+                              Options::singleton()->printer<>()->printf(
+                                  "!yrouter!!: !b%s!!\n",
+                                  Options::singleton()->router<Router>()->id()->toString().c_str());
                             }}});
-        _MENU_MAP->insert({":color",
-                           {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
-                            [this] { Terminal::printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
+        _MENU_MAP->insert(
+            {":color",
+             {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
+              [this] { Options::singleton()->printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
         _MENU_MAP->insert(
             {":nesting",
              {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
-              [this] { Terminal::printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
+              [this] {
+                Options::singleton()->printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting));
+              }}});
         _MENU_MAP->insert({":shutdown",
                            {"destroy scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
                             []() { Scheduler::singleton()->stop(); }}});
@@ -132,7 +137,7 @@ namespace fhatos {
       int x;
       if ((x = Terminal::readChar()) == EOF)
         return;
-      LOG(TRACE, "key pressed: (dec) %i (hex) 0x%x (char) %c\n", x, x, x);
+      //LOG(TRACE, "key pressed: (dec) %i (hex) 0x%x (char) %c\n", x, x, x);
       /*if (0x147 == (char) x) /// CTRL-DELETE (clear line)
         this->_line.clear();
       else if (0x59 == (char) x) /// F1 (toggle logger)

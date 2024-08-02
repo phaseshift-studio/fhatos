@@ -171,7 +171,7 @@ namespace fhatos {
       ansi->on(false);
       ansi->print(s);
       ansi->flush();
-      const char *c = (new std::string(*ansi->getPrinter()->get()))->c_str();
+      const char *c = strdup(ansi->getPrinter()->get()->c_str());
       delete ansi;
       return c;
     }
@@ -252,14 +252,14 @@ namespace fhatos {
     }
 
     static string sillyPrint(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
-      std::srand(time(nullptr));
+      srand(time(nullptr));
       const string colors = "rgbmcy";
       string ret;
       for (size_t i = 0; i < strlen(text); i++) {
         if (rainbow)
           ret = ret.append("!").append(string("") + colors[rand() % colors.length()]);
         ret = ret.append(string("") +
-                         (char) (rollercoaster ? (std::rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
+                         (char) (rollercoaster ? (rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
       }
       if (rainbow)
         ret = ret.append("!!");
