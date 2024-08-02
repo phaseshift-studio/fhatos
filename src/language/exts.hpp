@@ -35,11 +35,11 @@ namespace fhatos {
                                                  {{"/rec/thread", TYPE_PARSER("[setup=>_,loop=>_]")},
                                                   {"/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
                                                   {"/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                 /* {"/inst/stop", TYPE_PARSER("map(Ø).to(*_0)")}*/}}
-                                               /* {"/ext/collection",
-                                                 {{"/lst/pair", TYPE_PARSER("[_,_]")},
-                                                  {"/lst/trip", TYPE_PARSER("[_,_,_]")},
-                                                  {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}*/});
+                                                  /*{"/inst/stop", TYPE_PARSER("map(Ø).to(*_0)")}*/}}});
+      /* {"/ext/collection",
+        {{"/lst/pair", TYPE_PARSER("[_,_]")},
+         {"/lst/trip", TYPE_PARSER("[_,_,_]")},
+         {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}*/
       return _exts->at(extId);
     }
   };

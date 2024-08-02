@@ -18,19 +18,25 @@
 #pragma once
 #ifndef fhatos_options_hpp
 #define fhatos_options_hpp
+#include <any>
 #include <memory>
 
 using namespace std;
 
 namespace fhatos {
-  class Options final : public enable_shared_from_this<Options> {
+  class Options final {
+    explicit Options(){};
+
   public:
     uint8_t LOGGING;
     void *ROUTING;
     Ansi<> *PRINTING;
-    pair<string, string> URI_PATTERN;
+    any PARSER;
 
-    explicit Options() {}
+    static Options *singleton() {
+      static Options options = Options();
+      return &options;
+    }
 
     template<typename ROUTER>
     ROUTER *router() {
@@ -50,9 +56,23 @@ namespace fhatos {
         throw fError("No printer secified in global options\n");
       return (PRINTER *) this->PRINTING;
     }
+    //////////////////////////
+
+    /////// OBJ PARSER ///////
+    template<typename OBJ>
+    shared_ptr<OBJ> parser(const string &bcode) {
+      if (!PARSER.has_value())
+        throw fError("No parser specified in global options\n");
+      return std::any_cast<function<shared_ptr<OBJ>(string)>>(this->PARSER)(bcode);
+    }
+    template<typename OBJ>
+    void parser(const std::function<shared_ptr<OBJ>(string)> parse) {
+      PARSER = any(parse);
+    }
+    //////////////////////////
   };
 
-  static std::shared_ptr<Options> GLOBAL_OPTIONS = std::shared_ptr<Options>(new Options());
+  static Options *GLOBAL_OPTIONS = Options::singleton();
 
 } // namespace fhatos
 #endif

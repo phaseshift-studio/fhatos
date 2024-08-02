@@ -112,6 +112,7 @@ namespace fhatos {
   using Type = Obj;
   using Type_p = Obj_p;
   using BObj = Pair<uint32_t, fbyte *>;
+  using BObj_p = ptr<Pair<uint32_t, fbyte *>>;
   enum class IType : uint8_t {
     ZERO_TO_ZERO,
     ZERO_TO_ONE,
@@ -506,7 +507,6 @@ namespace fhatos {
           break;
         }
         case OType::NOOBJ: {
-          objString = "!bØ!!";
           break;
         }
         case OType::OBJS: {
@@ -526,8 +526,12 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()));
       }
-      objString = (includeType && this->_id->path_length() > 1)
-                      ? string("!b").append(this->_id->name()).append("!g[!!").append(objString).append("!g]!!")
+      objString = (includeType && (this->_id->path_length() > 1 || this->isNoObj()))
+                      ? string("!b")
+                            .append(this->isNoObj() ? this->_id->toString() : this->_id->name())
+                            .append("!g[!!")
+                            .append(objString)
+                            .append("!g]!!")
                       : objString;
       return ansi ? objString : GLOBAL_OPTIONS->printer<>()->strip(objString.c_str());
     }
@@ -1087,23 +1091,25 @@ namespace fhatos {
         bytes[0] = 'x';
         return share(BObj{1, bytes});
       }
-      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
-      memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
-      return share(BObj{sizeof(*this), bytes});
+      // auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
+      // memcpy(bytes, reinterpret_cast<const fbyte *>(this->toString().c_str()), this->toString().length());
+      const char *z = Ansi<>::singleton()->strip(this->toString().c_str());
+      return share(BObj{this->toString().length(), (fbyte *) strdup(z)});
     }
     template<typename OBJ>
-    static ptr<OBJ> deserialize(const ptr<BObj> bobj) {
+    static ptr<OBJ> deserialize(const ptr<BObj> &bobj) {
       LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
       if (bobj->first == 1 && bobj->second[0] == 'x')
         return Obj::to_noobj();
-      ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
+      const Obj_p obj = TYPE_PARSER(string((char *) bobj->second, bobj->first));
+      // ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
       return obj;
     }
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
   [[maybe_unused]] static Uri_p u_p(const char *uri) { return share<Uri>(Uri(fURI(uri))); }
-  [[maybe_unused]] static Uri_p u_p(const string& uri) { return share<Uri>(Uri(fURI(uri))); }
+  [[maybe_unused]] static Uri_p u_p(const string &uri) { return share<Uri>(Uri(fURI(uri))); }
   [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share<Obj>(obj); }
 } // namespace fhatos
 #endif

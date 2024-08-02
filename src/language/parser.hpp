@@ -36,14 +36,20 @@ namespace fhatos {
   public:
     static Parser *singleton(const ID &id = ID("/parser/")) {
       static Parser parser = Parser(id);
+      static bool _setup = false;
+      if (!_setup) {
+        TYPE_PARSER = [](const string &bcode) {
+          try {
+            return Parser::singleton()->tryParseObj(bcode).value_or(Obj::to_noobj());
+          } catch (std::exception &e) {
+            LOG_EXCEPTION(e);
+            return Obj::to_noobj();
+          }
+        };
+        Options::singleton()->parser<Obj>(TYPE_PARSER);
+        _setup = true;
+      }
       return &parser;
-    }
-
-    void setup() override {
-      Coroutine::setup();
-      TYPE_PARSER = [](const string &bcode) {
-        return Parser::singleton()->tryParseObj(bcode).value_or(Obj::to_noobj());
-      };
     }
 
     static bool closedExpression(const string &line) {
@@ -166,7 +172,10 @@ namespace fhatos {
     }
 
     Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken, const fURI_p & = NOOBJ_FURI) {
-      return typeToken.empty() && valueToken == "Ø" ? Option<NoObj_p>{Obj::to_noobj()} : Option<NoObj_p>{};
+      return (typeToken == NOOBJ_FURI->toString() ||
+              (typeToken.empty() && valueToken == "Ø")) // second is deprecated (remove -- not ascii)
+                 ? Option<NoObj_p>{Obj::to_noobj()}
+                 : Option<NoObj_p>{};
     }
 
     Option<Bool_p> tryParseBool(const string &valueToken, const string &typeToken, const fURI_p &baseType = BOOL_FURI) {

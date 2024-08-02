@@ -479,7 +479,7 @@ namespace fhatos {
     bool operator==(const fURI &other) const {
       return this->toString() == other.toString();
     } // TODO: do field-wise comparisons
-    bool equals(const fURI &other) const { return *this == other; }
+    bool equals(const fURI &other) const { return this->toString() == other.toString(); }
 
     string toString() const {
       string uri;

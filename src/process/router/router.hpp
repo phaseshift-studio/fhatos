@@ -209,6 +209,29 @@ namespace fhatos {
       return GLOBAL_OPTIONS->router<Router>()->publish(
           Message{.source = source, .target = target, .payload = Obj::to_noobj(), .retain = RETAIN_MESSAGE});
     }
+    /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
+    static BObj_p wrapSource(const SourceID &source, const Obj_p &obj) {
+      string wrap = source.toString();
+      wrap += '%';
+      wrap += obj->toString(true,false);
+      LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
+      return share(BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}));
+    }
+    static Pair<SourceID, Obj_p> unwrapSource(const BObj_p &bobj) {
+      try {
+        const auto unwrap = string(reinterpret_cast<char *>(bobj->second), bobj->first);
+        const size_t index = unwrap.find_first_of('%');
+        LOG(TRACE, "bobj source unwrap: %s and %s (length:%i and %i)\n", unwrap.substr(0, index).c_str(),
+            unwrap.substr(index + 1).c_str(), unwrap.substr(0, index).length(), unwrap.substr(index + 1).length());
+        if (index == string::npos)
+          throw fError("bobj is not wrapped with source: %s\n", bobj->second);
+        return Pair<ID, Obj_p>(
+            {ID(unwrap.substr(0, index)), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
+      } catch (const std::exception &e) {
+        LOG_EXCEPTION(e);
+        throw;
+      }
+    }
   };
 } // namespace fhatos
 
