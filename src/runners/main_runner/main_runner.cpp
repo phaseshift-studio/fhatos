@@ -23,7 +23,7 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
       printResult(o, depth + 1);
     }
   } else {
-    Terminal::printer<>()->printf("!g==>!!%s\n", obj->toString().c_str());
+     Options::singleton()->printer<>()->printf("!g==>!!%s\n", obj->toString().c_str());
   }
 }
 
@@ -40,17 +40,17 @@ int main(int arg, char **argsv) {
                   new Console("/home/root/repl/")})
         ->loadModules({"/ext/process"})
         ->defaultOutput("/home/root/repl/"); // ->done("kernel_barrier");
-    Terminal::printer<>()->on(false);
+     Options::singleton()->printer<>()->on(false);
   } catch (const std::exception &e) {
     throw;
   }
   LOG(INFO, "Processing %s\n", argsv[1]);
-  Terminal::printer<>()->println("++++\n[source,mmadt]\n----");
+   Options::singleton()->printer<>()->println("++++\n[source,mmadt]\n----");
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];
       StringHelper::trim(x);
-      Terminal::printer<>()->printf("fhatos> %s\n", x.c_str());
+       Options::singleton()->printer<>()->printf("fhatos> %s\n", x.c_str());
       const Option<Obj_p> obj = Parser::singleton()->tryParseObj(argsv[i]);
       if(obj.has_value()) {
         printResult(Fluent(obj.value()).toObjs());
@@ -60,7 +60,7 @@ int main(int arg, char **argsv) {
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
-  Terminal::printer<>()->print("----\n++++");
+   Options::singleton()->printer<>()->print("----\n++++");
   //Scheduler::singleton()->stop();
   return 0;
 }
