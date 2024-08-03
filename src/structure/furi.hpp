@@ -172,7 +172,7 @@ namespace fhatos {
         newURI._path[newURI._path_length - 1][x - 1] = '\0';
 #endif
       }
-      FOS_SAFE_FREE(dup);
+      free(dup);
       return newURI;
     }
 
@@ -209,11 +209,14 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
 
     fURI extend(const char *extension) const {
-      if (strlen(extension) == 0)
-        return *this;
-      const std::unique_ptr<char, void (*)(void *)> newPathChars =
-          std::unique_ptr<char, void (*)(void *)>(strdup(this->path().c_str()), free);
-      string newPath = string(&*newPathChars);
+      if (strlen(extension) == 0) {
+        fURI newURI = fURI(*this);
+        newURI.spostfix = true;
+        return newURI;
+      }
+    // const std::unique_ptr<char, void (*)(void *)> newPathChars =
+      //    std::unique_ptr<char, void (*)(void *)>(strdup(this->path().c_str()), free);
+      string newPath = string(this->path().c_str());
       if (!this->spostfix)
         newPath += "/";
       if (newPath.empty())
@@ -334,6 +337,8 @@ namespace fhatos {
         bool foundAuthority = false;
         while (!ss.eof()) {
           char t = ss.get();
+          if (!isascii(t))
+            continue;
           if (!foundAuthority && t == '/' && ss.peek() == '/') {
             foundAuthority = true;
             if (part == URI_PART::SCHEME || part == URI_PART::USER) {
@@ -448,7 +453,7 @@ namespace fhatos {
               token += t;
             }
           }*/
-          else if (t != '\xFF' && t != EOF) {
+          else if (!isspace(t) && t != '\xFF' && isascii(t)) {
             this->spostfix = false;
             token += t;
           }
@@ -535,42 +540,67 @@ namespace fhatos {
     // const bool isPattern() const override { return false; }
   };
 
-  using ID_p = ptr<ID>;
-
-  using SourceID = ID;
-  using TargetID = ID;
 
   class Pattern : public fURI {
   public:
     Pattern(const fURI &uri) : Pattern(uri.toString()) {}
 
-    // Pattern(const ID &id) : Pattern(id.toString()) {
-    // }
-
     Pattern(const string &uriString) : fURI(uriString){};
 
     Pattern(const char *uriChars) : fURI(uriChars){};
 
-    /* bool colocated(const fURI &furi) const override {
-       return furi.authority() == "#" || furi.authority().find('+') > -1 || fURI::colocated(furi);
+    /* bool matches(const fURI &pppattern) const override {
+       string thisStr = this->toString();
+       if (thisStr.find('+') == string::npos && thisStr.find('#') == string::npos)
+         return fURI::matches(pppattern);
+       ////////////////////////////////////////
+       string patternStr = pppattern.toString();
+       if (pppattern.toString() == "#")
+         return true;
+       if (strcmp(pppattern.scheme(), "#") == 0)
+         return true;
+       if (strcmp(pppattern.scheme(), "+") != 0 && strcmp(this->scheme(), pppattern.scheme()) != 0)
+         return false;
+       if (strcmp(pppattern.host(), "#") == 0)
+         return true;
+       if (strcmp(pppattern.host(), "+") != 0 && strcmp(this->host(), pppattern.host()) != 0)
+         return false;
+       if (strcmp(pppattern.user(), "#") == 0)
+         return true;
+       if (strcmp(pppattern.user(), "+") != 0 && strcmp(this->user(), pppattern.user()) != 0)
+         return false;
+       if (strcmp(pppattern.password(), "#") == 0)
+         return true;
+       if (strcmp(pppattern.password(), "+") != 0 && strcmp(this->password(), pppattern.password()) != 0)
+         return false;
+       for (size_t i = 0; i < pppattern.path_length(); i++) {
+         if (this->_path_length <= i)
+           return false;
+         if (strcmp(pppattern.path(i), "#") == 0)
+           return true;
+         if (strcmp(pppattern.path(i), "+") != 0 && strcmp(this->path(i), pppattern.path(i)) != 0)
+           return false;
+       }
+       return this->_path_length == pppattern.path_length();
      }*/
 
-    bool matches(const fURI &pattern) const override { return pattern.matches(*this); }
+    // bool matches(const fURI &pattern) const override { return pattern.matches(*this); }
   };
 
   using fURI_p = ptr<fURI>;
+  using ID_p = ptr<ID>;
+  using Pattern_p = ptr<Pattern>;
+  using SourceID = ID;
+  using TargetID = ID;
+
   class BaseIDed {
   public:
-    virtual ~BaseIDed() = default;
     virtual ID_p id() const { return nullptr; }
     virtual bool equals(const BaseIDed &) const { return false; }
   };
-  using Pattern_p = ptr<Pattern>;
 
   class IDed : public BaseIDed {
   public:
-    ~IDed() override = default;
-
     explicit IDed(const fURI_p &uri) : _id(share(ID(uri->toString()))) {}
     explicit IDed(const ID_p &id) : _id(id) {}
 
@@ -585,6 +615,26 @@ namespace fhatos {
     ptr<ID> _id;
   };
 
+  //////////////////////////////////////////////
+  ///////////////// TYPED FURI /////////////////
+  //////////////////////////////////////////////
+  class BaseTyped {
+  public:
+    virtual Pattern_p type() const = 0;
+    virtual bool equals(const BaseTyped &) const = 0;
+  };
+
+  class Typed : public BaseTyped {
+  protected:
+    Pattern_p _type;
+
+  public:
+    explicit Typed(const fURI_p &uri) : _type(share(Pattern(uri->toString()))) {}
+    explicit Typed(const Pattern_p &type) : _type(type) {}
+    Pattern_p type() const override { return this->_type; }
+    bool equals(const BaseTyped &other) const override { return this->_type->equals(*other.type()); }
+  };
+
   struct furi_comp : public std::less<fURI_p> {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
@@ -592,6 +642,9 @@ namespace fhatos {
   [[maybe_unused]] static ID_p id_p(const char *idChars) { return share(ID(idChars)); }
   [[maybe_unused]] static ID_p id_p(const ID &id) { return share(id); }
   [[maybe_unused]] static ID_p id_p(const fURI &id) { return share(ID(id)); }
+  [[maybe_unused]] static Pattern_p p_p(const char *patternChars) { return share(Pattern(patternChars)); }
+  [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return share(pattern); }
+  [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return share(Pattern(pattern)); }
 } // namespace fhatos
 
 #endif

@@ -205,7 +205,7 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Obj : public IDed, public std::enable_shared_from_this<Obj> {
+  class Obj final : public IDed, public std::enable_shared_from_this<Obj> {
   public:
     Any _value;
     struct obj_hash {
@@ -231,7 +231,6 @@ namespace fhatos {
     template<typename K = Obj_p, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
-    ~Obj() override = default;
     explicit Obj(const Any &value, const OType otype, const ID_p &typeId) : IDed(OTYPE_FURI.at(otype)), _value(value) {
       TYPE_CHECKER(*this, otype, typeId);
       this->_id = typeId;
@@ -970,10 +969,11 @@ namespace fhatos {
       }
       return false;
     }
-    Obj_p as(const ID_p &furi) const { return this->as(furi->toString().c_str()); }
-    Obj_p as(const char *furi) const {
-      return share(Obj(this->_value, this->o_type(), id_p(this->_id->resolve(furi))));
+    Obj_p as(const ID_p &furi) const {
+      const ID_p resolution = share(ID(this->_id->resolve(*furi)));
+      return share<Obj>(Obj(this->_value, OTypes.toEnum(resolution->path(0)), resolution));
     }
+    Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
     Inst_p nextInst(const Inst_p &currentInst) const {
       if (currentInst->isNoObj())
         return currentInst;
@@ -1094,10 +1094,9 @@ namespace fhatos {
       // auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
       // memcpy(bytes, reinterpret_cast<const fbyte *>(this->toString().c_str()), this->toString().length());
       const char *z = Ansi<>::singleton()->strip(this->toString().c_str());
-      BObj_p bobj =  share(BObj{this->toString().length(), (fbyte *) strdup(z)});
-      free((void*)z);
+      BObj_p bobj = share(BObj{this->toString().length(), (fbyte *) strdup(z)});
+      free((void *) z);
       return bobj;
-
     }
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> &bobj) {
@@ -1114,5 +1113,6 @@ namespace fhatos {
   [[maybe_unused]] static Uri_p u_p(const char *uri) { return share<Uri>(Uri(fURI(uri))); }
   [[maybe_unused]] static Uri_p u_p(const string &uri) { return share<Uri>(Uri(fURI(uri))); }
   [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share<Obj>(obj); }
+
 } // namespace fhatos
 #endif

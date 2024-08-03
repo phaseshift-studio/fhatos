@@ -30,6 +30,7 @@
 #include FOS_PROCESS(thread.hpp)
 #include <language/f_bcode.hpp>
 #include <process/actor/publisher.hpp>
+#include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \

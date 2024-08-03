@@ -68,7 +68,7 @@ IF (MSVC)
     )
 ELSE ()
     EXECUTE_PROCESS(
-            COMMAND ping www.google.com -c 2 -t 3
+            COMMAND ping www.google.com -c 2
             ERROR_QUIET
             RESULT_VARIABLE NO_CONNECTION
     )
@@ -123,12 +123,30 @@ ENDIF ()
 ####################################
 ### LIBWEBSOCKETS: UNIVERSAL WEB PROTOCOL API
 MESSAGE(CHECK_START "${.y}CMaking libwebsockets library${..}")
-FIND_PACKAGE(libwebsockets CONFIG REQUIRED)
+FIND_PACKAGE(PkgConfig)
+PKG_CHECK_MODULES(LIB_WEBSOCKETS REQUIRED libwebsockets)
+GET_FILENAME_COMPONENT(
+        LIB_WEBSOCKETS_INSTALL_DIR
+        ${LIB_WEBSOCKETS_LIBRARY_DIRS}
+        DIRECTORY
+)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
-        websockets_shared
-        ${LIBWEBSOCKETS_DEP_LIBS})
-ADD_DEPENDENCIES(${PROJECT_NAME}
-        websockets_shared)
+        ${LIB_WEBSOCKETS_LIBRARIES})
+#SET_TARGET_PROPERTIES(
+#        ${PROJECT_NAME}
+#        PROPERTIES
+#        INCLUDE_DIRECTORIES
+#        ${LIB_WEBSOCKETS_INCLUDE_DIRS}
+#        LINK_FLAGS
+#        "-L${LIB_WEBSOCKETS_LIBRARY_DIRS}"
+#        COMPILE_DEFINITIONS
+#        INSTALL_DATADIR="${LIB_WEBSOCKETS_INSTALL_DIR}/share"
+#)
+CMAKE_PRINT_VARIABLES(LIB_WEBSOCKETS_LIBRARIES,LIB_WEBSOCKETS_INCLUDE_DIRS)
+MESSAGE(STATUS "${.y}libwebsockets libs${..}: ${.g}${LIB_WEBSOCKETS_INCLUDE_DIRS}${..}")
+#ADD_DEPENDENCIES(${PROJECT_NAME}
+#        websockets_shared)
+FILE(COPY ${LIB_WEBSOCKETS_INCLUDE_DIRS} DESTINATION ${CMAKE_BINARY_DIR}/_deps/libwebsockets-src)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################

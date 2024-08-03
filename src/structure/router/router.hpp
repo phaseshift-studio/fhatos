@@ -22,8 +22,8 @@
 #include <fhatos.hpp>
 //
 #include <process/actor/mailbox.hpp>
-#include <structure/router/message.hpp>
 #include <structure/furi.hpp>
+#include <structure/router/message.hpp>
 #include <util/enums.hpp>
 #ifndef NATIVE
 // #include <structure/io/net/f_wifi.hpp>
@@ -153,7 +153,7 @@ namespace fhatos {
     virtual RESPONSE_CODE subscribe(const Subscription &) = 0;
     virtual RESPONSE_CODE unsubscribe(const ID &, const Pattern &) = 0;
     virtual RESPONSE_CODE unsubscribeSource(const ID &) = 0;
-    virtual RESPONSE_CODE clear(const bool subscriptions = true, const bool retains = true) = 0;
+    virtual RESPONSE_CODE clear(bool subscriptions = true, bool retains = true) = 0;
     virtual uint retainSize() const { return -1; }
     virtual const string toString() const { return "Router"; }
 
@@ -174,7 +174,7 @@ namespace fhatos {
           break;
         }
       }
-      router->unsubscribe(source, target);
+      router->unsubscribe(source, Pattern(target));
       if (nullptr == thing->load()) {
         delete thing;
         return Obj::to_noobj();

@@ -19,6 +19,7 @@
 #ifndef fhatos_options_hpp
 #define fhatos_options_hpp
 #include <any>
+//#include <libwebsockets.h>
 #include <memory>
 
 using namespace std;
@@ -32,7 +33,8 @@ namespace fhatos {
     Ansi<> *PRINTING = Ansi<>::singleton();
     any PARSER;
 
-    explicit Options(){};
+    explicit Options() {
+    };
 
   public:
     static Options *singleton() {

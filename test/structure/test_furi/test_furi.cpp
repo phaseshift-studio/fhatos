@@ -452,6 +452,16 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(ID("/int/"), ID("/int/").resolve(ID("")));
   }
 
+  void test_pattern_pattern_matching() {
+    Pattern_p patternA = p_p("/fs/#");
+    // FOS_TEST_ASSERT_MATCH_FURI(patternA, Pattern("#"));
+    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/mount/#"), *p_p("/fs/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/#"), *p_p("/fs/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/+/abc"), *p_p("/fs/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/+/abc"));
+  }
+
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_uri_components); //
       FOS_RUN_TEST(test_uri_memory_leaks); //
@@ -468,7 +478,8 @@ namespace fhatos {
       FOS_RUN_TEST(test_uri_resolve); //
       FOS_RUN_TEST(test_uri_match); //
       //
-      FOS_RUN_TEST(test_fhat_idioms);)
+      FOS_RUN_TEST(test_fhat_idioms); //
+      FOS_RUN_TEST(test_pattern_pattern_matching);)
 } // namespace fhatos
 
 SETUP_AND_LOOP();

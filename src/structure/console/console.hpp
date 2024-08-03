@@ -24,9 +24,9 @@
 #include <language/parser.hpp>
 #include <structure/furi.hpp>
 #include <structure/router/local_router.hpp>
-#include <structure/router/meta_router.hpp>
+//#include <structure/router/meta_router.hpp>
 #include <util/string_helper.hpp>
-#include FOS_MQTT(mqtt_router.hpp)
+///#include FOS_MQTT(mqtt_router.hpp)
 #include FOS_PROCESS(thread.hpp)
 #include <process/actor/actor.hpp>
 #include <structure/io/terminal.hpp>
@@ -94,7 +94,7 @@ namespace fhatos {
                                   "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
                                   Terminal::singleton()->id()->extend("out").toString().c_str());
                             }}});
-        _MENU_MAP->insert({":router",
+        /*_MENU_MAP->insert({":router",
                            {"pubsub router",
                             [](const Obj_p &obj) {
                               if (obj->uri_value().matches("/sys/router/global"))
@@ -108,7 +108,7 @@ namespace fhatos {
                               Options::singleton()->printer<>()->printf(
                                   "!yrouter!!: !b%s!!\n",
                                   Options::singleton()->router<Router>()->id()->toString().c_str());
-                            }}});
+                            }}});*/
         _MENU_MAP->insert(
             {":color",
              {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
