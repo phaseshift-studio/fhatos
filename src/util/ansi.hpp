@@ -21,6 +21,7 @@
 
 
 #include <cstdarg>
+#include <memory>
 #include <random>
 #include <stdio.h>
 #include <string.h>
@@ -101,6 +102,8 @@ namespace fhatos {
 
     void parse(const char *buffer, const int bufferLength) {
       for (int i = 0; i < bufferLength; i++) {
+        if (buffer[i] < 0 || buffer[i] > 127)
+          continue;
         if (buffer[i] == '!') {
           const char j = buffer[i + 1];
           if ('_' == j)
@@ -155,7 +158,8 @@ namespace fhatos {
     void print(const char *c) { this->parse(c, strlen(c)); }
 
     void println(const char *c = "") {
-      this->print(c);
+      if (strlen(c) > 0)
+        this->print(c);
       this->print('\n');
     }
 
@@ -166,7 +170,7 @@ namespace fhatos {
       this->printer->flush();
     }
 
-    std::shared_ptr<char> strip(const char *s) {
+    std::shared_ptr<char> strip(const char *s) const {
       auto *a = new std::string();
       auto *b = new StringPrinter(a);
       auto *ansi = new Ansi<StringPrinter>(b);
@@ -196,6 +200,7 @@ namespace fhatos {
         va_start(arg, format);
         vsnprintf(buffer, len + 1, format, arg);
         va_end(arg);
+        buffer[len] = '\0';
       }
       this->parse(temp, len);
       if (buffer != temp) {

@@ -14,7 +14,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_bool() {
-    Types::singleton()->saveType(id_p("/bool/truth"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/bool/truth"), Obj::to_bcode()); //
     const Bool_p boolA = share(Bool(true, "/bool/truth"));
     const Bool_p boolB = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
@@ -33,8 +33,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
     ///
     TEST_ASSERT_TRUE(boolA->match(boolA));
-    TEST_ASSERT_TRUE(Obj::to_bool(true)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({}))})));
-    TEST_ASSERT_FALSE(Obj::to_bool(false)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({}))})));
+    TEST_ASSERT_TRUE(Obj::to_bool(true)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
+    TEST_ASSERT_FALSE(Obj::to_bool(false)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
     /* const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
      FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
@@ -43,8 +43,8 @@ namespace fhatos {
   }
 
   void test_int() {
-    Types::singleton()->saveType(id_p("/int/age"), Obj::to_bcode({})); //
-    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/int/age"), Obj::to_bcode()); //
+    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode()); //
     const Int_p intA = share(Int(1));
     const Int_p intB = share<Int>(Int(1));
     const Int_p intC = share(Int(1, "/int/age"));
@@ -102,8 +102,8 @@ namespace fhatos {
   }
 
   void test_real() {
-    Types::singleton()->saveType(id_p("/real/money"), Obj::to_bcode({})); //
-    Types::singleton()->saveType(id_p("/real/weight"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/real/money"), Obj::to_bcode()); //
+    Types::singleton()->saveType(id_p("/real/weight"), Obj::to_bcode()); //
     const Real_p realA = share(Real(1.0f));
     const Real_p realB = share<Real>(Real(1.0f));
     const Real_p realC = share(Real(1.0f, "/real/money"));
@@ -151,8 +151,8 @@ namespace fhatos {
   }
 
   void test_str() {
-    Types::singleton()->saveType(id_p("/str/first_name"), Obj::to_bcode({})); //
-    Types::singleton()->saveType(id_p("/str/letter"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/str/first_name"), Obj::to_bcode()); //
+    Types::singleton()->saveType(id_p("/str/letter"), Obj::to_bcode()); //
     const Str strA = *Obj::to_str("fhat", id_p("/str/first_name"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.isBytecode());
@@ -193,8 +193,8 @@ namespace fhatos {
   }
 
   void test_rec() {
-    Types::singleton()->saveType(id_p("/rec/mail"), Obj::to_bcode({})); //
-    Types::singleton()->saveType(id_p("/real/cost"), Obj::to_bcode({})); //
+    Types::singleton()->saveType(id_p("/rec/mail"), Obj::to_bcode()); //
+    Types::singleton()->saveType(id_p("/real/cost"), Obj::to_bcode()); //
     const Rec recA = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recB = *Obj::to_rec({{"a", 1}, {"b", 2}});
     const Rec recC =

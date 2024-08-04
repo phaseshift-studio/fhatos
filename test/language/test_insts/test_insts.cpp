@@ -41,7 +41,7 @@ namespace fhatos {
              Insts::plus(Obj::to_int(10)), //
              Obj::to_int(32));
     testInst(Obj::to_int(16), //
-             Insts::plus(Obj::to_bcode({})), //
+             Insts::plus(Obj::to_bcode()), //
              Obj::to_int(32));
   }
 
@@ -52,7 +52,7 @@ namespace fhatos {
              Obj::to_int(220));
     // int => mult[bcode]
     testInst(Obj::to_int(16), //
-             Insts::mult(Obj::to_bcode({})), //
+             Insts::mult(Obj::to_bcode()), //
              Obj::to_int(256));
   }
 
@@ -74,7 +74,7 @@ namespace fhatos {
 
   void test_group() {
     testInst(Obj::to_objs({1, 2, 3, 3}), //
-             Insts::group(Obj::to_bcode({}), Obj::to_bcode({}), Obj::to_bcode({})), //
+             Insts::group(Obj::to_bcode(), Obj::to_bcode(), Obj::to_bcode()), //
              Objs::to_rec({{1, *Obj::to_lst({1})}, {2, *Obj::to_lst({2})}, {3, *Obj::to_lst({3, 3})}}));
     /* testInst(Insts::group(Obj::to_bcode({}), Obj::to_bcode({}), Obj::to_bcode({Insts::start({}), Insts::count()})),
        // Obj::to_objs({1, 2, 3, 3}), // Objs::to_rec({{1, 1}, {2, 1}, {3, 2}}));*/

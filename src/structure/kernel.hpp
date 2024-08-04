@@ -64,12 +64,16 @@ namespace fhatos {
       Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
-    static Kernel *loadModules(const List<ID> &modules) {
+    static Kernel *load_modules(const List<ID> &modules) {
       for (const ID &id: modules) {
+        List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
-          Options::singleton()->router<Router>()->publish(
-              Message{.source = id, .target = pair.first, .payload = pair.second, .retain = true});
+          const ID_p idp = share(pair.first);
+          Types::singleton()->saveType(idp, pair.second);
+          list->push_back(Obj::to_uri(*idp));
         }
+        Options::singleton()->router<Router>()->publish(
+            Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
       }
       return Kernel::build();
     }

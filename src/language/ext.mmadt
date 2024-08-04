@@ -1,23 +1,32 @@
---- process extensions
+--- process module
 ###
-/mmadt/ext/process/  .~>
-  [prefix/            => ~>
-    [|thread          => type/rec/thread,
-     |fiber           => type/rec/fiber],
-   type/              => ~>
-    [type/rec/thread  => |[setup=>_,loop=>_],
-     type/rec/fiber   => |[setup=>_,loop=>_]]]
+/mod/proc/  .->  [prefix/            => .->
+    [|thread          => |/rec/thread,
+     |fiber           => |/rec/fiber],
+   type/              => .->
+    [|rec/thread      => |[setup=>_,loop=>_],
+     |rec/fiber       => |[setup=>_,loop=>_]]]
 ###
 
---- tuple extensions
+--- text module
+
+--- tuple module
 ###
-/mmadt/ext/tuple/   .~>
+/mod/poly/   ~>
   [prefix/           => ~>
-    [|pair           => type/lst/pair,
-     |trip           => type/lst/trip,
-     |quad           => type/lst/quad],
+    [|pair           => |/lst/pair,
+     |trip           => |/lst/trip,
+     |quad           => |/lst/quad],
    type/             => ~>
-    [type/lst/pair?a=_&b=_         => |[*a,*b],
-     type/lst/trip?a=_&b=_&c=_     => |[*a,*b,*c],
-     type/lst/quad?a=_&b=_&c=_&d=_ => |[*a,*b,*c,*d]]]
+    [|/lst/pair?a=_&b=_         => |[*a,*b],
+     |/lst/trip?a=_&b=_&c=_     => |[*a,*b,*c],
+     |/lst/quad?a=_&b=_&c=_&d=_ => |[*a,*b,*c,*d]]]
 ###
+
+
+class thread {
+void setup() {
+
+}
+
+}

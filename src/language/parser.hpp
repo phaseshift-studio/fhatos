@@ -114,7 +114,7 @@ namespace fhatos {
         if (b.has_value())
           return b.value();
       }
-      b = dot_type ? tryParseBCode(token, "", BCODE_FURI) : tryParseBCode(valueToken, typeToken, BCODE_FURI);
+      b = dot_type ? tryParseBCode(token, EMPTY_CHARS, BCODE_FURI) : tryParseBCode(valueToken, typeToken, BCODE_FURI);
       if (b.has_value())
         return b.value();
       b = tryParseDEFAULT(valueToken, typeToken);
@@ -163,7 +163,14 @@ namespace fhatos {
       }
       StringHelper::trim(typeToken);
       StringHelper::trim(valueToken);
-      LOG(TRACE, "!ytype token!!: !g%s!!" FOS_TAB_3 "!yvalue token!!: !g%s!!\n", typeToken.c_str(), valueToken.c_str());
+      if (Options::singleton()->log_level<LOG_TYPE>() <= TRACE) {
+        LOG(TRACE, "!ytype token!!: !g%s!!" FOS_TAB_3 "!yvalue token!!: !g%s!!\n", typeToken.c_str(),
+            valueToken.c_str());
+        char t = typeToken[typeToken.length() - 1];
+        char v = valueToken[valueToken.length() - 1];
+        LOG(TRACE, FOS_TAB_2 "!ytypeToken!! [!glast char!!]: (!rdec!!) %i (!rhex!!) 0x%x (!rchar!!) %c\n", t, t, t);
+        LOG(TRACE, FOS_TAB_2 "!yvalueToken!! [!glast char!!]: (!rdec!!) %i (!rhex!!) 0x%x (!rchar!!) %c\n", v, v, v);
+      }
       return {typeToken, valueToken};
     }
 
@@ -254,7 +261,7 @@ namespace fhatos {
             parenCounter--;
           else if (c == '\'')
             quotes = !quotes;
-          if (c != EOF)
+          if (c >= 32 && c < 127)
             value += c;
         }
       }
@@ -288,7 +295,7 @@ namespace fhatos {
               parenCounter--;
             else if (c == '\'')
               quotes = !quotes;
-            if (c != EOF)
+            if (c >= 32 && c < 127)
               key += c;
           }
         } else {
@@ -319,7 +326,7 @@ namespace fhatos {
               parenCounter--;
             else if (c == '\'')
               quotes = !quotes;
-            if (c != EOF)
+            if (c >= 32 && c < 127)
               value += c;
           }
         }
@@ -352,7 +359,7 @@ namespace fhatos {
             bracket--;
           else if (c == '\'')
             quote = !quote;
-          if (c != EOF) {
+          if (c >= 32 && c < 127) {
             argToken += c;
             if (ss.peek() == ',' && !quote && paren == 0 && bracket == 0) {
               ss.get(); // drop arg separating comma
@@ -360,6 +367,7 @@ namespace fhatos {
             }
           }
         }
+        StringHelper::trim(argToken);
         if (!argToken.empty()) {
           const Option<Obj_p> arg_p = this->tryParseObj(argToken);
           if (arg_p.has_value())
@@ -377,7 +385,7 @@ namespace fhatos {
     Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
                                   const fURI_p &baseType = BCODE_FURI) {
       if (typeToken.empty() && valueToken == "_")
-        return {Obj::to_bcode({})}; // special character for 'no instructions' (no general common parse pattern)
+        return {Obj::to_bcode()}; // special character for 'no instructions' (no general common parse pattern)
       //////////////////////////////////////////////////////////////////////////////////////
       //////////////// lookahead to determine if token is potentially bcode ////////////////
       //////////////////////////////////////////////////////////////////////////////////////
@@ -424,7 +432,7 @@ namespace fhatos {
           if (fullbreak || ss.eof())
             break;
           char c = static_cast<char>(ss.get());
-          if ((quote || !isspace(c)) && EOF != c)
+          if ((quote || !isspace(c)) && c >= 32 && c < 127)
             instToken += c;
           if (c == '(')
             paren++;

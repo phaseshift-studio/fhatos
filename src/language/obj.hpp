@@ -174,19 +174,19 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstFunction, IType, InstSeed>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const ID_p OBJ_FURI = ID_p(new ID("/obj/"));
-  static const ID_p NOOBJ_FURI = ID_p(new ID("/noobj/"));
-  static const ID_p TYPE_FURI = ID_p(new ID("/type/"));
-  static const ID_p BOOL_FURI = ID_p(new ID("/bool/"));
-  static const ID_p INT_FURI = ID_p(new ID("/int/"));
-  static const ID_p REAL_FURI = ID_p(new ID("/real/"));
-  static const ID_p URI_FURI = ID_p(new ID("/uri/"));
-  static const ID_p STR_FURI = ID_p(new ID("/str/"));
-  static const ID_p LST_FURI = ID_p(new ID("/lst/"));
-  static const ID_p REC_FURI = ID_p(new ID("/rec/"));
-  static const ID_p INST_FURI = ID_p(new ID("/inst/"));
-  static const ID_p BCODE_FURI = ID_p(new ID("/bcode/"));
-  static const ID_p OBJS_FURI = ID_p(new ID("/objs/"));
+  static const ID_p OBJ_FURI = share<ID>(ID("/obj/"));
+  static const ID_p NOOBJ_FURI = share<ID>(ID("/noobj/"));
+  static const ID_p TYPE_FURI = share<ID>(ID("/type/"));
+  static const ID_p BOOL_FURI = share<ID>(ID("/bool/"));
+  static const ID_p INT_FURI = share<ID>(ID("/int/"));
+  static const ID_p REAL_FURI = share<ID>(ID("/real/"));
+  static const ID_p URI_FURI = share<ID>(ID("/uri/"));
+  static const ID_p STR_FURI = share<ID>(ID("/str/"));
+  static const ID_p LST_FURI = share<ID>(ID("/lst/"));
+  static const ID_p REC_FURI = share<ID>(ID("/rec/"));
+  static const ID_p INST_FURI = share<ID>(ID("/inst/"));
+  static const ID_p BCODE_FURI = share<ID>(ID("/bcode/"));
+  static const ID_p OBJS_FURI = share<ID>(ID("/objs/"));
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
                                                {OType::OBJ, OBJ_FURI},
                                                {OType::OBJS, OBJS_FURI},
@@ -242,9 +242,8 @@ namespace fhatos {
     explicit Obj(const Any &value, const ID_p &typeId) : Obj(value, OTypes.toEnum(typeId->path(0)), typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, const int lineNumber = __LINE__) {
-      // if(true) exit(1);
-      return fError("%s[%s] unexpectedly acccessed for %s [line:%i]\n", OTypes.toChars(obj->o_type()),
-                    obj->toString().c_str(), function, lineNumber);
+      return fError("!b%s!g[!!%s!g]!! !yaccessed!! as a %s\n", OTypes.toChars(obj->o_type()), obj->toString().c_str(),
+                    function);
     }
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
@@ -274,8 +273,8 @@ namespace fhatos {
       }
     }
     Obj(const List<Inst> &bcode, const char *typeId = "") :
-        Obj(Any(PtrHelper::clone(bcode)), OType::BCODE, id_p(BCODE_FURI->resolve(typeId))) {}
-    Obj(const InstList &bcode, const char *typeId = "") :
+        Obj(Any(share<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(typeId))) {}
+    Obj(const InstList_p &bcode, const char *typeId = "") :
         Obj(Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(typeId))) {}
 
     /*Obj(const List<Obj_p> &objList) : IDed(OBJS_FURI), _value(objList) {
@@ -377,8 +376,8 @@ namespace fhatos {
       if (this->isInst())
         return std::get<2>(this->inst_value());
       if (this->isBytecode()) {
-        const IType domain = this->bcode_value().front()->itype();
-        const IType range = this->bcode_value().back()->itype();
+        const IType domain = this->bcode_value()->front()->itype();
+        const IType range = this->bcode_value()->back()->itype();
         return ITypeSignatures.toEnum(
             (string(ITypeDomains.toChars(domain)) + "->" + ITypeRanges.toChars(range)).c_str());
       }
@@ -386,35 +385,35 @@ namespace fhatos {
         return IType::ONE_TO_MANY;
       return IType::ONE_TO_ONE;
     }
-    List<Obj_p> bcode_value() const {
+    InstList_p bcode_value() const {
       if (this->isNoObj())
         return {};
       if (!this->isBytecode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->value<List<Obj_p>>();
+      return this->value<InstList_p>();
     }
     const BCode_p add_inst(const Inst_p &inst, const bool mutate = true) {
       if (!this->isBytecode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if (mutate) {
-        List<Inst_p> insts = bcode_value();
-        insts.push_back(inst);
+        InstList_p insts = bcode_value();
+        insts->push_back(inst);
         return Obj::to_bcode(insts);
       } else {
-        List<Inst_p> insts = {};
-        for (const auto &i: this->bcode_value()) {
-          insts.push_back(i);
+        InstList_p insts = share<InstList>({});
+        for (const auto &i: *this->bcode_value()) {
+          insts->push_back(i);
         }
-        insts.push_back(inst);
+        insts->push_back(inst);
         return Obj::to_bcode(insts);
       }
     }
     const BCode_p add_bcode(const BCode_p &bcode, [[maybe_unused]] const bool mutate = true) {
       if (!this->isBytecode() || !bcode->isBytecode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      List<Inst_p> insts = {};
-      for (const auto &inst: bcode->bcode_value()) {
-        insts.push_back(inst);
+      InstList_p insts = share<InstList>({});
+      for (const auto &inst: *bcode->bcode_value()) {
+        insts->push_back(inst);
       }
       return Obj::to_bcode(insts);
     }
@@ -474,7 +473,9 @@ namespace fhatos {
             } else {
               objString += "!m,!!";
             }
-            objString += k->toString() + "!m=>!!" + v->toString();
+            objString += k->toString();
+            objString += "!m=>!!";
+            objString += v->toString();
           }
           objString += "!m]!!";
           break;
@@ -492,12 +493,12 @@ namespace fhatos {
           break;
         }
         case OType::BCODE: {
-          if (this->bcode_value().empty())
+          if (this->bcode_value()->empty())
             objString = "_";
           else {
             // objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
             bool first = true;
-            for (const auto &inst: this->bcode_value()) {
+            for (const auto &inst: *this->bcode_value()) {
               if (first) {
                 first = false;
               } else {
@@ -769,10 +770,10 @@ namespace fhatos {
         case OType::BCODE: {
           auto instsA = this->bcode_value();
           auto instsB = other.bcode_value();
-          if (instsA.size() != instsB.size())
+          if (instsA->size() != instsB->size())
             return false;
-          auto itB = instsB.begin();
-          for (const auto &itA: instsA) {
+          auto itB = instsB->begin();
+          for (const auto &itA: *instsA) {
             if (*itA != **itB)
               return false;
             ++itB;
@@ -819,7 +820,7 @@ namespace fhatos {
     bool isInst() const { return this->o_type() == OType::INST; }
     bool isObjs() const { return this->o_type() == OType::OBJS; }
     bool isBytecode() const { return this->o_type() == OType::BCODE; }
-    bool isNoOpBytecode() const { return this->o_type() == OType::BCODE && this->bcode_value().empty(); }
+    bool isNoOpBytecode() const { return this->o_type() == OType::BCODE && this->bcode_value()->empty(); }
     bool isType() const { return !this->_value.has_value(); }
     Obj_p apply(const Obj_p &lhs) {
       switch (this->o_type()) {
@@ -868,7 +869,7 @@ namespace fhatos {
           if (lhs->isBytecode())
             return lhs->add_bcode(this->shared_from_this(), true);
           ptr<Obj> currentObj = lhs;
-          for (const Inst_p &currentInst: this->bcode_value()) {
+          for (const Inst_p &currentInst: *this->bcode_value()) {
             LOG(TRACE, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
             if (currentInst->isNoObj())
               break;
@@ -959,10 +960,10 @@ namespace fhatos {
         case OType::BCODE: {
           auto instsA = this->bcode_value();
           auto instsB = pattern->bcode_value();
-          if (instsA.size() != instsB.size())
+          if (instsA->size() != instsB->size())
             return false;
-          auto itB = instsB.begin();
-          for (const auto &itA: instsA) {
+          auto itB = instsB->begin();
+          for (const auto &itA: *instsA) {
             if (!itA->match(*itB))
               return false;
           }
@@ -982,7 +983,7 @@ namespace fhatos {
       if (currentInst->isNoObj())
         return currentInst;
       bool found = false;
-      for (const auto &inst: this->bcode_value()) {
+      for (const auto &inst: *this->bcode_value()) {
         if (found)
           return inst;
         if (inst == currentInst)
@@ -1069,7 +1070,11 @@ namespace fhatos {
       const ID_p fix = !furi ? share(ID(string("/inst/") + opcode)) : furi;
       return to_inst({args, function, itype, seed}, fix);
     }
-    static BCode_p to_bcode(const List<Inst_p> &insts, const ID_p &furi = BCODE_FURI) {
+    static BCode_p to_bcode(const InstList &insts, const ID_p &furi = BCODE_FURI) {
+      return Obj::to_bcode(share(insts), furi);
+    }
+    static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
+    static BCode_p to_bcode(const InstList_p &insts, const ID_p &furi = BCODE_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::BCODE));
       return share(BCode(insts, furi));
     }

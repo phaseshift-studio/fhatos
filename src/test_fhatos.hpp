@@ -59,7 +59,7 @@
       ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
                {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"),                                                 \
                 Parser::singleton("/sys/lang/parser/") /*FileSystem::singleton("/sys/io/fs")*/})                       \
-      ->loadModules({"/ext/process"})                                                                                  \
+      ->load_modules({"/mod/proc"})                                                                                  \
       ->defaultOutput("/home/root/repl/")
 
 #define FOS_STOP_ON_BOOT                                                                                               \

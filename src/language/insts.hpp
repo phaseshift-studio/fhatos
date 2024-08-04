@@ -110,7 +110,7 @@ namespace fhatos {
               case OType::STR:
                 return Obj::to_int(lhs->str_value().length());
               case OType::BCODE:
-                return Obj::to_int(lhs->bcode_value().size());
+                return Obj::to_int(lhs->bcode_value()->size());
               case OType::NOOBJ:
                 return Obj::to_int(0);
               default:
@@ -663,61 +663,13 @@ namespace fhatos {
               }
               return ret;
             },
-            userInstBCode->bcode_value().front()->itype());
+            userInstBCode->bcode_value()->front()->itype());
       } else {
         throw fError("!b%s!! does not resolve to bytecode: %s\n", typeId.toString().c_str(),
                      userInstBCode->toString().c_str());
       }
     }
   };
-
-  /*template<typename ROUTER = Router>
-  static Objp select(List<Obj> uris) {}
-  class SelectInst final : public OneToOneInst {
-  public:
-    explicit SelectInst(const List<ptr<Uri>> uris) :
-        OneToOneInst({"select", *(List<ptr<Obj>> *) (&uris), [this](ptr<Obj> obj) -> ptr<Obj> {
-                        RecMap<> map;
-                        for (const ptr<Obj> uri: this->v_args()) {
-                          const ptr<Uri> u = ObjHelper::checkType<OType::URI, Uri>(uri->apply(obj));
-                          ptr<Obj> key = (ptr<Obj>) u;
-                          ptr<Obj> value = ROUTER::singleton()->template read<Obj>(fURI("123"), u->value());
-                          map.insert({key, value});
-                        }
-                        return share(Rec(map));
-                      }}) {}
-    explicit SelectInst(const ptr<Rec> branches) :
-        OneToOneInst({"select", {branches}, [this](const ptr<Obj> lhs) -> const ptr<Obj> {
-                        const RecMap<> split = std::dynamic_pointer_cast<Rec>(this->arg(0))->value();
-                        RecMap<> map;
-                        for (const auto &[k, v]: split) {
-                          const ptr<Uri> key = ObjHelper::checkType<OType::URI, Uri>(k->apply(lhs));
-                          const ptr<Obj> value = v->apply(ROUTER::singleton()->read(fURI("123"), key->value()));
-                          map.insert({key, value});
-                        }
-                        return share(Rec(map));
-                      }}) {}
-  };*/
-
-  /*template<typename ROUTER = Router>
-  class AsInst final : public OneToOneInst {
-  public:
-    explicit AsInst(const ptr<Type> &utype = NoObj::self_ptr<Type>()) :
-        OneToOneInst({"as", {utype}, [this](ptr<Obj> obj) -> const ptr<Obj> {
-                        if (this->arg(0)->isNoObj())
-                          return ptr<Uri>(new Uri(obj->type()->v_furi()));
-                        const fURI utype = this->arg(0)->apply(obj)->template as<Uri>()->value();
-                        const ptr<const Obj> typeDefinition = this->_bcode->template getType<ROUTER>(utype);
-                        if (typeDefinition->type() != OType::BYTECODE && typeDefinition->type() != obj->type())
-                          return NoObj::singleton()->obj();
-                        if (typeDefinition->apply(obj)->isNoObj()) {
-                          LOG(ERROR, "%s is not a !y%s!!%s\n", obj->toString().c_str(), utype.toString().c_str(),
-                              typeDefinition->toString().c_str());
-                          return NoObj::singleton()->obj();
-                        }
-                        return cast(obj, utype);
-                      }}) {}
-  };*/
 } // namespace fhatos
 
 #endif

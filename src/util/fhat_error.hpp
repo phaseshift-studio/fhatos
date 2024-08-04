@@ -57,13 +57,6 @@ namespace fhatos {
     char _message[FOS_ERROR_MESSAGE_SIZE];
 
   public:
-    /*explicit fError(const ID& id, const char *format, ...) noexcept {
-      va_list arg;
-      va_start(arg, format);
-      int length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
-      _message[length] = '\0';
-      va_end(arg);
-    };*/
     explicit fError(const char *format, ...) noexcept {
       va_list arg;
       va_start(arg, format);
@@ -79,13 +72,9 @@ namespace fhatos {
     }
     const char *what() const noexcept override { return this->_message; };
 #endif
-    static fError X_REQUIRES_IMPLEMENTATION(const char *clazz, const char *member) {
-      return fError("Member is abstract and requires an implementation: %s::%s\n", clazz, member);
-    }
-
     static void OTYPE_CHECK(const char *typeId, const char *otype) {
       if (strcmp(typeId, otype) != 0)
-        throw fError("!b%s!! is not typed !y%s!!\n", typeId, otype);
+        throw fError("!b%s!! is not a type of !y%s!!\n", typeId, otype);
     }
   };
 } // namespace fhatos

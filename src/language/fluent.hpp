@@ -83,7 +83,7 @@ namespace fhatos {
   protected:
     [[nodiscard]] Fluent addInst(const Obj_p &inst) const {
       List<Obj_p> newList = List<Obj_p>();
-      for (const auto &oldInst: this->bcode->bcode_value()) {
+      for (const auto &oldInst: *this->bcode->bcode_value()) {
         newList.push_back(share(Obj(*oldInst)));
       }
       newList.push_back(share(Obj(*inst)));

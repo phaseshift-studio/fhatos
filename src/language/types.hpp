@@ -111,9 +111,9 @@ namespace fhatos {
       });
       if (*success) {
         if (OType::INST == OTypes.toEnum(typeId->path(0))) {
-          const Inst_p inst = Insts::to_inst(*typeId, typeDef->bcode_value());
+          const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
           LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                   typeDef->bcode_value().front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
+                   typeDef->bcode_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
         } else {
           LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
                    typeDef->toString().c_str());

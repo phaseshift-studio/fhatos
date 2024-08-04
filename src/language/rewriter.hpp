@@ -43,12 +43,12 @@ namespace fhatos {
     static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
                       [](const BCode_p &bcode) {
-                        if (bcode->bcode_value().back()->id()->equals(ID("/inst/explain"))) {
+                        if (bcode->bcode_value()->back()->id()->equals(ID("/inst/explain"))) {
                           string ex;
-                          for (const Inst_p &inst: bcode->bcode_value()) {
+                          for (const Inst_p &inst: *bcode->bcode_value()) {
                             ex += inst->toString() + "\t" + ITypeSignatures.toChars(inst->itype()) + "\n";
                           }
-                          bcode->bcode_value().back()->inst_seed()->add_obj(Obj::to_str(ex));
+                          bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
                         }
                         return bcode;
                       },
@@ -60,7 +60,7 @@ namespace fhatos {
                         Inst_p prev = Obj::to_noobj();
                         bool found = false;
                         List<Inst_p> newInsts;
-                        for (const Inst_p &inst: bcode->bcode_value()) {
+                        for (const Inst_p &inst: *bcode->bcode_value()) {
                           if (inst->id()->equals(ID("/inst/by")) && !prev->isNoObj()) {
                             found = true;
                             // rewrite args

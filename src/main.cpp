@@ -69,7 +69,7 @@ void setup() {
                       "/sys/io/fs", ID(fs::current_path()).resolve(args.option("--fs", fs::current_path().c_str()))), //
 #endif
                   new Console("/home/root/repl/")})
-        ->loadModules({"/ext/process"})
+        ->load_modules({ID("/mod/proc")})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
     Options::singleton()->printer<>()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n",

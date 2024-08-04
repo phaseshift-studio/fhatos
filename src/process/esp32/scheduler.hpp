@@ -64,7 +64,7 @@ namespace fhatos {
           const BaseType_t threadResult = xTaskCreatePinnedToCore(
             THREAD_FUNCTION, // Function that should be called
             process->id()->toString().c_str(), // Name of the task (for debugging)
-            10000, // Stack size (bytes)
+            100000, // Stack size (bytes)
             process, // Parameter to pass
             CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
             &static_cast<Thread *>(process)->handle, // Task handle

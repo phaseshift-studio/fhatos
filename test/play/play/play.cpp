@@ -19,10 +19,10 @@
 #ifndef fhatos_play_hpp
 #define fhatos_play_hpp
 
-#undef FOS_TEST_ON_BOOT
+//#undef FOS_TEST_ON_BOOT
 
 #include <language/obj.hpp>
-#include <test_fhatos.hpp>
+//#include <test_fhatos.hpp>
 
 using namespace std;
 
@@ -37,7 +37,7 @@ namespace fhatos {
 } // namespace fhatos
 
 int main(int argc, char **argv) {
-  Play *p = new Play();
+  fhatos::Play *p = new fhatos::Play();
   delete p;
   return 1;
 }

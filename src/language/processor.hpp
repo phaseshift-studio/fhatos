@@ -85,7 +85,7 @@ namespace fhatos {
       if (!this->bcode->isBytecode())
         throw fError("Processor requires a bcode obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
-      for (const Inst_p &inst: this->bcode->bcode_value()) {
+      for (const Inst_p &inst: *this->bcode->bcode_value()) {
         if (Insts::isBarrier(inst)) {
           const Monad_p monad = share(Monad(inst->inst_seed(), inst));
           this->barriers->push_back(monad);
@@ -99,7 +99,7 @@ namespace fhatos {
       // start inst forced initial
       if (this->running->empty())
         this->running->push_back(
-            share(Monad(this->bcode->bcode_value().front()->inst_seed(), this->bcode->bcode_value().front())));
+            share(Monad(this->bcode->bcode_value()->front()->inst_seed(), this->bcode->bcode_value()->front())));
     }
 
     const ptr<E> next(const int steps = -1) {

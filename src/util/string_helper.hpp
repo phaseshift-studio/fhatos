@@ -42,11 +42,14 @@ namespace fhatos {
     }
 
     static void ltrim(std::string &s) {
-      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c); }));
+      s.erase(s.begin(),
+              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 128; }));
     }
 
     static void rtrim(std::string &s) {
-      s.erase(std::find_if(s.rbegin(), s.rend(), [](const char c) { return !std::isspace(c); }).base(), s.end());
+      s.erase(
+          std::find_if(s.rbegin(), s.rend(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 128; }).base(),
+          s.end());
     }
 
     static uint8_t countSubstring(const string &str, const string &sub) {
@@ -73,68 +76,6 @@ namespace fhatos {
         ss->seekg(start);
       return true;
     }
-
-    static int split(const char *text, const char *deliminator, char **&result, const uint8_t offset = 0) {
-      char *copy = strdup(text);
-      char *token = nullptr;
-      int i = offset;
-      if (strstr(text, deliminator)) {
-        while ((token = strsep(&copy, deliminator)) != nullptr) {
-          result[i] = (char *) malloc((strlen(token) + 1) * sizeof(char));
-          strcpy(result[i], token);
-          result[i][strlen(token)] = '\0';
-          i++;
-        }
-      }
-      size_t dl = strlen(deliminator);
-      char *substr = new char[dl + 1];
-      strncpy(substr, text + (strlen(text) - dl), dl);
-      substr[dl] = '\0';
-      if (strlen(substr) > 0 && strcmp(substr, deliminator) == 0) {
-        result[i] = strdup("");
-        i++;
-      }
-      free(token);
-      free(copy);
-      return i;
-    }
-
-    /*static bool match(const char *id_cstr, const char *pattern_cstr) {
-      if (0 == strcmp(pattern_cstr, "#"))
-        return true;
-      if (!strstr(pattern_cstr, "#") && !strstr(pattern_cstr, "+"))
-        return strcmp(id_cstr, pattern_cstr) == 0;
-      // if (strlen(id_cstr) == 0 && strcmp(pattern_cstr, "#") == 0)
-      // return true;
-      char **idParts = new char *[FOS_MAX_FURI_SEGMENTS];
-      char **patternParts = new char *[FOS_MAX_FURI_SEGMENTS];
-      size_t idLength = split(id_cstr, "/", idParts);
-      if (id_cstr[strlen(id_cstr) - 1] == '/')
-        idLength++;
-      const size_t patternLength = split(pattern_cstr, "/", patternParts);
-      // LOG(DEBUG, "Matching: %s <=> %s\n", id, pattern);
-      const bool result = [idParts, patternParts, idLength, patternLength]() {
-        for (size_t i = 0; i < idLength; i++) {
-          if (i >= patternLength)
-            return false;
-          //   LOG(DEBUG, "\t%s <=%i=> %s\n", idParts[i], i, patternParts[i]);
-          if (strcmp(patternParts[i], "#") == 0)
-            return true;
-          if ((strcmp(patternParts[i], "+") != 0) && (strcmp(patternParts[i], idParts[i]) != 0))
-            return false;
-        }
-        return patternLength == idLength;
-      }();
-      for (int i = 0; i < idLength; i++) {
-        free((void *) idParts[i]);
-      }
-      for (int i = 0; i < patternLength; i++) {
-        free((void *) patternParts[i]);
-      }
-      delete[] idParts;
-      delete[] patternParts;
-      return result;
-    }*/
   };
 } // namespace fhatos
 
