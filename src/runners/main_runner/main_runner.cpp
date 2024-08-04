@@ -38,7 +38,7 @@ int main(int arg, char **argsv) {
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
                   new Console("/home/root/repl/")})
-        ->loadModules({"/ext/process"})
+        ->load_modules({"/ext/process"})
         ->defaultOutput("/home/root/repl/"); // ->done("kernel_barrier");
     Options::singleton()->printer<>()->on(false);
   } catch (const std::exception &e) {
