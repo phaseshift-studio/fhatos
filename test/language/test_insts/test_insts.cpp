@@ -19,9 +19,11 @@
 #ifndef fhatos_test_insts_cpp
 #define fhatos_test_insts_cpp
 
-#define FOS_TEST_ON_BOOT
+#undef FOS_TEST_ON_BOOT
 
 #include <fhatos.hpp>
+#include <language/insts.hpp>
+#include <language/obj.hpp>
 #include <test_fhatos.hpp>
 
 namespace fhatos {
@@ -89,18 +91,13 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (Router *router //
-           : List<Router *>{FOS_TEST_ROUTERS}) { //
-        Options::singleton()->router<Router>(router); //
-        router->clear();
-        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        // FOS_RUN_TEST(test_as);//
-        FOS_RUN_TEST(test_plus); //
-        FOS_RUN_TEST(test_mult); //
-        FOS_RUN_TEST(test_group); //
-        FOS_RUN_TEST(test_apply); //
-        FOS_RUN_TEST(test_barrier); //
-      })
+                 // FOS_RUN_TEST(test_as);//
+      FOS_RUN_TEST(test_plus); //
+      FOS_RUN_TEST(test_mult); //
+      FOS_RUN_TEST(test_group); //
+      FOS_RUN_TEST(test_apply); //
+      FOS_RUN_TEST(test_barrier); //
+  )
 } // namespace fhatos
 
 SETUP_AND_LOOP();

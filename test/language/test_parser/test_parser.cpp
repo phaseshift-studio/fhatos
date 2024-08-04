@@ -281,7 +281,11 @@ namespace fhatos {
     FOS_TEST_ERROR("__(0,1,2,3).plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");
   }
 
-  void test_window_parsing() { FOS_CHECK_RESULTS<>(List<Obj>{{1, 2}, {2, 3}, {3, 4}}, "[1,2,3,4].window([_,_])"); }
+  void test_window_parsing() {
+
+    FOS_CHECK_RESULTS<>(List<Obj>{{1, 2}, {2, 3}, {3, 4}}, "[1,2,3,4].window([_,_])");
+    FOS_CHECK_RESULTS<>(List<Obj>{"12", "23", "34"}, "'1234'.window([_,_])");
+  }
 
 
   FOS_RUN_TESTS( //

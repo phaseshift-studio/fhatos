@@ -86,7 +86,7 @@ namespace fhatos {
       for (const auto &procs: *lists) {
         this->handle_messages();
         procs->forEach([this](const auto &process) {
-          this->kill(*process->id());
+          this->_kill(*process->id());
           this->handle_messages();
         });
       }

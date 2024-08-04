@@ -336,9 +336,10 @@ namespace fhatos {
           "sub", {pattern, onRecv},
           [pattern, onRecv](const Obj_p &lhs) {
             if (onRecv->isNoObj()) {
-              Options::singleton()->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID, pattern->apply(lhs)->uri_value());
+              Options::singleton()->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID,
+                                                                  pattern->apply(lhs)->uri_value());
             } else {
-               Options::singleton()->router<Router>()->subscribe(
+              Options::singleton()->router<Router>()->subscribe(
                   Subscription{.mailbox = nullptr,
                                .source = FOS_DEFAULT_SOURCE_ID,
                                .pattern = pattern->apply(lhs)->uri_value(),
@@ -402,6 +403,21 @@ namespace fhatos {
                 }
                 if (match) {
                   ret.push_back(Obj::to_lst(share(m)));
+                }
+              }
+            } else if (obj->isLst() && lhs->isStr()) {
+              for (size_t i = 0; i <= (lhs->str_value().length() - obj->lst_value()->size()); i++) {
+                bool match = true;
+                string m;
+                for (size_t j = 0; j < obj->lst_value()->size(); j++) {
+                  const Obj_p x = obj->lst_value()->at(j)->apply(Obj::to_str(string() + lhs->str_value().at(i + j)));
+                  match = !x->isNoObj() && match;
+                  if (!match)
+                    break;
+                  m += x->str_value();
+                }
+                if (match) {
+                  ret.push_back(Obj::to_str(m));
                 }
               }
             }
