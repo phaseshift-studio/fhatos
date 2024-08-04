@@ -21,6 +21,7 @@
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/obj.hpp>
+#include <structure/space/x_space.hpp>
 namespace fhatos {
 
   using File = Uri;
@@ -41,6 +42,15 @@ namespace fhatos {
   public:
     explicit XFileSystem(const ID &id, const ID &localRoot) :
         Actor(id), _root(id_p(localRoot.extend("/"))), _current(id_p(localRoot.extend("/"))) {}
+
+
+    /* Obj_p find(const ID &id) const  {
+       if (!this->in_range(id))
+         throw ID_NOT_IN_RANGE(id, *this->range_);
+       if (this->exists(id))
+         return this->is_dir(id) ? this->to_dir(id) : this->to_file(id);
+       throw ID_DOES_NOT_EXIST(id, *this->range_);
+     };*/
 
     void setup() override {
       Actor::setup();
@@ -107,9 +117,12 @@ namespace fhatos {
     virtual ID makeFhatPath(const ID &path) const {
       return ID(path.toString().substr(this->_root->toString().length()));
     }
-    ////
+    /////
+
     virtual Dir_p root() const = 0;
     virtual bool exists(const ID &) const = 0;
+    virtual bool is_dir(const ID &) const = 0;
+    virtual bool is_file(const ID &) const = 0;
     virtual Dir_p mkdir(const ID &) const = 0;
     virtual Objs_p ls(const Dir_p &, const Pattern &) const = 0;
     virtual Obj_p more(const File_p &) const = 0;

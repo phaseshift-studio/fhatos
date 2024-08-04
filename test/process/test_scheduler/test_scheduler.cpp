@@ -10,7 +10,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/abc/thread-1"));
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->spawn(new Thread("/test/abc/thread-1"));
+    Thread *a = new Thread("/test/abc/thread-1");
+    Scheduler::singleton()->spawn(a);
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-1"));
@@ -18,7 +19,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->spawn(new Thread("/test/abc/thread-2"));
+    Thread *b = new Thread("/test/abc/thread-2");
+    Scheduler::singleton()->spawn(b);
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/abc/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/thread-2"));
@@ -28,7 +30,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/+/thread-1"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/+/thread-2"));
     ////////////////////////////////////////////////////////////////////////////
-    Scheduler::singleton()->destroy("/test/abc/thread-1");
+    Scheduler::singleton()->kill("/test/abc/thread-1");
     Scheduler::singleton()->barrier("thread-1_dead",
                                     [] { return Scheduler::singleton()->count("/test/abc/thread-1") == 0; });
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
@@ -38,8 +40,10 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/+"));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/+/thread-1"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/+/thread-2"));
-    Scheduler::singleton()->destroy("/test/abc/thread-2");
+    Scheduler::singleton()->kill("/test/abc/thread-2");
     Scheduler::singleton()->barrier("thread-2_dead", [] { return Scheduler::singleton()->count("/test/#") == 0; });
+    delete a;
+    delete b;
   }
 
   /* template<typename ROUTER>
@@ -55,7 +59,7 @@ namespace fhatos {
                                    .plus(1)
                                    .bswitch({{_.is(_.lt(0)), _.plus(0)},
                                              {_.is(_.gt(10)), _.mult(-1).ref("loop").publish(
-                                                                  Scheduler<ROUTER>::singleton()->id().query("?destroy"),
+                                                                  Scheduler<ROUTER>::singleton()->id().query("?kill"),
                                                                   Uri("test_spawn"))},
                                              {_, _.ref("loop")}})
                                    .bcode->value())},

@@ -98,7 +98,7 @@ namespace fhatos {
             CACHE->erase(*typeId);
           }
           if (!typeDef->isNoObj())
-            CACHE->insert({ID(typeId->toString()), PtrHelper::clone<Obj>(typeDef)});
+            CACHE->insert({*typeId, typeDef});
 #if FOS_USE_ROUTERS
           if (writeThrough)
             this->publish(*typeId, typeDef, true);

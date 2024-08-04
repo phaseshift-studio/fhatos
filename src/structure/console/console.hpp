@@ -120,10 +120,10 @@ namespace fhatos {
                 Options::singleton()->printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting));
               }}});
         _MENU_MAP->insert({":shutdown",
-                           {"destroy scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
+                           {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
                             []() { Scheduler::singleton()->stop(); }}});
         _MENU_MAP->insert(
-            {":quit", {"destroy console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
+            {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
     void loop() override {

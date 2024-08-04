@@ -32,7 +32,7 @@
 #include <language/exts.hpp>
 
 namespace fhatos {
-  template<typename PROCESS = Thread>
+  template<typename PROCESS = Thread/*, typename STRUCTURE = XSpace*/>
   class Actor : public PROCESS, public Publisher, public Mailbox<ptr<Mail>> {
 
   protected:

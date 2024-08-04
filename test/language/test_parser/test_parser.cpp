@@ -210,7 +210,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
     TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
-                              Options::singleton()->printer<>()->strip(rc2->toString().c_str()));
+                             Options::singleton()->printer<>()->strip(rc2->toString().c_str()).get());
   }
 
   void test_bytecode_parsing() {
@@ -266,7 +266,7 @@ namespace fhatos {
                                                                     "        loop  => |stop(/abc/)]].to(/abc/)")
                                                       .value());
     Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier(( Options::singleton()->router<Router>()->id()->toString() + "_wait").c_str(),
+    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->id()->toString() + "_wait").c_str(),
                                     [] { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 

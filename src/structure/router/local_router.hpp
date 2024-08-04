@@ -21,7 +21,7 @@
 
 #include <fhatos.hpp>
 //
-#include <structure/router/rooter.hpp>
+#include <structure/rooter.hpp>
 #include <structure/router/router.hpp>
 #include <util/pubsub_manager.hpp>
 

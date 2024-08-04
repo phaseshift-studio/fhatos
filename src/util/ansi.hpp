@@ -166,12 +166,17 @@ namespace fhatos {
       this->printer->flush();
     }
 
-    const char *strip(const char *s) {
-      auto *ansi = new Ansi<StringPrinter>(new StringPrinter(new std::string()));
+    std::shared_ptr<char> strip(const char *s) {
+      auto *a = new std::string();
+      auto *b = new StringPrinter(a);
+      auto *ansi = new Ansi<StringPrinter>(b);
       ansi->on(false);
       ansi->print(s);
       ansi->flush();
-      const char *c = strdup(ansi->getPrinter()->get()->c_str());
+      const std::shared_ptr<char> c =
+          std::shared_ptr<char>(strdup(ansi->getPrinter()->get()->c_str()), [](char *x) { free(x); });
+      delete a;
+      delete b;
       delete ansi;
       return c;
     }

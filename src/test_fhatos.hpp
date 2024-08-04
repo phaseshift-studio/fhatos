@@ -50,15 +50,15 @@
 #endif
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Kernel::build()                                                                                                      \
-      ->initialPrinter(Ansi<>::singleton())                                                                            \
-      ->initialLogLevel(FOS_LOGGING)                                                                                   \
+      ->with_printer(Ansi<>::singleton())                                                                              \
+      ->with_log_level(FOS_LOGGING)                                                                                    \
       ->initialRouter(LocalRouter::singleton())                                                                        \
-      ->withSplash(ANSI_ART)                                                                                           \
-      ->withNote("Use !bØ!! for noobj")                                                                                \
-      ->withNote("Use :help for console commands")                                                                     \
+      ->displaying_splash(ANSI_ART)                                                                                    \
+      ->displaying_notes("Use !bØ!! for noobj")                                                                        \
+      ->displaying_notes("Use :help for console commands")                                                             \
       ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
-               {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"), Parser::singleton("/sys/lang/parser/"),         \
-                FileSystem::singleton("/sys/io/fs")})                                                                  \
+               {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"),                                                 \
+                Parser::singleton("/sys/lang/parser/") /*FileSystem::singleton("/sys/io/fs")*/})                       \
       ->loadModules({"/ext/process"})                                                                                  \
       ->defaultOutput("/home/root/repl/")
 
@@ -277,7 +277,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   try {
     Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
-  } catch (const fError& error) {
+  } catch (const fError &error) {
     LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
     TEST_ASSERT_TRUE(true);
   }

@@ -27,48 +27,33 @@
 
 namespace fhatos {
 
-  class XSpace : public IDed {
+  class XSpace {
 
   protected:
-    const Pattern_p _range;
+    const Pattern_p range_;
     const unique_ptr<PubSubManager> manager_;
 
   public:
-    XSpace(const ID_p &id, const Pattern_p &range, const PubSubManager &m = PubSubManager(true)) :
-        IDed(id), _range(range), manager_(std::make_unique<PubSubManager>(&m)) {}
+    XSpace(const Pattern_p &range, const PubSubManager &m = PubSubManager(true)) :
+        range_(range), manager_(std::make_unique<PubSubManager>(&m)) {}
 
-    const PubSubManager *pubsub() const { return manager_.get(); }
+    PubSubManager *pubsub() const { return manager_.get(); }
 
-    bool in_range(const Pattern &pattern) const { return this->_range->matches(pattern); }
+    bool in_range(const Pattern &pattern) const { return this->range_->matches(pattern); }
 
-    const Pattern_p range() const { return this->_range; }
+    const Pattern_p range() const { return this->range_; }
 
-    virtual Obj_p find(const fURI &furi) const = 0;
-  };
+    virtual Obj_p find(const ID &id) const = 0;
 
-  struct SpaceBuilder {
-    const ID_p id_;
-    Pattern_p range_;
-    XSpace *space_;
-
-    SpaceBuilder(const ID_p &id) : id_(id) {}
-
-    static SpaceBuilder *start(const ID_p &id) { return new SpaceBuilder(id); }
-
-
-    SpaceBuilder *range(const Pattern_p &range) {
-      this->range_ = range;
-      return this;
+    static fError ID_NOT_IN_RANGE(const ID &id, const Pattern &pattern) {
+      return fError("!g[!b%s!g]!! is not within the boundaries of space !g[!!%s!g]!!\n", id.toString().c_str(),
+                    pattern.toString().c_str());
     }
 
-    SpaceBuilder *space(XSpace *space) {
-      this->space_ = space;
-      return this;
+    static fError ID_DOES_NOT_EXIST(const ID &id, const Pattern &pattern) {
+      return fError("!g[!b%s!g]!! does not reference an obj in space !g[!!%s!g]!!\n", id.toString().c_str(),
+                    pattern.toString().c_str());
     }
-
-    // ptr<XSpace> create() {
-    //   return share(XSpace(this->id_,this->range_));
-    // }
   };
 } // namespace fhatos
 

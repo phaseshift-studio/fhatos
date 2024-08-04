@@ -51,12 +51,12 @@ static ArgvParser args = ArgvParser();
 void setup() {
   try {
     Kernel::build()
-        ->initialPrinter(Ansi<>::singleton())
-        ->initialLogLevel(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
+        ->with_printer(Ansi<>::singleton())
+        ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
         ->initialRouter(LocalRouter::singleton())
-        ->withSplash(ANSI_ART)
-        ->withNote("Use !bØ!! for noobj abc")
-        ->withNote("Use !y:help!! for console commands")
+        ->displaying_splash(ANSI_ART)
+        ->displaying_notes("Use !bØ!! for noobj abc")
+        ->displaying_notes("Use !y:help!! for console commands")
         // ->with_int_ctype(int)
         // ->with_real_ctype(float)
         ->onBoot(Scheduler::singleton("/sys/scheduler/"), //

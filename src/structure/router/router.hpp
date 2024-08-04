@@ -213,7 +213,7 @@ namespace fhatos {
       wrap += '%';
       wrap += obj->toString(true, false);
       LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
-      return share(BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}));
+      return ptr<BObj>(new BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}), bobj_deleter);
     }
     static Pair<SourceID, Obj_p> unwrapSource(const BObj_p &bobj) {
       try {

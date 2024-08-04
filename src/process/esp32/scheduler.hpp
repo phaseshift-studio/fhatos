@@ -130,7 +130,7 @@ namespace fhatos {
         Option<Fiber *> fiber = fibers->get(counter);
         if (fiber.has_value()) {
           if (!fiber.value()->running())
-            Scheduler::singleton()->destroy(*fiber.value()->id());
+            Scheduler::singleton()->kill(*fiber.value()->id());
           else
             fiber.value()->loop();
           counter = (counter + 1) % fibers->size();
@@ -153,7 +153,7 @@ namespace fhatos {
         thread->loop();
         vTaskDelay(1); // feeds the watchdog for the task
       }
-      Scheduler::singleton()->_destroy(*thread->id());
+      Scheduler::singleton()->_kill(*thread->id());
       vTaskDelete(nullptr);
     }
   };

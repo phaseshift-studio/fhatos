@@ -86,7 +86,7 @@ namespace fhatos {
       for (const auto &procs: *lists) {
         this->handle_messages();
         procs->forEach([this](const auto &process) {
-          this->destroy(*process->id());
+          this->kill(*process->id());
           this->handle_messages();
         });
       }
@@ -96,7 +96,7 @@ namespace fhatos {
       delete lists;
       this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _destroy can finish
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _kill can finish
 #endif
         this->handle_messages();
         return true;
@@ -124,8 +124,8 @@ namespace fhatos {
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }
 
-    virtual bool spawn(XProcess *) = 0;
-    virtual bool destroy(const ID &processPattern) {
+    virtual bool spawn(XProcess*) = 0;
+    virtual bool kill(const ID &processPattern) {
       return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }
 
@@ -141,7 +141,7 @@ namespace fhatos {
       mail->get()->first->execute(mail->get()->second);
       return true;
     }
-    virtual bool _destroy(const Pattern &processPattern) {
+    virtual bool _kill(const Pattern &processPattern) {
       bool success = RW_PROCESS_MUTEX
                          .write<Bool>([this, processPattern]() {
                            // auto &gaslight1 = *reinterpret_cast<MutexDeque<ptr<Thread>> *>(THREADS);

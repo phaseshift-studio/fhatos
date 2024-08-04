@@ -21,6 +21,7 @@
 
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+#include <process/actor/actor.hpp>
 #include <process/x_process.hpp>
 #include <structure/io/terminal.hpp>
 
@@ -32,22 +33,26 @@ namespace fhatos {
       static Kernel *kernel = new Kernel();
       return kernel;
     }
-    static Kernel *initialLogLevel(const LOG_TYPE level) {
+    static Kernel *with_log_level(const LOG_TYPE level) {
       Options::singleton()->log_level(level);
       return Kernel::build();
     }
-    static Kernel *initialPrinter(Ansi<> *ansi) {
+    static Kernel *with_printer(Ansi<> *ansi) {
       Options::singleton()->printer(ansi);
       return Kernel::build();
     }
-    static Kernel *withSplash(const char *splash) {
+    static Kernel *displaying_splash(const char *splash) {
       Options::singleton()->printer<>()->print(splash);
       return Kernel::build();
     }
-    static Kernel *withNote(const char *notes) {
-     Options::singleton()->printer<>()->printf(FOS_TAB_4 "%s\n", notes);
+    static Kernel *displaying_notes(const char *notes) {
+      Options::singleton()->printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
+    static Kernel *using_scheduler(const Scheduler *) { return Kernel::build(); }
+    static Kernel *using_router(const Router *) { return Kernel::build(); }
+    static Kernel *booting_with(const List<Actor<> *> &actors) { return Kernel::build(); }
+
     static Kernel *onBoot(const Scheduler *, const List<XProcess *> &processes) {
       bool success = true;
       for (XProcess *process: processes) {

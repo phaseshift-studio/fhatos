@@ -19,6 +19,8 @@
 #ifndef fhatos_uri_hpp
 #define fhatos_uri_hpp
 
+#define FOS_MAX_PATH_SEGMENTS 10
+
 #include <fhatos.hpp>
 //
 #include <sstream>
@@ -138,7 +140,7 @@ namespace fhatos {
       newURI._port = this->_port;
       newURI._query = this->_query ? strdup(this->_query) : nullptr;
       newURI._path_length = 0;
-      newURI._path = new char *[10];
+      newURI._path = new char *[FOS_MAX_PATH_SEGMENTS];
       char *dup = strdup(path.c_str());
       std::stringstream ss = std::stringstream(dup);
       string segment;
@@ -167,10 +169,6 @@ namespace fhatos {
         newURI._path[i] = strdup(segment.c_str());
         newURI._path_length = i + 1;
         newURI.spostfix = false;
-#ifndef NATIVE
-        int x = strlen(newURI._path[newURI._path_length - 1]);
-        newURI._path[newURI._path_length - 1][x - 1] = '\0';
-#endif
       }
       free(dup);
       return newURI;
@@ -214,7 +212,7 @@ namespace fhatos {
         newURI.spostfix = true;
         return newURI;
       }
-    // const std::unique_ptr<char, void (*)(void *)> newPathChars =
+      // const std::unique_ptr<char, void (*)(void *)> newPathChars =
       //    std::unique_ptr<char, void (*)(void *)>(strdup(this->path().c_str()), free);
       string newPath = string(this->path().c_str());
       if (!this->spostfix)
@@ -321,7 +319,7 @@ namespace fhatos {
       free((void *) this->_query);
       free((void *) this->_fragment);
       for (size_t i = 0; i < this->_path_length; i++) {
-        free(_path[i]);
+        free((void *) _path[i]);
       }
       delete[] _path;
     };
@@ -393,7 +391,7 @@ namespace fhatos {
               } else {
                 if (!token.empty()) { // TODO: what about empty components?
                   if (!this->_path)
-                    this->_path = new char *[10];
+                    this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
                   this->_path[this->_path_length] = strdup(token.c_str());
                   this->_path_length = this->_path_length + 1;
                 } else {
@@ -404,7 +402,7 @@ namespace fhatos {
               token.clear();
             } else if (part == URI_PART::PATH) {
               if (!this->_path)
-                this->_path = new char *[10];
+                this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
               this->_path[this->_path_length] = strdup(token.c_str());
               this->_path_length = this->_path_length + 1;
               this->spostfix = true;
@@ -416,7 +414,7 @@ namespace fhatos {
             if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
               if (!token.empty()) {
                 if (!this->_path)
-                  this->_path = new char *[10];
+                  this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
                 this->_path[this->_path_length] = strdup(token.c_str());
                 this->_path_length = this->_path_length + 1;
               } else
@@ -462,7 +460,7 @@ namespace fhatos {
           if ((!foundAuthority && /*part != URI_PART::FRAGMENT &&*/ part != URI_PART::QUERY) ||
               part == URI_PART::PATH || part == URI_PART::SCHEME) {
             if (!this->_path)
-              this->_path = new char *[10];
+              this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
             this->_path[this->_path_length] = strdup(token.c_str());
             this->_path_length = this->_path_length + 1;
           } else if (part == URI_PART::HOST || part == URI_PART::USER) {

@@ -37,7 +37,7 @@ namespace fhatos {
                   if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
                     const string copy = string(message->payload->str_value());
                     if (strcmp(message->target.name(), "no_color") == 0) {
-                      const char *no = Options::singleton()->printer<>()->strip(copy.c_str());
+                      const char *no = Options::singleton()->printer<>()->strip(copy.c_str()).get();
                       Options::singleton()->printer<>()->print(no);
                       free((void *) no);
                     } else

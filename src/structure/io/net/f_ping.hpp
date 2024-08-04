@@ -96,7 +96,7 @@ namespace fhatos {
                       },
                       {
                         "?stop", [this](const SourceID &, const TargetID &target) {
-                          Scheduler::singleton()->destroy(target.query(""));
+                          Scheduler::singleton()->kill(target.query(""));
                         }
                       },
                       {

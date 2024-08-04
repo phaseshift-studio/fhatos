@@ -33,18 +33,22 @@ namespace fhatos {
       static FileSystem fs = FileSystem(id, root);
       return &fs;
     }
+    bool is_dir(const ID &path) const override { return fs::is_directory(fs::path(makeNativePath(path).toString())); }
+    bool is_file(const ID &path) const override {
+      return fs::is_regular_file(fs::path(makeNativePath(path).toString()));
+    }
     bool exists(const ID &path) const override {
       return fs::is_regular_file(fs::path(makeNativePath(path).toString())) ||
              fs::is_directory(fs::path(makeNativePath(path).toString()));
     }
     File_p to_file(const ID &path) const override {
-      if (is_regular_file(fs::path(makeNativePath(path).toString())))
+      if (this->is_file(path))
         return Obj::to_uri(path, FILE_FURI);
       throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->id()->toString().c_str(),
                    path.toString().c_str());
     }
     Dir_p to_dir(const ID &path) const override {
-      if (is_directory(fs::path(makeNativePath(path).toString())))
+      if (this->is_dir(path))
         return Obj::to_uri(path, DIR_FURI);
       throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->id()->toString().c_str(),
                    path.toString().c_str());
@@ -52,8 +56,8 @@ namespace fhatos {
     ID makeNativePath(const ID &path) const override {
       const fURI localPath = this->_root->resolve(path.toString().c_str());
       if (!this->_root->is_subfuri_of(localPath)) {
-        throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n", this->id()->toString().c_str(),
-                     localPath.toString().c_str(), this->_root->toString().c_str());
+        throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
+                     this->id()->toString().c_str(), localPath.toString().c_str(), this->_root->toString().c_str());
       }
       return localPath;
     }
@@ -69,8 +73,7 @@ namespace fhatos {
       auto *listing = new List<Uri_p>();
       for (const auto &p: fs::directory_iterator(fs::path(makeNativePath(dir->uri_value()).toString()))) {
         if ((fs::is_directory(p) || fs::is_regular_file(p)) /*&& ID(p.path()).matches(pattern)*/) {
-          const ID pp =
-              ID(p.path().string().substr(this->_root->toString().length())); // clip off local mount location
+          const ID pp = ID(p.path().string().substr(this->_root->toString().length())); // clip off local mount location
           // if (pp.matches(pattern)) {
           listing->push_back(fs::is_directory(p) ? to_dir(pp) : to_file(pp));
         }

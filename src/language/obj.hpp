@@ -124,6 +124,10 @@ namespace fhatos {
     MANY_TO_ONE,
     MANY_TO_MANY,
   }; // TYPE
+  static Consumer<BObj *> bobj_deleter = [](BObj *bobj) {
+    free(bobj->second);
+    delete bobj;
+  };
   static const Enums<IType> ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "Ø"},
                                                          {IType::ZERO_TO_ONE, "Ø"},
                                                          {IType::ZERO_TO_MANY, "Ø"},
@@ -532,7 +536,7 @@ namespace fhatos {
                             .append(objString)
                             .append(this->isInst() ? "!g)!!" : "!g]!!")
                       : objString;
-      return ansi ? objString : Options::singleton()->printer<>()->strip(objString.c_str());
+      return ansi ? objString : string(Options::singleton()->printer<>()->strip(objString.c_str()).get());
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     // operator const Obj_p &() { return shared_from_this(); }
@@ -1024,11 +1028,11 @@ namespace fhatos {
       return share(Obj(xlst, furi));
     }
     static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &furi = LST_FURI) {
-      LstList<> list = LstList<>();
+      LstList_p<> list = share(LstList<>());
       for (const auto &obj: xlst) {
-        list.push_back(share(obj));
+        list->push_back(share(obj));
       }
-      return to_lst(share(list), furi);
+      return to_lst(list, furi);
     }
     static Lst_p to_lst(const std::initializer_list<Obj_p> &xlst, const ID_p &furi = LST_FURI) {
       return to_lst(share(LstList<>(xlst)), furi);
@@ -1087,25 +1091,22 @@ namespace fhatos {
     ptr<BObj> serialize() const {
       LOG(TRACE, "Serializing %s\n", this->toString().c_str());
       if (this->isNoObj()) {
-        auto *bytes = new fbyte[1];
+        auto *bytes = static_cast<fbyte *>(malloc(1));
         bytes[0] = 'x';
-        return share(BObj{1, bytes});
+        return {new BObj{1, bytes}, bobj_deleter};
       }
       // auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
       // memcpy(bytes, reinterpret_cast<const fbyte *>(this->toString().c_str()), this->toString().length());
-      const char *z = Ansi<>::singleton()->strip(this->toString().c_str());
-      BObj_p bobj = share(BObj{this->toString().length(), (fbyte *) strdup(z)});
-      free((void *) z);
-      return bobj;
+      return ptr<BObj>(new BObj{this->toString().length(),
+                                (fbyte *) strdup(Ansi<>::singleton()->strip(this->toString().c_str()).get())},
+                       bobj_deleter);
     }
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> &bobj) {
       LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
       if (bobj->first == 1 && bobj->second[0] == 'x')
         return Obj::to_noobj();
-      const Obj_p obj = TYPE_PARSER(string((char *) bobj->second, bobj->first));
-      // ptr<OBJ> obj = ptr<OBJ>(new Obj(*((OBJ *) bobj->second)));
-      return obj;
+      return TYPE_PARSER(string((char *) bobj->second, bobj->first));
     }
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
