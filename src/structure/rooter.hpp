@@ -30,46 +30,40 @@ namespace fhatos {
   public:
     Rooter(const ID &id) : IDed(share(id)) {}
 
-    virtual void create(Structure *structure) {
+    virtual void attach(Structure *structure) {
       this->structures.forEach([structure](Structure *s) {
         if (structure->type()->matches(*s->type()) || s->type()->matches(*structure->type())) {
           throw fError("Only !ydisjoint structures!! can coexist: !g[!y%m!g]!! is within !g[!m%s!g]!!\n",
                        s->type()->toString().c_str(), s->type()->toString().c_str());
         }
       });
+      LOG_TASK(INFO, this, "attached structure %s\n", structure->type()->toString().c_str());
       this->structures.push_back(structure);
     }
 
-    virtual void destroy(const Pattern_p &structurePattern) {
-      this->structures.remove_if([structurePattern](Structure *structure) -> bool {
+    virtual void detach(const Pattern_p &structurePattern) {
+      this->structures.remove_if([structurePattern](Structure *structure) {
         if (structure->type()->matches(*structurePattern)) {
           structure->close();
+          // LOG_TASK(fhatos::LOG_TYPE::INFO, this, "detaching structure %s\n", structure->type()->toString().c_str());
           return true;
         }
         return false;
       });
     }
 
-    bool hold(const Subscription_p &sub) {
-      /*this->structures.forEach([message](Structure* structure) {
+    bool route(const Message_p &message) {
+      this->structures.forEach([message](const Structure *structure) {
         if (message->target.matches(*structure->type())) {
-          structure->push(message);
-        }
-      });*/
-    }
-
-    bool recv(const Message_p &message) {
-      this->structures.forEach([message](Structure *structure) {
-        if (message->target.matches(*structure->type())) {
-          //structure->push(message);
+          structure->recieve(message);
         }
       });
     }
 
     bool route(const Subscription_p &subscription) {
-      this->structures.forEach([subscription](Structure *structure) {
+      this->structures.forEach([subscription](const Structure *structure) {
         if (subscription->pattern.matches(*structure->type())) {
-          //structure->push(subscription);
+          structure->recieve(subscription);
         }
       });
       return true;

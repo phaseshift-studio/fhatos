@@ -41,16 +41,9 @@ namespace fhatos {
     virtual void open() { this->_available.store(true); }
     virtual void maintain() {}
     virtual void close() { this->_available.store(false); }
-    virtual void handle(Message_p &message) = 0;
-    virtual void handle(Subscription_p &subscription) = 0;
+    virtual void recieve(const Message_p &message) const = 0;
+    virtual void recieve(const Subscription_p &subscription) const = 0;
     bool available() { return this->_available; }
-
-    ////////////////////////
-
-    static fError OBJ_OBJ_FUNCTION_ERROR(const Obj objA, const char *messageA, const Obj objB, const char *messageB) {
-      return fError("!b%s!g[!!%s!g]!! !y%s %s!! %s\n", OTypes.toChars(objA.o_type()), objA.toString().c_str(), messageA,
-                    objB.toString().c_str(), messageB);
-    }
   };
 
 } // namespace fhatos

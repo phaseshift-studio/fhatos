@@ -23,7 +23,7 @@
 //
 #include <process/actor/mailbox.hpp>
 #include <structure/furi.hpp>
-#include <structure/router/message.hpp>
+#include <structure/router/pubsub_artifacts.hpp>
 #include <util/enums.hpp>
 #ifndef NATIVE
 // #include <structure/io/net/f_wifi.hpp>
@@ -64,32 +64,6 @@
       ((message).source.toString().c_str()))
 
 namespace fhatos {
-  ///////////////////////////////////////////////////
-  /////////////// SUBSCRIPTION STRUCT ///////////////
-  ///////////////////////////////////////////////////
-  enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
-
-  struct Subscription;
-  using Subscription_p = ptr<Subscription>;
-  using Message_p = ptr<Message>;
-  struct Subscription {
-    using Mail = Pair<const Subscription_p, const Message_p>;
-    using Mail_p = ptr<Mail>;
-    Mailbox<Mail_p> *mailbox = nullptr;
-    ID source;
-    Pattern pattern;
-    QoS qos = QoS::_1;
-    Consumer<const Message_p> onRecv = [](const Message_p &) {};
-    BCode_p onRecvBCode = nullptr;
-
-    bool match(const ID &target) const { return this->pattern.matches(target); }
-
-    void execute(const Message_p &message) const { onRecv(message); }
-  };
-
-
-  using Mail = Pair<const Subscription_p, const Message_p>;
-  using Mail_p = ptr<Mail>;
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
   //////////////////////////////////////////////

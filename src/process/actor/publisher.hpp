@@ -20,7 +20,7 @@
 #define fhatos_publisher_hpp
 
 #include <process/actor/mailbox.hpp>
-#include <structure/router/message.hpp>
+#include <structure/router/pubsub_artifacts.hpp>
 #include <structure/router/router.hpp>
 
 namespace fhatos {

@@ -23,7 +23,7 @@
 //
 #include <structure/router/local_router.hpp>
 #include FOS_MQTT(mqtt_router.hpp)
-#include <structure/router/message.hpp>
+#include <structure/router/pubsub_artifacts.hpp>
 #include <structure/router/router.hpp>
 
 namespace fhatos {

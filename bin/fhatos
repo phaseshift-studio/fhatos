@@ -1,7 +1,5 @@
 #!/bin/bash
 
-OPCODE="start plus mult =>"
-
 if [[ $1 == "esp" ]]; then
   rlwrap --always-readline pio device monitor -b 115200 -f direct --echo
 else

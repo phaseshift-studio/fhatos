@@ -18,7 +18,6 @@
 
 #include <fhatos.hpp>
 #include <structure/kernel.hpp>
-#include <util/argv_parser.hpp>
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/x_process.hpp>
@@ -46,8 +45,31 @@
 #endif
 #endif
 
+namespace fhatos {
+  class ArgvParser {
+    Map<const string, string> _map = Map<const string, string>();
+  public:
+    void init(const int &argc, char **argv) {
+      for (int i = 1; i < argc; ++i) {
+        const string temp = string(argv[i]);
+        size_t j = temp.find_first_of('=');
+        if (j != string::npos) {
+          string key = temp.substr(0, j);
+          string value = temp.substr(j + 1);
+          this->_map.insert({key, value});
+        }
+      }
+    }
+    string option(const string &option, const char *orElse) const {
+      return this->_map.count(option) ? this->_map.at(option) : orElse;
+    }
+  };
+} // namespace fhatos
 using namespace fhatos;
 static ArgvParser args = ArgvParser();
+/////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 void setup() {
   try {
     Kernel::build()
@@ -83,7 +105,9 @@ void setup() {
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler
 }
-
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 #ifdef NATIVE
 int main(int argc, char **argv) {
   args.init(argc, argv);

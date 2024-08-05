@@ -24,7 +24,7 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <fhatos.hpp>
-#include <structure/router/message.hpp>
+#include <structure/router/pubsub_artifacts.hpp>
 #include <structure/router/router.hpp>
 #include <structure/io/net/f_wifi.hpp>
 #include <util/mutex_deque.hpp>
