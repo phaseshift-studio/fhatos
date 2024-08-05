@@ -10,29 +10,47 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 #BOLDGREEN='\033[1;32m'
 MAGENTA='\033[0;35m'
-#BLUE='\033[0;34m'
-FHATOS="${MAGENTA}FhatOS${NC}"
+BLUE='\033[0;34m'
+FHATOS="${MAGENTA}F${GREEN}h${BLUE}a${RED}t${MAGENTA}O${BLUE}S${NC}"
+LB="${MAGENTA}[${NC}"
+RB="${MAGENTA}]${NC}"
 #############################
 
-echo -e "${FHATOS} Development Script"
+echo -e "${FHATOS} ${MAGENTA}Development Script${NC}"
+if [ -z "$FHATOS_HOME" ]; then
+  echo -e " ${RED}FHATOS_HOME${NC} must be set to proceed";
+  exit
+else
+  echo -e " ${GREEN}FHATOS_HOME${NC} set to ${BLUE}${FHATOS_HOME}${NC}";
+  cd "${FHATOS_HOME}" || exit
+fi
+
+if [[ -z $1  ]]; then
+  filter=" "
+  echo -e " ${LB}no operation to perform${RB}"
+  exit
+else
+  echo -e " ${LB}performing ${GREEN}$1${NC}${RB}"
+fi
 
 if [[ -z $2 ]]; then
   environ=" "
   platform=" "
-  echo -e "  [processing ${GREEN}all environments${NC}]"
+  echo -e " ${LB}processing ${GREEN}all environments${NC}${RB}"
 else
   environ="--environment $2"
   platform="$2"
-  echo -e "  [processing ${GREEN}$environ${NC}]"
+  echo -e " ${LB}processing ${GREEN}$environ${NC}${RB}"
 fi
 
 if [[ -z $3  ]]; then
   filter=" "
-  echo -e "  [no test filtering]"
+  echo -e " ${LB}no test filtering${RB}"
 else
   filter="--filter=$3"
-  echo -e "  [filtering tests: ${GREEN}$filter${NC}]"
+  echo -e " ${LB}filtering tests: ${GREEN}$filter${NC}${RB}"
 fi
+echo -e " ${LB}current location: ${BLUE}$(pwd)${NC}${RB}"
 
 clean_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
@@ -43,8 +61,6 @@ clean_native() {
      rm -rf docs/build/
      rm -rf test/build/
      platformio run --target clean
-    echo -e "${RED}IMPORTANT${NC}"
-    echo -e "    ...next operation builds project from scratch ${GREEN}cmake${NC} ${RED}=>${NC} ${GREEN}cmake_install.cmake${NC} ${RED}=>${NC} ${GREEN}make${NC} ${RED}=>${NC} ${GREEN}platformio${NC}]"
   fi
 }
 
@@ -56,10 +72,9 @@ clean_esp32() {
 
 make_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
-    mkdir build;
     cd build || exit;
     cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
-    cmake -P cmake_install.cmake; make make -j8 -o1; # j8 parallel and o1 low optimization level
+    make make -j8 -o1; # j8 parallel and o1 low optimization level
     cd ..;
   fi
 }
@@ -73,11 +88,9 @@ make_esp32() {
 test_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
     make_native
-    cd build || exit;
-    cd test || exit;
+    cd build/teset || exit;
     ctest
-    cd ..
-    cd ..
+    cd ../..
   fi
 }
 
