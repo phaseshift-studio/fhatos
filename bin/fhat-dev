@@ -19,16 +19,16 @@ RB="${MAGENTA}]${NC}"
 echo -e "${FHATOS} ${MAGENTA}Development Script${NC}"
 if [ -z "$FHATOS_HOME" ]; then
   echo -e " ${RED}FHATOS_HOME${NC} must be set to proceed";
-  exit
+  exit 1
 else
   echo -e " ${GREEN}FHATOS_HOME${NC} set to ${BLUE}${FHATOS_HOME}${NC}";
-  cd "${FHATOS_HOME}" || exit
+  cd "${FHATOS_HOME}" || exit 1
 fi
 
 if [[ -z $1  ]]; then
   filter=" "
   echo -e " ${LB}no operation to perform${RB}"
-  exit
+  exit 1
 else
   echo -e " ${LB}performing ${GREEN}$1${NC}${RB}"
 fi
@@ -72,9 +72,9 @@ clean_esp32() {
 
 make_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
-    cd build || exit;
+    cd build || exit 1;
     cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
-    make make -j8 -o1; # j8 parallel and o1 low optimization level
+    make -j8 -o1; # j8 parallel and o1 low optimization level
     cd ..;
   fi
 }
@@ -88,7 +88,7 @@ make_esp32() {
 test_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
     make_native
-    cd build/teset || exit;
+    cd build/test || exit 1;
     ctest
     cd ../..
   fi
