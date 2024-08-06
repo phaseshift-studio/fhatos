@@ -444,7 +444,7 @@ namespace fhatos {
           else if (c == '\'')
             quote = !quote;
           ///////////////////////////////////////////////////////////////
-          if (paren == 0 && bracket == 0 && !quote && ss.peek() == '.') {
+          if ((unary || paren == 0) && bracket == 0 && !quote && ss.peek() == '.') {
             ss.get();
             break;
           }

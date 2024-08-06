@@ -59,7 +59,7 @@
       ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
                {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"),                                                 \
                 Parser::singleton("/sys/lang/parser/") /*FileSystem::singleton("/sys/io/fs")*/})                       \
-      ->load_modules({"/mod/proc"})                                                                                  \
+      ->load_modules({"/mod/proc"})                                                                                    \
       ->defaultOutput("/home/root/repl/")
 
 #define FOS_STOP_ON_BOOT                                                                                               \
@@ -346,6 +346,20 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
   if (!parse.has_value())
     throw fError("Unable to parse: %s\n", monoid.c_str());
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
+  Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
+  if (!parse.has_value())
+    throw fError("Unable to parse monoid: %s\n", monoid.c_str());
+  List<Obj> expectedResults = List<Obj>();
+  for (const auto &result: expected) {
+    Option<Obj_p> parse2 = Parser::singleton()->tryParseObj(result);
+    if (!parse2.has_value())
+      throw fError("Unable to parse expected result: %s\n", result.c_str());
+    expectedResults.push_back(*parse2.value());
+  }
+  return FOS_CHECK_RESULTS<Obj>(expectedResults, Fluent(parse.value()));
 }
 #endif
 #endif

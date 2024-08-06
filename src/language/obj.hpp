@@ -247,15 +247,18 @@ namespace fhatos {
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
     template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *typeId = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(typeId))) {}
+    Obj(const T xbool, const char *typeId = EMPTY_CHARS) :
+        Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(typeId))) {}
     Obj(const FL_INT_TYPE xint, const char *typeId = EMPTY_CHARS) :
         Obj(Any(xint), OType::INT, id_p(INT_FURI->resolve(typeId))) {}
     Obj(const FL_REAL_TYPE xreal, const char *typeId = EMPTY_CHARS) :
         Obj(Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(typeId))) {}
-    Obj(const fURI &xuri, const char *typeId = EMPTY_CHARS) : Obj(Any(xuri), OType::URI, id_p(URI_FURI->resolve(typeId))) {}
+    Obj(const fURI &xuri, const char *typeId = EMPTY_CHARS) :
+        Obj(Any(xuri), OType::URI, id_p(URI_FURI->resolve(typeId))) {}
     Obj(const char *xstr, const char *typeId = EMPTY_CHARS) :
         Obj(Any(string(xstr)), OType::STR, id_p(STR_FURI->resolve(typeId))) {}
-    Obj(const string &xstr, const char *typeId = EMPTY_CHARS) : Obj(Any(xstr), OType::STR, id_p(STR_FURI->resolve(typeId))) {}
+    Obj(const string &xstr, const char *typeId = EMPTY_CHARS) :
+        Obj(Any(xstr), OType::STR, id_p(STR_FURI->resolve(typeId))) {}
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *typeId = EMPTY_CHARS) :
         Obj(Any(share(RecMap<>())), OType::REC, id_p(REC_FURI->resolve(typeId))) {
       auto map = this->value<RecMap<>>();
@@ -330,6 +333,11 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<LstList_p<>>();
     }
+    void lst_add(const Obj_p &obj) const {
+      if (!this->isLst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      this->lst_value()->push_back(obj);
+    }
     Obj_p lst_get(const Int_p &index) const {
       if (!this->isLst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -390,6 +398,7 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<InstList_p>();
     }
+
     const BCode_p add_inst(const Inst_p &inst, const bool mutate = true) {
       if (!this->isBytecode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -1021,6 +1030,10 @@ namespace fhatos {
     static Uri_p to_uri(const char *value, const ID_p &furi = URI_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::URI));
       return share(Obj(fURI(value), furi));
+    }
+    static Lst_p to_lst(const ID_p &furi = LST_FURI) {
+      fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::LST));
+      return share(Obj(share(LstList<>()), furi));
     }
     static Lst_p to_lst(const LstList_p<> &xlst, const ID_p &furi = LST_FURI) {
       fError::OTYPE_CHECK(furi->path(0), OTypes.toChars(OType::LST));

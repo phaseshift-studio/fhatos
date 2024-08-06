@@ -453,6 +453,31 @@ namespace fhatos {
       return Obj::to_inst("block", {rhs}, [rhs](const Objs_p &) { return rhs; }, IType::ONE_TO_ONE);
     }
 
+    static Poly_p split(const Poly_p &poly) {
+      return Obj::to_inst("split", {poly}, [poly](const Poly_p &lhs) { return poly->apply(lhs); }, IType::ONE_TO_ONE);
+    }
+
+    static Poly_p each(const Poly_p &poly) {
+      return Obj::to_inst(
+          "each", {poly},
+          [poly](const Poly_p &lhs) {
+            if (lhs->isLst()) {
+              Lst_p ret = Obj::to_lst();
+              for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
+                if (poly->lst_value()->size() >= i) {
+                  ret->lst_add(poly->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
+                } else {
+                  ret->lst_add(Obj::to_noobj()->apply(lhs->lst_value()->at(i)));
+                }
+              }
+              return ret;
+            } else {
+              throw fError("each() currently only supports lst poly");
+            }
+          },
+          IType::ONE_TO_ONE);
+    }
+
   private:
     static Obj_p embed_function(const Uri_p &lhs, const Obj_p &rhs) {
       if (rhs->isLst()) {
@@ -522,10 +547,10 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"*", "from"}, {"~>", "embed"},  {"<~", "embed_inv"}, {"<->", "both"},
-                                        {"<-", "to"},  {"->", "to_inv"}, {"|", "block"},      {">=", "gte"},
-                                        {"<=", "lte"}, {"==", "eq"},     {"!=", "neq"},       {">", "gt"},
-                                        {"<", "lt"}};
+      static Map<string, string> map = {{"*", "from"},       {"=", "each"},   {"-<", "split"}, {"~>", "embed"},
+                                        {"<~", "embed_inv"}, {"<->", "both"}, {"<-", "to"},    {"->", "to_inv"},
+                                        {"|", "block"},      {">=", "gte"},   {"<=", "lte"},   /*{"==", "eq"},*/
+                                        {"!=", "neq"},       {">", "gt"},     {"<", "lt"}};
       return map;
     }
 
@@ -653,6 +678,10 @@ namespace fhatos {
         return Insts::barrier(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("block"))
         return Insts::block(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("split"))
+        return Insts::split(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("each"))
+        return Insts::each(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("embed") || typeId == INST_FURI->resolve("~>"))
         return Insts::embed(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("embed_inv") || typeId == INST_FURI->resolve("<~"))

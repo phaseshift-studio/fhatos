@@ -121,10 +121,10 @@ namespace fhatos {
     Types::singleton()->saveType(id_p("/lst/btype"), Obj::to_bcode());
     Types::singleton()->saveType(id_p("/lst/ctype"), Obj::to_bcode());
     Types::singleton()->saveType(id_p("/bool/abool"), Obj::to_bcode());
-    //////////
+    ///// EMPTY LIST
     FOS_CHECK_RESULTS<Obj>({*Obj::to_lst(share(List<Obj_p>()))}, "[]"); // empty list
     FOS_CHECK_RESULTS<Obj>({*Obj::to_lst(share(List<Obj_p>()), id_p("/lst/atype"))}, "atype[[]]"); // empty list
-    //////////
+    ///// CONSTRUCTION PERMUTATIONS
     const auto lsts = List<Trip<string, List<Obj_p>, fURI>>(
         {{"['a',13,<actor>,false]",
           {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
@@ -166,6 +166,11 @@ namespace fhatos {
       TEST_ASSERT_FALSE(l->lst_get(share(Int(3)))->bool_value());
       FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *l->id());
     }
+    ////////// SPLIT
+    FOS_SHOULD_RETURN({"1"}, "1");
+    FOS_SHOULD_RETURN({"[1,1]"}, "1.-<[_,_]");
+    FOS_SHOULD_RETURN({"[3,5]"}, "1.-<[_,_].=[+2,+4]");
+    FOS_SHOULD_RETURN({"[3,true]"}, "1.-<[_,_].=[+2,+4].=[_,type().eq(/int/)]");
   }
 
   void test_rec_parsing() {
