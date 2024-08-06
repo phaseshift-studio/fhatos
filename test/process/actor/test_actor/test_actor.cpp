@@ -173,8 +173,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
       for (Router *router //
-           : List<Router *>{/*FOS_TEST_ROUTERS*/LocalRouter::singleton()}) {
-        //
+           : List<Router *>{FOS_TEST_ROUTERS}) { //
         Options::singleton()->router<Router>(router); //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //

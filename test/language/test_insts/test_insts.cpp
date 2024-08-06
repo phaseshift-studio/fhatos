@@ -91,7 +91,6 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-                 // FOS_RUN_TEST(test_as);//
       FOS_RUN_TEST(test_plus); //
       FOS_RUN_TEST(test_mult); //
       FOS_RUN_TEST(test_group); //

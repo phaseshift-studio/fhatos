@@ -313,7 +313,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_define_as_parsing); //
         // FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_process_thread_parsing); //
-        // FOS_RUN_TEST(test_group_parsing); //
+        FOS_RUN_TEST(test_group_parsing); //
         FOS_RUN_TEST(test_window_parsing); //
 
 

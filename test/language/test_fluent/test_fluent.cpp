@@ -133,7 +133,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //
         FOS_RUN_TEST(test_count); //
-        // FOS_RUN_TEST(test_relational_predicates); //
+        FOS_RUN_TEST(test_relational_predicates); //
         // FOS_RUN_TEST(test_define_as_type); //
       })
 } // namespace fhatos
