@@ -59,28 +59,33 @@ MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVE
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
 ##################################
-MESSAGE(CHECK_START "${.y}Testing Internet connection${..}")
-IF (MSVC)
-    EXECUTE_PROCESS(
-            COMMAND ping www.google.com -n 2
-            ERROR_QUIET
-            RESULT_VARIABLE NO_CONNECTION
-    )
+OPTION(CHECK_INTERNET "Check Internet" ON) # ON/OFF
+IF (CHECK_INTERNET)
+    MESSAGE(CHECK_START "${.y}Testing Internet connection${..}")
+    IF (MSVC)
+        EXECUTE_PROCESS(
+                COMMAND ping www.google.com -n 2
+                ERROR_QUIET
+                RESULT_VARIABLE NO_CONNECTION
+        )
+    ELSE ()
+        EXECUTE_PROCESS(
+                COMMAND ping www.google.com -c 2
+                ERROR_QUIET
+                RESULT_VARIABLE NO_CONNECTION
+        )
+    ENDIF ()
+    IF (NOT NO_CONNECTION EQUAL 0)
+        SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
+        MESSAGE(WARNING "${.r}\\__Fetch offline mode${..}: requires already populated _deps")
+    ELSE ()
+        SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
+        MESSAGE(NOTICE "${.g}\\__Fetch online mode${..}: automatically populates _deps")
+    ENDIF ()
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ELSE ()
-    EXECUTE_PROCESS(
-            COMMAND ping www.google.com -c 2
-            ERROR_QUIET
-            RESULT_VARIABLE NO_CONNECTION
-    )
-ENDIF ()
-IF (NOT NO_CONNECTION EQUAL 0)
     SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
-    MESSAGE(WARNING "${.r}\\__Fetch offline mode${..}: requires already populated _deps")
-ELSE ()
-    SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-    MESSAGE(NOTICE "${.g}\\__Fetch online mode${..}: automatically populates _deps")
 ENDIF ()
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ##################################
 
 ######## PROJECT LIBRARY (NATIVE)

@@ -84,7 +84,7 @@ namespace fhatos {
     explicit Processor(const BCode_p &bcode) : bcode(bcode) {
       if (!this->bcode->isBytecode())
         throw fError("Processor requires a bcode obj to execute: %s\n", bcode->toString().c_str());
-      this->bcode = Rewriter({Rewriter::by()}).apply(this->bcode);
+      this->bcode = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode);
       for (const Inst_p &inst: *this->bcode->bcode_value()) {
         if (Insts::isBarrier(inst)) {
           const Monad_p monad = share(Monad(inst->inst_seed(), inst));

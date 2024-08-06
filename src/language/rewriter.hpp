@@ -21,6 +21,7 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
+#include <util/string_printer.hpp>
 
 namespace fhatos {
   using PriorPost = Pair<List<ID>, List<ID>>;
@@ -44,11 +45,18 @@ namespace fhatos {
       return Rewrite({ID("/lang/rewrite/explain"),
                       [](const BCode_p &bcode) {
                         if (bcode->bcode_value()->back()->id()->equals(ID("/inst/explain"))) {
-                          string ex;
+                          auto *ex = new string();
+                          auto *t = new StringPrinter(ex);
+                          auto p = Ansi<StringPrinter>(t);
+                          bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
+                          p.printf("\n!r!_%s\t  %s\t\t\t%s!!\n", "op", "inst", "domain/range");
                           for (const Inst_p &inst: *bcode->bcode_value()) {
-                            ex += inst->toString() + "\t" + ITypeSignatures.toChars(inst->itype()) + "\n";
+                            p.printf("!b%s!!\t  %s\t\t\t%s\n", inst->inst_op().c_str(), inst->toString().c_str(),
+                                     ITypeSignatures.toChars(inst->itype()));
                           }
-                          bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
+                          bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(*ex));
+                          delete t;
+                          // return Obj::to_bcode({Insts::start(Obj::to_str(ex))});
                         }
                         return bcode;
                       },

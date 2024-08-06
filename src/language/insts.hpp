@@ -37,7 +37,7 @@ namespace fhatos {
 
     static Obj_p explain() {
       return Obj::to_inst(
-          "explain", {}, [](const Objs_p &lhs) { return lhs->objs_value()->front(); }, IType::MANY_TO_ONE,
+          "explain", {}, [](const Objs_p &lhs) { return lhs; }, IType::MANY_TO_MANY,
           Obj::to_objs(List<Obj_p>({})));
     }
 
@@ -457,6 +457,51 @@ namespace fhatos {
       return Obj::to_inst("split", {poly}, [poly](const Poly_p &lhs) { return poly->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
+    static Obj_p merge1() {
+      return Obj::to_inst(
+          "merge1", {},
+          [](const Poly_p &lhs) {
+            Objs_p objs = Obj::to_objs();
+            if (lhs->isLst()) {
+              for (const auto &obj: *lhs->lst_value()) {
+                objs->objs_value()->push_back(obj);
+              }
+            }
+            return objs;
+          },
+          IType::ONE_TO_MANY);
+    }
+
+    static Obj_p merge2() {
+      return Obj::to_inst(
+          "merge2", {},
+          [](const Poly_p &lhs) {
+            if (lhs->isLst()) {
+              for (const auto &obj: *lhs->lst_value()) {
+                if (!obj->isNoObj())
+                  return obj;
+              }
+            }
+            return Obj::to_noobj();
+          },
+          IType::ONE_TO_ONE);
+    }
+
+    static Obj_p merge3() {
+      return Obj::to_inst(
+          "merge3", {},
+          [](const Poly_p &lhs) {
+            Obj_p ret = Obj::to_noobj();
+            if (lhs->isLst()) {
+              for (const auto &obj: *lhs->lst_value()) {
+                ret = obj->apply(ret);
+              }
+            }
+            return ret;
+          },
+          IType::ONE_TO_ONE);
+    }
+
     static Poly_p each(const Poly_p &poly) {
       return Obj::to_inst(
           "each", {poly},
@@ -547,10 +592,11 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"*", "from"},       {"=", "each"},   {"-<", "split"}, {"~>", "embed"},
-                                        {"<~", "embed_inv"}, {"<->", "both"}, {"<-", "to"},    {"->", "to_inv"},
-                                        {"|", "block"},      {">=", "gte"},   {"<=", "lte"},   /*{"==", "eq"},*/
-                                        {"!=", "neq"},       {">", "gt"},     {"<", "lt"}};
+      static Map<string, string> map = {{"__", "start"}, {"*", "from"},   {"=", "each"},
+                                        {"-<", "split"}, {"~>", "embed"}, {"<~", "embed_inv"},
+                                        {"<->", "both"}, {"<-", "to"},    {"->", "to_inv"},
+                                        {"|", "block"},  {">=", "gte"},   {"<=", "lte"}, /*{"==", "eq"},*/
+                                        {"!=", "neq"},   {">", "gt"},     {"<", "lt"}};
       return map;
     }
 
@@ -569,33 +615,33 @@ namespace fhatos {
         LOG(WARN, FOS_TAB_4 "Unable to register shorthand: !b%s!!\n", shortID.toString().c_str());
       }
     }
-    static Map<ID, Function<List<Obj_p>, Inst_p>> *CORE_INSTS() {
-      static Map<ID, Function<List<Obj_p>, Inst_p>> core_insts = {
-          {INST_FURI->resolve("start"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
-          {INST_FURI->resolve("__"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
-          {INST_FURI->resolve("end"), [](const List<Obj_p> &) { return end(); }},
-          {INST_FURI->resolve("map"), [](const List<Obj_p> &args) { return map(argCheck("map", args, 1).at(0)); }},
-          {INST_FURI->resolve("filter"),
-           [](const List<Obj_p> &args) { return filter(argCheck("filter", args, 1).at(0)); }},
-          {INST_FURI->resolve("side"), [](const List<Obj_p> &args) { return side(argCheck("side", args, 1).at(0)); }},
-          {INST_FURI->resolve("count"),
-           [](const List<Obj_p> &args) {
-             argCheck("count", args, 0);
-             return count();
-           }},
-          {INST_FURI->resolve("sum"),
-           [](const List<Obj_p> &args) {
-             argCheck("sum", args, 0);
-             return sum();
-           }},
-          {INST_FURI->resolve("plus"), [](const List<Obj_p> &args) { return plus(argCheck("plus", args, 1).at(0)); }}};
-      return &core_insts;
-    }
+    /* static Map<ID, Function<List<Obj_p>, Inst_p>> *CORE_INSTS() {
+       static Map<ID, Function<List<Obj_p>, Inst_p>> core_insts = {
+           {INST_FURI->resolve("start"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
+           {INST_FURI->resolve("__"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
+           {INST_FURI->resolve("end"), [](const List<Obj_p> &) { return end(); }},
+           {INST_FURI->resolve("map"), [](const List<Obj_p> &args) { return map(argCheck("map", args, 1).at(0)); }},
+           {INST_FURI->resolve("filter"),
+            [](const List<Obj_p> &args) { return filter(argCheck("filter", args, 1).at(0)); }},
+           {INST_FURI->resolve("side"), [](const List<Obj_p> &args) { return side(argCheck("side", args, 1).at(0)); }},
+           {INST_FURI->resolve("count"),
+            [](const List<Obj_p> &args) {
+              argCheck("count", args, 0);
+              return count();
+            }},
+           {INST_FURI->resolve("sum"),
+            [](const List<Obj_p> &args) {
+              argCheck("sum", args, 0);
+              return sum();
+            }},
+           {INST_FURI->resolve("plus"), [](const List<Obj_p> &args) { return plus(argCheck("plus", args, 1).at(0)); }}};
+       return &core_insts;
+     }*/
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))
         return Insts::start(Objs::to_objs(args));
-      if (typeId == INST_FURI->resolve("end") || typeId == INST_FURI->resolve(";"))
+      if (typeId == INST_FURI->resolve("end"))
         return Insts::end();
       if (typeId == INST_FURI->resolve("map"))
         return Insts::map(argCheck(typeId, args, 1).at(0));
@@ -628,7 +674,7 @@ namespace fhatos {
         return Insts::type();
       if (typeId == INST_FURI->resolve("is"))
         return Insts::is(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("plus") || typeId == INST_FURI->resolve("+"))
+      if (typeId == INST_FURI->resolve("plus"))
         return Insts::plus(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("mult"))
         return Insts::mult(argCheck(typeId, args, 1).at(0));
@@ -646,15 +692,15 @@ namespace fhatos {
         return Insts::lte(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("lt"))
         return Insts::lt(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("both") || typeId == INST_FURI->resolve("<->"))
+      if (typeId == INST_FURI->resolve("both"))
         return Insts::both(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("to") || typeId == INST_FURI->resolve("<-"))
+      if (typeId == INST_FURI->resolve("to"))
         return Insts::to(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("to_inv") || typeId == INST_FURI->resolve("->"))
+      if (typeId == INST_FURI->resolve("to_inv"))
         return Insts::to_inv(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("from") || typeId == INST_FURI->resolve("*"))
+      if (typeId == INST_FURI->resolve("from"))
         return Insts::from(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("rfrom") || typeId == INST_FURI->resolve("r*"))
+      if (typeId == INST_FURI->resolve("rfrom"))
         return Insts::rfrom(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("pub"))
         return Insts::pub(argCheck(typeId, args, 2).at(0), args.at(1));
@@ -682,9 +728,9 @@ namespace fhatos {
         return Insts::split(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("each"))
         return Insts::each(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("embed") || typeId == INST_FURI->resolve("~>"))
+      if (typeId == INST_FURI->resolve("embed"))
         return Insts::embed(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("embed_inv") || typeId == INST_FURI->resolve("<~"))
+      if (typeId == INST_FURI->resolve("embed_inv"))
         return Insts::embed_inv(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("window"))
         return Insts::window(argCheck(typeId, args, 1).at(0));

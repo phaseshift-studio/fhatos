@@ -186,7 +186,14 @@ namespace fhatos {
     }
 
     void printf(const char *format, ...) {
+      char message[1024];
       va_list arg;
+      va_start(arg, format);
+      int length = vsnprintf(message, 1023, format, arg);
+      message[length] = '\0';
+      this->parse(message, length);
+      // this->print(message);
+      /*va_list arg;
       va_start(arg, format);
       char temp[512];
       char *buffer = temp;
@@ -205,7 +212,7 @@ namespace fhatos {
       this->parse(temp, len);
       if (buffer != temp) {
         delete[] buffer;
-      }
+      }*/
     }
 
     //////////////////////////

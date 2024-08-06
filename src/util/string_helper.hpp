@@ -62,6 +62,28 @@ namespace fhatos {
       return count;
     }
 
+    static string pad(const uint8_t total, const string text, const bool ignoreAnsi = true) {
+      string text2 = string(text);
+      for (size_t i = 0; i < (total - text.length()); i++) {
+        text2 += ' ';
+      }
+      return text2;
+    }
+
+    static int noAnsiLength(const string s) {
+      int count = 0;
+      bool last = false;
+      for (size_t i = 0; i < s.length(); i++) {
+        if (s[i] != '!' && !last)
+          count++;
+        if (last)
+          last = false;
+        if (s[i] == '!')
+          last = true;
+      }
+      return count;
+    }
+
     static bool lookAhead(const string &token, std::stringstream *ss, bool consume = true) {
       std::stringstream::pos_type start = ss->tellg();
       for (size_t i = 0; i < token.size(); i++) {
