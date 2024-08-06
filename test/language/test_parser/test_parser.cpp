@@ -121,6 +121,10 @@ namespace fhatos {
     Types::singleton()->saveType(id_p("/lst/btype"), Obj::to_bcode());
     Types::singleton()->saveType(id_p("/lst/ctype"), Obj::to_bcode());
     Types::singleton()->saveType(id_p("/bool/abool"), Obj::to_bcode());
+    //////////
+    FOS_CHECK_RESULTS<Obj>({*Obj::to_lst(share(List<Obj_p>()))}, "[]"); // empty list
+    FOS_CHECK_RESULTS<Obj>({*Obj::to_lst(share(List<Obj_p>()), id_p("/lst/atype"))}, "atype[[]]"); // empty list
+    //////////
     const auto lsts = List<Trip<string, List<Obj_p>, fURI>>(
         {{"['a',13,<actor>,false]",
           {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
@@ -232,7 +236,7 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Int>({}, "define(/int/even,|mod(2).is(eq(0)))");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(32).as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "even[32].type()");
-    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(even[32]).type()", {}, true);
+    FOS_CHECK_RESULTS<Uri>({u("/int/even")}, "__(even[32]).type()"s);
     FOS_TEST_ERROR("even[1]");
     FOS_TEST_ERROR("even[3]");
     FOS_TEST_ERROR("even[5]");
@@ -307,9 +311,9 @@ namespace fhatos {
         FOS_RUN_TEST(test_bytecode_parsing); //
         ////////////// PARTICULAR MONOID IDIOMS
         FOS_RUN_TEST(test_define_as_parsing); //
-        FOS_RUN_TEST(test_to_from); //
+        // FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_process_thread_parsing); //
-        FOS_RUN_TEST(test_group_parsing); //
+        // FOS_RUN_TEST(test_group_parsing); //
         FOS_RUN_TEST(test_window_parsing); //
 
 

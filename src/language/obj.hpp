@@ -212,27 +212,25 @@ namespace fhatos {
   class Obj final : public IDed, public std::enable_shared_from_this<Obj> {
   public:
     Any _value;
-    struct obj_hash {
+    struct objp_hash {
       size_t operator()(const Obj_p &obj) const { return obj->hash(); }
     };
-
+    struct objp_equal_to : std::binary_function<Obj_p &, Obj_p &, bool> {
+      bool operator()(const Obj_p &a, const Obj_p &b) const { return *a == *b; }
+    };
     struct obj_comp : std::less<> {
       template<class K1 = Obj, class K2 = Obj>
       auto operator()(K1 &k1, K2 &k2) const {
         return k1.hash() < k2.hash();
       }
     };
-
-    struct obj_equal_to : std::binary_function<Obj_p &, Obj_p &, bool> {
-      bool operator()(const Obj_p &a, const Obj_p &b) const { return *a == *b; }
-    };
     template<typename V = Obj_p>
     using LstList = List<V>;
     template<typename V = Obj_p>
     using LstList_p = List_p<V>;
-    template<typename K = Obj_p, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
+    template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = objp_equal_to>
     using RecMap = OrderedMap<K, V, H, Q>;
-    template<typename K = Obj_p, typename V = Obj_p, typename H = obj_hash, typename Q = obj_equal_to>
+    template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = objp_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
     explicit Obj(const Any &value, const OType otype, const ID_p &typeId) : IDed(OTYPE_FURI.at(otype)), _value(value) {
@@ -241,40 +239,40 @@ namespace fhatos {
     }
     explicit Obj(const Any &value, const ID_p &typeId) : Obj(value, OTypes.toEnum(typeId->path(0)), typeId) {}
     /////
-    static fError TYPE_ERROR(const Obj *obj, const char *function, const int lineNumber = __LINE__) {
-      return fError("!b%s!g[!!%s!g]!! !yaccessed!! as a %s\n", OTypes.toChars(obj->o_type()), obj->toString().c_str(),
+    static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
+      return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()), obj->toString().c_str(),
                     function);
     }
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
     template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *typeId = "") : Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(typeId))) {}
-    Obj(const FL_INT_TYPE xint, const char *typeId = "") :
+    Obj(const T xbool, const char *typeId = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(typeId))) {}
+    Obj(const FL_INT_TYPE xint, const char *typeId = EMPTY_CHARS) :
         Obj(Any(xint), OType::INT, id_p(INT_FURI->resolve(typeId))) {}
-    Obj(const FL_REAL_TYPE xreal, const char *typeId = "") :
+    Obj(const FL_REAL_TYPE xreal, const char *typeId = EMPTY_CHARS) :
         Obj(Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(typeId))) {}
-    Obj(const fURI &xuri, const char *typeId = "") : Obj(Any(xuri), OType::URI, id_p(URI_FURI->resolve(typeId))) {}
-    Obj(const char *xstr, const char *typeId = "") :
+    Obj(const fURI &xuri, const char *typeId = EMPTY_CHARS) : Obj(Any(xuri), OType::URI, id_p(URI_FURI->resolve(typeId))) {}
+    Obj(const char *xstr, const char *typeId = EMPTY_CHARS) :
         Obj(Any(string(xstr)), OType::STR, id_p(STR_FURI->resolve(typeId))) {}
-    Obj(const string &xstr, const char *typeId = "") : Obj(Any(xstr), OType::STR, id_p(STR_FURI->resolve(typeId))) {}
-    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *typeId = "") :
+    Obj(const string &xstr, const char *typeId = EMPTY_CHARS) : Obj(Any(xstr), OType::STR, id_p(STR_FURI->resolve(typeId))) {}
+    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *typeId = EMPTY_CHARS) :
         Obj(Any(share(RecMap<>())), OType::REC, id_p(REC_FURI->resolve(typeId))) {
       auto map = this->value<RecMap<>>();
       for (const auto &[key, val]: xrec) {
         map.insert(make_pair(share(Obj(key)), share(Obj(val))));
       }
     }
-    Obj(const std::initializer_list<Obj> &xlst, const char *typeId = "") :
+    Obj(const std::initializer_list<Obj> &xlst, const char *typeId = EMPTY_CHARS) :
         Obj(Any(share(LstList<>())), OType::LST, id_p(LST_FURI->resolve(typeId))) {
       auto list = this->value<LstList_p<>>();
       for (const auto &obj: xlst) {
         list->push_back(share(Obj(obj)));
       }
     }
-    Obj(const List<Inst> &bcode, const char *typeId = "") :
+    Obj(const List<Inst> &bcode, const char *typeId = EMPTY_CHARS) :
         Obj(Any(share<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(typeId))) {}
-    Obj(const InstList_p &bcode, const char *typeId = "") :
+    Obj(const InstList_p &bcode, const char *typeId = EMPTY_CHARS) :
         Obj(Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(typeId))) {}
 
     /*Obj(const List<Obj_p> &objList) : IDed(OBJS_FURI), _value(objList) {

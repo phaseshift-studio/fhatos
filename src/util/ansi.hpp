@@ -102,7 +102,7 @@ namespace fhatos {
 
     void parse(const char *buffer, const int bufferLength) {
       for (int i = 0; i < bufferLength; i++) {
-        if (buffer[i] < 0 || buffer[i] > 127)
+        if (buffer[i] < 0 || buffer[i] > 126)
           continue;
         if (buffer[i] == '!') {
           const char j = buffer[i + 1];

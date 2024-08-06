@@ -241,9 +241,8 @@ namespace fhatos {
       while (!ss.eof()) {
         if (bracketCounter == 0 && parenCounter == 0 && !quotes && (ss.peek() == ',' || ss.peek() == EOF)) {
           Option<Obj_p> element = this->tryParseObj(value);
-          if (!element.has_value())
-            return {};
-          list.push_back(element.value());
+          if (element.has_value())
+            list.push_back(element.value());
           if (ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
