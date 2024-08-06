@@ -119,8 +119,8 @@ namespace fhatos {
       if (this->_path) {
         if (this->sprefix && start == 0)
           path_str += '/';
-        for (uint8_t i = start; i < end && i < this->_path_length; i++) {
-          path_str += strdup(this->_path[i]);
+        for (uint8_t i = start; (i < this->_path_length) && (i < end); i++) {
+          path_str = path_str.append(this->_path[i]);
           if (i != end - 1)
             path_str += '/';
         }
@@ -129,19 +129,17 @@ namespace fhatos {
       }
       return path_str;
     }
-    [[nodiscard]] string path() const { return string(this->path(0, this->_path_length)); }
+    [[nodiscard]] string path() const { return this->path(0, this->_path_length); }
     [[nodiscard]] const char *path(const uint8_t segment) const {
       return (this->_path && this->_path_length > segment) ? this->_path[segment] : "";
     }
     [[nodiscard]] fURI path(const string &path) const {
-      fURI newURI = fURI("");
+      fURI newURI = fURI(*this);
       StringHelper::trim(path);
-      newURI._scheme = this->_scheme ? strdup(this->_scheme) : nullptr;
-      newURI._user = this->_user ? strdup(this->_user) : nullptr;
-      newURI._password = this->_password ? strdup(this->_password) : nullptr;
-      newURI._host = this->_host ? strdup(this->_host) : nullptr;
-      newURI._port = this->_port;
-      newURI._query = this->_query ? strdup(this->_query) : nullptr;
+      for (uint8_t i = 0; i < this->_path_length; i++) {
+        free(newURI._path[i]);
+      }
+      delete[] newURI._path;
       newURI._path_length = 0;
       newURI._path = new char *[FOS_MAX_PATH_SEGMENTS];
       char *dup = strdup(path.c_str());
@@ -150,7 +148,7 @@ namespace fhatos {
       uint8_t i = 0;
       char c;
       while (ss.get(c)) {
-        if (c == '\0' || isspace(c))
+        if (c == '\0' || isspace(c) || !isascii(c))
           break;
         if (c == '/') {
           if (segment.empty() && 0 == i) {
@@ -226,17 +224,21 @@ namespace fhatos {
       return this->path(newPath);
     }
 
-    fURI retract() const {
+    [[nodiscard]] fURI retract() const {
       fURI newURI = fURI(*this);
-      if (this->_path_length == 0)
-        return newURI;
-      FOS_SAFE_FREE(newURI._path[newURI._path_length - 1]);
-      newURI._path_length--;
-      newURI.spostfix = true;
-      return fURI(newURI);
+      for (uint8_t i = 0; i < newURI._path_length; i++) {
+        free(newURI._path[i]);
+      }
+      delete[] (newURI._path);
+      newURI._path_length = this->_path_length > 1 ? this->_path_length - 1 : 0;
+      newURI._path = new char *[newURI._path_length];
+      for (uint8_t i = 0; i < newURI._path_length; i++) {
+        newURI._path[i] = strdup(this->_path[i]);
+      }
+      return newURI;
     }
 
-    bool is_subfuri_of(const fURI other) const {
+    bool is_subfuri_of(const fURI &other) const {
       const string this_string = this->toString();
       const string other_string = other.toString();
       return other_string.length() >= this_string.length() &&
@@ -267,18 +269,28 @@ namespace fhatos {
         if (otherStartSlash)
           return this->path(otherPathChars.get());
         if (this->_path_length == 1)
-          return this->path((pathStartSlash && !otherStartSlash) ? (string("/") + otherPathChars.get())
-                                                                 : otherPathChars.get());
+          return this->path((pathStartSlash) ? (string("/") + otherPathChars.get()) : otherPathChars.get());
         return this->retract().extend(otherPathChars.get());
       }
-      fURI newURI = fURI(pathEndSlash || this->_path_length == 0 ? fURI(*this) : this->retract());
+      fURI *temp = pathEndSlash || this->_path_length == 0 ? new fURI(*this) : new fURI(this->retract());
       for (uint8_t i = 0; i < other._path_length; i++) {
         if (strcmp(other.path(i), "..") == 0) {
-          newURI = fURI(newURI.path_length() > 0 ? newURI.retract() : newURI);
-        } else if (strcmp(other.path(i), ".") != 0)
-          newURI = fURI(newURI.extend(other.path(i)));
+          fURI *temp2 = new fURI(*temp);
+          delete temp;
+          temp = temp2->path_length() > 0 ? new fURI(temp2->retract()) : new fURI(*temp2);
+          delete temp2;
+        } else if (strcmp(other.path(i), ".") != 0) {
+          fURI *temp2 = new fURI(*temp);
+          delete temp;
+          temp = new fURI(temp2->extend(other.path(i)));
+          delete temp2;
+        }
+        if (i == other._path_length - 1)
+          temp->spostfix = other.spostfix;
       }
-      return newURI;
+      fURI ret = fURI(*temp);
+      delete temp;
+      return ret;
     }
 
 
@@ -329,7 +341,22 @@ namespace fhatos {
       }
       delete[] _path;
     };
-    fURI(const fURI &other) : fURI(other.toString().c_str()) {}
+    fURI(const fURI &other) {
+      this->_scheme = other._scheme ? strdup(other._scheme) : nullptr;
+      this->_user = other._user ? strdup(other._user) : nullptr;
+      this->_password = other._password ? strdup(other._password) : nullptr;
+      this->_host = other._host ? strdup(other._host) : nullptr;
+      this->_port = other._port;
+      this->sprefix = other.sprefix;
+      this->spostfix = other.spostfix;
+      this->_path_length = other._path_length;
+      this->_query = other._query ? strdup(other._query) : nullptr;
+      this->_fragment = other._fragment ? strdup(other._fragment) : nullptr;
+      this->_path = new char *[other._path_length]();
+      for (uint8_t i = 0; i < other._path_length; i++) {
+        this->_path[i] = strdup(other._path[i]);
+      }
+    }
     fURI(const string &uriString) : fURI(uriString.c_str()) {}
     fURI(const char *uriChars) {
       if (strlen(uriChars) == 0)
@@ -568,8 +595,8 @@ namespace fhatos {
 
   class BaseIDed {
   public:
-    virtual ID_p id() const { return nullptr; }
-    virtual bool equals(const BaseIDed &) const { return false; }
+    virtual ID_p id() const = 0;
+    [[nodiscard]] virtual bool equals(const BaseIDed &) const { return false; }
   };
 
   class IDed : public BaseIDed {
@@ -577,11 +604,11 @@ namespace fhatos {
     explicit IDed(const fURI_p &uri) : _id(share(ID(uri->toString()))) {}
     explicit IDed(const ID_p &id) : _id(id) {}
 
-    ID_p id() const override { return this->_id; }
+    [[nodiscard]] ID_p id() const override { return this->_id; }
 
     // const String toString() const { return this->id().toString(); }
 
-    bool equals(const BaseIDed &other) const override { return this->_id->equals(*other.id()); }
+    [[nodiscard]] bool equals(const BaseIDed &other) const override { return this->_id->equals(*other.id()); }
 
 
   protected:
