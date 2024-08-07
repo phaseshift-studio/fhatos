@@ -11,7 +11,6 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  template<typename ROUTER>
   void test_actor_throughput() {
     auto counter1 = new std::atomic<int>(0);
     auto counter2 = new std::atomic<int>(0);
@@ -36,11 +35,13 @@ namespace fhatos {
     Scheduler::singleton()->spawn(actor2);
     actor1->publish("/app/actor2@127.0.0.1", share(Str("START")), TRANSIENT_MESSAGE);
     Scheduler::singleton()->barrier("no_actors", [] { return Scheduler::singleton()->count("/app/#") == 0; });
-    ROUTER::singleton()->clear();
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
-    // delete counter1;
-    // delete counter2;
+    delete counter1;
+    delete counter2;
+    delete actor1;
+    delete actor2;
+    Options::singleton()->router<Router>()->clear();
   }
 
   void test_actor_by_router() {
@@ -71,10 +72,10 @@ namespace fhatos {
     });
     FOS_TEST_MESSAGE("!RResponse code!!: %s\n", RESPONSE_CODE_STR(rc));
     TEST_ASSERT_EQUAL(OK, rc);
-   /* TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
-                      actor1->subscribe("/app/actor1@127.0.0.1", [](const ptr<Message> &message) {
-                        TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
-                      }));*/
+    /* TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
+                       actor1->subscribe("/app/actor1@127.0.0.1", [](const ptr<Message> &message) {
+                         TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
+                       }));*/
 
     actor2->publish(*actor1->id(), share(Str("ping")), TRANSIENT_MESSAGE);
     actor1->loop();
@@ -83,9 +84,9 @@ namespace fhatos {
     actor2->loop();
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
-     Options::singleton()->router<Router>()->clear();
-    // delete counter1;
-    // delete counter2;
+    Options::singleton()->router<Router>()->clear();
+    delete counter1;
+    delete counter2;
     Scheduler::singleton()->barrier("here", []() { return Scheduler::singleton()->count("/app/#") == 0; });
   }
 
@@ -149,26 +150,9 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     actor1->stop();
     actor2->stop();
-    // delete counter1;
-    // delete counter2;
-     Options::singleton()->router<Router>()->clear();
-  }
-
-  void test_actor_serialization() {
-    auto *actor = new Actor<Thread>("/abc");
-    const Pair<fbyte *, uint> buffer = actor->serialize();
-    Actor<Thread> *clone = Actor<Thread>::deserialize(buffer.first);
-    FOS_TEST_ASSERT_EQUAL_FURI(*actor->id(), *clone->id());
-    Options::singleton()->printer<>()->printf("!g!_Actor serialization!! [!rsize:%i!!]:\n" FOS_TAB, buffer.second);
-    for (uint i = 0; i < buffer.second; i++) {
-       Options::singleton()->printer<>()->printf(i % 2 == 0 ? "!m%02X!! " : "!b%02X!! ", buffer.first[i]);
-      if ((i + 1) % 10 == 0)
-         Options::singleton()->printer<>()->printf("\n" FOS_TAB);
-    }
-     Options::singleton()->printer<>()->println();
-    // delete actor;
-    // free(clone);
-    Scheduler::singleton()->barrier("done", []() { return Scheduler::singleton()->count("/abc") == 0; });
+    delete counter1;
+    delete counter2;
+    Options::singleton()->router<Router>()->clear();
   }
 
   FOS_RUN_TESTS( //
@@ -177,9 +161,9 @@ namespace fhatos {
         Options::singleton()->router<Router>(router); //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
+        FOS_RUN_TEST(test_actor_throughput); //
         FOS_RUN_TEST(test_actor_by_router); //
         FOS_RUN_TEST(test_message_retain); //
-        FOS_RUN_TEST(test_actor_serialization); //
       } //
   );
 

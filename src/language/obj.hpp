@@ -1130,6 +1130,9 @@ namespace fhatos {
   [[maybe_unused]] static Uri_p u_p(const char *uri) { return share<Uri>(Uri(fURI(uri))); }
   [[maybe_unused]] static Uri_p u_p(const string &uri) { return share<Uri>(Uri(fURI(uri))); }
   [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share<Obj>(obj); }
+  [[maybe_unused]] static Lst_p lst(const List<Obj_p> list) { return Obj::to_lst(share(list)); }
+  [[maybe_unused]] static Objs_p objs(const List<Obj_p> list) { return Obj::to_objs(list); }
+  [[maybe_unused]] static BCode_p bcode(const InstList list) { return Obj::to_bcode(list); }
 
 } // namespace fhatos
 #endif

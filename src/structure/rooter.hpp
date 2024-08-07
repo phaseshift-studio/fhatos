@@ -23,12 +23,17 @@
 
 namespace fhatos {
 
-  class Rooter : public IDed {
+  class Rooter : public IDed, public Typed {
   protected:
     MutexDeque<Structure *> structures = MutexDeque<Structure *>();
 
   public:
-    Rooter(const ID &id) : IDed(share(id)) {}
+    Rooter(const ID &id, const Pattern &pattern) : IDed(share(id)), Typed(share(pattern)) {}
+
+    static Rooter *singleton(const ID &id = "/sys/rooter", const Pattern &pattern = "#") {
+      static Rooter rooter = Rooter(id, pattern);
+      return &rooter;
+    }
 
     virtual void attach(Structure *structure) {
       this->structures.forEach([structure](Structure *s) {
@@ -52,18 +57,18 @@ namespace fhatos {
       });
     }
 
-    bool route(const Message_p &message) {
-      this->structures.forEach([message](const Structure *structure) {
+    bool publish(const Message_p &message) {
+      this->structures.forEach([message](Structure *structure) {
         if (message->target.matches(*structure->type())) {
-          structure->recieve(message);
+          structure->write(message);
         }
       });
     }
 
-    bool route(const Subscription_p &subscription) {
-      this->structures.forEach([subscription](const Structure *structure) {
+    bool subscribe(const Subscription_p &subscription) {
+      this->structures.forEach([subscription](Structure *structure) {
         if (subscription->pattern.matches(*structure->type())) {
-          structure->recieve(subscription);
+          structure->read(subscription);
         }
       });
       return true;

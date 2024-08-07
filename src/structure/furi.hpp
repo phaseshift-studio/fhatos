@@ -622,6 +622,9 @@ namespace fhatos {
   public:
     virtual Pattern_p type() const = 0;
     virtual bool equals(const BaseTyped &) const = 0;
+    virtual bool matches(const fURI& other) {
+      return other.matches(*this->type());
+    }
   };
 
   class Typed : public BaseTyped {

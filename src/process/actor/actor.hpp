@@ -32,7 +32,7 @@
 #include <language/exts.hpp>
 
 namespace fhatos {
-  template<typename PROCESS = Thread/*, typename STRUCTURE = XSpace*/>
+  template<typename PROCESS = Thread /*, typename STRUCTURE = XSpace*/>
   class Actor : public PROCESS, public Publisher, public Mailbox<ptr<Mail>> {
 
   protected:
@@ -68,65 +68,41 @@ namespace fhatos {
         return Exts
       }*/
 
-    Pair<fbyte *, uint> serialize() const {
-      auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
-      memcpy(bytes, reinterpret_cast<const fbyte *>(this), sizeof(*this));
-      return {bytes, sizeof(*this)};
-    }
-
-    static Actor<PROCESS> *deserialize(const fbyte *bytes) { return (Actor<PROCESS> *) bytes; }
-
     // PAYLOAD BOX METHODS
     bool push(const ptr<Mail> mail) override { return this->running() && this->inbox.push_back(mail); }
-
-    void query(const TargetID &queryId, const Consumer<const Message> &onRecv = nullptr) {
-      if (onRecv) {
-        this->subscribe(queryId, [this, queryId, onRecv](const Message &message) {
-          if (message.retain) {
-            this->unsubscribe(queryId);
-            onRecv(message);
-          }
-        });
-        this->yield();
-        this->loop();
-      }
-      this->publish(queryId, Obj::to_noobj(), TRANSIENT_MESSAGE);
-    }
 
     uint16_t size() override { return inbox.size(); }
 
     /// PROCESS METHODS
+    //////////////////////////////////////////////////// SETUP
     virtual void setup() override {
       if (this->_running) {
         LOG(ERROR, "Actor %s has already started [setup()]\n", this->id()->toString().c_str());
         return;
       }
-      ///////////////////////////////////////////////////////
       PROCESS::setup();
       if (this->_setupFunction) {
         this->_setupFunction(this);
       }
     }
-
+    //////////////////////////////////////////////////// STOP
     virtual void stop() override {
       if (!this->_running) {
         LOG(ERROR, "Actor %s has already stopped [stop()]\n", this->id()->toString().c_str());
         return;
       }
       PROCESS::stop();
-      ///////////////////////////////////////////////////////
       if (const RESPONSE_CODE _rc = this->unsubscribeSource()) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), RESPONSE_CODE_STR(_rc));
       }
       this->inbox.clear();
     }
-
+    //////////////////////////////////////////////////// LOOP
     virtual void loop() override {
       if (!this->running()) {
         LOG(ERROR, "Actor %s has already stopped [loop()]\n", this->id()->toString().c_str());
         return;
       }
-      ///////////////////////////////////////////////////////
       PROCESS::loop();
       while (this->running() && this->next()) {
       }
@@ -134,7 +110,8 @@ namespace fhatos {
         this->_loopFunction(this);
     }
 
-    void onLoop(const Consumer<Actor *> &loopFunction) { this->_loopFunction = loopFunction; }
+    /// STRUCTURE METHODS
+
   };
 } // namespace fhatos
 #endif

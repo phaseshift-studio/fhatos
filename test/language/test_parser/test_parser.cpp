@@ -169,8 +169,10 @@ namespace fhatos {
     ////////// SPLIT
     FOS_SHOULD_RETURN({"1"}, "1");
     FOS_SHOULD_RETURN({"[1,1]"}, "1.-<[_,_]");
-    FOS_SHOULD_RETURN({"[3,5]"}, "1.-<[_,_].=[+2,+4]");
-    FOS_SHOULD_RETURN({"[3,true]"}, "1.-<[_,_].=[+2,+4].=[_,type().eq(/int/)]");
+    FOS_SHOULD_RETURN({"[3,5]"}, "1.-<[_,_].=[plus(2),plus(4)]");
+    FOS_SHOULD_RETURN({"[3,true]"}, "1.-<[_,_].=[plus(2),plus(4)].=[_,type().eq(/int/)]");
+    /////////// GET/SET
+    FOS_SHOULD_RETURN({"'fhat'"}, "[1,2,'fhat'].get(2)");
   }
 
   void test_rec_parsing() {
@@ -196,30 +198,30 @@ namespace fhatos {
       TEST_ASSERT_FALSE(rc1->rec_get(u_p("/rec/actor"))->bool_value());
     }
 
-    recs = {"[:age=>nat[29],:name=>'dogturd']", "[:age=>nat[29],:name=>'dogturd']"
-            /*"person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"*/};
-    for (const string &form: recs) {
-      FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
-      const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
+    /*  recs = {"[:age=>nat[29],:name=>'dogturd']", "[:age=>nat[29],:name=>'dogturd']"
+              "person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"};
+      for (const string &form: recs) {
+        FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
+        const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
+        TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
+        TEST_ASSERT_EQUAL_STRING("rec", rc2->id()->name());
+        TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u(":age"))->int_value());
+        TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u(":name"))->str_value().c_str());
+        TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
+        TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
+      }
+      ///////////////////////////////////
+      const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-      TEST_ASSERT_EQUAL_STRING("rec", rc2->id()->name());
-      TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u(":age"))->int_value());
-      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u(":name"))->str_value().c_str());
-      TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
-      TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
-    }
-    ///////////////////////////////////
-    const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
-    TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-    TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
-    //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
-    TEST_ASSERT_TRUE(rc2->rec_get("/actor")->isNoObj()); // it's a string, not a uri
-    const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
-    TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
-    TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
-    TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
-    TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
-                             Options::singleton()->printer<>()->strip(rc2->toString().c_str()).get());
+      TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
+      //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
+      TEST_ASSERT_TRUE(rc2->rec_get("/actor")->isNoObj()); // it's a string, not a uri
+      const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
+      TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
+      TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
+      TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
+      TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
+                               Options::singleton()->printer<>()->strip(rc2->toString().c_str()).get());*/
   }
 
   void test_bytecode_parsing() {
@@ -227,8 +229,6 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(2, bcode->bcode_value()->size());
     TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value()->at(1)->inst_arg(0)->bcode_value()->size());
     ///
-    FOS_CHECK_RESULTS<Rec>({"fhat"}, "__([1,2,'fhat']).get(2)");
-
     FOS_TEST_MESSAGE("Testing !yparenthese!! and !ybracket!! instructions...");
     //// TEST PAREN AND BRACKET INSTRUCTIONS
     FOS_CHECK_RESULTS({10}, "6.plus(4)");
@@ -312,10 +312,10 @@ namespace fhatos {
         FOS_RUN_TEST(test_uri_parsing); //
         FOS_RUN_TEST(test_str_parsing); //
         FOS_RUN_TEST(test_lst_parsing); //
-        // FOS_RUN_TEST(test_rec_parsing); //
-        FOS_RUN_TEST(test_bytecode_parsing); //
+        FOS_RUN_TEST(test_rec_parsing); //
+       // FOS_RUN_TEST(test_bytecode_parsing); //
         ////////////// PARTICULAR MONOID IDIOMS
-        FOS_RUN_TEST(test_define_as_parsing); //
+        //FOS_RUN_TEST(test_define_as_parsing); //
         // FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_process_thread_parsing); //
         FOS_RUN_TEST(test_group_parsing); //

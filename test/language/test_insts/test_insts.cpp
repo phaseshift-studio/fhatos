@@ -84,9 +84,9 @@ namespace fhatos {
 
   void test_barrier() {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
-    testInst(Obj::to_objs({o_p(1), o_p(2), o_p("a"), Obj::to_lst({o_p("x"), o_p(u("abc"))})}), //
-             Insts::barrier(Obj::to_bcode({Insts::count()})), //
-             Obj::to_objs({Int(4)}));
+    testInst(objs({o_p(1), o_p(2), o_p("a"), lst({o_p("x"), u_p("abc")})}), //
+             Insts::barrier(bcode({Insts::count()})), //
+             objs({o_p(4)}));
   }
 
 

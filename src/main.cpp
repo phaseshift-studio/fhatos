@@ -21,7 +21,7 @@
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/x_process.hpp>
-#include <structure/space/x_space.hpp>
+#include <structure/stype/space.hpp>
 // routers
 #include <structure/router/local_router.hpp>
 #ifdef NATIVE
@@ -77,8 +77,8 @@ void setup() {
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
         ->initialRouter(LocalRouter::singleton())
         ->displaying_splash(ANSI_ART)
-        ->displaying_notes("Use !bØ!! for noobj abc")
-        ->displaying_notes("Use !y:help!! for console commands")
+        ->displaying_notes("Use !b/noobj/[]!! for !ynoobj!!")
+        ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         // ->with_int_ctype(int)
         // ->with_real_ctype(float)
         ->onBoot(Scheduler::singleton("/sys/scheduler/"), //

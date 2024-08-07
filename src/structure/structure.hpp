@@ -41,9 +41,19 @@ namespace fhatos {
     virtual void open() { this->_available.store(true); }
     virtual void maintain() {}
     virtual void close() { this->_available.store(false); }
-    virtual void recieve(const Message_p &message) const = 0;
-    virtual void recieve(const Subscription_p &subscription) const = 0;
+    virtual void write(const Message_p &message) = 0;
+    virtual void read(const Subscription_p &subscription) = 0;
     bool available() { return this->_available; }
+
+    static fError ID_NOT_IN_RANGE(const ID &id, const Pattern &pattern) {
+      return fError("!g[!b%s!g]!! is not within the boundaries of space !g[!!%s!g]!!\n", id.toString().c_str(),
+                    pattern.toString().c_str());
+    }
+
+    static fError ID_DOES_NOT_EXIST(const ID &id, const Pattern &pattern) {
+      return fError("!g[!b%s!g]!! does not reference an obj in space !g[!!%s!g]!!\n", id.toString().c_str(),
+                    pattern.toString().c_str());
+    }
   };
 
 } // namespace fhatos
