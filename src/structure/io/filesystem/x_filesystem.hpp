@@ -21,6 +21,7 @@
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/obj.hpp>
+#include <structure/io/filesystem/fs.hpp>
 namespace fhatos {
 
   using File = Uri;

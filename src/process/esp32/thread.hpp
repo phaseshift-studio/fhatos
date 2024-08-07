@@ -21,14 +21,14 @@
 
 #include <fhatos.hpp>
 //
-#include <process/x_process.hpp>
+#include <process/process.hpp>
 
 namespace fhatos {
-  class Thread : public XProcess {
+  class Thread : public Process {
   public:
     TaskHandle_t handle;
 
-    explicit Thread(const ID &id) : XProcess(id, PType::THREAD) {
+    explicit Thread(const ID &id) : Process(id, PType::THREAD) {
     }
 
     void delay(const uint64_t milliseconds) override {

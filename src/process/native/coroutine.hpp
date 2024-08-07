@@ -19,13 +19,13 @@
 #ifndef fhatos_coroutine_hpp
 #define fhatos_coroutine_hpp
 
-#include <process/x_process.hpp>
+#include <process/process.hpp>
 //
 
 namespace fhatos {
-  class Coroutine : public XProcess {
+  class Coroutine : public Process {
   public:
-    explicit Coroutine(const ID &id) : XProcess(id, PType::COROUTINE) {}
+    explicit Coroutine(const ID &id) : Process(id, PType::COROUTINE) {}
 
     void delay(const uint64_t) override {
       // do nothing

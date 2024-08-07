@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 //
 #include <atomic>
-#include <process/x_process.hpp>
+#include <process/process.hpp>
 #include <structure/furi.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(coroutine.hpp)
@@ -79,10 +79,10 @@ namespace fhatos {
     }
 
     void stop() {
-      auto *lists = new List<MutexDeque<XProcess *> *>();
-      lists->push_back(reinterpret_cast<MutexDeque<XProcess *> *>(COROUTINES));
-      lists->push_back(reinterpret_cast<MutexDeque<XProcess *> *>(FIBERS));
-      lists->push_back(reinterpret_cast<MutexDeque<XProcess *> *>(THREADS));
+      auto *lists = new List<MutexDeque<Process *> *>();
+      lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(COROUTINES));
+      lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(FIBERS));
+      lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(THREADS));
       for (const auto &procs: *lists) {
         this->handle_messages();
         procs->forEach([this](const auto &process) {
@@ -124,7 +124,7 @@ namespace fhatos {
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }
 
-    virtual bool spawn(XProcess*) = 0;
+    virtual bool spawn(Process *) = 0;
     virtual bool kill(const ID &processPattern) {
       return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
     }

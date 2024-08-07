@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/actor/actor.hpp>
-#include <process/x_process.hpp>
+#include <process/process.hpp>
 #include <structure/io/terminal.hpp>
 
 #include <language/types.hpp>
@@ -53,9 +53,9 @@ namespace fhatos {
     static Kernel *using_router(const Router *) { return Kernel::build(); }
     static Kernel *booting_with(const List<Actor<> *> &actors) { return Kernel::build(); }
 
-    static Kernel *onBoot(const Scheduler *, const List<XProcess *> &processes) {
+    static Kernel *onBoot(const Scheduler *, const List<Process *> &processes) {
       bool success = true;
-      for (XProcess *process: processes) {
+      for (Process *process: processes) {
         success = success && Scheduler::singleton()->spawn(process);
       }
       return Kernel::build();
@@ -85,6 +85,7 @@ namespace fhatos {
       delete Kernel::build();
       Scheduler::singleton()->barrier(barrier, nullptr,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
+      Scheduler::singleton()->stop();
     }
   };
 } // namespace fhatos

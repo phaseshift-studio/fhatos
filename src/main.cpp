@@ -20,8 +20,8 @@
 #include <structure/kernel.hpp>
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
-#include <process/x_process.hpp>
-#include <structure/stype/space.hpp>
+#include <process/process.hpp>
+#include <structure/space/space.hpp>
 // routers
 #include <structure/router/local_router.hpp>
 #ifdef NATIVE
@@ -81,6 +81,8 @@ void setup() {
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         // ->with_int_ctype(int)
         // ->with_real_ctype(float)
+        //->with_router()->load_structures()
+        //->with_scheduler()->load_processes()
         ->onBoot(Scheduler::singleton("/sys/scheduler/"), //
                  {FOS_ROUTERS, //
                   Terminal::singleton("/sys/io/terminal/"), //

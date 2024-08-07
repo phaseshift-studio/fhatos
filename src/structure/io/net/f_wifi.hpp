@@ -21,7 +21,7 @@
 
 #include <fhatos.hpp>
 //
-#include <process/x_process.hpp>
+#include <process/process.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <structure/furi.hpp>
 //

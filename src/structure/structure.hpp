@@ -34,7 +34,7 @@ namespace fhatos {
   public:
     const SType _stype;
 
-    Structure(const Pattern_p &type, const SType stype) : Patterned(type), _stype(stype) {}
+    explicit Structure(const Pattern_p &type, const SType stype) : Patterned(type), _stype(stype) {}
 
     virtual ~Structure() = default;
 
@@ -56,14 +56,13 @@ namespace fhatos {
     virtual void unsubscribe(const ID &source, const Pattern pattern) {
       this->subscribe(share(Subscription{.source = source, .pattern = pattern, .onRecv = nullptr}));
     }
-    virtual Obj_p read(const ID &id, const ID& source= FOS_DEFAULT_SOURCE_ID) {
+    virtual Obj_p read(const ID &id, const ID &source = FOS_DEFAULT_SOURCE_ID) {
       auto *thing = new std::atomic<const Obj *>(nullptr);
-      this->subscribe(share(
-          Subscription{.source = source, .pattern = id, .onRecv = [thing](const Message_p &message) {
-                         // TODO: try to not copy obj while still not accessing heap after delete
-                         const Obj *obj = new Obj(message->payload->_value, message->payload->id());
-                         thing->store(obj);
-                       }}));
+      this->subscribe(share(Subscription{.source = source, .pattern = id, .onRecv = [thing](const Message_p &message) {
+                                           // TODO: try to not copy obj while still not accessing heap after delete
+                                           const Obj *obj = new Obj(message->payload->_value, message->payload->id());
+                                           thing->store(obj);
+                                         }}));
       const time_t startTimestamp = time(nullptr);
       while (!thing->load()) {
         if ((time(nullptr) - startTimestamp) > 2) {
@@ -80,9 +79,12 @@ namespace fhatos {
         return ret;
       }
     }
-    virtual void write(const fURI &furi, const Obj_p obj, const ID& source= FOS_DEFAULT_SOURCE_ID) {
+    Obj_p read(const ID &id) { return this->read(id, FOS_DEFAULT_SOURCE_ID); }
+
+    virtual void write(const fURI &furi, const Obj_p &obj, const ID &source) {
       this->publish(share(Message{.source = source, .target = furi, .payload = obj, .retain = true}));
     }
+    void write(const fURI &furi, const Obj_p &obj) { this->write(furi, obj, FOS_DEFAULT_SOURCE_ID); }
 
     bool available() { return this->_available; }
 

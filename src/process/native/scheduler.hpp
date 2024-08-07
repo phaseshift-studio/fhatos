@@ -41,7 +41,7 @@ namespace fhatos {
       return &scheduler;
     }
 
-    bool spawn(XProcess *process) override {
+    bool spawn(Process *process) override {
       bool success = *RW_PROCESS_MUTEX.write<bool>([this, process]() {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();

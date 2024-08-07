@@ -31,7 +31,7 @@ namespace fhatos {
   static const Enums<PType> ProcessTypes = Enums<PType>(
       {{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}, {PType::KERNEL, "kernel"}});
 
-  class XProcess : public IDed {
+  class Process : public IDed {
 
   protected:
     std::atomic_bool _running = std::atomic_bool(false);
@@ -39,26 +39,26 @@ namespace fhatos {
   public:
     const PType type;
 
-    explicit XProcess(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
+    explicit Process(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
 
-    virtual ~XProcess() = default;
+    virtual ~Process() = default;
 
     virtual void setup() { this->_running.store(true); };
 
-    virtual void loop() {}
+    virtual void loop() {};
 
     virtual void stop() { this->_running.store(false); };
 
     bool running() const { return this->_running.load(); }
 
-    virtual void delay(const uint64_t){}; // milliseconds
+    virtual void delay(const uint64_t) {}; // milliseconds
 
-    virtual void yield(){}; // throw fError::X_REQUIRES_IMPLEMENTATION("XProcess", "yield"); };
+    virtual void yield() {};
   };
 
-  class XKernel : public XProcess {
+  class XKernel : public Process {
   public:
-    explicit XKernel(const ID &id) : XProcess(id, PType::KERNEL) {}
+    explicit XKernel(const ID &id) : Process(id, PType::KERNEL) {}
   };
 } // namespace fhatos
 

@@ -21,22 +21,22 @@
 
 #include <chrono>
 #include <fhatos.hpp>
+#include <process/process.hpp>
 #include <thread>
-#include <process/x_process.hpp>
 
 namespace fhatos {
-  class Thread : public XProcess {
+  class Thread : public Process {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID &id) : XProcess(id, PType::THREAD), xthread(nullptr) {}
+    explicit Thread(const ID &id) : Process(id, PType::THREAD), xthread(nullptr) {}
 
-    ~Thread() override { delete this->xthread; }
+    virtual ~Thread() override { delete this->xthread; }
 
-    void setup() override { XProcess::setup(); }
+    void setup() override { Process::setup(); }
 
     void stop() override {
-      XProcess::stop();
+      Process::stop();
       if (this->xthread && this->xthread->joinable() && (this->xthread->get_id() != std::this_thread::get_id())) {
         try {
           this->xthread->join();
@@ -47,7 +47,7 @@ namespace fhatos {
       }
     }
 
-    void loop() override { XProcess::loop(); }
+    void loop() override { }
 
     void delay(const uint64_t milliseconds) override {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));

@@ -55,13 +55,12 @@ namespace fhatos {
                    const Consumer<Actor<PROCESS> *> &loopFunction = nullptr) :
         PROCESS(id), Publisher(this, this), Mailbox<ptr<Mail>>(), _setupFunction(setupFunction),
         _loopFunction(loopFunction) {
-      static_assert(std::is_base_of_v<XProcess, PROCESS>);
+      static_assert(std::is_base_of_v<Process, PROCESS>);
       // static_assert(std::is_base_of_v<Router, ROUTER>);
     }
 
-    virtual ~Actor() override {
+    ~Actor() override {
       this->inbox.clear();
-      PROCESS::~PROCESS();
     }
 
     /*  Exts extension() {
@@ -75,7 +74,7 @@ namespace fhatos {
 
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
-    virtual void setup() override {
+    void setup() override {
       if (this->_running) {
         LOG(ERROR, "Actor %s has already started [setup()]\n", this->id()->toString().c_str());
         return;
@@ -86,7 +85,7 @@ namespace fhatos {
       }
     }
     //////////////////////////////////////////////////// STOP
-    virtual void stop() override {
+    void stop() override {
       if (!this->_running) {
         LOG(ERROR, "Actor %s has already stopped [stop()]\n", this->id()->toString().c_str());
         return;
@@ -98,7 +97,7 @@ namespace fhatos {
       this->inbox.clear();
     }
     //////////////////////////////////////////////////// LOOP
-    virtual void loop() override {
+    void loop() override {
       if (!this->running()) {
         LOG(ERROR, "Actor %s has already stopped [loop()]\n", this->id()->toString().c_str());
         return;

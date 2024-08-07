@@ -21,14 +21,14 @@
 
 #include <fhatos.hpp>
 //
-#include <process/x_process.hpp>
+#include <process/process.hpp>
 
 namespace fhatos {
-  class Fiber : public XProcess {
+  class Fiber : public Process {
   public:
     TaskHandle_t handle{};
 
-    explicit Fiber(const ID &id) : XProcess(id, PType::FIBER) {
+    explicit Fiber(const ID &id) : Process(id, PType::FIBER) {
     }
 
     void delay(const uint64_t milliseconds) override {

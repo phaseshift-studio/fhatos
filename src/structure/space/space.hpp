@@ -18,10 +18,10 @@
 #ifndef fhatos_space_hpp
 #define fhatos_space_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
-#include <structure/rooter.hpp>
-#include <structure/structure.hpp>
+#include "fhatos.hpp"
+#include "language/obj.hpp"
+#include "structure/rooter.hpp"
+#include "structure/structure.hpp"
 
 namespace fhatos {
 
@@ -85,8 +85,16 @@ namespace fhatos {
       }
     }
 
-    Obj_p read(const ID &id, [[maybe_unused]] const ID &source = FOS_DEFAULT_SOURCE_ID) override {
+    Obj_p read(const ID &id, [[maybe_unused]] const ID &source) override {
       return DATA->count(id) ? DATA->at(id)->payload : noobj();
+    }
+    void write(const fURI &furi, const Obj_p &obj, const ID &source) override {
+      MUTEX_DATA.write<void *>([this, furi, obj, source]() {
+        if (DATA->count(furi))
+          DATA->erase(furi);
+        DATA->insert({ID(furi), share(Message{.source = source, .target = ID(furi), .payload = obj, .retain = true})});
+        return nullptr;
+      });
     }
 
     void subscribe(const Subscription_p &subscription) override {
@@ -101,7 +109,7 @@ namespace fhatos {
                                        }),
                              SUBSCRIPTIONS->end());
         /////////////// ADD NEW SUBSCRIPTION
-        if (subscription->onRecv) {
+        if (subscription->onRecv) { // not an unsubscribe event
           SUBSCRIPTIONS->push_back(subscription);
           MUTEX_DATA.read<void *>([this, subscription]() {
             for (const auto &[id, message]: *DATA) {

@@ -41,7 +41,7 @@ namespace fhatos {
       vTaskDelay(1); // feeds the watchdog for the task
     }
 
-    virtual bool spawn(XProcess *process) override {
+    virtual bool spawn(Process *process) override {
       // TODO: have constructed processes NOT running or check is process ID already in scheduler
       process->setup();
       if (!process->running()) {
