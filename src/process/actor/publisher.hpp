@@ -25,13 +25,10 @@
 
 namespace fhatos {
   class Publisher {
-  protected:
-    ~Publisher() = default;
-
   public:
     const ID_p __id;
     Mailbox<ptr<Mail>> *mailbox;
-
+    virtual ~Publisher() = default;
     explicit Publisher(const IDed *ided, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(ided->id()), mailbox(mailbox) {}
     explicit Publisher(const ID_p &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
 

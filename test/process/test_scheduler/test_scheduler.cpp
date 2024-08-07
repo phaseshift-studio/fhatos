@@ -52,7 +52,7 @@ namespace fhatos {
          Scheduler<ROUTER>::singleton()->id().query("?spawn"),
          ptr<const Rec>(Rec({
                  {new Uri("id"), new Uri("test_spawn")},
-                 {new Uri("setup"), new Bytecode(__(0).ref("loop").bcode->value())},
+                 {new Uri("setup"), new Bytecode(__(0).ref("loop")._bcode->value())},
                  {new Uri("loop"),
                   new Bytecode(__(0)
                                    .dref("loop")
@@ -62,7 +62,7 @@ namespace fhatos {
                                                                   Scheduler<ROUTER>::singleton()->id().query("?kill"),
                                                                   Uri("test_spawn"))},
                                              {_, _.ref("loop")}})
-                                   .bcode->value())},
+                                   ._bcode->value())},
 
              })
              .as<Rec>("thread")));

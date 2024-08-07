@@ -37,11 +37,11 @@ namespace fhatos {
             // setup
             [this](Actor<PROCESS> *) {
               try {
-                LOG(DEBUG, "Executing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
+                LOG(DEBUG, "Executing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
                 Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
                   LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
                 });
-                LOG(DEBUG, "Completeing setup() bcode: %s\n", SETUP_BCODE->toString().c_str());
+                LOG(DEBUG, "Completeing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
               } catch (const std::exception &error) {
                 LOG_EXCEPTION(error);
                 this->stop();
@@ -59,7 +59,7 @@ namespace fhatos {
               }
             }),
         rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))), LOOP_BCODE(rec->rec_get(uri("loop"))) {
-      LOG(DEBUG, "bcode program created: %s\n", rec->toString().c_str());
+      LOG(DEBUG, "_bcode program created: %s\n", rec->toString().c_str());
     }
   };
 } // namespace fhatos

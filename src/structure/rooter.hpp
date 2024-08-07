@@ -60,7 +60,7 @@ namespace fhatos {
     bool route_message(const Message_p &message) {
       this->structures.forEach([message](Structure *structure) {
         if (message->target.matches(*structure->type())) {
-          structure->write(message);
+          structure->publish(message);
         }
       });
     }
@@ -68,7 +68,7 @@ namespace fhatos {
     bool route_subscription(const Subscription_p &subscription) {
       this->structures.forEach([subscription](Structure *structure) {
         if (subscription->pattern.matches(*structure->type())) {
-          structure->read(subscription);
+          structure->subscribe(subscription);
         }
       });
       return true;

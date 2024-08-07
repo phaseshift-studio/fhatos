@@ -86,7 +86,7 @@ namespace fhatos {
       const Pair<string, string> typeValue = tryParseObjType(token);
       const string typeToken = typeValue.first;
       const string valueToken = typeValue.second;
-      const bool dot_type = dotType(typeToken); // .obj. in bcode (apply)
+      const bool dot_type = dotType(typeToken); // .obj. in _bcode (apply)
       Option<Obj_p> b = {};
       if (!dot_type) { // dot type
         b = tryParseNoObj(valueToken, typeToken, NOOBJ_FURI);
@@ -386,7 +386,7 @@ namespace fhatos {
       if (typeToken.empty() && valueToken == "_")
         return {Obj::to_bcode()}; // special character for 'no instructions' (no general common parse pattern)
       //////////////////////////////////////////////////////////////////////////////////////
-      //////////////// lookahead to determine if token is potentially bcode ////////////////
+      //////////////// lookahead to determine if token is potentially _bcode ////////////////
       //////////////////////////////////////////////////////////////////////////////////////
       bool mayBCode = (valueToken[0] == '_' && valueToken[1] == '_') || //
                       valueToken.find('.') != string::npos || //
@@ -404,7 +404,7 @@ namespace fhatos {
       //////////////////////////////////////////////////////////////////////////////////////
       List<Inst_p> insts;
       std::stringstream ss = std::stringstream(valueToken);
-      while (!ss.eof()) { // bcode-level (tokens are insts)
+      while (!ss.eof()) { // _bcode-level (tokens are insts)
         int paren = 0;
         int bracket = 0;
         bool quote = false;

@@ -28,20 +28,18 @@ namespace fhatos {
   class Space : public Structure {
 
   protected:
-    Map<ID, const Message_p> *DATA;
+    Map<fURI, const Message_p> *DATA = new Map<fURI, const Message_p>();
     MutexRW<> MUTEX_DATA = MutexRW<>();
-    MutexDeque<Mail_p> *OUTGOING;
+    MutexDeque<Mail_p> *OUTGOING = new MutexDeque<Mail_p>();
     List<Subscription_p> *SUBSCRIPTIONS = new List<Subscription_p>();
     MutexRW<> MUTEX_SUBSCRIPTIONS = MutexRW<>();
 
-    explicit Space(const Pattern_p &pattern) :
-        Structure(pattern, SType::READWRITE), DATA(new Map<ID, const Message_p>()), MUTEX_DATA(MutexRW<>()),
-        OUTGOING(new MutexDeque<Mail_p>()) {}
+    explicit Space(const Pattern_p &pattern) : Structure(pattern, SType::READWRITE){};
 
   public:
     static Space *create(const Pattern_p &pattern) { return new Space(pattern); }
 
-    ~Space() {
+    ~Space() override {
       delete DATA;
       delete OUTGOING;
     }
@@ -51,8 +49,8 @@ namespace fhatos {
       DATA->clear();
     }
 
-    void write(const Message_p &message) override {
-      Structure::write(message);
+    void publish(const Message_p &message) override {
+      Structure::publish(message);
       if (message->retain) {
         MUTEX_DATA.write<Obj>([this, message]() {
           Obj_p ret = Obj::to_noobj();
@@ -87,34 +85,42 @@ namespace fhatos {
       }
     }
 
-    void read(const Subscription_p &subscription) override {
-      Structure::read(subscription);
+    Obj_p read(const ID &id, [[maybe_unused]] const ID &source = FOS_DEFAULT_SOURCE_ID) override {
+      return DATA->count(id) ? DATA->at(id)->payload : noobj();
+    }
+
+    void subscribe(const Subscription_p &subscription) override {
+      Structure::subscribe(subscription);
       MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, subscription]() {
         RESPONSE_CODE _rc = OK;
         /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
         SUBSCRIPTIONS->erase(remove_if(SUBSCRIPTIONS->begin(), SUBSCRIPTIONS->end(),
                                        [subscription](const Subscription_p &sub) {
                                          return sub->source.equals(subscription->source) &&
-                                                sub->pattern.equals(subscription->pattern);
+                                                sub->pattern.matches(subscription->pattern);
                                        }),
                              SUBSCRIPTIONS->end());
         /////////////// ADD NEW SUBSCRIPTION
-        SUBSCRIPTIONS->push_back(subscription);
-        LOG_SUBSCRIBE(_rc, subscription);
-        return share<RESPONSE_CODE>(_rc);
-      });
-      MUTEX_DATA.read<void *>([this, subscription]() {
-        for (const auto &[id, message]: *DATA) {
-          if (id.matches(subscription->pattern)) {
-            const Mail_p mail = share(Mail{subscription, message});
-            if (subscription->mailbox) {
-              subscription->mailbox->push(mail);
-            } else {
-              OUTGOING->push_back(mail);
+        if (subscription->onRecv) {
+          SUBSCRIPTIONS->push_back(subscription);
+          MUTEX_DATA.read<void *>([this, subscription]() {
+            for (const auto &[id, message]: *DATA) {
+              if (id.matches(subscription->pattern)) {
+                const Mail_p mail = share(Mail{subscription, message});
+                if (subscription->mailbox) {
+                  subscription->mailbox->push(mail);
+                } else {
+                  OUTGOING->push_back(mail);
+                }
+              }
             }
-          }
+            return nullptr;
+          });
+          LOG_SUBSCRIBE(_rc, subscription);
+        } else {
+          LOG_UNSUBSCRIBE(_rc, subscription->source, &subscription->pattern);
         }
-        return nullptr;
+        return share<RESPONSE_CODE>(_rc);
       });
     }
   };

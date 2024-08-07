@@ -51,8 +51,39 @@ namespace fhatos {
         this->_available.store(false);
       }
     }
-    virtual void write(const Message_p &message) = 0;
-    virtual void read(const Subscription_p &subscription) = 0;
+    virtual void publish(const Message_p &message) = 0;
+    virtual void subscribe(const Subscription_p &subscription) = 0;
+    virtual void unsubscribe(const ID &source, const Pattern pattern) {
+      this->subscribe(share(Subscription{.source = source, .pattern = pattern, .onRecv = nullptr}));
+    }
+    virtual Obj_p read(const ID &id, const ID& source= FOS_DEFAULT_SOURCE_ID) {
+      auto *thing = new std::atomic<const Obj *>(nullptr);
+      this->subscribe(share(
+          Subscription{.source = source, .pattern = id, .onRecv = [thing](const Message_p &message) {
+                         // TODO: try to not copy obj while still not accessing heap after delete
+                         const Obj *obj = new Obj(message->payload->_value, message->payload->id());
+                         thing->store(obj);
+                       }}));
+      const time_t startTimestamp = time(nullptr);
+      while (!thing->load()) {
+        if ((time(nullptr) - startTimestamp) > 2) {
+          break;
+        }
+      }
+      this->subscribe(share(Subscription{.source = FOS_DEFAULT_SOURCE_ID, .pattern = id, .onRecv = nullptr}));
+      if (nullptr == thing->load()) {
+        delete thing;
+        return Obj::to_noobj();
+      } else {
+        const Obj_p ret = ptr<Obj>((Obj *) thing->load());
+        delete thing;
+        return ret;
+      }
+    }
+    virtual void write(const fURI &furi, const Obj_p obj, const ID& source= FOS_DEFAULT_SOURCE_ID) {
+      this->publish(share(Message{.source = source, .target = furi, .payload = obj, .retain = true}));
+    }
+
     bool available() { return this->_available; }
 
     static fError ID_NOT_IN_RANGE(const ID &id, const Pattern &pattern) {

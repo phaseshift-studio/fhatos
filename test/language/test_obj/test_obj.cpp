@@ -35,11 +35,11 @@ namespace fhatos {
     TEST_ASSERT_TRUE(boolA->match(boolA));
     TEST_ASSERT_TRUE(Obj::to_bool(true)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
     TEST_ASSERT_FALSE(Obj::to_bool(false)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
-    /* const Bool_p boolBCode = share(Bool(__().gt(5).bcode->bcode_value(), "/bcode/secret"));
+    /* const Bool_p boolBCode = share(Bool(__().gt(5)._bcode->bcode_value(), "/_bcode/secret"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(boolBCode).c_str());
      FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false)), boolBCode->apply(share(Int(4))));
    //  FOS_TEST_OBJ_EQUAL(share(Bool(false, "/bool/secret")), boolBCode->apply(share(Int(3,int_t("nat")))));
-     FOS_TEST_ASSERT_EXCEPTION(__().lt(2).bcode->apply(share(Bool(true, "/bool/truth"))));*/
+     FOS_TEST_ASSERT_EXCEPTION(__().lt(2)._bcode->apply(share(Bool(true, "/bool/truth"))));*/
   }
 
   void test_int() {
@@ -91,10 +91,10 @@ namespace fhatos {
     TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})));
     TEST_ASSERT_FALSE(Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));
     ////// BYTECODE
-    /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age")).bcode->bcode_value(), "/bcode/age"));
+    /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age"))._bcode->bcode_value(), "/_bcode/age"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
      // TEST_ASSERT_TRUE(intBCode->isBytecode());
-     TEST_ASSERT_EQUAL_STRING("/bcode/age", intBCode->id()->toString().c_str());
+     TEST_ASSERT_EQUAL_STRING("/_bcode/age", intBCode->id()->toString().c_str());
      TEST_ASSERT_EQUAL_STRING("age", intBCode->id()->lastSegment().c_str());
      /// apply
      FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));

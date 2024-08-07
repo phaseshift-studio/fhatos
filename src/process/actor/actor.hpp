@@ -59,10 +59,10 @@ namespace fhatos {
       // static_assert(std::is_base_of_v<Router, ROUTER>);
     }
 
-    /* ~Actor<PROCESS, ROUTER>() override {
-       this->Publisher<ROUTER>::~Publisher();
-       this->Mailbox<Mail>::~Mailbox();
-     }*/
+    virtual ~Actor() override {
+      this->inbox.clear();
+      PROCESS::~PROCESS();
+    }
 
     /*  Exts extension() {
         return Exts
@@ -111,7 +111,6 @@ namespace fhatos {
     }
 
     /// STRUCTURE METHODS
-
   };
 } // namespace fhatos
 #endif

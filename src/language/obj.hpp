@@ -81,7 +81,7 @@ namespace fhatos {
                                                    {OType::LST, "lst"},
                                                    {OType::REC, "rec"},
                                                    {OType::INST, "inst"},
-                                                   {OType::BCODE, "bcode"},
+                                                   {OType::BCODE, "_bcode"},
                                                    {OType::TYPE, "type"}});
   class Obj;
   using Obj_p = ptr<Obj>;
@@ -126,7 +126,6 @@ namespace fhatos {
   }; // TYPE
   static Consumer<BObj *> bobj_deleter = [](BObj *bobj) {
     free(bobj->second);
-    delete bobj;
   };
   static const Enums<IType> ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
                                                          {IType::ZERO_TO_ONE, "."},
@@ -185,7 +184,7 @@ namespace fhatos {
   static const ID_p LST_FURI = share<ID>(ID("/lst/"));
   static const ID_p REC_FURI = share<ID>(ID("/rec/"));
   static const ID_p INST_FURI = share<ID>(ID("/inst/"));
-  static const ID_p BCODE_FURI = share<ID>(ID("/bcode/"));
+  static const ID_p BCODE_FURI = share<ID>(ID("/_bcode/"));
   static const ID_p OBJS_FURI = share<ID>(ID("/objs/"));
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
                                                {OType::OBJ, OBJ_FURI},
@@ -544,7 +543,7 @@ namespace fhatos {
                             .append(objString)
                             .append(this->isInst() ? "!g)!!" : "!g]!!")
                       : objString;
-      return ansi ? objString : string(Options::singleton()->printer<>()->strip(objString.c_str()).get());
+      return ansi ? objString : Options::singleton()->printer<>()->strip(objString);
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     // operator const Obj_p &() { return shared_from_this(); }
@@ -1113,9 +1112,9 @@ namespace fhatos {
       }
       // auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
       // memcpy(bytes, reinterpret_cast<const fbyte *>(this->toString().c_str()), this->toString().length());
-      return ptr<BObj>(new BObj{this->toString().length(),
-                                (fbyte *) strdup(Ansi<>::singleton()->strip(this->toString().c_str()).get())},
-                       bobj_deleter);
+      return ptr<BObj>(
+          new BObj{this->toString().length(), (fbyte *) strdup(Ansi<>::singleton()->strip(this->toString()).c_str())},
+          bobj_deleter);
     }
     template<typename OBJ>
     static ptr<OBJ> deserialize(const ptr<BObj> &bobj) {
@@ -1127,11 +1126,12 @@ namespace fhatos {
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
-  [[maybe_unused]] static Uri_p uri(const char *xuri) { return share<Uri>(Uri(fURI(xuri))); }
-  [[maybe_unused]] static Uri_p uri(const string &xuri) { return share<Uri>(Uri(fURI(xuri))); }
-  [[maybe_unused]] static Str_p str(const char *xstr) { return share<Str>(Str(xstr)); }
-  [[maybe_unused]] static Str_p str(const string &xstr) { return share<Str>(Str(xstr)); }
-  [[maybe_unused]] static Real_p real(const FL_REAL_TYPE &xreal) { return share<Real>(Real(xreal)); }
+  [[maybe_unused]] static Uri_p uri(const char *xuri) { return Obj::to_uri(fURI(xuri)); }
+  [[maybe_unused]] static Uri_p uri(const string &xuri) { return Obj::to_uri(fURI(xuri)); }
+  [[maybe_unused]] static Str_p str(const char *xstr) { return Obj::to_str(xstr); }
+  [[maybe_unused]] static Str_p str(const string &xstr) { return Obj::to_str(xstr); }
+  [[maybe_unused]] static Real_p real(const FL_REAL_TYPE &xreal) { return Obj::to_real(xreal); }
+  [[maybe_unused]] static NoObj_p noobj() { return Obj::to_noobj(); }
   [[maybe_unused]] static Obj_p obj(const Obj &obj) { return share<Obj>(obj); }
   [[maybe_unused]] static Lst_p lst(const List<Obj_p> list) { return Obj::to_lst(share(list)); }
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> list) { return Obj::to_objs(list); }

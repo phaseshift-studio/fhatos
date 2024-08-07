@@ -118,7 +118,7 @@ namespace fhatos {
     }
 
   public:
-    ~Router() override = default;
+    virtual ~Router() override = default;
     ROUTER_LEVEL _level;
 
     static ID mintID(const char *authority, const char *path = "") { return ID(ID(authority).path(path)); }
@@ -187,11 +187,11 @@ namespace fhatos {
       wrap += '%';
       wrap += obj->toString(true, false);
       LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
-      return ptr<BObj>(new BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}), bobj_deleter);
+      return ptr<BObj>(new BObj({wrap.length(), (fbyte *) strdup(wrap.c_str())}), bobj_deleter);
     }
     static Pair<SourceID, Obj_p> unwrapSource(const BObj_p &bobj) {
       try {
-        const auto unwrap = string(reinterpret_cast<char *>(bobj->second), bobj->first);
+        const auto unwrap = string((char *) bobj->second, bobj->first);
         const size_t index = unwrap.find_first_of('%');
         LOG(TRACE, "bobj source unwrap: %s and %s (length:%i and %i)\n", unwrap.substr(0, index).c_str(),
             unwrap.substr(index + 1).c_str(), unwrap.substr(0, index).length(), unwrap.substr(index + 1).length());

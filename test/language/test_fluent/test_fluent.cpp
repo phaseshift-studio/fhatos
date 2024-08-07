@@ -17,7 +17,7 @@ namespace fhatos {
     /*FOS_CHECK_RESULTS<Str>(
         {"fhaty", "pigy"},
         __(List<Obj>{"fhat", "pig"})
-            .bswitch({{*_.is(_.gt("gonzo")).bcode, *_.to(u("b")).bcode}, {*_.bcode, *_.to(u("c")).bcode}})
+            .bswitch({{*_.is(_.gt("gonzo"))._bcode, *_.to(u("b"))._bcode}, {*_._bcode, *_.to(u("c"))._bcode}})
             .plus("y"),
         {{u("b"), "pig"}, {u("c"), "fhat"}});*/
   }

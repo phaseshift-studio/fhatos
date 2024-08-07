@@ -25,6 +25,7 @@
 //
 #include <sstream>
 #include <util/string_helper.hpp>
+#include <utility>
 
 namespace fhatos {
 
@@ -595,14 +596,14 @@ namespace fhatos {
 
   class BaseIDed {
   public:
-    virtual ID_p id() const = 0;
+    [[nodiscard]] virtual ID_p id() const = 0;
     [[nodiscard]] virtual bool equals(const BaseIDed &) const { return false; }
   };
 
   class IDed : public BaseIDed {
   public:
     explicit IDed(const fURI_p &uri) : _id(share(ID(uri->toString()))) {}
-    explicit IDed(const ID_p &id) : _id(id) {}
+    explicit IDed(ID_p id) : _id(std::move(id)) {}
 
     [[nodiscard]] ID_p id() const override { return this->_id; }
 

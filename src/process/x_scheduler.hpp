@@ -52,7 +52,7 @@ namespace fhatos {
 
   public:
     explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
-    ~XScheduler() override {
+    virtual ~XScheduler() override {
       delete COROUTINES;
       delete FIBERS;
       delete THREADS;
