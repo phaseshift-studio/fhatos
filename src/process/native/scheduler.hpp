@@ -46,7 +46,7 @@ namespace fhatos {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
         if (!process->running()) {
-          LOG_TASK(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->type),
+          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->type),
                    process->id()->toString().c_str());
           return share(false);
         }
@@ -84,12 +84,12 @@ namespace fhatos {
             break;
           }
           default: {
-            LOG_TASK(ERROR, this, "!b%s!! has an unknown process type: !r%i!!\n", process->id()->toString().c_str(),
+            LOG_PROCESS(ERROR, this, "!b%s!! has an unknown process type: !r%i!!\n", process->id()->toString().c_str(),
                      process->type);
             return share(false);
           }
         }
-        LOG_TASK(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+        LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                  ProcessTypes.toChars(process->type));
         return share(success);
       });

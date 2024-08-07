@@ -63,7 +63,7 @@ namespace fhatos {
       PROCESS::setup();
       ////////// ON CONNECT //////////
       this->xtelnet->onConnect([](const String ipAddress) {
-        // LOG_TASK(INFO, &T, "Telnet connection made from %s\n",
+        // LOG_PROCESS(INFO, &T, "Telnet connection made from %s\n",
         // ipAddress.c_str());
         tthis->ansi->println(ANSI_ART);
         tthis->ansi->printf("Telnet server on !m%s!!\n" TAB "Connection from !m%s!!\n" TAB
@@ -174,12 +174,12 @@ namespace fhatos {
         // delete tthis->currentTopic;
         tthis->currentTopic = new ID(tthis->id());
         ROUTER::singleton()->unsubscribeSource(tthis->id());
-        LOG_TASK(INFO, tthis, "Client %s disconnected from Telnet server",
+        LOG_PROCESS(INFO, tthis, "Client %s disconnected from Telnet server",
                  ipAddress.c_str());
       });
 
       const bool success = this->xtelnet->begin(this->port, true);
-      LOG_TASK(success ? INFO : ERROR, this, "Telnet server initialized on %s:%i",
+      LOG_PROCESS(success ? INFO : ERROR, this, "Telnet server initialized on %s:%i",
                this->id().host().c_str(), this->port);
     }
 

@@ -172,14 +172,14 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
     TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
     TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
-    lstC.lst_set(o_p(0), o_p(1));
+    lstC.lst_set(obj(0), obj(1));
     FOS_TEST_OBJ_EQUAL(&lstC, &lstA);
-    lstC.lst_set(o_p(4), o_p(5));
+    lstC.lst_set(obj(4), obj(5));
     FOS_TEST_OBJ_NOT_EQUAL(&lstC, &lstA);
     for (int i = 0; i < 4; i++) {
-      FOS_TEST_OBJ_EQUAL(o_p(i + 1), lstA.lst_get(o_p(i)));
-      FOS_TEST_OBJ_EQUAL(o_p(i + 1), lstB.lst_get(o_p(i)));
-      FOS_TEST_OBJ_EQUAL(o_p(i + 1), lstC.lst_get(o_p(i)));
+      FOS_TEST_OBJ_EQUAL(obj(i + 1), lstA.lst_get(obj(i)));
+      FOS_TEST_OBJ_EQUAL(obj(i + 1), lstB.lst_get(obj(i)));
+      FOS_TEST_OBJ_EQUAL(obj(i + 1), lstC.lst_get(obj(i)));
     }
     const Lst_p lstD = Obj::to_lst({1, 1, 1});
     TEST_ASSERT_EQUAL_STRING("/lst/ones", lstD->as("/lst/ones")->id()->toString().c_str());

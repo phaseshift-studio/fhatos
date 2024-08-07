@@ -27,20 +27,30 @@ namespace fhatos {
   static const Enums<SType> StructureTypes =
       Enums<SType>({{SType::READ, "read"}, {SType::WRITE, "write"}, {SType::READWRITE, "readwrite"}});
 
-  class Structure : public Typed {
+  class Structure : public Patterned {
   protected:
     std::atomic_bool _available = std::atomic_bool(false);
 
   public:
     const SType _stype;
 
-    Structure(const Pattern_p &type, const SType stype) : Typed(type), _stype(stype) {}
+    Structure(const Pattern_p &type, const SType stype) : Patterned(type), _stype(stype) {}
 
     virtual ~Structure() = default;
 
-    virtual void open() { this->_available.store(true); }
+    virtual void open() {
+      if (this->_available.load()) {
+        LOG_STRUCTURE(WARN, this, "!ystructure!! already open");
+        this->_available.store(true);
+      }
+    }
     virtual void maintain() {}
-    virtual void close() { this->_available.store(false); }
+    virtual void close() {
+      if (this->_available.load()) {
+        LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
+        this->_available.store(false);
+      }
+    }
     virtual void write(const Message_p &message) = 0;
     virtual void read(const Subscription_p &subscription) = 0;
     bool available() { return this->_available; }

@@ -162,7 +162,7 @@ namespace fhatos {
         this->_line.replace(pos, 3, "");
         pos = this->_line.find("###", pos + 0);
       }
-      LOG_TASK(DEBUG, this, "line to parse: %s\n", this->_line.c_str());
+      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", this->_line.c_str());
       StringHelper::trim(this->_line);
       if (this->_line[0] == ':') {
         ///////// PARSE MENU COMMANDS

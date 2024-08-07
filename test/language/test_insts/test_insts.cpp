@@ -59,18 +59,18 @@ namespace fhatos {
   }
 
   void test_apply() {
-    testObj(o_p(6), o_p(5), o_p(5));
-    testObj(o_p(3), o_p("a"), o_p("a"));
-    testObj(o_p("a"), o_p("b"), o_p("b"));
-    testObj(o_p(u("http://fhatos.org")), o_p({1, 2, 3}), o_p({1, 2, 3}));
+    testObj(obj(6), obj(5), obj(5));
+    testObj(obj(3), obj("a"), obj("a"));
+    testObj(obj("a"), obj("b"), obj("b"));
+    testObj(obj(u("http://fhatos.org")), obj({1, 2, 3}), obj({1, 2, 3}));
     /// bcode => mult[int]
-    testInst(Obj::to_bcode({Insts::plus(o_p(5))}), //
-             Insts::mult(o_p(10)), //
-             Obj::to_bcode({Insts::plus(o_p(5)), Insts::mult(o_p(10))}));
+    testInst(Obj::to_bcode({Insts::plus(obj(5))}), //
+             Insts::mult(obj(10)), //
+             Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(obj(10))}));
     /// bcode => mult[bcode]
-    testInst(Obj::to_bcode({Insts::plus(o_p(5))}), //
-             Insts::mult(Obj::to_bcode({Insts::plus(o_p(3))})), //
-             Obj::to_bcode({Insts::plus(o_p(5)), Insts::mult(Obj::to_bcode({Insts::plus(o_p(3))}))}));
+    testInst(Obj::to_bcode({Insts::plus(obj(5))}), //
+             Insts::mult(Obj::to_bcode({Insts::plus(obj(3))})), //
+             Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(Obj::to_bcode({Insts::plus(obj(3))}))}));
   }
 
 
@@ -84,9 +84,9 @@ namespace fhatos {
 
   void test_barrier() {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
-    testInst(objs({o_p(1), o_p(2), o_p("a"), lst({o_p("x"), u_p("abc")})}), //
+    testInst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), uri("abc")})}), //
              Insts::barrier(bcode({Insts::count()})), //
-             objs({o_p(4)}));
+             objs({obj(4)}));
   }
 
 

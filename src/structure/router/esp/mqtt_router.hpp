@@ -181,7 +181,7 @@ namespace fhatos {
     virtual void setup() override {
       if (!fWIFI::singleton()->running() && !fWIFI::reconnect()) {
         this->stop();
-        LOG_TASK(ERROR, this, "No WIFI connection. MQTT support not provided.\n");
+        LOG_PROCESS(ERROR, this, "No WIFI connection. MQTT support not provided.\n");
       } else {
         uint8_t counter = 0;
         while (!this->xmqtt->connected() && (++counter < MQTT_MAX_RETRIES == -1 ||
@@ -217,7 +217,7 @@ namespace fhatos {
         }
         if (counter > MQTT_MAX_RETRIES) {
           this->stop();
-          LOG_TASK(ERROR, this,
+          LOG_PROCESS(ERROR, this,
                    "Unable to connect to remote server. Mqtt support not "
                    "provided.\n");
         }
@@ -225,7 +225,7 @@ namespace fhatos {
     }
 
     virtual void stop() override {
-      LOG_TASK(INFO, this, "Disconnecting MQTT from %s:%i\n", this->server,
+      LOG_PROCESS(INFO, this, "Disconnecting MQTT from %s:%i\n", this->server,
                this->port);
       _SUBSCRIPTIONS.forEach([this](const auto &sub) {
         this->unsubscribe(sub.source, sub.pattern);
@@ -263,10 +263,10 @@ namespace fhatos {
         }
       }
       if (errors) {
-        LOG_TASK(ERROR, this, "Errors during publishing: %i\n", errors);
+        LOG_PROCESS(ERROR, this, "Errors during publishing: %i\n", errors);
       }
       if (!this->xmqtt->loop()) {
-        LOG_TASK(ERROR, this, "MQTT processing loop failure\n");
+        LOG_PROCESS(ERROR, this, "MQTT processing loop failure\n");
         this->testConnection();
       }
     }
@@ -289,7 +289,7 @@ namespace fhatos {
 
     void testConnection() {
       if (!this->running()) {
-        LOG_TASK(INFO, this,
+        LOG_PROCESS(INFO, this,
                  "Reconnecting to MQTT broker after connection loss\n");
         this->setup();
       }

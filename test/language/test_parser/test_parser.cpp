@@ -195,7 +195,7 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get("a")->int_value()); // a's value is 13
       TEST_ASSERT_TRUE(rc1->rec_get(Obj::to_int(13))->isNoObj()); // no key is 13
       TEST_ASSERT_TRUE(rc1->rec_get(Obj::to_str("no key"))->isNoObj()); // no key is no key
-      TEST_ASSERT_FALSE(rc1->rec_get(u_p("/rec/actor"))->bool_value());
+      TEST_ASSERT_FALSE(rc1->rec_get(uri("/rec/actor"))->bool_value());
     }
 
     /*  recs = {"[:age=>nat[29],:name=>'dogturd']", "[:age=>nat[29],:name=>'dogturd']"

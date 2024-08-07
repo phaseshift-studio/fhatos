@@ -179,7 +179,7 @@ namespace fhatos {
               WiFi.subnetMask().toString().c_str(),
               WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
-            LOG_TASK(ERROR, this, "Unable to create mDNS hostname %s\n",
+            LOG_PROCESS(ERROR, this, "Unable to create mDNS hostname %s\n",
                      this->id()->user()->c_str());
           }
           LOG(INFO, "\tConnection attempts: %i\n", attempts);
@@ -187,7 +187,7 @@ namespace fhatos {
         }
       }
       if (attempts != 100) {
-        LOG_TASK(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
+        LOG_PROCESS(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
                  attempts);
       }
       return this;

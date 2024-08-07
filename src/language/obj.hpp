@@ -1127,9 +1127,12 @@ namespace fhatos {
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
-  [[maybe_unused]] static Uri_p u_p(const char *uri) { return share<Uri>(Uri(fURI(uri))); }
-  [[maybe_unused]] static Uri_p u_p(const string &uri) { return share<Uri>(Uri(fURI(uri))); }
-  [[maybe_unused]] static Obj_p o_p(const Obj &obj) { return share<Obj>(obj); }
+  [[maybe_unused]] static Uri_p uri(const char *xuri) { return share<Uri>(Uri(fURI(xuri))); }
+  [[maybe_unused]] static Uri_p uri(const string &xuri) { return share<Uri>(Uri(fURI(xuri))); }
+  [[maybe_unused]] static Str_p str(const char *xstr) { return share<Str>(Str(xstr)); }
+  [[maybe_unused]] static Str_p str(const string &xstr) { return share<Str>(Str(xstr)); }
+  [[maybe_unused]] static Real_p real(const FL_REAL_TYPE &xreal) { return share<Real>(Real(xreal)); }
+  [[maybe_unused]] static Obj_p obj(const Obj &obj) { return share<Obj>(obj); }
   [[maybe_unused]] static Lst_p lst(const List<Obj_p> list) { return Obj::to_lst(share(list)); }
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> list) { return Obj::to_objs(list); }
   [[maybe_unused]] static BCode_p bcode(const InstList list) { return Obj::to_bcode(list); }

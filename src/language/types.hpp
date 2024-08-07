@@ -93,7 +93,7 @@ namespace fhatos {
       const ptr<bool> success = CACHE_MUTEX.write<bool>([this, typeId, typeDef, writeThrough] {
         try {
           if (CACHE->count(*typeId)) {
-            LOG_TASK(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
+            LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
                      CACHE->at(*typeId)->toString().c_str());
             CACHE->erase(*typeId);
           }
@@ -104,7 +104,7 @@ namespace fhatos {
             this->publish(*typeId, typeDef, true);
 #endif
         } catch (const fError &e) {
-          LOG_TASK(ERROR, this, "Unable to save type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
+          LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
           return share(false);
         }
         return share(true);
@@ -112,10 +112,10 @@ namespace fhatos {
       if (*success) {
         if (OType::INST == OTypes.toEnum(typeId->path(0))) {
           const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
-          LOG_TASK(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
+          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
                    typeDef->bcode_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
         } else {
-          LOG_TASK(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
+          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
                    typeDef->toString().c_str());
         }
       }

@@ -53,7 +53,7 @@ namespace fhatos {
 
     void setup() override {
       Actor::setup();
-      LOG_TASK(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->_root->toString().c_str());
+      LOG_PROCESS(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->_root->toString().c_str());
       this->publish(*FILE_FURI, Obj::to_bcode(), true);
       this->publish(*DIR_FURI, Obj::to_bcode(), true);
       this->publish(*this->id(), this->root()->apply(Obj::to_noobj()), RETAIN_MESSAGE);

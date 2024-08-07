@@ -191,9 +191,10 @@ namespace fhatos {
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
-#define LOG_TASK(logtype, process, format, ...)                                                                        \
+#define LOG_PROCESS(logtype, process, format, ...)                                                                        \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
-
+#define LOG_STRUCTURE(logtype, structure, format, ...)                                                                        \
+  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->type()->toString().c_str(), ##__VA_ARGS__)
 #define FOS_LOG_INST(inst)                                                                                             \
   LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
       (inst)->opcode().c_str(),                                                                                        \

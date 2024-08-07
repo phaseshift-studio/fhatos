@@ -123,7 +123,7 @@ namespace fhatos {
       });
       /// MQTT CONNECTION ESTABLISHED CALLBACK
       this->xmqtt->set_connected_handler([this](const string &) {
-        LOG_TASK(INFO, this,
+        LOG_PROCESS(INFO, this,
                  "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
                  "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                  "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
@@ -141,10 +141,10 @@ namespace fhatos {
           if (counter++ > 10)
             throw mqtt::exception(1);
           sleep(2);
-          LOG_TASK(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->serverAddr);
+          LOG_PROCESS(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->serverAddr);
         }
       } catch (const mqtt::exception &e) {
-        LOG_TASK(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->serverAddr, e.what());
+        LOG_PROCESS(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->serverAddr, e.what());
       }
     }
 
@@ -215,7 +215,7 @@ namespace fhatos {
     void stop() override {
       this->clear();
       this->xmqtt->disconnect();
-      LOG_TASK(INFO, this, "!b%s !ymqtt client to %s!! disconnected\n", this->id()->toString().c_str(),
+      LOG_PROCESS(INFO, this, "!b%s !ymqtt client to %s!! disconnected\n", this->id()->toString().c_str(),
                this->serverAddr);
     }
 

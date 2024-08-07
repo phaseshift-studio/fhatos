@@ -58,7 +58,7 @@ namespace fhatos {
                 this->stop();
               }
             }),
-        rec(rec), SETUP_BCODE(rec->rec_get(u_p("setup"))), LOOP_BCODE(rec->rec_get(u_p("loop"))) {
+        rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))), LOOP_BCODE(rec->rec_get(uri("loop"))) {
       LOG(DEBUG, "bcode program created: %s\n", rec->toString().c_str());
     }
   };

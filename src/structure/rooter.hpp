@@ -20,18 +20,18 @@
 
 #include <structure/structure.hpp>
 #include <util/mutex_deque.hpp>
+#include <util/mutex_rw.hpp>
 
 namespace fhatos {
 
-  class Rooter : public IDed, public Typed {
+  class Rooter : public Patterned {
   protected:
     MutexDeque<Structure *> structures = MutexDeque<Structure *>();
+    explicit Rooter(const Pattern &pattern) : Patterned(share(pattern)) {}
 
   public:
-    Rooter(const ID &id, const Pattern &pattern) : IDed(share(id)), Typed(share(pattern)) {}
-
-    static Rooter *singleton(const ID &id = "/sys/rooter", const Pattern &pattern = "#") {
-      static Rooter rooter = Rooter(id, pattern);
+    static Rooter *singleton(const Pattern &pattern = "#") {
+      static Rooter rooter = Rooter(pattern);
       return &rooter;
     }
 
@@ -42,22 +42,22 @@ namespace fhatos {
                        s->type()->toString().c_str(), s->type()->toString().c_str());
         }
       });
-      LOG_TASK(INFO, this, "attached structure %s\n", structure->type()->toString().c_str());
+      LOG_STRUCTURE(INFO, this, "attached structure %s\n", structure->type()->toString().c_str());
       this->structures.push_back(structure);
     }
 
     virtual void detach(const Pattern_p &structurePattern) {
-      this->structures.remove_if([structurePattern](Structure *structure) {
+      this->structures.remove_if([this, structurePattern](Structure *structure) {
         if (structure->type()->matches(*structurePattern)) {
           structure->close();
-          // LOG_TASK(fhatos::LOG_TYPE::INFO, this, "detaching structure %s\n", structure->type()->toString().c_str());
+          LOG_STRUCTURE(INFO, this, "detaching structure %s\n", structure->type()->toString().c_str());
           return true;
         }
         return false;
       });
     }
 
-    bool publish(const Message_p &message) {
+    bool route_message(const Message_p &message) {
       this->structures.forEach([message](Structure *structure) {
         if (message->target.matches(*structure->type())) {
           structure->write(message);
@@ -65,7 +65,7 @@ namespace fhatos {
       });
     }
 
-    bool subscribe(const Subscription_p &subscription) {
+    bool route_subscription(const Subscription_p &subscription) {
       this->structures.forEach([subscription](Structure *structure) {
         if (subscription->pattern.matches(*structure->type())) {
           structure->read(subscription);

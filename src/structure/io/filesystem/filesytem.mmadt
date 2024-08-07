@@ -15,3 +15,15 @@
      type/rec/fs/file => |[],
      type/rec/fs/dir  => |[]]]
 ###
+
+
+/mmadt/mod/fs/ ~>
+ [structure/            => ~>
+   [|file -> |type/rec/file => [:name  => |as(/str/),
+                                :size  => |as(/nat/)],
+    |dir  -> |type/rec/dir  => [:name  => |as(/str/),
+                                :size  => |as(/nat/),
+                                :*     => |{file | dir}],
+    |fs   -> |type/rec/fs   => [:root  => |as(/dir/),
+                                :open  => </native/>,
+                                :close => </native/>]]

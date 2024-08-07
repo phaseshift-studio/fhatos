@@ -618,24 +618,24 @@ namespace fhatos {
   //////////////////////////////////////////////
   ///////////////// TYPED FURI /////////////////
   //////////////////////////////////////////////
-  class BaseTyped {
+  class BasePatterned {
   public:
     virtual Pattern_p type() const = 0;
-    virtual bool equals(const BaseTyped &) const = 0;
+    virtual bool equals(const BasePatterned &) const = 0;
     virtual bool matches(const fURI& other) {
       return other.matches(*this->type());
     }
   };
 
-  class Typed : public BaseTyped {
+  class Patterned : public BasePatterned {
   protected:
     Pattern_p _type;
 
   public:
-    explicit Typed(const fURI_p &uri) : _type(share(Pattern(uri->toString()))) {}
-    explicit Typed(const Pattern_p &type) : _type(type) {}
+    explicit Patterned(const fURI_p &uri) : _type(share(Pattern(uri->toString()))) {}
+    explicit Patterned(const Pattern_p &type) : _type(type) {}
     Pattern_p type() const override { return this->_type; }
-    bool equals(const BaseTyped &other) const override { return this->_type->equals(*other.type()); }
+    bool equals(const BasePatterned &other) const override { return this->_type->equals(*other.type()); }
   };
 
   struct furi_comp : public std::less<fURI_p> {
