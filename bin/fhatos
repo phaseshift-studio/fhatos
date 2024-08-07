@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $1 == "esp32" ]]; then
-  rlwrap --always-readline pio device monitor -e $1 -f direct --echo
+  rlwrap --always-readline --ansi-colour-aware pio device monitor -e $1 -f direct --echo
 else
-  rlwrap --complete-filenames  ~/software/fhatos/build/fhatos.out "$@"
+  rlwrap --ansi-colour-aware ~/software/fhatos/build/fhatos.out "$@"
 fi
