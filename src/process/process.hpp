@@ -43,11 +43,28 @@ namespace fhatos {
 
     virtual ~Process() = default;
 
-    virtual void setup() { this->_running.store(true); };
+    virtual void setup() {
+      if (this->_running.load()) {
+        LOG(WARN, "%s !y%s!! already setup\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->type));
+        return;
+      }
+      this->_running.store(true);
+    };
 
-    virtual void loop() {};
+    virtual void loop() {
+      if (!this->_running.load()) {
+        throw fError("%s !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
+                     ProcessTypes.toChars(this->type));
+      }
+    };
 
-    virtual void stop() { this->_running.store(false); };
+    virtual void stop() {
+      if (!this->_running.load()) {
+        LOG(WARN, "%s !y%s!! already stopped\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->type));
+        return;
+      }
+      this->_running.store(false);
+    };
 
     bool running() const { return this->_running.load(); }
 

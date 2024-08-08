@@ -34,8 +34,8 @@
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
-    LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", (process)->id()->toString().c_str(),           \
-             ProcessTypes.toChars((process)->type));                                                                   \
+    LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
+                ProcessTypes.toChars((process)->type), (success) ? "spawned" : "!r!_spawned!!");                       \
   }
 
 
@@ -52,7 +52,7 @@ namespace fhatos {
 
   public:
     explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
-    virtual ~XScheduler() override {
+    ~XScheduler() override {
       delete COROUTINES;
       delete FIBERS;
       delete THREADS;
@@ -151,7 +151,7 @@ namespace fhatos {
                                  if (process->running())
                                    process->stop();
                                  LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                          ProcessTypes.toChars(process->type));
+                                             ProcessTypes.toChars(process->type));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -166,7 +166,7 @@ namespace fhatos {
                                  if (process->running())
                                    process->stop();
                                  LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                          ProcessTypes.toChars(process->type));
+                                             ProcessTypes.toChars(process->type));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -181,7 +181,7 @@ namespace fhatos {
                                  if (process->running())
                                    process->stop();
                                  LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                          ProcessTypes.toChars(process->type));
+                                             ProcessTypes.toChars(process->type));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }

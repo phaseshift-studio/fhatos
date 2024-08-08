@@ -22,6 +22,7 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/obj.hpp>
 #include <structure/io/filesystem/fs.hpp>
+#include <structure/stype/empty.hpp>
 namespace fhatos {
 
   using File = Uri;
@@ -33,15 +34,15 @@ namespace fhatos {
   static const ID_p DIR_FURI = share(ID("/uri/fs:dir"));
   static const ID_p INST_FS_FURI = share(ID("/inst/fs:"));
 
-  class XFileSystem : public Actor<Coroutine> {
+  class XFileSystem : public Actor<Coroutine, Empty> {
 
   protected:
     const ID_p _root;
     ID_p _current;
 
   public:
-    explicit XFileSystem(const ID &id, const ID &localRoot) :
-        Actor(id), _root(id_p(localRoot.extend("/"))), _current(id_p(localRoot.extend("/"))) {}
+    explicit XFileSystem(const ID &id, const Pattern &pattern, const ID &localRoot) :
+        Actor(id, pattern), _root(id_p(localRoot.extend("/"))), _current(id_p(localRoot.extend("/"))) {}
 
 
     /* Obj_p find(const ID &id) const  {

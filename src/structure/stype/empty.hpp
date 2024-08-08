@@ -13,19 +13,25 @@
 //
 //  You should have received a copy of the GNU Affero General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#pragma once
+#ifndef fhatos_empty_hpp
+#define fhatos_empty_hpp
 
+#include <fhatos.hpp>
+#include <structure/structure.hpp>
 
-#ifndef fhatos_read_write_hpp
-#define fhatos_read_write_hpp
 
 namespace fhatos {
+  class Empty : public Structure {
 
-  class ReadWrite {
-
-
-
+  public:
+    explicit Empty(const Pattern &pattern = EMPTY_CHARS) : Structure(pattern, SType::READ) {}
+    virtual void setup() override {};
+    virtual void stop() override {};
+    virtual void loop() override {};
+    virtual List<Pair<fURI_p, Obj_p>> read(const fURI &furi, const ID &source) override { return {}; }
+    virtual void write(const fURI &furi, const Obj_p &obj, const ID &source) override {}
   };
-
 } // namespace fhatos
 
 #endif

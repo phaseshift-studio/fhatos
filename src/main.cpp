@@ -21,7 +21,7 @@
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/process.hpp>
-#include <structure/space/space.hpp>
+#include <structure/stype/space.hpp>
 // routers
 #include <structure/router/local_router.hpp>
 #ifdef NATIVE

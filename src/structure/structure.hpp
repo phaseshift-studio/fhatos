@@ -34,59 +34,27 @@ namespace fhatos {
   public:
     const SType _stype;
 
-    explicit Structure(const Pattern_p &type, const SType stype) : Patterned(type), _stype(stype) {}
+    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(share(pattern)), _stype(stype) {}
 
     virtual ~Structure() = default;
 
-    virtual void open() {
+    bool available() { return this->_available.load(); }
+    virtual void setup() {
       if (this->_available.load()) {
         LOG_STRUCTURE(WARN, this, "!ystructure!! already open");
         this->_available.store(true);
       }
     }
-    virtual void maintain() {}
-    virtual void close() {
+    virtual void loop() {}
+    virtual void stop() {
       if (this->_available.load()) {
         LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
         this->_available.store(false);
       }
     }
-    virtual void publish(const Message_p &message) = 0;
-    virtual void subscribe(const Subscription_p &subscription) = 0;
-    virtual void unsubscribe(const ID &source, const Pattern pattern) {
-      this->subscribe(share(Subscription{.source = source, .pattern = pattern, .onRecv = nullptr}));
-    }
-    virtual Obj_p read(const ID &id, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      auto *thing = new std::atomic<const Obj *>(nullptr);
-      this->subscribe(share(Subscription{.source = source, .pattern = id, .onRecv = [thing](const Message_p &message) {
-                                           // TODO: try to not copy obj while still not accessing heap after delete
-                                           const Obj *obj = new Obj(message->payload->_value, message->payload->id());
-                                           thing->store(obj);
-                                         }}));
-      const time_t startTimestamp = time(nullptr);
-      while (!thing->load()) {
-        if ((time(nullptr) - startTimestamp) > 2) {
-          break;
-        }
-      }
-      this->subscribe(share(Subscription{.source = FOS_DEFAULT_SOURCE_ID, .pattern = id, .onRecv = nullptr}));
-      if (nullptr == thing->load()) {
-        delete thing;
-        return Obj::to_noobj();
-      } else {
-        const Obj_p ret = ptr<Obj>((Obj *) thing->load());
-        delete thing;
-        return ret;
-      }
-    }
-    Obj_p read(const ID &id) { return this->read(id, FOS_DEFAULT_SOURCE_ID); }
-
-    virtual void write(const fURI &furi, const Obj_p &obj, const ID &source) {
-      this->publish(share(Message{.source = source, .target = furi, .payload = obj, .retain = true}));
-    }
-    void write(const fURI &furi, const Obj_p &obj) { this->write(furi, obj, FOS_DEFAULT_SOURCE_ID); }
-
-    bool available() { return this->_available; }
+    virtual List<Pair<fURI_p, Obj_p>> read(const fURI &furi, const ID &source) = 0;
+    virtual void write(const fURI &furi, const Obj_p &obj, const ID &source) = 0;
+    virtual void remove(const fURI &furi, const ID &source) { this->write(furi, Obj::to_noobj(), source); }
 
     static fError ID_NOT_IN_RANGE(const ID &id, const Pattern &pattern) {
       return fError("!g[!b%s!g]!! is not within the boundaries of space !g[!!%s!g]!!\n", id.toString().c_str(),
