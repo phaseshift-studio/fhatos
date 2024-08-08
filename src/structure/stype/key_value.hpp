@@ -25,18 +25,18 @@
 
 namespace fhatos {
 
-  class Space : public Structure {
+  class KeyValue : public Structure {
 
   protected:
     Map<fURI, const Obj_p> *DATA = new Map<fURI, const Obj_p>();
     MutexRW<> MUTEX_DATA = MutexRW<>();
 
-    explicit Space(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
+    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
 
   public:
-    static Space *create(const Pattern &pattern) { return new Space(pattern); }
+    static KeyValue *create(const Pattern &pattern) { return new KeyValue(pattern); }
 
-    ~Space() override { delete DATA; }
+    ~KeyValue() override { delete DATA; }
 
     void stop() override {
       Structure::stop();

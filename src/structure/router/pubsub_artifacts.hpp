@@ -33,14 +33,10 @@ namespace fhatos {
     const bool retain;
 
     [[nodiscard]] string toString() const {
-      char temp[100];
-      sprintf(temp, "[%s]=%s[retain:%s]=>[%s]", source.toString().c_str(), payload->toString().c_str(),
+      char temp[150];
+      sprintf(temp, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", source.toString().c_str(), payload->toString().c_str(),
               FOS_BOOL_STR(retain), target.toString().c_str());
       return {temp};
-    }
-
-    static fError UNKNOWN_PAYLOAD(const ID &id, const Obj_p &payload) {
-      return fError("!m%s!! unable to process payload %s\n", id.toString().c_str(), payload->toString().c_str());
     }
   };
 
@@ -56,7 +52,7 @@ namespace fhatos {
     using Mail = Pair<const Subscription_p, const Message_p>;
     using Mail_p = ptr<Mail>;
     Mailbox<Mail_p> *mailbox = nullptr;
-    ID source;
+    fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;
     Consumer<const Message_p> onRecv = [](const Message_p &) {};
@@ -65,6 +61,13 @@ namespace fhatos {
     bool match(const ID &target) const { return this->pattern.matches(target); }
 
     void execute(const Message_p &message) const { onRecv(message); }
+
+    [[nodiscard]] string toString() const {
+      char temp[150];
+      sprintf(temp, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
+              (uint8_t) qos, pattern.toString().c_str(), onRecvBCode ? onRecvBCode->toString().c_str() : "<c-impl>");
+      return {temp};
+    }
   };
 
 
@@ -72,6 +75,6 @@ namespace fhatos {
   using Mail_p = ptr<Mail>;
 
 
-}
+} // namespace fhatos
 
 #endif

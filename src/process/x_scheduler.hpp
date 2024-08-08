@@ -35,7 +35,7 @@
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
     LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
-                ProcessTypes.toChars((process)->type), (success) ? "spawned" : "!r!_spawned!!");                       \
+                ProcessTypes.toChars((process)->ptype), (success) ? "spawned" : "!r!_spawned!!");                       \
   }
 
 
@@ -151,7 +151,7 @@ namespace fhatos {
                                  if (process->running())
                                    process->stop();
                                  LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                             ProcessTypes.toChars(process->type));
+                                             ProcessTypes.toChars(process->ptype));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -166,7 +166,7 @@ namespace fhatos {
                                  if (process->running())
                                    process->stop();
                                  LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                             ProcessTypes.toChars(process->type));
+                                             ProcessTypes.toChars(process->ptype));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }
@@ -181,7 +181,7 @@ namespace fhatos {
                                  if (process->running())
                                    process->stop();
                                  LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                             ProcessTypes.toChars(process->type));
+                                             ProcessTypes.toChars(process->ptype));
                                } catch (const std::exception &e) {
                                  LOG_EXCEPTION(e);
                                }

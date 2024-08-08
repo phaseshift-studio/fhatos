@@ -26,7 +26,7 @@ namespace fs = std::filesystem;
 namespace fhatos {
   class FileSystem : public XFileSystem {
   private:
-    explicit FileSystem(const ID &id, const ID &root) : XFileSystem(id, root) {}
+    explicit FileSystem(const ID &id, const ID &root) : XFileSystem(id, id.extend("#"), root) {}
 
   public:
     static FileSystem *singleton(const ID &id = ID("/sys/io/fs"), const ID &root = ID(fs::current_path())) {

@@ -32,34 +32,33 @@ namespace fhatos {
     const ptr<BCode> LOOP_BCODE;
 
     fBcode(const ID &id, const Rec_p &rec) :
-        Actor<PROCESS>(
-            id,
-            // setup
-            [this](Actor<PROCESS> *) {
-              try {
-                LOG(DEBUG, "Executing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
-                Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
-                  LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
-                });
-                LOG(DEBUG, "Completeing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
-              } catch (const std::exception &error) {
-                LOG_EXCEPTION(error);
-                this->stop();
-              }
-            },
-            // loop
-            [this](Actor<PROCESS> *) {
-              try {
-                Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
-                  LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
-                });
-              } catch (const std::exception &error) {
-                LOG_EXCEPTION(error);
-                this->stop();
-              }
-            }),
-        rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))), LOOP_BCODE(rec->rec_get(uri("loop"))) {
+        Actor<PROCESS>(id, id), rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))),
+        LOOP_BCODE(rec->rec_get(uri("loop"))) {
       LOG(DEBUG, "_bcode program created: %s\n", rec->toString().c_str());
+    }
+
+    void setup() override {
+      try {
+        LOG(DEBUG, "Executing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
+        Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
+          LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
+        });
+        LOG(DEBUG, "Completeing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
+      } catch (const fError &error) {
+        LOG_EXCEPTION(error);
+        this->stop();
+      }
+    }
+
+    void loop() override {
+      try {
+        Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
+          LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
+        });
+      } catch (const fError &error) {
+        LOG_EXCEPTION(error);
+        this->stop();
+      }
     }
   };
 } // namespace fhatos

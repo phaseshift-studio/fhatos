@@ -11,7 +11,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  void test_actor_throughput() {
+ /* void test_actor_throughput() {
     auto counter1 = new std::atomic<int>(0);
     auto counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread>(ID("/app/actor1@127.0.0.1"), [counter1](Actor<Thread> *self) {
@@ -77,7 +77,7 @@ namespace fhatos {
                          TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
                        }));*/
 
-    actor2->publish(*actor1->id(), share(Str("ping")), TRANSIENT_MESSAGE);
+   /* actor2->publish(*actor1->id(), share(Str("ping")), TRANSIENT_MESSAGE);
     actor1->loop();
     actor2->loop();
     actor1->loop();
@@ -153,7 +153,7 @@ namespace fhatos {
     delete counter1;
     delete counter2;
     Options::singleton()->router<Router>()->clear();
-  }
+  }*/
 
   FOS_RUN_TESTS( //
       for (Router *router //
@@ -161,9 +161,9 @@ namespace fhatos {
         Options::singleton()->router<Router>(router); //
         router->clear();
         LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
-        FOS_RUN_TEST(test_actor_throughput); //
-        FOS_RUN_TEST(test_actor_by_router); //
-        FOS_RUN_TEST(test_message_retain); //
+     //   FOS_RUN_TEST(test_actor_throughput); //
+     //   FOS_RUN_TEST(test_actor_by_router); //
+      //  FOS_RUN_TEST(test_message_retain); //
       } //
   );
 

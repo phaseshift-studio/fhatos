@@ -21,8 +21,9 @@
 // scheduler
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/process.hpp>
-#include <structure/stype/space.hpp>
+#include <structure/stype/key_value.hpp>
 // routers
+#include <structure/rooter.hpp>
 #include <structure/router/local_router.hpp>
 #ifdef NATIVE
 #include FOS_MQTT(mqtt_router.hpp)
@@ -48,6 +49,7 @@
 namespace fhatos {
   class ArgvParser {
     Map<const string, string> _map = Map<const string, string>();
+
   public:
     void init(const int &argc, char **argv) {
       for (int i = 1; i < argc; ++i) {
@@ -71,6 +73,8 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 void setup() {
+  Options::singleton()->rooter(Rooter::singleton());
+  Rooter::singleton()->attach(Terminal::singleton("/sys/io/terminal/"));
   try {
     Kernel::build()
         ->with_printer(Ansi<>::singleton())
@@ -89,8 +93,9 @@ void setup() {
                   Types::singleton("/sys/lang/type/"), //
                   Parser::singleton("/sys/lang/parser/"), //
 #ifdef NATIVE
-                  FileSystem::singleton(
-                      "/sys/io/fs", ID(fs::current_path()).resolve(args.option("--fs", fs::current_path().c_str()))), //
+    //                FileSystem::singleton(
+    //                   "/sys/io/fs", ID(fs::current_path()).resolve(args.option("--fs", fs::current_path().c_str()))),
+    //                   //
 #endif
                   new Console("/home/root/repl/")})
         ->load_modules({ID("/mod/proc")})

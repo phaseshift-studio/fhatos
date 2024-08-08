@@ -19,7 +19,7 @@
 #ifndef fhatos_options_hpp
 #define fhatos_options_hpp
 #include <any>
-//#include <libwebsockets.h>
+// #include <libwebsockets.h>
 #include <memory>
 
 using namespace std;
@@ -30,11 +30,11 @@ namespace fhatos {
   private:
     uint8_t LOGGING = 3; // INFO
     void *ROUTING;
+    void *ROOTING;
     Ansi<> *PRINTING = Ansi<>::singleton();
     any PARSER;
 
-    explicit Options() {
-    };
+    explicit Options(){};
 
   public:
     static Options *singleton() {
@@ -54,6 +54,19 @@ namespace fhatos {
     void router(const ROUTER *router) {
       this->ROUTING = (void *) router;
     }
+    //////////////////////////
+    //////// ROUTING ////////
+    template<typename ROOTER>
+    ROOTER *rooter() {
+      if (nullptr == ROOTING)
+        throw fError("No router secified in global options\n");
+      return (ROOTER *) this->ROOTING;
+    }
+    template<typename ROOTER>
+    void rooter(const ROOTER *router) {
+      this->ROOTING = (void *) router;
+    }
+
     //////////////////////////
     //////// LOGGING ////////
     template<typename LOG_LEVEL>

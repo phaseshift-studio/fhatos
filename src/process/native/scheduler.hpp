@@ -46,7 +46,7 @@ namespace fhatos {
         // TODO: have constructed processes NOT running or check is process ID already in scheduler
         process->setup();
         if (!process->running()) {
-          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->type),
+          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype),
                    process->id()->toString().c_str());
           return share(false);
         }
@@ -58,7 +58,7 @@ namespace fhatos {
         });
         ////////////////////////////////
         bool success;
-        switch (process->type) {
+        switch (process->ptype) {
           case PType::THREAD: {
             this->THREADS->push_back(static_cast<Thread *>(process));
             dynamic_cast<Thread *>(process)->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process);
@@ -85,12 +85,12 @@ namespace fhatos {
           }
           default: {
             LOG_PROCESS(ERROR, this, "!b%s!! has an unknown process type: !r%i!!\n", process->id()->toString().c_str(),
-                     process->type);
+                     process->ptype);
             return share(false);
           }
         }
         LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                 ProcessTypes.toChars(process->type));
+                 ProcessTypes.toChars(process->ptype));
         return share(success);
       });
       if (!success)

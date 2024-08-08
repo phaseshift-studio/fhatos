@@ -13,20 +13,31 @@
 //
 //  You should have received a copy of the GNU Affero General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#pragma once
-#ifndef fhatos_empty_hpp
-#define fhatos_empty_hpp
 
+#ifndef fhatos_simple_hpp
+#define fhatos_simple_hpp
 #include <fhatos.hpp>
+#include <structure/furi.hpp>
 #include <structure/structure.hpp>
 
-
 namespace fhatos {
-  class Empty : public Structure {
+
+  class Simple : public Structure {
+  protected:
+    explicit Simple(const Pattern &pattern) : Structure(pattern, SType::READ) {}
 
   public:
-    explicit Empty(const Pattern &pattern = EMPTY_CHARS) : Structure(pattern, SType::READ) {}
-    List<Pair<fURI_p, Obj_p>> read(const fURI &furi, const ID &source) override { return {}; }
+    List<Pair<fURI_p, Obj_p>> read(const fURI &furi, const ID &source) override {
+      List<Pair<fURI_p, Obj_p>> results = List<Pair<fURI_p, Obj_p>>();
+      for (const auto &sub: *this->subscriptions) {
+        if (furi.matches(sub->pattern)) {
+         // results.push_back(std::make_pair(share(fURI(furi)), Obj::to_uri(sub->pattern)));
+        }
+      }
+      return results;
+    }
+
+
     void write(const fURI &furi, const Obj_p &obj, const ID &source) override {}
   };
 } // namespace fhatos

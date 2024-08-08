@@ -42,36 +42,49 @@ namespace fhatos {
                        s->type()->toString().c_str(), s->type()->toString().c_str());
         }
       });
-      LOG_STRUCTURE(INFO, this, "attached structure %s\n", structure->type()->toString().c_str());
+      LOG_STRUCTURE(INFO, this, "attached structure !b%s!!\n", structure->type()->toString().c_str());
+      structure->setup();
       this->structures.push_back(structure);
     }
 
     virtual void detach(const Pattern_p &structurePattern) {
       this->structures.remove_if([this, structurePattern](Structure *structure) {
         if (structure->type()->matches(*structurePattern)) {
-          structure->close();
-          LOG_STRUCTURE(INFO, this, "detaching structure %s\n", structure->type()->toString().c_str());
+          structure->stop();
+          LOG_STRUCTURE(INFO, this, "detached structure %s\n", structure->type()->toString().c_str());
           return true;
         }
         return false;
       });
     }
 
-    bool route_message(const Message_p &message) {
-      this->structures.forEach([message](Structure *structure) {
+    RESPONSE_CODE route_message(const Message_p &message) {
+      RESPONSE_CODE *rc = new RESPONSE_CODE(NO_SUBSCRIPTION);
+      this->structures.forEach([message, rc](Structure *structure) {
         if (message->target.matches(*structure->type())) {
-          structure->publish(message);
+          structure->recv_message(message);
+          *rc = OK;
         }
       });
+      RESPONSE_CODE rc2 = RESPONSE_CODE(*rc);
+      LOG(TRACE, "!r%s!! for !yrouted message!! %s\n", ResponseCodes.toChars(rc2), message->toString().c_str());
+      delete rc;
+      return rc2;
     }
 
-    bool route_subscription(const Subscription_p &subscription) {
-      this->structures.forEach([subscription](Structure *structure) {
+    RESPONSE_CODE route_subscription(const Subscription_p &subscription) {
+      RESPONSE_CODE *rc = new RESPONSE_CODE(NO_TARGETS);
+      this->structures.forEach([subscription, rc](Structure *structure) {
         if (subscription->pattern.matches(*structure->type())) {
-          structure->subscribe(subscription);
+          structure->recv_subscription(subscription);
+          *rc = OK;
         }
       });
-      return true;
+      RESPONSE_CODE rc2 = RESPONSE_CODE(*rc);
+      LOG(TRACE, "!r%s!! for !yrouted subscription!! %s\n", ResponseCodes.toChars(rc2),
+          subscription->toString().c_str());
+      delete rc;
+      return rc2;
     }
   };
 } // namespace fhatos

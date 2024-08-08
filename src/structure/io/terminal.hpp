@@ -23,39 +23,38 @@
 #include <fhatos.hpp>
 #include <iostream>
 #include <process/actor/actor.hpp>
+#include <structure/stype/simple.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  class Terminal : public Actor<Thread> {
+  class Terminal : public Actor<Thread, Simple> {
   protected:
     ID_p _currentOutput;
 
-    explicit Terminal(const ID &id = ID("/io/terminal/")) :
-        Actor(id,
-              [](Actor *actor) {
-                actor->subscribe("out", [](const Message_p &message) {
-                  if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
-                    const string copy = string(message->payload->str_value());
-                    if (strcmp(message->target.name(), "no_color") == 0) {
-                      const char *no = Options::singleton()->printer<>()->strip(copy).c_str();
-                      Options::singleton()->printer<>()->print(no);
-                      free((void *) no);
-                    } else
-                      Options::singleton()->printer<>()->print(copy.c_str());
-                  }
-                });
-                actor->subscribe("in", [actor](const Message_p &message) {
-                  string line;
-                  std::getline(std::cin, line);
-                  actor->publish(message->source, Obj::to_str(line));
-                });
-              }),
-        _currentOutput(share(id)) {}
+    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id, id.extend("#")), _currentOutput(share(id)) {}
 
   public:
     static Terminal *singleton(const ID &id = "/io/terminal/") {
       static Terminal terminal = Terminal(id);
       return &terminal;
+    }
+    void stop() override { Actor::stop(); }
+    void setup() override {
+      Actor::setup();
+      this->subscribe("out", [](const Message_p &message) {
+        if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
+          if (strcmp(message->target.name(), "no_color") == 0) {
+            const string no = Options::singleton()->printer<>()->strip(message->payload->str_value());
+            Options::singleton()->printer<>()->print(no.c_str());
+          } else
+            Options::singleton()->printer<>()->print(message->payload->str_value().c_str());
+        }
+      });
+      this->subscribe("in", [this](const Message_p &message) {
+        string line;
+        std::getline(std::cin, line);
+        this->publish(message->source, Obj::to_str(line));
+      });
     }
 
     static ID_p currentOut() { return Terminal::singleton()->_currentOutput; }
@@ -77,10 +76,11 @@ namespace fhatos {
       int length = vsnprintf(buffer, 512, format, arg);
       buffer[length] = '\0';
       va_end(arg);
-      Options::singleton()->router<Router>()->publish(Message{.source = source, //
-                                                              .target = Terminal::singleton()->id()->extend("out"), //
-                                                              .payload = Obj::to_str(buffer),
-                                                              .retain = TRANSIENT_MESSAGE});
+      Options::singleton()->rooter<Rooter>()->route_message(
+          share(Message{.source = source, //
+                        .target = Terminal::singleton()->id()->extend("out"), //
+                        .payload = Obj::to_str(buffer),
+                        .retain = TRANSIENT_MESSAGE}));
     }
 
     static string in(const ID &) {

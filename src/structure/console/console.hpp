@@ -24,9 +24,10 @@
 #include <language/parser.hpp>
 #include <structure/furi.hpp>
 #include <structure/router/local_router.hpp>
-//#include <structure/router/meta_router.hpp>
+// #include <structure/router/meta_router.hpp>
 #include <util/string_helper.hpp>
-///#include FOS_MQTT(mqtt_router.hpp)
+/// #include FOS_MQTT(mqtt_router.hpp)
+#include <structure/stype/empty.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <process/actor/actor.hpp>
 #include <structure/io/terminal.hpp>
@@ -34,7 +35,7 @@
 namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
   static Map<string, Command> *_MENU_MAP = nullptr;
-  class Console final : public Actor<Thread> {
+  class Console final : public Actor<Thread, Empty> {
   protected:
     string _line;
     bool _newInput = true;
@@ -64,7 +65,7 @@ namespace fhatos {
     }
 
   public:
-    explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id) {
+    explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id,id) {
       if (!_MENU_MAP) {
         _MENU_MAP = new Map<string, Command>();
         _MENU_MAP->insert({":help",

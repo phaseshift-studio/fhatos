@@ -37,15 +37,15 @@ namespace fhatos {
     std::atomic_bool _running = std::atomic_bool(false);
 
   public:
-    const PType type;
+    const PType ptype;
 
-    explicit Process(const ID &id, const PType pType) : IDed(share(id)), type(pType) {}
+    explicit Process(const ID &id, const PType pType) : IDed(share(id)), ptype(pType) {}
 
     virtual ~Process() = default;
 
     virtual void setup() {
       if (this->_running.load()) {
-        LOG(WARN, "%s !y%s!! already setup\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->type));
+        LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype));
         return;
       }
       this->_running.store(true);
@@ -53,14 +53,14 @@ namespace fhatos {
 
     virtual void loop() {
       if (!this->_running.load()) {
-        throw fError("%s !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
-                     ProcessTypes.toChars(this->type));
+        throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
+                     ProcessTypes.toChars(this->ptype));
       }
     };
 
     virtual void stop() {
       if (!this->_running.load()) {
-        LOG(WARN, "%s !y%s!! already stopped\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->type));
+        LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype));
         return;
       }
       this->_running.store(false);

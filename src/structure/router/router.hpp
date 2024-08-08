@@ -37,17 +37,17 @@
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",    \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                       \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
       (subscription)->pattern.toString().c_str(),                                                                      \
       (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(), ((source).toString().c_str()),        \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(), ((source).toString().c_str()),        \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
   LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
-      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                       \
       ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
       ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
@@ -79,26 +79,13 @@ namespace fhatos {
     MUTEX_LOCKOUT
   };
 
-  static const char *RESPONSE_CODE_STR(const RESPONSE_CODE &rc) {
-    switch (rc) {
-      case OK:
-        return "OK";
-      case NO_TARGETS:
-        return "No Targets";
-      case REPEAT_SUBSCRIPTION:
-        return "Subscription already exists";
-      case NO_SUBSCRIPTION:
-        return "Subscription doesn't exist";
-      case NO_MESSAGE:
-        return "No message";
-      case ROUTER_ERROR:
-        return "Router error";
-      case MUTEX_TIMEOUT:
-        return "Mutex timeout";
-      default:
-        return (new string(string("Unknown error code: ") + std::to_string(rc)))->c_str();
-    }
-  };
+  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
+                                                                    {NO_TARGETS, "no targets"},
+                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+                                                                    {NO_SUBSCRIPTION, "no subscription"},
+                                                                    {NO_MESSAGE, "no message"},
+                                                                    {ROUTER_ERROR, "internal router error"},
+                                                                    {MUTEX_TIMEOUT, "router timeout"}});
 
   ////////////////////////////////////////////
   /////////////// ROUTER CLASS ///////////////

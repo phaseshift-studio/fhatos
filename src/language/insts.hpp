@@ -223,7 +223,7 @@ namespace fhatos {
           [uri](const Obj_p &lhs) {
             RESPONSE_CODE _rc = Router::write(uri->apply(lhs)->uri_value(), lhs->apply(uri));
             if (_rc)
-              LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
+              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
             return lhs;
           },
           /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
@@ -235,7 +235,7 @@ namespace fhatos {
           [obj](const Obj_p &lhs) {
             RESPONSE_CODE _rc = Router::write(lhs->apply(obj)->uri_value(), obj->apply(lhs));
             if (_rc)
-              LOG(ERROR, "%s\n", RESPONSE_CODE_STR(_rc));
+              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
             return obj;
           },
           IType::ONE_TO_ONE);
