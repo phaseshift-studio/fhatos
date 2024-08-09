@@ -73,31 +73,20 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 void setup() {
-  Options::singleton()->rooter(Rooter::singleton());
-  Rooter::singleton()->attach(Terminal::singleton("/sys/io/terminal/"));
   try {
     Kernel::build()
         ->with_printer(Ansi<>::singleton())
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
         ->initialRouter(LocalRouter::singleton())
         ->displaying_splash(ANSI_ART)
-        ->displaying_notes("Use !b/noobj/[]!! for !ynoobj!!")
+        ->displaying_notes("Use !b/type/noobj/[]!! for !ynoobj!!")
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
-        // ->with_int_ctype(int)
-        // ->with_real_ctype(float)
-        //->with_router()->load_structures()
-        //->with_scheduler()->load_processes()
-        ->onBoot(Scheduler::singleton("/sys/scheduler/"), //
-                 {FOS_ROUTERS, //
-                  Terminal::singleton("/sys/io/terminal/"), //
-                  Types::singleton("/sys/lang/type/"), //
-                  Parser::singleton("/sys/lang/parser/"), //
-#ifdef NATIVE
-    //                FileSystem::singleton(
-    //                   "/sys/io/fs", ID(fs::current_path()).resolve(args.option("--fs", fs::current_path().c_str()))),
-    //                   //
-#endif
-                  new Console("/home/root/repl/")})
+        ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
+        ->using_router(Rooter::singleton("/sys/router/"))
+        ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/sys/io/terminal/"))
+        ->boot<Types, Coroutine, KeyValue>(Types::singleton("/type/"))
+        ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
+        ->boot<Console, Thread, Empty>(new Console("/home/root/repl/"))
         ->load_modules({ID("/mod/proc")})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
@@ -105,9 +94,25 @@ void setup() {
                                               Ansi<>::sillyPrint("shutting down").c_str());
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
-    throw;
   }
+  exit(1);
 }
+/*
+ * // ->with_int_ctype(int)
+// ->with_real_ctype(float)
+// ->initialRouter(LocalRouter::singleton())
+/*->onBoot(Scheduler::singleton("/sys/scheduler/"), //
+          {FOS_ROUTERS, //
+           Terminal::singleton("/sys/io/terminal/"), //
+           Types::singleton("/sys/lang/type/"), //
+           , //
+#ifdef NATIVE
+//                FileSystem::singleton(
+//                   "/sys/io/fs", ID(fs::current_path()).resolve(args.option("--fs",
+fs::current_path().c_str()))),
+//                   //
+#endif
+           })*/
 
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler

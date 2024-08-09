@@ -42,7 +42,7 @@ namespace fhatos {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
-    explicit Actor(const ID &id) : Actor(id, id) {}
+    explicit Actor(const ID &id) : Actor(id, id.extend("#")) {}
 
     virtual ~Actor() = default;
 

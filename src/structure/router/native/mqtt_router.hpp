@@ -89,7 +89,7 @@ namespace fhatos {
           for (const auto &subscription: SUBSCRIPTIONS) {
             if (subscription->pattern.matches(mess_ptr->target)) {
               try {
-                if (subscription->mailbox) {
+                /*if (subscription->mailbox) {
                   _rc = subscription->mailbox->push(share<Mail>(Mail(subscription, mess_ptr))) ? OK : ROUTER_ERROR;
                   LOG(TRACE, "Message from !b%s!! delivered to mailbox !b%s!!: %s\n",
                       mess_ptr->source.toString().c_str(), subscription->source.toString().c_str(),
@@ -99,10 +99,10 @@ namespace fhatos {
                         subscription->source.toString().c_str(), FOS_MAILBOX_WARNING_SIZE,
                         subscription->mailbox->size());
                   }
-                } else {
+                } else {*/
                   subs.push_back(subscription);
                   _rc = OK;
-                }
+               /// }
               } catch (const fError &e) {
                 LOG_EXCEPTION(e);
                 _rc = MUTEX_TIMEOUT;

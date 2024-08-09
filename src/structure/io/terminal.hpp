@@ -18,27 +18,25 @@
 
 #pragma once
 #ifndef fhatos_terminal_hpp
-#define fhatos_termainl_hpp
+#define fhatos_terminal_hpp
 
 #include <fhatos.hpp>
 #include <iostream>
 #include <process/actor/actor.hpp>
-#include <structure/stype/simple.hpp>
+#include <structure/stype/key_value.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
-  class Terminal : public Actor<Thread, Simple> {
+  class Terminal : public Actor<Thread, KeyValue> {
   protected:
+    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), _currentOutput(share(id)) {}
     ID_p _currentOutput;
-
-    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id, id.extend("#")), _currentOutput(share(id)) {}
 
   public:
     static Terminal *singleton(const ID &id = "/io/terminal/") {
       static Terminal terminal = Terminal(id);
       return &terminal;
     }
-    void stop() override { Actor::stop(); }
     void setup() override {
       Actor::setup();
       this->subscribe("out", [](const Message_p &message) {

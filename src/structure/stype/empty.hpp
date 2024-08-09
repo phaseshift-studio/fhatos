@@ -25,9 +25,10 @@ namespace fhatos {
   class Empty : public Structure {
 
   public:
-    explicit Empty(const Pattern &pattern = EMPTY_CHARS) : Structure(pattern, SType::READ) {}
-    List<Pair<fURI_p, Obj_p>> read(const fURI &furi, const ID &source) override { return {}; }
-    void write(const fURI &furi, const Obj_p &obj, const ID &source) override {}
+    explicit Empty(const Pattern &pattern = EMPTY_CHARS) : Structure("", SType::READ) {}
+    List<IDxOBJ> read(const fURI_p &, const ID &) override { return {}; }
+    Obj_p read(const ID_p &, const ID &) override { return noobj(); }
+    void write(const ID_p &, const Obj_p &, const ID &) override {}
   };
 } // namespace fhatos
 

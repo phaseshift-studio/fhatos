@@ -59,9 +59,9 @@ namespace fhatos {
       delete KERNELS;
     };
 
-    static bool isThread(const Obj_p &obj) { return obj->id()->equals("/rec/thread"); }
-    static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/rec/fiber"); }
-    static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/rec/coroutine"); }
+    static bool isThread(const Obj_p &obj) { return obj->id()->equals("/type/rec/thread"); }
+    static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/type/rec/fiber"); }
+    static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/type/rec/coroutine"); }
 
     virtual void setup() {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {

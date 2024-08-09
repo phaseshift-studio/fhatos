@@ -20,11 +20,14 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
+#include <structure/router/pubsub_artifacts.hpp>
+#include <structure/router/router.hpp>
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
+  using IDxOBJ = Pair<ID_p, Obj_p>;
   enum class SType { READ, WRITE, READWRITE };
   static const Enums<SType> StructureTypes =
       Enums<SType>({{SType::READ, "read"}, {SType::WRITE, "write"}, {SType::READWRITE, "readwrite"}});
@@ -38,9 +41,9 @@ namespace fhatos {
     std::atomic_bool _available = std::atomic_bool(false);
 
   public:
-    const SType _stype;
+    const SType stype;
 
-    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(share(pattern)), _stype(stype) {}
+    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(share(pattern)), stype(stype) {}
 
     virtual ~Structure() = default;
 
@@ -78,16 +81,16 @@ namespace fhatos {
         /////////////// ADD NEW SUBSCRIPTION
         if (subscription->onRecv) { // not an unsubscribe event
           this->subscriptions->push_back(subscription);
-          const List<Pair<fURI_p, Obj_p>> payload = this->read(subscription->pattern, subscription->source);
+          const List<IDxOBJ> payload = this->read(share(subscription->pattern), subscription->source);
           for (const auto &[furi, obj]: payload) {
             const Mail_p mail =
                 share(Mail({subscription,
                             share(Message{.source = *this->type(), .target = *furi, .payload = obj, .retain = true})}));
-            if (subscription->mailbox) {
-              subscription->mailbox->push(mail);
-            } else {
-              this->outbox->push_back(mail);
-            }
+            // if (subscription->mailbox) {
+            // subscription->mailbox->push(mail);
+            // } else {
+            this->outbox->push_back(mail);
+            //}
           }
           LOG_SUBSCRIBE(OK, subscription);
         } else {
@@ -99,7 +102,7 @@ namespace fhatos {
 
     virtual void recv_message(const Message_p &message) {
       if (message->retain) {
-        this->write(message->target, message->payload, message->source);
+        this->write(share(message->target), message->payload, message->source);
       }
       RESPONSE_CODE rc = mutex.read<RESPONSE_CODE>([this, message]() {
         RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
@@ -107,21 +110,26 @@ namespace fhatos {
           if (message->target.matches(subscription->pattern)) {
             rc2 = OK;
             const Mail_p mail = share(Mail{subscription, message});
-            if (subscription->mailbox) {
-              subscription->mailbox->push(mail);
-            } else {
-              this->outbox->push_back(mail);
-            }
+            ///   if (subscription->mailbox) {
+            //     subscription->mailbox->push(mail);
+            //  } else {
+            this->outbox->push_back(mail);
+            // }
           }
         }
         return rc2;
       });
       LOG_PUBLISH(rc, *message);
     }
-    virtual void remove(const fURI &furi, const ID &source) { this->write(furi, Obj::to_noobj(), source); }
-    virtual List<Pair<fURI_p, Obj_p>> read(const fURI &furi, const ID &source) = 0;
-    virtual void write(const fURI &furi, const Obj_p &obj, const ID &source) = 0;
+    virtual void remove(const ID_p &id, const ID &source) { this->write(id, Obj::to_noobj(), source); }
+    virtual Obj_p read(const ID_p &id, const ID &source) = 0;
+    virtual Obj_p read(const ID_p &id) { return this->read(id, FOS_DEFAULT_SOURCE_ID); };
+    virtual List<IDxOBJ> read(const fURI_p &furi, const ID &source) = 0;
+    virtual List<IDxOBJ> read(const fURI_p &furi) { return this->read(furi, FOS_DEFAULT_SOURCE_ID); }
+    virtual void write(const ID_p &id, const Obj_p &obj, const ID &source) = 0;
+    virtual Obj_p write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, FOS_DEFAULT_SOURCE_ID); }
   };
+
 
 } // namespace fhatos
 

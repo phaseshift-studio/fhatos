@@ -38,12 +38,12 @@ namespace fhatos {
   public:
     explicit PubSubManager(
         const bool withRetains = true, const Function<Mail_p, Option<Mail_p>> &mailer = [](const Mail_p &mail) {
-          if (mail->first->mailbox) {
-            mail->first->mailbox->push(mail);
-            return Option<Mail_p>();
-          } else {
+         // if (mail->first->mailbox) {
+        //    mail->first->mailbox->push(mail);
+        //    return Option<Mail_p>();
+       //   } else {
             return Option<Mail_p>(mail);
-          }
+       //   }
         }) : _mailer(withRetains ? mailer : nullptr), RETAINS(withRetains ? new Map<ID, const Message_p>() : nullptr) {}
 
     ~PubSubManager() {

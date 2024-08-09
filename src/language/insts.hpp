@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
+#include <structure/rooter.hpp>
 #include <structure/router/router.hpp>
 #include <util/options.hpp>
 #include <utility>
@@ -37,8 +38,7 @@ namespace fhatos {
 
     static Obj_p explain() {
       return Obj::to_inst(
-          "explain", {}, [](const Objs_p &lhs) { return lhs; }, IType::MANY_TO_MANY,
-          Obj::to_objs(List<Obj_p>({})));
+          "explain", {}, [](const Objs_p &lhs) { return lhs; }, IType::MANY_TO_MANY, Obj::to_objs(List<Obj_p>({})));
     }
 
     static Obj_p plus(const Obj_p &rhs) {
@@ -204,7 +204,7 @@ namespace fhatos {
       return Obj::to_inst(
           "define", {typeId, type},
           [typeId, type](const Obj_p &lhs) {
-            Router::write(typeId->apply(lhs)->uri_value(), type->apply(lhs));
+            Rooter::singleton()->write(share(ID(typeId->apply(lhs)->uri_value())), type->apply(lhs));
             return lhs;
           },
           areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
@@ -221,7 +221,8 @@ namespace fhatos {
       return Obj::to_inst(
           "to", {uri},
           [uri](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = Router::write(uri->apply(lhs)->uri_value(), lhs->apply(uri));
+            RESPONSE_CODE _rc = OK;
+            Rooter::singleton()->write(share(ID(uri->apply(lhs)->uri_value())), lhs->apply(uri));
             if (_rc)
               LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
             return lhs;
@@ -233,7 +234,8 @@ namespace fhatos {
       return Obj::to_inst(
           "to_inv", {obj},
           [obj](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = Router::write(lhs->apply(obj)->uri_value(), obj->apply(lhs));
+            RESPONSE_CODE _rc = OK;
+            Rooter::singleton()->write(share(ID(lhs->apply(obj)->uri_value())), obj->apply(lhs));
             if (_rc)
               LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
             return obj;
@@ -245,8 +247,8 @@ namespace fhatos {
       return Obj::to_inst(
           "both", {uri},
           [uri](const Obj_p &lhs) {
-            Router::write(uri->apply(lhs)->uri_value(), lhs->apply(uri));
-            Router::write(lhs->apply(uri)->uri_value(), uri->apply(lhs));
+            // Rooter::singleton()->write(share(uri->apply(lhs)->uri_value()), lhs->apply(uri));
+            // Rooter::singleton()->write(share(lhs->apply(uri)->uri_value()), uri->apply(lhs));
             return lhs;
           },
           IType::ONE_TO_ONE);
@@ -254,7 +256,10 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
-          "from", {uri}, [uri](const Uri_p &lhs) { return Router::read(uri->apply(lhs)->uri_value()); },
+          "from", {uri},
+          [uri](const Uri_p &lhs) {
+            return Rooter::singleton()->read(share(ID(uri->apply(lhs)->uri_value())), FOS_DEFAULT_SOURCE_ID);
+          },
           /*areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
     }
 
@@ -322,10 +327,11 @@ namespace fhatos {
       return Obj::to_inst(
           "pub", {target, payload},
           [target, payload](const Obj_p &lhs) {
-            Options::singleton()->router<Router>()->publish(Message{.source = FOS_DEFAULT_SOURCE_ID,
-                                                                    .target = target->apply(lhs)->uri_value(),
-                                                                    .payload = payload->apply(lhs),
-                                                                    .retain = TRANSIENT_MESSAGE});
+            Options::singleton()->rooter<Rooter>()->route_message(
+                share(Message{.source = FOS_DEFAULT_SOURCE_ID,
+                              .target = target->apply(lhs)->uri_value(),
+                              .payload = payload->apply(lhs),
+                              .retain = TRANSIENT_MESSAGE}));
             return lhs;
           },
           areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
@@ -339,12 +345,12 @@ namespace fhatos {
               Options::singleton()->router<Router>()->unsubscribe(FOS_DEFAULT_SOURCE_ID,
                                                                   pattern->apply(lhs)->uri_value());
             } else {
-              Options::singleton()->router<Router>()->subscribe(
-                  Subscription{.mailbox = nullptr,
-                               .source = FOS_DEFAULT_SOURCE_ID,
-                               .pattern = pattern->apply(lhs)->uri_value(),
-                               .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
-                               .onRecvBCode = onRecv});
+              Options::singleton()->rooter<Rooter>()->route_subscription(
+                  share(Subscription{.mailbox = nullptr,
+                                     .source = FOS_DEFAULT_SOURCE_ID,
+                                     .pattern = pattern->apply(lhs)->uri_value(),
+                                     .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
+                                     .onRecvBCode = onRecv}));
             }
             return lhs;
           },
@@ -738,7 +744,7 @@ namespace fhatos {
       if (INSTS_MAP()->count(typeId))
         return INSTS_MAP()->at(typeId)(args);
       /// try user defined inst
-      const Obj_p userInstBCode = Router::read<Obj>(INST_FURI->resolve(typeId));
+      const Obj_p userInstBCode = Rooter::singleton()->read(share(ID(INST_FURI->resolve(typeId))));
       if (userInstBCode->isNoObj()) {
         throw fError("Unknown instruction: %s\n", typeId.toString().c_str());
       }
@@ -748,11 +754,11 @@ namespace fhatos {
             [userInstBCode, args](const Obj_p &lhs) {
               int counter = 0;
               for (const Obj_p &arg: args) {
-                Router::write(ID((string("_") + to_string(counter++)).c_str()), arg->apply(lhs));
+                Rooter::singleton()->write(share(ID((string("_") + to_string(counter++)).c_str())), arg->apply(lhs));
               }
               const Obj_p ret = userInstBCode->apply(lhs);
               for (int i = 0; i < counter; i++) {
-                Router::destroy(ID((string("_") + to_string(i)).c_str()));
+                Rooter::singleton()->remove(share(ID((string("_") + to_string(i)).c_str())));
               }
               return ret;
             },

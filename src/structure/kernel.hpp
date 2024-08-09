@@ -49,31 +49,42 @@ namespace fhatos {
       Options::singleton()->printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
-    static Kernel *using_scheduler(const Scheduler *) { return Kernel::build(); }
-    static Kernel *using_router(const Router *) { return Kernel::build(); }
-    static Kernel *booting_with(const List<Actor<> *> &actors) { return Kernel::build(); }
+    static Kernel *using_scheduler(const XScheduler *scheduler) {
+      Options::singleton()->scheduler<XScheduler>(scheduler);
+      return Kernel::build();
+    }
+    static Kernel *using_router(const Rooter *router) {
+      Options::singleton()->rooter<Rooter>(router);
+      return Kernel::build();
+    }
+    template<typename ACTOR, typename PROCESS, typename STRUCTURE>
+    static Kernel *boot(const ACTOR *bootable) {
+      Options::singleton()->rooter<Rooter>()->attach((STRUCTURE *) bootable);
+      Options::singleton()->scheduler<XScheduler>()->spawn((PROCESS *) bootable);
+      return Kernel::build();
+    }
 
-    static Kernel *onBoot(const Scheduler *, const List<Process *> &processes) {
+    /*static Kernel *onBoot(const Scheduler *, const List<Process *> &processes) {
       bool success = true;
       for (Process *process: processes) {
         success = success && Scheduler::singleton()->spawn(process);
       }
       return Kernel::build();
-    }
+    }*/
     static Kernel *initialRouter(const Router *router) {
       Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
     static Kernel *load_modules(const List<ID> &modules) {
       for (const ID &id: modules) {
-        List_p<Obj_p> list = share(List<Obj_p>());
+        // List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
           const ID_p idp = share(pair.first);
           Types::singleton()->saveType(idp, pair.second);
-          list->push_back(Obj::to_uri(*idp));
+          // list->push_back(Obj::to_uri(*idp));
         }
-        Options::singleton()->router<Router>()->publish(
-            Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
+        // Options::singleton()->rooter<Rooter>()->publish(
+        //    Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
       }
       return Kernel::build();
     }

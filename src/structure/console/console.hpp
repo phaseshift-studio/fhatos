@@ -65,7 +65,7 @@ namespace fhatos {
     }
 
   public:
-    explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread>(id,id) {
+    explicit Console(const ID &id = ID("/io/repl/")) : Actor(id) {
       if (!_MENU_MAP) {
         _MENU_MAP = new Map<string, Command>();
         _MENU_MAP->insert({":help",

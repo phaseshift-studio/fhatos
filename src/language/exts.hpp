@@ -32,10 +32,10 @@ namespace fhatos {
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
           share(Map<ID, List<Pair<ID, Type_p>>>{{"/mod/proc",
-                                                 {{"/rec/thread", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                  {"/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                  {"/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
-                                                  {"/inst/stop", TYPE_PARSER("map(/noobj/[]).to(*_0)")}}}});
+                                                 {{"/type/rec/thread", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                  {"/type/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                  {"/type/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
+                                                  {"/type/inst/stop", TYPE_PARSER("map(/type/noobj/[]).to(*_0)")}}}});
       /* {"/ext/collection",
         {{"/lst/pair", TYPE_PARSER("[_,_]")},
          {"/lst/trip", TYPE_PARSER("[_,_,_]")},

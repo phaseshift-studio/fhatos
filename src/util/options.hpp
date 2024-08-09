@@ -25,12 +25,14 @@
 using namespace std;
 
 namespace fhatos {
+  // TODO: singleton methods in global fhatos namespace for terser syntax
 
   class Options final {
   private:
     uint8_t LOGGING = 3; // INFO
     void *ROUTING;
     void *ROOTING;
+    void *scheduler_;
     Ansi<> *PRINTING = Ansi<>::singleton();
     any PARSER;
 
@@ -41,7 +43,18 @@ namespace fhatos {
       static Options options = Options();
       return &options;
     }
-
+    //////////////////////////
+    //////// SCHEDULING ////////
+    template<typename SCHEDULER>
+    SCHEDULER *scheduler() {
+      if (nullptr == scheduler_)
+        throw fError("No scheduler specified in global options\n");
+      return (SCHEDULER *) this->scheduler_;
+    }
+    template<typename SCHEDULER>
+    void scheduler(const SCHEDULER *scheduler) {
+      this->scheduler_ = (void *) scheduler;
+    }
     //////////////////////////
     //////// ROUTING ////////
     template<typename ROUTER>

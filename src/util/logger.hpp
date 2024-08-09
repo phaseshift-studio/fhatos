@@ -51,15 +51,15 @@ namespace fhatos {
       if (type == NONE)
         Options::singleton()->printer<>()->print("");
       else if (type == ERROR)
-        Options::singleton()->printer()->print("!r[ERROR]!!  ");
+        Options::singleton()->printer()->print("!r[ERROR]!! ");
       else if (type == WARN)
-        Options::singleton()->printer()->print("!y[WARN]!!  ");
+        Options::singleton()->printer()->print("!y[WARN] !! ");
       else if (type == INFO)
-        Options::singleton()->printer()->print("!g[INFO]!!  ");
+        Options::singleton()->printer()->print("!g[INFO] !! ");
       else if (type == DEBUG)
-        Options::singleton()->printer()->print("!y[DEBUG]!!  ");
+        Options::singleton()->printer()->print("!y[DEBUG]!! ");
       else if (type == TRACE)
-        Options::singleton()->printer()->print("!r[TRACE]!!  ");
+        Options::singleton()->printer()->print("!r[TRACE]!! ");
       Options::singleton()->printer()->print(buffer);
     }
   };

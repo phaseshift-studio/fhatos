@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_x_process_hpp
-#define fhatos_x_process_hpp
+#ifndef fhatos_process_hpp
+#define fhatos_process_hpp
 
 #include <atomic>
 #include <fhatos.hpp>
@@ -25,7 +25,6 @@
 #include <util/enums.hpp>
 
 namespace fhatos {
-
 
   enum class PType { THREAD, FIBER, COROUTINE, KERNEL };
   static const Enums<PType> ProcessTypes = Enums<PType>(

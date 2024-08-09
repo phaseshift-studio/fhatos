@@ -34,8 +34,8 @@ namespace fhatos {
 
     [[nodiscard]] string toString() const {
       char temp[150];
-      sprintf(temp, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", source.toString().c_str(), payload->toString().c_str(),
-              FOS_BOOL_STR(retain), target.toString().c_str());
+      sprintf(temp, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
+              this->payload->toString().c_str(), FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
   };
@@ -51,7 +51,7 @@ namespace fhatos {
   struct Subscription {
     using Mail = Pair<const Subscription_p, const Message_p>;
     using Mail_p = ptr<Mail>;
-    Mailbox<Mail_p> *mailbox = nullptr;
+    void *mailbox = nullptr;
     fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;

@@ -22,15 +22,17 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
+#include <process/actor/actor.hpp>
 #include <sstream>
+#include <structure/stype/empty.hpp>
 #include <util/string_helper.hpp>
 
 namespace fhatos {
   using namespace std;
 
-  class Parser final : public Coroutine {
+  class Parser final : public Actor<Coroutine, Empty> {
   private:
-    explicit Parser(const ID &id = ID("/parser/")) : Coroutine(id) {}
+    explicit Parser(const ID &id = ID("/parser/")) : Actor(id) {}
     enum class PARSE_TOKENS { BRACKET, PAREN };
 
   public:

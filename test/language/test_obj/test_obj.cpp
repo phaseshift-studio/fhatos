@@ -1,10 +1,7 @@
 #ifndef fhatos_test_obj_hpp
 #define fhatos_test_obj_hpp
 
-#define FOS_USE_ROUTERS false
-#undef FOS_TEST_ON_BOOT
-#include <language/insts.hpp>
-#include <language/types.hpp>
+#define FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
 #include <util/obj_helper.hpp>
 namespace fhatos {

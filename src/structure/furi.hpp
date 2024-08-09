@@ -294,6 +294,10 @@ namespace fhatos {
       return ret;
     }
 
+    virtual bool is_pattern() const {
+      string temp = this->toString();
+      return temp.find("#") || temp.find("+");
+    }
 
     virtual bool matches(const fURI &pattern) const {
       string patternStr = pattern.toString();
@@ -623,9 +627,7 @@ namespace fhatos {
   public:
     virtual Pattern_p type() const = 0;
     virtual bool equals(const BasePatterned &) const = 0;
-    virtual bool matches(const fURI& other) {
-      return other.matches(*this->type());
-    }
+    virtual bool matches(const fURI &other) { return other.matches(*this->type()); }
   };
 
   class Patterned : public BasePatterned {
@@ -635,11 +637,11 @@ namespace fhatos {
   public:
     explicit Patterned(const fURI_p &uri) : _type(share(Pattern(uri->toString()))) {}
     explicit Patterned(const Pattern_p &type) : _type(type) {}
-    Pattern_p type() const override { return this->_type; }
+    [[nodiscard]] Pattern_p type() const override { return this->_type; }
     bool equals(const BasePatterned &other) const override { return this->_type->equals(*other.type()); }
   };
 
-  struct furi_comp : public std::less<fURI_p> {
+  struct furi_p_less : public std::less<fURI_p> {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 

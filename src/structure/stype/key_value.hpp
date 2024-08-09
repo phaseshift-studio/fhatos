@@ -15,12 +15,11 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
-#ifndef fhatos_space_hpp
-#define fhatos_space_hpp
+#ifndef fhatos_key_value_hpp
+#define fhatos_key_value_hpp
 
 #include "fhatos.hpp"
 #include "language/obj.hpp"
-#include "structure/rooter.hpp"
 #include "structure/structure.hpp"
 
 namespace fhatos {
@@ -28,7 +27,7 @@ namespace fhatos {
   class KeyValue : public Structure {
 
   protected:
-    Map<fURI, const Obj_p> *DATA = new Map<fURI, const Obj_p>();
+    Map<ID_p, const Obj_p, furi_p_less> *DATA = new Map<ID_p, const Obj_p, furi_p_less>();
     MutexRW<> MUTEX_DATA = MutexRW<>();
 
     explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
@@ -43,23 +42,34 @@ namespace fhatos {
       DATA->clear();
     }
 
-    void write(const fURI &target, const Obj_p &payload, const ID &source) override {
-      MUTEX_DATA.write<void *>([this, target, payload, source]() {
-        if (DATA->count(target)) {
-          DATA->erase(target);
-        }
-        DATA->insert({target, payload});
-        return nullptr;
-      });
+    void write(const ID_p &target, const Obj_p &payload, const ID &source) override {
+      if (DATA->count(target)) {
+        DATA->erase(target);
+      }
+      DATA->insert({target, payload});
     }
 
-    List<Pair<fURI_p, Obj_p>> read(const fURI &id, [[maybe_unused]] const ID &source) override {
-      if (false) { // id.is_pattern()) {
-        return {};
-      } else if (DATA->count(id)) {
-        return {Pair<fURI_p, Obj_p>({share<fURI>(id), DATA->at(id)})};
+    Obj_p read(const ID_p &id, [[maybe_unused]] const ID &source) override {
+      return DATA->count(id) ? DATA->at(id) : noobj();
+    }
+
+    List<IDxOBJ> read(const fURI_p &furi, [[maybe_unused]] const ID &source) override {
+      if (furi->is_pattern()) {
+        List<IDxOBJ> list;
+        for (const auto &[f, o]: *this->DATA) {
+          if (f->matches(*furi)) {
+            list.push_back({f, o});
+          }
+        }
+        return list;
+      } else {
+        const ID_p id = id_p(*furi);
+        if (DATA->count(id)) {
+          return {{id, DATA->at(id)}};
+        } else {
+          return {};
+        }
       }
-      return {};
     }
   };
 } // namespace fhatos
