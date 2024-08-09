@@ -33,39 +33,33 @@
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
+#include <structure/rooter.hpp>
 #include <structure/router/local_router.hpp>
+#include <structure/io/terminal.hpp>
 #ifdef NATIVE
-#include <structure/router/meta_router.hpp>
-#include FOS_MQTT(mqtt_router.hpp)
+// #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
 #endif
 #include <structure/kernel.hpp>
 #include <util/options.hpp>
-#ifndef FOS_TEST_ROUTERS
-#ifdef NATIVE
-#define FOS_TEST_ROUTERS LocalRouter::singleton(), MqttRouter::singleton(), MetaRouter::singleton()
-#else
-#define FOS_TEST_ROUTERS LocalRouter::singleton()
-#endif
-#endif
+
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Kernel::build()                                                                                                      \
       ->with_printer(Ansi<>::singleton())                                                                              \
       ->with_log_level(FOS_LOGGING)                                                                                    \
       ->initialRouter(LocalRouter::singleton())                                                                        \
-      ->displaying_splash(ANSI_ART)                                                                                    \
-      ->displaying_notes("Use !bØ!! for noobj")                                                                        \
-      ->displaying_notes("Use :help for console commands")                                                             \
-      ->onBoot(Scheduler::singleton("/sys/scheduler/"),                                                                \
-               {FOS_TEST_ROUTERS, Types::singleton("/sys/lang/type/"),                                                 \
-                Parser::singleton("/sys/lang/parser/") /*FileSystem::singleton("/sys/io/fs")*/})                       \
-      ->load_modules({"/mod/proc"})                                                                                    \
-      ->defaultOutput("/home/root/repl/")
+      ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
+      ->using_router(Rooter::singleton("/sys/router/"))                                                                \
+      ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))                                         \
+      ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))                                                       \
+      ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))                                         \
+      ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))                                                \
+      ->load_modules({ID("/mod/proc")})                                                                                \
+      ->defaultOutput("/home/root/repl/")                                                                              \
+      //->done("kernel_barrier");
 
-#define FOS_STOP_ON_BOOT                                                                                               \
-  for (auto *router: List<Router *>({FOS_TEST_ROUTERS})) {                                                             \
-    router->clear();                                                                                                   \
-  }
+#define FOS_STOP_ON_BOOT ;
+
 #else
 #define FOS_SETUP_ON_BOOT Options::singleton()->log_level(FOS_LOGGING);
 #define FOS_STOP_ON_BOOT ;
@@ -91,7 +85,6 @@ namespace fhatos {
       UNITY_BEGIN();                                                                                                   \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
-      /*Kernel::done("testing_barrier"); */                                                                            \
     } catch (const std::exception &e) {                                                                                \
       LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
       TEST_FAIL();                                                                                                     \

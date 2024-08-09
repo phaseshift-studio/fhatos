@@ -124,18 +124,13 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (fhatos::Router *router //
-           : List<Router *>{FOS_TEST_ROUTERS}) { //
-        Options::singleton()->router<Router>(router); //
-        router->clear();
-        LOG(INFO, "!r!_Testing with %s!!\n", router->toString().c_str()); //
         FOS_RUN_TEST(test_to_from); //
         FOS_RUN_TEST(test_plus); //
         FOS_RUN_TEST(test_mult); //
         FOS_RUN_TEST(test_count); //
         FOS_RUN_TEST(test_relational_predicates); //
         // FOS_RUN_TEST(test_define_as_type); //
-      })
+      )
 } // namespace fhatos
 
 SETUP_AND_LOOP();

@@ -298,11 +298,6 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-      for (Router *router //
-           : List<Router *>{FOS_TEST_ROUTERS}) { //
-        Options::singleton()->router<Router>(router); //
-        router->clear();
-        FOS_TEST_MESSAGE("!r!_Testing with %s!!\n", router->toString().c_str()); //
         FOS_RUN_TEST(test_no_input_parsing); //
         FOS_RUN_TEST(test_start_inst_parsing); //
         FOS_RUN_TEST(test_noobj_parsing); //
@@ -320,9 +315,7 @@ namespace fhatos {
         FOS_RUN_TEST(test_process_thread_parsing); //
         FOS_RUN_TEST(test_group_parsing); //
         FOS_RUN_TEST(test_window_parsing); //
-
-
-      })
+      )
 }; // namespace fhatos
 
 SETUP_AND_LOOP();

@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include FOS_PROCESS(coroutine.hpp)
+#include FOS_PROCESS(fiber.hpp)
 #include <structure/rooter.hpp>
 #include <structure/stype/key_value.hpp>
 #include <unistd.h>

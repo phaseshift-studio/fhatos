@@ -45,7 +45,7 @@ namespace fhatos {
     stage();
     FileSystem *fs = FileSystem::singleton(ID("/io/fs"), ID(fs::current_path().string()));
     Scheduler::singleton()->spawn(fs);
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/uri/fs:dir"), *fs->to_dir("/")->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID("/type/uri/fs:dir"), *fs->to_dir("/")->id());
     TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"), "#")->objs_value()->size());
     for (int i = 0; i < 10; i++) {
       string filename = "a_" + to_string(i) + ".txt";
