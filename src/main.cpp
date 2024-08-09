@@ -84,9 +84,10 @@ void setup() {
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Rooter::singleton("/sys/router/"))
         ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/sys/io/terminal/"))
-        ->boot<Types, Coroutine, KeyValue>(Types::singleton("/type/"))
+        ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
         ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
         ->boot<Console, Thread, Empty>(new Console("/home/root/repl/"))
+        ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/sys/io/fs"))
         ->load_modules({ID("/mod/proc")})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");

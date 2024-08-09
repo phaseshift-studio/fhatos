@@ -28,19 +28,20 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
-#include <language/f_bcode.hpp>
 #include <process/actor/publisher.hpp>
+#include <structure/router/pubsub_artifacts.hpp>
 #include <util/mutex_rw.hpp>
+#include <language/f_bcode.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
     LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
-                ProcessTypes.toChars((process)->ptype), (success) ? "spawned" : "!r!_spawned!!");                       \
+                ProcessTypes.toChars((process)->ptype), (success) ? "spawned" : "!r!_spawned!!");                      \
   }
 
 
 namespace fhatos {
-  class XScheduler : public IDed, public Publisher, public Mailbox<Mail_p> {
+  class XScheduler : public IDed, public Publisher, public Mailbox {
   protected:
     MutexRW<> RW_PROCESS_MUTEX;
     MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
@@ -48,10 +49,9 @@ namespace fhatos {
     MutexDeque<Thread *> *THREADS = new MutexDeque<Thread *>();
     MutexDeque<XKernel *> *KERNELS = new MutexDeque<XKernel *>();
     MutexDeque<Mail_p> inbox;
-    Option<Mail_p> pop() override { return this->inbox.pop_front(); }
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this, this), Mailbox() {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this), Mailbox() {}
     ~XScheduler() override {
       delete COROUTINES;
       delete FIBERS;
@@ -62,7 +62,7 @@ namespace fhatos {
     static bool isThread(const Obj_p &obj) { return obj->id()->equals("/type/rec/thread"); }
     static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/type/rec/fiber"); }
     static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/type/rec/coroutine"); }
-
+    virtual void recv_mail(Mail_p mail) override { this->inbox.push_back(mail); }
     virtual void setup() {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->isRec())
@@ -84,21 +84,21 @@ namespace fhatos {
       lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(FIBERS));
       lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(THREADS));
       for (const auto &procs: *lists) {
-        this->handle_messages();
+        this->handle_mail();
         procs->forEach([this](const auto &process) {
           this->_kill(*process->id());
-          this->handle_messages();
+          this->handle_mail();
         });
       }
-      this->handle_messages();
+      this->handle_mail();
       this->unsubscribeSource();
-      this->handle_messages();
+      this->handle_mail();
       delete lists;
       this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _kill can finish
 #endif
-        this->handle_messages();
+        this->handle_mail();
         return true;
       });
     }
@@ -130,12 +130,12 @@ namespace fhatos {
     }
 
   protected:
-    void handle_messages() {
+    void handle_mail() {
       while (this->next()) {
       }
     }
     bool next() {
-      const Option<ptr<Mail>> mail = this->pop();
+      const Option<ptr<Mail>> mail = this->inbox.pop_front();
       if (!mail.has_value())
         return false;
       mail->get()->first->execute(mail->get()->second);
@@ -230,8 +230,6 @@ namespace fhatos {
         return temp;
       });
     }
-
-    bool push(const ptr<Mail> mail) override { return this->inbox.push_back(mail); }
   };
 } // namespace fhatos
 

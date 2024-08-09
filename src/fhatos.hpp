@@ -194,19 +194,20 @@ namespace fhatos {
 #define LOG_PROCESS(logtype, process, format, ...)                                                                        \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                        \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->type()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(), ##__VA_ARGS__)
 #define FOS_LOG_INST(inst)                                                                                             \
   LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
       (inst)->opcode().c_str(),                                                                                        \
       (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
-                               : (inst)->v_args().at(0)->type()->v_furi()->toString().c_str(),                         \
+                               : (inst)->v_args().at(0)->pattern()->v_furi()->toString().c_str(),                         \
       (inst)->v_args().empty() ? OTypes.toChars(OType::NOOBJ) : OTypes.toChars((inst)->v_args().at(0)->otype()),       \
       (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->isBytecode()),                         \
       (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
 #define FOS_LOG_OBJ(obj)                                                                                               \
   LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
-      OTypes.toChars((obj)->otype()), (obj)->type()->toString().c_str());
+      OTypes.toChars((obj)->otype()), (obj)->pattern()->toString().c_str());
 #define NOTE(message) LOG(INFO, "%s\n", (message))
+#define FURI_WRAP "!g[!b%s!g]!!"
 
 #ifndef FOS_MAILBOX_WARNING_SIZE
 #define FOS_MAILBOX_WARNING_SIZE 15

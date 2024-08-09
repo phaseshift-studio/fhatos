@@ -41,18 +41,18 @@ namespace fhatos {
     }
 
     virtual void attach(Structure *structure) {
-      if (structure->type()->equals(Pattern(""))) {
-        LOG_STRUCTURE(INFO, this, "!b%s!! !yempty structure!! ignored\n", structure->type()->toString().c_str(),
+      if (structure->pattern()->equals(Pattern(""))) {
+        LOG_STRUCTURE(INFO, this, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
                       StructureTypes.toChars(structure->stype));
       } else {
         this->structures.forEach([structure](Structure *s) {
-          if (structure->type()->matches(*s->type()) || s->type()->matches(*structure->type())) {
+          if (structure->pattern()->matches(*s->pattern()) || s->pattern()->matches(*structure->pattern())) {
             throw fError("Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!\n",
-                         s->type()->toString().c_str(), structure->type()->toString().c_str());
+                         s->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
           }
         });
         // structure->setup();
-        LOG_STRUCTURE(INFO, this, "!b%s!! !y%s!! attached\n", structure->type()->toString().c_str(),
+        LOG_STRUCTURE(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
                       StructureTypes.toChars(structure->stype));
         this->structures.push_back(structure);
       }
@@ -60,9 +60,9 @@ namespace fhatos {
 
     virtual void detach(const Pattern_p &structurePattern) {
       this->structures.remove_if([this, structurePattern](Structure *structure) {
-        if (structure->type()->matches(*structurePattern)) {
+        if (structure->pattern()->matches(*structurePattern)) {
           structure->stop();
-          LOG_STRUCTURE(INFO, this, "detached structure %s\n", structure->type()->toString().c_str());
+          LOG_STRUCTURE(INFO, this, "detached structure %s\n", structure->pattern()->toString().c_str());
           return true;
         }
         return false;
@@ -70,34 +70,37 @@ namespace fhatos {
     }
 
     List<IDxOBJ> read(const fURI_p &furi, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      Structure *s = this->structures.find([furi](Structure *structure) { return furi->matches(*(structure->type())); })
-                         .value_or(nullptr);
+      Structure *s =
+          this->structures.find([furi](Structure *structure) { return furi->matches(*(structure->pattern())); })
+              .value_or(nullptr);
       return s != nullptr ? s->read(furi, source) : List<IDxOBJ>();
     }
 
     Obj_p read(const ID_p &id, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      auto *objp = new atomic<Obj *>(nullptr);
-      this->structures.forEach([id, objp, source](Structure *structure) {
-        if (!objp->load()) {
-          if (id->matches(*structure->type())) {
-            objp->store(structure->read(id, source).get());
-          }
+      LOG_STRUCTURE(TRACE, this, "reading !b%s!! for " FURI_WRAP "\n", id->toString().c_str(),
+                    source.toString().c_str());
+      auto *s = new atomic<Structure *>(nullptr);
+      this->structures.forEach([id, s, source](Structure *structure) {
+        if (id->matches(*structure->pattern())) {
+          s->store(structure);
         }
       });
-      if (!objp->load()) {
-        delete objp;
+      if (!s->load()) {
+        delete s;
         return noobj();
       }
-      Obj_p ret = share<Obj>(Obj(*objp->load()));
-      delete objp;
+      Obj_p ret = share<Obj>(Obj(*s->load()->read(id, source)));
+      delete s;
       return ret;
     }
 
     void write(const ID_p &id, const Obj_p &obj, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+      LOG_STRUCTURE(TRACE, this, "writing %s to !b%s!! for " FURI_WRAP "\n", obj->toString().c_str(),
+                    id->toString().c_str(), source.toString().c_str());
       auto *found = new atomic_bool(false);
       this->structures.forEach([found, id, obj, source](Structure *structure) {
         if (!found->load()) {
-          if (id->matches(*structure->type())) {
+          if (id->matches(*structure->pattern())) {
             structure->write(id, obj, source);
             found->store(true);
           }
@@ -105,7 +108,7 @@ namespace fhatos {
       });
       if (!found->load()) {
         delete found;
-        throw fError("!g[!b%s!g] !yno structures!! to write !b%s!!\n", this->type()->toString().c_str(),
+        throw fError("!g[!b%s!g] !yno structures!! to write !b%s!!\n", this->pattern()->toString().c_str(),
                      id->toString().c_str());
       }
       delete found;
@@ -116,7 +119,7 @@ namespace fhatos {
       auto *found = new atomic_bool(false);
       this->structures.forEach([found, id, source](Structure *structure) {
         if (!found->load()) {
-          if (id->matches(*structure->type())) {
+          if (id->matches(*structure->pattern())) {
             structure->remove(id, source);
             found->store(true);
           }
@@ -124,7 +127,7 @@ namespace fhatos {
       });
       if (!found->load()) {
         delete found;
-        throw fError("!g[!b%s!g] !yno structures!! to remove !b%s!!\n", this->type()->toString().c_str(),
+        throw fError("!g[!b%s!g] !yno structures!! to remove !b%s!!\n", this->pattern()->toString().c_str(),
                      id->toString().c_str());
       }
       delete found;
@@ -134,7 +137,7 @@ namespace fhatos {
     RESPONSE_CODE route_message(const Message_p &message) {
       auto *rc = new RESPONSE_CODE(NO_SUBSCRIPTION);
       this->structures.forEach([message, rc](Structure *structure) {
-        if (message->target.matches(*structure->type())) {
+        if (message->target.matches(*structure->pattern())) {
           structure->recv_message(message);
           *rc = OK;
         }
@@ -148,7 +151,7 @@ namespace fhatos {
     RESPONSE_CODE route_subscription(const Subscription_p &subscription) {
       auto *rc = new RESPONSE_CODE(NO_TARGETS);
       this->structures.forEach([subscription, rc](Structure *structure) {
-        if (subscription->pattern.matches(*structure->type())) {
+        if (subscription->pattern.matches(*structure->pattern())) {
           structure->recv_subscription(subscription);
           *rc = OK;
         }

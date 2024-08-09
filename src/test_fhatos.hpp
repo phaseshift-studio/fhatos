@@ -307,8 +307,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       Options::singleton()->router<Router>()->subscribe(
-          Subscription{.mailbox = nullptr,
-                       .source = ID(FOS_DEFAULT_SOURCE_ID),
+          Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
                        .pattern = key.uri_value(),
                        .onRecv = [temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,

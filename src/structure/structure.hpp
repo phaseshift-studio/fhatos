@@ -55,7 +55,7 @@ namespace fhatos {
     }
     virtual void loop() {
       if (!this->_available.load())
-        throw fError("%s !ystructure!! is closed\n", this->type()->toString().c_str());
+        throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
       Option<Mail_p> mail;
       while ((mail = this->outbox->pop_back()).has_value()) {
         mail.value()->first->onRecv(mail.value()->second);
@@ -70,6 +70,7 @@ namespace fhatos {
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
+      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       this->mutex.write<void *>([this, subscription]() {
         /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
         this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
@@ -83,14 +84,9 @@ namespace fhatos {
           this->subscriptions->push_back(subscription);
           const List<IDxOBJ> payload = this->read(share(subscription->pattern), subscription->source);
           for (const auto &[furi, obj]: payload) {
-            const Mail_p mail =
-                share(Mail({subscription,
-                            share(Message{.source = *this->type(), .target = *furi, .payload = obj, .retain = true})}));
-            // if (subscription->mailbox) {
-            // subscription->mailbox->push(mail);
-            // } else {
-            this->outbox->push_back(mail);
-            //}
+            this->outbox->push_back(share(
+                Mail({subscription,
+                      share(Message{.source = *this->pattern(), .target = *furi, .payload = obj, .retain = true})})));
           }
           LOG_SUBSCRIBE(OK, subscription);
         } else {
@@ -101,6 +97,7 @@ namespace fhatos {
     }
 
     virtual void recv_message(const Message_p &message) {
+      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       if (message->retain) {
         this->write(share(message->target), message->payload, message->source);
       }
@@ -109,12 +106,7 @@ namespace fhatos {
         for (const auto &subscription: *this->subscriptions) {
           if (message->target.matches(subscription->pattern)) {
             rc2 = OK;
-            const Mail_p mail = share(Mail{subscription, message});
-            ///   if (subscription->mailbox) {
-            //     subscription->mailbox->push(mail);
-            //  } else {
-            this->outbox->push_back(mail);
-            // }
+            this->outbox->push_back(share(Mail{subscription, message}));
           }
         }
         return rc2;

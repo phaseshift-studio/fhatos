@@ -19,7 +19,7 @@
 #ifndef fhatos_x_filesystem_hpp
 #define fhatos_x_filesystem_hpp
 #include <process/actor/actor.hpp>
-#include FOS_PROCESS(coroutine.hpp)
+#include FOS_PROCESS(fiber.hpp)
 #include <language/obj.hpp>
 #include <structure/io/filesystem/fs.hpp>
 #include <structure/stype/empty.hpp>
@@ -30,19 +30,24 @@ namespace fhatos {
   using Dir = Uri;
   using Dir_p = Uri_p;
 
-  static const ID_p FILE_FURI = share(ID("/uri/fs:file"));
-  static const ID_p DIR_FURI = share(ID("/uri/fs:dir"));
-  static const ID_p INST_FS_FURI = share(ID("/inst/fs:"));
+  static const ID_p FILE_FURI = share(ID("/type/uri/fs:file"));
+  static const ID_p DIR_FURI = share(ID("/type/uri/fs:dir"));
+  static const ID_p INST_FS_FURI = share(ID("/type/inst/fs:"));
 
-  class XFileSystem : public Actor<Coroutine, Empty> {
+  class Mount : public Structure {
+  public:
+    explicit Mount(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {}
+  };
+
+  class XFileSystem : public Actor<Fiber, Mount> {
 
   protected:
     const ID_p _root;
     ID_p _current;
 
   public:
-    explicit XFileSystem(const ID &id, const Pattern &pattern, const ID &localRoot) :
-        Actor(id, pattern), _root(id_p(localRoot.extend("/"))), _current(id_p(localRoot.extend("/"))) {}
+    explicit XFileSystem(const ID &id, const ID &localRoot) :
+        Actor(id, id.extend("#")), _root(id_p(localRoot.extend("/"))), _current(id_p(localRoot.extend("/"))) {}
 
 
     /* Obj_p find(const ID &id) const  {
@@ -58,7 +63,6 @@ namespace fhatos {
       LOG_PROCESS(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->_root->toString().c_str());
       this->publish(*FILE_FURI, Obj::to_bcode(), true);
       this->publish(*DIR_FURI, Obj::to_bcode(), true);
-      this->publish(*this->id(), this->root()->apply(Obj::to_noobj()), RETAIN_MESSAGE);
       /*this->subscribe("#", [this](const Message_p &message) {
         if (message->retain) {
           const ID file = makeRouterPath(message->target);
@@ -130,6 +134,21 @@ namespace fhatos {
     virtual File_p append(const File_p &, const Obj_p &) = 0;
     virtual File_p touch(const ID &) const = 0;
     virtual Dir_p cd(const ID &) = 0;
+
+    virtual Obj_p read(const ID_p &id, const ID &source) override {
+      return exists(*id) ? is_dir(*id) ? to_dir(*id) : to_file(*id) : noobj();
+    }
+
+    virtual List<IDxOBJ> read(const fURI_p &furi, const ID &source) override {
+      fURI dir = furi->retract();
+      List<IDxOBJ> list = List<IDxOBJ>();
+      for (const auto &obj: *ls(to_dir(dir), "#")->objs_value()) {
+        list.push_back({id_p(obj->uri_value()), obj});
+      }
+      return list;
+    }
+
+    virtual void write(const ID_p &id, const Obj_p &obj, const ID &source) override {}
   };
 } // namespace fhatos
 

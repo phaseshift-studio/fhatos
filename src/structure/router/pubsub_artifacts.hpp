@@ -19,6 +19,7 @@
 #define fhatos_structure_subscription_hpp
 
 #include <fhatos.hpp>
+#include <language/obj.hpp>
 
 namespace fhatos {
 
@@ -35,7 +36,7 @@ namespace fhatos {
     [[nodiscard]] string toString() const {
       char temp[150];
       sprintf(temp, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
-              this->payload->toString().c_str(), FOS_BOOL_STR(this->retain), this->target.toString().c_str());
+             "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
   };
@@ -44,14 +45,18 @@ namespace fhatos {
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
   enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
-
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
   using Message_p = ptr<Message>;
+  using Mail = Pair<const Subscription_p, const Message_p>;
+  using Mail_p = ptr<Mail>;
+  struct Mailbox {
+  public:
+    virtual void recv_mail(Mail_p mail) = 0;
+  };
   struct Subscription {
     using Mail = Pair<const Subscription_p, const Message_p>;
     using Mail_p = ptr<Mail>;
-    void *mailbox = nullptr;
     fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;
@@ -68,13 +73,20 @@ namespace fhatos {
               (uint8_t) qos, pattern.toString().c_str(), onRecvBCode ? onRecvBCode->toString().c_str() : "<c-impl>");
       return {temp};
     }
+
+    Subscription executeAtSource(Mailbox *mailbox) {
+      const Consumer<const Message_p> originalOnRecv = Consumer<const Message_p>(this->onRecv);
+      this->onRecv = [this, originalOnRecv, mailbox](const Message_p &message) {
+        mailbox->recv_mail(share(Mail{share(Subscription{.source = this->source,
+                                                         .pattern = this->pattern,
+                                                         .qos = this->qos,
+                                                         .onRecv = originalOnRecv,
+                                                         .onRecvBCode = this->onRecvBCode}),
+                                      message}));
+      };
+      return *this;
+    }
   };
-
-
-  using Mail = Pair<const Subscription_p, const Message_p>;
-  using Mail_p = ptr<Mail>;
-
-
 } // namespace fhatos
 
 #endif

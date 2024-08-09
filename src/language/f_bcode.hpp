@@ -21,18 +21,19 @@
 #include <language/fluent.hpp>
 #include <language/obj.hpp>
 #include <process/actor/actor.hpp>
+#include <structure/stype/key_value.hpp>
 
 namespace fhatos {
 
   template<typename PROCESS = Thread>
-  class fBcode final : public Actor<PROCESS> {
+  class fBcode final : public Actor<PROCESS, KeyValue> {
   public:
     const ptr<Obj> rec;
     const ptr<BCode> SETUP_BCODE;
     const ptr<BCode> LOOP_BCODE;
 
     fBcode(const ID &id, const Rec_p &rec) :
-        Actor<PROCESS>(id, id), rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))),
+        Actor<PROCESS, KeyValue>(id), rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))),
         LOOP_BCODE(rec->rec_get(uri("loop"))) {
       LOG(DEBUG, "_bcode program created: %s\n", rec->toString().c_str());
     }

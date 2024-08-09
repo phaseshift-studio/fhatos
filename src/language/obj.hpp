@@ -880,10 +880,8 @@ namespace fhatos {
             if (currentInst->isNoObj())
               break;
             currentObj = currentInst->apply(currentObj);
-            // if (currentObj->isNoObj())
-            // break;
           }
-          return currentObj; //(currentObj->type() == OType::URI) ? relativeUri((ptr<Uri>currentObj) : currentObj;
+          return currentObj;
         }
         case OType::NOOBJ:
           return Obj::to_noobj();
@@ -903,7 +901,7 @@ namespace fhatos {
     // const fURI type() const { return this->_id->authority(""); }
 
     bool match(const Obj_p &type, const bool sameType = true) const {
-      LOG(TRACE, "!ymatching!!: %s vs. %s\n", this->toString().c_str(), type->toString().c_str());
+      LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if (type->isNoOpBytecode())
         return true;
       if (type->isBytecode() && !this->isBytecode())

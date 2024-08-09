@@ -20,32 +20,24 @@
 #define fhatos_actor_hpp
 
 #include <fhatos.hpp>
-//
-#include <process/actor/mailbox.hpp>
-#include <structure/router/local_router.hpp>
+#include <process/process.hpp>
+#include <structure/furi.hpp>
 #include <structure/router/pubsub_artifacts.hpp>
-#include <structure/router/router.hpp>
-#include <util/mutex_deque.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 #include <structure/structure.hpp>
-#include <structure/stype/empty.hpp>
-#include "structure/stype/key_value.hpp"
-
-#include <language/exts.hpp>
 
 namespace fhatos {
-  template<typename PROCESS = Coroutine, typename STRUCTURE = Empty>
-  class Actor : public PROCESS, public STRUCTURE {
+  template<typename PROCESS, typename STRUCTURE>
+  class Actor : public PROCESS, public STRUCTURE, public Mailbox {
 
   public:
-    explicit Actor(const ID &id, const Pattern &pattern) : PROCESS(id), STRUCTURE(pattern) {
+    explicit Actor(const ID &id, const Pattern &pattern) : PROCESS(id), STRUCTURE(pattern), Mailbox() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
     explicit Actor(const ID &id) : Actor(id, id.extend("#")) {}
 
     virtual ~Actor() = default;
-
+    void recv_mail(Mail_p mail) override { this->outbox->push_back(mail); }
     virtual RESPONSE_CODE publish(const Message_p &outgoing) { return Rooter::singleton()->route_message(outgoing); }
     RESPONSE_CODE publish(const ID &target, const Obj_p &payload, const bool retain = false) {
       return this->publish(
@@ -53,7 +45,8 @@ namespace fhatos {
     }
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
       return this->subscribe(share(Subscription{
-          .source = *this->id(), .pattern = this->type()->resolve(pattern), .qos = QoS::_1, .onRecv = onRecv}));
+          .source = *this->id(), .pattern = this->pattern()->resolve(pattern), .qos = QoS::_1, .onRecv = onRecv}));
+                                       /*.executeAtSource(this)));*/
     }
     virtual RESPONSE_CODE unsubscribeSource() { return OK; }
     virtual RESPONSE_CODE subscribe(const Subscription_p &outgoing) {
@@ -64,12 +57,14 @@ namespace fhatos {
 
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
-    void setup() override {
+    virtual void setup() override {
       PROCESS::setup();
       STRUCTURE::setup();
+      LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),
+          this->pattern()->toString().c_str());
     }
     //////////////////////////////////////////////////// STOP
-    void stop() override {
+    virtual void stop() override {
       PROCESS::stop();
       STRUCTURE::stop();
       if (const RESPONSE_CODE _rc = this->unsubscribeSource()) {
@@ -77,7 +72,7 @@ namespace fhatos {
       }
     }
     //////////////////////////////////////////////////// LOOP
-    void loop() override {
+    virtual void loop() override {
       PROCESS::loop();
       STRUCTURE::loop();
     }

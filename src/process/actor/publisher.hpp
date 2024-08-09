@@ -18,8 +18,6 @@
 #pragma once
 #ifndef fhatos_publisher_hpp
 #define fhatos_publisher_hpp
-
-#include <process/actor/mailbox.hpp>
 #include <structure/router/pubsub_artifacts.hpp>
 #include <structure/router/router.hpp>
 
@@ -27,20 +25,16 @@ namespace fhatos {
   class Publisher {
   public:
     const ID_p __id;
-    Mailbox<ptr<Mail>> *mailbox;
     virtual ~Publisher() = default;
-    explicit Publisher(const IDed *ided, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(ided->id()), mailbox(mailbox) {}
-    explicit Publisher(const ID_p &id, Mailbox<ptr<Mail>> *mailbox = nullptr) : __id(id), mailbox(mailbox) {}
+    explicit Publisher(const IDed *ided) : __id(ided->id()) {}
+    explicit Publisher(const ID_p &id) : __id(id) {}
 
 
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message> &> &onRecv,
                                     const QoS qos = QoS::_1) {
-      return Options::singleton()->router<Router>()->subscribe(Subscription{.mailbox = this->mailbox,
-                                                                            .source = *this->__id,
-                                                                            .pattern = this->makeTopic(relativePattern),
-                                                                            .qos = qos,
-                                                                            .onRecv = onRecv});
+      return Options::singleton()->router<Router>()->subscribe(Subscription{
+          .source = *this->__id, .pattern = this->makeTopic(relativePattern), .qos = qos, .onRecv = onRecv});
     }
 
     /// UNSUBSCRIBE

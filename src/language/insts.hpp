@@ -346,8 +346,7 @@ namespace fhatos {
                                                                   pattern->apply(lhs)->uri_value());
             } else {
               Options::singleton()->rooter<Rooter>()->route_subscription(
-                  share(Subscription{.mailbox = nullptr,
-                                     .source = FOS_DEFAULT_SOURCE_ID,
+                  share(Subscription{.source = FOS_DEFAULT_SOURCE_ID,
                                      .pattern = pattern->apply(lhs)->uri_value(),
                                      .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
                                      .onRecvBCode = onRecv}));

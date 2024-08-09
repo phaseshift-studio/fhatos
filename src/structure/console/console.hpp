@@ -128,7 +128,7 @@ namespace fhatos {
       }
     }
     void loop() override {
-      Actor<Thread>::loop();
+      Actor::loop();
       //// PROMPT
       if (this->_newInput)
         this->printPrompt(!this->_line.empty());

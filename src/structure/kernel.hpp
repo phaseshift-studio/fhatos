@@ -24,6 +24,7 @@
 #include <process/actor/actor.hpp>
 #include <process/process.hpp>
 #include <structure/io/terminal.hpp>
+#include <language/exts.hpp>
 
 #include <language/types.hpp>
 namespace fhatos {

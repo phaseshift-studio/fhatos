@@ -26,7 +26,7 @@ namespace fs = std::filesystem;
 namespace fhatos {
   class FileSystem : public XFileSystem {
   private:
-    explicit FileSystem(const ID &id, const ID &root) : XFileSystem(id, id.extend("#"), root) {}
+    explicit FileSystem(const ID &id, const ID &root) : XFileSystem(id, root) {}
 
   public:
     static FileSystem *singleton(const ID &id = ID("/sys/io/fs"), const ID &root = ID(fs::current_path())) {
@@ -54,14 +54,18 @@ namespace fhatos {
                    path.toString().c_str());
     }
     ID makeNativePath(const ID &path) const override {
-      const fURI localPath = this->_root->resolve(path.toString().c_str());
+      const fURI localPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
+                                 ? this->_root->resolve(path.toString().substr(this->id()->toString().length()+1))
+                                 : this->_root->resolve(path.toString().c_str());
+      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
+                    path.toString().c_str(), this->_root->toString().c_str());
       if (!this->_root->is_subfuri_of(localPath)) {
         throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
                      this->id()->toString().c_str(), localPath.toString().c_str(), this->_root->toString().c_str());
       }
       return localPath;
     }
-    Dir_p root() const override { return to_dir("/"); }
+    Dir_p root() const override { return to_dir(*this->id()); }
     Dir_p mkdir(const ID &path) const override {
       if (fs::is_directory(makeNativePath(path).toString())) {
         throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());

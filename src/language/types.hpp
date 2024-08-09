@@ -29,7 +29,7 @@
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
-  class Types : public Actor<Coroutine, KeyValue> {
+  class Types : public Actor<Fiber, KeyValue> {
 
     explicit Types(const ID &id = ID("/type/")) : Actor(id) {}
 
@@ -45,27 +45,18 @@ namespace fhatos {
         singleton()->checkType(obj, otype, typeId, true);
         return typeId;
       };
-      const List<Pattern> baseTypes = {BOOL_FURI->resolve("#"), INT_FURI->resolve("#"), REAL_FURI->resolve("#"),
-                                       STR_FURI->resolve("#"),  URI_FURI->resolve("#"), LST_FURI->resolve("#"),
-                                       REC_FURI->resolve("#"),  INST_FURI->resolve("#")};
-      for (const Pattern &typeSub: baseTypes) {
-        this->subscribe(typeSub, [](const Message_p &message) {
-          try {
-            if (!Types::singleton()->id()->equals(message->source))
-              Types::singleton()->saveType(id_p(message->target), message->payload, false);
-          } catch (const fError &e) {
-            LOG_EXCEPTION(e);
-          }
-        });
-      }
+      this->subscribe(*this->pattern(), [](const Message_p &message) {
+        if (message->retain)
+          Types::singleton()->saveType(id_p(message->target), message->payload);
+      });
     }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void saveType(const ID_p &typeId, const Obj_p &typeDef, [[maybe_unused]] const bool writeThrough = true) {
+    void saveType(const ID_p &typeId, const Obj_p &typeDef) {
       try {
         Obj_p current = this->read(typeId, *this->id());
-        if (!current->isNoObj()) {
+        if (!current->isNoObj() && current != typeDef) {
           LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
                       current->toString().c_str());
         }

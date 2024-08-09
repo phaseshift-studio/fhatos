@@ -625,20 +625,20 @@ namespace fhatos {
   //////////////////////////////////////////////
   class BasePatterned {
   public:
-    virtual Pattern_p type() const = 0;
+    virtual Pattern_p pattern() const = 0;
     virtual bool equals(const BasePatterned &) const = 0;
-    virtual bool matches(const fURI &other) { return other.matches(*this->type()); }
+    virtual bool matches(const fURI &other) { return other.matches(*this->pattern()); }
   };
 
   class Patterned : public BasePatterned {
   protected:
-    Pattern_p _type;
+    Pattern_p _pattern;
 
   public:
-    explicit Patterned(const fURI_p &uri) : _type(share(Pattern(uri->toString()))) {}
-    explicit Patterned(const Pattern_p &type) : _type(type) {}
-    [[nodiscard]] Pattern_p type() const override { return this->_type; }
-    bool equals(const BasePatterned &other) const override { return this->_type->equals(*other.type()); }
+    explicit Patterned(const fURI_p &uri) : _pattern(share(Pattern(uri->toString()))) {}
+    explicit Patterned(const Pattern_p &type) : _pattern(type) {}
+    [[nodiscard]] Pattern_p pattern() const override { return this->_pattern; }
+    bool equals(const BasePatterned &other) const override { return this->_pattern->equals(*other.pattern()); }
   };
 
   struct furi_p_less : public std::less<fURI_p> {

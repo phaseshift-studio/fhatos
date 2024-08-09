@@ -21,7 +21,6 @@
 
 #include <fhatos.hpp>
 //
-#include <process/actor/mailbox.hpp>
 #include <structure/furi.hpp>
 #include <structure/router/pubsub_artifacts.hpp>
 #include <util/enums.hpp>
