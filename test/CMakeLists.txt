@@ -1,4 +1,5 @@
 OPTION(BUILD_TESTS "Build tests" ON) # ON/OFF
+SET(CMAKE_MACOSX_RPATH 1)
 IF (BUILD_TESTS)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
     ENABLE_TESTING()
@@ -7,6 +8,7 @@ IF (BUILD_TESTS)
     ####################################
     MESSAGE(CHECK_START "${.y}CMaking Boost Test Framework${..}")
     SET(PROJECT_UNIT_TESTS_NAME ${PROJECT_NAME}_boost_tests)
+    CMAKE_POLICY(SET CMP0167 NEW)
     FIND_PACKAGE(Boost COMPONENTS filesystem system unit_test_framework REQUIRED)
     FILE(GLOB UNIT_TESTS_SRC_FILES ${CMAKE_SOURCE_DIR}/test/structure/*_boost.cpp)
     SET(UNIT_TESTS_INCLUDES ${PROJECT_INCLUDE_DIR}

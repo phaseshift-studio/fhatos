@@ -91,6 +91,7 @@ ENDIF ()
 ######## PROJECT LIBRARY (NATIVE)
 OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF (BUILD_NATIVE)
+    SET(CMAKE_MACOSX_RPATH 1)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (NATIVE)${..}")
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
