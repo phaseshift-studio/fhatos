@@ -3,6 +3,24 @@ IF (BUILD_TESTS)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
     ENABLE_TESTING()
     ####################################
+    ########### BOOST TEST #############
+    ####################################
+    MESSAGE(CHECK_START "${.y}CMaking Boost Test Framework${..}")
+    SET(PROJECT_UNIT_TESTS_NAME ${PROJECT_NAME}_boost_tests)
+    FIND_PACKAGE(Boost COMPONENTS filesystem system unit_test_framework REQUIRED)
+    FILE(GLOB UNIT_TESTS_SRC_FILES ${CMAKE_SOURCE_DIR}/test/structure/*_boost.cpp)
+    SET(UNIT_TESTS_INCLUDES ${PROJECT_INCLUDE_DIR}
+            ${CMAKE_SOURCE_DIR}/src
+            ${UNIT_TESTS_SRC_FILES}
+            ${Boost_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+    INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
+    ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
+    ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
+    TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES})
+    ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ####################################
     ######## EXTERNAL LIBRARIES ########
     ####################################
     MESSAGE(CHECK_START "${.y}CMaking Unity Test Framework${..}")

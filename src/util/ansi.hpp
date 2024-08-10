@@ -147,6 +147,8 @@ namespace fhatos {
   public:
     Ansi() : printer(nullptr) {}
 
+    Ansi(string* str) : printer(new StringPrinter(str)) {}
+
     explicit Ansi(PRINTER *printer) : printer(printer) {}
 
     PRINTER *stream() { return this->_printer; }
