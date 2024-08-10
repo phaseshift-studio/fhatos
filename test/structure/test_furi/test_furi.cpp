@@ -221,6 +221,7 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/a"), fURI("/a").host("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/a/b/c"), fURI("/a/b/c").host("127.0.0.1"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/"), fURI("/").host("127.0.0.1"));
+    //
   }
 
   void test_uri_authority() {
@@ -432,6 +433,9 @@ namespace fhatos {
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1"), fURI("127.0.0.1/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/abc"), fURI("127.0.0.1/abc/#"));
+    ///// PATTERNS
+    TEST_ASSERT_EQUAL_STRING("//+/#",Pattern("//+/#").toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("+//+/#",Pattern("+//+/#").toString().c_str());
   }
 
   void test_fhat_idioms() {
@@ -454,7 +458,7 @@ namespace fhatos {
   }
 
   void test_pattern_pattern_matching() {
-    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/#"), *p_p("#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/#"), Pattern("#"));
     FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/mount/#"), *p_p("/fs/#"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/#"), *p_p("/fs/#"));
     FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/#"));

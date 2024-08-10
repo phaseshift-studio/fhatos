@@ -300,6 +300,8 @@ namespace fhatos {
     }
 
     virtual bool matches(const fURI &pattern) const {
+      if (this->equals(pattern))
+        return true;
       string patternStr = pattern.toString();
       if (pattern.toString() == "#")
         return true;
@@ -307,11 +309,15 @@ namespace fhatos {
         return this->toString() == patternStr;
       if (strcmp(pattern.scheme(), "#") == 0)
         return true;
-      if (strcmp(pattern.scheme(), "+") != 0 && strcmp(this->scheme(), pattern.scheme()) != 0)
+      if ((strlen(this->scheme()) == 0 && strlen(pattern.scheme()) != 0) ||
+          (strcmp(pattern.scheme(), "+") != 0 && strcmp(this->scheme(), pattern.scheme()) != 0))
         return false;
       if (strcmp(pattern.host(), "#") == 0)
         return true;
-      if (strcmp(pattern.host(), "+") != 0 && strcmp(this->host(), pattern.host()) != 0)
+      if ((strlen(this->host()) == 0 && strlen(pattern.host()) != 0) ||
+          (strcmp(pattern.host(), "+") != 0 &&
+           strcmp(this->host(), pattern.host()) !=
+               0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
         return false;
       if (strcmp(pattern.user(), "#") == 0)
         return true;
@@ -326,7 +332,8 @@ namespace fhatos {
           return false;
         if (strcmp(pattern.path(i), "#") == 0)
           return true;
-        if (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0)
+        if ((strlen(this->path(i)) == 0 && strlen(pattern.path(i)) != 0) ||
+            (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
           return false;
       }
       return this->_path_length == pattern.path_length();
@@ -568,15 +575,10 @@ namespace fhatos {
     ID(const fURI &id) : ID(id.toString()) {}
     ID(const string &furiString) : ID(furiString.c_str()) {}
     ID(const char *furiCharacters) : fURI(furiCharacters) {
-      try {
-        if (strchr(furiCharacters, '#')) {
-          throw fError("%s\n", "IDs can not contain pattern symbols: #");
-        } else if (strchr(furiCharacters, '+')) {
-          throw fError("%s\n", "IDs can not contain pattern symbols: +");
-        }
-      } catch (const fError &) {
-        delete this;
-        throw;
+      if (strchr(furiCharacters, '#')) {
+        throw fError("%s\n", "IDs can not contain pattern symbols: #");
+      } else if (strchr(furiCharacters, '+')) {
+        throw fError("%s\n", "IDs can not contain pattern symbols: +");
       }
     }
     // const bool isPattern() const override { return false; }

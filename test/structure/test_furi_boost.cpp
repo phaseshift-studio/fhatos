@@ -29,15 +29,13 @@ string message = string();
                                        (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(),        \
                                        (y).toString().length(), (x).path_length(), (y).path_length());                 \
   BOOST_TEST_MESSAGE(message);                                                                                         \
-  BOOST_ASSERT((x).equals(y));                                                                                         \
-  BOOST_ASSERT((x) == (y));                                                                                            \
-  BOOST_ASSERT((x).toString() == (y).toString());
+  BOOST_CHECK((x).equals(y));                                                                                          \
+  BOOST_CHECK((x) == (y));                                                                                             \
+  BOOST_CHECK((x).toString() == (y).toString());
 
-#define FOS_TEST_ASSERT_MATCH_FURI(x, y) BOOST_ASSERT((x).matches(y))
+#define FOS_TEST_ASSERT_MATCH_FURI(x, y) BOOST_CHECK((x).matches(y))
 
-#define FOS_TEST_ASSERT_NOT_MATCH_FURI(x, y) BOOST_ASSERT(!(x).matches(y))
-
-
+#define FOS_TEST_ASSERT_NOT_MATCH_FURI(x, y) BOOST_CHECK(!(x).matches(y))
 
 
 using namespace fhatos;
@@ -135,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_uri_components) {
   for (Pair<string, List<int>> pair: uris) {
     BOOST_CHECK_EQUAL(10, pair.second.size());
     fURI uri = fURI(pair.first);
-    BOOST_CHECK_EQUAL(pair.first.c_str(), uri.toString());
+    BOOST_CHECK_EQUAL(pair.first, uri.toString());
     FOS_TEST_ASSERT_EQUAL_FURI(uri, fURI(uri.toString()));
     BOOST_CHECK_EQUAL(pair.second.at(0) ? "furi" : "", uri.scheme());
     BOOST_CHECK_EQUAL(pair.second.at(1) ? "user" : "", uri.user());
@@ -173,16 +171,16 @@ BOOST_AUTO_TEST_CASE(test_uri_equals) {
   BOOST_CHECK_EQUAL("a", fURI("a").toString());
   BOOST_CHECK_EQUAL("/a", fURI("/a").toString());
   /// TRUE
-  BOOST_ASSERT(fURI("").equals(fURI("")));
-  BOOST_ASSERT(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
-  BOOST_ASSERT(fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b")));
-  BOOST_ASSERT(fURI("fhat@127.0.0.1/a/b").equals(fURI("fhat@127.0.0.1/a/b")));
-  BOOST_ASSERT(!fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b/")));
-  BOOST_ASSERT(fURI("127.0.0.1/a/b/").equals(fURI("127.0.0.1/a/b/")));
+  BOOST_CHECK(fURI("").equals(fURI("")));
+  BOOST_CHECK(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
+  BOOST_CHECK(fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b")));
+  BOOST_CHECK(fURI("fhat@127.0.0.1/a/b").equals(fURI("fhat@127.0.0.1/a/b")));
+  BOOST_CHECK(!fURI("127.0.0.1/a/b").equals(fURI("127.0.0.1/a/b/")));
+  BOOST_CHECK(fURI("127.0.0.1/a/b/").equals(fURI("127.0.0.1/a/b/")));
   // TEST_ASSERT_FALSE(fURI("127.0.0.1/a/b/").equals(fURI("127.0.0.1/a/b//"))); // TODO: this should be false
   /// FALSE
-  BOOST_ASSERT(!fURI("127.0.0.1").equals(fURI("127.1.1.2")));
-  BOOST_ASSERT(!fURI("127.0.0.1/a").equals(fURI("127.0.0.1/b")));
+  BOOST_CHECK(!fURI("127.0.0.1").equals(fURI("127.1.1.2")));
+  BOOST_CHECK(!fURI("127.0.0.1/a").equals(fURI("127.0.0.1/b")));
   // FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a/b"));
   // FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"), fURI("pig@127.0.0.1/a"));
 };
@@ -225,6 +223,9 @@ BOOST_AUTO_TEST_CASE(test_uri_host) {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/a"), fURI("/a").host("127.0.0.1"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/a/b/c"), fURI("/a/b/c").host("127.0.0.1"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/"), fURI("/").host("127.0.0.1"));
+  //
+  BOOST_CHECK_EQUAL("",Pattern("/fhat/aus/#").host());
+  BOOST_CHECK_EQUAL("+",Pattern("//+/#").host());
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_authority) {
@@ -251,7 +252,7 @@ BOOST_AUTO_TEST_CASE(test_uri_authority) {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("furi:"), fURI("furi://fhat@127.0.0.1").user("").host(""));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("furi://fhat@127.0.0.1").user("").host("").scheme(""));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("//bob@"), fURI("furi://fhat@127.0.0.1").user("").host("").scheme("").user("bob"));
-  BOOST_ASSERT(fURI("/a/b/c").authority().empty());
+  BOOST_CHECK(fURI("/a/b/c").authority().empty());
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_path) {
@@ -292,7 +293,7 @@ BOOST_AUTO_TEST_CASE(test_uri_path) {
 }
 
 BOOST_AUTO_TEST_CASE(test_uri_query) {
-  BOOST_ASSERT(0 == strlen(fURI("127.0.0.1").query()));
+  BOOST_CHECK_EQUAL(0, strlen(fURI("127.0.0.1").query()));
   BOOST_CHECK_EQUAL("testing", fURI("127.0.0.1/a/b?testing").query());
   BOOST_CHECK_EQUAL("testing=123", fURI("127.0.0.1?testing=123").query());
   BOOST_CHECK_EQUAL("a=1;b=2", fURI("fhat@127.0.0.1?a=1;b=2").query());
@@ -309,10 +310,10 @@ BOOST_AUTO_TEST_CASE(test_uri_query) {
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_empty) {
-  BOOST_ASSERT(fURI("").empty());
-  BOOST_ASSERT(!fURI("fos:").empty());
-  BOOST_ASSERT(!fURI("a/b/c").empty());
-  BOOST_ASSERT(!fURI("http://a.com:34/b/c#det").empty());
+  BOOST_CHECK(fURI("").empty());
+  BOOST_CHECK(!fURI("fos:").empty());
+  BOOST_CHECK(!fURI("a/b/c").empty());
+  BOOST_CHECK(!fURI("http://a.com:34/b/c#det").empty());
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_extend) {
@@ -431,6 +432,34 @@ BOOST_AUTO_TEST_CASE(test_uri_match) {
   FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1"), fURI("127.0.0.1/+"));
   FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/+"));
   FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/abc"), fURI("127.0.0.1/abc/#"));
+  ///// PATTERNS
+  BOOST_CHECK_EQUAL("//+", Pattern("//+").toString().c_str());
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80"), Pattern("//+"));
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/"), Pattern("//+"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("//localhost:80/a"), Pattern("//+"));
+  //
+  BOOST_CHECK_EQUAL("//+/", Pattern("//+/").toString().c_str());
+  // FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("//localhost:80"), Pattern("//+/")); // TODO: should not match?
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/"), Pattern("//+/"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("//localhost:80/a"), Pattern("//+/"));
+  //
+  BOOST_CHECK_EQUAL("//+/#", Pattern("//+/#").toString().c_str());
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("//localhost:80"), Pattern("//+/#"));
+  // FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/"), Pattern("//+/#")); // TODO: should match?
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/a"), Pattern("//+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/a/b/"), Pattern("//+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/a/b/c"), Pattern("//+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(ID("//localhost:80/a/b/c/"), Pattern("//+/#"));
+  //
+  BOOST_CHECK_EQUAL("//+/+/#", Pattern("//+/+/#").toString().c_str());
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("//localhost:80"), Pattern("//+/+/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("//localhost:80/"), Pattern("//+/+/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("//localhost:80/a"), Pattern("//+/+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(fURI("//localhost:80/a/b/"), Pattern("//+/+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(fURI("//localhost:80/a/b/c"), Pattern("//+/+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(fURI("//localhost:80/a/b/c/"), Pattern("//+/+/#"));
+  //
+  // BOOST_CHECK_EQUAL("+//+/#",Pattern("+//+/#").toString().c_str()); // TODO: + is something, not potentially nothing
 };
 
 BOOST_AUTO_TEST_CASE(test_fhat_idioms) {
@@ -453,12 +482,22 @@ BOOST_AUTO_TEST_CASE(test_fhat_idioms) {
 }
 
 BOOST_AUTO_TEST_CASE(test_pattern_pattern_matching) {
-  FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/#"), *p_p("#"));
-  FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/mount/#"), *p_p("/fs/#"));
-  FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/#"), *p_p("/fs/#"));
-  FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/#"));
-  FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/+/abc"), *p_p("/fs/#"));
-  FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/+/abc"));
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/#"), Pattern("#"));
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/mount/#"), Pattern("/fs/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/#"), Pattern("/fs/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/#"), Pattern("/fs/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/+/abc"), Pattern("/fs/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fs/#"), Pattern("/fs/+/abc"));
+  //
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("//#"), Pattern("//+"));
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("//+"), Pattern("//#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//#"), Pattern("/+/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+/#"), Pattern("/fhat/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fhat/#"), Pattern("//+/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+/#"), Pattern("/fhat/aus/#"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fhat/aus/#"), Pattern("//+/#"));
+  FOS_TEST_ASSERT_MATCH_FURI(Pattern("//+//a"), Pattern("//+//+"));
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+//+"), Pattern("//+//a"));
 }
 
 BOOST_AUTO_TEST_CASE(test_composite_mutations) {

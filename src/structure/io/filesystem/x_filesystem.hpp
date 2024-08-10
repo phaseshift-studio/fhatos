@@ -21,7 +21,6 @@
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(fiber.hpp)
 #include <language/obj.hpp>
-#include <structure/io/filesystem/fs.hpp>
 #include <structure/stype/empty.hpp>
 namespace fhatos {
 
@@ -135,16 +134,16 @@ namespace fhatos {
     virtual File_p touch(const ID &) const = 0;
     virtual Dir_p cd(const ID &) = 0;
 
-    virtual Obj_p read(const ID_p &id, const ID &source) override {
+    virtual Obj_p read(const ID_p &id, const ID_p &source) override {
       return exists(*id) ? is_dir(*id) ? to_dir(*id) : to_file(*id) : noobj();
     }
 
-    virtual Objs_p read(const fURI_p &furi, const ID &source) override {
+    virtual Objs_p read(const fURI_p &furi, const ID_p &source) override {
       fURI dir = furi->retract();
       return ls(to_dir(dir), "#");
     }
 
-    virtual void write(const ID_p &id, const Obj_p &obj, const ID &source) override {}
+    virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) override {}
   };
 } // namespace fhatos
 

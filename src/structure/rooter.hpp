@@ -69,9 +69,9 @@ namespace fhatos {
       });
     }
 
-    Objs_p read(const fURI_p &furi, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+    Objs_p read(const fURI_p &furi, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       LOG_STRUCTURE(TRACE, this, "reading !b%s!! for " FURI_WRAP "\n", furi->toString().c_str(),
-                    source.toString().c_str());
+                    source->toString().c_str());
       auto *s = new atomic<Structure *>(nullptr);
       this->structures.forEach([furi, s, source](Structure *structure) {
         if (furi->matches(*structure->pattern())) {
@@ -88,9 +88,9 @@ namespace fhatos {
       return ret;
     }
 
-    Obj_p read(const ID_p &id, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+    Obj_p read(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       LOG_STRUCTURE(TRACE, this, "reading !b%s!! for " FURI_WRAP "\n", id->toString().c_str(),
-                    source.toString().c_str());
+                    source->toString().c_str());
       auto *s = new atomic<Structure *>(nullptr);
       this->structures.forEach([id, s, source](Structure *structure) {
         if (id->matches(*structure->pattern())) {
@@ -107,9 +107,9 @@ namespace fhatos {
       return ret;
     }
 
-    void write(const ID_p &id, const Obj_p &obj, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+    void write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       LOG_STRUCTURE(TRACE, this, "writing %s to !b%s!! for " FURI_WRAP "\n", obj->toString().c_str(),
-                    id->toString().c_str(), source.toString().c_str());
+                    id->toString().c_str(), source->toString().c_str());
       auto *found = new atomic_bool(false);
       this->structures.forEach([found, id, obj, source](Structure *structure) {
         if (!found->load()) {
@@ -128,7 +128,7 @@ namespace fhatos {
     }
 
 
-    void remove(const ID_p &id, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+    void remove(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       auto *found = new atomic_bool(false);
       this->structures.forEach([found, id, source](Structure *structure) {
         if (!found->load()) {

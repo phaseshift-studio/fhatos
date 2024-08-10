@@ -27,6 +27,8 @@ namespace fhatos {
   /////////////// MESSAGE STRUCT ///////////////
   //////////////////////////////////////////////
   struct Message {
+    using Message_p = ptr<Message>;
+
   public:
     const ID source;
     const ID target;
@@ -36,8 +38,31 @@ namespace fhatos {
     [[nodiscard]] string toString() const {
       char temp[150];
       sprintf(temp, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
-             "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
+              "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
+    }
+    /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
+    static BObj_p wrapSource(const ID_p &source, const Obj_p &obj) {
+      string wrap = source->toString();
+      wrap += '%';
+      wrap += obj->toString(true, false);
+      LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
+      return ptr<BObj>(new BObj({wrap.length(), (fbyte *) strdup(wrap.c_str())}), bobj_deleter);
+    }
+    static Pair<ID_p, Obj_p> unwrapSource(const BObj_p &bobj) {
+      try {
+        const auto unwrap = string((char *) bobj->second, bobj->first);
+        const size_t index = unwrap.find_first_of('%');
+        LOG(TRACE, "bobj source unwrap: %s and %s (length:%i and %i)\n", unwrap.substr(0, index).c_str(),
+            unwrap.substr(index + 1).c_str(), unwrap.substr(0, index).length(), unwrap.substr(index + 1).length());
+        if (index == string::npos)
+          throw fError("bobj is not wrapped with source: %s\n", bobj->second);
+        return Pair<ID_p, Obj_p>(
+            {id_p(unwrap.substr(0, index).c_str()), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
+      } catch (const std::exception &e) {
+        LOG_EXCEPTION(e);
+        throw;
+      }
     }
   };
 

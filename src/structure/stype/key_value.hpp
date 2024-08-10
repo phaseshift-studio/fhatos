@@ -42,18 +42,18 @@ namespace fhatos {
       DATA->clear();
     }
 
-    void write(const ID_p &target, const Obj_p &payload, const ID &source) override {
+    void write(const ID_p &target, const Obj_p &payload, const ID_p &source) override {
       if (DATA->count(target)) {
         DATA->erase(target);
       }
       DATA->insert({target, payload});
     }
 
-    Obj_p read(const ID_p &id, [[maybe_unused]] const ID &source) override {
+    Obj_p read(const ID_p &id, [[maybe_unused]] const ID_p &source) override {
       return DATA->count(id) ? DATA->at(id) : noobj();
     }
 
-    Objs_p read(const fURI_p &furi, [[maybe_unused]] const ID &source) override {
+    Objs_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
       Objs_p objs = Obj::to_objs();
       if (furi->is_pattern()) {
         for (const auto &[f, o]: *this->DATA) {

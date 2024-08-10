@@ -68,6 +68,15 @@ namespace fhatos {
       this->outbox->clear(false);
     }
 
+    virtual void recv_unsubscribe(const ID_p &source, const Pattern_p &target) {
+      this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
+                                           [source, target](const Subscription_p &sub) {
+                                             LOG_UNSUBSCRIBE(OK, *source, target);
+                                             return sub->source.equals(*source) && sub->pattern.matches(*target);
+                                           }),
+                                 this->subscriptions->end());
+    }
+
     virtual void recv_subscription(const Subscription_p &subscription) {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       this->mutex.write<void *>([this, subscription]() {
@@ -79,17 +88,27 @@ namespace fhatos {
                                              }),
                                    this->subscriptions->end());
         /////////////// ADD NEW SUBSCRIPTION
-        if (subscription->onRecv) { // not an unsubscribe event
+        if (subscription->onRecv) { // not an unsubscribe event // todo: is it even possible to be in this state?
           this->subscriptions->push_back(subscription);
-          const Objs_p objs = this->read(share(subscription->pattern), subscription->source); // get any retains
-          for (const auto &obj: *objs->objs_value()) {
+          const Obj_p objx = this->read(share(subscription->pattern), id_p(subscription->source)); // get any retains
+          /*if (objx->isObjs()) {
+            for (const auto &obj: *objs->objs_value()) {
+              this->outbox->push_back(share(Mail(
+                  {subscription,
+                   share(Message{.source = ID("anon_src"),
+                                 .target = ID("anon_tgt"),
+                                 .payload = obj,
+                                 .retain = true})}))); // TODO: need both source of the retain and the target of obj
+            }
+          } else {*/
             this->outbox->push_back(share(
                 Mail({subscription,
                       share(Message{.source = ID("anon_src"),
                                     .target = ID("anon_tgt"),
-                                    .payload = obj,
+                                    .payload = objx,
                                     .retain = true})}))); // TODO: need both source of the retain and the target of obj
-          }
+        //  }
+
           LOG_SUBSCRIBE(OK, subscription);
         } else {
           LOG_UNSUBSCRIBE(OK, subscription->source, &subscription->pattern);
@@ -101,7 +120,7 @@ namespace fhatos {
     virtual void recv_message(const Message_p &message) {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       if (message->retain) {
-        this->write(share(message->target), message->payload, message->source);
+        this->write(id_p(message->target), message->payload, id_p(message->source));
       }
       auto rc = mutex.read<RESPONSE_CODE>([this, message]() {
         RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
@@ -113,15 +132,16 @@ namespace fhatos {
         }
         return rc2;
       });
+      MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
       LOG_PUBLISH(rc, *message);
     }
-    virtual void remove(const ID_p &id, const ID &source) { this->write(id, Obj::to_noobj(), source); }
-    virtual Obj_p read(const ID_p &id, const ID &source) = 0;
-    virtual Obj_p read(const ID_p &id) { return this->read(id, FOS_DEFAULT_SOURCE_ID); };
-    virtual Objs_p read(const fURI_p &furi, const ID &source) = 0;
-    virtual Objs_p read(const fURI_p &furi) { return this->read(furi, FOS_DEFAULT_SOURCE_ID); }
-    virtual void write(const ID_p &id, const Obj_p &obj, const ID &source) = 0;
-    virtual Obj_p write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, FOS_DEFAULT_SOURCE_ID); }
+    virtual void remove(const ID_p &id, const ID_p &source) { this->write(id, Obj::to_noobj(), source); }
+    virtual Obj_p read(const ID_p &id, const ID_p &source) = 0;
+    virtual Obj_p read(const ID_p &id) { return this->read(id, id_p(FOS_DEFAULT_SOURCE_ID)); };
+    virtual Objs_p read(const fURI_p &furi, const ID_p &source) = 0;
+    virtual Objs_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
+    virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) = 0;
+    virtual Obj_p write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
   };
 
 

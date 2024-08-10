@@ -260,10 +260,10 @@ namespace fhatos {
           [uri](const Uri_p &lhs) {
             if (uri->apply(lhs)->uri_value().is_pattern()) {
               fURI_p furi = share(fURI(uri->apply(lhs)->uri_value()));
-              return Rooter::singleton()->read(furi, FOS_DEFAULT_SOURCE_ID);
+              return Rooter::singleton()->read(furi);
             } else {
               ID_p id = share(ID(uri->apply(lhs)->uri_value()));
-              return Rooter::singleton()->read(id, FOS_DEFAULT_SOURCE_ID);
+              return Rooter::singleton()->read(id);
             }
           },
           /*uri->uri_value().is_pattern() ? IType::ONE_TO_MANY :*/ IType::ONE_TO_ONE);

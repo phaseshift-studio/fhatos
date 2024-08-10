@@ -27,9 +27,9 @@ namespace fhatos {
     explicit Simple(const Pattern &pattern) : Structure(pattern, SType::READ) {}
 
   public:
-    Objs_p read(const fURI_p &, const ID &) override { return Obj::to_objs(); }
-    Obj_p read(const ID_p &, const ID &) override { return noobj(); }
-    void write(const ID_p &, const Obj_p &, const ID &) override {}
+    Objs_p read(const fURI_p &, const ID_p &) override { return Obj::to_objs(); }
+    Obj_p read(const ID_p &, const ID_p &) override { return noobj(); }
+    void write(const ID_p &, const Obj_p &, const ID_p &) override {}
   };
 } // namespace fhatos
 

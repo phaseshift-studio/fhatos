@@ -33,6 +33,7 @@
 // utilities
 #include <language/types.hpp>
 #include <structure/console/console.hpp>
+#include <structure/io/net/cluster.hpp>
 #include <structure/io/terminal.hpp>
 
 #ifndef FOS_ROUTERS
@@ -83,6 +84,7 @@ void setup() {
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Rooter::singleton("/sys/router/"))
+        ->boot<Cluster, Fiber, Mqtt>(new Cluster("/io/cluster"))
         ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))
         ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
         ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))

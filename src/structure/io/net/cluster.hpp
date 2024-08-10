@@ -14,28 +14,22 @@
 //  You should have received a copy of the GNU Affero General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef fhatos_fs_hpp
-#define fhatos_fs_hpp
+#ifndef fhatos_cluster_hpp
+#define fhatos_cluster_hpp
 
 #include <fhatos.hpp>
-#include FOS_PROCESS(coroutine.hpp)
-#include <language/obj.hpp>
+#include <process/actor/actor.hpp>
+#include <structure/stype/mqtt.hpp>
+#include FOS_PROCESS(fiber.hpp)
 
 namespace fhatos {
 
-  template<typename PROCESS = Coroutine>
-  class FS : public PROCESS, public Structure {
-
-  protected:
-    MutexDeque<Mail_p> *OUTGOING = new MutexDeque<Mail_p>();
-    List<Subscription_p> *SUBSCRIPTIONS = new List<Subscription_p>();
-    MutexRW<> MUTEX_SUBSCRIPTIONS = MutexRW<>();
+  class Cluster : public Actor<Fiber, Mqtt> {
 
   public:
-    FS(const ID &id, const Pattern &pattern) : PROCESS(id), Structure(pattern, SType::READWRITE) {
-
-    }
+    Cluster(const ID &id = "/io/cluster", const Pattern &pattern = "//+/#") : Actor<Fiber, Mqtt>(id, pattern) {}
   };
+
 
 } // namespace fhatos
 

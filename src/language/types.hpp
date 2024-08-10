@@ -55,12 +55,12 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     void saveType(const ID_p &typeId, const Obj_p &typeDef) {
       try {
-        Obj_p current = this->read(typeId, *this->id());
+        Obj_p current = this->read(typeId, this->id());
         if (!current->isNoObj() && current != typeDef) {
           LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
                       current->toString().c_str());
         }
-        this->write(typeId, typeDef, *this->id());
+        this->write(typeId, typeDef, this->id());
         if (OType::INST == OTypes.toEnum(typeId->path(BASE_TYPE_INDEX))) {
           const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
@@ -88,7 +88,7 @@ namespace fhatos {
       if (typeId->path_length() == (BASE_TYPE_INDEX + 1)) { // base type (otype)
         return true;
       }
-      const Obj_p type = this->read(typeId, *this->id());
+      const Obj_p type = this->read(typeId, this->id());
       if (!type->isNoObj()) {
         if (obj.match(type, false)) {
           return true;
