@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(test_uri_components) {
   for (Pair<string, List<int>> pair: uris) {
     BOOST_CHECK_EQUAL(10, pair.second.size());
     fURI uri = fURI(pair.first);
-    BOOST_CHECK_EQUAL(pair.first.c_str(), uri.toString().c_str());
+    BOOST_CHECK_EQUAL(pair.first.c_str(), uri.toString());
     FOS_TEST_ASSERT_EQUAL_FURI(uri, fURI(uri.toString()));
     BOOST_CHECK_EQUAL(pair.second.at(0) ? "furi" : "", uri.scheme());
     BOOST_CHECK_EQUAL(pair.second.at(1) ? "user" : "", uri.user());
@@ -170,9 +170,9 @@ BOOST_AUTO_TEST_CASE(test_uri_components) {
 
 BOOST_AUTO_TEST_CASE(test_uri_equals) {
   /// STRING EQUALS
-  BOOST_CHECK_EQUAL("", fURI("").toString().c_str());
-  BOOST_CHECK_EQUAL("a", fURI("a").toString().c_str());
-  BOOST_CHECK_EQUAL("/a", fURI("/a").toString().c_str());
+  BOOST_CHECK_EQUAL("", fURI("").toString());
+  BOOST_CHECK_EQUAL("a", fURI("a").toString());
+  BOOST_CHECK_EQUAL("/a", fURI("/a").toString());
   /// TRUE
   BOOST_ASSERT(fURI("").equals(fURI("")));
   BOOST_ASSERT(fURI("127.0.0.1").equals(fURI("127.0.0.1")));
@@ -229,16 +229,16 @@ BOOST_AUTO_TEST_CASE(test_uri_host) {
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_authority) {
-  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1").authority().c_str());
-  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1/a").authority().c_str());
-  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1/a/b").authority().c_str());
-  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1/a/b/c").authority().c_str());
-  BOOST_CHECK_EQUAL(fURI("//127.0.0.1/a/b/c").authority().c_str(), fURI("//127.0.0.1/d/e").authority().c_str());
-  BOOST_CHECK_EQUAL("fat@127.0.0.1", fURI("//fat@127.0.0.1/a/b/c").authority().c_str());
-  BOOST_CHECK_EQUAL("fat:pig@127.0.0.1", fURI("//fat:pig@127.0.0.1/a/b/c").authority().c_str());
-  BOOST_CHECK_EQUAL("", fURI("/a").authority().c_str());
-  BOOST_CHECK_EQUAL("", fURI("x@/a/b/c/d/e").authority().c_str());
-  BOOST_CHECK_EQUAL("x@", fURI("//x@/a/b/c/d/e").authority().c_str());
+  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1").authority());
+  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1/a").authority());
+  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1/a/b").authority());
+  BOOST_CHECK_EQUAL("127.0.0.1", fURI("//127.0.0.1/a/b/c").authority());
+  BOOST_CHECK_EQUAL(fURI("//127.0.0.1/a/b/c").authority().c_str(), fURI("//127.0.0.1/d/e").authority());
+  BOOST_CHECK_EQUAL("fat@127.0.0.1", fURI("//fat@127.0.0.1/a/b/c").authority());
+  BOOST_CHECK_EQUAL("fat:pig@127.0.0.1", fURI("//fat:pig@127.0.0.1/a/b/c").authority());
+  BOOST_CHECK_EQUAL("", fURI("/a").authority());
+  BOOST_CHECK_EQUAL("", fURI("x@/a/b/c/d/e").authority());
+  BOOST_CHECK_EQUAL("x@", fURI("//x@/a/b/c/d/e").authority());
   //////
   /*FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("1.1.1.1/a").authority("127.0.0.1"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1"), fURI("1.1.1.1").authority("127.0.0.1"));
@@ -256,22 +256,22 @@ BOOST_AUTO_TEST_CASE(test_uri_authority) {
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_path) {
-  BOOST_CHECK_EQUAL("", fURI("").path().c_str());
-  BOOST_CHECK_EQUAL("", fURI("//127.0.0.1").path().c_str());
-  BOOST_CHECK_EQUAL("/a", fURI("//127.0.0.1/a").path().c_str());
-  BOOST_CHECK_EQUAL("/a/b/c", fURI("//127.0.0.1/a/b/c").path().c_str());
-  BOOST_CHECK_EQUAL("/a/b/c", fURI("//fhat@127.0.0.1/a/b/c").path().c_str());
-  BOOST_CHECK_EQUAL("/a/b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").path(0, 2).c_str());
+  BOOST_CHECK_EQUAL("", fURI("").path());
+  BOOST_CHECK_EQUAL("", fURI("//127.0.0.1").path());
+  BOOST_CHECK_EQUAL("/a", fURI("//127.0.0.1/a").path());
+  BOOST_CHECK_EQUAL("/a/b/c", fURI("//127.0.0.1/a/b/c").path());
+  BOOST_CHECK_EQUAL("/a/b/c", fURI("//fhat@127.0.0.1/a/b/c").path());
+  BOOST_CHECK_EQUAL("/a/b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").path(0, 2));
   BOOST_CHECK_EQUAL("b", fURI("furi://fhat@127.0.0.1/a/b/c/d/e").path(1));
-  BOOST_CHECK_EQUAL("c/d", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").path(2, 4).c_str());
-  BOOST_CHECK_EQUAL("e", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").path(4, 5).c_str());
-  BOOST_CHECK_EQUAL("e/", fURI("fos://fhat@127.0.0.1/a/b/c/d/e/").path(4, 5).c_str());
-  BOOST_CHECK_EQUAL("", fURI("//fhat@127.0.0.1/a/b/c/d/e").path(5, 6).c_str());
+  BOOST_CHECK_EQUAL("c/d", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").path(2, 4));
+  BOOST_CHECK_EQUAL("e", fURI("fos://fhat@127.0.0.1/a/b/c/d/e").path(4, 5));
+  BOOST_CHECK_EQUAL("e/", fURI("fos://fhat@127.0.0.1/a/b/c/d/e/").path(4, 5));
+  BOOST_CHECK_EQUAL("", fURI("//fhat@127.0.0.1/a/b/c/d/e").path(5, 6));
   BOOST_CHECK_EQUAL("", fURI("//fhat@127.0.0.1/a/b/c/d/e").path(6));
-  BOOST_CHECK_EQUAL("/a/b/c/d/e", fURI("/a/b/c/d/e").path().c_str());
-  BOOST_CHECK_EQUAL("/a/b/c/d/e", fURI("//x@/a/b/c/d/e").path().c_str());
-  BOOST_CHECK_EQUAL("c/d", fURI("/a/b/c/d/e").path(2, 4).c_str());
-  BOOST_CHECK_EQUAL("c/d", fURI("//x@/a/b/c/d/e").path(2, 4).c_str());
+  BOOST_CHECK_EQUAL("/a/b/c/d/e", fURI("/a/b/c/d/e").path());
+  BOOST_CHECK_EQUAL("/a/b/c/d/e", fURI("//x@/a/b/c/d/e").path());
+  BOOST_CHECK_EQUAL("c/d", fURI("/a/b/c/d/e").path(2, 4));
+  BOOST_CHECK_EQUAL("c/d", fURI("//x@/a/b/c/d/e").path(2, 4));
   //
   BOOST_CHECK_EQUAL(0, fURI("").path_length());
   BOOST_CHECK_EQUAL(0, fURI("foi://fhat@127.0.0.1").path_length());
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(test_uri_query) {
   BOOST_CHECK_EQUAL("query", fURI("127.0.0.1/a?query").query());
   BOOST_CHECK_EQUAL("", fURI("127.0.0.1/a?").query());
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a?query").query(""));
-  BOOST_CHECK_EQUAL("127.0.0.1/a?testing", fURI("127.0.0.1/a/b?testing").retract().toString().c_str());
+  BOOST_CHECK_EQUAL("127.0.0.1/a?testing", fURI("127.0.0.1/a/b?testing").retract().toString());
   ////////////////
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a?a=1"), fURI("127.0.0.1/a").query("a=1"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("fhat@127.0.0.1/a?a=1;b=2;c=3"), fURI("fhat@127.0.0.1/a").query("a=1;b=2;c=3"));
@@ -437,18 +437,18 @@ BOOST_AUTO_TEST_CASE(test_uri_match) {
 BOOST_AUTO_TEST_CASE(test_fhat_idioms) {
   fURI nat("/int/nat");
   BOOST_CHECK_EQUAL("nat", nat.name());
-  BOOST_CHECK_EQUAL("/int/nat", nat.toString().c_str());
+  BOOST_CHECK_EQUAL("/int/nat", nat.toString());
   BOOST_CHECK_EQUAL("int", nat.path(0));
   BOOST_CHECK_EQUAL("nat", nat.path(1));
   BOOST_CHECK_EQUAL("", nat.path(3));
   BOOST_CHECK_EQUAL(2, nat.path_length());
-  BOOST_CHECK_EQUAL("/", nat.path(0, 0).c_str());
-  BOOST_CHECK_EQUAL("/int", nat.path(0, 1).c_str());
-  BOOST_CHECK_EQUAL("", nat.path(2, 1).c_str());
-  BOOST_CHECK_EQUAL("", nat.path(2, 3).c_str());
-  BOOST_CHECK_EQUAL("/int/nat", nat.path(0, 2).c_str());
-  BOOST_CHECK_EQUAL("nat", nat.path(1, 2).c_str());
-  BOOST_CHECK_EQUAL("", nat.path(2, 2).c_str());
+  BOOST_CHECK_EQUAL("/", nat.path(0, 0));
+  BOOST_CHECK_EQUAL("/int", nat.path(0, 1));
+  BOOST_CHECK_EQUAL("", nat.path(2, 1));
+  BOOST_CHECK_EQUAL("", nat.path(2, 3));
+  BOOST_CHECK_EQUAL("/int/nat", nat.path(0, 2));
+  BOOST_CHECK_EQUAL("nat", nat.path(1, 2));
+  BOOST_CHECK_EQUAL("", nat.path(2, 2));
   FOS_TEST_ASSERT_EQUAL_FURI(ID("/int/nat"), ID("/int/").resolve(ID("nat")));
   FOS_TEST_ASSERT_EQUAL_FURI(ID("/int/"), ID("/int/").resolve(ID("")));
 }
