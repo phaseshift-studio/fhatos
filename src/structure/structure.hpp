@@ -27,7 +27,6 @@
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
-  using IDxOBJ = Pair<ID_p, Obj_p>;
   enum class SType { READ, WRITE, READWRITE };
   static const Enums<SType> StructureTypes =
       Enums<SType>({{SType::READ, "read"}, {SType::WRITE, "write"}, {SType::READWRITE, "readwrite"}});
@@ -82,11 +81,14 @@ namespace fhatos {
         /////////////// ADD NEW SUBSCRIPTION
         if (subscription->onRecv) { // not an unsubscribe event
           this->subscriptions->push_back(subscription);
-          const List<IDxOBJ> payload = this->read(share(subscription->pattern), subscription->source);
-          for (const auto &[furi, obj]: payload) {
+          const Objs_p objs = this->read(share(subscription->pattern), subscription->source); // get any retains
+          for (const auto &obj: *objs->objs_value()) {
             this->outbox->push_back(share(
                 Mail({subscription,
-                      share(Message{.source = *this->pattern(), .target = *furi, .payload = obj, .retain = true})})));
+                      share(Message{.source = ID("anon_src"),
+                                    .target = ID("anon_tgt"),
+                                    .payload = obj,
+                                    .retain = true})}))); // TODO: need both source of the retain and the target of obj
           }
           LOG_SUBSCRIBE(OK, subscription);
         } else {
@@ -101,7 +103,7 @@ namespace fhatos {
       if (message->retain) {
         this->write(share(message->target), message->payload, message->source);
       }
-      RESPONSE_CODE rc = mutex.read<RESPONSE_CODE>([this, message]() {
+      auto rc = mutex.read<RESPONSE_CODE>([this, message]() {
         RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
         for (const auto &subscription: *this->subscriptions) {
           if (message->target.matches(subscription->pattern)) {
@@ -116,8 +118,8 @@ namespace fhatos {
     virtual void remove(const ID_p &id, const ID &source) { this->write(id, Obj::to_noobj(), source); }
     virtual Obj_p read(const ID_p &id, const ID &source) = 0;
     virtual Obj_p read(const ID_p &id) { return this->read(id, FOS_DEFAULT_SOURCE_ID); };
-    virtual List<IDxOBJ> read(const fURI_p &furi, const ID &source) = 0;
-    virtual List<IDxOBJ> read(const fURI_p &furi) { return this->read(furi, FOS_DEFAULT_SOURCE_ID); }
+    virtual Objs_p read(const fURI_p &furi, const ID &source) = 0;
+    virtual Objs_p read(const fURI_p &furi) { return this->read(furi, FOS_DEFAULT_SOURCE_ID); }
     virtual void write(const ID_p &id, const Obj_p &obj, const ID &source) = 0;
     virtual Obj_p write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, FOS_DEFAULT_SOURCE_ID); }
   };

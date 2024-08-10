@@ -1124,6 +1124,8 @@ namespace fhatos {
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
+  [[maybe_unused]] static Uri_p uri(const fURI &xuri) { return Obj::to_uri(xuri); }
+  [[maybe_unused]] static Uri_p uri(const fURI_p &xuri) { return Obj::to_uri(*xuri); }
   [[maybe_unused]] static Uri_p uri(const char *xuri) { return Obj::to_uri(fURI(xuri)); }
   [[maybe_unused]] static Uri_p uri(const string &xuri) { return Obj::to_uri(fURI(xuri)); }
   [[maybe_unused]] static Str_p str(const char *xstr) { return Obj::to_str(xstr); }

@@ -139,13 +139,9 @@ namespace fhatos {
       return exists(*id) ? is_dir(*id) ? to_dir(*id) : to_file(*id) : noobj();
     }
 
-    virtual List<IDxOBJ> read(const fURI_p &furi, const ID &source) override {
+    virtual Objs_p read(const fURI_p &furi, const ID &source) override {
       fURI dir = furi->retract();
-      List<IDxOBJ> list = List<IDxOBJ>();
-      for (const auto &obj: *ls(to_dir(dir), "#")->objs_value()) {
-        list.push_back({id_p(obj->uri_value()), obj});
-      }
-      return list;
+      return ls(to_dir(dir), "#");
     }
 
     virtual void write(const ID_p &id, const Obj_p &obj, const ID &source) override {}

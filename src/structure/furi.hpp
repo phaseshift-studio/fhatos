@@ -296,7 +296,7 @@ namespace fhatos {
 
     virtual bool is_pattern() const {
       string temp = this->toString();
-      return temp.find("#") || temp.find("+");
+      return temp.find('#') != string::npos || temp.find('+') != string::npos;
     }
 
     virtual bool matches(const fURI &pattern) const {
@@ -627,7 +627,6 @@ namespace fhatos {
   public:
     virtual Pattern_p pattern() const = 0;
     virtual bool equals(const BasePatterned &) const = 0;
-    virtual bool matches(const fURI &other) { return other.matches(*this->pattern()); }
   };
 
   class Patterned : public BasePatterned {

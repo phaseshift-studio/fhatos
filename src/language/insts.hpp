@@ -258,9 +258,15 @@ namespace fhatos {
       return Obj::to_inst(
           "from", {uri},
           [uri](const Uri_p &lhs) {
-            return Rooter::singleton()->read(share(ID(uri->apply(lhs)->uri_value())), FOS_DEFAULT_SOURCE_ID);
+            if (uri->apply(lhs)->uri_value().is_pattern()) {
+              fURI_p furi = share(fURI(uri->apply(lhs)->uri_value()));
+              return Rooter::singleton()->read(furi, FOS_DEFAULT_SOURCE_ID);
+            } else {
+              ID_p id = share(ID(uri->apply(lhs)->uri_value()));
+              return Rooter::singleton()->read(id, FOS_DEFAULT_SOURCE_ID);
+            }
           },
-          /*areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
+          /*uri->uri_value().is_pattern() ? IType::ONE_TO_MANY :*/ IType::ONE_TO_ONE);
     }
 
     static Rec_p rfrom(const Uri_p &uri) {

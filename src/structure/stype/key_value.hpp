@@ -53,23 +53,20 @@ namespace fhatos {
       return DATA->count(id) ? DATA->at(id) : noobj();
     }
 
-    List<IDxOBJ> read(const fURI_p &furi, [[maybe_unused]] const ID &source) override {
+    Objs_p read(const fURI_p &furi, [[maybe_unused]] const ID &source) override {
+      Objs_p objs = Obj::to_objs();
       if (furi->is_pattern()) {
-        List<IDxOBJ> list;
         for (const auto &[f, o]: *this->DATA) {
           if (f->matches(*furi)) {
-            list.push_back({f, o});
+            objs->objs_value()->push_back(uri(f));
           }
         }
-        return list;
+        return objs;
       } else {
         const ID_p id = id_p(*furi);
-        if (DATA->count(id)) {
-          return {{id, DATA->at(id)}};
-        } else {
-          return {};
-        }
+        objs->objs_value()->push_back(DATA->count(id) ? DATA->at(id) : noobj());
       }
+      return objs;
     }
   };
 } // namespace fhatos

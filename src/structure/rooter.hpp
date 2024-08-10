@@ -69,11 +69,23 @@ namespace fhatos {
       });
     }
 
-    List<IDxOBJ> read(const fURI_p &furi, const ID &source = FOS_DEFAULT_SOURCE_ID) {
-      Structure *s =
-          this->structures.find([furi](Structure *structure) { return furi->matches(*(structure->pattern())); })
-              .value_or(nullptr);
-      return s != nullptr ? s->read(furi, source) : List<IDxOBJ>();
+    Objs_p read(const fURI_p &furi, const ID &source = FOS_DEFAULT_SOURCE_ID) {
+      LOG_STRUCTURE(TRACE, this, "reading !b%s!! for " FURI_WRAP "\n", furi->toString().c_str(),
+                    source.toString().c_str());
+      auto *s = new atomic<Structure *>(nullptr);
+      this->structures.forEach([furi, s, source](Structure *structure) {
+        if (furi->matches(*structure->pattern())) {
+          s->store(structure);
+        }
+      });
+      if (!s->load()) {
+        delete s;
+        throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
+                     furi->toString().c_str());
+      }
+      Objs_p ret = Obj::to_objs(List<Obj_p>(*s->load()->read(furi, source)->objs_value()));
+      delete s;
+      return ret;
     }
 
     Obj_p read(const ID_p &id, const ID &source = FOS_DEFAULT_SOURCE_ID) {
@@ -87,7 +99,8 @@ namespace fhatos {
       });
       if (!s->load()) {
         delete s;
-        return noobj();
+        throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
+                     id->toString().c_str());
       }
       Obj_p ret = share<Obj>(Obj(*s->load()->read(id, source)));
       delete s;
@@ -108,7 +121,7 @@ namespace fhatos {
       });
       if (!found->load()) {
         delete found;
-        throw fError("!g[!b%s!g] !yno structures!! to write !b%s!!\n", this->pattern()->toString().c_str(),
+        throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
                      id->toString().c_str());
       }
       delete found;
@@ -127,7 +140,7 @@ namespace fhatos {
       });
       if (!found->load()) {
         delete found;
-        throw fError("!g[!b%s!g] !yno structures!! to remove !b%s!!\n", this->pattern()->toString().c_str(),
+        throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
                      id->toString().c_str());
       }
       delete found;
