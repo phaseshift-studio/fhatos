@@ -224,8 +224,8 @@ BOOST_AUTO_TEST_CASE(test_uri_host) {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/a/b/c"), fURI("/a/b/c").host("127.0.0.1"));
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("//127.0.0.1/"), fURI("/").host("127.0.0.1"));
   //
-  BOOST_CHECK_EQUAL("",Pattern("/fhat/aus/#").host());
-  BOOST_CHECK_EQUAL("+",Pattern("//+/#").host());
+  BOOST_CHECK_EQUAL("", Pattern("/fhat/aus/#").host());
+  BOOST_CHECK_EQUAL("+", Pattern("//+/#").host());
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_authority) {
@@ -313,7 +313,7 @@ BOOST_AUTO_TEST_CASE(test_uri_empty) {
   BOOST_CHECK(fURI("").empty());
   BOOST_CHECK(!fURI("fos:").empty());
   BOOST_CHECK(!fURI("a/b/c").empty());
-  BOOST_CHECK(!fURI("http://a.com:34/b/c#det").empty());
+  BOOST_CHECK(!fURI("http://a.com:34/b/c#").empty());
 };
 
 BOOST_AUTO_TEST_CASE(test_uri_extend) {
@@ -406,6 +406,13 @@ BOOST_AUTO_TEST_CASE(test_uri_resolve) {
   //     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("b/")));
 }
 
+BOOST_AUTO_TEST_CASE(test_uri_dissolve) {
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("fos://123.345.246/a/b/c").dissolve());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("/a/b/c").dissolve());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c").dissolve());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("fos://127.0.0.1").dissolve());
+}
+
 BOOST_AUTO_TEST_CASE(test_uri_match) {
   //// TRUE
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a"));
@@ -416,17 +423,18 @@ BOOST_AUTO_TEST_CASE(test_uri_match) {
   FOS_TEST_ASSERT_MATCH_FURI(fURI("fhat@127.0.0.1/a"), fURI("fhat@127.0.0.1/#"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/abc.org"), fURI("127.0.0.1/#"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/#"));
-  FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/#/b"));
+  FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/+/b"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/+/b"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/+/+"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/+/c"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/+/#"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c/d"), fURI("127.0.0.1/a/+/#"));
-  FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/#/x/v"));
+  FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/b/c"));
   // TODO: ?? TEST_ASSERT_TRUE(fURI("127.0.0.1"),fURI("127.0.0.1/#"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("fos://127.0.0.1/a"), fURI("fos://127.0.0.1/a"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("fos://127.0.0.1:21/a/b"), fURI("fos://127.0.0.1:21/+/b"));
   //// FALSE
+  FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/x/c"));
   FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1"), fURI("127.0.0.2"));
   FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.2/?/b"));
   FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1"), fURI("127.0.0.1/+"));
@@ -515,7 +523,16 @@ BOOST_AUTO_TEST_CASE(test_composite_mutations) {
                              fURI(fURI("127.0.0.1/a").extend("b").resolve("b/c").resolve("../c/d").path()));
 }
 
+BOOST_AUTO_TEST_CASE(test_illegal_constructions) {
+  BOOST_CHECK_THROW(fURI("fos://this/#/is/#"), fError);
+  BOOST_CHECK_THROW(fURI("fos://this/#/#"), fError);
+  BOOST_CHECK_THROW(fURI("fos://this/#/"), fError);
+  BOOST_CHECK_THROW(fURI("fos://this/#/+"), fError);
+  ////
+  BOOST_CHECK_THROW(ID("fos://this/#"), fError);
+  BOOST_CHECK_THROW(ID("fos://this/+/#"), fError);
+  BOOST_CHECK_THROW(ID("fos://this/+/+"), fError);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
-
 #endif

@@ -53,13 +53,14 @@ namespace fhatos {
       throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->id()->toString().c_str(),
                    path.toString().c_str());
     }
-    ID makeNativePath(const ID &path) const override {
-      const fURI localPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
-                                 ? this->_root->resolve(path.toString().substr(this->id()->toString().length()+1))
-                                 : this->_root->resolve(path.toString().c_str());
+    fURI makeNativePath(const ID &path) const override {
+      const fURI localPath =
+          (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
+              ? this->_current->uri_value().resolve(path.toString().substr(this->id()->toString().length()))
+              : this->_current->uri_value().resolve(path.toString().c_str());
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
-                    path.toString().c_str(), this->_root->toString().c_str());
-      if (!this->_root->is_subfuri_of(localPath)) {
+                    path.toString().c_str(), this->_current->toString().c_str());
+      if (!this->_root->is_subfuri_of(this->_root->resolve(localPath.dissolve()))) { // ../ can resolve beyond the mount
         throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
                      this->id()->toString().c_str(), localPath.toString().c_str(), this->_root->toString().c_str());
       }
@@ -73,47 +74,37 @@ namespace fhatos {
       fs::create_directory(makeNativePath(path).toString());
       return to_dir(path);
     }
-    Objs_p ls(const Dir_p &dir, const Pattern &) const override {
-      auto *listing = new List<Uri_p>();
-      for (const auto &p: fs::directory_iterator(fs::path(makeNativePath(dir->uri_value()).toString()))) {
-        if ((fs::is_directory(p) || fs::is_regular_file(p)) /*&& ID(p.path()).matches(pattern)*/) {
-          const ID pp = ID(p.path().string().substr(this->_root->toString().length())); // clip off local mount location
-          // if (pp.matches(pattern)) {
-          listing->push_back(fs::is_directory(p) ? to_dir(pp) : to_file(pp));
+    Objs_p ls(const Dir_p &dir) const override {
+      auto listing = share<List<Uri_p>>(List<Uri_p>());
+      for (const auto &p: fs::directory_iterator(this->makeNativePath(dir->uri_value()).toString())) {
+        if ((fs::is_directory(p) || fs::is_regular_file(p))) {
+          listing->push_back(
+              uri(p.path().string().substr(this->_root->toString().length()))); // clip off local mount location
         }
       }
-      return Obj::to_objs(ptr<List<Uri_p>>(listing));
+      return Obj::to_objs(listing);
     }
     Obj_p more(const File_p &file) const override {
-      std::ifstream fstrm(fs::path(makeNativePath(file->uri_value()).toString()));
+      std::ifstream fstrm(fs::path(this->makeNativePath(file->uri_value()).toString()));
       std::stringstream buffer;
       buffer << fstrm.rdbuf();
       return Obj::to_str(buffer.str().c_str());
     }
     File_p append(const File_p &file, const Obj_p &content) override {
       std::ofstream outfile;
-      outfile.open(fs::path(makeNativePath(file->uri_value()).toString()), std::ios_base::app);
+      outfile.open(fs::path(this->makeNativePath(file->uri_value()).toString()), std::ios_base::app);
       const string s = content->toString();
       outfile << s.c_str();
       return file;
     }
     File_p touch(const ID &path) const override {
-      if (fs::is_regular_file(makeNativePath(path).toString())) {
+      if (fs::is_regular_file(this->makeNativePath(path).toString())) {
         throw fError("!g[!!%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
       }
       fstream fo;
       fo.open(path.toString(), ios::out);
       fo.close();
       return to_file(path);
-    }
-    Dir_p cd(const ID &path) override {
-      ID localPath = makeNativePath(path);
-      if (!fs::exists(localPath.toString()))
-        throw fError("!g[!!%s!g]!! %s does not exist\n", this->id()->toString().c_str(), path.toString().c_str());
-      if (fs::is_regular_file(localPath.toString()))
-        throw fError("!g[!!%s!g]!! %s is a file\n", this->id()->toString().c_str(), path.toString().c_str());
-      this->_current = share(localPath);
-      return to_dir(makeFhatPath(localPath));
     }
   };
 } // namespace fhatos

@@ -45,14 +45,14 @@ namespace fhatos {
     stage();
     FileSystem *fs = FileSystem::singleton(ID("/io/fs"), ID(fs::current_path().string()));
     Scheduler::singleton()->spawn(fs);
-    FOS_TEST_ASSERT_EQUAL_FURI(ID("/type/uri/fs:dir"), *fs->to_dir("/")->id());
-    TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"), "#")->objs_value()->size());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *fs->to_dir("/")->id());
+    TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"))->objs_value()->size());
     for (int i = 0; i < 10; i++) {
       string filename = "a_" + to_string(i) + ".txt";
       File_p a = fs->touch(ID(filename));
       FOS_TEST_ASSERT_EQUAL_FURI(ID(filename), a->uri_value());
     }
-    const Objs_p files = fs->ls(fs->to_dir("/"), "#");
+    const Objs_p files = fs->ls(fs->to_dir("/"));
     TEST_ASSERT_EQUAL(files->o_type(), OType::OBJS);
     int counter = 0;
     for (const auto &o: *files->objs_value()) {

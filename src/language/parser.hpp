@@ -70,6 +70,10 @@ namespace fhatos {
           brackets++;
         else if (c == ']' && !quotes)
           brackets--;
+        else if (c == '<' && !quotes)
+          angles++;
+        else if (c == '>' && !quotes)
+          angles--;
         else if (c == '\'')
           quotes = !quotes;
       }
@@ -238,28 +242,33 @@ namespace fhatos {
       string value;
       Obj::LstList<> list = Obj::LstList<>();
       bool quotes = false;
-      int bracketCounter = 0;
-      int parenCounter = 0;
+      int brackets = 0;
+      int parens = 0;
+      uint8_t angles = 0;
       while (!ss.eof()) {
-        if (bracketCounter == 0 && parenCounter == 0 && !quotes && (ss.peek() == ',' || ss.peek() == EOF)) {
+        if (brackets == 0 && parens == 0 && !quotes && (ss.peek() == ',' || ss.peek() == EOF)) {
           Option<Obj_p> element = this->tryParseObj(value);
           if (element.has_value())
             list.push_back(element.value());
           if (ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
-        } else if (bracketCounter == 0 && parenCounter == 0 && !quotes && StringHelper::lookAhead("=>", &ss)) {
+        } else if (brackets == 0 && parens == 0 && angles == 0 && !quotes && StringHelper::lookAhead("=>", &ss)) {
           return {};
         } else {
           char c = static_cast<char>(ss.get());
-          if (c == '[')
-            bracketCounter++;
-          else if (c == ']')
-            bracketCounter--;
-          else if (c == '(')
-            parenCounter++;
-          else if (c == ')')
-            parenCounter--;
+          if (c == '[' && !quotes)
+            brackets++;
+          else if (c == ']' && !quotes)
+            brackets--;
+          else if (c == '(' && !quotes)
+            parens++;
+          else if (c == ')' && !quotes)
+            parens--;
+          else if (c == '<' && !quotes)
+            angles++;
+          else if (c == '>' && !quotes)
+            angles--;
           else if (c == '\'')
             quotes = !quotes;
           if (c >= 32 && c < 127)
@@ -277,23 +286,28 @@ namespace fhatos {
       string value;
       bool onKey = true;
       bool quotes = false;
-      int bracketCounter = 0;
-      int parenCounter = 0;
+      uint8_t brackets = 0;
+      uint8_t parens = 0;
+      uint8_t angles = 0;
       while (!ss.eof() || (!onKey && !value.empty())) {
         //// KEY PARSE
         if (onKey) {
-          if (bracketCounter == 0 && parenCounter == 0 && StringHelper::lookAhead("=>", &ss)) {
+          if (brackets == 0 && parens == 0 && StringHelper::lookAhead("=>", &ss)) {
             onKey = false;
           } else if (!ss.eof()) {
             char c = static_cast<char>(ss.get());
-            if (c == '[')
-              bracketCounter++;
-            else if (c == ']')
-              bracketCounter--;
-            else if (c == '(')
-              parenCounter++;
-            else if (c == ')')
-              parenCounter--;
+            if (c == '[' && !quotes)
+              brackets++;
+            else if (c == ']' && !quotes)
+              brackets--;
+            else if (c == '(' && !quotes)
+              parens++;
+            else if (c == ')' && !quotes)
+              parens--;
+            else if (c == '<' && !quotes)
+              angles++;
+            else if (c == '>' && !quotes)
+              angles--;
             else if (c == '\'')
               quotes = !quotes;
             if (c >= 32 && c < 127)
@@ -301,7 +315,7 @@ namespace fhatos {
           }
         } else {
           //// VALUE PARSE
-          if (bracketCounter == 0 && parenCounter == 0 && !quotes &&
+          if (brackets == 0 && parens == 0 && angles == 0 && !quotes &&
               (ss.eof() || ss.peek() == ',' || ss.peek() == EOF)) {
             if (ss.peek() == ',')
               ss.get(); // drop k/v separating comma
@@ -317,14 +331,18 @@ namespace fhatos {
             onKey = true;
           } else {
             char c = static_cast<char>(ss.get());
-            if (c == '[')
-              bracketCounter++;
-            else if (c == ']')
-              bracketCounter--;
-            else if (c == '(')
-              parenCounter++;
-            else if (c == ')')
-              parenCounter--;
+            if (c == '[' && !quotes)
+              brackets++;
+            else if (c == ']' && !quotes)
+              brackets--;
+            else if (c == '(' && !quotes)
+              parens++;
+            else if (c == ')' && !quotes)
+              parens--;
+            else if (c == '<' && !quotes)
+              angles++;
+            else if (c == '>' && !quotes)
+              angles--;
             else if (c == '\'')
               quotes = !quotes;
             if (c >= 32 && c < 127)
@@ -345,24 +363,29 @@ namespace fhatos {
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
         string argToken;
-        bool quote = false;
-        int paren = 0;
-        int bracket = 0;
+        bool quotes = false;
+        uint8_t paren = 0;
+        uint8_t bracket = 0;
+        uint8_t angles = 0;
         while (!ss.eof()) {
           const char c = static_cast<char>(ss.get());
-          if (c == '(')
+          if (c == '(' && !quotes)
             paren++;
-          else if (c == ')')
+          else if (c == ')' && !quotes)
             paren--;
-          else if (c == '[')
+          else if (c == '[' && !quotes)
             bracket++;
-          else if (c == ']')
+          else if (c == ']' && !quotes)
             bracket--;
+          else if (c == '<' && !quotes)
+            angles++;
+          else if (c == '>' && !quotes)
+            angles--;
           else if (c == '\'')
-            quote = !quote;
+            quotes = !quotes;
           if (c >= 32 && c < 127) {
             argToken += c;
-            if (ss.peek() == ',' && !quote && paren == 0 && bracket == 0) {
+            if (ss.peek() == ',' && !quotes && paren == 0 && bracket == 0 && angles == 0) {
               ss.get(); // drop arg separating comma
               break;
             }
@@ -407,14 +430,15 @@ namespace fhatos {
       List<Inst_p> insts;
       std::stringstream ss = std::stringstream(valueToken);
       while (!ss.eof()) { // _bcode-level (tokens are insts)
-        int paren = 0;
-        int bracket = 0;
-        bool quote = false;
+        uint8_t paren = 0;
+        uint8_t bracket = 0;
+        uint8_t angles = 0;
+        bool quotes = false;
         bool unary = false;
         bool fullbreak = false;
         string instToken;
         while (!ss.eof()) { // inst-level (tokens are chars)
-          if (paren == 0 && bracket == 0 && !quote) {
+          if (paren == 0 && bracket == 0 && !quotes) {
             for (const auto &[k, v]: Insts::unarySugars()) {
               if (StringHelper::lookAhead(k, &ss, instToken.empty())) {
                 if (!instToken.empty()) {
@@ -433,20 +457,24 @@ namespace fhatos {
           if (fullbreak || ss.eof())
             break;
           char c = static_cast<char>(ss.get());
-          if ((quote || !isspace(c)) && c >= 32 && c < 127)
+          if ((quotes || !isspace(c)) && c >= 32 && c < 127)
             instToken += c;
           if (c == '(')
             paren++;
-          else if (c == ')')
+          else if (c == ')' && !quotes)
             paren--;
-          else if (c == '[')
+          else if (c == '[' && !quotes)
             bracket++;
-          else if (c == ']')
+          else if (c == ']' && !quotes)
             bracket--;
+          else if (c == '<' && !quotes)
+            angles++;
+          else if (c == '>' && !quotes)
+            angles--;
           else if (c == '\'')
-            quote = !quote;
+            quotes = !quotes;
           ///////////////////////////////////////////////////////////////
-          if ((unary || paren == 0) && bracket == 0 && !quote && ss.peek() == '.') {
+          if ((unary || paren == 0) && bracket == 0 && angles == 0 && !quotes && ss.peek() == '.') {
             ss.get();
             break;
           }

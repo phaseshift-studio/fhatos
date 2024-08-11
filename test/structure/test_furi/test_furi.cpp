@@ -310,7 +310,7 @@ namespace fhatos {
     TEST_ASSERT_TRUE(fURI("").empty());
     TEST_ASSERT_FALSE(fURI("fos:").empty());
     TEST_ASSERT_FALSE(fURI("a/b/c").empty());
-    TEST_ASSERT_FALSE(fURI("http://a.com:34/b/c#det").empty());
+    TEST_ASSERT_FALSE(fURI("http://a.com:34/b/c/#").empty());
   }
 
   ///////////////////////////////////////////
@@ -417,13 +417,13 @@ namespace fhatos {
     FOS_TEST_ASSERT_MATCH_FURI(fURI("fhat@127.0.0.1/a"), fURI("fhat@127.0.0.1/#"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/abc.org"), fURI("127.0.0.1/#"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/#"));
-    FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/#/b"));
+    FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/+/b"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/+/b"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.1/+/+"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/+/c"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/a/+/#"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c/d"), fURI("127.0.0.1/a/+/#"));
-    FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/#/x/v"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/x/v"));
     // TODO: ?? TEST_ASSERT_TRUE(fURI("127.0.0.1"),fURI("127.0.0.1/#"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("fos://127.0.0.1/a"), fURI("fos://127.0.0.1/a"));
     FOS_TEST_ASSERT_MATCH_FURI(fURI("fos://127.0.0.1:21/a/b"), fURI("fos://127.0.0.1:21/+/b"));
@@ -433,9 +433,6 @@ namespace fhatos {
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1"), fURI("127.0.0.1/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/abc"), fURI("127.0.0.1/abc/#"));
-    ///// PATTERNS
-    TEST_ASSERT_EQUAL_STRING("//+/#",Pattern("//+/#").toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("+//+/#",Pattern("+//+/#").toString().c_str());
   }
 
   void test_fhat_idioms() {
@@ -459,11 +456,21 @@ namespace fhatos {
 
   void test_pattern_pattern_matching() {
     FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/#"), Pattern("#"));
-    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/mount/#"), *p_p("/fs/#"));
-    FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/#"), *p_p("/fs/#"));
-    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/#"));
-    FOS_TEST_ASSERT_MATCH_FURI(*p_p("/fs/+/abc"), *p_p("/fs/#"));
-    FOS_TEST_ASSERT_NOT_MATCH_FURI(*p_p("/fs/#"), *p_p("/fs/+/abc"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/mount/#"), Pattern("/fs/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/#"), Pattern("/fs/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/#"), Pattern("/fs/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/+/abc"), Pattern("/fs/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fs/#"), Pattern("/fs/+/abc"));
+    //
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("//#"), Pattern("//+"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("//+"), Pattern("//#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//#"), Pattern("/+/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+/#"), Pattern("/fhat/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fhat/#"), Pattern("//+/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+/#"), Pattern("/fhat/aus/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fhat/aus/#"), Pattern("//+/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("//+//a"), Pattern("//+//+"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+//+"), Pattern("//+//a"));
   }
 
   void test_composite_mutations() {

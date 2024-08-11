@@ -34,7 +34,7 @@ namespace fhatos {
   public:
     explicit StringPrinter(std::string *xstring) : xstring(xstring) {}
 
-    string *get() const { return this->xstring; }
+    string get() const { return *this->xstring; }
 
     VIRTUAL size_t print(const char *c_str) {
       const size_t length = strlen(c_str);
@@ -47,7 +47,7 @@ namespace fhatos {
     VIRTUAL uint8_t print(char c) { return this->write(c); }
 
 
-    VIRTUAL void flush(){};
+    VIRTUAL void flush() {};
 
     VIRTUAL size_t write(const uint8_t c) {
       *xstring += static_cast<char>(c);

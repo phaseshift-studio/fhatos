@@ -31,10 +31,10 @@
 namespace fhatos {
   class Types : public Actor<Fiber, KeyValue> {
 
-    explicit Types(const ID &id = ID("/type/")) : Actor(id) {}
+    explicit Types(const ID &id = FOS_TYPE_PREFIX) : Actor(id) {}
 
   public:
-    static Types *singleton(const ID &id = ID("/type/")) {
+    static Types *singleton(const ID &id = FOS_TYPE_PREFIX) {
       static Types types = Types(id);
       return &types;
     }
@@ -61,7 +61,7 @@ namespace fhatos {
                       current->toString().c_str());
         }
         this->write(typeId, typeDef, this->id());
-        if (OType::INST == OTypes.toEnum(typeId->path(BASE_TYPE_INDEX))) {
+        if (OType::INST == OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX))) {
           const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
                       typeDef->bcode_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
@@ -76,7 +76,7 @@ namespace fhatos {
 
 
     bool checkType(const Obj &obj, const OType otype, const ID_p &typeId, const bool doThrow = true) noexcept(false) {
-      const OType typeOType = OTypes.toEnum(typeId->path(BASE_TYPE_INDEX));
+      const OType typeOType = OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;
       if (otype != typeOType) {
@@ -85,7 +85,7 @@ namespace fhatos {
                        obj.toString().c_str(), typeId->toString().c_str());
         return false;
       }
-      if (typeId->path_length() == (BASE_TYPE_INDEX + 1)) { // base type (otype)
+      if (typeId->path_length() == (FOS_BASE_TYPE_INDEX + 1)) { // base type (otype)
         return true;
       }
       const Obj_p type = this->read(typeId, this->id());

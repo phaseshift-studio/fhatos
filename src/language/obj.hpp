@@ -35,6 +35,9 @@
 #define FL_INT_TYPE int
 #endif
 
+#define FOS_TYPE_PREFIX "/type/"
+#define FOS_BASE_TYPE_INDEX 1
+
 #include <fhatos.hpp>
 #include <structure/furi.hpp>
 #include <util/ptr_helper.hpp>
@@ -164,7 +167,7 @@ namespace fhatos {
       {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
   }});
   //
-#define BASE_TYPE_INDEX 1
+
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
   using InstFunction = std::variant<BCode_p, Function<Obj_p, Obj_p>>;
@@ -172,19 +175,19 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstFunction, IType, InstSeed>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const ID_p OBJ_FURI = share<ID>(ID("/type/obj/"));
-  static const ID_p NOOBJ_FURI = share<ID>(ID("/type/noobj/"));
-  static const ID_p TYPE_FURI = share<ID>(ID("/type/type/"));
-  static const ID_p BOOL_FURI = share<ID>(ID("/type/bool/"));
-  static const ID_p INT_FURI = share<ID>(ID("/type/int/"));
-  static const ID_p REAL_FURI = share<ID>(ID("/type/real/"));
-  static const ID_p URI_FURI = share<ID>(ID("/type/uri/"));
-  static const ID_p STR_FURI = share<ID>(ID("/type/str/"));
-  static const ID_p LST_FURI = share<ID>(ID("/type/lst/"));
-  static const ID_p REC_FURI = share<ID>(ID("/type/rec/"));
-  static const ID_p INST_FURI = share<ID>(ID("/type/inst/"));
-  static const ID_p BCODE_FURI = share<ID>(ID("/type/bcode/"));
-  static const ID_p OBJS_FURI = share<ID>(ID("/type/objs/"));
+  static const ID_p OBJ_FURI = share<ID>(ID(FOS_TYPE_PREFIX "obj/"));
+  static const ID_p NOOBJ_FURI = share<ID>(ID(FOS_TYPE_PREFIX "noobj/"));
+  static const ID_p TYPE_FURI = share<ID>(ID(FOS_TYPE_PREFIX "type/"));
+  static const ID_p BOOL_FURI = share<ID>(ID(FOS_TYPE_PREFIX "bool/"));
+  static const ID_p INT_FURI = share<ID>(ID(FOS_TYPE_PREFIX "int/"));
+  static const ID_p REAL_FURI = share<ID>(ID(FOS_TYPE_PREFIX "real/"));
+  static const ID_p URI_FURI = share<ID>(ID(FOS_TYPE_PREFIX "uri/"));
+  static const ID_p STR_FURI = share<ID>(ID(FOS_TYPE_PREFIX "str/"));
+  static const ID_p LST_FURI = share<ID>(ID(FOS_TYPE_PREFIX "lst/"));
+  static const ID_p REC_FURI = share<ID>(ID(FOS_TYPE_PREFIX "rec/"));
+  static const ID_p INST_FURI = share<ID>(ID(FOS_TYPE_PREFIX "inst/"));
+  static const ID_p BCODE_FURI = share<ID>(ID(FOS_TYPE_PREFIX "bcode/"));
+  static const ID_p OBJS_FURI = share<ID>(ID(FOS_TYPE_PREFIX "objs/"));
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
                                                {OType::OBJ, OBJ_FURI},
                                                {OType::OBJS, OBJS_FURI},
@@ -236,7 +239,7 @@ namespace fhatos {
       this->_id = typeId;
     }
     explicit Obj(const Any &value, const ID_p &typeId) :
-        Obj(value, OTypes.toEnum(typeId->path(BASE_TYPE_INDEX)), typeId) {}
+        Obj(value, OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX)), typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
       return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()), obj->toString().c_str(),
@@ -288,7 +291,7 @@ namespace fhatos {
       }
     }*/
     //////////////////////////////////////////////////////////////
-    OType o_type() const { return OTypes.toEnum(this->_id->path(BASE_TYPE_INDEX)); }
+    OType o_type() const { return OTypes.toEnum(this->_id->path(FOS_BASE_TYPE_INDEX)); }
     template<typename VALUE>
     VALUE value() const {
       try {
@@ -980,7 +983,7 @@ namespace fhatos {
     }
     Obj_p as(const ID_p &furi) const {
       const ID_p resolution = share(ID(this->_id->resolve(*furi)));
-      return share<Obj>(Obj(this->_value, OTypes.toEnum(resolution->path(BASE_TYPE_INDEX)), resolution));
+      return share<Obj>(Obj(this->_value, OTypes.toEnum(resolution->path(FOS_BASE_TYPE_INDEX)), resolution));
     }
     Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
     Inst_p nextInst(const Inst_p &currentInst) const {
@@ -1001,39 +1004,39 @@ namespace fhatos {
       return noobj;
     }
     static Bool_p to_bool(const bool value, const ID_p &furi = BOOL_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::BOOL));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::BOOL));
       return share(Obj(value, furi));
     }
     static Int_p to_int(const FL_INT_TYPE value, const ID_p &furi = INT_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::INT));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::INT));
       return share(Obj(value, furi));
     }
     static Real_p to_real(const FL_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::REAL));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::REAL));
       return share(Obj(value, furi));
     }
     static Str_p to_str(const string &value, const ID_p &furi = STR_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::STR));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::STR));
       return share(Obj(value, furi));
     }
     static Str_p to_str(const char *value, const ID_p &furi = STR_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::STR));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::STR));
       return share(Obj(string(value), furi));
     }
     static Uri_p to_uri(const fURI &value, const ID_p &furi = URI_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::URI));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::URI));
       return share(Obj(value, furi));
     }
     static Uri_p to_uri(const char *value, const ID_p &furi = URI_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::URI));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::URI));
       return share(Obj(fURI(value), furi));
     }
     static Lst_p to_lst(const ID_p &furi = LST_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::LST));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::LST));
       return share(Obj(share(LstList<>()), furi));
     }
     static Lst_p to_lst(const LstList_p<> &xlst, const ID_p &furi = LST_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::LST));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::LST));
       return share(Obj(xlst, furi));
     }
     static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &furi = LST_FURI) {
@@ -1047,12 +1050,7 @@ namespace fhatos {
       return to_lst(share(LstList<>(xlst)), furi);
     }
     static Rec_p to_rec(const RecMap_p<> &map, const ID_p &furi = REC_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::REC));
-      /* RecMap_p<> convert = share(RecMap<>());
-       for (const auto &[key, val]: *map) {
-         convert->insert({key->isUri() ? Obj::to_uri(furi->resolve(key->uri_value())) : key,
-                          val->isUri() ? Obj::to_uri(furi->resolve(val->uri_value())) : val});
-       }*/
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::REC));
       return share(Obj(map, furi));
     }
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &furi = REC_FURI) {
@@ -1070,12 +1068,12 @@ namespace fhatos {
       return to_rec(share(map), furi);
     }
     static Inst_p to_inst(const InstValue &value, const ID_p &furi = INST_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::INST));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::INST));
       return share(Inst(value, furi));
     }
     static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunction &function,
                           const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &furi = nullptr) {
-      const ID_p fix = !furi ? share(ID(string("/type/inst/") + opcode)) : furi;
+      const ID_p fix = furi ? furi : share(ID(string(FOS_TYPE_PREFIX "inst/") + opcode));
       return to_inst({args, function, itype, seed}, fix);
     }
     static BCode_p to_bcode(const InstList &insts, const ID_p &furi = BCODE_FURI) {
@@ -1083,15 +1081,15 @@ namespace fhatos {
     }
     static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &furi = BCODE_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::BCODE));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::BCODE));
       return share(BCode(insts, furi));
     }
     static Objs_p to_objs(const ID_p &furi = OBJS_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::OBJS));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::OBJS));
       return Obj::to_objs(share(List<Obj_p>()), furi);
     }
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &furi = OBJS_FURI) {
-      fError::OTYPE_CHECK(furi->path(BASE_TYPE_INDEX), OTypes.toChars(OType::OBJS));
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::OBJS));
       Objs_p os = share(Objs(objs, furi));
       return os;
     }
@@ -1124,10 +1122,17 @@ namespace fhatos {
   };
   [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
   [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
-  [[maybe_unused]] static Uri_p uri(const fURI &xuri) { return Obj::to_uri(xuri); }
-  [[maybe_unused]] static Uri_p uri(const fURI_p &xuri) { return Obj::to_uri(*xuri); }
-  [[maybe_unused]] static Uri_p uri(const char *xuri) { return Obj::to_uri(fURI(xuri)); }
-  [[maybe_unused]] static Uri_p uri(const string &xuri) { return Obj::to_uri(fURI(xuri)); }
+  [[maybe_unused]] static Uri_p uri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
+  [[maybe_unused]] static Uri_p uri(const fURI_p &xuri, const ID_p &type = URI_FURI) {
+    return Obj::to_uri(*xuri, type);
+  }
+  [[maybe_unused]] static Uri_p uri(const char *xuri, const ID_p &type = URI_FURI) {
+    return Obj::to_uri(fURI(xuri), type);
+  }
+  [[maybe_unused]] static Uri_p uri(const string &xuri, const ID_p &type = URI_FURI) {
+    return Obj::to_uri(fURI(xuri), type);
+  }
+  [[maybe_unused]] static Int_p jnt(const FL_INT_TYPE xint) { return Obj::to_int(xint); }
   [[maybe_unused]] static Str_p str(const char *xstr) { return Obj::to_str(xstr); }
   [[maybe_unused]] static Str_p str(const string &xstr) { return Obj::to_str(xstr); }
   [[maybe_unused]] static Real_p real(const FL_REAL_TYPE &xreal) { return Obj::to_real(xreal); }

@@ -98,12 +98,12 @@ namespace fhatos {
   /* void test_where() { FOS_CHECK_RESULTS<Int>({13}, __({1, 2, 3}).plus(10).where(_.is(_.eq(13)))); }*/
 
   void test_define_as_type() {
-    Types::singleton()->saveType(id_p("/int/nat"), Obj::to_bcode()); //
+    Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode()); //
     // Types::singleton()->writeToCache("/int/nat2", Obj::to_bcode()); //
     ////  FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).define(u("/int/nat"),
     ///_.block(_.is(_.gt(0)))).as(u("/int/nat")),
     //                      {{u("/int/nat"), _.is(_.gt(0))}});
-    FOS_CHECK_RESULTS<Int>({1}, __(1).define(u("/int/nat"), _.block(_.is(_.gt(0)))), {{u("/int/nat"), _.is(_.gt(0))}});
+    FOS_CHECK_RESULTS<Int>({1}, __(1).define(u(FOS_TYPE_PREFIX "int/nat"), _.block(_.is(_.gt(0)))), {{u(FOS_TYPE_PREFIX "int/nat"), _.is(_.gt(0))}});
     // FOS_CHECK_RESULTS<Int>({Int(1, "/int/nat")}, __(1).as(u("/int/nat")), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     // FOS_CHECK_RESULTS<Uri>({u("/int/nat")}, __(1).as(u("/int/nat")).type(), {{u("/int/nat"), _.is(_.gt(0))}}, false);
     /*FOS_CHECK_RESULTS<Int>({Int(6, "/int/nat2")},

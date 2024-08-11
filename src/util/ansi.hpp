@@ -63,9 +63,9 @@ namespace fhatos {
     }
 
   protected:
-    PRINTER *printer;
-    std::string *_buffer = new std::string();
-    StringPrinter *_printer = new StringPrinter(_buffer);
+    PRINTER printer;
+    std::string _buffer =  std::string();
+    StringPrinter _printer = StringPrinter(&_buffer);
     bool _on = true;
 
 
@@ -131,27 +131,25 @@ namespace fhatos {
             else if ('d' == jj)
               this->black();
             else {
-              this->_printer->print(buffer[i]);
-              this->_printer->print(buffer[i + 1]);
+              this->_printer.print(buffer[i]);
+              this->_printer.print(buffer[i + 1]);
             }
           }
           i++;
         } else {
-          this->_printer->print(buffer[i]);
+          this->_printer.print(buffer[i]);
         }
       }
-      this->printer->print(this->_buffer->c_str());
+      this->printer.print(this->_buffer.c_str());
       this->flush();
     }
 
   public:
-    Ansi() : printer(nullptr) {}
+    Ansi() : printer(*CPrinter::singleton()) {}
 
-    Ansi(string* str) : printer(new StringPrinter(str)) {}
+    Ansi(string *str) : printer(StringPrinter(str)) {}
 
-    explicit Ansi(PRINTER *printer) : printer(printer) {}
-
-    PRINTER *stream() { return this->_printer; }
+    explicit Ansi(PRINTER printer) : printer(printer) {}
 
     void on(bool turnOn = true) { this->_on = turnOn; }
 
@@ -165,24 +163,22 @@ namespace fhatos {
       this->print('\n');
     }
 
-    PRINTER *getPrinter() { return this->printer; }
+    PRINTER getPrinter() { return this->printer; }
 
     void flush() {
-      this->_buffer->clear();
-      this->printer->flush();
+      this->_buffer.clear();
+      this->printer.flush();
     }
 
     string strip(const string &s) const {
-      auto *a = new std::string();
-      auto *b = new StringPrinter(a);
+      auto a = std::string();
+      auto b = StringPrinter(&a);
       auto *ansi = new Ansi<StringPrinter>(b);
       ansi->on(false);
       ansi->print(s.c_str());
       ansi->flush();
 
-      string ret = string(*ansi->getPrinter()->get());
-      delete a;
-      delete b;
+      string ret = string(ansi->getPrinter().get());
       delete ansi;
       return ret;
     }

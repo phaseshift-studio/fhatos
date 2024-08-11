@@ -19,7 +19,7 @@
 #ifndef fhatos_uri_hpp
 #define fhatos_uri_hpp
 
-#define FOS_MAX_PATH_SEGMENTS 10
+#define FOS_MAX_PATH_SEGMENTS 15
 
 #include <fhatos.hpp>
 //
@@ -246,6 +246,11 @@ namespace fhatos {
              other_string.substr(0, this_string.length()) == this_string;
     }
 
+    fURI dissolve() const {
+      const string temp = this->path();
+      return temp.empty() ? fURI("") : fURI(temp[0] == '/' ? temp.substr(1) : temp);
+    }
+
     virtual fURI resolve(const fURI &other) const {
       ///////////////////////////////////////////////////////////////
       ////////////  mm-ADT specific resolution pattern //////////////
@@ -374,6 +379,13 @@ namespace fhatos {
       if (strlen(uriChars) == 0)
         return;
       const char *dups = strdup(uriChars);
+      for (size_t i = 0; i < strlen(dups); i++) {
+        if (dups[i] == '#' && i != strlen(dups) - 1) {
+          const string temp = string(dups);
+          free((void *) dups);
+          throw fError("Recurssive !b#!! wildcard must be the last character: %s\n", temp.c_str());
+        }
+      }
       try {
         std::stringstream ss = std::stringstream(dups);
         string token;
@@ -441,6 +453,7 @@ namespace fhatos {
                     this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
                   this->_path[this->_path_length] = strdup(token.c_str());
                   this->_path_length = this->_path_length + 1;
+                  checkPathLength(uriChars);
                 } else {
                   this->sprefix = true;
                 }
@@ -452,6 +465,7 @@ namespace fhatos {
                 this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
               this->_path[this->_path_length] = strdup(token.c_str());
               this->_path_length = this->_path_length + 1;
+              checkPathLength(uriChars);
               this->spostfix = true;
               token.clear();
             } else {
@@ -464,6 +478,7 @@ namespace fhatos {
                   this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
                 this->_path[this->_path_length] = strdup(token.c_str());
                 this->_path_length = this->_path_length + 1;
+                checkPathLength(uriChars);
               } else
                 this->spostfix = true;
               part = URI_PART::QUERY;
@@ -511,6 +526,7 @@ namespace fhatos {
               this->_path = new char *[FOS_MAX_PATH_SEGMENTS];
             this->_path[this->_path_length] = strdup(token.c_str());
             this->_path_length = this->_path_length + 1;
+            checkPathLength(uriChars);
           } else if (part == URI_PART::HOST || part == URI_PART::USER) {
             this->_host = strdup(token.c_str());
           } else if (part == URI_PART::PORT) {
@@ -524,7 +540,7 @@ namespace fhatos {
         }
       } catch (const std::exception &e) {
         FOS_SAFE_FREE(dups);
-        throw fError("!b%s!! is not a valid fURI: %s\n", e.what());
+        throw;
       }
       FOS_SAFE_FREE(dups);
     }
@@ -568,6 +584,13 @@ namespace fhatos {
       StringHelper::trim(uri);
       return uri;
     }
+
+  private:
+    void checkPathLength(const char *self) const {
+      if (this->_path_length >= FOS_MAX_PATH_SEGMENTS)
+        throw fError("!ymax path length!! of !r%i!! has been reached: !b%s!!\n", FOS_MAX_PATH_SEGMENTS,
+                     self);
+    }
   };
 
   class ID final : public fURI {
@@ -576,9 +599,9 @@ namespace fhatos {
     ID(const string &furiString) : ID(furiString.c_str()) {}
     ID(const char *furiCharacters) : fURI(furiCharacters) {
       if (strchr(furiCharacters, '#')) {
-        throw fError("%s\n", "IDs can not contain pattern symbols: #");
+        throw fError("%s\n", "IDs must not contain pattern symbols: !b#!!");
       } else if (strchr(furiCharacters, '+')) {
-        throw fError("%s\n", "IDs can not contain pattern symbols: +");
+        throw fError("%s\n", "IDs must not contain pattern symbols: !b+!!");
       }
     }
     // const bool isPattern() const override { return false; }

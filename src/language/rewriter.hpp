@@ -45,17 +45,15 @@ namespace fhatos {
       return Rewrite({ID("/lang/rewrite/explain"),
                       [](const BCode_p &bcode) {
                         if (bcode->bcode_value()->back()->id()->equals(ID("/inst/explain"))) {
-                          auto *ex = new string();
-                          auto *t = new StringPrinter(ex);
-                          auto p = Ansi<StringPrinter>(t);
+                          auto ex = string();
+                          auto p = Ansi<StringPrinter>(StringPrinter(&ex));
                           bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
                           p.printf("\n!r!_%s\t  %s\t\t\t%s!!\n", "op", "inst", "domain/range");
                           for (const Inst_p &inst: *bcode->bcode_value()) {
                             p.printf("!b%s!!\t  %s\t\t\t%s\n", inst->inst_op().c_str(), inst->toString().c_str(),
                                      ITypeSignatures.toChars(inst->itype()));
                           }
-                          bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(*ex));
-                          delete t;
+                          bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
                           // return Obj::to_bcode({Insts::start(Obj::to_str(ex))});
                         }
                         return bcode;
