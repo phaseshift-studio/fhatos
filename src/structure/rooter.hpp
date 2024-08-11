@@ -108,12 +108,13 @@ namespace fhatos {
     }
 
     void write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
-      LOG_STRUCTURE(TRACE, this, "writing %s to !b%s!! for " FURI_WRAP "\n", obj->toString().c_str(),
-                    id->toString().c_str(), source->toString().c_str());
       auto *found = new atomic_bool(false);
-      this->structures.forEach([found, id, obj, source](Structure *structure) {
+      this->structures.forEach([this, found, id, obj, source](Structure *structure) {
         if (!found->load()) {
           if (id->matches(*structure->pattern())) {
+            LOG_STRUCTURE(TRACE, this, "writing %s to !b%s!! at " FURI_WRAP " for " FURI_WRAP "\n",
+                          obj->toString().c_str(), id->toString().c_str(), structure->pattern()->toString().c_str(),
+                          source->toString().c_str());
             structure->write(id, obj, source);
             found->store(true);
           }

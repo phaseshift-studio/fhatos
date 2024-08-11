@@ -57,6 +57,8 @@ namespace fhatos {
         throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
       Option<Mail_p> mail;
       while ((mail = this->outbox->pop_back()).has_value()) {
+        LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
+                      mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         mail.value()->first->onRecv(mail.value()->second);
       }
     }
@@ -89,7 +91,8 @@ namespace fhatos {
                                    this->subscriptions->end());
         /////////////// ADD NEW SUBSCRIPTION
         if (subscription->onRecv) { // not an unsubscribe event // todo: is it even possible to be in this state?
-          this->subscriptions->push_back(share(Subscription(*subscription)));
+          const ptr<Subscription> sub_ptr = share<Subscription>(*subscription);
+          this->subscriptions->push_back(sub_ptr);
           const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
           if (objx->isObjs()) {
             for (const auto &obj: *objx->objs_value()) {
@@ -100,15 +103,15 @@ namespace fhatos {
                                  .payload = obj,
                                  .retain = true})}))); // TODO: need both source of the retain and the target of obj
             }
-          }/* else {
-          if (!objx->isNoObj()) {
-            this->outbox->push_back(share(
-                Mail({subscription,
-                      share(Message{.source = ID("anon_src"),
-                                    .target = ID("anon_tgt"),
-                                    .payload = objx,
-                                    .retain = true})}))); // TODO: need both source of the retain and the target of obj
-          }*/
+          } /* else {
+           if (!objx->isNoObj()) {
+             this->outbox->push_back(share(
+                 Mail({subscription,
+                       share(Message{.source = ID("anon_src"),
+                                     .target = ID("anon_tgt"),
+                                     .payload = objx,
+                                     .retain = true})}))); // TODO: need both source of the retain and the target of obj
+           }*/
           LOG_SUBSCRIBE(OK, subscription);
         } else {
           LOG_UNSUBSCRIBE(OK, subscription->source, &subscription->pattern);
@@ -127,7 +130,8 @@ namespace fhatos {
         for (const auto &subscription: *this->subscriptions) {
           if (message->target.matches(subscription->pattern)) {
             rc2 = OK;
-            this->outbox->push_back(share(Mail{subscription, message}));
+            Subscription_p sub = share(Subscription(*subscription));
+            this->outbox->push_back(share(Mail{sub, message}));
           }
         }
         return rc2;

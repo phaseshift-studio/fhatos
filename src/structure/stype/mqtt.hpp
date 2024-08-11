@@ -63,13 +63,23 @@ namespace fhatos {
         const binary_ref ref = mqtt_message->get_payload_ref();
         const BObj_p bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
         const auto &[source, payload] = Message::unwrapSource(bobj);
-        LOG(TRACE, "Incoming MQTT message from %s to %s\n", source->toString().c_str(),
-            mqtt_message->get_topic().c_str());
         const Message_p message = share(Message{.source = *source,
                                                 .target = ID(mqtt_message->get_topic()),
                                                 .payload = payload,
                                                 .retain = mqtt_message->is_retained()});
-        this->recv_message(message);
+        LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
+        auto rc = mutex.read<RESPONSE_CODE>([this, message]() {
+          RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
+          for (const auto &subscription: *this->subscriptions) {
+            if (message->target.matches(subscription->pattern)) {
+              rc2 = OK;
+              Subscription_p sub = share(Subscription(*subscription));
+              this->outbox->push_back(share(Mail{sub, message}));
+            }
+          }
+          return rc2;
+        });
+        MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
       });
       /// MQTT CONNECTION ESTABLISHED CALLBACK
       this->xmqtt->set_connected_handler([this](const string &) {
@@ -85,32 +95,82 @@ namespace fhatos {
       });
       /// MQTT CONNECTION
       try {
-        this->xmqtt->connect(connection_options.finalize());
         int counter = 0;
         while (!this->xmqtt->is_connected()) {
+          this->xmqtt->connect(connection_options.finalize());
           if (counter++ > FOS_MQTT_MAX_RETRIES)
             throw mqtt::exception(1);
-          sleep(FOS_MQTT_RETRY_WAIT / 1000);
           LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr);
+          sleep(FOS_MQTT_RETRY_WAIT / 1000);
         }
       } catch (const mqtt::exception &e) {
         LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr, e.what());
       }
     }
-    Objs_p read(const fURI_p &furi, const ID_p &source) override { return fhatos::Objs_p(); }
+
+    void recv_message(const Message_p &message) override {
+      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
+      this->write(id_p(message->target), message->payload, id_p(message->source));
+      RESPONSE_CODE rc = OK;
+      LOG_PUBLISH(rc, *message);
+    }
+
+    void recv_subscription(const Subscription_p &subscription) override {
+      this->mutex.read<void *>([this, subscription]() {
+        bool found = false;
+        for (const auto &sub: *this->subscriptions) {
+          if (subscription->pattern.equals(sub->pattern)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          LOG_STRUCTURE(DEBUG, this, "Subscribing as no existing subscription found: %s\n",
+                        subscription->toString().c_str());
+          this->xmqtt->subscribe(subscription->pattern.toString(), (int) subscription->qos);
+        }
+        return nullptr;
+      });
+      Structure::recv_subscription(subscription);
+    }
+
+    void recv_unsubscribe(const ID_p &source, const fURI_p &target) override {
+      Structure::recv_unsubscribe(source, target);
+      this->mutex.read<void *>([this, target]() {
+        bool found = false;
+        for (const auto &sub: *this->subscriptions) {
+          if (target->equals(sub->pattern)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          LOG_STRUCTURE(DEBUG, this, "Unsubscribing as no existing subscription pattern found: %s\n",
+                        target->toString().c_str());
+          this->xmqtt->unsubscribe(target->toString());
+        }
+        return nullptr;
+      });
+    }
+
+    Objs_p read(const fURI_p &furi, const ID_p &source) override { return Obj::to_objs(); }
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source) override {
       BObj_p source_payload = Message::wrapSource(source, obj);
+      LOG_STRUCTURE(TRACE, this, "writing to xmpp broker: %s\n", source_payload->second);
       this->xmqtt->publish(target->toString(), source_payload->second, source_payload->first, 1 /*qos*/,
                            RETAIN_MESSAGE);
     }
+
     Obj_p read(const ID_p &id, const ID_p &source) override {
       auto *thing = new std::atomic<const Obj *>(nullptr);
-      this->recv_subscription(
-          share(Subscription{.source = ID(*source), .pattern = ID(*id), .onRecv = [thing](const Message_p &message) {
-                               // TODO: try to not copy obj while still not accessing heap after delete
-                               const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
-                               thing->store(obj);
-                             }}));
+      this->recv_subscription(share(Subscription{
+          .source = ID(*source), .pattern = ID(*id), .onRecv = [this, id, thing](const Message_p &message) {
+            // TODO: try to not copy obj while still not accessing heap after delete
+            LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", id->toString().c_str(),
+                          message->toString().c_str());
+            const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
+            thing->store(obj);
+          }}));
       const time_t startTimestamp = time(nullptr);
       while (!thing->load()) {
         if ((time(nullptr) - startTimestamp) > 2) {
