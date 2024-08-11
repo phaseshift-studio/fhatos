@@ -43,7 +43,7 @@ namespace fhatos {
         // do nothing
       } else if (c == '\'') {
         quotes = !quotes;
-      } else if ((c == '=' || c == '-')) {
+      } else if ((c == '=' || c == '-')) { // <- <=
         if (last == '<')
           angles--;
       } else if (c == '(')
@@ -57,7 +57,7 @@ namespace fhatos {
       else if (c == '<')
         angles++;
       else if (c == '>') {
-        if (last != '-' && last != '=')
+        if (last != '-' && last != '=') // -> =>
           angles--;
       } else if (c == '{')
         braces++;

@@ -145,7 +145,7 @@ namespace fhatos {
     virtual Objs_p read(const fURI_p &furi, const ID_p &source) = 0;
     virtual Objs_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
     virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) = 0;
-    virtual Obj_p write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
+    virtual void write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
   };
 
 

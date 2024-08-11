@@ -611,7 +611,7 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"__", "start"}, {"*", "from"},    {"=", "each"},
+      static Map<string, string> map = {/*{"__", "start"},*/ {"*", "from"},    {"=", "each"},
                                         {"-<", "split"}, {"~>", "embed"},  {"<~", "embed_inv"},
                                         {"<-", "to"},    {"->", "to_inv"}, {"|", "block"}, /*{"==", "eq"},*/
                                         {"!=", "neq"}};
