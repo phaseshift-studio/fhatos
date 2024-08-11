@@ -1137,7 +1137,7 @@ namespace fhatos {
   [[maybe_unused]] static Str_p str(const string &xstr) { return Obj::to_str(xstr); }
   [[maybe_unused]] static Real_p real(const FL_REAL_TYPE &xreal) { return Obj::to_real(xreal); }
   [[maybe_unused]] static NoObj_p noobj() { return Obj::to_noobj(); }
-  [[maybe_unused]] static Obj_p obj(const Obj &obj) { return share<Obj>(obj); }
+  [[maybe_unused]] static Obj_p obj(const Obj &obj) { return share(Obj(obj)); }
   [[maybe_unused]] static Lst_p lst(const List<Obj_p> list) { return Obj::to_lst(share(list)); }
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> list) { return Obj::to_objs(list); }
   [[maybe_unused]] static BCode_p bcode(const InstList list) { return Obj::to_bcode(list); }

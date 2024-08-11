@@ -89,7 +89,7 @@ void setup() {
         ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
         ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
         ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
-        ->boot<Console, Thread, Empty>(new Console("/home/root/repl/"))
+        ->boot<Console, Thread, KeyValue>(new Console("/home/root/repl/"))
         ->load_modules({ID("/mod/proc")})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");

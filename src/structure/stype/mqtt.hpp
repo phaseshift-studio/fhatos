@@ -106,9 +106,9 @@ namespace fhatos {
     Obj_p read(const ID_p &id, const ID_p &source) override {
       auto *thing = new std::atomic<const Obj *>(nullptr);
       this->recv_subscription(
-          share(Subscription{.source = *source, .pattern = *id, .onRecv = [thing](const Message_p &message) {
+          share(Subscription{.source = ID(*source), .pattern = ID(*id), .onRecv = [thing](const Message_p &message) {
                                // TODO: try to not copy obj while still not accessing heap after delete
-                               const Obj *obj = new Obj(message->payload->_value, message->payload->id());
+                               const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
                                thing->store(obj);
                              }}));
       const time_t startTimestamp = time(nullptr);
@@ -117,7 +117,7 @@ namespace fhatos {
           break;
         }
       }
-      this->recv_unsubscribe(source, share(Pattern(*id)));
+      this->recv_unsubscribe(source, id);
       if (nullptr == thing->load()) {
         delete thing;
         return Obj::to_noobj();

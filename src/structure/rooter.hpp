@@ -83,7 +83,7 @@ namespace fhatos {
         throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
                      furi->toString().c_str());
       }
-      Objs_p ret = Obj::to_objs(List<Obj_p>(*s->load()->read(furi, source)->objs_value()));
+      Objs_p ret = s->load()->read(furi, source);
       delete s;
       return ret;
     }
@@ -102,9 +102,9 @@ namespace fhatos {
         throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
                      id->toString().c_str());
       }
-      Obj_p ret = share<Obj>(Obj(*s->load()->read(id, source)));
+      Obj_p ret = s->load()->read(id, source);
       delete s;
-      return ret;
+      return share(Obj(any(ret->_value), id_p(*ret->id()))); // why is a copy required?
     }
 
     void write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {

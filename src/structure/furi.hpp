@@ -588,8 +588,7 @@ namespace fhatos {
   private:
     void checkPathLength(const char *self) const {
       if (this->_path_length >= FOS_MAX_PATH_SEGMENTS)
-        throw fError("!ymax path length!! of !r%i!! has been reached: !b%s!!\n", FOS_MAX_PATH_SEGMENTS,
-                     self);
+        throw fError("!ymax path length!! of !r%i!! has been reached: !b%s!!\n", FOS_MAX_PATH_SEGMENTS, self);
     }
   };
 
@@ -669,11 +668,13 @@ namespace fhatos {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 
+  [[maybe_unused]] static fURI_p furi_p(const char *idChars) { return share(fURI(idChars)); }
+  [[maybe_unused]] static fURI_p furi_p(const fURI &furi) { return share(fURI(furi)); }
   [[maybe_unused]] static ID_p id_p(const char *idChars) { return share(ID(idChars)); }
-  [[maybe_unused]] static ID_p id_p(const ID &id) { return share(id); }
+  [[maybe_unused]] static ID_p id_p(const ID &id) { return share(ID(id)); }
   [[maybe_unused]] static ID_p id_p(const fURI &id) { return share(ID(id)); }
   [[maybe_unused]] static Pattern_p p_p(const char *patternChars) { return share(Pattern(patternChars)); }
-  [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return share(pattern); }
+  [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return share(Pattern(pattern)); }
   [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return share(Pattern(pattern)); }
 } // namespace fhatos
 

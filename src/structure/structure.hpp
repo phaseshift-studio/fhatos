@@ -42,7 +42,7 @@ namespace fhatos {
   public:
     const SType stype;
 
-    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(share(pattern)), stype(stype) {}
+    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
     virtual ~Structure() = default;
 
@@ -68,7 +68,7 @@ namespace fhatos {
       this->outbox->clear(false);
     }
 
-    virtual void recv_unsubscribe(const ID_p &source, const Pattern_p &target) {
+    virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
       this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
                                            [source, target](const Subscription_p &sub) {
                                              LOG_UNSUBSCRIBE(OK, *source, target);
@@ -89,10 +89,10 @@ namespace fhatos {
                                    this->subscriptions->end());
         /////////////// ADD NEW SUBSCRIPTION
         if (subscription->onRecv) { // not an unsubscribe event // todo: is it even possible to be in this state?
-          this->subscriptions->push_back(subscription);
-          const Obj_p objx = this->read(share(subscription->pattern), id_p(subscription->source)); // get any retains
-          /*if (objx->isObjs()) {
-            for (const auto &obj: *objs->objs_value()) {
+          this->subscriptions->push_back(share(Subscription(*subscription)));
+          const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
+          if (objx->isObjs()) {
+            for (const auto &obj: *objx->objs_value()) {
               this->outbox->push_back(share(Mail(
                   {subscription,
                    share(Message{.source = ID("anon_src"),
@@ -100,15 +100,15 @@ namespace fhatos {
                                  .payload = obj,
                                  .retain = true})}))); // TODO: need both source of the retain and the target of obj
             }
-          } else {*/
+          }/* else {
+          if (!objx->isNoObj()) {
             this->outbox->push_back(share(
                 Mail({subscription,
                       share(Message{.source = ID("anon_src"),
                                     .target = ID("anon_tgt"),
                                     .payload = objx,
                                     .retain = true})}))); // TODO: need both source of the retain and the target of obj
-        //  }
-
+          }*/
           LOG_SUBSCRIBE(OK, subscription);
         } else {
           LOG_UNSUBSCRIBE(OK, subscription->source, &subscription->pattern);

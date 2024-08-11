@@ -37,8 +37,7 @@ namespace fhatos {
     }
 
     static Obj_p explain() {
-      return Obj::to_inst(
-          "explain", {}, [](const Objs_p &lhs) { return lhs; }, IType::MANY_TO_MANY, Obj::to_objs(List<Obj_p>({})));
+      return Obj::to_inst("explain", {}, [](const Objs_p &lhs) { return lhs; }, IType::ZERO_TO_ONE);
     }
 
     static Obj_p plus(const Obj_p &rhs) {
@@ -222,7 +221,10 @@ namespace fhatos {
           "to", {uri},
           [uri](const Obj_p &lhs) {
             RESPONSE_CODE _rc = OK;
-            Rooter::singleton()->write(share(ID(uri->apply(lhs)->uri_value())), lhs->apply(uri));
+            const Uri_p ap1 = uri->apply(lhs);
+            const Obj_p ap2 = lhs->apply(uri);
+            const ID_p id = id_p(ap1->uri_value());
+            Rooter::singleton()->write(id, ap2);
             if (_rc)
               LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
             return lhs;
@@ -235,7 +237,10 @@ namespace fhatos {
           "to_inv", {obj},
           [obj](const Obj_p &lhs) {
             RESPONSE_CODE _rc = OK;
-            Rooter::singleton()->write(share(ID(lhs->apply(obj)->uri_value())), obj->apply(lhs));
+            const Uri_p ap = lhs->apply(obj);
+            const ID_p id = id_p(ap->uri_value());
+            // const Obj_p obj2 = obj->apply(lhs);
+            Rooter::singleton()->write(id, obj);
             if (_rc)
               LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
             return obj;
@@ -258,15 +263,18 @@ namespace fhatos {
       return Obj::to_inst(
           "from", {uri},
           [uri](const Uri_p &lhs) {
-            if (uri->apply(lhs)->uri_value().is_pattern()) {
-              fURI_p furi = share(fURI(uri->apply(lhs)->uri_value()));
-              return Rooter::singleton()->read(furi);
+            Uri_p ap = uri->apply(lhs);
+            fURI furi = ap->uri_value();
+            if (furi.is_pattern()) {
+              const Obj_p o = Rooter::singleton()->read(share(furi));
+              return o;
             } else {
-              ID_p id = share(ID(uri->apply(lhs)->uri_value()));
-              return Rooter::singleton()->read(id);
+              const ID_p id = id_p(furi);
+              const Obj_p o = Rooter::singleton()->read(id);
+              return o;
             }
           },
-          /*uri->uri_value().is_pattern() ? IType::ONE_TO_MANY :*/ IType::ONE_TO_ONE);
+          (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
     static Rec_p rfrom(const Uri_p &uri) {
@@ -603,9 +611,9 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"__", "start"},  {"*", "from"},       {"=", "each"},   {"-<", "split"},
-                                        {"~>", "embed"},  {"<~", "embed_inv"}, {"<->", "both"}, {"<-", "to"},
-                                        {"->", "to_inv"}, {"|", "block"}, /*{"==", "eq"},*/
+      static Map<string, string> map = {{"__", "start"}, {"*", "from"},    {"=", "each"},
+                                        {"-<", "split"}, {"~>", "embed"},  {"<~", "embed_inv"},
+                                        {"<-", "to"},    {"->", "to_inv"}, {"|", "block"}, /*{"==", "eq"},*/
                                         {"!=", "neq"}};
       return map;
     }

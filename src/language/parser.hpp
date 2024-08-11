@@ -30,6 +30,47 @@
 namespace fhatos {
   using namespace std;
 
+  struct Tracker {
+    uint8_t parens = 0;
+    uint8_t brackets = 0;
+    uint8_t angles = 0;
+    uint8_t braces = 0;
+    bool quotes = false;
+    char last = '\0';
+
+    char track(const char c) {
+      if (c != '\'' && quotes) {
+        // do nothing
+      } else if (c == '\'') {
+        quotes = !quotes;
+      } else if ((c == '=' || c == '-')) {
+        if (last == '<')
+          angles--;
+      } else if (c == '(')
+        parens++;
+      else if (c == ')')
+        parens--;
+      else if (c == '[')
+        brackets++;
+      else if (c == ']')
+        brackets--;
+      else if (c == '<')
+        angles++;
+      else if (c == '>') {
+        if (last != '-' && last != '=')
+          angles--;
+      } else if (c == '{')
+        braces++;
+      else if (c == '}')
+        braces--;
+      //////////////////////////
+      last = c;
+      return c;
+    }
+    [[nodiscard]] bool printable() const { return last >= 32 && last < 127; }
+    [[nodiscard]] bool closed() const { return parens == 0 && brackets == 0 && angles == 0 && braces == 0 && !quotes; }
+  };
+
   class Parser final : public Actor<Coroutine, Empty> {
   private:
     explicit Parser(const ID &id = ID("/parser/")) : Actor(id) {}
@@ -56,29 +97,11 @@ namespace fhatos {
 
     static bool closedExpression(const string &line) {
       auto ss = stringstream(line);
-      uint8_t parens = 0;
-      uint8_t brackets = 0;
-      uint8_t angles = 0;
-      bool quotes = false;
+      Tracker tracker;
       while (!ss.eof()) {
-        char c = ss.get();
-        if (c == '(' && !quotes)
-          parens++;
-        else if (c == ')' && !quotes)
-          parens--;
-        else if (c == '[' && !quotes)
-          brackets++;
-        else if (c == ']' && !quotes)
-          brackets--;
-        else if (c == '<' && !quotes)
-          angles++;
-        else if (c == '>' && !quotes)
-          angles--;
-        else if (c == '\'')
-          quotes = !quotes;
+        tracker.track(static_cast<char>(ss.get()));
       }
-      return parens == 0 && brackets == 0 && angles == 0 && !quotes &&
-             StringHelper::countSubstring(line, "===") % 2 == 0;
+      return tracker.closed() && StringHelper::countSubstring(line, "===") % 2 == 0;
     }
     static bool dotType(const string &type) {
       return !type.empty() && type[type.length() - 1] == '.'; // dot type
@@ -241,37 +264,20 @@ namespace fhatos {
       auto ss = stringstream(token.substr(1, token.length() - 2));
       string value;
       Obj::LstList<> list = Obj::LstList<>();
-      bool quotes = false;
-      int brackets = 0;
-      int parens = 0;
-      uint8_t angles = 0;
+      Tracker tracker;
       while (!ss.eof()) {
-        if (brackets == 0 && parens == 0 && !quotes && (ss.peek() == ',' || ss.peek() == EOF)) {
+        if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
           Option<Obj_p> element = this->tryParseObj(value);
           if (element.has_value())
             list.push_back(element.value());
           if (ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
-        } else if (brackets == 0 && parens == 0 && angles == 0 && !quotes && StringHelper::lookAhead("=>", &ss)) {
+        } else if (tracker.closed() && StringHelper::lookAhead("=>", &ss)) {
           return {};
         } else {
-          char c = static_cast<char>(ss.get());
-          if (c == '[' && !quotes)
-            brackets++;
-          else if (c == ']' && !quotes)
-            brackets--;
-          else if (c == '(' && !quotes)
-            parens++;
-          else if (c == ')' && !quotes)
-            parens--;
-          else if (c == '<' && !quotes)
-            angles++;
-          else if (c == '>' && !quotes)
-            angles--;
-          else if (c == '\'')
-            quotes = !quotes;
-          if (c >= 32 && c < 127)
+          char c = tracker.track(static_cast<char>(ss.get()));
+          if (tracker.printable())
             value += c;
         }
       }
@@ -285,38 +291,20 @@ namespace fhatos {
       string key;
       string value;
       bool onKey = true;
-      bool quotes = false;
-      uint8_t brackets = 0;
-      uint8_t parens = 0;
-      uint8_t angles = 0;
+      Tracker tracker;
       while (!ss.eof() || (!onKey && !value.empty())) {
         //// KEY PARSE
         if (onKey) {
-          if (brackets == 0 && parens == 0 && StringHelper::lookAhead("=>", &ss)) {
+          if (tracker.closed() && StringHelper::lookAhead("=>", &ss)) {
             onKey = false;
           } else if (!ss.eof()) {
-            char c = static_cast<char>(ss.get());
-            if (c == '[' && !quotes)
-              brackets++;
-            else if (c == ']' && !quotes)
-              brackets--;
-            else if (c == '(' && !quotes)
-              parens++;
-            else if (c == ')' && !quotes)
-              parens--;
-            else if (c == '<' && !quotes)
-              angles++;
-            else if (c == '>' && !quotes)
-              angles--;
-            else if (c == '\'')
-              quotes = !quotes;
-            if (c >= 32 && c < 127)
+            char c = tracker.track(static_cast<char>(ss.get()));
+            if (tracker.printable())
               key += c;
           }
         } else {
           //// VALUE PARSE
-          if (brackets == 0 && parens == 0 && angles == 0 && !quotes &&
-              (ss.eof() || ss.peek() == ',' || ss.peek() == EOF)) {
+          if (tracker.closed() && (ss.eof() || ss.peek() == ',' || ss.peek() == EOF)) {
             if (ss.peek() == ',')
               ss.get(); // drop k/v separating comma
             StringHelper::trim(key);
@@ -330,22 +318,8 @@ namespace fhatos {
             value.clear();
             onKey = true;
           } else {
-            char c = static_cast<char>(ss.get());
-            if (c == '[' && !quotes)
-              brackets++;
-            else if (c == ']' && !quotes)
-              brackets--;
-            else if (c == '(' && !quotes)
-              parens++;
-            else if (c == ')' && !quotes)
-              parens--;
-            else if (c == '<' && !quotes)
-              angles++;
-            else if (c == '>' && !quotes)
-              angles--;
-            else if (c == '\'')
-              quotes = !quotes;
-            if (c >= 32 && c < 127)
+            char c = tracker.track(static_cast<char>(ss.get()));
+            if (tracker.printable())
               value += c;
           }
         }
@@ -363,29 +337,12 @@ namespace fhatos {
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
         string argToken;
-        bool quotes = false;
-        uint8_t paren = 0;
-        uint8_t bracket = 0;
-        uint8_t angles = 0;
+        Tracker tracker;
         while (!ss.eof()) {
-          const char c = static_cast<char>(ss.get());
-          if (c == '(' && !quotes)
-            paren++;
-          else if (c == ')' && !quotes)
-            paren--;
-          else if (c == '[' && !quotes)
-            bracket++;
-          else if (c == ']' && !quotes)
-            bracket--;
-          else if (c == '<' && !quotes)
-            angles++;
-          else if (c == '>' && !quotes)
-            angles--;
-          else if (c == '\'')
-            quotes = !quotes;
-          if (c >= 32 && c < 127) {
+          const char c = tracker.track(static_cast<char>(ss.get()));
+          if (tracker.printable()) {
             argToken += c;
-            if (ss.peek() == ',' && !quotes && paren == 0 && bracket == 0 && angles == 0) {
+            if (ss.peek() == ',' && tracker.closed()) {
               ss.get(); // drop arg separating comma
               break;
             }
@@ -430,15 +387,12 @@ namespace fhatos {
       List<Inst_p> insts;
       std::stringstream ss = std::stringstream(valueToken);
       while (!ss.eof()) { // _bcode-level (tokens are insts)
-        uint8_t paren = 0;
-        uint8_t bracket = 0;
-        uint8_t angles = 0;
-        bool quotes = false;
+        Tracker tracker;
         bool unary = false;
         bool fullbreak = false;
         string instToken;
         while (!ss.eof()) { // inst-level (tokens are chars)
-          if (paren == 0 && bracket == 0 && !quotes) {
+          if (tracker.closed()) {
             for (const auto &[k, v]: Insts::unarySugars()) {
               if (StringHelper::lookAhead(k, &ss, instToken.empty())) {
                 if (!instToken.empty()) {
@@ -448,7 +402,7 @@ namespace fhatos {
                 }
                 instToken += v;
                 instToken += '(';
-                paren++;
+                tracker.parens++;
                 unary = true;
                 break;
               }
@@ -456,25 +410,12 @@ namespace fhatos {
           }
           if (fullbreak || ss.eof())
             break;
-          char c = static_cast<char>(ss.get());
-          if ((quotes || !isspace(c)) && c >= 32 && c < 127)
+          char c = tracker.track(static_cast<char>(ss.get()));
+          if ((tracker.quotes || !isspace(c)) && tracker.printable())
             instToken += c;
-          if (c == '(')
-            paren++;
-          else if (c == ')' && !quotes)
-            paren--;
-          else if (c == '[' && !quotes)
-            bracket++;
-          else if (c == ']' && !quotes)
-            bracket--;
-          else if (c == '<' && !quotes)
-            angles++;
-          else if (c == '>' && !quotes)
-            angles--;
-          else if (c == '\'')
-            quotes = !quotes;
           ///////////////////////////////////////////////////////////////
-          if ((unary || paren == 0) && bracket == 0 && angles == 0 && !quotes && ss.peek() == '.') {
+          if ((unary || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 && tracker.braces == 0 &&
+              !tracker.quotes && ss.peek() == '.') {
             ss.get();
             break;
           }

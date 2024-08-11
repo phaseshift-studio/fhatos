@@ -46,8 +46,11 @@ namespace fhatos {
         return typeId;
       };
       this->subscribe(*this->pattern(), [](const Message_p &message) {
-        if (message->retain)
+        if (message->retain && (message->source != *Types::singleton()->id()) && (message->source != ID("anon_src")))
           Types::singleton()->saveType(id_p(message->target), message->payload);
+        // else { // transient provides type checking?
+        // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()), id_p(message->target));
+        //}
       });
     }
     /////////////////////////////////////////////////////////////////////

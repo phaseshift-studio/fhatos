@@ -38,7 +38,7 @@ namespace fhatos {
   public:
     const PType ptype;
 
-    explicit Process(const ID &id, const PType pType) : IDed(share(id)), ptype(pType) {}
+    explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {}
 
     virtual ~Process() = default;
 

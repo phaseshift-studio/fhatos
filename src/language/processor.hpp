@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <language/rewriter.hpp>
+#include <utility>
 
 namespace fhatos {
   class Monad;
@@ -33,14 +34,15 @@ namespace fhatos {
     const long _bulk = 1;
 
   public:
-    explicit Monad(const Obj_p obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
+    explicit Monad(const Obj_p &obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
 
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
       const Obj_p nextObj = this->_inst->apply(this->_obj);
       const Inst_p nextInst = bcode->nextInst(this->_inst);
       if (nextObj->isObjs()) {
         LOG(DEBUG, FOS_TAB_2 "!mUnrolling!! objs monad: %s\n", nextObj->toString().c_str());
-        for (const auto &obj: *nextObj->objs_value()) {
+        const List_p<Obj_p> objs = nextObj->objs_value();
+        for (const auto &obj: *objs) {
           if (!obj->isNoObj()) {
             const Monad_p monad = share<Monad>(Monad(obj, nextInst));
             running->push_back(monad);
@@ -55,14 +57,14 @@ namespace fhatos {
       }
     }
 
-    Obj_p obj() const { return this->_obj; }
-    Inst_p inst() const { return this->_inst; }
-    long bulk() const { return this->_bulk; }
+    [[nodiscard]] Obj_p obj() const { return this->_obj; }
+    [[nodiscard]] Inst_p inst() const { return this->_inst; }
+    [[nodiscard]] long bulk() const { return this->_bulk; }
 
-    bool halted() const { return this->_inst->isNoObj(); }
-    bool dead() const { return this->_obj->isNoObj(); }
+    [[nodiscard]] bool halted() const { return this->_inst->isNoObj(); }
+    [[nodiscard]] bool dead() const { return this->_obj->isNoObj(); }
 
-    string toString() const {
+    [[nodiscard]] string toString() const {
       return string("!MM!y[!!") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "!y]!!";
     }
   };

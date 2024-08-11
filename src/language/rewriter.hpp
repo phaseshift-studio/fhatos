@@ -44,17 +44,19 @@ namespace fhatos {
     static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
                       [](const BCode_p &bcode) {
-                        if (bcode->bcode_value()->back()->id()->equals(ID("/inst/explain"))) {
+                        if (bcode->bcode_value()->back()->id()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
                           auto ex = string();
                           auto p = Ansi<StringPrinter>(StringPrinter(&ex));
-                          bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
+                          // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
                           p.printf("\n!r!_%s\t  %s\t\t\t%s!!\n", "op", "inst", "domain/range");
                           for (const Inst_p &inst: *bcode->bcode_value()) {
                             p.printf("!b%s!!\t  %s\t\t\t%s\n", inst->inst_op().c_str(), inst->toString().c_str(),
                                      ITypeSignatures.toChars(inst->itype()));
                           }
-                          bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
-                          // return Obj::to_bcode({Insts::start(Obj::to_str(ex))});
+                          // bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
+                          BCode_p rewrite = Obj::to_bcode({Insts::start(Obj::to_objs({Obj::to_str(ex)}))});
+                          LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
+                          return rewrite;
                         }
                         return bcode;
                       },
@@ -67,7 +69,7 @@ namespace fhatos {
                         bool found = false;
                         List<Inst_p> newInsts;
                         for (const Inst_p &inst: *bcode->bcode_value()) {
-                          if (inst->id()->equals(ID("/inst/by")) && !prev->isNoObj()) {
+                          if (inst->id()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->isNoObj()) {
                             found = true;
                             // rewrite args
                             bool done = false;

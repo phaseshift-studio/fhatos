@@ -43,30 +43,37 @@ namespace fhatos {
     }
 
     void write(const ID_p &target, const Obj_p &payload, const ID_p &source) override {
-      if (DATA->count(target)) {
-        DATA->erase(target);
-      }
-      DATA->insert({target, payload});
+      MUTEX_DATA.write<void *>([this, target, payload, source]() {
+        if (DATA->count(target)) {
+          DATA->erase(target);
+        }
+        DATA->insert(
+            {id_p(*target), share(Obj(any(payload->_value), id_p(*payload->id())))}); // why such a deep copy needed?
+        // don't forget to update subscriptions
+        return nullptr;
+      });
     }
 
     Obj_p read(const ID_p &id, [[maybe_unused]] const ID_p &source) override {
-      return DATA->count(id) ? DATA->at(id) : noobj();
+      return MUTEX_DATA.read<Obj_p>([this, id]() { return DATA->count(id) ? obj(*(DATA->at(id))) : noobj(); });
     }
 
     Objs_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
-      Objs_p objs = Obj::to_objs();
-      if (furi->is_pattern()) {
-        for (const auto &[f, o]: *this->DATA) {
-          if (f->matches(*furi)) {
-            objs->objs_value()->push_back(uri(f));
+      return MUTEX_DATA.read<Objs_p>([this, furi]() {
+        Objs_p objs = Obj::to_objs();
+        if (furi->is_pattern()) {
+          for (const auto &[f, o]: *this->DATA) {
+            if (f->matches(*furi)) {
+              objs->add_obj(uri(f));
+            }
           }
+        } else {
+          const ID_p id = id_p(*furi);
+          const Obj_p toadd = DATA->count(id) ? obj(*(DATA->at(id))) : noobj();
+          objs->add_obj(toadd);
         }
         return objs;
-      } else {
-        const ID_p id = id_p(*furi);
-        objs->objs_value()->push_back(DATA->count(id) ? DATA->at(id) : noobj());
-      }
-      return objs;
+      });
     }
   };
 } // namespace fhatos

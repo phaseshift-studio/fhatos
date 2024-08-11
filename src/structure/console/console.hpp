@@ -35,7 +35,7 @@
 namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
   static Map<string, Command> *_MENU_MAP = nullptr;
-  class Console final : public Actor<Thread, Empty> {
+  class Console final : public Actor<Thread, KeyValue> {
   protected:
     string _line;
     bool _newInput = true;
