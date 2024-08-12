@@ -157,7 +157,24 @@ namespace fhatos {
         }
       });
       auto rc2 = RESPONSE_CODE(*rc);
-      LOG(TRACE, "!r%s!! for !yrouted message!! %s\n", ResponseCodes.toChars(rc2), message->toString().c_str());
+      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted message %s\n", ResponseCodes.toChars(rc2),
+          this->pattern()->toString().c_str(), message->toString().c_str());
+      delete rc;
+      return rc2;
+    }
+
+    RESPONSE_CODE route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern) {
+      auto *rc = new RESPONSE_CODE(NO_TARGETS);
+      this->structures.forEach([subscriber, pattern, rc](Structure *structure) {
+        if (pattern->matches(*structure->pattern())) {
+          structure->recv_unsubscribe(subscriber, pattern);
+          *rc = OK;
+        }
+      });
+      auto rc2 = RESPONSE_CODE(*rc);
+      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted!! !_!yun!!!ysubscription!! " FURI_WRAP "=unsubscribe=>!y%s!!\n",
+          ResponseCodes.toChars(rc2), this->pattern()->toString().c_str(), subscriber->toString().c_str(),
+          pattern->toString().c_str());
       delete rc;
       return rc2;
     }
@@ -171,8 +188,8 @@ namespace fhatos {
         }
       });
       auto rc2 = RESPONSE_CODE(*rc);
-      LOG(TRACE, "!r%s!! for !yrouted subscription!! %s\n", ResponseCodes.toChars(rc2),
-          subscription->toString().c_str());
+      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted subscription!! %s\n", ResponseCodes.toChars(rc2),
+          this->pattern()->toString().c_str(), subscription->toString().c_str());
       delete rc;
       return rc2;
     }

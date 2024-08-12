@@ -43,9 +43,11 @@ namespace fhatos {
         // do nothing
       } else if (c == '\'') {
         quotes = !quotes;
-      } else if ((c == '=' || c == '-')) { // <- <=
-        if (last == '<')
+      } else if ((c == '=' || c == '-')) {
+        if (last == '<') // <- <=
           angles--;
+        else if (last == '>') // >- >=
+          angles++;
       } else if (c == '(')
         parens++;
       else if (c == ')')
@@ -54,9 +56,10 @@ namespace fhatos {
         brackets++;
       else if (c == ']')
         brackets--;
-      else if (c == '<')
-        angles++;
-      else if (c == '>') {
+      else if (c == '<') {
+        if (last != '-' && last != '=') // -< =<
+          angles++;
+      } else if (c == '>') {
         if (last != '-' && last != '=') // -> =>
           angles--;
       } else if (c == '{')
@@ -155,22 +158,26 @@ namespace fhatos {
     Pair<string, string> tryParseObjType(const string &token, const PARSE_TOKENS grouping = PARSE_TOKENS::BRACKET) {
       string typeToken;
       string valueToken;
+      auto ss = stringstream(token);
       if (!token.empty() && token[token.length() - 1] == (PARSE_TOKENS::BRACKET == grouping ? ']' : ')')) {
         bool onType = true;
-        auto ss = stringstream(token);
-        /////////////////////////////////////////////////////
-        // LOOK FOR SYNTACTIC SUGARS ON UNARY INSTRUCTIONS //
-        for (const auto &[k, v]: Insts::unarySugars()) {
-          if (StringHelper::lookAhead(k, &ss)) {
-            valueToken.append(k);
-            onType = false;
-            break;
-          }
-        }
+        bool unaryFound = false;
         ////////////////////////////////////////////////////
         while (!ss.eof()) {
-          char c = static_cast<char>(ss.get());
           if (onType) {
+            for (const auto &[k, v]: Insts::unarySugars()) {
+              if (StringHelper::lookAhead(k, &ss)) {
+                onType = false;
+                valueToken.append(typeToken);
+                typeToken.clear();
+                valueToken.append(k);
+                unaryFound = true;
+                break;
+              }
+            }
+            if (unaryFound)
+              break;
+            char c = static_cast<char>(ss.get());
             if (c == (PARSE_TOKENS::BRACKET == grouping ? '[' : '(')) {
               onType = false;
             } else if (c == '.') {
@@ -182,10 +189,13 @@ namespace fhatos {
               typeToken += c;
             }
           } else {
-            valueToken += c;
+            valueToken += static_cast<char>(ss.get());
           }
         }
-        valueToken = typeToken.empty() ? token : valueToken.substr(0, valueToken.length() - 2);
+        if (typeToken.empty())
+          valueToken = token;
+        else if (!unaryFound)
+          valueToken = valueToken.substr(0, valueToken.length() - 2);
       } else {
         typeToken = "";
         valueToken = token;

@@ -476,9 +476,9 @@ namespace fhatos {
       return Obj::to_inst("split", {poly}, [poly](const Poly_p &lhs) { return poly->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p merge1() {
+    static Obj_p merge() {
       return Obj::to_inst(
-          "merge1", {},
+          "merge", {},
           [](const Poly_p &lhs) {
             Objs_p objs = Obj::to_objs();
             if (lhs->isLst()) {
@@ -611,10 +611,11 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {/*{"__", "start"},*/ {"*", "from"},    {"=", "each"},
-                                        {"-<", "split"}, {"~>", "embed"},  {"<~", "embed_inv"},
-                                        {"<-", "to"},    {"->", "to_inv"}, {"|", "block"}, /*{"==", "eq"},*/
-                                        {"!=", "neq"}};
+      static Map<string, string> map = {{"*", "from"},{"=", "each"},
+                                        {"-<", "split"},{">-","merge"},
+                                        {"~>", "embed"},{"<~", "embed_inv"}, {"<-", "to"},
+                                        {"->", "to_inv"}, {"|", "block"} /*{"==", "eq"},
+                                        {"!=", "neq"}*/};
       return map;
     }
 
@@ -744,6 +745,8 @@ namespace fhatos {
         return Insts::block(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("split"))
         return Insts::split(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("merge"))
+        return Insts::merge();
       if (typeId == INST_FURI->resolve("each"))
         return Insts::each(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("embed"))

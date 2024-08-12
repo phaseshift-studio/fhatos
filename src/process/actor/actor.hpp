@@ -26,7 +26,7 @@
 #include <structure/structure.hpp>
 
 namespace fhatos {
-  template<typename PROCESS, typename STRUCTURE>
+  template<typename PROCESS = Process, typename STRUCTURE = Structure>
   class Actor : public PROCESS, public STRUCTURE, public Mailbox {
 
   public:
@@ -37,21 +37,18 @@ namespace fhatos {
     explicit Actor(const ID &id) : Actor(id, id.extend("#")) {}
 
     virtual ~Actor() = default;
-    void recv_mail(Mail_p mail) override { this->outbox->push_back(mail); }
-    virtual RESPONSE_CODE publish(const Message_p &outgoing) { return Rooter::singleton()->route_message(outgoing); }
-    RESPONSE_CODE publish(const ID &target, const Obj_p &payload, const bool retain = false) {
-      return this->publish(
+    void recv_mail(const Mail_p mail) override { this->outbox->push_back(mail); }
+
+    RESPONSE_CODE publish(const ID &target, const Obj_p &payload, const bool retain = TRANSIENT_MESSAGE) {
+      return Rooter::singleton()->route_message(
           share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
-      return this->subscribe(share(Subscription{
+      return Rooter::singleton()->route_subscription(share(Subscription{
           .source = *this->id(), .pattern = this->pattern()->resolve(pattern), .qos = QoS::_1, .onRecv = onRecv}));
-                                       /*.executeAtSource(this)));*/
+      /*.executeAtSource(this)));*/
     }
-    virtual RESPONSE_CODE unsubscribeSource() { return OK; }
-    virtual RESPONSE_CODE subscribe(const Subscription_p &outgoing) {
-      return Rooter::singleton()->route_subscription(outgoing);
-    }
+    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { this->recv_unsubscribe(this->id(), pattern); }
 
     bool active() { return this->available() && this->running(); }
 
@@ -67,7 +64,7 @@ namespace fhatos {
     virtual void stop() override {
       PROCESS::stop();
       STRUCTURE::stop();
-      if (const RESPONSE_CODE _rc = this->unsubscribeSource()) {
+      if (const RESPONSE_CODE _rc = this->unsubscribe()) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), ResponseCodes.toChars(_rc));
       }
     }
