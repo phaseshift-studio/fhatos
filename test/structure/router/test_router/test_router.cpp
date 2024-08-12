@@ -19,8 +19,8 @@ namespace fhatos {
 
   void test_bobj_wrap() {
     Parser::singleton();
-    const List<SourceID> ids = {SourceID("fos://127.0.0.1/here"), SourceID("/stuff/stuff"),
-                                SourceID("//fhat/os?a=b&c=d"), SourceID("a"), SourceID("fos:abc")};
+    const List<ID_p> ids = {id_p("fos://127.0.0.1/here"), id_p("/stuff/stuff"),
+                            id_p("//fhat/os?a=b&c=d"), id_p("a"), id_p("fos:abc")};
     const List<Obj_p> objs = {Obj::to_int(1),
                               Obj::to_int(-453),
                               Obj::to_real(12.035f),
@@ -31,10 +31,10 @@ namespace fhatos {
                               Obj::to_noobj()};
     for (const auto &o: objs) {
       for (const auto &i: ids) {
-        const BObj_p bobj = Router::wrapSource(i, o);
-        const auto [id, obj] = Router::unwrapSource(bobj);
+        const BObj_p bobj = Message::wrapSource(i, o);
+        const auto [id, obj] = Message::unwrapSource(bobj);
         LOG(INFO, "%s\n", obj->toString().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(i, id);
+        FOS_TEST_ASSERT_EQUAL_FURI(*i, *id);
         FOS_TEST_OBJ_EQUAL(o, obj);
       }
     }

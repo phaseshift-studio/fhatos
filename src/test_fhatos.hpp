@@ -33,9 +33,9 @@
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
+#include <structure/io/terminal.hpp>
 #include <structure/rooter.hpp>
 #include <structure/router/local_router.hpp>
-#include <structure/io/terminal.hpp>
 #ifdef NATIVE
 // #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
@@ -55,8 +55,7 @@
       ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))                                         \
       ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))                                                \
       ->load_modules({ID("/mod/proc")})                                                                                \
-      ->defaultOutput("/home/root/repl/")                                                                              \
-      //->done("kernel_barrier");
+      ->defaultOutput("/home/root/repl/") //->done("kernel_barrier");
 
 #define FOS_STOP_ON_BOOT ;
 
@@ -188,6 +187,15 @@ using namespace fhatos;
 #define FOS_TEST_ASSERT_NOT_MATCH_FURI(x, y)                                                                           \
   FOS_TEST_MESSAGE("!b%s!! =!r/~!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
   TEST_ASSERT_FALSE((x).matches(y))
+
+#define FOS_TEST_EXCEPTION_CXX(x)                                                                                      \
+  try {                                                                                                                \
+    (x);                                                                                                               \
+    TEST_ASSERT(false);                                                                                                \
+  } catch (const fError &e) {                                                                                          \
+    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
+    TEST_ASSERT(true);                                                                                                 \
+  }
 
 #define FOS_TEST_ASSERT_EXCEPTION(x, s)                                                                                \
   try {                                                                                                                \

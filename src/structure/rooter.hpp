@@ -51,7 +51,7 @@ namespace fhatos {
                          s->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
           }
         });
-        // structure->setup();
+        structure->setup();
         LOG_STRUCTURE(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
                       StructureTypes.toChars(structure->stype));
         this->structures.push_back(structure);
@@ -63,6 +63,7 @@ namespace fhatos {
         if (structure->pattern()->matches(*structurePattern)) {
           structure->stop();
           LOG_STRUCTURE(INFO, this, "detached structure %s\n", structure->pattern()->toString().c_str());
+          delete structure;
           return true;
         }
         return false;

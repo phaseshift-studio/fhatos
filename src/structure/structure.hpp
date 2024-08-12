@@ -44,7 +44,12 @@ namespace fhatos {
 
     explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
-    virtual ~Structure() = default;
+    virtual ~Structure() {
+      this->outbox->clear();
+      delete outbox;
+      this->subscriptions->clear();
+      delete subscriptions;
+    };
 
     bool available() { return this->_available.load(); }
     virtual void setup() {
