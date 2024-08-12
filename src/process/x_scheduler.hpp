@@ -79,20 +79,18 @@ namespace fhatos {
     }
 
     void stop() {
+      this->handle_mail();
       auto *lists = new List<MutexDeque<Process *> *>();
       lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(COROUTINES));
       lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(FIBERS));
       lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(THREADS));
       for (const auto &procs: *lists) {
-        this->handle_mail();
         procs->forEach([this](const auto &process) {
-          this->_kill(*process->id());
-          this->handle_mail();
+          this->kill(*process->id());
         });
       }
       this->handle_mail();
       this->unsubscribeSource();
-      this->handle_mail();
       delete lists;
       this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
@@ -126,7 +124,7 @@ namespace fhatos {
 
     virtual bool spawn(Process *) = 0;
     virtual bool kill(const ID &processPattern) {
-      return this->publish(processPattern, Obj::to_noobj(), TRANSIENT_MESSAGE);
+      return rooter()->route_message(share(Message{.source=*this->id(),.target=processPattern,.payload=noobj(),.retain=RETAIN_MESSAGE}));
     }
 
   protected:

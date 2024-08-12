@@ -6,28 +6,31 @@ IF (BUILD_TESTS)
     ####################################
     ########### BOOST TEST #############
     ####################################
-    MESSAGE(CHECK_START "${.y}CMaking Boost Test Framework${..}")
-    SET(PROJECT_UNIT_TESTS_NAME ${PROJECT_NAME}_boost_tests)
-    CMAKE_POLICY(SET CMP0167 NEW)
-    SET(Boost_USE_STATIC_LIBS OFF)
-    SET(Boost_USE_MULTITHREADED ON)
-    SET(Boost_USE_STATIC_RUNTIME OFF)
-    FIND_PACKAGE(Boost COMPONENTS filesystem system unit_test_framework REQUIRED)
-    IF (Boost_FOUND)
-        FILE(GLOB UNIT_TESTS_SRC_FILES ${CMAKE_SOURCE_DIR}/test/structure/*_boost.cpp)
-        SET(UNIT_TESTS_INCLUDES ${PROJECT_INCLUDE_DIR}
-                ${CMAKE_SOURCE_DIR}/src
-                ${Boost_INCLUDE_DIR})
-        INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-        INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
-        ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBoost_NO_BOOST_CMAKE=TRUE)
-        ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
-        TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} tsl::ordered_map paho-mqttpp3)
-        ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
-    ELSE ()
-        MESSAGE("${.r}Unable to locate Boost unit_test_framework${..}. Proceeding without respective depending tests.")
+    OPTION(BUILD_BOOST_TESTS "Build Boost tests" OFF) # ON/OFF
+    IF (BUILD_BOOST_TESTS)
+        MESSAGE(CHECK_START "${.y}CMaking Boost Test Framework${..}")
+        SET(PROJECT_UNIT_TESTS_NAME ${PROJECT_NAME}_boost_tests)
+        CMAKE_POLICY(SET CMP0167 NEW)
+        SET(Boost_USE_STATIC_LIBS OFF)
+        SET(Boost_USE_MULTITHREADED ON)
+        SET(Boost_USE_STATIC_RUNTIME OFF)
+        FIND_PACKAGE(Boost COMPONENTS filesystem system unit_test_framework REQUIRED)
+        IF (Boost_FOUND)
+            FILE(GLOB UNIT_TESTS_SRC_FILES ${CMAKE_SOURCE_DIR}/test/structure/*_boost.cpp)
+            SET(UNIT_TESTS_INCLUDES ${PROJECT_INCLUDE_DIR}
+                    ${CMAKE_SOURCE_DIR}/src
+                    ${Boost_INCLUDE_DIR})
+            INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+            INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
+            ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBoost_NO_BOOST_CMAKE=TRUE)
+            ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
+            TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} tsl::ordered_map paho-mqttpp3)
+            ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
+        ELSE ()
+            MESSAGE("${.r}Unable to locate Boost unit_test_framework${..}. Proceeding without respective depending tests.")
+        ENDIF ()
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ENDIF ()
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ######## EXTERNAL LIBRARIES ########
     ####################################
@@ -51,13 +54,14 @@ IF (BUILD_TESTS)
         FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
             MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
+
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
             ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE" "-Wno-ambiguous-reversed-operator") #  "-Wno-dev"
-            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map paho-mqttpp3)
             IF (USE_PRECOMPILED_HEADERS)
                 MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
                 TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
             ENDIF ()
+            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map paho-mqttpp3)
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
@@ -85,7 +89,7 @@ IF (BUILD_TESTS)
     MAKE_TESTS(process "test_scheduler" true)
     MAKE_TESTS(process/actor "test_actor" true)
     MAKE_TESTS(structure/router "test_router" true)
-    MAKE_TESTS(structure/stype/key_value "test_key_value" , false)
+    MAKE_TESTS(structure/stype/key_value "test_key_value" , true)
     MAKE_TESTS(structure "test_furi" false)
     MAKE_TESTS(module "test_fs" true)
     MAKE_TESTS(util "test_mutex" true)

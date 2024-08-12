@@ -24,7 +24,7 @@
 
 namespace fhatos {
 
-  class KeyValue : public Structure {
+  class KeyValue  : public Structure {
 
   protected:
     Map<ID_p, const Obj_p, furi_p_less> *DATA = new Map<ID_p, const Obj_p, furi_p_less>();

@@ -60,7 +60,13 @@
 #define FOS_STOP_ON_BOOT ;
 
 #else
-#define FOS_SETUP_ON_BOOT Options::singleton()->log_level(FOS_LOGGING);
+#include <structure/rooter.hpp>
+#include FOS_PROCESS(scheduler.hpp)
+#define FOS_SETUP_ON_BOOT \
+Options::singleton()->log_level(FOS_LOGGING); \
+Options::singleton()->rooter<Rooter>(Rooter::singleton()); \
+Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
+
 #define FOS_STOP_ON_BOOT ;
 #endif
 ////////////////////////////////////////////////////////
@@ -93,7 +99,7 @@ namespace fhatos {
 #ifdef NATIVE
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
-  int main(int, char **) { fhatos::RUN_UNITY_TESTS(); };                                                               \
+  int main(int, char **) { RUN_UNITY_TESTS(); };                                                               \
   void setUp() {}                                                                                                      \
   void tearDown() { FOS_STOP_ON_BOOT; }
 #else

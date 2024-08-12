@@ -19,55 +19,67 @@
 #ifndef fhatos_test_fs_cpp
 #define fhatos_test_fs_cpp
 
-#define FOS_TEST_ON_BOOT
+#undef FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
+#include <language/insts.hpp>
+#include FOS_FILE_SYSTEM(filesystem.hpp)
+#include <structure/rooter.hpp>
+#include FOS_PROCESS(scheduler.hpp)
+
 
 namespace fhatos {
-  static fs::path base_directory;
+    static fs::path base_directory;
 
-  void stage() {
-    fs::current_path(base_directory);
-    LOG(INFO, "Original working directory: %s\n", base_directory.c_str());
-    const fs::path p = fs::path(base_directory.string().c_str()).concat("/tmp");
-    uintmax_t removed = fs::remove_all(p);
-    LOG(INFO, "Deleted existing working directory with %i items\n", removed);
-    TEST_ASSERT_TRUE(fs::create_directory(p));
-    fs::current_path(p); //
-    LOG(INFO, "Test working directory: %s\n", fs::current_path().c_str());
-  }
-
-  void unstage() {
-    fs::current_path(base_directory);
-    LOG(INFO, "Test complete, reverting to base directory: %s\n", fs::current_path().c_str());
-  }
-
-  void test_files() {
-    stage();
-    FileSystem *fs = FileSystem::singleton(ID("/io/fs"), ID(fs::current_path().string()));
-    Scheduler::singleton()->spawn(fs);
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *fs->to_dir("/")->id());
-    TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"))->objs_value()->size());
-    for (int i = 0; i < 10; i++) {
-      string filename = "a_" + to_string(i) + ".txt";
-      File_p a = fs->touch(ID(filename));
-      FOS_TEST_ASSERT_EQUAL_FURI(ID(filename), a->uri_value());
+    void stage() {
+        fs::current_path(base_directory);
+        LOG(INFO, "Original working directory: %s\n", base_directory.c_str());
+        const fs::path p = fs::path(base_directory.string().c_str()).concat("/tmp");
+        uintmax_t removed = fs::remove_all(p);
+        LOG(INFO, "Deleted existing working directory %s with %i items\n", p.c_str(), removed);
+        TEST_ASSERT_TRUE(fs::create_directory(p));
+        fs::current_path(p); //
+        LOG(INFO, "Test working directory: %s\n", fs::current_path().c_str());
     }
-    const Objs_p files = fs->ls(fs->to_dir("/"));
-    TEST_ASSERT_EQUAL(files->o_type(), OType::OBJS);
-    int counter = 0;
-    for (const auto &o: *files->objs_value()) {
-      TEST_ASSERT_TRUE(o->uri_value().toString()[0] == 'a' && o->uri_value().toString()[1] == '_');
-      counter++;
+
+    void unstage() {
+        fs::current_path(base_directory);
+        LOG(INFO, "Test complete, reverting to base directory: %s\n", fs::current_path().c_str());
     }
-    TEST_ASSERT_EQUAL_INT(10, counter);
-    unstage();
-  }
+
+    void test_files() {
+        stage();
+        FileSystem *fs = FileSystem::singleton();
+        Rooter::singleton()->attach(fs);
+        Scheduler::singleton()->spawn(fs);
+        FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *fs->to_dir("/")->id());
+        TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"))->objs_value()->size());
+        for (int i = 0; i < 10; i++) {
+            string filename = "a_" + to_string(i) + ".txt";
+            File_p a = fs->touch(ID(filename));
+        }
+        for (int i = 0; i < 10; i++) {
+            string filename = "a_" + to_string(i) + ".txt";
+            File_p a = fs->to_file(ID(filename));
+            FOS_TEST_ASSERT_EQUAL_FURI(ID(filename), a->uri_value());
+        }
+        const Objs_p files = fs->ls(fs->to_dir("/"));
+        TEST_ASSERT_EQUAL(files->o_type(), OType::OBJS);
+        int counter = 0;
+        for (const auto &o: *files->objs_value()) {
+            TEST_ASSERT_TRUE(o->uri_value().toString()[0] == 'a' && o->uri_value().toString()[1] == '_');
+            counter++;
+        }
+        TEST_ASSERT_EQUAL_INT(10, counter);
+        fs->stop();
+        unstage();
+    }
 
 
-  FOS_RUN_TESTS( //
-      base_directory = fs::current_path(); //
-      FOS_RUN_TEST(test_files); //
-  );
+    FOS_RUN_TESTS( //
+        Options::singleton()->router<Rooter>(Rooter::singleton());
+        base_directory = fs::current_path(); //
+        FOS_RUN_TEST(test_files); //
+    );
 } // namespace fhatos
 
 SETUP_AND_LOOP()

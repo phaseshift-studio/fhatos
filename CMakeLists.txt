@@ -1,6 +1,6 @@
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.29.0)  # CMake version check
+CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
 PROJECT(fhatos)
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 SET(ENV{no-dev})

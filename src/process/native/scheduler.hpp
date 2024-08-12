@@ -130,6 +130,9 @@ namespace fhatos {
       Scheduler::singleton()->_kill(*thread->id());
     }
   };
+  Scheduler* scheduler() {
+    return Options::singleton()->scheduler<Scheduler>();
+  }
 } // namespace fhatos
 #endif
 #endif

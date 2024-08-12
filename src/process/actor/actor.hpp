@@ -48,7 +48,7 @@ namespace fhatos {
           .source = *this->id(), .pattern = this->pattern()->resolve(pattern), .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
-    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { this->recv_unsubscribe(this->id(), pattern); }
+    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { this->recv_unsubscribe(this->id(), pattern); return OK; }
 
     bool active() { return this->available() && this->running(); }
 
@@ -62,11 +62,11 @@ namespace fhatos {
     }
     //////////////////////////////////////////////////// STOP
     virtual void stop() override {
-      PROCESS::stop();
-      STRUCTURE::stop();
       if (const RESPONSE_CODE _rc = this->unsubscribe()) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), ResponseCodes.toChars(_rc));
       }
+      PROCESS::stop();
+      STRUCTURE::stop();
     }
     //////////////////////////////////////////////////// LOOP
     virtual void loop() override {
