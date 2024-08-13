@@ -18,8 +18,8 @@
 #pragma once
 #ifndef fhatos_publisher_hpp
 #define fhatos_publisher_hpp
-#include <structure/router/pubsub_artifacts.hpp>
-#include <structure/router/router.hpp>
+#include <structure/router.hpp>
+#include <structure/pubsub.hpp>
 
 namespace fhatos {
   class Publisher {
@@ -33,19 +33,17 @@ namespace fhatos {
     /// SUBSCRIBE
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message> &> &onRecv,
                                     const QoS qos = QoS::_1) {
-      return Options::singleton()->router<Router>()->subscribe(Subscription{
-          .source = *this->__id, .pattern = this->makeTopic(relativePattern), .qos = qos, .onRecv = onRecv});
+      return router()->route_subscription(share(Subscription{
+          .source = *this->__id, .pattern = this->makeTopic(relativePattern), .qos = qos, .onRecv = onRecv}));
     }
 
     /// UNSUBSCRIBE
     virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
 
-      return Options::singleton()->router<Router>()->unsubscribe(*this->__id, this->makeTopic(relativePattern));
+      return router()->route_unsubscribe(this->__id, p_p(this->makeTopic(relativePattern)));
     }
 
-    virtual RESPONSE_CODE unsubscribeSource() {
-      return Options::singleton()->router<Router>()->unsubscribeSource(*this->__id);
-    }
+    virtual RESPONSE_CODE unsubscribeSource() { return router()->route_unsubscribe(this->__id); }
 
     /////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -53,10 +51,10 @@ namespace fhatos {
     /// PUBLISH
     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj> &payload,
                           const bool retain = TRANSIENT_MESSAGE) const {
-      return Options::singleton()->router<Router>()->publish(Message{.source = *this->__id,
-                                                                     .target = this->makeTopic(relativeTarget),
-                                                                     .payload = PtrHelper::clone(*payload),
-                                                                     .retain = retain});
+      return router()->route_message(share(Message{.source = *this->__id,
+                                                   .target = this->makeTopic(relativeTarget),
+                                                   .payload = PtrHelper::clone(*payload),
+                                                   .retain = retain}));
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////

@@ -23,15 +23,15 @@
 //
 #include <atomic>
 #include <process/process.hpp>
-#include <structure/furi.hpp>
 #include <util/mutex_deque.hpp>
+#include "furi.hpp"
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
-#include <process/actor/publisher.hpp>
-#include <structure/router/pubsub_artifacts.hpp>
-#include <util/mutex_rw.hpp>
 #include <language/f_bcode.hpp>
+#include <process/actor/publisher.hpp>
+#include <util/mutex_rw.hpp>
+#include "structure/pubsub.hpp"
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
@@ -41,63 +41,71 @@
 
 
 namespace fhatos {
-  class XScheduler : public IDed, public Publisher, public Mailbox {
+  using Process_p = ptr<Process>;
+  class XScheduler : public IDed, public Mailbox {
   protected:
-    MutexRW<> RW_PROCESS_MUTEX;
-    MutexDeque<Coroutine *> *COROUTINES = new MutexDeque<Coroutine *>();
-    MutexDeque<Fiber *> *FIBERS = new MutexDeque<Fiber *>();
-    MutexDeque<Thread *> *THREADS = new MutexDeque<Thread *>();
-    MutexDeque<XKernel *> *KERNELS = new MutexDeque<XKernel *>();
-    MutexDeque<Mail_p> inbox;
+    MutexRW<> processes_mutex_;
+    ptr<Map<const ID_p, Process_p, furi_p_less>> processes_ = share(Map<const ID_p, Process_p, furi_p_less>());
+    MutexDeque<Mail_p> inbox_;
+    bool running = false;
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Publisher(this), Mailbox() {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
     ~XScheduler() override {
-      delete COROUTINES;
-      delete FIBERS;
-      delete THREADS;
-      delete KERNELS;
+      if (this->running) {
+        this->stop();
+      }
     };
 
-    static bool isThread(const Obj_p &obj) { return obj->id()->equals("/type/rec/thread"); }
-    static bool isFiber(const Obj_p &obj) { return obj->id()->equals("/type/rec/fiber"); }
-    static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals("/type/rec/coroutine"); }
-    virtual void recv_mail(Mail_p mail) override { this->inbox.push_back(mail); }
+    int count(const Pattern &processPattern = Pattern("#")) {
+      if (this->processes_->empty())
+        return 0;
+      return this->processes_mutex_.read<int>([this, processPattern]() {
+        int counter = 0;
+        for (const auto &[id, proc]: *this->processes_) {
+          if (id->matches(processPattern) && proc->running())
+            counter++;
+        }
+        return counter;
+      });
+    }
+
+    static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
+    static bool isFiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
+    static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/coroutine"); }
+    bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
     virtual void setup() {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->isRec())
           return;
         if (isThread(payload)) {
-          this->spawn(new fBcode<Thread>(target, payload));
+          this->spawn(ptr<Process>(new fBcode<Thread>(target, payload)));
         } else if (isFiber(payload)) {
-          this->spawn(new fBcode<Fiber>(target, payload));
+          this->spawn(ptr<Process>(new fBcode<Fiber>(target, payload)));
         } else if (isCoroutine(payload)) {
-          this->spawn(new fBcode<Coroutine>(target, payload));
+          this->spawn(ptr<Process>(new fBcode<Coroutine>(target, payload)));
         }
       };
+      this->running = true;
       LOG_PROCESS(INFO, this, "!yscheduler!! loaded\n");
     }
 
     void stop() {
-      this->handle_mail();
-      auto *lists = new List<MutexDeque<Process *> *>();
-      lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(COROUTINES));
-      lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(FIBERS));
-      lists->push_back(reinterpret_cast<MutexDeque<Process *> *>(THREADS));
-      for (const auto &procs: *lists) {
-        procs->forEach([this](const auto &process) {
-          this->kill(*process->id());
-        });
-      }
-      this->handle_mail();
-      this->unsubscribeSource();
-      delete lists;
+      this->processes_mutex_.write<void *>([this]() {
+        for (auto &[id, proc]: *this->processes_) {
+          if (proc->running())
+            proc->stop();
+        }
+        this->processes_->clear();
+        this->inbox_.clear();
+        return nullptr;
+      });
+      router()->route_unsubscribe(this->id());
       this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _kill can finish
 #endif
-        this->handle_mail();
-        return true;
+        return 0 == this->count();
       });
     }
 
@@ -113,122 +121,63 @@ namespace fhatos {
         if (message->payload->isNoObj())
           this->stop();
       });*/
-      while (this->next()) {
-        this->feedLocalWatchdog();
-      }
-      while (this->next() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
+      while (this->read_mail() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
         this->feedLocalWatchdog();
       }
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
     }
 
-    virtual bool spawn(Process *) = 0;
+    virtual bool spawn(const Process_p &) = 0;
     virtual bool kill(const ID &processPattern) {
-      return rooter()->route_message(share(Message{.source=*this->id(),.target=processPattern,.payload=noobj(),.retain=RETAIN_MESSAGE}));
+      return this->inbox_.push_back(share(
+          Mail{share(Subscription{.source = *this->id(),
+                                  .pattern = processPattern,
+                                  .onRecv = [this](const Message_p &message) { this->_kill(message->target); }}),
+               share(Message{
+                   .source = *this->id(), .target = processPattern, .payload = noobj(), .retain = RETAIN_MESSAGE})}));
     }
 
   protected:
-    void handle_mail() {
-      while (this->next()) {
-      }
-    }
-    bool next() {
-      const Option<ptr<Mail>> mail = this->inbox.pop_front();
+    bool read_mail() {
+      const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;
       mail->get()->first->execute(mail->get()->second);
       return true;
     }
+    ///////////////////////////////////////////////////////////////////////////
     virtual bool _kill(const Pattern &processPattern) {
-      bool success = RW_PROCESS_MUTEX
-                         .write<Bool>([this, processPattern]() {
-                           // auto &gaslight1 = *reinterpret_cast<MutexDeque<ptr<Thread>> *>(THREADS);
-                           THREADS->remove_if([processPattern, this](const auto &process) {
-                             if (process->id()->matches(processPattern)) {
-                               try {
-                                 if (process->running())
-                                   process->stop();
-                                 LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                             ProcessTypes.toChars(process->ptype));
-                               } catch (const std::exception &e) {
-                                 LOG_EXCEPTION(e);
-                               }
-                               return true;
-                             }
-                             return false;
-                           });
-                           // auto &gaslight2 = *reinterpret_cast<MutexDeque<ptr<Fiber>> *>(FIBERS);
-                           FIBERS->remove_if([processPattern, this](const auto &process) {
-                             if (process->id()->matches(processPattern)) {
-                               try {
-                                 if (process->running())
-                                   process->stop();
-                                 LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                             ProcessTypes.toChars(process->ptype));
-                               } catch (const std::exception &e) {
-                                 LOG_EXCEPTION(e);
-                               }
-                               return true;
-                             }
-                             return false;
-                           });
-                           // auto &gaslight3 = *reinterpret_cast<MutexDeque<ptr<Coroutine>> *>(COROUTINES);
-                           COROUTINES->remove_if([processPattern, this](const auto &process) {
-                             if (process->id()->matches(processPattern)) {
-                               try {
-                                 if (process->running())
-                                   process->stop();
-                                 LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", process->id()->toString().c_str(),
-                                             ProcessTypes.toChars(process->ptype));
-                               } catch (const std::exception &e) {
-                                 LOG_EXCEPTION(e);
-                               }
-                               return true;
-                             }
-                             return false;
-                           });
-                           return share(Bool(true));
-                         })
-                         ->bool_value();
-      LOG(DEBUG, "!b[Current Processes]!!\n");
-      LOG(DEBUG, FOS_TAB_2 "!yThreads!!:\n");
-      THREADS->forEach([](const Thread *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
-      LOG(DEBUG, FOS_TAB_2 "!yFibers!!:\n");
-      FIBERS->forEach([](const Fiber *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
-      LOG(DEBUG, FOS_TAB_2 "!yCoroutines!!:\n");
-      COROUTINES->forEach([](const Coroutine *p) { LOG(DEBUG, FOS_TAB_3 "!m%s!!\n", p->id()->toString().c_str()); });
-      return success;
-    }
-
-  public:
-    int count(const Pattern &processPattern = Pattern("#")) {
-      return RW_PROCESS_MUTEX.read<int>([this, processPattern]() {
-        if (processPattern.equals(Pattern("#")))
-          return THREADS->size() + FIBERS->size() + COROUTINES->size() /*+ KERNELS->size()*/;
-        auto *counter = new std::atomic(0);
-        THREADS->forEach([counter, processPattern](const Thread *process) {
-          if (process->id()->matches(processPattern))
-            counter->fetch_add(1);
-        });
-        FIBERS->forEach([counter, processPattern](const Fiber *process) {
-          if (process->id()->matches(processPattern))
-            counter->fetch_add(1);
-        });
-
-        COROUTINES->forEach([counter, processPattern](const Coroutine *process) {
-          if (process->id()->matches(processPattern))
-            counter->fetch_add(1);
-        });
-        /* KERNELS->forEach([counter, processPattern](const KernelProcess *process) {
-           if (process->id()->matches(processPattern))
-             counter->fetch_add(1);
-         });*/
-        const int temp = counter->load();
-        delete counter;
-        return temp;
-      });
+      return bool(*processes_mutex_.write<bool>([this, processPattern]() {
+        const uint8_t size = this->processes_->size();
+        List<ID_p> toRemove;
+        for (const auto &[id, proc]: *this->processes_) {
+          if (id->matches(processPattern)) {
+          //  if (proc->running())
+              proc->stop();
+            LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", id->toString().c_str(),
+                        ProcessTypes.toChars(proc->ptype));
+              toRemove.push_back(id);
+          }
+        }
+        //for (const auto &id: toRemove) {
+          //this->processes_->erase(id);
+        //}
+        /*std::remove_if((&this->processes_)->begin(), (&this->processes_)->end(), [this, processPattern](const
+        Pair<const ID,Process_p>& pair) { if (pair.first.matches(processPattern)) { try { if (pair.second->running())
+                pair.second->stop();
+              LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", pair.first.toString().c_str(),
+                          ProcessTypes.toChars(pair.second->ptype));
+              return true;
+            } catch (const fError &e) {
+              LOG_EXCEPTION(e);
+              return false;
+            }
+          }
+          return false;
+        });*/
+        return share(this->processes_->size() < size);
+      }));
     }
   };
 } // namespace fhatos
-
 #endif

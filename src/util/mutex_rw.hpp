@@ -20,6 +20,7 @@
 #define fhatos_mutex_rw_hpp
 
 #include <fhatos.hpp>
+#include <structure/pubsub.hpp>
 ////
 #include FOS_UTIL(mutex.hpp)
 

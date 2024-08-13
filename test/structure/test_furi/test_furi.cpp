@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #undef FOS_TEST_ON_BOOT
-#include <structure/furi.hpp>
 #include <test_fhatos.hpp>
+#include <furi.hpp>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////

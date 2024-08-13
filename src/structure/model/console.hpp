@@ -1,36 +1,31 @@
-/*******************************************************************************
-  FhatOS: A Distributed Operating System
-  Copyright (c) 2024 PhaseShift Studio, LLC
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+//  FhatOS: A Distributed Operating System
+//  Copyright (c) 2024 PhaseShift Studio, LLC
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #ifndef fhatos_console_hpp
 #define fhatos_console_hpp
 
 #include <fhatos.hpp>
+#include <furi.hpp>
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
-#include <structure/furi.hpp>
-#include <structure/router/local_router.hpp>
-// #include <structure/router/meta_router.hpp>
-#include <util/string_helper.hpp>
-/// #include FOS_MQTT(mqtt_router.hpp)
-#include <structure/stype/empty.hpp>
-#include FOS_PROCESS(thread.hpp)
 #include <process/actor/actor.hpp>
-#include <structure/io/terminal.hpp>
+#include <util/string_helper.hpp>
+#include FOS_PROCESS(thread.hpp)
+#include <structure/model/terminal.hpp>
+#include <structure/stype/empty.hpp>
 
 namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
@@ -71,10 +66,10 @@ namespace fhatos {
         _MENU_MAP->insert({":help",
                            {"help menu", [](const Obj_p &) { std::get<2>(_MENU_MAP->at(":help"))(); },
                             []() {
-                              Options::singleton()->printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+                              printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
                               for (const auto &[command, description]: *_MENU_MAP) {
-                                Options::singleton()->printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
-                                                                          std::get<0>(description).c_str());
+                                printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
+                                                    std::get<0>(description).c_str());
                               }
                             }}});
         _MENU_MAP->insert({":log",
@@ -85,15 +80,15 @@ namespace fhatos {
                               return log_level;
                             },
                             [] {
-                              Options::singleton()->printer<>()->printf(
-                                  "!ylog!!: !b%s!!\n", LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()));
+                              printer<>()->printf("!ylog!!: !b%s!!\n",
+                                                  LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()));
                             }}});
         _MENU_MAP->insert({":output",
                            {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
                             [] {
-                              Options::singleton()->printer<>()->printf(
-                                  "!youtput!!: !b%s!! !y=>!! !b%s!!\n", Terminal::currentOut()->toString().c_str(),
-                                  Terminal::singleton()->id()->extend("out").toString().c_str());
+                              printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
+                                                  Terminal::currentOut()->toString().c_str(),
+                                                  Terminal::singleton()->id()->extend("out").toString().c_str());
                             }}});
         /*_MENU_MAP->insert({":router",
                            {"pubsub router",
@@ -110,16 +105,13 @@ namespace fhatos {
                                   "!yrouter!!: !b%s!!\n",
                                   Options::singleton()->router<Router>()->id()->toString().c_str());
                             }}});*/
-        _MENU_MAP->insert(
-            {":color",
-             {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
-              [this] { Options::singleton()->printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
+        _MENU_MAP->insert({":color",
+                           {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
+                            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
         _MENU_MAP->insert(
             {":nesting",
              {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
-              [this] {
-                Options::singleton()->printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting));
-              }}});
+              [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
         _MENU_MAP->insert({":shutdown",
                            {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
                             []() { Scheduler::singleton()->stop(); }}});

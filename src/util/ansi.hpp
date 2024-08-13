@@ -27,6 +27,7 @@
 #include <string.h>
 #include <time.h>
 #include <util/string_printer.hpp>
+#include <util/options.hpp>
 using namespace std;
 namespace fhatos {
 
@@ -49,8 +50,9 @@ namespace fhatos {
   template<typename PRINTER = CPrinter>
   class Ansi {
   public:
-    static Ansi *singleton() {
+    static shared_ptr<Ansi> singleton() {
       static Ansi ansi = Ansi<PRINTER>();
+      static shared_ptr<Ansi> ansi_p = shared_ptr<Ansi>(&ansi);
 #ifndef NATIVE
       static bool _setup = false;
       if (!_setup) {
@@ -59,7 +61,7 @@ namespace fhatos {
         Serial.setTimeout(FOS_SERIAL_TIMEOUT);
       }
 #endif
-      return &ansi;
+      return ansi_p;
     }
 
   protected:
@@ -281,6 +283,10 @@ namespace fhatos {
       return ret;
     }
   };
+
+  template <typename PRINTER = Ansi<>>
+  shared_ptr<PRINTER> printer() { return shared_ptr<Ansi<>>((Ansi<>*)(Options::singleton()->printer<void>().get())); }
+
 } // namespace fhatos
 
 #endif

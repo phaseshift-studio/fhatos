@@ -18,11 +18,63 @@
 #ifndef fhatos_structure_subscription_hpp
 #define fhatos_structure_subscription_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
+#include "fhatos.hpp"
+#include "language/obj.hpp"
 
 namespace fhatos {
+#define RETAIN_MESSAGE true
+#define TRANSIENT_MESSAGE false
 
+#define LOG_SUBSCRIBE(rc, subscription)                                                                                \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",    \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
+      (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
+      (subscription)->pattern.toString().c_str(),                                                                      \
+      (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
+#define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(), ((source).toString().c_str()),    \
+      nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
+#define LOG_PUBLISH(rc, message)                                                                                       \
+  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
+      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
+      ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
+#define LOG_RECEIVE(rc, subscription, message)                                                                         \
+  LOG(((rc) == OK ? DEBUG : ERROR),                                                                                    \
+      (((subscription).pattern.equals((message).target))                                                               \
+           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!m=[!b%s!m]!!\n"                              \
+           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!m=[!b%s!m]!!\n"),                            \
+      (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
+      ((subscription).source.toString().c_str()), ((subscription).pattern.toString().c_str()),                         \
+      ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
+                                                        : ((message).target.toString().c_str()),                       \
+      ((subscription).pattern.equals((message).target)) ? ((message).source.toString().c_str())                        \
+                                                        : ((message).payload->toString)().c_str(),                     \
+      ((message).source.toString().c_str()))
+
+  //////////////////////////////////////////////
+  /////////////// ERROR MESSAGES ///////////////
+  //////////////////////////////////////////////
+
+  enum RESPONSE_CODE {
+    OK = 0,
+    NO_TARGETS,
+    REPEAT_SUBSCRIPTION,
+    NO_SUBSCRIPTION,
+    NO_MESSAGE,
+    ROUTER_ERROR,
+    MUTEX_TIMEOUT,
+    MUTEX_LOCKOUT
+  };
+
+  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
+                                                                    {NO_TARGETS, "no targets"},
+                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+                                                                    {NO_SUBSCRIPTION, "no subscription"},
+                                                                    {NO_MESSAGE, "no message"},
+                                                                    {ROUTER_ERROR, "internal router error"},
+                                                                    {MUTEX_TIMEOUT, "router timeout"}});
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
   //////////////////////////////////////////////
@@ -77,7 +129,7 @@ namespace fhatos {
   using Mail_p = ptr<Mail>;
   struct Mailbox {
   public:
-    virtual void recv_mail(Mail_p mail) = 0;
+    virtual bool recv_mail(const Mail_p &mail) = 0;
   };
   struct Subscription {
     using Mail = Pair<const Subscription_p, const Message_p>;

@@ -21,6 +21,8 @@
 #include <any>
 // #include <libwebsockets.h>
 #include <memory>
+#include <functional>
+#include <util/fhat_error.hpp>
 
 using namespace std;
 
@@ -30,13 +32,12 @@ namespace fhatos {
   class Options final {
   private:
     uint8_t LOGGING = 3; // INFO
-    void *ROUTING;
-    void *ROOTING;
-    void *scheduler_;
-    Ansi<> *PRINTING = Ansi<>::singleton();
-    any PARSER;
+    any router_{};
+    any scheduler_{};
+    any printer_{};
+    any parser_;
 
-    explicit Options(){};
+    explicit Options() = default;
 
   public:
     static Options *singleton() {
@@ -46,38 +47,26 @@ namespace fhatos {
     //////////////////////////
     //////// SCHEDULING ////////
     template<typename SCHEDULER>
-    SCHEDULER *scheduler() {
-      if (nullptr == scheduler_)
+    shared_ptr<SCHEDULER> scheduler() {
+      if (!scheduler_.has_value())
         throw fError("No scheduler specified in global options\n");
-      return (SCHEDULER *) this->scheduler_;
+      return std::any_cast<shared_ptr<SCHEDULER>>(this->scheduler_);
     }
     template<typename SCHEDULER>
-    void scheduler(const SCHEDULER *scheduler) {
-      this->scheduler_ = (void *) scheduler;
+    void scheduler(const shared_ptr<SCHEDULER> scheduler) {
+      this->scheduler_ = scheduler;
     }
     //////////////////////////
-    //////// ROUTING ////////
+    //////// router_ ////////
     template<typename ROUTER>
-    ROUTER *router() {
-      if (nullptr == ROUTING)
+    shared_ptr<ROUTER> router() {
+      if (!router_.has_value())
         throw fError("No router secified in global options\n");
-      return (ROUTER *) this->ROUTING;
+      return std::any_cast<shared_ptr<ROUTER>>(this->router_);
     }
     template<typename ROUTER>
-    void router(const ROUTER *router) {
-      this->ROUTING = (void *) router;
-    }
-    //////////////////////////
-    //////// ROUTING ////////
-    template<typename ROOTER>
-    ROOTER *rooter() {
-      if (nullptr == ROOTING)
-        throw fError("No router secified in global options\n");
-      return (ROOTER *) this->ROOTING;
-    }
-    template<typename ROOTER>
-    void rooter(const ROOTER *router) {
-      this->ROOTING = (void *) router;
+    void router(const shared_ptr<ROUTER> router) {
+      this->router_ = router;
     }
 
     //////////////////////////
@@ -92,29 +81,29 @@ namespace fhatos {
       return this;
     }
     //////////////////////////
-    //////// PRINTING ////////
-    template<typename PRINTER = Ansi<>>
-    PRINTER *printer() {
-      if (nullptr == PRINTING)
+    //////// printer_ ////////
+    template<typename PRINTER>
+    shared_ptr<PRINTER> printer() {
+      if (!printer_.has_value())
         throw fError("No printer secified in global options\n");
-      return (PRINTER *) this->PRINTING;
+      return std::any_cast<shared_ptr<PRINTER>>(this->printer_);
     }
-    template<typename PRINTER = Ansi<>>
-    Options *printer(PRINTER *printer) {
-      this->PRINTING = printer;
+    template<typename PRINTER>
+    Options *printer(shared_ptr<PRINTER> printer) {
+      this->printer_ = printer;
       return this;
     }
     ////////////////////////
     /////// PARSING ///////
     template<typename OBJ>
     shared_ptr<OBJ> parser(const string &bcode) {
-      if (!PARSER.has_value())
+      if (!parser_.has_value())
         throw fError("No parser specified in global options\n");
-      return std::any_cast<function<shared_ptr<OBJ>(string)>>(this->PARSER)(bcode);
+      return std::any_cast<function<shared_ptr<OBJ>(string)>>(this->parser_)(bcode);
     }
     template<typename OBJ>
     void parser(const std::function<shared_ptr<OBJ>(string)> parser) {
-      PARSER = any(parser);
+      parser_ = any(parser);
     }
     //////////////////////////
   };

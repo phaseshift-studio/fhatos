@@ -39,10 +39,10 @@
 #define FOS_BASE_TYPE_INDEX 1
 
 #include <fhatos.hpp>
-#include <structure/furi.hpp>
 #include <util/ptr_helper.hpp>
 #include <utility>
 #include <variant>
+#include "furi.hpp"
 
 namespace fhatos {
   /// @brief The base types of mm-ADT
@@ -546,7 +546,7 @@ namespace fhatos {
                             .append(objString)
                             .append(this->isInst() ? "!g)!!" : "!g]!!")
                       : objString;
-      return ansi ? objString : Options::singleton()->printer<>()->strip(objString);
+      return ansi ? objString : printer()->strip(objString);
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
     // operator const Obj_p &() { return shared_from_this(); }

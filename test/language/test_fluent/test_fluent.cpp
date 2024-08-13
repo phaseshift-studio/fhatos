@@ -1,4 +1,4 @@
-#include <process/native/scheduler.hpp>
+#include <process/ptype/native/scheduler.hpp>
 #ifndef fhatos_test_fluent_hpp
 #define fhatos_test_fluent_hpp
 

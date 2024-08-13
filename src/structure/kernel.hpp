@@ -21,10 +21,10 @@
 
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+#include <language/exts.hpp>
 #include <process/actor/actor.hpp>
 #include <process/process.hpp>
-#include <structure/io/terminal.hpp>
-#include <language/exts.hpp>
+#include <structure/model/terminal.hpp>
 
 #include <language/types.hpp>
 namespace fhatos {
@@ -38,42 +38,30 @@ namespace fhatos {
       Options::singleton()->log_level(level);
       return Kernel::build();
     }
-    static Kernel *with_printer(Ansi<> *ansi) {
-      Options::singleton()->printer(ansi);
+    static Kernel *with_printer(const ptr<Ansi<>>& ansi) {
+      Options::singleton()->printer<>(ansi);
       return Kernel::build();
     }
     static Kernel *displaying_splash(const char *splash) {
-      Options::singleton()->printer<>()->print(splash);
+      printer<>()->print(splash);
       return Kernel::build();
     }
     static Kernel *displaying_notes(const char *notes) {
-      Options::singleton()->printer<>()->printf(FOS_TAB_4 "%s\n", notes);
+      printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
-    static Kernel *using_scheduler(const XScheduler *scheduler) {
-      Options::singleton()->scheduler<XScheduler>(scheduler);
+    static Kernel *using_scheduler(const ptr<Scheduler>& scheduler) {
+      Options::singleton()->scheduler<Scheduler>(scheduler);
       return Kernel::build();
     }
-    static Kernel *using_router(const Rooter *router) {
-      Options::singleton()->rooter<Rooter>(router);
+    static Kernel *using_router(const ptr<Router>& router) {
+      Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
     template<typename ACTOR, typename PROCESS, typename STRUCTURE>
-    static Kernel *boot(const ACTOR *bootable) {
-      Options::singleton()->rooter<Rooter>()->attach((STRUCTURE *) bootable);
-      Options::singleton()->scheduler<XScheduler>()->spawn((PROCESS *) bootable);
-      return Kernel::build();
-    }
-
-    /*static Kernel *onBoot(const Scheduler *, const List<Process *> &processes) {
-      bool success = true;
-      for (Process *process: processes) {
-        success = success && Scheduler::singleton()->spawn(process);
-      }
-      return Kernel::build();
-    }*/
-    static Kernel *initialRouter(const Router *router) {
-      Options::singleton()->router<Router>(router);
+    static Kernel *boot(const ptr<ACTOR> bootable) {
+      router()->attach((STRUCTURE *) bootable.get());
+      scheduler()->spawn(ptr<PROCESS>(bootable));
       return Kernel::build();
     }
     static Kernel *load_modules(const List<ID> &modules) {
@@ -84,7 +72,7 @@ namespace fhatos {
           Types::singleton()->saveType(idp, pair.second);
           // list->push_back(Obj::to_uri(*idp));
         }
-        // Options::singleton()->rooter<Rooter>()->publish(
+        // router<Router>()->publish(
         //    Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
       }
       return Kernel::build();

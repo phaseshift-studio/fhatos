@@ -21,9 +21,9 @@
 
 #include <fhatos.hpp>
 #include <process/process.hpp>
-#include <structure/furi.hpp>
-#include <structure/router/pubsub_artifacts.hpp>
 #include <structure/structure.hpp>
+#include "furi.hpp"
+#include "structure/pubsub.hpp"
 
 namespace fhatos {
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
@@ -37,14 +37,13 @@ namespace fhatos {
     explicit Actor(const ID &id) : Actor(id, id.extend("#")) {}
 
     virtual ~Actor() = default;
-    void recv_mail(const Mail_p mail) override { this->outbox->push_back(mail); }
-
-    RESPONSE_CODE publish(const ID &target, const Obj_p &payload, const bool retain = TRANSIENT_MESSAGE) {
-      return Rooter::singleton()->route_message(
+    bool recv_mail(const Mail_p& mail) override { return this->outbox->push_back(mail); }
+    RESPONSE_CODE publish(const ID &target, const Obj_p &payload, const bool retain = TRANSIENT_MESSAGE) { // rename send_mail
+      return Router::singleton()->route_message(
           share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
-      return Rooter::singleton()->route_subscription(share(Subscription{
+      return Router::singleton()->route_subscription(share(Subscription{
           .source = *this->id(), .pattern = this->pattern()->resolve(pattern), .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }

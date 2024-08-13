@@ -23,7 +23,7 @@
 //
 #include <process/process.hpp>
 #include FOS_PROCESS(coroutine.hpp)
-#include <structure/furi.hpp>
+#include "furi.hpp"
 //
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>

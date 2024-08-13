@@ -159,7 +159,7 @@ IF (USE_LIBWEBSOCKETS)
 ENDIF ()
 ####################################
 ####################################
-### YAML: YAML PARSER IMPLEMENTATION
+### YAML: YAML parser_ IMPLEMENTATION
 OPTION(USE_YAML "YAML build" OFF) # ON/OFF
 IF (USE_YAML)
     FETCHCONTENT_DECLARE(

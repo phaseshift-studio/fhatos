@@ -21,8 +21,8 @@
 
 
 #include <fhatos.hpp>
+#include <furi.hpp>
 #include <language/obj.hpp>
-#include <structure/furi.hpp>
 
 namespace fhatos {
   class Exts {

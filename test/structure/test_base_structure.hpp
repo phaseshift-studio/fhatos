@@ -17,22 +17,22 @@
 #ifndef fhatos_base_structure_hpp
 #define fhatos_base_structure_hpp
 
-#include <test_fhatos.hpp>
 #include <fhatos.hpp>
+#include <structure/router.hpp>
 #include <structure/structure.hpp>
-#include <structure/rooter.hpp>
+#include <test_fhatos.hpp>
 
 
 #define FOS_STOP_ON_BOOT  \
-rooter()->detach(p_p(*current_structure->pattern())); \
+router()->detach(p_p(*current_structure->pattern())); \
 
 namespace fhatos {
 Structure* current_structure;
 
 
 void test_write() {
-    rooter()->attach(current_structure);
-    FOS_TEST_EXCEPTION_CXX(rooter()->write(id_p("/a/b/c"), noobj(), id_p("fhatty")));
+    router()->attach(current_structure);
+    FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/a/b/c"), noobj(), id_p("fhatty")));
 }
 
 

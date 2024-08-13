@@ -20,11 +20,11 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <structure/router/pubsub_artifacts.hpp>
-#include <structure/router/router.hpp>
+#include <structure/router.hpp>
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
+#include "pubsub.hpp"
 
 namespace fhatos {
   enum class SType { READ, WRITE, READWRITE };
@@ -145,10 +145,8 @@ namespace fhatos {
       LOG_PUBLISH(rc, *message);
     }
     virtual void remove(const ID_p &id, const ID_p &source) { this->write(id, Obj::to_noobj(), source); }
-    virtual Obj_p read(const ID_p &id, const ID_p &source) = 0;
-    virtual Obj_p read(const ID_p &id) { return this->read(id, id_p(FOS_DEFAULT_SOURCE_ID)); };
-    virtual Objs_p read(const fURI_p &furi, const ID_p &source) = 0;
-    virtual Objs_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
+    virtual Obj_p read(const fURI_p &furi, const ID_p &source) = 0;
+    virtual Obj_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
     virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) = 0;
     virtual void write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
   };

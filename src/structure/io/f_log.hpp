@@ -21,11 +21,11 @@
 
 #include <fhatos.hpp>
 //
-#include <structure/furi.hpp>
 #include <process/actor/actor.hpp>
 #include <process/router/local_router.hpp>
 #include <util/ansi.hpp>
 #include <util/string_printer.hpp>
+#include "furi.hpp"
 
 namespace fhatos {
 

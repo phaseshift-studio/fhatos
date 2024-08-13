@@ -49,18 +49,18 @@ namespace fhatos {
       buffer[length] = '\0';
       va_end(arg);
       if (type == NONE)
-        Options::singleton()->printer<>()->print("");
+        printer()->print("");
       else if (type == ERROR)
-        Options::singleton()->printer()->print("!r[ERROR]!! ");
+        printer()->print("!r[ERROR]!! ");
       else if (type == WARN)
-        Options::singleton()->printer()->print("!y[WARN] !! ");
+        printer()->print("!y[WARN] !! ");
       else if (type == INFO)
-        Options::singleton()->printer()->print("!g[INFO] !! ");
+        printer()->print("!g[INFO] !! ");
       else if (type == DEBUG)
-        Options::singleton()->printer()->print("!y[DEBUG]!! ");
+        printer()->print("!y[DEBUG]!! ");
       else if (type == TRACE)
-        Options::singleton()->printer()->print("!r[TRACE]!! ");
-      Options::singleton()->printer()->print(buffer);
+        printer()->print("!r[TRACE]!! ");
+      printer()->print(buffer);
     }
   };
 } // namespace fhatos

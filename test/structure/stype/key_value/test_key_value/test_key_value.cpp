@@ -18,11 +18,11 @@
 #define fhatos_test_key_value_hpp
 
 #undef FOS_TEST_ON_BOOT
+#include <../test/structure/test_base_structure.hpp>
 #include <fhatos.hpp>
-#include <structure/rooter.hpp>
+#include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 #include <test_fhatos.hpp>
-#include <../test/structure/test_base_structure.cpp>
 
 namespace fhatos {
 

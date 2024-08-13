@@ -16,26 +16,28 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_thread_hpp
-#define fhatos_thread_hpp
+#ifndef fhatos_fiber_hpp
+#define fhatos_fiber_hpp
 
-#include <fhatos.hpp>
-//
-#include <process/process.hpp>
+#include <chrono>
+#include <thread>
+#include "process/process.hpp"
 
 namespace fhatos {
-  class Thread : public Process {
+  class Fiber : public Process {
   public:
-    TaskHandle_t handle;
+    std::thread *xthread;
 
-    explicit Thread(const ID &id) : Process(id, PType::THREAD) {
-    }
+    explicit Fiber(const ID &id) : Process(id, PType::FIBER), xthread(nullptr) {}
 
     void delay(const uint64_t milliseconds) override {
-      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+      // delay to next fiber
+      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
-    void yield() override { taskYIELD(); }
+    void yield() override {
+      // do nothing
+    }
   };
 } // namespace fhatos
 

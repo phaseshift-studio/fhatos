@@ -281,7 +281,7 @@ namespace fhatos {
                                                                     "        loop  => |stop(/abc/)]].to(/abc/)")
                                                       .value());
     Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->id()->toString() + "_wait").c_str(),
+    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->pattern()->toString() + "_wait").c_str(),
                                     [] { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 

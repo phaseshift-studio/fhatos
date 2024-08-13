@@ -26,6 +26,7 @@
 #include <sstream>
 #include <structure/stype/empty.hpp>
 #include <util/string_helper.hpp>
+#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
   using namespace std;
@@ -76,12 +77,13 @@ namespace fhatos {
 
   class Parser final : public Actor<Coroutine, Empty> {
   private:
-    explicit Parser(const ID &id = ID("/parser/")) : Actor(id) {}
+    explicit Parser(const ID &id = ID("/parser/")) : Actor<Coroutine,Empty>(id) {}
     enum class PARSE_TOKENS { BRACKET, PAREN };
 
   public:
-    static Parser *singleton(const ID &id = ID("/parser/")) {
+    static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
       static Parser parser = Parser(id);
+      static ptr<Parser> parser_p = ptr<Parser>(&parser);
       static bool _setup = false;
       if (!_setup) {
         TYPE_PARSER = [](const string &bcode) {
@@ -95,7 +97,7 @@ namespace fhatos {
         Options::singleton()->parser<Obj>(TYPE_PARSER);
         _setup = true;
       }
-      return &parser;
+      return parser_p;
     }
 
     static bool closedExpression(const string &line) {

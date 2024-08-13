@@ -18,34 +18,18 @@
 
 #include <fhatos.hpp>
 #include <structure/kernel.hpp>
-// scheduler
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/process.hpp>
 #include <structure/stype/key_value.hpp>
-// routers
-#include <structure/rooter.hpp>
-#include <structure/router/local_router.hpp>
+#include <structure/router.hpp>
 #ifdef NATIVE
-#include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
-#include <structure/router/meta_router.hpp>
 #endif
 // utilities
 #include <language/types.hpp>
-#include <structure/console/console.hpp>
-#include <structure/io/net/cluster.hpp>
-#include <structure/io/terminal.hpp>
-
-#ifndef FOS_ROUTERS
-#ifdef NATIVE
-#define FOS_ROUTERS                                                                                                    \
-  LocalRouter::singleton("/sys/router/local"),                                                                         \
-      MqttRouter::singleton("/sys/router/global", args.option("--mqtt", "localhost:1883").c_str()),                    \
-      MetaRouter::singleton("/sys/router/meta")
-#else
-#define FOS_ROUTERS LocalRouter::singleton("/sys/router/local")
-#endif
-#endif
+#include <structure/model/cluster.hpp>
+#include <structure/model/console.hpp>
+#include <structure/model/terminal.hpp>
 
 namespace fhatos {
   class ArgvParser {
@@ -78,44 +62,26 @@ void setup() {
     Kernel::build()
         ->with_printer(Ansi<>::singleton())
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
-        ->initialRouter(LocalRouter::singleton())
         ->displaying_splash(ANSI_ART)
         ->displaying_notes("Use !b/type/noobj/[]!! for !ynoobj!!")
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-        ->using_router(Rooter::singleton("/sys/router/"))
-        ->boot<Cluster, Fiber, Mqtt>(new Cluster("/io/cluster"))
+        ->using_router(Router::singleton("/sys/router/"))
+        ->boot<Cluster, Fiber, Mqtt>(ptr<Cluster>(new Cluster("/io/cluster")))
         ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))
         ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
         ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
         ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
-        ->boot<Console, Thread, KeyValue>(new Console("/home/root/repl/"))
+        ->boot<Console, Thread, KeyValue>(ptr<Console>(new Console("/home/root/repl/")))
         ->load_modules({ID("/mod/proc")})
         ->defaultOutput("/home/root/repl/")
         ->done("kernel_barrier");
-    Options::singleton()->printer<>()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n",
-                                              Ansi<>::sillyPrint("shutting down").c_str());
+    printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
   }
   exit(1);
 }
-/*
- * // ->with_int_ctype(int)
-// ->with_real_ctype(float)
-// ->initialRouter(LocalRouter::singleton())
-/*->onBoot(Scheduler::singleton("/sys/scheduler/"), //
-          {FOS_ROUTERS, //
-           Terminal::singleton("/sys/io/terminal/"), //
-           Types::singleton("/sys/lang/type/"), //
-           , //
-#ifdef NATIVE
-//                FileSystem::singleton(
-//                   "/sys/io/fs", ID(fs::current_path()).resolve(args.option("--fs",
-fs::current_path().c_str()))),
-//                   //
-#endif
-           })*/
 
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler

@@ -29,6 +29,7 @@
 #define FOS_MQTT_RETRY_WAIT 5000
 
 namespace fhatos {
+  using namespace mqtt;
   class Mqtt : public Structure {
   protected:
     Message_p will_message;
@@ -37,7 +38,7 @@ namespace fhatos {
 
   public:
     //                                     +[scheme]//+[authority]/#[path]
-    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = MQTT_BROKER_ADDR,
+    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = FOS_MQTT_BROKER_ADDR,
                   const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::READWRITE) {
 
       this->server_addr = string(server_addr).find_first_of("mqtt://") == string::npos
@@ -153,41 +154,42 @@ namespace fhatos {
       });
     }
 
-    Objs_p read(const fURI_p &furi, const ID_p &source) override { return Obj::to_objs(); }
+    Objs_p read(const fURI_p &furi, const ID_p &source) override {
+      if (furi->is_pattern()) {
+        return Obj::to_objs();
+      } else {
+        auto *thing = new std::atomic<const Obj *>(nullptr);
+        this->recv_subscription(share(Subscription{
+            .source = ID(*source), .pattern = *furi, .onRecv = [this, furi, thing](const Message_p &message) {
+              // TODO: try to not copy obj while still not accessing heap after delete
+              LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
+                            message->toString().c_str());
+              const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
+              thing->store(obj);
+            }}));
+        const time_t startTimestamp = time(nullptr);
+        while (!thing->load()) {
+          if ((time(nullptr) - startTimestamp) > 2) {
+            break;
+          }
+        }
+        this->recv_unsubscribe(source, furi);
+        if (nullptr == thing->load()) {
+          delete thing;
+          return Obj::to_noobj();
+        } else {
+          const Obj_p ret = ptr<Obj>((Obj *) thing->load());
+          delete thing;
+          return ret;
+        }
+      }
+    }
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source) override {
       BObj_p source_payload = Message::wrapSource(source, obj);
       LOG_STRUCTURE(TRACE, this, "writing to xmpp broker: %s\n", source_payload->second);
       this->xmqtt->publish(target->toString(), source_payload->second, source_payload->first, 1 /*qos*/,
                            RETAIN_MESSAGE);
     }
-
-    Obj_p read(const ID_p &id, const ID_p &source) override {
-      auto *thing = new std::atomic<const Obj *>(nullptr);
-      this->recv_subscription(share(Subscription{
-          .source = ID(*source), .pattern = ID(*id), .onRecv = [this, id, thing](const Message_p &message) {
-            // TODO: try to not copy obj while still not accessing heap after delete
-            LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", id->toString().c_str(),
-                          message->toString().c_str());
-            const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
-            thing->store(obj);
-          }}));
-      const time_t startTimestamp = time(nullptr);
-      while (!thing->load()) {
-        if ((time(nullptr) - startTimestamp) > 2) {
-          break;
-        }
-      }
-      this->recv_unsubscribe(source, id);
-      if (nullptr == thing->load()) {
-        delete thing;
-        return Obj::to_noobj();
-      } else {
-        const Obj_p ret = ptr<Obj>((Obj *) thing->load());
-        delete thing;
-        return ret;
-      }
-    }
   };
 } // namespace fhatos
-
 #endif

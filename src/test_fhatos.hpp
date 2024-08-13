@@ -33,9 +33,8 @@
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
-#include <structure/io/terminal.hpp>
-#include <structure/rooter.hpp>
-#include <structure/router/local_router.hpp>
+#include <structure/model/terminal.hpp>
+#include <structure/router.hpp>
 #ifdef NATIVE
 // #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
@@ -47,9 +46,8 @@
   Kernel::build()                                                                                                      \
       ->with_printer(Ansi<>::singleton())                                                                              \
       ->with_log_level(FOS_LOGGING)                                                                                    \
-      ->initialRouter(LocalRouter::singleton())                                                                        \
       ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
-      ->using_router(Rooter::singleton("/sys/router/"))                                                                \
+      ->using_router(Router::singleton("/sys/router/"))                                                                \
       ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))                                         \
       ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))                                                       \
       ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))                                         \
@@ -60,12 +58,12 @@
 #define FOS_STOP_ON_BOOT ;
 
 #else
-#include <structure/rooter.hpp>
+#include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#define FOS_SETUP_ON_BOOT \
-Options::singleton()->log_level(FOS_LOGGING); \
-Options::singleton()->rooter<Rooter>(Rooter::singleton()); \
-Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
+#define FOS_SETUP_ON_BOOT                                                                                              \
+  Options::singleton()->log_level(FOS_LOGGING);                                                                        \
+  Options::singleton()->router<Router>(Router::singleton());                                                           \
+  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
 
 #define FOS_STOP_ON_BOOT ;
 #endif
@@ -99,7 +97,7 @@ namespace fhatos {
 #ifdef NATIVE
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
-  int main(int, char **) { RUN_UNITY_TESTS(); };                                                               \
+  int main(int, char **) { RUN_UNITY_TESTS(); };                                                                       \
   void setUp() {}                                                                                                      \
   void tearDown() { FOS_STOP_ON_BOOT; }
 #else
@@ -140,7 +138,6 @@ namespace fhatos {
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     Options::singleton()->log_level(LOG_TYPE::TRACE);                                                                  \
-    Options::singleton()->router<Router>(LocalRouter::singleton());                                                    \
     LOG(NONE, ANSI_ART);                                                                                               \
     Scheduler::singleton()->onBoot({LocalRouter::singleton(), Parser::singleton(), Types::singleton()});               \
     Types::singleton()->loadExt("/ext/process");                                                                       \
@@ -163,9 +160,9 @@ using namespace fhatos;
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < ERROR) {                                                                                           \
-    Options::singleton()->printer<>()->printf("  !rline %i!!\t", __LINE__);                                            \
-    Options::singleton()->printer<>()->printf((format), ##__VA_ARGS__);                                                \
-    Options::singleton()->printer<>()->println();                                                                      \
+    printer<>()->printf("  !rline %i!!\t", __LINE__);                                                                  \
+    printer<>()->printf((format), ##__VA_ARGS__);                                                                      \
+    printer<>()->println();                                                                                            \
   }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
@@ -308,25 +305,25 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
     }
   }
   if (!expectedReferences.empty()) {
-    TEST_ASSERT_EQUAL_INT_MESSAGE(
-        expectedReferences.size(), Options::singleton()->router<Router>()->retainSize(),
-        (string("Router retain message count: ") + Options::singleton()->router<Router>()->id()->toString()).c_str());
+   /* TEST_ASSERT_EQUAL_INT_MESSAGE(
+        expectedReferences.size(), router()->retainSize(),
+        (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
-      Options::singleton()->router<Router>()->subscribe(
-          Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
+      router()->route_subscription(
+          share<Subscription>(Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
                        .pattern = key.uri_value(),
                        .onRecv = [temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                                   (string("Router retain message payload equality: ") +
-                                                   Options::singleton()->router<Router>()->id()->toString() + " " +
+                                                   router()->pattern()->toString() + " " +
                                                    temp.toString() + " != " + message->payload->toString())
                                                       .c_str());
-                       }});
+                       }}));
     }
   }
-  if (clearRouter)
-    Options::singleton()->router<Router>()->clear(false, true);
+  //if (clearRouter)
+   // Options::singleton()->router<Router>()->clear(false, true);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>

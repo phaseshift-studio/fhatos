@@ -16,27 +16,26 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_fiber_hpp
-#define fhatos_fiber_hpp
+#ifndef fhatos_coroutine_hpp
+#define fhatos_coroutine_hpp
 
-#include <fhatos.hpp>
+#include "process/process.hpp"
 //
-#include <process/process.hpp>
 
 namespace fhatos {
-  class Fiber : public Process {
+  class Coroutine : public Process {
   public:
-    TaskHandle_t handle{};
+    explicit Coroutine(const ID &id) : Process(id, PType::COROUTINE) {}
 
-    explicit Fiber(const ID &id) : Process(id, PType::FIBER) {
-    }
-
-    void delay(const uint64_t milliseconds) override {
-      // delay to next fiber
-      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+    void delay(const uint64_t) override {
+      // do nothing
     }
 
     void yield() override {
+      // do nothing
+    }
+
+    void loop() override {
       // do nothing
     }
   };

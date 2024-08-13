@@ -24,7 +24,7 @@
 
 namespace fhatos {
 
-  class KeyValue  : public Structure {
+  class KeyValue : public Structure {
 
   protected:
     Map<ID_p, const Obj_p, furi_p_less> *DATA = new Map<ID_p, const Obj_p, furi_p_less>();
@@ -54,26 +54,26 @@ namespace fhatos {
       });
     }
 
-    Obj_p read(const ID_p &id, [[maybe_unused]] const ID_p &source) override {
-      return MUTEX_DATA.read<Obj_p>([this, id]() { return DATA->count(id) ? obj(*(DATA->at(id))) : noobj(); });
-    }
-
-    Objs_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
-      return MUTEX_DATA.read<Objs_p>([this, furi]() {
-        Objs_p objs = Obj::to_objs();
-        if (furi->is_pattern()) {
-          for (const auto &[f, o]: *this->DATA) {
-            if (f->matches(*furi)) {
-              objs->add_obj(uri(f));
+    Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
+      if (furi->is_pattern()) {
+        return MUTEX_DATA.read<Objs_p>([this, furi]() {
+          Objs_p objs = Obj::to_objs();
+          if (furi->is_pattern()) {
+            for (const auto &[f, o]: *this->DATA) {
+              if (f->matches(*furi)) {
+                objs->add_obj(uri(f));
+              }
             }
+          } else {
+            const ID_p id = id_p(*furi);
+            const Obj_p toadd = DATA->count(id) ? obj(*(DATA->at(id))) : noobj();
+            objs->add_obj(toadd);
           }
-        } else {
-          const ID_p id = id_p(*furi);
-          const Obj_p toadd = DATA->count(id) ? obj(*(DATA->at(id))) : noobj();
-          objs->add_obj(toadd);
-        }
-        return objs;
-      });
+          return objs;
+        });
+      } else
+        return MUTEX_DATA.read<Obj_p>(
+            [this, furi]() { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
     }
   };
 } // namespace fhatos

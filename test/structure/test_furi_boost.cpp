@@ -20,7 +20,7 @@
 #define BOOST_TEST_MODULE test_furi_boost
 #include <boost/test/unit_test.hpp>
 #include <fhatos.hpp>
-#include <structure/furi.hpp>
+#include <furi.hpp>
 #include <util/ansi.hpp>
 string message = string();
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \

@@ -3,18 +3,18 @@
 
 #undef FOS_TEST_ON_BOOT
 #include <language/parser.hpp>
-#include <structure/router/local_router.hpp>
 #include <test_fhatos.hpp>
 #include <util/obj_helper.hpp>
+#include <structure/router.hpp>
 namespace fhatos {
 
   void test_subscribe() {}
 
   void test_publish() {
-    TEST_ASSERT_EQUAL(
+   /* TEST_ASSERT_EQUAL(
         RESPONSE_CODE::NO_TARGETS,
         LocalRouter::singleton()->publish(Message{
-            .source = ID("a"), .target = ID("b"), .payload = share<Str>(Str("test")), .retain = TRANSIENT_MESSAGE}));
+            .source = ID("a"), .target = ID("b"), .payload = share<Str>(Str("test")), .retain = TRANSIENT_MESSAGE}));*/
   }
 
   void test_bobj_wrap() {

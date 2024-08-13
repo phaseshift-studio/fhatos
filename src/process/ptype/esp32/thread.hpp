@@ -19,41 +19,23 @@
 #ifndef fhatos_thread_hpp
 #define fhatos_thread_hpp
 
-#include <chrono>
-#include <fhatos.hpp>
-#include <process/process.hpp>
-#include <thread>
+#include "fhatos.hpp"
+//
+#include "process/process.hpp"
 
 namespace fhatos {
   class Thread : public Process {
   public:
-    std::thread *xthread;
+    TaskHandle_t handle;
 
-    explicit Thread(const ID &id) : Process(id, PType::THREAD), xthread(nullptr) {}
-
-    virtual ~Thread() override { delete this->xthread; }
-
-    void setup() override { Process::setup(); }
-
-    void stop() override {
-      Process::stop();
-      if (this->xthread && this->xthread->joinable() && (this->xthread->get_id() != std::this_thread::get_id())) {
-        try {
-          this->xthread->join();
-        } catch (const std::runtime_error &e) {
-          LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
-                   this->xthread->get_id(), std::this_thread::get_id());
-        }
-      }
+    explicit Thread(const ID &id) : Process(id, PType::THREAD) {
     }
-
-    void loop() override { }
 
     void delay(const uint64_t milliseconds) override {
-      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
     }
 
-    void yield() override { std::this_thread::yield(); }
+    void yield() override { taskYIELD(); }
   };
 } // namespace fhatos
 

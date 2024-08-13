@@ -21,14 +21,14 @@
 
 #include <atomic>
 #include <fhatos.hpp>
-#include <structure/furi.hpp>
 #include <util/enums.hpp>
+#include "furi.hpp"
 
 namespace fhatos {
 
-  enum class PType { THREAD, FIBER, COROUTINE, KERNEL };
+  enum class PType { THREAD, FIBER, COROUTINE };
   static const Enums<PType> ProcessTypes = Enums<PType>(
-      {{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}, {PType::KERNEL, "kernel"}});
+      {{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}});
 
   class Process : public IDed {
 
@@ -40,7 +40,7 @@ namespace fhatos {
 
     explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {}
 
-    virtual ~Process() = default;
+    ~Process() override = default;
 
     virtual void setup() {
       if (this->_running.load()) {
@@ -70,11 +70,6 @@ namespace fhatos {
     virtual void delay(const uint64_t) {}; // milliseconds
 
     virtual void yield() {};
-  };
-
-  class XKernel : public Process {
-  public:
-    explicit XKernel(const ID &id) : Process(id, PType::KERNEL) {}
   };
 } // namespace fhatos
 

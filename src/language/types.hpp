@@ -23,7 +23,7 @@
 #include <language/insts.hpp>
 #include <language/obj.hpp>
 #include FOS_PROCESS(fiber.hpp)
-#include <structure/rooter.hpp>
+#include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 #include <unistd.h>
 #include <util/mutex_rw.hpp>
@@ -34,9 +34,10 @@ namespace fhatos {
     explicit Types(const ID &id = FOS_TYPE_PREFIX) : Actor(id) {}
 
   public:
-    static Types *singleton(const ID &id = FOS_TYPE_PREFIX) {
+    static ptr<Types> singleton(const ID &id = FOS_TYPE_PREFIX) {
       static Types types = Types(id);
-      return &types;
+      static ptr<Types> types_p = ptr<Types>(&types);
+      return types_p;
     }
 
     void setup() override {

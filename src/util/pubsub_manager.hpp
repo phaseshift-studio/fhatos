@@ -20,9 +20,9 @@
 #ifndef fhatos_pubsub_manager_hpp
 #define fhatos_pubsub_manager_hpp
 
-#include <structure/router/pubsub_artifacts.hpp>
 #include <structure/router/router.hpp>
 #include <util/mutex_rw.hpp>
+#include "structure/pubsub.hpp"
 
 namespace fhatos {
 

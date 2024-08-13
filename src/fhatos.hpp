@@ -150,8 +150,6 @@ namespace fhatos {
   using fbyte = uint8_t;
   using uint = unsigned int;
   static const char *EMPTY_CHARS = "";
-  enum OPTIONS { router, printer, logger };
-  static Map<OPTIONS, Any> GLOBAL = Map<OPTIONS, Any>();
 
   ////////////
   // MACROS //
@@ -191,15 +189,16 @@ namespace fhatos {
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
-#define LOG_PROCESS(logtype, process, format, ...)                                                                        \
+#define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
-#define LOG_STRUCTURE(logtype, structure, format, ...)                                                                        \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(), ##__VA_ARGS__)
+#define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
+  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
+      ##__VA_ARGS__)
 #define FOS_LOG_INST(inst)                                                                                             \
   LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
       (inst)->opcode().c_str(),                                                                                        \
       (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
-                               : (inst)->v_args().at(0)->pattern()->v_furi()->toString().c_str(),                         \
+                               : (inst)->v_args().at(0)->pattern()->v_furi()->toString().c_str(),                      \
       (inst)->v_args().empty() ? OTypes.toChars(OType::NOOBJ) : OTypes.toChars((inst)->v_args().at(0)->otype()),       \
       (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->isBytecode()),                         \
       (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
@@ -222,7 +221,7 @@ namespace fhatos {
   ////////////////////////////
 
 #if defined(ESP32)
-#define FOS_PROCESS(proc) <process/esp32/proc>
+#define FOS_PROCESS(proc) <process/ptype/esp32/proc>
 #define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(ESP8266)
@@ -230,14 +229,12 @@ namespace fhatos {
 #define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(NATIVE)
-#define FOS_PROCESS(proc) <process/native/proc>
-#define FOS_MQTT(mqtt) <structure/router/native/mqtt>
+#define FOS_PROCESS(proc) <process/ptype/native/proc>
+#define FOS_MQTT(mqtt) <structure/router/mqtt>
 #define FOS_UTIL(utl) <util/std/utl>
-#define FOS_FILE_SYSTEM(fs) <structure/io/filesystem/native/fs>
+#define FOS_FILE_SYSTEM(fs) <structure/model/filesystem/native/fs>
 #else
 #error "Unknown architecture."
 #endif
-#define FOS_ROUTER(rout) <structure/router/rout>
-#define FOS_MODULE(modu) <structure/modu>
 } // namespace fhatos
 #endif

@@ -1,8 +1,11 @@
 #ifndef fhatos_test_mutex_hpp
 #define fhatos_test_mutex_hpp
 
-#define FOS_TEST_ON_BOOT
+#undef FOS_TEST_ON_BOOT
 #include <test_fhatos.hpp>
+#include FOS_PROCESS(thread.hpp)
+#include <util/mutex_deque.hpp>
+#include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos {
 
@@ -35,7 +38,7 @@ namespace fhatos {
 
   ///////////////////// UTILITY METHOD
 
-  void populateMutex(MutexDeque<int> *m, const BiConsumer<MutexDeque<int> *, int>& tester) {
+  void populateMutex(MutexDeque<int> *m, const BiConsumer<MutexDeque<int> *, int> &tester) {
     for (int i = 0; i < 100; i++) {
       tester(m, i);
     }
@@ -79,18 +82,18 @@ namespace fhatos {
     m.remove_if([](int i) { return i % 2 == 0; });
     TEST_ASSERT_FALSE(m.empty());
     TEST_ASSERT_EQUAL(50, m.size());
-    //Scheduler::singleton()->stop();
+    Scheduler::singleton()->barrier();
   }
 
   void test_mutex_deque_concurrently() {
     int WORKER_COUNT = 10;
-    Scheduler *s = Scheduler::singleton();
+    ptr<Scheduler> s = Scheduler::singleton();
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
     MutexDeque<int> m = MutexDeque<int>();
     TEST_ASSERT_EQUAL(0, m.size());
     TEST_ASSERT_TRUE(m.empty());
     for (int i = 0; i < WORKER_COUNT; i++) {
-      TEST_ASSERT_TRUE(s->spawn(new Worker(i, &m)));
+      TEST_ASSERT_TRUE(s->spawn((ptr<Thread>(new Worker(i, &m)))));
     }
     Scheduler::singleton()->barrier("no_workers", [] { return Scheduler::singleton()->count("worker/+") == 0; });
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
@@ -108,13 +111,14 @@ namespace fhatos {
       temp = m.pop_front().value_or(-1);
     }
     TEST_ASSERT_EQUAL(sum, mutexSum);
-    // Scheduler::singleton()->stop();
+    Scheduler::singleton()->barrier();
   }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_mutex_deque_methods); //
+     FOS_RUN_TEST(test_mutex_deque_methods); //
       FOS_RUN_TEST(test_mutex_deque_concurrently); //
-  );
+      Scheduler::singleton()->stop(); //
+      );
 } // namespace fhatos
 
 SETUP_AND_LOOP()
