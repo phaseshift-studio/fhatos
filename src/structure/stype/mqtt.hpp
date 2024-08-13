@@ -36,7 +36,7 @@ namespace fhatos {
     const char *server_addr;
     async_client *xmqtt;
 
-  public:
+
     //                                     +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = FOS_MQTT_BROKER_ADDR,
                   const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::READWRITE) {
@@ -107,6 +107,12 @@ namespace fhatos {
       } catch (const mqtt::exception &e) {
         LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr, e.what());
       }
+    }
+
+  public:
+    static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
+                            const Message_p &will_message = ptr<Message>(nullptr)) {
+      return ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
     }
 
     void recv_message(const Message_p &message) override {

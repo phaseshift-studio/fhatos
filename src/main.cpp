@@ -60,7 +60,7 @@ static ArgvParser args = ArgvParser();
 void setup() {
   try {
     Kernel::build()
-        ->with_printer(Ansi<>::singleton())
+        ->using_printer(Ansi<>::singleton())
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
         ->displaying_splash(ANSI_ART)
         ->displaying_notes("Use !b/type/noobj/[]!! for !ynoobj!!")
@@ -74,7 +74,7 @@ void setup() {
         ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
         ->boot<Console, Thread, KeyValue>(ptr<Console>(new Console("/home/root/repl/")))
         ->load_modules({ID("/mod/proc")})
-        ->defaultOutput("/home/root/repl/")
+        ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");
     printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
   } catch (const std::exception &e) {

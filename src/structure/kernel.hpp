@@ -30,41 +30,42 @@
 namespace fhatos {
   class Kernel {
   public:
-    static Kernel *build() {
-      static Kernel *kernel = new Kernel();
-      return kernel;
+    static ptr<Kernel> build() {
+      static Kernel kernel = Kernel();
+      static ptr<Kernel> kernel_p = PtrHelper::no_delete(&kernel);
+      return kernel_p;
     }
-    static Kernel *with_log_level(const LOG_TYPE level) {
+    static ptr<Kernel> with_log_level(const LOG_TYPE level) {
       Options::singleton()->log_level(level);
       return Kernel::build();
     }
-    static Kernel *with_printer(const ptr<Ansi<>>& ansi) {
-      Options::singleton()->printer<>(ansi);
+    static ptr<Kernel> using_printer(const ptr<Ansi<>> &ansi) {
+      Options::singleton()->printer<Ansi<>>(ansi);
       return Kernel::build();
     }
-    static Kernel *displaying_splash(const char *splash) {
+    static ptr<Kernel> displaying_splash(const char *splash) {
       printer<>()->print(splash);
       return Kernel::build();
     }
-    static Kernel *displaying_notes(const char *notes) {
+    static ptr<Kernel> displaying_notes(const char *notes) {
       printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
-    static Kernel *using_scheduler(const ptr<Scheduler>& scheduler) {
+    static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
       Options::singleton()->scheduler<Scheduler>(scheduler);
       return Kernel::build();
     }
-    static Kernel *using_router(const ptr<Router>& router) {
+    static ptr<Kernel> using_router(const ptr<Router> &router) {
       Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
     template<typename ACTOR, typename PROCESS, typename STRUCTURE>
-    static Kernel *boot(const ptr<ACTOR> bootable) {
-      router()->attach((STRUCTURE *) bootable.get());
-      scheduler()->spawn(ptr<PROCESS>(bootable));
+    static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
+      router()->attach(ptr<STRUCTURE>(bootable.get()));
+      scheduler()->spawn(ptr<PROCESS>(bootable.get()));
       return Kernel::build();
     }
-    static Kernel *load_modules(const List<ID> &modules) {
+    static ptr<Kernel> load_modules(const List<ID> &modules) {
       for (const ID &id: modules) {
         // List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
@@ -77,12 +78,11 @@ namespace fhatos {
       }
       return Kernel::build();
     }
-    static Kernel *defaultOutput(const ID &output) {
+    static ptr<Kernel> initial_terminal_owner(const ID &output) {
       Terminal::currentOut(share(output));
       return Kernel::build();
     }
     static void done(const char *barrier = "kernel_barrier") {
-      delete Kernel::build();
       Scheduler::singleton()->barrier(barrier, nullptr,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
       Scheduler::singleton()->stop();

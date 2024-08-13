@@ -49,7 +49,7 @@ namespace fhatos {
   void test_files() {
     stage();
     ptr<FileSystem> fs = FileSystem::singleton();
-    Router::singleton()->attach(fs.get());
+    Router::singleton()->attach(fs);
     Scheduler::singleton()->spawn(fs);
     FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *fs->to_dir("/")->id());
     TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"))->objs_value()->size());

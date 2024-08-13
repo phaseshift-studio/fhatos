@@ -30,7 +30,7 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 int main(int arg, char **argsv) {
   try {
     Kernel::build()
-        ->with_printer(Ansi<>::singleton())
+        ->using_printer(Ansi<>::singleton())
         ->with_log_level(ERROR)
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/"))
@@ -40,7 +40,7 @@ int main(int arg, char **argsv) {
         ->boot<Console, Thread, Empty>(ptr<Console>(new Console("/home/root/repl/")))
         //->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
         ->load_modules({ID("/mod/proc")})
-        ->defaultOutput("/home/root/repl/");
+        ->initial_terminal_owner("/home/root/repl/");
     //->done("kernel_barrier");
     printer<>()->on(false);
   } catch (const std::exception &e) {

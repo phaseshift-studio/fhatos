@@ -77,13 +77,13 @@ namespace fhatos {
 
   class Parser final : public Actor<Coroutine, Empty> {
   private:
-    explicit Parser(const ID &id = ID("/parser/")) : Actor<Coroutine,Empty>(id) {}
+    explicit Parser(const ID &id = ID("/parser/")) : Actor<Coroutine, Empty>(id) {}
     enum class PARSE_TOKENS { BRACKET, PAREN };
 
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
       static Parser parser = Parser(id);
-      static ptr<Parser> parser_p = ptr<Parser>(&parser);
+      static ptr<Parser> parser_p = PtrHelper::no_delete(&parser);
       static bool _setup = false;
       if (!_setup) {
         TYPE_PARSER = [](const string &bcode) {

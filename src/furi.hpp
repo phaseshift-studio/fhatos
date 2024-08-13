@@ -689,9 +689,10 @@ namespace fhatos {
   public:
     explicit Patterned(const fURI_p &uri) : _pattern(share(Pattern(uri->toString()))) {}
 
-    explicit Patterned(const Pattern_p &type) : _pattern(type) {}
+    explicit Patterned(const Pattern_p &type) : _pattern(share(Pattern(*type))) {}
 
-    [[nodiscard]] Pattern_p pattern() const override { return this->_pattern; }
+    [[nodiscard]] Pattern_p pattern() const override {
+      return this->_pattern; }
     [[nodiscard]] bool equals(const BasePatterned &other) const override {
       return this->_pattern->equals(*other.pattern());
     }

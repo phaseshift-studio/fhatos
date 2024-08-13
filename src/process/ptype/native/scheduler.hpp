@@ -34,7 +34,7 @@ namespace fhatos {
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
       static Scheduler scheduler = Scheduler(id);
-      static ptr<Scheduler> scheduler_p = ptr<Scheduler>(&scheduler);
+      static ptr<Scheduler> scheduler_p = PtrHelper::no_delete(&scheduler);
       if (!_setup) {
         scheduler.setup();
         _setup = true;

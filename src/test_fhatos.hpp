@@ -20,7 +20,7 @@
 #define fhatos_test_fhatos_hpp
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING DEBUG
+#define FOS_LOGGING TRACE
 #endif
 
 #include <fhatos.hpp>
@@ -44,7 +44,7 @@
 
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Kernel::build()                                                                                                      \
-      ->with_printer(Ansi<>::singleton())                                                                              \
+      ->using_printer(Ansi<>::singleton())                                                                             \
       ->with_log_level(FOS_LOGGING)                                                                                    \
       ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
       ->using_router(Router::singleton("/sys/router/"))                                                                \
@@ -53,7 +53,7 @@
       ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))                                         \
       ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))                                                \
       ->load_modules({ID("/mod/proc")})                                                                                \
-      ->defaultOutput("/home/root/repl/") //->done("kernel_barrier");
+      ->initial_terminal_owner("/home/root/repl/") //->done("kernel_barrier");
 
 #define FOS_STOP_ON_BOOT ;
 
@@ -61,9 +61,11 @@
 #include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #define FOS_SETUP_ON_BOOT                                                                                              \
+  Options::singleton()->printer<>(Ansi<>::singleton());                                                                \
   Options::singleton()->log_level(FOS_LOGGING);                                                                        \
-  Options::singleton()->router<Router>(Router::singleton());                                                           \
-  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
+  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());                                                  \
+  Options::singleton()->router<Router>(Router::singleton());
+
 
 #define FOS_STOP_ON_BOOT ;
 #endif
@@ -305,25 +307,25 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
     }
   }
   if (!expectedReferences.empty()) {
-   /* TEST_ASSERT_EQUAL_INT_MESSAGE(
-        expectedReferences.size(), router()->retainSize(),
-        (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
+    /* TEST_ASSERT_EQUAL_INT_MESSAGE(
+         expectedReferences.size(), router()->retainSize(),
+         (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
-      router()->route_subscription(
-          share<Subscription>(Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
+      router()->route_subscription(share<Subscription>(
+          Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
                        .pattern = key.uri_value(),
                        .onRecv = [temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                                   (string("Router retain message payload equality: ") +
-                                                   router()->pattern()->toString() + " " +
-                                                   temp.toString() + " != " + message->payload->toString())
+                                                   router()->pattern()->toString() + " " + temp.toString() +
+                                                   " != " + message->payload->toString())
                                                       .c_str());
                        }}));
     }
   }
-  //if (clearRouter)
-   // Options::singleton()->router<Router>()->clear(false, true);
+  // if (clearRouter)
+  //  Options::singleton()->router<Router>()->clear(false, true);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>

@@ -21,18 +21,19 @@
 #include <structure/structure.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
+#include <util/ptr_helper.hpp>
 
 namespace fhatos {
 
   class Router final : public Patterned {
   protected:
-    MutexDeque<Structure *> structures = MutexDeque<Structure *>();
+    MutexDeque<ptr<Structure>> structures = MutexDeque<ptr<Structure>>();
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {}
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
       static Router router = Router(pattern);
-      static ptr<Router> router_p = ptr<Router>(&router);
+      static ptr<Router> router_p = PtrHelper::no_delete<Router>(&router);
       static bool _setup = false;
       if (!_setup) {
         _setup = true;
@@ -41,12 +42,12 @@ namespace fhatos {
       return router_p;
     }
 
-    virtual void attach(Structure *structure) {
+    virtual void attach(const ptr<Structure> &structure) {
       if (structure->pattern()->equals(Pattern(""))) {
         LOG_STRUCTURE(INFO, this, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
                       StructureTypes.toChars(structure->stype));
       } else {
-        this->structures.forEach([structure](Structure *s) {
+        this->structures.forEach([structure](const ptr<Structure> &s) {
           if (structure->pattern()->matches(*s->pattern()) || s->pattern()->matches(*structure->pattern())) {
             throw fError("Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!\n",
                          s->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
@@ -60,7 +61,7 @@ namespace fhatos {
     }
 
     virtual void detach(const Pattern_p &structurePattern) {
-      this->structures.remove_if([this, structurePattern](Structure *structure) {
+      this->structures.remove_if([this, structurePattern](const ptr<Structure> &structure) {
         if (structure->pattern()->matches(*structurePattern)) {
           structure->stop();
           LOG_STRUCTURE(INFO, this, "detached structure %s\n", structure->pattern()->toString().c_str());
@@ -76,9 +77,9 @@ namespace fhatos {
         LOG_STRUCTURE(TRACE, this, "reading !b%s!! for " FURI_WRAP "\n", furi->toString().c_str(),
                       source->toString().c_str());
         auto *s = new atomic<Structure *>(nullptr);
-        this->structures.forEach([furi, s, source](Structure *structure) {
+        this->structures.forEach([furi, s, source](const ptr<Structure> &structure) {
           if (furi->matches(*structure->pattern())) {
-            s->store(structure);
+            s->store(structure.get());
           }
         });
         if (!s->load()) {
@@ -93,9 +94,9 @@ namespace fhatos {
         LOG_STRUCTURE(TRACE, this, "reading !b%s!! for " FURI_WRAP "\n", furi->toString().c_str(),
                       source->toString().c_str());
         auto *s = new atomic<Structure *>(nullptr);
-        this->structures.forEach([furi, s, source](Structure *structure) {
+        this->structures.forEach([furi, s, source](const ptr<Structure> &structure) {
           if (furi->matches(*structure->pattern())) {
-            s->store(structure);
+            s->store(structure.get());
           }
         });
         if (!s->load()) {
@@ -112,7 +113,7 @@ namespace fhatos {
 
     void write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       auto *found = new atomic_bool(false);
-      this->structures.forEach([this, found, id, obj, source](Structure *structure) {
+      this->structures.forEach([this, found, id, obj, source](const ptr<Structure> &structure) {
         if (!found->load()) {
           if (id->matches(*structure->pattern())) {
             LOG_STRUCTURE(TRACE, this, "writing %s to !b%s!! at " FURI_WRAP " for " FURI_WRAP "\n",
@@ -134,7 +135,7 @@ namespace fhatos {
 
     void remove(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       auto *found = new atomic_bool(false);
-      this->structures.forEach([found, id, source](Structure *structure) {
+      this->structures.forEach([found, id, source](const ptr<Structure> structure) {
         if (!found->load()) {
           if (id->matches(*structure->pattern())) {
             structure->remove(id, source);
@@ -154,7 +155,7 @@ namespace fhatos {
     RESPONSE_CODE route_message(const Message_p &message) {
       auto *rc = new RESPONSE_CODE(NO_SUBSCRIPTION);
       while (this->structures.pop_front()) {
-        this->structures.forEach([message, rc](Structure *structure) {
+        this->structures.forEach([message, rc](const ptr<Structure> structure) {
           if (message->target.matches(*structure->pattern())) {
             structure->recv_message(message);
             *rc = OK;
@@ -170,9 +171,9 @@ namespace fhatos {
 
     RESPONSE_CODE route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) {
       auto *rc = new RESPONSE_CODE(NO_TARGETS);
-      this->structures.forEach([subscriber, pattern, rc](Structure *structure) {
+      this->structures.forEach([subscriber, pattern, rc](const ptr<Structure> &structure) {
         if (pattern->matches(*structure->pattern())) {
-          structure->recv_unsubscribe(subscriber, pattern);
+          structure->recv_unsubscribe(subscriber, p_p(*pattern));
           *rc = OK;
         }
       });
@@ -180,13 +181,13 @@ namespace fhatos {
       LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted!! !_!yun!!!ysubscription!! " FURI_WRAP "=unsubscribe=>!y%s!!\n",
           ResponseCodes.toChars(rc2), this->pattern()->toString().c_str(), subscriber->toString().c_str(),
           pattern->toString().c_str());
-      delete rc;
+      // delete rc;
       return rc2;
     }
 
     RESPONSE_CODE route_subscription(const Subscription_p &subscription) {
       auto *rc = new RESPONSE_CODE(NO_TARGETS);
-      this->structures.forEach([subscription, rc](Structure *structure) {
+      this->structures.forEach([subscription, rc](const ptr<Structure> &structure) {
         if (subscription->pattern.matches(*structure->pattern())) {
           structure->recv_subscription(subscription);
           *rc = OK;
@@ -195,7 +196,7 @@ namespace fhatos {
       auto rc2 = RESPONSE_CODE(*rc);
       LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted subscription!! %s\n", ResponseCodes.toChars(rc2),
           this->pattern()->toString().c_str(), subscription->toString().c_str());
-      delete rc;
+      // delete rc;
       return rc2;
     }
   };

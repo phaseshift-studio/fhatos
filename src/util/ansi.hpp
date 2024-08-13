@@ -26,8 +26,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <util/string_printer.hpp>
 #include <util/options.hpp>
+#include <util/string_printer.hpp>
 using namespace std;
 namespace fhatos {
 
@@ -50,9 +50,8 @@ namespace fhatos {
   template<typename PRINTER = CPrinter>
   class Ansi {
   public:
-    static shared_ptr<Ansi> singleton() {
-      static Ansi ansi = Ansi<PRINTER>();
-      static shared_ptr<Ansi> ansi_p = shared_ptr<Ansi>(&ansi);
+    static shared_ptr<Ansi<PRINTER>> singleton() {
+      static shared_ptr<Ansi<PRINTER>> ansi_p = share<Ansi<PRINTER>>(Ansi<PRINTER>());
 #ifndef NATIVE
       static bool _setup = false;
       if (!_setup) {
@@ -66,7 +65,7 @@ namespace fhatos {
 
   protected:
     PRINTER printer;
-    std::string _buffer =  std::string();
+    std::string _buffer = std::string();
     StringPrinter _printer = StringPrinter(&_buffer);
     bool _on = true;
 
@@ -175,13 +174,11 @@ namespace fhatos {
     string strip(const string &s) const {
       auto a = std::string();
       auto b = StringPrinter(&a);
-      auto *ansi = new Ansi<StringPrinter>(b);
-      ansi->on(false);
-      ansi->print(s.c_str());
-      ansi->flush();
-
-      string ret = string(ansi->getPrinter().get());
-      delete ansi;
+      auto ansi = Ansi<StringPrinter>(b);
+      ansi.on(false);
+      ansi.print(s.c_str());
+      ansi.flush();
+      string ret = string(ansi.getPrinter().get());
       return ret;
     }
 
@@ -284,8 +281,10 @@ namespace fhatos {
     }
   };
 
-  template <typename PRINTER = Ansi<>>
-  shared_ptr<PRINTER> printer() { return shared_ptr<Ansi<>>((Ansi<>*)(Options::singleton()->printer<void>().get())); }
+  template<typename PRINTER = Ansi<>>
+  shared_ptr<PRINTER> printer() {
+    return Options::singleton()->printer<PRINTER>();
+  }
 
 } // namespace fhatos
 

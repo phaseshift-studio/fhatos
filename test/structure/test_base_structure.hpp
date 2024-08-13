@@ -24,11 +24,10 @@
 
 
 #define FOS_STOP_ON_BOOT  \
-router()->detach(p_p(*current_structure->pattern())); \
+router()->detach(current_structure->pattern()); \
 
 namespace fhatos {
-Structure* current_structure;
-
+ptr<Structure> current_structure;
 
 void test_write() {
     router()->attach(current_structure);

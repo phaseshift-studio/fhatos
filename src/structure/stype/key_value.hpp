@@ -33,7 +33,7 @@ namespace fhatos {
     explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
 
   public:
-    static KeyValue *create(const Pattern &pattern) { return new KeyValue(pattern); }
+    static ptr<KeyValue> create(const Pattern &pattern) { return ptr<KeyValue>(new KeyValue(pattern)); }
 
     ~KeyValue() override { delete DATA; }
 

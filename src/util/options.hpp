@@ -20,8 +20,8 @@
 #define fhatos_options_hpp
 #include <any>
 // #include <libwebsockets.h>
-#include <memory>
 #include <functional>
+#include <memory>
 #include <util/fhat_error.hpp>
 
 using namespace std;
@@ -31,11 +31,11 @@ namespace fhatos {
 
   class Options final {
   private:
-    uint8_t LOGGING = 3; // INFO
+    uint8_t log_level_ = 3; // INFO
     any router_{};
     any scheduler_{};
     any printer_{};
-    any parser_;
+    any parser_{};
 
     explicit Options() = default;
 
@@ -54,7 +54,7 @@ namespace fhatos {
     }
     template<typename SCHEDULER>
     void scheduler(const shared_ptr<SCHEDULER> scheduler) {
-      this->scheduler_ = scheduler;
+      this->scheduler_ = any(scheduler);
     }
     //////////////////////////
     //////// router_ ////////
@@ -65,19 +65,19 @@ namespace fhatos {
       return std::any_cast<shared_ptr<ROUTER>>(this->router_);
     }
     template<typename ROUTER>
-    void router(const shared_ptr<ROUTER> router) {
-      this->router_ = router;
+    void router(const shared_ptr<ROUTER> &router) {
+      this->router_ = any(router);
     }
 
     //////////////////////////
-    //////// LOGGING ////////
+    //////// log_level_ ////////
     template<typename LOG_LEVEL>
     LOG_LEVEL log_level() {
-      return (LOG_LEVEL) this->LOGGING;
+      return (LOG_LEVEL) this->log_level_;
     }
 
     Options *log_level(const uint8_t log_level_enum) {
-      this->LOGGING = log_level_enum;
+      this->log_level_ = log_level_enum;
       return this;
     }
     //////////////////////////
@@ -89,8 +89,8 @@ namespace fhatos {
       return std::any_cast<shared_ptr<PRINTER>>(this->printer_);
     }
     template<typename PRINTER>
-    Options *printer(shared_ptr<PRINTER> printer) {
-      this->printer_ = printer;
+    Options *printer(const shared_ptr<PRINTER> &printer) {
+      this->printer_ = any(printer);
       return this;
     }
     ////////////////////////
@@ -102,8 +102,9 @@ namespace fhatos {
       return std::any_cast<function<shared_ptr<OBJ>(string)>>(this->parser_)(bcode);
     }
     template<typename OBJ>
-    void parser(const std::function<shared_ptr<OBJ>(string)> parser) {
-      parser_ = any(parser);
+    Options *parser(const std::function<shared_ptr<OBJ>(string)> &parser) {
+      this->parser_ = any(parser);
+      return this;
     }
     //////////////////////////
   };

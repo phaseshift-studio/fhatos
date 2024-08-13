@@ -38,7 +38,7 @@ public:
   void setup() override {
     PROCESS::setup();
     const ID serialID = Router::mintID("log");
-    // INFO LOGGING
+    // INFO log_level_
     this->subscribe(
         this->id().extend("INFO"), [this, serialID](const auto &message) {
           this->publish(
@@ -46,7 +46,7 @@ public:
               this->createLogMessage(INFO, message.payload->toString()),
               false);
         });
-    // ERROR LOGGING
+    // ERROR log_level_
     this->subscribe(
         this->id().extend("ERROR"), [this, serialID](const auto &message) {
           this->publish(
