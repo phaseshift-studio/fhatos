@@ -82,8 +82,7 @@ namespace fhatos {
 
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
-      static Parser parser = Parser(id);
-      static ptr<Parser> parser_p = PtrHelper::no_delete(&parser);
+      static ptr<Parser> parser_p = ptr<Parser>(new Parser(id));
       static bool _setup = false;
       if (!_setup) {
         TYPE_PARSER = [](const string &bcode) {

@@ -18,8 +18,8 @@
 #ifndef fhatos_terminal_hpp
 #define fhatos_terminal_hpp
 
-#include <iostream>
 #include <fhatos.hpp>
+#include <iostream>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <structure/stype/key_value.hpp>
@@ -32,26 +32,21 @@ namespace fhatos {
 
   public:
     static ptr<Terminal> singleton(const ID &id = "/io/terminal/") {
-      static Terminal terminal = Terminal(id);
-      static ptr<Terminal> terminal_p = ptr<Terminal>(&terminal);
+      static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }
     void setup() override {
       Actor::setup();
-      this->subscribe("out", [](const Message_p &message) {
-        if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
-          if (strcmp(message->target.name(), "no_color") == 0) {
-            const string no = printer()->strip(message->payload->str_value());
-            printer()->print(no.c_str());
-          } else
-            printer()->print(message->payload->str_value().c_str());
-        }
-      });
-      this->subscribe("in", [this](const Message_p &message) {
-        string line;
-        std::getline(std::cin, line);
-        this->publish(message->source, Obj::to_str(line));
-      });
+      router()->route_subscription(share(Subscription{
+          .source = *this->id(), .pattern = this->id()->extend("out"), .onRecv = [](const Message_p &message) {
+            if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
+              if (strcmp(message->target.name(), "no_color") == 0) {
+                const string no = printer<>()->strip(message->payload->str_value());
+                printer<>()->print(no.c_str());
+              } else
+                printer<>()->print(message->payload->str_value().c_str());
+            }
+          }}));
     }
 
     static ID_p currentOut() { return Terminal::singleton()->_currentOutput; }

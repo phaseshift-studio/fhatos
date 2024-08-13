@@ -20,9 +20,10 @@
 #ifndef fhatos_scheduler_hpp
 #define fhatos_scheduler_hpp
 
-#include "fhatos.hpp"
+#include <fhatos.hpp>
 ///
-#include "process/x_scheduler.hpp"
+#include <process/x_scheduler.hpp>
+#include <util/ptr_helper.hpp>
 
 namespace fhatos {
   class Scheduler final : public XScheduler {
@@ -33,10 +34,9 @@ namespace fhatos {
   public:
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
-      static Scheduler scheduler = Scheduler(id);
-      static ptr<Scheduler> scheduler_p = PtrHelper::no_delete(&scheduler);
+      static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
       if (!_setup) {
-        scheduler.setup();
+        scheduler_p->setup();
         _setup = true;
       }
       return scheduler_p;
@@ -50,6 +50,7 @@ namespace fhatos {
                       process->id()->toString().c_str());
           return share(false);
         }
+        // scheduler subscription listening for noobj "kill process" messages
         router()->route_subscription(share(Subscription{
             .source = *this->id(), .pattern = *process->id(), .onRecv = [this, process](const Message_p &message) {
               if (message->payload->isNoObj()) {
@@ -59,7 +60,7 @@ namespace fhatos {
             }}));
         ////////////////////////////////
         bool success = false;
-        this->processes_->emplace(process->id(), process);
+        this->processes_->insert({process->id(), process});
         switch (process->ptype) {
           case PType::THREAD: {
             ((Thread *) process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
@@ -70,9 +71,9 @@ namespace fhatos {
             // LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
             if (!FIBER_THREAD_HANDLE) {
               FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
-              success = true;
             }
             ((Fiber *) (process.get()))->xthread = FIBER_THREAD_HANDLE;
+            success = true;
             break;
           }
           case PType::COROUTINE: {

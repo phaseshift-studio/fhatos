@@ -37,17 +37,21 @@ namespace fhatos {
     explicit Actor(const ID &id) : Actor(id, id.extend("#")) {}
 
     virtual ~Actor() = default;
-    bool recv_mail(const Mail_p& mail) override { return this->outbox->push_back(mail); }
-    RESPONSE_CODE publish(const ID &target, const Obj_p &payload, const bool retain = TRANSIENT_MESSAGE) { // rename send_mail
-      return Router::singleton()->route_message(
+    bool recv_mail(const Mail_p &mail) override { return this->outbox->push_back(mail); }
+    RESPONSE_CODE publish(const ID &target, const Obj_p &payload,
+                          const bool retain = TRANSIENT_MESSAGE) { // rename send_mail
+      return router()->route_message(
           share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
-      return Router::singleton()->route_subscription(share(Subscription{
-          .source = *this->id(), .pattern = this->pattern()->resolve(pattern), .qos = QoS::_1, .onRecv = onRecv}));
+      return router()->route_subscription(
+          share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
-    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { this->recv_unsubscribe(this->id(), pattern); return OK; }
+    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { // todo: is this correct?
+      router()->route_unsubscribe(this->id(), pattern);
+      return OK;
+    }
 
     bool active() { return this->available() && this->running(); }
 

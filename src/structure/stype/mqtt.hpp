@@ -112,7 +112,8 @@ namespace fhatos {
   public:
     static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
                             const Message_p &will_message = ptr<Message>(nullptr)) {
-      return ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
+      ptr<Mqtt> mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
+      return mqtt_p;
     }
 
     void recv_message(const Message_p &message) override {

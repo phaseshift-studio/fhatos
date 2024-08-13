@@ -19,7 +19,6 @@
 #ifndef fhatos_options_hpp
 #define fhatos_options_hpp
 #include <any>
-// #include <libwebsockets.h>
 #include <functional>
 #include <memory>
 #include <util/fhat_error.hpp>
@@ -61,7 +60,7 @@ namespace fhatos {
     template<typename ROUTER>
     shared_ptr<ROUTER> router() {
       if (!router_.has_value())
-        throw fError("No router secified in global options\n");
+        throw fError("No router specified in global options\n");
       return std::any_cast<shared_ptr<ROUTER>>(this->router_);
     }
     template<typename ROUTER>
@@ -85,7 +84,7 @@ namespace fhatos {
     template<typename PRINTER>
     shared_ptr<PRINTER> printer() {
       if (!printer_.has_value())
-        throw fError("No printer secified in global options\n");
+        throw fError("No printer specified in global options\n");
       return std::any_cast<shared_ptr<PRINTER>>(this->printer_);
     }
     template<typename PRINTER>

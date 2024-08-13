@@ -32,12 +32,11 @@ namespace fhatos {
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
-      static Router router = Router(pattern);
-      static ptr<Router> router_p = PtrHelper::no_delete<Router>(&router);
+      static auto router_p = ptr<Router>(new Router(pattern));
       static bool _setup = false;
       if (!_setup) {
         _setup = true;
-        LOG_STRUCTURE(INFO, &router, "!yrouter!! loaded\n");
+        LOG_STRUCTURE(INFO, router_p.get(), "!yrouter!! loaded\n");
       }
       return router_p;
     }
@@ -154,14 +153,12 @@ namespace fhatos {
 
     RESPONSE_CODE route_message(const Message_p &message) {
       auto *rc = new RESPONSE_CODE(NO_SUBSCRIPTION);
-      while (this->structures.pop_front()) {
-        this->structures.forEach([message, rc](const ptr<Structure> structure) {
-          if (message->target.matches(*structure->pattern())) {
-            structure->recv_message(message);
-            *rc = OK;
-          }
-        });
-      }
+      this->structures.forEach([message, rc](const ptr<Structure> structure) {
+        if (message->target.matches(*structure->pattern())) {
+          structure->recv_message(message);
+          *rc = OK;
+        }
+      });
       const auto rc2 = RESPONSE_CODE(*rc);
       LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted message %s\n", ResponseCodes.toChars(rc2),
           this->_pattern->toString().c_str(), message->toString().c_str());

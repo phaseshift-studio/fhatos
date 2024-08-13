@@ -59,10 +59,10 @@ namespace fhatos {
       Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
-    template<typename ACTOR, typename PROCESS, typename STRUCTURE>
+    template<typename ACTOR>
     static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
-      router()->attach(ptr<STRUCTURE>(bootable.get()));
-      scheduler()->spawn(ptr<PROCESS>(bootable.get()));
+      router()->attach(bootable);
+      scheduler()->spawn(bootable);
       return Kernel::build();
     }
     static ptr<Kernel> load_modules(const List<ID> &modules) {

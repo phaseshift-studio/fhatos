@@ -30,8 +30,8 @@ namespace fhatos {
 
   public:
     static ptr<FileSystem> singleton(const ID &id = ID("/io/fs"), const ID &root = ID(fs::current_path())) {
-      static FileSystem fs = FileSystem(id, root);
-      static ptr<FileSystem> fs_p = ptr<FileSystem>(&fs);
+      static FileSystem *fs = new FileSystem(id, root);
+      static ptr<FileSystem> fs_p = ptr<FileSystem>(fs);
       return fs_p;
     }
     bool is_dir(const ID &path) const override { return fs::is_directory(fs::path(make_native_path(path).toString())); }
@@ -51,10 +51,9 @@ namespace fhatos {
                    path.toString().c_str());
     }
     fURI make_native_path(const ID &path) const override {
-      const fURI localPath =
-          (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
-              ? path.toString().substr(this->id()->toString().length())
-              : path.toString().c_str();
+      const fURI localPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
+                                 ? path.toString().substr(this->id()->toString().length())
+                                 : path.toString();
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
                     path.toString().c_str(), this->root_->toString().c_str());
       if (!this->root_->is_subfuri_of(this->root_->resolve(localPath.dissolve()))) { // ../ can resolve beyond the mount

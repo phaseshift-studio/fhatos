@@ -59,8 +59,8 @@ namespace fhatos {
       }
     }
 
-  public:
-    explicit Console(const ID &id = ID("/io/repl/")) : Actor(id) {
+  protected:
+    explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread, KeyValue>(id) {
       if (!_MENU_MAP) {
         _MENU_MAP = new Map<string, Command>();
         _MENU_MAP->insert({":help",
@@ -118,6 +118,12 @@ namespace fhatos {
         _MENU_MAP->insert(
             {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
+    }
+
+  public:
+    static ptr<Console> create(const ID &id = ID("/io/console")) {
+      auto *console = new Console(id);
+      return ptr<Console>(console);
     }
     void loop() override {
       Actor::loop();

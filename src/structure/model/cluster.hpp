@@ -26,8 +26,14 @@ namespace fhatos {
 
   class Cluster : public Actor<Fiber, Mqtt> {
 
-  public:
+  protected:
     Cluster(const ID &id = "/io/cluster", const Pattern &pattern = "//+/#") : Actor<Fiber, Mqtt>(id, pattern) {}
+
+  public:
+    static ptr<Cluster> create(const ID &id = "/net/cluster", const Pattern &pattern = "//+/#") {
+      ptr<Cluster> cluster_p = ptr<Cluster>(new Cluster(id, pattern));
+      return cluster_p;
+    }
   };
 
 

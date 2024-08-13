@@ -51,7 +51,8 @@ namespace fhatos {
   class Ansi {
   public:
     static shared_ptr<Ansi<PRINTER>> singleton() {
-      static shared_ptr<Ansi<PRINTER>> ansi_p = share<Ansi<PRINTER>>(Ansi<PRINTER>());
+      static Ansi<PRINTER> ansi = Ansi<PRINTER>();
+      static shared_ptr<Ansi<PRINTER>> ansi_p = shared_ptr<Ansi<PRINTER>>(&ansi, [](const auto *) {});
 #ifndef NATIVE
       static bool _setup = false;
       if (!_setup) {

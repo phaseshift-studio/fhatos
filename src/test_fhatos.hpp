@@ -48,14 +48,15 @@
       ->with_log_level(FOS_LOGGING)                                                                                    \
       ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
       ->using_router(Router::singleton("/sys/router/"))                                                                \
-      ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))                                         \
-      ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))                                                       \
-      ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))                                         \
-      ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))                                                \
+      ->boot<Types>(Types::singleton("/type/"))                                                                        \
+      ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
+      ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))                                                           \
+      ->boot<FileSystem>(FileSystem::singleton("/io/fs"))                                                              \
       ->load_modules({ID("/mod/proc")})                                                                                \
-      ->initial_terminal_owner("/home/root/repl/") //->done("kernel_barrier");
+      ->initial_terminal_owner("/home/root/repl/");                                                                    \
+  //->done("kernel_barrier");
 
-#define FOS_STOP_ON_BOOT ;
+#define FOS_STOP_ON_BOOT scheduler()->stop();
 
 #else
 #include <structure/router.hpp>

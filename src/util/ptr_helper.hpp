@@ -18,17 +18,20 @@
 #pragma once
 #ifndef fhatos_ptr_helper
 #define fhatos_ptr_helper
+#include <memory>
 
-// #include <fhatos.hpp>
-
+using namespace std;
 namespace fhatos {
+
   class Obj;
-  class PtrHelper {
+  template<typename T = Obj>
+  using ptr = shared_ptr<T>;
+
+  class PtrHelper final {
   private:
     template<typename T = Obj>
     struct NonDeleter {
-      void operator()(const T *) { /*LOG(INFO, "Deleting...not!\n");*/
-      }
+      void operator()(const T *) { /*LOG(INFO, "Deleting...not!\n");*/ }
     };
 
   public:
@@ -40,14 +43,14 @@ namespace fhatos {
     }
 
     template<typename T = Obj>
-    static ptr<T> no_delete(ptr<T> ptr_t) {
-      ptr<T> temp = ptr<T>((T *) nullptr, NON_DELETER_SINGLETON<T>());
+    static shared_ptr<T> no_delete(shared_ptr<T>& ptr_t) {
+      auto temp = shared_ptr<T>((T *) nullptr, NON_DELETER_SINGLETON<T>());
       temp.swap(ptr_t);
       return temp;
     }
 
     template<typename T = Obj>
-    static ptr<T> no_delete(const T& t) {
+    static std::shared_ptr<T> no_delete(const T &t) {
       return share(t, NON_DELETER_SINGLETON<T>());
     }
 

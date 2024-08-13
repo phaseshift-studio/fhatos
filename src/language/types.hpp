@@ -35,8 +35,7 @@ namespace fhatos {
 
   public:
     static ptr<Types> singleton(const ID &id = FOS_TYPE_PREFIX) {
-      static Types types = Types(id);
-      static ptr<Types> types_p = ptr<Types>(&types);
+      static ptr<Types> types_p = ptr<Types>(new Types(id));
       return types_p;
     }
 
@@ -46,13 +45,16 @@ namespace fhatos {
         singleton()->checkType(obj, otype, typeId, true);
         return typeId;
       };
-      this->subscribe(*this->pattern(), [](const Message_p &message) {
-        if (message->retain && (message->source != *Types::singleton()->id()) && (message->source != ID("anon_src")))
-          Types::singleton()->saveType(id_p(message->target), message->payload);
-        // else { // transient provides type checking?
-        // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()), id_p(message->target));
-        //}
-      });
+      router()->route_subscription(share(
+          Subscription{.source = *this->id(), .pattern = *this->pattern(), .onRecv = [](const Message_p &message) {
+                         if (message->retain && (message->source != *Types::singleton()->id()) &&
+                             (message->source != ID("anon_src")))
+                           Types::singleton()->saveType(id_p(message->target), message->payload);
+                         // else { // transient provides type checking?
+                         // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
+                         // id_p(message->target));
+                         //}
+                       }}));
     }
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////

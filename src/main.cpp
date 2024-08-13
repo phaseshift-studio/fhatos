@@ -20,8 +20,8 @@
 #include <structure/kernel.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <process/process.hpp>
-#include <structure/stype/key_value.hpp>
 #include <structure/router.hpp>
+#include <structure/stype/key_value.hpp>
 #ifdef NATIVE
 #include FOS_FILE_SYSTEM(filesystem.hpp)
 #endif
@@ -67,12 +67,12 @@ void setup() {
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/"))
-        ->boot<Cluster, Fiber, Mqtt>(ptr<Cluster>(new Cluster("/io/cluster")))
-        ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))
-        ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
-        ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
-        ->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
-        ->boot<Console, Thread, KeyValue>(ptr<Console>(new Console("/home/root/repl/")))
+        ->boot<Types>(Types::singleton("/type/"))
+        ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
+        ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+        ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
+        ->boot<Cluster>(Cluster::create("/io/cluster"))
+        ->boot<Console>(Console::create("/home/root/repl/"))
         ->load_modules({ID("/mod/proc")})
         ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");

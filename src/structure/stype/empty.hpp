@@ -29,8 +29,7 @@ namespace fhatos {
 
   public:
     static ptr<Empty> singleton() {
-      static Empty empty = Empty();
-      static ptr<Empty> empty_p = ptr<Empty>(&empty);
+      static ptr<Empty> empty_p = ptr<Empty>(new Empty());
       return empty_p;
     }
     Obj_p read(const fURI_p &, const ID_p &) override { return Objs::to_objs(); }
