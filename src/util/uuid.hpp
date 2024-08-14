@@ -25,7 +25,7 @@
 
 namespace fhatos {
   using uuid = string;
-
+  // TODO: move to string_helper
   class UUID final {
   protected:
     std::random_device rd;
@@ -33,11 +33,9 @@ namespace fhatos {
     std::uniform_int_distribution<> dis;
     std::uniform_int_distribution<> dis2;
 
-    UUID() : rd(std::random_device()),
-             gen(std::mt19937(rd())),
-             dis(std::uniform_int_distribution<>(0, 15)),
-             dis2(std::uniform_int_distribution<>(8, 11)) {
-    }
+    UUID() :
+        rd(std::random_device()), gen(std::mt19937(rd())), dis(std::uniform_int_distribution<>(0, 15)),
+        dis2(std::uniform_int_distribution<>(8, 11)) {}
 
   public:
     static UUID *singleton() {
@@ -72,6 +70,6 @@ namespace fhatos {
       return share<uuid>(ss.str().substr(0, size));
     }
   };
-}
+} // namespace fhatos
 
 #endif

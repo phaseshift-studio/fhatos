@@ -30,6 +30,8 @@
 #include <string>
 using namespace std;
 namespace fhatos {
+
+  // TODO: Move to ansi
   class StringPrinter final EXTENDS {
   public:
     explicit StringPrinter(std::string *xstring) : xstring(xstring) {}
