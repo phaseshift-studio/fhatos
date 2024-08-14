@@ -262,24 +262,12 @@ namespace fhatos {
       return Obj::to_inst(
           "from", {uri},
           [uri](const Uri_p &lhs) {
-            Uri_p ap = uri->apply(lhs);
-            fURI furi = ap->uri_value();
-            if (furi.is_pattern()) {
-              const Obj_p o = Router::singleton()->read(share(furi));
-              return o;
-            } else {
-              const ID_p id = id_p(furi);
-              const Obj_p o = Router::singleton()->read(id);
-              return o;
-            }
+            const Uri_p ap = uri->apply(lhs);
+            const fURI_p furi = furi_p(ap->uri_value());
+            const Obj_p obj = router()->read(furi);
+            return obj;
           },
           (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
-    }
-
-    static Rec_p rfrom(const Uri_p &uri) {
-      return Obj::to_inst(
-          "rfrom", {uri}, [uri](const Uri_p &lhs) { return router()->read(furi_p(uri->apply(lhs)->uri_value())); },
-          areInitialArgs(uri) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Uri_p type() {
@@ -716,8 +704,6 @@ namespace fhatos {
         return Insts::to_inv(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("from"))
         return Insts::from(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("rfrom"))
-        return Insts::rfrom(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("pub"))
         return Insts::pub(argCheck(typeId, args, 2).at(0), args.at(1));
       if (typeId == INST_FURI->resolve("flip"))

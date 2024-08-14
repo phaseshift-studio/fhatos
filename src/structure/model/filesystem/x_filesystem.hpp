@@ -55,10 +55,17 @@ namespace fhatos {
       this->publish(*FILE_FURI, Obj::to_bcode(), true);
       this->publish(*DIR_FURI, Obj::to_bcode(), true);
       this->publish(INST_FS_FURI->resolve("root"), Obj::to_inst({{}, Obj::to_noobj(), IType::ZERO_TO_ONE, noobj()}));
-      /*this->subscribe("#", [this](const Message_p &message) {
-        'more text') ...
-        drop()
-      });*/
+      this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
+        if (message->retain && message->payload->isNoObj()) { // delete the fs resource
+          this->rm(to_fs(message->target));
+        } else {
+          Obj_p result = message->payload->apply(to_fs(message->target));      // apply the fs resource to the bytecode
+          if (message->retain)                                                 // if retain, then ---
+            this->write(id_p(message->target), result, id_p(message->source)); // write the result to the fs resource
+          else                                                                 // else ---
+            this->publish(message->source,result,TRANSIENT_MESSAGE);           // publish the result to the source id
+        }
+      });
       ///////////////////////////////////////////////////////////////////
       Insts::register_inst(INST_FS_FURI->resolve("root"), [this](const List<Obj_p> &) {
         return Obj::to_inst(
@@ -111,6 +118,7 @@ namespace fhatos {
     virtual bool is_dir(const ID &) const = 0;
     virtual bool is_file(const ID &) const = 0;
     virtual Dir_p mkdir(const ID &) const = 0;
+    virtual void rm(const Uri_p &) const = 0;
     virtual File_p touch(const ID &) const = 0;
     virtual Objs_p ls(const Dir_p &dir) const = 0;
     virtual Obj_p more(const File_p &) const = 0;

@@ -45,7 +45,7 @@ namespace fhatos {
     }
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
       return router()->route_subscription(
-          share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
+          share(Subscription{.source = ID(*this->id()), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
     RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { // todo: is this correct?
