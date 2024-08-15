@@ -91,6 +91,7 @@ namespace fhatos {
     }
 
     void stop() {
+      router()->route_unsubscribe(this->id());
       this->processes_mutex_.write<void *>([this]() {
         for (auto &[id, proc]: *this->processes_) {
           if (proc->running())
@@ -100,7 +101,7 @@ namespace fhatos {
      //   this->inbox_.clear();
         return nullptr;
       });
-      router()->route_unsubscribe(this->id());
+
       this->barrier("shutting_down", [this]() {
 #ifdef NATIVE
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // delay so _kill can finish
