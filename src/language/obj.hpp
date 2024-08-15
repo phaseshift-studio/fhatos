@@ -387,7 +387,7 @@ namespace fhatos {
         const IType domain = this->bcode_value()->front()->itype();
         const IType range = this->bcode_value()->back()->itype();
         return ITypeSignatures.toEnum(
-            ITypeDomains.toChars(domain) + "->" + ITypeRanges.toChars(range));
+            string(ITypeDomains.toChars(domain) + "->" + ITypeRanges.toChars(range)));
       }
       if (this->isObjs())
         return IType::ONE_TO_MANY;
@@ -561,7 +561,7 @@ namespace fhatos {
     bool operator||(const Obj &rhs) const {
       if (this->isBool() && rhs.isBool())
         return this->bool_value() || rhs.bool_value();
-      throw fError("Unknown obj type in ||: %s\n", OTypes.toChars(this->o_type()));
+      throw fError("Unknown obj type in ||: %s\n", OTypes.toChars(this->o_type()).c_str());
     }
     bool operator>(const Obj &rhs) const {
       switch (this->o_type()) {
@@ -592,7 +592,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() < rhs.str_value();
         default:
-          throw fError("Unknown obj type in >: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in >: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     bool operator<=(const Obj &rhs) const { return *this == rhs || *this < rhs; }
@@ -638,7 +638,7 @@ namespace fhatos {
            }
         }*/
         default:
-          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     Obj operator+(const Obj &rhs) const {
@@ -676,7 +676,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     Obj operator-(const Obj &rhs) const {
@@ -712,7 +712,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in +: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     Obj operator%(const Obj &other) const { return Obj(this->int_value() % other.int_value(), this->id()); }
@@ -803,7 +803,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in ==: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in ==: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     Obj operator[](Obj &key) const {
@@ -815,7 +815,7 @@ namespace fhatos {
         case OType::REC:
           return *this->rec_get(share(key));
         default:
-          throw fError("Unknown obj type in []: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in []: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     bool isNoObj() const { return this->o_type() == OType::NOOBJ; }

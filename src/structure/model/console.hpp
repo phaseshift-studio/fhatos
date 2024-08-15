@@ -76,12 +76,12 @@ namespace fhatos {
                            {"log level",
                             [](const Uri_p &log_level) {
                               Options::singleton()->log_level(
-                                  LOG_TYPES.toEnum(log_level->uri_value().toString().c_str()));
+                                  LOG_TYPES.toEnum(log_level->uri_value().toString()));
                               return log_level;
                             },
                             [] {
                               printer<>()->printf("!ylog!!: !b%s!!\n",
-                                                  LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()));
+                                                  LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
                             }}});
         _MENU_MAP->insert({":output",
                            {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },

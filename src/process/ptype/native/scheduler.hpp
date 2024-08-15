@@ -46,7 +46,7 @@ namespace fhatos {
       bool success = *this->processes_mutex_.write<bool>([this, process]() {
         process->setup();
         if (!process->running()) {
-          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype),
+          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype).c_str(),
                       process->id()->toString().c_str());
           return share(false);
         }

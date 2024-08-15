@@ -66,7 +66,7 @@ namespace fhatos {
     //////////////////////////////////////////////////// STOP
     virtual void stop() override {
       if (const RESPONSE_CODE _rc = this->unsubscribe()) {
-        LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), ResponseCodes.toChars(_rc));
+        LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), ResponseCodes.toChars(_rc).c_str());
       }
       PROCESS::stop();
       STRUCTURE::stop();

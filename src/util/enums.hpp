@@ -26,7 +26,7 @@ using namespace std;
 namespace fhatos {
   template<typename ENUM>
   struct Enums {
-    const list<pair<ENUM, string>> ENUM_TO_STR;
+    const list<pair<ENUM, string>> ENUM_TO_STR{};
     Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {}
 
     string toChars(const ENUM e) const {
@@ -37,12 +37,12 @@ namespace fhatos {
       throw fError("!ychars!! not found for enum !b%i!!\n", e);
     }
 
-    ENUM toEnum(const string& s) const {
+    ENUM toEnum(const string &s) const {
       for (const auto &pair: ENUM_TO_STR) {
         if (s == pair.second)
           return pair.first;
       }
-      throw fError("!yenum!! not found for chars !b%s!!\n", s);
+      throw fError("!yenum!! not found for chars !b%s!!\n", s.c_str());
     }
   };
 } // namespace fhatos
