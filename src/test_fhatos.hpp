@@ -243,7 +243,7 @@ static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool prin
     int index = 0;
     for (const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTypes.toChars(obj->o_type()));
+                       OTypes.toChars(obj->o_type()).c_str());
     }
   }
   return result;
