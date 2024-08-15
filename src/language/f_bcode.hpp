@@ -41,9 +41,7 @@ namespace fhatos {
     void setup() override {
       try {
         LOG(DEBUG, "Executing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
-        Fluent(SETUP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
-          LOG(DEBUG, "%s setup: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
-        });
+        Processor<Obj>(SETUP_BCODE).execute();
         LOG(DEBUG, "Completeing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
@@ -53,9 +51,7 @@ namespace fhatos {
 
     void loop() override {
       try {
-        Fluent(LOOP_BCODE).forEach<Obj>([this](const Obj_p &obj) {
-          LOG(DEBUG, "%s loop: %s\n", this->id()->toString().c_str(), obj->toString().c_str());
-        });
+        Processor<Obj>(LOOP_BCODE).execute();
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();

@@ -181,9 +181,6 @@ namespace fhatos {
 
     Fluent as(const Obj &utype) const { return this->addInst(Insts::as(share(utype))); }
     Fluent type() const { return this->addInst(Insts::type()); }
-    Fluent define(const Obj &typeId, const Obj &type) const {
-      return this->addInst(Insts::define(share(typeId), share(type)));
-    }
   };
 
   //////////////////////////////////////////////////////////////////////////////

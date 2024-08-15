@@ -82,7 +82,7 @@ namespace fhatos {
           }
         }
         LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                    ProcessTypes.toChars(process->ptype));
+                    ProcessTypes.toChars(process->ptype).c_str());
         return share(success);
       });
       if (!success)

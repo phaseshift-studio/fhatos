@@ -97,7 +97,7 @@ namespace fhatos {
               (line.length() == 2) ? "" : line.substring(2).c_str();
           BinaryObj<> conversion = BinaryObj<>::interpret(payload);
           LOG(DEBUG, "Telnet publishing: %s::%s\n",
-              OTypes.toChars(conversion.pattern()),
+              OTypes.toChars(conversion.pattern()).c_str(),
               conversion.toString().c_str());
           tthis->publish(*tthis->currentTopic, &conversion, TRANSIENT_MESSAGE);
         } else if (line.startsWith("?")) {

@@ -242,7 +242,7 @@ namespace fhatos {
         Obj(value, OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX)), typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
-      return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()), obj->toString().c_str(),
+      return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()).c_str(), obj->toString().c_str(),
                     function);
     }
     //////////////////////////////////////////////////////////////
@@ -291,7 +291,7 @@ namespace fhatos {
       }
     }*/
     //////////////////////////////////////////////////////////////
-    OType o_type() const { return OTypes.toEnum(this->_id->path(FOS_BASE_TYPE_INDEX)); }
+    OType o_type() const { return OTypes.toEnum(string(this->_id->path(FOS_BASE_TYPE_INDEX))); }
     template<typename VALUE>
     VALUE value() const {
       try {
@@ -387,7 +387,7 @@ namespace fhatos {
         const IType domain = this->bcode_value()->front()->itype();
         const IType range = this->bcode_value()->back()->itype();
         return ITypeSignatures.toEnum(
-            (string(ITypeDomains.toChars(domain)) + "->" + ITypeRanges.toChars(range)).c_str());
+            ITypeDomains.toChars(domain) + "->" + ITypeRanges.toChars(range));
       }
       if (this->isObjs())
         return IType::ONE_TO_MANY;
@@ -537,7 +537,7 @@ namespace fhatos {
           break;
         }
         default:
-          throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()).c_str());
       }
       objString = (includeType && (this->_id->path_length() > 2 || this->isNoObj()))
                       ? string("!b")
@@ -553,7 +553,7 @@ namespace fhatos {
     bool operator&&(const Obj &rhs) const {
       if (this->isBool() && rhs.isBool())
         return this->bool_value() && rhs.bool_value();
-      throw fError("Unknown obj type in &&: %s\n", OTypes.toChars(this->o_type()));
+      throw fError("Unknown obj type in &&: %s\n", OTypes.toChars(this->o_type()).c_str());
     }
     /*Obj_p operator*() {
       return TYPE_READER(*this->_id);
@@ -576,7 +576,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() > rhs.str_value();
         default:
-          throw fError("Unknown obj type in >: %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in >: %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     bool operator<(const Obj &rhs) const {
@@ -889,7 +889,7 @@ namespace fhatos {
         case OType::NOOBJ:
           return Obj::to_noobj();
         default:
-          throw fError("Unknown obj type in apply(): %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in apply(): %s\n", OTypes.toChars(this->o_type()).c_str());
       }
     }
     Obj_p split(const Any &newValue,
@@ -977,7 +977,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in match(): %s\n", OTypes.toChars(this->o_type()));
+          throw fError("Unknown obj type in match(): %s\n", OTypes.toChars(this->o_type()).c_str());
       }
       return false;
     }

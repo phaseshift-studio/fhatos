@@ -44,7 +44,7 @@ namespace fhatos {
   using Process_p = ptr<Process>;
   class XScheduler : public IDed, public Mailbox {
   protected:
-    MutexRW<> processes_mutex_;
+    MutexRW<> processes_mutex_ = MutexRW("scheduler processes");
     ptr<Map<const ID_p, Process_p, furi_p_less>> processes_ = share(Map<const ID_p, Process_p, furi_p_less>());
     MutexDeque<Mail_p> inbox_;
     bool running = false;
@@ -96,8 +96,8 @@ namespace fhatos {
           if (proc->running())
             proc->stop();
         }
-        this->processes_->clear();
-        this->inbox_.clear();
+     //   this->processes_->clear();
+     //   this->inbox_.clear();
         return nullptr;
       });
       router()->route_unsubscribe(this->id());
@@ -155,7 +155,7 @@ namespace fhatos {
           //  if (proc->running())
               proc->stop();
             LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", id->toString().c_str(),
-                        ProcessTypes.toChars(proc->ptype));
+                        ProcessTypes.toChars(proc->ptype).c_str());
               toRemove.push_back(id);
           }
         }

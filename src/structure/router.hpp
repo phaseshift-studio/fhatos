@@ -44,7 +44,7 @@ namespace fhatos {
     virtual void attach(const ptr<Structure> &structure) {
       if (structure->pattern()->equals(Pattern(""))) {
         LOG_STRUCTURE(INFO, this, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
-                      StructureTypes.toChars(structure->stype));
+                      StructureTypes.toChars(structure->stype).c_str());
       } else {
         this->structures.forEach([structure](const ptr<Structure> &s) {
           if (structure->pattern()->matches(*s->pattern()) || s->pattern()->matches(*structure->pattern())) {
@@ -54,7 +54,7 @@ namespace fhatos {
         });
         // structure->setup();
         LOG_STRUCTURE(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
-                      StructureTypes.toChars(structure->stype));
+                      StructureTypes.toChars(structure->stype).c_str());
         this->structures.push_back(structure);
       }
     }
@@ -111,30 +111,12 @@ namespace fhatos {
 
 
     void write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
-      auto *found = new atomic_bool(false);
-      this->structures.forEach([this, found, id, obj, source](const ptr<Structure> &structure) {
-        if (!found->load()) {
-          if (id->matches(*structure->pattern())) {
-            LOG_STRUCTURE(TRACE, this, "writing %s to !b%s!! at " FURI_WRAP " for " FURI_WRAP "\n",
-                          obj->toString().c_str(), id->toString().c_str(), structure->pattern()->toString().c_str(),
-                          source->toString().c_str());
-            structure->write(id, obj, source);
-            found->store(true);
-          }
-        }
-      });
-      if (!found->load()) {
-        delete found;
-        throw fError(FURI_WRAP " has no structure to contain !b%s!!\n", this->pattern()->toString().c_str(),
-                     id->toString().c_str());
-      }
-      delete found;
+      this->route_message(share(Message{.source = *source, .target = *id, .payload = obj, .retain = true}));
     }
-
 
     void remove(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       auto *found = new atomic_bool(false);
-      this->structures.forEach([found, id, source](const ptr<Structure> structure) {
+      this->structures.forEach([found, id, source](const ptr<Structure> &structure) {
         if (!found->load()) {
           if (id->matches(*structure->pattern())) {
             structure->remove(id, source);
@@ -153,14 +135,14 @@ namespace fhatos {
 
     RESPONSE_CODE route_message(const Message_p &message) {
       auto *rc = new RESPONSE_CODE(NO_SUBSCRIPTION);
-      this->structures.forEach([message, rc](const ptr<Structure> structure) {
+      this->structures.forEach([message, rc](const ptr<Structure> &structure) {
         if (message->target.matches(*structure->pattern())) {
           structure->recv_message(message);
           *rc = OK;
         }
       });
       const auto rc2 = RESPONSE_CODE(*rc);
-      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted message %s\n", ResponseCodes.toChars(rc2),
+      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted message %s\n", ResponseCodes.toChars(rc2).c_str(),
           this->_pattern->toString().c_str(), message->toString().c_str());
       delete rc;
       return rc2;
@@ -176,7 +158,7 @@ namespace fhatos {
       });
       auto rc2 = RESPONSE_CODE(*rc);
       LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted!! !_!yun!!!ysubscription!! " FURI_WRAP "=unsubscribe=>!y%s!!\n",
-          ResponseCodes.toChars(rc2), this->pattern()->toString().c_str(), subscriber->toString().c_str(),
+          ResponseCodes.toChars(rc2).c_str(), this->pattern()->toString().c_str(), subscriber->toString().c_str(),
           pattern->toString().c_str());
       // delete rc;
       return rc2;
@@ -191,7 +173,7 @@ namespace fhatos {
         }
       });
       auto rc2 = RESPONSE_CODE(*rc);
-      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted subscription!! %s\n", ResponseCodes.toChars(rc2),
+      LOG(DEBUG, "[!r%s!!] " FURI_WRAP " !yrouted subscription!! %s\n", ResponseCodes.toChars(rc2).c_str(),
           this->pattern()->toString().c_str(), subscription->toString().c_str());
       // delete rc;
       return rc2;

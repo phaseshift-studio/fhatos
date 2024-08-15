@@ -51,7 +51,7 @@ namespace fhatos {
                           p.printf("\n!r!_%s\t  %s\t\t\t%s!!\n", "op", "inst", "domain/range");
                           for (const Inst_p &inst: *bcode->bcode_value()) {
                             p.printf("!b%s!!\t  %s\t\t\t%s\n", inst->inst_op().c_str(), inst->toString().c_str(),
-                                     ITypeSignatures.toChars(inst->itype()));
+                                     ITypeSignatures.toChars(inst->itype()).c_str());
                           }
                           // bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
                           BCode_p rewrite = Obj::to_bcode({Insts::start(Obj::to_objs({Obj::to_str(ex)}))});

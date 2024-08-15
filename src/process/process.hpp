@@ -44,7 +44,7 @@ namespace fhatos {
 
     virtual void setup() {
       if (this->_running.load()) {
-        LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype));
+        LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
       this->_running.store(true);
@@ -53,13 +53,13 @@ namespace fhatos {
     virtual void loop() {
       if (!this->_running.load()) {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
-                     ProcessTypes.toChars(this->ptype));
+                     ProcessTypes.toChars(this->ptype).c_str());
       }
     };
 
     virtual void stop() {
       if (!this->_running.load()) {
-        LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype));
+        LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
       this->_running.store(false);

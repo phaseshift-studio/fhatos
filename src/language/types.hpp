@@ -49,7 +49,7 @@ namespace fhatos {
           Subscription{.source = *this->id(), .pattern = *this->pattern(), .onRecv = [](const Message_p &message) {
                          if (message->retain && (message->source != *Types::singleton()->id()) &&
                              (message->source != ID("anon_src")))
-                           Types::singleton()->saveType(id_p(message->target), message->payload);
+                           Types::singleton()->saveType(id_p(message->target), message->payload,true);
                          // else { // transient provides type checking?
                          // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
                          // id_p(message->target));
@@ -59,18 +59,20 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void saveType(const ID_p &typeId, const Obj_p &typeDef) {
+    void saveType(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub=false) {
       try {
-        Obj_p current = this->read(typeId, this->id());
-        if (!current->isNoObj() && current != typeDef) {
-          LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
-                      current->toString().c_str());
+        if(!viaPub) {
+          Obj_p current = this->read(typeId, this->id());
+          if (!current->isNoObj() && current != typeDef) {
+            LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
+                        current->toString().c_str());
+          }
+          this->write(typeId, typeDef, this->id());
         }
-        this->write(typeId, typeDef, this->id());
-        if (OType::INST == OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX))) {
+        if (OType::INST == OTypes.toEnum(string(typeId->path(FOS_BASE_TYPE_INDEX)))) {
           const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                      typeDef->bcode_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()));
+                      typeDef->bcode_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()).c_str());
         } else {
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
                       typeDef->toString().c_str());

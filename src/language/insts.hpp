@@ -147,7 +147,7 @@ namespace fhatos {
                 return lhs;
               }
               default:
-                throw fError("Unknown obj type in []: %s\n", OTypes.toChars(lhs->o_type()));
+                throw fError("Unknown obj type in []: %s\n", OTypes.toChars(lhs->o_type()).c_str());
             }
           },
           IType::ONE_TO_ONE);
@@ -198,16 +198,6 @@ namespace fhatos {
           "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p define(const Obj_p &typeId, const BCode_p &type) {
-      return Obj::to_inst(
-          "define", {typeId, type},
-          [typeId, type](const Obj_p &lhs) {
-            Router::singleton()->write(share(ID(typeId->apply(lhs)->uri_value())), type->apply(lhs));
-            return lhs;
-          },
-          areInitialArgs(typeId, type) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE, Obj::to_noobj());
-    }
-
     static Obj_p as(const Uri_p &typeId) {
       return Obj::to_inst(
           "as", {typeId},
@@ -220,12 +210,9 @@ namespace fhatos {
           "to", {uri},
           [uri](const Obj_p &lhs) {
             RESPONSE_CODE _rc = OK;
-            const Uri_p ap1 = uri->apply(lhs);
-            const Obj_p ap2 = lhs->apply(uri);
-            const ID_p id = id_p(ap1->uri_value());
-            Router::singleton()->write(id, ap2);
+            router()->write(id_p(uri->apply(lhs)->uri_value()), lhs->apply(uri));
             if (_rc)
-              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
+              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
             return lhs;
           },
           /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
@@ -236,23 +223,9 @@ namespace fhatos {
           "to_inv", {obj},
           [obj](const Obj_p &lhs) {
             RESPONSE_CODE _rc = OK;
-            const Uri_p ap = lhs->apply(obj);
-            const ID_p id = id_p(ap->uri_value());
-            // const Obj_p obj2 = obj->apply(lhs);
-            Router::singleton()->write(id, obj);
+            Router::singleton()->write(id_p( lhs->apply(obj)->uri_value()), obj->apply(lhs));
             if (_rc)
-              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc));
-            return obj;
-          },
-          IType::ONE_TO_ONE);
-    }
-
-    static Obj_p both(const Uri_p &uri) {
-      return Obj::to_inst(
-          "both", {uri},
-          [uri](const Obj_p &lhs) {
-            // Router::singleton()->write(share(uri->apply(lhs)->uri_value()), lhs->apply(uri));
-            // Router::singleton()->write(share(lhs->apply(uri)->uri_value()), uri->apply(lhs));
+              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
             return lhs;
           },
           IType::ONE_TO_ONE);
@@ -262,10 +235,7 @@ namespace fhatos {
       return Obj::to_inst(
           "from", {uri},
           [uri](const Uri_p &lhs) {
-            const Uri_p ap = uri->apply(lhs);
-            const fURI_p furi = furi_p(ap->uri_value());
-            const Obj_p obj = router()->read(furi);
-            return obj;
+            return router()->read(furi_p(uri->apply(lhs)->uri_value()));
           },
           (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
@@ -313,8 +283,7 @@ namespace fhatos {
       return Obj::to_inst(
           "print", {toprint},
           [toprint](const Obj_p &lhs) {
-            const Obj_p done = toprint->apply(lhs);
-            printer()->printf("%s\n", done->toString().c_str());
+            printer()->printf("%s\n", toprint->apply(lhs)->toString().c_str());
             return lhs;
           },
           toprint->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
@@ -672,8 +641,6 @@ namespace fhatos {
         return Insts::as(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("by"))
         return Insts::by(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("define"))
-        return Insts::define(argCheck(typeId, args, 2).at(0), args.at(1));
       if (typeId == INST_FURI->resolve("type"))
         return Insts::type();
       if (typeId == INST_FURI->resolve("is"))
@@ -696,8 +663,6 @@ namespace fhatos {
         return Insts::lte(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("lt"))
         return Insts::lt(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("both"))
-        return Insts::both(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("to"))
         return Insts::to(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("to_inv"))
