@@ -85,6 +85,7 @@ namespace fhatos {
       static ptr<Parser> parser_p = ptr<Parser>(new Parser(id));
       static bool _setup = false;
       if (!_setup) {
+        _setup = true;
         TYPE_PARSER = [](const string &bcode) {
           try {
             return Parser::singleton()->tryParseObj(bcode).value_or(Obj::to_noobj());
@@ -94,7 +95,6 @@ namespace fhatos {
           }
         };
         Options::singleton()->parser<Obj>(TYPE_PARSER);
-        _setup = true;
       }
       return parser_p;
     }

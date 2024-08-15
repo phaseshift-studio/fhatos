@@ -20,10 +20,10 @@
 #define fhatos_actor_hpp
 
 #include <fhatos.hpp>
+#include <furi.hpp>
 #include <process/process.hpp>
+#include <structure/pubsub.hpp>
 #include <structure/structure.hpp>
-#include "furi.hpp"
-#include "structure/pubsub.hpp"
 
 namespace fhatos {
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
@@ -34,10 +34,21 @@ namespace fhatos {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
-    explicit Actor(const ID &id) : Actor(id, id.extend("#")) {}
+    explicit Actor(const ID &id) : Actor(id, id.extend("#")) {
+      // router()->attach(ptr<Structure>((Structure *) this));
+      // scheduler()->spawn(ptr<Process>((Process *) this));
+    }
 
-    virtual ~Actor() = default;
-    bool recv_mail(const Mail_p &mail) override { return this->outbox->push_back(mail); }
+    //~Actor() override {
+      //PROCESS::~Process();
+      //STRUCTURE::~Structure();
+    //}
+
+    bool recv_mail(const Mail_p &mail) override {
+      if (!this->active())
+        return false;
+      return this->outbox_->push_back(mail);
+    }
     RESPONSE_CODE publish(const ID &target, const Obj_p &payload,
                           const bool retain = TRANSIENT_MESSAGE) { // rename send_mail
       return router()->route_message(
@@ -65,6 +76,8 @@ namespace fhatos {
     }
     //////////////////////////////////////////////////// STOP
     virtual void stop() override {
+      if (!this->active())
+        return;
       if (const RESPONSE_CODE _rc = this->unsubscribe()) {
         LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), ResponseCodes.toChars(_rc).c_str());
       }
@@ -73,6 +86,8 @@ namespace fhatos {
     }
     //////////////////////////////////////////////////// LOOP
     virtual void loop() override {
+      if (!this->active())
+        return;
       PROCESS::loop();
       STRUCTURE::loop();
     }

@@ -27,7 +27,7 @@ namespace fhatos {
   class KeyValue : public Structure {
 
   protected:
-    Map<ID_p, const Obj_p, furi_p_less> *DATA = new Map<ID_p, const Obj_p, furi_p_less>();
+    ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(Map<ID_p, const Obj_p, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>();
 
     explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
@@ -37,10 +37,6 @@ namespace fhatos {
       ptr<KeyValue> kv_p = ptr<KeyValue>(new KeyValue(pattern));
       return kv_p;
     }
-
-    ~KeyValue() override { delete DATA; }
-
-    void setup() override { Structure::setup(); }
 
     void stop() override {
       Structure::stop();

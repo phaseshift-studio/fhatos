@@ -74,11 +74,9 @@ void setup() {
         ->load_modules({ID("/mod/proc")})
         ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");
-    printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
   }
-  exit(1);
 }
 
 void loop() {
@@ -92,5 +90,6 @@ int main(int argc, char **argv) {
   args.init(argc, argv);
   setup();
   loop();
+  return 0;
 }
 #endif

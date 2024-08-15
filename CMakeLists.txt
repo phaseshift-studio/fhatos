@@ -16,30 +16,29 @@ ENDIF ()
 IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "DEBUG")
 ENDIF ()
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
+SET(CMAKE_CXX_FLAGS_DEBUG "-g")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
 IF (NOT WIN32)
     STRING(ASCII 27 Esc)
     SET(.. "${Esc}[m")
-    SET(ColourBold "${Esc}[1m")
-    SET(.r "${Esc}[31m")
-    SET(.g "${Esc}[32m")
-    SET(.y "${Esc}[33m")
-    SET(.b "${Esc}[34m")
-    SET(.m "${Esc}[35m")
-    SET(.c "${Esc}[36m")
-    SET(.w "${Esc}[37m")
-    SET(BoldRed "${Esc}[1;31m")
-    SET(BoldGreen "${Esc}[1;32m")
-    SET(BoldYellow "${Esc}[1;33m")
-    SET(BoldBlue "${Esc}[1;34m")
-    SET(BoldMagenta "${Esc}[1;35m")
-    SET(BoldCyan "${Esc}[1;36m")
-    SET(BoldWhite "${Esc}[1;37m")
+    SET(.r "${Esc}[31m") # red
+    SET(.g "${Esc}[32m") # green
+    SET(.y "${Esc}[33m") # yellow
+    SET(.b "${Esc}[34m") # blue
+    SET(.m "${Esc}[35m") # magenta
+    SET(.c "${Esc}[36m") # cyan
+    SET(.w "${Esc}[37m") # white
+    SET(.R "${Esc}[1;31m") # bold versions of colors above
+    SET(.G "${Esc}[1;32m")
+    SET(.Y "${Esc}[1;33m")
+    SET(.B "${Esc}[1;34m")
+    SET(.M "${Esc}[1;35m")
+    SET(.C "${Esc}[1;36m")
+    SET(.W "${Esc}[1;37m")
 ENDIF ()
 MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m} <`--'>____${.g}  ______ __  __  ______  ______  ${.b}______  ______${..} \n"
@@ -52,6 +51,13 @@ MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m}    )-)_/-(>${.g}  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
         "${.b}\\/_____/\\/_____/ \n"
         "${.r}                                   A Dogturd Stynx Production${..} \n")
+IF (WIN32)
+    MESSAGE(NOTICE "${.r}https://cmake.org/cmake/help/latest/variable/WIN32.html?highlight=win32${..}")
+ELSEIF (APPLE)
+    MESSAGE(NOTICE "${.y}https://cmake.org/cmake/help/latest/variable/APPLE.html?highlight=apple${..}")
+ELSEIF (UNIX)
+    MESSAGE(NOTICE "${.g}https://cmake.org/cmake/help/latest/variable/UNIX.html?highlight=unix${..}")
+ENDIF ()
 ## PARALLELISM LEVEL (HARDCODED TO 8)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
 CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
@@ -112,7 +118,9 @@ IF (BUILD_NATIVE)
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
-    ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator")
+    IF (APPLE)
+        ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
+    ENDIF ()
     ADD_DEFINITIONS("-DNATIVE")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)

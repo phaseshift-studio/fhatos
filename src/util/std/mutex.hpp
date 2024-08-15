@@ -29,11 +29,10 @@ namespace fhatos {
   template<uint16_t WAIT_TIME_MS = 250>
   class Mutex {
     std::mutex xmutex = std::mutex();
-    const char *_label;
+    string _label;
 
   public:
-    explicit Mutex(const char *label = "<anon>") : _label(strdup(label)) {}
-    ~Mutex() { free((void*)this->_label); }
+    explicit Mutex(const char *label = "<anon>") : _label(string(label)) {}
     template<typename T = void *>
     T lockUnlock(const Supplier<T> criticalFunction, const uint16_t millisecondsWait = WAIT_TIME_MS) {
       try {
@@ -42,7 +41,7 @@ namespace fhatos {
           this->unlock();
           return t;
         } else {
-          throw fError("Unable to lock mutex %s\n", this->_label);
+          throw fError("Unable to lock mutex %s\n", this->_label.c_str());
         }
       } catch (const std::exception &) {
         this->xmutex.unlock();

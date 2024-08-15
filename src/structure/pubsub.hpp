@@ -18,8 +18,8 @@
 #ifndef fhatos_structure_subscription_hpp
 #define fhatos_structure_subscription_hpp
 
-#include "fhatos.hpp"
-#include "language/obj.hpp"
+#include <fhatos.hpp>
+#include <language/obj.hpp>
 
 namespace fhatos {
 #define RETAIN_MESSAGE true

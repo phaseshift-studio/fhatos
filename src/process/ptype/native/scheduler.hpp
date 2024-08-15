@@ -32,6 +32,14 @@ namespace fhatos {
     explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {}
 
   public:
+    ~Scheduler() override {
+      if (FIBER_THREAD_HANDLE) {
+        // LOG_PROCESS(INFO, this, "Destroying fiber bundle !g[!ythread-%i!g]!!\n",
+        // this->FIBER_THREAD_HANDLE->get_id());
+        this->FIBER_THREAD_HANDLE->join();
+        delete this->FIBER_THREAD_HANDLE;
+      }
+    }
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
@@ -54,8 +62,7 @@ namespace fhatos {
         router()->route_subscription(share(Subscription{
             .source = *this->id(), .pattern = *process->id(), .onRecv = [this, process](const Message_p &message) {
               if (message->payload->isNoObj()) {
-                router()->route_unsubscribe(this->id(), p_p(*process->id()));
-                this->_kill(*process->id());
+                process->stop();
               }
             }}));
         ////////////////////////////////
@@ -90,24 +97,24 @@ namespace fhatos {
       return success;
     }
 
+    //////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
     std::thread *FIBER_THREAD_HANDLE = nullptr;
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
     static void FIBER_FUNCTION(void *) {
-      while (0 != Scheduler::singleton()->processes_mutex_.read<int>([]() {
-        int counter = 0;
+      int counter = 1;
+      while (counter > 0) {
+        counter = 0;
         for (const auto &[id, proc]: *Scheduler::singleton()->processes_) {
           if (proc->ptype == PType::FIBER) {
-            ++counter;
             if (!proc->running())
               Scheduler::singleton()->kill(*proc->id());
-            else
+            else {
               proc->loop();
+              ++counter;
+            }
           }
         }
-        return counter;
-      })) {
       }
     }
 
@@ -119,7 +126,8 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      Scheduler::singleton()->_kill(*thread->id());
+      thread->xthread->detach();
+      Scheduler::singleton()->kill(*thread->id());
     }
   };
   ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }

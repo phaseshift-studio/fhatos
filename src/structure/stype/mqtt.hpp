@@ -34,7 +34,7 @@ namespace fhatos {
   protected:
     Message_p will_message;
     const char *server_addr;
-    async_client *xmqtt;
+    ptr<async_client> xmqtt;
 
 
     //                                     +[scheme]//+[authority]/#[path]
@@ -44,7 +44,7 @@ namespace fhatos {
       this->server_addr = string(server_addr).find_first_of("mqtt://") == string::npos
                               ? string("mqtt://").append(string(server_addr)).c_str()
                               : server_addr;
-      this->xmqtt = new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5));
+      this->xmqtt = ptr<async_client>(new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5)));
       this->will_message = will_message;
       srand(time(nullptr));
       auto connection_options = connect_options_builder()
@@ -75,7 +75,7 @@ namespace fhatos {
             if (message->target.matches(subscription->pattern)) {
               rc2 = OK;
               Subscription_p sub = share(Subscription(*subscription));
-              this->outbox->push_back(share(Mail{sub, message}));
+              this->outbox_->push_back(share(Mail{sub, message}));
             }
           }
           return rc2;
@@ -110,6 +110,12 @@ namespace fhatos {
     }
 
   public:
+    void stop() override {
+      if (!this->xmqtt->disconnect()->wait_for(2000))
+        LOG_STRUCTURE(ERROR, this, "Unable to gracefully disconnect from mqtt broker !g[!y%s!g]!!\n",
+                      this->server_addr);
+    }
+
     static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
                             const Message_p &will_message = ptr<Message>(nullptr)) {
       ptr<Mqtt> mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));

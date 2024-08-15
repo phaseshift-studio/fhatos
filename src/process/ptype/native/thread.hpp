@@ -42,12 +42,12 @@ namespace fhatos {
           this->xthread->join();
         } catch (const std::runtime_error &e) {
           LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
-                   this->xthread->get_id(), std::this_thread::get_id());
+                      this->xthread->get_id(), std::this_thread::get_id());
         }
       }
     }
 
-    void loop() override { }
+    void loop() override {}
 
     void delay(const uint64_t milliseconds) override {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));

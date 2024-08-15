@@ -75,13 +75,13 @@ namespace fhatos {
         _MENU_MAP->insert({":log",
                            {"log level",
                             [](const Uri_p &log_level) {
-                              Options::singleton()->log_level(
-                                  LOG_TYPES.toEnum(log_level->uri_value().toString()));
+                              Options::singleton()->log_level(LOG_TYPES.toEnum(log_level->uri_value().toString()));
                               return log_level;
                             },
                             [] {
-                              printer<>()->printf("!ylog!!: !b%s!!\n",
-                                                  LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
+                              printer<>()->printf(
+                                  "!ylog!!: !b%s!!\n",
+                                  LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
                             }}});
         _MENU_MAP->insert({":output",
                            {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
@@ -114,7 +114,10 @@ namespace fhatos {
               [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
         _MENU_MAP->insert({":shutdown",
                            {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
-                            []() { Scheduler::singleton()->stop(); }}});
+                            []() {
+                              Scheduler::singleton()->stop();
+                              exit(1);
+                            }}});
         _MENU_MAP->insert(
             {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }

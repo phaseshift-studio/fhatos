@@ -54,9 +54,11 @@ IF (BUILD_TESTS)
         FOREACH (PACKAGE_TEST ${PACKAGE_TESTS})
             MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
-
             ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-            ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE" "-Wno-ambiguous-reversed-operator") #  "-Wno-dev"
+            ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE")
+            IF (APPLE)
+                ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
+            ENDIF ()
             IF (USE_PRECOMPILED_HEADERS)
                 MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
                 TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})

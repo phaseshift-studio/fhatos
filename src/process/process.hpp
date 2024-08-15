@@ -22,7 +22,7 @@
 #include <atomic>
 #include <fhatos.hpp>
 #include <util/enums.hpp>
-#include "furi.hpp"
+#include <furi.hpp>
 
 namespace fhatos {
 

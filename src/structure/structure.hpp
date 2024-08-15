@@ -20,11 +20,10 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <structure/router.hpp>
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
-#include "pubsub.hpp"
+#include <structure/pubsub.hpp>
 
 namespace fhatos {
   enum class SType { READ, WRITE, READWRITE };
@@ -34,48 +33,43 @@ namespace fhatos {
   class Structure : public Patterned {
 
   protected:
-    MutexDeque<Mail_p> *outbox = new MutexDeque<Mail_p>();
-    List<Subscription_p> *subscriptions = new List<Subscription_p>();
+    ptr<MutexDeque<Mail_p>> outbox_ = ptr<MutexDeque<Mail_p>>(new MutexDeque<Mail_p>());
+    ptr<List<Subscription_p>> subscriptions = ptr<List<Subscription_p>>(new List<Subscription_p>());
     MutexRW<> mutex = MutexRW<>();
-    std::atomic_bool _available = std::atomic_bool(false);
+    std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
     const SType stype;
 
     explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
-    virtual ~Structure() {
-      this->outbox->clear();
-      delete outbox;
-      this->subscriptions->clear();
-      delete subscriptions;
-    };
-
-    bool available() { return this->_available.load(); }
+    bool available() { return this->available_.load(); }
     virtual void setup() {
-      if (this->_available.load())
+      if (this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already open");
-      this->_available.store(true);
+      this->available_.store(true);
     }
     virtual void loop() {
-      if (!this->_available.load())
+      if (!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
       Option<Mail_p> mail;
-      while ((mail = this->outbox->pop_back()).has_value()) {
+      while ((mail = this->outbox_->pop_back()).has_value()) {
         LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         mail.value()->first->onRecv(mail.value()->second);
       }
     }
     virtual void stop() {
-      if (!this->_available.load())
+      if (!this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
-      this->_available.store(false);
+      this->available_.store(false);
       this->subscriptions->clear();
-      this->outbox->clear(false);
+      this->outbox_->clear(false);
     }
 
     virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
+      if (!this->available_.load())
+        return;
       this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
                                            [source, target](const Subscription_p &sub) {
                                              LOG_UNSUBSCRIBE(OK, *source, target);
@@ -85,6 +79,8 @@ namespace fhatos {
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
+      if (!this->available_.load())
+        return;
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       this->mutex.write<void *>([this, subscription]() {
         /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
@@ -101,7 +97,7 @@ namespace fhatos {
           const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
           if (objx->isObjs()) {
             for (const auto &obj: *objx->objs_value()) {
-              this->outbox->push_back(share(Mail(
+              this->outbox_->push_back(share(Mail(
                   {subscription,
                    share(Message{.source = ID("anon_src"),
                                  .target = ID("anon_tgt"),
@@ -110,7 +106,7 @@ namespace fhatos {
             }
           } /* else {
            if (!objx->isNoObj()) {
-             this->outbox->push_back(share(
+             this->outbox_->push_back(share(
                  Mail({subscription,
                        share(Message{.source = ID("anon_src"),
                                      .target = ID("anon_tgt"),
@@ -126,6 +122,8 @@ namespace fhatos {
     }
 
     virtual void recv_message(const Message_p &message) {
+      if (!this->available_.load())
+        return;
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       if (message->retain) {
         this->write(id_p(message->target), message->payload, id_p(message->source));
@@ -136,7 +134,7 @@ namespace fhatos {
           if (message->target.matches(subscription->pattern)) {
             rc2 = OK;
             Subscription_p sub = share(Subscription(*subscription));
-            this->outbox->push_back(share(Mail{sub, message}));
+            this->outbox_->push_back(share(Mail{sub, message}));
           }
         }
         return rc2;

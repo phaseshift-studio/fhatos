@@ -27,7 +27,7 @@ namespace fhatos {
 
   class Router final : public Patterned {
   protected:
-    MutexDeque<ptr<Structure>> structures = MutexDeque<ptr<Structure>>();
+    MutexDeque<ptr<Structure>> structures = MutexDeque<ptr<Structure>>("<router structures mutex>");
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {}
 
   public:
@@ -39,6 +39,11 @@ namespace fhatos {
         LOG_STRUCTURE(INFO, router_p.get(), "!yrouter!! loaded\n");
       }
       return router_p;
+    }
+
+    void stop() {
+      LOG_STRUCTURE(INFO, this, "Stopping router %s\n", this->pattern()->toString().c_str());
+      this->structures.clear();
     }
 
     virtual void attach(const ptr<Structure> &structure) {
@@ -62,8 +67,8 @@ namespace fhatos {
     virtual void detach(const Pattern_p &structurePattern) {
       this->structures.remove_if([this, structurePattern](const ptr<Structure> &structure) {
         if (structure->pattern()->matches(*structurePattern)) {
-          structure->stop();
           LOG_STRUCTURE(INFO, this, "detached structure %s\n", structure->pattern()->toString().c_str());
+          structure->stop();
           // delete structure;
           return true;
         }
@@ -131,7 +136,6 @@ namespace fhatos {
       }
       delete found;
     }
-
 
     RESPONSE_CODE route_message(const Message_p &message) {
       auto *rc = new RESPONSE_CODE(NO_SUBSCRIPTION);

@@ -26,7 +26,7 @@
 namespace fhatos {
 
   template<typename PROCESS = Thread>
-  class fBcode final : public Actor<PROCESS, KeyValue> {
+  class fBcode : public Actor<PROCESS, KeyValue> {
   public:
     const ptr<Obj> rec;
     const ptr<BCode> SETUP_BCODE;
