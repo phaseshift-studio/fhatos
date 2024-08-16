@@ -41,6 +41,14 @@ namespace fhatos {
       rtrim(const_cast<string &>(s));
     }
 
+    static string repeat(const uint8_t amount, const string& repeater=" ") {
+      string temp;
+      for (int i = 0; i < amount; i++) {
+        temp += repeater;
+      }
+      return temp;
+    }
+
     static void ltrim(std::string &s) {
       s.erase(s.begin(),
               std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));

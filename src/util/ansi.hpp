@@ -190,27 +190,6 @@ namespace fhatos {
       int length = vsnprintf(message, 1023, format, arg);
       message[length] = '\0';
       this->parse(message, length);
-      // this->print(message);
-      /*va_list arg;
-      va_start(arg, format);
-      char temp[512];
-      char *buffer = temp;
-      size_t len = vsnprintf(temp, sizeof(temp), format, arg);
-      va_end(arg);
-      if (len > sizeof(temp) - 1) {
-        buffer = new (std::nothrow) char[len + 1];
-        if (!buffer) {
-          return;
-        }
-        va_start(arg, format);
-        vsnprintf(buffer, len + 1, format, arg);
-        va_end(arg);
-        buffer[len] = '\0';
-      }
-      this->parse(temp, len);
-      if (buffer != temp) {
-        delete[] buffer;
-      }*/
     }
 
     //////////////////////////

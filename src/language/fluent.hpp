@@ -23,7 +23,7 @@
 //
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include <language/processor.hpp>
+#include "language/processor/processor.hpp"
 
 namespace fhatos {
   class Fluent {

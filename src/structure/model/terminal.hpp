@@ -62,10 +62,10 @@ namespace fhatos {
     }
 
     static void out(const ID &source, const char *format, ...) {
-      char buffer[512];
+      char buffer[1024];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(buffer, 512, format, arg);
+      int length = vsnprintf(buffer, 1024, format, arg);
       buffer[length] = '\0';
       va_end(arg);
       router()->route_message(share(Message{.source = source, //

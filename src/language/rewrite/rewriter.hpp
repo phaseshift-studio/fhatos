@@ -1,27 +1,25 @@
-/*******************************************************************************
-  FhatOS: A Distributed Operating System
-  Copyright (c) 2024 PhaseShift Studio, LLC
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+//  FhatOS: A Distributed Operating System
+//  Copyright (c) 2024 PhaseShift Studio, LLC
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #ifndef fhatos_rewrite_hpp
 #define fhatos_rewrite_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
-#include <util/string_printer.hpp>
+#include "fhatos.hpp"
+#include "language/obj.hpp"
+#include "util/string_printer.hpp"
 
 namespace fhatos {
   using PriorPost = Pair<List<ID>, List<ID>>;
@@ -48,12 +46,23 @@ namespace fhatos {
                           auto ex = string();
                           auto p = Ansi<StringPrinter>(StringPrinter(&ex));
                           // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
-                          p.printf("\n!r!_%s\t  %s\t\t\t%s!!\n", "op", "inst", "domain/range");
-                          for (const Inst_p &inst: *bcode->bcode_value()) {
-                            p.printf("!b%s!!\t  %s\t\t\t%s\n", inst->inst_op().c_str(), inst->toString().c_str(),
-                                     ITypeSignatures.toChars(inst->itype()).c_str());
-                          }
-                          // bcode->bcode_value()->back()->inst_seed()->add_obj(Obj::to_str(ex));
+                          p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
+                          const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
+                              [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
+                                string pad = StringHelper::repeat(depth, " ");
+                                string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
+                                for (const Inst_p &inst: *bcode->bcode_value()) {
+                                  p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  %s\n", inst->inst_op().c_str(),
+                                           (string(pad2) + inst->toString()).c_str(),
+                                           (string(pad) + ITypeSignatures.toChars(inst->itype())).c_str());
+                                  for (const auto &arg: inst->inst_args()) {
+                                    if (arg->isBytecode()) {
+                                      fun(arg, p, depth + 1);
+                                    }
+                                  }
+                                }
+                              };
+                          fun(bcode, p, 0);
                           BCode_p rewrite = Obj::to_bcode({Insts::start(Obj::to_objs({Obj::to_str(ex)}))});
                           LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
                           return rewrite;

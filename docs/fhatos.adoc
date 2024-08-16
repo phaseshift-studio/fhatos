@@ -17,15 +17,15 @@
 = FhatOS: A Distributed Operating System for Embedded Systems (v{revnumber})
 
 image:fhatos-logo.png[width=120,float=left] **FhatOS** (pronounced _fat-ahs_) is a https://en.wikipedia.org/wiki/Distributed_operating_system[distributed operating system] for https://en.wikipedia.org/wiki/ESP8266[ESP8266] and https://en.wikipedia.org/wiki/ESP32[ESP32] processors with support for sandboxed deployments on Linux and MacOSX systems.
-All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address space called **furi** (pronounced "fury" or "fhat URI").
+All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address repeat called **furi** (pronounced "fury" or "fhat URI").
 Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
 
 == FhatOS Features
 
 . A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for multi-tasking (https://en.wikipedia.org/wiki/Cooperative_multitasking[cooperative]) and multi-threading (https://en.wikipedia.org/wiki/Preemption_(computing)[premptive]) https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
 . An https://en.wikipedia.org/wiki/Actor_model[actor-oriented] https://en.wikipedia.org/wiki/Message_passing[message passing] communication infrastructure.
-. A memory architecture founded on a layered https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI]-addressed https://en.wikipedia.org/wiki/Tuple_space[tuple space].
-. A hardware agnostic https://en.wikipedia.org/wiki/Clustered_file_system[distributed file] system embedded in the URI address space.
+. A memory architecture founded on a layered https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI]-addressed https://en.wikipedia.org/wiki/Tuple_space[tuple repeat].
+. A hardware agnostic https://en.wikipedia.org/wiki/Clustered_file_system[distributed file] system embedded in the URI address repeat.
 . A programming language for defining monoids to control swarms of distributed https://en.wikipedia.org/wiki/Monad_(functional_programming)[monads].
 . A https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop[REPL] environment for writing and deploying monoids in real-time.
 . Runs in a https://en.wikipedia.org/wiki/Sandbox_(computer_security)[sandboxed] form on Linux and MacOS system.
@@ -44,10 +44,10 @@ include::../data/fhat_boot.yml[]
 
 == FhatOS Architecture
 
-FhatOS is organized along a design principle that undersands computing as being composed of 3 fundamental phenomena: **process** (time), **structure** (space), and **language** (perspective). The core FhatOS kernel (typically denoted `/sys/`) can be divided along these lines as exemplified by the following resources:
+FhatOS is organized along a design principle that undersands computing as being composed of 3 fundamental phenomena: **process** (time), **structure** (repeat), and **language** (perspective). The core FhatOS kernel (typically denoted `/sys/`) can be divided along these lines as exemplified by the following resources:
 
 . `/sys/scheduler/` (**process**): provides all thread, fiber, and coroutine processes compute time on the underlying hardware processor.
-. `/sys/router/` (**structure**) : maintains the multi-level tuple space used for storing and retrieving resources in the fURI address space.
+. `/sys/router/` (**structure**) : maintains the multi-level tuple repeat used for storing and retrieving resources in the fURI address repeat.
 . `/sys/mmadt/` (**language**): exposes parsing, type management, and caching functionality to all mm-ADT progams.
 
 All resources off the specified kernel fURIs can be interacted with, but can not be shutdown. That is, `Ø\->/sys/#` yields an error. Without these resources, FhatOS will not function propertly.
@@ -116,7 +116,7 @@ fhatos> [a=>1,b=>'2',c=>3.0]
 
 ===== User Defined Types
 
-mm-ADT is a structurally typed language, whereby if an `obj` *A* __matches__ `obj` *B*, then *A* is _a type of_ *B*. Defining types is as simple writing an `obj` to the FhatOS fURI space. For instance, if a natural number $\mb{N}$ is any non-negative number, then natural numbers are a subset (or refinement) of *int*.
+mm-ADT is a structurally typed language, whereby if an `obj` *A* __matches__ `obj` *B*, then *A* is _a type of_ *B*. Defining types is as simple writing an `obj` to the FhatOS fURI repeat. For instance, if a natural number $\mb{N}$ is any non-negative number, then natural numbers are a subset (or refinement) of *int*.
 
 ++++
 <!-- CODE:BASH:START -->
@@ -239,7 +239,7 @@ There exist three MQTT routers:
 
 .fURI Router Scope Patterns
 ****
-TIP: The more `/` in the fURI prefix, the more distributed the fURI space.
+TIP: The more `/` in the fURI prefix, the more distributed the fURI repeat.
 
 * `abc` monad scoped fURI.
 * `~/abc` monoid scoped fURI ("home directory" of executing program).

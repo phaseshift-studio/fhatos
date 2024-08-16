@@ -135,7 +135,7 @@ namespace fhatos {
   __test_freeHeap = ESP.getFreeHeap();                                                                                 \
   { RUN_TEST(x); }                                                                                                     \
   TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch, ESP.getFreeSketchSpace(),                                 \
-                                          "Memory leak in sketch space.");                                             \
+                                          "Memory leak in sketch repeat.");                                             \
   TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeHeap, ESP.getFreeHeap(), "Memory leak in heap.");
 
 #define FOS_RUN_TESTS(x)                                                                                               \
