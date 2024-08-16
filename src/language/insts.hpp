@@ -241,6 +241,28 @@ namespace fhatos {
       return Obj::to_inst("type", {}, [](const Obj_p &lhs) { return share(Uri(*lhs->id())); }, IType::ONE_TO_ONE);
     }
 
+    static Lst_p cleave(const Str_p &delimiter) {
+      return Obj::to_inst(
+          "split", {delimiter},
+          [delimiter](const Str_p &lhs) {
+            List_p<Str_p> tokens = share(List<Str_p>());
+            stringstream ss = stringstream(lhs->str_value());
+            string temp;
+            string delim = delimiter->str_value();
+            while (!ss.eof()) {
+              if (StringHelper::lookAhead(delim, &ss)) {
+                tokens->push_back(Obj::to_str(temp));
+                temp.clear();
+              } else
+                temp += ss.get();
+            }
+            if (!temp.empty())
+              tokens->push_back(Obj::to_str(temp));
+            return Obj::to_lst(tokens);
+          },
+          IType::ONE_TO_ONE);
+    }
+
     static Obj_p by(const Obj_p &bymod) {
       return Obj::to_inst(
           "by", {bymod},
@@ -707,6 +729,8 @@ namespace fhatos {
         return Insts::barrier(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("block") || typeId == INST_FURI->resolve("|"))
         return Insts::block(argCheck(typeId, args, 1).at(0));
+      if (typeId == INST_FURI->resolve("cleave"))
+        return Insts::cleave(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("split"))
         return Insts::split(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("merge"))
