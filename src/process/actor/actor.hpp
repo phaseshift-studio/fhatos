@@ -69,8 +69,8 @@ namespace fhatos {
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
     virtual void setup() override {
-      PROCESS::setup();
       STRUCTURE::setup();
+      PROCESS::setup();
       LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),
           this->pattern()->toString().c_str());
     }

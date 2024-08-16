@@ -22,14 +22,14 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(coroutine.hpp)
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 #include <unistd.h>
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
-  class Types : public Actor<Fiber, KeyValue> {
+  class Types : public Actor<Coroutine, KeyValue> {
 
     explicit Types(const ID &id = FOS_TYPE_PREFIX) : Actor(id) {}
 

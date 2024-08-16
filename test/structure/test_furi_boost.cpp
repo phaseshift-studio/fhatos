@@ -467,6 +467,7 @@ BOOST_AUTO_TEST_CASE(test_uri_match) {
   FOS_TEST_ASSERT_MATCH_FURI(fURI("//localhost:80/a/b/c"), Pattern("//+/+/#"));
   FOS_TEST_ASSERT_MATCH_FURI(fURI("//localhost:80/a/b/c/"), Pattern("//+/+/#"));
   //
+  FOS_TEST_ASSERT_MATCH_FURI(fURI("/type/uri/fs:file"), Pattern("/type/#"));
   // BOOST_CHECK_EQUAL("+//+/#",Pattern("+//+/#").toString().c_str()); // TODO: + is something, not potentially nothing
 };
 

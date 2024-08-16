@@ -34,8 +34,6 @@ namespace fhatos {
   public:
     ~Scheduler() override {
       if (FIBER_THREAD_HANDLE) {
-        // LOG_PROCESS(INFO, this, "Destroying fiber bundle !g[!ythread-%i!g]!!\n",
-        // this->FIBER_THREAD_HANDLE->get_id());
         this->FIBER_THREAD_HANDLE->join();
         delete this->FIBER_THREAD_HANDLE;
       }
@@ -60,36 +58,40 @@ namespace fhatos {
         }
         // scheduler subscription listening for noobj "kill process" messages
         router()->route_subscription(share(Subscription{
-            .source = *this->id(), .pattern = *process->id(), .onRecv = [this, process](const Message_p &message) {
+            .source = *this->id(), .pattern = *process->id(), .onRecv = [process](const Message_p &message) {
               if (message->payload->isNoObj()) {
                 process->stop();
               }
             }}));
         ////////////////////////////////
         bool success = false;
-        this->processes_->insert({process->id(), process});
         switch (process->ptype) {
           case PType::THREAD: {
             ((Thread *) process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
             success = true;
+            this->processes_->insert({process->id(), process});
             break;
           }
           case PType::FIBER: {
-            // LOG(INFO, "Fiber bundle count: %i\n", this->FIBERS->size());
             if (!FIBER_THREAD_HANDLE) {
               FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
             }
             ((Fiber *) (process.get()))->xthread = FIBER_THREAD_HANDLE;
+            this->processes_->insert({process->id(), process});
             success = true;
             break;
           }
           case PType::COROUTINE: {
             success = true;
-            break;
+            LOG_PROCESS(INFO, this, "!b%s!! !ythreadless %s processs!! ignored\n", process->id()->toString().c_str(),
+                        ProcessTypes.toChars(process->ptype).c_str());
+            return share(success);
           }
         }
-        LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                    ProcessTypes.toChars(process->ptype).c_str());
+        if(success) {
+          LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+                      ProcessTypes.toChars(process->ptype).c_str());
+        }
         return share(success);
       });
       if (!success)
@@ -126,7 +128,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      thread->xthread->detach();
+      //thread->xthread->detach();
       Scheduler::singleton()->kill(*thread->id());
     }
   };

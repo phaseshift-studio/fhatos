@@ -20,10 +20,10 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
+#include <structure/pubsub.hpp>
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
-#include <structure/pubsub.hpp>
 
 namespace fhatos {
   enum class SType { READ, WRITE, READWRITE };
@@ -148,7 +148,7 @@ namespace fhatos {
     virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) = 0;
     virtual void write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
   };
-
+  using Structure_p = ptr<Structure>;
 
 } // namespace fhatos
 

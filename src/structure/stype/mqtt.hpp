@@ -34,7 +34,7 @@ namespace fhatos {
   protected:
     Message_p will_message;
     const char *server_addr;
-    ptr<async_client> xmqtt;
+    async_client* xmqtt;
 
 
     //                                     +[scheme]//+[authority]/#[path]
@@ -44,7 +44,7 @@ namespace fhatos {
       this->server_addr = string(server_addr).find_first_of("mqtt://") == string::npos
                               ? string("mqtt://").append(string(server_addr)).c_str()
                               : server_addr;
-      this->xmqtt = ptr<async_client>(new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5)));
+      this->xmqtt = new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5));
       this->will_message = will_message;
       srand(time(nullptr));
       auto connection_options = connect_options_builder()
@@ -69,7 +69,7 @@ namespace fhatos {
                                                 .payload = payload,
                                                 .retain = mqtt_message->is_retained()});
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
-        auto rc = mutex.read<RESPONSE_CODE>([this, message]() {
+        mutex.read<RESPONSE_CODE>([this, message]() {
           RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
           for (const auto &subscription: *this->subscriptions) {
             if (message->target.matches(subscription->pattern)) {
@@ -110,7 +110,11 @@ namespace fhatos {
     }
 
   public:
+    ~Mqtt() override {
+      delete this->xmqtt;
+    }
     void stop() override {
+      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr);
       if (!this->xmqtt->disconnect()->wait_for(2000))
         LOG_STRUCTURE(ERROR, this, "Unable to gracefully disconnect from mqtt broker !g[!y%s!g]!!\n",
                       this->server_addr);
