@@ -412,9 +412,11 @@ namespace fhatos {
                   break;
                 }
                 instToken += v;
-                instToken += '(';
-                tracker.parens++;
-                unary = true;
+                if(ss.peek() != '(') { // enable paren-use of unary operators
+                  instToken += '(';
+                  tracker.parens++;
+                  unary = true;
+                }
                 break;
               }
             }

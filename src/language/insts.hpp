@@ -223,7 +223,7 @@ namespace fhatos {
           "to_inv", {obj},
           [obj](const Obj_p &lhs) {
             RESPONSE_CODE _rc = OK;
-            Router::singleton()->write(id_p( lhs->apply(obj)->uri_value()), obj->apply(lhs));
+            Router::singleton()->write(id_p(lhs->apply(obj)->uri_value()), obj->apply(lhs));
             if (_rc)
               LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
             return lhs;
@@ -233,10 +233,7 @@ namespace fhatos {
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
-          "from", {uri},
-          [uri](const Uri_p &lhs) {
-            return router()->read(furi_p(uri->apply(lhs)->uri_value()));
-          },
+          "from", {uri}, [uri](const Uri_p &lhs) { return router()->read(furi_p(uri->apply(lhs)->uri_value())); },
           (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
@@ -304,6 +301,23 @@ namespace fhatos {
             return lhs;
           },
           areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+    }
+
+    static Obj_p lift(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "lift", {bcode},
+          [bcode](const Obj_p &lhs) {
+            InstList_p nextInsts = share(List<Inst_p>());
+            for (Inst_p p: *bcode->bcode_value()) {
+              List<Obj_p> nextArgs = List<Obj_p>();
+              for (Obj_p obj: p->inst_args()) {
+                nextArgs.push_back(obj->apply(lhs));
+              }
+              nextInsts->push_back(Obj::to_inst(p->inst_op(), nextArgs, p->inst_f(), p->itype(), p->inst_seed()));
+            }
+            return Obj::to_bcode(nextInsts);
+          },
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
@@ -568,7 +582,7 @@ namespace fhatos {
       static Map<string, string> map = {{"*", "from"},{"=", "each"},
                                         {"-<", "split"},{">-","merge"},
                                         {"~>", "embed"},{"<~", "embed_inv"}, {"<-", "to"},
-                                        {"->", "to_inv"}, {"|", "block"} /*{"==", "eq"},
+                                        {"->", "to_inv"}, {"|", "block"}, {"^","lift"} /*{"==", "eq"},
                                         {"!=", "neq"}*/};
       return map;
     }
@@ -665,9 +679,9 @@ namespace fhatos {
         return Insts::lt(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("to"))
         return Insts::to(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("to_inv"))
+      if (typeId == INST_FURI->resolve("to_inv") || typeId == INST_FURI->resolve("->"))
         return Insts::to_inv(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("from"))
+      if (typeId == INST_FURI->resolve("from") || typeId == INST_FURI->resolve("*"))
         return Insts::from(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("pub"))
         return Insts::pub(argCheck(typeId, args, 2).at(0), args.at(1));
@@ -683,13 +697,15 @@ namespace fhatos {
         return Insts::bswitch(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("explain"))
         return Insts::explain();
+      if (typeId == INST_FURI->resolve("lift") || typeId == INST_FURI->resolve("^"))
+        return Insts::lift(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("count"))
         return Insts::count();
       if (typeId == INST_FURI->resolve("size"))
         return Insts::size();
       if (typeId == INST_FURI->resolve("barrier"))
         return Insts::barrier(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("block"))
+      if (typeId == INST_FURI->resolve("block") || typeId == INST_FURI->resolve("|"))
         return Insts::block(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("split"))
         return Insts::split(argCheck(typeId, args, 1).at(0));
