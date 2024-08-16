@@ -95,7 +95,7 @@ namespace fhatos {
     for (int i = 0; i < WORKER_COUNT; i++) {
       TEST_ASSERT_TRUE(s->spawn((ptr<Thread>(new Worker(i, &m)))));
     }
-    Scheduler::singleton()->barrier("no_workers", [] { return Scheduler::singleton()->count("worker/+") == 0; });
+    Scheduler::singleton()->barrier("no_workers", [s] { return s->count("worker/+") == 0; });
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
     TEST_ASSERT_EQUAL(10 * WORKER_COUNT, m.size());
     TEST_ASSERT_FALSE(m.empty());
@@ -111,14 +111,13 @@ namespace fhatos {
       temp = m.pop_front().value_or(-1);
     }
     TEST_ASSERT_EQUAL(sum, mutexSum);
-    Scheduler::singleton()->barrier();
+    s->barrier();
   }
 
   FOS_RUN_TESTS( //
-     FOS_RUN_TEST(test_mutex_deque_methods); //
+      FOS_RUN_TEST(test_mutex_deque_methods); //
       FOS_RUN_TEST(test_mutex_deque_concurrently); //
-      Scheduler::singleton()->stop(); //
-      );
+  );
 } // namespace fhatos
 
 SETUP_AND_LOOP()

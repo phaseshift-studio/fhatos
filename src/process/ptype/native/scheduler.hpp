@@ -128,7 +128,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      //thread->xthread->detach();
+      thread->xthread->detach();
       Scheduler::singleton()->kill(*thread->id());
     }
   };

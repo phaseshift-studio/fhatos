@@ -22,16 +22,16 @@
 #include <fhatos.hpp>
 //
 #include <atomic>
+#include <furi.hpp>
 #include <process/process.hpp>
 #include <util/mutex_deque.hpp>
-#include <furi.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
 #include <language/f_bcode.hpp>
 #include <process/actor/publisher.hpp>
-#include <util/mutex_rw.hpp>
 #include <structure/pubsub.hpp>
+#include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
@@ -73,19 +73,17 @@ namespace fhatos {
     static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
     static bool isFiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
     static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/coroutine"); }
-    bool recv_mail(const Mail_p &mail) override {
-      return this->inbox_.push_back(mail);
-    }
+    bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
     virtual void setup() {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->isRec())
           return;
         if (isThread(payload)) {
-          this->spawn(ptr<Process>((Process*)new fBcode<Thread>(target, payload)));
+          this->spawn(ptr<Process>(new fBcode<Thread>(target, payload)));
         } else if (isFiber(payload)) {
-          this->spawn(ptr<Process>((Process*)new fBcode<Fiber>(target, payload)));
+          this->spawn(ptr<Process>(new fBcode<Fiber>(target, payload)));
         } else if (isCoroutine(payload)) {
-          this->spawn(ptr<Process>((Process*)new fBcode<Coroutine>(target, payload)));
+          this->spawn(ptr<Process>(new fBcode<Coroutine>(target, payload)));
         }
       };
       this->running = true;
@@ -94,7 +92,7 @@ namespace fhatos {
 
     void stop() {
       if (!this->isInMainThread()) {
-       // TODO: console. :shutdown calls stop();
+        // TODO: console. :shutdown calls stop();
         // return;
       }
       this->processes_mutex_.read<void *>([this]() {
@@ -127,17 +125,7 @@ namespace fhatos {
         }
         return nullptr;
       });
-      /* this->processes_mutex_.write<void *>([this]() {
-         erase_if(*this->processes_, [](const auto &pair) { return pair.second->ptype == PType::COROUTINE; });
-         return nullptr;
-       });*/
       router()->stop();
-      this->barrier("shutting_down", [this]() {
-        this->read_mail();
-        return this->processes_->empty();
-      });
-      router()->route_unsubscribe(this->id());
-      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
       this->running = false;
     }
 

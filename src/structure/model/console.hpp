@@ -116,7 +116,6 @@ namespace fhatos {
                            {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
                             []() {
                               Scheduler::singleton()->stop();
-                              exit(1);
                             }}});
         _MENU_MAP->insert(
             {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});

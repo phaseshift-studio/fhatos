@@ -85,7 +85,7 @@ namespace fhatos {
     static void done(const char *barrier = "kernel_barrier") {
       Scheduler::singleton()->barrier(barrier, nullptr,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
-      Scheduler::singleton()->stop();
+      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
     }
   };
 } // namespace fhatos

@@ -49,8 +49,7 @@ namespace fhatos {
             LOG(DEBUG, FOS_TAB_4 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
-      } else {
-        /*^..if (!nextObj->isNoObj() || (!nextInst->isNoObj() && strcmp("Ø",IDomain.toChars(nextInst->itype())) == 0))*/
+      } else if (!nextObj->isNoObj()) {
         const Monad_p monad = share<Monad>(Monad(nextObj, nextInst));
         running->push_back(monad);
         LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
@@ -108,7 +107,7 @@ namespace fhatos {
       while (true) {
         if (this->halted->empty()) {
           if (this->running->empty())
-            return nullptr; // ptr<E>((E*)new NoObj());
+            return nullptr;
           this->execute(steps);
         } else {
           const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted->front());
@@ -153,10 +152,10 @@ namespace fhatos {
     void forEach(const Consumer<const ptr<E>> &consumer, const int steps = -1) {
       while (true) {
         const ptr<E> end = this->next(steps);
-        if (end && !end->isNoObj()) {
-          consumer(end);
-        } else {
+        if (!end) {
           break;
+        } else if (!end->isNoObj()) {
+          consumer(end);
         }
       }
     }

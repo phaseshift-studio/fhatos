@@ -22,6 +22,9 @@
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(fiber.hpp)
 #include <structure/stype/empty.hpp>
+
+#define FOS_DEFAULT_MORE_LINES 10
+
 namespace fhatos {
 
   using File = Uri;
@@ -59,11 +62,11 @@ namespace fhatos {
         if (message->retain && message->payload->isNoObj()) { // delete the fs resource
           this->rm(to_fs(message->target));
         } else {
-          Obj_p result = message->payload->apply(to_fs(message->target));      // apply the fs resource to the bytecode
-          if (message->retain)                                                 // if retain, then ---
+          Obj_p result = message->payload->apply(to_fs(message->target)); // apply the fs resource to the bytecode
+          if (message->retain) // if retain, then ---
             this->write(id_p(message->target), result, id_p(message->source)); // write the result to the fs resource
-          else                                                                 // else ---
-            this->publish(message->source,result,TRANSIENT_MESSAGE);           // publish the result to the source id
+          else // else ---
+            this->publish(message->source, result, TRANSIENT_MESSAGE); // publish the result to the source id
         }
       });
       ///////////////////////////////////////////////////////////////////
@@ -88,7 +91,19 @@ namespace fhatos {
         return Obj::to_inst(
             "more", args,
             [this, args](const Obj_p &lhs) {
-              return args.empty() ? this->more(lhs) : this->more(args.at(0)->apply(lhs));
+              if (args.empty())
+                return this->more(lhs, FOS_DEFAULT_MORE_LINES);
+              if (args.size() == 1) {
+                const Obj_p apArg0 = args.at(0)->apply(lhs);
+                if (apArg0->isInt())
+                  return this->more(lhs, apArg0->int_value());
+                else
+                  return this->more(apArg0, FOS_DEFAULT_MORE_LINES);
+              } else {
+                const Obj_p apArg0 = args.at(0)->apply(lhs);
+                const Obj_p apArg1 = args.at(1)->apply(lhs);
+                return this->more(apArg0, apArg1->int_value());
+              }
             },
             IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("more")));
       });
@@ -121,7 +136,7 @@ namespace fhatos {
     virtual void rm(const Uri_p &) const = 0;
     virtual File_p touch(const ID &) const = 0;
     virtual Objs_p ls(const Dir_p &dir) const = 0;
-    virtual Obj_p more(const File_p &) const = 0;
+    virtual Obj_p more(const File_p &, const uint16_t &) const = 0;
     virtual File_p cat(const File_p &, const Obj_p &) = 0;
 
     //// CORE STRUCTURE FUNCTIONS
@@ -147,10 +162,10 @@ namespace fhatos {
           listB.clear();
         }
         return Obj::to_objs(listA);
-      } else
-        return is_fs(*furi) ? is_dir(*furi) ? to_dir(*furi) : to_file(*furi) : noobj();
+      } else {
+        return !is_fs(*furi) ? noobj() : to_fs(*furi);
+      }
     }
-
     virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) override {}
   };
 } // namespace fhatos

@@ -50,9 +50,11 @@ namespace fhatos {
                    path.toString().c_str());
     }
     fURI make_native_path(const ID &path) const override {
-      const fURI localPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
-                                 ? this->root_->resolve(path.toString().substr(this->id()->toString().length()))
-                                 : this->root_->resolve(path.toString());
+      const string tempPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
+                                  ? path.toString().substr(this->id()->toString().length())
+                                  : path.toString();
+      const fURI localPath =
+          this->root_->resolve((!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
                     path.toString().c_str(), this->root_->toString().c_str());
       if (!this->root_->is_subfuri_of(this->root_->resolve(localPath.dissolve()))) { // ../ can resolve beyond the mount
@@ -81,11 +83,16 @@ namespace fhatos {
       }
       return Obj::to_objs(listing);
     }
-    Obj_p more(const File_p &file) const override {
-      std::ifstream fstrm(fs::path(this->make_native_path(file->uri_value()).toString()));
-      std::stringstream buffer;
-      buffer << fstrm.rdbuf();
-      return Obj::to_str(buffer.str().c_str());
+    Lst_p more(const File_p &file, const uint16_t &max_lines) const override {
+      std::ifstream infile(fs::path(this->make_native_path(file->uri_value()).toString()));
+      List_p<Str_p> lines = share(List<Str_p>());
+      string line;
+      uint16_t counter = 0;
+      while ((0 == max_lines || counter++ < max_lines) && std::getline(infile, line)) {
+        std::istringstream iss(line);
+        lines->push_back(str(line));
+      }
+      return Obj::to_lst(lines);
     }
     File_p cat(const File_p &file, const Obj_p &content) override {
       std::ofstream outfile;
