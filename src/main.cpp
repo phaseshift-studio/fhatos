@@ -24,6 +24,7 @@
 #include FOS_FILE_SYSTEM(filesystem.hpp)
 #endif
 // utilities
+#include <language/processor/heap.hpp>
 #include <language/types.hpp>
 #include <structure/model/cluster.hpp>
 #include <structure/model/console.hpp>
@@ -61,11 +62,12 @@ void setup() {
         ->using_printer(Ansi<>::singleton())
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
         ->displaying_splash(ANSI_ART)
-        ->displaying_notes("Use !b/type/noobj/[]!! for !ynoobj!!")
+        ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/"))
         ->boot<Types>(Types::singleton("/type/"))
+        ->boot<Heap>(Heap::create("/proc/heap/", "+"))
         ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
         ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
         ->boot<FileSystem>(FileSystem::singleton("/io/fs"))

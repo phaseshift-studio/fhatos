@@ -207,7 +207,7 @@ namespace fhatos {
     uint8_t path_length() const { return this->_path_length; }
     /// QUERY
     const char *query() const { return this->_query ? this->_query : ""; }
-
+    bool has_query() const { return this->_query != nullptr; }
     fURI query(const char *query) const {
       fURI newURI = fURI(*this);
       FOS_SAFE_FREE(newURI._query);
@@ -692,8 +692,7 @@ namespace fhatos {
 
     explicit Patterned(const Pattern_p &type) : _pattern(share(Pattern(*type))) {}
 
-    [[nodiscard]] Pattern_p pattern() const override {
-      return this->_pattern; }
+    [[nodiscard]] Pattern_p pattern() const override { return this->_pattern; }
     [[nodiscard]] bool equals(const BasePatterned &other) const override {
       return this->_pattern->equals(*other.pattern());
     }

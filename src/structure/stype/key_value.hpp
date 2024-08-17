@@ -28,7 +28,7 @@ namespace fhatos {
 
   protected:
     ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(Map<ID_p, const Obj_p, furi_p_less>());
-    MutexRW<> MUTEX_DATA = MutexRW<>();
+    MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
     explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
 
@@ -44,12 +44,12 @@ namespace fhatos {
     }
 
     void write(const ID_p &target, const Obj_p &payload, const ID_p &source) override {
-      MUTEX_DATA.write<void *>([this, target, payload, source]() {
+      const Obj_p payload_copy = share(Obj(any(payload->_value), id_p(*payload->id())));
+      MUTEX_DATA.write<void *>([this, target, &payload_copy, source]() {
         if (DATA->count(target)) {
           DATA->erase(target);
         }
-        DATA->insert(
-            {id_p(*target), share(Obj(any(payload->_value), id_p(*payload->id())))}); // why such a deep copy needed?
+        DATA->insert({id_p(*target), payload_copy}); // why such a deep copy needed?
         // don't forget to update subscriptions
         return nullptr;
       });

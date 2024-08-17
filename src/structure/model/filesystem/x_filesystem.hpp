@@ -166,7 +166,8 @@ namespace fhatos {
         return !is_fs(*furi) ? noobj() : to_fs(*furi);
       }
     }
-    virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) override {}
+    virtual void write([[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
+                       [[maybe_unused]] const ID_p &source) override {}; // TODO: implement and remove unused
   };
 } // namespace fhatos
 

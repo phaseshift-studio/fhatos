@@ -37,8 +37,7 @@ namespace fhatos {
     }
     void setup() override {
       Actor::setup();
-      router()->route_subscription(share(Subscription{
-          .source = *this->id(), .pattern = this->id()->extend("out"), .onRecv = [](const Message_p &message) {
+      this->subscribe(this->id()->extend("out"), [](const Message_p &message) {
             if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
               if (strcmp(message->target.name(), "no_color") == 0) {
                 const string no = printer<>()->strip(message->payload->str_value());
@@ -46,8 +45,10 @@ namespace fhatos {
               } else
                 printer<>()->print(message->payload->str_value().c_str());
             }
-          }}));
+          });
     }
+
+
 
     static ID_p currentOut() { return Terminal::singleton()->_currentOutput; }
 

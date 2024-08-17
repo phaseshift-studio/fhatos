@@ -56,7 +56,6 @@ namespace fhatos {
                            st->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
             }
           }
-          // structure->setup();
           LOG_STRUCTURE(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
                         StructureTypes.toChars(structure->stype).c_str());
           this->structures_->insert({structure->pattern(), structure});

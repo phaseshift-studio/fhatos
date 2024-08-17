@@ -242,8 +242,8 @@ namespace fhatos {
         Obj(value, OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX)), typeId) {}
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
-      return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()).c_str(), obj->toString().c_str(),
-                    function);
+      return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()).c_str(),
+                    obj->toString().c_str(), function);
     }
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
@@ -386,8 +386,7 @@ namespace fhatos {
       if (this->isBytecode()) {
         const IType domain = this->bcode_value()->front()->itype();
         const IType range = this->bcode_value()->back()->itype();
-        return ITypeSignatures.toEnum(
-            string(ITypeDomains.toChars(domain) + "->" + ITypeRanges.toChars(range)));
+        return ITypeSignatures.toEnum(string(ITypeDomains.toChars(domain) + "->" + ITypeRanges.toChars(range)));
       }
       if (this->isObjs())
         return IType::ONE_TO_MANY;
@@ -520,6 +519,7 @@ namespace fhatos {
           break;
         }
         case OType::NOOBJ: {
+          objString = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
           break;
         }
         case OType::OBJS: {
@@ -539,13 +539,12 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()).c_str());
       }
-      objString = (includeType && (this->_id->path_length() > 2 || this->isNoObj()))
-                      ? string("!b")
-                            .append(this->isNoObj() ? this->_id->toString() : this->_id->name())
-                            .append(this->isInst() ? "!g(!!" : "!g[!!")
-                            .append(objString)
-                            .append(this->isInst() ? "!g)!!" : "!g]!!")
-                      : objString;
+      objString = (includeType && (this->_id->path_length() > 2)) ? string("!b")
+                                                                        .append(this->_id->name())
+                                                                        .append(this->isInst() ? "!g(!!" : "!g[!!")
+                                                                        .append(objString)
+                                                                        .append(this->isInst() ? "!g)!!" : "!g]!!")
+                                                                  : objString;
       return ansi ? objString : printer()->strip(objString);
     }
     int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }

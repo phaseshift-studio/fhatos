@@ -17,10 +17,13 @@
 #ifndef fhatos_processor_hpp
 #define fhatos_processor_hpp
 
+#include <fhatos.hpp>
+#include <language/obj.hpp>
+#include <language/rewrite/rewriter.hpp>
 #include <utility>
-#include "fhatos.hpp"
-#include "language/obj.hpp"
-#include "language/rewrite/rewriter.hpp"
+#include FOS_PROCESS(coroutine.hpp)
+#include <process/actor/actor.hpp>
+#include <structure/stype/key_value.hpp>
 
 namespace fhatos {
   class Monad;

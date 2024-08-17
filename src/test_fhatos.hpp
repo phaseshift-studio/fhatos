@@ -32,11 +32,11 @@
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+#include <language/processor/heap.hpp>
 #include <language/types.hpp>
 #include <structure/model/terminal.hpp>
 #include <structure/router.hpp>
 #ifdef NATIVE
-// #include FOS_MQTT(mqtt_router.hpp)
 #include FOS_FILE_SYSTEM(filesystem.hpp)
 #endif
 #include <structure/kernel.hpp>
@@ -49,6 +49,7 @@
       ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
       ->using_router(Router::singleton("/sys/router/"))                                                                \
       ->boot<Types>(Types::singleton("/type/"))                                                                        \
+      ->boot<Heap>(Heap::create("/proc/heap/", "+"))                                                                   \
       ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
       ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))                                                           \
       ->boot<FileSystem>(FileSystem::singleton("/io/fs"))                                                              \
@@ -135,7 +136,7 @@ namespace fhatos {
   __test_freeHeap = ESP.getFreeHeap();                                                                                 \
   { RUN_TEST(x); }                                                                                                     \
   TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch, ESP.getFreeSketchSpace(),                                 \
-                                          "Memory leak in sketch repeat.");                                             \
+                                          "Memory leak in sketch repeat.");                                            \
   TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeHeap, ESP.getFreeHeap(), "Memory leak in heap.");
 
 #define FOS_RUN_TESTS(x)                                                                                               \
@@ -293,7 +294,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
                               const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              const bool clearRouter = true) {
+                              [[maybe_unused]] const bool clearRouter = true) {
   const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const OBJ &obj: expected) {
@@ -354,7 +355,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
+[[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
   Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse monoid: %s\n", monoid.c_str());

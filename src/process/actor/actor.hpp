@@ -27,10 +27,11 @@
 
 namespace fhatos {
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
-  class Actor : public PROCESS, public STRUCTURE, public Mailbox {
+  class Actor : public PROCESS, public STRUCTURE, public Mailbox, public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
 
   public:
-    explicit Actor(const ID &id, const Pattern &pattern) : PROCESS(id), STRUCTURE(pattern), Mailbox() {
+    explicit Actor(const ID &id, const Pattern &pattern) :
+        PROCESS(id), STRUCTURE(pattern), Mailbox(), enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
@@ -40,8 +41,8 @@ namespace fhatos {
     }
 
     //~Actor() override {
-      //PROCESS::~Process();
-      //STRUCTURE::~Structure();
+    // PROCESS::~Process();
+    // STRUCTURE::~Structure();
     //}
 
     bool recv_mail(const Mail_p &mail) override {
@@ -64,11 +65,21 @@ namespace fhatos {
       return OK;
     }
 
+    /*void output(const char *format, ...) {
+      char buffer[1024];
+      va_list arg;
+      va_start(arg, format);
+      int length = vsnprintf(buffer, 1024, format, arg);
+      buffer[length] = '\0';
+      va_end(arg);
+      this->publish(this->id()->extend("output"), Obj::to_str(buffer));
+    }*/
+
     bool active() { return this->available() && this->running(); }
 
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
-    virtual void setup() override {
+    void setup() override {
       STRUCTURE::setup();
       PROCESS::setup();
       LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),

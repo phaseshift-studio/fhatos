@@ -250,7 +250,7 @@ namespace fhatos {
             string temp;
             string delim = delimiter->str_value();
             while (!ss.eof()) {
-              if (StringHelper::lookAhead(delim, &ss)) {
+              if (StringHelper::look_ahead(delim, &ss)) {
                 tokens->push_back(Obj::to_str(temp));
                 temp.clear();
               } else
@@ -466,9 +466,9 @@ namespace fhatos {
       return Obj::to_inst("split", {poly}, [poly](const Poly_p &lhs) { return poly->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p merge() {
+    static Obj_p merge_drain() {
       return Obj::to_inst(
-          "merge", {},
+          "merge_drain", {},
           [](const Poly_p &lhs) {
             Objs_p objs = Obj::to_objs();
             if (lhs->isLst()) {
@@ -481,9 +481,9 @@ namespace fhatos {
           IType::ONE_TO_MANY);
     }
 
-    static Obj_p merge2() {
+    static Obj_p merge_first() {
       return Obj::to_inst(
-          "merge2", {},
+          "merge_first", {},
           [](const Poly_p &lhs) {
             if (lhs->isLst()) {
               for (const auto &obj: *lhs->lst_value()) {
@@ -496,17 +496,21 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
-    static Obj_p merge3() {
+    static Obj_p merge_apply() {
       return Obj::to_inst(
-          "merge3", {},
+          "merge_apply", {},
           [](const Poly_p &lhs) {
-            Obj_p ret = Obj::to_noobj();
             if (lhs->isLst()) {
+              BCode_p temp = Obj::to_bcode();
               for (const auto &obj: *lhs->lst_value()) {
-                ret = obj->apply(ret);
+                if (obj->isInst())
+                  temp->add_inst(obj);
+                else
+                  temp->add_inst(Insts::map(obj));
               }
+              return temp->apply(lhs);
             }
-            return ret;
+            return Obj::to_noobj();
           },
           IType::ONE_TO_ONE);
     }
@@ -601,10 +605,9 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"*", "from"},{"=", "each"},
-                                        {"-<", "split"},{">-","merge"},
-                                        {"~>", "embed"},{"<~", "embed_inv"}, {"<-", "to"},
-                                        {"->", "to_inv"}, {"|", "block"}, {"^","lift"} /*{"==", "eq"},
+      static Map<string, string> map = {{"-<", "split"},{">-","merge_drain"},{":>-","merge_first"},{";>-","merge_apply"},
+                                        {"~>", "embed"},{"<~", "embed_inv"},{"<-", "to"},{"->", "to_inv"},
+                                        {"|", "block"},{"^","lift"},{"*", "from"},{"=", "each"} /*{"==", "eq"},
                                         {"!=", "neq"}*/};
       return map;
     }
@@ -646,14 +649,24 @@ namespace fhatos {
            {INST_FURI->resolve("plus"), [](const List<Obj_p> &args) { return plus(argCheck("plus", args, 1).at(0)); }}};
        return &core_insts;
      }*/
+    static Inst_p saveWrap(const Inst_p inst) {
+      router()->write(inst->id(), inst);
+      return inst;
+    }
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))
-        return Insts::start(Objs::to_objs(args));
+        return saveWrap(Insts::start(Objs::to_objs(args)));
+      if (typeId == INST_FURI->resolve("merge_drain") || typeId == INST_FURI->resolve(">-"))
+        return saveWrap(Insts::merge_drain());
+      if (typeId == INST_FURI->resolve("merge_first") || typeId == INST_FURI->resolve(":>-"))
+        return saveWrap(Insts::merge_first());
+      if (typeId == INST_FURI->resolve("merge_apply") || typeId == INST_FURI->resolve(";>-"))
+        return Insts::merge_apply();
       if (typeId == INST_FURI->resolve("end"))
         return Insts::end();
       if (typeId == INST_FURI->resolve("map"))
-        return Insts::map(argCheck(typeId, args, 1).at(0));
+        return saveWrap(Insts::map(argCheck(typeId, args, 1).at(0)));
       if (typeId == INST_FURI->resolve("filter"))
         return Insts::filter(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("side"))
@@ -733,8 +746,6 @@ namespace fhatos {
         return Insts::cleave(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("split"))
         return Insts::split(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("merge"))
-        return Insts::merge();
       if (typeId == INST_FURI->resolve("each"))
         return Insts::each(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("embed"))

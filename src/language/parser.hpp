@@ -105,7 +105,7 @@ namespace fhatos {
       while (!ss.eof()) {
         tracker.track(static_cast<char>(ss.get()));
       }
-      return tracker.closed() && StringHelper::countSubstring(line, "===") % 2 == 0;
+      return tracker.closed() && StringHelper::count_substring(line, "===") % 2 == 0;
     }
     static bool dotType(const string &type) {
       return !type.empty() && type[type.length() - 1] == '.'; // dot type
@@ -116,7 +116,7 @@ namespace fhatos {
       StringHelper::trim(token);
       if (token.empty() || tryParseComment(token).has_value())
         return {};
-      const Pair<string, string> typeValue = tryParseObjType(token);
+      const Pair<string, string> typeValue = tryParseObjType(token, PARSE_TOKENS::BRACKET);
       const string typeToken = typeValue.first;
       const string valueToken = typeValue.second;
       const bool dot_type = dotType(typeToken); // .obj. in _bcode (apply)
@@ -167,7 +167,7 @@ namespace fhatos {
         while (!ss.eof()) {
           if (onType) {
             for (const auto &[k, v]: Insts::unarySugars()) {
-              if (StringHelper::lookAhead(k, &ss)) {
+              if (StringHelper::look_ahead(k, &ss)) {
                 onType = false;
                 valueToken.append(typeToken);
                 typeToken.clear();
@@ -219,8 +219,7 @@ namespace fhatos {
     }
 
     Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken, const fURI_p & = NOOBJ_FURI) {
-      return (typeToken == NOOBJ_FURI->toString() ||
-              (typeToken.empty() && valueToken == "Ø")) // second is deprecated (remove -- not ascii)
+      return (typeToken == NOOBJ_FURI->toString() || (typeToken.empty() && valueToken == STR(FOS_NOOBJ_TOKEN)))
                  ? Option<NoObj_p>{Obj::to_noobj()}
                  : Option<NoObj_p>{};
     }
@@ -284,7 +283,7 @@ namespace fhatos {
           if (ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
-        } else if (tracker.closed() && StringHelper::lookAhead("=>", &ss)) {
+        } else if (tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
           return {};
         } else {
           char c = tracker.track(static_cast<char>(ss.get()));
@@ -306,7 +305,7 @@ namespace fhatos {
       while (!ss.eof() || (!onKey && !value.empty())) {
         //// KEY PARSE
         if (onKey) {
-          if (tracker.closed() && StringHelper::lookAhead("=>", &ss)) {
+          if (tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
             onKey = false;
           } else if (!ss.eof()) {
             char c = tracker.track(static_cast<char>(ss.get()));
@@ -405,14 +404,14 @@ namespace fhatos {
         while (!ss.eof()) { // inst-level (tokens are chars)
           if (tracker.closed()) {
             for (const auto &[k, v]: Insts::unarySugars()) {
-              if (StringHelper::lookAhead(k, &ss, instToken.empty())) {
+              if (StringHelper::look_ahead(k, &ss, instToken.empty())) {
                 if (!instToken.empty()) {
                   LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), instToken.c_str());
                   fullbreak = true;
                   break;
                 }
                 instToken += v;
-                if(ss.peek() != '(') { // enable paren-use of unary operators
+                if (ss.peek() != '(') { // enable paren-use of unary operators
                   instToken += '(';
                   tracker.parens++;
                   unary = true;

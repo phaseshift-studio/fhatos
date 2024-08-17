@@ -27,7 +27,7 @@ namespace fhatos {
   public:
     StringHelper() = delete;
     static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    static string hexStr(const unsigned char *data, const int len) {
+    static string hex_string(const unsigned char *data, const int len) {
       string s(len * 2, ' ');
       for (uint8_t i = 0; i < len; ++i) {
         s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
@@ -41,7 +41,7 @@ namespace fhatos {
       rtrim(const_cast<string &>(s));
     }
 
-    static string repeat(const uint8_t amount, const string& repeater=" ") {
+    static string repeat(const uint8_t amount, const string &repeater = " ") {
       string temp;
       for (int i = 0; i < amount; i++) {
         temp += repeater;
@@ -60,7 +60,7 @@ namespace fhatos {
           s.end());
     }
 
-    static uint8_t countSubstring(const string &str, const string &sub) {
+    static uint8_t count_substring(const string &str, const string &sub) {
       if (sub.length() == 0)
         return 0;
       int count = 0;
@@ -70,7 +70,7 @@ namespace fhatos {
       return count;
     }
 
-    static string pad(const uint8_t total, const string text, const bool ignoreAnsi = true) {
+    static string pad(const uint8_t total, const string text, [[maybe_unused]] const bool ignoreAnsi = true) {
       string text2 = string(text);
       for (size_t i = 0; i < (total - text.length()); i++) {
         text2 += ' ';
@@ -78,7 +78,7 @@ namespace fhatos {
       return text2;
     }
 
-    static int noAnsiLength(const string s) {
+    static int no_ansi_length(const string s) {
       int count = 0;
       bool last = false;
       for (size_t i = 0; i < s.length(); i++) {
@@ -92,7 +92,7 @@ namespace fhatos {
       return count;
     }
 
-    static bool lookAhead(const string &token, std::stringstream *ss, bool consume = true) {
+    static bool look_ahead(const string &token, std::stringstream *ss, bool consume = true) {
       std::stringstream::pos_type start = ss->tellg();
       for (size_t i = 0; i < token.size(); i++) {
         if (token[i] != ss->peek()) {
