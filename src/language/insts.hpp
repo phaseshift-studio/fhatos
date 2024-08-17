@@ -205,12 +205,22 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
-    static Obj_p to(const Uri_p &uri) {
+    static Obj_p const to(const Uri_p &uri) {
       return Obj::to_inst(
           "to", {uri},
           [uri](const Obj_p &lhs) {
             RESPONSE_CODE _rc = OK;
-            router()->write(id_p(uri->apply(lhs)->uri_value()), lhs->apply(uri));
+            if (uri->uri_value().is_pattern()) {
+              if (lhs->isRec()) {
+                for (const auto &[k, v]: *lhs->rec_value()) {
+                  router()->write(id_p(uri->uri_value().resolve(k->uri_value())), v->apply(uri));
+                }
+              } else {
+                throw fError("Pattern requires rec");
+              }
+            } else {
+              router()->write(id_p(uri->apply(lhs)->uri_value()), lhs->apply(uri));
+            }
             if (_rc)
               LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
             return lhs;
@@ -221,13 +231,7 @@ namespace fhatos {
     static Obj_p to_inv(const Obj_p &obj) {
       return Obj::to_inst(
           "to_inv", {obj},
-          [obj](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = OK;
-            Router::singleton()->write(id_p(lhs->apply(obj)->uri_value()), obj->apply(lhs));
-            if (_rc)
-              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
-            return lhs;
-          },
+          [obj](const Obj_p &lhs) { return std::get<Function<Obj_p, Obj_p>>(Insts::to(lhs)->inst_f())(obj); },
           IType::ONE_TO_ONE);
     }
 
@@ -330,9 +334,9 @@ namespace fhatos {
           "lift", {bcode},
           [bcode](const Obj_p &lhs) {
             InstList_p nextInsts = share(List<Inst_p>());
-            for (Inst_p p: *bcode->bcode_value()) {
+            for (const Inst_p &p: *bcode->bcode_value()) {
               List<Obj_p> nextArgs = List<Obj_p>();
-              for (Obj_p obj: p->inst_args()) {
+              for (const Obj_p &obj: p->inst_args()) {
                 nextArgs.push_back(obj->apply(lhs));
               }
               nextInsts->push_back(Obj::to_inst(p->inst_op(), nextArgs, p->inst_f(), p->itype(), p->inst_seed()));
@@ -340,6 +344,11 @@ namespace fhatos {
             return Obj::to_bcode(nextInsts);
           },
           IType::ONE_TO_ONE);
+    }
+
+    static Obj_p drop(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "drop", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
@@ -607,7 +616,7 @@ namespace fhatos {
     static Map<string, string> unarySugars() {
       static Map<string, string> map = {{"-<", "split"},{">-","merge_drain"},{":>-","merge_first"},{";>-","merge_apply"},
                                         {"~>", "embed"},{"<~", "embed_inv"},{"<-", "to"},{"->", "to_inv"},
-                                        {"|", "block"},{"^","lift"},{"*", "from"},{"=", "each"} /*{"==", "eq"},
+                                        {"|", "block"},{"^","lift"},{"V","drop"},{"*", "from"},{"=", "each"} /*{"==", "eq"},
                                         {"!=", "neq"}*/};
       return map;
     }
@@ -732,6 +741,8 @@ namespace fhatos {
         return Insts::bswitch(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("explain"))
         return Insts::explain();
+      if (typeId == INST_FURI->resolve("drop") || typeId == INST_FURI->resolve("V"))
+        return Insts::drop(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("lift") || typeId == INST_FURI->resolve("^"))
         return Insts::lift(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("count"))
