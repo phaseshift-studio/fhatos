@@ -24,7 +24,7 @@ namespace fhatos {
     const Obj_p n = Parser::singleton()->tryParseObj(FOS_TYPE_PREFIX "noobj/[]").value();
     TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_type());
     TEST_ASSERT_TRUE(n->isNoObj());
-    TEST_ASSERT_EQUAL_STRING("!b" FOS_TYPE_PREFIX "noobj/!g[!!!g]!!", n->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("!rnoobj!!", n->toString().c_str());
   }
 
   void test_bool_parsing() {
@@ -42,15 +42,16 @@ namespace fhatos {
   void test_int_parsing() {
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "int/zero"), Obj::to_bcode());
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
-    const auto ints = List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
-                                                             {"0", 0, *INT_FURI},
-                                                             {"-12", -12, *INT_FURI},
-                                                             {"nat[100]", 100, INT_FURI->resolve("nat")},
-                                                             {"zero[0]", 0, INT_FURI->resolve("zero")},
-                                                             {"zero[2]", 2, INT_FURI->resolve("/int/zero")},
-                                                             {"/int/zero[0]", 0, INT_FURI->resolve("zero")},
-                                                             {"/int/zero[98]", 98, INT_FURI->resolve("/int/zero")},
-                                                             {"/int/zero[001]", 1, INT_FURI->extend("zero")}});
+    const auto ints =
+        List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
+                                               {"0", 0, *INT_FURI},
+                                               {"-12", -12, *INT_FURI},
+                                               {"nat[100]", 100, INT_FURI->resolve("nat")},
+                                               {"zero[0]", 0, INT_FURI->resolve("zero")},
+                                               {"zero[2]", 2, INT_FURI->resolve("../int/zero")},
+                                               {FOS_TYPE_PREFIX "/int/zero[0]", 0, INT_FURI->resolve("zero")},
+                                               {FOS_TYPE_PREFIX "/int/zero[98]", 98, INT_FURI->resolve("../int/zero")},
+                                               {FOS_TYPE_PREFIX "/int/zero[001]", 1, INT_FURI->extend("zero")}});
     for (auto &trip: ints) {
       const ptr<Int> i = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::INT, i->o_type());
@@ -63,16 +64,16 @@ namespace fhatos {
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "real/zero"), Obj::to_bcode());
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "real/nat"), Obj::to_bcode());
     // REAL
-    const auto reals =
-        List<Trip<string, FL_REAL_TYPE, fURI>>({{"45.1", 45.1f, *REAL_FURI},
-                                                {"0.0000", 0.0f, *REAL_FURI},
-                                                {"-12.1", -12.1f, *REAL_FURI},
-                                                {"nat[10.0]", 10.0f, REAL_FURI->resolve("nat")},
-                                                {"zero[0.21]", 0.21f, REAL_FURI->resolve("zero")},
-                                                {"zero[2.0]", 2.0f, REAL_FURI->resolve("/real/zero")},
-                                                {"/real/zero[1.1]", 1.1f, REAL_FURI->resolve("zero")},
-                                                {"/real/zero[98.00]", 98.00f, REAL_FURI->resolve("/real/zero")},
-                                                {"/real/zero[001.1]", 1.1f, REAL_FURI->extend("zero")}});
+    const auto reals = List<Trip<string, FL_REAL_TYPE, fURI>>(
+        {{"45.1", 45.1f, *REAL_FURI},
+         {"0.0000", 0.0f, *REAL_FURI},
+         {"-12.1", -12.1f, *REAL_FURI},
+         {"nat[10.0]", 10.0f, REAL_FURI->resolve("nat")},
+         {"zero[0.21]", 0.21f, REAL_FURI->resolve("zero")},
+         {"zero[2.0]", 2.0f, REAL_FURI->resolve("../real/zero")},
+         {FOS_TYPE_PREFIX "/real/zero[1.1]", 1.1f, REAL_FURI->resolve("zero")},
+         {FOS_TYPE_PREFIX "/real/zero[98.00]", 98.00f, REAL_FURI->resolve("../real/zero")},
+         {FOS_TYPE_PREFIX "/real/zero[001.1]", 1.1f, REAL_FURI->extend("zero")}});
     for (auto &trip: reals) {
       const Real_p r = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::REAL, r->o_type());
@@ -183,7 +184,7 @@ namespace fhatos {
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "rec/atype"), Obj::to_bcode());
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "rec/btype"), Obj::to_bcode());
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "rec/ctype"), Obj::to_bcode());
-    // Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX"bool/abool"), Obj::to_bcode({}));
+    Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
     List<string> recs = {"['a'=>13,actor=>false]",
                          "['a' => 13,actor => false ]",
                          "['a'=> 13 , actor=>false]",
@@ -202,30 +203,31 @@ namespace fhatos {
       TEST_ASSERT_FALSE(rc1->rec_get(uri("actor"))->bool_value());
     }
 
-    /*  recs = {"[:age=>nat[29],:name=>'dogturd']", "[:age=>nat[29],:name=>'dogturd']"
-              "person?x[[age=>nat[29],name=>'dogturd']]", "person?x[[age=>nat[29],name=>'dogturd']]"};
-      for (const string &form: recs) {
-        FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
-        const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
-        TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-        TEST_ASSERT_EQUAL_STRING("rec", rc2->id()->name());
-        TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u(":age"))->int_value());
-        TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u(":name"))->str_value().c_str());
-        TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
-        TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
-      }
-      ///////////////////////////////////
-      const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
+    Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "rec/person"),
+                                 Parser::parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
+    recs = {"person[[:age=>nat[29],:name=>'dogturd']]"};
+    for (const string &form: recs) {
+      FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
+      const Rec_p rc2 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-      TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
-      //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
-      TEST_ASSERT_TRUE(rc2->rec_get("/actor")->isNoObj()); // it's a string, not a uri
-      const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
-      TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
-      TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
-      TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
-      TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
-                               Options::singleton()->printer<>()->strip(rc2->toString().c_str()).get());*/
+      TEST_ASSERT_EQUAL_STRING("person", rc2->id()->name());
+      TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u(":age"))->int_value());
+      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u(":name"))->str_value().c_str());
+      TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
+      TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
+    } /*
+     ///////////////////////////////////
+     const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
+     TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
+     TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
+     //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
+     TEST_ASSERT_TRUE(rc2->rec_get("/actor")->isNoObj()); // it's a string, not a uri
+     const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
+     TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
+     TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());
+     TEST_ASSERT_EQUAL_INT(3, rc3->rec_get("c")->int_value());
+     TEST_ASSERT_EQUAL_STRING("['a'=>13,/actor=>['b'=>1,'c'=>3]]",
+                              Options::singleton()->printer<>()->strip(rc2->toString().c_str()).get());*/
   }
 
   void test_bytecode_parsing() {
@@ -242,23 +244,13 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Int>({u(FOS_TYPE_PREFIX "int/even")}, FOS_TYPE_PREFIX "int/even -> |mod(2).is(eq(0))");
+    FOS_CHECK_RESULTS<Int>({u(FOS_TYPE_PREFIX "int/even")}, FOS_TYPE_PREFIX "int/even -> (|mod(2).is(eq(0)))");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "__(32).as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "__(even[32]).type()"s);
+    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "__(even[32]).type()");
     FOS_TEST_ERROR("even[1]");
     FOS_TEST_ERROR("even[3]");
     FOS_TEST_ERROR("even[5]");
-    /////////
-    /*Fluent(FOS_PRINT_OBJ<BCode>(
-               Parser::singleton()
-                   ->tryParseObj("define(" FOS_TYPE_PREFIX "rec/person,|[name=>as(/str/),age=>is(gt(0))])")
-                   .value()))
-        .iterate();
-    FOS_CHECK_RESULTS<Rec>({*Parser::singleton()->tryParseObj("person[[name=>'fhat',age=>29]]").value()},
-                           "[name=>'fhat',age=>29].as(person)");
-    FOS_TEST_ERROR("[name=>10,age=>23].as(person)");
-    FOS_TEST_ERROR("[name=>'fhat',age=>-1].as(person)");*/
   }
 
   void test_to_from() {

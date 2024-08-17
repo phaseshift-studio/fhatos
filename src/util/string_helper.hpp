@@ -106,6 +106,17 @@ namespace fhatos {
         ss->seekg(start);
       return true;
     }
+
+    static std::stringstream *eat_space(std::stringstream *ss) {
+      while (!ss->eof()) {
+        char c = ss->peek();
+        if (!isspace(c))
+          return ss;
+        else
+          ss->get();
+      }
+      return ss;
+    }
   };
 } // namespace fhatos
 

@@ -64,7 +64,7 @@ namespace fhatos {
         if(!viaPub) {
           Obj_p current = this->read(typeId, this->id());
           if (!current->isNoObj() && current != typeDef) {
-            LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! overwritten\n", typeId->toString().c_str(),
+            LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", typeId->toString().c_str(),
                         current->toString().c_str());
           }
           this->write(typeId, typeDef, this->id());
