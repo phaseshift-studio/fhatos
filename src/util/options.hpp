@@ -35,6 +35,7 @@ namespace fhatos {
     any scheduler_{};
     any printer_{};
     any parser_{};
+    any processor_{};
 
     explicit Options() = default;
 
@@ -105,7 +106,21 @@ namespace fhatos {
       this->parser_ = any(parser);
       return this;
     }
-    //////////////////////////
+    ///////////////////////
+    /////// PARSER ///////
+    template<typename S, typename BCODE, typename E>
+    shared_ptr<E> processor(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode) {
+      if (!processor_.has_value())
+        throw fError("No processor specified in global options\n");
+      return std::any_cast<function<shared_ptr<E>(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode)>>(
+          this->processor_)(starts, bcode);
+    }
+    template<typename S, typename BCODE, typename E>
+    Options *processor(
+        const std::function<shared_ptr<E>(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode)> &processor) {
+      this->processor_ = any(processor);
+      return this;
+    }
   };
 } // namespace fhatos
 #endif

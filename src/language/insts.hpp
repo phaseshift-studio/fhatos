@@ -444,11 +444,18 @@ namespace fhatos {
           IType::ONE_TO_MANY);
     }
 
-    static Obj_p within(const BCode_p &) {
-      return nullptr;
-      /*return Obj::to_inst(
-         "within", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
-         Obj::to_objs(List<Obj_p>{}));*/
+    static Obj_p within(const BCode_p &bcode) {
+      return Obj::to_inst(
+          "within", {bcode},
+          [bcode](const Poly_p &lhs) {
+            if (lhs->isLst()) {
+              return Obj::to_lst(Options::singleton()
+                                     ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), bcode)
+                                     ->objs_value());
+            }
+            return Obj::to_noobj();
+          },
+          IType::ONE_TO_ONE);
     }
 
     static Int_p count() {

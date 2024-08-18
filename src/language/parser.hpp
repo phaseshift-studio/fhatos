@@ -36,6 +36,7 @@ namespace fhatos {
     uint8_t brackets = 0;
     uint8_t angles = 0;
     uint8_t braces = 0;
+    uint8_t within = 0;
     bool quotes = false;
     char last = '\0';
 
@@ -67,12 +68,18 @@ namespace fhatos {
         braces++;
       else if (c == '}')
         braces--;
+      else if (c == '/' && last == '_') // _/
+        within++;
+      else if (c == '_' && last == '\\') // \_
+        within--;
       //////////////////////////
       last = c;
       return c;
     }
     [[nodiscard]] bool printable() const { return last >= 32 && last < 127; }
-    [[nodiscard]] bool closed() const { return parens == 0 && brackets == 0 && angles == 0 && braces == 0 && !quotes; }
+    [[nodiscard]] bool closed() const {
+      return parens == 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
+    }
   };
 
   class Parser final : public Actor<Coroutine, Empty> {
@@ -119,6 +126,9 @@ namespace fhatos {
       const string valueToken = typeValue.second;
       const bool dot_type = dotType(typeToken); // .obj. in _bcode (apply)
       Option<Obj_p> b = {};
+      b = tryParsePolyWithin(valueToken);
+      if (b.has_value())
+        return b.value();
       if (!dot_type) { // dot type
         b = tryParseNoObj(valueToken, typeToken, NOOBJ_FURI);
         if (b.has_value())
@@ -298,6 +308,16 @@ namespace fhatos {
       }
       return Option<Lst_p>{Lst::to_lst(share(list), id_p(baseType->resolve(type)))};
     }
+    static Option<Inst_p> tryParsePolyWithin(const string &token) {
+      if (!(token[0] == '_' && token[1] == '/' && token[token.length() - 2] == '\\' &&
+            token[token.length() - 1] == '_'))
+        return {};
+      LOG(TRACE, "Parsing poly within: %s\n", token.substr(2, token.length() - 4).c_str());
+      Option<BCode_p> bcode = tryParseBCode(token.substr(2, token.length() - 4), "", BCODE_FURI);
+      if (!bcode.has_value())
+        return {};
+      return Option<Inst_p>{Insts::within(bcode.value())};
+    }
     static Option<Rec_p> tryParseRec(const string &token, const string &type, const fURI_p &baseType = REC_FURI) {
       if (token[0] != '[' || token[token.length() - 1] != ']' || token.find("=>") == string::npos)
         return {};
@@ -434,7 +454,7 @@ namespace fhatos {
             instToken += c;
           ///////////////////////////////////////////////////////////////
           if ((unary || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 && tracker.braces == 0 &&
-              !tracker.quotes && ss.peek() == '.') {
+              tracker.within == 0 && !tracker.quotes && ss.peek() == '.') {
             ss.get();
             break;
           }
@@ -445,20 +465,26 @@ namespace fhatos {
           instToken += ')';
         LOG(TRACE, "Parsing !ginst token!!: !y%s!!\n", instToken.c_str());
         // TODO: end inst with ; sugar
-        Pair<string, string> typeValue = tryParseObjType(instToken, PARSE_TOKENS::PAREN);
-        if (!unary && instToken[typeValue.first.length()] != '(') { // OBJ AS ARGUMENT (START OR MAP)
-          LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", instToken.c_str());
-          const Option<Obj_p> obj = tryParseObj(instToken);
-          if (!obj.has_value())
-            return {};
-          insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({obj.value()})) : Insts::map(obj.value()));
-        } else { // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
-          LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", typeValue.first.c_str(), typeValue.second.c_str());
-          const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
-          if (inst.has_value()) {
-            insts.push_back(inst.value());
-          } else {
-            return {};
+        Option<Inst_p> within = tryParsePolyWithin(instToken);
+        if (!unary && within.has_value()) {
+          insts.push_back(within.value());
+        } else {
+          Pair<string, string> typeValue = tryParseObjType(instToken, PARSE_TOKENS::PAREN);
+          if (!unary && instToken[typeValue.first.length()] != '(') { // OBJ AS ARGUMENT (START OR MAP)
+            LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", instToken.c_str());
+            const Option<Obj_p> obj = tryParseObj(instToken);
+            if (!obj.has_value())
+              return {};
+            insts.push_back(insts.empty() ? Insts::start(Obj::to_objs({obj.value()})) : Insts::map(obj.value()));
+          } else { // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
+            LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", typeValue.first.c_str(),
+                typeValue.second.c_str());
+            const Option<Inst_p> inst = tryParseInst(typeValue.second, typeValue.first, INST_FURI);
+            if (inst.has_value()) {
+              insts.push_back(inst.value());
+            } else {
+              return {};
+            }
           }
         }
         instToken.clear();

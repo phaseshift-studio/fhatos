@@ -17,6 +17,7 @@
 #include <fhatos.hpp>
 #include <structure/kernel.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+#include <language/processor/processor.hpp>
 #include <process/process.hpp>
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
@@ -58,6 +59,7 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 void setup() {
   try {
+    //Processor<Obj>(Obj::to_bcode(), Obj::to_noobj());
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))

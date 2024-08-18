@@ -83,10 +83,15 @@ namespace fhatos {
       FOS_SAFE_DELETE(this->barriers);
       FOS_SAFE_DELETE(this->halted);
     }
-    explicit Processor(const BCode_p &bcode) : bcode(bcode) {
+    explicit Processor(const BCode_p &bcode, const Obj_p &starts = noobj()) : bcode(bcode) {
+      Options::singleton()->processor<Obj, BCode, Objs>(
+          [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
       if (!this->bcode->isBytecode())
         throw fError("Processor requires a _bcode obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode);
+      if (!starts->isNoObj()) {
+        this->running->push_back(share(Monad(starts, this->bcode->bcode_value()->front())));
+      }
       for (const Inst_p &inst: *this->bcode->bcode_value()) {
         if (Insts::isBarrier(inst)) {
           const Monad_p monad = share(Monad(inst->inst_seed(), inst));
@@ -104,7 +109,7 @@ namespace fhatos {
             share(Monad(this->bcode->bcode_value()->front()->inst_seed(), this->bcode->bcode_value()->front())));
     }
 
-    const ptr<E> next(const int steps = -1) {
+    ptr<E> next(const int steps = -1) {
       while (true) {
         if (this->halted->empty()) {
           if (this->running->empty())
@@ -116,6 +121,15 @@ namespace fhatos {
           return end;
         }
       }
+    }
+
+    Objs_p toObjs() {
+      Objs_p objs = Obj::to_objs(List<Obj_p>{});
+      Obj_p end;
+      while (nullptr != (end = this->next())) {
+        objs->add_obj(end);
+      }
+      return objs;
     }
 
     int execute(const int steps = -1) {
@@ -162,6 +176,9 @@ namespace fhatos {
     }
   };
 
+  static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
+    return Processor<Obj>(bcode, starts).toObjs();
+  }
 
 } // namespace fhatos
 
