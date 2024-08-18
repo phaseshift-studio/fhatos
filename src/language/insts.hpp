@@ -482,9 +482,9 @@ namespace fhatos {
       return Obj::to_inst("split", {poly}, [poly](const Poly_p &lhs) { return poly->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p merge_drain() {
+    static Obj_p merge() {
       return Obj::to_inst(
-          "merge_drain", {},
+          "merge", {},
           [](const Poly_p &lhs) {
             Objs_p objs = Obj::to_objs();
             if (lhs->isLst()) {
@@ -497,38 +497,35 @@ namespace fhatos {
           IType::ONE_TO_MANY);
     }
 
-    static Obj_p merge_first() {
+    static Obj_p foldr(const BCode_p &bcode) {
       return Obj::to_inst(
-          "merge_first", {},
-          [](const Poly_p &lhs) {
-            if (lhs->isLst()) {
-              for (const auto &obj: *lhs->lst_value()) {
-                if (!obj->isNoObj())
-                  return obj;
+          "foldr", {bcode},
+          [bcode](const Objs_p &lhs) {
+            bool onA = true;
+            List_p<Obj_p> objs = lhs->objs_value();
+            Obj_p a;
+            Obj_p b;
+            bool first = true;
+            LOG(INFO, "incoming: %s\n", lhs->toString().c_str());
+            for (const auto &obj: *objs) {
+              if (first) {
+                a = obj;
+                first = false;
+              } else {
+                LOG(INFO, "before iteration: %s\n", (onA ? a : b)->toString().c_str());
+                if (onA) {
+                  b = (bcode->apply(obj))->apply(a);
+                } else {
+                  a = (bcode->apply(obj))->apply(b);
+                }
+                onA = !onA;
+                LOG(INFO, "after iteration: %s (other %s)\n", (onA ? a : b)->toString().c_str(),
+                    (!onA ? a : b)->toString().c_str());
               }
             }
-            return Obj::to_noobj();
+            return onA ? a : b;
           },
-          IType::ONE_TO_ONE);
-    }
-
-    static Obj_p merge_apply() {
-      return Obj::to_inst(
-          "merge_apply", {},
-          [](const Poly_p &lhs) {
-            if (lhs->isLst()) {
-              BCode_p temp = Obj::to_bcode();
-              for (const auto &obj: *lhs->lst_value()) {
-                if (obj->isInst())
-                  temp->add_inst(obj);
-                else
-                  temp->add_inst(Insts::map(obj));
-              }
-              return temp->apply(lhs);
-            }
-            return Obj::to_noobj();
-          },
-          IType::ONE_TO_ONE);
+          IType::MANY_TO_ONE, Obj::to_objs());
     }
 
     static Poly_p each(const Poly_p &poly) {
@@ -552,47 +549,7 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
-  private:
-    static Obj_p embed_function(const Uri_p &lhs, const Obj_p &rhs) {
-      if (rhs->isLst()) {
-        router()->write(id_p(lhs->uri_value()), rhs);
-        const Lst_p lst2 = rhs->apply(lhs);
-        for (size_t i = 0; i < lst2->lst_value()->size(); i++) {
-          const Uri_p u = Obj::to_uri(fURI(string("_") + std::to_string(i)))->apply(lhs);
-          router()->write(id_p(u->uri_value()), lst2->lst_value()->at(i));
-        }
-        return lst2;
-      } else if (rhs->isRec()) {
-        const Obj::LstList_p<> links = share(Obj::LstList<>());
-        const Obj::RecMap_p<> rec2 = share(Obj::RecMap<>());
-        for (const auto &[key, val]: *rhs->rec_value()) {
-          const Obj_p key2 = key->apply(lhs);
-          const Obj_p val2 = val->apply(lhs);
-          links->push_back(key2);
-          rec2->insert({key2, val2});
-          if (key2->isUri())
-            router()->write(id_p(key2->uri_value()), val2);
-        }
-        router()->write(id_p(lhs->uri_value()), Obj::to_rec(rec2));
-        return Obj::to_rec(rec2);
-      } else {
-        const Obj_p o = rhs->apply(lhs);
-        router()->write(id_p(o->isUri() ? o->apply(lhs)->uri_value() : lhs->uri_value()), o);
-        return o;
-      }
-    };
-
   public:
-    static Obj_p embed(const Obj_p &rhs) {
-      return Obj::to_inst(
-          "embed", {rhs}, [rhs](const Uri_p &lhs) { return embed_function(lhs, rhs); }, IType::ONE_TO_ONE);
-    }
-
-    static Obj_p embed_inv(const Obj_p &rhs) {
-      return Obj::to_inst(
-          "embed_inv", {rhs}, [rhs](const Uri_p &lhs) { return embed_function(rhs, lhs); }, IType::ONE_TO_ONE);
-    }
-
     ///// HELPER METHODS
     static bool isBarrier(const Inst_p &inst) {
       return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE;
@@ -621,7 +578,7 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"-<", "split"},{">-","merge_drain"},{":>-","merge_first"},{";>-","merge_apply"},
+      static Map<string, string> map = {{"-<", "split"},{">-","merge"},
                                         {"~>", "embed"},{"<~", "embed_inv"},{"<-", "to"},{"->", "to_inv"},
                                         {"|", "block"},{"^","lift"},{"V","drop"},{"*", "from"},{"=", "each"} /*{"==", "eq"},
                                         {"!=", "neq"}*/};
@@ -673,12 +630,8 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))
         return saveWrap(Insts::start(Objs::to_objs(args)));
-      if (typeId == INST_FURI->resolve("merge_drain") || typeId == INST_FURI->resolve(">-"))
-        return saveWrap(Insts::merge_drain());
-      if (typeId == INST_FURI->resolve("merge_first") || typeId == INST_FURI->resolve(":>-"))
-        return saveWrap(Insts::merge_first());
-      if (typeId == INST_FURI->resolve("merge_apply") || typeId == INST_FURI->resolve(";>-"))
-        return Insts::merge_apply();
+      if (typeId == INST_FURI->resolve("merge") || typeId == INST_FURI->resolve(">-"))
+        return saveWrap(Insts::merge());
       if (typeId == INST_FURI->resolve("end"))
         return Insts::end();
       if (typeId == INST_FURI->resolve("map"))
@@ -756,6 +709,8 @@ namespace fhatos {
         return Insts::count();
       if (typeId == INST_FURI->resolve("size"))
         return Insts::size();
+      if (typeId == INST_FURI->resolve("foldr"))
+        return Insts::foldr(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("barrier"))
         return Insts::barrier(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("block") || typeId == INST_FURI->resolve("|"))
@@ -764,12 +719,8 @@ namespace fhatos {
         return Insts::cleave(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("split"))
         return Insts::split(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("each"))
+      if (typeId == INST_FURI->resolve("each") || typeId == INST_FURI->resolve("="))
         return Insts::each(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("embed"))
-        return Insts::embed(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("embed_inv"))
-        return Insts::embed_inv(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("window"))
         return Insts::window(argCheck(typeId, args, 1).at(0));
       // check registered instructions

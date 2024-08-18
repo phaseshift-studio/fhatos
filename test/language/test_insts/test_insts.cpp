@@ -27,7 +27,7 @@
 #include <test_fhatos.hpp>
 
 namespace fhatos {
-  void testObj(const Obj_p &lhs, const Obj_p &rhs, const Obj_p &expected) {
+  void test_obj(const Obj_p &lhs, const Obj_p &rhs, const Obj_p &expected) {
     LOG(INFO, "Testing %s => %s = %s\n", lhs->toString().c_str(), rhs->toString().c_str(),
         expected->toString().c_str());
     const Obj_p result = rhs->apply(lhs);
@@ -36,58 +36,60 @@ namespace fhatos {
       TEST_FAIL();
     }
   }
-  void testInst(const Obj_p &lhs, const Inst_p &inst, const Obj_p &expected) { testObj(lhs, inst, expected); }
+  void test_inst(const Obj_p &lhs, const Inst_p &inst, const Obj_p &expected) { test_obj(lhs, inst, expected); }
   ////////////////////////////////////////////////////////////////////////////////////
   void test_plus() {
-    testInst(Obj::to_int(22), //
+    test_inst(Obj::to_int(22), //
              Insts::plus(Obj::to_int(10)), //
              Obj::to_int(32));
-    testInst(Obj::to_int(16), //
+    test_inst(Obj::to_int(16), //
              Insts::plus(Obj::to_bcode()), //
              Obj::to_int(32));
   }
 
   void test_mult() {
     // int => mult[int]
-    testInst(Obj::to_int(22), //
+    test_inst(Obj::to_int(22), //
              Insts::mult(Obj::to_int(10)), //
              Obj::to_int(220));
     // int => mult[_bcode]
-    testInst(Obj::to_int(16), //
+    test_inst(Obj::to_int(16), //
              Insts::mult(Obj::to_bcode()), //
              Obj::to_int(256));
   }
 
   void test_apply() {
-    testObj(obj(6), obj(5), obj(5));
-    testObj(obj(3), obj("a"), obj("a"));
-    testObj(obj("a"), obj("b"), obj("b"));
-    testObj(obj(u("http://fhatos.org")), obj({1, 2, 3}), obj({1, 2, 3}));
+    test_obj(obj(6), obj(5), obj(5));
+    test_obj(obj(3), obj("a"), obj("a"));
+    test_obj(obj("a"), obj("b"), obj("b"));
+    test_obj(obj(u("http://fhatos.org")), obj({1, 2, 3}), obj({1, 2, 3}));
     /// _bcode => mult[int]
-    testInst(Obj::to_bcode({Insts::plus(obj(5))}), //
+    test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
              Insts::mult(obj(10)), //
              Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(obj(10))}));
     /// _bcode => mult[_bcode]
-    testInst(Obj::to_bcode({Insts::plus(obj(5))}), //
+    test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
              Insts::mult(Obj::to_bcode({Insts::plus(obj(3))})), //
              Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(Obj::to_bcode({Insts::plus(obj(3))}))}));
   }
 
 
   void test_group() {
-    testInst(Obj::to_objs({1, 2, 3, 3}), //
+    test_inst(Obj::to_objs({1, 2, 3, 3}), //
              Insts::group(Obj::to_bcode(), Obj::to_bcode(), Obj::to_bcode()), //
-             Objs::to_rec({{1, *Obj::to_lst({1})}, {2, *Obj::to_lst({2})}, {3, *Obj::to_lst({3, 3})}}));
+             rec({{1, *Obj::to_lst({1})}, {2, *Obj::to_lst({2})}, {3, *Obj::to_lst({3, 3})}}));
     /* testInst(Insts::group(Obj::to_bcode({}), Obj::to_bcode({}), Obj::to_bcode({Insts::start({}), Insts::count()})),
        // Obj::to_objs({1, 2, 3, 3}), // Objs::to_rec({{1, 1}, {2, 1}, {3, 2}}));*/
   }
 
   void test_barrier() {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
-    testInst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), uri("abc")})}), //
+    test_inst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), uri("abc")})}), //
              Insts::barrier(bcode({Insts::count()})), //
              objs({obj(4)}));
   }
+
+  void test_within() { test_inst(lst({jnt(1), jnt(2), jnt(3)}), Insts::within(bcode({Insts::sum()})), lst({jnt(6)})); }
 
 
   FOS_RUN_TESTS( //
@@ -96,6 +98,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_group); //
       FOS_RUN_TEST(test_apply); //
       FOS_RUN_TEST(test_barrier); //
+      FOS_RUN_TEST(test_within); //
   )
 } // namespace fhatos
 

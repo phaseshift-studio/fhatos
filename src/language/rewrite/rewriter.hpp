@@ -111,6 +111,19 @@ namespace fhatos {
                       },
                       {{}, {}}});
     }
+    static Rewrite starts(const Objs_p &starts) {
+      return Rewrite({ID("/lang/rewrite/starts"),
+                      [starts](const BCode_p &bcode) {
+                        if (starts->isNoObj())
+                          return bcode;
+                        List<Inst_p> new_insts = {Insts::start(starts->isObjs() ? starts : Obj::to_objs({starts}))};
+                        for (const Inst_p &inst: *bcode->bcode_value()) {
+                          new_insts.push_back(inst);
+                        }
+                        return Obj::to_bcode(new_insts);
+                      },
+                      {{}, {}}});
+    }
   };
 } // namespace fhatos
 #endif

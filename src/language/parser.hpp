@@ -126,9 +126,11 @@ namespace fhatos {
       const string valueToken = typeValue.second;
       const bool dot_type = dotType(typeToken); // .obj. in _bcode (apply)
       Option<Obj_p> b = {};
+      ////////////////
       b = tryParsePolyWithin(valueToken);
       if (b.has_value())
         return b.value();
+      ////////////////
       if (!dot_type) { // dot type
         b = tryParseNoObj(valueToken, typeToken, NOOBJ_FURI);
         if (b.has_value())
@@ -454,8 +456,9 @@ namespace fhatos {
             instToken += c;
           ///////////////////////////////////////////////////////////////
           if ((unary || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 && tracker.braces == 0 &&
-              tracker.within == 0 && !tracker.quotes && ss.peek() == '.') {
-            ss.get();
+              tracker.within == 0 && !tracker.quotes && (ss.peek() == '.' || sugar_next(&ss))) {
+            if (ss.peek() == '.')
+              ss.get();
             break;
           }
         }
@@ -496,8 +499,19 @@ namespace fhatos {
                                          const fURI_p &baseType = URI_FURI) {
       return Option<Uri_p>{Uri::to_uri(valueToken, id_p(baseType->resolve(typeToken)))};
     }
-
     static Obj_p parse(const string &source) { return Parser::tryParseObj(source).value_or(noobj()); }
+
+  private:
+    static bool sugar_next(stringstream *ss) {
+      if (ss->eof())
+        return false;
+      for (const auto &[k, v]: Insts::unarySugars()) {
+        if (StringHelper::look_ahead(k, ss, false)) {
+          return true;
+        }
+      }
+      return false;
+    }
   };
 } // namespace fhatos
 #endif

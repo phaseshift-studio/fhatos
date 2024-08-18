@@ -33,6 +33,7 @@
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/processor/heap.hpp>
+#include <language/processor/processor.hpp>
 #include <language/types.hpp>
 #include <structure/model/terminal.hpp>
 #include <structure/router.hpp>
@@ -43,6 +44,7 @@
 #include <util/options.hpp>
 
 #define FOS_SETUP_ON_BOOT                                                                                              \
+  load_processor();                                                                                                    \
   Kernel::build()                                                                                                      \
       ->using_printer(Ansi<>::singleton())                                                                             \
       ->with_log_level(FOS_LOGGING)                                                                                    \
@@ -101,7 +103,10 @@ namespace fhatos {
 #ifdef NATIVE
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
-  int main(int, char **) { RUN_UNITY_TESTS(); };                                                                       \
+  int main(int, char **) {                                                                                             \
+    load_processor();                                                                                                  \
+    RUN_UNITY_TESTS();                                                                                                 \
+  };                                                                                                                   \
   void setUp() {}                                                                                                      \
   void tearDown() { FOS_STOP_ON_BOOT; }
 #else

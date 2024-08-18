@@ -83,15 +83,11 @@ namespace fhatos {
       FOS_SAFE_DELETE(this->barriers);
       FOS_SAFE_DELETE(this->halted);
     }
+
     explicit Processor(const BCode_p &bcode, const Obj_p &starts = noobj()) : bcode(bcode) {
-      Options::singleton()->processor<Obj, BCode, Objs>(
-          [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
       if (!this->bcode->isBytecode())
-        throw fError("Processor requires a _bcode obj to execute: %s\n", bcode->toString().c_str());
-      this->bcode = Rewriter({Rewriter::by(), Rewriter::explain()}).apply(this->bcode);
-      if (!starts->isNoObj()) {
-        this->running->push_back(share(Monad(starts, this->bcode->bcode_value()->front())));
-      }
+        throw fError("Processor requires a !bbcode!! obj to execute: %s\n", bcode->toString().c_str());
+      this->bcode = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode);
       for (const Inst_p &inst: *this->bcode->bcode_value()) {
         if (Insts::isBarrier(inst)) {
           const Monad_p monad = share(Monad(inst->inst_seed(), inst));
@@ -178,6 +174,11 @@ namespace fhatos {
 
   static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
     return Processor<Obj>(bcode, starts).toObjs();
+  }
+
+  static void load_processor() {
+    Options::singleton()->processor<Obj, BCode, Objs>(
+        [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
   }
 
 } // namespace fhatos

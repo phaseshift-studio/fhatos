@@ -59,7 +59,7 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 void setup() {
   try {
-    //Processor<Obj>(Obj::to_bcode(), Obj::to_noobj());
+    load_processor();
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
