@@ -14,6 +14,7 @@
 //  You should have received a copy of the GNU Affero General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifdef NATIVE
 
 #ifndef fhatos_test_furi_boost_cpp
 #define fhatos_test_furi_boost_cpp
@@ -536,4 +537,5 @@ BOOST_AUTO_TEST_CASE(test_illegal_constructions) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif
 #endif

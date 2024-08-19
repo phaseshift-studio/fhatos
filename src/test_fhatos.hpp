@@ -53,8 +53,7 @@
       ->boot<Types>(Types::singleton("/type/"))                                                                        \
       ->boot<Heap>(Heap::create("/proc/heap/", "+"))                                                                   \
       ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
-      ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))                                                           \
-      ->boot<FileSystem>(FileSystem::singleton("/io/fs"))                                                              \
+      ->boot<Parser>(Parser::singleton("/sys/lang/parser/")) /*->boot<FileSystem>(FileSystem::singleton("/io/fs"))*/   \
       ->load_modules({ID("/mod/proc")})                                                                                \
       ->initial_terminal_owner("/home/root/repl/");                                                                    \
   //->done("kernel_barrier");
@@ -78,6 +77,7 @@
 ////////////////////////////////////////////////////////
 #ifndef ALL_PROCESSORS
 namespace fhatos {
+#ifndef EVERYTHING
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -87,11 +87,14 @@ namespace fhatos {
       throw;                                                                                                           \
     }                                                                                                                  \
   }
+#endif
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
-      FOS_SETUP_ON_BOOT;                                                                                               \
-      UNITY_BEGIN();                                                                                                   \
+      FOS_SETUP_ON_BOOT;             \
+      UNITY_BEGIN();             \
+      uint32_t __test_freeSketch;                                                                                       \
+      uint32_t __test_freeHeap;                        \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
@@ -114,7 +117,8 @@ namespace fhatos {
   using namespace fhatos;                                                                                              \
   void setup() {                                                                                                       \
     Serial.begin(FOS_SERIAL_BAUDRATE);                                                                                 \
-    delay(2000);                                                                                                       \
+    delay(2000);                                                                                                        \
+    load_processor();                                                                                                  \
     fhatos::RUN_UNITY_TESTS();                                                                                         \
   }                                                                                                                    \
   void loop() {}                                                                                                       \
