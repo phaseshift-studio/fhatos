@@ -198,6 +198,11 @@ namespace fhatos {
           "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
+    static Bool_p match(const Obj_p &rhs) {
+      return Obj::to_inst(
+          "match", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(lhs->match(rhs->apply(lhs))); }, IType::ONE_TO_ONE);
+    }
+
     static Obj_p as(const Uri_p &typeId) {
       return Obj::to_inst(
           "as", {typeId},
@@ -231,7 +236,7 @@ namespace fhatos {
     static Obj_p to_inv(const Obj_p &obj) {
       return Obj::to_inst(
           "to_inv", {obj},
-          [obj](const Obj_p &lhs) { return std::get<Function<Obj_p, Obj_p>>(Insts::to(lhs)->inst_f())(obj); },
+          [obj](const Obj_p &lhs) { return Insts::to(lhs)->inst_f()(obj); },
           IType::ONE_TO_ONE);
     }
 
@@ -496,6 +501,30 @@ namespace fhatos {
           },
           IType::ONE_TO_MANY);
     }
+    static Obj_p subset(const Obj_p& start, const Obj_p& end) {
+      return Obj::to_inst(
+          "subset", {start,end},
+          [start,end](const Poly_p &lhs) {
+            if (lhs->isLst()) {
+              Obj::LstList_p<Obj_p> sub = share(List<Obj_p>());
+              int s = start->apply(lhs)->int_value();
+              int e = end->apply(lhs)->int_value();
+              int counter =0;
+              for (const auto&  obj: *lhs->lst_value()) {
+                if(counter >= s && counter < e) {
+                  sub->push_back(obj);
+                }
+                if(counter > e)
+                  break;
+                ++counter;
+              }
+              return Obj::to_lst(sub);
+            }
+            return noobj();
+          },
+          IType::ONE_TO_ONE);
+          }
+
 
     static Obj_p foldr(const BCode_p &bcode) {
       return Obj::to_inst(
@@ -578,7 +607,7 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"-<", "split"},{">-","merge"},
+      static Map<string, string> map = {{"-<", "split"},{">-","merge"},{"~","match"},
                                         {"~>", "embed"},{"<~", "embed_inv"},{"<-", "to"},{"->", "to_inv"},
                                         {"|", "block"},{"^","lift"},{"V","drop"},{"*", "from"},{"=", "each"} /*{"==", "eq"},
                                         {"!=", "neq"}*/};
@@ -634,6 +663,8 @@ namespace fhatos {
         return saveWrap(Insts::merge());
       if (typeId == INST_FURI->resolve("end"))
         return Insts::end();
+      if(typeId == INST_FURI->resolve("match") || typeId == INST_FURI->resolve("~"))
+        return Insts::match(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("map"))
         return saveWrap(Insts::map(argCheck(typeId, args, 1).at(0)));
       if (typeId == INST_FURI->resolve("filter"))
@@ -642,6 +673,8 @@ namespace fhatos {
         return Insts::side(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("count"))
         return Insts::count();
+      if(typeId == INST_FURI->resolve("subset"))
+        return Insts::subset(argCheck(typeId, args, 2).at(0), args.at(1));
       if (typeId == INST_FURI->resolve("sum"))
         return Insts::sum();
       if (typeId == INST_FURI->resolve("prod"))

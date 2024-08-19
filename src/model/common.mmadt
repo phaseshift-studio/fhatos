@@ -1,0 +1,17 @@
+
+=== mono extensions ===
+--- int
+/type/int/nat -> |is(gte(0))
+/type/int/even -> |is(mod(2).eq(0))
+/type/int/odd -> |is(mod(2).neq(0)
+--- str
+/type/str/char -> |is(size().eq(1))
+
+=== poly extensions ===
+--- lst
+/type/lst/pair?a=_&b=_ -> |[*a,*b]
+/type/lst/trip -> [_,_,_]
+/type/lst/quad -> [_,_,_,_]
+/type/lst/qint -> [_,_,_,_,_]
+--- rec
+/type/rec/table?

@@ -23,11 +23,11 @@
 #include <structure/stype/key_value.hpp>
 #include <language/processor/heap.hpp>
 #include <language/types.hpp>
-#include <structure/model/console.hpp>
-#include <structure/model/terminal.hpp>
+#include <model/console.hpp>
+#include <model/terminal.hpp>
 #ifdef NATIVE
-#include FOS_FILE_SYSTEM(filesystem.hpp)
-#include <structure/model/cluster.hpp>
+#include FOS_FILE_SYSTEM(fs.hpp)
+#include <model/cluster.hpp>
 #endif
 
 namespace fhatos {

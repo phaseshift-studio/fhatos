@@ -49,6 +49,15 @@ namespace fhatos {
       return temp;
     }
 
+    static string format(const char *format, ...) {
+      char _message[1024];
+      va_list arg;
+      va_start(arg, format);
+      int length = vsnprintf(_message, 1024, format, arg);
+      _message[length] = '\0';
+      return string(_message);
+    }
+
     static void ltrim(std::string &s) {
       s.erase(s.begin(),
               std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));

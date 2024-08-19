@@ -24,7 +24,7 @@
 #include <process/actor/actor.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
-#include <structure/model/terminal.hpp>
+#include <model/terminal.hpp>
 #include <structure/stype/empty.hpp>
 
 namespace fhatos {

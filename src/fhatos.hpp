@@ -225,14 +225,14 @@ namespace fhatos {
 #define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(ESP8266)
-#define FOS_PROCESS(proc) <process/esp8266/proc>
+#define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(NATIVE)
-#define FOS_PROCESS(proc) <process/ptype/native/proc>
-#define FOS_MQTT(mqtt) <structure/router/mqtt>
+#define FOS_PROCESS(__process__) <process/ptype/native/__process__>
+#define FOS_MQTT(__mqtt__) <structure/stype/mqtt/native/__mqtt__>
 #define FOS_UTIL(utl) <util/std/utl>
-#define FOS_FILE_SYSTEM(fs) <structure/model/filesystem/native/fs>
+#define FOS_FILE_SYSTEM(__fs__) <model/fs/native/__fs__>
 #else
 #error "Unknown architecture."
 #endif

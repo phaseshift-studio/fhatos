@@ -35,10 +35,10 @@
 #include <language/processor/heap.hpp>
 #include <language/processor/processor.hpp>
 #include <language/types.hpp>
-#include <structure/model/terminal.hpp>
+#include <model/terminal.hpp>
 #include <structure/router.hpp>
 #ifdef NATIVE
-#include FOS_FILE_SYSTEM(filesystem.hpp)
+#include FOS_FILE_SYSTEM(fs.hpp)
 #endif
 #include <structure/kernel.hpp>
 #include <util/options.hpp>
@@ -53,7 +53,8 @@
       ->boot<Types>(Types::singleton("/type/"))                                                                        \
       ->boot<Heap>(Heap::create("/proc/heap/", "+"))                                                                   \
       ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
-      ->boot<Parser>(Parser::singleton("/sys/lang/parser/")) /*->boot<FileSystem>(FileSystem::singleton("/io/fs"))*/   \
+      ->boot<Parser>(Parser::singleton("/sys/lang/parser/")) \
+      ->boot<FileSystem>(FileSystem::singleton("/io/fs"))   \
       ->load_modules({ID("/mod/proc")})                                                                                \
       ->initial_terminal_owner("/home/root/repl/");                                                                    \
   //->done("kernel_barrier");

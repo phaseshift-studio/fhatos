@@ -22,7 +22,7 @@
 #undef FOS_TEST_ON_BOOT
 #include <language/insts.hpp>
 #include <test_fhatos.hpp>
-#include FOS_FILE_SYSTEM(filesystem.hpp)
+#include FOS_FILE_SYSTEM(fs.hpp)
 #include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 

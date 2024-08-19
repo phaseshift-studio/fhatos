@@ -16,8 +16,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_x_filesystem_hpp
-#define fhatos_x_filesystem_hpp
+#ifndef fhatos_x_fs_hpp
+#define fhatos_x_fs_hpp
+#include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(fiber.hpp)
@@ -57,7 +58,7 @@ namespace fhatos {
       // define filesystem types
       this->publish(*FILE_FURI, Obj::to_bcode(), true);
       this->publish(*DIR_FURI, Obj::to_bcode(), true);
-      this->publish(INST_FS_FURI->resolve("root"), Obj::to_inst({{}, Obj::to_noobj(), IType::ZERO_TO_ONE, noobj()}));
+      // this->publish(INST_FS_FURI->resolve("root"), Obj::to_inst({{}, Obj::to_noobj(), IType::ZERO_TO_ONE, noobj()}));
       this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
         if (message->retain && message->payload->isNoObj()) { // delete the fs resource
           this->rm(to_fs(message->target));

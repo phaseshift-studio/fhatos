@@ -1,4 +1,0 @@
-/type/lst/pair?a=_&b=_ -> |[*a,*b]
-/type/lst/trip -> [_,_,_]
-/type/lst/quad -> [_,_,_,_]
-/type/lst/qint -> [_,_,_,_,_]

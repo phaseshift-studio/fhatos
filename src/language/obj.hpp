@@ -170,7 +170,7 @@ namespace fhatos {
 
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
-  using InstFunction = std::variant<BCode_p, Function<Obj_p, Obj_p>>;
+  using InstFunction = Function<Obj_p, Obj_p>;
   using InstSeed = Obj_p;
   using InstValue = Quad<InstArgs, InstFunction, IType, InstSeed>;
   using InstList = List<Inst_p>;
@@ -416,6 +416,7 @@ namespace fhatos {
         return Obj::to_bcode(insts);
       }
     }
+
     const BCode_p add_bcode(const BCode_p &bcode, [[maybe_unused]] const bool mutate = true) {
       if (!this->isBytecode() || !bcode->isBytecode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -869,9 +870,7 @@ namespace fhatos {
             return lhs->add_inst(
                 Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed()), this->_id), false);
           }
-          return std::holds_alternative<BCode_p>(this->inst_f())
-                     ? std::get<BCode_p>(this->inst_f())->apply(lhs)
-                     : std::get<Function<Obj_p, Obj_p>>(this->inst_f())(lhs);
+          return this->inst_f()(lhs);
         }
         case OType::BCODE: {
           if (lhs->isBytecode())
@@ -901,7 +900,9 @@ namespace fhatos {
     }
 
     // const fURI type() const { return this->_id->authority(""); }
-
+    Obj_p operator()(const Obj_p& lhs) {
+      return this->apply(lhs);
+    }
     bool match(const Obj_p &type, const bool sameType = true) const {
       LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if (type->isNoOpBytecode())
@@ -1077,6 +1078,7 @@ namespace fhatos {
       const ID_p fix = furi ? furi : share(ID(string(FOS_TYPE_PREFIX "inst/") + opcode));
       return to_inst({args, function, itype, seed}, fix);
     }
+
     static BCode_p to_bcode(const InstList &insts, const ID_p &furi = BCODE_FURI) {
       return Obj::to_bcode(share(insts), furi);
     }
@@ -1147,6 +1149,13 @@ namespace fhatos {
   }
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(list); }
   [[maybe_unused]] static BCode_p bcode(const InstList &list) { return Obj::to_bcode(list); }
+  struct CInstFunction : public InstFunction {
+    const string& filename;
+    const int line_number;
+   string toString() const {
+      return StringHelper::format("c-impl-%s[line:%i]",this->filename.c_str(), this->line_number);
+   }
+  };
 
 } // namespace fhatos
 #endif

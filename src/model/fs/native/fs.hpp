@@ -20,7 +20,7 @@
 #define fhatos_filesystem_hpp
 #include <filesystem>
 #include <fstream>
-#include "structure/model/filesystem/x_filesystem.hpp"
+#include <model/fs/x_fs.hpp>
 
 namespace fs = std::filesystem;
 namespace fhatos {
