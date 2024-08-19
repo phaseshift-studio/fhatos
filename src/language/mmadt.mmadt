@@ -1,0 +1,6 @@
+=== mm-ADT: A Multi-Modal Abstract Data Type ===
+--- mmadt mono types
+/type/int/-<[_      -> cxx(),
+             ./doc  -> 'a integer monotype',
+             ./inst -> ../../inst/ -> [ ./plus, ./mult, ./mod]]
+--- mmadt poly types
