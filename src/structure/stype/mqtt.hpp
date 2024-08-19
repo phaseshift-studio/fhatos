@@ -19,6 +19,8 @@
 #ifndef fhatos_mqtt_hpp
 #define fhatos_mqtt_hpp
 
+#ifdef NATIVE
+
 #include <fhatos.hpp>
 #include <mqtt/async_client.h>
 #include <structure/structure.hpp>
@@ -209,4 +211,5 @@ namespace fhatos {
     }
   };
 } // namespace fhatos
+#endif
 #endif

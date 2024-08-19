@@ -21,15 +21,14 @@
 #include <process/process.hpp>
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
-#ifdef NATIVE
-#include FOS_FILE_SYSTEM(filesystem.hpp)
-#endif
-// utilities
 #include <language/processor/heap.hpp>
 #include <language/types.hpp>
-#include <structure/model/cluster.hpp>
 #include <structure/model/console.hpp>
 #include <structure/model/terminal.hpp>
+#ifdef NATIVE
+#include FOS_FILE_SYSTEM(filesystem.hpp)
+#include <structure/model/cluster.hpp>
+#endif
 
 namespace fhatos {
   class ArgvParser {
@@ -72,8 +71,10 @@ void setup() {
         ->boot<Heap>(Heap::create("/proc/heap/", "+"))
         ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
         ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+#ifdef NATIVE
         ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
         ->boot<Cluster>(Cluster::create("/io/cluster"))
+#endif
         ->boot<Console>(Console::create("/home/root/repl/"))
         ->load_modules({ID("/mod/proc")})
         ->initial_terminal_owner("/home/root/repl/")

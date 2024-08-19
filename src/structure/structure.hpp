@@ -40,7 +40,6 @@ namespace fhatos {
 
   public:
     const SType stype;
-
     explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
     bool available() { return this->available_.load(); }

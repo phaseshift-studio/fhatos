@@ -25,7 +25,7 @@ namespace fhatos {
   class Empty : public Structure {
 
   protected:
-    explicit Empty([[maybe_unused]] const Pattern &FAUX_PATTERN = Pattern(EMPTY_CHARS)) : Structure("", SType::READ) {}
+    explicit Empty(const Pattern & = Pattern(EMPTY_CHARS)) : Structure("", SType::READ) {}
 
   public:
     static ptr<Empty> singleton() {

@@ -66,14 +66,14 @@ namespace fhatos {
 
     virtual void detach(const Pattern_p &pattern) {
       this->structures_mutex_.write<void *>([this, pattern]() {
-        erase_if(*this->structures_, [pattern, this](const Pair<Pattern_p, Structure_p> &pair) {
-          if (pair.first->matches(*pattern)) {
-            LOG_STRUCTURE(INFO, this, "detached structure %s\n", pair.second->pattern()->toString().c_str());
-            pair.second->stop();
-            return true;
-          }
-          return false;
-        });
+        List<Pattern_p> toRemove;
+        for (const auto &pair: *this->structures_) {
+          if (pair.first->matches(*pattern))
+            toRemove.push_back(pair.first);
+        }
+        for (const auto &p: toRemove) {
+          this->structures_->erase(p);
+        }
         return nullptr;
       });
     }

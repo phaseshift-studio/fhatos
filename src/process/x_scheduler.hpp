@@ -48,13 +48,12 @@ namespace fhatos {
     ptr<Map<const ID_p, Process_p, furi_p_less>> processes_ = share(Map<const ID_p, Process_p, furi_p_less>());
     MutexDeque<Mail_p> inbox_;
     bool running = false;
-    std::thread::id main_thread;
-    bool isInMainThread() { return this_thread::get_id() == this->main_thread; }
+
+    // bool isInMainThread() { return this_thread::get_id() == this->main_thread; }
 
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) :
-        IDed(share(id)), Mailbox(), main_thread(this_thread::get_id()) {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
 
     int count(const Pattern &processPattern = Pattern("#")) {
       if (this->processes_->empty())
@@ -91,10 +90,10 @@ namespace fhatos {
     }
 
     void stop() {
-      if (!this->isInMainThread()) {
-        // TODO: console. :shutdown calls stop();
-        // return;
-      }
+      // if (!this->isInMainThread()) {
+      // TODO: console. :shutdown calls stop();
+      // return;
+      //}
       this->processes_mutex_.read<void *>([this]() {
         int threadCount = 0;
         int fiberCount = 0;
@@ -159,9 +158,9 @@ namespace fhatos {
 
   protected:
     bool read_mail() {
-      if (this->main_thread != this_thread::get_id())
-        throw fError("Mail can only be read by the primary thread: %i != %i\n", this->main_thread,
-                     this_thread::get_id());
+      //   if (this->main_thread != this_thread::get_id())
+      //     throw fError("Mail can only be read by the primary thread: %i != %i\n", this->main_thread,
+      //                this_thread::get_id());
       const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;
@@ -172,15 +171,16 @@ namespace fhatos {
     virtual bool _kill(const Pattern &processPattern) {
       return bool(*processes_mutex_.write<bool>([this, processPattern]() {
         const uint8_t size = this->processes_->size();
-        erase_if(*this->processes_, [this, processPattern](const auto &pair) {
+        List<ID_p> toRemove;
+        for (const auto &pair: *this->processes_) {
           if (pair.first->matches(processPattern)) {
             router()->detach(((Structure *) pair.second.get())->pattern());
-            LOG_PROCESS(INFO, this, "!b%s !y%s!! destroyed\n", pair.first->toString().c_str(),
-                        ProcessTypes.toChars(pair.second->ptype).c_str());
-            return true;
+            toRemove.push_back(pair.first);
           }
-          return false;
-        });
+        }
+        for (const auto &i: toRemove) {
+          this->processes_->erase(i);
+        }
         return share(this->processes_->size() < size);
       }));
     }
