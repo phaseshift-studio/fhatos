@@ -26,10 +26,10 @@
 
 namespace fhatos {
 
-    FOS_RUN_TESTS( //
-           current_structure = KeyValue::create("/a/+");
-          FOS_RUN_TEST(test_write); //
-      );
+FOS_RUN_TESTS( //
+  current_structure = KeyValue::create("/a/+"); //
+  FOS_RUN_TEST(test_write); //
+);
 
 } // namespace fhatos
 SETUP_AND_LOOP();

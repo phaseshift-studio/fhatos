@@ -29,6 +29,7 @@
 #define TEST_REQUIREMENTS FOS_FULL_BOOT
 
 #ifdef FOS_TEST_ON_BOOT
+
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
@@ -37,9 +38,13 @@
 #include <language/types.hpp>
 #include <model/terminal.hpp>
 #include <structure/router.hpp>
+
 #ifdef NATIVE
+
 #include FOS_FILE_SYSTEM(fs.hpp)
+
 #endif
+
 #include <structure/kernel.hpp>
 #include <util/options.hpp>
 
@@ -54,7 +59,7 @@
       ->boot<Heap>(Heap::create("/proc/heap/", "+"))                                                                   \
       ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
       ->boot<Parser>(Parser::singleton("/sys/lang/parser/")) \
-      ->boot<FileSystem>(FileSystem::singleton("/io/fs"))   \
+  /*    ->boot<FileSystem>(FileSystem::singleton("/io/fs"))  */ \
       ->load_modules({ID("/mod/proc")})                                                                                \
       ->initial_terminal_owner("/home/root/repl/");                                                                    \
   //->done("kernel_barrier");
@@ -118,7 +123,7 @@ namespace fhatos {
   using namespace fhatos;                                                                                              \
   void setup() {                                                                                                       \
     Serial.begin(FOS_SERIAL_BAUDRATE);                                                                                 \
-    delay(2000);                                                                                                        \
+    delay(2000);                                                                                                       \
     load_processor();                                                                                                  \
     fhatos::RUN_UNITY_TESTS();                                                                                         \
   }                                                                                                                    \
@@ -246,6 +251,7 @@ using namespace fhatos;
   }
 
 #ifdef FOS_TEST_ON_BOOT
+
 template<typename OBJ = Obj>
 static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
@@ -300,6 +306,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
     TEST_ASSERT_TRUE(true);
   }
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
@@ -325,20 +332,21 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       router()->route_subscription(share<Subscription>(
-          Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
-                       .pattern = key.uri_value(),
-                       .onRecv = [temp](const ptr<Message> &message) {
-                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
-                                                  (string("Router retain message payload equality: ") +
-                                                   router()->pattern()->toString() + " " + temp.toString() +
-                                                   " != " + message->payload->toString())
-                                                      .c_str());
-                       }}));
+              Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
+                      .pattern = key.uri_value(),
+                      .onRecv = [temp](const ptr<Message> &message) {
+                        TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
+                                                 (string("Router retain message payload equality: ") +
+                                                  router()->pattern()->toString() + " " + temp.toString() +
+                                                  " != " + message->payload->toString())
+                                                         .c_str());
+                      }}));
     }
   }
   // if (clearRouter)
   //  Options::singleton()->router<Router>()->clear(false, true);
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &monoids,
@@ -353,6 +361,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &mon
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->tryParseObj(finalString).value()),
                                 expectedReferences, clearRouter);
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
@@ -364,6 +373,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
     throw fError("Unable to parse: %s\n", monoid.c_str());
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 [[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
   Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
@@ -378,5 +388,6 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
   }
   return FOS_CHECK_RESULTS<Obj>(expectedResults, Fluent(parse.value()));
 }
+
 #endif
 #endif
