@@ -18,6 +18,7 @@
 
 #ifndef fhatos_filesystem_hpp
 #define fhatos_filesystem_hpp
+
 #include <filesystem>
 #include <fstream>
 #include <model/fs/x_fs.hpp>
@@ -33,28 +34,33 @@ namespace fhatos {
       static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(id, root));
       return fs_p;
     }
+
     bool is_dir(const ID &path) const override { return fs::is_directory(fs::path(make_native_path(path).toString())); }
+
     bool is_file(const ID &path) const override {
       return fs::is_regular_file(fs::path(make_native_path(path).toString()));
     }
+
     File_p to_file(const ID &path) const override {
       if (this->is_file(path))
         return Obj::to_uri(path, FILE_FURI);
       throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->id()->toString().c_str(),
                    path.toString().c_str());
     }
+
     Dir_p to_dir(const ID &path) const override {
       if (this->is_dir(path))
         return Obj::to_uri(path, DIR_FURI);
       throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->id()->toString().c_str(),
                    path.toString().c_str());
     }
+
     fURI make_native_path(const ID &path) const override {
       const string tempPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
-                                  ? path.toString().substr(this->id()->toString().length())
-                                  : path.toString();
+                              ? path.toString().substr(this->id()->toString().length())
+                              : path.toString();
       const fURI localPath =
-          this->root_->resolve((!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
+              this->root_->resolve((!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
                     path.toString().c_str(), this->root_->toString().c_str());
       if (!this->root_->is_subfuri_of(this->root_->resolve(localPath.dissolve()))) { // ../ can resolve beyond the mount
@@ -63,6 +69,7 @@ namespace fhatos {
       }
       return localPath;
     }
+
     Dir_p mkdir(const ID &path) const override {
       if (fs::is_directory(make_native_path(path).toString())) {
         throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
@@ -78,11 +85,12 @@ namespace fhatos {
       for (const auto &p: fs::directory_iterator(this->make_native_path(dir->uri_value()).toString())) {
         if ((fs::is_directory(p) || fs::is_regular_file(p))) {
           listing->push_back(
-              uri(p.path().string().substr(this->root_->toString().length()))); // clip off local mount location
+                  uri(p.path().string().substr(this->root_->toString().length()))); // clip off local mount location
         }
       }
       return Obj::to_objs(listing);
     }
+
     Lst_p more(const File_p &file, const uint16_t &max_lines) const override {
       std::ifstream infile(fs::path(this->make_native_path(file->uri_value()).toString()));
       List_p<Str_p> lines = share(List<Str_p>());
@@ -94,6 +102,7 @@ namespace fhatos {
       }
       return Obj::to_lst(lines);
     }
+
     File_p cat(const File_p &file, const Obj_p &content) override {
       std::ofstream outfile;
       outfile.open(fs::path(this->make_native_path(file->uri_value()).toString()), std::ios_base::app);
@@ -101,6 +110,7 @@ namespace fhatos {
       outfile << s.c_str();
       return file;
     }
+
     File_p touch(const ID &path) const override {
       if (fs::is_regular_file(this->make_native_path(path).toString())) {
         throw fError("!g[!!%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());

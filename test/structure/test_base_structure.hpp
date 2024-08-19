@@ -27,13 +27,14 @@
 router()->detach(current_structure->pattern()); \
 
 namespace fhatos {
-ptr<Structure> current_structure;
+  ptr<Structure> current_structure;
 
-void test_write() {
+  void test_write() {
     router()->attach(current_structure);
-    FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/a/b/c"), noobj(), id_p("fhatty")));
-}
-
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("/b/c"), jnt(10), id_p("fhatty")));
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("a/b/c"), str("hello_pity"), id_p("aus")));
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p("a/b"), str("hello_pity"), id_p("piggy")));
+  }
 
 
 }// namespace fhatos

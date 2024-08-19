@@ -26,9 +26,13 @@
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
-  enum class SType { READ, WRITE, READWRITE };
+  enum class SType {
+    READ, WRITE, READWRITE
+  };
   static const Enums<SType> StructureTypes =
-      Enums<SType>({{SType::READ, "read"}, {SType::WRITE, "write"}, {SType::READWRITE, "readwrite"}});
+          Enums<SType>({{SType::READ,      "read"},
+                        {SType::WRITE,     "write"},
+                        {SType::READWRITE, "readwrite"}});
 
   class Structure : public Patterned {
 
@@ -40,14 +44,17 @@ namespace fhatos {
 
   public:
     const SType stype;
+
     explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
     bool available() { return this->available_.load(); }
+
     virtual void setup() {
       if (this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already open");
       this->available_.store(true);
     }
+
     virtual void loop() {
       if (!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
@@ -58,6 +65,7 @@ namespace fhatos {
         mail.value()->first->onRecv(mail.value()->second);
       }
     }
+
     virtual void stop() {
       if (!this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
@@ -97,11 +105,11 @@ namespace fhatos {
           if (objx->isObjs()) {
             for (const auto &obj: *objx->objs_value()) {
               this->outbox_->push_back(share(Mail(
-                  {subscription,
-                   share(Message{.source = ID("anon_src"),
-                                 .target = ID("anon_tgt"),
-                                 .payload = obj,
-                                 .retain = true})}))); // TODO: need both source of the retain and the target of obj
+                      {subscription,
+                       share(Message{.source = ID("anon_src"),
+                               .target = ID("anon_tgt"),
+                               .payload = obj,
+                               .retain = true})}))); // TODO: need both source of the retain and the target of obj
             }
           } /* else {
            if (!objx->isNoObj()) {
@@ -141,12 +149,18 @@ namespace fhatos {
       MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
       LOG_PUBLISH(rc, *message);
     }
+
     virtual void remove(const ID_p &id, const ID_p &source) { this->write(id, Obj::to_noobj(), source); }
+
     virtual Obj_p read(const fURI_p &furi, const ID_p &source) = 0;
+
     virtual Obj_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
+
     virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) = 0;
+
     virtual void write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
   };
+
   using Structure_p = ptr<Structure>;
 
 } // namespace fhatos

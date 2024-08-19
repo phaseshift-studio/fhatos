@@ -33,6 +33,7 @@ namespace fhatos {
 
   public:
     explicit Mutex(const char *label = "<anon>") : _label(string(label)) {}
+
     template<typename T = void *>
     T lockUnlock(const Supplier<T> criticalFunction, const uint16_t millisecondsWait = WAIT_TIME_MS) {
       try {
@@ -51,14 +52,14 @@ namespace fhatos {
 
     bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
       const long timestamp =
-          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-              .count();
+              std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+                      .count();
       while (true) {
         if (this->xmutex.try_lock()) {
           return true;
         } else if ((std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::system_clock::now().time_since_epoch())
-                        .count() -
+                std::chrono::system_clock::now().time_since_epoch())
+                            .count() -
                     timestamp) > millisecondsWait) {
           return false;
         }

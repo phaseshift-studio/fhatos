@@ -24,9 +24,12 @@
 namespace fhatos {
   using PriorPost = Pair<List<ID>, List<ID>>;
   using Rewrite = Trip<ID, Function<BCode_p, BCode_p>, PriorPost>;
+
   struct Rewriter {
     List<Rewrite> _rewrites;
+
     explicit Rewriter(const List<Rewrite> &rewrites) : _rewrites(rewrites) {}
+
     BCode_p apply(const BCode_p &bcode) const {
       BCode_p running = bcode;
       for (const Rewrite &rw: this->_rewrites) {
@@ -35,10 +38,12 @@ namespace fhatos {
       }
       return running;
     }
+
     static void LOG_REWRITE(const ID &rewriteID, const BCode_p &original, const BCode_p &rewrite) {
       LOG(DEBUG, "!g[!b%s!g]!! !yrewrote!! %s !r=to=>!! %s\n", rewriteID.toString().c_str(),
           original->toString().c_str(), rewrite->toString().c_str());
     }
+
     static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
                       [](const BCode_p &bcode) {
@@ -48,20 +53,20 @@ namespace fhatos {
                           // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
                           p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
                           const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
-                              [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
-                                string pad = StringHelper::repeat(depth, " ");
-                                string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
-                                for (const Inst_p &inst: *bcode->bcode_value()) {
-                                  p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  %s\n", inst->inst_op().c_str(),
-                                           (string(pad2) + inst->toString()).c_str(),
-                                           (string(pad) + ITypeSignatures.toChars(inst->itype())).c_str());
-                                  for (const auto &arg: inst->inst_args()) {
-                                    if (arg->isBytecode()) {
-                                      fun(arg, p, depth + 1);
+                                  [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
+                                    string pad = StringHelper::repeat(depth, " ");
+                                    string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
+                                    for (const Inst_p &inst: *bcode->bcode_value()) {
+                                      p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  %s\n", inst->inst_op().c_str(),
+                                               (string(pad2) + inst->toString()).c_str(),
+                                               (string(pad) + ITypeSignatures.toChars(inst->itype())).c_str());
+                                      for (const auto &arg: inst->inst_args()) {
+                                        if (arg->isBytecode()) {
+                                          fun(arg, p, depth + 1);
+                                        }
+                                      }
                                     }
-                                  }
-                                }
-                              };
+                                  };
                           fun(bcode, p, 0);
                           BCode_p rewrite = Obj::to_bcode({Insts::start(Obj::to_objs({Obj::to_str(ex)}))});
                           LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
@@ -71,6 +76,7 @@ namespace fhatos {
                       },
                       {{}, {}}});
     }
+
     static Rewrite by() {
       return Rewrite({ID("/lang/rewrite/by"),
                       [](const BCode_p &bcode) {
@@ -111,6 +117,7 @@ namespace fhatos {
                       },
                       {{}, {}}});
     }
+
     static Rewrite starts(const Objs_p &starts) {
       return Rewrite({ID("/lang/rewrite/starts"),
                       [starts](const BCode_p &bcode) {

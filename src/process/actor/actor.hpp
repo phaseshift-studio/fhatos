@@ -27,14 +27,19 @@
 
 namespace fhatos {
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
-  class Actor : public PROCESS, public STRUCTURE, public Mailbox, public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
+  class Actor
+          : public PROCESS,
+            public STRUCTURE,
+            public Mailbox,
+            public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
 
   public:
     explicit Actor(const ID &id, const Pattern &pattern) :
-        PROCESS(id), STRUCTURE(pattern), Mailbox(), enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
+            PROCESS(id), STRUCTURE(pattern), Mailbox(), enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
+
     explicit Actor(const ID &id) : Actor(id, id.extend("#")) {
       // router()->attach(ptr<Structure>((Structure *) this));
       // scheduler()->spawn(ptr<Process>((Process *) this));
@@ -50,16 +55,19 @@ namespace fhatos {
         return false;
       return this->outbox_->push_back(mail);
     }
+
     RESPONSE_CODE publish(const ID &target, const Obj_p &payload,
                           const bool retain = TRANSIENT_MESSAGE) { // rename send_mail
       return router()->route_message(
-          share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
+              share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
+
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
       return router()->route_subscription(
-          share(Subscription{.source = ID(*this->id()), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
+              share(Subscription{.source = ID(*this->id()), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
+
     RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { // todo: is this correct?
       router()->route_unsubscribe(this->id(), pattern);
       return OK;
@@ -85,6 +93,7 @@ namespace fhatos {
       LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),
           this->pattern()->toString().c_str());
     }
+
     //////////////////////////////////////////////////// STOP
     virtual void stop() override {
       if (!this->active())
@@ -95,6 +104,7 @@ namespace fhatos {
       PROCESS::stop();
       STRUCTURE::stop();
     }
+
     //////////////////////////////////////////////////// LOOP
     virtual void loop() override {
       if (!this->active())

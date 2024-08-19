@@ -26,6 +26,7 @@ namespace fhatos {
   class ObjHelper final {
   public:
     ObjHelper() = delete;
+
     static const string objAnalysis(const Obj &obj) {
       char a[250];
       sprintf(a,

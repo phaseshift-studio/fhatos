@@ -26,7 +26,9 @@ namespace fhatos {
   class StringHelper final {
   public:
     StringHelper() = delete;
+
     static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
     static string hex_string(const unsigned char *data, const int len) {
       string s(len * 2, ' ');
       for (uint8_t i = 0; i < len; ++i) {
@@ -65,8 +67,9 @@ namespace fhatos {
 
     static void rtrim(std::string &s) {
       s.erase(
-          std::find_if(s.rbegin(), s.rend(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }).base(),
-          s.end());
+              std::find_if(s.rbegin(), s.rend(),
+                           [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }).base(),
+              s.end());
     }
 
     static uint8_t count_substring(const string &str, const string &sub) {

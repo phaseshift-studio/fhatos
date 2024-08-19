@@ -30,6 +30,7 @@
 namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
   static Map<string, Command> *_MENU_MAP = nullptr;
+
   class Console final : public Actor<Thread, KeyValue> {
   protected:
     string _line;
@@ -39,9 +40,11 @@ namespace fhatos {
 
     ///// printers
     void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
+
     void printPrompt(const bool blank = false) const {
       Terminal::out(*this->id(), blank ? "        " : "!mfhatos!g>!! ");
     }
+
     void printResult(const Obj_p &obj, const uint8_t depth = 0) const {
       if (obj->isObjs()) {
         for (Obj_p &o: *obj->objs_value()) {
@@ -80,8 +83,8 @@ namespace fhatos {
                             },
                             [] {
                               printer<>()->printf(
-                                  "!ylog!!: !b%s!!\n",
-                                  LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
+                                      "!ylog!!: !b%s!!\n",
+                                      LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
                             }}});
         _MENU_MAP->insert({":output",
                            {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
@@ -109,16 +112,16 @@ namespace fhatos {
                            {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
                             [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
         _MENU_MAP->insert(
-            {":nesting",
-             {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
-              [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
+                {":nesting",
+                 {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
+                  [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
         _MENU_MAP->insert({":shutdown",
                            {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
                             []() {
                               Scheduler::singleton()->stop();
                             }}});
         _MENU_MAP->insert(
-            {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
+                {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
 
@@ -127,6 +130,7 @@ namespace fhatos {
       auto *console = new Console(id);
       return ptr<Console>(console);
     }
+
     void loop() override {
       Actor::loop();
       //// PROMPT
@@ -180,7 +184,7 @@ namespace fhatos {
             string value = this->_line.substr(index);
             StringHelper::trim(value);
             std::get<1>(_MENU_MAP->at(command))(
-                Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+                    Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
           }
         } catch (std::exception &e) {
           this->printException(e);

@@ -42,6 +42,7 @@
 
 namespace fhatos {
   using Process_p = ptr<Process>;
+
   class XScheduler : public IDed, public Mailbox {
   protected:
     MutexRW<> processes_mutex_ = MutexRW("<scheduler processes mutex>");
@@ -70,9 +71,13 @@ namespace fhatos {
 
 
     static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
+
     static bool isFiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
+
     static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/coroutine"); }
+
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
+
     virtual void setup() {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->isRec())
@@ -147,13 +152,14 @@ namespace fhatos {
     }
 
     virtual bool spawn(const Process_p &) = 0;
+
     virtual bool kill(const ID &processPattern) {
       return this->inbox_.push_back(share(
-          Mail{share(Subscription{.source = *this->id(),
-                                  .pattern = processPattern,
-                                  .onRecv = [this](const Message_p &message) { this->_kill(message->target); }}),
-               share(Message{
-                   .source = *this->id(), .target = processPattern, .payload = noobj(), .retain = RETAIN_MESSAGE})}));
+              Mail{share(Subscription{.source = *this->id(),
+                      .pattern = processPattern,
+                      .onRecv = [this](const Message_p &message) { this->_kill(message->target); }}),
+                   share(Message{
+                           .source = *this->id(), .target = processPattern, .payload = noobj(), .retain = RETAIN_MESSAGE})}));
     }
 
   protected:
@@ -167,6 +173,7 @@ namespace fhatos {
       mail->get()->first->execute(mail->get()->second);
       return true;
     }
+
     ///////////////////////////////////////////////////////////////////////////
     virtual bool _kill(const Pattern &processPattern) {
       return bool(*processes_mutex_.write<bool>([this, processPattern]() {

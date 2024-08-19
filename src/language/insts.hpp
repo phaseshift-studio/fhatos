@@ -29,10 +29,11 @@
 namespace fhatos {
   struct Insts {
     explicit Insts() = delete;
+
     static Obj_p start(const Objs_p &starts) {
       return Obj::to_inst(
-          "start", {starts}, [](const Objs_p &start) { return start; }, IType::ZERO_TO_MANY,
-          (starts->objs_value()->empty() ? Obj::to_noobj() : starts));
+              "start", {starts}, [](const Objs_p &start) { return start; }, IType::ZERO_TO_MANY,
+              (starts->objs_value()->empty() ? Obj::to_noobj() : starts));
     }
 
     static Obj_p explain() {
@@ -41,34 +42,34 @@ namespace fhatos {
 
     static Obj_p plus(const Obj_p &rhs) {
       return Obj::to_inst(
-          "plus", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs + *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "plus", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs + *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p mult(const Obj_p &rhs) {
       return Obj::to_inst(
-          "mult", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs * *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "mult", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs * *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p mod(const Obj_p &rhs) {
       return Obj::to_inst(
-          "mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "mod", {rhs}, [rhs](const Obj_p &lhs) { return share(*lhs % *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p bswitch(const Rec_p &rec) {
       return Obj::to_inst(
-          "switch", {rec},
-          [rec](const Obj_p &lhs) {
-            try {
-              for (const auto &[key, value]: *rec->rec_value()) {
-                if (!key->apply(lhs)->isNoObj())
-                  return value->apply(lhs);
-              }
-            } catch (const std::bad_any_cast &e) {
-              LOG_EXCEPTION(e);
-            }
-            return Obj::to_noobj();
-          },
-          IType::ONE_TO_MANY);
+              "switch", {rec},
+              [rec](const Obj_p &lhs) {
+                try {
+                  for (const auto &[key, value]: *rec->rec_value()) {
+                    if (!key->apply(lhs)->isNoObj())
+                      return value->apply(lhs);
+                  }
+                } catch (const std::bad_any_cast &e) {
+                  LOG_EXCEPTION(e);
+                }
+                return Obj::to_noobj();
+              },
+              IType::ONE_TO_MANY);
     }
 
     /* static Objs_p bunion(const Rec_p rec) {
@@ -87,76 +88,78 @@ namespace fhatos {
 
     static Obj_p flatmap(const BCode_p &bcode) {
       return Obj::to_inst(
-          "flatmap", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); }, IType::ONE_TO_MANY);
+              "flatmap", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs); }, IType::ONE_TO_MANY);
     }
 
     static Obj_p filter(const BCode_p &bcode) {
       return Obj::to_inst(
-          "filter", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; },
-          IType::ONE_TO_ONE);
+              "filter", {bcode},
+              [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs; },
+              IType::ONE_TO_ONE);
     }
 
     static Int_p size() {
       return Obj::to_inst(
-          "size", {},
-          [](const Obj_p &lhs) {
-            switch (lhs->o_type()) {
-              case OType::LST:
-                return Obj::to_int(lhs->lst_value()->size());
-              case OType::REC:
-                return Obj::to_int(lhs->rec_value()->size());
-              case OType::STR:
-                return Obj::to_int(lhs->str_value().length());
-              case OType::BCODE:
-                return Obj::to_int(lhs->bcode_value()->size());
-              case OType::NOOBJ:
-                return Obj::to_int(0);
-              default:
-                return Obj::to_int(1);
-            }
-          },
-          IType::ONE_TO_ONE);
+              "size", {},
+              [](const Obj_p &lhs) {
+                switch (lhs->o_type()) {
+                  case OType::LST:
+                    return Obj::to_int(lhs->lst_value()->size());
+                  case OType::REC:
+                    return Obj::to_int(lhs->rec_value()->size());
+                  case OType::STR:
+                    return Obj::to_int(lhs->str_value().length());
+                  case OType::BCODE:
+                    return Obj::to_int(lhs->bcode_value()->size());
+                  case OType::NOOBJ:
+                    return Obj::to_int(0);
+                  default:
+                    return Obj::to_int(1);
+                }
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p side(const BCode_p &bcode) {
       return Obj::to_inst(
-          "side", {bcode},
-          [bcode](const Obj_p &lhs) {
-            bcode->apply(lhs);
-            return lhs;
-          },
-          IType::ONE_TO_ONE);
+              "side", {bcode},
+              [bcode](const Obj_p &lhs) {
+                bcode->apply(lhs);
+                return lhs;
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p get(const Obj_p &key) {
       return Obj::to_inst(
-          "get", {key}, [key](const Obj_p &lhs) { return share((*lhs)[*key->apply(lhs)]); }, IType::ONE_TO_ONE);
+              "get", {key}, [key](const Obj_p &lhs) { return share((*lhs)[*key->apply(lhs)]); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p set(const Obj_p &key, const Obj_p &value) {
       return Obj::to_inst(
-          "set", {key, value},
-          [key, value](const Obj_p &lhs) {
-            switch (lhs->o_type()) {
-              case OType::LST: {
-                lhs->lst_set(key->apply(lhs), value->apply(lhs));
-                return lhs;
-              }
-              case OType::REC: {
-                lhs->rec_set(key->apply(lhs), value->apply(lhs));
-                return lhs;
-              }
-              default:
-                throw fError("Unknown obj type in []: %s\n", OTypes.toChars(lhs->o_type()).c_str());
-            }
-          },
-          IType::ONE_TO_ONE);
+              "set", {key, value},
+              [key, value](const Obj_p &lhs) {
+                switch (lhs->o_type()) {
+                  case OType::LST: {
+                    lhs->lst_set(key->apply(lhs), value->apply(lhs));
+                    return lhs;
+                  }
+                  case OType::REC: {
+                    lhs->rec_set(key->apply(lhs), value->apply(lhs));
+                    return lhs;
+                  }
+                  default:
+                    throw fError("Unknown obj type in []: %s\n", OTypes.toChars(lhs->o_type()).c_str());
+                }
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p is(const Obj_p &xbool) {
       return Obj::to_inst(
-          "is", {xbool}, [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); },
-          IType::ONE_TO_ONE);
+              "is", {xbool},
+              [xbool](const Obj_p &lhs) { return xbool->apply(lhs)->bool_value() ? lhs : Obj::to_noobj(); },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p noop() {
@@ -170,80 +173,87 @@ namespace fhatos {
 
     static Bool_p neq(const Obj_p &rhs) {
       return Obj::to_inst(
-          "neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "neq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs != *rhs->apply(lhs)); },
+              IType::ONE_TO_ONE);
     }
 
     static Bool_p eq(const Obj_p &rhs) {
       return Obj::to_inst(
-          "eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); }, IType::ONE_TO_ONE);
+              "eq", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs == *(rhs->apply(lhs))); },
+              IType::ONE_TO_ONE);
     }
 
     static Bool_p gte(const Obj_p &rhs) {
       return Obj::to_inst(
-          "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs >= *rhs->apply(lhs)); },
+              IType::ONE_TO_ONE);
     }
 
     static Bool_p gt(const Obj_p &rhs) {
       return Obj::to_inst(
-          "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs > *rhs->apply(lhs)); },
+              IType::ONE_TO_ONE);
     }
 
     static Bool_p lte(const Obj_p &rhs) {
       return Obj::to_inst(
-          "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "gte", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs <= *rhs->apply(lhs)); },
+              IType::ONE_TO_ONE);
     }
 
     static Bool_p lt(const Obj_p &rhs) {
       return Obj::to_inst(
-          "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); }, IType::ONE_TO_ONE);
+              "gt", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(*lhs < *rhs->apply(lhs)); },
+              IType::ONE_TO_ONE);
     }
 
     static Bool_p match(const Obj_p &rhs) {
       return Obj::to_inst(
-          "match", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(lhs->match(rhs->apply(lhs))); }, IType::ONE_TO_ONE);
+              "match", {rhs}, [rhs](const Obj_p &lhs) { return Obj::to_bool(lhs->match(rhs->apply(lhs))); },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p as(const Uri_p &typeId) {
       return Obj::to_inst(
-          "as", {typeId},
-          [typeId](const Obj_p &lhs) { return lhs->as(typeId->apply(lhs)->uri_value().toString().c_str()); },
-          IType::ONE_TO_ONE);
+              "as", {typeId},
+              [typeId](const Obj_p &lhs) { return lhs->as(typeId->apply(lhs)->uri_value().toString().c_str()); },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p const to(const Uri_p &uri) {
       return Obj::to_inst(
-          "to", {uri},
-          [uri](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = OK;
-            if (uri->uri_value().is_pattern()) {
-              if (lhs->isRec()) {
-                for (const auto &[k, v]: *lhs->rec_value()) {
-                  router()->write(id_p(uri->uri_value().resolve(k->uri_value())), v->apply(uri));
+              "to", {uri},
+              [uri](const Obj_p &lhs) {
+                RESPONSE_CODE _rc = OK;
+                if (uri->uri_value().is_pattern()) {
+                  if (lhs->isRec()) {
+                    for (const auto &[k, v]: *lhs->rec_value()) {
+                      router()->write(id_p(uri->uri_value().resolve(k->uri_value())), v->apply(uri));
+                    }
+                  } else {
+                    throw fError("Pattern requires rec");
+                  }
+                } else {
+                  router()->write(id_p(uri->apply(lhs)->uri_value()), lhs->apply(uri));
                 }
-              } else {
-                throw fError("Pattern requires rec");
-              }
-            } else {
-              router()->write(id_p(uri->apply(lhs)->uri_value()), lhs->apply(uri));
-            }
-            if (_rc)
-              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
-            return lhs;
-          },
-          /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
+                if (_rc)
+                  LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
+                return lhs;
+              },
+              /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
     }
 
     static Obj_p to_inv(const Obj_p &obj) {
       return Obj::to_inst(
-          "to_inv", {obj},
-          [obj](const Obj_p &lhs) { return Insts::to(lhs)->inst_f()(obj); },
-          IType::ONE_TO_ONE);
+              "to_inv", {obj},
+              [obj](const Obj_p &lhs) { return Insts::to(lhs)->inst_f()(obj); },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p from(const Uri_p &uri) {
       return Obj::to_inst(
-          "from", {uri}, [uri](const Uri_p &lhs) { return router()->read(furi_p(uri->apply(lhs)->uri_value())); },
-          (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
+              "from", {uri}, [uri](const Uri_p &lhs) { return router()->read(furi_p(uri->apply(lhs)->uri_value())); },
+              (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
     static Uri_p type() {
@@ -252,69 +262,69 @@ namespace fhatos {
 
     static Lst_p cleave(const Str_p &delimiter) {
       return Obj::to_inst(
-          "split", {delimiter},
-          [delimiter](const Str_p &lhs) {
-            List_p<Str_p> tokens = share(List<Str_p>());
-            stringstream ss = stringstream(lhs->str_value());
-            string temp;
-            string delim = delimiter->str_value();
-            while (!ss.eof()) {
-              if (StringHelper::look_ahead(delim, &ss)) {
-                tokens->push_back(Obj::to_str(temp));
-                temp.clear();
-              } else
-                temp += ss.get();
-            }
-            if (!temp.empty())
-              tokens->push_back(Obj::to_str(temp));
-            return Obj::to_lst(tokens);
-          },
-          IType::ONE_TO_ONE);
+              "split", {delimiter},
+              [delimiter](const Str_p &lhs) {
+                List_p<Str_p> tokens = share(List<Str_p>());
+                stringstream ss = stringstream(lhs->str_value());
+                string temp;
+                string delim = delimiter->str_value();
+                while (!ss.eof()) {
+                  if (StringHelper::look_ahead(delim, &ss)) {
+                    tokens->push_back(Obj::to_str(temp));
+                    temp.clear();
+                  } else
+                    temp += ss.get();
+                }
+                if (!temp.empty())
+                  tokens->push_back(Obj::to_str(temp));
+                return Obj::to_lst(tokens);
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p by(const Obj_p &bymod) {
       return Obj::to_inst(
-          "by", {bymod},
-          [](const Obj_p &THROW_ERROR) {
-            if (true)
-              throw fError("by()-modulations are to be rewritten away");
-            return THROW_ERROR;
-          },
-          IType::ONE_TO_ONE);
+              "by", {bymod},
+              [](const Obj_p &THROW_ERROR) {
+                if (true)
+                  throw fError("by()-modulations are to be rewritten away");
+                return THROW_ERROR;
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
       return Obj::to_inst(
-          "group", {keyCode, valueCode, reduceCode},
-          [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
-            Obj::RecMap<> map = Obj::RecMap<>();
-            for (const Obj_p &obj: *barrier->objs_value()) {
-              const Obj_p key = keyCode->isNoObj() ? obj : keyCode->apply(obj);
-              const Obj_p value = valueCode->isNoObj() ? obj : valueCode->apply(obj);
-              if (map.count(key)) {
-                Lst_p list = map.at(key);
-                list->lst_value()->push_back(value);
-              } else {
-                map.insert({key, Obj::to_lst({value})});
-              }
-            }
-            /*Obj::RecMap<> map2 = Obj::RecMap<>();
-            for (const auto &pair: map) {
-              map2.insert({pair.first, reduceCode->apply(pair.second)});
-            }*/
-            return Obj::to_rec(share(map));
-          },
-          IType::MANY_TO_ONE, Obj::to_objs());
+              "group", {keyCode, valueCode, reduceCode},
+              [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
+                Obj::RecMap<> map = Obj::RecMap<>();
+                for (const Obj_p &obj: *barrier->objs_value()) {
+                  const Obj_p key = keyCode->isNoObj() ? obj : keyCode->apply(obj);
+                  const Obj_p value = valueCode->isNoObj() ? obj : valueCode->apply(obj);
+                  if (map.count(key)) {
+                    Lst_p list = map.at(key);
+                    list->lst_value()->push_back(value);
+                  } else {
+                    map.insert({key, Obj::to_lst({value})});
+                  }
+                }
+                /*Obj::RecMap<> map2 = Obj::RecMap<>();
+                for (const auto &pair: map) {
+                  map2.insert({pair.first, reduceCode->apply(pair.second)});
+                }*/
+                return Obj::to_rec(share(map));
+              },
+              IType::MANY_TO_ONE, Obj::to_objs());
     }
 
     static Obj_p print(const Obj_p &toprint) {
       return Obj::to_inst(
-          "print", {toprint},
-          [toprint](const Obj_p &lhs) {
-            printer()->printf("%s\n", toprint->apply(lhs)->toString().c_str());
-            return lhs;
-          },
-          toprint->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
+              "print", {toprint},
+              [toprint](const Obj_p &lhs) {
+                printer()->printf("%s\n", toprint->apply(lhs)->toString().c_str());
+                return lhs;
+              },
+              toprint->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
     }
 
     static Obj_p flip(const Obj_p &rhs) {
@@ -323,160 +333,161 @@ namespace fhatos {
 
     static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
       return Obj::to_inst(
-          "pub", {target, payload},
-          [target, payload](const Obj_p &lhs) {
-            router()->route_message(share(Message{.source = FOS_DEFAULT_SOURCE_ID,
-                                                  .target = target->apply(lhs)->uri_value(),
-                                                  .payload = payload->apply(lhs),
-                                                  .retain = TRANSIENT_MESSAGE}));
-            return lhs;
-          },
-          areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+              "pub", {target, payload},
+              [target, payload](const Obj_p &lhs) {
+                router()->route_message(share(Message{.source = FOS_DEFAULT_SOURCE_ID,
+                        .target = target->apply(lhs)->uri_value(),
+                        .payload = payload->apply(lhs),
+                        .retain = TRANSIENT_MESSAGE}));
+                return lhs;
+              },
+              areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Obj_p lift(const BCode_p &bcode) {
       return Obj::to_inst(
-          "lift", {bcode},
-          [bcode](const Obj_p &lhs) {
-            InstList_p nextInsts = share(List<Inst_p>());
-            for (const Inst_p &p: *bcode->bcode_value()) {
-              List<Obj_p> nextArgs = List<Obj_p>();
-              for (const Obj_p &obj: p->inst_args()) {
-                nextArgs.push_back(obj->apply(lhs));
-              }
-              nextInsts->push_back(Obj::to_inst(p->inst_op(), nextArgs, p->inst_f(), p->itype(), p->inst_seed()));
-            }
-            return Obj::to_bcode(nextInsts);
-          },
-          IType::ONE_TO_ONE);
+              "lift", {bcode},
+              [bcode](const Obj_p &lhs) {
+                InstList_p nextInsts = share(List<Inst_p>());
+                for (const Inst_p &p: *bcode->bcode_value()) {
+                  List<Obj_p> nextArgs = List<Obj_p>();
+                  for (const Obj_p &obj: p->inst_args()) {
+                    nextArgs.push_back(obj->apply(lhs));
+                  }
+                  nextInsts->push_back(Obj::to_inst(p->inst_op(), nextArgs, p->inst_f(), p->itype(), p->inst_seed()));
+                }
+                return Obj::to_bcode(nextInsts);
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Obj_p drop(const BCode_p &bcode) {
       return Obj::to_inst(
-          "drop", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->apply(lhs); }, IType::ONE_TO_ONE);
+              "drop", {bcode}, [bcode](const Obj_p &lhs) { return bcode->apply(lhs)->apply(lhs); }, IType::ONE_TO_ONE);
     }
 
     static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
       return Obj::to_inst(
-          "sub", {pattern, onRecv},
-          [pattern, onRecv](const Obj_p &lhs) {
-            if (onRecv->isNoObj()) {
-              router()->route_unsubscribe(id_p(pattern->apply(lhs)->uri_value()));
-            } else {
-              router()->route_subscription(
-                  share(Subscription{.source = FOS_DEFAULT_SOURCE_ID,
-                                     .pattern = pattern->apply(lhs)->uri_value(),
-                                     .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
-                                     .onRecvBCode = onRecv}));
-            }
-            return lhs;
-          },
-          areInitialArgs(pattern) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+              "sub", {pattern, onRecv},
+              [pattern, onRecv](const Obj_p &lhs) {
+                if (onRecv->isNoObj()) {
+                  router()->route_unsubscribe(id_p(pattern->apply(lhs)->uri_value()));
+                } else {
+                  router()->route_subscription(
+                          share(Subscription{.source = FOS_DEFAULT_SOURCE_ID,
+                                  .pattern = pattern->apply(lhs)->uri_value(),
+                                  .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
+                                  .onRecvBCode = onRecv}));
+                }
+                return lhs;
+              },
+              areInitialArgs(pattern) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Int_p sum() {
       return Obj::to_inst(
-          "sum", {},
-          [](const Objs_p &lhs) {
-            Obj_p current = Obj::to_noobj();
-            for (const Obj_p &obj: *lhs->objs_value()) {
-              if (current->isNoObj()) {
-                current = obj;
-              } else {
-                current = share(*obj + *current);
-              }
-            }
-            return current;
-          },
-          IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
+              "sum", {},
+              [](const Objs_p &lhs) {
+                Obj_p current = Obj::to_noobj();
+                for (const Obj_p &obj: *lhs->objs_value()) {
+                  if (current->isNoObj()) {
+                    current = obj;
+                  } else {
+                    current = share(*obj + *current);
+                  }
+                }
+                return current;
+              },
+              IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
     }
 
     static Int_p prod() {
       return Obj::to_inst(
-          "prod", {},
-          [](const Objs_p &lhs) {
-            Obj_p current = Obj::to_noobj();
-            for (const Obj_p &obj: *lhs->objs_value()) {
-              if (current->isNoObj()) {
-                current = obj;
-              } else {
-                current = share(*obj * *current);
-              }
-            }
-            return current;
-          },
-          IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
+              "prod", {},
+              [](const Objs_p &lhs) {
+                Obj_p current = Obj::to_noobj();
+                for (const Obj_p &obj: *lhs->objs_value()) {
+                  if (current->isNoObj()) {
+                    current = obj;
+                  } else {
+                    current = share(*obj * *current);
+                  }
+                }
+                return current;
+              },
+              IType::MANY_TO_ONE, Obj::to_objs(List<Obj_p>{}));
     }
 
     static Obj_p window(const Obj_p &obj) {
       return Obj::to_inst(
-          "window", {obj},
-          [obj](const Obj_p &lhs) {
-            List<Obj_p> ret;
-            if (obj->isLst() && lhs->isLst()) {
-              for (size_t i = 0; i <= (lhs->lst_value()->size() - obj->lst_value()->size()); i++) {
-                bool match = true;
-                List<Obj_p> m;
-                for (size_t j = 0; j < obj->lst_value()->size(); j++) {
-                  const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j));
-                  match = !x->isNoObj() && match;
-                  if (!match)
-                    break;
-                  m.push_back(x);
+              "window", {obj},
+              [obj](const Obj_p &lhs) {
+                List<Obj_p> ret;
+                if (obj->isLst() && lhs->isLst()) {
+                  for (size_t i = 0; i <= (lhs->lst_value()->size() - obj->lst_value()->size()); i++) {
+                    bool match = true;
+                    List<Obj_p> m;
+                    for (size_t j = 0; j < obj->lst_value()->size(); j++) {
+                      const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j));
+                      match = !x->isNoObj() && match;
+                      if (!match)
+                        break;
+                      m.push_back(x);
+                    }
+                    if (match) {
+                      ret.push_back(Obj::to_lst(share(m)));
+                    }
+                  }
+                } else if (obj->isLst() && lhs->isStr()) {
+                  for (size_t i = 0; i <= (lhs->str_value().length() - obj->lst_value()->size()); i++) {
+                    bool match = true;
+                    string m;
+                    for (size_t j = 0; j < obj->lst_value()->size(); j++) {
+                      const Obj_p x = obj->lst_value()->at(j)->apply(
+                              Obj::to_str(string() + lhs->str_value().at(i + j)));
+                      match = !x->isNoObj() && match;
+                      if (!match)
+                        break;
+                      m += x->str_value();
+                    }
+                    if (match) {
+                      ret.push_back(Obj::to_str(m));
+                    }
+                  }
                 }
-                if (match) {
-                  ret.push_back(Obj::to_lst(share(m)));
-                }
-              }
-            } else if (obj->isLst() && lhs->isStr()) {
-              for (size_t i = 0; i <= (lhs->str_value().length() - obj->lst_value()->size()); i++) {
-                bool match = true;
-                string m;
-                for (size_t j = 0; j < obj->lst_value()->size(); j++) {
-                  const Obj_p x = obj->lst_value()->at(j)->apply(Obj::to_str(string() + lhs->str_value().at(i + j)));
-                  match = !x->isNoObj() && match;
-                  if (!match)
-                    break;
-                  m += x->str_value();
-                }
-                if (match) {
-                  ret.push_back(Obj::to_str(m));
-                }
-              }
-            }
-            return Obj::to_objs(ret);
-          },
-          IType::ONE_TO_MANY);
+                return Obj::to_objs(ret);
+              },
+              IType::ONE_TO_MANY);
     }
 
     static Obj_p within(const BCode_p &bcode) {
       return Obj::to_inst(
-          "within", {bcode},
-          [bcode](const Poly_p &lhs) {
-            if (lhs->isLst()) {
-              return Obj::to_lst(Options::singleton()
-                                     ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), bcode)
-                                     ->objs_value());
-            }
-            return Obj::to_noobj();
-          },
-          IType::ONE_TO_ONE);
+              "within", {bcode},
+              [bcode](const Poly_p &lhs) {
+                if (lhs->isLst()) {
+                  return Obj::to_lst(Options::singleton()
+                                             ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), bcode)
+                                             ->objs_value());
+                }
+                return Obj::to_noobj();
+              },
+              IType::ONE_TO_ONE);
     }
 
     static Int_p count() {
       return Obj::to_inst(
-          "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
-          Obj::to_objs(List<Obj_p>{}));
+              "count", {}, [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }, IType::MANY_TO_ONE,
+              Obj::to_objs(List<Obj_p>{}));
     }
 
     static Objs_p barrier(const BCode_p &bcode) {
       return Obj::to_inst(
-          "barrier", {bcode},
-          [bcode](const Objs_p &lhs) {
-            const Obj_p obj = bcode->apply(lhs);
-            return obj->isObjs() ? obj : Obj::to_objs({obj});
-          },
-          IType::MANY_TO_MANY);
+              "barrier", {bcode},
+              [bcode](const Objs_p &lhs) {
+                const Obj_p obj = bcode->apply(lhs);
+                return obj->isObjs() ? obj : Obj::to_objs({obj});
+              },
+              IType::MANY_TO_MANY);
     }
 
     static Objs_p block(const Obj_p &rhs) {
@@ -489,93 +500,94 @@ namespace fhatos {
 
     static Obj_p merge() {
       return Obj::to_inst(
-          "merge", {},
-          [](const Poly_p &lhs) {
-            Objs_p objs = Obj::to_objs();
-            if (lhs->isLst()) {
-              for (const auto &obj: *lhs->lst_value()) {
-                objs->objs_value()->push_back(obj);
-              }
-            }
-            return objs;
-          },
-          IType::ONE_TO_MANY);
-    }
-    static Obj_p subset(const Obj_p& start, const Obj_p& end) {
-      return Obj::to_inst(
-          "subset", {start,end},
-          [start,end](const Poly_p &lhs) {
-            if (lhs->isLst()) {
-              Obj::LstList_p<Obj_p> sub = share(List<Obj_p>());
-              int s = start->apply(lhs)->int_value();
-              int e = end->apply(lhs)->int_value();
-              int counter =0;
-              for (const auto&  obj: *lhs->lst_value()) {
-                if(counter >= s && counter < e) {
-                  sub->push_back(obj);
+              "merge", {},
+              [](const Poly_p &lhs) {
+                Objs_p objs = Obj::to_objs();
+                if (lhs->isLst()) {
+                  for (const auto &obj: *lhs->lst_value()) {
+                    objs->objs_value()->push_back(obj);
+                  }
                 }
-                if(counter > e)
-                  break;
-                ++counter;
-              }
-              return Obj::to_lst(sub);
-            }
-            return noobj();
-          },
-          IType::ONE_TO_ONE);
-          }
+                return objs;
+              },
+              IType::ONE_TO_MANY);
+    }
+
+    static Obj_p subset(const Obj_p &start, const Obj_p &end) {
+      return Obj::to_inst(
+              "subset", {start, end},
+              [start, end](const Poly_p &lhs) {
+                if (lhs->isLst()) {
+                  Obj::LstList_p<Obj_p> sub = share(List<Obj_p>());
+                  int s = start->apply(lhs)->int_value();
+                  int e = end->apply(lhs)->int_value();
+                  int counter = 0;
+                  for (const auto &obj: *lhs->lst_value()) {
+                    if (counter >= s && counter < e) {
+                      sub->push_back(obj);
+                    }
+                    if (counter > e)
+                      break;
+                    ++counter;
+                  }
+                  return Obj::to_lst(sub);
+                }
+                return noobj();
+              },
+              IType::ONE_TO_ONE);
+    }
 
 
     static Obj_p foldr(const BCode_p &bcode) {
       return Obj::to_inst(
-          "foldr", {bcode},
-          [bcode](const Objs_p &lhs) {
-            bool onA = true;
-            List_p<Obj_p> objs = lhs->objs_value();
-            Obj_p a;
-            Obj_p b;
-            bool first = true;
-            LOG(INFO, "incoming: %s\n", lhs->toString().c_str());
-            for (const auto &obj: *objs) {
-              if (first) {
-                a = obj;
-                first = false;
-              } else {
-                LOG(INFO, "before iteration: %s\n", (onA ? a : b)->toString().c_str());
-                if (onA) {
-                  b = (bcode->apply(obj))->apply(a);
-                } else {
-                  a = (bcode->apply(obj))->apply(b);
+              "foldr", {bcode},
+              [bcode](const Objs_p &lhs) {
+                bool onA = true;
+                List_p<Obj_p> objs = lhs->objs_value();
+                Obj_p a;
+                Obj_p b;
+                bool first = true;
+                LOG(INFO, "incoming: %s\n", lhs->toString().c_str());
+                for (const auto &obj: *objs) {
+                  if (first) {
+                    a = obj;
+                    first = false;
+                  } else {
+                    LOG(INFO, "before iteration: %s\n", (onA ? a : b)->toString().c_str());
+                    if (onA) {
+                      b = (bcode->apply(obj))->apply(a);
+                    } else {
+                      a = (bcode->apply(obj))->apply(b);
+                    }
+                    onA = !onA;
+                    LOG(INFO, "after iteration: %s (other %s)\n", (onA ? a : b)->toString().c_str(),
+                        (!onA ? a : b)->toString().c_str());
+                  }
                 }
-                onA = !onA;
-                LOG(INFO, "after iteration: %s (other %s)\n", (onA ? a : b)->toString().c_str(),
-                    (!onA ? a : b)->toString().c_str());
-              }
-            }
-            return onA ? a : b;
-          },
-          IType::MANY_TO_ONE, Obj::to_objs());
+                return onA ? a : b;
+              },
+              IType::MANY_TO_ONE, Obj::to_objs());
     }
 
     static Poly_p each(const Poly_p &poly) {
       return Obj::to_inst(
-          "each", {poly},
-          [poly](const Poly_p &lhs) {
-            if (lhs->isLst()) {
-              Lst_p ret = Obj::to_lst();
-              for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
-                if (poly->lst_value()->size() >= i) {
-                  ret->lst_add(poly->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
+              "each", {poly},
+              [poly](const Poly_p &lhs) {
+                if (lhs->isLst()) {
+                  Lst_p ret = Obj::to_lst();
+                  for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
+                    if (poly->lst_value()->size() >= i) {
+                      ret->lst_add(poly->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
+                    } else {
+                      ret->lst_add(Obj::to_noobj()->apply(lhs->lst_value()->at(i)));
+                    }
+                  }
+                  return ret;
                 } else {
-                  ret->lst_add(Obj::to_noobj()->apply(lhs->lst_value()->at(i)));
+                  throw fError("each() currently only supports lst poly");
                 }
-              }
-              return ret;
-            } else {
-              throw fError("each() currently only supports lst poly");
-            }
-          },
-          IType::ONE_TO_ONE);
+              },
+              IType::ONE_TO_ONE);
     }
 
   public:
@@ -583,9 +595,11 @@ namespace fhatos {
     static bool isBarrier(const Inst_p &inst) {
       return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE;
     }
+
     static bool isInitial(const Inst_p &inst) {
       return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY;
     }
+
     static bool isTerminal(const Inst_p &inst) {
       return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO;
     }
@@ -607,10 +621,18 @@ namespace fhatos {
     }
 
     static Map<string, string> unarySugars() {
-      static Map<string, string> map = {{"-<", "split"},{">-","merge"},{"~","match"},
-                                        {"~>", "embed"},{"<~", "embed_inv"},{"<-", "to"},{"->", "to_inv"},
-                                        {"|", "block"},{"^","lift"},{"V","drop"},{"*", "from"},{"=", "each"} /*{"==", "eq"},
-                                        {"!=", "neq"}*/};
+      static Map<string, string> map = {{"-<", "split"},
+                                        {">-", "merge"},
+                                        {"~",  "match"},
+                                        {"~>", "embed"},
+                                        {"<~", "embed_inv"},
+                                        {"<-", "to"},
+                                        {"->", "to_inv"},
+                                        {"|",  "block"},
+                                        {"^",  "lift"},
+                                        {"V",  "drop"},
+                                        {"*",  "from"},
+                                        {"=",  "each"}};
       return map;
     }
 
@@ -618,6 +640,7 @@ namespace fhatos {
       static Map<ID, Function<List<Obj_p>, Inst_p>> map = Map<ID, Function<List<Obj_p>, Inst_p>>();
       return &map;
     }
+
     static void register_inst(const ID &typeId, const Function<List<Obj_p>, Inst_p> &func) {
       INSTS_MAP()->insert({typeId, func});
       LOG(INFO, "Instruction registered: %s\n", typeId.toString().c_str());
@@ -629,6 +652,7 @@ namespace fhatos {
         LOG(WARN, FOS_TAB_4 "Unable to register shorthand: !b%s!!\n", shortID.toString().c_str());
       }
     }
+
     /* static Map<ID, Function<List<Obj_p>, Inst_p>> *CORE_INSTS() {
        static Map<ID, Function<List<Obj_p>, Inst_p>> core_insts = {
            {INST_FURI->resolve("start"), [](const List<Obj_p> &args) { return start(Objs::to_objs(args)); }},
@@ -655,6 +679,7 @@ namespace fhatos {
       router()->write(inst->id(), inst);
       return inst;
     }
+
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))
@@ -663,7 +688,7 @@ namespace fhatos {
         return saveWrap(Insts::merge());
       if (typeId == INST_FURI->resolve("end"))
         return Insts::end();
-      if(typeId == INST_FURI->resolve("match") || typeId == INST_FURI->resolve("~"))
+      if (typeId == INST_FURI->resolve("match") || typeId == INST_FURI->resolve("~"))
         return Insts::match(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("map"))
         return saveWrap(Insts::map(argCheck(typeId, args, 1).at(0)));
@@ -673,7 +698,7 @@ namespace fhatos {
         return Insts::side(argCheck(typeId, args, 1).at(0));
       if (typeId == INST_FURI->resolve("count"))
         return Insts::count();
-      if(typeId == INST_FURI->resolve("subset"))
+      if (typeId == INST_FURI->resolve("subset"))
         return Insts::subset(argCheck(typeId, args, 2).at(0), args.at(1));
       if (typeId == INST_FURI->resolve("sum"))
         return Insts::sum();
@@ -766,19 +791,20 @@ namespace fhatos {
       }
       if (userInstBCode->isBytecode()) {
         return Obj::to_inst(
-            typeId.name(), args,
-            [userInstBCode, args](const Obj_p &lhs) {
-              int counter = 0;
-              for (const Obj_p &arg: args) {
-                Router::singleton()->write(share(ID((string("_") + to_string(counter++)).c_str())), arg->apply(lhs));
-              }
-              const Obj_p ret = userInstBCode->apply(lhs);
-              for (int i = 0; i < counter; i++) {
-                Router::singleton()->remove(share(ID((string("_") + to_string(i)).c_str())));
-              }
-              return ret;
-            },
-            userInstBCode->bcode_value()->front()->itype());
+                typeId.name(), args,
+                [userInstBCode, args](const Obj_p &lhs) {
+                  int counter = 0;
+                  for (const Obj_p &arg: args) {
+                    Router::singleton()->write(share(ID((string("_") + to_string(counter++)).c_str())),
+                                               arg->apply(lhs));
+                  }
+                  const Obj_p ret = userInstBCode->apply(lhs);
+                  for (int i = 0; i < counter; i++) {
+                    Router::singleton()->remove(share(ID((string("_") + to_string(i)).c_str())));
+                  }
+                  return ret;
+                },
+                userInstBCode->bcode_value()->front()->itype());
       } else {
         throw fError("!b%s!! does not resolve to bytecode: %s\n", typeId.toString().c_str(),
                      userInstBCode->toString().c_str());

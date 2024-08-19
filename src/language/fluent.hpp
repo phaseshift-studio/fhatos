@@ -34,7 +34,7 @@ namespace fhatos {
     explicit Fluent(Obj_p bcode) : _bcode(std::move(bcode)) {}
 
     explicit Fluent(const ID & = ID(/**UUID::singleton()->mint(7))*/ "fluent_id")) :
-        Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
+            Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
 
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
@@ -100,11 +100,17 @@ namespace fhatos {
     Fluent start(const List<Obj> &starts) const {
       return this->addInst(Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts))));
     }
+
     Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(Obj::to_objs(starts))); }
+
     Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
+
     Fluent filter(const BCode &bcode) const { return this->addInst(Insts::filter(share(bcode))); }
+
     Fluent side(const BCode &bcode) const { return this->addInst(Insts::side(share(bcode))); }
+
     Fluent get(const Obj &key) const { return this->addInst(Insts::get(share(key))); }
+
     Fluent set(const Obj &key, const Obj &value) const { return this->addInst(Insts::set(share(key), share(value))); }
 
     /////////////////////////////////////////////////////////////////////
@@ -112,6 +118,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
 
     Fluent plus(const Obj &rhs) const { return this->addInst(Insts::plus(share(rhs))); }
+
     Fluent mult(const Obj &rhs) const { return this->addInst(Insts::mult(share(rhs))); }
 
     ///////////////////////////////////////////////////////////////////
@@ -119,11 +126,17 @@ namespace fhatos {
     ///////////////////////////////////////////////////////////////////
 
     Fluent eq(const Obj &rhs) const { return this->addInst(Insts::eq(share(rhs))); }
+
     Fluent lte(const Obj &rhs) const { return this->addInst(Insts::lte(share(rhs))); }
+
     Fluent lt(const Obj &rhs) const { return this->addInst(Insts::lt(share(rhs))); }
+
     Fluent gte(const Obj &rhs) const { return this->addInst(Insts::gte(share(rhs))); }
+
     Fluent gt(const Obj &rhs) const { return this->addInst(Insts::gt(share(rhs))); }
+
     Fluent neq(const Obj &rhs) const { return this->addInst(Insts::neq(share(rhs))); }
+
     Fluent mod(const Obj &rhs) const { return this->addInst(Insts::mod(share(rhs))); }
 
     /////////////////////////////////////////////////////////////////////
@@ -131,8 +144,11 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
 
     Fluent count() const { return this->addInst(Insts::count()); };
+
     Fluent to(const Uri &uri) const { return this->addInst(Insts::to(share(uri))); }
+
     Fluent from(const Uri &uri) const { return this->addInst(Insts::from(share(uri))); }
+
     /*Fluent explain() { return this->addInst(new ExplainInst()); }*/
 
     Fluent print(const Obj &toPrint) const { return this->addInst(Insts::print(share(toPrint))); }
@@ -180,6 +196,7 @@ namespace fhatos {
     Fluent block(const Obj &obj) const { return this->addInst(Insts::block(share(obj))); }
 
     Fluent as(const Obj &utype) const { return this->addInst(Insts::as(share(utype))); }
+
     Fluent type() const { return this->addInst(Insts::type()); }
   };
 
@@ -189,16 +206,21 @@ namespace fhatos {
   [[maybe_unused]] static Fluent __(const initializer_list<Obj> &starts) {
     List<Obj> s = List<Obj>(starts);
     return Fluent(
-        Obj::to_bcode(s.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(s)))}));
+            Obj::to_bcode(
+                    s.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(s)))}));
   }
+
   [[maybe_unused]] static Fluent __(const List<Obj> &starts) {
     return Fluent(Obj::to_bcode(
-        starts.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));
+            starts.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));
   }
+
   [[maybe_unused]] static Fluent __(const Obj &start) {
     return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start});
   }
+
   [[maybe_unused]] static Fluent __() { return __(List<Obj>{}); }
+
   [[maybe_unused]] inline static Fluent _ = __();
 } // namespace fhatos
 

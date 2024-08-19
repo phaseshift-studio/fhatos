@@ -28,6 +28,7 @@
 #include <time.h>
 #include <util/options.hpp>
 #include <util/string_printer.hpp>
+
 using namespace std;
 namespace fhatos {
 
@@ -39,8 +40,11 @@ namespace fhatos {
     }
 
 #ifdef NATIVE
+
     static int print(const char *c_str) { return printf("%s", c_str); }
+
     static void flush() { fflush(stdout); }
+
 #else
     static int print(const char *c_str) { return Serial.printf("%s", c_str); }
     static void flush() { Serial.flush(); }
@@ -50,9 +54,9 @@ namespace fhatos {
   template<typename PRINTER = CPrinter>
   class Ansi {
   public:
-    static shared_ptr<Ansi<PRINTER>> singleton() {
+    static shared_ptr <Ansi<PRINTER>> singleton() {
       static Ansi<PRINTER> ansi = Ansi<PRINTER>();
-      static shared_ptr<Ansi<PRINTER>> ansi_p = shared_ptr<Ansi<PRINTER>>(&ansi, [](const auto *) {});
+      static shared_ptr <Ansi<PRINTER>> ansi_p = shared_ptr<Ansi<PRINTER>>(&ansi, [](const auto *) {});
 #ifndef NATIVE
       static bool _setup = false;
       if (!_setup) {
@@ -71,7 +75,9 @@ namespace fhatos {
     bool _on = true;
 
 
-    enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
+    enum {
+      fg_normal = 30, bg_normal = 40, bright_color = 52
+    };
 
     void color(const uint8_t fgcolor, const uint8_t) {
       if (this->_on)
@@ -262,7 +268,7 @@ namespace fhatos {
   };
 
   template<typename PRINTER = Ansi<>>
-  shared_ptr<PRINTER> printer() {
+  shared_ptr <PRINTER> printer() {
     return Options::singleton()->printer<PRINTER>();
   }
 

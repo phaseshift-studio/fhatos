@@ -44,6 +44,7 @@ namespace fhatos {
   public:
     // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) {}
     explicit MutexDeque(const char *label = "<anon>") : _mutex(label) {}
+
     Option<T> find(Predicate<T> predicate, const bool withMutex = true) {
       return lockUnlock<Option<T>>(withMutex, [this, predicate]() {
         T *temp = nullptr;

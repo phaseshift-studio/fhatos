@@ -20,6 +20,7 @@
 #define fhatos_fhat_error_hpp
 
 #include <exception>
+
 #define FOS_ERROR_MESSAGE_SIZE 500
 namespace fhatos {
 #ifndef NATIVE
@@ -52,6 +53,7 @@ namespace fhatos {
     }
     ////////////////////////////////
 #else
+
   class /*_LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_ANY_CAST*/ fError final : public std::exception {
   protected:
     char _message[FOS_ERROR_MESSAGE_SIZE];
@@ -70,8 +72,10 @@ namespace fhatos {
       }
       va_end(arg);
     }
+
     const char *what() const noexcept override { return this->_message; };
 #endif
+
     static void OTYPE_CHECK(const char *typeId, std::string otype) {
       if (strcmp(typeId, otype.c_str()) != 0)
         throw fError("!b%s!! is not a type of !y%s!!\n", typeId, otype.c_str());

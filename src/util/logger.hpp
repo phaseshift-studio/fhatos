@@ -29,14 +29,17 @@
 
 
 namespace fhatos {
-  enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
-  static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
+  enum LOG_TYPE {
+    ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6
+  };
+  static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL,   "ALL"},
                                                             {TRACE, "TRACE"},
                                                             {DEBUG, "DEBUG"},
-                                                            {INFO, "INFO"},
-                                                            {WARN, "WARN"},
+                                                            {INFO,  "INFO"},
+                                                            {WARN,  "WARN"},
                                                             {ERROR, "ERROR"},
-                                                            {NONE, "NONE"}});
+                                                            {NONE,  "NONE"}});
+
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {

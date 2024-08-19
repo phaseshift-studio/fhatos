@@ -20,6 +20,7 @@
 #define fhatos_mutex_hpp
 
 #include <fhatos.hpp>
+
 #ifdef ESP32
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -32,18 +33,20 @@ namespace fhatos {
   class Mutex {
 #if defined(ESP32)
 
-  private:
-    QueueHandle_t xmutex = xSemaphoreCreateMutex();
-    const char* _label;
+    private:
+      QueueHandle_t xmutex = xSemaphoreCreateMutex();
+      const char* _label;
 #endif
 
   public:
-  Mutex(const char* label = "<anon>"): _label(label) {}
+    Mutex(const char *label = "<anon>") : _label(label) {}
+
 #if defined(ESP32)
     ~Mutex() { vSemaphoreDelete(this->xmutex); }
 #endif
+
     template<typename T = void *>
-    T lockUnlock(const Supplier<T> criticalFunction,
+    T lockUnlock(const Supplier <T> criticalFunction,
                  const uint16_t millisecondsWait = WAIT_TIME_MS) const {
 #if defined(ESP32)
       if (pdTRUE ==
@@ -55,14 +58,14 @@ namespace fhatos {
        }
         throw fError("Unable to lock mutex %s\n", this->_label);
 #elif defined(ESP8266)
-    return T(criticalFunction());
+      return T(criticalFunction());
 #endif
     }
 
     const bool lock(const uint16_t millisecondsWait = WAIT_TIME_MS) {
       return this->xmutex != NULL && pdTRUE ==
-             xSemaphoreTake(this->xmutex,
-                            (TickType_t)(millisecondsWait / portTICK_PERIOD_MS));
+                                     xSemaphoreTake(this->xmutex,
+                                                    (TickType_t)(millisecondsWait / portTICK_PERIOD_MS));
     }
 
     const bool unlock() {

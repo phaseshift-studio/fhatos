@@ -48,7 +48,7 @@ namespace fhatos {
     explicit fWIFI(const ID &id = ID("wifi@127.0.0.1"),
                    const char *ssids = STR(WIFI_SSID),
                    const char *passwords = STR(WIFI_PASS))
-      : Coroutine(id) {
+            : Coroutine(id) {
       this->ssids = ssids;
       this->passwords = passwords;
     }
@@ -61,7 +61,7 @@ namespace fhatos {
     static ID idFromIP(const string &user, const string &path = "") {
       if (!fWIFI::singleton()->running())
         fWIFI::singleton()->setup();
-      return  ID(path + "/" + user);
+      return ID(path + "/" + user);
     }
 
     static fWIFI *singleton(const ID &id = ID("wifi@127.0.0.1"),
@@ -154,7 +154,7 @@ namespace fhatos {
         attempts++;
         if (multi.run() == WL_CONNECTED) {
           this->_id =
-              ptr<ID>(new ID(fWIFI::idFromIP("kernel", "wifi").toString().c_str()));
+                  ptr<ID>(new ID(fWIFI::idFromIP("kernel", "wifi").toString().c_str()));
           WiFiClass::hostname(this->id()->user().value().c_str());
           const bool mdnsStatus = MDNS.begin(this->id()->user().value().c_str());
           LOG(NONE,
@@ -174,13 +174,13 @@ namespace fhatos {
               WiFi.SSID().c_str(), WiFi.macAddress().c_str(),
               WiFi.localIP().toString().c_str(), WiFi.getHostname(),
               mdnsStatus ? (this->id()->user().value() + ".local").c_str()
-              : "<error>",
+                         : "<error>",
               WiFi.gatewayIP().toString().c_str(),
               WiFi.subnetMask().toString().c_str(),
               WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
             LOG_PROCESS(ERROR, this, "Unable to create mDNS hostname %s\n",
-                     this->id()->user()->c_str());
+                        this->id()->user()->c_str());
           }
           LOG(INFO, "\tConnection attempts: %i\n", attempts);
           attempts = 100;
@@ -188,7 +188,7 @@ namespace fhatos {
       }
       if (attempts != 100) {
         LOG_PROCESS(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
-                 attempts);
+                    attempts);
       }
       return this;
     }

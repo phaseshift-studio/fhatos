@@ -27,7 +27,9 @@
 
 namespace fhatos {
   class Monad;
+
   using Monad_p = ptr<Monad>;
+
   class Monad {
   protected:
     const Obj_p _obj;
@@ -58,10 +60,13 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p obj() const { return this->_obj; }
+
     [[nodiscard]] Inst_p inst() const { return this->_inst; }
+
     [[nodiscard]] long bulk() const { return this->_bulk; }
 
     [[nodiscard]] bool halted() const { return this->_inst->isNoObj(); }
+
     [[nodiscard]] bool dead() const { return this->_obj->isNoObj(); }
 
     [[nodiscard]] string toString() const {
@@ -102,7 +107,7 @@ namespace fhatos {
       // start inst forced initial
       if (this->running->empty())
         this->running->push_back(
-            share(Monad(this->bcode->bcode_value()->front()->inst_seed(), this->bcode->bcode_value()->front())));
+                share(Monad(this->bcode->bcode_value()->front()->inst_seed(), this->bcode->bcode_value()->front())));
     }
 
     ptr<E> next(const int steps = -1) {
@@ -178,7 +183,7 @@ namespace fhatos {
 
   static void load_processor() {
     Options::singleton()->processor<Obj, BCode, Objs>(
-        [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
+            [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
   }
 
 } // namespace fhatos

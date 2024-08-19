@@ -29,52 +29,52 @@
 
 namespace fhatos {
 
-template <typename PROCESS = Coroutine, typename ROUTER = Router>
-class fLog : public Actor<PROCESS, ROUTER> {
-public:
-  explicit fLog(const ID &id = Router::mintID("log"))
-      : Actor<PROCESS, ROUTER>(id) {};
+  template<typename PROCESS = Coroutine, typename ROUTER = Router>
+  class fLog : public Actor<PROCESS, ROUTER> {
+  public:
+    explicit fLog(const ID &id = Router::mintID("log"))
+            : Actor<PROCESS, ROUTER>(id) {};
 
-  void setup() override {
-    PROCESS::setup();
-    const ID serialID = Router::mintID("log");
-    // INFO log_level_
-    this->subscribe(
-        this->id().extend("INFO"), [this, serialID](const auto &message) {
-          this->publish(
-              serialID,
-              this->createLogMessage(INFO, message.payload->toString()),
-              false);
-        });
-    // ERROR log_level_
-    this->subscribe(
-        this->id().extend("ERROR"), [this, serialID](const auto &message) {
-          this->publish(
-              serialID,
-              this->createLogMessage(INFO, message.payload->toString()),
-              false);
-        });
-  }
-
-protected:
-  string createLogMessage(LOG_TYPE type, const string& message) {
-    if (message[0] == '\t')
-      type = LOG_TYPE::NONE;
-    string output;
-    StringPrinter stream = StringPrinter(&output);
-    auto ansi = Ansi<StringPrinter>(&stream);
-    if (type != LOG_TYPE::NONE) {
-      if (type == ERROR)
-        ansi.print("!r[ERROR]!!  ");
-      else if (type == INFO)
-        ansi.print("!g[INFO]!!  ");
-      else
-        ansi.print("!y[DEBUG]!!  ");
+    void setup() override {
+      PROCESS::setup();
+      const ID serialID = Router::mintID("log");
+      // INFO log_level_
+      this->subscribe(
+              this->id().extend("INFO"), [this, serialID](const auto &message) {
+                this->publish(
+                        serialID,
+                        this->createLogMessage(INFO, message.payload->toString()),
+                        false);
+              });
+      // ERROR log_level_
+      this->subscribe(
+              this->id().extend("ERROR"), [this, serialID](const auto &message) {
+                this->publish(
+                        serialID,
+                        this->createLogMessage(INFO, message.payload->toString()),
+                        false);
+              });
     }
-    ansi.print(message.c_str());
-    return string(output.c_str());
-  }
-};
+
+  protected:
+    string createLogMessage(LOG_TYPE type, const string &message) {
+      if (message[0] == '\t')
+        type = LOG_TYPE::NONE;
+      string output;
+      StringPrinter stream = StringPrinter(&output);
+      auto ansi = Ansi<StringPrinter>(&stream);
+      if (type != LOG_TYPE::NONE) {
+        if (type == ERROR)
+          ansi.print("!r[ERROR]!!  ");
+        else if (type == INFO)
+          ansi.print("!g[INFO]!!  ");
+        else
+          ansi.print("!y[DEBUG]!!  ");
+      }
+      ansi.print(message.c_str());
+      return string(output.c_str());
+    }
+  };
 } // namespace fhatos
 
 #endif

@@ -18,6 +18,7 @@
 #pragma once
 #ifndef fhatos_publisher_hpp
 #define fhatos_publisher_hpp
+
 #include <structure/router.hpp>
 #include <structure/pubsub.hpp>
 
@@ -25,8 +26,11 @@ namespace fhatos {
   class Publisher {
   public:
     const ID_p __id;
+
     virtual ~Publisher() = default;
+
     explicit Publisher(const IDed *ided) : __id(ided->id()) {}
+
     explicit Publisher(const ID_p &id) : __id(id) {}
 
 
@@ -34,7 +38,7 @@ namespace fhatos {
     virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message> &> &onRecv,
                                     const QoS qos = QoS::_1) {
       return router()->route_subscription(share(Subscription{
-          .source = *this->__id, .pattern = this->makeTopic(relativePattern), .qos = qos, .onRecv = onRecv}));
+              .source = *this->__id, .pattern = this->makeTopic(relativePattern), .qos = qos, .onRecv = onRecv}));
     }
 
     /// UNSUBSCRIBE
@@ -52,9 +56,9 @@ namespace fhatos {
     RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj> &payload,
                           const bool retain = TRANSIENT_MESSAGE) const {
       return router()->route_message(share(Message{.source = *this->__id,
-                                                   .target = this->makeTopic(relativeTarget),
-                                                   .payload = PtrHelper::clone(*payload),
-                                                   .retain = retain}));
+              .target = this->makeTopic(relativeTarget),
+              .payload = PtrHelper::clone(*payload),
+              .retain = retain}));
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////

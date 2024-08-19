@@ -24,6 +24,7 @@
 #include <fhatos.hpp>
 #include <mqtt/async_client.h>
 #include <structure/structure.hpp>
+
 #ifndef FOS_MQTT_BROKER_ADDR
 #define FOS_MQTT_BROKER_ADDR "localhost:1883"
 #endif
@@ -32,11 +33,12 @@
 
 namespace fhatos {
   using namespace mqtt;
+
   class Mqtt : public Structure {
   protected:
     Message_p will_message;
     const char *server_addr;
-    async_client* xmqtt;
+    async_client *xmqtt;
 
 
     //                                     +[scheme]//+[authority]/#[path]
@@ -44,22 +46,22 @@ namespace fhatos {
                   const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::READWRITE) {
 
       this->server_addr = string(server_addr).find_first_of("mqtt://") == string::npos
-                              ? string("mqtt://").append(string(server_addr)).c_str()
-                              : server_addr;
+                          ? string("mqtt://").append(string(server_addr)).c_str()
+                          : server_addr;
       this->xmqtt = new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5));
       this->will_message = will_message;
       srand(time(nullptr));
       auto connection_options = connect_options_builder()
-                                    .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
-                                    .clean_start(true)
-                                    .clean_session(true)
-                                    .user_name(string("client_" + to_string(rand())))
-                                    .keep_alive_interval(std::chrono::seconds(20))
-                                    .automatic_reconnect();
+              .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
+              .clean_start(true)
+              .clean_session(true)
+              .user_name(string("client_" + to_string(rand())))
+              .keep_alive_interval(std::chrono::seconds(20))
+              .automatic_reconnect();
       if (will_message.get()) {
         const BObj_p source_payload = Message::wrapSource(id_p(will_message->source), will_message->payload);
         connection_options.will(
-            message(this->will_message->target.toString(), source_payload->second, this->will_message->retain));
+                message(this->will_message->target.toString(), source_payload->second, this->will_message->retain));
       }
       //// MQTT MESSAGE CALLBACK
       this->xmqtt->set_message_callback([this](const const_message_ptr &mqtt_message) {
@@ -67,9 +69,9 @@ namespace fhatos {
         const BObj_p bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
         const auto &[source, payload] = Message::unwrapSource(bobj);
         const Message_p message = share(Message{.source = *source,
-                                                .target = ID(mqtt_message->get_topic()),
-                                                .payload = payload,
-                                                .retain = mqtt_message->is_retained()});
+                .target = ID(mqtt_message->get_topic()),
+                .payload = payload,
+                .retain = mqtt_message->is_retained()});
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
         mutex.read<RESPONSE_CODE>([this, message]() {
           RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
@@ -88,8 +90,8 @@ namespace fhatos {
       this->xmqtt->set_connected_handler([this](const string &) {
         LOG_STRUCTURE(INFO, this,
                       "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
-                      "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
-                      "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
+                              "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
+                              "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
                       this->server_addr, this->xmqtt->get_client_id().c_str(),
                       this->will_message.get() ? this->will_message->target.toString().c_str() : "<none>",
                       this->will_message.get() ? this->will_message->payload->toString().c_str() : "<none>",
@@ -115,6 +117,7 @@ namespace fhatos {
     ~Mqtt() override {
       delete this->xmqtt;
     }
+
     void stop() override {
       LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr);
       if (!this->xmqtt->disconnect()->wait_for(2000))
@@ -179,13 +182,13 @@ namespace fhatos {
       } else {
         auto *thing = new std::atomic<const Obj *>(nullptr);
         this->recv_subscription(share(Subscription{
-            .source = ID(*source), .pattern = *furi, .onRecv = [this, furi, thing](const Message_p &message) {
-              // TODO: try to not copy obj while still not accessing heap after delete
-              LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
-                            message->toString().c_str());
-              const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
-              thing->store(obj);
-            }}));
+                .source = ID(*source), .pattern = *furi, .onRecv = [this, furi, thing](const Message_p &message) {
+                  // TODO: try to not copy obj while still not accessing heap after delete
+                  LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
+                                message->toString().c_str());
+                  const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
+                  thing->store(obj);
+                }}));
         const time_t startTimestamp = time(nullptr);
         while (!thing->load()) {
           if ((time(nullptr) - startTimestamp) > 2) {
@@ -203,6 +206,7 @@ namespace fhatos {
         }
       }
     }
+
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source) override {
       BObj_p source_payload = Message::wrapSource(source, obj);
       LOG_STRUCTURE(TRACE, this, "writing to xmpp broker: %s\n", source_payload->second);

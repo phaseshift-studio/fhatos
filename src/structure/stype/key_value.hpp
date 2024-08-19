@@ -30,7 +30,7 @@ namespace fhatos {
     ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(Map<ID_p, const Obj_p, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE){};
+    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {};
 
   public:
     static ptr<KeyValue> create(const Pattern &pattern) {
@@ -74,7 +74,7 @@ namespace fhatos {
         });
       } else
         return MUTEX_DATA.read<Obj_p>(
-            [this, furi]() { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
+                [this, furi]() { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
     }
   };
 } // namespace fhatos

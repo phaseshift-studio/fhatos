@@ -18,12 +18,14 @@
 #pragma once
 #ifndef fhatos_ptr_helper
 #define fhatos_ptr_helper
+
 #include <memory>
 
 using namespace std;
 namespace fhatos {
 
   class Obj;
+
   template<typename T = Obj>
   using ptr = shared_ptr<T>;
 
@@ -36,6 +38,7 @@ namespace fhatos {
 
   public:
     PtrHelper() = delete;
+
     template<typename T = Obj>
     static NonDeleter<T> NON_DELETER_SINGLETON() {
       static auto *singleton = new NonDeleter<T>();
@@ -43,7 +46,7 @@ namespace fhatos {
     }
 
     template<typename T = Obj>
-    static shared_ptr<T> no_delete(shared_ptr<T>& ptr_t) {
+    static shared_ptr<T> no_delete(shared_ptr<T> &ptr_t) {
       auto temp = shared_ptr<T>((T *) nullptr, NON_DELETER_SINGLETON<T>());
       temp.swap(ptr_t);
       return temp;
@@ -63,10 +66,12 @@ namespace fhatos {
     static ptr<T> clone(const T &t) {
       return share(T(t));
     }
+
     template<typename T = Obj>
     static ptr<T> clone(const ptr<T> &t) {
       return share(T(*t));
     }
+
     template<typename T = Obj>
     static List<ptr<T>> clone(const List<T> &list) {
       List<ptr<T>> newList = List<ptr<T>>();

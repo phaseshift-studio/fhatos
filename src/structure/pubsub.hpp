@@ -68,13 +68,14 @@ namespace fhatos {
     MUTEX_LOCKOUT
   };
 
-  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
-                                                                    {NO_TARGETS, "no targets"},
+  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK,                  "OK"},
+                                                                    {NO_TARGETS,          "no targets"},
                                                                     {REPEAT_SUBSCRIPTION, "repeat subscription"},
-                                                                    {NO_SUBSCRIPTION, "no subscription"},
-                                                                    {NO_MESSAGE, "no message"},
-                                                                    {ROUTER_ERROR, "internal router error"},
-                                                                    {MUTEX_TIMEOUT, "router timeout"}});
+                                                                    {NO_SUBSCRIPTION,     "no subscription"},
+                                                                    {NO_MESSAGE,          "no message"},
+                                                                    {ROUTER_ERROR,        "internal router error"},
+                                                                    {MUTEX_TIMEOUT,       "router timeout"}});
+
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
   //////////////////////////////////////////////
@@ -93,6 +94,7 @@ namespace fhatos {
               "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
+
     /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
     static BObj_p wrapSource(const ID_p &source, const Obj_p &obj) {
       string wrap = source->toString();
@@ -101,6 +103,7 @@ namespace fhatos {
       LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
       return ptr<BObj>(new BObj({wrap.length(), (fbyte *) strdup(wrap.c_str())}), bobj_deleter);
     }
+
     static Pair<ID_p, Obj_p> unwrapSource(const BObj_p &bobj) {
       try {
         const auto unwrap = string((char *) bobj->second, bobj->first);
@@ -110,7 +113,7 @@ namespace fhatos {
         if (index == string::npos)
           throw fError("bobj is not wrapped with source: %s\n", bobj->second);
         return Pair<ID_p, Obj_p>(
-            {id_p(unwrap.substr(0, index).c_str()), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
+                {id_p(unwrap.substr(0, index).c_str()), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
       } catch (const std::exception &e) {
         LOG_EXCEPTION(e);
         throw;
@@ -121,16 +124,20 @@ namespace fhatos {
   ///////////////////////////////////////////////////
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
-  enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
+  enum class QoS {
+    _0 = 0, _1 = 1, _2 = 2, _3 = 3
+  };
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
   using Message_p = ptr<Message>;
   using Mail = Pair<const Subscription_p, const Message_p>;
   using Mail_p = ptr<Mail>;
+
   struct Mailbox {
   public:
     virtual bool recv_mail(const Mail_p &mail) = 0;
   };
+
   struct Subscription {
     using Mail = Pair<const Subscription_p, const Message_p>;
     using Mail_p = ptr<Mail>;
@@ -155,10 +162,10 @@ namespace fhatos {
       const Consumer<const Message_p> originalOnRecv = Consumer<const Message_p>(this->onRecv);
       this->onRecv = [this, originalOnRecv, mailbox](const Message_p &message) {
         mailbox->recv_mail(share(Mail{share(Subscription{.source = this->source,
-                                                         .pattern = this->pattern,
-                                                         .qos = this->qos,
-                                                         .onRecv = originalOnRecv,
-                                                         .onRecvBCode = this->onRecvBCode}),
+                .pattern = this->pattern,
+                .qos = this->qos,
+                .onRecv = originalOnRecv,
+                .onRecvBCode = this->onRecvBCode}),
                                       message}));
       };
       return *this;

@@ -27,12 +27,19 @@
 #include "util/string_helper.hpp"
 
 namespace fhatos {
-  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY };
+  enum class URI_PART {
+    SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY
+  };
 
   const static Enums<URI_PART> URI_PARTS = {
-      {URI_PART::SCHEME, "scheme"},     {URI_PART::USER, "user"},   {URI_PART::PASSWORD, "password"},
-      {URI_PART::HOST, "host"},         {URI_PART::PORT, "port"},   {URI_PART::PATH, "path"},
-      {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
+          {URI_PART::SCHEME,   "scheme"},
+          {URI_PART::USER,     "user"},
+          {URI_PART::PASSWORD, "password"},
+          {URI_PART::HOST,     "host"},
+          {URI_PART::PORT,     "port"},
+          {URI_PART::PATH,     "path"},
+          {URI_PART::FRAGMENT, "fragment"},
+          {URI_PART::QUERY,    "query"},
   };
 
   class fURI {
@@ -205,9 +212,12 @@ namespace fhatos {
     }
 
     uint8_t path_length() const { return this->_path_length; }
+
     /// QUERY
     const char *query() const { return this->_query ? this->_query : ""; }
+
     bool has_query() const { return this->_query != nullptr; }
+
     fURI query(const char *query) const {
       fURI newURI = fURI(*this);
       FOS_SAFE_FREE(newURI._query);
@@ -267,6 +277,14 @@ namespace fhatos {
       return temp.empty() ? fURI("") : fURI(temp[0] == '/' ? temp.substr(1) : temp);
     }
 
+    bool is_relative() const {
+      return nullptr == this->_scheme &&
+             nullptr == this->_host &&
+             !this->sprefix &&
+             this->_path_length != 0 &&
+             (strcmp(".", this->_path[0]) == 0 || strcmp("..", this->_path[0]) == 0);
+    }
+
     virtual fURI resolve(const fURI &other) const {
       ///////////////////////////////////////////////////////////////
       ////////////  mm-ADT specific resolution pattern //////////////
@@ -284,7 +302,7 @@ namespace fhatos {
       bool pathStartSlash = this->path()[0] == '/' || this->sprefix;
       if (other.path().find('.') == string::npos) {
         const std::unique_ptr<char, void (*)(void *)> otherPathChars =
-            std::unique_ptr<char, void (*)(void *)>(strdup(other.path().c_str()), free);
+                std::unique_ptr<char, void (*)(void *)>(strdup(other.path().c_str()), free);
         bool otherStartSlash = otherPathChars.get()[0] == '/';
         if (pathEndSlash || this->_path_length == 0)
           return otherStartSlash ? this->path(otherPathChars.get()) : this->extend(otherPathChars.get());
@@ -338,7 +356,7 @@ namespace fhatos {
       if ((strlen(this->host()) == 0 && strlen(pattern.host()) != 0) ||
           (strcmp(pattern.host(), "+") != 0 &&
            strcmp(this->host(), pattern.host()) !=
-               0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
+           0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
         return false;
       if (strcmp(pattern.user(), "#") == 0)
         return true;
@@ -567,6 +585,7 @@ namespace fhatos {
     }
 
     bool operator<(const fURI &other) const { return this->toString() < other.toString(); }
+
     bool operator!=(const fURI &other) const { return !this->equals(other); }
 
     bool operator==(const fURI &other) const {
@@ -636,9 +655,9 @@ namespace fhatos {
   public:
     Pattern(const fURI &uri) : Pattern(uri.toString()) {}
 
-    Pattern(const string &uriString) : fURI(uriString){};
+    Pattern(const string &uriString) : fURI(uriString) {};
 
-    Pattern(const char *uriChars) : fURI(uriChars){};
+    Pattern(const char *uriChars) : fURI(uriChars) {};
   };
 
   using fURI_p = ptr<fURI>;
@@ -671,6 +690,7 @@ namespace fhatos {
 
     [[nodiscard]] bool equals(const BaseIDed &other) const override { return this->_id->equals(*other.id()); }
   };
+
   //////////////////////////////////////////////
   ///////////////// TYPED FURI /////////////////
   //////////////////////////////////////////////
@@ -693,6 +713,7 @@ namespace fhatos {
     explicit Patterned(const Pattern_p &type) : _pattern(share(Pattern(*type))) {}
 
     [[nodiscard]] Pattern_p pattern() const override { return this->_pattern; }
+
     [[nodiscard]] bool equals(const BasePatterned &other) const override {
       return this->_pattern->equals(*other.pattern());
     }
@@ -703,12 +724,19 @@ namespace fhatos {
   };
 
   [[maybe_unused]] static fURI_p furi_p(const char *idChars) { return share(fURI(idChars)); }
+
   [[maybe_unused]] static fURI_p furi_p(const fURI &furi) { return share(fURI(furi)); }
+
   [[maybe_unused]] static ID_p id_p(const char *idChars) { return share(ID(idChars)); }
+
   [[maybe_unused]] static ID_p id_p(const ID &id) { return share(ID(id)); }
+
   [[maybe_unused]] static ID_p id_p(const fURI &id) { return share(ID(id)); }
+
   [[maybe_unused]] static Pattern_p p_p(const char *patternChars) { return share(Pattern(patternChars)); }
+
   [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return share(Pattern(pattern)); }
+
   [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return share(Pattern(pattern)); }
 } // namespace fhatos
 

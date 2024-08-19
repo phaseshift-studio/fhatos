@@ -46,22 +46,23 @@ namespace fhatos {
         return typeId;
       };
       router()->route_subscription(share(
-          Subscription{.source = *this->id(), .pattern = *this->pattern(), .onRecv = [](const Message_p &message) {
-                         if (message->retain && (message->source != *Types::singleton()->id()) &&
-                             (message->source != ID("anon_src")))
-                           Types::singleton()->saveType(id_p(message->target), message->payload,true);
-                         // else { // transient provides type checking?
-                         // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
-                         // id_p(message->target));
-                         //}
-                       }}));
+              Subscription{.source = *this->id(), .pattern = *this->pattern(), .onRecv = [](const Message_p &message) {
+                if (message->retain && (message->source != *Types::singleton()->id()) &&
+                    (message->source != ID("anon_src")))
+                  Types::singleton()->saveType(id_p(message->target), message->payload, true);
+                // else { // transient provides type checking?
+                // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
+                // id_p(message->target));
+                //}
+              }}));
     }
+
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void saveType(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub=false) {
+    void saveType(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub = false) {
       try {
-        if(!viaPub) {
+        if (!viaPub) {
           Obj_p current = this->read(typeId, this->id());
           if (!current->isNoObj() && current != typeDef) {
             LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", typeId->toString().c_str(),
@@ -72,7 +73,8 @@ namespace fhatos {
         if (OType::INST == OTypes.toEnum(string(typeId->path(FOS_BASE_TYPE_INDEX)))) {
           const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                      typeDef->bcode_value()->front()->toString().c_str(), ITypeSignatures.toChars(inst->itype()).c_str());
+                      typeDef->bcode_value()->front()->toString().c_str(),
+                      ITypeSignatures.toChars(inst->itype()).c_str());
         } else {
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
                       typeDef->toString().c_str());

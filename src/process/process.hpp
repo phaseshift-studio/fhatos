@@ -26,9 +26,13 @@
 
 namespace fhatos {
 
-  enum class PType { THREAD, FIBER, COROUTINE };
+  enum class PType {
+    THREAD, FIBER, COROUTINE
+  };
   static const Enums<PType> ProcessTypes = Enums<PType>(
-      {{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}});
+          {{PType::THREAD,    "thread"},
+           {PType::FIBER,     "fiber"},
+           {PType::COROUTINE, "coroutine"}});
 
   class Process : public IDed {
 
@@ -44,7 +48,8 @@ namespace fhatos {
 
     virtual void setup() {
       if (this->_running.load()) {
-        LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype).c_str());
+        LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(),
+            ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
       this->_running.store(true);
@@ -59,7 +64,8 @@ namespace fhatos {
 
     virtual void stop() {
       if (!this->_running.load()) {
-        LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(), ProcessTypes.toChars(this->ptype).c_str());
+        LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(),
+            ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
       this->_running.store(false);

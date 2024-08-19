@@ -38,6 +38,7 @@ namespace fhatos {
         delete this->FIBER_THREAD_HANDLE;
       }
     }
+
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool _setup = false;
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
@@ -58,11 +59,11 @@ namespace fhatos {
         }
         // scheduler subscription listening for noobj "kill process" messages
         router()->route_subscription(share(Subscription{
-            .source = *this->id(), .pattern = *process->id(), .onRecv = [process](const Message_p &message) {
-              if (message->payload->isNoObj()) {
-                process->stop();
-              }
-            }}));
+                .source = *this->id(), .pattern = *process->id(), .onRecv = [process](const Message_p &message) {
+                  if (message->payload->isNoObj()) {
+                    process->stop();
+                  }
+                }}));
         ////////////////////////////////
         bool success = false;
         switch (process->ptype) {
@@ -88,7 +89,7 @@ namespace fhatos {
             return share(success);
           }
         }
-        if(success) {
+        if (success) {
           LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                       ProcessTypes.toChars(process->ptype).c_str());
         }
@@ -103,6 +104,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     std::thread *FIBER_THREAD_HANDLE = nullptr;
+
     static void FIBER_FUNCTION(void *) {
       int counter = 1;
       while (counter > 0) {
@@ -132,6 +134,7 @@ namespace fhatos {
       Scheduler::singleton()->kill(*thread->id());
     }
   };
+
   ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }
 } // namespace fhatos
 #endif

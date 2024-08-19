@@ -29,6 +29,7 @@ namespace fhatos {
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structurers mutex>");
     ptr<Map<Pattern_p, Structure_p, furi_p_less>> structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
+
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {}
 
   public:
@@ -91,8 +92,8 @@ namespace fhatos {
     }
 
 
-    void write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
-      this->route_message(share(Message{.source = *source, .target = *id, .payload = obj, .retain = true}));
+    RESPONSE_CODE write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
+      return this->route_message(share(Message{.source = *source, .target = *id, .payload = obj, .retain = true}));
     }
 
     void remove(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {

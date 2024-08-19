@@ -32,7 +32,9 @@ namespace fhatos {
       static ptr<Empty> empty_p = ptr<Empty>(new Empty());
       return empty_p;
     }
+
     virtual Obj_p read(const fURI_p &, const ID_p &) override { return Objs::to_objs(); }
+
     virtual void write(const ID_p &id, const Obj_p &obj, [[maybe_unused]] const ID_p &source) override {
       LOG_STRUCTURE(INFO, this, "write attempted: %s -- %s\n", id->toString().c_str(), obj->toString().c_str());
     }

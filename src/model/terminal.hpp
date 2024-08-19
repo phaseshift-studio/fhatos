@@ -28,6 +28,7 @@ namespace fhatos {
   class Terminal : public Actor<Thread, KeyValue> {
   protected:
     explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), _currentOutput(share(id)) {}
+
     ID_p _currentOutput;
 
   public:
@@ -35,19 +36,19 @@ namespace fhatos {
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }
+
     void setup() override {
       Actor::setup();
       this->subscribe(this->id()->extend("out"), [](const Message_p &message) {
-            if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
-              if (strcmp(message->target.name(), "no_color") == 0) {
-                const string no = printer<>()->strip(message->payload->str_value());
-                printer<>()->print(no.c_str());
-              } else
-                printer<>()->print(message->payload->str_value().c_str());
-            }
-          });
+        if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
+          if (strcmp(message->target.name(), "no_color") == 0) {
+            const string no = printer<>()->strip(message->payload->str_value());
+            printer<>()->print(no.c_str());
+          } else
+            printer<>()->print(message->payload->str_value().c_str());
+        }
+      });
     }
-
 
 
     static ID_p currentOut() { return Terminal::singleton()->_currentOutput; }
@@ -70,9 +71,9 @@ namespace fhatos {
       buffer[length] = '\0';
       va_end(arg);
       router()->route_message(share(Message{.source = source, //
-                                            .target = Terminal::singleton()->id()->extend("out"), //
-                                            .payload = Obj::to_str(buffer),
-                                            .retain = TRANSIENT_MESSAGE}));
+              .target = Terminal::singleton()->id()->extend("out"), //
+              .payload = Obj::to_str(buffer),
+              .retain = TRANSIENT_MESSAGE}));
     }
 
     static string in(const ID &) {

@@ -36,7 +36,7 @@ namespace fhatos {
 #define TAB "  "
   /////////////////////////////////////////////////////////////////////
 
-  template<typename PROCESS = Thread, typename ROUTER = Router >
+  template<typename PROCESS = Thread, typename ROUTER = Router>
   class fTelnet : public Actor<PROCESS, ROUTER> {
   public:
     static fTelnet *singleton() {
@@ -46,8 +46,8 @@ namespace fhatos {
 
     explicit fTelnet(const ID &id = Router::mintID("telnet"),
                      const uint16_t port = 23, const bool useAnsi = true)
-      : Actor<PROCESS, ROUTER>(id), port(port), useAnsi(useAnsi),
-        currentTopic(new ID(id)), previousMessage(nullptr) {
+            : Actor<PROCESS, ROUTER>(id), port(port), useAnsi(useAnsi),
+              currentTopic(new ID(id)), previousMessage(nullptr) {
       this->xtelnet = new ESPTelnet();
       this->xtelnet->setLineMode(true);
       this->ansi = new Ansi<ESPTelnet>(this->xtelnet);
@@ -94,7 +94,7 @@ namespace fhatos {
           });
         } else if (line.startsWith("<=")) {
           const string payload =
-              (line.length() == 2) ? "" : line.substring(2).c_str();
+                  (line.length() == 2) ? "" : line.substring(2).c_str();
           BinaryObj<> conversion = BinaryObj<>::interpret(payload);
           LOG(DEBUG, "Telnet publishing: %s::%s\n",
               OTypes.toChars(conversion.pattern()).c_str(),
@@ -107,23 +107,23 @@ namespace fhatos {
                        });
         } else if (line.startsWith("=>")) {
           const RESPONSE_CODE _rc =
-              tthis->subscribe(*tthis->currentTopic, [](const Message &message) {
-                /*if (!tthis->previousMessage ||
-                    !tthis->previousMessage->first.equals(message.source) ||
-                    !tthis->previousMessage->second.equals(message.target)) {
-                  if (tthis->previousMessage)
-                    delete tthis->previousMessage;
-                  tthis->ansi->printf(
-                    "[!b%s!!]=!gpublish!![!mretain:%s!!]=>[!b%s!!]\n",
-                    message.source.toString().c_str(),
-                    FOS_BOOL_STR(message.retain),
-                    message.target.toString().c_str());
-                  tthis->previousMessage =
-                      new Pair<ID, ID>(message.source, message.target);
-                }*/
-                tthis->ansi->println(
-                  message.payload->toStr().toString().c_str()); // TODO: ansi off/on
-              });
+                  tthis->subscribe(*tthis->currentTopic, [](const Message &message) {
+                    /*if (!tthis->previousMessage ||
+                        !tthis->previousMessage->first.equals(message.source) ||
+                        !tthis->previousMessage->second.equals(message.target)) {
+                      if (tthis->previousMessage)
+                        delete tthis->previousMessage;
+                      tthis->ansi->printf(
+                        "[!b%s!!]=!gpublish!![!mretain:%s!!]=>[!b%s!!]\n",
+                        message.source.toString().c_str(),
+                        FOS_BOOL_STR(message.retain),
+                        message.target.toString().c_str());
+                      tthis->previousMessage =
+                          new Pair<ID, ID>(message.source, message.target);
+                    }*/
+                    tthis->ansi->println(
+                            message.payload->toStr().toString().c_str()); // TODO: ansi off/on
+                  });
 
           tthis->ansi->printf("[%s!!] Subscribed to !b%s!!\n",
                               _rc ? "!RERROR" : "!GOK",
@@ -139,19 +139,19 @@ namespace fhatos {
         } else if (line.startsWith("/") && !line.equals("/")) {
           //  delete tthis->currentTopic;
           tthis->currentTopic =
-              new ID(tthis->currentTopic->extend(line.substring(1).c_str()));
+                  new ID(tthis->currentTopic->extend(line.substring(1).c_str()));
         } else if (line.startsWith(":")) {
           // : global commands
           if (line.equals(":help")) {
             tthis->ansi->print(
-              "!mHelp Menu!!\n"
-              "!gactor commands!!\n" TAB "!b<=!! publish to topic\n" TAB
-              "!b=>!! subscribe to topic\n" TAB
-              "!b=|!! unsubscribe from topic\n"
-              "!g: global commands!!\n" TAB "!b:help!! [help menu]\n" TAB
-              "!b:quit!! [drop connection]\n" TAB
-              "!b:ansi!! [toggle ansi mode]\n"
-              "!g? local commands!!\n");
+                    "!mHelp Menu!!\n"
+                    "!gactor commands!!\n" TAB "!b<=!! publish to topic\n" TAB
+                    "!b=>!! subscribe to topic\n" TAB
+                    "!b=|!! unsubscribe from topic\n"
+                    "!g: global commands!!\n" TAB "!b:help!! [help menu]\n" TAB
+                    "!b:quit!! [drop connection]\n" TAB
+                    "!b:ansi!! [toggle ansi mode]\n"
+                    "!g? local commands!!\n");
           } else if (line.equals(":quit")) {
             tthis->xtelnet->disconnectClient();
           } else if (line.equals(":ansi")) {
@@ -175,12 +175,12 @@ namespace fhatos {
         tthis->currentTopic = new ID(tthis->id());
         ROUTER::singleton()->unsubscribeSource(tthis->id());
         LOG_PROCESS(INFO, tthis, "Client %s disconnected from Telnet server",
-                 ipAddress.c_str());
+                    ipAddress.c_str());
       });
 
       const bool success = this->xtelnet->begin(this->port, true);
       LOG_PROCESS(success ? INFO : ERROR, this, "Telnet server initialized on %s:%i",
-               this->id().host().c_str(), this->port);
+                  this->id().host().c_str(), this->port);
     }
 
     void loop() override {
@@ -200,9 +200,9 @@ namespace fhatos {
     uint16_t port;
     bool useAnsi;
     ESPTelnet *xtelnet;
-    Ansi<ESPTelnet> *ansi;
+    Ansi <ESPTelnet> *ansi;
     ID *currentTopic;
-    Pair<ID, ID> *previousMessage;
+    Pair <ID, ID> *previousMessage;
   };
 } // namespace fhatos
 

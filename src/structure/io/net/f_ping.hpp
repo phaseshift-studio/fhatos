@@ -26,7 +26,7 @@
 #include <ESPping.h>
 
 namespace fhatos {
-  template<typename ROUTER = Router >
+  template<typename ROUTER = Router>
   struct PingRoutine final : public Coroutine, public Publisher<ROUTER> {
     string ip;
     uint16_t counter = 0;
@@ -58,9 +58,9 @@ namespace fhatos {
                 this->averageTime());
       } else {
         sprintf(
-          message,
-          "Request timeout for %s [unknown] icmp_seq %i failure_rate=%.2f%%",
-          this->id().path().c_str(), this->counter, this->failureRate());
+                message,
+                "Request timeout for %s [unknown] icmp_seq %i failure_rate=%.2f%%",
+                this->id().path().c_str(), this->counter, this->failureRate());
       }
       this->publish(this->id(), new BinaryObj(message), TRANSIENT_MESSAGE);
     }
@@ -74,11 +74,11 @@ namespace fhatos {
     }
   };
 
-  template<typename PROCESS = Thread, typename ROUTER = Router >
+  template<typename PROCESS = Thread, typename ROUTER = Router>
   class fPing final : public Actor<PROCESS, ROUTER> {
   public:
     explicit fPing(const ID &id = Router::mintID("ping"))
-      : Actor<PROCESS, ROUTER>(id) {
+            : Actor<PROCESS, ROUTER>(id) {
     }
 
     void stop() override {
@@ -89,34 +89,34 @@ namespace fhatos {
       Actor<PROCESS, ROUTER>::setup();
       this->updateBBS(this->id().query("?"));
       this->onQuery(this->id().extend("+"), {
-                      {
-                        "?start", [this](const SourceID &, const TargetID &target) {
-                          Scheduler::singleton()->spawn(new PingRoutine<ROUTER>(target.query("")));
-                        }
-                      },
-                      {
-                        "?stop", [this](const SourceID &, const TargetID &target) {
-                          Scheduler::singleton()->kill(target.query(""));
-                        }
-                      },
-                      {
-                        "default", [](const SourceID &source, const TargetID &target) {
-                          LOG(ERROR, "Unknown query by !m%s!! of !m%s!!: !y%s!!\n",
-                              source.toString().c_str(),
-                              target.query("").toString().c_str(),
-                              target.query().c_str());
-                        }
-                      }
-                    }, [this](const SourceID &, const TargetID &) {
-                      this->updateBBS(this->id().query("?"));
-                    });
+              {
+                      "?start",  [this](const SourceID &, const TargetID &target) {
+                Scheduler::singleton()->spawn(new PingRoutine<ROUTER>(target.query("")));
+              }
+              },
+              {
+                      "?stop",   [this](const SourceID &, const TargetID &target) {
+                Scheduler::singleton()->kill(target.query(""));
+              }
+              },
+              {
+                      "default", [](const SourceID &source, const TargetID &target) {
+                LOG(ERROR, "Unknown query by !m%s!! of !m%s!!: !y%s!!\n",
+                    source.toString().c_str(),
+                    target.query("").toString().c_str(),
+                    target.query().c_str());
+              }
+              }
+      }, [this](const SourceID &, const TargetID &) {
+        this->updateBBS(this->id().query("?"));
+      });
     }
 
     void loop() override {
       Actor<PROCESS, ROUTER>::loop();
-      List<Process *> *results = Scheduler::singleton()->find(this->id().extend("+"));
+      List < Process * > *results = Scheduler::singleton()->find(this->id().extend("+"));
       for (Process *child: *results) {
-        this->publish(child->id().query("?loop"), "",TRANSIENT_MESSAGE);
+        this->publish(child->id().query("?loop"), "", TRANSIENT_MESSAGE);
       }
       delete results;
       delay(1000);
@@ -126,13 +126,19 @@ namespace fhatos {
     void updateBBS(const ID &queryId) {
       string message = string("!m!_").append(this->id().toString()).append("!!\n");
       const List<Process *> *results = Scheduler::singleton()->find(
-        this->id().extend("+"));
+              this->id().extend("+"));
       for (Process *pinger: *results) {
         char line[256];
         sprintf(line,
-                FOS_TAB "!b\\_!!!r%s!!\n" FOS_TAB "" FOS_TAB "" FOS_TAB
-                "[!gip!!:!b%s!!][!gcounter!!:!b%i!!][!gsuccess!!:!b%.2f%%"
-                "!!][!gaverage!!:!b%.2fms!!]\n",
+                FOS_TAB
+        "!b\\_!!!r%s!!\n"
+        FOS_TAB
+        ""
+        FOS_TAB
+        ""
+        FOS_TAB
+        "[!gip!!:!b%s!!][!gcounter!!:!b%i!!][!gsuccess!!:!b%.2f%%"
+        "!!][!gaverage!!:!b%.2fms!!]\n",
                 pinger->id().lastSegment().c_str(), "a", 1, 10.0f, 2.0f); /* pinger->ip.c_str(),
                 pinger->counter, 100.0f - pinger->failureRate(),
                 pinger->averageTime());*/

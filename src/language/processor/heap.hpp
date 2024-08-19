@@ -40,7 +40,7 @@ namespace fhatos {
 
   protected:
     explicit Heap(const ID &id = "/proc/heap", const Pattern &pattern = "+") :
-        Actor<Coroutine, KeyValue>(id, pattern) {}
+            Actor<Coroutine, KeyValue>(id, pattern) {}
 
   public:
     static ptr<Heap> create(const ID &id = "/proc/heap", const Pattern &pattern = "+") {

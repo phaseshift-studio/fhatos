@@ -25,9 +25,12 @@
 #include <language/types.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
+
 #ifdef NATIVE
+
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include <model/cluster.hpp>
+
 #endif
 
 namespace fhatos {
@@ -46,6 +49,7 @@ namespace fhatos {
         }
       }
     }
+
     string option(const string &option, const char *orElse) const {
       return this->_map.count(option) ? this->_map.at(option) : orElse;
     }
@@ -53,6 +57,7 @@ namespace fhatos {
 } // namespace fhatos
 using namespace fhatos;
 static ArgvParser args = ArgvParser();
+
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -60,25 +65,25 @@ void setup() {
   try {
     load_processor();
     Kernel::build()
-        ->using_printer(Ansi<>::singleton())
-        ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
-        ->displaying_splash(ANSI_ART)
-        ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
-        ->displaying_notes("Use !b:help!! for !yconsole commands!!")
-        ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-        ->using_router(Router::singleton("/sys/router/"))
-        ->boot<Types>(Types::singleton("/type/"))
-        ->boot<Heap>(Heap::create("/proc/heap/", "+"))
-        ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
-        ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+            ->using_printer(Ansi<>::singleton())
+            ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
+            ->displaying_splash(ANSI_ART)
+            ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
+            ->displaying_notes("Use !b:help!! for !yconsole commands!!")
+            ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
+            ->using_router(Router::singleton("/sys/router/"))
+            ->boot<Types>(Types::singleton("/type/"))
+            ->boot<Heap>(Heap::create("/proc/heap/", "+"))
+            ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
+            ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
 #ifdef NATIVE
-        ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
-        ->boot<Cluster>(Cluster::create("/io/cluster"))
+            ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
+            ->boot<Cluster>(Cluster::create("/io/cluster"))
 #endif
-        ->boot<Console>(Console::create("/home/root/repl/"))
-        ->load_modules({ID("/mod/proc")})
-        ->initial_terminal_owner("/home/root/repl/")
-        ->done("kernel_barrier");
+            ->boot<Console>(Console::create("/home/root/repl/"))
+            ->load_modules({ID("/mod/proc")})
+            ->initial_terminal_owner("/home/root/repl/")
+            ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
   }
@@ -91,10 +96,12 @@ void loop() {
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 #ifdef NATIVE
+
 int main(int argc, char **argv) {
   args.init(argc, argv);
   setup();
   loop();
   return 0;
 }
+
 #endif

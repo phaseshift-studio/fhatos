@@ -46,6 +46,7 @@
 #define FOS_SERIAL_TIMEOUT 10
 #endif
 #endif
+
 #include <util/ansi.hpp>
 #include <util/fhat_error.hpp>
 
@@ -66,17 +67,17 @@
 
 namespace fhatos {
   [[maybe_unused]] static const char *ANSI_ART =
-      "!r            !_PhaseShift Studio Presents!! \n"
-      "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
-      "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
-      "___\\!! \n"
-      "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
-      "\\___  \\!! \n"
-      "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
-      "\\_____\\/\\_____\\!! \n"
-      "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
-      "!b\\/_____/\\/_____/!! \n"
-      "!r                                   !_A Dogturd Stynx Production!! \n";
+          "!r            !_PhaseShift Studio Presents!! \n"
+          "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
+          "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
+          "___\\!! \n"
+          "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
+          "\\___  \\!! \n"
+          "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
+          "\\_____\\/\\_____\\!! \n"
+          "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+          "!b\\/_____/\\/_____/!! \n"
+          "!r                                   !_A Dogturd Stynx Production!! \n";
 
   ////////////////////
   /// LAMBDA TYPES ///
@@ -105,6 +106,7 @@ namespace fhatos {
   //
   template<typename A>
   using IdentityFunction = Function<A, A>;
+
   template<typename A>
   static IdentityFunction<A> id_f() {
     return [](const A a) { return a; };
@@ -114,10 +116,12 @@ namespace fhatos {
   ///////////////////////
   template<typename A>
   using ptr = std::shared_ptr<A>;
+
   template<typename A>
   ptr<A> share(const A a) {
     return std::make_shared<A>(a);
   }
+
   using Any = std::any;
   template<typename A>
   using Option = std::optional<A>;

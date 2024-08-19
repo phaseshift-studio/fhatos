@@ -27,6 +27,7 @@
 #include <model/terminal.hpp>
 
 #include <language/types.hpp>
+
 namespace fhatos {
   class Kernel {
   public:
@@ -35,36 +36,44 @@ namespace fhatos {
       static ptr<Kernel> kernel_p = PtrHelper::no_delete(&kernel);
       return kernel_p;
     }
+
     static ptr<Kernel> with_log_level(const LOG_TYPE level) {
       Options::singleton()->log_level(level);
       return Kernel::build();
     }
+
     static ptr<Kernel> using_printer(const ptr<Ansi<>> &ansi) {
       Options::singleton()->printer<Ansi<>>(ansi);
       return Kernel::build();
     }
+
     static ptr<Kernel> displaying_splash(const char *splash) {
       printer<>()->print(splash);
       return Kernel::build();
     }
+
     static ptr<Kernel> displaying_notes(const char *notes) {
       printer<>()->printf(FOS_TAB_4 "%s\n", notes);
       return Kernel::build();
     }
+
     static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
       Options::singleton()->scheduler<Scheduler>(scheduler);
       return Kernel::build();
     }
+
     static ptr<Kernel> using_router(const ptr<Router> &router) {
       Options::singleton()->router<Router>(router);
       return Kernel::build();
     }
+
     template<typename ACTOR>
     static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
       router()->attach(bootable);
       scheduler()->spawn(bootable);
       return Kernel::build();
     }
+
     static ptr<Kernel> load_modules(const List<ID> &modules) {
       for (const ID &id: modules) {
         // List_p<Obj_p> list = share(List<Obj_p>());
@@ -78,10 +87,12 @@ namespace fhatos {
       }
       return Kernel::build();
     }
+
     static ptr<Kernel> initial_terminal_owner(const ID &output) {
       Terminal::currentOut(share(output));
       return Kernel::build();
     }
+
     static void done(const char *barrier = "kernel_barrier") {
       Scheduler::singleton()->barrier(barrier, nullptr,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
