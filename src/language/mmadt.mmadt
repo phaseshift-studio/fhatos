@@ -1,5 +1,0 @@
-
-/type/int/-<[_      -> cxx(),
-             ./doc  -> 'a integer monotype',
-             ./inst -> [ plus =>
-
