@@ -175,8 +175,9 @@ namespace fhatos {
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
   using InstFunction = Function<Obj_p, Obj_p>;
+  using InstCurry = Function<InstArgs, InstFunction>;
   using InstSeed = Obj_p;
-  using InstValue = Quad<InstArgs, InstFunction, IType, InstSeed>;
+  using InstValue = Quad<InstArgs, InstCurry, IType, InstSeed>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
   static const ID_p OBJ_FURI = share<ID>(ID(FOS_TYPE_PREFIX "obj/"));
@@ -421,7 +422,7 @@ namespace fhatos {
 
     Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
-    const InstFunction inst_f() const { return std::get<1>(this->inst_value()); }
+    const InstCurry inst_f() const { return std::get<1>(this->inst_value()); }
 
     const Obj_p inst_seed() const { return std::get<3>(this->inst_value()); }
 
@@ -950,7 +951,7 @@ namespace fhatos {
                     Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed()), this->_id),
                     false);
           }
-          return this->inst_f()(lhs);
+          return this->inst_f()(this->inst_args())(lhs);
         }
         case OType::BCODE: {
           if (lhs->isBytecode())
@@ -972,9 +973,7 @@ namespace fhatos {
     }
 
     Obj_p split(const Any &newValue,
-                const std::variant<ID_p, const char *> &newType = std::variant < ID_p, const char *
-
-    >(nullptr)) const {
+                const std::variant<ID_p, const char *> &newType = std::variant<ID_p, const char *>(nullptr)) const {
       const Obj temp = Obj(newValue, this->id());
       if (std::holds_alternative<const char *>(newType) && nullptr == std::get<const char *>(newType))
         return share(temp);
@@ -1177,7 +1176,7 @@ namespace fhatos {
       return share(Inst(value, furi));
     }
 
-    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunction &function,
+    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstCurry &function,
                           const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &furi = nullptr) {
       const ID_p fix = furi ? furi : share(ID(string(FOS_TYPE_PREFIX "inst/") + opcode));
       return to_inst({args, function, itype, seed}, fix);
