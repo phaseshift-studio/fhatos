@@ -219,6 +219,7 @@ namespace fhatos {
 #define FOS_PROCESS(proc) <process/ptype/esp32/proc>
 #define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
 #define FOS_UTIL(utl) <util/esp/utl>
+#define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
 #elif defined(ESP8266)
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(mqtt) <structure/router/esp/mqtt>

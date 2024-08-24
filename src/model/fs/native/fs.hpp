@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_filesystem_hpp
-#define fhatos_filesystem_hpp
+#ifndef fhatos_fs_hpp
+#define fhatos_fs_hpp
 
 #include <filesystem>
 #include <fstream>
@@ -40,36 +40,7 @@ namespace fhatos {
     bool is_file(const ID &path) const override {
       return fs::is_regular_file(fs::path(make_native_path(path).toString()));
     }
-
-    File_p to_file(const ID &path) const override {
-      if (this->is_file(path))
-        return Obj::to_uri(path, FILE_FURI);
-      throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->id()->toString().c_str(),
-                   path.toString().c_str());
-    }
-
-    Dir_p to_dir(const ID &path) const override {
-      if (this->is_dir(path))
-        return Obj::to_uri(path, DIR_FURI);
-      throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->id()->toString().c_str(),
-                   path.toString().c_str());
-    }
-
-    fURI make_native_path(const ID &path) const override {
-      const string tempPath = (path.toString().substr(0, this->id()->toString().length()) == this->id()->toString())
-                              ? path.toString().substr(this->id()->toString().length())
-                              : path.toString();
-      const fURI localPath =
-              this->root_->resolve((!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
-      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
-                    path.toString().c_str(), this->root_->toString().c_str());
-      if (!this->root_->is_subfuri_of(this->root_->resolve(localPath.dissolve()))) { // ../ can resolve beyond the mount
-        throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
-                     this->id()->toString().c_str(), localPath.toString().c_str(), this->root_->toString().c_str());
-      }
-      return localPath;
-    }
-
+    
     Dir_p mkdir(const ID &path) const override {
       if (fs::is_directory(make_native_path(path).toString())) {
         throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
