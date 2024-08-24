@@ -20,7 +20,7 @@
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(fiber.hpp)
-#include <structure/stype/mqtt.hpp>
+#include FOS_MQTT(mqtt.hpp)
 
 namespace fhatos {
 

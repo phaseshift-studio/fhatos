@@ -106,11 +106,6 @@ namespace fhatos {
   //
   template<typename A>
   using IdentityFunction = Function<A, A>;
-
-  template<typename A>
-  static IdentityFunction<A> id_f() {
-    return [](const A a) { return a; };
-  }
   ///////////////////////
   /// CONTAINER TYPES ///
   ///////////////////////
@@ -129,10 +124,6 @@ namespace fhatos {
   using List = std::vector<A>;
   template<typename A>
   using List_p = ptr<List<A>>;
-  template<typename A>
-  using Set = std::set<A>;
-  template<typename A>
-  using Queue = std::queue<A>;
   template<typename A>
   using Deque = std::deque<A>;
   template<typename A>

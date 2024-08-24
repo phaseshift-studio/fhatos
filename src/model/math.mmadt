@@ -1,0 +1,2 @@
+/type/int/nat -> |is(gt(0))
+/type/lst/complex -> [|as(/type/real),|as(/type/real)]

@@ -21,9 +21,9 @@
 
 #ifdef NATIVE
 
-#include <fhatos.hpp>
+#include "fhatos.hpp"
 #include <mqtt/async_client.h>
-#include <structure/structure.hpp>
+#include "structure/structure.hpp"
 
 #ifndef FOS_MQTT_BROKER_ADDR
 #define FOS_MQTT_BROKER_ADDR "localhost:1883"
