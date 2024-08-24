@@ -1,3 +1,14 @@
+--- message model
+###
+/model/message -> [
+  ./rec => [../source/ => /type/uri/,
+            ../target/ => /type/uri/,
+            ../payload/ => _,
+            ../retain/ => /type/bool/],
+  ./lst => [/type/uri
+]
+###
+
 --- process module
 ###
 /mod/proc/  .->  [prefix/            => .->

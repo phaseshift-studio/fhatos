@@ -139,15 +139,14 @@ namespace fhatos {
   };
 
   struct Subscription {
-    using Mail = Pair<const Subscription_p, const Message_p>;
-    using Mail_p = ptr<Mail>;
+    //using Mail = Pair<const Subscription_p, const Message_p>;
     fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;
     Consumer<const Message_p> onRecv = [](const Message_p &) {};
     BCode_p onRecvBCode = nullptr;
 
-    bool match(const ID &target) const { return this->pattern.matches(target); }
+    [[nodiscard]] bool match(const ID &target) const { return this->pattern.matches(target); }
 
     void execute(const Message_p &message) const { onRecv(message); }
 

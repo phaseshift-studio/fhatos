@@ -1,8 +1,8 @@
 --- @title  mmadt filesystem extensions
 --- @author Dogturd Stynx
 ###
-/mmadt/ext/filesystem/  .~>
-  [import/            => [|math=>[nat],
+/mmadt/model/fs/  .~>
+  [import/            => [../../math=>[nat],
    prefix/            => ~>
     [|fs              => type/rec/fs,
      |file            => type/rec/fs/file,
@@ -17,7 +17,7 @@
 ###
 
 
-/mmadt/mod/fs/ ~>
+/mmadt/model/fs/ ~>
  [structure/            => ~>
    [|file -> |type/rec/file => [:name  => |as(/str/),
                                 :size  => |as(/nat/)],

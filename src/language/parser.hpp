@@ -468,7 +468,7 @@ namespace fhatos {
                   break;
                 }
                 instToken += v;
-                //StringHelper::eat_space(&ss);
+                StringHelper::eat_space(&ss);
                 if (ss.peek() != '(') { // enable paren-use of unary operators
                   instToken += '(';
                   tracker.parens++;

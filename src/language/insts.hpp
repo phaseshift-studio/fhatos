@@ -37,7 +37,7 @@ namespace fhatos {
                   return args.at(0);
                 };
               }, IType::ZERO_TO_MANY,
-              (starts->objs_value()->empty() ? Obj::to_noobj() : starts));
+              starts);
     }
 
     static Obj_p explain() {
@@ -393,9 +393,9 @@ namespace fhatos {
       return Obj::to_inst(
               "group", {keyCode, valueCode, reduceCode},
               [](const InstArgs &args) {
-                const Obj_p &keyCode = args.at(0);
-                const Obj_p &valueCode = args.at(1);
-                const Obj_p &reduceCode = args.at(2);
+                const Obj_p &keyCode = !args.empty() ? args.at(0) : noobj();
+                const Obj_p &valueCode = args.size() > 1 ? args.at(1) : noobj();
+                const Obj_p &reduceCode = args.size() > 2 ? args.at(2) : noobj();
                 return [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
                   Obj::RecMap<> map = Obj::RecMap<>();
                   for (const Obj_p &obj: *barrier->objs_value()) {
@@ -623,7 +623,7 @@ namespace fhatos {
                   return obj->isObjs() ? obj : Obj::to_objs({obj});
                 };
               },
-              IType::MANY_TO_MANY);
+              IType::MANY_TO_MANY, objs({}));
     }
 
     static Objs_p block(const Obj_p &rhs) {
@@ -687,8 +687,9 @@ namespace fhatos {
       return Obj::to_inst(
               "each", {poly},
               [](const InstArgs &args) {
-                const Obj_p &poly = args.at(0);
-                return [poly](const Poly_p &lhs) {
+                const Obj_p &arg = args.at(0);
+                return [arg](const Poly_p &lhs) {
+                  Lst_p poly = arg->isLst() ? arg : arg->apply(lhs);
                   if (lhs->isLst()) {
                     Lst_p ret = Obj::to_lst();
                     for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
@@ -743,8 +744,6 @@ namespace fhatos {
       static Map<string, string> map = {{"-<", "split"},
                                         {">-", "merge"},
                                         {"~",  "match"},
-                                        {"~>", "embed"},
-                                        {"<~", "embed_inv"},
                                         {"<-", "to"},
                                         {"->", "to_inv"},
                                         {"|",  "block"},
@@ -755,164 +754,56 @@ namespace fhatos {
       return map;
     }
 
-    static Map<ID, Function<List<Obj_p>, Inst_p>> *INSTS_MAP() {
-      static Map<ID, Function<List<Obj_p>, Inst_p>>
-              map = Map<ID, Function<List<Obj_p>, Inst_p >>();
-      return &map;
-    }
-
-    static void register_inst(const ID &typeId, const Function<InstArgs, Inst_p> &func) {
-      INSTS_MAP()->insert({typeId, func});
-      LOG(INFO, "Instruction registered: %s\n", typeId.toString().c_str());
-      ID shortID = INST_FURI->resolve(typeId.name());
-      if (!INSTS_MAP()->count(shortID)) {
-        INSTS_MAP()->insert({shortID, func});
-        LOG(INFO, FOS_TAB_4 "Shorthand registered: !b%s!!\n", shortID.toString().c_str());
-      } else {
-        LOG(WARN, FOS_TAB_4 "Unable to register shorthand: !b%s!!\n", shortID.toString().c_str());
-      }
-    }
-
-
-    static Inst_p saveWrap(const Inst_p inst) {
-      router()->write(inst->id(), inst);
-      return inst;
-    }
-
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
-      if (typeId == INST_FURI->resolve("start") || typeId == INST_FURI->resolve("__"))
-        return saveWrap(Insts::start(Objs::to_objs(args)));
-      if (typeId == INST_FURI->resolve("merge") || typeId == INST_FURI->resolve(">-"))
-        return saveWrap(Insts::merge());
-      if (typeId == INST_FURI->resolve("end"))
-        return Insts::end();
-      if (typeId == INST_FURI->resolve("match") || typeId == INST_FURI->resolve("~"))
-        return Insts::match(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("map"))
-        return saveWrap(Insts::map(argCheck(typeId, args, 1).at(0)));
-      if (typeId == INST_FURI->resolve("filter"))
-        return Insts::filter(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("side"))
-        return Insts::side(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("count"))
-        return Insts::count();
-      if (typeId == INST_FURI->resolve("subset"))
-        return Insts::subset(argCheck(typeId, args, 2).at(0), args.at(1));
-      if (typeId == INST_FURI->resolve("sum"))
-        return Insts::sum();
-      if (typeId == INST_FURI->resolve("prod"))
-        return Insts::prod();
-      if (typeId == INST_FURI->resolve("group"))
-        return Insts::group(args.empty() ? Obj::to_noobj() : args.at(0),
-                            args.size() < 2 ? Obj::to_noobj() : args.at(1),
-                            args.size() < 3 ? Obj::to_noobj() : args.at(2));
-      if (typeId == INST_FURI->resolve("get"))
-        return Insts::get(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("set"))
-        return Insts::set(argCheck(typeId, args, 2).at(0), args.at(1));
-      if (typeId == INST_FURI->resolve("noop"))
-        return Insts::noop();
-      if (typeId == INST_FURI->resolve("as"))
-        return Insts::as(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("by"))
-        return Insts::by(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("type"))
-        return Insts::type();
-      if (typeId == INST_FURI->resolve("is"))
-        return Insts::is(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("plus"))
-        return Insts::plus(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("mult"))
-        return Insts::mult(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("mod"))
-        return Insts::mod(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("eq"))
-        return Insts::eq(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("neq"))
-        return Insts::neq(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("gte"))
-        return Insts::gte(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("gt"))
-        return Insts::gt(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("lte"))
-        return Insts::lte(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("lt"))
-        return Insts::lt(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("to"))
-        return Insts::to(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("to_inv") || typeId == INST_FURI->resolve("->"))
-        return Insts::to_inv(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("from") || typeId == INST_FURI->resolve("*"))
-        return Insts::from(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("pub"))
-        return Insts::pub(argCheck(typeId, args, 2).at(0), args.at(1));
-      if (typeId == INST_FURI->resolve("flip"))
-        return Insts::flip(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("sub"))
-        return Insts::sub(argCheck(typeId, args, 2).at(0), args.at(1));
-      if (typeId == INST_FURI->resolve("within"))
-        return Insts::within(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("print"))
-        return Insts::print(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("switch"))
-        return Insts::bswitch(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("explain"))
-        return Insts::explain();
-      if (typeId == INST_FURI->resolve("drop") || typeId == INST_FURI->resolve("V"))
-        return Insts::drop(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("lift") || typeId == INST_FURI->resolve("^"))
-        return Insts::lift(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("count"))
-        return Insts::count();
-      if (typeId == INST_FURI->resolve("size"))
-        return Insts::size();
-      if (typeId == INST_FURI->resolve("foldr"))
-        return Insts::foldr(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("barrier"))
-        return Insts::barrier(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("block") || typeId == INST_FURI->resolve("|"))
-        return Insts::block(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("cleave"))
-        return Insts::cleave(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("split"))
-        return Insts::split(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("each") || typeId == INST_FURI->resolve("="))
-        return Insts::each(argCheck(typeId, args, 1).at(0));
-      if (typeId == INST_FURI->resolve("window"))
-        return Insts::window(argCheck(typeId, args, 1).at(0));
-      // check registered instructions
-      if (INSTS_MAP()->count(typeId))
-        return INSTS_MAP()->at(typeId)(args);
       /// try user defined inst
-      const Obj_p userInstBCode = Router::singleton()->read(share(ID(INST_FURI->resolve(typeId))));
-      if (userInstBCode->isNoObj()) {
+      const Obj_p userInstBCode = router()->read(id_p(INST_FURI->resolve(typeId)));
+      if (userInstBCode->isNoObj())
         throw fError("Unknown instruction: %s\n", typeId.toString().c_str());
-      }
-      if (userInstBCode->isBytecode()) {
+      if (userInstBCode->isBytecode() || userInstBCode->isInst()) {
         return Obj::to_inst(
                 typeId.name(), args,
                 [userInstBCode](const InstArgs &args) {
-                  return [userInstBCode, args](const Obj_p &lhs) {
-                    int counter = 0;
-                    for (const Obj_p &arg: args) {
-                      Router::singleton()->write(share(ID((string("_") + to_string(counter++)).c_str())),
-                                                 arg->apply(lhs));
-                    }
-                    const Obj_p ret = userInstBCode->apply(lhs);
-                    for (int i = 0; i < counter; i++) {
-                      Router::singleton()->remove(share(ID((string("_") + to_string(i)).c_str())));
-                    }
-                    return ret;
+                  const BCode_p new_code =
+                          replace_from(args, userInstBCode->isBytecode() ? userInstBCode : bcode({userInstBCode}));
+                  return [new_code, args](const Obj_p &lhs) {
+                    return new_code->apply(lhs);
                   };
                 },
-                userInstBCode->bcode_value()->front()->itype());
+                userInstBCode->itype());
       } else {
-        throw fError("!b%s!! does not resolve to bytecode: %s\n", typeId.toString().c_str(),
+        throw fError("!b%s!! does not resolve to an inst or bytecode: %s\n", typeId.toString().c_str(),
                      userInstBCode->toString().c_str());
       }
     }
+
+  private:
+    static BCode_p replace_from(const InstArgs &args, const BCode_p &oldBCode) {
+      BCode_p newBCode = bcode({});
+      LOG(TRACE, "old bcode type: %s\n", oldBCode->toString().c_str());
+      for (const Inst_p &inst: *oldBCode->bcode_value()) {
+        InstArgs newArgs;
+        for (const Obj_p &arg: inst->inst_args()) {
+          if (arg->isBytecode()) {
+            const BCode_p new_bcode = replace_from(args, arg);
+            newArgs.push_back(new_bcode);
+          } else if (arg->isInst() && arg->inst_op() == "from" && arg->inst_arg(0)->isUri() &&
+                     arg->inst_arg(0)->uri_value().toString()[0] == '_') {
+            newArgs.push_back(args.at(stoi(arg->inst_arg(0)->uri_value().toString().substr(1))));
+          } else {
+            newArgs.push_back(arg);
+          }
+        }
+        newBCode->add_inst(Obj::to_inst(inst->inst_op(), newArgs, inst->inst_f(), inst->itype(), inst->inst_seed()));
+      }
+      return newBCode;
+    }
   };
+
+
+  static Inst_p x(const string &uri) {
+    return Insts::from(Obj::to_uri(uri));
+  }
 } // namespace fhatos
 
 #endif

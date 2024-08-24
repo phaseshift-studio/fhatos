@@ -216,7 +216,7 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Obj final : public IDed, public std::enable_shared_from_this<Obj> {
+  class Obj final : public IDed, public std::enable_shared_from_this<Obj>, Function<Obj_p, Obj_p> {
   public:
     Any _value;
 
@@ -965,6 +965,13 @@ namespace fhatos {
           }
           return currentObj;
         }
+        case OType::OBJS: {
+          Objs_p objs = Obj::to_objs();
+          for (const Obj_p &obj: *this->objs_value()) {
+            objs->objs_value()->push_back(obj->apply(lhs));
+          }
+          return objs;
+        }
         case OType::NOOBJ:
           return Obj::to_noobj();
         default:
@@ -1278,6 +1285,7 @@ namespace fhatos {
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(list); }
 
   [[maybe_unused]] static BCode_p bcode(const InstList &list) { return Obj::to_bcode(list); }
+
 
   struct CInstFunction : public InstFunction {
     const string &filename;

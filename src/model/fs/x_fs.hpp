@@ -24,6 +24,7 @@
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(fiber.hpp)
 #include <structure/stype/empty.hpp>
+#include <language/types.hpp>
 
 #define FOS_DEFAULT_MORE_LINES 10
 
@@ -72,73 +73,71 @@ namespace fhatos {
         }
       });
       ///////////////////////////////////////////////////////////////////
-      Insts::register_inst(INST_FS_FURI->resolve("root"), [this](const List<Obj_p> &) {
-        return Obj::to_inst(
-                "root", {}, [this](const InstArgs &) { return [this](const Obj_p &) { return this->root(); }; },
-                IType::ZERO_TO_ONE, Obj::to_noobj(),
-                share<ID>(INST_FS_FURI->resolve("root")));
-      });
-      Insts::register_inst(INST_FS_FURI->resolve("ls"), [this](const List<Obj_p> &args) {
-        return Obj::to_inst(
-                "ls", args,
-                [this](const InstArgs &args) {
-                  return [this, args](const Obj_p &lhs) {
-                    return args.empty() ? this->ls(lhs) : this->ls(args.at(0)->apply(lhs));
-                  };
-                },
-                IType::ONE_TO_MANY, Obj::to_objs(), share<ID>(INST_FS_FURI->resolve("ls")));
-      });
-      Insts::register_inst(INST_FS_FURI->resolve("mkdir"), [this](const List<Obj_p> &args) {
-        return Obj::to_inst(
-                "mkdir", args,
-                [this](const InstArgs &args) {
-                  return [this, args](const Obj_p &lhs) {
-                    return this->mkdir(args.at(0)->apply(lhs)->uri_value());
-                  };
-                },
-                IType::ONE_TO_MANY, Obj::to_objs(), share<ID>(INST_FS_FURI->resolve("mkdir")));
-      });
-      Insts::register_inst(INST_FS_FURI->resolve("more"), [this](const List<Obj_p> &args) {
-        return Obj::to_inst(
-                "more", args,
-                [this](const InstArgs &args) {
-                  return [this, args](const Obj_p &lhs) {
-                    if (args.empty())
-                      return this->more(lhs, FOS_DEFAULT_MORE_LINES);
-                    if (args.size() == 1) {
-                      const Obj_p apArg0 = args.at(0)->apply(lhs);
-                      if (apArg0->isInt())
-                        return this->more(lhs, apArg0->int_value());
-                      else
-                        return this->more(apArg0, FOS_DEFAULT_MORE_LINES);
-                    } else {
-                      const Obj_p apArg0 = args.at(0)->apply(lhs);
-                      const Obj_p apArg1 = args.at(1)->apply(lhs);
-                      return this->more(apArg0, apArg1->int_value());
-                    }
-                  };
-                },
-                IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("more")));
-      });
-      Insts::register_inst(INST_FS_FURI->resolve("append"), [this](const List<Obj_p> &args) {
-        return Obj::to_inst(
-                "append", args, [this](const InstArgs &args) {
-                  return [this, args](const Obj_p &lhs) {
-                    return this->cat(lhs, args.at(0)->apply(lhs));
-                  };
-                },
-                IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("append")));
-      });
-      Insts::register_inst(INST_FS_FURI->resolve("touch"), [this](const List<Obj_p> &args) {
-        return Obj::to_inst(
-                "touch", args,
-                [this](const InstArgs &args) {
-                  return [this, args](const Obj_p &lhs) {
-                    return this->touch(args.at(0)->apply(lhs)->uri_value());
-                  };
-                },
-                IType::ONE_TO_ONE, Obj::to_noobj(), share<ID>(INST_FS_FURI->resolve("touch")));
-      });
+      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("root")),
+                                   Obj::to_inst(
+                                           "fs:root", {}, [this](const InstArgs &) {
+                                             return [this](const Obj_p &) { return this->root(); };
+                                           },
+                                           IType::ZERO_TO_ONE, Obj::to_noobj(),
+                                           id_p(INST_FURI->resolve("root"))));
+      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("ls")), Obj::to_inst(
+              "ls", {x("_0")},
+              [this](const InstArgs &args) {
+                return [this, args](const Obj_p &lhs) {
+                  return args.empty() ? this->ls(lhs) : this->ls(args.at(0)->apply(lhs));
+                };
+              },
+              IType::ONE_TO_MANY, Obj::to_objs(), id_p(INST_FS_FURI->resolve("ls"))));
+      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("mkdir")),
+                                   Obj::to_inst(
+                                           "fs:mkdir", {x("_0")},
+                                           [this](const InstArgs &args) {
+                                             return [this, args](const Obj_p &lhs) {
+                                               return this->mkdir(args.at(0)->apply(lhs)->uri_value());
+                                             };
+                                           },
+                                           IType::ONE_TO_MANY, Obj::to_objs(),
+                                           id_p(INST_FS_FURI->resolve("mkdir"))));
+      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("more")),
+                                   Obj::to_inst(
+                                           "fs:more", {x("_0")},
+                                           [this](const InstArgs &args) {
+                                             return [this, args](const Obj_p &lhs) {
+                                               if (args.empty())
+                                                 return this->more(lhs, FOS_DEFAULT_MORE_LINES);
+                                               if (args.size() == 1) {
+                                                 const Obj_p apArg0 = args.at(0)->apply(lhs);
+                                                 if (apArg0->isInt())
+                                                   return this->more(lhs, apArg0->int_value());
+                                                 else
+                                                   return this->more(apArg0, FOS_DEFAULT_MORE_LINES);
+                                               } else {
+                                                 const Obj_p apArg0 = args.at(0)->apply(lhs);
+                                                 const Obj_p apArg1 = args.at(1)->apply(lhs);
+                                                 return this->more(apArg0, apArg1->int_value());
+                                               }
+                                             };
+                                           },
+                                           IType::ONE_TO_ONE, Obj::to_noobj(), id_p(INST_FS_FURI->resolve("more"))));
+      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("append")),
+                                   Obj::to_inst(
+                                           "fs:append", {x("_0")}, [this](const InstArgs &args) {
+                                             return [this, args](const Obj_p &lhs) {
+                                               return this->cat(lhs, args.at(0)->apply(lhs));
+                                             };
+                                           },
+                                           IType::ONE_TO_ONE, Obj::to_noobj(),
+                                           id_p(INST_FS_FURI->resolve("append"))));
+      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("touch")),
+                                   Obj::to_inst(
+                                           "fs:touch", {x("_0")},
+                                           [this](const InstArgs &args) {
+                                             return [this, args](const Obj_p &lhs) {
+                                               return this->touch(args.at(0)->apply(lhs)->uri_value());
+                                             };
+                                           },
+                                           IType::ONE_TO_ONE, Obj::to_noobj(),
+                                           id_p(INST_FURI->resolve("touch"))));
     }
 
     virtual File_p to_file(const ID &) const = 0;

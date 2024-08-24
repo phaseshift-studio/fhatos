@@ -33,6 +33,69 @@ namespace fhatos {
 
     explicit Types(const ID &id = FOS_TYPE_PREFIX) : Actor(id) {}
 
+    static ID_p inst_id(const string &opcode) {
+      return id_p(INST_FURI->resolve(opcode));
+    }
+
+    void load_insts() {
+      this->saveType(inst_id("plus"), Insts::plus(x("_0")));
+      this->saveType(inst_id("mult"), Insts::mult(x("_0")));
+      this->saveType(inst_id("mod"), Insts::mod(x("_0")));
+      this->saveType(inst_id("eq"), Insts::eq(x("_0")));
+      this->saveType(inst_id("neq"), Insts::neq(x("_0")));
+      this->saveType(inst_id("gte"), Insts::gte(x("_0")));
+      this->saveType(inst_id("lte"), Insts::lte(x("_0")));
+      this->saveType(inst_id("lt"), Insts::lt(x("_0")));
+      this->saveType(inst_id("gt"), Insts::gt(x("_0")));
+      this->saveType(inst_id("to"), Insts::to(x("_0")));
+      this->saveType(inst_id("to_inv"), Insts::to_inv(x("_0")));
+      this->saveType(inst_id("->"), Insts::to_inv(x("_0")));
+      this->saveType(inst_id("start"), Insts::start(x("_0")));
+      this->saveType(inst_id("__"), Insts::start(x("_0")));
+      this->saveType(inst_id("merge"), Insts::merge());
+      this->saveType(inst_id(">-"), Insts::merge());
+      this->saveType(inst_id("map"), Insts::map(x("_0")));
+      this->saveType(inst_id("filter"), Insts::filter(x("_0")));
+      this->saveType(inst_id("count"), Insts::count());
+      this->saveType(inst_id("subset"), Insts::subset(x("_0"), x("_1")));
+      this->saveType(inst_id("sum"), Insts::sum());
+      this->saveType(inst_id("prod"), Insts::prod());
+      this->saveType(inst_id("group"), Insts::group(x("_0"), x("_1"), x("_2")));
+      this->saveType(inst_id("get"), Insts::get(x("_0")));
+      this->saveType(inst_id("set"), Insts::set(x("_0"), x("_1")));
+      this->saveType(inst_id("noop"), Insts::noop());
+      this->saveType(inst_id("as"), Insts::as(x("_0")));
+      this->saveType(inst_id("by"), Insts::by(x("_0")));
+      this->saveType(inst_id("type"), Insts::type());
+      this->saveType(inst_id("is"), Insts::is(x("_0")));
+      this->saveType(inst_id("from"), Insts::from(x("_0")));
+      this->saveType(inst_id("*"), Insts::from(x("_0")));
+      this->saveType(inst_id("pub"), Insts::pub(x("_0"), x("_1")));
+      this->saveType(inst_id("sub"), Insts::sub(x("_0"), x("_1")));
+      this->saveType(inst_id("within"), Insts::within(x("_0")));
+      this->saveType(inst_id("print"), Insts::print(x("_0")));
+      this->saveType(inst_id("switch"), Insts::bswitch(x("_0")));
+      this->saveType(inst_id("explain"), Insts::explain());
+      this->saveType(inst_id("drop"), Insts::drop(x("_0")));
+      this->saveType(inst_id("V"), Insts::drop(x("_0")));
+      this->saveType(inst_id("lift"), Insts::lift(x("_0")));
+      this->saveType(inst_id("^"), Insts::lift(x("_0")));
+      this->saveType(inst_id("size"), Insts::size());
+      this->saveType(inst_id("foldr"), Insts::foldr(x("_0")));
+      this->saveType(inst_id("barrier"), Insts::barrier(x("_0")));
+      this->saveType(inst_id("block"), Insts::block(x("_0")));
+      this->saveType(inst_id("|"), Insts::block(x("_0")));
+      //bcode({Insts::drop(bcode({Insts::from(uri(inst_id("block")))}))}));
+      this->saveType(inst_id("cleave"), Insts::cleave(x("_0")));
+      this->saveType(inst_id("split"), Insts::split(x("_0")));
+      this->saveType(inst_id("each"), Insts::each(x("_0")));
+      this->saveType(inst_id("="), Insts::each(x("_0")));
+      this->saveType(inst_id("window"), Insts::window(x("_0")));
+      this->saveType(inst_id("match"), Insts::match(x("_0")));
+      this->saveType(inst_id("~"), Insts::match(x("_0")));
+      this->saveType(inst_id("end"), Insts::end());
+    }
+
   public:
     static ptr<Types> singleton(const ID &id = FOS_TYPE_PREFIX) {
       static ptr<Types> types_p = ptr<Types>(new Types(id));
@@ -55,6 +118,8 @@ namespace fhatos {
                 // id_p(message->target));
                 //}
               }}));
+      this->load_insts();
+
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -71,9 +136,11 @@ namespace fhatos {
           this->write(typeId, typeDef, this->id());
         }
         if (OType::INST == OTypes.toEnum(string(typeId->path(FOS_BASE_TYPE_INDEX)))) {
-          const Inst_p inst = Insts::to_inst(*typeId, *typeDef->bcode_value());
+          const Inst_p inst = Insts::to_inst(*typeId,
+                                             typeDef->isBytecode() ? *typeDef->bcode_value() : List<Obj_p>({typeDef}));
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                      typeDef->bcode_value()->front()->toString().c_str(),
+                      typeDef->isBytecode() ? typeDef->bcode_value()->front()->toString().c_str()
+                                            : typeDef->toString().c_str(),
                       ITypeSignatures.toChars(inst->itype()).c_str());
         } else {
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
