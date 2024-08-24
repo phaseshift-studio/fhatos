@@ -16,9 +16,9 @@
 using namespace fhatos;
 
 void printResult(const Obj_p &obj, const uint8_t depth = 0) {
-  if (obj->isNoObj())
+  if (obj->is_noobj())
     return;
-  if (obj->isObjs()) {
+  if (obj->is_objs()) {
     for (Obj_p &o: *obj->objs_value()) {
       printResult(o, depth + 1);
     }
