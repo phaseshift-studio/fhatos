@@ -102,7 +102,7 @@ namespace fhatos {
           const ptr<Subscription> sub_ptr = share<Subscription>(*subscription);
           this->subscriptions->push_back(sub_ptr);
           const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
-          if (objx->isObjs()) {
+          if (objx->is_objs()) {
             for (const auto &obj: *objx->objs_value()) {
               this->outbox_->push_back(share(Mail(
                       {subscription,
@@ -112,7 +112,7 @@ namespace fhatos {
                                .retain = true})}))); // TODO: need both source of the retain and the target of obj
             }
           } /* else {
-           if (!objx->isNoObj()) {
+           if (!objx->is_noobj()) {
              this->outbox_->push_back(share(
                  Mail({subscription,
                        share(Message{.source = ID("anon_src"),

@@ -81,7 +81,7 @@ namespace fhatos {
                 return [args](const Obj_p &lhs) {
                   try {
                     for (const auto &[key, value]: *args.at(0)->rec_value()) {
-                      if (!key->apply(lhs)->isNoObj())
+                      if (!key->apply(lhs)->is_noobj())
                         return value->apply(lhs);
                     }
                   } catch (const std::bad_any_cast &e) {
@@ -96,7 +96,7 @@ namespace fhatos {
     /* static Objs_p bunion(const Rec_p rec) {
    return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
      for (const auto &[key, value]: *rec->rec_value()) {
-       if (!key->apply(lhs)->isNoObj())
+       if (!key->apply(lhs)->is_noobj())
          return value->apply(lhs);
      }
      return Obj::to_noobj();
@@ -121,7 +121,7 @@ namespace fhatos {
               "filter", {bcode},
               [](const InstArgs &args) {
                 return [args](const Obj_p &lhs) {
-                  return args.at(0)->apply(lhs)->isNoObj() ? Obj::to_noobj() : lhs;
+                  return args.at(0)->apply(lhs)->is_noobj() ? Obj::to_noobj() : lhs;
                 };
               },
               IType::ONE_TO_ONE);
@@ -307,7 +307,7 @@ namespace fhatos {
                 return [uri](const Obj_p &lhs) {
                   RESPONSE_CODE _rc = OK;
                   if (uri->uri_value().is_pattern()) {
-                    if (lhs->isRec()) {
+                    if (lhs->is_rec()) {
                       for (const auto &[k, v]: *lhs->rec_value()) {
                         router()->write(id_p(uri->uri_value().resolve(k->uri_value())), v->apply(uri));
                       }
@@ -342,7 +342,7 @@ namespace fhatos {
                   return router()->read(furi_p(args.at(0)->apply(lhs)->uri_value()));
                 };
               },
-              (uri->isUri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
+              (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
     static Uri_p type() {
@@ -399,8 +399,8 @@ namespace fhatos {
                 return [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
                   Obj::RecMap<> map = Obj::RecMap<>();
                   for (const Obj_p &obj: *barrier->objs_value()) {
-                    const Obj_p key = keyCode->isNoObj() ? obj : keyCode->apply(obj);
-                    const Obj_p value = valueCode->isNoObj() ? obj : valueCode->apply(obj);
+                    const Obj_p key = keyCode->is_noobj() ? obj : keyCode->apply(obj);
+                    const Obj_p value = valueCode->is_noobj() ? obj : valueCode->apply(obj);
                     if (map.count(key)) {
                       Lst_p list = map.at(key);
                       list->lst_value()->push_back(value);
@@ -427,7 +427,7 @@ namespace fhatos {
                   return lhs;
                 };
               },
-              to_print->isBytecode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
+              to_print->is_bcode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
     }
 
     static Obj_p flip(const Obj_p &rhs) {
@@ -491,7 +491,7 @@ namespace fhatos {
                 const Obj_p &pattern = args.at(0);
                 const Obj_p &onRecv = args.at(1);
                 return [pattern, onRecv](const Obj_p &lhs) {
-                  if (onRecv->isNoObj()) {
+                  if (onRecv->is_noobj()) {
                     router()->route_unsubscribe(id_p(pattern->apply(lhs)->uri_value()));
                   } else {
                     router()->route_subscription(
@@ -512,7 +512,7 @@ namespace fhatos {
         return [biFunction](const Objs_p &lhs) {
           Obj_p current = Obj::to_noobj();
           for (const Obj_p &obj: *lhs->objs_value()) {
-            if (current->isNoObj()) {
+            if (current->is_noobj()) {
               current = obj;
             } else {
               current = biFunction(obj, current);
@@ -552,13 +552,13 @@ namespace fhatos {
                 return [args](const Obj_p &lhs) {
                   const Obj_p &obj = args.at(0);
                   List<Obj_p> ret;
-                  if (obj->isLst() && lhs->isLst()) {
+                  if (obj->is_lst() && lhs->is_lst()) {
                     for (size_t i = 0; i <= (lhs->lst_value()->size() - obj->lst_value()->size()); i++) {
                       bool match = true;
                       List<Obj_p> m;
                       for (size_t j = 0; j < obj->lst_value()->size(); j++) {
                         const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j));
-                        match = !x->isNoObj() && match;
+                        match = !x->is_noobj() && match;
                         if (!match)
                           break;
                         m.push_back(x);
@@ -567,14 +567,14 @@ namespace fhatos {
                         ret.push_back(Obj::to_lst(share(m)));
                       }
                     }
-                  } else if (obj->isLst() && lhs->isStr()) {
+                  } else if (obj->is_lst() && lhs->is_str()) {
                     for (size_t i = 0; i <= (lhs->str_value().length() - obj->lst_value()->size()); i++) {
                       bool match = true;
                       string m;
                       for (size_t j = 0; j < obj->lst_value()->size(); j++) {
                         const Obj_p x = obj->lst_value()->at(j)->apply(
                                 Obj::to_str(string() + lhs->str_value().at(i + j)));
-                        match = !x->isNoObj() && match;
+                        match = !x->is_noobj() && match;
                         if (!match)
                           break;
                         m += x->str_value();
@@ -595,7 +595,7 @@ namespace fhatos {
               "within", {bcode},
               [](const InstArgs &args) {
                 return [args](const Poly_p &lhs) {
-                  if (lhs->isLst()) {
+                  if (lhs->is_lst()) {
                     return Obj::to_lst(Options::singleton()
                                                ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
                                                ->objs_value());
@@ -620,7 +620,7 @@ namespace fhatos {
               [](const InstArgs &args) {
                 return [args](const Objs_p &lhs) {
                   const Obj_p obj = args.at(0)->apply(lhs);
-                  return obj->isObjs() ? obj : Obj::to_objs({obj});
+                  return obj->is_objs() ? obj : Obj::to_objs({obj});
                 };
               },
               IType::MANY_TO_MANY, objs({}));
@@ -644,7 +644,7 @@ namespace fhatos {
               [](const InstArgs &) {
                 return [](const Poly_p &lhs) {
                   Objs_p objs = Obj::to_objs();
-                  if (lhs->isLst()) {
+                  if (lhs->is_lst()) {
                     for (const auto &obj: *lhs->lst_value()) {
                       objs->objs_value()->push_back(obj);
                     }
@@ -662,7 +662,7 @@ namespace fhatos {
                 const Obj_p &start = args.at(0);
                 const Obj_p &end = args.at(1);
                 return [start, end](const Poly_p &lhs) {
-                  if (lhs->isLst()) {
+                  if (lhs->is_lst()) {
                     Obj::LstList_p<Obj_p> sub = share(List<Obj_p>());
                     int s = start->apply(lhs)->int_value();
                     int e = end->apply(lhs)->int_value();
@@ -689,8 +689,8 @@ namespace fhatos {
               [](const InstArgs &args) {
                 const Obj_p &arg = args.at(0);
                 return [arg](const Poly_p &lhs) {
-                  Lst_p poly = arg->isLst() ? arg : arg->apply(lhs);
-                  if (lhs->isLst()) {
+                  Lst_p poly = arg->is_lst() ? arg : arg->apply(lhs);
+                  if (lhs->is_lst()) {
                     Lst_p ret = Obj::to_lst();
                     for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
                       if (poly->lst_value()->size() >= i) {
@@ -725,10 +725,10 @@ namespace fhatos {
 
     static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
                                const Obj_p &objC = Obj::to_noobj(), const Obj_p &objD = Obj::to_noobj()) {
-      bool result = /*objA->isUri() ? objA->uri_value().isAbsolute() :*/ !objA->isNoOpBytecode();
-      result = result && /*(objB->isUri() ? objB->uri_value().isAbsolute() :*/ !objB->isNoOpBytecode();
-      result = result && /*(objC->isUri() ? objC->uri_value().isAbsolute() :*/ !objC->isNoOpBytecode();
-      result = result && /*(objD->isUri() ? objD->uri_value().isAbsolute() :*/ !objD->isNoOpBytecode();
+      bool result = /*objA->isUri() ? objA->uri_value().isAbsolute() :*/ !objA->is_noop_bcode();
+      result = result && /*(objB->isUri() ? objB->uri_value().isAbsolute() :*/ !objB->is_noop_bcode();
+      result = result && /*(objC->isUri() ? objC->uri_value().isAbsolute() :*/ !objC->is_noop_bcode();
+      result = result && /*(objD->isUri() ? objD->uri_value().isAbsolute() :*/ !objD->is_noop_bcode();
       return result;
     }
 
@@ -758,14 +758,14 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       /// try user defined inst
       const Obj_p userInstBCode = router()->read(id_p(INST_FURI->resolve(typeId)));
-      if (userInstBCode->isNoObj())
+      if (userInstBCode->is_noobj())
         throw fError("Unknown instruction: %s\n", typeId.toString().c_str());
-      if (userInstBCode->isBytecode() || userInstBCode->isInst()) {
+      if (userInstBCode->is_bcode() || userInstBCode->is_inst()) {
         return Obj::to_inst(
                 typeId.name(), args,
                 [userInstBCode](const InstArgs &args) {
                   const BCode_p new_code =
-                          replace_from(args, userInstBCode->isBytecode() ? userInstBCode : bcode({userInstBCode}));
+                          replace_from(args, userInstBCode->is_bcode() ? userInstBCode : bcode({userInstBCode}));
                   return [new_code, args](const Obj_p &lhs) {
                     return new_code->apply(lhs);
                   };
@@ -778,28 +778,33 @@ namespace fhatos {
     }
 
   private:
-    static BCode_p replace_from(const InstArgs &args, const BCode_p &oldBCode) {
-      BCode_p newBCode = bcode({});
-      LOG(TRACE, "old bcode type: %s\n", oldBCode->toString().c_str());
-      for (const Inst_p &inst: *oldBCode->bcode_value()) {
-        InstArgs newArgs;
+    static BCode_p replace_from(const InstArgs &args, const BCode_p &old_bcode) {
+      BCode_p new_bcode = bcode({});
+      LOG(TRACE, "old bcode type: %s\n", old_bcode->toString().c_str());
+      for (const Inst_p &inst: *old_bcode->bcode_value()) {
+        InstArgs new_args;
         for (const Obj_p &arg: inst->inst_args()) {
-          if (arg->isBytecode()) {
-            const BCode_p new_bcode = replace_from(args, arg);
-            newArgs.push_back(new_bcode);
-          } else if (arg->isInst() && arg->inst_op() == "from" && arg->inst_arg(0)->isUri() &&
+          if (arg->is_bcode()) {
+            new_args.push_back(replace_from(args, arg));
+          } else if (arg->is_inst() && arg->inst_op() == "from" && arg->inst_arg(0)->is_uri() &&
                      arg->inst_arg(0)->uri_value().toString()[0] == '_') {
-            newArgs.push_back(args.at(stoi(arg->inst_arg(0)->uri_value().toString().substr(1))));
+            const uint8_t index = stoi(arg->inst_arg(0)->uri_value().toString().substr(1));
+            if (index < args.size())
+              new_args.push_back(args.at(index));
           } else {
-            newArgs.push_back(arg);
+            new_args.push_back(arg);
           }
         }
-        newBCode->add_inst(Obj::to_inst(inst->inst_op(), newArgs, inst->inst_f(), inst->itype(), inst->inst_seed()));
+        new_bcode->add_inst(
+                Obj::to_inst(inst->inst_op(), new_args, inst->inst_f(), inst->itype(), inst->inst_seed()));
       }
-      return newBCode;
+      return new_bcode;
     }
   };
 
+  static Inst_p x(const uint8_t arg_num) {
+    return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)));
+  }
 
   static Inst_p x(const string &uri) {
     return Insts::from(Obj::to_uri(uri));

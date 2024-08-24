@@ -85,7 +85,7 @@ namespace fhatos {
       return Obj::to_objs(listing);
     }
 
-    Lst_p more(const File_p &file, const uint16_t &max_lines) const override {
+    Lst_p more(const File_p &file, uint16_t max_lines) const override {
       fs::File f = FOS_FS.open(this->make_native_path(file->uri_value()).toString().c_str(), "r", false);
       List_p<Str_p> lines = share(List<Str_p>());
       string line;

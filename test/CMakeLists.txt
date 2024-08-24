@@ -63,7 +63,9 @@ IF (BUILD_TESTS)
                 MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
                 TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
             ENDIF ()
-            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity::framework tsl::ordered_map paho-mqttpp3)
+            FIND_PACKAGE(unity)
+            FIND_PACKAGE(ordered_map)
+            TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqttpp3)
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

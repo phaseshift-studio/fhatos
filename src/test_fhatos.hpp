@@ -316,7 +316,7 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const OBJ &obj: expected) {
     auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<OBJ> element) {
-      if (obj.isReal()) {
+      if (obj.is_real()) {
         return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
       } else
         return obj == *element;

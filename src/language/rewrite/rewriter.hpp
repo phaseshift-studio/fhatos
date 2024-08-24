@@ -61,7 +61,7 @@ namespace fhatos {
                                                (string(pad2) + inst->toString()).c_str(),
                                                (string(pad) + ITypeSignatures.toChars(inst->itype())).c_str());
                                       for (const auto &arg: inst->inst_args()) {
-                                        if (arg->isBytecode()) {
+                                        if (arg->is_bcode()) {
                                           fun(arg, p, depth + 1);
                                         }
                                       }
@@ -84,13 +84,13 @@ namespace fhatos {
                         bool found = false;
                         List<Inst_p> newInsts;
                         for (const Inst_p &inst: *bcode->bcode_value()) {
-                          if (inst->id()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->isNoObj()) {
+                          if (inst->id()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->is_noobj()) {
                             found = true;
                             // rewrite args
                             bool done = false;
                             List<Obj_p> newArgs;
                             for (const Obj_p &arg: prev->inst_args()) {
-                              if (!done && arg->isNoObj()) {
+                              if (!done && arg->is_noobj()) {
                                 newArgs.push_back(inst->inst_arg(0));
                                 done = true;
                               } else {
@@ -121,9 +121,9 @@ namespace fhatos {
     static Rewrite starts(const Objs_p &starts) {
       return Rewrite({ID("/lang/rewrite/starts"),
                       [starts](const BCode_p &bcode) {
-                        if (starts->isNoObj())
+                        if (starts->is_noobj())
                           return bcode;
-                        List<Inst_p> new_insts = {Insts::start(starts->isObjs() ? starts : Obj::to_objs({starts}))};
+                        List<Inst_p> new_insts = {Insts::start(starts->is_objs() ? starts : Obj::to_objs({starts}))};
                         for (const Inst_p &inst: *bcode->bcode_value()) {
                           new_insts.push_back(inst);
                         }

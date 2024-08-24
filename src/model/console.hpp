@@ -46,11 +46,11 @@ namespace fhatos {
     }
 
     void printResult(const Obj_p &obj, const uint8_t depth = 0) const {
-      if (obj->isObjs()) {
+      if (obj->is_objs()) {
         for (Obj_p &o: *obj->objs_value()) {
           this->printResult(o, depth + 1);
         }
-      } else if (this->_nesting && obj->isLst()) {
+      } else if (this->_nesting && obj->is_lst()) {
         for (Obj_p &o: *obj->lst_value()) {
           this->printResult(o, depth + 1);
         }

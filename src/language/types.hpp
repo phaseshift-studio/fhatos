@@ -129,7 +129,7 @@ namespace fhatos {
       try {
         if (!viaPub) {
           Obj_p current = this->read(typeId, this->id());
-          if (!current->isNoObj() && current != typeDef) {
+          if (!current->is_noobj() && current != typeDef) {
             LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", typeId->toString().c_str(),
                         current->toString().c_str());
           }
@@ -137,10 +137,10 @@ namespace fhatos {
         }
         if (OType::INST == OTypes.toEnum(string(typeId->path(FOS_BASE_TYPE_INDEX)))) {
           const Inst_p inst = Insts::to_inst(*typeId,
-                                             typeDef->isBytecode() ? *typeDef->bcode_value() : List<Obj_p>({typeDef}));
+                                             typeDef->is_bcode() ? *typeDef->bcode_value() : List<Obj_p>({typeDef}));
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                      typeDef->isBytecode() ? typeDef->bcode_value()->front()->toString().c_str()
-                                            : typeDef->toString().c_str(),
+                      typeDef->is_bcode() ? typeDef->bcode_value()->front()->toString().c_str()
+                                          : typeDef->toString().c_str(),
                       ITypeSignatures.toChars(inst->itype()).c_str());
         } else {
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
@@ -166,7 +166,7 @@ namespace fhatos {
         return true;
       }
       const Obj_p type = this->read(typeId, this->id());
-      if (!type->isNoObj()) {
+      if (!type->is_noobj()) {
         if (obj.match(type, false)) {
           return true;
         }

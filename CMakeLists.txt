@@ -1,6 +1,6 @@
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
+CMAKE_MINIMUM_REQUIRED(VERSION 3.29.6)  # CMake version check
 PROJECT(fhatos)
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 SET(ENV{no-dev})
@@ -196,7 +196,8 @@ FETCHCONTENT_MAKEAVAILABLE(ordered_map)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC tsl::ordered_map)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE tsl::ordered_map)
+FIND_PACKAGE(ordered_map)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################

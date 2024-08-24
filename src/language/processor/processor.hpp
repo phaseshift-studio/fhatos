@@ -42,17 +42,17 @@ namespace fhatos {
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
       const Obj_p nextObj = this->_inst->apply(this->_obj);
       const Inst_p nextInst = bcode->nextInst(this->_inst);
-      if (nextObj->isObjs()) {
+      if (nextObj->is_objs()) {
         LOG(DEBUG, FOS_TAB_2 "!mUnrolling!! objs monad: %s\n", nextObj->toString().c_str());
         const List_p<Obj_p> objs = nextObj->objs_value();
         for (const auto &obj: *objs) {
-          if (!obj->isNoObj()) {
+          if (!obj->is_noobj()) {
             const Monad_p monad = share<Monad>(Monad(obj, nextInst));
             running->push_back(monad);
             LOG(DEBUG, FOS_TAB_4 "!mGenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
-      } else if (!nextObj->isNoObj()) {
+      } else if (!nextObj->is_noobj()) {
         const Monad_p monad = share<Monad>(Monad(nextObj, nextInst));
         running->push_back(monad);
         LOG(DEBUG, FOS_TAB_2 "!mGenerating!! monad: %s\n", monad->toString().c_str());
@@ -65,9 +65,9 @@ namespace fhatos {
 
     [[nodiscard]] long bulk() const { return this->_bulk; }
 
-    [[nodiscard]] bool halted() const { return this->_inst->isNoObj(); }
+    [[nodiscard]] bool halted() const { return this->_inst->is_noobj(); }
 
-    [[nodiscard]] bool dead() const { return this->_obj->isNoObj(); }
+    [[nodiscard]] bool dead() const { return this->_obj->is_noobj(); }
 
     [[nodiscard]] string toString() const {
       return string("!MM!y[!!") + this->obj()->toString() + "!g@!!" + this->inst()->toString() + "!y]!!";
@@ -90,7 +90,7 @@ namespace fhatos {
     }
 
     explicit Processor(const BCode_p &bcode, const Obj_p &starts = noobj()) : bcode(bcode) {
-      if (!this->bcode->isBytecode())
+      if (!this->bcode->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode);
       for (const Inst_p &inst: *this->bcode->bcode_value()) {
@@ -170,7 +170,7 @@ namespace fhatos {
         const ptr<E> end = this->next(steps);
         if (!end) {
           break;
-        } else if (!end->isNoObj()) {
+        } else if (!end->is_noobj()) {
           consumer(end);
         }
       }

@@ -325,67 +325,67 @@ namespace fhatos {
     }
 
     List_p<Obj_p> objs_value() const {
-      if (!this->isObjs())
+      if (!this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<List_p<Obj_p>>();
     }
 
     bool bool_value() const {
-      if (!this->isBool())
+      if (!this->is_bool())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<bool>();
     }
 
     FL_INT_TYPE int_value() const {
-      if (!this->isInt())
+      if (!this->is_int())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<FL_INT_TYPE>();
     }
 
     FL_REAL_TYPE real_value() const {
-      if (!this->isReal())
+      if (!this->is_real())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<FL_REAL_TYPE>();
     }
 
     const fURI uri_value() const {
-      if (!this->isUri())
+      if (!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<fURI>();
     }
 
     const string str_value() const {
-      if (!this->isStr())
+      if (!this->is_str())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<string>();
     }
 
     LstList_p<> lst_value() const {
-      if (!this->isLst())
+      if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<LstList_p<>>();
     }
 
     void lst_add(const Obj_p &obj) const {
-      if (!this->isLst())
+      if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       this->lst_value()->push_back(obj);
     }
 
     Obj_p lst_get(const Int_p &index) const {
-      if (!this->isLst())
+      if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->lst_value()->at(index->int_value());
     }
 
     void lst_set(const Int_p &index, const Obj_p &obj) const {
-      if (!this->isLst())
+      if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       this->lst_value()->insert(this->lst_value()->begin() + index->int_value(), obj);
     }
 
     RecMap_p<> rec_value() const {
-      if (!this->isRec())
+      if (!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<RecMap_p<>>();
     }
@@ -398,7 +398,7 @@ namespace fhatos {
 
     void rec_set(const Obj_p &key, const Obj_p &val) const {
       this->rec_value()->erase(key);
-      if (!val->isNoObj())
+      if (!val->is_noobj())
         this->rec_value()->insert({key, val});
     }
 
@@ -407,13 +407,13 @@ namespace fhatos {
     void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
 
     const InstValue inst_value() const {
-      if (!this->isInst())
+      if (!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<InstValue>();
     }
 
     const string inst_op() const {
-      if (!this->isInst())
+      if (!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->_id->name();
     }
@@ -427,28 +427,28 @@ namespace fhatos {
     const Obj_p inst_seed() const { return std::get<3>(this->inst_value()); }
 
     IType itype() const {
-      if (this->isInst())
+      if (this->is_inst())
         return std::get<2>(this->inst_value());
-      if (this->isBytecode()) {
+      if (this->is_bcode()) {
         const IType domain = this->bcode_value()->front()->itype();
         const IType range = this->bcode_value()->back()->itype();
         return ITypeSignatures.toEnum(string(ITypeDomains.toChars(domain) + "->" + ITypeRanges.toChars(range)));
       }
-      if (this->isObjs())
+      if (this->is_objs())
         return IType::ONE_TO_MANY;
       return IType::ONE_TO_ONE;
     }
 
     InstList_p bcode_value() const {
-      if (this->isNoObj())
+      if (this->is_noobj())
         return {};
-      if (!this->isBytecode())
+      if (!this->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<InstList_p>();
     }
 
     const BCode_p add_inst(const Inst_p &inst, const bool mutate = true) {
-      if (!this->isBytecode())
+      if (!this->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if (mutate) {
         InstList_p insts = bcode_value();
@@ -465,7 +465,7 @@ namespace fhatos {
     }
 
     const BCode_p add_bcode(const BCode_p &bcode, [[maybe_unused]] const bool mutate = true) {
-      if (!this->isBytecode() || !bcode->isBytecode())
+      if (!this->is_bcode() || !bcode->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       InstList_p insts = share<InstList>({});
       for (const auto &inst: *bcode->bcode_value()) {
@@ -475,9 +475,9 @@ namespace fhatos {
     }
 
     const Objs_p add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
-      if (!this->isObjs())
+      if (!this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      if (obj->isObjs()) {
+      if (obj->is_objs()) {
         for (const Obj_p &o: *obj->objs_value()) {
           this->add_obj(o);
         }
@@ -594,9 +594,9 @@ namespace fhatos {
       }
       objString = (includeType && (this->_id->path_length() > 2)) ? string("!b")
               .append(this->_id->name())
-              .append(this->isInst() ? "!g(!!" : "!g[!!")
+              .append(this->is_inst() ? "!g(!!" : "!g[!!")
               .append(objString)
-              .append(this->isInst() ? "!g)!!" : "!g]!!")
+              .append(this->is_inst() ? "!g)!!" : "!g]!!")
                                                                   : objString;
       return ansi ? objString : printer()->strip(objString);
     }
@@ -605,7 +605,7 @@ namespace fhatos {
 
     // operator const Obj_p &() { return shared_from_this(); }
     bool operator&&(const Obj &rhs) const {
-      if (this->isBool() && rhs.isBool())
+      if (this->is_bool() && rhs.is_bool())
         return this->bool_value() && rhs.bool_value();
       throw fError("Unknown obj type in &&: %s\n", OTypes.toChars(this->o_type()).c_str());
     }
@@ -614,7 +614,7 @@ namespace fhatos {
       return TYPE_READER(*this->_id);
     }*/
     bool operator||(const Obj &rhs) const {
-      if (this->isBool() && rhs.isBool())
+      if (this->is_bool() && rhs.is_bool())
         return this->bool_value() || rhs.bool_value();
       throw fError("Unknown obj type in ||: %s\n", OTypes.toChars(this->o_type()).c_str());
     }
@@ -693,7 +693,7 @@ namespace fhatos {
           /*case OType::BCODE: {
             if (rhs.isInst()) {
               return *PtrHelper::no_delete<Obj>((Obj *) this)->add_inst(share(rhs), true);
-            } else if (rhs.isBytecode()) {
+            } else if (rhs.is_bcode()) {
               return *PtrHelper::no_delete<Obj>((Obj*)this)->add_bcode(share(rhs),true);
              }
           }*/
@@ -787,7 +787,7 @@ namespace fhatos {
         return false;
       switch (this->o_type()) {
         case OType::NOOBJ:
-          return other.isNoObj();
+          return other.is_noobj();
         case OType::BOOL:
           return this->bool_value() == other.bool_value();
         case OType::INT:
@@ -885,31 +885,31 @@ namespace fhatos {
       }
     }
 
-    bool isNoObj() const { return this->o_type() == OType::NOOBJ; }
+    bool is_noobj() const { return this->o_type() == OType::NOOBJ; }
 
-    bool isBool() const { return this->o_type() == OType::BOOL; }
+    bool is_bool() const { return this->o_type() == OType::BOOL; }
 
-    bool isInt() const { return this->o_type() == OType::INT; }
+    bool is_int() const { return this->o_type() == OType::INT; }
 
-    bool isReal() const { return this->o_type() == OType::REAL; }
+    bool is_real() const { return this->o_type() == OType::REAL; }
 
-    bool isUri() const { return this->o_type() == OType::URI; }
+    bool is_uri() const { return this->o_type() == OType::URI; }
 
-    bool isStr() const { return this->o_type() == OType::STR; }
+    bool is_str() const { return this->o_type() == OType::STR; }
 
-    bool isLst() const { return this->o_type() == OType::LST; }
+    bool is_lst() const { return this->o_type() == OType::LST; }
 
-    bool isRec() const { return this->o_type() == OType::REC; }
+    bool is_rec() const { return this->o_type() == OType::REC; }
 
-    bool isInst() const { return this->o_type() == OType::INST; }
+    bool is_inst() const { return this->o_type() == OType::INST; }
 
-    bool isObjs() const { return this->o_type() == OType::OBJS; }
+    bool is_objs() const { return this->o_type() == OType::OBJS; }
 
-    bool isBytecode() const { return this->o_type() == OType::BCODE; }
+    bool is_bcode() const { return this->o_type() == OType::BCODE; }
 
-    bool isNoOpBytecode() const { return this->o_type() == OType::BCODE && this->bcode_value()->empty(); }
+    bool is_noop_bcode() const { return this->o_type() == OType::BCODE && this->bcode_value()->empty(); }
 
-    bool isType() const { return !this->_value.has_value(); }
+    bool is_type() const { return !this->_value.has_value(); }
 
     Obj_p apply(const Obj_p &lhs) {
       switch (this->o_type()) {
@@ -920,7 +920,7 @@ namespace fhatos {
         case OType::REAL:
           return PtrHelper::no_delete<Real>(this);
         case OType::URI: {
-          return (lhs->isUri() && this->uri_value().is_relative()) ?
+          return (lhs->is_uri() && this->uri_value().is_relative()) ?
                  Obj::to_uri(lhs->uri_value().resolve(this->uri_value())) :
                  PtrHelper::no_delete<Uri>(this);
         }
@@ -941,7 +941,7 @@ namespace fhatos {
           return Obj::to_rec(newPairs, this->_id);
         }
         case OType::INST: {
-          if (lhs->isBytecode()) {
+          if (lhs->is_bcode()) {
             List<Obj_p> newArgs = List<Obj_p>();
             for (const auto &arg: this->inst_args()) {
               newArgs.push_back(arg->apply(lhs));
@@ -954,12 +954,12 @@ namespace fhatos {
           return this->inst_f()(this->inst_args())(lhs);
         }
         case OType::BCODE: {
-          if (lhs->isBytecode())
+          if (lhs->is_bcode())
             return lhs->add_bcode(this->shared_from_this(), true);
           ptr<Obj> currentObj = lhs;
           for (const Inst_p &currentInst: *this->bcode_value()) {
             LOG(TRACE, "Applying %s => %s\n", currentObj->toString().c_str(), currentInst->toString().c_str());
-            if (currentInst->isNoObj())
+            if (currentInst->is_noobj())
               break;
             currentObj = currentInst->apply(currentObj);
           }
@@ -995,10 +995,10 @@ namespace fhatos {
 
     bool match(const Obj_p &type, const bool sameType = true) const {
       LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
-      if (type->isNoOpBytecode())
+      if (type->is_noop_bcode())
         return true;
-      if (type->isBytecode() && !this->isBytecode())
-        return !type->apply(PtrHelper::no_delete<Obj>((Obj *) this))->isNoObj();
+      if (type->is_bcode() && !this->is_bcode())
+        return !type->apply(PtrHelper::no_delete<Obj>((Obj *) this))->is_noobj();
       if (sameType && (*this->id() != *type->id()))
         return false;
       switch (this->o_type()) {
@@ -1082,7 +1082,7 @@ namespace fhatos {
     Inst_p nextInst(const Inst_p &currentInst) const {
       if (currentInst == nullptr)
         return this->bcode_value()->front();
-      if (currentInst->isNoObj())
+      if (currentInst->is_noobj())
         return currentInst;
       bool found = false;
       for (const auto &inst: *this->bcode_value()) {
@@ -1221,7 +1221,7 @@ namespace fhatos {
 
     ptr<BObj> serialize() const {
       LOG(TRACE, "Serializing %s\n", this->toString().c_str());
-      if (this->isNoObj()) {
+      if (this->is_noobj()) {
         auto *bytes = static_cast<fbyte *>(malloc(1));
         bytes[0] = 'x';
         return {new BObj{1, bytes}, bobj_deleter};

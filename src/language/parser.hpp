@@ -427,7 +427,7 @@ namespace fhatos {
         }
       }
       const Inst_p inst = Insts::to_inst(baseType->resolve(typeToken.c_str()), args);
-      return inst->isNoObj() ? Option<Inst_p>() : Option<Inst_p>(inst);
+      return inst->is_noobj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 
     static Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,

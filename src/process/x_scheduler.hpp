@@ -80,7 +80,7 @@ namespace fhatos {
 
     virtual void setup() {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
-        if (!retain || !payload->isRec())
+        if (!retain || !payload->is_rec())
           return;
         if (isThread(payload)) {
           this->spawn(ptr<Process>(new fBcode<Thread>(target, payload)));
@@ -142,7 +142,7 @@ namespace fhatos {
         LOG(INFO, message);
       /// barrier break with noobj
       /*this->subscribe("", [this, label](const Message_p &message) {
-        if (message->payload->isNoObj())
+        if (message->payload->is_noobj())
           this->stop();
       });*/
       while (this->read_mail() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {

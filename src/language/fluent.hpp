@@ -39,7 +39,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////
     template<typename E = Obj>
     ptr<E> next() const {
-      if (!this->_bcode->isBytecode())
+      if (!this->_bcode->is_bcode())
         return this->_bcode;
       static Processor<E> proc = Processor<E>(this->_bcode);
       return proc.next();
@@ -47,7 +47,7 @@ namespace fhatos {
 
     template<typename E = Obj>
     void forEach(const Consumer<const ptr<E>> &consumer) const {
-      if (!this->_bcode->isBytecode())
+      if (!this->_bcode->is_bcode())
         consumer(this->_bcode);
       else {
         Processor<E> proc = Processor<E>(this->_bcode);
@@ -216,7 +216,7 @@ namespace fhatos {
   }
 
   [[maybe_unused]] static Fluent __(const Obj &start) {
-    return start.isNoObj() ? __(List<Obj>{}) : __(List<Obj>{start});
+    return start.is_noobj() ? __(List<Obj>{}) : __(List<Obj>{start});
   }
 
   [[maybe_unused]] static Fluent __() { return __(List<Obj>{}); }

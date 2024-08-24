@@ -40,7 +40,7 @@ namespace fhatos {
     bool is_file(const ID &path) const override {
       return fs::is_regular_file(fs::path(make_native_path(path).toString()));
     }
-    
+
     Dir_p mkdir(const ID &path) const override {
       if (fs::is_directory(make_native_path(path).toString())) {
         throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
@@ -62,7 +62,7 @@ namespace fhatos {
       return Obj::to_objs(listing);
     }
 
-    Lst_p more(const File_p &file, const uint16_t &max_lines) const override {
+    Lst_p more(const File_p &file, uint16_t max_lines) const override {
       std::ifstream infile(fs::path(this->make_native_path(file->uri_value()).toString()));
       List_p<Str_p> lines = share(List<Str_p>());
       string line;

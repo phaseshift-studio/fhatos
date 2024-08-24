@@ -23,7 +23,7 @@ namespace fhatos {
   void test_noobj_parsing() {
     const Obj_p n = Parser::singleton()->tryParseObj(FOS_TYPE_PREFIX "noobj/[]").value();
     TEST_ASSERT_EQUAL(OType::NOOBJ, n->o_type());
-    TEST_ASSERT_TRUE(n->isNoObj());
+    TEST_ASSERT_TRUE(n->is_noobj());
     TEST_ASSERT_EQUAL_STRING("!rnoobj!!", n->toString().c_str());
   }
 
@@ -203,8 +203,8 @@ namespace fhatos {
       const Rec_p rc1 = Parser::singleton()->tryParseObj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc1->o_type());
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get(str("a"))->int_value()); // a's value is 13
-      TEST_ASSERT_TRUE(rc1->rec_get(jnt(13))->isNoObj()); // no key is 13
-      TEST_ASSERT_TRUE(rc1->rec_get(str("no key"))->isNoObj()); // no key is no key
+      TEST_ASSERT_TRUE(rc1->rec_get(jnt(13))->is_noobj()); // no key is 13
+      TEST_ASSERT_TRUE(rc1->rec_get(str("no key"))->is_noobj()); // no key is no key
       TEST_ASSERT_FALSE(rc1->rec_get(uri("actor"))->bool_value());
     }
 
@@ -219,14 +219,14 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u(":age"))->int_value());
       TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u(":name"))->str_value().c_str());
       TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
-      TEST_ASSERT_TRUE(rc2->rec_get("no key")->isNoObj());
+      TEST_ASSERT_TRUE(rc2->rec_get("no key")->is_noobj());
     } /*
      ///////////////////////////////////
      const ptr<Rec> rc2 = Parser::singleton()->tryParseObj("['a'=>13,/actor=>['b'=>1,'c'=>3]]").value();
      TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
      TEST_ASSERT_EQUAL_INT(13, rc2->rec_get("a")->int_value());
      //    TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->get<Str>(ptr<Int>(new Int(13)))->otype());
-     TEST_ASSERT_TRUE(rc2->rec_get("/actor")->isNoObj()); // it's a string, not a uri
+     TEST_ASSERT_TRUE(rc2->rec_get("/actor")->is_noobj()); // it's a string, not a uri
      const ptr<Rec> rc3 = rc2->rec_get(u("/actor"));
      TEST_ASSERT_EQUAL(OType::REC, rc3->o_type());
      TEST_ASSERT_EQUAL_INT(1, rc3->rec_get("b")->int_value());

@@ -26,8 +26,8 @@ namespace fhatos {
     FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false, FOS_TYPE_PREFIX "bool/truth")), share(Bool(*boolA && *boolB)));
     FOS_TEST_OBJ_EQUAL(share(Bool(false)), share(Bool(*boolA && *boolB)));
     TEST_ASSERT_TRUE(boolA->bool_value());
-    TEST_ASSERT_FALSE(boolA->isBytecode());
-    TEST_ASSERT_FALSE(boolA->isNoObj());
+    TEST_ASSERT_FALSE(boolA->is_bcode());
+    TEST_ASSERT_FALSE(boolA->is_noobj());
     TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_type());
     FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
     ///
@@ -52,13 +52,13 @@ namespace fhatos {
     const Int_p int5 = share(Int(5, "age"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*int5).c_str());
 
-    TEST_ASSERT_FALSE(intA->isBytecode());
+    TEST_ASSERT_FALSE(intA->is_bcode());
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "int/", intA->id()->toString().c_str());
     TEST_ASSERT_EQUAL_STRING("int", intA->id()->name());
     TEST_ASSERT_EQUAL_STRING("/type", intA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("int/", intA->id()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
-    TEST_ASSERT_FALSE(intA->isNoObj());
+    TEST_ASSERT_FALSE(intA->is_noobj());
     ///
     FOS_TEST_ASSERT_EQUAL_FURI(*intC->id(), *intA->as(id_p("age"))->id());
     FOS_TEST_OBJ_EQUAL(intA, intB);
@@ -93,7 +93,7 @@ namespace fhatos {
     ////// BYTECODE
     /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age"))._bcode->bcode_value(), "/_bcode/age"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
-     // TEST_ASSERT_TRUE(intBCode->isBytecode());
+     // TEST_ASSERT_TRUE(intBCode->is_bcode());
      TEST_ASSERT_EQUAL_STRING("/_bcode/age", intBCode->id()->toString().c_str());
      TEST_ASSERT_EQUAL_STRING("age", intBCode->id()->lastSegment().c_str());
      /// apply
@@ -112,13 +112,13 @@ namespace fhatos {
     const Real_p real5 = share(Real(5.0f, "money"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*real5).c_str());
 
-    TEST_ASSERT_FALSE(realA->isBytecode());
+    TEST_ASSERT_FALSE(realA->is_bcode());
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "real/", realA->id()->toString().c_str());
     TEST_ASSERT_EQUAL_STRING("real", realA->id()->name());
     TEST_ASSERT_EQUAL_STRING("/type", realA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("real/", realA->id()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
-    TEST_ASSERT_FALSE(realA->isNoObj());
+    TEST_ASSERT_FALSE(realA->is_noobj());
     ///
     FOS_TEST_ASSERT_EQUAL_FURI(*realC->id(), *realA->as(id_p("money"))->id());
     FOS_TEST_OBJ_EQUAL(realA, realB);
@@ -159,7 +159,7 @@ namespace fhatos {
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "str/letter"), Obj::to_bcode()); //
     const Str strA = *Obj::to_str("fhat", id_p(FOS_TYPE_PREFIX "str/first_name"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
-    TEST_ASSERT_FALSE(strA.isBytecode());
+    TEST_ASSERT_FALSE(strA.is_bcode());
     TEST_ASSERT_EQUAL_STRING("fhat", strA.str_value().c_str());
     TEST_ASSERT_EQUAL(OType::STR, strA.o_type());
   }
@@ -218,13 +218,13 @@ namespace fhatos {
     ////
     TEST_ASSERT_EQUAL_INT(1, recA.rec_get("a")->int_value());
     TEST_ASSERT_EQUAL_INT(2, recA.rec_get("b")->int_value());
-    TEST_ASSERT_TRUE(recA.rec_get("c")->isNoObj());
+    TEST_ASSERT_TRUE(recA.rec_get("c")->is_noobj());
     recA.rec_set("b", 12);
     TEST_ASSERT_EQUAL_INT(12, recA.rec_get("b")->int_value());
     recA.rec_set("b", Real(202.5f, "cost"));
     TEST_ASSERT_FLOAT_WITHIN(0.1f, 202.5f, recA.rec_get("b")->real_value());
     recA.rec_delete("b");
-    TEST_ASSERT_TRUE(recA.rec_get("b")->isNoObj());
+    TEST_ASSERT_TRUE(recA.rec_get("b")->is_noobj());
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recA).c_str());
     // match
     TEST_ASSERT_TRUE(Obj::to_rec({{"a", 1},
