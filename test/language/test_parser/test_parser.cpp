@@ -209,7 +209,7 @@ namespace fhatos {
     }
 
     Types::singleton()->saveType(id_p(FOS_TYPE_PREFIX "rec/person"),
-                                 Parser::parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
+                                 parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
     recs = {"person[[:age=>nat[29],:name=>'dogturd']]"};
     for (const string &form: recs) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
@@ -249,7 +249,7 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Obj>({*Parser::parse("|(mod(2).is(eq(0)))")},
+    FOS_CHECK_RESULTS<Obj>({*parse("|(mod(2).is(eq(0)))")},
                            FOS_TYPE_PREFIX "int/even.->(|(mod(2).is(eq(0))))"); // TODO: parse is off for ->
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "__(32).as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
@@ -308,8 +308,8 @@ namespace fhatos {
     FOS_CHECK_RESULTS<>(List<Obj>{{1, 3, 1}}, "1-<[_,plus(2),_]");
     FOS_CHECK_RESULTS<>(List<Obj>{{2, 30, 1}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]");
     FOS_CHECK_RESULTS<>(List<Obj>{2, 30, 1}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]>-");
-   // FOS_CHECK_RESULTS<>(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
-   // FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
+    // FOS_CHECK_RESULTS<>(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
+    // FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
     FOS_CHECK_RESULTS<>(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
   }
 

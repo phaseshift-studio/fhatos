@@ -285,6 +285,10 @@ namespace fhatos {
              (strcmp(".", this->_path[0]) == 0 || strcmp("..", this->_path[0]) == 0);
     }
 
+    bool is_scheme_path() const {
+      return this->_scheme && this->_path_length > 0 && !this->_host && !this->_user && !this->_password;
+    }
+
     virtual fURI resolve(const fURI &other) const {
       ///////////////////////////////////////////////////////////////
       ////////////  mm-ADT specific resolution pattern //////////////
@@ -294,6 +298,13 @@ namespace fhatos {
       if ((!other.toString().empty() && other.toString()[0] == ':') ||
           (!this->toString().empty() && this->toString()[this->toString().length() - 1] == ':'))
         return fURI(this->toString() + other.toString());
+      if (other.is_scheme_path()) {
+        if (!this->_scheme)
+          return other.sprefix ? other : this->extend(other.toString().c_str());
+        else if (strcmp(this->_scheme, other._scheme) != 0) {
+          return this->extend(other.toString().c_str());
+        }
+      }
       ///////////////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////////////
       if (other._path_length == 0)

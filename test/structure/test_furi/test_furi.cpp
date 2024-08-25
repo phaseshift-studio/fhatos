@@ -318,6 +318,15 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("#", fURI("http://a.com:34/b/c/#").name());
   }
 
+  void test_uri_scheme_path() {
+    TEST_ASSERT_TRUE(fURI("fs:root").is_scheme_path());
+    TEST_ASSERT_TRUE(fURI("fs:/root").is_scheme_path());
+    TEST_ASSERT_TRUE(fURI("fs:/root/").is_scheme_path());
+    TEST_ASSERT_FALSE(fURI("fs://fhatos/root").is_scheme_path());
+    TEST_ASSERT_FALSE(fURI("fs://fhatos/").is_scheme_path());
+    TEST_ASSERT_FALSE(fURI("fs://user:pass@fhatos/").is_scheme_path());
+  }
+
   void test_uri_empty() {
     TEST_ASSERT_TRUE(fURI("").empty());
     TEST_ASSERT_FALSE(fURI("fos:").empty());
@@ -417,7 +426,15 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("b/c"), fURI("a").resolve(fURI("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a").resolve(fURI("a")));
     ///////////////// mm-ADT specific :-based resolution
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs:/type/inst/root"), fURI("fs:/type/inst/").resolve("fs:root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs://type/inst/root"), fURI("fs://type/inst/").resolve("fs:root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs://type/root"), fURI("fs://type/inst/").resolve("fs:../root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/type/inst/fs:root"), fURI("/type/inst/").resolve("fs:root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs:/root"), fURI("/type/inst/").resolve("fs:/root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs:/root"), fURI("fs:/type/inst/").resolve("fs:/root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs://localhost/root"), fURI("fs://localhost/inst/").resolve("fs:/root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("xx://localhost/inst/fs:/root"), fURI("xx://localhost/inst/").resolve("fs:/root"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("xx://localhost/inst/fs:root"), fURI("xx://localhost/inst/").resolve("fs:root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs:root"), fURI("/inst/fs:").resolve("root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs:root"), fURI("/inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs::root"), fURI("/inst/fs:").resolve(":root"));
@@ -531,6 +548,7 @@ namespace fhatos {
           FOS_RUN_TEST(test_uri_authority); //
           FOS_RUN_TEST(test_uri_path); //
           FOS_RUN_TEST(test_uri_query); //
+          FOS_RUN_TEST(test_uri_scheme_path);
           FOS_RUN_TEST(test_uri_empty); //
           FOS_RUN_TEST(test_uri_name); //
           //

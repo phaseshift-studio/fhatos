@@ -529,8 +529,6 @@ namespace fhatos {
       return Option<Uri_p>{Uri::to_uri(valueToken, id_p(baseType->resolve(typeToken)))};
     }
 
-    static Obj_p parse(const string &source) { return Parser::tryParseObj(source).value_or(noobj()); }
-
   private:
     static bool sugar_next(stringstream *ss) {
       if (ss->eof())
@@ -543,5 +541,7 @@ namespace fhatos {
       return false;
     }
   };
+
+  [[maybe_unused]] static Obj_p parse(const string &source) { return Parser::tryParseObj(source).value_or(noobj()); }
 } // namespace fhatos
 #endif

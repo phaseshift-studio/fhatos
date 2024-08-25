@@ -178,8 +178,12 @@ namespace fhatos {
     }
   };
 
-  static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
+ [[maybe_unused]] static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
     return Processor<Obj>(bcode, starts).toObjs();
+  }
+
+  [[maybe_unused]] static Objs_p process(const string& monoid) {
+    return Processor<Obj>(Options::singleton()->parser<Obj>(monoid),noobj()).toObjs();
   }
 
   static void load_processor() {

@@ -35,17 +35,19 @@ namespace fhatos {
       return fs_p;
     }
 
-    bool is_dir(const ID &path) const override { return fs::is_directory(fs::path(make_native_path(path).toString())); }
+    bool is_dir(const ID &path) const override {
+      return fs::is_directory(fs::path(this->make_native_path(path).toString()));
+    }
 
     bool is_file(const ID &path) const override {
-      return fs::is_regular_file(fs::path(make_native_path(path).toString()));
+      return fs::is_regular_file(fs::path(this->make_native_path(path).toString()));
     }
 
     Dir_p mkdir(const ID &path) const override {
-      if (fs::is_directory(make_native_path(path).toString())) {
+      if (fs::is_directory(this->make_native_path(path).toString())) {
         throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
       }
-      fs::create_directory(make_native_path(path).toString());
+      fs::create_directory(this->make_native_path(path).toString());
       return to_dir(path);
     }
 
@@ -56,7 +58,7 @@ namespace fhatos {
       for (const auto &p: fs::directory_iterator(this->make_native_path(dir->uri_value()).toString())) {
         if ((fs::is_directory(p) || fs::is_regular_file(p))) {
           listing->push_back(
-                  uri(p.path().string().substr(this->root_->toString().length()))); // clip off local mount location
+                  uri(p.path().string().substr(this->mount_root_->toString().length()))); // clip off local mount location
         }
       }
       return Obj::to_objs(listing);
@@ -83,11 +85,13 @@ namespace fhatos {
     }
 
     File_p touch(const ID &path) const override {
-      if (fs::is_regular_file(this->make_native_path(path).toString())) {
+      const string nativePathString = this->make_native_path(path).toString();
+      LOG(INFO, "HERE %s %s\n", nativePathString.c_str(), path.toString().c_str());
+      if (fs::is_regular_file(nativePathString)) {
         throw fError("!g[!!%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
       }
       fstream fo;
-      fo.open(path.toString(), ios::out);
+      fo.open(fs::path(nativePathString), ios::out);
       fo.close();
       return to_file(path);
     }
