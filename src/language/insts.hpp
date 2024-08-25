@@ -382,7 +382,7 @@ namespace fhatos {
               [](const InstArgs &) {
                 return [](const Obj_p &THROW_ERROR) {
                   if (true)
-                    throw fError("by()-modulations are to be rewritten away");
+                    throw fError("by()-modulations must be rewritten away");
                   return THROW_ERROR;
                 };
               },
@@ -715,15 +715,15 @@ namespace fhatos {
 
     ///// HELPER METHODS
     static bool isBarrier(const Inst_p &inst) {
-      return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE;
+      return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE || inst->itype() == IType::MANY_TO_ZERO;
     }
 
     static bool isInitial(const Inst_p &inst) {
-      return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY;
+      return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY || inst->itype() == IType::ZERO_TO_ZERO;
     }
 
     static bool isTerminal(const Inst_p &inst) {
-      return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO;
+      return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO || inst->itype() == IType::ZERO_TO_ZERO;
     }
 
     static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
