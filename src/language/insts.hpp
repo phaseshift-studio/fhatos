@@ -392,9 +392,9 @@ namespace fhatos {
     static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
       return Obj::to_inst(
               "group", (nullptr == keyCode) ? List<Obj_p>() :
-              ((nullptr == valueCode) ? List<Obj_p>{keyCode} :
-                ((nullptr==reduceCode) ? List<Obj_p>{keyCode, valueCode}:
-                  List<Obj_p>{keyCode,valueCode,reduceCode})),
+                       ((nullptr == valueCode) ? List<Obj_p>{keyCode} :
+                        ((nullptr == reduceCode) ? List<Obj_p>{keyCode, valueCode} :
+                         List<Obj_p>{keyCode, valueCode, reduceCode})),
               [](const InstArgs &args) {
                 const Obj_p &keyCode = !args.empty() ? args.at(0) : noobj();
                 const Obj_p &valueCode = args.size() > 1 ? args.at(1) : noobj();
@@ -612,7 +612,11 @@ namespace fhatos {
     static Int_p count() {
       return Obj::to_inst(
               "count", {},
-              [](const InstArgs &) { return [](const Objs_p &lhs) { return Obj::to_int(lhs->objs_value()->size()); }; },
+              [](const InstArgs &) {
+                return [](const Objs_p &lhs) {
+                  return !lhs->is_objs() ? jnt(0) : Obj::to_int(lhs->objs_value()->size());
+                };
+              },
               IType::MANY_TO_ONE,
               Obj::to_objs());
     }
@@ -715,15 +719,18 @@ namespace fhatos {
 
     ///// HELPER METHODS
     static bool isBarrier(const Inst_p &inst) {
-      return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE || inst->itype() == IType::MANY_TO_ZERO;
+      return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE ||
+             inst->itype() == IType::MANY_TO_ZERO;
     }
 
     static bool isInitial(const Inst_p &inst) {
-      return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY || inst->itype() == IType::ZERO_TO_ZERO;
+      return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY ||
+             inst->itype() == IType::ZERO_TO_ZERO;
     }
 
     static bool isTerminal(const Inst_p &inst) {
-      return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO || inst->itype() == IType::ZERO_TO_ZERO;
+      return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO ||
+             inst->itype() == IType::ZERO_TO_ZERO;
     }
 
     static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),

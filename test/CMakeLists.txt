@@ -64,7 +64,6 @@ IF (BUILD_TESTS)
                 TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
             ENDIF ()
             FIND_PACKAGE(unity)
-            FIND_PACKAGE(ordered_map)
             TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqttpp3)
             SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

@@ -120,13 +120,14 @@ namespace fhatos {
         } else {
           const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted->front());
           this->halted->pop_front();
-          return end;
+          if (!end->is_noobj())
+            return end;
         }
       }
     }
 
     Objs_p toObjs() {
-      Objs_p objs = Obj::to_objs(List<Obj_p>{});
+      Objs_p objs = Obj::to_objs();
       Obj_p end;
       while (nullptr != (end = this->next())) {
         objs->add_obj(end);
@@ -178,12 +179,12 @@ namespace fhatos {
     }
   };
 
- [[maybe_unused]] static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
+  [[maybe_unused]] static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
     return Processor<Obj>(bcode, starts).toObjs();
   }
 
-  [[maybe_unused]] static Objs_p process(const string& monoid) {
-    return Processor<Obj>(Options::singleton()->parser<Obj>(monoid),noobj()).toObjs();
+  [[maybe_unused]] static Objs_p process(const string &monoid) {
+    return Processor<Obj>(Options::singleton()->parser<Obj>(monoid), noobj()).toObjs();
   }
 
   static void load_processor() {
