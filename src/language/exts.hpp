@@ -37,7 +37,7 @@ namespace fhatos {
                                                       {"/type/rec/fiber", TYPE_PARSER("[setup=>_,loop=>_]")},
                                                       {"/type/rec/coroutine", TYPE_PARSER("[setup=>_,loop=>_]")},
                                                       {"/type/inst/stop",
-                                                       TYPE_PARSER("map(/type/noobj/[]).to(*_0)")}}}});
+                                                       TYPE_PARSER("map(noobj).to(*_0)")}}}});
       /* {"/ext/collection",
         {{"/lst/pair", TYPE_PARSER("[_,_]")},
          {"/lst/trip", TYPE_PARSER("[_,_,_]")},

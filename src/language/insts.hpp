@@ -34,7 +34,7 @@ namespace fhatos {
       return Obj::to_inst(
               "start", {starts}, [](const InstArgs &args) {
                 return [args](const Obj_p &) {
-                  return args.at(0);
+                  return args.at(0)->apply(noobj());
                 };
               }, IType::ZERO_TO_MANY,
               starts);
@@ -391,7 +391,10 @@ namespace fhatos {
 
     static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
       return Obj::to_inst(
-              "group", {keyCode, valueCode, reduceCode},
+              "group", (nullptr == keyCode) ? List<Obj_p>() :
+              ((nullptr == valueCode) ? List<Obj_p>{keyCode} :
+                ((nullptr==reduceCode) ? List<Obj_p>{keyCode, valueCode}:
+                  List<Obj_p>{keyCode,valueCode,reduceCode})),
               [](const InstArgs &args) {
                 const Obj_p &keyCode = !args.empty() ? args.at(0) : noobj();
                 const Obj_p &valueCode = args.size() > 1 ? args.at(1) : noobj();
@@ -798,16 +801,13 @@ namespace fhatos {
         new_bcode->add_inst(
                 Obj::to_inst(inst->inst_op(), new_args, inst->inst_f(), inst->itype(), inst->inst_seed()));
       }
+      LOG(TRACE, "new bcode type: %s\n", new_bcode->toString().c_str());
       return new_bcode;
     }
   };
 
-  static Inst_p x(const uint8_t arg_num) {
+  [[maybe_unused]] static Inst_p x(const uint8_t arg_num) {
     return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)));
-  }
-
-  static Inst_p x(const string &uri) {
-    return Insts::from(Obj::to_uri(uri));
   }
 } // namespace fhatos
 

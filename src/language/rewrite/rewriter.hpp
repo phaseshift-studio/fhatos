@@ -19,6 +19,7 @@
 
 #include "fhatos.hpp"
 #include "language/obj.hpp"
+#include "language/insts.hpp"
 #include "util/string_printer.hpp"
 
 namespace fhatos {

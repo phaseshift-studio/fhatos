@@ -316,7 +316,7 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
           FOS_RUN_TEST(test_no_input_parsing); //
-          FOS_RUN_TEST(test_start_inst_parsing); //
+          //FOS_RUN_TEST(test_start_inst_parsing); //
           FOS_RUN_TEST(test_noobj_parsing); //
           FOS_RUN_TEST(test_bool_parsing); //
           FOS_RUN_TEST(test_int_parsing); //

@@ -26,92 +26,94 @@
 #include <structure/structure.hpp>
 
 namespace fhatos {
-  template<typename PROCESS = Process, typename STRUCTURE = Structure>
-  class Actor
-          : public PROCESS,
-            public STRUCTURE,
-            public Mailbox,
-            public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
+    template<typename PROCESS = Process, typename STRUCTURE = Structure>
+    class Actor
+            : public PROCESS,
+              public STRUCTURE,
+              public Mailbox,
+              public enable_shared_from_this<Actor<PROCESS, STRUCTURE> > {
+    public:
+        explicit Actor(const ID &id, const Pattern &pattern) : PROCESS(id), STRUCTURE(pattern), Mailbox(),
+                                                               enable_shared_from_this<Actor<PROCESS, STRUCTURE> >() {
+            static_assert(std::is_base_of_v<Process, PROCESS>);
+            static_assert(std::is_base_of_v<Structure, STRUCTURE>);
+        }
 
-  public:
-    explicit Actor(const ID &id, const Pattern &pattern) :
-            PROCESS(id), STRUCTURE(pattern), Mailbox(), enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
-      static_assert(std::is_base_of_v<Process, PROCESS>);
-      static_assert(std::is_base_of_v<Structure, STRUCTURE>);
-    }
+        explicit Actor(const ID &id) : Actor(id, id.extend("#")) {
+            // router()->attach(ptr<Structure>((Structure *) this));
+            // scheduler()->spawn(ptr<Process>((Process *) this));
+        }
 
-    explicit Actor(const ID &id) : Actor(id, id.extend("#")) {
-      // router()->attach(ptr<Structure>((Structure *) this));
-      // scheduler()->spawn(ptr<Process>((Process *) this));
-    }
+        //~Actor() override {
+        // PROCESS::~Process();
+        // STRUCTURE::~Structure();
+        //}
 
-    //~Actor() override {
-    // PROCESS::~Process();
-    // STRUCTURE::~Structure();
-    //}
+        bool recv_mail(const Mail_p &mail) override {
+            if (!this->active())
+                return false;
+            return this->outbox_->push_back(mail);
+        }
 
-    bool recv_mail(const Mail_p &mail) override {
-      if (!this->active())
-        return false;
-      return this->outbox_->push_back(mail);
-    }
+        RESPONSE_CODE publish(const ID &target, const Obj_p &payload,
+                              const bool retain = TRANSIENT_MESSAGE) {
+            // rename send_mail
+            return router()->route_message(
+                share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
+        }
 
-    RESPONSE_CODE publish(const ID &target, const Obj_p &payload,
-                          const bool retain = TRANSIENT_MESSAGE) { // rename send_mail
-      return router()->route_message(
-              share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
-    }
+        RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
+            return router()->route_subscription(
+                share(Subscription{.source = fURI(*this->id()), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
+            /*.executeAtSource(this)));*/
+        }
 
-    RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
-      return router()->route_subscription(
-              share(Subscription{.source = ID(*this->id()), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
-      /*.executeAtSource(this)));*/
-    }
+        RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) {
+            // todo: is this correct?
+            router()->route_unsubscribe(this->id(), pattern);
+            return OK;
+        }
 
-    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) { // todo: is this correct?
-      router()->route_unsubscribe(this->id(), pattern);
-      return OK;
-    }
+        /*void output(const char *format, ...) {
+          char buffer[1024];
+          va_list arg;
+          va_start(arg, format);
+          int length = vsnprintf(buffer, 1024, format, arg);
+          buffer[length] = '\0';
+          va_end(arg);
+          this->publish(this->id()->extend("output"), Obj::to_str(buffer));
+        }*/
 
-    /*void output(const char *format, ...) {
-      char buffer[1024];
-      va_list arg;
-      va_start(arg, format);
-      int length = vsnprintf(buffer, 1024, format, arg);
-      buffer[length] = '\0';
-      va_end(arg);
-      this->publish(this->id()->extend("output"), Obj::to_str(buffer));
-    }*/
+        bool active() { return this->available() && this->running(); }
 
-    bool active() { return this->available() && this->running(); }
+        /// PROCESS METHODS
+        //////////////////////////////////////////////////// SETUP
+        void setup() override {
+            STRUCTURE::setup();
+            PROCESS::setup();
+            LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),
+                this->pattern()->toString().c_str());
+        }
 
-    /// PROCESS METHODS
-    //////////////////////////////////////////////////// SETUP
-    void setup() override {
-      STRUCTURE::setup();
-      PROCESS::setup();
-      LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),
-          this->pattern()->toString().c_str());
-    }
+        //////////////////////////////////////////////////// STOP
+        virtual void stop() override {
+            if (!this->active())
+                return;
+            if (const RESPONSE_CODE _rc = this->unsubscribe()) {
+                LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(),
+                    ResponseCodes.toChars(_rc).c_str());
+            }
+            PROCESS::stop();
+            STRUCTURE::stop();
+        }
 
-    //////////////////////////////////////////////////// STOP
-    virtual void stop() override {
-      if (!this->active())
-        return;
-      if (const RESPONSE_CODE _rc = this->unsubscribe()) {
-        LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(), ResponseCodes.toChars(_rc).c_str());
-      }
-      PROCESS::stop();
-      STRUCTURE::stop();
-    }
-
-    //////////////////////////////////////////////////// LOOP
-    virtual void loop() override {
-      if (!this->active())
-        return;
-      PROCESS::loop();
-      STRUCTURE::loop();
-    }
-  };
+        //////////////////////////////////////////////////// LOOP
+        virtual void loop() override {
+            if (!this->active())
+                return;
+            PROCESS::loop();
+            STRUCTURE::loop();
+        }
+    };
 } // namespace fhatos
 #endif

@@ -37,8 +37,8 @@ namespace fhatos {
   class Structure : public Patterned {
 
   protected:
-    ptr<MutexDeque<Mail_p>> outbox_ = ptr<MutexDeque<Mail_p>>(new MutexDeque<Mail_p>());
-    ptr<List<Subscription_p>> subscriptions = ptr<List<Subscription_p>>(new List<Subscription_p>());
+    ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
+    ptr<List<Subscription_p>> subscriptions = std::make_shared<List<Subscription_p>>();
     MutexRW<> mutex = MutexRW<>();
     std::atomic_bool available_ = std::atomic_bool(false);
 
@@ -47,7 +47,7 @@ namespace fhatos {
 
     explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
-    bool available() { return this->available_.load(); }
+    bool available() const { return this->available_.load(); }
 
     virtual void setup() {
       if (this->available_.load())
@@ -86,8 +86,10 @@ namespace fhatos {
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
-      if (!this->available_.load())
+      if (!this->available_.load()) {
+        LOG_STRUCTURE(ERROR, this, "!yunable to receive!! %s\n", subscription->toString().c_str());
         return;
+      }
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       this->mutex.write<void *>([this, subscription]() {
         /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
@@ -142,6 +144,7 @@ namespace fhatos {
             rc2 = OK;
             Subscription_p sub = share(Subscription(*subscription));
             this->outbox_->push_back(share(Mail{sub, message}));
+            LOG(DEBUG,"%s !yrouted to!! %s\n",message->toString().c_str(),subscription->toString().c_str());
           }
         }
         return rc2;

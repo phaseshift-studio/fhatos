@@ -91,7 +91,6 @@ namespace fhatos {
                    furi->toString().c_str());
     }
 
-
     RESPONSE_CODE write(const ID_p &id, const Obj_p &obj, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) {
       return this->route_message(share(Message{.source = *source, .target = *id, .payload = obj, .retain = true}));
     }
@@ -143,7 +142,7 @@ namespace fhatos {
     }
   };
 
-  ptr<Router> router() { return Options::singleton()->router<Router>(); }
+  inline ptr<Router> router() { return Options::singleton()->router<Router>(); }
 } // namespace fhatos
 
 #endif

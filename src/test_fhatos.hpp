@@ -31,11 +31,11 @@
 #ifdef FOS_TEST_ON_BOOT
 
 #include <language/fluent.hpp>
+#include <language/types.hpp>
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/processor/heap.hpp>
 #include <language/processor/processor.hpp>
-#include <language/types.hpp>
 #include <model/terminal.hpp>
 #include <structure/router.hpp>
 
