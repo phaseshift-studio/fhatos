@@ -60,6 +60,7 @@ clean_native() {
      mv _deps build/
      rm -rf docs/build/
      rm -rf test/build/
+     rm -rf cmake-*/
      platformio run --target clean
   fi
 }
