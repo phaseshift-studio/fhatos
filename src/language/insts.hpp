@@ -358,7 +358,10 @@ namespace fhatos {
                 const Obj_p &delimiter = args.at(0);
                 return [delimiter](const Str_p &lhs) {
                   List_p<Str_p> tokens = share(List<Str_p>());
-                  stringstream ss = stringstream(lhs->str_value());
+                  stringstream ss = stringstream(
+                          lhs->is_str() ? lhs->str_value() :
+                          (lhs->is_uri() ? lhs->uri_value().toString()
+                                         : lhs->toString(false)));
                   string temp;
                   string delim = delimiter->str_value();
                   while (!ss.eof()) {
@@ -372,6 +375,7 @@ namespace fhatos {
                     tokens->push_back(Obj::to_str(temp));
                   return Obj::to_lst(tokens);
                 };
+
               },
               IType::ONE_TO_ONE);
     }
