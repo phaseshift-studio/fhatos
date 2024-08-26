@@ -223,11 +223,25 @@ FETCHCONTENT_DECLARE(
 )
 FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqttpp3)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
+####################################
+### MPC: MICRO PARSER COMBINATORS
+MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
+FETCHCONTENT_DECLARE(
+        mpc
+        GIT_REPOSITORY https://github.com/orangeduck/mpc.git
+        GIT_TAG 0.9.0
+)
+FETCHCONTENT_MAKEAVAILABLE(mpc)
+#TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC  ${CMAKE_BINARY_DIR}/_deps/mpc-src)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 
 ####################################
 ############# TESTING ##############

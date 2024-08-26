@@ -73,6 +73,7 @@ clean_esp32() {
 
 make_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
+    mkdir -p build
     cd build || exit 1;
     cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
     make -j8 -o1; # j8 parallel and o1 low optimization level
