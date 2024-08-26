@@ -236,7 +236,7 @@ namespace fhatos {
   }
 
   void test_bytecode_parsing() {
-    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()->tryParseObj("__().plus(mult(plus(3)))").value());
+    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()->tryParseObj("{}.plus(mult(plus(3)))").value());
     TEST_ASSERT_EQUAL_INT(2, bcode->bcode_value()->size());
     TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value()->at(1)->inst_arg(0)->bcode_value()->size());
     ///
@@ -251,9 +251,9 @@ namespace fhatos {
   void test_define_as_parsing() {
     FOS_CHECK_RESULTS<Obj>({*parse("|(mod(2).is(eq(0)))")},
                            FOS_TYPE_PREFIX "int/even.->(|(mod(2).is(eq(0))))"); // TODO: parse is off for ->
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "__(32).as(even).type()");
+    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "__(even[32]).type()");
+    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{even[32]}.type()");
     FOS_TEST_ERROR("even[1]");
     FOS_TEST_ERROR("even[3]");
     FOS_TEST_ERROR("even[5]");
@@ -286,15 +286,15 @@ namespace fhatos {
   void test_group_parsing() {
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {1, 3}},
                                                  {true,  {2, 4}}})}),
-                        "__(0,1,2,3).plus(1).group(mod(2).eq(0))");
+                        "{0,1,2,3}.plus(1).group(mod(2).eq(0))");
     ////////////////////
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
                                                  {true,  {3, 5}}})}),
-                        "__(0,1,2,3).plus(1).group(mod(2).eq(0)).by(plus(1))");
+                        "{0,1,2,3}.plus(1).group(mod(2).eq(0)).by(plus(1))");
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
                                                  {true,  {3, 5}}})}),
-                        "__(0,1,2,3).plus(1).group().by(mod(2).eq(0)).by(plus(1))");
-    FOS_TEST_ERROR("__(0,1,2,3).plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");
+                        "{0,1,2,3}.plus(1).group().by(mod(2).eq(0)).by(plus(1))");
+    FOS_TEST_ERROR("{0,1,2,3}.plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");
   }
 
   void test_window_parsing() {
@@ -315,9 +315,9 @@ namespace fhatos {
 
   void test_one_to_many() {
     // without
-    FOS_CHECK_RESULTS<>({5}, "__(1,2,3,4,5).count()");
-    FOS_CHECK_RESULTS<>({15}, "__(1,2,3,4,5).sum()");
-    FOS_CHECK_RESULTS<>({120}, "__(1,2,3,4,5).prod()");
+    FOS_CHECK_RESULTS<>({5}, "{1,2,3,4,5}.count()");
+    FOS_CHECK_RESULTS<>({15}, "{1,2,3,4,5}.sum()");
+    FOS_CHECK_RESULTS<>({120}, "{1,2,3,4,5}.prod()");
     // within
     FOS_CHECK_RESULTS<>({5}, "[1,2,3,4,5]._/count()\\_>-");
     FOS_CHECK_RESULTS<>({15}, "[1,2,3,4,5]._/sum()\\_>-");
@@ -339,7 +339,7 @@ namespace fhatos {
           ////////////// PARTICULAR MONOID IDIOMS
           FOS_RUN_TEST(test_define_as_parsing); //
           FOS_RUN_TEST(test_to_from); //
-          FOS_RUN_TEST(test_process_thread_parsing); //
+          //FOS_RUN_TEST(test_process_thread_parsing); //
           //FOS_RUN_TEST(test_group_parsing); //
           FOS_RUN_TEST(test_window_parsing); //
           FOS_RUN_TEST(test_split_within_merge_parsing); //

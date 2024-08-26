@@ -72,10 +72,10 @@ clean_esp32() {
 }
 
 make_native() {
-  shift
-  shift
-  local extra_args=$1
   if [[ $platform == "native" || $platform = " " ]]; then
+    shift
+    shift
+    local extra_args=$1
     mkdir -p build
     cd build || exit 1;
     cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
@@ -86,15 +86,18 @@ make_native() {
 
 make_esp32() {
   if [[ $platform == "esp32" || $platform = " " ]]; then
-    platformio run ${environ}
+    shift
+    shift
+    local extra_args=$1
+    platformio run ${environ} ${extra_args}
   fi
 }
 
 ctest_native() {
-  shift
-  shift
-  local extra_args=$1
   if [[ $platform == "native" || $platform = " " ]]; then
+    shift
+    shift
+    local extra_args=$1
     cd build/test || exit 1;
     ctest ${extra_args}
     cd ../..
@@ -115,8 +118,11 @@ test_native() {
 
 test_esp32() {
   if [[ $platform == "esp32" || $platform = " " ]]; then
+    shift
+    shift
+    local extra_args=$1
     # platformio run --target clean
-    platformio test ${environ} -v ${filter}
+    platformio test ${environ} -v ${filter} ${extra_args}
   fi
 }
 
@@ -127,20 +133,20 @@ elif [[ $1 == "ctest" ]]; then
   ctest_native ${@}
   # test_esp32
 elif [[ $1 == "test" ]]; then
-  test_native
-  test_esp32
+  test_native ${@}
+  test_esp32 ${@}
 elif [[ $1 == "build" ]]; then
   make_native ${@}
-  make_esp32
+  make_esp32 ${@}
 elif [[ $1 == "upload" ]]; then
   # clean_esp32
-  platformio run ${environ} --target upload
+  platformio run ${environ} --target upload ${@}
 else
    echo -e "usage: 
-  fhat-dev {clean | test | build | upload} {esp32 | native | <empty>}
+  fhat-dev {clean | test | build | upload} {esp32 | native | <empty>} {<extra_args>}
     fhat-dev clean
-    fhat-dev test native
-    fhat-dev build esp32
+    fhat-dev test native test_scheduler
+    fhat-dev build esp32 fhatos
     fhat-dev upload esp32
     fhat-dev test"
 fi

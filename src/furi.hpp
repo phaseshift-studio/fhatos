@@ -31,7 +31,7 @@ namespace fhatos {
     SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY
   };
 
-  const static Enums<URI_PART> URI_PARTS = {
+  const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
           {URI_PART::SCHEME,   "scheme"},
           {URI_PART::USER,     "user"},
           {URI_PART::PASSWORD, "password"},

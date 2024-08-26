@@ -30,11 +30,11 @@ namespace fhatos {
     struct Insts {
         explicit Insts() = delete;
 
-        static Obj_p start(const Objs_p &starts) {
+        static Obj_p start(const Obj_p &starts) {
             return Obj::to_inst(
-                "start", {starts}, [](const InstArgs &args) {
-                    return [args](const Obj_p &) {
-                        return args.at(0)->apply(noobj());
+                "start", {starts}, [starts](const InstArgs &args) {
+                    return [starts](const Obj_p &) {
+                        return starts;
                     };
                 }, IType::ZERO_TO_MANY,
                 [starts](const Obj_p &) { return starts; });
