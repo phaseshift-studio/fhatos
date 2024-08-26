@@ -72,11 +72,14 @@ clean_esp32() {
 }
 
 make_native() {
+  shift
+  shift
+  local extra_args=$1
   if [[ $platform == "native" || $platform = " " ]]; then
     mkdir -p build
     cd build || exit 1;
     cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF;
-    make -j8 -o1; # j8 parallel and o1 low optimization level
+    make ${extra_args} -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
   fi
 }
@@ -87,11 +90,25 @@ make_esp32() {
   fi
 }
 
+ctest_native() {
+  shift
+  shift
+  local extra_args=$1
+  if [[ $platform == "native" || $platform = " " ]]; then
+    cd build/test || exit 1;
+    ctest ${extra_args}
+    cd ../..
+  fi
+}
+
 test_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
+    shift
+    shift
+    local extra_args=$1
     make_native
     cd build/test || exit 1;
-    ctest
+    ctest ${extra_args}
     cd ../..
   fi
 }
@@ -106,11 +123,14 @@ test_esp32() {
 if [[ $1 == "clean" ]]; then
   clean_native
   clean_esp32
+elif [[ $1 == "ctest" ]]; then
+  ctest_native ${@}
+  # test_esp32
 elif [[ $1 == "test" ]]; then
   test_native
   test_esp32
 elif [[ $1 == "build" ]]; then
-  make_native
+  make_native ${@}
   make_esp32
 elif [[ $1 == "upload" ]]; then
   # clean_esp32
