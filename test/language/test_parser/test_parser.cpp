@@ -313,6 +313,16 @@ namespace fhatos {
     FOS_CHECK_RESULTS<>(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
   }
 
+  void test_one_to_many() {
+    // without
+    FOS_CHECK_RESULTS<>({5}, "__(1,2,3,4,5).count()");
+    FOS_CHECK_RESULTS<>({15}, "__(1,2,3,4,5).sum()");
+    FOS_CHECK_RESULTS<>({120}, "__(1,2,3,4,5).prod()");
+    // within
+    FOS_CHECK_RESULTS<>({5}, "[1,2,3,4,5]._/count()\\_>-");
+    FOS_CHECK_RESULTS<>({15}, "[1,2,3,4,5]._/sum()\\_>-");
+    FOS_CHECK_RESULTS<>({120}, "[1,2,3,4,5]._/prod()\\_>-");
+  }
 
   FOS_RUN_TESTS( //
           FOS_RUN_TEST(test_no_input_parsing); //
@@ -333,6 +343,7 @@ namespace fhatos {
           //FOS_RUN_TEST(test_group_parsing); //
           FOS_RUN_TEST(test_window_parsing); //
           FOS_RUN_TEST(test_split_within_merge_parsing); //
+          FOS_RUN_TEST(test_one_to_many);
   )
 }; // namespace fhatos
 

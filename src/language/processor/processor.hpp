@@ -38,7 +38,8 @@ namespace fhatos {
     const long _bulk = 1;
 
   public:
-    explicit Monad(const Obj_p &obj, const Inst_p &inst) : _obj(obj), _inst(inst) {}
+    explicit Monad(const Obj_p &obj, const Inst_p &inst) : _obj(obj), _inst(inst) {
+    }
 
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
       const Obj_p nextObj = this->_inst->apply(this->_obj);
@@ -95,20 +96,23 @@ namespace fhatos {
         throw fError("Processor requires a !bbcode!! obj to execute: %s\n", bcode->toString().c_str());
       this->bcode = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode);
       for (const Inst_p &inst: *this->bcode->bcode_value()) {
+        const Obj_p seed_copy = inst->inst_seed(inst);
         if (Insts::isBarrier(inst)) {
-          const Monad_p monad = share(Monad(inst->inst_seed(), inst));
+          const Monad_p monad = share(Monad(seed_copy, inst));
           this->barriers->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", monad->toString().c_str());
         } else if (Insts::isInitial(inst)) {
-          const Monad_p monad = share(Monad(inst->inst_seed(), inst));
+          const Monad_p monad = share(Monad(seed_copy, inst));
           this->running->push_back(monad);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", monad->toString().c_str());
         }
       }
       // start inst forced initial
-      if (this->running->empty())
+      if (this->running->empty()) {
+        const Obj_p seed_copy = this->bcode->bcode_value()->front()->inst_seed(this->bcode->bcode_value()->front());
         this->running->push_back(
-                share(Monad(this->bcode->bcode_value()->front()->inst_seed(), this->bcode->bcode_value()->front())));
+          share(Monad(seed_copy, this->bcode->bcode_value()->front())));
+      }
     }
 
     ptr<E> next(const int steps = -1) {
@@ -189,9 +193,8 @@ namespace fhatos {
 
   static void load_processor() {
     Options::singleton()->processor<Obj, BCode, Objs>(
-            [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
+      [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
   }
-
 } // namespace fhatos
 
 #endif
