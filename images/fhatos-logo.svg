@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+   FhatOS: A Distributed Operating System
+   Copyright (c) 2024 PhaseShift Studio, LLC
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="512px" height="512px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g><path style="opacity:0.983" fill="#020101" d="M 224.5,-0.5 C 238.167,-0.5 251.833,-0.5 265.5,-0.5C 301.127,3.09431 334.96,13.0943 367,29.5C 385.903,25.2923 405.07,22.9589 424.5,22.5C 429.195,22.8859 433.695,23.8859 438,25.5C 439.787,32.1102 439.787,38.7768 438,45.5C 436.003,57.3209 432.836,68.8209 428.5,80C 466.2,124.24 491.034,175.073 503,232.5C 506.831,251.836 509.664,271.17 511.5,290.5C 511.5,314.833 511.5,339.167 511.5,363.5C 510.28,386.95 507.113,410.283 502,433.5C 489.969,483.027 458.469,509.027 407.5,511.5C 378.833,511.5 350.167,511.5 321.5,511.5C 311.804,510.654 302.971,507.321 295,501.5C 290.274,506.272 284.774,509.606 278.5,511.5C 256.167,511.5 233.833,511.5 211.5,511.5C 209.856,510.684 208.69,509.35 208,507.5C 207.829,502.136 207.329,496.802 206.5,491.5C 201.833,488.833 197.167,488.833 192.5,491.5C 191.671,496.802 191.171,502.136 191,507.5C 190.31,509.35 189.144,510.684 187.5,511.5C 164.833,511.5 142.167,511.5 119.5,511.5C 114.742,509.87 110.242,507.536 106,504.5C 98.4597,508.166 90.6264,510.499 82.5,511.5C 60.5,511.5 38.5,511.5 16.5,511.5C 8.5,508.167 2.83333,502.5 -0.5,494.5C -0.5,470.833 -0.5,447.167 -0.5,423.5C 6.10113,404.685 19.4345,396.852 39.5,400C 53.1708,403.673 61.3375,412.507 64,426.5C 65.7888,429.179 66.9555,429.013 67.5,426C 61.8174,389.084 62.3174,352.25 69,315.5C 70.2712,308.853 72.4378,302.52 75.5,296.5C 36.9453,263.333 23.7786,222 36,172.5C 43.6618,155.002 55.4951,141.002 71.5,130.5C 73.9305,123.041 76.2638,115.541 78.5,108C 65.0695,89.0481 57.5695,67.8814 56,44.5C 55.0852,38.0559 55.4185,31.7226 57,25.5C 61.5721,23.486 66.4054,22.486 71.5,22.5C 92.6779,22.8332 113.511,25.4999 134,30.5C 153.583,17.1895 175.083,8.35616 198.5,4C 207.299,2.43768 215.966,0.937678 224.5,-0.5 Z"/></g>
