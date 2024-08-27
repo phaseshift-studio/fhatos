@@ -43,6 +43,7 @@ namespace fhatos {
     ptr<List<Subscription_p>> subscriptions = std::make_shared<List<Subscription_p>>();
     MutexRW<> mutex = MutexRW<>();
     std::atomic_bool available_ = std::atomic_bool(false);
+    bool remote_retains = false;
 
   public:
     const SType stype;
@@ -105,17 +106,18 @@ namespace fhatos {
         if (subscription->onRecv) { // not an unsubscribe event // todo: is it even possible to be in this state?
           const ptr<Subscription> sub_ptr = share<Subscription>(*subscription);
           this->subscriptions->push_back(sub_ptr);
-          const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
-          if (objx->is_objs()) {
-            for (const auto &obj: *objx->objs_value()) {
-              this->outbox_->push_back(share(Mail(
-                      {subscription,
-                       share(Message{.source = ID("anon_src"),
-                               .target = ID("anon_tgt"),
-                               .payload = obj,
-                               .retain = true})}))); // TODO: need both source of the retain and the target of obj
-            }
-          } /* else {
+          if (!this->remote_retains) {
+            const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
+            if (objx->is_objs()) {
+              for (const auto &obj: *objx->objs_value()) {
+                this->outbox_->push_back(share(Mail(
+                        {subscription,
+                         share(Message{.source = ID("anon_src"),
+                                 .target = ID("anon_tgt"),
+                                 .payload = obj,
+                                 .retain = true})}))); // TODO: need both source of the retain and the target of obj
+              }
+            } /* else {
            if (!objx->is_noobj()) {
              this->outbox_->push_back(share(
                  Mail({subscription,
@@ -124,6 +126,7 @@ namespace fhatos {
                                      .payload = objx,
                                      .retain = true})}))); // TODO: need both source of the retain and the target of obj
            }*/
+          }
           LOG_SUBSCRIBE(OK, subscription);
         } else {
           LOG_UNSUBSCRIBE(OK, subscription->source, &subscription->pattern);
