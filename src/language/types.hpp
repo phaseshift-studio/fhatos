@@ -51,7 +51,6 @@ namespace fhatos {
             this->saveType(inst_id("to_inv"), Insts::to_inv(x(0)));
             this->saveType(inst_id("->"), Insts::from(uri(inst_id("to_inv"))));
             this->saveType(inst_id("start"), Insts::start(x(0)));
-            this->saveType(inst_id("__"), Insts::start(x(0)));
             this->saveType(inst_id("merge"), Insts::merge());
             this->saveType(inst_id(">-"), Insts::from(uri(inst_id("merge"))));
             this->saveType(inst_id("map"), Insts::map(x(0)));

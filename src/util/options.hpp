@@ -116,8 +116,8 @@ namespace fhatos {
       return this;
     }
 
-    ///////////////////////
-    /////// PARSER ///////
+    //////////////////////////
+    /////// PROCESSOR ///////
     template<typename S, typename BCODE, typename E>
     shared_ptr <E> processor(const shared_ptr <S> &starts, const shared_ptr <BCODE> &bcode) {
       if (!processor_.has_value())

@@ -177,7 +177,7 @@ namespace fhatos {
     FOS_SHOULD_RETURN({"1"}, "1");
     FOS_SHOULD_RETURN({"[1,1]"}, "1-<[_,_]");
     FOS_SHOULD_RETURN({"[3,5]"}, "1-<[_,_]=[plus(2),plus(4)]");
-    FOS_SHOULD_RETURN({"[3,true]"}, "1.-<[_,_].=[plus(2),plus(4)].=[_,type().eq(" FOS_TYPE_PREFIX "int/)]");
+    FOS_SHOULD_RETURN({"[3,true]"}, "1.-<[_,_]=[plus(2),plus(4)]=[_,type().eq(" FOS_TYPE_PREFIX "int/)]");
     /////////// GET/SET
     FOS_SHOULD_RETURN({"'fhat'"}, "[1,2,'fhat'].get(2)");
   }
@@ -257,6 +257,14 @@ namespace fhatos {
     FOS_TEST_ERROR("even[1]");
     FOS_TEST_ERROR("even[3]");
     FOS_TEST_ERROR("even[5]");
+    ////// INLINE TYPE-SLOT
+    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.even[_].type()");
+    FOS_CHECK_RESULTS<Uri>({*jnt(32,id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.even[_]");
+    FOS_CHECK_RESULTS<Uri>({*jnt(32,id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.map(even[_])");
+    FOS_CHECK_RESULTS<Uri>({*jnt(10,id_p(FOS_TYPE_PREFIX "int/even")),*jnt(32,id_p(FOS_TYPE_PREFIX "int/even"))}, "{10,32}.map(even[_])");
+    FOS_TEST_ERROR("{1}.even[_]");
+    FOS_TEST_ERROR("{3}.map(even[_])");
+    FOS_TEST_ERROR("{5}.plus(1).plus(1).even[_]");
   }
 
   void test_to_from() {
@@ -308,8 +316,8 @@ namespace fhatos {
     FOS_CHECK_RESULTS<>(List<Obj>{{1, 3, 1}}, "1-<[_,plus(2),_]");
     FOS_CHECK_RESULTS<>(List<Obj>{{2, 30, 1}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]");
     FOS_CHECK_RESULTS<>(List<Obj>{2, 30, 1}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]>-");
-    // FOS_CHECK_RESULTS<>(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
-    // FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
+    FOS_CHECK_RESULTS<>(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
+    FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
     FOS_CHECK_RESULTS<>(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
   }
 
@@ -325,8 +333,9 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+    //Options::singleton()->log_level(TRACE); //
           FOS_RUN_TEST(test_no_input_parsing); //
-          //FOS_RUN_TEST(test_start_inst_parsing); //
+          FOS_RUN_TEST(test_start_inst_parsing); //
           FOS_RUN_TEST(test_noobj_parsing); //
           FOS_RUN_TEST(test_bool_parsing); //
           FOS_RUN_TEST(test_int_parsing); //

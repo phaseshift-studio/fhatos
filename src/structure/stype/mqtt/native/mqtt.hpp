@@ -47,7 +47,8 @@ namespace fhatos {
             this->server_addr = string(server_addr).find_first_of("mqtt://") == string::npos
                                     ? string("mqtt://").append(string(server_addr)).c_str()
                                     : server_addr;
-            this->xmqtt = ptr<async_client>(new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5)));
+            this->xmqtt = ptr<async_client>(
+                new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5)));
             this->will_message = will_message;
             srand(time(nullptr));
             auto connection_options = connect_options_builder()
@@ -103,13 +104,15 @@ namespace fhatos {
             /// MQTT CONNECTION
             try {
                 int counter = 0;
-                while (!this->xmqtt->is_connected()) {
+                while (!this->xmqtt->is_connected() && counter < FOS_MQTT_MAX_RETRIES) {
                     this->xmqtt->connect(connection_options.finalize());
-                    if (counter++ > FOS_MQTT_MAX_RETRIES)
-                        throw mqtt::exception(1);
-                    LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr);
-                    sleep(FOS_MQTT_RETRY_WAIT / 1000);
+                    if (counter > 1) {
+                        LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr);
+                        sleep(FOS_MQTT_RETRY_WAIT / 1000);
+                    }
                 }
+                if (counter++ > FOS_MQTT_MAX_RETRIES)
+                    throw mqtt::exception(1);
             } catch (const mqtt::exception &e) {
                 LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr, e.what());
             }

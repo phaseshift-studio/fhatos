@@ -225,11 +225,18 @@ namespace fhatos {
     };
     static TriFunction<const Obj &, const OType, const ID_p &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
         const ID_p &) {
+        printf("TYPE_CHECKER undefined at this point in bootstrap.\n");
         return nullptr;
     };
-    static Function<const string &, Type_p> TYPE_PARSER = [](const string &) { return nullptr; };
+    static Function<const string &, Obj_p> OBJ_PARSER = [](const string &) {
+        printf("OBJ_PARSER undefined at this point in bootstrap.\n");
+        return nullptr;
+    };
     static QuadConsumer<const ID &, const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
-            [](const ID &, const ID &, const Obj_p &, const bool) { return nullptr; };
+            [](const ID &, const ID &, const Obj_p &, const bool) {
+                printf("MESSAGE_INTERCEPT undefined at this point in bootstrap.\n");
+                return nullptr;
+            };
 
     //////////////////////////////////////////////////
     ////////////////////// OBJ //////////////////////
@@ -1294,7 +1301,7 @@ namespace fhatos {
             LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
             if (bobj->first == 1 && bobj->second[0] == 'x')
                 return Obj::to_noobj();
-            return TYPE_PARSER(string((char *) bobj->second, bobj->first));
+            return OBJ_PARSER(string((char *) bobj->second, bobj->first));
         }
     };
 
@@ -1316,7 +1323,7 @@ namespace fhatos {
         return Obj::to_uri(fURI(xuri), type);
     }
 
-    [[maybe_unused]] static Int_p jnt(const FL_INT_TYPE xint) { return Obj::to_int(xint); }
+    [[maybe_unused]] static Int_p jnt(const FL_INT_TYPE xint, const ID_p &type = INT_FURI) { return Obj::to_int(xint,type); }
 
     [[maybe_unused]] static Str_p str(const char *xstr) { return Obj::to_str(xstr); }
 
