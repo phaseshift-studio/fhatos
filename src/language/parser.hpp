@@ -33,11 +33,11 @@ namespace fhatos {
   using namespace std;
 
   struct Tracker {
-    uint8_t parens = 0;
-    uint8_t brackets = 0;
-    uint8_t angles = 0;
-    uint8_t braces = 0;
-    uint8_t within = 0;
+    int8_t parens = 0;
+    int8_t brackets = 0;
+    int8_t angles = 0;
+    int8_t braces = 0;
+    int8_t within = 0;
     bool quotes = false;
     char last = '\0';
 

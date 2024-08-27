@@ -110,9 +110,9 @@ namespace fhatos {
                         LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr);
                         sleep(FOS_MQTT_RETRY_WAIT / 1000);
                     }
+                    if (++counter > FOS_MQTT_MAX_RETRIES)
+                        throw mqtt::exception(1);
                 }
-                if (counter++ > FOS_MQTT_MAX_RETRIES)
-                    throw mqtt::exception(1);
             } catch (const mqtt::exception &e) {
                 LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr, e.what());
             }
