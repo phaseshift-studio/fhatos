@@ -200,9 +200,9 @@ namespace fhatos {
     uint16_t port;
     bool useAnsi;
     ESPTelnet *xtelnet;
-    Ansi <ESPTelnet> *ansi;
+    Ansi<ESPTelnet> *ansi;
     ID *currentTopic;
-    Pair <ID, ID> *previousMessage;
+    Pair<ID, ID> *previousMessage;
   };
 } // namespace fhatos
 

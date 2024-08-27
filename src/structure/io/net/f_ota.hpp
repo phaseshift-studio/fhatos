@@ -52,7 +52,7 @@ namespace fhatos {
       return this;
     };
 
-    fOTA *onProgress(const BiConsumer <uint32_t, uint32_t> progressFunction) {
+    fOTA *onProgress(const BiConsumer<uint32_t, uint32_t> progressFunction) {
       ArduinoOTA.onProgress(
               [progressFunction](uint32_t progress, uint32_t total) {
                 progressFunction(progress, total);
@@ -60,7 +60,7 @@ namespace fhatos {
       return this;
     };
 
-    fOTA *onError(const Consumer <ota_error_t> errorFunction) {
+    fOTA *onError(const Consumer<ota_error_t> errorFunction) {
       ArduinoOTA.onError(
               [errorFunction](ota_error_t error) { errorFunction(error); });
       return this;
@@ -84,13 +84,13 @@ namespace fhatos {
           "\tID            : %s\n"
           "\tHost          : %s:%i\n"
           "\tUpdate command: %s\n",
-              //"\tPartition     : %s\n",
+      //"\tPartition     : %s\n",
           this->id().toString().c_str(),
           ArduinoOTA.getHostname().c_str(), this->port,
           ArduinoOTA.getCommand() == 0 ? "U_FLASH" : "U_FS"
-              /*,ArduinoOTA.getPartitionLabel().isEmpty()
-                  ? "<none>"
-                  : ArduinoOTA.getPartitionLabel().c_str()*/);
+      /*,ArduinoOTA.getPartitionLabel().isEmpty()
+          ? "<none>"
+          : ArduinoOTA.getPartitionLabel().c_str()*/);
     }
 
     virtual void loop() override {

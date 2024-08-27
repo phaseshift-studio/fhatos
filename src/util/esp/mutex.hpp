@@ -46,7 +46,7 @@ namespace fhatos {
 #endif
 
     template<typename T = void *>
-    T lockUnlock(const Supplier <T> criticalFunction,
+    T lockUnlock(const Supplier<T> criticalFunction,
                  const uint16_t millisecondsWait = WAIT_TIME_MS) const {
 #if defined(ESP32)
       if (pdTRUE ==

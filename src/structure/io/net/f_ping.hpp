@@ -114,7 +114,7 @@ namespace fhatos {
 
     void loop() override {
       Actor<PROCESS, ROUTER>::loop();
-      List < Process * > *results = Scheduler::singleton()->find(this->id().extend("+"));
+      List<Process *> *results = Scheduler::singleton()->find(this->id().extend("+"));
       for (Process *child: *results) {
         this->publish(child->id().query("?loop"), "", TRANSIENT_MESSAGE);
       }
@@ -131,14 +131,14 @@ namespace fhatos {
         char line[256];
         sprintf(line,
                 FOS_TAB
-        "!b\\_!!!r%s!!\n"
-        FOS_TAB
-        ""
-        FOS_TAB
-        ""
-        FOS_TAB
-        "[!gip!!:!b%s!!][!gcounter!!:!b%i!!][!gsuccess!!:!b%.2f%%"
-        "!!][!gaverage!!:!b%.2fms!!]\n",
+                "!b\\_!!!r%s!!\n"
+                FOS_TAB
+                ""
+                FOS_TAB
+                ""
+                FOS_TAB
+                "[!gip!!:!b%s!!][!gcounter!!:!b%i!!][!gsuccess!!:!b%.2f%%"
+                "!!][!gaverage!!:!b%.2fms!!]\n",
                 pinger->id().lastSegment().c_str(), "a", 1, 10.0f, 2.0f); /* pinger->ip.c_str(),
                 pinger->counter, 100.0f - pinger->failureRate(),
                 pinger->averageTime());*/

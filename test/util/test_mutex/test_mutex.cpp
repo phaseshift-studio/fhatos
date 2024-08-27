@@ -1,7 +1,26 @@
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #ifndef fhatos_test_mutex_hpp
 #define fhatos_test_mutex_hpp
 
 #undef FOS_TEST_ON_BOOT
+
 #include <test_fhatos.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <util/mutex_deque.hpp>
@@ -14,9 +33,11 @@ namespace fhatos {
   struct Worker : public Thread {
     MutexDeque<int> *mutex;
     int counter = 0;
+
     Worker(int index, MutexDeque<int> *mutex) : Thread(ID(string("worker/").append(std::to_string(index)))) {
       this->mutex = mutex;
     }
+
     void setup() override {
       FOS_TEST_MESSAGE("%s up and running", this->id()->toString().c_str());
       TEST_ASSERT_FALSE(this->running());
@@ -115,8 +136,8 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_mutex_deque_methods); //
-      FOS_RUN_TEST(test_mutex_deque_concurrently); //
+          FOS_RUN_TEST(test_mutex_deque_methods); //
+          FOS_RUN_TEST(test_mutex_deque_concurrently); //
   );
 } // namespace fhatos
 

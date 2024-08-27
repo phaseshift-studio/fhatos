@@ -1,18 +1,20 @@
-//  FhatOS: A Distributed Operating System
-//  Copyright (c) 2024 PhaseShift Studio, LLC
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Affero General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Affero General Public License for more details.
-//
-//  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
 
 #include <fhatos.hpp>
 #include <structure/kernel.hpp>
@@ -28,7 +30,9 @@
 #include FOS_FILE_SYSTEM(fs.hpp)
 
 #ifdef NATIVE
+
 #include <model/cluster.hpp>
+
 #endif
 
 namespace fhatos {
@@ -63,27 +67,27 @@ void setup() {
   try {
     load_processor();
     Kernel::build()
-        ->using_printer(Ansi<>::singleton())
-        ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
-        ->displaying_splash(ANSI_ART)
-        ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
-        ->displaying_notes("Use !b:help!! for !yconsole commands!!")
-        ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-        ->using_router(Router::singleton("/sys/router/"))
-        ->boot<Types>(Types::singleton("/type/"))
-        ->boot<Heap>(Heap::create("/proc/heap/", "+"))
-        ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
-        ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+            ->using_printer(Ansi<>::singleton())
+            ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
+            ->displaying_splash(ANSI_ART)
+            ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
+            ->displaying_notes("Use !b:help!! for !yconsole commands!!")
+            ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
+            ->using_router(Router::singleton("/sys/router/"))
+            ->boot<Types>(Types::singleton("/type/"))
+            ->boot<Heap>(Heap::create("/proc/heap/", "+"))
+            ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
+            ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
 #ifdef NATIVE
-        ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
-        ->boot<Cluster>(Cluster::create("/io/cluster"))
+            ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
+            ->boot<Cluster>(Cluster::create("/io/cluster"))
 #else
-        ->boot<FileSystem>(FileSystem::singleton("/io/fs", "/fs"))
+                    ->boot<FileSystem>(FileSystem::singleton("/io/fs", "/fs"))
 #endif
-        ->boot<Console>(Console::create("/home/root/repl/"))
-        ->load_modules({ID("/mod/proc")})
-        ->initial_terminal_owner("/home/root/repl/")
-        ->done("kernel_barrier");
+            ->boot<Console>(Console::create("/home/root/repl/"))
+            ->load_modules({ID("/mod/proc")})
+            ->initial_terminal_owner("/home/root/repl/")
+            ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
   }

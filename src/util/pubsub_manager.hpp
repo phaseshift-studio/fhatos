@@ -28,8 +28,8 @@ namespace fhatos {
 
   class PubSubManager {
   protected:
-    Function <Mail_p, Option<Mail_p>> _mailer;
-    List <Subscription_p> *SUBSCRIPTIONS = new List<Subscription_p>();
+    Function<Mail_p, Option<Mail_p>> _mailer;
+    List<Subscription_p> *SUBSCRIPTIONS = new List<Subscription_p>();
     MutexRW<> MUTEX_SUBSCRIPTIONS = MutexRW<>();
     Map<ID, const Message_p> *RETAINS;
     Mutex<> MUTEX_RETAIN = Mutex<>();
@@ -37,7 +37,7 @@ namespace fhatos {
 
   public:
     explicit PubSubManager(
-            const bool withRetains = true, const Function <Mail_p, Option<Mail_p>> &mailer = [](const Mail_p &mail) {
+            const bool withRetains = true, const Function<Mail_p, Option<Mail_p>> &mailer = [](const Mail_p &mail) {
       // if (mail->first->mailbox) {
       //    mail->first->mailbox->push(mail);
       //    return Option<Mail_p>();
@@ -60,14 +60,14 @@ namespace fhatos {
               .target = message.target,
               .payload = PtrHelper::clone(message.payload),
               .retain = message.retain});
-      auto _rc = MUTEX_SUBSCRIPTIONS.read < Pair < RESPONSE_CODE, List<Subscription_p>>>([this, mess_ptr] {
+      auto _rc = MUTEX_SUBSCRIPTIONS.read<Pair<RESPONSE_CODE, List<Subscription_p>>>([this, mess_ptr] {
         //////////////
         RESPONSE_CODE _rc = mess_ptr->retain ? OK : NO_TARGETS;
-        List < Subscription_p > subs;
+        List<Subscription_p> subs;
         for (const auto &subscription: *SUBSCRIPTIONS) {
           if (subscription->pattern.matches(mess_ptr->target)) {
             try {
-              const Option <Mail_p> mail = this->_mailer(share<Mail>(Mail(subscription, mess_ptr)));
+              const Option<Mail_p> mail = this->_mailer(share<Mail>(Mail(subscription, mess_ptr)));
               _rc = OK;
               if (mail.has_value()) {
                 subs.push_back(subscription);
@@ -112,19 +112,19 @@ namespace fhatos {
                                          }),
                                SUBSCRIPTIONS->end());
           /////////////// ADD NEW SUBSCRIPTION
-          const ptr <Subscription> sub_ptr = share<Subscription>(subscription);
+          const ptr<Subscription> sub_ptr = share<Subscription>(subscription);
           SUBSCRIPTIONS->push_back(sub_ptr);
           LOG_SUBSCRIBE(_rc, sub_ptr);
           return share<RESPONSE_CODE>(_rc);
         });
         /////////////// SUBSCRIPTION RETAINS
         if (RETAINS) {
-          for (const auto &mess: MUTEX_RETAIN.lockUnlock < List < Message_p >> ([this, subscription] {
-            List <Message_p> messages;
+          for (const auto &mess: MUTEX_RETAIN.lockUnlock<List<Message_p >>([this, subscription] {
+            List<Message_p> messages;
             LOG(DEBUG, "Processing retain messages [size:%i]\n", RETAINS->size());
             for (const auto &[target, message]: *RETAINS) {
               if (target.matches(subscription.pattern)) {
-                const Option <Mail_p> mail = this->_mailer(share<Mail>(Mail(share(subscription), message)));
+                const Option<Mail_p> mail = this->_mailer(share<Mail>(Mail(share(subscription), message)));
                 if (mail.has_value()) {
                   messages.push_back(message);
                 }
@@ -159,7 +159,7 @@ namespace fhatos {
     }
 
   protected:
-    ptr <RESPONSE_CODE> unsubscribeX(const ID &source, const Pattern *pattern) {
+    ptr<RESPONSE_CODE> unsubscribeX(const ID &source, const Pattern *pattern) {
       try {
         return MUTEX_SUBSCRIPTIONS.write<RESPONSE_CODE>([this, source, pattern]() {
           const uint16_t size = SUBSCRIPTIONS->size();

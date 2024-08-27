@@ -126,11 +126,11 @@ namespace fhatos {
   };
 
   const static Enums<GROUPING> parse_token = Enums<GROUPING>(
-    {
-      {GROUPING::BRACKET, "[]"},
-      {GROUPING::PAREN, "()"},
-      {GROUPING::BRACE, "{}"}
-    });
+          {
+                  {GROUPING::BRACKET, "[]"},
+                  {GROUPING::PAREN,   "()"},
+                  {GROUPING::BRACE,   "{}"}
+          });
 
   class Parser final : public Actor<Coroutine, Empty> {
     explicit Parser(const ID &id = ID("/parser/")) : Actor<Coroutine, Empty>(id) {
@@ -213,8 +213,8 @@ namespace fhatos {
           return b.value();
       }
       b = dot_type
-            ? tryParseBCode(token, EMPTY_CHARS, BCODE_FURI)
-            : tryParseBCode(valueToken, typeToken, BCODE_FURI);
+          ? tryParseBCode(token, EMPTY_CHARS, BCODE_FURI)
+          : tryParseBCode(valueToken, typeToken, BCODE_FURI);
       if (b.has_value())
         return b.value();
       b = tryParseDEFAULT(valueToken, typeToken);
@@ -252,8 +252,8 @@ namespace fhatos {
             if (c == parse_token.toChars(grouping)[0]) {
               onType = false;
             } else if ((!typeToken.empty() && tracker.grouping(parse_token.toChars(grouping)[0]) && (
-                          // inside value definition (must be bcode)
-                          c == '.' || isspace(c))) ||
+                    // inside value definition (must be bcode)
+                    c == '.' || isspace(c))) ||
                        (tracker.open('{') && tracker.closed(parse_token.toChars(grouping)[1]))) {
               // inside an objs definition (must be sugar bcode)
               valueToken.append(typeToken);
@@ -297,18 +297,18 @@ namespace fhatos {
     static Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken,
                                          const fURI_p & = NOOBJ_FURI) {
       return (typeToken == NOOBJ_FURI->toString() || (typeToken.empty() && valueToken == STR(FOS_NOOBJ_TOKEN)))
-               ? Option<NoObj_p>{Obj::to_noobj()}
-               : Option<NoObj_p>{};
+             ? Option<NoObj_p>{Obj::to_noobj()}
+             : Option<NoObj_p>{};
     }
 
     static Option<Bool_p> tryParseBool(const string &valueToken, const string &typeToken,
                                        const fURI_p &baseType = BOOL_FURI) {
       return ((strcmp("true", valueToken.c_str()) == 0) || (strcmp("false", valueToken.c_str()) == 0))
-               ? Option<Bool_p>{
-                 Bool::to_bool(strcmp("true", valueToken.c_str()) == 0,
-                               share<ID>(baseType->resolve(typeToken.c_str())))
-               }
-               : Option<Bool_p>{};
+             ? Option<Bool_p>{
+                      Bool::to_bool(strcmp("true", valueToken.c_str()) == 0,
+                                    share<ID>(baseType->resolve(typeToken.c_str())))
+              }
+             : Option<Bool_p>{};
     }
 
     static Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken,
@@ -337,18 +337,18 @@ namespace fhatos {
           return {};
       }
       return dotFound
-               ? Option<Real_p>{
-                 Real::to_real(stof(valueToken), share<ID>(baseType->resolve(typeToken.c_str())))
-               }
-               : Option<Real_p>{};
+             ? Option<Real_p>{
+                      Real::to_real(stof(valueToken), share<ID>(baseType->resolve(typeToken.c_str())))
+              }
+             : Option<Real_p>{};
     }
 
     static Option<Uri_p> tryParseUri(const string &valueToken, const string &typeToken,
                                      const fURI_p &baseType = URI_FURI) {
       if (valueToken[0] == '<' && valueToken[valueToken.length() - 1] == '>')
         return Option<Uri_p>{
-          Uri::to_uri(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
-                      id_p(baseType->resolve(typeToken)))
+                Uri::to_uri(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
+                            id_p(baseType->resolve(typeToken)))
         };
       if ((valueToken[0] == '.' && valueToken[1] == '/') ||
           (valueToken[0] == '.' && valueToken[1] == '.' && valueToken[2] == '/'))
@@ -359,11 +359,11 @@ namespace fhatos {
     static Option<Str_p> tryParseStr(const string &valueToken, const string &typeToken,
                                      const fURI_p &baseType = STR_FURI) {
       return (valueToken[0] == '\'' && valueToken[valueToken.length() - 1] == '\'')
-               ? Option<Str_p>{
-                 Str::to_str(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
-                             id_p(baseType->resolve(typeToken)))
-               }
-               : Option<Str_p>{};
+             ? Option<Str_p>{
+                      Str::to_str(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
+                                  id_p(baseType->resolve(typeToken)))
+              }
+             : Option<Str_p>{};
     }
 
     static Option<Lst_p> tryParseLst(const string &token, const string &type, const fURI_p &baseType = LST_FURI) {
@@ -514,8 +514,8 @@ namespace fhatos {
                                          const fURI_p &baseType = BCODE_FURI) {
       if (valueToken == "_") {
         return typeToken.empty()
-                 ? Option<BCode_p>(Obj::to_bcode())
-                 : Option<BCode_p>(Obj::to_bcode({Insts::as(uri(typeToken))}));
+               ? Option<BCode_p>(Obj::to_bcode())
+               : Option<BCode_p>(Obj::to_bcode({Insts::as(uri(typeToken))}));
       } // special character for 'no instructions' (no general common parse pattern)
       //////////////////////////////////////////////////////////////////////////////////////
       //////////////// lookahead to determine if token is potentially _bcode ////////////////
@@ -571,7 +571,7 @@ namespace fhatos {
             instToken += c;
           ///////////////////////////////////////////////////////////////
           if ((unary || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 && tracker.braces
-              == 0 &&
+                                                                                                == 0 &&
               tracker.within == 0 && !tracker.quotes && (ss.peek() == '.' || sugar_next(&ss))) {
             if (ss.peek() == '.')
               ss.get();
@@ -596,8 +596,8 @@ namespace fhatos {
             if (!obj.has_value())
               return {};
             insts.push_back(insts.empty()
-                              ? Insts::start(obj.value())
-                              : Insts::map(obj.value()));
+                            ? Insts::start(obj.value())
+                            : Insts::map(obj.value()));
           } else {
             // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
             LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", typeValue.first.c_str(),

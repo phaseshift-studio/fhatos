@@ -79,7 +79,8 @@ namespace fhatos {
       fs::File file = root.openNextFile();
       while (file) {
         listing->push_back(
-            uri(string(file.path()).substr(this->mount_root_->toString().length()))); // clip off local mount location
+                uri(string(file.path()).substr(
+                        this->mount_root_->toString().length()))); // clip off local mount location
         file = root.openNextFile();
       }
       return Obj::to_objs(listing);

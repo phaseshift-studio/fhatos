@@ -36,26 +36,28 @@ namespace fhatos {
       TEST_FAIL();
     }
   }
+
   void test_inst(const Obj_p &lhs, const Inst_p &inst, const Obj_p &expected) { test_obj(lhs, inst, expected); }
+
   ////////////////////////////////////////////////////////////////////////////////////
   void test_plus() {
     test_inst(Obj::to_int(22), //
-             Insts::plus(Obj::to_int(10)), //
-             Obj::to_int(32));
+              Insts::plus(Obj::to_int(10)), //
+              Obj::to_int(32));
     test_inst(Obj::to_int(16), //
-             Insts::plus(Obj::to_bcode()), //
-             Obj::to_int(32));
+              Insts::plus(Obj::to_bcode()), //
+              Obj::to_int(32));
   }
 
   void test_mult() {
     // int => mult[int]
     test_inst(Obj::to_int(22), //
-             Insts::mult(Obj::to_int(10)), //
-             Obj::to_int(220));
+              Insts::mult(Obj::to_int(10)), //
+              Obj::to_int(220));
     // int => mult[_bcode]
     test_inst(Obj::to_int(16), //
-             Insts::mult(Obj::to_bcode()), //
-             Obj::to_int(256));
+              Insts::mult(Obj::to_bcode()), //
+              Obj::to_int(256));
   }
 
   void test_apply() {
@@ -65,19 +67,21 @@ namespace fhatos {
     test_obj(obj(u("http://fhatos.org")), obj({1, 2, 3}), obj({1, 2, 3}));
     /// _bcode => mult[int]
     test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
-             Insts::mult(obj(10)), //
-             Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(obj(10))}));
+              Insts::mult(obj(10)), //
+              Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(obj(10))}));
     /// _bcode => mult[_bcode]
     test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
-             Insts::mult(Obj::to_bcode({Insts::plus(obj(3))})), //
-             Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(Obj::to_bcode({Insts::plus(obj(3))}))}));
+              Insts::mult(Obj::to_bcode({Insts::plus(obj(3))})), //
+              Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(Obj::to_bcode({Insts::plus(obj(3))}))}));
   }
 
 
   void test_group() {
     test_inst(Obj::to_objs({1, 2, 3, 3}), //
-             Insts::group(Obj::to_bcode(), Obj::to_bcode(), Obj::to_bcode()), //
-             rec({{1, *Obj::to_lst({1})}, {2, *Obj::to_lst({2})}, {3, *Obj::to_lst({3, 3})}}));
+              Insts::group(Obj::to_bcode(), Obj::to_bcode(), Obj::to_bcode()), //
+              rec({{1, *Obj::to_lst({1})},
+                   {2, *Obj::to_lst({2})},
+                   {3, *Obj::to_lst({3, 3})}}));
     /* testInst(Insts::group(Obj::to_bcode({}), Obj::to_bcode({}), Obj::to_bcode({Insts::start({}), Insts::count()})),
        // Obj::to_objs({1, 2, 3, 3}), // Objs::to_rec({{1, 1}, {2, 1}, {3, 2}}));*/
   }
@@ -85,20 +89,20 @@ namespace fhatos {
   void test_barrier() {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
     test_inst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), uri("abc")})}), //
-             Insts::barrier(bcode({Insts::count()})), //
-             objs({obj(4)}));
+              Insts::barrier(bcode({Insts::count()})), //
+              objs({obj(4)}));
   }
 
   void test_within() { test_inst(lst({jnt(1), jnt(2), jnt(3)}), Insts::within(bcode({Insts::sum()})), lst({jnt(6)})); }
 
 
   FOS_RUN_TESTS( //
-      FOS_RUN_TEST(test_plus); //
-      FOS_RUN_TEST(test_mult); //
-      FOS_RUN_TEST(test_group); //
-      FOS_RUN_TEST(test_apply); //
-      FOS_RUN_TEST(test_barrier); //
-      FOS_RUN_TEST(test_within); //
+          FOS_RUN_TEST(test_plus); //
+          FOS_RUN_TEST(test_mult); //
+          FOS_RUN_TEST(test_group); //
+          FOS_RUN_TEST(test_apply); //
+          FOS_RUN_TEST(test_barrier); //
+          FOS_RUN_TEST(test_within); //
   )
 } // namespace fhatos
 

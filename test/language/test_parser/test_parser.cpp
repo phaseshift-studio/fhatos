@@ -1,3 +1,21 @@
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #ifndef fhatos_test_parser_hpp
 #define fhatos_test_parser_hpp
 
@@ -259,9 +277,10 @@ namespace fhatos {
     FOS_TEST_ERROR("even[5]");
     ////// INLINE TYPE-SLOT
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.even[_].type()");
-    FOS_CHECK_RESULTS<Uri>({*jnt(32,id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.even[_]");
-    FOS_CHECK_RESULTS<Uri>({*jnt(32,id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.map(even[_])");
-    FOS_CHECK_RESULTS<Uri>({*jnt(10,id_p(FOS_TYPE_PREFIX "int/even")),*jnt(32,id_p(FOS_TYPE_PREFIX "int/even"))}, "{10,32}.map(even[_])");
+    FOS_CHECK_RESULTS<Uri>({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.even[_]");
+    FOS_CHECK_RESULTS<Uri>({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.map(even[_])");
+    FOS_CHECK_RESULTS<Uri>({*jnt(10, id_p(FOS_TYPE_PREFIX "int/even")), *jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))},
+                           "{10,32}.map(even[_])");
     FOS_TEST_ERROR("{1}.even[_]");
     FOS_TEST_ERROR("{3}.map(even[_])");
     FOS_TEST_ERROR("{5}.plus(1).plus(1).even[_]");
@@ -333,7 +352,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-    //Options::singleton()->log_level(TRACE); //
+  //Options::singleton()->log_level(TRACE); //
           FOS_RUN_TEST(test_no_input_parsing); //
           FOS_RUN_TEST(test_start_inst_parsing); //
           FOS_RUN_TEST(test_noobj_parsing); //

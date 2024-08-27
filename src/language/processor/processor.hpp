@@ -1,18 +1,20 @@
-//  FhatOS: A Distributed Operating System
-//  Copyright (c) 2024 PhaseShift Studio, LLC
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Affero General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Affero General Public License for more details.
-//
-//  You should have received a copy of the GNU Affero General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
 #pragma once
 #ifndef fhatos_processor_hpp
 #define fhatos_processor_hpp
@@ -111,7 +113,7 @@ namespace fhatos {
       if (this->running->empty()) {
         const Obj_p seed_copy = this->bcode->bcode_value()->front()->inst_seed(this->bcode->bcode_value()->front());
         this->running->push_back(
-          share(Monad(seed_copy, this->bcode->bcode_value()->front())));
+                share(Monad(seed_copy, this->bcode->bcode_value()->front())));
       }
     }
 
@@ -193,7 +195,7 @@ namespace fhatos {
 
   static void load_processor() {
     Options::singleton()->processor<Obj, BCode, Objs>(
-      [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
+            [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
   }
 } // namespace fhatos
 

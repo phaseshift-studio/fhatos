@@ -44,7 +44,7 @@ namespace fhatos {
       return &uuid;
     }
 
-    ptr <uuid> mint(const uint8_t size = 36) {
+    ptr<uuid> mint(const uint8_t size = 36) {
       std::stringstream ss;
       int i;
       ss << std::hex;

@@ -58,7 +58,8 @@ namespace fhatos {
       for (const auto &p: fs::directory_iterator(this->make_native_path(dir->uri_value()).toString())) {
         if ((fs::is_directory(p) || fs::is_regular_file(p))) {
           listing->push_back(
-                  uri(p.path().string().substr(this->mount_root_->toString().length()))); // clip off local mount location
+                  uri(p.path().string().substr(
+                          this->mount_root_->toString().length()))); // clip off local mount location
         }
       }
       return Obj::to_objs(listing);

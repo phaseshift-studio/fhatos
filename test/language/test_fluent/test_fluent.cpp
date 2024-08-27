@@ -1,8 +1,28 @@
+/*******************************************************************************
+  FhatOS: A Distributed Operating System
+  Copyright (c) 2024 PhaseShift Studio, LLC
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 #include <process/ptype/native/scheduler.hpp>
+
 #ifndef fhatos_test_fluent_hpp
 #define fhatos_test_fluent_hpp
 
 #define FOS_TEST_ON_BOOT
+
 #include <test_fhatos.hpp>
 
 namespace fhatos {
@@ -75,8 +95,12 @@ namespace fhatos {
      FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b", "fhat.pig/a/b"},
                             __({"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));*/
     FOS_CHECK_RESULTS<Rec>(
-        {*Obj::to_rec({{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}})},
-        __(*Obj::to_rec({{"a", 1}})).plus(*Obj::to_rec({{"b", 2}})).plus(*Obj::to_rec({{"c", 3}, {"d", 4}})));
+            {*Obj::to_rec({{"a", 1},
+                           {"b", 2},
+                           {"c", 3},
+                           {"d", 4}})},
+            __(*Obj::to_rec({{"a", 1}})).plus(*Obj::to_rec({{"b", 2}})).plus(*Obj::to_rec({{"c", 3},
+                                                                                           {"d", 4}})));
   }
 
   void test_mult() {
@@ -96,12 +120,12 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-        FOS_RUN_TEST(test_to_from); //
-        FOS_RUN_TEST(test_plus); //
-        FOS_RUN_TEST(test_mult); //
-        FOS_RUN_TEST(test_count); //
-        FOS_RUN_TEST(test_relational_predicates); //
-      )
+          FOS_RUN_TEST(test_to_from); //
+          FOS_RUN_TEST(test_plus); //
+          FOS_RUN_TEST(test_mult); //
+          FOS_RUN_TEST(test_count); //
+          FOS_RUN_TEST(test_relational_predicates); //
+  )
 } // namespace fhatos
 
 SETUP_AND_LOOP();

@@ -67,8 +67,10 @@
 #define FOS_STOP_ON_BOOT scheduler()->stop();
 
 #else
+
 #include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+
 #define FOS_SETUP_ON_BOOT                                                                                              \
   Options::singleton()->printer<>(Ansi<>::singleton());                                                                \
   Options::singleton()->log_level(FOS_LOGGING);                                                                        \

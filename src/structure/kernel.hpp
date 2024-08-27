@@ -30,75 +30,75 @@
 #include <language/types.hpp>
 
 namespace fhatos {
-    class Kernel {
-    public:
-        static ptr<Kernel> build() {
-            static Kernel kernel = Kernel();
-            static ptr<Kernel> kernel_p = PtrHelper::no_delete(&kernel);
-            return kernel_p;
-        }
+  class Kernel {
+  public:
+    static ptr<Kernel> build() {
+      static Kernel kernel = Kernel();
+      static ptr<Kernel> kernel_p = PtrHelper::no_delete(&kernel);
+      return kernel_p;
+    }
 
-        static ptr<Kernel> with_log_level(const LOG_TYPE level) {
-            Options::singleton()->log_level(level);
-            return Kernel::build();
-        }
+    static ptr<Kernel> with_log_level(const LOG_TYPE level) {
+      Options::singleton()->log_level(level);
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> using_printer(const ptr<Ansi<> > &ansi) {
-            Options::singleton()->printer<Ansi<> >(ansi);
-            return Kernel::build();
-        }
+    static ptr<Kernel> using_printer(const ptr<Ansi<> > &ansi) {
+      Options::singleton()->printer<Ansi<> >(ansi);
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> displaying_splash(const char *splash) {
-            printer<>()->print(splash);
-            return Kernel::build();
-        }
+    static ptr<Kernel> displaying_splash(const char *splash) {
+      printer<>()->print(splash);
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> displaying_notes(const char *notes) {
-            printer<>()->printf(FOS_TAB_4 "%s\n", notes);
-            return Kernel::build();
-        }
+    static ptr<Kernel> displaying_notes(const char *notes) {
+      printer<>()->printf(FOS_TAB_4 "%s\n", notes);
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
-            Options::singleton()->scheduler<Scheduler>(scheduler);
-            return Kernel::build();
-        }
+    static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
+      Options::singleton()->scheduler<Scheduler>(scheduler);
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> using_router(const ptr<Router> &router) {
-            Options::singleton()->router<Router>(router);
-            return Kernel::build();
-        }
+    static ptr<Kernel> using_router(const ptr<Router> &router) {
+      Options::singleton()->router<Router>(router);
+      return Kernel::build();
+    }
 
-        template<typename ACTOR>
-        static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
-            Model::deploy(bootable);
-            return Kernel::build();
-        }
+    template<typename ACTOR>
+    static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
+      Model::deploy(bootable);
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> load_modules(const List<ID> &modules) {
-            for (const ID &id: modules) {
-                // List_p<Obj_p> list = share(List<Obj_p>());
-                for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
-                    const ID_p idp = share(pair.first);
-                    Types::singleton()->saveType(idp, pair.second);
-                    // list->push_back(Obj::to_uri(*idp));
-                }
-                // router<Router>()->publish(
-                //    Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
-            }
-            return Kernel::build();
+    static ptr<Kernel> load_modules(const List<ID> &modules) {
+      for (const ID &id: modules) {
+        // List_p<Obj_p> list = share(List<Obj_p>());
+        for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
+          const ID_p idp = share(pair.first);
+          Types::singleton()->saveType(idp, pair.second);
+          // list->push_back(Obj::to_uri(*idp));
         }
+        // router<Router>()->publish(
+        //    Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
+      }
+      return Kernel::build();
+    }
 
-        static ptr<Kernel> initial_terminal_owner(const ID &output) {
-            Terminal::currentOut(share(output));
-            return Kernel::build();
-        }
+    static ptr<Kernel> initial_terminal_owner(const ID &output) {
+      Terminal::currentOut(share(output));
+      return Kernel::build();
+    }
 
-        static void done(const char *barrier = "kernel_barrier") {
-            Scheduler::singleton()->barrier(barrier, nullptr,
-                                            FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
-            printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
-        }
-    };
+    static void done(const char *barrier = "kernel_barrier") {
+      Scheduler::singleton()->barrier(barrier, nullptr,
+                                      FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
+      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
+    }
+  };
 } // namespace fhatos
 
 #endif
