@@ -295,6 +295,15 @@ namespace fhatos {
     FOS_CHECK_RESULTS<Int>({10}, "*z");
     FOS_CHECK_RESULTS<Int>({10}, "**y");
     FOS_CHECK_RESULTS<Int>({10}, "*(**x)", {}, true); // TODO:: parse is off for *
+    ///// VARIATIONS OF TYPE DEFINITIONS
+    process("/type/inst/testing.->(block(plus(10).mult(2)))");
+    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+    process("/type/inst/testing.-> block(plus(10).mult(2))");
+    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+    process("/type/inst/testing -> block(plus(10).mult(2))");
+    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+    process("/type/inst/testing -> |(plus(10).mult(2))");
+    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
   }
 
   void test_process_thread_parsing() {
@@ -337,6 +346,7 @@ namespace fhatos {
     FOS_CHECK_RESULTS<>(List<Obj>{2, 30, 1}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]>-");
     FOS_CHECK_RESULTS<>(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
     FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
+    FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]_/sum()\\_>-");
     FOS_CHECK_RESULTS<>(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
   }
 

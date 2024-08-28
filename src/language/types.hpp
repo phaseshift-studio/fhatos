@@ -132,19 +132,15 @@ namespace fhatos {
           }
           this->write(typeId, typeDef, this->id());
         }
-        if (OType::INST == OTypes.toEnum(string(typeId->path(FOS_BASE_TYPE_INDEX)))) {
-          const Inst_p inst = Insts::to_inst_via_bcode(*typeId,
-                                                       typeDef->is_bcode()
-                                                       ? typeDef
-                                                       : bcode({typeDef}));
-          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(),
-                      typeDef->is_bcode() ? typeDef->bcode_value()->front()->toString().c_str()
-                                          : typeDef->toString().c_str(),
+       /* if (OType::INST == OTypes.toEnum(string(typeId->path(FOS_BASE_TYPE_INDEX)))) {
+          const Inst_p inst = typeDef->is_bcode() ? Insts::to_inst_via_bcode(typeId, typeDef)
+                                                  : typeDef;
+          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g]!m:!b%s !ytype!! defined\n", typeId->toString().c_str(), inst->toString().c_str(),
                       ITypeSignatures.toChars(inst->itype()).c_str());
-        } else {
+        } else {*/
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
                       typeDef->toString().c_str());
-        }
+       //}
       } catch (const fError &e) {
         LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
       }

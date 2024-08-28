@@ -782,63 +782,72 @@ namespace fhatos {
       return map;
     }
 
-    static Inst_p to_inst_via_bcode(const ID &typeId, const BCode_p &bcode) {
-      return Obj::to_inst(typeId.name(), {},
-                          [bcode](const List<Obj_p> &args) {
+    static Inst_p to_inst_via_bcode(const ID_p &typeId, const BCode_p &bcode) {
+      return Obj::to_inst(typeId->name(), {},
+                          [bcode](const InstArgs &) {
                             return [bcode](const Obj_p &arg) { return bcode->apply(arg); };
                           },
                           IType::ONE_TO_ONE,
-                          Obj::noobj_seed());
+                          Obj::noobj_seed(),
+                          typeId);
     }
 
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       /// try user defined inst
-      const Obj_p userInstBCode = router()->read(id_p(INST_FURI->resolve(typeId)));
-      if (userInstBCode->is_noobj())
-        throw fError("Unknown instruction: %s\n", typeId.toString().c_str());
-      if (userInstBCode->is_bcode() || userInstBCode->is_inst()) {
+      const ID_p typeIdResolved = id_p(INST_FURI->resolve(typeId));
+      const Obj_p userInst = router()->read(typeIdResolved);
+      if (userInst->is_noobj())
+        throw fError("Unknown instruction: %s\n", typeIdResolved->toString().c_str());
+      if (userInst->is_inst()) {
+        return replace_from_inst(args, userInst);
+      } else if (userInst->is_bcode()) {
+        //return to_inst_via_bcode(typeIdResolved, replace_from_bcode(args, userInst));
         return Obj::to_inst(
                 typeId.name(), args,
-                [userInstBCode](const InstArgs &args) {
-                  const BCode_p new_code =
-                          replace_from(args, userInstBCode->is_bcode() ? userInstBCode : bcode({userInstBCode}));
-                  return [new_code, args](const Obj_p &lhs) {
-                    return new_code->apply(lhs);
+                [userInst](const InstArgs &args) {
+                  const Obj_p new_bcode = replace_from_bcode(args, userInst);
+                  return [new_bcode, args](const Obj_p &lhs) {
+                    return new_bcode->apply(lhs);
                   };
                 },
-                userInstBCode->itype(),
-                userInstBCode->is_inst() ? userInstBCode->inst_seed_supplier() : Obj::noobj_seed(), // TODO
-                id_p(*userInstBCode->id()));
+                userInst->itype(),
+                userInst->is_inst() ? userInst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
+                id_p(typeId));
       } else {
-        throw fError("!b%s!! does not resolve to an inst or bytecode: %s\n", typeId.toString().c_str(),
-                     userInstBCode->toString().c_str());
+        throw fError("!b%s!! does not resolve to an inst or bytecode: %s\n", typeIdResolved->toString().c_str(),
+                     userInst->toString().c_str());
       }
     }
 
   private:
-    static BCode_p replace_from(const InstArgs &args, const BCode_p &old_bcode) {
+    static Inst_p replace_from_inst(const InstArgs &args, const Inst_p &old_inst) {
+      InstArgs new_args;
+      for (const Obj_p &arg: old_inst->inst_args()) {
+        if (arg->is_bcode()) {
+          new_args.push_back(replace_from_bcode(args, arg));
+        } else if (arg->is_inst() && arg->inst_op() == "from" && arg->inst_arg(0)->is_uri() &&
+                   arg->inst_arg(0)->uri_value().toString()[0] == '_') {
+          const uint8_t index = stoi(arg->inst_arg(0)->uri_value().toString().substr(1));
+          if (index < args.size())
+            new_args.push_back(args.at(index));
+          else
+            throw fError("%s requires !y%i!! arguments and only !y%i!! were provided",
+                         old_inst->toString().c_str(), index + 1, args.size());
+        } else {
+          new_args.push_back(arg);
+        }
+      }
+      return Obj::to_inst(old_inst->inst_op(), new_args, old_inst->inst_f(), old_inst->itype(),
+                          old_inst->inst_seed_supplier());
+    }
+
+    static BCode_p replace_from_bcode(const InstArgs &args, const BCode_p &old_bcode) {
       BCode_p new_bcode = bcode({});
       LOG(TRACE, "old bcode type: %s\n", old_bcode->toString().c_str());
-      for (const Inst_p &inst: *old_bcode->bcode_value()) {
-        InstArgs new_args;
-        for (const Obj_p &arg: inst->inst_args()) {
-          if (arg->is_bcode()) {
-            new_args.push_back(replace_from(args, arg));
-          } else if (arg->is_inst() && arg->inst_op() == "from" && arg->inst_arg(0)->is_uri() &&
-                     arg->inst_arg(0)->uri_value().toString()[0] == '_') {
-            const uint8_t index = stoi(arg->inst_arg(0)->uri_value().toString().substr(1));
-            if (index < args.size())
-              new_args.push_back(args.at(index));
-            else
-              throw fError("%s requires !y%i!! arguments and only !y%i!! were provided",
-                           old_bcode->toString().c_str(), index, args.size());
-          } else {
-            new_args.push_back(arg);
-          }
-        }
-        new_bcode->add_inst(
-                Obj::to_inst(inst->inst_op(), new_args, inst->inst_f(), inst->itype(), inst->inst_seed_supplier()));
+      for (const Inst_p &old_inst: *old_bcode->bcode_value()) {
+        const Inst_p new_inst = replace_from_inst(args, old_inst);
+        new_bcode->add_inst(new_inst);
       }
       LOG(TRACE, "new bcode type: %s\n", new_bcode->toString().c_str());
       return new_bcode;

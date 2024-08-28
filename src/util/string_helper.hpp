@@ -121,7 +121,7 @@ namespace fhatos {
 
     static std::stringstream *eat_space(std::stringstream *ss) {
       while (!ss->eof()) {
-        char c = ss->peek();
+        char c = (char) ss->peek();
         if (!isspace(c))
           return ss;
         else

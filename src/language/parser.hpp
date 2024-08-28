@@ -269,7 +269,7 @@ namespace fhatos {
         }
         if (typeToken.empty())
           valueToken = token;
-        else if (!unaryFound && grouped)
+        else if (!unaryFound)
           valueToken = valueToken.substr(0, valueToken.length() - 2);
       } else {
         typeToken = "";
@@ -547,8 +547,7 @@ namespace fhatos {
             for (const auto &[k, v]: Insts::unarySugars()) {
               if (StringHelper::look_ahead(k, &ss, instToken.empty())) {
                 if (!instToken.empty()) {
-                  LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(),
-                      instToken.c_str());
+                  LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), instToken.c_str());
                   fullbreak = true;
                   break;
                 }
@@ -570,18 +569,19 @@ namespace fhatos {
           if ((tracker.quotes || !isspace(c)) && tracker.printable())
             instToken += c;
           ///////////////////////////////////////////////////////////////
-          if ((unary || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 && tracker.braces
-                                                                                                == 0 &&
-              tracker.within == 0 && !tracker.quotes && (ss.peek() == '.' || sugar_next(&ss))) {
-            if (ss.peek() == '.')
+          if (((unary && tracker.parens == 1) || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 &&
+              tracker.braces == 0 && tracker.within == 0 && !tracker.quotes &&
+              (ss.peek() == '.' || sugar_next(&ss))) {
+            if (ss.peek() == '.') {
               ss.get();
+            }
             break;
           }
         }
-        if (instToken.empty())
-          continue;
         if (unary)
           instToken += ')';
+        if (instToken.empty())
+          continue;
         LOG(TRACE, "Parsing !ginst token!!: !y%s!!\n", instToken.c_str());
         // TODO: end inst with ; sugar
         Option<Inst_p> within = tryParsePolyWithin(instToken);
@@ -616,7 +616,7 @@ namespace fhatos {
     }
 
     static Option<Uri_p> tryParseDEFAULT(const string &valueToken, const string &typeToken,
-                                         const fURI_p &baseType = URI_FURI) {
+                                          const fURI_p &baseType = URI_FURI) {
       return Option<Uri_p>{Uri::to_uri(valueToken, id_p(baseType->resolve(typeToken)))};
     }
 
@@ -629,7 +629,8 @@ namespace fhatos {
           return true;
         }
       }
-      return false;
+      return StringHelper::look_ahead("_/", ss, false); // within is a wrapping sugar
+      // TODO: make that a universal distinction
     }
   };
 
