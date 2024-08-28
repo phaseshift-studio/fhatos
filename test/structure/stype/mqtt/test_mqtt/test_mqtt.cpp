@@ -16,26 +16,27 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_base_structure_hpp
-#define fhatos_base_structure_hpp
+#ifndef fhatos_test_mqtt_cpp
+#define fhatos_test_mqtt_cpp
 
+#undef FOS_TEST_ON_BOOT
+
+#include <../test/structure/test_base_structure.hpp>
 #include <fhatos.hpp>
 #include <structure/router.hpp>
-#include <structure/structure.hpp>
+#include FOS_MQTT(mqtt.hpp)
 #include <test_fhatos.hpp>
-
-#define FOS_STOP_ON_BOOT  \
-router()->detach(current_structure->pattern()); \
+#include <language/types.hpp>
+#include <model/model.hpp>
 
 namespace fhatos {
-  ptr<Structure> current_structure;
 
-  void test_write() {
-    router()->attach(current_structure);
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("/b/c"), jnt(10), id_p("fhatty")));
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("a/b/c"), str("hello_pity"), id_p("aus")));
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p("a/b"), str("hello_pity"), id_p("piggy")));
-  }
-}// namespace fhatos
+  FOS_RUN_TESTS( //
+          Model::deploy(Types::singleton()); //
+          current_structure = Mqtt::create("/a/+"); //
+          FOS_RUN_TEST(test_write); //
+  );
 
+} // namespace fhatos
+SETUP_AND_LOOP();
 #endif
