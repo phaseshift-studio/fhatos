@@ -480,9 +480,16 @@ namespace fhatos {
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b"), fURI("127.0.0.2/?/b"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1"), fURI("127.0.0.1/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/a/b/c"), fURI("127.0.0.1/+/+"));
-    FOS_TEST_ASSERT_NOT_MATCH_FURI(fURI("127.0.0.1/abc"), fURI("127.0.0.1/abc/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(fURI("127.0.0.1/abc"), fURI("127.0.0.1/abc/#"));
     //
     FOS_TEST_ASSERT_MATCH_FURI(fURI("/type/uri/fs:file"), Pattern("/type/#"));
+    //// EMPTY PATH SEGMENTS WITH WILDCARDS (MQTT BEHAVIOR TESTED AGAINST MOSQUITTO)
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst/abc"), Pattern("/type/inst/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst/"), Pattern("/type/inst/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst"), Pattern("/type/inst/#")); // different than +
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst/abc"), Pattern("/type/inst/+"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst/"), Pattern("/type/inst/+"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/type/inst"), Pattern("/type/inst/+")); // different than #
   }
 
   void test_fhat_idioms() {

@@ -354,7 +354,7 @@ namespace fhatos {
     virtual bool matches(const fURI &pattern) const {
       if (this->equals(pattern))
         return true;
-      string patternStr = pattern.toString();
+      const string patternStr = pattern.toString();
       if (pattern.toString() == "#")
         return true;
       if (patternStr.find('+') == string::npos && patternStr.find('#') == string::npos)
@@ -380,10 +380,12 @@ namespace fhatos {
       if (strcmp(pattern.password(), "+") != 0 && strcmp(this->password(), pattern.password()) != 0)
         return false;
       for (size_t i = 0; i < pattern.path_length(); i++) {
-        if (this->_path_length <= i)
-          return false;
         if (strcmp(pattern.path(i), "#") == 0)
           return true;
+        if (strcmp(pattern.path(i), "+") == 0 && this->_path_length <= i && this->spostfix)
+          return true;
+        if (this->_path_length <= i)
+          return false;
         if ((strlen(this->path(i)) == 0 && strlen(pattern.path(i)) != 0) ||
             (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
           return false;

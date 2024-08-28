@@ -773,16 +773,6 @@ namespace fhatos {
       return map;
     }
 
-    static Inst_p to_inst_via_bcode(const ID_p &typeId, const BCode_p &bcode) {
-      return Obj::to_inst(typeId->name(), {},
-                          [bcode](const InstArgs &) {
-                            return [bcode](const Obj_p &arg) { return bcode->apply(arg); };
-                          },
-                          IType::ONE_TO_ONE,
-                          Obj::noobj_seed(),
-                          typeId);
-    }
-
     static Inst_p to_inst(const ID &typeId, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       /// try user defined inst
