@@ -20,13 +20,13 @@
 #define fhatos_test_router_hpp
 
 #undef FOS_TEST_ON_BOOT
-
-#include <language/parser.hpp>
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_TYPES
 #include <test_fhatos.hpp>
 #include <util/obj_helper.hpp>
-#include <structure/router.hpp>
-#include <language/types.hpp>
-#include <model/model.hpp>
+
 
 namespace fhatos {
 
@@ -64,7 +64,6 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-          Model::deploy(Types::singleton()); //
           Options::singleton()->log_level(LOG_TYPE::TRACE); //
           FOS_RUN_TEST(test_publish); //
           FOS_RUN_TEST(test_bobj_wrap); //

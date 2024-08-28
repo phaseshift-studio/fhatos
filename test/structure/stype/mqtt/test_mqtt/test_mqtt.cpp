@@ -19,20 +19,12 @@
 #ifndef fhatos_test_mqtt_cpp
 #define fhatos_test_mqtt_cpp
 
-#undef FOS_TEST_ON_BOOT
-
 #include <../test/structure/test_base_structure.hpp>
-#include <fhatos.hpp>
-#include <structure/router.hpp>
 #include FOS_MQTT(mqtt.hpp)
-#include <test_fhatos.hpp>
-#include <language/types.hpp>
-#include <model/model.hpp>
 
 namespace fhatos {
 
   FOS_RUN_TESTS( //
-          Model::deploy(Types::singleton()); //
           current_structure = Mqtt::create("/a/+"); //
           FOS_RUN_TEST(test_write); //
   );

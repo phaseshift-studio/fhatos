@@ -19,13 +19,15 @@
 #ifndef fhatos_base_structure_hpp
 #define fhatos_base_structure_hpp
 
-#include <fhatos.hpp>
-#include <structure/router.hpp>
-#include <structure/structure.hpp>
+#undef FOS_TEST_ON_BOOT
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_TYPES
 #include <test_fhatos.hpp>
 
 #define FOS_STOP_ON_BOOT  \
-router()->detach(current_structure->pattern()); \
+router()->detach(current_structure->pattern());
 
 namespace fhatos {
   ptr<Structure> current_structure;
@@ -34,7 +36,7 @@ namespace fhatos {
     router()->attach(current_structure);
     TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("/b/c"), jnt(10), id_p("fhatty")));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("a/b/c"), str("hello_pity"), id_p("aus")));
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p("a/b"), str("hello_pity"), id_p("piggy")));
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p("/a/b"), str("hello_pity"), id_p("piggy")));
   }
 }// namespace fhatos
 

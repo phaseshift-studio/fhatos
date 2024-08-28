@@ -19,20 +19,12 @@
 #ifndef fhatos_test_key_value_hpp
 #define fhatos_test_key_value_hpp
 
-#undef FOS_TEST_ON_BOOT
-
 #include <../test/structure/test_base_structure.hpp>
-#include <fhatos.hpp>
-#include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
-#include <test_fhatos.hpp>
-#include <language/types.hpp>
-#include <model/model.hpp>
 
 namespace fhatos {
 
   FOS_RUN_TESTS( //
-          Model::deploy(Types::singleton()); //
           current_structure = KeyValue::create("/a/+"); //
           FOS_RUN_TEST(test_write); //
   );

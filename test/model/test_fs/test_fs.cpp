@@ -16,23 +16,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include <test_fhatos.hpp>
-
 #ifndef fhatos_test_fs_cpp
 #define fhatos_test_fs_cpp
 
 #undef FOS_TEST_ON_BOOT
-
-#include <language/insts.hpp>
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_TYPES
 #include <test_fhatos.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
-#include <structure/router.hpp>
-#include <language/parser.hpp>
-#include <language/types.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include <model/model.hpp>
-#include <util/options.hpp>
-
 
 namespace fhatos {
   static fs::path base_directory;
@@ -93,8 +86,6 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-          Model::deploy(Types::singleton());
-          Model::deploy(Parser::singleton());
           base_directory = fs::current_path(); //
           Model::deploy(FileSystem::singleton("/fs", string(base_directory.c_str()) + "/tmp"));
           FOS_RUN_TEST(test_uris); //

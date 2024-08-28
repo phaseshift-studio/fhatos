@@ -20,13 +20,13 @@
 #define fhatos_test_insts_cpp
 
 #undef FOS_TEST_ON_BOOT
-
-#include <fhatos.hpp>
-#include <language/insts.hpp>
-#include <language/obj.hpp>
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_TYPES
 #include <test_fhatos.hpp>
-#include <language/types.hpp>
-#include <model/model.hpp>
+#include <language/insts.hpp>
+
 
 namespace fhatos {
   void test_obj(const Obj_p &lhs, const Obj_p &rhs, const Obj_p &expected) {
@@ -99,7 +99,6 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
-          Model::deploy(Types::singleton()); //
           FOS_RUN_TEST(test_plus); //
           FOS_RUN_TEST(test_mult); //
           FOS_RUN_TEST(test_group); //

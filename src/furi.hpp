@@ -382,6 +382,8 @@ namespace fhatos {
       for (size_t i = 0; i < pattern.path_length(); i++) {
         if (strcmp(pattern.path(i), "#") == 0)
           return true;
+        if(0 == i && (this->sprefix != pattern.sprefix))
+          return false;
         if (strcmp(pattern.path(i), "+") == 0 && this->_path_length <= i && this->spostfix)
           return true;
         if (this->_path_length <= i)

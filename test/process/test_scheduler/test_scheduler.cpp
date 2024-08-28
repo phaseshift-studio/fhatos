@@ -20,11 +20,12 @@
 #define fhatos_test_scheduler_hpp
 
 #undef FOS_TEST_ON_BOOT
-
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_TYPES
+#define FOS_DEPLOY_PARSER
 #include <test_fhatos.hpp>
-#include FOS_PROCESS(scheduler.hpp)
 #include FOS_PROCESS(thread.hpp)
-
 
 namespace fhatos {
   void test_threads() {

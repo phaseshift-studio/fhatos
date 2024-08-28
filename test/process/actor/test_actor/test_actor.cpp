@@ -63,8 +63,8 @@ namespace fhatos {
   }*/
 
   void test_actor_by_router() {
-    std::atomic<int> *counter1 = new std::atomic<int>(0);
-    std::atomic<int> *counter2 = new std::atomic<int>(0);
+    auto *counter1 = new std::atomic<int>(0);
+    auto *counter2 = new std::atomic<int>(0);
     auto *actor1 = new Actor<Thread, Empty>("/app/actor1@127.0.0.1");
     auto *actor2 = new Actor<Thread, Empty>("/app/actor2@127.0.0.1");
     actor1->setup();

@@ -17,7 +17,10 @@
  ******************************************************************************/
 
 #undef FOS_TEST_ON_BOOT
-
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_TYPES
 #include <test_fhatos.hpp>
 #include <furi.hpp>
 
@@ -25,20 +28,6 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
-
-  void test_abc() {
-    for (const string &uri:
-            List<string>({
-                                 "//a", "http://127.0.0.1", "http://127.0.0.1/a/b/c", "http://127.0.0.1:80/a/b/c",
-                                 "furi://a.b.c/a", "furi://a.b.c:8080/a", "furi://user:pass@127.0.0.1/a/b/c",
-                                 "//127.0.0.1:80",
-                                 "/int/nat/even", "/int/", "/a/b/c", "furi:a/b/c"
-                         })) {
-      fURI u = fURI(uri);
-      LOG(INFO, "!b%s!!\t!g%s!!\n", uri.c_str(), u.toString().c_str());
-      TEST_ASSERT_EQUAL_STRING(uri.c_str(), u.toString().c_str());
-    }
-  }
 
   // furi://user:pass@127.0.0.1:88/a/b/c?x=1&y=2#fhatty
   void test_uri_components() {
@@ -528,6 +517,8 @@ namespace fhatos {
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fhat/aus/#"), Pattern("//+/#"));
     FOS_TEST_ASSERT_MATCH_FURI(Pattern("//+//a"), Pattern("//+//+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+//+"), Pattern("//+//a"));
+    //
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("a/b"), Pattern("/a/+"));
   }
 
   void test_composite_mutations() {

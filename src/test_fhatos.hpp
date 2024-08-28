@@ -26,10 +26,7 @@
 #include <fhatos.hpp>
 #include <unity.h>
 
-#define TEST_REQUIREMENTS FOS_FULL_BOOT
-
 #ifdef FOS_TEST_ON_BOOT
-
 #include <language/fluent.hpp>
 #include <language/types.hpp>
 #include <language/parser.hpp>
@@ -40,9 +37,7 @@
 #include <structure/router.hpp>
 
 #ifdef NATIVE
-
 #include FOS_FILE_SYSTEM(fs.hpp)
-
 #endif
 
 #include <structure/kernel.hpp>
@@ -65,18 +60,46 @@
   //->done("kernel_barrier");
 
 #define FOS_STOP_ON_BOOT scheduler()->stop();
-
 #else
 
-#include <structure/router.hpp>
+#include <model/model.hpp>
+
+#ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
+bool deploy_scheduler = true;
+#else
+bool deploy_scheduler = false;
+#endif
+#ifdef FOS_DEPLOY_ROUTER
+#include <structure/router.hpp>
+bool deploy_router = true;
+#else
+bool deploy_router = false;
+#endif
+#ifdef FOS_DEPLOY_PARSER
+#include <language/parser.hpp>
+bool deploy_parser = true;
+#else
+bool deploy_parser = false;
+#endif
+#ifdef FOS_DEPLOY_TYPES
+#include <language/types.hpp>
+bool deploy_types = true;
+#else
+bool deploy_types = false;
+#endif
 
-#define FOS_SETUP_ON_BOOT                                                                                              \
-  Options::singleton()->printer<>(Ansi<>::singleton());                                                                \
-  Options::singleton()->log_level(FOS_LOGGING);                                                                        \
-  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());                                                  \
-  Options::singleton()->router<Router>(Router::singleton());
-
+#define FOS_SETUP_ON_BOOT \
+  Options::singleton()->printer<>(Ansi<>::singleton());                 \
+  Options::singleton()->log_level(FOS_LOGGING);                         \
+  if(deploy_scheduler)                                                  \
+    Options::singleton()->scheduler<Scheduler>(Scheduler::singleton()); \
+  if(deploy_router)                                                     \
+    Options::singleton()->router<Router>(Router::singleton());          \
+  if(deploy_parser)                                                     \
+    Model::deploy(Parser::singleton());                                 \
+  if(deploy_types)                                                      \
+    Model::deploy(Types::singleton());
 
 #define FOS_STOP_ON_BOOT ;
 #endif
