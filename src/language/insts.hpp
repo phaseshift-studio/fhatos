@@ -32,9 +32,9 @@ namespace fhatos {
 
     static Obj_p start(const Obj_p &starts) {
       return Obj::to_inst(
-              "start", {starts}, [starts](const InstArgs &args) {
-                return [starts](const Obj_p &) {
-                  return starts;
+              "start", {starts}, [](const InstArgs &) {
+                return [](const Obj_p &seed) {
+                  return seed;
                 };
               }, IType::ZERO_TO_MANY,
               [starts](const Obj_p &) { return starts; });
@@ -400,24 +400,15 @@ namespace fhatos {
 
     static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
       return Obj::to_inst(
-              "group", (nullptr == keyCode)
-                       ? List<Obj_p>()
-                       : ((nullptr == valueCode)
-                          ? List<Obj_p>{keyCode}
-                          : ((nullptr == reduceCode)
-                             ? List<Obj_p>{keyCode, valueCode}
-                             : List<Obj_p>{keyCode, valueCode, reduceCode})),
+              "group", {keyCode, valueCode, reduceCode},
               [](const InstArgs &args) {
-                const Obj_p &keyCode = !args.empty() ? args.at(0) : noobj();
-                const Obj_p &valueCode = args.size() > 1 ? args.at(1) : noobj();
-                const Obj_p &reduceCode = args.size() > 2 ? args.at(2) : noobj();
-                return [keyCode, valueCode, reduceCode](const Objs_p &barrier) {
+                return [args](const Objs_p &barrier) {
                   Obj::RecMap<> map = Obj::RecMap<>();
                   for (const Obj_p &obj: *barrier->objs_value()) {
-                    const Obj_p key = keyCode->is_noobj() ? obj : keyCode->apply(obj);
-                    const Obj_p value = valueCode->is_noobj() ? obj : valueCode->apply(obj);
+                    const Obj_p key = args.at(0)->is_noobj() ? obj : args.at(0)->apply(obj);
+                    const Obj_p value = args.at(1)->is_noobj() ? obj : args.at(1)->apply(obj);
                     if (map.count(key)) {
-                      Lst_p list = map.at(key);
+                      const Lst_p &list = map.at(key);
                       list->lst_value()->push_back(value);
                     } else {
                       map.insert({key, Obj::to_lst({value})});
@@ -827,13 +818,15 @@ namespace fhatos {
         if (arg->is_bcode()) {
           new_args.push_back(replace_from_bcode(args, arg));
         } else if (arg->is_inst() && arg->inst_op() == "from" && arg->inst_arg(0)->is_uri() &&
-                   arg->inst_arg(0)->uri_value().toString()[0] == '_') {
+                   arg->inst_arg(0)->uri_value().toString()[0] == '_' &&
+                   StringHelper::is_integer(arg->inst_arg(0)->uri_value().toString().substr(1))) {
           const uint8_t index = stoi(arg->inst_arg(0)->uri_value().toString().substr(1));
           if (index < args.size())
             new_args.push_back(args.at(index));
           else
-            throw fError("%s requires !y%i!! arguments and only !y%i!! were provided",
-                         old_inst->toString().c_str(), index + 1, args.size());
+            new_args.push_back(noobj());
+          //throw fError("%s requires !y%i!! arguments and only !y%i!! were provided",
+          //             old_inst->toString().c_str(), index, args.size());
         } else {
           new_args.push_back(arg);
         }

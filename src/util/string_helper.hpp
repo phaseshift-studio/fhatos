@@ -119,6 +119,14 @@ namespace fhatos {
       return true;
     }
 
+    static bool is_integer(const string &xstring) {
+      for (uint8_t i = 0; i < xstring.length(); i++) {
+        if (!isdigit(xstring[i]))
+          return false;
+      }
+      return true;
+    }
+
     static std::stringstream *eat_space(std::stringstream *ss) {
       while (!ss->eof()) {
         char c = (char) ss->peek();
