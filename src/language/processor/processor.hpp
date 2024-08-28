@@ -85,7 +85,7 @@ namespace fhatos {
   template<typename E>
   class Processor {
   protected:
-    BCode_p bcode = bcode({});
+    BCode_p bcode = Obj::to_bcode();
     Deque<Monad_p> *running;
     Deque<Monad_p> *barriers;
     Deque<Obj_p> *halted;
