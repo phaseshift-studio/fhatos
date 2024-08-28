@@ -93,6 +93,7 @@ namespace fhatos {
       this->saveType(inst_id("match"), Insts::match(x(0)));
       this->saveType(inst_id("~"), Insts::from(uri(inst_id("match"))));
       this->saveType(inst_id("end"), Insts::end());
+      this->saveType(inst_id("until"), Insts::until(x(0)));
     }
 
   public:

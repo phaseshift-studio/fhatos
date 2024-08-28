@@ -26,10 +26,13 @@
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 #include <test_fhatos.hpp>
+#include <language/types.hpp>
+#include <model/model.hpp>
 
 namespace fhatos {
 
   FOS_RUN_TESTS( //
+          Model::deploy(Types::singleton()); //
           current_structure = KeyValue::create("/a/+"); //
           FOS_RUN_TEST(test_write); //
   );

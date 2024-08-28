@@ -235,7 +235,7 @@ namespace fhatos {
           listA = List<Dir_p>(listB);
           listB.clear();
         }
-        return Obj::to_objs(listA);
+        return objs(listA);
       } else {
         return !is_fs(*furi) ? noobj() : to_fs(*furi);
       }

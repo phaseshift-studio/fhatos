@@ -71,7 +71,7 @@ namespace fhatos {
                                     }
                                   };
                           fun(bcode, p, 0);
-                          BCode_p rewrite = Obj::to_bcode({Insts::start(Obj::to_objs({Obj::to_str(ex)}))});
+                          BCode_p rewrite = Obj::to_bcode({Insts::start(objs({Obj::to_str(ex)}))});
                           LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
                           return rewrite;
                         }
@@ -126,7 +126,7 @@ namespace fhatos {
                       [starts](const BCode_p &bcode) {
                         if (starts->is_noobj())
                           return bcode;
-                        List<Inst_p> new_insts = {Insts::start(starts->is_objs() ? starts : Obj::to_objs({starts}))};
+                        List<Inst_p> new_insts = {Insts::start(starts->is_objs() ? starts : objs({starts}))};
                         for (const Inst_p &inst: *bcode->bcode_value()) {
                           new_insts.push_back(inst);
                         }

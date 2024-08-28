@@ -63,9 +63,9 @@ namespace fhatos {
     }
 
     Objs_p toObjs() const {
-      Objs_p objs = Obj::to_objs(List<Obj_p>{});
-      this->forEach<Obj>([objs](const Obj_p &end) { objs->add_obj(end); });
-      return objs;
+      Objs_p xobjs = objs();
+      this->forEach<Obj>([xobjs](const Obj_p &end) { xobjs->add_obj(end); });
+      return xobjs;
     }
 
     void iterate() const {
@@ -98,10 +98,10 @@ namespace fhatos {
     operator const Obj &() const { return *this->_bcode; }
 
     Fluent start(const List<Obj> &starts) const {
-      return this->addInst(Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts))));
+      return this->addInst(Insts::start(objs(PtrHelper::clone<Obj>(starts))));
     }
 
-    Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(Obj::to_objs(starts))); }
+    Fluent start(const List<Obj_p> &starts) const { return this->addInst(Insts::start(objs(starts))); }
 
     Fluent map(const BCode &bcode) const { return this->addInst(Insts::map(share(bcode))); }
 
@@ -207,12 +207,12 @@ namespace fhatos {
     List<Obj> s = List<Obj>(starts);
     return Fluent(
             Obj::to_bcode(
-                    s.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(s)))}));
+                    s.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(objs(PtrHelper::clone<Obj>(s)))}));
   }
 
   [[maybe_unused]] static Fluent __(const List<Obj> &starts) {
     return Fluent(Obj::to_bcode(
-            starts.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(Obj::to_objs(PtrHelper::clone<Obj>(starts)))}));
+            starts.empty() ? List<Obj_p>{} : List<Obj_p>{Insts::start(objs(PtrHelper::clone<Obj>(starts)))}));
   }
 
   [[maybe_unused]] static Fluent __(const Obj &start) {

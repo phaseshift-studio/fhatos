@@ -25,6 +25,8 @@
 #include <language/insts.hpp>
 #include <language/obj.hpp>
 #include <test_fhatos.hpp>
+#include <language/types.hpp>
+#include <model/model.hpp>
 
 namespace fhatos {
   void test_obj(const Obj_p &lhs, const Obj_p &rhs, const Obj_p &expected) {
@@ -97,6 +99,7 @@ namespace fhatos {
 
 
   FOS_RUN_TESTS( //
+          Model::deploy(Types::singleton()); //
           FOS_RUN_TEST(test_plus); //
           FOS_RUN_TEST(test_mult); //
           FOS_RUN_TEST(test_group); //

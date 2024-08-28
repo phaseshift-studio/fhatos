@@ -538,14 +538,14 @@ namespace fhatos {
     static Int_p sum() {
       return Obj::to_inst(
               "sum", {},
-              reduce_([](const Obj_p &a, const Obj_p &b) { return share(*a + *b); }),
+              reduce_([](const Obj_p &a, const Obj_p &b) { return share(*b + *a); }),
               IType::MANY_TO_ONE, Obj::objs_seed());
     }
 
     static Int_p prod() {
       return Obj::to_inst(
               "prod", {},
-              reduce_([](const Obj_p &a, const Obj_p &b) { return share(*a * *b); }),
+              reduce_([](const Obj_p &a, const Obj_p &b) { return share(*b * *a); }),
               IType::MANY_TO_ONE, Obj::objs_seed());
     }
 
@@ -595,10 +595,29 @@ namespace fhatos {
                       }
                     }
                   }
-                  return Obj::to_objs(ret);
+                  return objs(ret);
                 };
               },
               IType::ONE_TO_MANY);
+    }
+
+    static Objs_p until(const BCode_p &bcode) {
+      return Obj::to_inst("until", {bcode}, [](const InstArgs &args) {
+        return [args](const Objs_p &lhs) {
+          Objs_p ret = objs();
+          List<Obj_p> mini_ret = List<Obj_p>();
+          for (const auto &obj: *lhs->objs_value()) {
+            Obj_p mini_obj = args.at(0)->apply(obj);
+            mini_ret.push_back(obj);
+            if (mini_obj->bool_value()) {
+              ret->add_obj(lst(List<Obj_p>(mini_ret)));
+              mini_ret.clear();
+            }
+          }
+          ret->add_obj(lst(mini_ret));
+          return ret;
+        };
+      }, IType::MANY_TO_MANY, Obj::objs_seed());
     }
 
     static Obj_p within(const BCode_p &bcode) {
@@ -606,12 +625,28 @@ namespace fhatos {
               "within", {bcode},
               [](const InstArgs &args) {
                 return [args](const Poly_p &lhs) {
+                  // LST BY ELEMENTS
                   if (lhs->is_lst()) {
                     return Obj::to_lst(Options::singleton()
                                                ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
                                                ->objs_value());
                   }
-                  return Obj::to_noobj();
+                  // STR BY CHARS
+                  if (lhs->is_str()) {
+                    List<Str_p> chars = List<Str_p>();
+                    string xstr = lhs->str_value();
+                    for (uint8_t i = 0; i < xstr.length(); i++) {
+                      chars.push_back(str(xstr.substr(i,1)));
+                    }
+                    Objs_p strs = Options::singleton()->processor<Objs, BCode, Objs>(Obj::to_objs(share(chars)),
+                                                                                     args.at(0));
+                    string ret;
+                    for (const Str_p &s: *strs->objs_value()) {
+                      ret += s->str_value();
+                    }
+                    return str(ret);
+                  }
+                  return noobj();
                 };
               },
               IType::ONE_TO_ONE);
@@ -635,7 +670,7 @@ namespace fhatos {
               [](const InstArgs &args) {
                 return [args](const Objs_p &lhs) {
                   const Obj_p obj = args.at(0)->apply(lhs);
-                  return obj->is_objs() ? obj : Obj::to_objs({obj});
+                  return obj->is_objs() ? obj : objs({obj});
                 };
               },
               IType::MANY_TO_MANY, Obj::objs_seed());

@@ -77,19 +77,19 @@ namespace fhatos {
   };
 
   static const Enums<OType> OTypes = Enums<OType>({
-                                                          {OType::OBJ, "obj"},
+                                                          {OType::OBJ,   "obj"},
                                                           {OType::NOOBJ, "noobj"},
-                                                          {OType::OBJS, "objs"},
-                                                          {OType::BOOL, "bool"},
-                                                          {OType::INT, "int"},
-                                                          {OType::REAL, "real"},
-                                                          {OType::URI, "uri"},
-                                                          {OType::STR, "str"},
-                                                          {OType::LST, "lst"},
-                                                          {OType::REC, "rec"},
-                                                          {OType::INST, "inst"},
+                                                          {OType::OBJS,  "objs"},
+                                                          {OType::BOOL,  "bool"},
+                                                          {OType::INT,   "int"},
+                                                          {OType::REAL,  "real"},
+                                                          {OType::URI,   "uri"},
+                                                          {OType::STR,   "str"},
+                                                          {OType::LST,   "lst"},
+                                                          {OType::REC,   "rec"},
+                                                          {OType::INST,  "inst"},
                                                           {OType::BCODE, "bcode"},
-                                                          {OType::TYPE, "type"}
+                                                          {OType::TYPE,  "type"}
                                                   });
 
   class Obj;
@@ -1271,10 +1271,6 @@ namespace fhatos {
       return os;
     }
 
-    static Objs_p to_objs(const List<Obj_p> &objs, const ID_p &furi = OBJS_FURI) {
-      return Obj::to_objs(share(objs), furi);
-    }
-
     static Objs_p to_objs(const List<Obj> &objs, const ID_p &furi = OBJS_FURI) {
       return Obj::to_objs(share(PtrHelper::clone(objs)), furi);
     }
@@ -1341,6 +1337,8 @@ namespace fhatos {
 
   [[maybe_unused]] static Lst_p lst(const List<Obj_p> &list) { return Obj::to_lst(share(list)); }
 
+  [[maybe_unused]] static Lst_p lst(const List_p<Obj_p> &list) { return Obj::to_lst(list); }
+
   [[maybe_unused]] static Rec_p rec(const Obj::RecMap<> &map) { return Obj::to_rec(share(map)); }
 
   [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const Obj, Obj> > &map,
@@ -1348,7 +1346,11 @@ namespace fhatos {
     return Obj::to_rec(map, furi);
   }
 
-  [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(list); }
+  [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(share(List<Obj_p>())); }
+
+  [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(share(list)); }
+
+  [[maybe_unused]] static Objs_p objs(const List_p<Obj_p> &list) { return Obj::to_objs(list); }
 
   [[maybe_unused]] static BCode_p bcode(const InstList &list) { return Obj::to_bcode(list); }
 
