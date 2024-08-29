@@ -50,7 +50,7 @@ namespace fhatos {
 
     explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
 
-    bool available() const { return this->available_.load(); }
+    [[nodiscard]] bool available() const { return this->available_.load(); }
 
     virtual void setup() {
       if (this->available_.load())

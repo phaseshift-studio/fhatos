@@ -78,7 +78,7 @@ namespace fhatos {
     //////// log_level_ ////////
     template<typename LOG_LEVEL>
     LOG_LEVEL log_level() {
-      return (LOG_LEVEL) this->log_level_;
+      return static_cast<LOG_LEVEL>(this->log_level_);
     }
 
     Options *log_level(const uint8_t log_level_enum) {

@@ -140,7 +140,7 @@ namespace fhatos {
           found = true;
         }
       }
-      return found ? OK : NO_SUBSCRIPTION;
+      return found ? REPEAT_SUBSCRIPTION : OK;
     }
   };
 

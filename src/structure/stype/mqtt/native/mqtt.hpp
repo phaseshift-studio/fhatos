@@ -38,7 +38,8 @@ namespace fhatos {
   protected:
     Message_p will_message;
     const char *server_addr;
-    async_client* xmqtt;
+    async_client *xmqtt;
+    connect_options connection_options;
 
 
     //                                     +[scheme]//+[authority]/#[path]
@@ -46,33 +47,34 @@ namespace fhatos {
                   const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::READWRITE) {
       this->remote_retains = true;
       this->server_addr = string(server_addr).find_first_of("mqtt://") == string::npos
-                          ? string("mqtt://").append(string(server_addr)).c_str()
-                          : server_addr;
+                            ? string("mqtt://").append(string(server_addr)).c_str()
+                            : server_addr;
       this->xmqtt = new async_client(this->server_addr, "", mqtt::create_options(MQTTVERSION_5));
       this->will_message = will_message;
       srand(time(nullptr));
-      auto connection_options = connect_options_builder()
-              .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
-              .clean_start(true)
-              .clean_session(true)
-              .user_name(string("client_" + to_string(rand())))
-              .keep_alive_interval(std::chrono::seconds(20))
-              .automatic_reconnect();
+      connect_options_builder pre_connection_options = connect_options_builder()
+          .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
+          .clean_start(true)
+          .clean_session(true)
+          .user_name(string("client_" + to_string(rand())))
+          .keep_alive_interval(std::chrono::seconds(20))
+          .automatic_reconnect();
       if (will_message.get()) {
         const BObj_p source_payload = Message::wrapSource(id_p(will_message->source), will_message->payload);
-        connection_options.will(
-                message(this->will_message->target.toString(), source_payload->second, this->will_message->retain));
+         pre_connection_options = pre_connection_options.will(
+          message(this->will_message->target.toString(), source_payload->second, this->will_message->retain));
       }
+      this->connection_options = pre_connection_options.finalize();
       //// MQTT MESSAGE CALLBACK
       this->xmqtt->set_message_callback([this](const const_message_ptr &mqtt_message) {
         const binary_ref ref = mqtt_message->get_payload_ref();
-        const BObj_p bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
+        const BObj_p bobj = share(BObj(ref.length(), (fbyte *)ref.data()));
         const auto &[source, payload] = Message::unwrapSource(bobj);
         const Message_p message = share(Message{
-                .source = *source,
-                .target = ID(mqtt_message->get_topic()),
-                .payload = payload,
-                .retain = mqtt_message->is_retained()
+          .source = *source,
+          .target = ID(mqtt_message->get_topic()),
+          .payload = payload,
+          .retain = mqtt_message->is_retained()
         });
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
         mutex.read<RESPONSE_CODE>([this, message]() {
@@ -92,21 +94,42 @@ namespace fhatos {
       this->xmqtt->set_connected_handler([this](const string &) {
         LOG_STRUCTURE(INFO, this,
                       "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n"
-                              FOS_TAB_4
-                              "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
-                              "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
+                      FOS_TAB_4
+                      "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
+                      "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
                       this->server_addr, this->xmqtt->get_client_id().c_str(),
                       this->will_message.get() ? this->will_message->target.toString().c_str() : "<none>",
                       this->will_message.get() ? this->will_message->payload->toString().c_str() : "<none>",
                       this->will_message.get() ? "1" : "<none>",
                       this->will_message.get() ? FOS_BOOL_STR(this->will_message->retain) : "<none>");
       });
-      /// MQTT CONNECTION
+    }
+
+  public:
+    static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
+                             const Message_p &will_message = ptr<Message>(nullptr)) {
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
+      return mqtt_p;
+    }
+
+    ~Mqtt() override {
+      delete this->xmqtt;
+    }
+
+    void stop() override {
+      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr);
+      this->xmqtt->disconnect();
+      Structure::stop();
+      //if (!this->xmqtt->is_connected())
+      //  LOG_STRUCTURE(ERROR, this, "Unable to disconnect from !b%s!!\n", this->server_addr);
+    }
+
+    void setup() override {
+      Structure::setup();
       try {
         int counter = 0;
-        const connect_options finalized = connection_options.finalize();
         while (counter < FOS_MQTT_MAX_RETRIES) {
-          if (!this->xmqtt->connect(finalized)->wait_for(1000)) {
+          if (!this->xmqtt->connect(this->connection_options)->wait_for(1000)) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
             LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr);
@@ -120,23 +143,6 @@ namespace fhatos {
       }
     }
 
-  public:
-    ~Mqtt() override {
-      delete this->xmqtt;
-    }
-
-    void stop() override {
-      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr);
-      this->xmqtt->disconnect();
-      //if (!this->xmqtt->is_connected())
-      //  LOG_STRUCTURE(ERROR, this, "Unable to disconnect from !b%s!!\n", this->server_addr);
-    }
-
-    static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
-                            const Message_p &will_message = ptr<Message>(nullptr)) {
-      ptr<Mqtt> mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
-      return mqtt_p;
-    }
 
     void recv_message(const Message_p &message) override {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
@@ -189,13 +195,13 @@ namespace fhatos {
       } else {
         auto *thing = new std::atomic<const Obj *>(nullptr);
         this->recv_subscription(share(Subscription{
-                .source = ID(*source), .pattern = *furi, .onRecv = [this, furi, thing](const Message_p &message) {
-                  // TODO: try to not copy obj while still not accessing heap after delete
-                  LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
-                                message->toString().c_str());
-                  const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
-                  thing->store(obj);
-                }
+          .source = static_cast<fURI>(*source), .pattern = *furi, .onRecv = [this, furi, thing](const Message_p &message) {
+            // TODO: try to not copy obj while still not accessing heap after delete
+            LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
+                          message->toString().c_str());
+            const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
+            thing->store(obj);
+          }
         }));
         const time_t startTimestamp = time(nullptr);
         while (!thing->load()) {
@@ -208,7 +214,7 @@ namespace fhatos {
           delete thing;
           return Obj::to_noobj();
         } else {
-          const Obj_p ret = ptr<Obj>((Obj *) thing->load());
+          const Obj_p ret = ptr<Obj>(const_cast<Obj *>(thing->load()));
           delete thing;
           return ret;
         }

@@ -30,7 +30,7 @@
 router()->detach(current_structure->pattern());
 
 namespace fhatos {
-  ptr<Structure> current_structure;
+  inline ptr<Structure> current_structure;
 
   void test_write() {
     router()->attach(current_structure);
@@ -38,6 +38,25 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(RESPONSE_CODE::NO_TARGETS, router()->write(id_p("a/b/c"), str("hello_pity"), id_p("aus")));
     TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p("/a/b"), str("hello_pity"), id_p("piggy")));
   }
-}// namespace fhatos
+
+  void test_subscribe() {
+    Options::singleton()->log_level(TRACE);
+    auto *pings = new atomic_int(0);
+   RESPONSE_CODE rc_ = router()->route_subscription(share(Subscription{
+      .source = "a/test/case", .pattern = "/a/b/test", .qos = QoS::_1, .onRecv = [pings](const Message_p &message) {
+        FOS_TEST_ASSERT_EQUAL_FURI(Pattern("/a/b/test"), message->target);
+        if (message->payload->is_bool()) {
+          TEST_ASSERT_TRUE(message->payload->bool_value());
+          pings->store(pings->load() + 1);
+          TEST_ASSERT_EQUAL(1, pings->load());
+        }
+      }
+    }));
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,rc_);
+    router()->route_message(share(Message{
+      .source = "test_case", .target = ID("/a/b/test"), .payload = Obj::to_bool(true), .retain = TRANSIENT_MESSAGE
+    }));
+  }
+} // namespace fhatos
 
 #endif
