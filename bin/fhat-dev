@@ -158,7 +158,7 @@ elif [[ $1 == "build" ]]; then
   make_esp32 ${@}
 elif [[ $1 == "upload" ]]; then
   # clean_esp32
-  platformio run ${environ} --target upload ${@}
+  platformio run ${environ} --target upload
 else
    echo -e "usage: 
   fhat-dev {clean | test | build | upload} {esp32 | native | <empty>} {<extra_args>}
