@@ -55,14 +55,14 @@ namespace fhatos {
       char _message[1024];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(_message, 1024, format, arg);
+      const int length = vsnprintf(_message, 1024, format, arg);
       _message[length] = '\0';
       return string(_message);
     }
 
     static void ltrim(std::string &s) {
       s.erase(s.begin(),
-              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));
+              ranges::find_if(s, [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));
     }
 
     static void rtrim(std::string &s) {
@@ -73,7 +73,7 @@ namespace fhatos {
     }
 
     static uint8_t count_substring(const string &str, const string &sub) {
-      if (sub.length() == 0)
+      if (sub.empty())
         return 0;
       int count = 0;
       for (size_t offset = str.find(sub); offset != std::string::npos; offset = str.find(sub, offset + sub.length())) {
@@ -82,15 +82,15 @@ namespace fhatos {
       return count;
     }
 
-    static string pad(const uint8_t total, const string text, [[maybe_unused]] const bool ignoreAnsi = true) {
-      string text2 = string(text);
+    static string pad(const uint8_t total, const string &text, [[maybe_unused]] const bool ignoreAnsi = true) {
+      auto text2 = string(text);
       for (size_t i = 0; i < (total - text.length()); i++) {
         text2 += ' ';
       }
       return text2;
     }
 
-    static int no_ansi_length(const string s) {
+    static int no_ansi_length(const string &s) {
       int count = 0;
       bool last = false;
       for (size_t i = 0; i < s.length(); i++) {
@@ -105,14 +105,13 @@ namespace fhatos {
     }
 
     static bool look_ahead(const string &token, std::stringstream *ss, bool consume = true) {
-      std::stringstream::pos_type start = ss->tellg();
-      for (size_t i = 0; i < token.size(); i++) {
-        if (token[i] != ss->peek()) {
+      const std::stringstream::pos_type start = ss->tellg();
+      for (char i : token) {
+        if (i != ss->peek()) {
           ss->seekg(start);
           return false;
-        } else {
-          ss->get();
         }
+        ss->get();
       }
       if (!consume)
         ss->seekg(start);

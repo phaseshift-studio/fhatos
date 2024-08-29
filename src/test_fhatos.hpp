@@ -124,8 +124,8 @@ namespace fhatos {
     try {                                                                                                              \
       FOS_SETUP_ON_BOOT;             \
       UNITY_BEGIN();             \
-      uint32_t __test_freeSketch;                                                                                       \
-      uint32_t __test_freeHeap;                        \
+      /*uint32_t __test_freeSketch;                                                                                       \
+      uint32_t __test_freeHeap;  */                      \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
@@ -133,6 +133,7 @@ namespace fhatos {
       TEST_FAIL();                                                                                                     \
     }                                                                                                                  \
   }
+
 } // namespace fhatos
 #ifdef NATIVE
 #define SETUP_AND_LOOP()                                                                                               \

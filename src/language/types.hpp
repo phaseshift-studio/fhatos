@@ -126,7 +126,7 @@ namespace fhatos {
     void saveType(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub = false) {
       try {
         if (!viaPub) {
-          Obj_p current = this->read(typeId, this->id());
+          const Obj_p current = this->read(typeId, this->id());
           if (!current->is_noobj() && current != typeDef) {
             LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", typeId->toString().c_str(),
                         current->toString().c_str());

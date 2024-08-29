@@ -47,7 +47,7 @@ namespace fhatos {
 
     template<typename T = Obj>
     static shared_ptr<T> no_delete(shared_ptr<T> &ptr_t) {
-      auto temp = shared_ptr<T>((T *) nullptr, NON_DELETER_SINGLETON<T>());
+      auto temp = shared_ptr<T>(static_cast<T *>(nullptr), NON_DELETER_SINGLETON<T>());
       temp.swap(ptr_t);
       return temp;
     }

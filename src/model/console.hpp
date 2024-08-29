@@ -27,11 +27,10 @@
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <model/terminal.hpp>
-#include <structure/stype/empty.hpp>
 
 namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
-  static Map<string, Command> *_MENU_MAP = nullptr;
+  static Map<string, Command> *MENU_MAP_ = nullptr;
 
   class Console final : public Actor<Thread, KeyValue> {
   protected:
@@ -48,11 +47,11 @@ namespace fhatos {
     }
 
     void printResult(const Obj_p &obj, const uint8_t depth = 0) const {
-      if (obj->is_objs()) {
+      if (obj->is_objs())
         for (Obj_p &o: *obj->objs_value()) {
           this->printResult(o, depth + 1);
         }
-      } else if (this->_nesting && obj->is_lst()) {
+      else if (this->_nesting && obj->is_lst()) {
         for (Obj_p &o: *obj->lst_value()) {
           this->printResult(o, depth + 1);
         }
@@ -66,18 +65,18 @@ namespace fhatos {
 
   protected:
     explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread, KeyValue>(id) {
-      if (!_MENU_MAP) {
-        _MENU_MAP = new Map<string, Command>();
-        _MENU_MAP->insert({":help",
-                           {"help menu", [](const Obj_p &) { std::get<2>(_MENU_MAP->at(":help"))(); },
+      if (!MENU_MAP_) {
+        MENU_MAP_ = new Map<string, Command>();
+        MENU_MAP_->insert({":help",
+                           {"help menu", [](const Obj_p &) { std::get<2>(MENU_MAP_->at(":help"))(); },
                             []() {
                               printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-                              for (const auto &[command, description]: *_MENU_MAP) {
+                              for (const auto &[command, description]: *MENU_MAP_) {
                                 printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
                                                     std::get<0>(description).c_str());
                               }
                             }}});
-        _MENU_MAP->insert({":log",
+        MENU_MAP_->insert({":log",
                            {"log level",
                             [](const Uri_p &log_level) {
                               Options::singleton()->log_level(LOG_TYPES.toEnum(log_level->uri_value().toString()));
@@ -88,7 +87,7 @@ namespace fhatos {
                                       "!ylog!!: !b%s!!\n",
                                       LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
                             }}});
-        _MENU_MAP->insert({":output",
+        MENU_MAP_->insert({":output",
                            {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
                             [] {
                               printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
@@ -110,19 +109,19 @@ namespace fhatos {
                                   "!yrouter!!: !b%s!!\n",
                                   Options::singleton()->router<Router>()->id()->toString().c_str());
                             }}});*/
-        _MENU_MAP->insert({":color",
+        MENU_MAP_->insert({":color",
                            {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
                             [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
-        _MENU_MAP->insert(
+        MENU_MAP_->insert(
                 {":nesting",
                  {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
                   [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
-        _MENU_MAP->insert({":shutdown",
+        MENU_MAP_->insert({":shutdown",
                            {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
                             []() {
                               Scheduler::singleton()->stop();
                             }}});
-        _MENU_MAP->insert(
+        MENU_MAP_->insert(
                 {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
@@ -150,10 +149,10 @@ namespace fhatos {
         std::get<1>(_MENU_MAP->at(":log"))(
             Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) (GLOBAL_OPTIONS->logger<uint8_t>() + 1))));
       else*/
-      if ('\n' == (char) x)
+      if ('\n' == static_cast<char>(x))
         this->_newInput = true;
       else {
-        this->_line += (char) x;
+        this->_line += static_cast<char>(x);
         return;
       }
       StringHelper::trim(this->_line);
@@ -177,15 +176,15 @@ namespace fhatos {
           const string::size_type index = _line.find_first_of(' ');
           const string command = index == string::npos ? this->_line : this->_line.substr(0, index);
           StringHelper::trim(command);
-          if (!_MENU_MAP->count(command)) {
+          if (!MENU_MAP_->count(command)) {
             this->printException(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
                                         this->id()->toString().c_str(), command.c_str()));
           } else if (index == string::npos) {
-            std::get<2>(_MENU_MAP->at(command))();
+            std::get<2>(MENU_MAP_->at(command))();
           } else {
             string value = this->_line.substr(index);
             StringHelper::trim(value);
-            std::get<1>(_MENU_MAP->at(command))(
+            std::get<1>(MENU_MAP_->at(command))(
                     Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
           }
         } catch (std::exception &e) {

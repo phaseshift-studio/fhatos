@@ -27,11 +27,11 @@
 #include <structure/stype/key_value.hpp>
 
 namespace fhatos {
-  class Terminal : public Actor<Thread, KeyValue> {
+  class Terminal final : public Actor<Thread, KeyValue> {
   protected:
     explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), _currentOutput(share(id)) {}
 
-    ID_p _currentOutput;
+    ID_p _currentOutput{};
 
   public:
     static ptr<Terminal> singleton(const ID &id = "/io/terminal/") {
@@ -69,7 +69,7 @@ namespace fhatos {
       char buffer[1024];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(buffer, 1024, format, arg);
+      const int length = vsnprintf(buffer, 1024, format, arg);
       buffer[length] = '\0';
       va_end(arg);
       router()->route_message(share(Message{.source = source, //
