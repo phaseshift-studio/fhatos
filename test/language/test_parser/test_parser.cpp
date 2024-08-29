@@ -254,7 +254,7 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Obj>({*parse("|(mod(2).is(eq(0)))")},
+    FOS_CHECK_RESULTS<Obj>({*parse("mod(2).is(eq(0))")},
                            FOS_TYPE_PREFIX "int/even.->(|(mod(2).is(eq(0))))"); // TODO: parse is off for ->
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
