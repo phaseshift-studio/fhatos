@@ -981,7 +981,8 @@ namespace fhatos {
         case OType::REC: {
           RecMap_p<> newPairs = share(RecMap<>());
           for (const auto &[key, value]: *this->rec_value()) {
-            newPairs->insert({key->apply(lhs), value->apply(lhs)});
+            const Obj_p key_apply = key->apply(lhs);
+            newPairs->insert({key_apply, value->apply(key_apply)});
           }
           return Obj::to_rec(newPairs, this->_id);
         }
@@ -994,8 +995,7 @@ namespace fhatos {
             // Quad<InstArgs, InstFunction, IType, InstSeed>;
             return lhs->add_inst(
                     Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed_supplier()),
-                                 this->_id),
-                    false);
+                                 this->_id), false);
           }
           return this->inst_f()(this->inst_args())(lhs);
         }

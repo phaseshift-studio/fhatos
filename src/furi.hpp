@@ -59,7 +59,7 @@ namespace fhatos {
     const char *_fragment = nullptr;
 
   public:
-    const char *scheme() const { return this->_scheme ? this->_scheme : ""; }
+    [[nodiscard]] const char *scheme() const { return this->_scheme ? this->_scheme : ""; }
 
     fURI scheme(const char *scheme) {
       fURI newURI = fURI(*this);
@@ -69,7 +69,7 @@ namespace fhatos {
     }
 
     /// USER
-    const char *user() const { return this->_user ? this->_user : ""; }
+    [[nodiscard]] const char *user() const { return this->_user ? this->_user : ""; }
 
     fURI user(const char *user) const {
       fURI newURI = fURI(*this);
@@ -79,7 +79,7 @@ namespace fhatos {
     }
 
     /// PASSWORD
-    const char *password() const { return this->_password ? this->_password : ""; }
+    [[nodiscard]] const char *password() const { return this->_password ? this->_password : ""; }
 
     fURI password(const char *password) const {
       fURI newURI = fURI(*this);
@@ -89,7 +89,7 @@ namespace fhatos {
     }
 
     /// HOST
-    const char *host() const { return this->_host ? this->_host : ""; }
+    [[nodiscard]] const char *host() const { return this->_host ? this->_host : ""; }
 
     fURI host(const char *host) const {
       fURI newURI = fURI(*this);
@@ -99,16 +99,16 @@ namespace fhatos {
     }
 
     /// PORT
-    uint16_t port() const { return this->_port; }
+    [[nodiscard]] uint16_t port() const { return this->_port; }
 
-    fURI port(const uint16_t port) const {
+    [[nodiscard]] fURI port(const uint16_t port) const {
       fURI newURI = fURI(*this);
       newURI._port = port;
       return newURI;
     }
 
     /// AUTHORITY
-    string authority() const {
+    [[nodiscard]] string authority() const {
       string _authority;
       if (this->_user) {
         _authority += this->_user;
@@ -208,17 +208,17 @@ namespace fhatos {
       return "";
     }
 
-    bool empty() const {
+    [[nodiscard]] bool empty() const {
       return this->_path_length == 0 && !this->_host && !this->_scheme && !this->_user && !this->_password &&
              !this->_fragment && !this->_query;
     }
 
-    uint8_t path_length() const { return this->_path_length; }
+    [[nodiscard]] uint8_t path_length() const { return this->_path_length; }
 
     /// QUERY
-    const char *query() const { return this->_query ? this->_query : ""; }
+    [[nodiscard]] const char *query() const { return this->_query ? this->_query : ""; }
 
-    bool has_query() const { return this->_query != nullptr; }
+    [[nodiscard]] bool has_query() const { return this->_query != nullptr; }
 
     fURI query(const char *query) const {
       fURI newURI = fURI(*this);
@@ -228,7 +228,7 @@ namespace fhatos {
     }
 
     /// FRAGMENT
-    const char *fragment() const { return this->_fragment ? this->_fragment : ""; }
+    [[nodiscard]] const char *fragment() const { return this->_fragment ? this->_fragment : ""; }
 
     fURI fragment(const char *fragment) const {
       fURI newURI = fURI(*this);
@@ -267,7 +267,14 @@ namespace fhatos {
       return newURI;
     }
 
-    bool is_subfuri_of(const fURI &other) const {
+    [[nodiscard]] fURI retract_pattern() const {
+      const char *end = this->_path[this->_path_length - 1];
+      if (end[0] == '+' || end[0] == '#')
+        return this->retract().retract_pattern();
+      return *this;
+    }
+
+    [[nodiscard]] bool is_subfuri_of(const fURI &other) const {
       const string this_string = this->toString();
       const string other_string = other.toString();
       return other_string.length() >= this_string.length() &&
@@ -280,11 +287,8 @@ namespace fhatos {
     }
 
     bool is_relative() const {
-      return nullptr == this->_scheme &&
-             nullptr == this->_host &&
-             !this->sprefix &&
-             this->_path_length != 0 &&
-             (strcmp(".", this->_path[0]) == 0 || strcmp("..", this->_path[0]) == 0);
+      char first = this->toString()[0];
+      return first == '.' || first == ':';
     }
 
     bool is_scheme_path() const {
@@ -346,12 +350,12 @@ namespace fhatos {
       return ret;
     }
 
-    virtual bool is_pattern() const {
+    [[nodiscard]] virtual bool is_pattern() const {
       string temp = this->toString();
       return temp.find('#') != string::npos || temp.find('+') != string::npos;
     }
 
-    virtual bool matches(const fURI &pattern) const {
+    [[nodiscard]] virtual bool matches(const fURI &pattern) const {
       if (this->equals(pattern))
         return true;
       const string patternStr = pattern.toString();
@@ -382,7 +386,7 @@ namespace fhatos {
       for (size_t i = 0; i < pattern.path_length(); i++) {
         if (strcmp(pattern.path(i), "#") == 0)
           return true;
-        if(0 == i && (this->sprefix != pattern.sprefix))
+        if (0 == i && (this->sprefix != pattern.sprefix))
           return false;
         if (strcmp(pattern.path(i), "+") == 0 && this->_path_length <= i && this->spostfix)
           return true;
@@ -610,7 +614,7 @@ namespace fhatos {
     } // TODO: do field-wise comparisons
     bool equals(const fURI &other) const { return this->toString() == other.toString(); }
 
-    string toString() const {
+    [[nodiscard]] string toString() const {
       string uri;
       if (this->_scheme)
         uri.append(this->_scheme).append(":");
@@ -659,9 +663,9 @@ namespace fhatos {
 
     ID(const char *furiCharacters) : fURI(furiCharacters) {
       if (strchr(furiCharacters, '#')) {
-        throw fError("%s\n", "IDs must not contain pattern symbols: !b#!!");
+        throw fError("IDs can not contain pattern symbols: !b#!!: %s\n", furiCharacters);
       } else if (strchr(furiCharacters, '+')) {
-        throw fError("%s\n", "IDs must not contain pattern symbols: !b+!!");
+        throw fError("IDs can not contain pattern symbols: !b+!!: %s\n", furiCharacters);
       }
     }
 
@@ -715,9 +719,9 @@ namespace fhatos {
   public:
     virtual ~BasePatterned() = default;
 
-    virtual Pattern_p pattern() const = 0;
+    [[nodiscard]] virtual Pattern_p pattern() const = 0;
 
-    virtual bool equals(const BasePatterned &) const = 0;
+    [[nodiscard]] virtual bool equals(const BasePatterned &) const = 0;
   };
 
   class Patterned : public BasePatterned {

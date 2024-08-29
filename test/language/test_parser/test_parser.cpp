@@ -253,19 +253,6 @@ namespace fhatos {
                               Options::singleton()->printer<>()->strip(rc2->toString().c_str()).get());*/
   }
 
-  void test_bytecode_parsing() {
-    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()->tryParseObj("{}.plus(mult(plus(3)))").value());
-    TEST_ASSERT_EQUAL_INT(2, bcode->bcode_value()->size());
-    TEST_ASSERT_EQUAL_INT(1, bcode->bcode_value()->at(1)->inst_arg(0)->bcode_value()->size());
-    ///
-    FOS_TEST_MESSAGE("Testing !yparenthese!! and !ybracket!! instructions...");
-    //// TEST PAREN AND BRACKET INSTRUCTIONS
-    FOS_CHECK_RESULTS({10}, "6.plus(4)");
-    //  FOS_CHECK_RESULTS({10}, "6.plus[4]");
-    //  FOS_CHECK_RESULTS({10}, "6.plus[1].plus[3]");
-    // FOS_CHECK_RESULTS({10}, "6.plus[1].plus(3)");
-  }
-
   void test_define_as_parsing() {
     FOS_CHECK_RESULTS<Obj>({*parse("|(mod(2).is(eq(0)))")},
                            FOS_TYPE_PREFIX "int/even.->(|(mod(2).is(eq(0))))"); // TODO: parse is off for ->
@@ -373,7 +360,6 @@ namespace fhatos {
           FOS_RUN_TEST(test_str_parsing); //
           FOS_RUN_TEST(test_lst_parsing); //
           FOS_RUN_TEST(test_rec_parsing); //
-          // FOS_RUN_TEST(test_bytecode_parsing); //
           ////////////// PARTICULAR MONOID IDIOMS
           FOS_RUN_TEST(test_define_as_parsing); //
           FOS_RUN_TEST(test_to_from); //

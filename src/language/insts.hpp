@@ -308,20 +308,31 @@ namespace fhatos {
                 const Obj_p &uri = args.at(0);
                 return [uri](const Obj_p &lhs) {
                   RESPONSE_CODE _rc = OK;
-                  if (uri->uri_value().is_pattern()) {
-                    if (lhs->is_rec()) {
-                      for (const auto &[k, v]: *lhs->rec_value()) {
-                        router()->write(id_p(uri->uri_value().resolve(k->uri_value())), v->apply(uri));
+                  const Obj_p main_apply = lhs->apply(uri);
+                  const Uri_p uri_apply = uri->apply(lhs);
+                  if (uri_apply->uri_value().is_pattern()) {
+                    if (main_apply->is_rec()) {
+                      Obj::RecMap_p<> remaining = share(Obj::RecMap<>());
+                      for (const auto &[k, v]: *main_apply->rec_value()) {
+                        if (k->is_uri())
+                          Insts::to(k)->inst_f()({k})(v); // recursive embedding relative to base uri
+                        else
+                          remaining->insert(
+                                  {PtrHelper::clone(k), PtrHelper::clone(v)}); // non-uri key/values written to base uri
+                      }
+                      if (!remaining->empty()) {
+                        const Rec_p sub_rec = Obj::to_rec(remaining);
+                        _rc = router()->write(id_p(uri_apply->uri_value().retract_pattern()), sub_rec);
                       }
                     } else {
-                      throw fError("Pattern requires rec");
+                      _rc = router()->write(id_p(uri_apply->uri_value().retract_pattern()), main_apply);
                     }
                   } else {
-                    router()->write(id_p(uri->apply(lhs)->uri_value()), lhs->apply(uri));
+                    _rc = router()->write(id_p(uri_apply->uri_value()), main_apply);
                   }
                   if (_rc)
                     LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
-                  return lhs;
+                  return main_apply;
                 };
               },
               /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
@@ -636,7 +647,7 @@ namespace fhatos {
                     List<Str_p> chars = List<Str_p>();
                     string xstr = lhs->str_value();
                     for (uint8_t i = 0; i < xstr.length(); i++) {
-                      chars.push_back(str(xstr.substr(i,1)));
+                      chars.push_back(str(xstr.substr(i, 1)));
                     }
                     Objs_p strs = Options::singleton()->processor<Objs, BCode, Objs>(Obj::to_objs(share(chars)),
                                                                                      args.at(0));

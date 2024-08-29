@@ -356,6 +356,11 @@ namespace fhatos {
     TEST_ASSERT_TRUE(fURI("././abc").is_relative());
     TEST_ASSERT_TRUE(fURI("../abc").is_relative());
     TEST_ASSERT_TRUE(fURI(".././abc").is_relative());
+    TEST_ASSERT_TRUE(fURI(":abc").is_relative());
+    TEST_ASSERT_TRUE(fURI(":/abc").is_relative());
+    TEST_ASSERT_TRUE(fURI("./:abc").is_relative());
+    TEST_ASSERT_TRUE(fURI(":./abc").is_relative());
+    TEST_ASSERT_TRUE(fURI(":../abc").is_relative());
     //
     TEST_ASSERT_FALSE(fURI("abc/").is_relative());
     TEST_ASSERT_FALSE(fURI("/abc/cd").is_relative());
@@ -551,6 +556,8 @@ namespace fhatos {
           FOS_RUN_TEST(test_uri_name); //
           //
           FOS_RUN_TEST(test_uri_extend); //
+          // TODO: FOS_RUN_TEST(test_uri_retract);
+          // TODO: FOS_RUN_TEST(test_uri_retract_pattern);
           FOS_RUN_TEST(test_is_relative); //
           FOS_RUN_TEST(test_uri_resolve); //
           FOS_RUN_TEST(test_uri_match); //

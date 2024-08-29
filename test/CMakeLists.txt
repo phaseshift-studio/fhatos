@@ -3,6 +3,21 @@ SET(CMAKE_MACOSX_RPATH 1)
 IF (BUILD_TESTS)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
     ENABLE_TESTING()
+    MESSAGE(CHECK_START "${.y}Searching for MQTT Broker${..}")
+    SET(MQTT_BROKER_PORT 1883)
+    EXECUTE_PROCESS(
+            COMMAND netstat -ant | grep ${MQTT_BROKER_PORT}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            OUTPUT_VARIABLE port_info
+            ERROR_VARIABLE port_error
+    )
+    STRING(REGEX MATCHALL ".${MQTT_BROKER_PORT}" BUILD_MQTT_TESTS ${port_info})
+    IF (BUILD_MQTT_TESTS)
+        MESSAGE(STATUS "${.m}Will build MQTT tests as port ${.y}${MQTT_BROKER_PORT}${.m} is ${.g}available${..}")
+    ELSE ()
+        MESSAGE(STATUS "${.m}Will not build MQTT tests as port ${.y}${MQTT_BROKER_PORT}${.m} is ${.r}unavailable${..}")
+    ENDIF ()
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ########### BOOST TEST #############
     ####################################
@@ -94,7 +109,9 @@ IF (BUILD_TESTS)
     MAKE_TESTS(process/actor "test_actor" true)
     MAKE_TESTS(structure/router "test_router" true)
     MAKE_TESTS(structure/stype/key_value "test_key_value" , true)
-    MAKE_TESTS(structure/stype/mqtt "test_mqtt" , true)
+    IF (BUILD_MQTT_TESTS)
+        MAKE_TESTS(structure/stype/mqtt "test_mqtt" , true)
+    ENDIF ()
     MAKE_TESTS(structure "test_furi" false)
     MAKE_TESTS(model "test_fs" true)
     MAKE_TESTS(util "test_mutex" true)
