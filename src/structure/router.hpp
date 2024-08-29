@@ -26,13 +26,13 @@
 #include <util/ptr_helper.hpp>
 
 namespace fhatos {
-
   class Router final : public Patterned {
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structurers mutex>");
-    ptr<Map<Pattern_p, Structure_p, furi_p_less>> structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
+    ptr<Map<Pattern_p, Structure_p, furi_p_less> > structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
 
-    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {}
+    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
+    }
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {

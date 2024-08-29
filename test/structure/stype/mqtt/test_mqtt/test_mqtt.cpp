@@ -26,10 +26,12 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
           current_structure = Mqtt::create("/a/+"); //
+          //router()->attach(current_structure);
           current_structure->setup(); //
           FOS_RUN_TEST(test_write); //
           FOS_RUN_TEST(test_subscribe); //
           current_structure->stop(); //
+          //router()->detach(current_structure->pattern()); //
   );
 
 } // namespace fhatos
