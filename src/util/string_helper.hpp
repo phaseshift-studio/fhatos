@@ -55,14 +55,14 @@ namespace fhatos {
       char _message[1024];
       va_list arg;
       va_start(arg, format);
-      const int length = vsnprintf(_message, 1024, format, arg);
+      int length = vsnprintf(_message, 1024, format, arg);
       _message[length] = '\0';
       return string(_message);
     }
 
     static void ltrim(std::string &s) {
       s.erase(s.begin(),
-              ranges::find_if(s, [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));
+              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));
     }
 
     static void rtrim(std::string &s) {
@@ -104,9 +104,9 @@ namespace fhatos {
       return count;
     }
 
-    static bool look_ahead(const string &token, std::stringstream *ss, bool consume = true) {
+    static bool look_ahead(const string &token, std::stringstream *ss, const bool consume = true) {
       const std::stringstream::pos_type start = ss->tellg();
-      for (char i : token) {
+      for (const char i : token) {
         if (i != ss->peek()) {
           ss->seekg(start);
           return false;
