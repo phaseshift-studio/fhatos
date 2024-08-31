@@ -59,6 +59,7 @@ namespace fhatos {
       // define filesystem types
       Types::singleton()->saveType(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       Types::singleton()->saveType(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
+      Types::singleton()->loop();
       /*this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
           if (message->retain && message->payload->is_noobj()) {
               // delete the fs resource

@@ -27,20 +27,23 @@
 #include <unity.h>
 
 #ifdef FOS_TEST_ON_BOOT
+
 #include <language/fluent.hpp>
 #include <language/types.hpp>
 #include <language/parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/processor/heap.hpp>
+#include <model/shared_memory.hpp>
 #include <language/processor/processor.hpp>
 #include <model/terminal.hpp>
 #include <structure/router.hpp>
 
 #ifdef NATIVE
+
 #include FOS_FILE_SYSTEM(fs.hpp)
+
 #endif
 
-#include <structure/kernel.hpp>
+#include <kernel.hpp>
 #include <util/options.hpp>
 
 #define FOS_SETUP_ON_BOOT                                                                                              \
@@ -51,11 +54,11 @@
       ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
       ->using_router(Router::singleton("/sys/router/"))                                                                \
       ->boot<Types>(Types::singleton("/type/"))                                                                        \
-      ->boot<Heap>(Heap::create("/proc/heap/", "+"))                                                                   \
+      ->boot<SharedMemory>(SharedMemory::create("/proc/heap/", "+"))                                                   \
       ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
-      ->boot<Parser>(Parser::singleton("/sys/lang/parser/")) \
-  /*    ->boot<FileSystem>(FileSystem::singleton("/io/fs"))  */ \
-      ->load_modules({ID("/mod/proc")})                                                                                \
+      ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))                                                           \
+  /*    ->boot<FileSystem>(FileSystem::singleton("/io/fs"))  */                                                        \
+      ->model({ID("/mod/proc")})                                                                                       \
       ->initial_terminal_owner("/home/root/repl/");                                                                    \
   //->done("kernel_barrier");
 
@@ -88,6 +91,12 @@ bool deploy_types = true;
 #else
 bool deploy_types = false;
 #endif
+#ifdef FOS_DEPLOY_SHARED_MEMORY
+#include <model/shared_memory.hpp>
+bool deploy_shared_memory = true;
+#else
+bool deploy_shared_memory = false;
+#endif
 
 #define FOS_SETUP_ON_BOOT \
   Options::singleton()->printer<>(Ansi<>::singleton());                 \
@@ -99,8 +108,9 @@ bool deploy_types = false;
   if(deploy_parser)                                                     \
     Model::deploy(Parser::singleton());                                 \
   if(deploy_types)                                                      \
-    Model::deploy(Types::singleton());
-
+    Model::deploy(Types::singleton());                                  \
+  if(deploy_shared_memory)                                              \
+    Model::deploy(SharedMemory::create());
 #define FOS_STOP_ON_BOOT ;
 #endif
 ////////////////////////////////////////////////////////
@@ -276,8 +286,6 @@ using namespace fhatos;
       TEST_FAIL();                                                                                                     \
   }
 
-#ifdef FOS_TEST_ON_BOOT
-
 template<typename OBJ = Obj>
 static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
@@ -335,9 +343,10 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
-                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              [[maybe_unused]] const bool clearRouter = true) {
+static void FOS_CHECK_RESULTS(
+        const List<OBJ> &expected, const Fluent &fluent,
+        const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+        [[maybe_unused]] const bool clearRouter = true) {
   const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const OBJ &obj: expected) {
@@ -375,9 +384,10 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const Fluent &fluent,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &monoids,
-                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              const bool clearRouter = true) {
+static void FOS_CHECK_RESULTS(
+        const List<OBJ> &expected, const List<string> &monoids,
+        const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+        const bool clearRouter = true) {
   const string &finalString = monoids.back();
   for (size_t i = 0; i < monoids.size() - 1; i++) {
     LOG(DEBUG, FOS_TAB_2 "!yPre-monoid!!: %s\n", monoids.at(i).c_str());
@@ -390,9 +400,10 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const List<string> &mon
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
-static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
-                              const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-                              const bool clearRouter = false) {
+static void FOS_CHECK_RESULTS(
+        const List<OBJ> &expected, const string &monoid,
+        const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+        const bool clearRouter = false) {
 
   Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
   if (!parse.has_value())
@@ -414,6 +425,4 @@ static void FOS_CHECK_RESULTS(const List<OBJ> &expected, const string &monoid,
   }
   return FOS_CHECK_RESULTS<Obj>(expectedResults, Fluent(parse.value()));
 }
-
-#endif
 #endif

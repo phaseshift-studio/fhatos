@@ -94,21 +94,11 @@ namespace fhatos {
                                                   Terminal::currentOut()->toString().c_str(),
                                                   Terminal::singleton()->id()->extend("out").toString().c_str());
                             }}});
-        /*_MENU_MAP->insert({":router",
-                           {"pubsub router",
-                            [](const Obj_p &obj) {
-                              if (obj->uri_value().matches("/sys/router/global"))
-                                Options::singleton()->router<Router>(MqttRouter::singleton());
-                              else if (obj->uri_value().matches("/sys/router/local"))
-                                Options::singleton()->router<Router>(LocalRouter::singleton());
-                              else
-                                Options::singleton()->router<Router>(MetaRouter::singleton());
-                            },
-                            [] {
-                              Options::singleton()->printer<>()->printf(
-                                  "!yrouter!!: !b%s!!\n",
-                                  Options::singleton()->router<Router>()->id()->toString().c_str());
-                            }}});*/
+        MENU_MAP_->insert({":clear", {
+                "clear terminal", [](const Obj_p &) {
+                  printer<>()->printf("!X");
+                }, [] { printer<>()->printf("!X"); }
+        }});
         MENU_MAP_->insert({":color",
                            {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
                             [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
@@ -184,8 +174,7 @@ namespace fhatos {
           } else {
             string value = this->_line.substr(index);
             StringHelper::trim(value);
-            std::get<1>(MENU_MAP_->at(command))(
-                    Parser::singleton()->tryParseObj(value).value()->apply(Obj::to_noobj()));
+            std::get<1>(MENU_MAP_->at(command))(parse(value)->apply(Obj::to_noobj()));
           }
         } catch (std::exception &e) {
           this->printException(e);

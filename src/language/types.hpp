@@ -29,8 +29,8 @@
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
-  class Types : public Actor<Coroutine, KeyValue> {
-    explicit Types(const ID &id = FOS_TYPE_PREFIX) : Actor(id) {
+  class Types: public Actor<Coroutine, KeyValue> {
+    explicit Types(const ID &id = FOS_TYPE_PREFIX): Actor(id) {
     }
 
     static ID_p inst_id(const string &opcode) {
@@ -111,7 +111,7 @@ namespace fhatos {
       this->load_insts();
       this->subscribe(*this->pattern(), [](const Message_p &message) {
         if (message->retain && (message->source != *Types::singleton()->id()) &&
-            (message->source != ID("anon_src")))
+            message->target != ID("anon_tgt"))
           Types::singleton()->saveType(id_p(message->target), message->payload, true);
         // else { // transient provides type checking?
         // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),

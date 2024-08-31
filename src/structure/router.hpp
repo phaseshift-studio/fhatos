@@ -28,7 +28,7 @@
 namespace fhatos {
   class Router final : public Patterned {
   protected:
-    MutexRW<> structures_mutex_ = MutexRW<>("<router structurers mutex>");
+    MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");
     ptr<Map<Pattern_p, Structure_p, furi_p_less> > structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
 
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {

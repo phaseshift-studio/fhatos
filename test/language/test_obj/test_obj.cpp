@@ -85,17 +85,8 @@ namespace fhatos {
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as(FOS_TYPE_PREFIX "int/age"));
     FOS_TEST_OBJ_EQUAL(intC, intA->as("age"));
     FOS_TEST_OBJ_EQUAL(intC, intB->as(FOS_TYPE_PREFIX "int/age"));
-    FOS_TEST_OBJ_EQUAL(intA->split(10, FOS_TYPE_PREFIX "int/age"),
-                       intB->split(10, id_p(FOS_TYPE_PREFIX "int/age")));
-    FOS_TEST_OBJ_EQUAL(intA->split(10, FOS_TYPE_PREFIX "int/age"), intB->split(10, "age"));
-    FOS_TEST_OBJ_EQUAL(intA->split(10, FOS_TYPE_PREFIX "int/age"), intB->split(10, FOS_TYPE_PREFIX "int/age"));
-    FOS_TEST_OBJ_EQUAL(intA->split(10, "age"), intB->split(10, "age"));
     FOS_TEST_OBJ_EQUAL(intA, intC->as(FOS_TYPE_PREFIX "int/"));
     FOS_TEST_OBJ_EQUAL(intA, intA->as(FOS_TYPE_PREFIX "int/"));
-    FOS_TEST_OBJ_EQUAL(intA->split(2)->as("age"), intC->split(2));
-    FOS_TEST_OBJ_EQUAL(intA->split(2)->as(FOS_TYPE_PREFIX "int/age"), intB->split(10)->split(2)->as("age"));
-    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("age"), intB->split(2));
-    FOS_TEST_OBJ_NOT_EQUAL(intA->split(2)->as("age"), intB->split(3)->as(FOS_TYPE_PREFIX "int/age"));
     /// apply
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intB));
     FOS_TEST_OBJ_EQUAL(intA, intA->apply(intA));
@@ -151,14 +142,8 @@ namespace fhatos {
     FOS_TEST_OBJ_NOT_EQUAL(realB, realB->as(FOS_TYPE_PREFIX "real/money"));
     FOS_TEST_OBJ_EQUAL(realC, realA->as("money"));
     FOS_TEST_OBJ_EQUAL(realC, realB->as(FOS_TYPE_PREFIX "real/money"));
-    FOS_TEST_OBJ_EQUAL(realA->split(10.0f, FOS_TYPE_PREFIX "real/money"), realB->split(10.0f, "money"));
     FOS_TEST_OBJ_EQUAL(realA, realC->as(FOS_TYPE_PREFIX "real/"));
     FOS_TEST_OBJ_EQUAL(realA, realA->as(FOS_TYPE_PREFIX "real/"));
-    FOS_TEST_OBJ_EQUAL(realA->split(2.0f)->as("money"), realC->split(2.0f));
-    FOS_TEST_OBJ_EQUAL(realA->split(2.0f)->as(FOS_TYPE_PREFIX "real/money"),
-                       realB->split(10.0f)->split(2.0f)->as("money"));
-    FOS_TEST_OBJ_NOT_EQUAL(realA->split(2.0f)->as("money"), realB->split(2.0f));
-    FOS_TEST_OBJ_NOT_EQUAL(realA->split(2.0f)->as("money"), realB->split(3.0f)->as(FOS_TYPE_PREFIX "real/money"));
     /// apply
     FOS_TEST_OBJ_EQUAL(realA, realA->apply(realB));
     FOS_TEST_OBJ_EQUAL(realA, realA->apply(realA));
@@ -218,21 +203,8 @@ namespace fhatos {
     FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(FOS_TYPE_PREFIX "uri/webpage"));
     FOS_TEST_OBJ_EQUAL(uriC, uriA->as("webpage"));
     FOS_TEST_OBJ_EQUAL(uriC, uriB->as(FOS_TYPE_PREFIX "uri/webpage"));
-    FOS_TEST_OBJ_EQUAL(uriA->split(fURI("//abc/123"), FOS_TYPE_PREFIX "uri/webpage"),
-                       uriB->split(fURI("//abc/123"), id_p(FOS_TYPE_PREFIX "uri/webpage")));
-    FOS_TEST_OBJ_EQUAL(uriA->split(fURI("//abc/123"), FOS_TYPE_PREFIX "uri/webpage"),
-                       uriB->split(fURI("//abc/123"), "webpage"));
-    FOS_TEST_OBJ_EQUAL(uriA->split(fURI("//abc/123"), FOS_TYPE_PREFIX "uri/webpage"),
-                       uriB->split(fURI("//abc/123"), FOS_TYPE_PREFIX "uri/webpage"));
-    FOS_TEST_OBJ_EQUAL(uriA->split(fURI("//abc/123"), "webpage"), uriB->split(fURI("//abc/123"), "webpage"));
     FOS_TEST_OBJ_EQUAL(uriA, uriC->as(FOS_TYPE_PREFIX "uri/"));
     FOS_TEST_OBJ_EQUAL(uriA, uriA->as(FOS_TYPE_PREFIX "uri/"));
-    FOS_TEST_OBJ_EQUAL(uriA->split(fURI("//abc/xyz"))->as("webpage"), uriC->split(fURI("//abc/xyz")));
-    FOS_TEST_OBJ_EQUAL(uriA->split(fURI("//abc/xyz"))->as(FOS_TYPE_PREFIX "uri/webpage"),
-                       uriB->split(fURI("//abc/123"))->split(fURI("//abc/xyz"))->as("webpage"));
-    FOS_TEST_OBJ_NOT_EQUAL(uriA->split(fURI("//abc/xyz"))->as("webpage"), uriB->split(fURI("//abc/xyz")));
-    FOS_TEST_OBJ_NOT_EQUAL(uriA->split(fURI("//abc/xyz"))->as("webpage"),
-                           uriB->split(fURI("//abc/123/NONE"))->as(FOS_TYPE_PREFIX "uri/webpage"));
     /// apply
     FOS_TEST_OBJ_EQUAL(uriA, uriA->apply(uriB));
     FOS_TEST_OBJ_EQUAL(uriA, uriA->apply(uriA));
@@ -366,11 +338,11 @@ namespace fhatos {
                     ->match(Obj::to_rec(
                             {
                                     {
-                                            "a",                                                                       *Obj::to_bcode(
+                                            "a",        *Obj::to_bcode(
                                             {Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})
                                     },
                                     {       *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str(
-                                            "b"))}))}),                                                                2}
+                                            "b"))}))}), 2}
                             })));
     TEST_ASSERT_FALSE(
             Obj::to_rec({
@@ -380,11 +352,11 @@ namespace fhatos {
                     ->match(Obj::to_rec(
                             {
                                     {
-                                            "a",                                                                       *Obj::to_bcode(
+                                            "a",        *Obj::to_bcode(
                                             {Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})
                                     },
                                     {       *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str(
-                                            "c"))}))}),                                                                2}
+                                            "c"))}))}), 2}
                             })));
   }
 

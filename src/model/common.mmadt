@@ -5,13 +5,22 @@
 /type/int/even -> |is(mod(2).eq(0))
 /type/int/odd -> |is(mod(2).neq(0)
 --- str
-/type/str/char -> |is(size().eq(1))
+/type/str/byte -> |is(size().eq(1))
+/type/str/char -> |*/type/str/byte
+-- uri
+/type/uri/pattern -> |is(_/is(eq('+').or(eq('#'))).count()\_>-.gt(0))
+/type/uri/id      -> |is(_/is(eq('+').or(eq('#'))).count()\_>-.eq(0))
 
 === poly extensions ===
+--- poly
+/type/lst/poly -> _
+/type/rec/poly -> _
 --- lst
-/type/lst/pair?a=_&b=_ -> |[*a,*b]
+/type/lst/pair?a=_&b=_ -> |[as(*a),as(*b)]
 /type/lst/trip -> [_,_,_]
 /type/lst/quad -> [_,_,_,_]
 /type/lst/qint -> [_,_,_,_,_]
 --- rec
+/type/rec/monad   -> [:p_obj=>_, :p_inst=>inst[_], meta=>rec[_]]
+/type/rec/message -> [:source=>uri[_],:target=>uri[_],:payload=>_,retain=>bool[_]]
 /type/rec/table?

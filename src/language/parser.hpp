@@ -24,7 +24,7 @@
 #include <language/obj.hpp>
 #include <process/actor/actor.hpp>
 #include <sstream>
-#include <structure/stype/empty.hpp>
+#include <structure/stype/key_value.hpp>
 #include <util/string_helper.hpp>
 #include <util/enums.hpp>
 #include FOS_PROCESS(coroutine.hpp)
@@ -132,8 +132,8 @@ namespace fhatos {
                   {GROUPING::BRACE,   "{}"}
           });
 
-  class Parser final : public Actor<Coroutine, Empty> {
-    explicit Parser(const ID &id = ID("/parser/")) : Actor<Coroutine, Empty>(id) {
+  class Parser: public Actor<Coroutine, KeyValue> {
+    explicit Parser(const ID &id = ID("/parser/")): Actor(id, id.extend("#")) {
     }
 
   public:
@@ -144,7 +144,7 @@ namespace fhatos {
         _setup = true;
         OBJ_PARSER = [](const string &obj_string) {
           try {
-            return Parser::singleton()->tryParseObj(obj_string).value_or(Obj::to_noobj());
+            return fhatos::Parser::tryParseObj(obj_string).value_or(Obj::to_noobj());
           } catch (std::exception &e) {
             LOG_EXCEPTION(e);
             return Obj::to_noobj();
@@ -153,6 +153,20 @@ namespace fhatos {
         Options::singleton()->parser<Obj>(OBJ_PARSER);
       }
       return parser_p;
+    }
+
+    void setup() override {
+      Actor::setup();
+      this->subscribe(this->id()->extend("parse/+/in"), [this](const Message_p &message) {
+        LOG_PROCESS(DEBUG, this, "Parsing %s\n", message->payload->toString().c_str());
+        this->publish(message->target.resolve("./out"),
+                      Options::singleton()->processor<Obj, BCode, Obj>(
+                              noobj(),
+                              fhatos::Parser::tryParseObj(message->payload->str_value()).value()),
+                      RETAIN_MESSAGE
+        );
+        //
+      });
     }
 
     static bool closedExpression(const string &line) {
@@ -166,6 +180,14 @@ namespace fhatos {
 
     static bool dotType(const string &type) {
       return !type.empty() && type[type.length() - 1] == '.'; // dot type
+    }
+
+    static Option<Obj_p> tryParseSource(const Lst_p &lstSrc) {
+      Option<Obj_p> last = {};
+      for (const Obj_p &obj: *lstSrc->lst_value()) {
+        last = tryParseObj(obj->is_str() ? obj->str_value() : obj->toString(true, false));
+      }
+      return last;
     }
 
     static Option<Obj_p> tryParseObj(const string &token) {
@@ -223,8 +245,9 @@ namespace fhatos {
       return {};
     }
 
-    static Pair<string, string> tryParseObjType(const string &token,
-                                                const GROUPING grouping) {
+    static Pair<string, string> tryParseObjType(
+            const string &token,
+            const GROUPING grouping) {
       string typeToken;
       string valueToken;
       const bool grouped = !token.empty() && token[token.length() - 1] == parse_token.toChars(grouping)[1];
@@ -294,15 +317,17 @@ namespace fhatos {
       return valueToken.substr(0, 3) == "---" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>();
     }
 
-    static Option<NoObj_p> tryParseNoObj(const string &valueToken, const string &typeToken,
-                                         const fURI_p & = NOOBJ_FURI) {
+    static Option<NoObj_p> tryParseNoObj(
+            const string &valueToken, const string &typeToken,
+            const fURI_p & = NOOBJ_FURI) {
       return (typeToken == NOOBJ_FURI->toString() || (typeToken.empty() && valueToken == STR(FOS_NOOBJ_TOKEN)))
              ? Option<NoObj_p>{Obj::to_noobj()}
              : Option<NoObj_p>{};
     }
 
-    static Option<Bool_p> tryParseBool(const string &valueToken, const string &typeToken,
-                                       const fURI_p &baseType = BOOL_FURI) {
+    static Option<Bool_p> tryParseBool(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = BOOL_FURI) {
       return ((strcmp("true", valueToken.c_str()) == 0) || (strcmp("false", valueToken.c_str()) == 0))
              ? Option<Bool_p>{
                       Bool::to_bool(strcmp("true", valueToken.c_str()) == 0,
@@ -311,8 +336,9 @@ namespace fhatos {
              : Option<Bool_p>{};
     }
 
-    static Option<Int_p> tryParseInt(const string &valueToken, const string &typeToken,
-                                     const fURI_p &baseType = INT_FURI) {
+    static Option<Int_p> tryParseInt(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = INT_FURI) {
       if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find_first_of('.') != string::npos)
         return {};
       for (size_t i = 1; i < valueToken.length(); i++) {
@@ -322,8 +348,9 @@ namespace fhatos {
       return Option<Int_p>{Int::to_int(stoi(valueToken), share<ID>(baseType->resolve(typeToken.c_str())))};
     }
 
-    static Option<Real_p> tryParseReal(const string &valueToken, const string &typeToken,
-                                       const fURI_p &baseType = REAL_FURI) {
+    static Option<Real_p> tryParseReal(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = REAL_FURI) {
       if (valueToken[0] != '-' && !isdigit(valueToken[0]))
         return {};
       bool dotFound = false;
@@ -343,8 +370,9 @@ namespace fhatos {
              : Option<Real_p>{};
     }
 
-    static Option<Uri_p> tryParseUri(const string &valueToken, const string &typeToken,
-                                     const fURI_p &baseType = URI_FURI) {
+    static Option<Uri_p> tryParseUri(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = URI_FURI) {
       if (valueToken[0] == '<' && valueToken[valueToken.length() - 1] == '>')
         return Option<Uri_p>{
                 Uri::to_uri(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
@@ -356,8 +384,9 @@ namespace fhatos {
       return Option<Uri_p>{};
     }
 
-    static Option<Str_p> tryParseStr(const string &valueToken, const string &typeToken,
-                                     const fURI_p &baseType = STR_FURI) {
+    static Option<Str_p> tryParseStr(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = STR_FURI) {
       return (valueToken[0] == '\'' && valueToken[valueToken.length() - 1] == '\'')
              ? Option<Str_p>{
                       Str::to_str(strdup(valueToken.substr(1, valueToken.length() - 2).c_str()),
@@ -453,8 +482,9 @@ namespace fhatos {
       return Option<Rec_p>{Rec::to_rec(map2, id_p(baseType->resolve(type.c_str())))};
     }
 
-    static Option<Objs_p> tryParseObjs(const string &token, const string &type,
-                                       const fURI_p &baseType = OBJS_FURI) {
+    static Option<Objs_p> tryParseObjs(
+            const string &token, const string &type,
+            const fURI_p &baseType = OBJS_FURI) {
       if (token[0] != '{' || token[token.length() - 1] != '}')
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
@@ -478,9 +508,10 @@ namespace fhatos {
       return Option<Objs_p>{Objs::to_objs(share(list), id_p(baseType->resolve(type)))};
     }
 
-    static Option<Inst_p> tryParseInst(const string &valueToken, const string &typeToken,
-                                       const fURI_p &baseType = INST_FURI) {
-      auto args = List<ptr<Obj> >();
+    static Option<Inst_p> tryParseInst(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = INST_FURI) {
+      auto args = List<ptr<Obj>>();
       stringstream ss = stringstream(valueToken);
       while (!ss.eof()) {
         string argToken;
@@ -510,8 +541,9 @@ namespace fhatos {
       return inst->is_noobj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 
-    static Option<BCode_p> tryParseBCode(const string &valueToken, const string &typeToken,
-                                         const fURI_p &baseType = BCODE_FURI) {
+    static Option<BCode_p> tryParseBCode(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = BCODE_FURI) {
       if (valueToken == "_") {
         return typeToken.empty()
                ? Option<BCode_p>(Obj::to_bcode())
@@ -615,8 +647,9 @@ namespace fhatos {
       return Option<BCode_p>{BCode::to_bcode(insts, id_p(baseType->resolve(typeToken)))};
     }
 
-    static Option<Uri_p> tryParseDEFAULT(const string &valueToken, const string &typeToken,
-                                          const fURI_p &baseType = URI_FURI) {
+    static Option<Uri_p> tryParseDEFAULT(
+            const string &valueToken, const string &typeToken,
+            const fURI_p &baseType = URI_FURI) {
       return Option<Uri_p>{Uri::to_uri(valueToken, id_p(baseType->resolve(typeToken)))};
     }
 

@@ -219,7 +219,6 @@ namespace fhatos {
                           IType::MANY_TO_ZERO);
     }
 
-
     static Bool_p neq(const Obj_p &rhs) {
       return Obj::to_inst(
               "neq", {rhs}, [](const InstArgs &args) {
@@ -396,9 +395,9 @@ namespace fhatos {
               IType::ONE_TO_ONE);
     }
 
-    static Obj_p by(const Obj_p &bymod) {
+    static Obj_p by(const Obj_p &by_modulator) {
       return Obj::to_inst(
-              "by", {bymod},
+              "by", {by_modulator},
               [](const InstArgs &) {
                 return [](const Obj_p &THROW_ERROR) {
                   if (true)
@@ -455,23 +454,24 @@ namespace fhatos {
       }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p pub(const Uri_p &target, const Obj_p &payload) {
+    static Obj_p pub(const Uri_p &target, const Obj_p &payload, const Bool_p &transient = dool(true)) {
       return Obj::to_inst(
-              "pub", {target, payload},
+              "pub", {target, payload, transient},
               [](const InstArgs &args) {
-                const Obj_p &target = args.at(0);
-                const Obj_p &payload = args.at(0);
-                return [target, payload](const Obj_p &lhs) {
+                const Uri_p &target = args.at(0);
+                const Obj_p &payload = args.at(1);
+                const Bool_p &transient = args.size() > 2 ? args.at(2) : dool(true);
+                return [target, payload, transient](const Obj_p &lhs) {
                   router()->route_message(share(Message{
                           .source = FOS_DEFAULT_SOURCE_ID,
                           .target = target->apply(lhs)->uri_value(),
                           .payload = payload->apply(lhs),
-                          .retain = TRANSIENT_MESSAGE
+                          .retain = transient->apply(lhs)->bool_value()
                   }));
                   return lhs;
                 };
               },
-              areInitialArgs(target, payload) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+              areInitialArgs(target, payload, transient) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Obj_p lift(const BCode_p &bcode) {
@@ -504,22 +504,27 @@ namespace fhatos {
               IType::ONE_TO_ONE);
     }
 
-    static Obj_p sub(const Uri_p &pattern, const BCode_p &onRecv) {
+    static Obj_p sub(const Uri_p &pattern, const BCode_p &on_recv) {
       return Obj::to_inst(
-              "sub", {pattern, onRecv},
+              "sub", {pattern, on_recv},
               [](const InstArgs &args) {
-                const Obj_p &pattern = args.at(0);
-                const Obj_p &onRecv = args.at(1);
-                return [pattern, onRecv](const Obj_p &lhs) {
-                  if (onRecv->is_noobj()) {
-                    router()->route_unsubscribe(id_p(pattern->apply(lhs)->uri_value()));
+                const Uri_p &pattern = args.at(0);
+                const BCode_p &on_recv = args.at(1);
+                return [pattern, on_recv](const Obj_p &lhs) {
+                  const Uri_p pattern_A = pattern->apply(lhs);
+                  const BCode_p on_recv_A = on_recv->apply(lhs);
+                  if (on_recv_A->is_noobj()) {
+                    router()->route_unsubscribe(id_p(pattern_A->uri_value()));
                   } else {
                     router()->route_subscription(
                             share(Subscription{
                                     .source = FOS_DEFAULT_SOURCE_ID,
-                                    .pattern = pattern->apply(lhs)->uri_value(),
-                                    .onRecv = [onRecv](const Message_p &message) { onRecv->apply(message->payload); },
-                                    .onRecvBCode = onRecv
+                                    .pattern = pattern_A->uri_value(),
+                                    .onRecv = [on_recv_A](const Message_p &message) {
+                                      if (!message->source.equals(FOS_DEFAULT_SOURCE_ID))
+                                        on_recv_A->apply(message->payload);
+                                    },
+                                    .onRecvBCode = on_recv_A
                             }));
                   }
                   return lhs;
@@ -641,6 +646,19 @@ namespace fhatos {
                     return Obj::to_lst(Options::singleton()
                                                ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
                                                ->objs_value());
+                  }
+                  // REC BY PAIRS
+                  if (lhs->is_rec()) {
+                    Objs_p pairs = Obj::to_objs();
+                    for (const auto &pair: *lhs->rec_value()) {
+                      pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
+                    }
+                    const Objs_p results = Options::singleton()->processor<Obj, BCode, Obj>(pairs, args.at(0));
+                    Obj::RecMap_p<> rec = share(Obj::RecMap<>());
+                    for (const auto &result: *results->objs_value()) {
+                      rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});
+                    }
+                    return Obj::to_rec(rec);
                   }
                   // STR BY CHARS
                   if (lhs->is_str()) {
@@ -786,21 +804,14 @@ namespace fhatos {
              inst->itype() == IType::ZERO_TO_ZERO;
     }
 
-    static bool areInitialArgs(const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
-                               const Obj_p &objC = Obj::to_noobj(), const Obj_p &objD = Obj::to_noobj()) {
+    static bool areInitialArgs(
+            const Obj_p &objA, const Obj_p &objB = Obj::to_noobj(),
+            const Obj_p &objC = Obj::to_noobj(), const Obj_p &objD = Obj::to_noobj()) {
       bool result = /*objA->isUri() ? objA->uri_value().isAbsolute() :*/ !objA->is_noop_bcode();
       result = result && /*(objB->isUri() ? objB->uri_value().isAbsolute() :*/ !objB->is_noop_bcode();
       result = result && /*(objC->isUri() ? objC->uri_value().isAbsolute() :*/ !objC->is_noop_bcode();
       result = result && /*(objD->isUri() ? objD->uri_value().isAbsolute() :*/ !objD->is_noop_bcode();
       return result;
-    }
-
-    static const List<Obj_p> &argCheck(const ID &opcode, const List<Obj_p> &args, const uint8_t expectedSize) {
-      if (args.size() != expectedSize)
-        throw fError("Incorrect number of arguments provided to %s: %i != %i\n", opcode.toString().c_str(),
-                     args.size(),
-                     expectedSize);
-      return args;
     }
 
     static Map<string, string> unarySugars() {
@@ -829,7 +840,6 @@ namespace fhatos {
       if (userInst->is_inst()) {
         return replace_from_inst(args, userInst);
       } else if (userInst->is_bcode()) {
-        //return to_inst_via_bcode(typeIdResolved, replace_from_bcode(args, userInst));
         return Obj::to_inst(
                 typeId.name(), args,
                 [userInst](const InstArgs &args) {

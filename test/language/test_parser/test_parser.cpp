@@ -19,10 +19,14 @@
 #ifndef fhatos_test_parser_hpp
 #define fhatos_test_parser_hpp
 
-#define FOS_TEST_ON_BOOT
-
+#undef FOS_TEST_ON_BOOT
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_TYPES
+#define FOS_DEPLOY_SHARED_MEMORY
 #include <language/parser.hpp>
 #include <test_fhatos.hpp>
+#include <language/exts.hpp>
 
 namespace fhatos {
 

@@ -91,9 +91,9 @@ namespace fhatos {
     const bool retain;
 
     [[nodiscard]] string toString() const {
-      char temp[150];
-      sprintf(temp, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
-              "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
+      char temp[250];
+      snprintf(temp, 250, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
+               "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
 
@@ -141,7 +141,6 @@ namespace fhatos {
   };
 
   struct Subscription {
-    //using Mail = Pair<const Subscription_p, const Message_p>;
     fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;
@@ -153,9 +152,9 @@ namespace fhatos {
     void execute(const Message_p &message) const { onRecv(message); }
 
     [[nodiscard]] string toString() const {
-      char temp[150];
-      sprintf(temp, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
-              (uint8_t) qos, pattern.toString().c_str(), onRecvBCode ? onRecvBCode->toString().c_str() : "<c-impl>");
+      char temp[250];
+      snprintf(temp, 250, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
+               (uint8_t) qos, pattern.toString().c_str(), onRecvBCode ? onRecvBCode->toString().c_str() : "<c-impl>");
       return {temp};
     }
 

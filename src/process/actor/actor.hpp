@@ -31,15 +31,15 @@ namespace fhatos {
           : public PROCESS,
             public STRUCTURE,
             public Mailbox,
-            public enable_shared_from_this<Actor<PROCESS, STRUCTURE> > {
+            public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
   public:
-    explicit Actor(const ID &id, const Pattern &pattern) : PROCESS(id), STRUCTURE(pattern), Mailbox(),
-                                                           enable_shared_from_this<Actor<PROCESS, STRUCTURE> >() {
+    explicit Actor(const ID &id, const Pattern &pattern): PROCESS(id), STRUCTURE(pattern), Mailbox(),
+            enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
 
-    explicit Actor(const ID &id) : Actor(id, id.extend("#")) {
+    explicit Actor(const ID &id): Actor(id, id.extend("#")) {
       // router()->attach(ptr<Structure>((Structure *) this));
       // scheduler()->spawn(ptr<Process>((Process *) this));
     }
@@ -55,8 +55,9 @@ namespace fhatos {
       return this->outbox_->push_back(mail);
     }
 
-    RESPONSE_CODE publish(const ID &target, const Obj_p &payload,
-                          const bool retain = TRANSIENT_MESSAGE) {
+    RESPONSE_CODE publish(
+            const ID &target, const Obj_p &payload,
+            const bool retain = TRANSIENT_MESSAGE) {
       // rename send_mail
       return router()->route_message(
               share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
@@ -64,7 +65,7 @@ namespace fhatos {
 
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
       return router()->route_subscription(
-              share(Subscription{.source = fURI(*this->id()), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
+              share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
 
@@ -84,7 +85,9 @@ namespace fhatos {
       this->publish(this->id()->extend("output"), Obj::to_str(buffer));
     }*/
 
-    bool active() { return this->available() && this->running(); }
+    bool active() {
+      return this->available() && this->running();
+    }
 
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP

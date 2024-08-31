@@ -19,15 +19,15 @@
 #ifndef fhatos_kernel_hpp
 #define fhatos_kernel_hpp
 
-#include <fhatos.hpp>
+#include "fhatos.hpp"
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/exts.hpp>
-#include <process/actor/actor.hpp>
-#include <process/process.hpp>
-#include <model/terminal.hpp>
-#include <model/model.hpp>
+#include "language/exts.hpp"
+#include "process/actor/actor.hpp"
+#include "process/process.hpp"
+#include "model/terminal.hpp"
+#include "model/model.hpp"
 
-#include <language/types.hpp>
+#include "language/types.hpp"
 
 namespace fhatos {
   class Kernel {
@@ -74,8 +74,8 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> load_modules(const List<ID> &modules) {
-      for (const ID &id: modules) {
+    static ptr<Kernel> model(const List<ID> &models) {
+      for (const ID &id: models) {
         // List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
           const ID_p idp = share(pair.first);

@@ -36,7 +36,7 @@ namespace fhatos {
                         {SType::WRITE,     "write"},
                         {SType::READWRITE, "readwrite"}});
 
-  class Structure : public Patterned {
+  class Structure: public Patterned {
 
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
@@ -48,7 +48,7 @@ namespace fhatos {
   public:
     const SType stype;
 
-    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {}
+    explicit Structure(const Pattern &pattern, const SType stype): Patterned(p_p(pattern)), stype(stype) {}
 
     [[nodiscard]] bool available() const { return this->available_.load(); }
 
@@ -106,26 +106,18 @@ namespace fhatos {
         if (subscription->onRecv) { // not an unsubscribe event // todo: is it even possible to be in this state?
           const ptr<Subscription> sub_ptr = share<Subscription>(*subscription);
           this->subscriptions->push_back(sub_ptr);
-          if (!this->remote_retains) {
-            const Obj_p objx = this->read(p_p(subscription->pattern), id_p(subscription->source)); // get any retains
-            if (objx->is_objs()) {
-              for (const auto &obj: *objx->objs_value()) {
+          if (!this->remote_retains) { // DISTRIBUTE ANY MATCHING RETAINS TO NEW SUBSCRIBER
+            const Objs_p objs = this->read(p_p(subscription->pattern), id_p(subscription->source));
+            if (objs->is_objs()) {
+              for (const auto &obj: *objs->objs_value()) {
                 this->outbox_->push_back(share(Mail(
                         {subscription,
-                         share(Message{.source = ID("anon_src"),
+                         share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
                                  .target = ID("anon_tgt"),
                                  .payload = obj,
-                                 .retain = true})}))); // TODO: need both source of the retain and the target of obj
+                                 .retain = RETAIN_MESSAGE})}))); // TODO: need both source of the retain and the target of obj
               }
-            } /* else {
-           if (!objx->is_noobj()) {
-             this->outbox_->push_back(share(
-                 Mail({subscription,
-                       share(Message{.source = ID("anon_src"),
-                                     .target = ID("anon_tgt"),
-                                     .payload = objx,
-                                     .retain = true})}))); // TODO: need both source of the retain and the target of obj
-           }*/
+            }
           }
           LOG_SUBSCRIBE(OK, subscription);
         } else {
@@ -147,15 +139,14 @@ namespace fhatos {
         for (const auto &subscription: *this->subscriptions) {
           if (message->target.matches(subscription->pattern)) {
             rc2 = OK;
-            Subscription_p sub = share(Subscription(*subscription));
-            this->outbox_->push_back(share(Mail{sub, message}));
+            this->outbox_->push_back(share(Mail{subscription, message}));
             LOG(DEBUG, "%s !yrouted to!! %s\n", message->toString().c_str(), subscription->toString().c_str());
           }
         }
         return rc2;
       });
       MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
-      LOG_PUBLISH(rc, *message);
+      LOG_PUBLISH(rc == NO_SUBSCRIPTION && message->retain ? OK : rc, *message);
     }
 
     virtual void remove(const ID_p &id, const ID_p &source) { this->write(id, Obj::to_noobj(), source); }

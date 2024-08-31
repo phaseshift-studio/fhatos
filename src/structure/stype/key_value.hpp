@@ -55,6 +55,16 @@ namespace fhatos {
         // don't forget to update subscriptions
         return nullptr;
       });
+      /*const Message_p message = share(Message{
+              .source=*source,
+              .target=*target,
+              .payload=payload,
+              .retain=true});
+      for (const auto &subscription: *this->subscriptions) {
+        if (target->matches(subscription->pattern)) {
+          this->outbox_->push_back(share(Mail(subscription, message)));
+        }
+      }*/
     }
 
     Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {

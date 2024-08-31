@@ -24,7 +24,7 @@
 #include <language/rewrite/rewriter.hpp>
 #include <language/insts.hpp>
 #include <utility>
-#include FOS_PROCESS(coroutine.hpp)
+#include FOS_PROCESS(thread.hpp)
 #include <process/actor/actor.hpp>
 #include <structure/stype/key_value.hpp>
 
@@ -83,9 +83,9 @@ namespace fhatos {
   }
 
   template<typename E>
-  class Processor {
+  class Processor /*: Actor<Thread,KeyValue>*/ {
   protected:
-    BCode_p bcode = Obj::to_bcode();
+    BCode_p bcode{};
     Deque<Monad_p> *running;
     Deque<Monad_p> *barriers;
     Deque<Obj_p> *halted;

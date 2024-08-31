@@ -39,11 +39,10 @@
                 ProcessTypes.toChars((process)->ptype), (success) ? "spawned" : "!r!_spawned!!");                      \
   }
 
-
 namespace fhatos {
   using Process_p = ptr<Process>;
 
-  class XScheduler : public IDed, public Mailbox {
+  class XScheduler: public IDed, public Mailbox {
   protected:
     MutexRW<> processes_mutex_ = MutexRW("<scheduler processes mutex>");
     ptr<Map<const ID_p, Process_p, furi_p_less>> processes_ = share(Map<const ID_p, Process_p, furi_p_less>());
@@ -54,7 +53,7 @@ namespace fhatos {
 
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {}
 
     int count(const Pattern &processPattern = Pattern("#")) {
       if (this->processes_->empty())
@@ -69,7 +68,6 @@ namespace fhatos {
       });
     }
 
-
     static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
 
     static bool isFiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
@@ -83,11 +81,11 @@ namespace fhatos {
         if (!retain || !payload->is_rec())
           return;
         if (isThread(payload)) {
-          this->spawn(ptr<Process>(new fBcode<Thread>(target, payload)));
+          this->spawn(Process_p(new fBcode<Thread>(target, payload)));
         } else if (isFiber(payload)) {
-          this->spawn(ptr<Process>(new fBcode<Fiber>(target, payload)));
+          this->spawn(Process_p(new fBcode<Fiber>(target, payload)));
         } else if (isCoroutine(payload)) {
-          this->spawn(ptr<Process>(new fBcode<Coroutine>(target, payload)));
+          this->spawn(Process_p(new fBcode<Coroutine>(target, payload)));
         }
       };
       this->running = true;

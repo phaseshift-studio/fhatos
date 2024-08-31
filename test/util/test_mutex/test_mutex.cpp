@@ -26,7 +26,7 @@
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_PARSER
-
+#define FOS_DEPLOY_SHARED_MEMORY
 #include <test_fhatos.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)

@@ -5,24 +5,24 @@ PROJECT(fhatos)
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 SET(ENV{no-dev})
 OPTION(USE_CCACHE "Use ccache" ON) # ON/OFF
-IF (USE_CCACHE)
+IF(USE_CCACHE)
     SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-ENDIF ()
+ENDIF()
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
-IF (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
-ENDIF ()
-IF (NOT CMAKE_BUILD_TYPE)
+ENDIF()
+IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "DEBUG")
-ENDIF ()
+ENDIF()
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
-IF (NOT WIN32)
+IF(NOT WIN32)
     STRING(ASCII 27 Esc)
     SET(.. "${Esc}[m")
     SET(.r "${Esc}[31m") # red
@@ -39,7 +39,7 @@ IF (NOT WIN32)
     SET(.M "${Esc}[1;35m")
     SET(.C "${Esc}[1;36m")
     SET(.W "${Esc}[1;37m")
-ENDIF ()
+ENDIF()
 MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m} <`--'>____${.g}  ______ __  __  ______  ______  ${.b}______  ______${..} \n"
         "${.m} /. .  `'  \\${.g}/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\${.b}/\\  __ \\/\\  "
@@ -51,13 +51,16 @@ MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m}    )-)_/-(>${.g}  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
         "${.b}\\/_____/\\/_____/ \n"
         "${.r}                                   A Dogturd Stynx Production${..} \n")
-IF (WIN32)
+IF(WIN32)
+    SET(PLATFORM "WIN32")
     MESSAGE(NOTICE "${.r}https://cmake.org/cmake/help/latest/variable/WIN32.html?highlight=win32${..}")
-ELSEIF (APPLE)
+ELSEIF(APPLE)
+    SET(PLATFORM "APPLE")
     MESSAGE(NOTICE "${.y}https://cmake.org/cmake/help/latest/variable/APPLE.html?highlight=apple${..}")
-ELSEIF (UNIX)
-    MESSAGE(NOTICE "${.g}https://cmake.org/cmake/help/latest/variable/UNIX.html?highlight=unix${..}")
-ENDIF ()
+ELSEIF(LINUX)
+    SET(PLATFORM "LINUX")
+    MESSAGE(NOTICE "${.g}https://cmake.org/cmake/help/latest/variable/LINUX.html?highlight=linux${..}")
+ENDIF()
 ## PARALLELISM LEVEL (HARDCODED TO 8)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
 CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
@@ -66,40 +69,40 @@ MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVE
 ## TEST FOR INTERNET CONNECTION ##
 ##################################
 OPTION(CHECK_INTERNET "Check Internet" ON) # ON/OFF
-IF (CHECK_INTERNET)
+IF(CHECK_INTERNET)
     MESSAGE(CHECK_START "${.y}Testing Internet connection${..}")
-    IF (MSVC)
+    IF(MSVC)
         EXECUTE_PROCESS(
                 COMMAND ping www.google.com -n 2
                 ERROR_QUIET
                 RESULT_VARIABLE NO_CONNECTION
         )
-    ELSE ()
+    ELSE()
         EXECUTE_PROCESS(
                 COMMAND ping www.google.com -c 2
                 ERROR_QUIET
                 RESULT_VARIABLE NO_CONNECTION
         )
-    ENDIF ()
-    IF (NOT NO_CONNECTION EQUAL 0)
+    ENDIF()
+    IF(NOT NO_CONNECTION EQUAL 0)
         SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
         MESSAGE(WARNING "${.r}\\__Fetch offline mode${..}: requires already populated _deps")
-    ELSE ()
+    ELSE()
         SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
         MESSAGE(NOTICE "${.g}\\__Fetch online mode${..}: automatically populates _deps")
-    ENDIF ()
+    ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ELSE ()
+ELSE()
     SET(FETCHCONTENT_FULLY_DISCONNECTED ON)
-ENDIF ()
+ENDIF()
 ##################################
 
 ######## PROJECT LIBRARY (NATIVE)
 OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
-IF (BUILD_NATIVE)
+IF(BUILD_NATIVE)
     SET(CMAKE_MACOSX_RPATH 1)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
-    MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (NATIVE)${..}")
+    MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (${PLATFORM})${..}")
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
     INCLUDE_DIRECTORIES(src)
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
@@ -118,20 +121,23 @@ IF (BUILD_NATIVE)
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
-    IF (APPLE)
+    IF(APPLE)
         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
-    ENDIF ()
+    ENDIF()
     ADD_DEFINITIONS("-DNATIVE")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
-    IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
-        IF (SANITIZE)
-            MESSAGE(STATUS "${.g}-${.y}=${.r}Using Address Sanitizer${.y}=${.g}-${..}")
+    OPTION(SANITIZE "Address Sanitizer" OFF)
+    IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+        IF(SANITIZE)
+            MESSAGE(STATUS "${.r}-${.y}= ${.g}Using Address Sanitizer ${.y}=${.r}-${..}")
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
-        ENDIF ()
-    ENDIF ()
+        ELSE()
+            MESSAGE(STATUS "${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}=${.g}-${..}")
+        ENDIF()
+    ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF ()
+ENDIF()
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################
@@ -140,7 +146,7 @@ ENDIF ()
 ####################################
 ### LIBWEBSOCKETS: UNIVERSAL WEB PROTOCOL API
 OPTION(USE_LIBWEBSOCKETS "Use libwebsockets" OFF) # ON/OFF
-IF (USE_LIBWEBSOCKETS)
+IF(USE_LIBWEBSOCKETS)
     MESSAGE(CHECK_START "${.y}CMaking libwebsockets library${..}")
     FIND_PACKAGE(PkgConfig)
     PKG_CHECK_MODULES(LIB_WEBSOCKETS REQUIRED libwebsockets)
@@ -167,25 +173,25 @@ IF (USE_LIBWEBSOCKETS)
     #        websockets_shared)
     FILE(COPY ${LIB_WEBSOCKETS_INCLUDE_DIRS} DESTINATION ${CMAKE_BINARY_DIR}/_deps/libwebsockets-src)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF ()
+ENDIF()
 ####################################
 ####################################
 ### YAML: YAML parser_ IMPLEMENTATION
 OPTION(USE_YAML "YAML build" OFF) # ON/OFF
-IF (USE_YAML)
+IF(USE_YAML)
     FETCHCONTENT_DECLARE(
             yaml-cpp
             GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
             GIT_TAG 0.8.0
     )
     FETCHCONTENT_GETPROPERTIES(yaml-cpp)
-    IF (NOT yaml-cpp_POPULATED)
+    IF(NOT yaml-cpp_POPULATED)
         MESSAGE(STATUS "Fetching yaml-cpp...")
         FETCHCONTENT_MAKEAVAILABLE(yaml-cpp)
         #ADD_SUBDIRECTORY(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
-    ENDIF ()
+    ENDIF()
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC yaml-cpp::yaml-cpp)
-ENDIF ()
+ENDIF()
 ####################################
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION

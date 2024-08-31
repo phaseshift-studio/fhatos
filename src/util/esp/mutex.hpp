@@ -19,8 +19,6 @@
 #ifndef fhatos_mutex_hpp
 #define fhatos_mutex_hpp
 
-#include <fhatos.hpp>
-
 #ifdef ESP32
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -46,7 +44,7 @@ namespace fhatos {
 #endif
 
     template<typename T = void *>
-    T lockUnlock(const Supplier<T> criticalFunction,
+    T lockUnlock(const std::function<T()> criticalFunction,
                  const uint16_t millisecondsWait = WAIT_TIME_MS) const {
 #if defined(ESP32)
       if (pdTRUE ==

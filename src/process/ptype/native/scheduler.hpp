@@ -26,10 +26,10 @@
 #include <util/ptr_helper.hpp>
 
 namespace fhatos {
-  class Scheduler final : public XScheduler {
+  class Scheduler final: public XScheduler {
 
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {}
+    explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {}
 
   public:
     ~Scheduler() override {

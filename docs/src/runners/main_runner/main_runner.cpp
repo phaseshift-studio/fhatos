@@ -25,7 +25,7 @@
 #include <language/parser.hpp>
 #include <language/types.hpp>
 #include <process/ptype/native/scheduler.hpp>
-#include <structure/kernel.hpp>
+#include <kernel.hpp>
 #include <structure/model/console.hpp>
 #include <structure/model/terminal.hpp>
 #include <thread>
@@ -48,16 +48,16 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 int main(int arg, char **argsv) {
   try {
     Kernel::build()
-        ->using_printer(Ansi<>::singleton())
-        ->with_log_level(ERROR)
-        ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-        ->using_router(Router::singleton("/sys/router/"))
-        ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))
-        ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
-        ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
-        ->boot<Console, Thread, Empty>(ptr<Console>(new Console("/home/root/repl/")))
-        //->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
-        ->load_modules({ID("/mod/proc")})
+            ->using_printer(Ansi<>::singleton())
+            ->with_log_level(ERROR)
+            ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
+            ->using_router(Router::singleton("/sys/router/"))
+            ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))
+            ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
+            ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
+            ->boot<Console, Thread, Empty>(ptr<Console>(new Console("/home/root/repl/")))
+                    //->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
+            ->model({ID("/mod/proc")})
         ->initial_terminal_owner("/home/root/repl/");
     //->done("kernel_barrier");
     printer<>()->on(false);

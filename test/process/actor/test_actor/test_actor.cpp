@@ -65,8 +65,8 @@ namespace fhatos {
   void test_actor_by_router() {
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto *actor1 = new Actor<Thread, Empty>("/app/actor1@127.0.0.1");
-    auto *actor2 = new Actor<Thread, Empty>("/app/actor2@127.0.0.1");
+    auto *actor1 = new Actor<Thread, KeyValue>("/app/actor1@127.0.0.1");
+    auto *actor2 = new Actor<Thread, KeyValue>("/app/actor2@127.0.0.1");
     actor1->setup();
     actor2->setup();
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor1@127.0.0.1"), *actor1->id());
@@ -115,8 +115,8 @@ namespace fhatos {
   void test_message_retain() {
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto *actor1 = new Actor<Thread, Empty>("/app/actor1@127.0.0.1");
-    auto *actor2 = new Actor<Thread, Empty>("/app/actor2@127.0.0.1");
+    auto *actor1 = new Actor<Thread, KeyValue>("/app/actor1@127.0.0.1");
+    auto *actor2 = new Actor<Thread, KeyValue>("/app/actor2@127.0.0.1");
     actor1->setup();
     actor2->setup();
 

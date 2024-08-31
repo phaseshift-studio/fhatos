@@ -38,17 +38,18 @@
 
 namespace fhatos {
 
-  class Heap : public Actor<Coroutine, KeyValue> {
+  class Heap : public KeyValue {
 
   protected:
-    explicit Heap(const ID &id = "/proc/heap", const Pattern &pattern = "+") :
-            Actor<Coroutine, KeyValue>(id, pattern) {}
+    explicit Heap(const Pattern &pattern = "+") : KeyValue(pattern) {}
 
   public:
-    static ptr<Heap> create(const ID &id = "/proc/heap", const Pattern &pattern = "+") {
-      ptr<Heap> cluster_p = ptr<Heap>(new Heap(id, pattern));
-      return cluster_p;
+    static ptr<Heap> create(const Pattern &pattern) {
+      ptr<Heap> heap_p = ptr<Heap>(new Heap(pattern));
+      return heap_p;
     }
+
+    // TODO: subscriptions bound to keys (garbage collection driven by subscription)
   };
 
 

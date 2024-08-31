@@ -21,7 +21,6 @@
 
 #include <chrono>
 #include <ctime>
-#include <fhatos.hpp>
 #include <mutex>
 #include <sys/time.h>
 
@@ -35,7 +34,7 @@ namespace fhatos {
     explicit Mutex(const char *label = "<anon>") : _label(string(label)) {}
 
     template<typename T = void *>
-    T lockUnlock(const Supplier<T> criticalFunction, const uint16_t millisecondsWait = WAIT_TIME_MS) {
+    T lockUnlock(const std::function<T()> criticalFunction, const uint16_t millisecondsWait = WAIT_TIME_MS) {
       try {
         if (this->lock(millisecondsWait)) {
           T t = criticalFunction();

@@ -17,22 +17,17 @@
  ******************************************************************************/
 
 #include <fhatos.hpp>
-#include <structure/kernel.hpp>
+#include <kernel.hpp>
+#include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/processor/heap.hpp>
-#include <language/processor/processor.hpp>
 #include <language/types.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
-#include <process/process.hpp>
-#include <structure/router.hpp>
-#include <structure/stype/key_value.hpp>
+#include <model/shared_memory.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
 
 #ifdef NATIVE
-
-#include <model/cluster.hpp>
-
+#include <model/distributed_shared_memory.hpp>
 #endif
 
 namespace fhatos {
@@ -68,24 +63,26 @@ void setup() {
     load_processor();
     Kernel::build()
             ->using_printer(Ansi<>::singleton())
-            ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO").c_str()))
+            ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO")))
             ->displaying_splash(ANSI_ART)
             ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
             ->displaying_notes("Use !b:help!! for !yconsole commands!!")
+                    ////////////////////////////////////////////////////////////
             ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
             ->using_router(Router::singleton("/sys/router/"))
+                    ////////////////////////////////////////////////////////////
+            ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared"))
             ->boot<Types>(Types::singleton("/type/"))
-            ->boot<Heap>(Heap::create("/proc/heap/", "+"))
             ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
             ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
 #ifdef NATIVE
             ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
-            ->boot<Cluster>(Cluster::create("/io/cluster"))
+            ->boot<DistributedSharedMemory>(DistributedSharedMemory::create("/sys/memory/cluster"))
 #else
                     ->boot<FileSystem>(FileSystem::singleton("/io/fs", "/fs"))
 #endif
             ->boot<Console>(Console::create("/home/root/repl/"))
-            ->load_modules({ID("/mod/proc")})
+            ->model({ID("/mod/proc")})
             ->initial_terminal_owner("/home/root/repl/")
             ->done("kernel_barrier");
   } catch (const std::exception &e) {
