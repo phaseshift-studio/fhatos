@@ -27,13 +27,13 @@
 namespace fhatos {
 
   template<typename PROCESS = Thread>
-  class fBcode : public Actor<PROCESS, KeyValue> {
+  class fBcode: public Actor<PROCESS, KeyValue> {
   public:
     const ptr<Obj> rec;
     const ptr<BCode> SETUP_BCODE;
     const ptr<BCode> LOOP_BCODE;
 
-    fBcode(const ID &id, const Rec_p &rec) :
+    fBcode(const ID &id, const Rec_p &rec):
             Actor<PROCESS, KeyValue>(id), rec(rec), SETUP_BCODE(rec->rec_get(uri("setup"))),
             LOOP_BCODE(rec->rec_get(uri("loop"))) {
       LOG(DEBUG, "_bcode program created: %s\n", rec->toString().c_str());
@@ -41,6 +41,7 @@ namespace fhatos {
 
     void setup() override {
       try {
+        Actor<PROCESS,KeyValue>::setup();
         LOG(DEBUG, "Executing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());
         Processor<Obj>(SETUP_BCODE).execute();
         LOG(DEBUG, "Completeing setup() _bcode: %s\n", SETUP_BCODE->toString().c_str());

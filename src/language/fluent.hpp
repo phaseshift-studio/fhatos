@@ -171,8 +171,8 @@ namespace fhatos {
 
     //  Fluent where(const OBJ_OR_BYTECODE &test) { return this->addInst(new WhereInst(test)); }
 
-    Fluent pub(const Obj &target, const Obj &payload) const {
-      return this->addInst(Insts::pub(share(target), share(payload)));
+    Fluent pub(const Obj &target, const Obj &payload, const Bool &retain = true) const {
+      return this->addInst(Insts::pub(share(target), share(payload), share(retain)));
     }
 
     Fluent sub(const Obj &pattern, const Obj &onRecv) const {

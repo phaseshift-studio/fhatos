@@ -59,7 +59,7 @@ namespace fhatos {
       this->saveType(inst_id("subset"), Insts::subset(x(0), x(1)));
       this->saveType(inst_id("sum"), Insts::sum());
       this->saveType(inst_id("prod"), Insts::prod());
-      this->saveType(inst_id("group"), Insts::group(x(0), x(1), x(2)));
+      this->saveType(inst_id("group"), Insts::group(x(0,bcode()), x(1,bcode()), x(2,bcode())));
       this->saveType(inst_id("get"), Insts::get(x(0)));
       this->saveType(inst_id("set"), Insts::set(x(0), x(1)));
       this->saveType(inst_id("noop"), Insts::noop());
@@ -67,12 +67,12 @@ namespace fhatos {
       this->saveType(inst_id("by"), Insts::by(x(0)));
       this->saveType(inst_id("type"), Insts::type());
       this->saveType(inst_id("is"), Insts::is(x(0)));
-      this->saveType(inst_id("from"), Insts::from(x(0)));
-      this->saveType(inst_id("*"), Insts::from(uri(inst_id("from"))));
-      this->saveType(inst_id("pub"), Insts::pub(x(0), x(1)));
+      this->saveType(inst_id("from"), Insts::from(x(0,noobj()),x(1,noobj())));
+      this->saveType(inst_id("*"), Insts::from(x(0,noobj()),x(1,noobj())));
+      this->saveType(inst_id("pub"), Insts::pub(x(0), x(1), x(2,dool(true))));
       this->saveType(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->saveType(inst_id("within"), Insts::within(x(0)));
-      this->saveType(inst_id("print"), Insts::print(x(0)));
+      this->saveType(inst_id("print"), Insts::print(x(0,bcode())));
       this->saveType(inst_id("switch"), Insts::bswitch(x(0)));
       this->saveType(inst_id("explain"), Insts::explain());
       this->saveType(inst_id("drop"), Insts::drop(x(0)));

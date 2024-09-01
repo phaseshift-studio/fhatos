@@ -1340,6 +1340,7 @@ namespace fhatos {
 
   [[maybe_unused]] static BCode_p bcode(const InstList &list) { return Obj::to_bcode(list); }
 
+  [[maybe_unused]] static BCode_p bcode() { return Obj::to_bcode(); }
 
   struct CInstFunction : InstFunction {
     const string &filename;

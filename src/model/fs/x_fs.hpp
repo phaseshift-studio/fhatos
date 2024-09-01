@@ -38,19 +38,19 @@ namespace fhatos {
   static const ID_p INST_FS_FURI = id_p(FOS_TYPE_PREFIX "inst/fs:");
   static const ID_p INST_ROOT_FURI = id_p(INST_FS_FURI->resolve("root"));
 
-  class Mount : public Structure {
+  class Mount: public Structure {
   public:
-    explicit Mount(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {
+    explicit Mount(const Pattern &pattern): Structure(pattern, SType::READWRITE) {
     }
   };
 
-  class XFileSystem : public Actor<Fiber, Mount> {
+  class XFileSystem: public Actor<Fiber, Mount> {
   protected:
     const ID_p mount_root_;
 
   public:
-    explicit XFileSystem(const ID &id, const ID &mount_root) : Actor(id, id.extend("#")),
-                                                               mount_root_(id_p(mount_root.extend("/"))) {
+    explicit XFileSystem(const ID &id, const ID &mount_root): Actor(id, id.extend("#")),
+            mount_root_(id_p(mount_root.extend("/"))) {
     }
 
     virtual void setup() override {
@@ -85,7 +85,7 @@ namespace fhatos {
                                            id_p(INST_FS_FURI->resolve("root"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("ls")),
                                    Obj::to_inst(
-                                           "ls", {x(0)},
+                                           "ls", {x(0, bcode())},
                                            [this](const InstArgs &args) {
                                              return [this, args](const Obj_p &lhs) {
                                                return args.empty()
@@ -96,7 +96,7 @@ namespace fhatos {
                                            IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("mkdir")),
                                    Obj::to_inst(
-                                           "fs:mkdir", {x(0)},
+                                           "fs:mkdir", {x(0, bcode())},
                                            [this](const InstArgs &args) {
                                              return [this, args](const Obj_p &lhs) {
                                                return this->mkdir(args.at(0)->apply(lhs)->uri_value());
@@ -106,7 +106,7 @@ namespace fhatos {
                                            id_p(INST_FS_FURI->resolve("mkdir"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("more")),
                                    Obj::to_inst(
-                                           "fs:more", {x(0), x(1)},
+                                           "fs:more", {x(0, Obj::to_bcode()), x(1, jnt(10))},
                                            [this](const InstArgs &args) {
                                              return [this, args](const Obj_p &lhs) {
                                                if (args.empty())
@@ -130,6 +130,7 @@ namespace fhatos {
                                    Obj::to_inst(
                                            "fs:append", {x(0)},
                                            [this](const InstArgs &args) {
+                                             Insts::arg_check(id_p(INST_FS_FURI->resolve("append")), args, 1);
                                              return [this, args](const Obj_p &lhs) {
                                                return this->cat(lhs, args.at(0)->apply(lhs));
                                              };
@@ -138,7 +139,7 @@ namespace fhatos {
                                            id_p(INST_FS_FURI->resolve("append"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("touch")),
                                    Obj::to_inst(
-                                           "fs:touch", {x(0)},
+                                           "fs:touch", {x(0, bcode())},
                                            [this](const InstArgs &args) {
                                              return [this, args](const Obj_p &lhs) {
                                                return this->touch(args.at(0)->apply(lhs)->uri_value());
@@ -193,9 +194,13 @@ namespace fhatos {
 
     /////
 
-    virtual Dir_p root() const { return to_dir(*this->id()); }
+    virtual Dir_p root() const {
+      return to_dir(*this->id());
+    }
 
-    virtual bool is_fs(const ID &path) const { return this->is_dir(path) || this->is_file(path); }
+    virtual bool is_fs(const ID &path) const {
+      return this->is_dir(path) || this->is_file(path);
+    }
 
     virtual bool is_dir(const ID &) const = 0;
 
@@ -242,8 +247,9 @@ namespace fhatos {
       }
     }
 
-    virtual void write([[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
-                       [[maybe_unused]] const ID_p &source) override {
+    virtual void write(
+            [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
+            [[maybe_unused]] const ID_p &source) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

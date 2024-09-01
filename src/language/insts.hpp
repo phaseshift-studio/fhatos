@@ -27,8 +27,13 @@
 #include <utility>
 
 namespace fhatos {
+
   struct Insts {
     explicit Insts() = delete;
+
+    [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &defaultArg = noobj()) {
+      return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), defaultArg);
+    }
 
     static Obj_p start(const Obj_p &starts) {
       return Obj::to_inst(
@@ -347,11 +352,13 @@ namespace fhatos {
               IType::ONE_TO_ONE);
     }
 
-    static Obj_p from(const Uri_p &uri) {
+    static Obj_p from(const Uri_p &uri, const Obj_p &defaultArg = noobj()) {
       return Obj::to_inst(
-              "from", {uri}, [](const InstArgs &args) {
+              "from", {uri, defaultArg},
+              [](const InstArgs &args) {
                 return [args](const Uri_p &lhs) {
-                  return router()->read(furi_p(args.at(0)->apply(lhs)->uri_value()));
+                  Obj_p result = router()->read(furi_p(args.at(0)->apply(lhs)->uri_value()));
+                  return result->is_noobj() ? args.at(1)->apply(lhs) : result;
                 };
               },
               (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
@@ -408,15 +415,18 @@ namespace fhatos {
               IType::ONE_TO_ONE);
     }
 
-    static Rec_p group(const BCode_p &keyCode, const BCode_p &valueCode, const BCode_p &reduceCode) {
+    static Rec_p group(
+            const BCode_p &keyCode,
+            const BCode_p &valueCode,
+            const BCode_p &reduceCode) {
       return Obj::to_inst(
               "group", {keyCode, valueCode, reduceCode},
               [](const InstArgs &args) {
                 return [args](const Objs_p &barrier) {
                   Obj::RecMap<> map = Obj::RecMap<>();
                   for (const Obj_p &obj: *barrier->objs_value()) {
-                    const Obj_p key = args.at(0)->is_noobj() ? obj : args.at(0)->apply(obj);
-                    const Obj_p value = args.at(1)->is_noobj() ? obj : args.at(1)->apply(obj);
+                    const Obj_p key = args.at(0)->apply(obj);
+                    const Obj_p value = args.at(1)->apply(obj);
                     if (map.count(key)) {
                       const Lst_p &list = map.at(key);
                       list->lst_value()->push_back(value);
@@ -454,13 +464,13 @@ namespace fhatos {
       }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p pub(const Uri_p &target, const Obj_p &payload, const Bool_p &transient = dool(true)) {
+    static Obj_p pub(const Uri_p &target, const Obj_p &payload, const Bool_p &transient) {
       return Obj::to_inst(
               "pub", {target, payload, transient},
               [](const InstArgs &args) {
                 const Uri_p &target = args.at(0);
                 const Obj_p &payload = args.at(1);
-                const Bool_p &transient = args.size() > 2 ? args.at(2) : dool(true);
+                const Bool_p &transient = args.at(2);
                 return [target, payload, transient](const Obj_p &lhs) {
                   router()->route_message(share(Message{
                           .source = FOS_DEFAULT_SOURCE_ID,
@@ -814,7 +824,14 @@ namespace fhatos {
       return result;
     }
 
-    static Map<string, string> unarySugars() {
+    static const List<Obj_p> &arg_check(const ID_p &inst, const List<Obj_p> &args, const uint8_t expectedSize) {
+      if (args.size() != expectedSize)
+        throw fError("Incorrect number of arguments provided to %s: %i != %i\n", inst->toString().c_str(), args.size(),
+                     expectedSize);
+      return args;
+    }
+
+    static Map<string, string> unary_sugars() {
       static Map<string, string> map = {
               {"-<", "split"},
               {">-", "merge"},
@@ -834,47 +851,50 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", typeId.toString().c_str());
       /// try user defined inst
       const ID_p typeIdResolved = id_p(INST_FURI->resolve(typeId));
-      const Obj_p userInst = router()->read(typeIdResolved);
-      if (userInst->is_noobj())
+      const Obj_p baseInst = router()->read(typeIdResolved);
+      if (baseInst->is_noobj())
         throw fError("Unknown instruction: %s\n", typeIdResolved->toString().c_str());
-      if (userInst->is_inst()) {
-        return replace_from_inst(args, userInst);
-      } else if (userInst->is_bcode()) {
+      if (baseInst->is_inst()) {
+        return replace_from_inst(args, baseInst);
+      } else if (baseInst->is_bcode()) {
         return Obj::to_inst(
                 typeId.name(), args,
-                [userInst](const InstArgs &args) {
-                  const Obj_p new_bcode = replace_from_bcode(args, userInst);
-                  return [new_bcode, args](const Obj_p &lhs) {
+                [baseInst](const InstArgs &args) {
+                  const Obj_p new_bcode = replace_from_bcode(args, baseInst);
+                  return [new_bcode](const Obj_p &lhs) {
                     return new_bcode->apply(lhs);
                   };
                 },
-                userInst->itype(),
-                userInst->is_inst() ? userInst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
+                baseInst->itype(),
+                baseInst->is_inst() ? baseInst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
                 id_p(typeId));
       } else {
         throw fError("!b%s!! does not resolve to an inst or bytecode: %s\n", typeIdResolved->toString().c_str(),
-                     userInst->toString().c_str());
+                     baseInst->toString().c_str());
       }
     }
 
   private:
     static Inst_p replace_from_inst(const InstArgs &args, const Inst_p &old_inst) {
       InstArgs new_args;
-      for (const Obj_p &arg: old_inst->inst_args()) {
-        if (arg->is_bcode()) {
-          new_args.push_back(replace_from_bcode(args, arg));
-        } else if (arg->is_inst() && arg->inst_op() == "from" && arg->inst_arg(0)->is_uri() &&
-                   arg->inst_arg(0)->uri_value().toString()[0] == '_' &&
-                   StringHelper::is_integer(arg->inst_arg(0)->uri_value().toString().substr(1))) {
-          const uint8_t index = stoi(arg->inst_arg(0)->uri_value().toString().substr(1));
+      for (const Obj_p &old_arg: old_inst->inst_args()) {
+        if (old_arg->is_bcode()) {
+          new_args.push_back(replace_from_bcode(args, old_arg));
+        } else if (old_arg->is_inst() &&
+                   old_arg->inst_op() == "from" &&
+                   old_arg->inst_arg(0)->is_uri() &&
+                   old_arg->inst_arg(0)->uri_value().toString()[0] == '_' &&
+                   StringHelper::is_integer(old_arg->inst_arg(0)->uri_value().toString().substr(1))) {
+          const uint8_t index = stoi(old_arg->inst_arg(0)->uri_value().toString().substr(1));
           if (index < args.size())
             new_args.push_back(args.at(index));
+          else if (old_arg->inst_args().size() == 2)
+            new_args.push_back(old_arg->inst_args().at(1)); // default argument
           else
-            new_args.push_back(noobj());
-          //throw fError("%s requires !y%i!! arguments and only !y%i!! were provided",
-          //             old_inst->toString().c_str(), index, args.size());
+            throw fError("%s requires !y%i!! arguments and !y%i!! were provided\n",
+                         old_inst->toString().c_str(), old_arg->inst_args().size(), args.size());
         } else {
-          new_args.push_back(arg);
+          new_args.push_back(old_arg);
         }
       }
       return Obj::to_inst(old_inst->inst_op(), new_args, old_inst->inst_f(), old_inst->itype(),
@@ -893,8 +913,8 @@ namespace fhatos {
     }
   };
 
-  [[maybe_unused]] static Inst_p x(const uint8_t arg_num) {
-    return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)));
+  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &defaultArg = noobj()) {
+    return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), defaultArg);
   }
 } // namespace fhatos
 

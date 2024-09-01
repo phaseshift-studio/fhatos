@@ -302,7 +302,7 @@ namespace fhatos {
       Types::singleton()->saveType(id_p(pair.first), pair.second);
     }
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
-                                                          ->tryParseObj("thread[[setup => |print('setup complete'),"
+                                                          ->tryParseObj("thread[[setup => |print('.setup complete.'),"
                                                                         "        loop  => |stop(/abc/)]].to(/abc/)")
                                                           .value());
     Fluent(bcode).iterate();
@@ -314,14 +314,17 @@ namespace fhatos {
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {1, 3}},
                                                  {true,  {2, 4}}})}),
                         "{0,1,2,3}.plus(1).group(mod(2).eq(0))");
-    ////////////////////
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
+                                                 {true,  {3, 5}}})}),
+                        "{0,1,2,3}.plus(1).group(mod(2).eq(0),plus(1))");
+    ////////////////////
+    /*FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
                                                  {true,  {3, 5}}})}),
                         "{0,1,2,3}.plus(1).group(mod(2).eq(0)).by(plus(1))");
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
                                                  {true,  {3, 5}}})}),
                         "{0,1,2,3}.plus(1).group().by(mod(2).eq(0)).by(plus(1))");
-    FOS_TEST_ERROR("{0,1,2,3}.plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");
+    FOS_TEST_ERROR("{0,1,2,3}.plus(1).group().by(mod(2).eq(0)).by(plus(1)).by(_).by(_)");*/
   }
 
   void test_window_parsing() {

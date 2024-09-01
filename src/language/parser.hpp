@@ -78,7 +78,9 @@ namespace fhatos {
       return c;
     }
 
-    [[nodiscard]] bool printable() const { return last >= 32 && last < 127; }
+    [[nodiscard]] bool printable() const {
+      return last >= 32 && last < 127;
+    }
 
     [[nodiscard]] bool closed() const {
       return parens == 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
@@ -124,7 +126,6 @@ namespace fhatos {
   enum class GROUPING {
     BRACKET, PAREN, BRACE
   };
-
   const static Enums<GROUPING> parse_token = Enums<GROUPING>(
           {
                   {GROUPING::BRACKET, "[]"},
@@ -259,7 +260,7 @@ namespace fhatos {
         ////////////////////////////////////////////////////
         while (!ss.eof()) {
           if (onType) {
-            for (const auto &[k, v]: Insts::unarySugars()) {
+            for (const auto &[k, v]: Insts::unary_sugars()) {
               if (StringHelper::look_ahead(k, &ss)) {
                 onType = false;
                 valueToken.append(typeToken);
@@ -555,7 +556,7 @@ namespace fhatos {
       bool mayBCode = valueToken.find('.') != string::npos || //
                       (valueToken.find('(') != string::npos && valueToken.find(')') != string::npos);
       if (!mayBCode) {
-        for (const auto &[k, v]: Insts::unarySugars()) {
+        for (const auto &[k, v]: Insts::unary_sugars()) {
           if (valueToken.find(k) != string::npos || valueToken.find(v + "(") != string::npos) {
             mayBCode = true;
             break;
@@ -576,7 +577,7 @@ namespace fhatos {
         while (!ss.eof()) {
           // inst-level (tokens are chars)
           if (tracker.closed()) {
-            for (const auto &[k, v]: Insts::unarySugars()) {
+            for (const auto &[k, v]: Insts::unary_sugars()) {
               if (StringHelper::look_ahead(k, &ss, instToken.empty())) {
                 if (!instToken.empty()) {
                   LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), instToken.c_str());
@@ -597,6 +598,14 @@ namespace fhatos {
           }
           if (fullbreak || ss.eof())
             break;
+          ///////////////////////////////////////////////////////////////
+          /*if (unary && tracker.grouping('(') && (ss.peek() == '.' || sugar_next(&ss))) {
+            if (ss.peek() == '.') {
+              ss.get();
+            }
+            break;
+          }*/
+          ///////////////////////////////////////////////////////////////
           char c = tracker.track(static_cast<char>(ss.get()));
           if ((tracker.quotes || !isspace(c)) && tracker.printable())
             instToken += c;
@@ -657,7 +666,7 @@ namespace fhatos {
     static bool sugar_next(stringstream *ss) {
       if (ss->eof())
         return false;
-      for (const auto &[k, v]: Insts::unarySugars()) {
+      for (const auto &[k, v]: Insts::unary_sugars()) {
         if (StringHelper::look_ahead(k, ss, false)) {
           return true;
         }
@@ -667,6 +676,8 @@ namespace fhatos {
     }
   };
 
-  [[maybe_unused]] static Obj_p parse(const string &source) { return Parser::tryParseObj(source).value_or(noobj()); }
+  [[maybe_unused]] static Obj_p parse(const string &source) {
+    return Parser::tryParseObj(source).value_or(noobj());
+  }
 } // namespace fhatos
 #endif
