@@ -24,6 +24,7 @@
 #endif
 
 #include <fhatos.hpp>
+#include <../build/_deps/unity-src/src/unity.h>
 #include <unity.h>
 
 #ifdef FOS_TEST_ON_BOOT
@@ -251,7 +252,7 @@ using namespace fhatos;
     (x);                                                                                                               \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
+    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                  \
     TEST_ASSERT(true);                                                                                                 \
   }
 
@@ -264,7 +265,7 @@ using namespace fhatos;
     }                                                                                                                  \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s\n", e.what());                                                \
+    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                \
     TEST_ASSERT(true);                                                                                                 \
   }
 

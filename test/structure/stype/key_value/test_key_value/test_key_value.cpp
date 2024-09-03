@@ -16,21 +16,19 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_test_key_value_hpp
-#define fhatos_test_key_value_hpp
+#ifndef fhatos_test_key_value_cpp
+#define fhatos_test_key_value_cpp
 
-#include <../test/structure/test_base_structure.hpp>
+#include "../../../test_base_structure.hpp"
 #include <structure/stype/key_value.hpp>
 
 namespace fhatos {
   FOS_RUN_TESTS( //
-    current_structure = KeyValue::create("/a/+"); //
-    //router()->attach(current_structure); //
-    current_structure->setup(); //
-    FOS_RUN_TEST(test_write); //
+    begin_test_structure(KeyValue::create("/a/+")); //
     FOS_RUN_TEST(test_subscribe); //
-    current_structure->stop(); //
-    //router()->detach(current_structure->pattern()); //
+    FOS_RUN_TEST(test_write); //
+    FOS_RUN_TEST(test_read); //
+    end_test_structure()
   );
 } // namespace fhatos
 SETUP_AND_LOOP();

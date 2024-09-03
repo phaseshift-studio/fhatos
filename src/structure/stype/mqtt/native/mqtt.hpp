@@ -21,9 +21,9 @@
 
 #ifdef NATIVE
 
-#include "fhatos.hpp"
+#include <fhatos.hpp>
 #include <mqtt/async_client.h>
-#include "structure/structure.hpp"
+#include <structure/structure.hpp>
 
 #ifndef FOS_MQTT_BROKER_ADDR
 #define FOS_MQTT_BROKER_ADDR "localhost:1883"
@@ -40,7 +40,6 @@ namespace fhatos {
     const char *server_addr;
     async_client *xmqtt;
     connect_options connection_options;
-
 
     //                                     +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = FOS_MQTT_BROKER_ADDR,
@@ -61,14 +60,14 @@ namespace fhatos {
           .automatic_reconnect();
       if (will_message.get()) {
         const BObj_p source_payload = Message::wrapSource(id_p(will_message->source), will_message->payload);
-         pre_connection_options = pre_connection_options.will(
+        pre_connection_options = pre_connection_options.will(
           message(this->will_message->target.toString(), source_payload->second, this->will_message->retain));
       }
       this->connection_options = pre_connection_options.finalize();
       //// MQTT MESSAGE CALLBACK
       this->xmqtt->set_message_callback([this](const const_message_ptr &mqtt_message) {
         const binary_ref ref = mqtt_message->get_payload_ref();
-        const BObj_p bobj = share(BObj(ref.length(), (fbyte *)ref.data()));
+        const BObj_p bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
         const auto &[source, payload] = Message::unwrapSource(bobj);
         const Message_p message = share(Message{
           .source = *source,
@@ -107,7 +106,7 @@ namespace fhatos {
 
   public:
     static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
-                             const Message_p &will_message = ptr<Message>(nullptr)) {
+                            const Message_p &will_message = ptr<Message>(nullptr)) {
       const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
       return mqtt_p;
     }
@@ -143,12 +142,12 @@ namespace fhatos {
       }
     }
 
-
-    void recv_message(const Message_p &message) override {
+    RESPONSE_CODE recv_message(const Message_p &message) override {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
-      this->write(id_p(message->target), message->payload, id_p(message->source));
+      this->write(id_p(message->target), message->payload, id_p(message->source),message->retain);
       RESPONSE_CODE rc = OK;
       LOG_PUBLISH(rc, *message);
+      return rc;
     }
 
     void recv_subscription(const Subscription_p &subscription) override {
@@ -195,7 +194,8 @@ namespace fhatos {
       } else {
         auto *thing = new std::atomic<const Obj *>(nullptr);
         this->recv_subscription(share(Subscription{
-          .source = static_cast<fURI>(*source), .pattern = *furi, .onRecv = [this, furi, thing](const Message_p &message) {
+          .source = static_cast<fURI>(*source), .pattern = *furi,
+          .onRecv = [this, furi, thing](const Message_p &message) {
             // TODO: try to not copy obj while still not accessing heap after delete
             LOG_STRUCTURE(TRACE, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
                           message->toString().c_str());
@@ -221,11 +221,14 @@ namespace fhatos {
       }
     }
 
-    void write(const ID_p &target, const Obj_p &obj, const ID_p &source) override {
+    void write(const ID_p &target, const Obj_p &obj, const ID_p &source, const bool retain) override {
       BObj_p source_payload = Message::wrapSource(source, obj);
       LOG_STRUCTURE(TRACE, this, "writing to xmpp broker: %s\n", source_payload->second);
-      this->xmqtt->publish(target->toString(), source_payload->second, source_payload->first, 1 /*qos*/,
-                           RETAIN_MESSAGE);
+      this->xmqtt->publish(target->toString(), source_payload->second, source_payload->first, 1 /*qos*/, retain);
+    }
+
+    void write_retained(const Subscription_p& subscription) override {
+
     }
   };
 } // namespace fhatos

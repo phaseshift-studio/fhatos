@@ -34,38 +34,41 @@
 #include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
-  {                                                                                                                    \
-    LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
-                ProcessTypes.toChars((process)->ptype), (success) ? "spawned" : "!r!_spawned!!");                      \
-  }
+ {                                                                                                                     \
+ LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),                \
+            ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "spawned" : "!r!_not spawned!!");              \
+ }
+
+#define LOG_DESTROY(success, process, scheduler)                                                                       \
+{                                                                                                                      \
+LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),          \
+ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");                      \
+}
+
 
 namespace fhatos {
   using Process_p = ptr<Process>;
 
-  class XScheduler: public IDed, public Mailbox {
+  class XScheduler : public IDed, public Mailbox {
   protected:
-    MutexRW<> processes_mutex_ = MutexRW("<scheduler processes mutex>");
-    ptr<Map<const ID_p, Process_p, furi_p_less>> processes_ = share(Map<const ID_p, Process_p, furi_p_less>());
+    ptr<MutexDeque<Process_p>> processes_ = ptr<MutexDeque<Process_p>>(new MutexDeque<Process_p>());
     MutexDeque<Mail_p> inbox_;
     bool running = false;
-
-    // bool isInMainThread() { return this_thread::get_id() == this->main_thread; }
-
+    ptr<string> current_barrier = nullptr;
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {
+    }
 
-    int count(const Pattern &processPattern = Pattern("#")) {
+    [[nodiscard]] int count(const Pattern &processPattern = Pattern("#")) const {
       if (this->processes_->empty())
         return 0;
-      return this->processes_mutex_.read<int>([this, processPattern]() {
-        int counter = 0;
-        for (const auto &[id, proc]: *this->processes_) {
-          if (id->matches(processPattern) && proc->running())
-            counter++;
-        }
-        return counter;
+      auto *counter = new atomic_int(0);
+      this->processes_->forEach([counter,processPattern](const Process_p &proc) {
+        if (proc->id()->matches(processPattern) && proc->running())
+          counter->fetch_add(1);
       });
+      return counter->load();
     }
 
     static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
@@ -93,49 +96,64 @@ namespace fhatos {
     }
 
     void stop() {
-      // if (!this->isInMainThread()) {
-      // TODO: console. :shutdown calls stop();
-      // return;
-      //}
-      this->processes_mutex_.read<void *>([this]() {
-        int threadCount = 0;
-        int fiberCount = 0;
-        int coroutineCount = 0;
-        for (const auto &[id, proc]: *this->processes_) {
-          switch (proc->ptype) {
-            case PType::THREAD:
-              ++threadCount;
-              break;
-            case PType::FIBER:
-              ++fiberCount;
-              break;
-            case PType::COROUTINE:
-              ++coroutineCount;
-              break;
-          }
+      auto *threadCount = new atomic_int(0);
+      auto *fiberCount = new atomic_int(0);
+      auto *coroutineCount = new atomic_int(0);
+      this->processes_->forEach([threadCount,fiberCount,coroutineCount](const Process_p &proc) {
+        switch (proc->ptype) {
+          case PType::THREAD:
+            threadCount->fetch_add(1);
+            break;
+          case PType::FIBER:
+            fiberCount->fetch_add(1);
+            break;
+          case PType::COROUTINE:
+            coroutineCount->fetch_add(1);
+            break;
         }
-        LOG_PROCESS(INFO, this, "Stopping %i threads | %i fibers | %i coroutines\n", threadCount, fiberCount,
-                    coroutineCount);
-        return nullptr;
       });
-      this->processes_mutex_.read<void *>([this]() {
-        for (const auto &[id, proc]: *this->processes_) {
-          if (proc->running())
-            proc->stop();
-          if (proc->ptype == PType::COROUTINE)
-            this->kill(*proc->id());
+      LOG_PROCESS(INFO, this, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
+                  threadCount->load(),
+                  fiberCount->load(),
+                  coroutineCount->load());
+      router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
+      auto type = PType::COROUTINE;
+      int loops = 0;
+      while (true) {
+        const Option<Process_p> &option = this->processes_->pop_back();
+        if (!option.has_value())
+          break;
+        const Process_p process = option.value();
+        if (process->running()) {
+          if (process->ptype == type || loops > 25) {
+            if (process->ptype == PType::COROUTINE) LOG_DESTROY(true, process, this);
+            process->stop();
+          } else
+            this->processes_->push_front(process);
         }
-        return nullptr;
-      });
-      router()->stop();
+        if (type == PType::COROUTINE)
+          type = PType::FIBER;
+        else if (type == PType::FIBER)
+          type = PType::THREAD;
+        else
+          type = PType::COROUTINE;
+        loops++;
+      }
       this->running = false;
+      LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
-    virtual void feedLocalWatchdog() {}
+    virtual void feedLocalWatchdog() {
+    }
+
+    [[nodiscard]] bool at_barrier(const string &label) const {
+      return this->current_barrier && *this->current_barrier == label;
+    }
 
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
+      this->current_barrier = share(string(label));
       if (message)
         LOG(INFO, message);
       /// barrier break with noobj
@@ -143,22 +161,15 @@ namespace fhatos {
         if (message->payload->is_noobj())
           this->stop();
       });*/
-      while (this->read_mail() || (passPredicate && !passPredicate()) || (!passPredicate && this->count() > 0)) {
+      while (this->read_mail() || (passPredicate && !passPredicate()) || (
+               !passPredicate && this->running && !this->processes_->empty())) {
         this->feedLocalWatchdog();
       }
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
+      this->current_barrier = nullptr;
     }
 
     virtual bool spawn(const Process_p &) = 0;
-
-    virtual bool kill(const ID &processPattern) {
-      return this->inbox_.push_back(share(
-              Mail{share(Subscription{.source = *this->id(),
-                      .pattern = processPattern,
-                      .onRecv = [this](const Message_p &message) { this->_kill(message->target); }}),
-                   share(Message{
-                           .source = *this->id(), .target = processPattern, .payload = noobj(), .retain = RETAIN_MESSAGE})}));
-    }
 
   protected:
     bool read_mail() {
@@ -170,24 +181,6 @@ namespace fhatos {
         return false;
       mail->get()->first->execute(mail->get()->second);
       return true;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    virtual bool _kill(const Pattern &processPattern) {
-      return bool(*processes_mutex_.write<bool>([this, processPattern]() {
-        const uint8_t size = this->processes_->size();
-        List<ID_p> toRemove;
-        for (const auto &pair: *this->processes_) {
-          if (pair.first->matches(processPattern)) {
-            router()->detach(((Structure *) pair.second.get())->pattern());
-            toRemove.push_back(pair.first);
-          }
-        }
-        for (const auto &i: toRemove) {
-          this->processes_->erase(i);
-        }
-        return share(this->processes_->size() < size);
-      }));
     }
   };
 } // namespace fhatos

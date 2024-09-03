@@ -513,6 +513,8 @@ namespace fhatos {
     FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/#"), Pattern("/fs/#"));
     FOS_TEST_ASSERT_MATCH_FURI(Pattern("/fs/+/abc"), Pattern("/fs/#"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/fs/#"), Pattern("/fs/+/abc"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/#"), Pattern("/a/b"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/b"), Pattern("/a/#"));
     //
     FOS_TEST_ASSERT_MATCH_FURI(Pattern("//#"), Pattern("//+"));
     FOS_TEST_ASSERT_MATCH_FURI(Pattern("//+"), Pattern("//#"));

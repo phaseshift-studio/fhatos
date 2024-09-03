@@ -25,14 +25,13 @@
 #include "structure/structure.hpp"
 
 namespace fhatos {
-
   class KeyValue : public Structure {
-
   protected:
     ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(Map<ID_p, const Obj_p, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {};
+    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {
+    };
 
   public:
     static ptr<KeyValue> create(const Pattern &pattern) {
@@ -45,26 +44,43 @@ namespace fhatos {
       DATA->clear();
     }
 
-    void write(const ID_p &target, const Obj_p &payload, const ID_p &source) override {
-      const Obj_p payload_copy = share(Obj(any(payload->_value), id_p(*payload->id())));
-      MUTEX_DATA.write<void *>([this, target, &payload_copy, source]() {
-        if (DATA->count(target)) {
-          DATA->erase(target);
+    void write_retained(const Subscription_p &subscription) override {
+      MUTEX_DATA.read<void *>([this, subscription]() {
+        for (const auto &[id,obj]: *this->DATA) {
+          if (id->matches(subscription->pattern)) {
+            if (!obj->is_noobj()) {
+              subscription->onRecv(share(Message{
+                .source = FOS_DEFAULT_SOURCE_ID, .target = *id, .payload = obj, .retain = RETAIN_MESSAGE
+              }));
+            }
+          }
         }
-        DATA->insert({id_p(*target), payload_copy}); // why such a deep copy needed?
-        // don't forget to update subscriptions
         return nullptr;
       });
-      /*const Message_p message = share(Message{
-              .source=*source,
-              .target=*target,
-              .payload=payload,
-              .retain=true});
-      for (const auto &subscription: *this->subscriptions) {
-        if (target->matches(subscription->pattern)) {
-          this->outbox_->push_back(share(Mail(subscription, message)));
-        }
-      }*/
+    }
+
+    void write(const ID_p &target, const Obj_p &payload, const ID_p &source, const bool retain) override {
+      if (retain) {
+        const Obj_p payload_copy = share(Obj(any(payload->_value), id_p(*payload->id())));
+        MUTEX_DATA.write<void *>([this, target, &payload_copy, source]() {
+          if (DATA->count(target)) {
+            DATA->erase(target);
+          }
+          if (!payload_copy->is_noobj()) {
+            DATA->insert({id_p(*target), payload_copy}); // why such a deep copy needed?
+            LOG_STRUCTURE(TRACE, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
+                          payload_copy->toString().c_str());
+          }
+          return nullptr;
+        });
+      }
+      const Message_p message = share(Message{
+        .source = *source,
+        .target = *target,
+        .payload = payload,
+        .retain = retain
+      });
+      distribute_to_subscriptions(message);
     }
 
     Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
@@ -84,9 +100,9 @@ namespace fhatos {
           }
           return objs;
         });
-      } else
-        return MUTEX_DATA.read<Obj_p>(
-                [this, furi]() { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
+      }
+      return MUTEX_DATA.read<Obj_p>(
+        [this, furi]() { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
     }
   };
 } // namespace fhatos

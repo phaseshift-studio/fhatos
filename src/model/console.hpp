@@ -67,52 +67,93 @@ namespace fhatos {
     explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread, KeyValue>(id) {
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
-        MENU_MAP_->insert({":help",
-                           {"help menu", [](const Obj_p &) { std::get<2>(MENU_MAP_->at(":help"))(); },
-                            []() {
-                              printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-                              for (const auto &[command, description]: *MENU_MAP_) {
-                                printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
-                                                    std::get<0>(description).c_str());
-                              }
-                            }}});
-        MENU_MAP_->insert({":log",
-                           {"log level",
-                            [](const Uri_p &log_level) {
-                              Options::singleton()->log_level(LOG_TYPES.toEnum(log_level->uri_value().toString()));
-                              return log_level;
-                            },
-                            [] {
-                              printer<>()->printf(
-                                      "!ylog!!: !b%s!!\n",
-                                      LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
-                            }}});
-        MENU_MAP_->insert({":output",
-                           {"terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
-                            [] {
-                              printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
-                                                  Terminal::currentOut()->toString().c_str(),
-                                                  Terminal::singleton()->id()->extend("out").toString().c_str());
-                            }}});
-        MENU_MAP_->insert({":clear", {
-                "clear terminal", [](const Obj_p &) {
-                  printer<>()->printf("!X");
-                }, [] { printer<>()->printf("!X"); }
-        }});
-        MENU_MAP_->insert({":color",
-                           {"colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
-                            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }}});
+        MENU_MAP_->insert({
+          ":help",
+          {
+            "help menu", [](const Obj_p &) { std::get<2>(MENU_MAP_->at(":help"))(); },
+            []() {
+              printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+              for (const auto &[command, description]: *MENU_MAP_) {
+                printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
+                                    std::get<0>(description).c_str());
+              }
+            }
+          }
+        });
+        MENU_MAP_->insert({
+          ":log",
+          {
+            "log level",
+            [](const Uri_p &log_level) {
+              Options::singleton()->log_level(LOG_TYPES.toEnum(log_level->uri_value().toString()));
+              return log_level;
+            },
+            [] {
+              printer<>()->printf(
+                "!ylog!!: !b%s!!\n",
+                LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
+            }
+          }
+        });
+        MENU_MAP_->insert({
+          ":output",
+          {
+            "terminal output", [](const Obj_p &obj) { Terminal::currentOut(id_p(obj->uri_value())); },
+            [] {
+              printer<>()->printf("!youtput!!: !b%s!! !y=>!! !b%s!!\n",
+                                  Terminal::currentOut()->toString().c_str(),
+                                  Terminal::singleton()->id()->extend("out").toString().c_str());
+            }
+          }
+        });
+        MENU_MAP_->insert({
+          ":clear", {
+            "clear terminal", [](const Obj_p &) {
+              printer<>()->printf("!X");
+            },
+            [] { printer<>()->printf("!X"); }
+          }
+        });
+        MENU_MAP_->insert({
+          ":color",
+          {
+            "colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
+            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }
+          }
+        });
         MENU_MAP_->insert(
-                {":nesting",
-                 {"display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
-                  [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }}});
-        MENU_MAP_->insert({":shutdown",
-                           {"kill scheduler", [](const Obj_p &) { Scheduler::singleton()->stop(); },
-                            []() {
-                              Scheduler::singleton()->stop();
-                            }}});
+          {
+            ":nesting",
+            {
+              "display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
+              [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }
+            }
+          });
+        MENU_MAP_->insert({
+          ":shutdown",
+          { // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
+            "kill scheduler", [this](const Obj_p&) {
+              Scheduler::singleton()->recv_mail(share(Mail{
+                share(Subscription{
+                  .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),
+                  .onRecv = [](const Message_p &) { Scheduler::singleton()->stop(); }
+                }),
+                share(Message{.source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj()})
+              }));
+            },
+            [this]() {
+              Scheduler::singleton()->recv_mail(share(Mail{
+                share(Subscription{
+                  .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),
+                  .onRecv = [](const Message_p &) { Scheduler::singleton()->stop(); }
+                }),
+                share(Message{.source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj()})
+              }));
+            }
+          }
+        });
         MENU_MAP_->insert(
-                {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
+          {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
 

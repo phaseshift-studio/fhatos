@@ -1,5 +1,6 @@
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
+INCLUDE(ExternalProject)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
 PROJECT(fhatos)
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
@@ -63,7 +64,7 @@ ELSEIF(LINUX)
 ENDIF()
 ## PARALLELISM LEVEL (HARDCODED TO 8)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
-CMAKE_PRINT_VARIABLES(PROJECT_NAME CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
+CMAKE_PRINT_VARIABLES(PROJECT_NAME SANITIZER CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVEL}${..}")
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
@@ -102,7 +103,7 @@ OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF(BUILD_NATIVE)
     SET(CMAKE_MACOSX_RPATH 1)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
-    MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (${PLATFORM})${..}")
+    MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (${.r}${PLATFORM}${..}${.y})${..}")
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
     INCLUDE_DIRECTORIES(src)
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
@@ -129,11 +130,11 @@ IF(BUILD_NATIVE)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     OPTION(SANITIZE "Address Sanitizer" OFF)
     IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
-        IF(SANITIZE)
-            MESSAGE(STATUS "${.r}-${.y}= ${.g}Using Address Sanitizer ${.y}=${.r}-${..}")
+        IF(SANITIZER)
+            MESSAGE(STATUS "${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.y}(${.g}-DSANITIZER=ON${.y}) =${.r}-${.m}.${..}")
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
         ELSE()
-            MESSAGE(STATUS "${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}=${.g}-${..}")
+            MESSAGE(STATUS "${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}(${.g}-DSANITIZER=OFF${.y}) =${.g}-${.m}.${..}")
         ENDIF()
     ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
@@ -246,12 +247,11 @@ FETCHCONTENT_DECLARE(
         GIT_TAG 0.9.0
 )
 FETCHCONTENT_MAKEAVAILABLE(mpc)
-#TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-
 ####################################
 ############# TESTING ##############
 ####################################

@@ -24,10 +24,12 @@
 #include <model/fs/x_fs.hpp>
 
 namespace fs = std::filesystem;
+
 namespace fhatos {
   class FileSystem : public XFileSystem {
   private:
-    explicit FileSystem(const ID &id, const ID &mount_root) : XFileSystem(id, mount_root) {}
+    explicit FileSystem(const ID &id, const ID &mount_root) : XFileSystem(id, mount_root) {
+    }
 
   public:
     static ptr<FileSystem> singleton(const ID &id = ID("/io/fs"), const ID &root = ID(fs::current_path())) {
@@ -58,8 +60,8 @@ namespace fhatos {
       for (const auto &p: fs::directory_iterator(this->make_native_path(dir->uri_value()).toString())) {
         if ((fs::is_directory(p) || fs::is_regular_file(p))) {
           listing->push_back(
-                  uri(p.path().string().substr(
-                          this->mount_root_->toString().length()))); // clip off local mount location
+            this->to_fs(ID(p.path().string().substr(
+              this->mount_root_->toString().length())))); // clip off local mount location
         }
       }
       return Obj::to_objs(listing);

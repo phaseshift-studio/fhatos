@@ -26,10 +26,10 @@
 #include <util/ptr_helper.hpp>
 
 namespace fhatos {
-  class Scheduler final: public XScheduler {
-
+  class Scheduler final : public XScheduler {
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {}
+    explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {
+    }
 
   public:
     ~Scheduler() override {
@@ -50,51 +50,51 @@ namespace fhatos {
     }
 
     bool spawn(const Process_p &process) override {
-      bool success = *this->processes_mutex_.write<bool>([this, process]() {
-        process->setup();
-        if (!process->running()) {
-          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype).c_str(),
-                      process->id()->toString().c_str());
-          return share(false);
-        }
-        // scheduler subscription listening for noobj "kill process" messages
-        router()->route_subscription(share(Subscription{
-                .source = *this->id(), .pattern = *process->id(), .onRecv = [process](const Message_p &message) {
-                  if (message->payload->is_noobj()) {
-                    process->stop();
-                  }
-                }}));
-        ////////////////////////////////
-        bool success = false;
-        switch (process->ptype) {
-          case PType::THREAD: {
-            ((Thread *) process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-            success = true;
-            this->processes_->insert({process->id(), process});
-            break;
-          }
-          case PType::FIBER: {
-            if (!FIBER_THREAD_HANDLE) {
-              FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
-            }
-            ((Fiber *) (process.get()))->xthread = FIBER_THREAD_HANDLE;
-            this->processes_->insert({process->id(), process});
-            success = true;
-            break;
-          }
-          case PType::COROUTINE: {
-            success = true;
-            LOG_PROCESS(INFO, this, "!b%s!! !ythreadless %s processs!! ignored\n", process->id()->toString().c_str(),
-                        ProcessTypes.toChars(process->ptype).c_str());
-            return share(success);
+      process->setup();
+      if (!process->running()) {
+        LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype).c_str(),
+                    process->id()->toString().c_str());
+        return false;
+      }
+      // scheduler subscription listening for noobj "kill process" messages
+      router()->route_subscription(share(Subscription{
+        .source = fURI(*this->id()), .pattern = *process->id(), .onRecv = [this,process](const Message_p &message) {
+          if (message->payload->is_noobj() &&
+              message->retain //&&
+            /*!message->source.equals(*this->id())*/) {
+            process->stop();
           }
         }
-        if (success) {
-          LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                      ProcessTypes.toChars(process->ptype).c_str());
+      }));
+      ////////////////////////////////
+      bool success = false;
+      switch (process->ptype) {
+        case PType::THREAD: {
+          static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
+          this->processes_->push_back(process);
+          success = true;
+          break;
         }
-        return share(success);
-      });
+        case PType::FIBER: {
+          if (!FIBER_THREAD_HANDLE) {
+            FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
+          }
+          static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
+          this->processes_->push_back(process);
+          success = true;
+          break;
+        }
+        case PType::COROUTINE: {
+          this->processes_->push_back(process);
+          success = true;
+          break;
+        }
+      }
+      if (success) {
+        LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+                    ProcessTypes.toChars(process->ptype).c_str());
+      }
+
       if (!success)
         router()->route_unsubscribe(this->id(), p_p(*process->id()));
       return success;
@@ -109,16 +109,21 @@ namespace fhatos {
       int counter = 1;
       while (counter > 0) {
         counter = 0;
-        for (const auto &[id, proc]: *Scheduler::singleton()->processes_) {
-          if (proc->ptype == PType::FIBER) {
-            if (!proc->running())
-              Scheduler::singleton()->kill(*proc->id());
-            else {
-              proc->loop();
-              ++counter;
-            }
-          }
+        auto *fibers = new List<Process_p>();
+        Scheduler::singleton()->processes_->forEach([fibers](const Process_p &proc) {
+          if (proc->ptype == PType::FIBER)
+            fibers->push_back(proc);
+        });
+        for (const Process_p &fiber: *fibers) {
+          if (fiber->running())
+            fiber->loop();
+          counter++;
         }
+        Scheduler::singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
+          const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
+          if (remove) LOG_DESTROY(true, fiber, Scheduler::singleton());
+          return remove;
+        });
       }
     }
 
@@ -130,12 +135,15 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      thread->xthread->detach();
-      Scheduler::singleton()->kill(*thread->id());
+      Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
+        const bool remove = proc->id()->equals(*thread->id());
+        if (remove) LOG_DESTROY(true, proc, Scheduler::singleton());
+        return remove;
+      });
     }
   };
 
-  ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }
+  inline ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }
 } // namespace fhatos
 #endif
 #endif

@@ -31,13 +31,15 @@ namespace fhatos {
   enum class SType {
     READ, WRITE, READWRITE
   };
+
   static const Enums<SType> StructureTypes =
-          Enums<SType>({{SType::READ,      "read"},
-                        {SType::WRITE,     "write"},
-                        {SType::READWRITE, "readwrite"}});
+      Enums<SType>({
+        {SType::READ, "read"},
+        {SType::WRITE, "write"},
+        {SType::READWRITE, "readwrite"}
+      });
 
-  class Structure: public Patterned {
-
+  class Structure : public Patterned {
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<List<Subscription_p>> subscriptions = std::make_shared<List<Subscription_p>>();
@@ -48,13 +50,18 @@ namespace fhatos {
   public:
     const SType stype;
 
-    explicit Structure(const Pattern &pattern, const SType stype): Patterned(p_p(pattern)), stype(stype) {}
+    explicit Structure(const Pattern &pattern, const SType stype): Patterned(p_p(pattern)), stype(stype) {
+    }
 
-    [[nodiscard]] bool available() const { return this->available_.load(); }
+    [[nodiscard]] bool available() const {
+      return this->available_.load();
+    }
 
     virtual void setup() {
-      if (this->available_.load())
+      if (this->available_.load()) {
         LOG_STRUCTURE(WARN, this, "!ystructure!! already open");
+        return;
+      }
       this->available_.store(true);
     }
 
@@ -72,18 +79,24 @@ namespace fhatos {
     virtual void stop() {
       if (!this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
-      this->available_.store(false);
       this->subscriptions->clear();
       this->outbox_->clear(false);
+      this->available_.store(false);
     }
+
+    /////////////////////////////////////////////////
 
     virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
       if (!this->available_.load())
         return;
       this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
                                            [source, target](const Subscription_p &sub) {
-                                             LOG_UNSUBSCRIBE(OK, *source, target);
-                                             return sub->source.equals(*source) && sub->pattern.matches(*target);
+                                             const bool removing = sub->source.equals(*source) && (
+                                                                     target->matches(sub->pattern) || sub->pattern.
+                                                                     matches(*target));
+                                             if (removing)
+                                               LOG_UNSUBSCRIBE(OK, *source, target);
+                                             return removing;
                                            }),
                                  this->subscriptions->end());
     }
@@ -103,65 +116,66 @@ namespace fhatos {
                                              }),
                                    this->subscriptions->end());
         /////////////// ADD NEW SUBSCRIPTION
-        if (subscription->onRecv) { // not an unsubscribe event // todo: is it even possible to be in this state?
-          const ptr<Subscription> sub_ptr = share<Subscription>(*subscription);
-          this->subscriptions->push_back(sub_ptr);
-          if (!this->remote_retains) { // DISTRIBUTE ANY MATCHING RETAINS TO NEW SUBSCRIBER
-            const Objs_p objs = this->read(p_p(subscription->pattern), id_p(subscription->source));
-            if (objs->is_objs()) {
-              for (const auto &obj: *objs->objs_value()) {
-                this->outbox_->push_back(share(Mail(
-                        {subscription,
-                         share(Message{.source = ID(FOS_DEFAULT_SOURCE_ID),
-                                 .target = ID("anon_tgt"),
-                                 .payload = obj,
-                                 .retain = RETAIN_MESSAGE})}))); // TODO: need both source of the retain and the target of obj
-              }
-            }
-          }
+        this->subscriptions->push_back(subscription);
+        /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
+        if (!this->remote_retains) {
+          this->write_retained(subscription);
           LOG_SUBSCRIBE(OK, subscription);
-        } else {
-          LOG_UNSUBSCRIBE(OK, subscription->source, &subscription->pattern);
         }
         return nullptr;
       });
     }
 
-    virtual void recv_message(const Message_p &message) {
+    virtual RESPONSE_CODE recv_message(const Message_p &message) {
       if (!this->available_.load())
-        return;
+        return ROUTER_ERROR;
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
-      if (message->retain) {
-        this->write(id_p(message->target), message->payload, id_p(message->source));
-      }
-      auto rc = mutex.read<RESPONSE_CODE>([this, message]() {
-        RESPONSE_CODE rc2 = NO_SUBSCRIPTION;
-        for (const auto &subscription: *this->subscriptions) {
-          if (message->target.matches(subscription->pattern)) {
-            rc2 = OK;
-            this->outbox_->push_back(share(Mail{subscription, message}));
-            LOG(DEBUG, "%s !yrouted to!! %s\n", message->toString().c_str(), subscription->toString().c_str());
-          }
-        }
-        return rc2;
-      });
+      this->write(id_p(message->target), message->payload, id_p(message->source), message->retain);
       MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
-      LOG_PUBLISH(rc == NO_SUBSCRIPTION && message->retain ? OK : rc, *message);
+      LOG_PUBLISH(OK, *message);
+      return OK;
     }
 
-    virtual void remove(const ID_p &id, const ID_p &source) { this->write(id, Obj::to_noobj(), source); }
+    virtual void remove(const ID_p &id, const ID_p &source) {
+      this->write(id, Obj::to_noobj(), source, RETAIN_MESSAGE);
+    }
+
+    virtual void write_retained(const Subscription_p &subscription) = 0;
 
     virtual Obj_p read(const fURI_p &furi, const ID_p &source) = 0;
 
     virtual Obj_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
 
-    virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source) = 0;
+    virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source, bool retain) = 0;
 
-    virtual void write(const ID_p &id, const Obj_p &obj) { this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID)); }
+    virtual void write(const ID_p &id, const Obj_p &obj, bool retain) {
+      this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID), retain);
+    }
+
+  protected:
+    void distribute_to_subscriptions(const Message_p &message) {
+      for (const Subscription_p &sub: *this->subscriptions) {
+        if (message->target.matches(sub->pattern))
+          this->outbox_->push_back(share(Mail(sub, message)));
+      }
+    }
+
+    Lst_p get_subscription_lst() {
+      List<Obj_p> list;
+      for (const Subscription_p &sub: *this->subscriptions) {
+        const Rec_p sub_rec = Obj::to_rec({
+          {uri(":source"), uri(sub->source)},
+          {uri(":pattern"), uri(sub->pattern)},
+          {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
+          {uri(":on_recv"), noobj()}
+        });
+        list.push_back(sub_rec);
+      }
+      return lst(list);
+    }
   };
 
   using Structure_p = ptr<Structure>;
-
 } // namespace fhatos
 
 #endif

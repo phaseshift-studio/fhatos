@@ -53,10 +53,11 @@ namespace fhatos {
             mount_root_(id_p(mount_root.extend("/"))) {
     }
 
-    virtual void setup() override {
-      Actor::setup();
+    void setup() override {
+
       LOG_PROCESS(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
+      Types::singleton()->loop();
       Types::singleton()->saveType(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       Types::singleton()->saveType(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       Types::singleton()->loop();
@@ -148,6 +149,7 @@ namespace fhatos {
                                            IType::ONE_TO_ONE, Obj::noobj_seed(),
                                            id_p(INST_FS_FURI->resolve("touch"))));
       Types::singleton()->loop();
+      Actor::setup();
     }
 
     virtual File_p to_file(const ID &path) const {
@@ -164,7 +166,7 @@ namespace fhatos {
                    path.toString().c_str());
     }
 
-    virtual Uri_p to_fs(const ID &furi) {
+    virtual Uri_p to_fs(const ID &furi) const {
       return is_fs(furi) ? is_dir(furi) ? to_dir(furi) : to_file(furi) : noobj();
     }
 
@@ -247,9 +249,13 @@ namespace fhatos {
       }
     }
 
+    void write_retained(const Subscription_p &subscription) override {
+     // TODO:
+    }
+
     virtual void write(
             [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
-            [[maybe_unused]] const ID_p &source) override {
+            [[maybe_unused]] const ID_p &source,const bool retain) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

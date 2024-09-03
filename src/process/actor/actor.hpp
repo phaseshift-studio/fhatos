@@ -24,53 +24,54 @@
 #include <process/process.hpp>
 #include <structure/pubsub.hpp>
 #include <structure/structure.hpp>
+#include <structure/stype/id_structure.hpp>
+#include <util/options.hpp>
 
 namespace fhatos {
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
   class Actor
-          : public PROCESS,
-            public STRUCTURE,
-            public Mailbox,
-            public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
+      : public PROCESS,
+        public STRUCTURE,
+        public Mailbox,
+        public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
   public:
     explicit Actor(const ID &id, const Pattern &pattern): PROCESS(id), STRUCTURE(pattern), Mailbox(),
-            enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
+                                                          enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
 
     explicit Actor(const ID &id): Actor(id, id.extend("#")) {
-      // router()->attach(ptr<Structure>((Structure *) this));
-      // scheduler()->spawn(ptr<Process>((Process *) this));
     }
-
-    //~Actor() override {
-    // PROCESS::~Process();
-    // STRUCTURE::~Structure();
-    //}
 
     bool recv_mail(const Mail_p &mail) override {
       if (!this->active())
         return false;
-      return this->outbox_->push_back(mail);
+      this->outbox_->push_back(mail);
+      if (PType::COROUTINE == this->ptype)
+        this->loop();
+      return true;
     }
 
     RESPONSE_CODE publish(
-            const ID &target, const Obj_p &payload,
-            const bool retain = TRANSIENT_MESSAGE) {
+      const ID &target, const Obj_p &payload,
+      const bool retain = TRANSIENT_MESSAGE) {
+      this->should_be_active();
       // rename send_mail
       return router()->route_message(
-              share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
+        share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
 
     RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
+      this->should_be_active();
       return router()->route_subscription(
-              share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
+        share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
 
+
     RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) {
-      // todo: is this correct?
+      this->should_be_active();
       router()->route_unsubscribe(this->id(), pattern);
       return OK;
     }
@@ -92,30 +93,49 @@ namespace fhatos {
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
     void setup() override {
+      if (!this->_id->matches(*this->pattern()))
+        router()->attach(IDStructure::create(this->id()));
       STRUCTURE::setup();
       PROCESS::setup();
+      this->subscribe(*this->id(), [this](const Message_p &message) {
+        if (message->payload->is_noobj() &&
+            message->retain &&
+            !message->source.equals(*this->id()) &&
+            this->active()) {
+          this->stop();
+        }
+      });
       LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->id()->toString().c_str(),
           this->pattern()->toString().c_str());
     }
 
     //////////////////////////////////////////////////// STOP
-    virtual void stop() override {
-      if (!this->active())
-        return;
-      if (const RESPONSE_CODE _rc = this->unsubscribe()) {
-        LOG(ERROR, "Actor %s stop error: %s\n", this->id()->toString().c_str(),
-            ResponseCodes.toChars(_rc).c_str());
-      }
+    void stop() override {
+      this->should_be_active();
+      if (!this->_id->matches(*this->pattern()))
+        router()->detach(p_p(*this->_id));
+      router()->detach(this->pattern());
       PROCESS::stop();
       STRUCTURE::stop();
     }
 
     //////////////////////////////////////////////////// LOOP
-    virtual void loop() override {
+    void loop() override {
+      if (this->running())
+        PROCESS::loop();
+      if (this->available())
+        STRUCTURE::loop();
+    }
+
+    virtual string toString() {
+      return string(this->id()->name()) + "!g[!y" + this->id()->toString() + "!!::!y" + this->pattern()->toString() +
+             "!g]!!";
+    }
+
+  protected:
+    void should_be_active() {
       if (!this->active())
-        return;
-      PROCESS::loop();
-      STRUCTURE::loop();
+        throw fError(FURI_WRAP " is not active (spawned and attached)", this->toString().c_str());
     }
   };
 } // namespace fhatos

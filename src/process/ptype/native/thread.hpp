@@ -31,7 +31,7 @@ namespace fhatos {
 
     explicit Thread(const ID &id) : Process(id, PType::THREAD), xthread(nullptr) {}
 
-    virtual ~Thread() override { delete this->xthread; }
+    ~Thread() override { delete this->xthread; }
 
     void setup() override { Process::setup(); }
 
@@ -39,7 +39,7 @@ namespace fhatos {
       Process::stop();
       if (this->xthread && this->xthread->joinable() && (this->xthread->get_id() != std::this_thread::get_id())) {
         try {
-          this->xthread->join();
+          this->xthread->detach();
         } catch (const std::runtime_error &e) {
           LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
                       this->xthread->get_id(), std::this_thread::get_id());
