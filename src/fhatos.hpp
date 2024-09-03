@@ -67,17 +67,17 @@
 
 namespace fhatos {
   [[maybe_unused]] static const char *ANSI_ART =
-          "!r            !_PhaseShift Studio Presents!! \n"
-          "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
-          "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
-          "___\\!! \n"
-          "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
-          "\\___  \\!! \n"
-          "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
-          "\\_____\\/\\_____\\!! \n"
-          "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
-          "!b\\/_____/\\/_____/!! \n"
-          "!r                                   !_A Dogturd Stynx Production!! \n";
+      "!r            !_PhaseShift Studio Presents!! \n"
+      "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
+      "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "
+      "___\\!! \n"
+      "!m(`')  ,     !M@!g \\  __\\ \\  __ \\ \\  __ \\/_/\\ \\/!b\\ \\ \\_\\ \\ "
+      "\\___  \\!! \n"
+      "!m `-._,     /!g \\ \\_\\  \\ \\_\\ \\_\\ \\_\\ \\_\\ \\ \\_\\ !b\\ "
+      "\\_____\\/\\_____\\!! \n"
+      "!m    )-)_/-(>!g  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
+      "!b\\/_____/\\/_____/!! \n"
+      "!r                                   !_A Dogturd Stynx Production!! \n";
 
   ////////////////////
   /// LAMBDA TYPES ///
@@ -124,6 +124,8 @@ namespace fhatos {
   using List = std::vector<A>;
   template<typename A>
   using List_p = ptr<List<A>>;
+  template<typename A, typename C = std::less<>>
+  using Set = std::set<A, C>;
   template<typename A>
   using Deque = std::deque<A>;
   template<typename A>
