@@ -19,8 +19,11 @@
 #ifndef fhatos_test_obj_hpp
 #define fhatos_test_obj_hpp
 
-#define FOS_TEST_ON_BOOT
-
+#define FOS_DEPLOY_SCHEDULER
+#define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_TYPES
+#define FOS_DEPLOY_PARSER
+#define FOS_DEPLOY_SHARED_MEMORY
 #include <test_fhatos.hpp>
 #include <util/obj_helper.hpp>
 

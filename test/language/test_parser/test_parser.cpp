@@ -19,7 +19,6 @@
 #ifndef fhatos_test_parser_hpp
 #define fhatos_test_parser_hpp
 
-#undef FOS_TEST_ON_BOOT
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_TYPES

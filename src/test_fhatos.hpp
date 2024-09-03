@@ -26,44 +26,6 @@
 #include <fhatos.hpp>
 #include <../build/_deps/unity-src/src/unity.h>
 #include <unity.h>
-
-#ifdef FOS_TEST_ON_BOOT
-#include <language/fluent.hpp>
-#include <language/types.hpp>
-#include <language/parser.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include <model/shared_memory.hpp>
-#include <language/processor/processor.hpp>
-#include <model/terminal.hpp>
-#include <structure/router.hpp>
-
-#ifdef NATIVE
-
-#include FOS_FILE_SYSTEM(fs.hpp)
-
-#endif
-
-#include <kernel.hpp>
-#include <util/options.hpp>
-
-#define FOS_SETUP_ON_BOOT                                                                                              \
-  load_processor();                                                                                                    \
-  Kernel::build()                                                                                                      \
-      ->using_printer(Ansi<>::singleton())                                                                             \
-      ->with_log_level(FOS_LOGGING)                                                                                    \
-      ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))                                                       \
-      ->using_router(Router::singleton("/sys/router/"))                                                                \
-      ->boot<Types>(Types::singleton("/type/"))                                                                        \
-      ->boot<SharedMemory>(SharedMemory::create("/proc/heap/", "+"))                                                   \
-      ->boot<Terminal>(Terminal::singleton("/io/terminal/"))                                                           \
-      ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))                                                           \
-  /*    ->boot<FileSystem>(FileSystem::singleton("/io/fs"))  */                                                        \
-      ->model({ID("/mod/proc")})                                                                                       \
-      ->initial_terminal_owner("/home/root/repl/");                                                                    \
-  //->done("kernel_barrier");
-
-#define FOS_STOP_ON_BOOT scheduler()->stop();
-#else
 #include <model/model.hpp>
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
@@ -95,7 +57,6 @@ inline bool deploy_shared_memory = true;
 #else
 inline bool deploy_shared_memory = false;
 #endif
-
 #define FOS_SETUP_ON_BOOT \
   Options::singleton()->printer<>(Ansi<>::singleton());                 \
   Options::singleton()->log_level(FOS_LOGGING);                         \
@@ -110,7 +71,6 @@ inline bool deploy_shared_memory = false;
   if(deploy_shared_memory)                                              \
     Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern(("" == STR(FOS_DEPLOY_SHARED_MEMORY)) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #define FOS_STOP_ON_BOOT ;
-#endif
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
