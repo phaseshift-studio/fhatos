@@ -93,8 +93,11 @@ namespace fhatos {
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
     void setup() override {
-      if (!this->_id->matches(*this->pattern()))
-        router()->attach(IDStructure::create(this->id()));
+      if (!this->_id->matches(*this->pattern())) {
+        const ptr<IDStructure> id_struct = IDStructure::create(this->id());
+        router()->attach(id_struct);
+        id_struct->setup();
+      }
       STRUCTURE::setup();
       PROCESS::setup();
       this->subscribe(*this->id(), [this](const Message_p &message) {

@@ -30,7 +30,7 @@ namespace fhatos {
 
   protected:
     explicit SharedMemory(const ID &id = "/memory/shared", const Pattern &pattern = "+") :
-            Actor<Coroutine, Heap>(id, pattern) {}
+            Actor(id, pattern) {}
 
   public:
     static ptr<SharedMemory> create(const ID &id = "/memory/shared", const Pattern &pattern = "+") {

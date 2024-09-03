@@ -38,6 +38,7 @@ namespace fhatos {
     }
 
     void load_insts() {
+      //this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       this->saveType(inst_id("plus"), Insts::plus(x(0)));
       this->saveType(inst_id("mult"), Insts::mult(x(0)));
       this->saveType(inst_id("mod"), Insts::mod(x(0)));
@@ -143,6 +144,17 @@ namespace fhatos {
       }
     }
 
+    inline const static auto MMADT_PREFIX = fURI(FOS_MMADT_URL_PREFIX);
+
+    void save_inst_type(const ID_p &inst_id, const Inst_p &inst, const ID_p &source) {
+      this->write(inst_id, inst, source,RETAIN_MESSAGE);
+      /*this->write(id_p(inst->id()->extend("_kind")), str(ITypeDescriptions.toChars(inst->itype())), source,
+                  RETAIN_MESSAGE);
+      this->write(id_p(inst->id()->extend("_doc")),
+                  uri(MMADT_PREFIX.extend(inst_id->toString().c_str()) /*id_p(URI_FURI->extend("url")), source,
+                  RETAIN_MESSAGE);*/
+      //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier()))
+    }
 
     bool checkType(const Obj &obj, const OType otype, const ID_p &typeId,
                    const bool doThrow = true) noexcept(false) {

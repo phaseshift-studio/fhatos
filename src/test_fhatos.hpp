@@ -28,7 +28,6 @@
 #include <unity.h>
 
 #ifdef FOS_TEST_ON_BOOT
-
 #include <language/fluent.hpp>
 #include <language/types.hpp>
 #include <language/parser.hpp>
@@ -65,38 +64,36 @@
 
 #define FOS_STOP_ON_BOOT scheduler()->stop();
 #else
-
 #include <model/model.hpp>
-
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
-bool deploy_scheduler = true;
+inline bool deploy_scheduler = true;
 #else
-bool deploy_scheduler = false;
+inline bool deploy_scheduler = false;
 #endif
 #ifdef FOS_DEPLOY_ROUTER
 #include <structure/router.hpp>
-bool deploy_router = true;
+inline bool deploy_router = true;
 #else
-bool deploy_router = false;
+inline bool deploy_router = false;
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
-bool deploy_parser = true;
+inline bool deploy_parser = true;
 #else
-bool deploy_parser = false;
+inline bool deploy_parser = false;
 #endif
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
-bool deploy_types = true;
+inline bool deploy_types = true;
 #else
-bool deploy_types = false;
+inline bool deploy_types = false;
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <model/shared_memory.hpp>
-bool deploy_shared_memory = true;
+inline bool deploy_shared_memory = true;
 #else
-bool deploy_shared_memory = false;
+inline bool deploy_shared_memory = false;
 #endif
 
 #define FOS_SETUP_ON_BOOT \
@@ -111,7 +108,7 @@ bool deploy_shared_memory = false;
   if(deploy_types)                                                      \
     Model::deploy(Types::singleton());                                  \
   if(deploy_shared_memory)                                              \
-    Model::deploy(SharedMemory::create());
+    Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern(("" == STR(FOS_DEPLOY_SHARED_MEMORY)) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #define FOS_STOP_ON_BOOT ;
 #endif
 ////////////////////////////////////////////////////////
@@ -144,7 +141,6 @@ namespace fhatos {
       TEST_FAIL();                                                                                                     \
     }                                                                                                                  \
   }
-
 } // namespace fhatos
 #ifdef NATIVE
 #define SETUP_AND_LOOP()                                                                                               \
@@ -345,9 +341,9 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
-        const List<OBJ> &expected, const Fluent &fluent,
-        const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-        [[maybe_unused]] const bool clearRouter = true) {
+  const List<OBJ> &expected, const Fluent &fluent,
+  const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+  [[maybe_unused]] const bool clearRouter = true) {
   const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const OBJ &obj: expected) {
@@ -368,15 +364,17 @@ static void FOS_CHECK_RESULTS(
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       router()->route_subscription(share<Subscription>(
-              Subscription{.source = ID(FOS_DEFAULT_SOURCE_ID),
-                      .pattern = key.uri_value(),
-                      .onRecv = [temp](const ptr<Message> &message) {
-                        TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
-                                                 (string("Router retain message payload equality: ") +
-                                                  router()->pattern()->toString() + " " + temp.toString() +
-                                                  " != " + message->payload->toString())
-                                                         .c_str());
-                      }}));
+        Subscription{
+          .source = ID(FOS_DEFAULT_SOURCE_ID),
+          .pattern = key.uri_value(),
+          .onRecv = [temp](const ptr<Message> &message) {
+            TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
+                                     (string("Router retain message payload equality: ") +
+                                       router()->pattern()->toString() + " " + temp.toString() +
+                                       " != " + message->payload->toString())
+                                     .c_str());
+          }
+        }));
     }
   }
   // if (clearRouter)
@@ -386,9 +384,9 @@ static void FOS_CHECK_RESULTS(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
-        const List<OBJ> &expected, const List<string> &monoids,
-        const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-        const bool clearRouter = true) {
+  const List<OBJ> &expected, const List<string> &monoids,
+  const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+  const bool clearRouter = true) {
   const string &finalString = monoids.back();
   for (size_t i = 0; i < monoids.size() - 1; i++) {
     LOG(DEBUG, FOS_TAB_2 "!yPre-monoid!!: %s\n", monoids.at(i).c_str());
@@ -402,10 +400,9 @@ static void FOS_CHECK_RESULTS(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
-        const List<OBJ> &expected, const string &monoid,
-        const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
-        const bool clearRouter = false) {
-
+  const List<OBJ> &expected, const string &monoid,
+  const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
+  const bool clearRouter = false) {
   Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse: %s\n", monoid.c_str());

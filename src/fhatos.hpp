@@ -163,6 +163,7 @@ namespace fhatos {
     if (p)                                                                                                             \
       delete (p);                                                                                                      \
   }
+#define FOS_MMADT_URL_PREFIX "https://fhatos.org/mmadt/"
 #define FOS_NOOBJ_TOKEN noobj
 #define FOS_MAX_FURI_SEGMENTS 10
 #define FOS_TAB_1 " "
