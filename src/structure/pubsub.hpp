@@ -93,7 +93,7 @@ namespace fhatos {
     [[nodiscard]] string toString() const {
       char temp[250];
       snprintf(temp, 250, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
-               "" /*this->payload->toString().c_str()*/, FOS_BOOL_STR(this->retain), this->target.toString().c_str());
+               this->payload->toString().c_str(), FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
 

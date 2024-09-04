@@ -34,7 +34,7 @@ namespace fhatos {
   public:
     ~Scheduler() override {
       if (FIBER_THREAD_HANDLE) {
-        this->FIBER_THREAD_HANDLE->join();
+        this->FIBER_THREAD_HANDLE->detach();
         delete this->FIBER_THREAD_HANDLE;
       }
     }

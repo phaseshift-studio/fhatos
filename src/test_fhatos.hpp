@@ -181,9 +181,9 @@ using namespace fhatos;
   FOS_TEST_MESSAGE("<!b%s!!> =!r?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                        \
                    (x).toString().c_str(), (y).toString().c_str(), (x).toString().length(), (y).toString().length(),   \
                    (x).path_length(), (y).path_length());                                                              \
-  TEST_ASSERT_TRUE((x).equals(y));                                                                                     \
-  TEST_ASSERT_TRUE((x) == (y));                                                                                        \
-  TEST_ASSERT_TRUE((x).toString() == (y).toString());
+  TEST_ASSERT_TRUE_MESSAGE((x).equals(y),"Not equals()");                                                              \
+  TEST_ASSERT_TRUE_MESSAGE((x) == (y), "Not ==");                                                                      \
+  TEST_ASSERT_EQUAL_STRING((x).toString().c_str(), (y).toString().c_str());
 
 #define FOS_TEST_ASSERT_NOT_EQUAL_FURI(x, y)                                                                           \
   FOS_TEST_MESSAGE("<!b%s!!> =!r/?!!= <!b%s!!> (%i !rchar_length!! %i) (%i !rpath_length!! %i)",                       \

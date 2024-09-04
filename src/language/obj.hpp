@@ -135,7 +135,10 @@ namespace fhatos {
     MANY_TO_ONE,
     MANY_TO_MANY,
   }; // TYPE
-  static Consumer<BObj *> bobj_deleter = [](BObj *bobj) { free(bobj->second); };
+  static Consumer<BObj *> bobj_deleter = [](const BObj *bobj) {
+    free(bobj->second);
+    delete bobj;
+  };
   static const Enums<IType> ITypeDomains = Enums<IType>({
                                                                 {IType::ZERO_TO_ZERO, "."},
                                                                 {IType::ZERO_TO_ONE,  "."},

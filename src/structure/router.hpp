@@ -24,7 +24,7 @@
 #include <util/mutex_rw.hpp>
 
 namespace fhatos {
-  class Router final: public Patterned {
+  class Router final : public Patterned {
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");
     ptr<Map<Pattern_p, Structure_p, furi_p_less>> structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
@@ -82,8 +82,9 @@ namespace fhatos {
         this->structures_mutex_.write<void *>([this, structure]() {
           for (const auto &pair: *this->structures_) {
             if (structure->pattern()->matches(*pair.second->pattern()) ||
-                pair.second->pattern()->matches(*structure->pattern())) { // TODO: reversal shoulnd't be needed
-              throw fError("Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!\n",
+                pair.second->pattern()->matches(*structure->pattern())) {
+              // TODO: reversal shoulnd't be needed
+              throw fError("Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
                            pair.second->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
             }
           }
@@ -119,11 +120,12 @@ namespace fhatos {
     }
 
     [[nodiscard]] RESPONSE_CODE write(
-            const ID_p &id, const Obj_p &obj,
-            const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID),
-            const bool retain = RETAIN_MESSAGE) const {
+      const ID_p &id, const Obj_p &obj,
+      const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID),
+      const bool retain = RETAIN_MESSAGE) const {
       const Structure_p &struc = this->get_structure(p_p(*id), source);
-      LOG_STRUCTURE(DEBUG, this, "!y!_writing!! %s to !b%s!! from " FURI_WRAP " for %s\n", obj->toString().c_str(),
+      LOG_STRUCTURE(DEBUG, this, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP " for %s\n",
+                    retain ? "retained" : "transient", obj->toString().c_str(),
                     id->toString().c_str(), struc->pattern()->toString().c_str(), source->toString().c_str());
       struc->write(id, obj, source, retain);
       return OK;
@@ -144,7 +146,7 @@ namespace fhatos {
 
     RESPONSE_CODE route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {
       for (const auto &pair: *this->structures_) {
-        if (pair.second->pattern()->matches(*pattern)) {
+        if (pair.second->pattern()->matches(*pattern) || pattern->matches(*pair.second->pattern())) {
           LOG_STRUCTURE(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
                         subscriber->toString().c_str());
           pair.second->recv_unsubscribe(subscriber, pattern);
@@ -166,12 +168,12 @@ namespace fhatos {
       for (auto &pair: *this->structures_) {
         if (pattern->matches(*pair.second->pattern())) {
           if (ret != nullptr)
-            throw fError(FURI_WRAP " too general as it crosses multiple structures\n ", pattern->toString().c_str());
+            throw fError(FURI_WRAP " too general as it crosses multiple structures", pattern->toString().c_str());
           ret = &pair.second;
         }
       }
       if (nullptr == ret)
-        throw fError(FURI_WRAP " has no structure to contain !b%s!! for !b%s!!\n", this->pattern()->toString().c_str(),
+        throw fError(FURI_WRAP " has no structure to contain !b%s!! for !b%s!!", this->pattern()->toString().c_str(),
                      pattern->toString().c_str(), source->toString().c_str());
       return *ret;
     }

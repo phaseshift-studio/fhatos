@@ -558,15 +558,15 @@ namespace fhatos {
             const Uri_p pattern_A = pattern->apply(lhs);
             const BCode_p on_recv_A = on_recv->apply(lhs);
             if (on_recv_A->is_noobj()) {
-              router()->route_unsubscribe(id_p(pattern_A->uri_value()));
+              router()->route_unsubscribe(id_p(FOS_DEFAULT_SOURCE_ID), p_p(pattern_A->uri_value()));
             } else {
               router()->route_subscription(
                 share(Subscription{
                   .source = FOS_DEFAULT_SOURCE_ID,
                   .pattern = pattern_A->uri_value(),
                   .onRecv = [on_recv_A](const Message_p &message) {
-                    if (!message->source.equals(FOS_DEFAULT_SOURCE_ID))
-                      on_recv_A->apply(message->payload);
+                    // if (!message->source.equals(FOS_DEFAULT_SOURCE_ID))
+                    on_recv_A->apply(message->payload);
                   },
                   .onRecvBCode = on_recv_A
                 }));

@@ -22,9 +22,11 @@
 #include "../../../test_base_structure.hpp"
 #include FOS_MQTT(mqtt.hpp)
 
+#define FOS_TEST_PATTERN_PREFIX "//a/"
+
 namespace fhatos {
   FOS_RUN_TESTS( //
-          begin_test_structure(Mqtt::create("/a/+")); //
+          begin_test_structure(Mqtt::create(*make_test_pattern("+"))); //
           FOS_RUN_TEST(test_subscribe); //
           FOS_RUN_TEST(test_write); //
           FOS_RUN_TEST(test_read); //

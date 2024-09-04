@@ -68,11 +68,14 @@ namespace fhatos {
     virtual void loop() {
       if (!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
-      Option<Mail_p> mail;
-      while ((mail = this->outbox_->pop_back()).has_value()) {
+      Option<Mail_p> mail = this->outbox_->pop_back();
+      while (mail.has_value()) {
         LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
-        mail.value()->first->onRecv(mail.value()->second);
+        const Message_p message = mail.value()->second;
+        if (!(message->retain && message->payload->is_noobj()))
+          mail.value()->first->onRecv(message);
+        mail = this->outbox_->pop_back();
       }
     }
 
@@ -88,17 +91,19 @@ namespace fhatos {
 
     virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
       if (!this->available_.load())
-        return;
-      this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
-                                           [source, target](const Subscription_p &sub) {
-                                             const bool removing = sub->source.equals(*source) && (
-                                                                     target->matches(sub->pattern) || sub->pattern.
-                                                                     matches(*target));
-                                             if (removing)
-                                               LOG_UNSUBSCRIBE(OK, *source, target);
-                                             return removing;
-                                           }),
-                                 this->subscriptions->end());
+        LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
+                    target->toString().c_str());
+      else
+        this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
+                                             [source, target](const Subscription_p &sub) {
+                                               const bool removing = sub->source.equals(*source) && (
+                                                                       target->matches(sub->pattern) || sub->pattern.
+                                                                       matches(*target));
+                                               if (removing)
+                                                 LOG_UNSUBSCRIBE(OK, *source, target);
+                                               return removing;
+                                             }),
+                                   this->subscriptions->end());
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
@@ -160,7 +165,47 @@ namespace fhatos {
       }
     }
 
-    Lst_p get_subscription_lst() {
+    bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) {
+      return this->mutex.read<bool>([this,source,topic]() {
+        for (const Subscription_p &sub: *this->subscriptions) {
+          if (source)
+            if (!source->equals(sub->source))
+              continue;
+          if (topic->equals(sub->pattern))
+            return true;
+        }
+        return false;
+      });
+    }
+
+    bool has_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
+      return this->mutex.read<bool>([this,source,topic]() {
+        for (const Subscription_p &sub: *this->subscriptions) {
+          if (source)
+            if (!source->equals(sub->source))
+              continue;
+          if (topic->matches(sub->pattern))
+            return true;
+        }
+        return false;
+      });
+    }
+
+    List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
+      return this->mutex.read<List_p<Subscription_p>>([this,source,topic]() {
+        List_p<Subscription_p> matches = share(List<Subscription_p>());
+        for (const Subscription_p &sub: *this->subscriptions) {
+          if (source)
+            if (!source->equals(sub->source))
+              continue;
+          if (topic->matches(sub->pattern) || sub->pattern.matches(*topic))
+            matches->push_back(sub);
+        }
+        return matches;
+      });
+    }
+
+    Lst_p get_subscription_lst() const {
       List<Obj_p> list;
       for (const Subscription_p &sub: *this->subscriptions) {
         const Rec_p sub_rec = Obj::to_rec({

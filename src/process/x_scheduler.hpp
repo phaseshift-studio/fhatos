@@ -68,7 +68,9 @@ namespace fhatos {
         if (proc->id()->matches(processPattern) && proc->running())
           counter->fetch_add(1);
       });
-      return counter->load();
+      const int c = counter->load();
+      delete counter;
+      return c;
     }
 
     static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
@@ -116,6 +118,9 @@ namespace fhatos {
                   threadCount->load(),
                   fiberCount->load(),
                   coroutineCount->load());
+      delete threadCount;
+      delete fiberCount;
+      delete coroutineCount;
       router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       auto type = PType::COROUTINE;
       int loops = 0;
@@ -125,7 +130,7 @@ namespace fhatos {
           break;
         const Process_p process = option.value();
         if (process->running()) {
-          if (process->ptype == type || loops > 25) {
+          if (process->ptype == type || loops > 25) { // after so many controlled iterations, just stop any process still running
             if (process->ptype == PType::COROUTINE) LOG_DESTROY(true, process, this);
             process->stop();
           } else
