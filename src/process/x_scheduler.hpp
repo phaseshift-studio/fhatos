@@ -122,28 +122,20 @@ namespace fhatos {
       delete fiberCount;
       delete coroutineCount;
       router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
-      auto type = PType::COROUTINE;
-      int loops = 0;
-      while (true) {
-        const Option<Process_p> &option = this->processes_->pop_back();
-        if (!option.has_value())
-          break;
-        const Process_p process = option.value();
-        if (process->running()) {
-          if (process->ptype == type || loops > 25) { // after so many controlled iterations, just stop any process still running
-            if (process->ptype == PType::COROUTINE) LOG_DESTROY(true, process, this);
-            process->stop();
-          } else
-            this->processes_->push_front(process);
+      List<Process_p> *list = new List<Process_p>();
+      this->processes_->forEach([list](const Process_p &proc) {
+        list->push_back(proc);
+      });
+      while (!list->empty()) {
+        const Process_p p = list->back();
+        list->pop_back();
+        if (PType::COROUTINE == p->ptype) {
+          LOG_DESTROY(true, p, this);
         }
-        if (type == PType::COROUTINE)
-          type = PType::FIBER;
-        else if (type == PType::FIBER)
-          type = PType::THREAD;
-        else
-          type = PType::COROUTINE;
-        loops++;
+        if (p->running())
+          p->stop();
       }
+      this->processes_->clear();
       this->running = false;
       LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
