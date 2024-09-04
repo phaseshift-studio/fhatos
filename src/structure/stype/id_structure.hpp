@@ -33,11 +33,11 @@ namespace fhatos {
 
   public:
     static ptr<IDStructure> create(const ID_p &id) {
-      ptr<IDStructure> id_structure_p = ptr<IDStructure>(new IDStructure(id));
+      auto id_structure_p = ptr<IDStructure>(new IDStructure(id));
       return id_structure_p;
     }
 
-    void distributed_retainined(const Subscription_p &subscription) override {
+    void publish_retained(const Subscription_p &subscription) override {
       if (!this->id_obj->is_noobj() && this->pattern()->matches(subscription->pattern)) {
         subscription->onRecv(share(Message{
           .source = FOS_DEFAULT_SOURCE_ID, .target = ID(*this->pattern()), .payload = id_obj, .retain = RETAIN_MESSAGE
@@ -48,7 +48,7 @@ namespace fhatos {
     void write(const ID_p &id, const Obj_p &obj, const ID_p &source, const bool retain) override {
       if (id->matches(*this->pattern()) && retain)
         this->id_obj = obj;
-      distribute_to_subscriptions(share(Message{.source = *source, .target = *id, .payload = obj, .retain = retain}));
+      distribute_to_subscribers(share(Message{.source = *source, .target = *id, .payload = obj, .retain = retain}));
     }
 
     Obj_p read(const fURI_p &id, const ID_p &) override {

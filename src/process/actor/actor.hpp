@@ -29,11 +29,11 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
-  // template<class P, class S, class Process, class Structure>
-  // concept CheckStructureProcess = std::is_base_of_v<Process, P> && std::is_base_of_v<Structure, S>;
+  template<class P, class S, class Process, class Structure>
+  concept CheckStructureProcess = std::is_base_of_v<Process, P> && std::is_base_of_v<Structure, S>;
 
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
-  // requires CheckStructureProcess<PROCESS, STRUCTURE, Process, Structure>
+  requires CheckStructureProcess<PROCESS, STRUCTURE, Process, Structure>
   class Actor
       : public PROCESS,
         public STRUCTURE,
@@ -132,8 +132,8 @@ namespace fhatos {
     }
 
   protected:
-    virtual void distribute_to_subscriptions(const Message_p &message) override {
-      STRUCTURE::distribute_to_subscriptions(message);
+    virtual void distribute_to_subscribers(const Message_p &message) override {
+      STRUCTURE::distribute_to_subscribers(message);
       if (std::is_base_of_v<Coroutine, PROCESS>)
         STRUCTURE::loop();
     }

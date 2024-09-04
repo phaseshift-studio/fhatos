@@ -122,7 +122,7 @@ namespace fhatos {
       LOG_SUBSCRIBE(OK, subscription);
       /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
       if (!this->remote_retains)
-        this->distributed_retainined(subscription);
+        this->publish_retained(subscription);
     }
 
     virtual RESPONSE_CODE recv_message(const Message_p &message) {
@@ -139,7 +139,7 @@ namespace fhatos {
       this->write(id, Obj::to_noobj(), source, RETAIN_MESSAGE);
     }
 
-    virtual void distributed_retainined(const Subscription_p &subscription) = 0;
+    virtual void publish_retained(const Subscription_p &subscription) = 0;
 
     virtual Obj_p read(const fURI_p &furi, const ID_p &source) = 0;
 
@@ -152,7 +152,7 @@ namespace fhatos {
     }
 
   protected:
-    virtual void distribute_to_subscriptions(const Message_p &message) {
+    virtual void distribute_to_subscribers(const Message_p &message) {
       for (const Subscription_p &sub: *this->subscriptions) {
         if (message->target.matches(sub->pattern))
           this->outbox_->push_back(share(Mail(sub, message)));

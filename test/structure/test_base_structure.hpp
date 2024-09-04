@@ -33,14 +33,17 @@
 namespace fhatos {
   inline Structure_p current_structure;
   inline bool auto_loop;
+  inline fURI_p prefix;
 
   inline fURI_p make_test_pattern(const char *suffix) {
-    return furi_p(string(FOS_TEST_PATTERN_PREFIX) + suffix);
+    return furi_p(prefix->extend(suffix));
   }
 
-  inline void begin_test_structure(const Structure_p &test_structure, const bool autoloop = true) {
+  inline void begin_test_structure(const Structure_p &test_structure,
+                                   const bool autoloop = true) {
     current_structure = test_structure;
     auto_loop = autoloop;;
+    prefix = furi_p(current_structure->pattern()->retract());
     TEST_ASSERT_EQUAL_STRING(make_test_pattern("+")->toString().c_str(),
                              current_structure->pattern()->toString().c_str());
     LOG(INFO, "!yStarting!! test_base_structure !yon !g%s!y using !g%s!y pattern\n",
@@ -215,6 +218,74 @@ namespace fhatos {
     delete pings;
     ////// RESET FOR PERSISTENT STRUCTURES
     router()->remove(id_p(*make_test_pattern("test")), id_p("b/test/case"));
+    if (auto_loop)
+      current_structure->loop();
+  }
+
+  void test_patterned_reads() {
+    current_structure->write(id_p(*make_test_pattern("a")), str("a"), true);
+    current_structure->write(id_p(*make_test_pattern("b")), str("b"), true);
+    current_structure->write(id_p(*make_test_pattern("c")), str("c"), true);
+    current_structure->write(id_p(*make_test_pattern("d")), str("d"), true);
+    if (auto_loop)
+      current_structure->loop();
+    Objs_p objs = current_structure->read(make_test_pattern("+"));
+    if (auto_loop)
+      current_structure->loop();
+    TEST_ASSERT_TRUE(objs->is_objs());
+    TEST_ASSERT_EQUAL_INT(4, objs->objs_value()->size());
+    int counter = 0;
+    for (const fURI &furi: {
+           *make_test_pattern("a"),
+           *make_test_pattern("b"),
+           *make_test_pattern("c"),
+           *make_test_pattern("d")
+         }) {
+      TEST_ASSERT_EQUAL_INT(
+        1, std::count_if(objs->objs_value()->begin(),objs->objs_value()->end(),[furi](const Obj_p& obj) {
+          FOS_TEST_ASSERT_MATCH_FURI(*obj->id(),*URI_FURI);
+          TEST_ASSERT_TRUE(obj->is_uri());
+          return obj->uri_value().equals(furi);
+          }));
+      counter++;
+    }
+    TEST_ASSERT_EQUAL_INT(4, counter);
+    ////// RESET FOR PERSISTENT STRUCTURES
+    current_structure->remove(id_p(*make_test_pattern("a")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("b")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("c")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("d")), id_p(FOS_DEFAULT_SOURCE_ID));
+    if (auto_loop)
+      current_structure->loop();
+  }
+
+  void test_ided_reads() {
+    current_structure->write(id_p(*make_test_pattern("a")), str("a"), true);
+    current_structure->write(id_p(*make_test_pattern("b")), str("b"), true);
+    current_structure->write(id_p(*make_test_pattern("c")), str("c"), true);
+    current_structure->write(id_p(*make_test_pattern("d")), str("d"), true);
+    if (auto_loop)
+      current_structure->loop();
+    int counter = 0;
+    for (const fURI &furi: {
+           *make_test_pattern("a"),
+           *make_test_pattern("b"),
+           *make_test_pattern("c"),
+           *make_test_pattern("d")
+         }) {
+      const Obj_p obj = current_structure->read(id_p(furi));
+      if (auto_loop)
+        current_structure->loop();
+      TEST_ASSERT_TRUE(obj->is_str());
+      TEST_ASSERT_EQUAL_STRING(furi.name(), obj->str_value().c_str());
+      counter++;
+    }
+    TEST_ASSERT_EQUAL_INT(4, counter);
+    ////// RESET FOR PERSISTENT STRUCTURES
+    current_structure->remove(id_p(*make_test_pattern("a")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("b")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("c")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("d")), id_p(FOS_DEFAULT_SOURCE_ID));
     if (auto_loop)
       current_structure->loop();
   }

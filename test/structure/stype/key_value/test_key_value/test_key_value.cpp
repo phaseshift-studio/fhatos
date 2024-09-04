@@ -22,14 +22,14 @@
 #include "../../../test_base_structure.hpp"
 #include <structure/stype/key_value.hpp>
 
-#define FOS_TEST_PATTERN_PREFIX STR(/a/)
-
 namespace fhatos {
   FOS_RUN_TESTS( //
-    begin_test_structure(KeyValue::create(*make_test_pattern("+"))); //
+    begin_test_structure(KeyValue::create("/a/+")); //
     FOS_RUN_TEST(test_subscribe); //
     FOS_RUN_TEST(test_write); //
     FOS_RUN_TEST(test_read); //
+    FOS_RUN_TEST(test_patterned_reads); //
+    FOS_RUN_TEST(test_ided_reads); //
     end_test_structure()
   );
 } // namespace fhatos

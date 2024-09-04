@@ -44,7 +44,7 @@ namespace fhatos {
       DATA->clear();
     }
 
-    void distributed_retainined(const Subscription_p &subscription) override {
+    void publish_retained(const Subscription_p &subscription) override {
       MUTEX_DATA.read<void *>([this, subscription]() {
         for (const auto &[id,obj]: *this->DATA) {
           if (id->matches(subscription->pattern)) {
@@ -80,7 +80,7 @@ namespace fhatos {
         .payload = payload,
         .retain = retain
       });
-      distribute_to_subscriptions(message);
+      distribute_to_subscribers(message);
     }
 
     Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
@@ -102,7 +102,7 @@ namespace fhatos {
         });
       }
       return MUTEX_DATA.read<Obj_p>(
-        [this, furi]() { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
+        [this, furi] { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
     }
   };
 } // namespace fhatos
