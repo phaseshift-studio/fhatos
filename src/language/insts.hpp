@@ -498,24 +498,21 @@ namespace fhatos {
       }, IType::ONE_TO_ONE);
     }
 
-    static Obj_p pub(const Uri_p &target, const Obj_p &payload, const Bool_p &transient) {
+    static Obj_p pub(const Uri_p &target, const Obj_p &payload, const Bool_p &retain) {
       return Obj::to_inst(
-        "pub", {target, payload, transient},
+        "pub", {target, payload, retain},
         [](const InstArgs &args) {
-          const Uri_p &target = args.at(0);
-          const Obj_p &payload = args.at(1);
-          const Bool_p &transient = args.at(2);
-          return [target, payload, transient](const Obj_p &lhs) {
+          return [args](const Obj_p &lhs) {
             router()->route_message(share(Message{
               .source = FOS_DEFAULT_SOURCE_ID,
-              .target = target->apply(lhs)->uri_value(),
-              .payload = payload->apply(lhs),
-              .retain = transient->apply(lhs)->bool_value()
+              .target = args.at(0)->apply(lhs)->uri_value(),
+              .payload = args.at(1)->apply(lhs),
+              .retain = args.at(2)->apply(lhs)->bool_value()
             }));
             return lhs;
           };
         },
-        areInitialArgs(target, payload, transient) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+        areInitialArgs(target, payload, retain) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
     }
 
     static Obj_p lift(const BCode_p &bcode) {
@@ -552,29 +549,26 @@ namespace fhatos {
       return Obj::to_inst(
         "sub", {pattern, on_recv},
         [](const InstArgs &args) {
-          const Uri_p &pattern = args.at(0);
-          const BCode_p &on_recv = args.at(1);
-          return [pattern, on_recv](const Obj_p &lhs) {
-            const Uri_p pattern_A = pattern->apply(lhs);
-            const BCode_p on_recv_A = on_recv->apply(lhs);
-            if (on_recv_A->is_noobj()) {
-              router()->route_unsubscribe(id_p(FOS_DEFAULT_SOURCE_ID), p_p(pattern_A->uri_value()));
+          return [args](const Obj_p &lhs) {
+            const Uri_p pattern_applied = args.at(0)->apply(lhs);
+            const BCode_p on_recv_applied = args.at(1)->apply(lhs);
+            if (on_recv_applied->is_noobj()) {
+              router()->route_unsubscribe(id_p(FOS_DEFAULT_SOURCE_ID), p_p(pattern_applied->uri_value()));
             } else {
               router()->route_subscription(
                 share(Subscription{
                   .source = FOS_DEFAULT_SOURCE_ID,
-                  .pattern = pattern_A->uri_value(),
-                  .onRecv = [on_recv_A](const Message_p &message) {
-                    // if (!message->source.equals(FOS_DEFAULT_SOURCE_ID))
-                    on_recv_A->apply(message->payload);
+                  .pattern = pattern_applied->uri_value(),
+                  .onRecv = [on_recv_applied](const Message_p &message) {
+                    return Options::singleton()->processor<Rec, BCode, Objs>(message->to_rec(), on_recv_applied);
                   },
-                  .onRecvBCode = on_recv_A
+                  .onRecvBCode = on_recv_applied
                 }));
             }
             return lhs;
           };
         },
-        areInitialArgs(pattern) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
+        areInitialArgs(pattern) ? IType::ZERO_TO_MANY : IType::ONE_TO_MANY);
     }
 
   private:

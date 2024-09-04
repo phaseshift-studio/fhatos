@@ -29,14 +29,15 @@
 
 namespace fhatos {
   enum class SType {
-    READ, WRITE, READWRITE
+    READ, WRITE, READWRITE, DEPENDENT
   };
 
   static const Enums<SType> StructureTypes =
       Enums<SType>({
         {SType::READ, "read"},
         {SType::WRITE, "write"},
-        {SType::READWRITE, "readwrite"}
+        {SType::READWRITE, "readwrite"},
+        {SType::DEPENDENT, "dependent"}
       });
 
   class Structure : public Patterned {
@@ -94,16 +95,18 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
                     target->toString().c_str());
       else
-        this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
-                                             [source, target](const Subscription_p &sub) {
-                                               const bool removing = sub->source.equals(*source) && (
-                                                                       target->matches(sub->pattern) || sub->pattern.
-                                                                       matches(*target));
-                                               if (removing)
-                                                 LOG_UNSUBSCRIBE(OK, *source, target);
-                                               return removing;
-                                             }),
-                                   this->subscriptions->end());
+        this->mutex.write<void *>([this, source,target]() {
+          this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
+                                               [source, target](const Subscription_p &sub) {
+                                                 const bool removing =
+                                                     sub->source.equals(*source) && (sub->pattern.matches(*target));
+                                                 if (removing)
+                                                   LOG_UNSUBSCRIBE(OK, *source, target);
+                                                 return removing;
+                                               }),
+                                     this->subscriptions->end());
+          return nullptr;
+        });
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
@@ -112,23 +115,14 @@ namespace fhatos {
         return;
       }
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
-      this->mutex.write<void *>([this, subscription]() {
-        /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
-        this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
-                                             [subscription](const Subscription_p &sub) {
-                                               return sub->source.equals(subscription->source) &&
-                                                      sub->pattern.matches(subscription->pattern);
-                                             }),
-                                   this->subscriptions->end());
-        /////////////// ADD NEW SUBSCRIPTION
-        this->subscriptions->push_back(subscription);
-        /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-        if (!this->remote_retains) {
-          this->write_retained(subscription);
-          LOG_SUBSCRIBE(OK, subscription);
-        }
-        return nullptr;
-      });
+      /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
+      this->recv_unsubscribe(id_p(subscription->source), p_p(subscription->pattern));
+      /////////////// ADD NEW SUBSCRIPTION
+      this->subscriptions->push_back(subscription);
+      LOG_SUBSCRIBE(OK, subscription);
+      /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
+      if (!this->remote_retains)
+        this->distributed_retainined(subscription);
     }
 
     virtual RESPONSE_CODE recv_message(const Message_p &message) {
@@ -145,7 +139,7 @@ namespace fhatos {
       this->write(id, Obj::to_noobj(), source, RETAIN_MESSAGE);
     }
 
-    virtual void write_retained(const Subscription_p &subscription) = 0;
+    virtual void distributed_retainined(const Subscription_p &subscription) = 0;
 
     virtual Obj_p read(const fURI_p &furi, const ID_p &source) = 0;
 
@@ -158,7 +152,7 @@ namespace fhatos {
     }
 
   protected:
-    void distribute_to_subscriptions(const Message_p &message) {
+    virtual void distribute_to_subscriptions(const Message_p &message) {
       for (const Subscription_p &sub: *this->subscriptions) {
         if (message->target.matches(sub->pattern))
           this->outbox_->push_back(share(Mail(sub, message)));

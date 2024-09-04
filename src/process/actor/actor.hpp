@@ -26,31 +26,27 @@
 #include <structure/structure.hpp>
 #include <structure/stype/id_structure.hpp>
 #include <util/options.hpp>
+#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
+  // template<class P, class S, class Process, class Structure>
+  // concept CheckStructureProcess = std::is_base_of_v<Process, P> && std::is_base_of_v<Structure, S>;
+
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
+  // requires CheckStructureProcess<PROCESS, STRUCTURE, Process, Structure>
   class Actor
       : public PROCESS,
         public STRUCTURE,
-        public Mailbox,
         public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
   public:
-    explicit Actor(const ID &id, const Pattern &pattern): PROCESS(id), STRUCTURE(pattern), Mailbox(),
+    explicit Actor(const ID &id, const Pattern &pattern): PROCESS(id),
+                                                          STRUCTURE(pattern),
                                                           enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
 
     explicit Actor(const ID &id): Actor(id, id.extend("#")) {
-    }
-
-    bool recv_mail(const Mail_p &mail) override {
-      if (!this->active())
-        return false;
-      this->outbox_->push_back(mail);
-      if (PType::COROUTINE == this->ptype)
-        this->loop();
-      return true;
     }
 
     RESPONSE_CODE publish(
@@ -136,6 +132,12 @@ namespace fhatos {
     }
 
   protected:
+    virtual void distribute_to_subscriptions(const Message_p &message) override {
+      STRUCTURE::distribute_to_subscriptions(message);
+      if (std::is_base_of_v<Coroutine, PROCESS>)
+        STRUCTURE::loop();
+    }
+
     void should_be_active() {
       if (!this->active())
         throw fError(FURI_WRAP " is not active (spawned and attached)", this->toString().c_str());

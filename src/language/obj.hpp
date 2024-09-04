@@ -487,7 +487,7 @@ namespace fhatos {
       if (!this->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if (mutate) {
-        InstList_p insts = bcode_value();
+        const InstList_p insts = bcode_value();
         insts->push_back(inst);
         return Obj::to_bcode(insts);
       } else {
@@ -510,7 +510,7 @@ namespace fhatos {
       return Obj::to_bcode(insts);
     }
 
-    Objs_p add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
+    void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
       if (!this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       if (obj->is_objs()) {
@@ -520,7 +520,6 @@ namespace fhatos {
       } else {
         this->objs_value()->push_back(obj);
       }
-      return shared_from_this();
     }
 
     [[nodiscard]] fURI_p bcode_domain() { return OBJ_FURI; }

@@ -144,69 +144,85 @@ namespace fhatos {
     }
 
     void recv_subscription(const Subscription_p &subscription) override {
-      if (!this->has_equal_subscription_pattern(furi_p(subscription->pattern))) {
+      const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern));
+      Structure::recv_subscription(subscription);
+      if (mqtt_sub) {
         LOG_STRUCTURE(DEBUG, this, "Subscribing as no existing subscription found: %s\n",
                       subscription->toString().c_str());
         this->xmqtt->subscribe(subscription->pattern.toString(), static_cast<int>(subscription->qos))->wait();
       }
-      Structure::recv_subscription(subscription);
     }
 
     void recv_unsubscribe(const ID_p &source, const fURI_p &target) override {
+      const bool mqtt_sub = this->has_equal_subscription_pattern(target);
       Structure::recv_unsubscribe(source, target);
-      if (!this->has_equal_subscription_pattern(target, source)) {
+      if (mqtt_sub && !this->has_equal_subscription_pattern(target)) {
         LOG_STRUCTURE(DEBUG, this, "Unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
                       target->toString().c_str());
         this->xmqtt->unsubscribe(target->toString())->wait();
       }
     }
 
-    Objs_p read(const fURI_p &furi, const ID_p &source) override {
-      if (furi->is_pattern()) {
-        LOG(INFO, "!r!_NEED TO IMPLEMENT PATTERN READ FOR MQTT!!\n");
-        return Obj::to_objs(); // TODO
-      }
-      auto *thing = new std::atomic<const Obj *>(nullptr);
+    Obj_p read(const fURI_p &furi, const ID_p &source) override {
+      auto thing = new std::atomic<Obj *>(nullptr);
+      if (furi->is_pattern())
+        thing->store(new Objs(share(List<Obj_p>()), OBJS_FURI));
       this->recv_subscription(share(Subscription{
         .source = static_cast<fURI>(*source), .pattern = *furi,
         .onRecv = [this, furi, thing](const Message_p &message) {
           // TODO: try to not copy obj while still not accessing heap after delete
           LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
                         message->toString().c_str());
-          const Obj *obj = new Obj(Any(message->payload->_value), id_p(*message->payload->id()));
-          thing->store(obj);
+          if (furi->is_pattern()) {
+            const Obj_p obj = ptr<Obj>(new Uri(fURI(message->target), URI_FURI));
+            thing->load()->add_obj(obj);
+          } else {
+            thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
+          }
         }
       }));
       this->loop();
       const time_t startTimestamp = time(nullptr);
-      this->loop();
-      while (!thing->load()) {
-        if ((time(nullptr) - startTimestamp) > 1)
-          break;
-        this->loop();
+      if (furi->is_pattern()) {
+        while (time(nullptr) - startTimestamp < 2) {
+          this->loop();
+        }
+      } else {
+        while (!thing->load()) {
+          if (time(nullptr) - startTimestamp > 1)
+            break;
+          this->loop();
+        }
       }
+      this->loop();
       this->recv_unsubscribe(source, furi);
+      this->loop();
+      if (furi->is_pattern()) {
+        auto objs = ptr<Objs>(thing->load());
+        delete thing;
+        return objs;
+      }
       if (nullptr == thing->load()) {
         delete thing;
         return Obj::to_noobj();
       }
-      const Obj_p ret = ptr<Obj>(const_cast<Obj *>(thing->load()));
+      const auto ret = ptr<Obj>(thing->load());
       delete thing;
       return ret;
     }
 
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source, const bool retain) override {
-      BObj_p source_payload = Message::wrapSource(source, obj);
+      const BObj_p source_payload = Message::wrapSource(source, obj);
       LOG_STRUCTURE(DEBUG, this, "writing to xmpp broker: %s\n", source_payload->second);
       this->xmqtt->publish(
         string(target->toString().c_str()),
         source_payload->second,
-        source_payload->first, 1
-        /*qos*/,
+        source_payload->first,
+        1 /*qos*/,
         retain)->wait();
     }
 
-    void write_retained(const Subscription_p &subscription) override {
+    void distributed_retainined(const Subscription_p &subscription) override {
       // handled by mqtt broker
     }
   };

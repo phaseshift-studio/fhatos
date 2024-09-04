@@ -33,6 +33,11 @@ namespace fhatos {
   static Map<string, Command> *MENU_MAP_ = nullptr;
 
   class Console final : public Actor<Thread, KeyValue> {
+  public:
+    ~Console() override {
+      delete MENU_MAP_;
+    }
+
   protected:
     string _line;
     bool _newInput = true;
@@ -63,7 +68,6 @@ namespace fhatos {
       }
     }
 
-  protected:
     explicit Console(const ID &id = ID("/io/repl/")) : Actor<Thread, KeyValue>(id) {
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
@@ -131,8 +135,9 @@ namespace fhatos {
           });
         MENU_MAP_->insert({
           ":shutdown",
-          { // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
-            "kill scheduler", [this](const Obj_p&) {
+          {
+            // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
+            "kill scheduler", [this](const Obj_p &) {
               Scheduler::singleton()->recv_mail(share(Mail{
                 share(Subscription{
                   .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),

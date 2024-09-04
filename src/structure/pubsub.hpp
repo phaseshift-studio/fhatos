@@ -70,13 +70,15 @@ namespace fhatos {
     MUTEX_LOCKOUT
   };
 
-  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK,                  "OK"},
-                                                                    {NO_TARGETS,          "no targets"},
-                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-                                                                    {NO_SUBSCRIPTION,     "no subscription"},
-                                                                    {NO_MESSAGE,          "no message"},
-                                                                    {ROUTER_ERROR,        "internal router error"},
-                                                                    {MUTEX_TIMEOUT,       "router timeout"}});
+  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({
+    {OK, "OK"},
+    {NO_TARGETS, "no targets"},
+    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+    {NO_SUBSCRIPTION, "no subscription"},
+    {NO_MESSAGE, "no message"},
+    {ROUTER_ERROR, "internal router error"},
+    {MUTEX_TIMEOUT, "router timeout"}
+  });
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
@@ -97,6 +99,15 @@ namespace fhatos {
       return {temp};
     }
 
+    [[nodiscard]] Rec_p to_rec() const {
+      return rec({
+        {uri("source"), uri(source)},
+        {uri("target"), uri(target)},
+        {uri("payload"), payload},
+        {uri("retain"), dool(retain)}
+      });
+    }
+
     /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
     static BObj_p wrapSource(const ID_p &source, const Obj_p &obj) {
       string wrap = source->toString();
@@ -115,7 +126,7 @@ namespace fhatos {
         if (index == string::npos)
           throw fError("bobj is not wrapped with source: %s\n", bobj->second);
         return Pair<ID_p, Obj_p>(
-                {id_p(unwrap.substr(0, index).c_str()), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
+          {id_p(unwrap.substr(0, index).c_str()), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
       } catch (const std::exception &e) {
         LOG_EXCEPTION(e);
         throw;
@@ -129,6 +140,7 @@ namespace fhatos {
   enum class QoS {
     _0 = 0, _1 = 1, _2 = 2, _3 = 3
   };
+
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
   using Message_p = ptr<Message>;
@@ -144,7 +156,8 @@ namespace fhatos {
     fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    Consumer<const Message_p> onRecv = [](const Message_p &) {};
+    Consumer<const Message_p> onRecv = [](const Message_p &) {
+    };
     BCode_p onRecvBCode = nullptr;
 
     [[nodiscard]] bool match(const ID &target) const { return this->pattern.matches(target); }
@@ -156,19 +169,6 @@ namespace fhatos {
       snprintf(temp, 250, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
                (uint8_t) qos, pattern.toString().c_str(), onRecvBCode ? onRecvBCode->toString().c_str() : "<c-impl>");
       return {temp};
-    }
-
-    Subscription executeAtSource(Mailbox *mailbox) {
-      const Consumer<const Message_p> originalOnRecv = Consumer<const Message_p>(this->onRecv);
-      this->onRecv = [this, originalOnRecv, mailbox](const Message_p &message) {
-        mailbox->recv_mail(share(Mail{share(Subscription{.source = this->source,
-                .pattern = this->pattern,
-                .qos = this->qos,
-                .onRecv = originalOnRecv,
-                .onRecvBCode = this->onRecvBCode}),
-                                      message}));
-      };
-      return *this;
     }
   };
 } // namespace fhatos

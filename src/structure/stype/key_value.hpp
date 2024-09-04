@@ -44,7 +44,7 @@ namespace fhatos {
       DATA->clear();
     }
 
-    void write_retained(const Subscription_p &subscription) override {
+    void distributed_retainined(const Subscription_p &subscription) override {
       MUTEX_DATA.read<void *>([this, subscription]() {
         for (const auto &[id,obj]: *this->DATA) {
           if (id->matches(subscription->pattern)) {

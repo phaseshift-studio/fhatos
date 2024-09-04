@@ -37,7 +37,7 @@ namespace fhatos {
       return id_structure_p;
     }
 
-    void write_retained(const Subscription_p &subscription) override {
+    void distributed_retainined(const Subscription_p &subscription) override {
       if (!this->id_obj->is_noobj() && this->pattern()->matches(subscription->pattern)) {
         subscription->onRecv(share(Message{
           .source = FOS_DEFAULT_SOURCE_ID, .target = ID(*this->pattern()), .payload = id_obj, .retain = RETAIN_MESSAGE
