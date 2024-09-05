@@ -43,6 +43,10 @@ namespace fhatos {
           string key = temp.substr(0, j);
           string value = temp.substr(j + 1);
           this->_map.insert({key, value});
+        } else {
+          string key = temp;
+          string value = "";
+          this->_map.insert({key,value});
         }
       }
     }
@@ -62,29 +66,30 @@ void setup() {
   try {
     load_processor();
     Kernel::build()
-            ->using_printer(Ansi<>::singleton())
-            ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO")))
-            ->displaying_splash(ANSI_ART)
-            ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !ynoobj!!")
-            ->displaying_notes("Use !b:help!! for !yconsole commands!!")
-                    ////////////////////////////////////////////////////////////
-            ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-            ->using_router(Router::singleton("/sys/router/"))
-                    ////////////////////////////////////////////////////////////
-            ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared"))
-            ->boot<Types>(Types::singleton("/type/"))
-            ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
-            ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+        ->using_printer(Ansi<>::singleton())
+        ->with_ansi_color(args.option("--ansi", "true") == "true")
+        ->with_log_level(LOG_TYPES.toEnum(args.option("--log", "INFO")))
+        ->displaying_splash(ANSI_ART)
+        ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
+        ->displaying_notes("Use !b:help!! for !yconsole commands!!")
+        ////////////////////////////////////////////////////////////
+        ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
+        ->using_router(Router::singleton("/sys/router/"))
+        ////////////////////////////////////////////////////////////
+        ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared"))
+        ->boot<Types>(Types::singleton("/type/"))
+        ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
+        ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
 #ifdef NATIVE
-            ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
-            ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
+        ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
+        ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
 #else
-                    ->boot<FileSystem>(FileSystem::singleton("/io/fs", "/fs"))
+                    ->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount","/fs")))
 #endif
-            ->boot<Console>(Console::create("/home/root/repl/"))
-            ->model({ID("/mod/proc")})
-            ->initial_terminal_owner("/home/root/repl/")
-            ->done("kernel_barrier");
+        ->boot<Console>(Console::create("/home/root/repl/"))
+        ->model({ID("/mod/proc")})
+        ->initial_terminal_owner("/home/root/repl/")
+        ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::sillyPrint("shutting down").c_str(), e.what());
   }
@@ -93,15 +98,23 @@ void setup() {
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler
 }
+
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 #ifdef NATIVE
 
-int main(int argc, char **argv) {
+int main(const int argc, char **argv) {
   args.init(argc, argv);
-  setup();
-  loop();
+  if (args.option("--help", "NO_HELP") != "NO_HELP") {
+    printf("FhatOS: A Distributed Operating System\n");
+    printf("  --%-5s=%5s\n","ansi","{true|false}");
+    printf("  --%-5s=%5s\n","log","{INFO,ERROR,DEBUG,TRACE,ALL,NONE}");
+    printf("  --%-5s=%5s\n","mount","{local_dir_path}");
+  } else {
+    setup();
+    loop();
+  }
   return 0;
 }
 
