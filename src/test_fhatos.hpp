@@ -69,7 +69,7 @@ inline bool deploy_shared_memory = false;
   if(deploy_types)                                                      \
     Model::deploy(Types::singleton());                                  \
   if(deploy_shared_memory)                                              \
-    Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern(("" == STR(FOS_DEPLOY_SHARED_MEMORY)) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
+    Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #define FOS_STOP_ON_BOOT ;
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////

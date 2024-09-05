@@ -286,8 +286,8 @@ namespace fhatos {
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function,
                              [[maybe_unused]] const int lineNumber = __LINE__) {
-      return fError("!b%s!g[!!%s!g]!! !yaccessed!! with %s\n", OTypes.toChars(obj->o_type()).c_str(),
-                    obj->toString().c_str(), function);
+      return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!\n", OTypes.toChars(obj->o_type()).c_str(),
+                    obj->toString().c_str(), string(function).replace(string(function).find("_value"), 6, "").c_str());
     }
 
     //////////////////////////////////////////////////////////////
@@ -985,8 +985,8 @@ namespace fhatos {
             }
             // Quad<InstArgs, InstFunction, IType, InstSeed>;
             return lhs->add_inst(
-                    Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed_supplier()),
-                                 this->id_), false);
+              Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed_supplier()),
+                           this->id_), false);
           }
           return this->inst_f()(this->inst_args())(lhs);
         }

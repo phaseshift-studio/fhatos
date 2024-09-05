@@ -224,7 +224,7 @@ namespace fhatos {
         retain)->wait();
     }
 
-    void publish_retained(const Subscription_p &subscription) override {
+    void publish_retained(const Subscription_p &) override {
       // handled by mqtt broker
     }
   };

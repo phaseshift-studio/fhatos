@@ -38,6 +38,7 @@ namespace fhatos {
     }
 
     void load_insts() {
+      const Str_p ARG_ERROR = str("No enough arguments provided");
       //this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       this->saveType(inst_id("plus"), Insts::plus(x(0)));
       this->saveType(inst_id("mult"), Insts::mult(x(0)));
@@ -68,8 +69,8 @@ namespace fhatos {
       this->saveType(inst_id("by"), Insts::by(x(0)));
       this->saveType(inst_id("type"), Insts::type());
       this->saveType(inst_id("is"), Insts::is(x(0)));
-      this->saveType(inst_id("from"), Insts::from(x(0, noobj()), x(1, noobj())));
-      this->saveType(inst_id("*"), Insts::from(x(0, noobj()), x(1, noobj())));
+      this->saveType(inst_id("from"), Insts::from(x(0), x(1)));
+      this->saveType(inst_id("*"), Insts::from(x(0), x(1)));
       this->saveType(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
       this->saveType(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->saveType(inst_id("within"), Insts::within(x(0)));
@@ -97,6 +98,9 @@ namespace fhatos {
       this->saveType(inst_id("until"), Insts::until(x(0)));
       this->saveType(inst_id("dedup"), Insts::dedup(x(0, bcode())));
       this->saveType(inst_id("insert"), Insts::insert(x(0)));
+      this->saveType(inst_id("and"), Insts::x_and(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->saveType(inst_id("or"), Insts::x_or(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->saveType(inst_id("error"), Insts::error(x(0,str("an error occurred"))));
     }
 
   public:

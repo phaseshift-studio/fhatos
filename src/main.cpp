@@ -88,7 +88,7 @@ void setup() {
                     ->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount","/fs")))
 #endif
         ->boot<Console>(Console::create("/home/root/repl/"))
-        ->model({ID("/model/process"), ID("/model/pubsub")})
+        ->model({ID("/model/sys"), ID("/model/pubsub")})
         ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");
   } catch (const std::exception &e) {

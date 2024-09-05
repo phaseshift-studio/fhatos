@@ -32,27 +32,20 @@ namespace fhatos {
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
           share(Map<ID, List<Pair<ID, Type_p>>>{
-            {
-              "/model/process",
-              {
-                {"/type/rec/thread", OBJ_PARSER("[setup=>_,loop=>_]")},
-                {"/type/rec/fiber", OBJ_PARSER("[setup=>_,loop=>_]")},
-                {"/type/rec/coroutine", OBJ_PARSER("[setup=>_,loop=>_]")},
-                {
-                  "/type/inst/stop",
-                  OBJ_PARSER("map(noobj).to(*_0)")
-                }
-              }
-            },
-            {
-              "/model/pubsub",
-              {
-                {
-                  "/type/rec/sub",
-                  OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>is(gt(0)).is(lt(4)),:on_recv=>_]")
-                },
-                {"/type/rec/pub", OBJ_PARSER("[:source=>uri[_],:target=>uri[_],:payload=>_,:retain=>bool[_]]")},
-              }
+            {"/model/sys", {
+              {"/type/rec/thread", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/fiber", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/coroutine", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/process",OBJ_PARSER("_")},
+              {"/type/rec/kv", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/heap", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/structure",OBJ_PARSER("[_]")},
+              {"/type/rec/actor",OBJ_PARSER("")},
+              {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")}}},
+            {"/model/pubsub", {
+                {"/type/rec/sub",
+                  OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>is(gt(0)).is(lt(4)),:on_recv=>_]")},
+                {"/type/rec/pub", OBJ_PARSER("[:source=>uri[_],:target=>uri[_],:payload=>_,:retain=>bool[_]]")}}
             }
           });
       /* {"/ext/collection",

@@ -143,7 +143,9 @@ namespace fhatos {
                   .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),
                   .onRecv = [](const Message_p &) { Scheduler::singleton()->stop(); }
                 }),
-                share(Message{.source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj()})
+                share(Message{
+                  .source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true
+                })
               }));
             },
             [this]() {
@@ -152,7 +154,9 @@ namespace fhatos {
                   .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),
                   .onRecv = [](const Message_p &) { Scheduler::singleton()->stop(); }
                 }),
-                share(Message{.source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj()})
+                share(Message{
+                  .source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true
+                })
               }));
             }
           }

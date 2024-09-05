@@ -170,23 +170,23 @@ namespace fhatos {
     }
 
     virtual fURI make_native_path(const ID &path) const {
-      const string tempPathString = path.toString();
-      const string tempIDString = this->id()->toString();
-      const string tempPath = ((tempPathString.length() >= tempIDString.length()) &&
-                               (tempPathString.substr(0, tempIDString.length()) == tempIDString))
-                                ? tempPathString.substr(tempIDString.length())
-                                : tempPathString;
-      const fURI localPath =
+      const string temp_path_string = path.toString();
+      const string temp_id_string = this->id()->toString();
+      const string temp_path = ((temp_path_string.length() >= temp_id_string.length()) &&
+                               (temp_path_string.substr(0, temp_id_string.length()) == temp_id_string))
+                                ? temp_path_string.substr(temp_id_string.length())
+                                : temp_path_string;
+      const fURI local_path =
           this->mount_root_->resolve(
-            (!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
-      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
+            (!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
+      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
-      if (!this->mount_root_->is_subfuri_of(localPath)) {
+      if (!this->mount_root_->is_subfuri_of(local_path)) {
         throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
-                     this->id()->toString().c_str(), localPath.toString().c_str(),
+                     this->id()->toString().c_str(), local_path.toString().c_str(),
                      this->mount_root_->toString().c_str());
       }
-      return localPath;
+      return local_path;
     }
 
     virtual fURI make_fhatos_path(const ID &path) const {
@@ -255,13 +255,13 @@ namespace fhatos {
       }
     }
 
-    void publish_retained(const Subscription_p &subscription) override {
+    void publish_retained(const Subscription_p &) override {
       // TODO:
     }
 
     virtual void write(
       [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
-      [[maybe_unused]] const ID_p &source, const bool retain) override {
+      [[maybe_unused]] const ID_p &source, [[maybe_unused]] const bool retain) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

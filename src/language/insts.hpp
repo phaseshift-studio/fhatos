@@ -49,7 +49,7 @@ namespace fhatos {
         return [args](const Objs_p &barrier) {
           List<Obj_p> filtered;
           Set<Obj> feature;
-          for (const Obj_p& obj: *barrier->objs_value()) {
+          for (const Obj_p &obj: *barrier->objs_value()) {
             const Obj_p feat = args.at(0)->apply(obj);
             if (!feature.contains(*feat)) {
               feature.insert(*feat);
@@ -440,13 +440,13 @@ namespace fhatos {
       return Obj::to_inst(
         "by", {by_modulator},
         [](const InstArgs &) {
-          return [](const Obj_p &THROW_ERROR) {
+          return [](const Obj_p &) {
             if (true)
               throw fError("by()-modulations must be rewritten away");
-            return THROW_ERROR;
+            return noobj();
           };
         },
-        IType::ONE_TO_ONE);
+        IType::ONE_TO_ZERO);
     }
 
     static Rec_p group(
@@ -672,6 +672,48 @@ namespace fhatos {
           return ret;
         };
       }, IType::MANY_TO_MANY, Obj::objs_seed());
+    }
+
+    static Bool_p x_or(const Bool_p &a, const Bool_p &b, const Bool_p &c, const Bool_p &d) {
+      return Obj::to_inst(
+        "or", {a, b, c, d},
+        [](const InstArgs &args) {
+          return [args](const Bool_p &lhs) {
+            bool result = false; // OR starts false
+            for (const Obj_p &arg: args) {
+              if (!arg->is_noobj())
+                result = result || arg->apply(lhs)->bool_value();
+            }
+            return dool(result);
+          };
+        }, IType::ONE_TO_ONE);
+    }
+
+    static Bool_p x_and(const Bool_p &a, const Bool_p &b, const Bool_p &c, const Bool_p &d) {
+      return Obj::to_inst(
+        "and", {a, b, c, d},
+        [](const InstArgs &args) {
+          return [args](const Bool_p &lhs) {
+            bool result = true; // AND starts true
+            for (const Obj_p &arg: args) {
+              if (!arg->is_noobj())
+                result = result && arg->apply(lhs)->bool_value();
+            }
+            return dool(result);
+          };
+        }, IType::ONE_TO_ONE);
+    }
+
+    static Bool_p error(const Str_p &message) {
+      return Obj::to_inst(
+        "error", {message},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) {
+            if (true)
+              throw fError((args.at(0)->str_value() + "\n").c_str());
+            return lhs;
+          };
+        }, IType::ONE_TO_ZERO);
     }
 
     static Obj_p within(const BCode_p &bcode) {

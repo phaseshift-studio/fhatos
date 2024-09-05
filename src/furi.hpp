@@ -250,7 +250,7 @@ namespace fhatos {
     ////////////////////////////////////////////////////////////////
 
     fURI extend(const fURI &furi_path) const {
-      return this->extend(furi_path.path().c_str()); 
+      return this->extend(furi_path.path().c_str());
     }
 
     fURI extend(const char *extension) const {
