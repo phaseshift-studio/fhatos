@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_cluster_hpp
-#define fhatos_cluster_hpp
+#ifndef fhatos_distributed_memory_hpp
+#define fhatos_distributed_memory_hpp
 
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
@@ -29,16 +29,16 @@ namespace fhatos {
 /**
  * @brief A distributed shared memory structure supporting multiple authorities via @code{//+/+}.
  */
-  class DistributedSharedMemory : public Actor<Fiber, Mqtt> {
+  class DistributedMemory : public Actor<Fiber, Mqtt> {
 
   protected:
-    explicit DistributedSharedMemory(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") :
+    explicit DistributedMemory(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") :
             Actor<Fiber, Mqtt>(id, pattern) {}
 
   public:
-    static ptr<DistributedSharedMemory> create(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") {
-      ptr<DistributedSharedMemory> dsm_p = ptr<DistributedSharedMemory>(new DistributedSharedMemory(id, pattern));
-      return dsm_p;
+    static ptr<DistributedMemory> create(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") {
+      ptr<DistributedMemory> memory_p = ptr<DistributedMemory>(new DistributedMemory(id, pattern));
+      return memory_p;
     }
   };
 

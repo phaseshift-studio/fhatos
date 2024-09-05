@@ -27,7 +27,7 @@
 #include FOS_FILE_SYSTEM(fs.hpp)
 
 #ifdef NATIVE
-#include <model/distributed_shared_memory.hpp>
+#include <model/distributed_memory.hpp>
 #endif
 
 namespace fhatos {
@@ -77,7 +77,7 @@ void setup() {
             ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
 #ifdef NATIVE
             ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
-            ->boot<DistributedSharedMemory>(DistributedSharedMemory::create("/sys/memory/cluster"))
+            ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
 #else
                     ->boot<FileSystem>(FileSystem::singleton("/io/fs", "/fs"))
 #endif
