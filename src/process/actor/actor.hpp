@@ -89,7 +89,7 @@ namespace fhatos {
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
     void setup() override {
-      if (!this->_id->matches(*this->pattern())) {
+      if (!this->id_->matches(*this->pattern())) {
         const ptr<IDStructure> id_struct = IDStructure::create(this->id());
         router()->attach(id_struct);
         id_struct->setup();
@@ -111,8 +111,8 @@ namespace fhatos {
     //////////////////////////////////////////////////// STOP
     void stop() override {
       this->should_be_active();
-      if (!this->_id->matches(*this->pattern()))
-        router()->detach(p_p(*this->_id));
+      if (!this->id_->matches(*this->pattern()))
+        router()->detach(p_p(*this->id_));
       router()->detach(this->pattern());
       PROCESS::stop();
       STRUCTURE::stop();

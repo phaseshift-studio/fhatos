@@ -276,7 +276,7 @@ namespace fhatos {
     explicit Obj(const Any &value, const OType otype, const ID_p &typeId) : IDed(OTYPE_FURI.at(otype)),
                                                                             _value(value) {
       TYPE_CHECKER(*this, otype, typeId);
-      this->_id = typeId;
+      this->id_ = typeId;
     }
 
     explicit Obj(const Any &value, const ID_p &typeId) : Obj(
@@ -343,7 +343,7 @@ namespace fhatos {
     }
 
     //////////////////////////////////////////////////////////////
-    [[nodiscard]] OType o_type() const { return OTypes.toEnum(this->_id->path(FOS_BASE_TYPE_INDEX)); }
+    [[nodiscard]] OType o_type() const { return OTypes.toEnum(this->id_->path(FOS_BASE_TYPE_INDEX)); }
 
     template<typename VALUE>
     VALUE value() const {
@@ -449,7 +449,7 @@ namespace fhatos {
     [[nodiscard]] string inst_op() const {
       if (!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->_id->name();
+      return this->id_->name();
     }
 
     [[nodiscard]] InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
@@ -627,9 +627,9 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTypes.toChars(this->o_type()).c_str());
       }
-      objString = (includeType && (this->_id->path_length() > 2))
+      objString = (includeType && (this->id_->path_length() > 2))
                   ? string("!b")
-                          .append(this->_id->name())
+                          .append(this->id_->name())
                           .append(this->is_inst() ? "!g(!!" : "!g[!!")
                           .append(objString)
                           .append(this->is_inst() ? "!g)!!" : "!g]!!")
@@ -820,7 +820,7 @@ namespace fhatos {
     bool operator!=(const Obj &other) const { return !(*this == other); }
 
     bool operator==(const Obj &other) const {
-      if (!this->_id->equals(*other._id)) // type check
+      if (!this->id_->equals(*other.id_)) // type check
         return false;
       switch (this->o_type()) {
         case OType::NOOBJ:
@@ -974,7 +974,7 @@ namespace fhatos {
             const Obj_p key_apply = key->apply(lhs);
             newPairs->insert({key_apply, value->apply(key_apply)});
           }
-          return Obj::to_rec(newPairs, this->_id);
+          return Obj::to_rec(newPairs, this->id_);
         }
         case OType::INST: {
           if (lhs->is_bcode()) {
@@ -985,7 +985,7 @@ namespace fhatos {
             // Quad<InstArgs, InstFunction, IType, InstSeed>;
             return lhs->add_inst(
                     Obj::to_inst(InstValue(newArgs, this->inst_f(), this->itype(), this->inst_seed_supplier()),
-                                 this->_id), false);
+                                 this->id_), false);
           }
           return this->inst_f()(this->inst_args())(lhs);
         }
@@ -1103,7 +1103,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p as(const ID_p &furi) const {
-      const ID_p resolution = share(ID(this->_id->resolve(*furi)));
+      const ID_p resolution = share(ID(this->id_->resolve(*furi)));
       return share<Obj>(Obj(this->_value, OTypes.toEnum(resolution->path(FOS_BASE_TYPE_INDEX)), resolution));
     }
 
@@ -1256,7 +1256,7 @@ namespace fhatos {
     }
 
     Obj_p clone() {
-      return share(Obj(any(this->_value), id_p(*this->_id)));
+      return share(Obj(any(this->_value), id_p(*this->id_)));
     }
 
     ptr<BObj> serialize() const {
