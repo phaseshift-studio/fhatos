@@ -98,10 +98,10 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static void done(const char *barrier = "kernel_barrier") {
-      Scheduler::singleton()->barrier(barrier, nullptr,
+    static void done(const char *barrier = "kernel_barrier",Supplier<bool> ret = nullptr) {
+      Scheduler::singleton()->barrier(barrier, ret,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
-      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::sillyPrint("shutting down").c_str());
+      printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
     }
   };
 } // namespace fhatos

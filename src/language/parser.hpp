@@ -302,6 +302,28 @@ namespace fhatos {
       }
       StringHelper::trim(typeToken);
       StringHelper::trim(valueToken);
+      if (typeToken == "obj")
+        typeToken = OBJ_FURI->toString();
+      else if (typeToken == "noobj")
+        typeToken = NOOBJ_FURI->toString();
+      else if (typeToken == "bool")
+        typeToken = BOOL_FURI->toString();
+      else if (typeToken == "int")
+        typeToken = INT_FURI->toString();
+      else if (typeToken == "real")
+        typeToken = REAL_FURI->toString();
+      else if (typeToken == "str")
+        typeToken = STR_FURI->toString();
+      else if (typeToken == "uri")
+        typeToken = URI_FURI->toString();
+      else if (typeToken == "lst")
+        typeToken = LST_FURI->toString();
+      else if (typeToken == "rec")
+        typeToken = REC_FURI->toString();
+      else if (typeToken == "bcode")
+        typeToken = BCODE_FURI->toString();
+      else if (typeToken == "objs")
+        typeToken = OBJS_FURI->toString();
       if (Options::singleton()->log_level<LOG_TYPE>() <= TRACE) {
         LOG(TRACE, "!ytype token!!: !g%s!!" FOS_TAB_3 "!yvalue token!!: !g%s!!\n", typeToken.c_str(),
             valueToken.c_str());

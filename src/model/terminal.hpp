@@ -44,7 +44,7 @@ namespace fhatos {
       this->subscribe(this->id()->extend("out"), [](const Message_p &message) {
         if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
           if (strcmp(message->target.name(), "no_color") == 0) {
-            const string no = printer<>()->strip(message->payload->str_value());
+            const string no = Ansi<>::strip(message->payload->str_value());
             printer<>()->print(no.c_str());
           } else
             printer<>()->print(message->payload->str_value().c_str());

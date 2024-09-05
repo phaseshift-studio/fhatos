@@ -33,7 +33,7 @@ namespace fhatos {
   concept CheckStructureProcess = std::is_base_of_v<Process, P> && std::is_base_of_v<Structure, S>;
 
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
-  requires CheckStructureProcess<PROCESS, STRUCTURE, Process, Structure>
+  //requires CheckStructureProcess<PROCESS, STRUCTURE, Process, Structure>
   class Actor
       : public PROCESS,
         public STRUCTURE,

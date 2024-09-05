@@ -38,23 +38,22 @@ namespace fhatos {
   static const ID_p INST_FS_FURI = id_p(FOS_TYPE_PREFIX "inst/fs:");
   static const ID_p INST_ROOT_FURI = id_p(INST_FS_FURI->resolve("root"));
 
-  class Mount: public Structure {
+  class Mount : public Structure {
   public:
     explicit Mount(const Pattern &pattern): Structure(pattern, SType::READWRITE) {
     }
   };
 
-  class XFileSystem: public Actor<Fiber, Mount> {
+  class XFileSystem : public Actor<Fiber, Mount> {
   protected:
     const ID_p mount_root_;
 
   public:
     explicit XFileSystem(const ID &id, const ID &mount_root): Actor(id, id.extend("#")),
-            mount_root_(id_p(mount_root.extend("/"))) {
+                                                              mount_root_(id_p(mount_root.extend("/"))) {
     }
 
     void setup() override {
-
       LOG_PROCESS(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
       Types::singleton()->loop();
@@ -79,75 +78,75 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////////
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("root")),
                                    Obj::to_inst(
-                                           "root", {}, [this](const InstArgs &) {
-                                             return [this](const Obj_p &) { return this->root(); };
-                                           },
-                                           IType::ZERO_TO_ONE, Obj::objs_seed(),
-                                           id_p(INST_FS_FURI->resolve("root"))));
+                                     "root", {}, [this](const InstArgs &) {
+                                       return [this](const Obj_p &) { return this->root(); };
+                                     },
+                                     IType::ZERO_TO_ONE, Obj::objs_seed(),
+                                     id_p(INST_FS_FURI->resolve("root"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("ls")),
                                    Obj::to_inst(
-                                           "ls", {x(0, bcode())},
-                                           [this](const InstArgs &args) {
-                                             return [this, args](const Obj_p &lhs) {
-                                               return args.empty()
-                                                      ? this->ls(lhs)
-                                                      : this->ls(args.at(0)->apply(lhs));
-                                             };
-                                           },
-                                           IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
+                                     "ls", {x(0, bcode())},
+                                     [this](const InstArgs &args) {
+                                       return [this, args](const Obj_p &lhs) {
+                                         return args.empty()
+                                                  ? this->ls(lhs)
+                                                  : this->ls(args.at(0)->apply(lhs));
+                                       };
+                                     },
+                                     IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("mkdir")),
                                    Obj::to_inst(
-                                           "fs:mkdir", {x(0, bcode())},
-                                           [this](const InstArgs &args) {
-                                             return [this, args](const Obj_p &lhs) {
-                                               return this->mkdir(args.at(0)->apply(lhs)->uri_value());
-                                             };
-                                           },
-                                           IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                           id_p(INST_FS_FURI->resolve("mkdir"))));
+                                     "fs:mkdir", {x(0, bcode())},
+                                     [this](const InstArgs &args) {
+                                       return [this, args](const Obj_p &lhs) {
+                                         return this->mkdir(args.at(0)->apply(lhs)->uri_value());
+                                       };
+                                     },
+                                     IType::ONE_TO_ONE, Obj::noobj_seed(),
+                                     id_p(INST_FS_FURI->resolve("mkdir"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("more")),
                                    Obj::to_inst(
-                                           "fs:more", {x(0, Obj::to_bcode()), x(1, jnt(10))},
-                                           [this](const InstArgs &args) {
-                                             return [this, args](const Obj_p &lhs) {
-                                               if (args.empty())
-                                                 return this->more(lhs, FOS_DEFAULT_MORE_LINES);
-                                               if (args.size() == 1) {
-                                                 const Obj_p ap_arg0 = args.at(0)->apply(lhs);
-                                                 if (ap_arg0->is_int())
-                                                   return this->more(lhs, ap_arg0->int_value());
-                                                 else
-                                                   return this->more(ap_arg0, FOS_DEFAULT_MORE_LINES);
-                                               } else {
-                                                 const Obj_p ap_arg0 = args.at(0)->apply(lhs);
-                                                 const Obj_p ap_arg1 = args.at(1)->apply(lhs);
-                                                 return this->more(ap_arg0, ap_arg1->int_value());
-                                               }
-                                             };
-                                           },
-                                           IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                           id_p(INST_FS_FURI->resolve("more"))));
+                                     "fs:more", {x(0, Obj::to_bcode()), x(1, jnt(10))},
+                                     [this](const InstArgs &args) {
+                                       return [this, args](const Obj_p &lhs) {
+                                         if (args.empty())
+                                           return this->more(lhs, FOS_DEFAULT_MORE_LINES);
+                                         if (args.size() == 1) {
+                                           const Obj_p ap_arg0 = args.at(0)->apply(lhs);
+                                           if (ap_arg0->is_int())
+                                             return this->more(lhs, ap_arg0->int_value());
+                                           else
+                                             return this->more(ap_arg0, FOS_DEFAULT_MORE_LINES);
+                                         } else {
+                                           const Obj_p ap_arg0 = args.at(0)->apply(lhs);
+                                           const Obj_p ap_arg1 = args.at(1)->apply(lhs);
+                                           return this->more(ap_arg0, ap_arg1->int_value());
+                                         }
+                                       };
+                                     },
+                                     IType::ONE_TO_ONE, Obj::noobj_seed(),
+                                     id_p(INST_FS_FURI->resolve("more"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("append")),
                                    Obj::to_inst(
-                                           "fs:append", {x(0)},
-                                           [this](const InstArgs &args) {
-                                             Insts::arg_check(id_p(INST_FS_FURI->resolve("append")), args, 1);
-                                             return [this, args](const Obj_p &lhs) {
-                                               return this->cat(lhs, args.at(0)->apply(lhs));
-                                             };
-                                           },
-                                           IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                           id_p(INST_FS_FURI->resolve("append"))));
+                                     "fs:append", {x(0)},
+                                     [this](const InstArgs &args) {
+                                       Insts::arg_check(id_p(INST_FS_FURI->resolve("append")), args, 1);
+                                       return [this, args](const Obj_p &lhs) {
+                                         return this->cat(lhs, args.at(0)->apply(lhs));
+                                       };
+                                     },
+                                     IType::ONE_TO_ONE, Obj::noobj_seed(),
+                                     id_p(INST_FS_FURI->resolve("append"))));
       Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("touch")),
                                    Obj::to_inst(
-                                           "fs:touch", {x(0, bcode())},
-                                           [this](const InstArgs &args) {
-                                             return [this, args](const Obj_p &lhs) {
-                                               return this->touch(args.at(0)->apply(lhs)->uri_value());
-                                             };
-                                           },
-                                           IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                           id_p(INST_FS_FURI->resolve("touch"))));
+                                     "fs:touch", {x(0, bcode())},
+                                     [this](const InstArgs &args) {
+                                       return [this, args](const Obj_p &lhs) {
+                                         return this->touch(args.at(0)->apply(lhs)->uri_value());
+                                       };
+                                     },
+                                     IType::ONE_TO_ONE, Obj::noobj_seed(),
+                                     id_p(INST_FS_FURI->resolve("touch"))));
       Types::singleton()->loop();
       Actor::setup();
     }
@@ -175,11 +174,11 @@ namespace fhatos {
       const string tempIDString = this->id()->toString();
       const string tempPath = ((tempPathString.length() >= tempIDString.length()) &&
                                (tempPathString.substr(0, tempIDString.length()) == tempIDString))
-                              ? tempPathString.substr(tempIDString.length())
-                              : tempPathString;
+                                ? tempPathString.substr(tempIDString.length())
+                                : tempPathString;
       const fURI localPath =
-              this->mount_root_->resolve(
-                      (!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
+          this->mount_root_->resolve(
+            (!tempPath.empty() && tempPath[0] == '/') ? tempPath.substr(1) : tempPath);
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", localPath.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(localPath)) {
@@ -222,7 +221,9 @@ namespace fhatos {
 
     //// CORE STRUCTURE FUNCTIONS
 
-    Obj_p read(const fURI_p &furi, const ID_p &) override {
+    Obj_p read(const fURI_p &furi, const ID_p &source) override {
+      const Option<Obj_p> meta = this->try_meta(furi, source);
+      if (meta.has_value()) return meta.value();
       // TODO: source
       if (furi->is_pattern()) {
         List<Dir_p> listA = {root()};
@@ -243,19 +244,24 @@ namespace fhatos {
           listA = List<Dir_p>(listB);
           listB.clear();
         }
-        return objs(listA);
+        List<Uri_p> ret;
+        for (const auto &f: listA) {
+          if (f->uri_value().matches(*furi))
+            ret.push_back(f->as(URI_FURI));
+        }
+        return objs(ret);
       } else {
         return !is_fs(*furi) ? noobj() : to_fs(*furi);
       }
     }
 
     void publish_retained(const Subscription_p &subscription) override {
-     // TODO:
+      // TODO:
     }
 
     virtual void write(
-            [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
-            [[maybe_unused]] const ID_p &source,const bool retain) override {
+      [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
+      [[maybe_unused]] const ID_p &source, const bool retain) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

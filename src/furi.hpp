@@ -229,12 +229,12 @@ namespace fhatos {
     /// QUERY
     [[nodiscard]] const char *query() const { return this->query_ ? this->query_ : ""; }
 
-    [[nodiscard]] bool has_query() const { return this->query_ != nullptr; }
+    [[nodiscard]] bool has_query() const { return this->query_ != nullptr && 0 != strlen(this->query_); }
 
     fURI query(const char *query) const {
       auto new_uri = fURI(*this);
       FOS_SAFE_FREE(new_uri.query_);
-      new_uri.query_ = 0 == strlen(query) ? nullptr : strdup(query);
+      new_uri.query_ = nullptr == query || 0 == strlen(query) ? nullptr : strdup(query);
       return new_uri;
     }
 
@@ -439,7 +439,7 @@ namespace fhatos {
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       this->path_length_ = other.path_length_;
-      this->query_ = other.query_ ? strdup(other.query_) : nullptr;
+      this->query_ = other.query_ && strcmp("",other.query_) != 0? strdup(other.query_) : nullptr;
       this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
       for (uint8_t i = 0; i < other.path_length_; i++) {

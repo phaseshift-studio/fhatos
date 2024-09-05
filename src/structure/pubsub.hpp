@@ -164,6 +164,15 @@ namespace fhatos {
 
     void execute(const Message_p &message) const { onRecv(message); }
 
+    [[nodiscard]] Rec_p to_rec() const {
+      return rec({
+        {uri("source"), uri(source)},
+        {uri("pattern"), uri(pattern)},
+        {uri("qos"), jnt((int) qos)},
+        {uri("onRecv"), onRecvBCode ? onRecvBCode : bcode()}
+      });
+    }
+
     [[nodiscard]] string toString() const {
       char temp[250];
       snprintf(temp, 250, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),

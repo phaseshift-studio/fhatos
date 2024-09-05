@@ -32,8 +32,6 @@
 #define fhatos_heap_hpp
 
 #include <fhatos.hpp>
-#include <process/actor/actor.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 #include <structure/stype/key_value.hpp>
 
 namespace fhatos {

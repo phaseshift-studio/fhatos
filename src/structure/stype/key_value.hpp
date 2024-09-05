@@ -27,7 +27,8 @@
 namespace fhatos {
   class KeyValue : public Structure {
   protected:
-    ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(Map<ID_p, const Obj_p, furi_p_less>());
+    ptr<Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>> DATA = share(
+      Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
     explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {
@@ -48,9 +49,9 @@ namespace fhatos {
       MUTEX_DATA.read<void *>([this, subscription]() {
         for (const auto &[id,obj]: *this->DATA) {
           if (id->matches(subscription->pattern)) {
-            if (!obj->is_noobj()) {
+            if (!obj.first->is_noobj()) {
               subscription->onRecv(share(Message{
-                .source = FOS_DEFAULT_SOURCE_ID, .target = *id, .payload = obj, .retain = RETAIN_MESSAGE
+                .source = *obj.second, .target = *id, .payload = obj.first, .retain = RETAIN_MESSAGE
               }));
             }
           }
@@ -67,7 +68,7 @@ namespace fhatos {
             DATA->erase(target);
           }
           if (!payload_copy->is_noobj()) {
-            DATA->insert({id_p(*target), payload_copy}); // why such a deep copy needed?
+            DATA->insert({id_p(*target), std::make_pair(payload_copy, source)}); // why such a deep copy needed?
             LOG_STRUCTURE(TRACE, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
                           payload_copy->toString().c_str());
           }
@@ -84,6 +85,8 @@ namespace fhatos {
     }
 
     Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
+      FOS_TRY_META
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       if (furi->is_pattern()) {
         return MUTEX_DATA.read<Objs_p>([this, furi]() {
           Objs_p objs = Obj::to_objs();
@@ -95,14 +98,14 @@ namespace fhatos {
             }
           } else {
             const ID_p id = id_p(*furi);
-            const Obj_p toadd = DATA->count(id) ? obj(*(DATA->at(id))) : noobj();
+            const Obj_p toadd = DATA->count(id) ? DATA->at(id).first : noobj();
             objs->add_obj(toadd);
           }
           return objs;
         });
       }
       return MUTEX_DATA.read<Obj_p>(
-        [this, furi] { return DATA->count(id_p(*furi)) ? obj(*(DATA->at(id_p(*furi)))) : noobj(); });
+        [this, furi] { return DATA->count(id_p(*furi)) ? DATA->at(id_p(*furi)).first : noobj(); });
     }
   };
 } // namespace fhatos

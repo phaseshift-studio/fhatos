@@ -26,9 +26,10 @@
 namespace fhatos {
   class IDStructure : public Structure {
   protected:
-    Obj_p id_obj = noobj();
+    Obj_p id_obj_ = noobj();
+    ID_p id_id_ = nullptr;
 
-    explicit IDStructure(const ID_p &id) : Structure(Pattern(*id), SType::READWRITE) {
+    explicit IDStructure(const ID_p &id) : Structure(Pattern(*id), SType::READWRITE), id_id_(id) {
     }
 
   public:
@@ -38,21 +39,25 @@ namespace fhatos {
     }
 
     void publish_retained(const Subscription_p &subscription) override {
-      if (!this->id_obj->is_noobj() && this->pattern()->matches(subscription->pattern)) {
+      if (!this->id_obj_->is_noobj() && this->pattern()->matches(subscription->pattern)) {
         subscription->onRecv(share(Message{
-          .source = FOS_DEFAULT_SOURCE_ID, .target = ID(*this->pattern()), .payload = id_obj, .retain = RETAIN_MESSAGE
+          .source = *id_id_, .target = ID(*this->pattern()), .payload = id_obj_, .retain = RETAIN_MESSAGE
         }));
       }
     }
 
     void write(const ID_p &id, const Obj_p &obj, const ID_p &source, const bool retain) override {
-      if (id->matches(*this->pattern()) && retain)
-        this->id_obj = obj;
+      if (id->matches(*this->pattern()) && retain) {
+        this->id_obj_ = obj;
+        this->id_id_ = source;
+      }
       distribute_to_subscribers(share(Message{.source = *source, .target = *id, .payload = obj, .retain = retain}));
     }
 
-    Obj_p read(const fURI_p &id, const ID_p &) override {
-      return id->matches(*this->pattern()) ? this->id_obj : noobj();
+    Obj_p read(const fURI_p &furi, const ID_p &source) override {
+      FOS_TRY_META
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      return furi->matches(*this->pattern()) ? this->id_obj_ : noobj();
     }
   };
 }

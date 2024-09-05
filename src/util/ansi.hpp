@@ -89,11 +89,11 @@ namespace fhatos {
       BLACK = 0, // !b
       RED = 1, // !r
       GREEN = 2, // !g
-      YELLOW = 3,
-      BLUE = 4,
-      MAGENTA = 5,
-      CYAN = 6,
-      WHITE = 7,
+      YELLOW = 3, // !y
+      BLUE = 4, // !b
+      MAGENTA = 5, // !m
+      CYAN = 6, // !c
+      WHITE = 7, // !w
       BRIGHT = 8, //  Add this to any of the previous 8 to get a bright color
     };
 
@@ -108,16 +108,18 @@ namespace fhatos {
     //  * gray color:                     ANSI::gray2color(gray)
     //  * RGB color:                      ANSI::rgb2color(r, g, b)
 
-    void parse(const char *buffer, const int bufferLength) {
-      for (int i = 0; i < bufferLength; i++) {
+    void parse(const char *buffer, const int buffer_length) {
+      for (int i = 0; i < buffer_length; i++) {
         if (buffer[i] < 0 || buffer[i] > 126)
           continue;
         if (buffer[i] == '!') {
           const char j = buffer[i + 1];
-          if ('_' == j)
-            this->underline();
-          else if ('!' == j)
+          if ('!' == j)
             this->normal();
+          else if ('_' == j)
+            this->underline();
+          else if('~' == j)
+            this->italic();
           else {
             if (isupper(j))
               this->bold();
@@ -159,7 +161,7 @@ namespace fhatos {
 
     explicit Ansi(PRINTER printer) : printer(printer) {}
 
-    void on(bool turnOn = true) { this->_on = turnOn; }
+    void on(bool turn_on = true) { this->_on = turn_on; }
 
     void print(const char c) { this->parse(&c, 1); }
 
@@ -171,21 +173,21 @@ namespace fhatos {
       this->print('\n');
     }
 
-    PRINTER getPrinter() { return this->printer; }
+    PRINTER get_printer() { return this->printer; }
 
     void flush() {
       this->_buffer.clear();
       this->printer.flush();
     }
 
-    string strip(const string &s) const {
+    static string strip(const string &s) {
       auto a = std::string();
       auto b = StringPrinter(&a);
       auto ansi = Ansi<StringPrinter>(b);
       ansi.on(false);
       ansi.print(s.c_str());
       ansi.flush();
-      string ret = string(ansi.getPrinter().get());
+      string ret = string(ansi.get_printer().get());
       return ret;
     }
 
@@ -203,6 +205,11 @@ namespace fhatos {
     void normal() {
       if (this->_on)
         this->print("\033[0m");
+    }
+
+    void italic() {
+      if (this->_on)
+        this->print("\033[3m");
     }
 
     void underline() {
@@ -251,7 +258,7 @@ namespace fhatos {
         this->print("\033[1C");
     }
 
-    static string sillyPrint(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
+    static string silly_print(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
       srand(time(nullptr));
       const string colors = "rgbmcy";
       string ret;

@@ -44,32 +44,32 @@ namespace fhatos {
     }
 
     void stop() {
-      auto *readCount = new atomic_int(0);
-      auto *writeCount = new atomic_int(0);
-      auto *readWriteCount = new atomic_int(0);
-      this->structures_mutex_.read<void *>([this, readCount, writeCount, readWriteCount]() {
+      auto *read_count = new atomic_int(0);
+      auto *write_count = new atomic_int(0);
+      auto *read_write_count = new atomic_int(0);
+      this->structures_mutex_.read<void *>([this, read_count, write_count, read_write_count]() {
         for (const auto &pair: *this->structures_) {
           switch (pair.second->stype) {
             case SType::READ:
-              readCount->fetch_add(1);
+              read_count->fetch_add(1);
               break;
             case SType::WRITE:
-              writeCount->fetch_add(1);
+              write_count->fetch_add(1);
               break;
             case SType::READWRITE:
-              readWriteCount->fetch_add(1);
+              read_write_count->fetch_add(1);
               break;
           }
         }
         return nullptr;
       });
       LOG_STRUCTURE(INFO, this, "!yStopping!g %i !yreads!! | !g%i !ywrites!! | !g%i !yreadwrites!!\n",
-                    readCount->load(),
-                    writeCount->load(),
-                    readWriteCount->load());
-      delete readCount;
-      delete writeCount;
-      delete readWriteCount;
+                    read_count->load(),
+                    write_count->load(),
+                    read_write_count->load());
+      delete read_count;
+      delete write_count;
+      delete read_write_count;
       this->detach(p_p("#"));
       LOG_STRUCTURE(INFO, this, "!yrouter !b%s!! stopped\n", this->pattern()->toString().c_str());
     }

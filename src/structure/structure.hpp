@@ -27,7 +27,14 @@
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
 
+#define FOS_TRY_META \
+const Option<Obj_p> meta = this->try_meta(furi,source); \
+if (meta.has_value()) return meta.value();
+
+
 namespace fhatos {
+  class Router;
+
   enum class SType {
     READ, WRITE, READWRITE, DEPENDENT
   };
@@ -41,12 +48,14 @@ namespace fhatos {
       });
 
   class Structure : public Patterned {
+    friend Router;
+
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
-    ptr<List<Subscription_p>> subscriptions = std::make_shared<List<Subscription_p>>();
-    MutexRW<> mutex = MutexRW<>();
+    ptr<List<Subscription_p>> subscriptions_ = std::make_shared<List<Subscription_p>>();
+    MutexRW<> mutex_ = MutexRW<>();
     std::atomic_bool available_ = std::atomic_bool(false);
-    bool remote_retains = false;
+    bool remote_retains_ = false;
 
   public:
     const SType stype;
@@ -83,7 +92,7 @@ namespace fhatos {
     virtual void stop() {
       if (!this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
-      this->subscriptions->clear();
+      this->subscriptions_->clear();
       this->outbox_->clear(false);
       this->available_.store(false);
     }
@@ -95,16 +104,16 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
                     target->toString().c_str());
       else
-        this->mutex.write<void *>([this, source,target]() {
-          this->subscriptions->erase(remove_if(this->subscriptions->begin(), this->subscriptions->end(),
-                                               [source, target](const Subscription_p &sub) {
-                                                 const bool removing =
-                                                     sub->source.equals(*source) && (sub->pattern.matches(*target));
-                                                 if (removing)
-                                                   LOG_UNSUBSCRIBE(OK, *source, target);
-                                                 return removing;
-                                               }),
-                                     this->subscriptions->end());
+        this->mutex_.write<void *>([this, source,target]() {
+          this->subscriptions_->erase(remove_if(this->subscriptions_->begin(), this->subscriptions_->end(),
+                                                [source, target](const Subscription_p &sub) {
+                                                  const bool removing =
+                                                      sub->source.equals(*source) && (sub->pattern.matches(*target));
+                                                  if (removing)
+                                                    LOG_UNSUBSCRIBE(OK, *source, target);
+                                                  return removing;
+                                                }),
+                                      this->subscriptions_->end());
           return nullptr;
         });
     }
@@ -118,10 +127,10 @@ namespace fhatos {
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
       this->recv_unsubscribe(id_p(subscription->source), p_p(subscription->pattern));
       /////////////// ADD NEW SUBSCRIPTION
-      this->subscriptions->push_back(subscription);
+      this->subscriptions_->push_back(subscription);
       LOG_SUBSCRIBE(OK, subscription);
       /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-      if (!this->remote_retains)
+      if (!this->remote_retains_)
         this->publish_retained(subscription);
     }
 
@@ -152,16 +161,22 @@ namespace fhatos {
     }
 
   protected:
+    Option<Obj_p> try_meta(const fURI_p &furi, const ID_p &) const {
+      if (furi->has_query() && strcmp(furi->query(), "sub") == 0)
+        return {this->get_subscription_objs(p_p(furi->query(nullptr)))};
+      return {};
+    }
+
     virtual void distribute_to_subscribers(const Message_p &message) {
-      for (const Subscription_p &sub: *this->subscriptions) {
+      for (const Subscription_p &sub: *this->subscriptions_) {
         if (message->target.matches(sub->pattern))
           this->outbox_->push_back(share(Mail(sub, message)));
       }
     }
 
     bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) {
-      return this->mutex.read<bool>([this,source,topic]() {
-        for (const Subscription_p &sub: *this->subscriptions) {
+      return this->mutex_.read<bool>([this,source,topic]() {
+        for (const Subscription_p &sub: *this->subscriptions_) {
           if (source)
             if (!source->equals(sub->source))
               continue;
@@ -173,8 +188,8 @@ namespace fhatos {
     }
 
     bool has_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
-      return this->mutex.read<bool>([this,source,topic]() {
-        for (const Subscription_p &sub: *this->subscriptions) {
+      return this->mutex_.read<bool>([this,source,topic]() {
+        for (const Subscription_p &sub: *this->subscriptions_) {
           if (source)
             if (!source->equals(sub->source))
               continue;
@@ -186,9 +201,9 @@ namespace fhatos {
     }
 
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
-      return this->mutex.read<List_p<Subscription_p>>([this,source,topic]() {
+      return this->mutex_.read<List_p<Subscription_p>>([this,source,topic]() {
         List_p<Subscription_p> matches = share(List<Subscription_p>());
-        for (const Subscription_p &sub: *this->subscriptions) {
+        for (const Subscription_p &sub: *this->subscriptions_) {
           if (source)
             if (!source->equals(sub->source))
               continue;
@@ -199,18 +214,20 @@ namespace fhatos {
       });
     }
 
-    Lst_p get_subscription_lst() const {
+    Objs_p get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
       List<Obj_p> list;
-      for (const Subscription_p &sub: *this->subscriptions) {
-        const Rec_p sub_rec = Obj::to_rec({
-          {uri(":source"), uri(sub->source)},
-          {uri(":pattern"), uri(sub->pattern)},
-          {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
-          {uri(":on_recv"), noobj()}
-        });
-        list.push_back(sub_rec);
+      for (const Subscription_p &sub: *this->subscriptions_) {
+        if (sub->pattern.matches(*pattern)) {
+          const Rec_p sub_rec = Obj::to_rec({
+                                              {uri(":source"), uri(sub->source)},
+                                              {uri(":pattern"), uri(sub->pattern)},
+                                              {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
+                                              {uri(":on_recv"), sub->onRecvBCode ? sub->onRecvBCode : noobj()}
+                                            }, id_p(REC_FURI->extend("sub")));
+          list.push_back(sub_rec);
+        }
       }
-      return lst(list);
+      return objs(list);
     }
   };
 
