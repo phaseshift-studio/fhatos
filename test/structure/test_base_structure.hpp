@@ -24,11 +24,10 @@
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_LOGGING TRACE
 #include <test_fhatos.hpp>
 
 #include "../../build/_deps/unity-src/src/unity.h"
-
-#define FOS_TEST_PATTERN_PREFIX STR(/a/)
 
 namespace fhatos {
   inline Structure_p current_structure;
@@ -44,8 +43,9 @@ namespace fhatos {
     current_structure = test_structure;
     auto_loop = autoloop;;
     prefix = furi_p(current_structure->pattern()->retract());
-    TEST_ASSERT_EQUAL_STRING(make_test_pattern("+")->toString().c_str(),
-                             current_structure->pattern()->toString().c_str());
+    TEST_ASSERT_TRUE(
+      make_test_pattern("+")->equals(*current_structure->pattern()) ||
+      make_test_pattern("#")->equals(*current_structure->pattern()));
     LOG(INFO, "!yStarting!! test_base_structure !yon !g%s!y using !g%s!y pattern\n",
         current_structure->pattern()->toString().c_str(),
         make_test_pattern("+")->toString().c_str());
@@ -67,7 +67,8 @@ namespace fhatos {
       .source = "tester_HIT", .pattern = *make_test_pattern("+"), .onRecv = [ping_HIT](const Message_p &message) {
         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
-        TEST_ASSERT_TRUE(message->payload->is_rec());
+        TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
+                                 (string("Expected rec but received ") + message->payload->id()->toString()).c_str());
         FL_INT_TYPE payload_int = message->payload->rec_value()->at(str("hello_fhatty"))->int_value();
         TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
         // TEST_ASSERT_TRUE(message->retain);
@@ -90,10 +91,10 @@ namespace fhatos {
     if (auto_loop)
       current_structure->loop();
     FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/b/c"), jnt(10), id_p("fhatty")));
-    FOS_TEST_EXCEPTION_CXX(router()->write(id_p(*make_test_pattern("b/c")), str("hello_fhatty"), id_p("aus")));
+    //FOS_TEST_EXCEPTION_CXX(router()->write(id_p(*make_test_pattern("b/c")), str("hello_fhatty"), id_p("aus")));
     //FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/a/b/c"), str("hello_fhatty"), id_p("aus")));
     // TODO: FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/a/"), str("hello_fhatty"), id_p("aus")));
-    FOS_TEST_EXCEPTION_CXX(router()->write(id_p(*make_test_pattern("a/a/b/c")), str("hello_fhatty"), id_p("aus")));
+    //FOS_TEST_EXCEPTION_CXX(router()->write(id_p(*make_test_pattern("a/a/b/c")), str("hello_fhatty"), id_p("aus")));
     FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/"), str("hello_fhatty"), id_p("aus")));
     for (int i = 0; i < 10; i++) {
       TEST_ASSERT_EQUAL_INT(i, ping_HIT->load());
@@ -184,7 +185,7 @@ namespace fhatos {
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(0, pings->load());
     FOS_TEST_EXCEPTION_CXX(router()->route_subscription(share(Subscription{
-      .source = "a/test/case", .pattern = *make_test_pattern("test/bad"), .qos = QoS::_1, .onRecv = on_recv_
+      .source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .onRecv = on_recv_
       })));
     RESPONSE_CODE rc_ = router()->route_subscription(share(Subscription{
       .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .onRecv = on_recv_
@@ -288,6 +289,30 @@ namespace fhatos {
     current_structure->remove(id_p(*make_test_pattern("d")), id_p(FOS_DEFAULT_SOURCE_ID));
     if (auto_loop)
       current_structure->loop();
+  }
+
+  void test_embedding() {
+    process(StringHelper::format("%s -> [./a=>1,./b=>2]", make_test_pattern("+")->toString().c_str()));
+    const string A = make_test_pattern("a")->toString();
+    const string B = make_test_pattern("b")->toString();
+    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(1))",A.c_str()))->objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(2))",A.c_str()))->objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(1))",B.c_str()))->objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(2))",B.c_str()))->objs_value()->size());
+    ////// RESET FOR PERSISTENT STRUCTURES
+    process(StringHelper::format("%s -> noobj", A.c_str()));
+    process(StringHelper::format("%s -> noobj", B.c_str()));
+    /////////////////////////////////////////
+   /* process(StringHelper::format("%s -> [./a=>1,./b=>[./c=>2,./d=>3]]", make_test_pattern("+/+")->toString().c_str()));
+  //  const string A = make_test_pattern("a")->toString();
+  //  const string B = make_test_pattern("b")->toString();
+    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(1))",A.c_str()))->objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(2))",A.c_str()))->objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(1))",B.c_str()))->objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(2))",B.c_str()))->objs_value()->size());
+    ////// RESET FOR PERSISTENT STRUCTURES
+    process(StringHelper::format("%s -> noobj", A.c_str()));
+    process(StringHelper::format("%s -> noobj", B.c_str()));*/
   }
 } // namespace fhatos
 

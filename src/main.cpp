@@ -77,6 +77,7 @@ void setup() {
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
         ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared"))
+        ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared2", "/xxx/#"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
         ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))

@@ -35,6 +35,7 @@ namespace fhatos {
     const List<Pair<string, List<int>>> uris = List<Pair<string, List<int>>>({
       {"furi:", {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
       {"furi://127.0.0.1", {1, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
+      {"furi://127.0.0.1", {1, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
       {"//127.0.0.1", {0, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
       {"//127.0.0.1:88", {0, 0, 0, 1, 88, 0, 0, 0, 0, 0}},
       {"//user@127.0.0.1", {0, 1, 0, 1, 0, 0, 0, 0, 0, 0}},
@@ -540,6 +541,28 @@ namespace fhatos {
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("//+//+"), Pattern("//+//a"));
     //
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("a/b"), Pattern("/a/+"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+"), Pattern("/a/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/b"), Pattern("/a/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/+"), Pattern("/a/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/+/+"), Pattern("/a/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/+/+"), Pattern("/a/+/+/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/b/+"), Pattern("/a/+/+/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/b/c/d"), Pattern("/a/+/+/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/#"), Pattern("/a/+"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/+"), Pattern("/a/b/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/+"), Pattern("/a/b/c/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/#"), Pattern("/a/b/c/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/#"), Pattern("/a/b/c/+"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/b/+/d"), Pattern("/a/+/+/+"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/b/+/d"), Pattern("/a/+/+/d"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/b/+/d"), Pattern("/a/+/+/e"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/+/+/d"), Pattern("/a/b/+/d"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/+/d"), Pattern("/a/+/+/d"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a/+/+/#"), Pattern("/a/+/+/d"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/+/+/d"), Pattern("/a/+/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(Pattern("/a/b"), Pattern("/a/+/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("/a"), Pattern("/a/+/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("a"), Pattern("/a/+/#"));
   }
 
   void test_composite_mutations() {

@@ -24,12 +24,13 @@
 
 namespace fhatos {
   FOS_RUN_TESTS( //
-    begin_test_structure(KeyValue::create("/a/+")); //
+    begin_test_structure(KeyValue::create("/test/#")); //
     FOS_RUN_TEST(test_subscribe); //
     FOS_RUN_TEST(test_write); //
     FOS_RUN_TEST(test_read); //
     FOS_RUN_TEST(test_patterned_reads); //
     FOS_RUN_TEST(test_ided_reads); //
+    FOS_RUN_TEST(test_embedding); //
     end_test_structure()
   );
 } // namespace fhatos

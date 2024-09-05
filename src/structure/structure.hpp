@@ -162,8 +162,12 @@ namespace fhatos {
 
   protected:
     Option<Obj_p> try_meta(const fURI_p &furi, const ID_p &) const {
-      if (furi->has_query() && strcmp(furi->query(), "sub") == 0)
-        return {this->get_subscription_objs(p_p(furi->query(nullptr)))};
+      if (furi->has_query()) {
+        if (strcmp(furi->query(), "sub") == 0)
+          return {this->get_subscription_objs(p_p(furi->query(nullptr)))};
+        else
+          return Obj::to_objs();
+      }
       return {};
     }
 

@@ -130,8 +130,8 @@ namespace fhatos {
 
     [[nodiscard]] fURI authority(const char *authority) const {
       const string authority_string = (strlen(authority) > 1 && authority[0] == '/' && authority[1] == '/')
-                                  ? authority
-                                  : string("//") + authority;
+                                        ? authority
+                                        : string("//") + authority;
       const auto furi = fURI(nullptr != this->scheme_
                                ? string(this->scheme_) + ":" + authority_string
                                : authority_string);
@@ -204,7 +204,7 @@ namespace fhatos {
       if (path[path.length() - 1] == '/')
         new_uri.spostfix_ = true;
       free(dup);
-      if(new_uri.host_ || new_uri.scheme_)
+      if (new_uri.host_ || new_uri.scheme_)
         new_uri.sprefix_ = true;
       return new_uri;
     }
@@ -249,7 +249,7 @@ namespace fhatos {
 
     ////////////////////////////////////////////////////////////////
 
-    fURI extend(const fURI& furi_path) const {
+    fURI extend(const fURI &furi_path) const {
       return this->extend(furi_path.path());
     }
 
@@ -403,8 +403,12 @@ namespace fhatos {
           return true;
         if (0 == i && (this->sprefix_ != pattern.sprefix_))
           return false;
-        if (strcmp(pattern.path(i), "+") == 0 && this->path_length_ <= i && this->spostfix_)
-          return true;
+        if (strcmp(pattern.path(i), "+") == 0) {
+          if(strcmp(this->path(i), "#") == 0)
+            return false;
+          if(this->path_length_ <= i && this->spostfix_)
+            return true;
+        }
         if (this->path_length_ <= i)
           return false;
         if ((strlen(this->path(i)) == 0 && strlen(pattern.path(i)) != 0) ||
@@ -439,7 +443,7 @@ namespace fhatos {
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       this->path_length_ = other.path_length_;
-      this->query_ = other.query_ && strcmp("",other.query_) != 0? strdup(other.query_) : nullptr;
+      this->query_ = other.query_ && strcmp("", other.query_) != 0 ? strdup(other.query_) : nullptr;
       this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
       for (uint8_t i = 0; i < other.path_length_; i++) {
@@ -766,7 +770,7 @@ namespace fhatos {
   };
 
   struct furi_p_less : public std::less<fURI_p> {
-    auto operator()(const fURI_p& a, const fURI_p& b) const { return a->toString() < b->toString(); }
+    auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 
   [[maybe_unused]] static fURI_p furi_p(const char *id_chars) { return share(fURI(id_chars)); }
