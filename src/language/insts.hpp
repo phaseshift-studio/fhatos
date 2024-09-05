@@ -49,7 +49,7 @@ namespace fhatos {
         return [args](const Objs_p &barrier) {
           List<Obj_p> filtered;
           Set<Obj> feature;
-          for (const Obj_p obj: *barrier->objs_value()) {
+          for (const Obj_p& obj: *barrier->objs_value()) {
             const Obj_p feat = args.at(0)->apply(obj);
             if (!feature.contains(*feat)) {
               feature.insert(*feat);
