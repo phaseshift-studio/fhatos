@@ -76,16 +76,13 @@ void setup() {
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
-        ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared"))
-        ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared2", "/xxx/#"))
+        ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared", "+"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
         ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+       // ->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount","/fs")))
 #ifdef NATIVE
-        ->boot<FileSystem>(FileSystem::singleton("/io/fs"))
-        ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
-#else
-                    ->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount","/fs")))
+       // ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
 #endif
         ->boot<Console>(Console::create("/home/root/repl/"))
         ->model({ID("/model/sys"), ID("/model/pubsub")})

@@ -37,17 +37,16 @@ namespace fhatos {
       return scheduler;
     }
 
-    void feedLocalWatchdog() override {
+    void feed_local_watchdog() override {
       vTaskDelay(1); // feeds the watchdog for the task
     }
 
     virtual bool spawn(const Process_p &process) override {
-      bool success = *this->processes_mutex_.write<bool>([this, process]() {
         process->setup();
         if (!process->running()) {
           LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype).c_str(),
                       process->id()->toString().c_str());
-          return share(false);
+          return false;
         }
         // scheduler subscription listening for noobj "kill process" messages
         router()->route_subscription(share(Subscription{
@@ -69,12 +68,10 @@ namespace fhatos {
                                         &static_cast<Thread *>(process.get())->handle, // Task handle
                                         tskNO_AFFINITY); // Processor core
             success = pdPASS == threadResult;
-            if (success)
-              this->processes_->insert({process->id(), process});
             break;
           }
           case PType::FIBER: {
-            this->processes_->insert({process->id(), process});
+            success = true;
             if (!FIBER_THREAD_HANDLE) {
               success &= pdPASS == xTaskCreatePinnedToCore(FIBER_FUNCTION, // Function that should be called
                                                            "fiber_bundle", // Name of the task (for debugging)
@@ -88,18 +85,14 @@ namespace fhatos {
           }
           case PType::COROUTINE: {
             success = true;
-            LOG_PROCESS(INFO, this, "!b%s!! !ythreadless %s processs!! ignored\n", process->id()->toString().c_str(),
-                        ProcessTypes.toChars(process->ptype).c_str());
-            return share(success);
+            break;
           }
         }
         if (success) {
-          LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                      ProcessTypes.toChars(process->ptype).c_str());
-        }
-        return share(success);
-      });
-      if (!success)
+          this->processes_->push_back(process);
+        LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+                    ProcessTypes.toChars(process->ptype).c_str());
+        } else 
         router()->route_unsubscribe(this->id(), p_p(*process->id()));
       LOG(NONE,
           "\t!yFree memory\n"
@@ -118,14 +111,38 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
-    static void FIBER_FUNCTION(void *voidptr) {
+    static void FIBER_FUNCTION(void *) {
+        int counter = 1;
+        while (counter > 0) {
+          counter = 0;
+          auto *fibers = new List<Process_p>();
+          Scheduler::singleton()->processes_->forEach([fibers](const Process_p &proc) {
+            if (proc->ptype == PType::FIBER)
+              fibers->push_back(proc);
+          });
+          for (const Process_p &fiber: *fibers) {
+            if (fiber->running())
+              fiber->loop();
+            counter++;
+          }
+          Scheduler::singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
+            const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
+            if (remove) LOG_DESTROY(true, fiber, Scheduler::singleton());
+            return remove;
+          });
+          vTaskDelay(1); // feeds the watchdog for the task
+        }
+      }
+
+
+   /* static void FIBER_FUNCTION(void *voidptr) {
       int counter = 1;
       while (counter > 0) {
         counter = 0;
         for (const auto &[id, proc]: *Scheduler::singleton()->processes_) {
           if (proc->ptype == PType::FIBER) {
             if (!proc->running())
-              Scheduler::singleton()->kill(*proc->id());
+              Scheduler::singleton()->stop(*proc->id());
             else {
               proc->loop();
               ++counter;
@@ -134,7 +151,7 @@ namespace fhatos {
           vTaskDelay(1); // feeds the watchdog for the task
         }
       }
-    }
+    }*/
 
       //////////////////////////////////////////////////////
       //////////////////////////////////////////////////////
@@ -145,7 +162,11 @@ namespace fhatos {
           thread->loop();
           vTaskDelay(1); // feeds the watchdog for the task
         }
-        Scheduler::singleton()->_kill(*thread->id());
+        Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
+          const bool remove = proc->id()->equals(*thread->id());
+          if (remove) LOG_DESTROY(true, proc, Scheduler::singleton());
+          return remove;
+        });
         vTaskDelete(nullptr);
       }
     };

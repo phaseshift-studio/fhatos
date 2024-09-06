@@ -29,11 +29,10 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
-  template<class P, class S, class Process, class Structure>
-  concept CheckStructureProcess = std::is_base_of_v<Process, P> && std::is_base_of_v<Structure, S>;
-
-  template<typename PROCESS = Process, typename STRUCTURE = Structure>
+  //template<class P, class S, class Process, class Structure>
+  //concept CheckStructureProcess = std::is_base_of_v<Process, P> && std::is_base_of_v<Structure, S>;
   //requires CheckStructureProcess<PROCESS, STRUCTURE, Process, Structure>
+  template<typename PROCESS = Process, typename STRUCTURE = Structure>
   class Actor
       : public PROCESS,
         public STRUCTURE,
@@ -86,7 +85,7 @@ namespace fhatos {
       this->publish(this->id()->extend("output"), Obj::to_str(buffer));
     }*/
 
-    bool active() {
+    virtual bool active() {
       return this->available() && this->running();
     }
 

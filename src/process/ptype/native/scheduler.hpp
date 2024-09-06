@@ -71,7 +71,6 @@ namespace fhatos {
       switch (process->ptype) {
         case PType::THREAD: {
           static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-          this->processes_->push_back(process);
           success = true;
           break;
         }
@@ -80,22 +79,19 @@ namespace fhatos {
             FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
           }
           static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
-          this->processes_->push_back(process);
           success = true;
           break;
         }
         case PType::COROUTINE: {
-          this->processes_->push_back(process);
           success = true;
           break;
         }
       }
       if (success) {
+        this->processes_->push_back(process);
         LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                     ProcessTypes.toChars(process->ptype).c_str());
-      }
-
-      if (!success)
+      } else 
         router()->route_unsubscribe(this->id(), p_p(*process->id()));
       return success;
     }

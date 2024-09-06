@@ -51,7 +51,7 @@ namespace fhatos {
           Set<Obj> feature;
           for (const Obj_p &obj: *barrier->objs_value()) {
             const Obj_p feat = args.at(0)->apply(obj);
-            if (!feature.contains(*feat)) {
+            if (!feature.count(*feat)) {
               feature.insert(*feat);
               filtered.push_back(obj);
             }
