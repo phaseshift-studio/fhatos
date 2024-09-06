@@ -40,7 +40,7 @@ namespace fhatos {
 
   class Mount : public Structure {
   public:
-    explicit Mount(const Pattern &pattern): Structure(pattern, SType::READWRITE) {
+    explicit Mount(const Pattern &pattern): Structure(pattern, SType::DISTRIBUTED) {
     }
   };
 

@@ -155,9 +155,9 @@ namespace fhatos {
       /*this->write(id_p(inst->id()->extend("_kind")), str(ITypeDescriptions.toChars(inst->itype())), source,
                   RETAIN_MESSAGE);
       this->write(id_p(inst->id()->extend("_doc")),
-                  uri(MMADT_PREFIX.extend(inst_id->toString().c_str()) /*id_p(URI_FURI->extend("url")), source,
-                  RETAIN_MESSAGE);*/
-      //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier()))
+                  uri(MMADT_PREFIX.extend(inst_id->toString().c_str()) //id_p(URI_FURI->extend("url")), source,
+          //        RETAIN_MESSAGE);
+      //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier())) */
     }
 
     bool checkType(const Obj &obj, const OType otype, const ID_p &typeId,

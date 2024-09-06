@@ -29,7 +29,7 @@ namespace fhatos {
     Obj_p id_obj_ = noobj();
     ID_p id_id_ = nullptr;
 
-    explicit IDStructure(const ID_p &id) : Structure(Pattern(*id), SType::READWRITE), id_id_(id) {
+    explicit IDStructure(const ID_p &id) : Structure(Pattern(*id), SType::PROTO), id_id_(id) {
     }
 
   public:

@@ -31,7 +31,7 @@ namespace fhatos {
       Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::READWRITE) {
+    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::DISTRIBUTED) {
     };
 
   public:

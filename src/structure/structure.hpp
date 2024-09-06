@@ -36,15 +36,14 @@ namespace fhatos {
   class Router;
 
   enum class SType {
-    READ, WRITE, READWRITE, DEPENDENT
+    PROTO, LOCAL, DISTRIBUTED, DEPENDENT
   };
 
   static const Enums<SType> StructureTypes =
       Enums<SType>({
-        {SType::READ, "read"},
-        {SType::WRITE, "write"},
-        {SType::READWRITE, "readwrite"},
-        {SType::DEPENDENT, "dependent"}
+        {SType::PROTO, "proto"},
+        {SType::LOCAL, "local"},
+        {SType::DISTRIBUTED, "distributed"},
       });
 
   class Structure : public Patterned {

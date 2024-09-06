@@ -171,7 +171,7 @@ namespace fhatos {
       });
     }
 
-    static bool closedExpression(const string &line) {
+    static bool closed_expression(const string &line) {
       auto ss = stringstream(line);
       Tracker tracker;
       while (!ss.eof()) {

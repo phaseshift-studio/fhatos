@@ -29,7 +29,7 @@ namespace fhatos {
 /**
  * @brief A distributed shared memory structure supporting multiple authorities via @code{//+/+}.
  */
-  class DistributedMemory : public Actor<Fiber, Mqtt> {
+  class DistributedMemory final : public Actor<Fiber, Mqtt> {
 
   protected:
     explicit DistributedMemory(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") :
@@ -37,7 +37,7 @@ namespace fhatos {
 
   public:
     static ptr<DistributedMemory> create(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") {
-      ptr<DistributedMemory> memory_p = ptr<DistributedMemory>(new DistributedMemory(id, pattern));
+      auto memory_p = ptr<DistributedMemory>(new DistributedMemory(id, pattern));
       return memory_p;
     }
   };

@@ -43,7 +43,7 @@ namespace fhatos {
 
     //                                     +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = FOS_MQTT_BROKER_ADDR,
-                  const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::READWRITE) {
+                  const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::DISTRIBUTED) {
       this->remote_retains_ = true;
       this->server_addr_ = string(server_addr).find_first_of("mqtt://") == string::npos
                             ? string("mqtt://").append(string(server_addr)).c_str()

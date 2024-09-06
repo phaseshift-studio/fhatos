@@ -50,14 +50,16 @@ namespace fhatos {
       this->structures_mutex_.read<void *>([this, read_count, write_count, read_write_count]() {
         for (const auto &pair: *this->structures_) {
           switch (pair.second->stype) {
-            case SType::READ:
+            case SType::PROTO:
               read_count->fetch_add(1);
               break;
-            case SType::WRITE:
+            case SType::LOCAL:
               write_count->fetch_add(1);
               break;
-            case SType::READWRITE:
+            case SType::DISTRIBUTED:
               read_write_count->fetch_add(1);
+              break;
+            case SType::DEPENDENT:
               break;
           }
         }
@@ -119,7 +121,7 @@ namespace fhatos {
       return struc->read(furi, source);
     }
 
-    [[nodiscard]] RESPONSE_CODE write(
+    RESPONSE_CODE write(
       const ID_p &id, const Obj_p &obj,
       const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID),
       const bool retain = RETAIN_MESSAGE) const {
@@ -138,7 +140,7 @@ namespace fhatos {
       struc->remove(id, source);
     }
 
-    [[nodiscard]] RESPONSE_CODE route_message(const Message_p &message) const {
+    RESPONSE_CODE route_message(const Message_p &message) const {
       const Structure_p &struc = this->get_structure(p_p(message->target), id_p(message->source));
       LOG_STRUCTURE(DEBUG, this, "!y!_routing message!! %s\n", message->toString().c_str());
       return struc->recv_message(message);

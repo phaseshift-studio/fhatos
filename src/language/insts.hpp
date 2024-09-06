@@ -902,6 +902,25 @@ namespace fhatos {
       return args;
     }
 
+
+    /*static List<Quad<string, string, string, int>>& sugars() {
+      static List<Quad<string, string, string, int>> list = {
+        {"-<", "", "split", 1},
+        {">-", "", "merge", 0},
+        {"~", "", "match", 1},
+        {"<-", "", "to", 1},
+        {"->", "", "to_inv", 1},
+        {"|", "", "block", 1},
+        {"^", "", "lift", 1},
+        {"V", "", "drop", 1},
+        {"*", "", "from", 1},
+        {"=", "", "each", 1},
+        {"_/", "\\_", "within", 1},
+        {"((", "))", "sub", 2}
+      };
+      return list;
+    }*/
+
     static Map<string, string> unary_sugars() {
       static Map<string, string> map = {
         {"-<", "split"},

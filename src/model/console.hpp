@@ -200,7 +200,7 @@ namespace fhatos {
         ///////// DO NOTHING ON EMPTY LINE
         return;
       }
-      if (!Parser::closedExpression(this->_line))
+      if (!Parser::closed_expression(this->_line))
         return;
       ///////// PARSE MULTI-LINE MONOIDS
       size_t pos = this->_line.find("###");
