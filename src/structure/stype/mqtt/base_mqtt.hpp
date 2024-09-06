@@ -57,7 +57,7 @@ namespace fhatos {
                     FOS_TAB_4
                     "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
-                    this->server_addr_, client_id->toString(),
+                    this->server_addr_, client_id->toString().c_str(),
                     this->will_message_.get() ? this->will_message_->target.toString().c_str() : "<none>",
                     this->will_message_.get() ? this->will_message_->payload->toString().c_str() : "<none>",
                     this->will_message_.get() ? "1" : "<none>",
