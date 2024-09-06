@@ -46,35 +46,34 @@ namespace fhatos {
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
 
-   /* virtual ~Actor() {
-      STRUCTURE::~STRUCTURE();
-      PROCESS::~PROCESS();
-    }*/
+    /* virtual ~Actor() {
+       STRUCTURE::~STRUCTURE();
+       PROCESS::~PROCESS();
+     }*/
 
     explicit Actor(const ID &id): Actor(id, id.extend("#")) {
     }
 
-    RESPONSE_CODE publish(
+    void publish(
       const ID &target, const Obj_p &payload,
       const bool retain = TRANSIENT_MESSAGE) {
       this->should_be_active();
       // rename send_mail
-      return router()->route_message(
+      router()->route_message(
         share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
 
-    RESPONSE_CODE subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
+    void subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
       this->should_be_active();
-      return router()->route_subscription(
+      router()->route_subscription(
         share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
       /*.executeAtSource(this)));*/
     }
 
 
-    RESPONSE_CODE unsubscribe(const Pattern_p &pattern = p_p("#")) {
+    void unsubscribe(const Pattern_p &pattern = p_p("#")) {
       this->should_be_active();
       router()->route_unsubscribe(this->id(), pattern);
-      return OK;
     }
 
     /*void output(const char *format, ...) {

@@ -23,51 +23,52 @@
 #include <structure/pubsub.hpp>
 
 namespace fhatos {
-  class Publisher {
+  class Publisher final {
   public:
     const ID_p __id;
 
     virtual ~Publisher() = default;
 
-    explicit Publisher(const IDed *ided) : __id(ided->id()) {}
+    explicit Publisher(const IDed *ided) : __id(ided->id()) {
+    }
 
-    explicit Publisher(const ID_p &id) : __id(id) {}
+    explicit Publisher(const ID_p &id) : __id(id) {
+    }
 
 
     /// SUBSCRIBE
-    virtual RESPONSE_CODE subscribe(const Pattern &relativePattern, const Consumer<const ptr<Message> &> &onRecv,
-                                    const QoS qos = QoS::_1) {
-      return router()->route_subscription(share(Subscription{
-              .source = *this->__id, .pattern = this->makeTopic(relativePattern), .qos = qos, .onRecv = onRecv}));
+    virtual void subscribe(const Pattern &relative_pattern, const Consumer<const ptr<Message> &> &on_recv,
+                           const QoS qos = QoS::_1) {
+      router()->route_subscription(share(Subscription{
+        .source = fURI(*this->__id), .pattern = this->make_topic(relative_pattern), .qos = qos, .onRecv = on_recv}));
     }
 
     /// UNSUBSCRIBE
-    virtual RESPONSE_CODE unsubscribe(const Pattern &relativePattern) {
-
-      return router()->route_unsubscribe(this->__id, p_p(this->makeTopic(relativePattern)));
+    virtual void unsubscribe(const Pattern &relative_pattern) {
+      router()->route_unsubscribe(this->__id, p_p(this->make_topic(relative_pattern)));
     }
 
-    virtual RESPONSE_CODE unsubscribeSource() { return router()->route_unsubscribe(this->__id); }
+    virtual void unsubscribe_source() { return router()->route_unsubscribe(this->__id); }
 
     /////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////
 
     /// PUBLISH
-    RESPONSE_CODE publish(const ID &relativeTarget, const ptr<const Obj> &payload,
-                          const bool retain = TRANSIENT_MESSAGE) const {
-      return router()->route_message(share(Message{.source = *this->__id,
-              .target = this->makeTopic(relativeTarget),
-              .payload = PtrHelper::clone(*payload),
-              .retain = retain}));
+    void publish(const ID &relative_target, const ptr<const Obj> &payload,
+                 const bool retain = TRANSIENT_MESSAGE) const {
+      router()->route_message(share(Message{.source = *this->__id,
+        .target = this->make_topic(relative_target),
+        .payload = PtrHelper::clone(*payload),
+        .retain = retain}));
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
   private:
-    fURI makeTopic(const fURI &relativeTopic) const {
-      if (relativeTopic.empty())
-        return relativeTopic;
-      return relativeTopic.toString()[0] == '/' ? relativeTopic : this->__id->extend(relativeTopic.toString().c_str());
+    fURI make_topic(const fURI &relative_topic) const {
+      if (relative_topic.empty())
+        return relative_topic;
+      return relative_topic.toString()[0] == '/' ? relative_topic : this->__id->extend(relative_topic.toString().c_str());
     }
   };
 } // namespace fhatos

@@ -73,41 +73,37 @@ namespace fhatos {
     Model::deploy(ptr<Actor<Thread, KeyValue>>(actor2));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor1@127.0.0.1"), *actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor2@127.0.0.1"), *actor2->id());
-    RESPONSE_CODE rc = actor1->subscribe("/app/actor1@127.0.0.1/X",
-                                         [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
-                                           if (message->payload->is_str()) {
-                                             TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                                             FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
-                                             //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
-                                             TEST_ASSERT_EQUAL_INT(0, counter1->load());
-                                             TEST_ASSERT_EQUAL_INT(0, counter2->load());
-                                             counter1->fetch_add(1);
-                                             counter2->fetch_add(1);
-                                             actor1->publish(message->source.extend("X"), str("pong"),
-                                                             TRANSIENT_MESSAGE);
-                                             TEST_ASSERT_FALSE(message->retain);
-                                           } else if (message->payload->is_noobj()) {
-                                             //actor1->stop();
-                                           }
-                                         });
-    FOS_TEST_MESSAGE("!RResponse code!!: %s\n", ResponseCodes.toChars(rc).c_str());
-    TEST_ASSERT_EQUAL(OK, rc);
-    rc = actor2->subscribe("/app/actor2@127.0.0.1/X",
-                           [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
-                             if (message->payload->is_str()) {
-                               TEST_ASSERT_EQUAL_STRING("pong", message->payload->str_value().c_str());
-                               FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor1->id());
-                               //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor2->id());
-                               TEST_ASSERT_EQUAL_INT(1, counter1->load());
-                               TEST_ASSERT_EQUAL_INT(1, counter2->load());
-                               TEST_ASSERT_FALSE(message->retain);
-                               counter2->fetch_add(1);
-                             } else if (message->payload->is_noobj()) {
-                               //actor2->stop();
-                             }
-                           });
-    FOS_TEST_MESSAGE("!RResponse code!!: %s\n", ResponseCodes.toChars(rc).c_str());
-    TEST_ASSERT_EQUAL(OK, rc);
+    actor1->subscribe("/app/actor1@127.0.0.1/X",
+                      [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
+                        if (message->payload->is_str()) {
+                          TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
+                          //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
+                          TEST_ASSERT_EQUAL_INT(0, counter1->load());
+                          TEST_ASSERT_EQUAL_INT(0, counter2->load());
+                          counter1->fetch_add(1);
+                          counter2->fetch_add(1);
+                          actor1->publish(message->source.extend("X"), str("pong"),
+                                          TRANSIENT_MESSAGE);
+                          TEST_ASSERT_FALSE(message->retain);
+                        } else if (message->payload->is_noobj()) {
+                          //actor1->stop();
+                        }
+                      });
+    actor2->subscribe("/app/actor2@127.0.0.1/X",
+                      [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
+                        if (message->payload->is_str()) {
+                          TEST_ASSERT_EQUAL_STRING("pong", message->payload->str_value().c_str());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor1->id());
+                          //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor2->id());
+                          TEST_ASSERT_EQUAL_INT(1, counter1->load());
+                          TEST_ASSERT_EQUAL_INT(1, counter2->load());
+                          TEST_ASSERT_FALSE(message->retain);
+                          counter2->fetch_add(1);
+                        } else if (message->payload->is_noobj()) {
+                          //actor2->stop();
+                        }
+                      });
     /*TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
                       actor1->subscribe("/app/actor1@127.0.0.1/X", [](const ptr<Message> &message) {
                         TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
@@ -136,26 +132,24 @@ namespace fhatos {
     auto actor2 = ptr<Actor<Thread, KeyValue>>(new Actor<Thread, KeyValue>("/app/actor2@127.0.0.1"));
     Model::deploy(actor1);
     Model::deploy(actor2);
-    RESPONSE_CODE rc = actor1->subscribe(*actor1->id(),
-                                         [actor1, actor2, counter1](const ptr<Message> &message) {
-                                           if (message->payload->is_str()) {
-                                             TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                                             FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
-                                             FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
-                                             if (scheduler()->at_barrier("first_barrier"))
-                                               TEST_ASSERT_LESS_THAN_INT(2, counter1->load());
-                                             counter1->fetch_add(1);
-                                             if (scheduler()->at_barrier("second_barrier"))
-                                               TEST_ASSERT_LESS_THAN_INT(3, counter1->load());
-                                           }
-                                         });
-    FOS_TEST_MESSAGE("!RResponse code!!: %s\n", ResponseCodes.toChars(rc).c_str());
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, rc);
+    actor1->subscribe(*actor1->id(),
+                      [actor1, actor2, counter1](const ptr<Message> &message) {
+                        if (message->payload->is_str()) {
+                          TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
+                          if (scheduler()->at_barrier("first_barrier"))
+                            TEST_ASSERT_LESS_THAN_INT(2, counter1->load());
+                          counter1->fetch_add(1);
+                          if (scheduler()->at_barrier("second_barrier"))
+                            TEST_ASSERT_LESS_THAN_INT(3, counter1->load());
+                        }
+                      });
     actor2->publish(*actor1->id(), str("ping"), RETAIN_MESSAGE);
     scheduler()->barrier("first_barrier", [counter1] { return counter1->load() > 0; });
     //TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(0, counter2->load());
-    rc = actor2->subscribe("/app/actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+    actor2->subscribe("/app/actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
         // FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
@@ -163,13 +157,11 @@ namespace fhatos {
         counter2->fetch_add(1);
       }
     });
-    FOS_TEST_MESSAGE("!RResponse code!!: %s\n", ResponseCodes.toChars(rc).c_str());
-    TEST_ASSERT_EQUAL(OK, rc);
     scheduler()->barrier("second_barrier", [counter2] { return counter2->load() > 0; });
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(1, counter2->load());
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, actor1->unsubscribe(p_p(*actor1->id())));
-    rc = actor1->subscribe("/app/actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+    actor1->unsubscribe(p_p(*actor1->id()));
+    actor1->subscribe("/app/actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
         //FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
@@ -177,8 +169,6 @@ namespace fhatos {
         counter2->fetch_add(1);
       }
     });
-    FOS_TEST_MESSAGE("!RResponse code!!: %s\n", ResponseCodes.toChars(rc).c_str());
-    TEST_ASSERT_EQUAL(OK, rc);
     //TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     actor1->stop();
@@ -196,5 +186,4 @@ namespace fhatos {
 } // namespace fhatos
 
 SETUP_AND_LOOP()
-
 #endif

@@ -121,7 +121,7 @@ namespace fhatos {
       return struc->read(furi, source);
     }
 
-    RESPONSE_CODE write(
+    void write(
       const ID_p &id, const Obj_p &obj,
       const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID),
       const bool retain = RETAIN_MESSAGE) const {
@@ -130,7 +130,6 @@ namespace fhatos {
                     retain ? "retained" : "transient", obj->toString().c_str(),
                     id->toString().c_str(), struc->pattern()->toString().c_str(), source->toString().c_str());
       struc->write(id, obj, source, retain);
-      return OK;
     }
 
     void remove(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) const {
@@ -140,13 +139,13 @@ namespace fhatos {
       struc->remove(id, source);
     }
 
-    RESPONSE_CODE route_message(const Message_p &message) const {
+    void route_message(const Message_p &message) const {
       const Structure_p &struc = this->get_structure(p_p(message->target), id_p(message->source));
       LOG_STRUCTURE(DEBUG, this, "!y!_routing message!! %s\n", message->toString().c_str());
-      return struc->recv_message(message);
+      struc->recv_message(message);
     }
 
-    RESPONSE_CODE route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {
+    void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {
       for (const auto &pair: *this->structures_) {
         if (pair.second->pattern()->matches(*pattern) || pattern->matches(*pair.second->pattern())) {
           LOG_STRUCTURE(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
@@ -154,14 +153,12 @@ namespace fhatos {
           pair.second->recv_unsubscribe(subscriber, pattern);
         }
       }
-      return OK;
     }
 
-    RESPONSE_CODE route_subscription(const Subscription_p &subscription) const {
+    void route_subscription(const Subscription_p &subscription) const {
       const Structure_p &struc = this->get_structure(p_p(subscription->pattern), id_p(subscription->source));
       LOG_STRUCTURE(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
       struc->recv_subscription(subscription);
-      return OK;
     }
 
   private:

@@ -86,8 +86,8 @@ namespace fhatos {
             )).c_str());
       }
     });
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->route_subscription(subscription_HIT));
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->route_subscription(subscription_MISS));
+    router()->route_subscription(subscription_HIT);
+    router()->route_subscription(subscription_MISS);
     if (auto_loop)
       current_structure->loop();
     FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/b/c"), jnt(10), id_p("fhatty")));
@@ -98,8 +98,8 @@ namespace fhatos {
     FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/"), str("hello_fhatty"), id_p("aus")));
     for (int i = 0; i < 10; i++) {
       TEST_ASSERT_EQUAL_INT(i, ping_HIT->load());
-      TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p(*make_test_pattern("b")), rec({{"hello_fhatty", i}}),
-                          id_p((string("piggy") + to_string(i)).c_str())));
+      router()->write(id_p(*make_test_pattern("b")), rec({{"hello_fhatty", i}}),
+                      id_p((string("piggy") + to_string(i)).c_str()));
       if (auto_loop)
         current_structure->loop();
       scheduler()->barrier("waiting for messages in test_write #1", [ping_HIT,i]() {
@@ -112,8 +112,7 @@ namespace fhatos {
     if (auto_loop)
       current_structure->loop();
     // should not cause an exception due to str != rec as no subscription exists
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
-                      router()->write(id_p(*make_test_pattern("b")), str("hello_fhatty"), id_p("not_there")));
+    router()->write(id_p(*make_test_pattern("b")), str("hello_fhatty"), id_p("not_there"));
     scheduler()->barrier("waiting for messages in test_write #2", [ping_HIT]() {
       if (auto_loop)
         current_structure->loop();
@@ -124,8 +123,7 @@ namespace fhatos {
     router()->route_unsubscribe(id_p("tester_MISS"), p_p(*make_test_pattern("c")));
     if (auto_loop)
       current_structure->loop();
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK,
-                      router()->write(id_p(*make_test_pattern("c")), str("hello_fhatty"), id_p("not_there")));
+    router()->write(id_p(*make_test_pattern("c")), str("hello_fhatty"), id_p("not_there"));
     if (auto_loop)
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(10, ping_HIT->load());
@@ -139,9 +137,9 @@ namespace fhatos {
   }
 
   void test_read() {
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p(*make_test_pattern("x")), str("good")));
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p(*make_test_pattern("y")), jnt(6)));
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->write(id_p(*make_test_pattern("z")), uri(*make_test_pattern("x"))));\
+    router()->write(id_p(*make_test_pattern("x")), str("good"));
+    router()->write(id_p(*make_test_pattern("y")), jnt(6));
+    router()->write(id_p(*make_test_pattern("z")), uri(*make_test_pattern("x")));\
     scheduler()->barrier("waiting for messages in test_read", []() {
       if (auto_loop)
         current_structure->loop();
@@ -187,17 +185,15 @@ namespace fhatos {
     FOS_TEST_EXCEPTION_CXX(router()->route_subscription(share(Subscription{
       .source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .onRecv = on_recv_
       })));
-    RESPONSE_CODE rc_ = router()->route_subscription(share(Subscription{
+    router()->route_subscription(share(Subscription{
       .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .onRecv = on_recv_
     }));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, rc_);
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->route_message(share(Message{
-                        .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true)
-                        , .retain =
-                        TRANSIENT_MESSAGE
-                        })));
+    router()->route_message(share(Message{
+      .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
+      TRANSIENT_MESSAGE
+    }));
     scheduler()->barrier("waiting for messages", [pings]() {
       if (auto_loop)
         current_structure->loop();
@@ -208,11 +204,10 @@ namespace fhatos {
     // UNSUBSCRIBE HERE (THUS, NO MORE pings MUTATIONS)
     if (auto_loop)
       current_structure->loop();
-    TEST_ASSERT_EQUAL(RESPONSE_CODE::OK, router()->route_message(share(Message{
-                        .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true)
-                        , .retain =
-                        TRANSIENT_MESSAGE
-                        })));
+    router()->route_message(share(Message{
+      .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
+      TRANSIENT_MESSAGE
+    }));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
     TEST_ASSERT_EQUAL_INT(1, pings->load()); // shouldn't change as subscribe has unsubscribed by now
@@ -303,16 +298,16 @@ namespace fhatos {
     process(StringHelper::format("%s -> noobj", A.c_str()));
     process(StringHelper::format("%s -> noobj", B.c_str()));
     /////////////////////////////////////////
-   /* process(StringHelper::format("%s -> [./a=>1,./b=>[./c=>2,./d=>3]]", make_test_pattern("+/+")->toString().c_str()));
-  //  const string A = make_test_pattern("a")->toString();
-  //  const string B = make_test_pattern("b")->toString();
-    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(1))",A.c_str()))->objs_value()->size());
-    TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(2))",A.c_str()))->objs_value()->size());
-    TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(1))",B.c_str()))->objs_value()->size());
-    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(2))",B.c_str()))->objs_value()->size());
-    ////// RESET FOR PERSISTENT STRUCTURES
-    process(StringHelper::format("%s -> noobj", A.c_str()));
-    process(StringHelper::format("%s -> noobj", B.c_str()));*/
+    /* process(StringHelper::format("%s -> [./a=>1,./b=>[./c=>2,./d=>3]]", make_test_pattern("+/+")->toString().c_str()));
+   //  const string A = make_test_pattern("a")->toString();
+   //  const string B = make_test_pattern("b")->toString();
+     TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(1))",A.c_str()))->objs_value()->size());
+     TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(2))",A.c_str()))->objs_value()->size());
+     TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(1))",B.c_str()))->objs_value()->size());
+     TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(2))",B.c_str()))->objs_value()->size());
+     ////// RESET FOR PERSISTENT STRUCTURES
+     process(StringHelper::format("%s -> noobj", A.c_str()));
+     process(StringHelper::format("%s -> noobj", B.c_str()));*/
   }
 } // namespace fhatos
 

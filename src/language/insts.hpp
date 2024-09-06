@@ -344,7 +344,6 @@ namespace fhatos {
         [](const InstArgs &args) {
           const Obj_p &furi = args.at(0);
           return [furi](const Obj_p &lhs) {
-            RESPONSE_CODE _rc = OK;
             const Obj_p main_apply = lhs->apply(furi);
             const Uri_p uri_apply = furi->apply(lhs);
             if (uri_apply->uri_value().is_pattern()) {
@@ -360,16 +359,14 @@ namespace fhatos {
                 }
                 if (!remaining->empty()) {
                   const Rec_p sub_rec = Obj::to_rec(remaining);
-                  _rc = router()->write(id_p(uri_apply->uri_value().retract_pattern()), sub_rec);
+                  router()->write(id_p(uri_apply->uri_value().retract_pattern()), sub_rec);
                 }
               } else {
-                _rc = router()->write(id_p(uri_apply->uri_value().retract_pattern()), main_apply);
+                router()->write(id_p(uri_apply->uri_value().retract_pattern()), main_apply);
               }
             } else {
-              _rc = router()->write(id_p(uri_apply->uri_value()), main_apply);
+              router()->write(id_p(uri_apply->uri_value()), main_apply);
             }
-            if (_rc)
-              LOG(ERROR, "%s\n", ResponseCodes.toChars(_rc).c_str());
             return main_apply;
           };
         },

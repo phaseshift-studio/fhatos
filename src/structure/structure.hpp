@@ -133,14 +133,14 @@ namespace fhatos {
         this->publish_retained(subscription);
     }
 
-    virtual RESPONSE_CODE recv_message(const Message_p &message) {
+    virtual void recv_message(const Message_p &message) {
       if (!this->available_.load())
-        return ROUTER_ERROR;
+        throw fError("Structure " FURI_WRAP " is not available", this->pattern()->toString().c_str());
+      ///////////////
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       this->write(id_p(message->target), message->payload, id_p(message->source), message->retain);
       MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
       LOG_PUBLISH(OK, *message);
-      return OK;
     }
 
     virtual void remove(const ID_p &id, const ID_p &source) {
@@ -160,6 +160,11 @@ namespace fhatos {
     }
 
   protected:
+    void check_availability(const string &function) const {
+      if (!this->available())
+        throw fError("Structure " FURI_WRAP " not available for %s", function.c_str());
+    }
+
     Option<Obj_p> try_meta(const fURI_p &furi, const ID_p &) const {
       if (furi->has_query()) {
         if (strcmp(furi->query(), "sub") == 0)
