@@ -53,19 +53,19 @@ namespace fhatos {
   protected:
     ptr<MutexDeque<Process_p>> processes_ = ptr<MutexDeque<Process_p>>(new MutexDeque<Process_p>());
     MutexDeque<Mail_p> inbox_;
-    bool running = false;
-    ptr<string> current_barrier = nullptr;
+    bool running_ = false;
+    ptr<string> current_barrier_ = nullptr;
 
   public:
     explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {
     }
 
-    [[nodiscard]] int count(const Pattern &processPattern = Pattern("#")) const {
+    [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
       if (this->processes_->empty())
         return 0;
       auto *counter = new atomic_int(0);
-      this->processes_->forEach([counter,processPattern](const Process_p &proc) {
-        if (proc->id()->matches(processPattern) && proc->running())
+      this->processes_->forEach([counter,process_pattern](const Process_p &proc) {
+        if (proc->id()->matches(process_pattern) && proc->running())
           counter->fetch_add(1);
       });
       const int c = counter->load();
@@ -73,11 +73,11 @@ namespace fhatos {
       return c;
     }
 
-    static bool isThread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
+    static bool is_thread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
 
-    static bool isFiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
+    static bool is_fiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
 
-    static bool isCoroutine(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/coroutine"); }
+    static bool is_coroutine(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/coroutine"); }
 
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
@@ -85,44 +85,44 @@ namespace fhatos {
       MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->is_rec())
           return;
-        if (isThread(payload)) {
+        if (is_thread(payload)) {
           this->spawn(Process_p(new fBcode<Thread>(target, payload)));
-        } else if (isFiber(payload)) {
+        } else if (is_fiber(payload)) {
           this->spawn(Process_p(new fBcode<Fiber>(target, payload)));
-        } else if (isCoroutine(payload)) {
+        } else if (is_coroutine(payload)) {
           this->spawn(Process_p(new fBcode<Coroutine>(target, payload)));
         }
       };
-      this->running = true;
+      this->running_ = true;
       LOG_PROCESS(INFO, this, "!yscheduler!! loaded\n");
     }
 
     void stop() {
-      auto *threadCount = new atomic_int(0);
-      auto *fiberCount = new atomic_int(0);
-      auto *coroutineCount = new atomic_int(0);
-      this->processes_->forEach([threadCount,fiberCount,coroutineCount](const Process_p &proc) {
+      auto *thread_count = new atomic_int(0);
+      auto *fiber_count = new atomic_int(0);
+      auto *coroutine_count = new atomic_int(0);
+      this->processes_->forEach([thread_count,fiber_count,coroutine_count](const Process_p &proc) {
         switch (proc->ptype) {
           case PType::THREAD:
-            threadCount->fetch_add(1);
+            thread_count->fetch_add(1);
             break;
           case PType::FIBER:
-            fiberCount->fetch_add(1);
+            fiber_count->fetch_add(1);
             break;
           case PType::COROUTINE:
-            coroutineCount->fetch_add(1);
+            coroutine_count->fetch_add(1);
             break;
         }
       });
       LOG_PROCESS(INFO, this, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
-                  threadCount->load(),
-                  fiberCount->load(),
-                  coroutineCount->load());
-      delete threadCount;
-      delete fiberCount;
-      delete coroutineCount;
+                  thread_count->load(),
+                  fiber_count->load(),
+                  coroutine_count->load());
+      delete thread_count;
+      delete fiber_count;
+      delete coroutine_count;
       router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
-      List<Process_p> *list = new List<Process_p>();
+      auto list = new List<Process_p>();
       this->processes_->forEach([list](const Process_p &proc) {
         list->push_back(proc);
       });
@@ -136,21 +136,21 @@ namespace fhatos {
           p->stop();
       }
       this->processes_->clear();
-      this->running = false;
+      this->running_ = false;
       LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
-    virtual void feedLocalWatchdog() {
+    virtual void feed_local_watchdog() {
     }
 
     [[nodiscard]] bool at_barrier(const string &label) const {
-      return this->current_barrier && *this->current_barrier == label;
+      return this->current_barrier_ && *this->current_barrier_ == label;
     }
 
     void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
       LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
-      this->current_barrier = share(string(label));
+      this->current_barrier_ = share(string(label));
       if (message)
         LOG(INFO, message);
       /// barrier break with noobj
@@ -159,11 +159,11 @@ namespace fhatos {
           this->stop();
       });*/
       while (this->read_mail() || (passPredicate && !passPredicate()) || (
-               !passPredicate && this->running && !this->processes_->empty())) {
-        this->feedLocalWatchdog();
+               !passPredicate && this->running_ && !this->processes_->empty())) {
+        this->feed_local_watchdog();
       }
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
-      this->current_barrier = nullptr;
+      this->current_barrier_ = nullptr;
     }
 
     virtual bool spawn(const Process_p &) = 0;
