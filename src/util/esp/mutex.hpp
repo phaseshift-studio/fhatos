@@ -37,7 +37,7 @@ namespace fhatos {
 #endif
 
   public:
-    Mutex(const char *label = "<anon>") : _label(label) {}
+   explicit Mutex(const char *label = "<anon>") : _label(label) {}
 
 #if defined(ESP32)
     ~Mutex() { vSemaphoreDelete(this->xmutex); }

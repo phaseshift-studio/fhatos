@@ -159,7 +159,7 @@ namespace fhatos {
   public:
     Ansi() : printer(*CPrinter::singleton()) {}
 
-    Ansi(string *str) : printer(StringPrinter(str)) {}
+    explicit Ansi(string *str) : printer(StringPrinter(str)) {}
 
     explicit Ansi(PRINTER printer) : printer(printer) {}
 
@@ -198,6 +198,7 @@ namespace fhatos {
       va_list arg;
       va_start(arg, format);
       int length = vsnprintf(message, 1023, format, arg);
+      va_end(arg);
       message[length] = '\0';
       this->parse(message, length);
     }

@@ -173,17 +173,15 @@ namespace fhatos {
     {IType::MANY_TO_MANY, "O->O"}
   });
   static const Enums<IType> ITypeDescriptions = Enums<IType>({
-    {
-      {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
-      {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
-      {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
-      {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
-      {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
-      {IType::ONE_TO_ONE, "o->o (map)"},
-      {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
-      {IType::MANY_TO_ONE, "Œ->o (reduce)"},
-      {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
-    }
+    {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
+    {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
+    {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
+    {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
+    {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
+    {IType::ONE_TO_ONE, "o->o (map)"},
+    {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
+    {IType::MANY_TO_ONE, "Œ->o (reduce)"},
+    {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
   });
   //
 
@@ -1334,6 +1332,12 @@ namespace fhatos {
                                     const ID_p &furi = REC_FURI) {
     return Obj::to_rec(map, furi);
   }
+
+  [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &map,
+                                    const ID_p &furi = REC_FURI) {
+    return Obj::to_rec(map, furi);
+  }
+
 
   [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(share(List<Obj_p>())); }
 

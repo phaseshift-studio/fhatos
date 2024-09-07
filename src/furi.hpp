@@ -404,9 +404,9 @@ namespace fhatos {
         if (0 == i && (this->sprefix_ != pattern.sprefix_))
           return false;
         if (strcmp(pattern.path(i), "+") == 0) {
-          if(strcmp(this->path(i), "#") == 0)
+          if (strcmp(this->path(i), "#") == 0)
             return false;
-          if(this->path_length_ <= i && this->spostfix_)
+          if (this->path_length_ <= i && this->spostfix_)
             return true;
         }
         if (this->path_length_ <= i)
@@ -416,6 +416,10 @@ namespace fhatos {
           return false;
       }
       return this->path_length_ == pattern.path_length();
+    }
+
+    bool operator=(const fURI &other) const {
+      return this->equals(other);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -472,7 +476,7 @@ namespace fhatos {
         bool hasUserInfo = strchr(dups, '@') != nullptr;
         bool foundAuthority = false;
         while (!ss.eof()) {
-          char c = (char) ss.get();
+          char c = static_cast<char>(ss.get());
           if (!isascii(c) || isspace(c) || c < 32 || c > 126)
             continue;
           if (!foundAuthority && c == '/' && ss.peek() == '/') {

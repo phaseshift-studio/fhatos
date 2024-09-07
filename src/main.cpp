@@ -25,10 +25,11 @@
 #include <model/terminal.hpp>
 #include <model/shared_memory.hpp>
 #include <model/distributed_memory.hpp>
-#include FOS_FILE_SYSTEM(fs.hpp)
+//#include FOS_FILE_SYSTEM(fs.hpp)
 
 #ifndef NATIVE
 #include <model/net/esp/wifi.hpp>
+#include <model/memory/esp32/memory.hpp>
 #endif
 
 #ifdef NATIVE
@@ -90,8 +91,11 @@ void setup() {
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
         ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
-        ->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount",FOS_FS_MOUNT)))
-        ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
+        #ifndef NATIVE
+         ->boot<Memory>(Memory::singleton("/sys/soc/memory"))
+        #endif
+        //->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount",FOS_FS_MOUNT)))
+       // ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
         ->boot<Console>(Console::create("/home/root/repl/"))
         ->model({ID("/model/sys"), ID("/model/pubsub")})
         ->initial_terminal_owner("/home/root/repl/")

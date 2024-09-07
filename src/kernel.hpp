@@ -75,6 +75,7 @@ namespace fhatos {
 
     template<typename ACTOR>
     static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
+      Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       Model::deploy(bootable);
       return Kernel::build();
     }
@@ -102,6 +103,7 @@ namespace fhatos {
       Scheduler::singleton()->barrier(barrier, ret,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
+      exit(EXIT_SUCCESS);
     }
   };
 } // namespace fhatos

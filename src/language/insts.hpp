@@ -299,7 +299,7 @@ namespace fhatos {
 
     static Bool_p lte(const Obj_p &rhs) {
       return Obj::to_inst(
-        "gte", {rhs}, [](const InstArgs &args) {
+        "lte", {rhs}, [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
             return Obj::to_bool(*lhs <= *args.at(0)->apply(lhs));
           };
@@ -309,7 +309,7 @@ namespace fhatos {
 
     static Bool_p lt(const Obj_p &rhs) {
       return Obj::to_inst(
-        "gt", {rhs}, [](const InstArgs &args) {
+        "lt", {rhs}, [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
             return Obj::to_bool(*lhs < *args.at(0)->apply(lhs));
           };
@@ -321,7 +321,7 @@ namespace fhatos {
       return Obj::to_inst(
         "match", {rhs}, [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
-            return Obj::to_bool(lhs->match(args.at(0)->apply(lhs)));
+            return Obj::to_bool(lhs->match(args.at(0)->apply(lhs),false));
           };
         },
         IType::ONE_TO_ONE);

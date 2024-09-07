@@ -94,12 +94,12 @@ namespace fhatos {
                     ProcessTypes.toChars(process->ptype).c_str());
         } else 
         router()->route_unsubscribe(this->id(), p_p(*process->id()));
-      LOG(NONE,
+      /*LOG(NONE,
           "\t!yFree memory\n"
           "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR
           "][flash: " FOS_BYTES_MB_STR "]\n",
           FOS_BYTES_MB(ESP.getFreeSketchSpace()), FOS_BYTES_MB(ESP.getFreeHeap()), FOS_BYTES_MB(ESP.getFreePsram()),
-          FOS_BYTES_MB(ESP.getFlashChipSize()));
+          FOS_BYTES_MB(ESP.getFlashChipSize()));*/
       return success;
     }
 

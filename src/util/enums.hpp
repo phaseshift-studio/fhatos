@@ -28,7 +28,7 @@ namespace fhatos {
   struct Enums {
     const list<pair<ENUM, string>> ENUM_TO_STR{};
 
-    Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {}
+   explicit Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {}
 
     string toChars(const ENUM e) const {
       for (const auto &pair: ENUM_TO_STR) {

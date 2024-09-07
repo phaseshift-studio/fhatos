@@ -50,7 +50,7 @@ protected:
   const char *passwords;
 
 private:
-  Wifi(const ID& id = ID("/sys/wifi"), const char *ssids = STR(WIFI_SSID),  const char *passwords = STR(WIFI_PASS))
+ explicit Wifi(const ID& id = ID("/sys/wifi"), const char *ssids = STR(WIFI_SSID),  const char *passwords = STR(WIFI_PASS))
       : Actor(id) {
     this->ssids = ssids;
     this->passwords = passwords;

@@ -52,23 +52,23 @@ namespace fhatos {
     }
 
     static string format(const char *format, ...) {
-      char _message[1024];
+      char message[1024];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(_message, 1024, format, arg);
-      _message[length] = '\0';
-      return string(_message);
+      vsnprintf(message, 1024, format, arg);
+      va_end(arg);
+      return string(message);
     }
 
     static void ltrim(std::string &s) {
       s.erase(s.begin(),
-              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }));
+              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c < 127; }));
     }
 
     static void rtrim(std::string &s) {
       s.erase(
               std::find_if(s.rbegin(), s.rend(),
-                           [](const char c) { return !std::isspace(c) && c >= 0 && c < 127; }).base(),
+                           [](const char c) { return !std::isspace(c) && c < 127; }).base(),
               s.end());
     }
 
