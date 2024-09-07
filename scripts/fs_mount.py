@@ -25,7 +25,7 @@ if 'esp' in source:
     src_dir = env.GetProjectOption("fs_mount_src")
     dst_dir = env.GetProjectOption("fs_mount_dst")
 else:
-    src_dir = "src/model/common.mmadt"
+    src_dir = "mmadt/common.mmadt"
     dst_dir = "build/tmp"
 print("fs_mount_src: ", src_dir)
 print("fs_mount_dst: ", dst_dir)

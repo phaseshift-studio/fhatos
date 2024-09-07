@@ -16,12 +16,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#pragma once
 #ifndef fhatos_fs_hpp
 #define fhatos_fs_hpp
 
 #include <LittleFS.h>
 #include <model/fs/x_fs.hpp>
-#include "FS.h"
+#include <FS.h>
 
 #define FOS_FS LittleFS
 

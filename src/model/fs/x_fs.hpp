@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#pragma once
 #ifndef fhatos_x_fs_hpp
 #define fhatos_x_fs_hpp
 
@@ -54,7 +55,7 @@ namespace fhatos {
     }
 
     void setup() override {
-      LOG_PROCESS(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
+      LOG_ACTOR(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
       Types::singleton()->loop();
       Types::singleton()->saveType(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
@@ -179,7 +180,7 @@ namespace fhatos {
       const fURI local_path =
           this->mount_root_->resolve(
             (!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
-      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
+      LOG_ACTOR(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
         throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",

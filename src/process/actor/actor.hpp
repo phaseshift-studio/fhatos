@@ -92,13 +92,13 @@ namespace fhatos {
     /// PROCESS METHODS
     //////////////////////////////////////////////////// SETUP
     void setup() override {
-      if (!this->id_->matches(*this->pattern())) {
+      STRUCTURE::setup();
+      PROCESS::setup();
+       if (!this->id_->matches(*this->pattern())) {
         const ptr<IDStructure> id_struct = IDStructure::create(this->id());
         router()->attach(id_struct);
         id_struct->setup();
       }
-      STRUCTURE::setup();
-      PROCESS::setup();
       this->subscribe(*this->id(), [this](const Message_p &message) {
         if (message->payload->is_noobj() &&
             message->retain &&
@@ -113,7 +113,6 @@ namespace fhatos {
 
     //////////////////////////////////////////////////// STOP
     void stop() override {
-      this->should_be_active();
       if (!this->id_->matches(*this->pattern()))
         router()->detach(p_p(*this->id_));
       router()->detach(this->pattern());
@@ -129,9 +128,9 @@ namespace fhatos {
         STRUCTURE::loop();
     }
 
-    virtual string toString() {
-      return string(this->id()->name()) + "!g[!y" + this->id()->toString() + "!!::!y" + this->pattern()->toString() +
-             "!g]!!";
+    virtual string toString() const {
+      return string("!mACTOR!!!g[!cid!m=>!g<!y") + this->id()->toString() + "!g>!m,!cpattern!m=>!g<!y" + this->pattern()->toString() +
+             "!g>]!!";
     }
 
   protected:

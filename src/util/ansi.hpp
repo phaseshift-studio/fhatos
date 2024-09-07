@@ -116,6 +116,8 @@ namespace fhatos {
           const char j = buffer[i + 1];
           if ('!' == j)
             this->normal();
+          //else if('*' == j)
+          //  this->background();
           else if ('_' == j)
             this->underline();
           else if('~' == j)
@@ -221,6 +223,11 @@ namespace fhatos {
       if (this->_on)
         this->print("\033[1m");
     }
+
+    //void background() {
+    //  if (this->_on)
+    //    this->print("\033[40m");
+    //}
 
     void red(const bool bright = false) { color(RED + (bright ? BRIGHT : 0), 0); }
 

@@ -26,7 +26,7 @@ FhatOS: A Distributed Operating System
 // #include <ESPAsyncTCP.h>
 #define WIFI_MULTI_CLIENT ESP8266WiFiMulti
 #elif defined(ESP32)
-#include <ESPmDNS.h>
+//#include <ESPmDNS.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #define WIFI_MULTI_CLIENT WiFiMulti
@@ -35,37 +35,40 @@ FhatOS: A Distributed Operating System
 #endif
 
 #include <fhatos.hpp>
-#include <furi.hpp>
-#include <language/fluent.hpp>
-#include <language/parser.hpp>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <structure/stype/key_value.hpp>
-#include <model/terminal.hpp>
+
+#define WIFI_NAME STR(fhatty)
 
 namespace fhatos {
 class Wifi : public Actor<Coroutine,KeyValue> {
 
-private:
-  Wifi(const ID& id = ID("/sys/wifi"), const List<Pair<string,string>>& ssids_passwords = {}) :  Actor(id) {
-    this->ssids_passwords = ssids_passwords;
-  }
-
 protected:
   List<Pair<string,string>> ssids_passwords;
+  const char *ssids;
+  const char *passwords;
+
+private:
+  Wifi(const ID& id = ID("/sys/wifi"), const char *ssids = STR(WIFI_SSID),  const char *passwords = STR(WIFI_PASS))
+      : Actor(id) {
+    this->ssids = ssids;
+    this->passwords = passwords;
+      }
 
 public:
-  inline static Wifi *singleton(const ID& id = ID("/sys/wifi"),
-                               const List<Pair<string,string>>& ssids_passwords = {}) {
-    static Wifi singleton = Wifi(id, ssids_passwords);
-    return &singleton;
+  inline static ptr<Wifi> singleton(const ID& id = ID("/sys/wifi"),
+                               const char *ssids = STR(WIFI_SSID),
+                                    const char *passwords = STR(WIFI_PASS)) {
+    static ptr<Wifi> singleton = ptr<Wifi>(new Wifi(id, ssids,passwords));
+    return singleton;
   }
 
- virtual bool active() override { return WiFi.isConnected(); }
+ //virtual bool active() override { return WiFi.isConnected(); }
 
-  IPAddress ip() { return WiFi.localIP(); }
+ // IPAddress ip() { return WiFi.localIP(); }
 
-  bool reconnect() { return WiFi.reconnect(); }
+ // bool reconnect() { return WiFi.reconnect(); }
 
   virtual void setup() override {
       Actor::setup();
@@ -78,34 +81,33 @@ public:
   }
 
 private:
-  void setAccessPoint(const char *ssid, const char *password,
+  /*void setAccessPoint(const char *ssid, const char *password,
                        const bool hideSSID = false,
                        const uint8_t maxConnections = 8) {
     WiFi.mode(WIFI_AP_STA);
     // WiFi.onSoftAPModeStationConnected(onNewStation);
-    LOG(INFO, "[WIFI Access Point Configuration]\n");
     // WiFi.softAPConfig();
     if (!WiFi.softAP(ssid, password, hideSSID, maxConnections)) {
-      LOG(ERROR, "Unable to create access point: %s\n", ssid);
+      LOG_ACTOR(ERROR, this, "Unable to create access point: %s\n", ssid);
     } else {
-      LOG(INFO,
-          "\tID:              %s\n"
-          "\tSSID:            %s\n"
-          "\tLocal IP:        %s\n"
-          "\tMac Address:     %s\n"
-          "\tBroadcast:       %s\n"
-          "\tChannel:         %i\n"
-          "\tMax connections: %i\n",
-          this->id().toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
+      LOG_ACTOR(INFO, this, 
+          "\n[WIFI Access Point Configuration]\n"
+          "\t!yID:              !m%s\n"
+          "\t!ySSID:            !m%s\n"
+          "\t!yLocal IP:        !m%s\n"
+          "\t!yMac Address:     !m%s\n"
+          "\t!yBroadcast:       !m%s\n"
+          "\t!yChannel:         !m%i\n"
+          "\t!yMax connections: !m%i!!\n",
+          this->id()->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
           WiFi.softAPmacAddress().c_str(), hideSSID ? "false" : "true",
           WiFi.channel(), maxConnections);
     }
 
     WiFi.enableAP(true);
-  }
+  }*/
 
   void setStation() {
-    LOG(INFO, "!b[WIFI Station Configuration]!!\n");
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
     const char *delim = ":";
@@ -114,9 +116,9 @@ private:
     char *ssid = strtok(ssidsTemp, delim);
     int i = 0;
     char *ssids_parsed[10];
-    LOG(INFO, "\tWiFi SSIDs:\n");
+    LOG_ACTOR(DEBUG,this, "\tWiFi SSIDs:\n");
     while (ssid != NULL) {
-      LOG(INFO, "\t\t%s\n", ssid);
+      LOG_ACTOR(DEBUG, this, "\t\t%s\n", ssid);
       ssids_parsed[i++] = ssid;
       ssid = strtok(NULL, delim);
     }
@@ -133,44 +135,45 @@ private:
     for (int j = 0; j < i; j++) {
       multi.addAP(ssids_parsed[j], passwords_parsed[j]);
     }
-    WiFi.hostname(Helper::machine());
+    WiFi.hostname(WIFI_NAME);
     uint8_t attempts = 0;
     while (attempts < 10) {
       attempts++;
       if (multi.run() == WL_CONNECTED) {
         //this->__id = Helper::makeId("wifi");
-        const bool mdnsStatus = MDNS.begin(Helper::machine());
-        LOG(INFO,
-            "\tID             : %s\n"
-            "\tStatus         : %s\n"
-            "\tSSID           : %s\n"
-            "\tMAC address    : %s\n"
-            "\tIP address     : %s\n"
-            "\tHostname       : %s\n"
-            "\tmDNS name      : %s\n"
-            "\tGateway address: %s\n"
-            "\tSubnet mask    : %s\n"
-            "\tDNS address    : %s\n"
-            "\tChannel        : %i\n",
-            this->_id->toString().c_str(),
+        const bool mdnsStatus =false;// MDNS.begin(WIFI_NAME);
+        LOG_ACTOR(INFO,this,
+            "\n\t!g[!bWIFI Station Configuration!g]!!\n"
+            "\t!yID             : !m%s\n"
+            "\t!yStatus         : !m%s\n"
+            "\t!ySSID           : !m%s\n"
+            "\t!yMAC address    : !m%s\n"
+            "\t!yIP address     : !m%s\n"
+            "\t!yHostname       : !m%s\n"
+            "\t!ymDNS name      : !m%s\n"
+            "\t!yGateway address: !m%s\n"
+            "\t!ySubnet mask    : !m%s\n"
+            "\t!yDNS address    : !m%s\n"
+            "\t!yChannel        : !m%i!!\n",
+            this->id()->toString().c_str(),
             WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
             WiFi.SSID().c_str(), WiFi.macAddress().c_str(),
             WiFi.localIP().toString().c_str(), WiFi.getHostname(),
-            mdnsStatus ? (String(Helper::machine()) + ".local").c_str()
+            mdnsStatus ? (String(WIFI_NAME) + ".local").c_str()
                        : "<error>",
             WiFi.gatewayIP().toString().c_str(),
             WiFi.subnetMask().toString().c_str(),
             WiFi.dnsIP().toString().c_str(), WiFi.channel());
         if (!mdnsStatus) {
-          LOGTASK(ERROR, this, "Unable to create mDNS hostname %s\n",
-                  Helper::machine());
+          LOG_ACTOR(WARN, this, "Unable to create mDNS hostname %s\n",
+                  WIFI_NAME);
         }
-        LOG(INFO, "\tConnection attempts: %i\n", attempts);
+        LOG_ACTOR(DEBUG, this, "Connection attempts: %i\n", attempts);
         attempts = 100;
       }
     }
     if (attempts != 100) {
-      LOG_PROCESS(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
+      LOG_ACTOR(ERROR, this, "Unable to connect to WIFI after %i attempts\n",
               attempts);
     }
   }

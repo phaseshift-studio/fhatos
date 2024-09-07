@@ -22,8 +22,12 @@
 #include <structure/structure.hpp>
 
 #ifndef FOS_MQTT_BROKER_ADDR
-#define FOS_MQTT_BROKER_ADDR "localhost:1883"
+#define FOS_MQTT_BROKER_ADDR localhost
 #endif
+#ifndef FOS_MQTT_BROKER_PORT
+#define FOS_MQTT_BROKER_PORT 1883
+#endif
+
 #define FOS_MQTT_MAX_RETRIES 10
 #define FOS_MQTT_RETRY_WAIT 5000
 
@@ -34,12 +38,10 @@ namespace fhatos {
     const char *server_addr_;
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = FOS_MQTT_BROKER_ADDR,
+    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
                       const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::DISTRIBUTED) {
       this->remote_retains_ = true;
-      this->server_addr_ = string(server_addr).find_first_of("mqtt://") == string::npos
-                             ? string("mqtt://").append(string(server_addr)).c_str()
-                             : server_addr;
+      this->server_addr_ = server_addr;
       this->will_message_ = will_message;
     }
 

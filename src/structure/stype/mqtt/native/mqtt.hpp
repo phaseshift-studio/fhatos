@@ -34,9 +34,12 @@ namespace fhatos {
 
     // +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"),
-                  const char *server_addr = FOS_MQTT_BROKER_ADDR,
+                  const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
                   const Message_p &will_message = ptr<Message>(nullptr)) : BaseMqtt(
       pattern, server_addr, will_message) {
+      this->server_addr_ = (string(server_addr).find_first_of("mqtt://") == string::npos
+                              ? string("mqtt://").append(string(server_addr)).c_str()
+                              : server_addr);
       this->xmqtt_ = new async_client(this->server_addr_, "", mqtt::create_options(MQTTVERSION_5));
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
@@ -101,7 +104,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = FOS_MQTT_BROKER_ADDR,
+    static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
                             const Message_p &will_message = ptr<Message>(nullptr)) {
       const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
       return mqtt_p;

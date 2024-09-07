@@ -21,7 +21,7 @@
 
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
-#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(thread.hpp)
 #include FOS_MQTT(mqtt.hpp)
 
 namespace fhatos {
@@ -29,11 +29,11 @@ namespace fhatos {
 /**
  * @brief A distributed shared memory structure supporting multiple authorities via @code{//+/+}.
  */
-  class DistributedMemory final : public Actor<Fiber, Mqtt> {
+  class DistributedMemory final : public Actor<Thread, Mqtt> {
 
   protected:
     explicit DistributedMemory(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") :
-            Actor<Fiber, Mqtt>(id, pattern) {}
+            Actor<Thread, Mqtt>(id, pattern) {}
 
   public:
     static ptr<DistributedMemory> create(const ID &id = "/net/mem", const Pattern &pattern = "//+/+") {

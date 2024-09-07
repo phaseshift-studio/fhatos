@@ -58,7 +58,6 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <queue>
 #include <set>
 #include <string>
 #include <tsl/ordered_map.h>
@@ -192,6 +191,9 @@ namespace fhatos {
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
+#define LOG_ACTOR(logtype, actor, format, ...) \
+  LOG((logtype), (string("%s ") + (format)).c_str(), (actor)->toString().c_str(),                            \
+      ##__VA_ARGS__)
 #define FOS_LOG_INST(inst)                                                                                             \
   LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
       (inst)->opcode().c_str(),                                                                                        \
@@ -219,13 +221,13 @@ namespace fhatos {
   ////////////////////////////
 
 #if defined(ESP32)
-#define FOS_PROCESS(proc) <process/ptype/esp32/proc>
-#define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
+#define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
+#define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(utl) <util/esp/utl>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
 #elif defined(ESP8266)
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
-#define FOS_MQTT(mqtt) <structure/router/esp/mqtt>
+#define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(utl) <util/esp/utl>
 #elif defined(NATIVE)
 #define FOS_PROCESS(__process__) <process/ptype/native/__process__>

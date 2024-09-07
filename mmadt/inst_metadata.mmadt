@@ -1,0 +1,8 @@
+=== instruction documentation ===
+
+```mmadt
+/type/inst/plus ->
+  [?_doc => "an algebraic plus for the respective type being added",
+   ?_kind => one_to_one,
+   ?_arg => [obj]]
+```
