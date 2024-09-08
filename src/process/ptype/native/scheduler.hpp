@@ -132,7 +132,7 @@ namespace fhatos {
         thread->loop();
       }
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->id()->equals(*thread->id());
+        const bool remove = proc->id()->equals(*thread->id()) || !proc->running();
         if (remove) LOG_DESTROY(true, proc, Scheduler::singleton());
         return remove;
       });

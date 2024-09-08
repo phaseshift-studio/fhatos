@@ -20,63 +20,51 @@
 #define fhatos_test_fhatos_hpp
 
 #ifndef FOS_LOGGING
-#define FOS_LOGGING TRACE
+#define FOS_LOGGING DEBUG
 #endif
 
 #include <fhatos.hpp>
 #include <../build/_deps/unity-src/src/unity.h>
 #include <unity.h>
 #include <model/model.hpp>
+#define FOS_DEPLOY_PRINTER_2                              \
+  Options::singleton()->printer<>(Ansi<>::singleton());   \
+  Options::singleton()->log_level(FOS_LOGGING);
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
-inline bool deploy_scheduler = true;
+#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
 #else
-inline bool deploy_scheduler = false;
+#define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
 #ifdef FOS_DEPLOY_ROUTER
 #include <structure/router.hpp>
-inline bool deploy_router = true;
+#define FOS_DEPLOY_ROUTER_2 Options::singleton()->router<Router>(Router::singleton()); 
 #else
-inline bool deploy_router = false;
+#define FOS_DEPLOY_ROUTER_2 ;
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
-inline bool deploy_parser = true;
+#define FOS_DEPLOY_PARSER_2  Model::deploy(Parser::singleton());
 #else
-inline bool deploy_parser = false;
+#define FOS_DEPLOY_PARSER_2 ;
 #endif
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
-inline bool deploy_types = true;
+#define FOS_DEPLOY_TYPES_2 Model::deploy(Types::singleton());
 #else
-inline bool deploy_types = false;
+#define FOS_DEPLOY_TYPES_2 ;
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <model/shared_memory.hpp>
-inline bool deploy_shared_memory = true;
+#define FOS_DEPLOY_SHARED_MEMORY_2 Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
-inline bool deploy_shared_memory = false;
+#define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
-#define FOS_SETUP_ON_BOOT \
-  Options::singleton()->printer<>(Ansi<>::singleton());                 \
-  Options::singleton()->log_level(FOS_LOGGING);                         \
-  if(deploy_scheduler)                                                  \
-    Options::singleton()->scheduler<Scheduler>(Scheduler::singleton()); \
-  if(deploy_router)                                                     \
-    Options::singleton()->router<Router>(Router::singleton());          \
-  if(deploy_parser)                                                     \
-    Model::deploy(Parser::singleton());                                 \
-  if(deploy_types)                                                      \
-    Model::deploy(Types::singleton());                                  \
-  if(deploy_shared_memory)                                              \
-    Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #define FOS_STOP_ON_BOOT ;
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
-#ifndef ALL_PROCESSORS
 namespace fhatos {
-#ifndef EVERYTHING
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -86,14 +74,19 @@ namespace fhatos {
       throw;                                                                                                           \
     }                                                                                                                  \
   }
-#endif
+
 #define FOS_RUN_TESTS(x)                                                                                               \
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
-      FOS_SETUP_ON_BOOT;             \
-      UNITY_BEGIN();             \
-      /*uint32_t __test_freeSketch;                                                                                       \
-      uint32_t __test_freeHeap;  */                      \
+      FOS_DEPLOY_PRINTER_2                                                                                             \
+      FOS_DEPLOY_SCHEDULER_2                                                                                           \
+      FOS_DEPLOY_ROUTER_2                                                                                              \
+      FOS_DEPLOY_PARSER_2                                                                                              \
+      FOS_DEPLOY_TYPES_2                                                                                               \
+      FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
+      UNITY_BEGIN();                                                                                                   \
+      /*uint32_t __test_freeSketch;                                                                                    \
+      uint32_t __test_freeHeap;  */                                                                                    \
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
@@ -102,70 +95,33 @@ namespace fhatos {
     }                                                                                                                  \
   }
 } // namespace fhatos
+
 #ifdef NATIVE
-#define SETUP_AND_LOOP()                                                                                               \
-  using namespace fhatos;                                                                                              \
-  int main(int, char **) {                                                                                             \
-    load_processor();                                                                                                  \
-    RUN_UNITY_TESTS();                                                                                                 \
-  };                                                                                                                   \
-  void setUp() {}                                                                                                      \
-  void tearDown() { FOS_STOP_ON_BOOT; }
+#define SETUP_AND_LOOP_2 int main(int, char **) {   
 #else
-#define SETUP_AND_LOOP()                                                                                               \
-  using namespace fhatos;                                                                                              \
+#define SETUP_AND_LOOP_2                                                                                               \
   void setup() {                                                                                                       \
     Serial.begin(FOS_SERIAL_BAUDRATE);                                                                                 \
-    delay(2000);                                                                                                       \
+    delay(2000);        
+#endif
+
+#define SETUP_AND_LOOP()                                                                                               \
+  using namespace fhatos;                                                                                              \
+    SETUP_AND_LOOP_2                                                                                                   \
     load_processor();                                                                                                  \
-    fhatos::RUN_UNITY_TESTS();                                                                                         \
-  }                                                                                                                    \
+    RUN_UNITY_TESTS();                                                                                                 \
+  };      
   void loop() {}                                                                                                       \
   void setUp() {}                                                                                                      \
   void tearDown() { FOS_STOP_ON_BOOT; }
-#endif
-#endif
-/////////////////////////////////////////////////////
-//////////////////////// ESP ////////////////////////
-/////////////////////////////////////////////////////
 
-#ifdef BLAH
-#define SETUP_AND_LOOP()                                                                                               \
-  void setup() {                                                                                                       \
-    Serial.begin(FOS_SERIAL_BAUDRATE);                                                                                 \
-    delay(2000);                                                                                                       \
-    fhatos::RUN_UNITY_TESTS();                                                                                         \
-  }                                                                                                                    \
-  void loop() {}
 
-namespace fhatos {
-#define FOS_RUN_TEST(x)                                                                                                \
-  __test_freeSketch = ESP.getFreeSketchSpace();                                                                        \
-  __test_freeHeap = ESP.getFreeHeap();                                                                                 \
-  { RUN_TEST(x); }                                                                                                     \
-  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeSketch, ESP.getFreeSketchSpace(),                                 \
-                                          "Memory leak in sketch repeat.");                                            \
-  TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(__test_freeHeap, ESP.getFreeHeap(), "Memory leak in heap.");
-
-#define FOS_RUN_TESTS(x)                                                                                               \
-  void RUN_UNITY_TESTS() {                                                                                             \
-    Options::singleton()->log_level(LOG_TYPE::TRACE);                                                                  \
-    LOG(NONE, ANSI_ART);                                                                                               \
-    Scheduler::singleton()->onBoot({LocalRouter::singleton(), Parser::singleton(), Types::singleton()});               \
-    Types::singleton()->loadExt("/ext/process");                                                                       \
-    UNITY_BEGIN();                                                                                                     \
-    uint32_t __test_freeSketch;                                                                                        \
-    uint32_t __test_freeHeap;                                                                                          \
-    x;                                                                                                                 \
-    UNITY_END();                                                                                                       \
-  }
-} // namespace fhatos
-
-#endif
+//////////////////////////////////////
+/////// TEST UTILITY FUNCTIONS /////// 
+//////////////////////////////////////
 
 using namespace fhatos;
 
-#define FOS_TEST_PRINTER FOS_DEFAULT_PRINTER
 #define FOS_PRINT_FLUENT(fluent)                                                                                       \
   FOS_TEST_MESSAGE("!yTesting!!: %s", (fluent).toString().c_str())                                                     \
   (fluent)
@@ -212,6 +168,7 @@ using namespace fhatos;
     TEST_ASSERT(true);                                                                                                 \
   }
 
+#ifdef FOS_DEPLOY_PARSER
 #define FOS_TEST_ASSERT_EXCEPTION(x, s)                                                                                \
   try {                                                                                                                \
     if ((s)) {                                                                                                         \
@@ -224,6 +181,7 @@ using namespace fhatos;
     FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                \
     TEST_ASSERT(true);                                                                                                 \
   }
+#endif
 
 #define FOS_TEST_OBJ_EQUAL(objA, objB)                                                                                 \
   {                                                                                                                    \
@@ -288,6 +246,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
   return obj;
 }
 
+#ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
     Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
@@ -297,8 +256,10 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
     TEST_ASSERT_TRUE(true);
   }
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef FOS_DEPLOY_ROUTER
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
   const List<OBJ> &expected, const Fluent &fluent,
@@ -340,7 +301,9 @@ static void FOS_CHECK_RESULTS(
   // if (clearRouter)
   //  Options::singleton()->router<Router>()->clear(false, true);
 }
+#endif
 
+#ifdef FOS_DEPLOY_PARSER
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
@@ -383,4 +346,5 @@ static void FOS_CHECK_RESULTS(
   }
   return FOS_CHECK_RESULTS<Obj>(expectedResults, Fluent(parse.value()));
 }
+#endif
 #endif

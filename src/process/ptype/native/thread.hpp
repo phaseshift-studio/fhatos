@@ -37,9 +37,12 @@ namespace fhatos {
 
     void stop() override {
       Process::stop();
-      if (this->xthread && this->xthread->joinable() && (this->xthread->get_id() != std::this_thread::get_id())) {
+      if (this->xthread && this->xthread->joinable()) {
         try {
-          this->xthread->detach();
+          if((this->xthread->get_id() != std::this_thread::get_id()))
+            this->xthread->join();
+          else
+            this->xthread->detach();
         } catch (const std::runtime_error &e) {
           LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
                       this->xthread->get_id(), std::this_thread::get_id());

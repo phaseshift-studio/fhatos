@@ -21,9 +21,7 @@
 
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_TYPES
-#define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_SHARED_MEMORY worker/+
 #include <test_fhatos.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -105,7 +103,8 @@ namespace fhatos {
     m.remove_if([](int i) { return i % 2 == 0; });
     TEST_ASSERT_FALSE(m.empty());
     TEST_ASSERT_EQUAL(50, m.size());
-    Scheduler::singleton()->barrier();
+    MutexDeque<int>* m_ptr = &m;
+    scheduler()->barrier("mutex filling",[m_ptr] { return m_ptr->size() == 50; });
   }
 
   void test_mutex_deque_concurrently() {
@@ -118,7 +117,7 @@ namespace fhatos {
     for (int i = 0; i < WORKER_COUNT; i++) {
       TEST_ASSERT_TRUE(s->spawn((ptr<Thread>(new Worker(i, &m)))));
     }
-    Scheduler::singleton()->barrier("no_workers", [s] { return s->count("worker/+") == 0; });
+    scheduler()->barrier("no_workers", [s] { return s->count("worker/+") == 0; });
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
     TEST_ASSERT_EQUAL(10 * WORKER_COUNT, m.size());
     TEST_ASSERT_FALSE(m.empty());
@@ -134,12 +133,12 @@ namespace fhatos {
       temp = m.pop_front().value_or(-1);
     }
     TEST_ASSERT_EQUAL(sum, mutexSum);
-    s->barrier();
   }
 
   FOS_RUN_TESTS( //
           FOS_RUN_TEST(test_mutex_deque_methods); //
           FOS_RUN_TEST(test_mutex_deque_concurrently); //
+          scheduler()->stop(); //
   );
 } // namespace fhatos
 
