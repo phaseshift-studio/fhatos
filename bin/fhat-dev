@@ -34,7 +34,7 @@ LB="${MAGENTA}[${NC}"
 RB="${MAGENTA}]${NC}"
 #############################
 
-echo -e "${FHATOS} ${MAGENTA}Development Script${NC}"
+echo -e "${FHATOS} ${MAGENTA}Development Tool${NC}"
 if [ -z "$FHATOS_HOME" ]; then
   echo -e " ${RED}FHATOS_HOME${NC} must be set to proceed";
   exit 1
@@ -141,7 +141,7 @@ test_esp32() {
     shift
     local extra_args=$1
     # platformio run --target clean
-    platformio test ${environ} -v ${filter} ${extra_args}
+    platformio test ${environ} -v ${filter}
   fi
 }
 

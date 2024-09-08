@@ -64,7 +64,6 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-          Options::singleton()->log_level(LOG_TYPE::TRACE); //
           FOS_RUN_TEST(test_publish); //
           FOS_RUN_TEST(test_bobj_wrap); //
   );

@@ -39,6 +39,7 @@ namespace fhatos {
     }
 
     virtual void setup() override {
+
       if (!FOS_FS.begin()) {
         LOG(ERROR, "Mount Failed\n");
         return;

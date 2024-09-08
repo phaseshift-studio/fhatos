@@ -25,7 +25,7 @@
 #include <model/terminal.hpp>
 #include <model/shared_memory.hpp>
 #include <model/distributed_memory.hpp>
-//#include FOS_FILE_SYSTEM(fs.hpp)
+#include FOS_FILE_SYSTEM(fs.hpp)
 
 #ifndef NATIVE
 #include <model/net/esp/wifi.hpp>
@@ -85,17 +85,17 @@ void setup() {
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
         #ifndef NATIVE
-        ->boot<Wifi>(Wifi::singleton("/sys/net/wifi"))
+        ->boot<Wifi>(Wifi::singleton("/net/wifi"))
         #endif
-        ->boot<SharedMemory>(SharedMemory::create("/sys/memory/shared", "+"))
+        ->boot<SharedMemory>(SharedMemory::create("/memory/shared/", "+"))
         ->boot<Types>(Types::singleton("/type/"))
-        ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
-        ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+        ->boot<Terminal>(Terminal::singleton("/terminal/"))
+        ->boot<Parser>(Parser::singleton("/parser/"))
         #ifndef NATIVE
-         ->boot<Memory>(Memory::singleton("/sys/soc/memory"))
+         ->boot<Memory>(Memory::singleton("/memory/soc/"))
         #endif
-        //->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount",FOS_FS_MOUNT)))
-        ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
+        ->boot<FileSystem>(FileSystem::singleton("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
+        ->boot<DistributedMemory>(DistributedMemory::create("/memory/cluster/"))
         ->boot<Console>(Console::create("/home/root/repl/"))
        // ->model({ID("/model/sys"), ID("/model/pubsub")})
         ->initial_terminal_owner("/home/root/repl/")
