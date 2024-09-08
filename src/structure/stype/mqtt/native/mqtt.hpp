@@ -34,11 +34,11 @@ namespace fhatos {
 
     // +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"),
-                  const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
+                  string server_addr = STR(FOS_MQTT_BROKER_ADDR),
                   const Message_p &will_message = ptr<Message>(nullptr)) : BaseMqtt(
       pattern, server_addr, will_message) {
       this->server_addr_ = (string(server_addr).find_first_of("mqtt://") == string::npos
-                              ? string("mqtt://").append(string(server_addr)).c_str()
+                              ? string("mqtt://").append(string(server_addr))
                               : server_addr);
       this->xmqtt_ = new async_client(this->server_addr_, "", mqtt::create_options(MQTTVERSION_5));
       connect_options_builder pre_connection_options = connect_options_builder()
@@ -77,6 +77,11 @@ namespace fhatos {
         connection_logging(id_p(this->xmqtt_->get_client_id().c_str()));
       });
     }
+
+      void native_mqtt_loop() override {
+this->loop();
+  }
+
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
       this->xmqtt_->subscribe(subscription->pattern.toString(), static_cast<int>(subscription->qos))->wait();

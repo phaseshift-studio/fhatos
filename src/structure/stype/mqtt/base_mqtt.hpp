@@ -34,15 +34,17 @@
 namespace fhatos {
   class BaseMqtt : public Structure {
   protected:
-    Message_p will_message_;
-    const char *server_addr_;
-
+   string server_addr_;
+    const Message_p will_message_;
+   
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                      const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::DISTRIBUTED) {
-      this->remote_retains_ = true;
-      this->server_addr_ = server_addr;
-      this->will_message_ = will_message;
+    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const string server_addr = STR(FOS_MQTT_BROKER_ADDR),
+                      const Message_p &will_message = ptr<Message>(nullptr)) : 
+                      Structure(pattern, SType::DISTRIBUTED), 
+                      server_addr_(server_addr),
+                       will_message_(will_message) {
+                        
+                        this->remote_retains_=true;
     }
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
@@ -53,13 +55,15 @@ namespace fhatos {
 
     virtual void native_mqtt_disconnect() = 0;
 
+    virtual void native_mqtt_loop() = 0;
+
     void connection_logging(const ID_p &client_id) const {
       LOG_STRUCTURE(INFO, this,
                     "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n"
                     FOS_TAB_4
                     "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
-                    this->server_addr_, client_id->toString().c_str(),
+                    this->server_addr_.c_str(), client_id->toString().c_str(),
                     this->will_message_.get() ? this->will_message_->target.toString().c_str() : "<none>",
                     this->will_message_.get() ? this->will_message_->payload->toString().c_str() : "<none>",
                     this->will_message_.get() ? "1" : "<none>",
@@ -68,7 +72,7 @@ namespace fhatos {
 
   public:
     void stop() override {
-      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr_);
+      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr_.c_str());
       native_mqtt_disconnect();
       Structure::stop();
     }
@@ -121,22 +125,19 @@ namespace fhatos {
           }
         }
       }));
-      this->loop();
       const time_t start_timestamp = time(nullptr);
       if (furi->is_pattern()) {
         while (time(nullptr) - start_timestamp < 2) {
-          this->loop();
+          this->native_mqtt_loop();
         }
       } else {
         while (!thing->load()) {
           if (time(nullptr) - start_timestamp > 1)
             break;
-          this->loop();
+          this->native_mqtt_loop();
         }
       }
-      this->loop();
       this->recv_unsubscribe(source, furi);
-      this->loop();
       if (furi->is_pattern()) {
         auto objs = ptr<Objs>(thing->load());
         delete thing;
@@ -153,8 +154,8 @@ namespace fhatos {
 
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source, const bool retain) override {
       check_availability("write");
-      LOG_STRUCTURE(DEBUG, this, "writing to xmpp broker: %s\n", obj->toString().c_str());
-      native_mqtt_publish(share(Message{.source = *source, .target = *target, .payload = obj, .retain = retain}));
+      LOG_STRUCTURE(DEBUG, this, "writing to mqtt broker: %s\n", obj->toString().c_str());
+      native_mqtt_publish(share(Message{.source = ID(*source), .target = ID(*target), .payload = obj, .retain = retain}));
     }
 
     void publish_retained(const Subscription_p &) override {

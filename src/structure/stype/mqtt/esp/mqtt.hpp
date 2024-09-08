@@ -26,38 +26,56 @@
 #include <WiFiClient.h>
 #include <PubSubClient.h>
 
+#define MQTT_MAX_PACKET_SIZE 512
+
 namespace fhatos {
 
 class Mqtt : public BaseMqtt {
 
+
   protected:
+const Map<int8_t, string> MQTT_STATE_CODES = {
+      {{-4, "MQTT_CONNECTION_TIMEOUT"},
+       {-3, "MQTT_CONNECTION_LOST"},
+       {-2, "MQTT_CONNECT_FAILED"},
+       {-1, "MQTT_DISCONNECTED"},
+       {0, "MQTT_CONNECTED"},
+       {1, "MQTT_CONNECT_BAD_PROTOCOL"},
+       {2, "MQTT_CONNECT_BAD_CLIENT_ID"},
+       {3, "MQTT_CONNECT_UNAVAILABLE"},
+       {4, "MQTT_CONNECT_BAD_CREDENTIALS"},
+       {5, "MQTT_CONNECT_UNAUTHORIZED"}}};
+
    ptr<PubSubClient> xmqtt_;
 
    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"),
-                 const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
+                 const string server_addr = STR(FOS_MQTT_BROKER_ADDR),
                  const Message_p &will_message = ptr<Message>(nullptr)) : BaseMqtt(pattern, server_addr, will_message) {
 
-  if (strcmp("none", server_addr) == 0) {
+  if (server_addr_.empty()) {
     LOG_STRUCTURE(WARN, this, "MQTT disabled as no broker address provided.\n");
   } else {
     WiFiClient *client = new WiFiClient();
-    this->xmqtt_ = ptr<PubSubClient>(new PubSubClient(server_addr, FOS_MQTT_BROKER_PORT, *client));
+    this->xmqtt_ = ptr<PubSubClient>(new PubSubClient(server_addr_.c_str(), FOS_MQTT_BROKER_PORT, *client));
     // this->xmqtt->setSocketTimeout(25);
-    this->xmqtt_->setServer(server_addr, FOS_MQTT_BROKER_PORT);
-    //this->xmqtt->setBufferSize(maxPacketSize);
+    this->xmqtt_->setServer(server_addr_.c_str(), FOS_MQTT_BROKER_PORT);
+    this->xmqtt_->setBufferSize(MQTT_MAX_PACKET_SIZE);
     this->xmqtt_->setSocketTimeout(1000); // may be too excessive
     this->xmqtt_->setKeepAlive(1000);     // may be too excessive
     this->xmqtt_->setCallback([this](const char *topic, const uint8_t *data, const uint32_t length) {
+        ((char *)data)[length] = '\0';
+       // const fbyte* data_dup[length];
+        //memcpy(data_dup,data,length);
         const BObj_p bobj = share(BObj(length, (fbyte *) data));
         const auto &[source, payload] = Message::unwrapSource(bobj);
         const Message_p message = share(Message{
           .source = *source,
           .target = ID(topic),
           .payload = payload,
-          .retain = true //mqtt_message->is_retained()
+          .retain = true //mqtt_message->is_retained() TODO: BOBj wrap should allow any properties of a message to be encodded in the byte stream
         });
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
-        const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(message->target));
+        const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(topic));
         for (const Subscription_p &sub: *matches) {
           this->outbox_->push_back(share(Mail{sub, message}));
         }
@@ -65,29 +83,46 @@ class Mqtt : public BaseMqtt {
       });
   }
   }
+
+    virtual void native_mqtt_loop() override {
+      yield();
+    }
+
   void native_mqtt_subscribe(const Subscription_p &subscription) override {
-    this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), static_cast<int>(subscription->qos));
+    this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), static_cast<uint8_t>(subscription->qos));
+    this->xmqtt_->flush();
   }
 
-     void native_mqtt_unsubscribe(const fURI_p &pattern) override {
+  void native_mqtt_unsubscribe(const fURI_p &pattern) override {
     this->xmqtt_->unsubscribe(pattern->toString().c_str());
+    this->xmqtt_->flush();
   }
 
-     void native_mqtt_publish(const Message_p &message) override {
+  void native_mqtt_publish(const Message_p &message) override {
     const BObj_p source_payload = Message::wrapSource(id_p(message->source), message->payload);
-    this->xmqtt_->publish((const char*)message->target.toString().c_str(),(const uint8_t*)source_payload->second,(unsigned int)source_payload->first,(boolean)message->retain);
+    this->xmqtt_->publish(message->target.toString().c_str(),source_payload->second,source_payload->first,message->retain);
+    this->xmqtt_->flush();
   }
 
-     void native_mqtt_disconnect() override {
+  void native_mqtt_disconnect() override {
     this->xmqtt_->disconnect();
   }
 
 
   public:
-  static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
+  static ptr<Mqtt> create(const Pattern &pattern, string server_addr = STR(FOS_MQTT_BROKER_ADDR),
                        const Message_p &will_message = ptr<Message>(nullptr)) {
-    const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
+    static const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
     return mqtt_p;
+  }
+
+    void loop() override {
+    Structure::loop();
+    scheduler()->feed_local_watchdog();
+     if (!this->xmqtt_->loop()) {
+      LOG_STRUCTURE(ERROR, this, "MQTT processing loop failure: %s\n",MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
+     }
+
   }
 
     void setup() override {
@@ -95,17 +130,19 @@ class Mqtt : public BaseMqtt {
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {
-          if (!this->xmqtt_->connect("abc")) {
+          if (!this->xmqtt_->connect("fhatos")) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
-              throw fError("unable to connect");
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->server_addr_, FOS_MQTT_BROKER_PORT);
+              throw fError("__wrapped below__");
+            LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->server_addr_.c_str(), FOS_MQTT_BROKER_PORT);
             sleep(FOS_MQTT_RETRY_WAIT / 1000);
           }
-          if (this->xmqtt_->connected())
+          if (this->xmqtt_->connected()) {
+            connection_logging(id_p("fhatos"));
             break;
+          }
         }
       } catch (const fError &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr_, e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr_.c_str(), e.what());
       }
     }
 

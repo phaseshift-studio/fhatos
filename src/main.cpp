@@ -95,9 +95,9 @@ void setup() {
          ->boot<Memory>(Memory::singleton("/sys/soc/memory"))
         #endif
         //->boot<FileSystem>(FileSystem::singleton("/io/fs", args.option("--mount",FOS_FS_MOUNT)))
-       // ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
+        ->boot<DistributedMemory>(DistributedMemory::create("/sys/memory/cluster"))
         ->boot<Console>(Console::create("/home/root/repl/"))
-        ->model({ID("/model/sys"), ID("/model/pubsub")})
+       // ->model({ID("/model/sys"), ID("/model/pubsub")})
         ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");
   } catch (const std::exception &e) {

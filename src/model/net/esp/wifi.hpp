@@ -26,7 +26,7 @@ FhatOS: A Distributed Operating System
 // #include <ESPAsyncTCP.h>
 #define WIFI_MULTI_CLIENT ESP8266WiFiMulti
 #elif defined(ESP32)
-//#include <ESPmDNS.h>
+#include <ESPmDNS.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #define WIFI_MULTI_CLIENT WiFiMulti
@@ -141,7 +141,7 @@ private:
       attempts++;
       if (multi.run() == WL_CONNECTED) {
         //this->__id = Helper::makeId("wifi");
-        const bool mdnsStatus =false;// MDNS.begin(WIFI_NAME);
+        const bool mdnsStatus = MDNS.begin(WIFI_NAME);
         LOG_ACTOR(INFO,this,
             "\n\t!g[!bWIFI Station Configuration!g]!!\n"
             "\t!yID             : !m%s\n"
