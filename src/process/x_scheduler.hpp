@@ -47,6 +47,7 @@ ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_n
 
 
 namespace fhatos {
+
   using Process_p = ptr<Process>;
 
   class XScheduler : public IDed, public Mailbox {
@@ -55,7 +56,7 @@ namespace fhatos {
     MutexDeque<Mail_p> inbox_;
     bool running_ = false;
     ptr<string> current_barrier_ = nullptr;
-
+  
   public:
     explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {
     }

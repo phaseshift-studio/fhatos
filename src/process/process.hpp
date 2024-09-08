@@ -23,8 +23,12 @@
 #include <fhatos.hpp>
 #include <util/enums.hpp>
 #include <furi.hpp>
+#include <util/ptr_helper.hpp>
 
 namespace fhatos {
+class Process;
+  using Process_p = ptr<Process>;
+   static Process_p this_process = nullptr;
 
   enum class PType {
     THREAD, FIBER, COROUTINE
@@ -41,6 +45,7 @@ namespace fhatos {
 
   public:
     const PType ptype;
+  
 
     explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {}
 
@@ -53,6 +58,7 @@ namespace fhatos {
         return;
       }
       this->_running.store(true);
+      fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void loop() {
@@ -60,6 +66,7 @@ namespace fhatos {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
                      ProcessTypes.toChars(this->ptype).c_str());
       }
+       fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void stop() {
@@ -68,6 +75,7 @@ namespace fhatos {
             ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
+      fhatos::this_process = PtrHelper::no_delete(this);
       this->_running.store(false);
     };
 

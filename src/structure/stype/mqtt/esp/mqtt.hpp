@@ -85,23 +85,20 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
   }
 
     virtual void native_mqtt_loop() override {
-      yield();
+      fhatos::this_process->yield();
     }
 
   void native_mqtt_subscribe(const Subscription_p &subscription) override {
     this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), static_cast<uint8_t>(subscription->qos));
-    this->xmqtt_->flush();
   }
 
   void native_mqtt_unsubscribe(const fURI_p &pattern) override {
     this->xmqtt_->unsubscribe(pattern->toString().c_str());
-    this->xmqtt_->flush();
   }
 
   void native_mqtt_publish(const Message_p &message) override {
     const BObj_p source_payload = Message::wrapSource(id_p(message->source), message->payload);
     this->xmqtt_->publish(message->target.toString().c_str(),source_payload->second,source_payload->first,message->retain);
-    this->xmqtt_->flush();
   }
 
   void native_mqtt_disconnect() override {
@@ -119,9 +116,15 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
     void loop() override {
     Structure::loop();
     scheduler()->feed_local_watchdog();
-     if (!this->xmqtt_->loop()) {
+    if (!this->xmqtt_->connected()) {
+      LOG_STRUCTURE(INFO, this, "Reconnecting to MQTT broker after connection loss [%s]\n", MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
+      if(!this->xmqtt_->connect("fhatos")) {
+        fhatos::this_process->delay(FOS_MQTT_RETRY_WAIT / 1000);
+      }
+     }     else if(!this->xmqtt_->loop()) {
       LOG_STRUCTURE(ERROR, this, "MQTT processing loop failure: %s\n",MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-     }
+     } 
+     
 
   }
 

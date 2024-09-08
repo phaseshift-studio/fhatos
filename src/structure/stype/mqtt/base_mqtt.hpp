@@ -112,11 +112,12 @@ namespace fhatos {
       if (furi->is_pattern())
         thing->store(new Objs(share(List<Obj_p>()), OBJS_FURI));
       this->recv_subscription(share(Subscription{
-        .source = static_cast<fURI>(*source), .pattern = *furi,
+        .source = static_cast<fURI>(*source), 
+        .pattern = *furi,
         .onRecv = [this, furi, thing](const Message_p &message) {
-          // TODO: try to not copy obj while still not accessing heap after delete
           LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
                         message->toString().c_str());
+          // TODO: try to not copy obj while still not accessing heap after delete
           if (furi->is_pattern()) {
             const auto obj = ptr<Obj>(new Uri(fURI(message->target), URI_FURI));
             thing->load()->add_obj(obj);
