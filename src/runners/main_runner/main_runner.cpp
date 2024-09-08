@@ -26,8 +26,8 @@
 #include <language/types.hpp>
 #include <process/ptype/native/scheduler.hpp>
 #include <kernel.hpp>
-#include <structure/model/console.hpp>
-#include <structure/model/terminal.hpp>
+#include <model/console.hpp>
+#include <model/terminal.hpp>
 #include <thread>
 #include <util/ansi.hpp>
 
@@ -52,12 +52,12 @@ int main(int arg, char **argsv) {
             ->with_log_level(ERROR)
             ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
             ->using_router(Router::singleton("/sys/router/"))
-            ->boot<Terminal, Thread, KeyValue>(Terminal::singleton("/io/terminal/"))
-            ->boot<Types, Fiber, KeyValue>(Types::singleton("/type/"))
-            ->boot<Parser, Coroutine, Empty>(Parser::singleton("/sys/lang/parser/"))
-            ->boot<Console, Thread, Empty>(ptr<Console>(new Console("/home/root/repl/")))
+            ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
+            ->boot<Types>(Types::singleton("/type/"))
+            ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
+            ->boot<Console>(ptr<Console>(Console::create("/home/root/repl/")))
                     //->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
-            ->model({ID("/mod/proc")})
+           // ->model({ID("/model/proc")})
         ->initial_terminal_owner("/home/root/repl/");
     //->done("kernel_barrier");
     printer<>()->on(false);
