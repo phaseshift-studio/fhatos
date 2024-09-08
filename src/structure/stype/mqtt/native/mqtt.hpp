@@ -127,14 +127,14 @@ this->loop();
           if (!this->xmqtt_->connect(this->connection_options_)->wait_for(1000)) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr_);
+            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr_.c_str());
             sleep(FOS_MQTT_RETRY_WAIT / 1000);
           }
           if (this->xmqtt_->is_connected())
             break;
         }
       } catch (const mqtt::exception &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr_, e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr_.c_str(), e.what());
       }
     }
   };
