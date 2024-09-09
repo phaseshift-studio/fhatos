@@ -300,8 +300,12 @@ namespace fhatos {
         typeToken = "";
         valueToken = token;
       }
-      StringHelper::trim(typeToken);
       StringHelper::trim(valueToken);
+      StringHelper::trim(typeToken);
+      // <type_furi>
+      if (!typeToken.empty() && typeToken[0] == '<' && typeToken[typeToken.length() - 1] == '>')
+        typeToken = typeToken.substr(1, typeToken.length() - 2);
+      // base types resolve outside of standard algorithm due to their common usage
       if (typeToken == "obj")
         typeToken = OBJ_FURI->toString();
       else if (typeToken == "noobj")
@@ -700,19 +704,17 @@ namespace fhatos {
   };
 
 
-
- [[maybe_unused]] static Obj_p parse(const char* format, ...) {
-      char message[1024];
-      va_list arg;
-      va_start(arg, format);
-      vsnprintf(message, 1024, format, arg);
-      va_end(arg);
-      return Parser::tryParseObj(string(message)).value_or(noobj());
+  [[maybe_unused]] static Obj_p parse(const char *format, ...) {
+    char message[1024];
+    va_list arg;
+    va_start(arg, format);
+    vsnprintf(message, 1024, format, arg);
+    va_end(arg);
+    return Parser::tryParseObj(string(message)).value_or(noobj());
   }
 
-    [[maybe_unused]] static Obj_p parse(const string &source) {
-     return Parser::tryParseObj(source).value_or(noobj());
+  [[maybe_unused]] static Obj_p parse(const string &source) {
+    return Parser::tryParseObj(source).value_or(noobj());
   }
-
 } // namespace fhatos
 #endif

@@ -40,67 +40,67 @@ namespace fhatos {
     void load_insts() {
       const Str_p ARG_ERROR = str("No enough arguments provided");
       //this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      this->saveType(inst_id("plus"), Insts::plus(x(0)));
-      this->saveType(inst_id("mult"), Insts::mult(x(0)));
-      this->saveType(inst_id("mod"), Insts::mod(x(0)));
-      this->saveType(inst_id("eq"), Insts::eq(x(0)));
-      this->saveType(inst_id("neq"), Insts::neq(x(0)));
-      this->saveType(inst_id("gte"), Insts::gte(x(0)));
-      this->saveType(inst_id("lte"), Insts::lte(x(0)));
-      this->saveType(inst_id("lt"), Insts::lt(x(0)));
-      this->saveType(inst_id("gt"), Insts::gt(x(0)));
-      this->saveType(inst_id("to"), Insts::to(x(0)));
-      this->saveType(inst_id("to_inv"), Insts::to_inv(x(0)));
-      this->saveType(inst_id("->"), Insts::from(uri(inst_id("to_inv"))));
-      this->saveType(inst_id("start"), Insts::start(x(0)));
-      this->saveType(inst_id("merge"), Insts::merge());
-      this->saveType(inst_id(">-"), Insts::from(uri(inst_id("merge"))));
-      this->saveType(inst_id("map"), Insts::map(x(0)));
-      this->saveType(inst_id("filter"), Insts::filter(x(0)));
-      this->saveType(inst_id("count"), Insts::count());
-      this->saveType(inst_id("subset"), Insts::subset(x(0), x(1)));
-      this->saveType(inst_id("sum"), Insts::sum());
-      this->saveType(inst_id("prod"), Insts::prod());
-      this->saveType(inst_id("group"), Insts::group(x(0, bcode()), x(1, bcode()), x(2, bcode())));
-      this->saveType(inst_id("get"), Insts::get(x(0)));
-      this->saveType(inst_id("set"), Insts::set(x(0), x(1)));
-      this->saveType(inst_id("noop"), Insts::noop());
-      this->saveType(inst_id("as"), Insts::as(x(0)));
-      this->saveType(inst_id("by"), Insts::by(x(0)));
-      this->saveType(inst_id("type"), Insts::type());
-      this->saveType(inst_id("is"), Insts::is(x(0)));
-      this->saveType(inst_id("from"), Insts::from(x(0), x(1)));
-      this->saveType(inst_id("*"), Insts::from(x(0), x(1)));
-      this->saveType(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
-      this->saveType(inst_id("sub"), Insts::sub(x(0), x(1)));
-      this->saveType(inst_id("within"), Insts::within(x(0)));
-      this->saveType(inst_id("print"), Insts::print(x(0, bcode())));
-      this->saveType(inst_id("switch"), Insts::bswitch(x(0)));
-      this->saveType(inst_id("explain"), Insts::explain());
-      this->saveType(inst_id("drop"), Insts::drop(x(0)));
-      this->saveType(inst_id("V"), Insts::from(uri(inst_id("drop"))));
-      this->saveType(inst_id("lift"), Insts::lift(x(0)));
-      this->saveType(inst_id("^"), Insts::from(uri(inst_id("lift"))));
-      this->saveType(inst_id("size"), Insts::size());
-      this->saveType(inst_id("foldr"), Insts::foldr(x(0)));
-      this->saveType(inst_id("barrier"), Insts::barrier(x(0)));
-      this->saveType(inst_id("block"), Insts::block(x(0)));
-      this->saveType(inst_id("|"), Insts::from(uri(inst_id("block"))));
-      this->saveType(inst_id("cleave"), Insts::cleave(x(0)));
-      this->saveType(inst_id("split"), Insts::split(x(0)));
-      this->saveType(inst_id("-<"), Insts::from(uri(inst_id("split"))));
-      this->saveType(inst_id("each"), Insts::each(x(0)));
-      this->saveType(inst_id("="), Insts::from(uri(inst_id("each"))));
-      this->saveType(inst_id("window"), Insts::window(x(0)));
-      this->saveType(inst_id("match"), Insts::match(x(0)));
-      this->saveType(inst_id("~"), Insts::from(uri(inst_id("match"))));
-      this->saveType(inst_id("end"), Insts::end());
-      this->saveType(inst_id("until"), Insts::until(x(0)));
-      this->saveType(inst_id("dedup"), Insts::dedup(x(0, bcode())));
-      this->saveType(inst_id("insert"), Insts::insert(x(0)));
-      this->saveType(inst_id("and"), Insts::x_and(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
-      this->saveType(inst_id("or"), Insts::x_or(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
-      this->saveType(inst_id("error"), Insts::error(x(0,str("an error occurred"))));
+      this->save_type(inst_id("plus"), Insts::plus(x(0)));
+      this->save_type(inst_id("mult"), Insts::mult(x(0)));
+      this->save_type(inst_id("mod"), Insts::mod(x(0)));
+      this->save_type(inst_id("eq"), Insts::eq(x(0)));
+      this->save_type(inst_id("neq"), Insts::neq(x(0)));
+      this->save_type(inst_id("gte"), Insts::gte(x(0)));
+      this->save_type(inst_id("lte"), Insts::lte(x(0)));
+      this->save_type(inst_id("lt"), Insts::lt(x(0)));
+      this->save_type(inst_id("gt"), Insts::gt(x(0)));
+      this->save_type(inst_id("to"), Insts::to(x(0)));
+      this->save_type(inst_id("to_inv"), Insts::to_inv(x(0)));
+      this->save_type(inst_id("->"), Insts::from(uri(inst_id("to_inv"))));
+      this->save_type(inst_id("start"), Insts::start(x(0)));
+      this->save_type(inst_id("merge"), Insts::merge());
+      this->save_type(inst_id(">-"), Insts::from(uri(inst_id("merge"))));
+      this->save_type(inst_id("map"), Insts::map(x(0)));
+      this->save_type(inst_id("filter"), Insts::filter(x(0)));
+      this->save_type(inst_id("count"), Insts::count());
+      this->save_type(inst_id("subset"), Insts::subset(x(0), x(1)));
+      this->save_type(inst_id("sum"), Insts::sum());
+      this->save_type(inst_id("prod"), Insts::prod());
+      this->save_type(inst_id("group"), Insts::group(x(0, bcode()), x(1, bcode()), x(2, bcode())));
+      this->save_type(inst_id("get"), Insts::get(x(0)));
+      this->save_type(inst_id("set"), Insts::set(x(0), x(1)));
+      this->save_type(inst_id("noop"), Insts::noop());
+      this->save_type(inst_id("as"), Insts::as(x(0)));
+      this->save_type(inst_id("by"), Insts::by(x(0)));
+      this->save_type(inst_id("type"), Insts::type());
+      this->save_type(inst_id("is"), Insts::is(x(0)));
+      this->save_type(inst_id("from"), Insts::from(x(0), x(1)));
+      this->save_type(inst_id("*"), Insts::from(x(0), x(1)));
+      this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
+      this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
+      this->save_type(inst_id("within"), Insts::within(x(0)));
+      this->save_type(inst_id("print"), Insts::print(x(0, bcode())));
+      this->save_type(inst_id("switch"), Insts::bswitch(x(0)));
+      this->save_type(inst_id("explain"), Insts::explain());
+      this->save_type(inst_id("drop"), Insts::drop(x(0)));
+      this->save_type(inst_id("V"), Insts::from(uri(inst_id("drop"))));
+      this->save_type(inst_id("lift"), Insts::lift(x(0)));
+      this->save_type(inst_id("^"), Insts::from(uri(inst_id("lift"))));
+      this->save_type(inst_id("size"), Insts::size());
+      this->save_type(inst_id("foldr"), Insts::foldr(x(0)));
+      this->save_type(inst_id("barrier"), Insts::barrier(x(0)));
+      this->save_type(inst_id("block"), Insts::block(x(0)));
+      this->save_type(inst_id("|"), Insts::from(uri(inst_id("block"))));
+      this->save_type(inst_id("cleave"), Insts::cleave(x(0)));
+      this->save_type(inst_id("split"), Insts::split(x(0)));
+      this->save_type(inst_id("-<"), Insts::from(uri(inst_id("split"))));
+      this->save_type(inst_id("each"), Insts::each(x(0)));
+      this->save_type(inst_id("="), Insts::from(uri(inst_id("each"))));
+      this->save_type(inst_id("window"), Insts::window(x(0)));
+      this->save_type(inst_id("match"), Insts::match(x(0)));
+      this->save_type(inst_id("~"), Insts::from(uri(inst_id("match"))));
+      this->save_type(inst_id("end"), Insts::end());
+      this->save_type(inst_id("until"), Insts::until(x(0)));
+      this->save_type(inst_id("dedup"), Insts::dedup(x(0, bcode())));
+      this->save_type(inst_id("insert"), Insts::insert(x(0)));
+      this->save_type(inst_id("and"), Insts::x_and(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->save_type(inst_id("or"), Insts::x_or(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->save_type(inst_id("error"), Insts::error(x(0,str("an error occurred"))));
     }
 
   public:
@@ -112,14 +112,14 @@ namespace fhatos {
     void setup() override {
       Actor::setup();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &typeId) {
-        singleton()->checkType(obj, otype, typeId, true);
+        singleton()->check_type(obj, otype, typeId, true);
         return typeId;
       };
       this->load_insts();
       this->subscribe(*this->pattern(), [](const Message_p &message) {
         if (message->retain && (message->source != *Types::singleton()->id()) &&
             message->target != ID("anon_tgt"))
-          Types::singleton()->saveType(id_p(message->target), message->payload, true);
+          Types::singleton()->save_type(id_p(message->target), message->payload, true);
         // else { // transient provides type checking?
         // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
         // id_p(message->target));
@@ -130,7 +130,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void saveType(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub = false) {
+    void save_type(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub = false) {
       try {
         if (!viaPub) {
           const Obj_p current = this->read(typeId, this->id());
@@ -160,7 +160,7 @@ namespace fhatos {
       //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier())) */
     }
 
-    bool checkType(const Obj &obj, const OType otype, const ID_p &typeId,
+    bool check_type(const Obj &obj, const OType otype, const ID_p &typeId,
                    const bool doThrow = true) noexcept(false) {
       const OType typeOType = OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)

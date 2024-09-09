@@ -30,7 +30,6 @@
 #define FL_REAL_TYPE float
 
 #include <any>
-#include <unordered_map>
 
 #endif
 #ifndef FL_INT_TYPE
@@ -54,15 +53,15 @@ namespace fhatos {
     /// A "null" object type used to kill a processing monad
     NOOBJ,
     OBJS,
-    /// A boolean mono-type
+    /// A boolean monotype
     BOOL,
-    /// An integral number mono-type in Z
+    /// An integral number monotype in Z
     INT,
     /// A real number mono-type in R
     REAL,
-    /// A string mono-type denoting a sequence of characters where a "char" is equivalent to str[0]
+    /// A string monotype denoting a sequence of characters where a "char" is equivalent to str[0]
     STR,
-    /// A Uniform Resource Identifier mono-type
+    /// A Uniform Resource Identifier monotype
     URI,
     /// A list poly-type
     LST,
@@ -291,7 +290,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
-    template<class T, class = typename std::enable_if_t<std::is_same_v<bool, T>>>
+    template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
     Obj(const T xbool, const char *typeId = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL,
                                                                id_p(BOOL_FURI->resolve(typeId))) {
     }
@@ -380,13 +379,13 @@ namespace fhatos {
       return this->value<FL_REAL_TYPE>();
     }
 
-    [[nodiscard]] const fURI uri_value() const {
+    [[nodiscard]]  fURI uri_value() const {
       if (!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<fURI>();
     }
 
-    [[nodiscard]] const string str_value() const {
+    [[nodiscard]]  string str_value() const {
       if (!this->is_str())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<string>();
@@ -458,7 +457,7 @@ namespace fhatos {
 
     [[nodiscard]] InstSeedSupplier inst_seed_supplier() const { return std::get<3>(this->inst_value()); }
 
-    [[nodiscard]] Obj_p inst_seed(const Obj_p arg) const { return this->inst_seed_supplier()(arg); }
+    [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()(arg); }
 
     IType itype() const {
       if (this->is_inst())
@@ -707,7 +706,7 @@ namespace fhatos {
         //   case OType::STR:
         //   return Obj(this->str_value() + rhs.str_value(), this->id());
         case OType::LST: {
-          LstList_p<> list = LstList_p<>(new LstList<>());
+          auto list = std::make_shared<LstList<> >();
           auto itB = rhs.lst_value()->begin();
           for (auto itA = this->lst_value()->begin(); itA != this->lst_value()->end(); ++itA) {
             list->push_back(share(Obj(**itA * **itB, itA->get()->id())));
@@ -716,7 +715,7 @@ namespace fhatos {
           return Lst(list, this->id());
         }
         case OType::REC: {
-          RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
+          auto map = std::make_shared<RecMap<> >();
           auto itB = rhs.rec_value()->begin();
           for (auto itA = this->rec_value()->begin(); itA != this->rec_value()->end(); ++itA) {
             map->insert(std::make_pair(share(Obj(*itA->first * *itB->first, itA->first->id())),
@@ -752,7 +751,7 @@ namespace fhatos {
         case OType::STR:
           return Obj(string(this->str_value()) + string(rhs.str_value()), this->id());
         case OType::LST: {
-          LstList_p<> list = LstList_p<>(new LstList<>());
+          auto list = std::make_shared<LstList<> >();
           for (const auto &obj: *this->lst_value()) {
             list->push_back(obj);
           }
@@ -762,7 +761,7 @@ namespace fhatos {
           return Lst(list, this->id());
         }
         case OType::REC: {
-          RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
+          auto map = std::make_shared<RecMap<> >();
           for (const auto &pair: *this->rec_value()) {
             map->insert(pair);
           }
@@ -791,7 +790,7 @@ namespace fhatos {
         // case OType::STR:
         //  return Obj(string(this->str_value()).replace(string(rhs.str_value()), this->id());
         case OType::LST: {
-          LstList_p<> list = LstList_p<>(new LstList<>());
+          auto list = std::make_shared<LstList<> >();
           for (const auto &obj: *this->lst_value()) {
             if (std::find(rhs.lst_value()->begin(), rhs.lst_value()->end(), obj) != std::end(
                   *rhs.lst_value()))
@@ -800,7 +799,7 @@ namespace fhatos {
           return Lst(list, this->id());
         }
         case OType::REC: {
-          RecMap_p<> map = ptr<RecMap<>>(new RecMap<>());
+          auto map = std::make_shared<RecMap<> >();
           for (const auto &pair: *this->rec_value()) {
             map->insert(pair);
           }
@@ -1025,7 +1024,7 @@ namespace fhatos {
       if (type->is_noop_bcode())
         return true;
       if (type->is_bcode() && !this->is_bcode())
-        return !type->apply(PtrHelper::no_delete<Obj>((Obj *) this))->is_noobj();
+        return !type->apply(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)))->is_noobj();
       if (this->o_type() != type->o_type())
         return false;
       if (sameType && (*this->id() != *type->id()))
@@ -1270,7 +1269,7 @@ namespace fhatos {
       return ptr<BObj>(
         new BObj{
           this->toString().length(),
-          (fbyte *) strdup(Ansi<>::strip(this->toString()).c_str())
+          reinterpret_cast<fbyte *>(strdup(Ansi<>::strip(this->toString()).c_str()))
         },
         bobj_deleter);
     }
@@ -1280,7 +1279,7 @@ namespace fhatos {
       LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
       if (bobj->first == 1 && bobj->second[0] == 'x')
         return Obj::to_noobj();
-      return OBJ_PARSER(string((char *) bobj->second, bobj->first));
+      return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
     }
   };
 

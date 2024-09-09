@@ -23,10 +23,7 @@
 #include <language/obj.hpp>
 #include <language/rewrite/rewriter.hpp>
 #include <language/insts.hpp>
-#include <utility>
-#include FOS_PROCESS(thread.hpp)
 #include <process/actor/actor.hpp>
-#include <structure/stype/key_value.hpp>
 
 namespace fhatos {
   class Monad;
@@ -149,7 +146,7 @@ namespace fhatos {
       return objs;
     }
 
-    int execute(const int steps = -1) {
+    int execute(const int steps = -1) const {
       int counter = 0;
       while ((!this->running->empty() || !this->barriers->empty()) && (counter++ < steps || steps == -1)) {
         if (this->running->empty() && !this->barriers->empty()) {

@@ -58,8 +58,8 @@ namespace fhatos {
       LOG_ACTOR(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
       Types::singleton()->loop();
-      Types::singleton()->saveType(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
-      Types::singleton()->saveType(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
+      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
+      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       Types::singleton()->loop();
       /*this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
           if (message->retain && message->payload->is_noobj()) {
@@ -77,14 +77,14 @@ namespace fhatos {
           }
       });*/
       ///////////////////////////////////////////////////////////////////
-      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("root")),
+      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("root")),
                                    Obj::to_inst(
                                      "root", {}, [this](const InstArgs &) {
                                        return [this](const Obj_p &) { return this->root(); };
                                      },
                                      IType::ZERO_TO_ONE, Obj::objs_seed(),
                                      id_p(INST_FS_FURI->resolve("root"))));
-      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("ls")),
+      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("ls")),
                                    Obj::to_inst(
                                      "ls", {x(0, bcode())},
                                      [this](const InstArgs &args) {
@@ -95,7 +95,7 @@ namespace fhatos {
                                        };
                                      },
                                      IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
-      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("mkdir")),
+      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("mkdir")),
                                    Obj::to_inst(
                                      "fs:mkdir", {x(0, bcode())},
                                      [this](const InstArgs &args) {
@@ -105,7 +105,7 @@ namespace fhatos {
                                      },
                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
                                      id_p(INST_FS_FURI->resolve("mkdir"))));
-      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("more")),
+      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("more")),
                                    Obj::to_inst(
                                      "fs:more", {x(0, Obj::to_bcode()), x(1, jnt(10))},
                                      [this](const InstArgs &args) {
@@ -127,7 +127,7 @@ namespace fhatos {
                                      },
                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
                                      id_p(INST_FS_FURI->resolve("more"))));
-      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("append")),
+      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("append")),
                                    Obj::to_inst(
                                      "fs:append", {x(0)},
                                      [this](const InstArgs &args) {
@@ -138,7 +138,7 @@ namespace fhatos {
                                      },
                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
                                      id_p(INST_FS_FURI->resolve("append"))));
-      Types::singleton()->saveType(id_p(INST_FS_FURI->resolve("touch")),
+      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("touch")),
                                    Obj::to_inst(
                                      "fs:touch", {x(0, bcode())},
                                      [this](const InstArgs &args) {
