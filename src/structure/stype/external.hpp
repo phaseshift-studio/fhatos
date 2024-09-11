@@ -1,5 +1,5 @@
 /*******************************************************************************
-  FhatOS: A Distributed Operating System
+FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -16,28 +16,20 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_shared_memory_hpp
-#define fhatos_shared_memory_hpp
+#ifndef fhatos_external_hpp
+#define fhatos_external_hpp
 
 #include <fhatos.hpp>
-#include <process/actor/actor.hpp>
-#include FOS_PROCESS(coroutine.hpp)
-#include <structure/stype/heap.hpp>
+#include <structure/structure.hpp>
 
 namespace fhatos {
 
-  class SharedMemory : public Actor<Coroutine, Heap> {
+  class External : public KeyValue {
 
   protected:
-    explicit SharedMemory(const ID &id = "/memory/shared", const Pattern &pattern = "+") :
-            Actor(id, pattern) {}
-
-  public:
-    static ptr<SharedMemory> create(const ID &id = "/memory/shared", const Pattern &pattern = "+") {
-      auto cluster_p = ptr<SharedMemory>(new SharedMemory(id, pattern));
-      return cluster_p;
-    }
+    explicit External(const Pattern &pattern = "+") : KeyValue(pattern,SType::HARDWARE) {}
   };
+
 
 } // namespace fhatos
 

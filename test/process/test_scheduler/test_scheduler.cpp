@@ -32,7 +32,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/abc/thread-1"));
     ////////////////////////////////////////////////////////////////////////////
-    ptr<Thread> a = ptr<Thread>(new Thread("/test/abc/thread-1"));
+    const auto a = std::make_shared<Thread>("/test/abc/thread-1");
     Scheduler::singleton()->spawn(a);
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
@@ -41,7 +41,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     ////////////////////////////////////////////////////////////////////////////
-    ptr<Thread> b = ptr<Thread>(new Thread("/test/abc/thread-2"));
+    const auto b = std::make_shared<Thread>("/test/abc/thread-2");
     Scheduler::singleton()->spawn(b);
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/abc/#"));

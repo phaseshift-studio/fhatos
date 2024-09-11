@@ -25,8 +25,6 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
-#include <unistd.h>
-#include <util/mutex_rw.hpp>
 
 namespace fhatos {
   class Types : public Actor<Coroutine, KeyValue> {
@@ -38,7 +36,7 @@ namespace fhatos {
     }
 
     void load_insts() {
-      const Str_p ARG_ERROR = str("No enough arguments provided");
+      const Str_p ARG_ERROR = str("wrong number of arguments");
       //this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
       this->save_type(inst_id("mult"), Insts::mult(x(0)));

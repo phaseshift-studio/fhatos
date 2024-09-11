@@ -49,7 +49,7 @@ namespace fhatos {
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
       if (will_message.get()) {
-        const BObj_p source_payload = Message::wrapSource(id_p(will_message->source), will_message->payload);
+        const BObj_p source_payload = Message::wrap_source(id_p(will_message->source), will_message->payload);
         pre_connection_options = pre_connection_options.will(
           message(this->will_message_->target.toString(), source_payload->second, this->will_message_->retain));
       }
@@ -58,7 +58,7 @@ namespace fhatos {
       this->xmqtt_->set_message_callback([this](const const_message_ptr &mqtt_message) {
         const binary_ref ref = mqtt_message->get_payload_ref();
         const BObj_p bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
-        const auto &[source, payload] = Message::unwrapSource(bobj);
+        const auto &[source, payload] = Message::unwrap_source(bobj);
         const Message_p message = share(Message{
           .source = *source,
           .target = ID(mqtt_message->get_topic()),
@@ -92,7 +92,7 @@ this->loop();
     }
 
     void native_mqtt_publish(const Message_p &message) override {
-      const BObj_p source_payload = Message::wrapSource(id_p(message->source), message->payload);
+      const BObj_p source_payload = Message::wrap_source(id_p(message->source), message->payload);
       this->xmqtt_->publish(
         string(message->target.toString().c_str()),
         source_payload->second,

@@ -34,24 +34,24 @@ namespace fhatos {
 
   void test_bool() {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/truth"), Obj::to_bcode()); //
-    const Bool_p boolA = share(Bool(true, FOS_TYPE_PREFIX "bool/truth"));
-    const Bool_p boolB = share(Bool(false, "truth"));
-    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*boolA).c_str());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *boolA->id());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *boolB->id());
-    FOS_TEST_OBJ_NOT_EQUAL(boolA, boolB);
-    FOS_TEST_OBJ_NOT_EQUAL(boolB, boolA);
-    FOS_TEST_OBJ_EQUAL(boolA, boolA);
-    FOS_TEST_OBJ_EQUAL(boolB, boolB);
-    FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false, FOS_TYPE_PREFIX "bool/truth")), share(Bool(*boolA && *boolB)));
-    FOS_TEST_OBJ_EQUAL(share(Bool(false)), share(Bool(*boolA && *boolB)));
-    TEST_ASSERT_TRUE(boolA->bool_value());
-    TEST_ASSERT_FALSE(boolA->is_bcode());
-    TEST_ASSERT_FALSE(boolA->is_noobj());
-    TEST_ASSERT_EQUAL(OType::BOOL, boolA->o_type());
-    FOS_TEST_OBJ_EQUAL(boolA, boolA->apply(boolB));
+    const Bool_p bool_a = share(Bool(true, FOS_TYPE_PREFIX "bool/truth"));
+    const Bool_p bool_b = share(Bool(false, "truth"));
+    FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*bool_a).c_str());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_a->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_b->id());
+    FOS_TEST_OBJ_NOT_EQUAL(bool_a, bool_b);
+    FOS_TEST_OBJ_NOT_EQUAL(bool_b, bool_a);
+    FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
+    FOS_TEST_OBJ_EQUAL(bool_b, bool_b);
+    FOS_TEST_OBJ_NOT_EQUAL(share(Bool(false, FOS_TYPE_PREFIX "bool/truth")), share(Bool(*bool_a && *bool_b)));
+    FOS_TEST_OBJ_EQUAL(share(Bool(false)), share(Bool(*bool_a && *bool_b)));
+    TEST_ASSERT_TRUE(bool_a->bool_value());
+    TEST_ASSERT_FALSE(bool_a->is_bcode());
+    TEST_ASSERT_FALSE(bool_a->is_noobj());
+    TEST_ASSERT_EQUAL(OType::BOOL, bool_a->o_type());
+    FOS_TEST_OBJ_EQUAL(bool_a, bool_a->apply(bool_b));
     ///
-    TEST_ASSERT_TRUE(boolA->match(boolA));
+    TEST_ASSERT_TRUE(bool_a->match(bool_a));
     TEST_ASSERT_TRUE(Obj::to_bool(true)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
     TEST_ASSERT_FALSE(Obj::to_bool(false)->match(Obj::to_bcode({Insts::is(Obj::to_bcode())})));
     /* const Bool_p boolBCode = share(Bool(__().gt(5)._bcode->bcode_value(), "/_bcode/secret"));

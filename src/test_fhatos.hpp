@@ -60,6 +60,12 @@
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
+#ifdef FOS_DEPLOY_FILE_SYSTEM
+#include FOS_FILE_SYSTEM(fs.hpp)
+#define FOS_DEPLOY_FILE_SYSTEM_2 Model::deploy(FileSystem::create(ID("/io/fs/")));
+#else
+#define FOS_DEPLOY_FILE_SYSTEM_2 ;
+#endif
 #define FOS_STOP_ON_BOOT ;
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
@@ -84,6 +90,7 @@ namespace fhatos {
       FOS_DEPLOY_PARSER_2                                                                                              \
       FOS_DEPLOY_TYPES_2                                                                                               \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
+      FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       UNITY_BEGIN();                                                                                                   \
       /*uint32_t __test_freeSketch;                                                                                    \
       uint32_t __test_freeHeap;  */                                                                                    \
@@ -178,7 +185,7 @@ using namespace fhatos;
     }                                                                                                                  \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                \
+    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                  \
     TEST_ASSERT(true);                                                                                                 \
   }
 #endif
@@ -288,13 +295,13 @@ static void FOS_CHECK_RESULTS(
         Subscription{
           .source = ID(FOS_DEFAULT_SOURCE_ID),
           .pattern = key.uri_value(),
-          .onRecv = [temp](const ptr<Message> &message) {
+          .onRecv = Insts::to_bcode([temp](const ptr<Message> &message) {
             TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                      (string("Router retain message payload equality: ") +
                                        router()->pattern()->toString() + " " + temp.toString() +
                                        " != " + message->payload->toString())
                                      .c_str());
-          }
+          })
         }));
     }
   }

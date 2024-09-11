@@ -24,11 +24,13 @@
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_FILE_SYSTEM
 #include <test_fhatos.hpp>
-#include FOS_FILE_SYSTEM(fs.hpp)
+
 
 namespace fhatos {
   static fs::path base_directory;
+  static ptr<FileSystem> file_system;
 
   void stage() {
     fs::current_path(base_directory);
@@ -57,19 +59,18 @@ namespace fhatos {
 
   void test_files() {
     stage();
-    auto fs = FileSystem::singleton();
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *fs->to_dir("/")->id());
-    TEST_ASSERT_EQUAL_INT(0, fs->ls(fs->to_dir("/"))->objs_value()->size());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *file_system->to_dir("/")->id());
+    TEST_ASSERT_EQUAL_INT(0, file_system->ls(file_system->to_dir("/"))->objs_value()->size());
     for (int i = 0; i < 10; i++) {
-      const ID id = fs->id()->extend(("a_" + to_string(i) + ".txt").c_str());
-      File_p a = fs->touch(id);
+      const ID id = file_system->id()->extend(("a_" + to_string(i) + ".txt").c_str());
+      File_p a = file_system->touch(id);
     }
     for (int i = 0; i < 10; i++) {
-      const ID id = fs->id()->extend(("a_" + to_string(i) + ".txt").c_str());
-      File_p a = fs->to_file(id);
-      FOS_TEST_ASSERT_EQUAL_FURI(fs->id()->extend(("a_" + to_string(i) + ".txt").c_str()), a->uri_value());
+      const ID id = file_system->id()->extend(("a_" + to_string(i) + ".txt").c_str());
+      File_p a = file_system->to_file(id);
+      FOS_TEST_ASSERT_EQUAL_FURI(file_system->id()->extend(("a_" + to_string(i) + ".txt").c_str()), a->uri_value());
     }
-    const Objs_p files = fs->ls(fs->to_dir("/"));
+    const Objs_p files = file_system->ls(file_system->to_dir("/"));
     TEST_ASSERT_TRUE(files->is_objs());
     int counter = 0;
     for (const auto &o: *files->objs_value()) {
@@ -77,19 +78,18 @@ namespace fhatos {
       counter++;
     }
     TEST_ASSERT_EQUAL_INT(10, counter);
-    fs->stop();
+    file_system->stop();
     unstage();
   }
 
   void test_filesystem_patterns() {
   }
 
-
   FOS_RUN_TESTS( //
-          base_directory = fs::current_path(); //
-          Model::deploy(FileSystem::singleton("/fs", string(base_directory.c_str()) + "/tmp"));
-          FOS_RUN_TEST(test_uris); //
-          FOS_RUN_TEST(test_files); //
+    base_directory = string(fs::current_path().c_str()) + "/build"; //
+    file_system = Model::deploy<FileSystem>(FileSystem::create("/fs", string(base_directory.c_str()) + "/tmp"));
+    FOS_RUN_TEST(test_uris); //
+    FOS_RUN_TEST(test_files); //
   );
 } // namespace fhatos
 

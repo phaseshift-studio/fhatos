@@ -58,6 +58,18 @@ namespace fhatos {
       });
     }
 
+    List<T> find_all(Predicate<T> predicate, const bool withMutex = true) {
+      return lockUnlock<List<T>>(withMutex, [this, predicate]() {
+        List<T> list;
+        for (T t: _deque) {
+          if (predicate(t)) {
+            list.push_back(t);
+          }
+        }
+        return list;
+      });
+    }
+
     Option<T> pop_front(const bool withMutex = true) {
       return lockUnlock<Option<T>>(withMutex, [this]() {
         if (_deque.empty()) {

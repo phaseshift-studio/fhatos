@@ -30,8 +30,8 @@
 #include <util/string_printer.hpp>
 
 using namespace std;
-namespace fhatos {
 
+namespace fhatos {
   class CPrinter {
   public:
     static CPrinter *singleton() {
@@ -54,9 +54,10 @@ namespace fhatos {
   template<typename PRINTER = CPrinter>
   class Ansi {
   public:
-    static shared_ptr <Ansi<PRINTER>> singleton() {
+    static shared_ptr<Ansi<PRINTER>> singleton() {
       static Ansi<PRINTER> ansi = Ansi<PRINTER>();
-      static shared_ptr <Ansi<PRINTER>> ansi_p = shared_ptr<Ansi<PRINTER>>(&ansi, [](const auto *) {});
+      static shared_ptr<Ansi<PRINTER>> ansi_p = shared_ptr<Ansi<PRINTER>>(&ansi, [](const auto *) {
+      });
 #ifndef NATIVE
       static bool _setup = false;
       if (!_setup) {
@@ -116,12 +117,14 @@ namespace fhatos {
           const char j = buffer[i + 1];
           if ('!' == j)
             this->normal();
-          //else if('*' == j)
-          //  this->background();
+            //else if('*' == j)
+            //  this->background();
           else if ('_' == j)
             this->underline();
-          else if('~' == j)
+          else if ('~' == j)
             this->italic();
+          else if ('*' == j)
+            this->blink();
           else {
             if (isupper(j))
               this->bold();
@@ -157,11 +160,14 @@ namespace fhatos {
     }
 
   public:
-    Ansi() : printer(*CPrinter::singleton()) {}
+    Ansi() : printer(*CPrinter::singleton()) {
+    }
 
-    explicit Ansi(string *str) : printer(StringPrinter(str)) {}
+    explicit Ansi(string *str) : printer(StringPrinter(str)) {
+    }
 
-    explicit Ansi(PRINTER printer) : printer(printer) {}
+    explicit Ansi(PRINTER printer) : printer(printer) {
+    }
 
     void on(bool turn_on = true) { this->_on = turn_on; }
 
@@ -225,6 +231,11 @@ namespace fhatos {
         this->print("\033[1m");
     }
 
+    void blink() {
+      if (this->_on)
+        this->print("\033[5m");
+    }
+
     //void background() {
     //  if (this->_on)
     //    this->print("\033[40m");
@@ -283,10 +294,9 @@ namespace fhatos {
   };
 
   template<typename PRINTER = Ansi<>>
-  shared_ptr <PRINTER> printer() {
+  shared_ptr<PRINTER> printer() {
     return Options::singleton()->printer<PRINTER>();
   }
-
 } // namespace fhatos
 
 #endif

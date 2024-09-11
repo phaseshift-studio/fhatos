@@ -26,7 +26,9 @@
 #include <WiFiClient.h>
 #include <PubSubClient.h>
 
+#ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 512
+#endif
 
 namespace fhatos {
 
@@ -67,7 +69,7 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
        // const fbyte* data_dup[length];
         //memcpy(data_dup,data,length);
         const BObj_p bobj = share(BObj(length, (fbyte *) data));
-        const auto &[source, payload] = Message::unwrapSource(bobj);
+        const auto &[source, payload] = Message::unwrap_source(bobj);
         const Message_p message = share(Message{
           .source = *source,
           .target = ID(topic),
@@ -97,7 +99,7 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
   }
 
   void native_mqtt_publish(const Message_p &message) override {
-    const BObj_p source_payload = Message::wrapSource(id_p(message->source), message->payload);
+    const BObj_p source_payload = Message::wrap_source(id_p(message->source), message->payload);
     this->xmqtt_->publish(message->target.toString().c_str(),source_payload->second,source_payload->first,message->retain);
   }
 

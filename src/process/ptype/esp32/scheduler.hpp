@@ -50,11 +50,11 @@ namespace fhatos {
         }
         // scheduler subscription listening for noobj "kill process" messages
         router()->route_subscription(share(Subscription{
-            .source = *this->id(), .pattern = *process->id(), .onRecv = [process](const Message_p &message) {
+            .source = *this->id(), .pattern = *process->id(), .onRecv = Insts::to_bcode([process](const Message_p &message) {
               if (message->payload->is_noobj()) {
                 process->stop();
               }
-            }}));
+            })}));
         ////////////////////////////////
         bool success = false;
         switch (process->ptype) {

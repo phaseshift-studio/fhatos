@@ -31,6 +31,9 @@
 
 namespace fhatos {
   class Kernel {
+    int boot_success = 0;
+    int boot_failure = 0;
+
   public:
     static ptr<Kernel> build() {
       static Kernel kernel = Kernel();
@@ -43,8 +46,8 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> using_printer(const ptr<Ansi<> > &ansi) {
-      Options::singleton()->printer<Ansi<> >(ansi);
+    static ptr<Kernel> using_printer(const ptr<Ansi<>> &ansi) {
+      Options::singleton()->printer<Ansi<>>(ansi);
       return Kernel::build();
     }
 
@@ -85,7 +88,7 @@ namespace fhatos {
         // List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
           const ID_p idp = share(pair.first);
-          Types::singleton()->saveType(idp, pair.second);
+          Types::singleton()->save_type(idp, pair.second);
           // list->push_back(Obj::to_uri(*idp));
         }
         // router<Router>()->publish(
@@ -99,7 +102,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static void done(const char *barrier = "kernel_barrier",Supplier<bool> ret = nullptr) {
+    static void done(const char *barrier = "kernel_barrier", Supplier<bool> ret = nullptr) {
       Scheduler::singleton()->barrier(barrier, ret,
                                       FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());

@@ -62,10 +62,10 @@ namespace fhatos {
         share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
     }
 
-    void subscribe(const Pattern &pattern, const Consumer<Message_p> &onRecv) {
+    void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {
       this->should_be_active();
       router()->route_subscription(
-        share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = onRecv}));
+        share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = Insts::to_bcode(on_recv)}));
       /*.executeAtSource(this)));*/
     }
 
@@ -102,7 +102,6 @@ namespace fhatos {
       this->subscribe(*this->id(), [this](const Message_p &message) {
         if (message->payload->is_noobj() &&
             message->retain &&
-            !message->source.equals(*this->id()) &&
             this->active()) {
           this->stop();
         }

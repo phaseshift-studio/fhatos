@@ -47,16 +47,17 @@ ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_n
 
 
 namespace fhatos {
-
   using Process_p = ptr<Process>;
 
   class XScheduler : public IDed, public Mailbox {
+    friend class System;
+
   protected:
-    ptr<MutexDeque<Process_p>> processes_ = ptr<MutexDeque<Process_p>>(new MutexDeque<Process_p>());
+    ptr<MutexDeque<Process_p>> processes_ = std::make_shared<MutexDeque<Process_p>>();
     MutexDeque<Mail_p> inbox_;
     bool running_ = false;
-    ptr<string> current_barrier_ = nullptr;
-  
+    ID_p current_barrier_ = nullptr;
+
   public:
     explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {
     }
@@ -87,11 +88,11 @@ namespace fhatos {
         if (!retain || !payload->is_rec())
           return;
         if (is_thread(payload)) {
-          this->spawn(Process_p(new fBcode<Thread>(target, payload)));
+          this->spawn(std::make_shared<fBcode<Thread>>(target, payload));
         } else if (is_fiber(payload)) {
-          this->spawn(Process_p(new fBcode<Fiber>(target, payload)));
+          this->spawn(std::make_shared<fBcode<Fiber>>(target, payload));
         } else if (is_coroutine(payload)) {
-          this->spawn(Process_p(new fBcode<Coroutine>(target, payload)));
+          this->spawn(std::make_shared<fBcode<Coroutine>>(target, payload));
         }
       };
       this->running_ = true;
@@ -136,6 +137,8 @@ namespace fhatos {
         if (p->running())
           p->stop();
       }
+      list->clear();
+      delete list;
       this->processes_->clear();
       this->running_ = false;
       LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
@@ -148,10 +151,11 @@ namespace fhatos {
       return this->current_barrier_ && *this->current_barrier_ == label;
     }
 
-    void barrier(const char *label = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
+    void barrier(const ID &label = ID("unlabeled"), const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label);
-      this->current_barrier_ = share(string(label));
+      LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label.toString().c_str());
+      this->current_barrier_ = id_p(label);
+
       if (message)
         LOG(INFO, message);
       /// barrier break with noobj
@@ -163,7 +167,7 @@ namespace fhatos {
                !passPredicate && this->running_ && !this->processes_->empty())) {
         this->feed_local_watchdog();
       }
-      LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label);
+      LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label.toString().c_str());
       this->current_barrier_ = nullptr;
     }
 
@@ -177,7 +181,7 @@ namespace fhatos {
       const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;
-      mail->get()->first->execute(mail->get()->second);
+      mail->get()->first->onRecv->apply(mail->get()->second->to_rec());
       return true;
     }
   };

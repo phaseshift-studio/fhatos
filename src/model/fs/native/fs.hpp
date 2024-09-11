@@ -28,13 +28,13 @@ namespace fs = std::filesystem;
 
 namespace fhatos {
   class FileSystem : public XFileSystem {
-  private:
+  protected:
     explicit FileSystem(const ID &id, const ID &mount_root) : XFileSystem(id, mount_root) {
     }
 
   public:
-    static ptr<FileSystem> singleton(const ID &id = ID("/io/fs"), const ID &root = ID(fs::current_path())) {
-      static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(id, root));
+    static ptr<FileSystem> create(const ID &id = ID("/io/fs"), const ID &root = ID(fs::current_path())) {
+      ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(id, ID(fs::current_path()).resolve(root)));
       return fs_p;
     }
 

@@ -23,7 +23,8 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <process/actor/actor.hpp>
-#include FOS_PROCESS(fiber.hpp)
+#include <structure/stype/external.hpp>
+#include FOS_PROCESS(coroutine.hpp)
 #include <language/types.hpp>
 
 #define FOS_DEFAULT_MORE_LINES 10
@@ -39,13 +40,7 @@ namespace fhatos {
   static const ID_p INST_FS_FURI = id_p(FOS_TYPE_PREFIX "inst/fs:");
   static const ID_p INST_ROOT_FURI = id_p(INST_FS_FURI->resolve("root"));
 
-  class Mount : public Structure {
-  public:
-    explicit Mount(const Pattern &pattern): Structure(pattern, SType::DISTRIBUTED) {
-    }
-  };
-
-  class XFileSystem : public Actor<Fiber, Mount> {
+  class XFileSystem : public Actor<Coroutine, External> {
   protected:
     const ID_p mount_root_;
 
@@ -57,10 +52,10 @@ namespace fhatos {
     void setup() override {
       LOG_ACTOR(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
-      Types::singleton()->loop();
+      //Types::singleton()->loop();
       Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
-      Types::singleton()->loop();
+     // Types::singleton()->loop();
       /*this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
           if (message->retain && message->payload->is_noobj()) {
               // delete the fs resource
@@ -148,7 +143,6 @@ namespace fhatos {
                                      },
                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
                                      id_p(INST_FS_FURI->resolve("touch"))));
-      Types::singleton()->loop();
       Actor::setup();
     }
 
@@ -183,7 +177,7 @@ namespace fhatos {
       LOG_ACTOR(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
-        throw fError("!r[SECURITY]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
+        throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
                      this->id()->toString().c_str(), local_path.toString().c_str(),
                      this->mount_root_->toString().c_str());
       }
@@ -227,26 +221,26 @@ namespace fhatos {
       if (meta.has_value()) return meta.value();
       // TODO: source
       if (furi->is_pattern()) {
-        List<Dir_p> listA = {root()};
-        List<Dir_p> listB = {};
+        List<Dir_p> list_a = {root()};
+        List<Dir_p> list_b = {};
         for (int i = this->id()->path_length(); i < furi->path_length(); i++) {
           string segment = furi->path(i);
-          for (const Dir_p &d: listA) {
+          for (const Dir_p &d: list_a) {
             if (is_dir(d->uri_value())) {
               const Objs_p objs = ls(d);
               for (const Obj_p &fd: *objs->objs_value()) {
                 if (segment == "+" || segment == "#" ||
                     (fd->uri_value().name() == segment)) // todo: # infinite recurssion?
-                  listB.push_back(this->to_fs(fd->uri_value()));
+                  list_b.push_back(this->to_fs(fd->uri_value()));
               }
             }
           }
-          listA.clear();
-          listA = List<Dir_p>(listB);
-          listB.clear();
+          list_a.clear();
+          list_a = List<Dir_p>(list_b);
+          list_b.clear();
         }
         List<Uri_p> ret;
-        for (const auto &f: listA) {
+        for (const auto &f: list_a) {
           if (f->uri_value().matches(*furi))
             ret.push_back(f->as(URI_FURI));
         }
@@ -263,6 +257,7 @@ namespace fhatos {
     virtual void write(
       [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
       [[maybe_unused]] const ID_p &source, [[maybe_unused]] const bool retain) override {
+
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

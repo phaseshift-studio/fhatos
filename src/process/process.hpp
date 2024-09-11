@@ -41,7 +41,7 @@ class Process;
   class Process : public IDed {
 
   protected:
-    std::atomic_bool _running = std::atomic_bool(false);
+    std::atomic_bool running_ = std::atomic_bool(false);
 
   public:
     const PType ptype;
@@ -52,17 +52,17 @@ class Process;
     ~Process() override = default;
 
     virtual void setup() {
-      if (this->_running.load()) {
+      if (this->running_.load()) {
         LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(),
             ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
-      this->_running.store(true);
+      this->running_.store(true);
       fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void loop() {
-      if (!this->_running.load()) {
+      if (!this->running_.load()) {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
                      ProcessTypes.toChars(this->ptype).c_str());
       }
@@ -70,16 +70,16 @@ class Process;
     };
 
     virtual void stop() {
-      if (!this->_running.load()) {
+      if (!this->running_.load()) {
         LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(),
             ProcessTypes.toChars(this->ptype).c_str());
         return;
       }
       fhatos::this_process = PtrHelper::no_delete(this);
-      this->_running.store(false);
+      this->running_.store(false);
     };
 
-    bool running() const { return this->_running.load(); }
+    bool running() const { return this->running_.load(); }
 
     virtual void delay(const uint64_t) {}; // milliseconds
 

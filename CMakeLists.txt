@@ -118,7 +118,7 @@ IF(BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<set>;<string>;<tsl/ordered_map.h>;<mqtt/async_client.h>;<libwebsockets.h>")
+    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>;<mqtt/async_client.h>")
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################

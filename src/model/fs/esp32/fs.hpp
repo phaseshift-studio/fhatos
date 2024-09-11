@@ -39,9 +39,8 @@ namespace fhatos {
     }
 
     virtual void setup() override {
-
       if (!FOS_FS.begin()) {
-        LOG(ERROR, "Mount Failed\n");
+        throw fError("Unable to mount file system at %s\n",this->mount_root_->toString().c_str());
         return;
       }
       XFileSystem::setup();

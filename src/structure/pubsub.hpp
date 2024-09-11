@@ -32,7 +32,7 @@ namespace fhatos {
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
       (subscription)->pattern.toString().c_str(),                                                                      \
-      (subscription)->onRecvBCode ? (subscription)->onRecvBCode->toString().c_str() : "!bc/c++_impl!!")
+      (subscription)->onRecv->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(), ((source).toString().c_str()),    \
@@ -109,17 +109,17 @@ namespace fhatos {
     }
 
     /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
-    static BObj_p wrapSource(const ID_p &source, const Obj_p &obj) {
+    static BObj_p wrap_source(const ID_p &source, const Obj_p &obj) {
       string wrap = source->toString();
       wrap += '%';
       wrap += obj->toString(true, false);
       LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
-      return ptr<BObj>(new BObj({wrap.length(), (fbyte *) strdup(wrap.c_str())}), bobj_deleter);
+      return ptr<BObj>(new BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}), bobj_deleter);
     }
 
-    static Pair<ID_p, Obj_p> unwrapSource(const BObj_p &bobj) {
+    static Pair<ID_p, Obj_p> unwrap_source(const BObj_p &bobj) {
       try {
-        const auto unwrap = string((char *) bobj->second, bobj->first);
+        const auto unwrap = string(reinterpret_cast<char *>(bobj->second), bobj->first);
         const size_t index = unwrap.find_first_of('%');
         LOG(TRACE, "bobj source unwrap: %s and %s (length:%i and %i)\n", unwrap.substr(0, index).c_str(),
             unwrap.substr(index + 1).c_str(), unwrap.substr(0, index).length(), unwrap.substr(index + 1).length());
@@ -149,6 +149,8 @@ namespace fhatos {
 
   struct Mailbox {
   public:
+    virtual ~Mailbox() = default;
+
     virtual bool recv_mail(const Mail_p &mail) = 0;
   };
 
@@ -156,27 +158,21 @@ namespace fhatos {
     fURI source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    Consumer<const Message_p> onRecv = [](const Message_p &) {
-    };
-    BCode_p onRecvBCode = nullptr;
-
-    [[nodiscard]] bool match(const ID &target) const { return this->pattern.matches(target); }
-
-    void execute(const Message_p &message) const { onRecv(message); }
+    BCode_p onRecv = bcode();
 
     [[nodiscard]] Rec_p to_rec() const {
       return rec({
         {uri("source"), uri(source)},
         {uri("pattern"), uri(pattern)},
-        {uri("qos"), jnt((int) qos)},
-        {uri("onRecv"), onRecvBCode ? onRecvBCode : bcode()}
+        {uri("qos"), jnt(static_cast<int>(qos))},
+        {uri("onRecv"), onRecv}
       });
     }
 
     [[nodiscard]] string toString() const {
       char temp[250];
       snprintf(temp, 250, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
-               (uint8_t) qos, pattern.toString().c_str(), onRecvBCode ? onRecvBCode->toString().c_str() : "<c-impl>");
+               static_cast<uint8_t>(qos), pattern.toString().c_str(), onRecv->toString().c_str());
       return {temp};
     }
   };

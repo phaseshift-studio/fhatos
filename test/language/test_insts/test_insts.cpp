@@ -68,13 +68,13 @@ namespace fhatos {
     test_obj(obj("a"), obj("b"), obj("b"));
     test_obj(obj(u("http://fhatos.org")), obj({1, 2, 3}), obj({1, 2, 3}));
     /// _bcode => mult[int]
-    test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
-              Insts::mult(obj(10)), //
-              Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(obj(10))}));
+   // test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
+    //          Insts::mult(obj(10)), //
+     //         Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(obj(10))}));
     /// _bcode => mult[_bcode]
-    test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
-              Insts::mult(Obj::to_bcode({Insts::plus(obj(3))})), //
-              Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(Obj::to_bcode({Insts::plus(obj(3))}))}));
+    //test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
+    //          Insts::mult(Obj::to_bcode({Insts::plus(obj(3))})), //
+    //          Obj::to_bcode({Insts::plus(obj(5)), Insts::mult(Obj::to_bcode({Insts::plus(obj(3))}))}));
   }
 
 

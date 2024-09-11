@@ -31,7 +31,7 @@ namespace fhatos {
       Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern) : Structure(pattern, SType::LOCAL) {
+    explicit KeyValue(const Pattern &pattern, const SType stype=SType::DATABASE) : Structure(pattern, stype) {
     };
 
   public:
@@ -50,9 +50,9 @@ namespace fhatos {
         for (const auto &[id,obj]: *this->DATA) {
           if (id->matches(subscription->pattern)) {
             if (!obj.first->is_noobj()) {
-              subscription->onRecv(share(Message{
+              subscription->onRecv->apply(Message{
                 .source = *obj.second, .target = *id, .payload = obj.first, .retain = RETAIN_MESSAGE
-              }));
+              }.to_rec());
             }
           }
         }

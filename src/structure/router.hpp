@@ -25,6 +25,8 @@
 
 namespace fhatos {
   class Router final : public Patterned {
+    friend class System;
+
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");
     ptr<Map<Pattern_p, Structure_p, furi_p_less>> structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
@@ -35,43 +37,55 @@ namespace fhatos {
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
       static auto router_p = ptr<Router>(new Router(pattern));
-      static bool _setup = false;
-      if (!_setup) {
-        _setup = true;
+      static bool setup = false;
+      if (!setup) {
+        setup = true;
         LOG_STRUCTURE(INFO, router_p.get(), "!yrouter!! !b%s!! loaded\n", pattern.toString().c_str());
       }
       return router_p;
     }
 
     void stop() {
-      auto *read_count = new atomic_int(0);
-      auto *write_count = new atomic_int(0);
-      auto *read_write_count = new atomic_int(0);
-      this->structures_mutex_.read<void *>([this, read_count, write_count, read_write_count]() {
-        for (const auto &pair: *this->structures_) {
-          switch (pair.second->stype) {
-            case SType::PROTO:
-              read_count->fetch_add(1);
-              break;
-            case SType::LOCAL:
-              write_count->fetch_add(1);
-              break;
-            case SType::DISTRIBUTED:
-              read_write_count->fetch_add(1);
-              break;
-            case SType::DEPENDENT:
-              break;
+      //   EPHEMERAL, VARIABLES, HARDWARE, DATABASE, DISTRIBUTED
+      auto *ephemeral_count = new atomic_int(0);
+      auto *variables_count = new atomic_int(0);
+      auto *database_count = new atomic_int(0);
+      auto *hardware_count = new atomic_int(0);
+      auto *networked_count = new atomic_int(0);
+      this->structures_mutex_.read<void *>(
+        [this, ephemeral_count, variables_count, hardware_count,database_count,networked_count]() {
+          for (const auto &pair: *this->structures_) {
+            switch (pair.second->stype) {
+              case SType::EPHEMERAL:
+                ephemeral_count->fetch_add(1);
+                break;
+              case SType::VARIABLES:
+                variables_count->fetch_add(1);
+                break;
+              case SType::DATABASE:
+                database_count->fetch_add(1);
+                break;
+              case SType::HARDWARE:
+                hardware_count->fetch_add(1);
+                break;
+              case SType::NETWORKED:
+                networked_count->fetch_add(1);
+                break;
+            }
           }
-        }
-        return nullptr;
-      });
-      LOG_STRUCTURE(INFO, this, "!yStopping!g %i !yreads!! | !g%i !ywrites!! | !g%i !yreadwrites!!\n",
-                    read_count->load(),
-                    write_count->load(),
-                    read_write_count->load());
-      delete read_count;
-      delete write_count;
-      delete read_write_count;
+          return nullptr;
+        });
+      LOG_STRUCTURE(INFO, this, "!yStopping!g %i !yephemeral!! | !g%i !yvariables!! | !g%i !ydatabase!! | !g%i !yhardware!! | !g%i !ynetworked!!\n",
+                    ephemeral_count->load(),
+                    variables_count->load(),
+                    database_count->load(),
+                    hardware_count->load(),
+                    networked_count->load());
+      delete ephemeral_count;
+      delete variables_count;
+      delete database_count;
+      delete hardware_count;
+      delete networked_count;
       this->detach(p_p("#"));
       LOG_STRUCTURE(INFO, this, "!yrouter !b%s!! stopped\n", this->pattern()->toString().c_str());
     }
@@ -85,7 +99,7 @@ namespace fhatos {
           for (const auto &pair: *this->structures_) {
             if (structure->pattern()->matches(*pair.second->pattern()) ||
                 pair.second->pattern()->matches(*structure->pattern())) {
-              // TODO: reversal shoulnd't be needed
+              // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
               throw fError("Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
                            pair.second->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
             }
@@ -142,7 +156,7 @@ namespace fhatos {
     void route_message(const Message_p &message) const {
       const Structure_p &struc = this->get_structure(p_p(message->target), id_p(message->source));
       LOG_STRUCTURE(DEBUG, this, "!y!_routing message!! %s\n", message->toString().c_str());
-      struc->recv_message(message);
+      struc->recv_publication(message);
     }
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {

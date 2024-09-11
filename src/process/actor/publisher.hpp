@@ -40,7 +40,7 @@ namespace fhatos {
     virtual void subscribe(const Pattern &relative_pattern, const Consumer<const ptr<Message> &> &on_recv,
                            const QoS qos = QoS::_1) {
       router()->route_subscription(share(Subscription{
-        .source = fURI(*this->__id), .pattern = this->make_topic(relative_pattern), .qos = qos, .onRecv = on_recv}));
+        .source = fURI(*this->__id), .pattern = this->make_topic(relative_pattern), .qos = qos, .onRecv = Insts::to_bcode(on_recv)}));
     }
 
     /// UNSUBSCRIBE

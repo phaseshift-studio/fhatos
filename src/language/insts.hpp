@@ -44,6 +44,14 @@ namespace fhatos {
         [starts](const Obj_p &) { return starts; });
     }
 
+    static Obj_p lambda(const Function<Obj_p, Obj_p> &function, const Uri_p &location = uri("cpp-impl")) {
+      return Obj::to_inst("lambda", {location}, [function](const InstArgs &) {
+        return [function](const Obj_p &input) {
+          return function(input);
+        };
+      }, IType::ONE_TO_ONE);
+    }
+
     static Objs_p dedup(const BCode_p &projection) {
       return Obj::to_inst("dedup", {projection}, [](const InstArgs &args) {
         return [args](const Objs_p &barrier) {
@@ -321,7 +329,7 @@ namespace fhatos {
       return Obj::to_inst(
         "match", {rhs}, [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
-            return Obj::to_bool(lhs->match(args.at(0)->apply(lhs),false));
+            return Obj::to_bool(lhs->match(args.at(0)->apply(lhs), false));
           };
         },
         IType::ONE_TO_ONE);
@@ -556,10 +564,7 @@ namespace fhatos {
                 share(Subscription{
                   .source = FOS_DEFAULT_SOURCE_ID,
                   .pattern = pattern_applied->uri_value(),
-                  .onRecv = [on_recv_applied](const Message_p &message) {
-                    return Options::singleton()->processor<Rec, BCode, Objs>(message->to_rec(), on_recv_applied);
-                  },
-                  .onRecvBCode = on_recv_applied
+                  .onRecv = on_recv_applied
                 }));
             }
             return lhs;
@@ -934,6 +939,18 @@ namespace fhatos {
         {"=", "each"}
       };
       return map;
+    }
+
+    static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cpp-impl")) {
+      return bcode({Insts::lambda([consumer](const Rec_p &message) {
+        const Message_p mess = share(Message{
+          .source = message->rec_get(uri("source"))->uri_value(),
+          .target = message->rec_get(uri("target"))->uri_value(),
+          .payload = message->rec_get(uri("payload")),
+          .retain = message->rec_get(uri("retain"))->bool_value()});
+        consumer(mess);
+        return noobj();
+      }, uri(label))});
     }
 
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {

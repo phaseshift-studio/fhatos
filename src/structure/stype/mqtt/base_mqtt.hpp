@@ -34,17 +34,15 @@
 namespace fhatos {
   class BaseMqtt : public Structure {
   protected:
-   string server_addr_;
+    string server_addr_;
     const Message_p will_message_;
-   
+
     // +[scheme]//+[authority]/#[path]
     explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const string server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                      const Message_p &will_message = ptr<Message>(nullptr)) : 
-                      Structure(pattern, SType::DISTRIBUTED), 
-                      server_addr_(server_addr),
-                       will_message_(will_message) {
-                        
-                        this->remote_retains_=true;
+                      const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::NETWORKED),
+                                                                               server_addr_(server_addr),
+                                                                               will_message_(will_message) {
+      this->remote_retains_ = true;
     }
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
@@ -77,7 +75,7 @@ namespace fhatos {
       Structure::stop();
     }
 
-    virtual void recv_message(const Message_p &message) override {
+    virtual void recv_publication(const Message_p &message) override {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       this->write(id_p(message->target), message->payload, id_p(message->source), message->retain);
       LOG_PUBLISH(OK, *message);
@@ -112,9 +110,9 @@ namespace fhatos {
       if (furi->is_pattern())
         thing->store(new Objs(share(List<Obj_p>()), OBJS_FURI));
       this->recv_subscription(share(Subscription{
-        .source = static_cast<fURI>(*source), 
+        .source = static_cast<fURI>(*source),
         .pattern = *furi,
-        .onRecv = [this, furi, thing](const Message_p &message) {
+        .onRecv = Insts::to_bcode([this, furi, thing](const Message_p &message) {
           LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
                         message->toString().c_str());
           // TODO: try to not copy obj while still not accessing heap after delete
@@ -124,7 +122,7 @@ namespace fhatos {
           } else {
             thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
           }
-        }
+        })
       }));
       const time_t start_timestamp = time(nullptr);
       if (furi->is_pattern()) {
@@ -156,7 +154,8 @@ namespace fhatos {
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source, const bool retain) override {
       check_availability("write");
       LOG_STRUCTURE(DEBUG, this, "writing to mqtt broker: %s\n", obj->toString().c_str());
-      native_mqtt_publish(share(Message{.source = ID(*source), .target = ID(*target), .payload = obj, .retain = retain}));
+      native_mqtt_publish(
+        share(Message{.source = ID(*source), .target = ID(*target), .payload = obj, .retain = retain}));
     }
 
     void publish_retained(const Subscription_p &) override {

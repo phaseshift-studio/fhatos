@@ -34,6 +34,7 @@ namespace fhatos {
     uint8_t log_level_ = 3; // INFO
     any router_{};
     any scheduler_{};
+    any system_{};
     any printer_{};
     any parser_{};
     any processor_{};
@@ -49,28 +50,42 @@ namespace fhatos {
     //////////////////////////
     //////// SCHEDULING ////////
     template<typename SCHEDULER>
-    shared_ptr <SCHEDULER> scheduler() {
+    shared_ptr<SCHEDULER> scheduler() {
       if (!scheduler_.has_value())
         throw fError("No scheduler specified in global options\n");
       return std::any_cast<shared_ptr<SCHEDULER>>(this->scheduler_);
     }
 
     template<typename SCHEDULER>
-    void scheduler(const shared_ptr <SCHEDULER> scheduler) {
+    void scheduler(const shared_ptr<SCHEDULER> scheduler) {
       this->scheduler_ = any(scheduler);
+    }
+
+    template<typename SYSTEM>
+    shared_ptr<SYSTEM> system() {
+      if(!this->system_.has_value())
+        throw fError("No system specified in global options\n");
+      return std::any_cast<shared_ptr<SYSTEM>>(this->system_);
+    }
+
+    template<typename SYSTEM>
+    void system(const shared_ptr<SYSTEM> system) {
+      this->system_ = any(system);
     }
 
     //////////////////////////
     //////// router_ ////////
+
+
     template<typename ROUTER>
-    shared_ptr <ROUTER> router() {
+    shared_ptr<ROUTER> router() {
       if (!router_.has_value())
         throw fError("No router specified in global options\n");
       return std::any_cast<shared_ptr<ROUTER>>(this->router_);
     }
 
     template<typename ROUTER>
-    void router(const shared_ptr <ROUTER> &router) {
+    void router(const shared_ptr<ROUTER> &router) {
       this->router_ = any(router);
     }
 
@@ -89,14 +104,14 @@ namespace fhatos {
     //////////////////////////
     //////// printer_ ////////
     template<typename PRINTER>
-    shared_ptr <PRINTER> printer() {
+    shared_ptr<PRINTER> printer() {
       if (!printer_.has_value())
         throw fError("No printer specified in global options\n");
       return std::any_cast<shared_ptr<PRINTER>>(this->printer_);
     }
 
     template<typename PRINTER>
-    Options *printer(const shared_ptr <PRINTER> &printer) {
+    Options *printer(const shared_ptr<PRINTER> &printer) {
       this->printer_ = any(printer);
       return this;
     }
@@ -104,7 +119,7 @@ namespace fhatos {
     ////////////////////////
     /////// PARSING ///////
     template<typename OBJ>
-    shared_ptr <OBJ> parser(const string &bcode) {
+    shared_ptr<OBJ> parser(const string &bcode) {
       if (!parser_.has_value())
         throw fError("No parser specified in global options\n");
       return std::any_cast<function<shared_ptr<OBJ>(string)>>(this->parser_)(bcode);
@@ -119,17 +134,17 @@ namespace fhatos {
     //////////////////////////
     /////// PROCESSOR ///////
     template<typename S, typename BCODE, typename E>
-    shared_ptr <E> processor(const shared_ptr <S> &starts, const shared_ptr <BCODE> &bcode) {
+    shared_ptr<E> processor(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode) {
       if (!processor_.has_value())
         throw fError("No processor specified in global options\n");
       return std::any_cast<function<shared_ptr<E>(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode)>>(
-              this->processor_)(starts, bcode);
+        this->processor_)(starts, bcode);
     }
 
     template<typename S, typename BCODE, typename E>
     Options *processor(
-            const std::function<shared_ptr<E>(const shared_ptr <S> &starts,
-                                              const shared_ptr <BCODE> &bcode)> &processor) {
+      const std::function<shared_ptr<E>(const shared_ptr<S> &starts,
+                                        const shared_ptr<BCODE> &bcode)> &processor) {
       this->processor_ = any(processor);
       return this;
     }

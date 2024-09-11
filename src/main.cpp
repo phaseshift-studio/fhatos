@@ -20,6 +20,7 @@
 #include <kernel.hpp>
 #include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
+#include <model/sys.hpp>
 #include <language/types.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
@@ -29,11 +30,11 @@
 
 #ifndef NATIVE
 #include <model/net/esp/wifi.hpp>
-#include <model/memory/esp32/memory.hpp>
+#include <model/soc/esp32/soc.hpp>
 #endif
 
 #ifdef NATIVE
-#define FOS_FS_MOUNT "tmp"
+#define FOS_FS_MOUNT "./build/tmp"
 #else
 #define FOS_FS_MOUNT "/"
 #endif
@@ -83,21 +84,22 @@ void setup() {
         ////////////////////////////////////////////////////////////
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/#"))
+        ->boot<System>(System::singleton())
         ////////////////////////////////////////////////////////////
-        #ifndef NATIVE
+#ifndef NATIVE
         ->boot<Wifi>(Wifi::singleton("/net/wifi"))
-        #endif
-        ->boot<SharedMemory>(SharedMemory::create("/memory/shared/", "+"))
+#endif
+        ->boot<SharedMemory>(SharedMemory::create("/var/", "+"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/terminal/"))
         ->boot<Parser>(Parser::singleton("/parser/"))
-        #ifndef NATIVE
-         ->boot<Memory>(Memory::singleton("/memory/soc/"))
-        #endif
-        ->boot<FileSystem>(FileSystem::singleton("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
-        ->boot<DistributedMemory>(DistributedMemory::create("/memory/cluster/"))
+#ifndef NATIVE
+         ->boot<SoC>(SoC::singleton("/soc/"))
+#endif
+        ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
+        ->boot<DistributedMemory>(DistributedMemory::create("/cluster/"))
         ->boot<Console>(Console::create("/home/root/repl/"))
-       // ->model({ID("/model/sys"), ID("/model/pubsub")})
+        ->model({ID("/model/sys"), ID("/model/pubsub")})
         ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
@@ -118,10 +120,13 @@ void loop() {
 int main(const int argc, char **argv) {
   args.init(argc, argv);
   if (args.option("--help", "NO_HELP") != "NO_HELP") {
-    printf("FhatOS: A Distributed Operating System\n");
-    printf("  --%-5s=%5s\n", "ansi", "{true|false}");
-    printf("  --%-5s=%5s\n", "log", "{INFO,ERROR,DEBUG,TRACE,ALL,NONE}");
-    printf("  --%-5s=%5s\n", "mount", "{local_dir_path}");
+    const auto ansi = new Ansi();
+    ansi->printf("%s: A Distributed Operating System\n",ansi->silly_print("FhatOS",true,true).c_str());
+    ansi->printf("  --!b%-5s!!\n", "help");
+    ansi->printf("  --!b%-5s!!=%5s\n", "ansi", "{!gtrue!!|!gfalse!!}");
+    ansi->printf("  --!b%-5s!!=%5s\n", "log", "{!gINFO!!,!yWARN!!,!rERROR!!,!mDEBUG!!,!cTRACE!!,!bALL!!,!cNONE!!}");
+    ansi->printf("  --!b%-5s!!=%5s\n", "mount", "{!glocal_dir_path!!}");
+    delete ansi;
   } else {
     setup();
     loop();

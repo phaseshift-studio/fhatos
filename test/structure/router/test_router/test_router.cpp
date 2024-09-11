@@ -54,8 +54,8 @@ namespace fhatos {
                               Obj::to_noobj()};
     for (const auto &o: objs) {
       for (const auto &i: ids) {
-        const BObj_p bobj = Message::wrapSource(i, o);
-        const auto [id, obj] = Message::unwrapSource(bobj);
+        const BObj_p bobj = Message::wrap_source(i, o);
+        const auto [id, obj] = Message::unwrap_source(bobj);
         LOG(INFO, "%s\n", obj->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(*i, *id);
         FOS_TEST_OBJ_EQUAL(o, obj);

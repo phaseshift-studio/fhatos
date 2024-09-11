@@ -24,14 +24,14 @@
 #include <iostream>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
-#include <structure/stype/key_value.hpp>
+#include <structure/stype/id_structure.hpp>
 
 namespace fhatos {
   class Terminal final : public Actor<Thread, KeyValue> {
   protected:
-    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), _currentOutput(share(id)) {}
+    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), current_output_(share(id)) {}
 
-    ID_p _currentOutput{};
+    ID_p current_output_{};
 
   public:
     static ptr<Terminal> singleton(const ID &id = "/io/terminal/") {
@@ -42,7 +42,7 @@ namespace fhatos {
     void setup() override {
       Actor::setup();
       this->subscribe(this->id()->extend("out"), [](const Message_p &message) {
-        if (message->source.matches(*Terminal::singleton()->_currentOutput)) {
+        if (message->source.matches(*Terminal::singleton()->current_output_)) {
           if (strcmp(message->target.name(), "no_color") == 0) {
             const string no = Ansi<>::strip(message->payload->str_value());
             printer<>()->print(no.c_str());
@@ -53,9 +53,9 @@ namespace fhatos {
     }
 
 
-    static ID_p currentOut() { return Terminal::singleton()->_currentOutput; }
+    static ID_p currentOut() { return Terminal::singleton()->current_output_; }
 
-    static void currentOut(const ID_p &source) { Terminal::singleton()->_currentOutput = source; }
+    static void currentOut(const ID_p &source) { Terminal::singleton()->current_output_ = source; }
 
     static int readChar() {
 #ifdef NATIVE

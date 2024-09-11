@@ -58,13 +58,20 @@ namespace fhatos {
       }
       // scheduler subscription listening for noobj "kill process" messages
       router()->route_subscription(share(Subscription{
-        .source = fURI(*this->id()), .pattern = *process->id(), .onRecv = [process](const Message_p &message) {
-          if (message->payload->is_noobj() &&
-              message->retain //&&
-            /*!message->source.equals(*this->id())*/) {
-            process->stop();
-          }
-        }
+        .source = fURI(*this->id()), .pattern = ID(*process->id()), .onRecv = bcode({Insts::lambda(
+          [](const Obj_p &message) {
+            LOG(DEBUG, "Stopping process %s\n", message->rec_get("target")->uri_value().toString().c_str());
+            if (message->rec_get("payload")->is_noobj() &&
+                message->rec_get("retain")->bool_value() //&&
+              /*!message->source.equals(*this->id())*/) {
+              const Option<Process_p> p = Scheduler::singleton()->processes_->find([message](const Process_p &proc) {
+                return proc->id()->equals(message->rec_get("target")->uri_value());
+              });
+              if (p.has_value())
+                p.value()->stop();
+            }
+            return noobj();
+          })})
       }));
       ////////////////////////////////
       bool success = false;
@@ -91,7 +98,7 @@ namespace fhatos {
         this->processes_->push_back(process);
         LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                     ProcessTypes.toChars(process->ptype).c_str());
-      } else 
+      } else
         router()->route_unsubscribe(this->id(), p_p(*process->id()));
       return success;
     }
@@ -120,6 +127,7 @@ namespace fhatos {
           if (remove) LOG_DESTROY(true, fiber, Scheduler::singleton());
           return remove;
         });
+        delete fibers;
       }
     }
 

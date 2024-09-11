@@ -63,27 +63,30 @@ namespace fhatos {
     auto *ping_HIT = new atomic_int(0);
     auto *ping_MISS = new atomic_int(0);
     const Subscription_p subscription_HIT = share(Subscription{
-      .source = "tester_HIT", .pattern = *make_test_pattern("+"), .onRecv = [ping_HIT](const Message_p &message) {
-        LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
-        TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
-                                 (string("Expected rec but received ") + message->payload->id()->toString()).c_str());
-        FL_INT_TYPE payload_int = message->payload->rec_value()->at(str("hello_fhatty"))->int_value();
-        TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
-        // TEST_ASSERT_TRUE(message->retain);
-        ping_HIT->store(ping_HIT->load() + 1);
-        FOS_TEST_ASSERT_EQUAL_FURI(ID((string("piggy") + to_string(payload_int)).c_str()), message->source);
-      }
+      .source = "tester_HIT", .pattern = *make_test_pattern("+"), .onRecv = Insts::to_bcode(
+        [ping_HIT](const Message_p &message) {
+          LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
+          FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
+          TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
+                                   (string("Expected rec but received ") + message->payload->id()->toString()).c_str());
+          FL_INT_TYPE payload_int = message->payload->rec_value()->at(str("hello_fhatty"))->int_value();
+          TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
+          // TEST_ASSERT_TRUE(message->retain);
+          ping_HIT->store(ping_HIT->load() + 1);
+          FOS_TEST_ASSERT_EQUAL_FURI(ID((string("piggy") + to_string(payload_int)).c_str()), message->source);
+        })
     });
     const Subscription_p subscription_MISS = share(Subscription{
-      .source = "tester_MISS", .pattern = *make_test_pattern("c"), .onRecv = [ping_MISS](const Message_p &message) {
-        ping_MISS->store(ping_MISS->load() + 1);
-        LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
-        TEST_FAIL_MESSAGE(
-          (string("Subscription ") + make_test_pattern("c")->toString() + " does not match payload target:" + message->
-            target.toString(
-            )).c_str());
-      }
+      .source = "tester_MISS", .pattern = *make_test_pattern("c"), .onRecv = Insts::to_bcode(
+        [ping_MISS](const Message_p &message) {
+          ping_MISS->store(ping_MISS->load() + 1);
+          LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
+          TEST_FAIL_MESSAGE(
+            (string("Subscription ") + make_test_pattern("c")->toString() + " does not match payload target:" + message
+              ->
+              target.toString(
+              )).c_str());
+        })
     });
     router()->route_subscription(subscription_HIT);
     router()->route_subscription(subscription_MISS);
@@ -101,7 +104,7 @@ namespace fhatos {
                       id_p((string("piggy") + to_string(i)).c_str()));
       if (auto_loop)
         current_structure->loop();
-      scheduler()->barrier("waiting for messages in test_write #1", [ping_HIT,i]() {
+      scheduler()->barrier("waiting_for_messages/test_write/1", [ping_HIT,i]() {
         if (auto_loop)
           current_structure->loop();
         return ping_HIT->load() > i;
@@ -112,7 +115,7 @@ namespace fhatos {
       current_structure->loop();
     // should not cause an exception due to str != rec as no subscription exists
     router()->write(id_p(*make_test_pattern("b")), str("hello_fhatty"), id_p("not_there"));
-    scheduler()->barrier("waiting for messages in test_write #2", [ping_HIT]() {
+    scheduler()->barrier("waiting_for_messages/test_write/2", [ping_HIT]() {
       if (auto_loop)
         current_structure->loop();
       return ping_HIT->load() > 9;
@@ -139,7 +142,7 @@ namespace fhatos {
     router()->write(id_p(*make_test_pattern("x")), str("good"));
     router()->write(id_p(*make_test_pattern("y")), jnt(6));
     router()->write(id_p(*make_test_pattern("z")), uri(*make_test_pattern("x")));\
-    scheduler()->barrier("waiting for messages in test_read", []() {
+    scheduler()->barrier("waiting_for_messages/test_read/1", []() {
       if (auto_loop)
         current_structure->loop();
       return !router()->read(id_p(*make_test_pattern("x")))->is_noobj() &&
@@ -168,7 +171,7 @@ namespace fhatos {
   void test_subscribe() {
     //Options::singleton()->log_level(TRACE);
     auto *pings = new atomic_int(0);
-    Consumer<Message_p> on_recv_ = [pings](const Message_p &message) {
+    const BCode_p on_recv = Insts::to_bcode([pings](const Message_p &message) {
       FOS_TEST_ASSERT_EQUAL_FURI(Pattern(*make_test_pattern("test")), message->target);
       FOS_TEST_ASSERT_EQUAL_FURI(ID("b/test/case"), message->source);
       TEST_ASSERT_FALSE(message->retain);
@@ -177,15 +180,15 @@ namespace fhatos {
         pings->store(pings->load() + 1);
         TEST_ASSERT_EQUAL(1, pings->load());
       }
-    };
+    });
     if (auto_loop)
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(0, pings->load());
     FOS_TEST_EXCEPTION_CXX(router()->route_subscription(share(Subscription{
-      .source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .onRecv = on_recv_
+      .source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .onRecv = on_recv
       })));
     router()->route_subscription(share(Subscription{
-      .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .onRecv = on_recv_
+      .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .onRecv = on_recv
     }));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
@@ -193,7 +196,7 @@ namespace fhatos {
       .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
       TRANSIENT_MESSAGE
     }));
-    scheduler()->barrier("waiting for messages", [pings]() {
+    scheduler()->barrier("waiting_for_messages", [pings]() {
       if (auto_loop)
         current_structure->loop();
       return pings->load() > 0;

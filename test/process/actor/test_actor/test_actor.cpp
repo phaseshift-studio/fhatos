@@ -32,45 +32,46 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  /*void test_actor_throughput() {
+  void test_actor_throughput() {
     auto counter1 = new std::atomic<int>(0);
     auto counter2 = new std::atomic<int>(0);
-    auto *actor1 = new Actor<Thread, Empty>(ID("/app/actor1@127.0.0.1"), [counter1](Actor<Thread> *self) {
-      self->subscribe(ID("/app/actor1@127.0.0.1"), [counter1, self](const ptr<Message> &) {
-        self->publish(ID("/app/actor2@127.0.0.1"), share(Int(counter1->load())), TRANSIENT_MESSAGE);
-        if (counter1->fetch_add(1) > 198)
-          self->stop();
-        // TEST_ASSERT_EQUAL(counter1->first, counter1->second);
-      });
+    auto actor1 = std::make_shared<Actor<Thread, KeyValue>>(ID("/app/actor1@127.0.0.1"));
+    auto actor2 = std::make_shared<Actor<Thread, KeyValue>>(ID("/app/actor2@127.0.0.1"));
+    Model::deploy(actor1);
+    Model::deploy(actor2);
+    actor1->subscribe(ID("/app/actor1@127.0.0.1/X"), [counter1, counter2, actor1](const ptr<Message> &message) {
+      TEST_ASSERT_FALSE(message->retain);
+      if (counter1->fetch_add(1) > 198)
+        actor1->stop();
+      TEST_ASSERT_EQUAL(counter1->load(), counter1->load());
+      if (counter1->load() <= 199)
+        actor1->publish(ID("/app/actor2@127.0.0.1/X"), jnt(counter1->load()), TRANSIENT_MESSAGE);
     });
-    auto *actor2 = new Actor<Thread, Empty>(ID("/app/actor2@127.0.0.1"), [counter2](Actor<Thread> *self) {
-      self->subscribe(ID("/app/actor2@127.0.0.1"), [self, counter2](const ptr<Message> &message) {
-        FOS_TEST_ASSERT_EQUAL_FURI(ID("/app/actor1@127.0.0.1"), message->source);
-        FOS_TEST_ASSERT_EQUAL_FURI(*self->id(), message->target);
-        self->publish(ID("/app/actor1@127.0.0.1"), share(Int(counter2->load())), TRANSIENT_MESSAGE);
-        if (counter2->fetch_add(1) > 198)
-          self->stop();
-      });
+    actor2->subscribe(ID("/app/actor2@127.0.0.1/X"), [actor2, counter2](const ptr<Message> &message) {
+      TEST_ASSERT_FALSE(message->retain);
+      FOS_TEST_ASSERT_EQUAL_FURI(ID("/app/actor1@127.0.0.1"), message->source);
+      FOS_TEST_ASSERT_EQUAL_FURI(ID(actor2->id()->extend("X")), message->target);
+      actor2->publish(ID("/app/actor1@127.0.0.1/X"), jnt(counter2->load()), TRANSIENT_MESSAGE);
+      if (counter2->fetch_add(1) > 198)
+        actor2->stop();
     });
-    Scheduler::singleton()->spawn(actor1);
-    Scheduler::singleton()->spawn(actor2);
-    actor1->publish("/app/actor2@127.0.0.1", share(Str("START")), TRANSIENT_MESSAGE);
+    scheduler()->barrier("first_barrier", [actor1,actor2] { return actor1->active() && actor2->active(); });
+    actor1->publish("/app/actor2@127.0.0.1/X", str("START"), TRANSIENT_MESSAGE);
     Scheduler::singleton()->barrier("no_actors", [] { return Scheduler::singleton()->count("/app/#") == 0; });
     TEST_ASSERT_EQUAL(counter1->load(), counter2->load());
     TEST_ASSERT_EQUAL(200, counter1->load());
     delete counter1;
     delete counter2;
-    delete actor1;
-    delete actor2;
-  }*/
+    scheduler()->barrier("last_barrier", [] { return Scheduler::singleton()->count("/app/#") == 0; });
+  }
 
   void test_actor_by_router() {
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto actor1 = ptr<Actor<Thread, KeyValue>>(new Actor<Thread, KeyValue>("/app/actor1@127.0.0.1"));
-    auto actor2 = ptr<Actor<Thread, KeyValue>>(new Actor<Thread, KeyValue>("/app/actor2@127.0.0.1"));
-    Model::deploy(ptr<Actor<Thread, KeyValue>>(actor1));
-    Model::deploy(ptr<Actor<Thread, KeyValue>>(actor2));
+    auto actor1 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor1@127.0.0.1");
+    auto actor2 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor2@127.0.0.1");
+    Model::deploy(actor1);
+    Model::deploy(actor2);
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor1@127.0.0.1"), *actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor2@127.0.0.1"), *actor2->id());
     actor1->subscribe("/app/actor1@127.0.0.1/X",
@@ -78,7 +79,7 @@ namespace fhatos {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
                           FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
-                          //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
                           TEST_ASSERT_EQUAL_INT(0, counter1->load());
                           TEST_ASSERT_EQUAL_INT(0, counter2->load());
                           counter1->fetch_add(1);
@@ -86,23 +87,21 @@ namespace fhatos {
                           actor1->publish(message->source.extend("X"), str("pong"),
                                           TRANSIENT_MESSAGE);
                           TEST_ASSERT_FALSE(message->retain);
-                        } else if (message->payload->is_noobj()) {
-                          //actor1->stop();
-                        }
+                        } else
+                          TEST_FAIL_MESSAGE("All message payloads should be strs");
                       });
     actor2->subscribe("/app/actor2@127.0.0.1/X",
                       [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("pong", message->payload->str_value().c_str());
                           FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor1->id());
-                          //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor2->id());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor2->id()->extend("X"));
                           TEST_ASSERT_EQUAL_INT(1, counter1->load());
                           TEST_ASSERT_EQUAL_INT(1, counter2->load());
                           TEST_ASSERT_FALSE(message->retain);
                           counter2->fetch_add(1);
-                        } else if (message->payload->is_noobj()) {
-                          //actor2->stop();
-                        }
+                        } else
+                          TEST_FAIL_MESSAGE("All message payloads should be strs");
                       });
     /*TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
                       actor1->subscribe("/app/actor1@127.0.0.1/X", [](const ptr<Message> &message) {
@@ -128,16 +127,16 @@ namespace fhatos {
   void test_message_retain() {
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto actor1 = ptr<Actor<Thread, KeyValue>>(new Actor<Thread, KeyValue>("/app/actor1@127.0.0.1"));
-    auto actor2 = ptr<Actor<Thread, KeyValue>>(new Actor<Thread, KeyValue>("/app/actor2@127.0.0.1"));
+    auto actor1 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor1@127.0.0.1");
+    auto actor2 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor2@127.0.0.1");
     Model::deploy(actor1);
     Model::deploy(actor2);
-    actor1->subscribe(*actor1->id(),
+    actor1->subscribe(actor1->id()->extend("X"),
                       [actor1, actor2, counter1](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, ID(*actor2->id()));
+                          FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
                           if (scheduler()->at_barrier("first_barrier"))
                             TEST_ASSERT_LESS_THAN_INT(2, counter1->load());
                           counter1->fetch_add(1);
@@ -145,31 +144,31 @@ namespace fhatos {
                             TEST_ASSERT_LESS_THAN_INT(3, counter1->load());
                         }
                       });
-    actor2->publish(*actor1->id(), str("ping"), RETAIN_MESSAGE);
+    actor2->publish(actor1->id()->extend("X"), str("ping"), RETAIN_MESSAGE);
     scheduler()->barrier("first_barrier", [counter1] { return counter1->load() > 0; });
-    //TEST_ASSERT_EQUAL_INT(1, counter1->load());
+    TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(0, counter2->load());
-    actor2->subscribe("/app/actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+    actor2->subscribe("/app/actor1@127.0.0.1/X", [actor1, actor2, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-        // FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
-        //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
+        FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
+        FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
         counter2->fetch_add(1);
       }
     });
     scheduler()->barrier("second_barrier", [counter2] { return counter2->load() > 0; });
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(1, counter2->load());
-    actor1->unsubscribe(p_p(*actor1->id()));
-    actor1->subscribe("/app/actor1@127.0.0.1", [actor1, actor2, counter2](const ptr<Message> &message) {
+    actor1->unsubscribe(p_p(actor1->id()->extend("X")));
+    actor1->subscribe("/app/actor1@127.0.0.1/X", [actor1, actor2, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-        //FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
-        //FOS_TEST_ASSERT_EQUAL_FURI(message->target, *actor1->id());
+        FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
+        FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
         counter2->fetch_add(1);
       }
     });
-    //TEST_ASSERT_EQUAL_INT(1, counter1->load());
+    TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(2, counter2->load());
     actor1->stop();
     actor2->stop();
@@ -179,7 +178,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-    // FOS_RUN_TEST(test_actor_throughput); //
+    FOS_RUN_TEST(test_actor_throughput); //
     FOS_RUN_TEST(test_actor_by_router); //
     FOS_RUN_TEST(test_message_retain); //
   );

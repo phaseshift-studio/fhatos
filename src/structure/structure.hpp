@@ -36,18 +36,20 @@ namespace fhatos {
   class Router;
 
   enum class SType {
-    PROTO, LOCAL, DISTRIBUTED, DEPENDENT
+    EPHEMERAL, VARIABLES, DATABASE, HARDWARE, NETWORKED
   };
 
   static const Enums<SType> StructureTypes =
       Enums<SType>({
-        {SType::PROTO, "proto"},
-        {SType::LOCAL, "local"},
-        {SType::DISTRIBUTED, "distributed"},
+        {SType::EPHEMERAL, "ephemeral"},
+        {SType::VARIABLES, "variables"},
+        {SType::DATABASE, "database"},
+        {SType::HARDWARE, "hardware"},
+        {SType::NETWORKED, "networked"}
       });
 
   class Structure : public Patterned {
-    friend Router;
+    friend class System;
 
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
@@ -83,7 +85,7 @@ namespace fhatos {
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         if (!(message->retain && message->payload->is_noobj()))
-          mail.value()->first->onRecv(message);
+          mail.value()->first->onRecv->apply(message->to_rec());
         mail = this->outbox_->pop_back();
       }
     }
@@ -133,7 +135,7 @@ namespace fhatos {
         this->publish_retained(subscription);
     }
 
-    virtual void recv_message(const Message_p &message) {
+    virtual void recv_publication(const Message_p &message) {
       if (!this->available_.load())
         throw fError("Structure " FURI_WRAP " is not available", this->pattern()->toString().c_str());
       ///////////////
@@ -142,6 +144,7 @@ namespace fhatos {
       MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
       LOG_PUBLISH(OK, *message);
     }
+
 
     virtual void remove(const ID_p &id, const ID_p &source) {
       this->write(id, Obj::to_noobj(), source, RETAIN_MESSAGE);
@@ -155,11 +158,15 @@ namespace fhatos {
 
     virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source, bool retain) = 0;
 
-    virtual void write(const ID_p &id, const Obj_p &obj, bool retain) {
+    virtual void write(const ID_p &id, const Obj_p &obj, const bool retain) {
       this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID), retain);
     }
 
   protected:
+    ID_p resolve_id(const ID_p &key_id) const {
+      return key_id->is_relative() ? id_p(this->pattern()->resolve(*key_id)) : key_id;
+    }
+
     void check_availability(const string &function) const {
       if (!this->available())
         throw fError("Structure " FURI_WRAP " not available for %s", function.c_str());
@@ -168,7 +175,7 @@ namespace fhatos {
     Option<Obj_p> try_meta(const fURI_p &furi, const ID_p &) const {
       if (furi->has_query()) {
         if (strcmp(furi->query(), "sub") == 0)
-          return {this->get_subscription_objs(p_p(furi->query(nullptr)))};
+          return {objs(this->get_subscription_objs(p_p(furi->query(nullptr))))};
         else
           return Obj::to_objs();
       }
@@ -222,7 +229,7 @@ namespace fhatos {
       });
     }
 
-    Objs_p get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
+    List<Obj_p> get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
       List<Obj_p> list;
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (sub->pattern.matches(*pattern)) {
@@ -230,12 +237,12 @@ namespace fhatos {
                                               {uri(":source"), uri(sub->source)},
                                               {uri(":pattern"), uri(sub->pattern)},
                                               {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
-                                              {uri(":on_recv"), sub->onRecvBCode ? sub->onRecvBCode : noobj()}
+                                              {uri(":on_recv"), sub->onRecv}
                                             }, id_p(REC_FURI->extend("sub")));
           list.push_back(sub_rec);
         }
       }
-      return objs(list);
+      return list;
     }
   };
 
