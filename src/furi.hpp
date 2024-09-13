@@ -32,6 +32,7 @@ namespace fhatos {
     SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY
   };
 
+  // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
     {URI_PART::SCHEME, "scheme"},
     {URI_PART::USER, "user"},
@@ -60,12 +61,14 @@ namespace fhatos {
   public:
     [[nodiscard]] const char *scheme() const { return this->scheme_ ? this->scheme_ : ""; }
 
-    fURI scheme(const char *scheme) {
+    [[nodiscard]] fURI scheme(const char *scheme) {
       auto new_uri = fURI(*this);
       free((void *) new_uri.scheme_);
       new_uri.scheme_ = 0 == strlen(scheme) ? nullptr : strdup(scheme);
       return new_uri;
     }
+
+    [[nodiscard]] bool has_scheme() const { return this->scheme_; }
 
     /// USER
     [[nodiscard]] const char *user() const { return this->user_ ? this->user_ : ""; }
@@ -77,6 +80,8 @@ namespace fhatos {
       return new_uri;
     }
 
+    [[nodiscard]] bool has_user() const { return this->user_; }
+
     /// PASSWORD
     [[nodiscard]] const char *password() const { return this->password_ ? this->password_ : ""; }
 
@@ -86,6 +91,8 @@ namespace fhatos {
       new_uri.password_ = 0 == strlen(password) ? nullptr : strdup(password);
       return new_uri;
     }
+
+    [[nodiscard]] bool has_password() const { return this->password_; }
 
     /// HOST
     [[nodiscard]] const char *host() const { return this->host_ ? this->host_ : ""; }
@@ -97,6 +104,8 @@ namespace fhatos {
       return new_uri;
     }
 
+    [[nodiscard]] bool has_host() const { return this->host_; }
+
     /// PORT
     [[nodiscard]] uint16_t port() const { return this->port_; }
 
@@ -105,6 +114,8 @@ namespace fhatos {
       new_uri.port_ = port;
       return new_uri;
     }
+
+    [[nodiscard]] bool has_port() const { return this->port_ > 0; }
 
     /// AUTHORITY
     [[nodiscard]] string authority() const {
@@ -156,6 +167,8 @@ namespace fhatos {
       }
       return path_str;
     }
+
+    [[nodiscard]] bool has_path() const { return this->path_length_ > 0; }
 
     [[nodiscard]] string path() const { return this->path(0, this->path_length_); }
 
@@ -306,11 +319,21 @@ namespace fhatos {
       return first == '.' || first == ':';
     }
 
+    bool is_branch() const {
+      return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_);
+    }
+
+    bool is_node() const {
+      return !this->spostfix_;
+    }
+
     bool is_scheme_path() const {
       return this->scheme_ && this->path_length_ > 0 && !this->host_ && !this->user_ && !this->password_;
     }
 
     virtual fURI resolve(const fURI &other) const {
+      if (this->is_pattern() && other.matches(*this))
+        return other;
       ///////////////////////////////////////////////////////////////
       ////////////  mm-ADT specific resolution pattern //////////////
       ///////////////////////////////////////////////////////////////
@@ -360,14 +383,15 @@ namespace fhatos {
         if (i == other.path_length_ - 1)
           temp->spostfix_ = other.spostfix_;
       }
-      fURI ret = fURI(*temp);
+      auto ret = fURI(*temp);
       delete temp;
       return ret;
     }
 
     [[nodiscard]] virtual bool is_pattern() const {
-      string temp = this->toString();
-      return temp.find('#') != string::npos || temp.find('+') != string::npos;
+      const string temp = this->toString();
+      bool result = temp.find('#') != string::npos || temp.find('+') != string::npos;
+      return result;
     }
 
     [[nodiscard]] virtual bool matches(const fURI &pattern) const {
@@ -575,32 +599,12 @@ namespace fhatos {
             } else {
               token += c;
             }
-          } /*else if (c == '#') {
-  if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
-    if (!token.empty()) {
-      this->_path[this->_path_length] = strdup(token.c_str());
-      this->_path_length = this->_path_length + 1;
-    } else
-      this->spostfix = true;
-    part = URI_PART::FRAGMENT;
-    this->_fragment = "";
-    token.clear();
-  } else if (part == URI_PART::HOST || part == URI_PART::USER) {
-    _host = strdup(token.c_str());
-    part = URI_PART::FRAGMENT;
-    token.clear();
-  } else if (part == URI_PART::QUERY) {
-    this->_query = strdup(token.c_str());
-    part = URI_PART::FRAGMENT;
-    token.clear();
-  } else {
-    token += c;
-  }
-}*/
-          else if (!isspace(c) && isascii(c)) {
+          } else if (!isspace(c) && isascii(c)) {
             this->spostfix_ = false;
             token += c;
           }
+          if (ss.eof() && c == '/')
+            this->spostfix_ = true;
         }
         StringHelper::trim(token);
         if (!token.empty()) {

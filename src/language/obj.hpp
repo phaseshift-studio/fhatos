@@ -232,6 +232,10 @@ namespace fhatos {
     LOG(DEBUG, "OBJ_PARSER undefined at this point in bootstrap.\n");
     return nullptr;
   };
+  static BiFunction<const Objs_p, BCode_p, Objs_p> BCODE_PROCESSOR = [](const Objs_p &, const BCode_p &) {
+    LOG(DEBUG, "BCODE_PROCESSOR undefined at this point in bootstrap.\n");
+    return nullptr;
+  };
   static QuadConsumer<const ID &, const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
       [](const ID &, const ID &, const Obj_p &, const bool) {
     LOG(DEBUG, "MESSAGE_INTERCEPT undefined at this point in bootstrap.\n");
@@ -1012,7 +1016,7 @@ namespace fhatos {
 
     // const fURI type() const { return this->_id->authority(""); }
 
-    [[nodiscard]] bool match(const Obj_p &type, const bool sameType = true) const {
+    [[nodiscard]] bool match(const Obj_p &type, const bool same_type = true) const {
       LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if (type->is_noop_bcode())
         return true;
@@ -1020,7 +1024,7 @@ namespace fhatos {
         return !type->apply(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)))->is_noobj();
       if (this->o_type() != type->o_type())
         return false;
-      if (sameType && (*this->id() != *type->id()))
+      if (same_type && (*this->id() != *type->id()))
         return false;
       switch (this->o_type()) {
         case OType::NOOBJ:
@@ -1036,53 +1040,53 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() == type->str_value();
         case OType::LST: {
-          auto objsA = this->lst_value();
-          auto objsB = type->lst_value();
-          if (objsA->size() != objsB->size())
+          const auto objs_a = this->lst_value();
+          const auto objs_b = type->lst_value();
+          if (objs_a->size() != objs_b->size())
             return false;
-          auto itB = objsB->begin();
-          for (const auto &itA: *objsA) {
-            if (!itA->match(*itB))
+          auto it_b = objs_b->begin();
+          for (const auto &it_a: *objs_a) {
+            if (!it_a->match(*it_b))
               return false;
-            ++itB;
+            ++it_b;
           }
           return true;
         }
         case OType::REC: {
-          auto pairsA = this->rec_value();
-          auto pairsB = type->rec_value();
-          if (pairsA->size() != pairsB->size())
+          const auto pairs_a = this->rec_value();
+          const auto pairs_b = type->rec_value();
+          if (pairs_a->size() != pairs_b->size())
             return false;
-          auto itB = pairsB->begin();
-          for (const auto &itA: *pairsA) {
-            if (!itA.first->match(itB->first) || !itA.second->match(itB->second))
+          auto it_b = pairs_b->begin();
+          for (const auto &it_a: *pairs_a) {
+            if (!it_a.first->match(it_b->first) || !it_a.second->match(it_b->second))
               return false;
-            ++itB;
+            ++it_b;
           }
           return true;
         }
         case OType::INST: {
-          auto argsA = this->inst_args();
-          auto argsB = type->inst_args();
-          if (argsA.size() != argsB.size())
+          const auto args_a = this->inst_args();
+          auto args_b = type->inst_args();
+          if (args_a.size() != args_b.size())
             return false;
           if (this->itype() != type->itype())
             return false;
-          auto itB = argsB.begin();
-          for (const auto &itA: argsA) {
-            if (!itA->match(*itB))
+          const auto it_b = args_b.begin();
+          for (const auto &it_a: args_a) {
+            if (!it_a->match(*it_b))
               return false;
           }
           return true;
         }
         case OType::BCODE: {
-          const auto instsA = this->bcode_value();
-          const auto instsB = type->bcode_value();
-          if (instsA->size() != instsB->size())
+          const auto insts_a = this->bcode_value();
+          const auto insts_b = type->bcode_value();
+          if (insts_a->size() != insts_b->size())
             return false;
-          const auto itB = instsB->begin();
-          for (const auto &itA: *instsA) {
-            if (!itA->match(*itB))
+          const auto it_b = insts_b->begin();
+          for (const auto &it_a: *insts_a) {
+            if (!it_a->match(*it_b))
               return false;
           }
           return true;
@@ -1178,6 +1182,11 @@ namespace fhatos {
       return to_lst(share(LstList<>(xlst)), furi);
     }
 
+    static Rec_p to_rec(const ID_p &furi = REC_FURI) {
+      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::REC));
+      return share(Obj(share(RecMap<>()), furi));
+    }
+
     static Rec_p to_rec(const RecMap_p<> &map, const ID_p &furi = REC_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.toChars(OType::REC));
       return share(Obj(map, furi));
@@ -1247,7 +1256,21 @@ namespace fhatos {
     }
 
     Obj_p clone() {
-      return share(Obj(any(this->_value), id_p(*this->id_)));
+      const ID_p id_clone = id_p(*this->id_);
+      if (this->is_rec()) {
+        RecMap<> new_map;
+        for (const auto &[k,v]: *this->rec_value()) {
+          new_map.insert({k->clone(), v->clone()});
+        }
+        return to_rec(share(new_map), id_clone);
+      } else if (this->is_lst()) {
+        LstList<> new_list;
+        for (const auto &e: *this->lst_value()) {
+          new_list.push_back(e);
+        }
+        return to_lst(share(new_list), id_clone);
+      } else
+        return share(Obj(any(this->_value), id_clone));
     }
 
     ptr<BObj> serialize() const {

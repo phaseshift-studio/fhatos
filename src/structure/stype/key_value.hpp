@@ -31,12 +31,12 @@ namespace fhatos {
       Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern, const SType stype=SType::DATABASE) : Structure(pattern, stype) {
+    explicit KeyValue(const Pattern &pattern, const SType stype = SType::DATABASE) : Structure(pattern, stype) {
     };
 
   public:
     static ptr<KeyValue> create(const Pattern &pattern) {
-      ptr<KeyValue> kv_p = ptr<KeyValue>(new KeyValue(pattern));
+      auto kv_p = ptr<KeyValue>(new KeyValue(pattern));
       return kv_p;
     }
 
@@ -62,18 +62,24 @@ namespace fhatos {
 
     void write(const ID_p &target, const Obj_p &payload, const ID_p &source, const bool retain) override {
       if (retain) {
-        const Obj_p payload_copy = share(Obj(any(payload->_value), id_p(*payload->id())));
-        MUTEX_DATA.write<void *>([this, target, &payload_copy, source]() {
-          if (DATA->count(target)) {
-            DATA->erase(target);
+        const Bool_p embed = MUTEX_DATA.write<Bool>([this, target, &payload, source]() {
+          // BRANCH
+          if (target->is_branch()) {
+            return dool(true);
+          } else {
+            // NODE
+            if (DATA->count(target))
+              DATA->erase(target);
+            if (!payload->is_noobj()) {
+              DATA->insert({target, std::make_pair(payload->clone(), source)}); // why such a deep copy needed?
+              LOG_STRUCTURE(TRACE, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
+                            payload->toString().c_str());
+            }
           }
-          if (!payload_copy->is_noobj()) {
-            DATA->insert({id_p(*target), std::make_pair(payload_copy, source)}); // why such a deep copy needed?
-            LOG_STRUCTURE(TRACE, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
-                          payload_copy->toString().c_str());
-          }
-          return nullptr;
+          return dool(false);
         });
+        if (embed->bool_value())
+          Algorithm::embed(payload, target, source);
       }
       const Message_p message = share(Message{
         .source = *source,
@@ -87,25 +93,40 @@ namespace fhatos {
     Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
       FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if (furi->is_pattern()) {
-        return MUTEX_DATA.read<Objs_p>([this, furi]() {
-          Objs_p objs = Obj::to_objs();
+      return MUTEX_DATA.read<Objs_p>([this, source, furi]() {
+        // FURI BRANCH
+        if (furi->is_branch()) {
+          // x/+/
           if (furi->is_pattern()) {
+            Objs_p objs = Obj::to_objs();
             for (const auto &[f, o]: *this->DATA) {
               if (f->matches(*furi)) {
                 objs->add_obj(uri(f));
               }
             }
-          } else {
-            const ID_p id = id_p(*furi);
-            const Obj_p toadd = DATA->count(id) ? DATA->at(id).first : noobj();
-            objs->add_obj(toadd);
+            return objs;
+          }
+          Rec_p rec = Obj::to_rec(share(Obj::RecMap<>())); // x/y/
+          const Pattern match = furi->extend("+/");
+          for (const auto &[f, o]: *this->DATA) {
+            if (f->matches(match))
+              rec->rec_set(uri(f), o.first);
+          }
+          return rec->rec_value()->empty() ? noobj() : rec;
+        }
+        // FURI NODE
+        if (furi->is_pattern()) {
+          // x/+
+          Objs_p objs = Obj::to_objs();
+          for (const auto &[f, o]: *this->DATA) {
+            if (f->matches(*furi)) {
+              objs->add_obj(o.first);
+            }
           }
           return objs;
-        });
-      }
-      return MUTEX_DATA.read<Obj_p>(
-        [this, furi] { return DATA->count(id_p(*furi)) ? DATA->at(id_p(*furi)).first : noobj(); });
+        }
+        return DATA->count(id_p(*furi)) ? DATA->at(id_p(*furi)).first : noobj(); //x/y
+      });
     }
   };
 } // namespace fhatos

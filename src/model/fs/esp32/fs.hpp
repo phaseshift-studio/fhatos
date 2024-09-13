@@ -33,7 +33,7 @@ namespace fhatos {
     explicit FileSystem(const ID &id, const ID &mount_root) : XFileSystem(id, mount_root) {}
 
   public:
-    static ptr<FileSystem> singleton(const ID &id = ID("/io/fs"), const ID &root = ID("/")) {
+    static ptr<FileSystem> create(const ID &id = ID("/io/fs/"), const ID &root = ID("/")) {
       static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(id, root));
       return fs_p;
     }

@@ -147,7 +147,7 @@ namespace fhatos {
 
 
     virtual void remove(const ID_p &id, const ID_p &source) {
-      this->write(id, Obj::to_noobj(), source, RETAIN_MESSAGE);
+      this->write(id, noobj(), source, RETAIN_MESSAGE);
     }
 
     virtual void publish_retained(const Subscription_p &subscription) = 0;

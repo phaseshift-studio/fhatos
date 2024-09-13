@@ -23,6 +23,8 @@
 #include <string>
 
 namespace fhatos {
+  enum class WILDCARD { NO = 0, PLUS = 1, HASH = 2 };
+
   class StringHelper final {
   public:
     StringHelper() = delete;
@@ -67,9 +69,24 @@ namespace fhatos {
 
     static void rtrim(std::string &s) {
       s.erase(
-              std::find_if(s.rbegin(), s.rend(),
-                           [](const char c) { return !std::isspace(c) && c < 127; }).base(),
-              s.end());
+        std::find_if(s.rbegin(), s.rend(),
+                     [](const char c) { return !std::isspace(c) && c < 127; }).base(),
+        s.end());
+    }
+
+    static bool has_wildcards(const std::string &s) {
+      return s.find('+') != string::npos || s.find('#') != string::npos;
+    }
+
+
+    static WILDCARD has_wildcard(const char *s) {
+      for (size_t i = 0; i < strlen(s); i++) {
+        if (s[i] == '+')
+          return WILDCARD::PLUS;
+        if (s[i] == '#')
+          return WILDCARD::HASH;
+      }
+      return WILDCARD::NO;
     }
 
     static uint8_t count_substring(const string &str, const string &sub) {
@@ -106,7 +123,7 @@ namespace fhatos {
 
     static bool look_ahead(const string &token, std::stringstream *ss, const bool consume = true) {
       const std::stringstream::pos_type start = ss->tellg();
-      for (const char i : token) {
+      for (const char i: token) {
         if (i != ss->peek()) {
           ss->seekg(start);
           return false;

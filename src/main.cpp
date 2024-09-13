@@ -29,6 +29,7 @@
 #include FOS_FILE_SYSTEM(fs.hpp)
 
 #ifndef NATIVE
+#include "esp32/spiram.h"
 #include <model/net/esp/wifi.hpp>
 #include <model/soc/esp32/soc.hpp>
 #endif
@@ -89,7 +90,7 @@ void setup() {
 #ifndef NATIVE
         ->boot<Wifi>(Wifi::singleton("/net/wifi"))
 #endif
-        ->boot<SharedMemory>(SharedMemory::create("/var/", "+"))
+        ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/terminal/"))
         ->boot<Parser>(Parser::singleton("/parser/"))
@@ -97,7 +98,7 @@ void setup() {
          ->boot<SoC>(SoC::singleton("/soc/"))
 #endif
         ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
-        ->boot<DistributedMemory>(DistributedMemory::create("/cluster/"))
+        ->boot<DistributedMemory>(DistributedMemory::create("/cluster/","//+/#"))
         ->boot<Console>(Console::create("/home/root/repl/"))
         ->model({ID("/model/sys"), ID("/model/pubsub")})
         ->initial_terminal_owner("/home/root/repl/")

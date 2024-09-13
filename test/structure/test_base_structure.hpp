@@ -233,17 +233,17 @@ namespace fhatos {
     TEST_ASSERT_TRUE(objs->is_objs());
     TEST_ASSERT_EQUAL_INT(4, objs->objs_value()->size());
     int counter = 0;
-    for (const fURI &furi: {
-           *make_test_pattern("a"),
-           *make_test_pattern("b"),
-           *make_test_pattern("c"),
-           *make_test_pattern("d")
+    for (const Str_p &furi: {
+           str("a"),
+           str("b"),
+           str("c"),
+           str("d")
          }) {
       TEST_ASSERT_EQUAL_INT(
         1, std::count_if(objs->objs_value()->begin(),objs->objs_value()->end(),[furi](const Obj_p& obj) {
-          FOS_TEST_ASSERT_MATCH_FURI(*obj->id(),*URI_FURI);
-          TEST_ASSERT_TRUE(obj->is_uri());
-          return obj->uri_value().equals(furi);
+          FOS_TEST_ASSERT_MATCH_FURI(*obj->id(),*STR_FURI);
+          TEST_ASSERT_TRUE(obj->is_str());
+          return obj->str_value() == furi->str_value();
           }));
       counter++;
     }
@@ -289,9 +289,12 @@ namespace fhatos {
   }
 
   void test_embedding() {
-    process(StringHelper::format("%s -> [./a=>1,./b=>2]", make_test_pattern("+")->toString().c_str()));
-    const string A = make_test_pattern("a")->toString();
-    const string B = make_test_pattern("b")->toString();
+    //////////////////////////////////////////////////////////
+    ///////////////////////////////////////// SIMPLE EMBEDDING
+    //////////////////////////////////////////////////////////
+    process(StringHelper::format("%s -> [./aa/dd/aaa=>1,./aa/bb=>2]", make_test_pattern("x/")->toString().c_str()));
+    const string A = make_test_pattern("x/aa/dd/aaa")->toString();
+    const string B = make_test_pattern("x/aa/bb")->toString();
     TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(1))",A.c_str()))->objs_value()->size());
     TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(2))",A.c_str()))->objs_value()->size());
     TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(1))",B.c_str()))->objs_value()->size());
@@ -299,17 +302,53 @@ namespace fhatos {
     ////// RESET FOR PERSISTENT STRUCTURES
     process(StringHelper::format("%s -> noobj", A.c_str()));
     process(StringHelper::format("%s -> noobj", B.c_str()));
-    /////////////////////////////////////////
-    /* process(StringHelper::format("%s -> [./a=>1,./b=>[./c=>2,./d=>3]]", make_test_pattern("+/+")->toString().c_str()));
-   //  const string A = make_test_pattern("a")->toString();
-   //  const string B = make_test_pattern("b")->toString();
-     TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(1))",A.c_str()))->objs_value()->size());
-     TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(2))",A.c_str()))->objs_value()->size());
-     TEST_ASSERT_EQUAL_INT(0, process(StringHelper::format("*%s.is(eq(1))",B.c_str()))->objs_value()->size());
-     TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format("*<%s>.is(eq(2))",B.c_str()))->objs_value()->size());
-     ////// RESET FOR PERSISTENT STRUCTURES
-     process(StringHelper::format("%s -> noobj", A.c_str()));
-     process(StringHelper::format("%s -> noobj", B.c_str()));*/
+    ///////////////////////////////////////////////////////////
+    ///////////////////////////////////////// COMPLEX EMBEDDING
+    ///////////////////////////////////////////////////////////
+    TEST_ASSERT_EQUAL_INT(1, process(StringHelper::format(
+                            "%s -> [./a/ => "
+                            "         [./b => 1], "
+                            "        ./aa/ => "
+                            "         [./bb => '2', "
+                            "          ./cc => <3>, "
+                            "          ./dd/ => "
+                            "            [./aaa => true, "
+                            "             ./bbb => 5.0], "
+                            "          ./ee/ => [6,7,8]], "
+                            "        ./aaa => 9, "
+                            "        'aaaa' => 'the number 10']", make_test_pattern("x/")->toString().c_str()))->
+                          objs_value()->size());
+    TEST_ASSERT_EQUAL_INT(1, current_structure->read(id_p(*make_test_pattern("x/a/b")))->int_value());
+    TEST_ASSERT_EQUAL_STRING("2", current_structure->read(id_p(*make_test_pattern("x/aa/bb")))->str_value().c_str());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("3"), current_structure->read(id_p(*make_test_pattern("x/aa/cc")))->uri_value());
+    TEST_ASSERT_TRUE(current_structure->read(id_p(*make_test_pattern("x/aa/dd/aaa")))->bool_value());
+    TEST_ASSERT_EQUAL_FLOAT(5.0f, current_structure->read(id_p(*make_test_pattern("x/aa/dd/bbb")))->real_value());
+    TEST_ASSERT_EQUAL_INT(6, current_structure->read(id_p(*make_test_pattern("x/aa/ee/0")))->int_value());
+    TEST_ASSERT_EQUAL_INT(7, current_structure->read(id_p(*make_test_pattern("x/aa/ee/1")))->int_value());
+    TEST_ASSERT_EQUAL_INT(8, current_structure->read(id_p(*make_test_pattern("x/aa/ee/2")))->int_value());
+    TEST_ASSERT_EQUAL_INT(9, current_structure->read(id_p(*make_test_pattern("x/aaa")))->int_value());
+    TEST_ASSERT_EQUAL_STRING("the number 10",
+                             current_structure->read(id_p(*make_test_pattern("x/0")))->rec_value()->at(str("aaaa"))->
+                             str_value().c_str());
+
+    const Objs_p objs2 = process(StringHelper::format("*%s", make_test_pattern("x/#")->toString().c_str()));
+    TEST_ASSERT_EQUAL_INT(10, objs2->objs_value()->size());
+    ////// RESET FOR PERSISTENT STRUCTURES
+    current_structure->remove(id_p(*make_test_pattern("x/0")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("x/aaa")), id_p(FOS_DEFAULT_SOURCE_ID));
+    for (int i = 1; i < 4; i++) {
+      const Objs_p objs3 = current_structure->read(
+        p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/"))), id_p(FOS_DEFAULT_SOURCE_ID));
+      for (const Uri_p &u: *objs3->objs_value()) {
+        current_structure->remove(id_p(u->uri_value()), id_p(FOS_DEFAULT_SOURCE_ID));
+      }
+      if (auto_loop)
+        current_structure->loop();
+    }
+    if (auto_loop)
+      current_structure->loop();
+    TEST_ASSERT_EQUAL_INT(
+      0, process(StringHelper::format("*%s", make_test_pattern("x/#")->toString().c_str()))->objs_value()->size());
   }
 } // namespace fhatos
 

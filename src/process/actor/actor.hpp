@@ -65,7 +65,8 @@ namespace fhatos {
     void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {
       this->should_be_active();
       router()->route_subscription(
-        share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1, .onRecv = Insts::to_bcode(on_recv)}));
+        share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1,
+          .onRecv = Insts::to_bcode(on_recv)}));
       /*.executeAtSource(this)));*/
     }
 
@@ -94,7 +95,7 @@ namespace fhatos {
     void setup() override {
       STRUCTURE::setup();
       PROCESS::setup();
-       if (!this->id_->matches(*this->pattern())) {
+      if (!this->id_->matches(*this->pattern())) {
         const ptr<IDStructure> id_struct = IDStructure::create(this->id());
         router()->attach(id_struct);
         id_struct->setup();
@@ -128,7 +129,8 @@ namespace fhatos {
     }
 
     virtual string toString() const {
-      return string("!mACTOR!!!g[!cid!m=>!g<!y") + this->id()->toString() + "!g>!m,!cpattern!m=>!g<!y" + this->pattern()->toString() +
+      return string("!mACTOR!!!g[!cid!m=>!g<!y") + this->id()->toString() + "!g>!m,!cpattern!m=>!g<!y" + this->pattern()
+             ->toString() +
              "!g>]!!";
     }
 
@@ -144,5 +146,8 @@ namespace fhatos {
         throw fError(FURI_WRAP " is not active (spawned and attached)", this->toString().c_str());
     }
   };
+
+  template<typename PROCESS, typename STRUCTURE>
+  using Actor_p = ptr<Actor<PROCESS, STRUCTURE>>;
 } // namespace fhatos
 #endif

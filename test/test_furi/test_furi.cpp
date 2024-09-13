@@ -121,18 +121,34 @@ namespace fhatos {
 #define FOS_LOOPS 50000
 #endif
     for (int i = 0; i < FOS_LOOPS; i++) {
-      fURI a = fURI("127.0.0.1");
-      fURI b = fURI(a);
-      fURI c = fURI(b.toString());
-      fURI d = fURI(c.path(0));
-      fURI e = fURI(d.path(0)).extend("");
-      fURI f = fURI(e.toString());
-      TEST_ASSERT_TRUE(a.equals(a));
-      TEST_ASSERT_TRUE(a.equals(b));
-      TEST_ASSERT_TRUE(a.equals(c));
-      TEST_ASSERT_TRUE(a.equals(d));
-      TEST_ASSERT_TRUE(a.extend("").equals(e));
-      TEST_ASSERT_TRUE(a.equals(f));
+      auto a = fURI("127.0.0.1");
+      auto b = fURI(a);
+      auto c = fURI(b.toString());
+      auto d = fURI(c.path(0));
+      auto e = fURI(d.path(0)).extend("");
+      auto f = fURI(e.toString());
+      auto g = fURI("127.0.0.1/");
+      if (!a.equals(a)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(a, a);
+      }
+      if (!a.equals(b)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(a, b);
+      }
+      if (!a.equals(c)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(a, c);
+      }
+      if (!a.equals(d)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(a, d);
+      }
+      if (!a.extend("").equals(e)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(a.extend(""), e);
+      }
+      if (!g.equals(e)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(g, e);
+      }
+      if (!g.equals(f)) {
+        FOS_TEST_ASSERT_EQUAL_FURI(g, f);
+      }
 #undef FOS_LOOPS
 #ifndef NATIVE
       if (sketchMemory != -1) {
@@ -385,14 +401,33 @@ namespace fhatos {
     TEST_ASSERT_FALSE(fURI("//localhost:8080/.").is_relative());
   }
 
+  void test_uri_branch_node() {
+    TEST_ASSERT_TRUE(fURI("/").is_branch());
+    TEST_ASSERT_TRUE(fURI("//abc/").is_branch());
+    TEST_ASSERT_TRUE(fURI("fos://abc/").is_branch());
+    TEST_ASSERT_TRUE(fURI("/abc/").is_branch());
+    TEST_ASSERT_TRUE(fURI("/abc/def/").is_branch());
+    TEST_ASSERT_TRUE(fURI("//abc/def//").is_branch());
+    TEST_ASSERT_TRUE(fURI("../def/").is_branch());
+    ///
+    TEST_ASSERT_TRUE(fURI("").is_node());
+    TEST_ASSERT_TRUE(fURI("//abc").is_node());
+    TEST_ASSERT_TRUE(fURI("furi://a").is_node());
+    TEST_ASSERT_TRUE(fURI("furi://a/b/c").is_node());
+    TEST_ASSERT_TRUE(fURI("/abc").is_node());
+    TEST_ASSERT_TRUE(fURI("/abc/def").is_node());
+    TEST_ASSERT_TRUE(fURI("//abc/def").is_node());
+    TEST_ASSERT_TRUE(fURI("./def").is_node());
+  }
+
   void test_uri_resolve() {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1/").resolve("/a"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1").resolve("/a"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1/").resolve("a"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a"), fURI("foi://127.0.0.1").resolve("a"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/b"), fURI("foi://127.0.0.1/").resolve("a").resolve("/b"));
-    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a/"), fURI("foi://127.0.0.1/").resolve("a/"));
-    // FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a/b"), fURI("foi://127.0.0.1/").resolve("a/").resolve("b"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a/"), fURI("foi://127.0.0.1/").resolve("a/"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/a/b"), fURI("foi://127.0.0.1/").resolve("a/").resolve("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/b"), fURI("foi://127.0.0.1/").resolve("a").resolve("b"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1/"), fURI("foi://127.0.0.1/").resolve(""));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://127.0.0.1"), fURI("foi://127.0.0.1").resolve(""));
@@ -414,6 +449,13 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://123.0.0.4/types/int/even"),
                                fURI("foi://123.0.0.4/types/int/nat/").resolve("../even"));
     ////
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/x"), fURI("/a/b/c").resolve("x"))
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/x"), fURI("/a/").resolve("./x"))
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/x/y"), fURI("/a/b/c").resolve("../x/y"))
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/x/y"), fURI("/a/b/c").resolve("../../x/y"))
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/x/y"), fURI("/a/b/c").resolve("./../x/y"))
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/x/y"), fURI("/a//b/c").resolve("./../x/y"))
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a//x/y"), fURI("/a//b/c").resolve("../x/y"))
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/d"), fURI("/a/b/c").resolve(fURI("d")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/d"), fURI("/a/b/c").resolve(fURI("/d")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/d"), fURI("/a/b/c/").resolve(fURI("../d")));
@@ -435,6 +477,9 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/c"), fURI("a").resolve(fURI("/b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("b/c"), fURI("a").resolve(fURI("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a").resolve(fURI("a")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/c/b"), fURI("a/c/").resolve(fURI("./b")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b"), fURI("a/c").resolve(fURI("./b")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b"), fURI("a/").resolve(fURI("./b")));
     ///////////////// mm-ADT specific :-based resolution
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs:/type/inst/root"), fURI("fs:/type/inst/").resolve("fs:root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("fs://type/inst/root"), fURI("fs://type/inst/").resolve("fs:root"));
@@ -460,9 +505,20 @@ namespace fhatos {
                                fURI("foi://fhat@127.0.0.1/a").resolve(fURI("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://fhat@127.0.0.1/b/c"),
                                fURI("foi://fhat@127.0.0.1/a").resolve(fURI("foi://fhat@fhat.org/b/c")));
-    // TODO:
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("./b/")));
-    //     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("b/")));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/").resolve(fURI("./b/")));
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("./b/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("b/")));
+
+    ////////// PATTERN RESOLUTIONS
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("#").resolve(fURI("a")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/c"), fURI("/a/+/c").resolve(fURI("/a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/+/c").resolve(fURI("a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/+/c/#").resolve(fURI("a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/c"), fURI("/a/#").resolve(fURI("/a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/c"), fURI("/b/#").resolve(fURI("/a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/b/a/b/c"), fURI("/b/#").resolve(fURI("a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("//b/+/+/a/b/c"), fURI("//b/+/+/").resolve(fURI("a/b/c")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("//b/+/a/b/c"), fURI("//b/+/+").resolve(fURI("a/b/c")));
   }
 
   void test_uri_match() {
@@ -599,6 +655,7 @@ namespace fhatos {
     // TODO: FOS_RUN_TEST(test_uri_retract);
     // TODO: FOS_RUN_TEST(test_uri_retract_pattern);
     FOS_RUN_TEST(test_is_relative); //
+    FOS_RUN_TEST(test_uri_branch_node);
     FOS_RUN_TEST(test_uri_resolve); //
     FOS_RUN_TEST(test_uri_match); //
     //

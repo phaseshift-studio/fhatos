@@ -25,6 +25,7 @@
 #include <structure/router.hpp>
 #include <util/options.hpp>
 #include <utility>
+#include <language/processor/algorithm.hpp>
 
 namespace fhatos {
   struct Insts {
@@ -42,6 +43,15 @@ namespace fhatos {
           };
         }, IType::ZERO_TO_MANY,
         [starts](const Obj_p &) { return starts; });
+    }
+
+    static Obj_p optional(const Obj_p &option) {
+      return Obj::to_inst("optional", {option}, [](const InstArgs &args) {
+        return [args](const Obj_p &lhs) {
+          const Obj_p obj = args.at(0)->apply(lhs);
+          return obj->is_noobj() ? lhs : obj;
+        };
+      }, IType::ONE_TO_ONE);
     }
 
     static Obj_p lambda(const Function<Obj_p, Obj_p> &function, const Uri_p &location = uri("cpp-impl")) {
@@ -335,6 +345,42 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
+    static Rec_p inspect() {
+      return Obj::to_inst("inspect", {},
+                          [](const InstArgs &) {
+                            return [](const Obj_p &lhs) {
+                              Rec_p rec = Obj::to_rec();
+                              rec->rec_set(uri("type"), uri(lhs->id()));
+                              if (lhs->is_uri()) {
+                                const fURI furi = lhs->uri_value();
+                                if (furi.has_scheme())
+                                  rec->rec_set(uri("scheme"), uri(furi.scheme()));
+                                if (furi.has_user())
+                                  rec->rec_set(uri("user"), uri(furi.user()));
+                                if (furi.has_password())
+                                  rec->rec_set(uri("password"), uri(furi.password()));
+                                if (furi.has_host())
+                                  rec->rec_set(uri("host"), uri(furi.host()));
+                                if (furi.has_port())
+                                  rec->rec_set(uri("port"), jnt(lhs->uri_value().port()));
+                                rec->rec_set(uri("relative"), dool(furi.is_relative()));
+                                rec->rec_set(uri("branch"), dool(furi.is_branch()));
+                                if (furi.has_path()) {
+                                  Lst_p path = Obj::to_lst();
+                                  for (int i = 0; i < furi.path_length(); i++) {
+                                    path->lst_add(uri(furi.path(i)));
+                                  }
+                                  rec->rec_set(uri("path"), path);
+                                }
+                                if (furi.has_query()) {
+                                  rec->rec_set(uri("query"), str(furi.query()));
+                                }
+                              }
+                              return rec;
+                            };
+                          }, IType::ONE_TO_ONE);
+    }
+
     static Obj_p as(const Uri_p &type_id) {
       return Obj::to_inst(
         "as", {type_id},
@@ -350,32 +396,31 @@ namespace fhatos {
       return Obj::to_inst(
         "to", {uri},
         [](const InstArgs &args) {
-          const Obj_p &furi = args.at(0);
-          return [furi](const Obj_p &lhs) {
-            const Obj_p main_apply = lhs->apply(furi);
-            const Uri_p uri_apply = furi->apply(lhs);
-            if (uri_apply->uri_value().is_pattern()) {
-              if (main_apply->is_rec()) {
-                const Obj::RecMap_p<> remaining = share(Obj::RecMap<>());
-                for (const auto &[k, v]: *main_apply->rec_value()) {
-                  if (k->is_uri())
-                    Insts::to(k)->inst_f()({k})(v); // recursive embedding relative to base uri
-                  else
-                    remaining->insert(
-                      {PtrHelper::clone(k), PtrHelper::clone(v)});
-                  // non-uri key/values written to base uri
+          const Obj_p &rhs = args.at(0);
+          return [rhs](const Obj_p &lhs) {
+            const Obj_p lhs_apply = lhs->apply(rhs);
+            const Obj_p rhs_apply = rhs->apply(lhs);
+            router()->write(id_p(rhs_apply->uri_value()), lhs_apply, id_p(FOS_DEFAULT_SOURCE_ID));
+            //Algorithm::embed(lhs_apply, furi_p(rhs_apply->uri_value()), id_p(FOS_DEFAULT_SOURCE_ID));
+            return lhs_apply;
+            /*
+            if (lhs_apply->is_uri()) {
+              if (lhs_apply->uri_value().is_pattern()) {
+                if (rhs_apply->is_rec()) {
+                  const fURI furi = lhs_apply->uri_value();
+                  Rec_p rec = Rec_p(rhs_apply);
+                  const Objs_p objs = BCODE_PROCESSOR(Obj::to_uri(furi),
+                                                      OBJ_PARSER("-<[_=>*_]"));
+                  for (const auto &pair_rec: *objs->objs_value()) {
+                    LOG(INFO, "Adding recs of %s: %s + %s\n", furi.toString().c_str(),
+                        rec->toString().c_str(), objs->toString().c_str());
+                    rec = share(*rec + *pair_rec);
+                  }
+                  return rec;
                 }
-                if (!remaining->empty()) {
-                  const Rec_p sub_rec = Obj::to_rec(remaining);
-                  router()->write(id_p(uri_apply->uri_value().retract_pattern()), sub_rec);
-                }
-              } else {
-                router()->write(id_p(uri_apply->uri_value().retract_pattern()), main_apply);
               }
-            } else {
-              router()->write(id_p(uri_apply->uri_value()), main_apply);
             }
-            return main_apply;
+            throw fError("bad args");*/
           };
         },
         /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
@@ -927,6 +972,7 @@ namespace fhatos {
 
     static Map<string, string> unary_sugars() {
       static Map<string, string> map = {
+        {"?", "optional"},
         {"-<", "split"},
         {">-", "merge"},
         {"~", "match"},

@@ -198,7 +198,12 @@ namespace fhatos {
     return Processor<Obj>(Options::singleton()->parser<Obj>(monoid), noobj()).toObjs();
   }
 
+
+
   static void load_processor() {
+    BCODE_PROCESSOR = [](const Objs_p& starts, const BCode_p& bcode) {
+      return Processor<Obj>(bcode,starts).toObjs();
+    };
     Options::singleton()->processor<Obj, BCode, Objs>(
             [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).toObjs(); });
   }

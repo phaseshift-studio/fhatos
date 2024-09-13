@@ -38,6 +38,8 @@ namespace fhatos {
     void load_insts() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       //this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
+      this->save_type(inst_id("optional"), Insts::optional(x(0)));
+      this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
       this->save_type(inst_id("mult"), Insts::mult(x(0)));
       this->save_type(inst_id("mod"), Insts::mod(x(0)));
@@ -96,9 +98,9 @@ namespace fhatos {
       this->save_type(inst_id("until"), Insts::until(x(0)));
       this->save_type(inst_id("dedup"), Insts::dedup(x(0, bcode())));
       this->save_type(inst_id("insert"), Insts::insert(x(0)));
-      this->save_type(inst_id("and"), Insts::x_and(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
-      this->save_type(inst_id("or"), Insts::x_or(x(0,Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
-      this->save_type(inst_id("error"), Insts::error(x(0,str("an error occurred"))));
+      this->save_type(inst_id("and"), Insts::x_and(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
     }
 
   public:
@@ -159,7 +161,7 @@ namespace fhatos {
     }
 
     bool check_type(const Obj &obj, const OType otype, const ID_p &typeId,
-                   const bool doThrow = true) noexcept(false) {
+                    const bool doThrow = true) noexcept(false) {
       const OType typeOType = OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX));
       if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
         return true;

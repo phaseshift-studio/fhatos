@@ -33,14 +33,19 @@ namespace fhatos {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
           share(Map<ID, List<Pair<ID, Type_p>>>{
             {"/model/sys", {
-              {"/type/rec/thread", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/fiber", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/coroutine", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/process",OBJ_PARSER("_")},
-              {"/type/rec/kv", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/heap", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/structure",OBJ_PARSER("[_]")},
-              {"/type/rec/actor",OBJ_PARSER("")},
+              {"/type/rec/process", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/thread", OBJ_PARSER("process[_]")},
+              {"/type/rec/fiber", OBJ_PARSER("process[_]")},
+              {"/type/rec/coroutine", OBJ_PARSER("process[_]")},
+              //////
+              {"/type/rec/structure", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
+              {"/type/rec/database", OBJ_PARSER("structure[_]")},
+              {"/type/rec/ephemeral", OBJ_PARSER("structure[_]")},
+              {"/type/rec/hardware", OBJ_PARSER("structure[_]")},
+              {"/type/rec/networked", OBJ_PARSER("structure[_]")},
+              {"/type/rec/variables", OBJ_PARSER("structure[_]")},
+              //////
+              {"/type/rec/actor", OBJ_PARSER("~[process=>lst,structure=>lst]")},
               {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")}}},
             {"/model/pubsub", {
                 {"/type/rec/sub",

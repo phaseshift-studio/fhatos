@@ -106,26 +106,28 @@ namespace fhatos {
     Obj_p read(const fURI_p &furi, const ID_p &source) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      const fURI new_furi = furi->is_branch() && furi->is_pattern() ? furi->extend("+") : *furi;
       auto thing = new std::atomic<Obj *>(nullptr);
-      if (furi->is_pattern())
+      if (furi->is_pattern() || furi->is_branch())
         thing->store(new Objs(share(List<Obj_p>()), OBJS_FURI));
       this->recv_subscription(share(Subscription{
         .source = static_cast<fURI>(*source),
-        .pattern = *furi,
+        .pattern = new_furi,
         .onRecv = Insts::to_bcode([this, furi, thing](const Message_p &message) {
           LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
                         message->toString().c_str());
-          // TODO: try to not copy obj while still not accessing heap after delete
-          if (furi->is_pattern()) {
+          if (furi->is_branch()) {
             const auto obj = ptr<Obj>(new Uri(fURI(message->target), URI_FURI));
             thing->load()->add_obj(obj);
+          } else if (furi->is_pattern()) {
+            thing->load()->add_obj(message->payload);
           } else {
             thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
           }
         })
       }));
       const time_t start_timestamp = time(nullptr);
-      if (furi->is_pattern()) {
+      if (furi->is_pattern() || furi->is_branch()) {
         while (time(nullptr) - start_timestamp < 2) {
           this->native_mqtt_loop();
         }
@@ -136,8 +138,8 @@ namespace fhatos {
           this->native_mqtt_loop();
         }
       }
-      this->recv_unsubscribe(source, furi);
-      if (furi->is_pattern()) {
+      this->recv_unsubscribe(source, furi_p(new_furi));
+      if (furi->is_pattern() || furi->is_branch()) {
         auto objs = ptr<Objs>(thing->load());
         delete thing;
         return objs;
@@ -154,8 +156,12 @@ namespace fhatos {
     void write(const ID_p &target, const Obj_p &obj, const ID_p &source, const bool retain) override {
       check_availability("write");
       LOG_STRUCTURE(DEBUG, this, "writing to mqtt broker: %s\n", obj->toString().c_str());
-      native_mqtt_publish(
-        share(Message{.source = ID(*source), .target = ID(*target), .payload = obj, .retain = retain}));
+      if (target->is_branch()) {
+        Algorithm::embed(obj, target, source);
+      } else {
+        native_mqtt_publish(
+          share(Message{.source = ID(*source), .target = ID(*target), .payload = obj, .retain = retain}));
+      }
     }
 
     void publish_retained(const Subscription_p &) override {

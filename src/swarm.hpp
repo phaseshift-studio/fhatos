@@ -17,22 +17,45 @@
  ******************************************************************************/
 
 #pragma once
-#ifndef fhatos_model_hpp
-#define fhatos_model_hpp
+#ifndef fhatos_swarm_hpp
+#define fhatos_swarm_hpp
 
 #include <fhatos.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include <structure/router.hpp>
-#include <swarm.hpp>
-
+#include <language/obj.hpp>
+#include <structure/pubsub.hpp>
+#include <util/enums.hpp>
+#include <util/mutex_deque.hpp>
+#include <util/mutex_rw.hpp>
+#include <process/actor/actor.hpp>
 
 namespace fhatos {
-  class Model {
+  class Swarm;
+
+
+  class Swarm : public IDed {
+    friend class System;
+
+  protected:
+    ptr<List<Process_p>> actors_ = std::make_shared<List<Process_p>>();
+    MutexRW<> mutex_ = MutexRW<>();
+
+    explicit Swarm(const ID &id): IDed(id_p(id)) {
+    }
+
   public:
+    static ptr<Swarm> singleton() {
+      static ptr<Swarm> swarm = ptr<Swarm>(new Swarm("/sys/swarm/"));
+      return swarm;
+    }
+
     template<typename ACTOR>
-    static ptr<ACTOR> deploy(const ptr<ACTOR> &actor) {
-      return Swarm::singleton()->deploy(actor);
+    ptr<ACTOR> deploy(const ptr<ACTOR> &actor) {
+      router()->attach(actor);
+      scheduler()->spawn(actor);
+      this->actors_->push_back(actor);
+      return actor;
     }
   };
-}
+} // namespace fhatos
+
 #endif

@@ -10,6 +10,9 @@ scripts/__pycache__
 .idea
 **/.DS_Store
 
+# ESP_IDF Files
+idf_component.yml
+
 # Project Build Directories
 build
 test/build

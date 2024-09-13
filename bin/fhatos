@@ -42,7 +42,7 @@ else
   cd "${FHATOS_HOME}/build" || exit 1
 fi
 if [[ $1 == "esp32" ]]; then
-  rlwrap --always-readline --ansi-colour-aware pio device monitor -e $1 -b 115200 -f direct --echo
+  rlwrap --quote-characters "\"'" --always-readline --ansi-colour-aware pio device monitor -e $1 -b 115200 -f direct --echo
 else
-  rlwrap --ansi-colour-aware ${FHATOS_HOME}/build/fhatos.out "$@"
+  rlwrap --quote-characters "\"'" --ansi-colour-aware ${FHATOS_HOME}/build/fhatos.out "$@"
 fi

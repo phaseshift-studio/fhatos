@@ -112,7 +112,7 @@ namespace fhatos {
     static BObj_p wrap_source(const ID_p &source, const Obj_p &obj) {
       string wrap = source->toString();
       wrap += '%';
-      wrap += obj->toString(true, false);
+      wrap += obj->is_uri() ? ("<" + obj->toString(true, false) + ">") : obj->toString(true, false); // TODO: figure out general URI serialization using toString() as <3> doesn't work
       LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
       return ptr<BObj>(new BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}), bobj_deleter);
     }

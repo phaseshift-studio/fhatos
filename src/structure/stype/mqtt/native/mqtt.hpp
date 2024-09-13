@@ -29,8 +29,8 @@ namespace fhatos {
 
   class Mqtt : public BaseMqtt {
   protected:
-    async_client *xmqtt_;
-    connect_options connection_options_;
+    ptr<async_client> xmqtt_;
+    ptr<connect_options> connection_options_;
 
     // +[scheme]//+[authority]/#[path]
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"),
@@ -40,7 +40,7 @@ namespace fhatos {
       this->server_addr_ = (string(server_addr).find_first_of("mqtt://") == string::npos
                               ? string("mqtt://").append(string(server_addr))
                               : server_addr);
-      this->xmqtt_ = new async_client(this->server_addr_, "", mqtt::create_options(MQTTVERSION_5));
+      this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, "", mqtt::create_options(MQTTVERSION_5));
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
           .clean_start(true)
@@ -53,7 +53,7 @@ namespace fhatos {
         pre_connection_options = pre_connection_options.will(
           message(this->will_message_->target.toString(), source_payload->second, this->will_message_->retain));
       }
-      this->connection_options_ = pre_connection_options.finalize();
+      this->connection_options_ = share(pre_connection_options.finalize());
       //// MQTT MESSAGE CALLBACK
       this->xmqtt_->set_message_callback([this](const const_message_ptr &mqtt_message) {
         const binary_ref ref = mqtt_message->get_payload_ref();
@@ -78,9 +78,9 @@ namespace fhatos {
       });
     }
 
-      void native_mqtt_loop() override {
-this->loop();
-  }
+    void native_mqtt_loop() override {
+      this->loop();
+    }
 
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
@@ -92,13 +92,17 @@ this->loop();
     }
 
     void native_mqtt_publish(const Message_p &message) override {
-      const BObj_p source_payload = Message::wrap_source(id_p(message->source), message->payload);
-      this->xmqtt_->publish(
-        string(message->target.toString().c_str()),
-        source_payload->second,
-        source_payload->first,
-        1, //qos
-        message->retain)->wait();
+      if (message->payload->is_noobj()) {
+        this->xmqtt_->publish(message->target.toString().c_str(), const_cast<char *>(""), 0, 2, true)->wait();
+      } else {
+        const BObj_p source_payload = Message::wrap_source(id_p(message->source), message->payload);
+        this->xmqtt_->publish(
+          string(message->target.toString().c_str()),
+          source_payload->second,
+          source_payload->first,
+          1, //qos
+          message->retain)->wait();
+      }
     }
 
     void native_mqtt_disconnect() override {
@@ -115,16 +119,16 @@ this->loop();
       return mqtt_p;
     }
 
-    ~Mqtt() override {
-      delete this->xmqtt_;
-    }
+    // ~Mqtt() override {
+    //   delete this->xmqtt_;
+    // }
 
     void setup() override {
       Structure::setup();
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {
-          if (!this->xmqtt_->connect(this->connection_options_)->wait_for(1000)) {
+          if (!this->xmqtt_->connect(*this->connection_options_)->wait_for(1000)) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
             LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr_.c_str());

@@ -233,10 +233,13 @@ namespace fhatos {
       } else {
         ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
         try {
+          if (this->_line[0] == '\n')
+            this->_line = this->_line.substr(1);
           const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
           if (!obj.has_value())
             throw fError("Unable to parse input: %s\n", this->_line.c_str());
-          this->printResult(Fluent(obj.value()).toObjs());
+          this->printResult(Options::singleton()->processor<Obj, BCode, Obj>(
+            obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
         } catch (const std::exception &e) {
           this->printException(e);
         }

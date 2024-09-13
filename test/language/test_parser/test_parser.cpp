@@ -29,7 +29,6 @@
 #include <language/exts.hpp>
 
 namespace fhatos {
-
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
@@ -52,9 +51,9 @@ namespace fhatos {
   void test_bool_parsing() {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/fact"), Obj::to_bcode());
     const auto bools = List<Trip<string, bool, fURI>>(
-            {{"true",       true,  *BOOL_FURI},
-             {"false",      false, *BOOL_FURI},
-             {"fact[true]", true,  BOOL_FURI->resolve("fact")}});
+      {{"true", true, *BOOL_FURI},
+        {"false", false, *BOOL_FURI},
+        {"fact[true]", true, BOOL_FURI->resolve("fact")}});
     for (const auto &trip: bools) {
       const Bool_p b = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::BOOL, b->o_type());
@@ -67,16 +66,16 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/zero"), Obj::to_bcode());
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
     const auto ints =
-            List<Trip<string, FL_INT_TYPE, fURI>>({{"45",       45,  *INT_FURI},
-                                                   {"0",        0,   *INT_FURI},
-                                                   {"-12",      -12, *INT_FURI},
-                                                   {"nat[100]", 100, INT_FURI->resolve("nat")},
-                                                   {"zero[0]",  0,   INT_FURI->resolve("zero")},
-                                                   {"zero[2]",  2,   INT_FURI->resolve("../int/zero")},
-                                                   {FOS_TYPE_PREFIX "/int/zero[0]",   0,  INT_FURI->resolve("zero")},
-                                                   {FOS_TYPE_PREFIX "/int/zero[98]",  98, INT_FURI->resolve(
-                                                           "../int/zero")},
-                                                   {FOS_TYPE_PREFIX "/int/zero[001]", 1,  INT_FURI->extend("zero")}});
+        List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
+          {"0", 0, *INT_FURI},
+          {"-12", -12, *INT_FURI},
+          {"nat[100]", 100, INT_FURI->resolve("nat")},
+          {"zero[0]", 0, INT_FURI->resolve("zero")},
+          {"zero[2]", 2, INT_FURI->resolve("../int/zero")},
+          {FOS_TYPE_PREFIX "/int/zero[0]", 0, INT_FURI->resolve("zero")},
+          {FOS_TYPE_PREFIX "/int/zero[98]", 98, INT_FURI->resolve(
+            "../int/zero")},
+          {FOS_TYPE_PREFIX "/int/zero[001]", 1, INT_FURI->extend("zero")}});
     for (auto &trip: ints) {
       const ptr<Int> i = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::INT, i->o_type());
@@ -90,15 +89,15 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/nat"), Obj::to_bcode());
     // REAL
     const auto reals = List<Trip<string, FL_REAL_TYPE, fURI>>(
-            {{"45.1",       45.1f,  *REAL_FURI},
-             {"0.0000",     0.0f,   *REAL_FURI},
-             {"-12.1",      -12.1f, *REAL_FURI},
-             {"nat[10.0]",  10.0f,  REAL_FURI->resolve("nat")},
-             {"zero[0.21]", 0.21f,  REAL_FURI->resolve("zero")},
-             {"zero[2.0]",  2.0f,   REAL_FURI->resolve("../real/zero")},
-             {FOS_TYPE_PREFIX "/real/zero[1.1]",   1.1f,   REAL_FURI->resolve("zero")},
-             {FOS_TYPE_PREFIX "/real/zero[98.00]", 98.00f, REAL_FURI->resolve("../real/zero")},
-             {FOS_TYPE_PREFIX "/real/zero[001.1]", 1.1f,   REAL_FURI->extend("zero")}});
+      {{"45.1", 45.1f, *REAL_FURI},
+        {"0.0000", 0.0f, *REAL_FURI},
+        {"-12.1", -12.1f, *REAL_FURI},
+        {"nat[10.0]", 10.0f, REAL_FURI->resolve("nat")},
+        {"zero[0.21]", 0.21f, REAL_FURI->resolve("zero")},
+        {"zero[2.0]", 2.0f, REAL_FURI->resolve("../real/zero")},
+        {FOS_TYPE_PREFIX "/real/zero[1.1]", 1.1f, REAL_FURI->resolve("zero")},
+        {FOS_TYPE_PREFIX "/real/zero[98.00]", 98.00f, REAL_FURI->resolve("../real/zero")},
+        {FOS_TYPE_PREFIX "/real/zero[001.1]", 1.1f, REAL_FURI->extend("zero")}});
     for (auto &trip: reals) {
       const Real_p r = Parser::singleton()->tryParseObj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::REAL, r->o_type());
@@ -110,12 +109,12 @@ namespace fhatos {
   void test_uri_parsing() {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/x"), Obj::to_bcode());
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/furi:"), Obj::to_bcode());
-    const auto uris = List<Trip<string, fURI, fURI>>({{"<blah.com>",      fURI("blah.com"),  *URI_FURI},
-                                                      {"ga",              fURI("ga"),        *URI_FURI},
-                                                      {"x[x]",            fURI("x"),         URI_FURI->resolve("x")},
-                                                      {"furi:[blah_com]", fURI("blah_com"),  URI_FURI->resolve(
-                                                              "furi:")},
-                                                      {"/abc_2467",       fURI("/abc_2467"), *URI_FURI}});
+    const auto uris = List<Trip<string, fURI, fURI>>({{"<blah.com>", fURI("blah.com"), *URI_FURI},
+      {"ga", fURI("ga"), *URI_FURI},
+      {"x[x]", fURI("x"), URI_FURI->resolve("x")},
+      {"furi:[blah_com]", fURI("blah_com"), URI_FURI->resolve(
+        "furi:")},
+      {"/abc_2467", fURI("/abc_2467"), *URI_FURI}});
     for (auto &trip: uris) {
       const Uri_p u = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::URI, u->o_type());
@@ -128,12 +127,12 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/name"), Obj::to_bcode());
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/origin"), Obj::to_bcode());
     const auto strs = List<Trip<string, string, fURI>>(
-            {{"'bob'",                                "bob",                                *STR_FURI},
-             {"'ga'",                                 "ga",                                 *STR_FURI},
-             {"name['fhat']",                         "fhat",                               STR_FURI->resolve("name")},
-             {"'a long and winding\nroad of\nstuff'", "a long and winding\nroad of\nstuff", *STR_FURI},
-             {"origin['abc_2467']",                   "abc_2467",                           STR_FURI->resolve(
-                     "origin")}});
+      {{"'bob'", "bob", *STR_FURI},
+        {"'ga'", "ga", *STR_FURI},
+        {"name['fhat']", "fhat", STR_FURI->resolve("name")},
+        {"'a long and winding\nroad of\nstuff'", "a long and winding\nroad of\nstuff", *STR_FURI},
+        {"origin['abc_2467']", "abc_2467", STR_FURI->resolve(
+          "origin")}});
     for (auto &trip: strs) {
       const Str_p s = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::STR, s->o_type());
@@ -155,36 +154,36 @@ namespace fhatos {
                            "atype[[]]"); // empty list
     ///// CONSTRUCTION PERMUTATIONS
     const auto lsts = List<Trip<string, List<Obj_p>, fURI>>(
-            {{"['a',13,<actor>,false]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     *LST_FURI},
-             {"['a' , 13,<actor> , false ]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     *LST_FURI},
-             {"['a' ,    13 , <actor> ,    false  ]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     *LST_FURI},
-             {"['a',    13 ,<actor>,   false]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     *LST_FURI},
-             {"atype[['a',13 ,<actor>,   false]]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     LST_FURI->resolve("atype")},
-             {"atype  [['a',13 ,<actor>,   false]]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     LST_FURI->resolve("atype")},
-             {"btype[['a',  nat[13] , actor, abool   [false]]]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     LST_FURI->resolve("btype")},
-             {"    btype[['a',  nat[13] ,actor,   abool [false]]]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     LST_FURI->resolve("btype")},
-             {"ctype[['a',    13 , <actor>,  false]]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     LST_FURI->resolve("ctype")},
-             {"   ctype    [['a',    13 ,<actor>,   false]]",
-                     {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
-                     LST_FURI->resolve("ctype")}});
+      {{"['a',13,<actor>,false]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          *LST_FURI},
+        {"['a' , 13,<actor> , false ]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          *LST_FURI},
+        {"['a' ,    13 , <actor> ,    false  ]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          *LST_FURI},
+        {"['a',    13 ,<actor>,   false]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          *LST_FURI},
+        {"atype[['a',13 ,<actor>,   false]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("atype")},
+        {"atype  [['a',13 ,<actor>,   false]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("atype")},
+        {"btype[['a',  nat[13] , actor, abool   [false]]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("btype")},
+        {"    btype[['a',  nat[13] ,actor,   abool [false]]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("btype")},
+        {"ctype[['a',    13 , <actor>,  false]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("ctype")},
+        {"   ctype    [['a',    13 ,<actor>,   false]]",
+          {Obj::to_str("a"), Obj::to_int(13), Obj::to_uri("actor"), Obj::to_bool(false)},
+          LST_FURI->resolve("ctype")}});
     for (const auto &trip: lsts) {
       FOS_TEST_MESSAGE("!yTesting!! !blst!! form %s", std::get<0>(trip).c_str());
       const Lst_p l = Parser::singleton()->tryParseObj(std::get<0>(trip)).value();
@@ -213,13 +212,13 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/ctype"), Obj::to_bcode());
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
     List<string> recs = {"['a'=>13,actor=>false]",
-                         "['a' => 13,actor => false ]",
-                         "['a'=> 13 , actor=>false]",
-                         "['a' =>    13 , actor =>    false  ]",
-                         "['a'=>    13 ,actor=>   false]",
-                         "atype[['a'=>13 ,actor=>   false]]",
-                         "btype[['a'=>  nat[13] , actor=>   abool[false]]  ]",
-                         "ctype[  ['a'=>    13 ,  actor=>   false]]"};
+      "['a' => 13,actor => false ]",
+      "['a'=> 13 , actor=>false]",
+      "['a' =>    13 , actor =>    false  ]",
+      "['a'=>    13 ,actor=>   false]",
+      "atype[['a'=>13 ,actor=>   false]]",
+      "btype[['a'=>  nat[13] , actor=>   abool[false]]  ]",
+      "ctype[  ['a'=>    13 ,  actor=>   false]]"};
     for (const string &form: recs) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! form %s", form.c_str());
       const Rec_p rc1 = Parser::singleton()->tryParseObj(form).value();
@@ -231,7 +230,7 @@ namespace fhatos {
     }
 
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"),
-                                 parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
+                                  parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
     recs = {"person[[:age=>nat[29],:name=>'dogturd']]"};
     for (const string &form: recs) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
@@ -302,9 +301,9 @@ namespace fhatos {
       Types::singleton()->save_type(id_p(pair.first), pair.second);
     }
     const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
-                                                          ->tryParseObj("thread[[setup => |print('.setup complete.'),"
-                                                                        "        loop  => |stop(/abc/)]].to(/abc/)")
-                                                          .value());
+      ->tryParseObj("thread[[setup => |print('.setup complete.'),"
+        "        loop  => |stop(/abc/)]].to(/abc/)")
+      .value());
     Fluent(bcode).iterate();
     Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->pattern()->toString() + "_wait").c_str(),
                                     [] { return Scheduler::singleton()->count("/abc/") == 0; });
@@ -312,10 +311,10 @@ namespace fhatos {
 
   void test_group_parsing() {
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {1, 3}},
-                                                 {true,  {2, 4}}})}),
+                          {true, {2, 4}}})}),
                         "{0,1,2,3}.plus(1).group(mod(2).eq(0))");
     FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
-                                                 {true,  {3, 5}}})}),
+                          {true, {3, 5}}})}),
                         "{0,1,2,3}.plus(1).group(mod(2).eq(0),plus(1))");
     ////////////////////
     /*FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
@@ -329,8 +328,8 @@ namespace fhatos {
 
   void test_window_parsing() {
     FOS_CHECK_RESULTS<>(List<Obj>{{1, 2},
-                                  {2, 3},
-                                  {3, 4}}, "[1,2,3,4].window([_,_])");
+                          {2, 3},
+                          {3, 4}}, "[1,2,3,4].window([_,_])");
     FOS_CHECK_RESULTS<>(List<Obj>{"12", "23", "34"}, "'1234'.window([_,_])");
   }
 
@@ -356,25 +355,25 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-  //Options::singleton()->log_level(TRACE); //
-          FOS_RUN_TEST(test_no_input_parsing); //
-          FOS_RUN_TEST(test_start_inst_parsing); //
-          FOS_RUN_TEST(test_noobj_parsing); //
-          FOS_RUN_TEST(test_bool_parsing); //
-          FOS_RUN_TEST(test_int_parsing); //
-          FOS_RUN_TEST(test_real_parsing); //
-          FOS_RUN_TEST(test_uri_parsing); //
-          FOS_RUN_TEST(test_str_parsing); //
-          FOS_RUN_TEST(test_lst_parsing); //
-          FOS_RUN_TEST(test_rec_parsing); //
-          ////////////// PARTICULAR MONOID IDIOMS
-          FOS_RUN_TEST(test_define_as_parsing); //
-          FOS_RUN_TEST(test_to_from); //
-          //FOS_RUN_TEST(test_process_thread_parsing); //
-          FOS_RUN_TEST(test_group_parsing); //
-          FOS_RUN_TEST(test_window_parsing); //
-          FOS_RUN_TEST(test_split_within_merge_parsing); //
-          FOS_RUN_TEST(test_one_to_many);
+    //Options::singleton()->log_level(TRACE); //
+    FOS_RUN_TEST(test_no_input_parsing); //
+    FOS_RUN_TEST(test_start_inst_parsing); //
+    FOS_RUN_TEST(test_noobj_parsing); //
+    FOS_RUN_TEST(test_bool_parsing); //
+    FOS_RUN_TEST(test_int_parsing); //
+    FOS_RUN_TEST(test_real_parsing); //
+    FOS_RUN_TEST(test_uri_parsing); //
+    FOS_RUN_TEST(test_str_parsing); //
+    FOS_RUN_TEST(test_lst_parsing); //
+    FOS_RUN_TEST(test_rec_parsing); //
+    ////////////// PARTICULAR MONOID IDIOMS
+    FOS_RUN_TEST(test_define_as_parsing); //
+    FOS_RUN_TEST(test_to_from); //
+    //FOS_RUN_TEST(test_process_thread_parsing); //
+    FOS_RUN_TEST(test_group_parsing); //
+    FOS_RUN_TEST(test_window_parsing); //
+    FOS_RUN_TEST(test_split_within_merge_parsing); //
+    FOS_RUN_TEST(test_one_to_many);
   )
 }; // namespace fhatos
 
