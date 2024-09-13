@@ -23,6 +23,7 @@
 
 #include <structure/stype/mqtt/base_mqtt.hpp>
 #include <mqtt/async_client.h>
+#include <unistd.h>
 
 namespace fhatos {
   using namespace mqtt;
