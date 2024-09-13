@@ -139,7 +139,7 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
             LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->server_addr_.c_str(), FOS_MQTT_BROKER_PORT);
-            sleep(FOS_MQTT_RETRY_WAIT / 1000);
+            usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->connected()) {
             connection_logging(id_p("fhatos"));

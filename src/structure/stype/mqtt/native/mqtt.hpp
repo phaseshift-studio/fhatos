@@ -132,7 +132,7 @@ namespace fhatos {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
             LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr_.c_str());
-            sleep(FOS_MQTT_RETRY_WAIT / 1000);
+            usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->is_connected())
             break;
