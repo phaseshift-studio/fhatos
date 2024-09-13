@@ -66,7 +66,7 @@ jobs:
         export PATH=$PATH:$HOME/.local/bin
         mkdir build
         cd build
-        cmake ..
+        cmake .. -DCHECK_INTERNET=OFF
         make -o1 -j8
 
     - name: Deploy MQTT Broker
