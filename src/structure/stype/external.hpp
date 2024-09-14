@@ -28,11 +28,11 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class External : public KeyValue {
   protected:
-    Map<Pattern, Function<fURI_p, Obj_p>, furi_p_less> data_map_;
+    Map<Pattern_p, Function<fURI_p, Obj_p>, furi_p_less> data_map_;
 
     explicit External(
       const Pattern &pattern = "+",
-      const Map<Pattern, Function<fURI_p, Obj_p>, furi_p_less> &data_map = {}) : KeyValue(pattern, SType::HARDWARE),
+      const Map<Pattern_p, Function<fURI_p, Obj_p>, furi_p_less> &data_map = {}) : KeyValue(pattern, SType::HARDWARE),
       data_map_(data_map) {
     }
 
