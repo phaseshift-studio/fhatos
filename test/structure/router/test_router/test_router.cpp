@@ -39,10 +39,8 @@ namespace fhatos {
              .source = ID("a"), .target = ID("b"), .payload = share<Str>(Str("test")), .retain = TRANSIENT_MESSAGE}));*/
   }
 
-  void test_bobj_wrap() {
+  void test_bobj() {
     Parser::singleton();
-    const List<ID_p> ids = {id_p("fos://127.0.0.1/here"), id_p("/stuff/stuff"),
-                            id_p("//fhat/os?a=b&c=d"), id_p("a"), id_p("fos:abc")};
     const List<Obj_p> objs = {Obj::to_int(1),
                               Obj::to_int(-453),
                               Obj::to_real(12.035f),
@@ -53,19 +51,16 @@ namespace fhatos {
                                            {u("b"), 3}}),
                               Obj::to_noobj()};
     for (const auto &o: objs) {
-      for (const auto &i: ids) {
-        const BObj_p bobj = Message::wrap_source(i, o);
-        const auto [id, obj] = Message::unwrap_source(bobj);
+        const BObj_p bobj = o->serialize();
+        const Obj_p obj = Obj::deserialize<Obj>(bobj);
         LOG(INFO, "%s\n", obj->toString().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(*i, *id);
         FOS_TEST_OBJ_EQUAL(o, obj);
-      }
     }
   }
 
   FOS_RUN_TESTS( //
           FOS_RUN_TEST(test_publish); //
-          FOS_RUN_TEST(test_bobj_wrap); //
+          FOS_RUN_TEST(test_bobj); //
   );
 
 } // namespace fhatos

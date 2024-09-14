@@ -85,7 +85,9 @@ void setup() {
         ////////////////////////////////////////////////////////////
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/#"))
+#ifdef NATIVE
         ->boot<System>(System::singleton())
+#endif
         ////////////////////////////////////////////////////////////
 #ifndef NATIVE
         ->boot<Wifi>(Wifi::singleton("/net/wifi"))
@@ -97,10 +99,14 @@ void setup() {
 #ifndef NATIVE
          ->boot<SoC>(SoC::singleton("/soc/"))
 #endif
+#ifdef NATIVE
         ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
+#endif
         ->boot<DistributedMemory>(DistributedMemory::create("/cluster/","//+/#"))
         ->boot<Console>(Console::create("/home/root/repl/"))
+#ifdef NATIVE
         ->model({ID("/model/sys"), ID("/model/pubsub")})
+#endif
         ->initial_terminal_owner("/home/root/repl/")
         ->done("kernel_barrier");
   } catch (const std::exception &e) {

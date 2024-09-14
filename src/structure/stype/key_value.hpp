@@ -27,8 +27,8 @@
 namespace fhatos {
   class KeyValue : public Structure {
   protected:
-    ptr<Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>> DATA = share(
-      Map<ID_p, Pair<const Obj_p, const ID_p>, furi_p_less>());
+    ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(
+      Map<ID_p, const Obj_p, furi_p_less>());
     MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
 
     explicit KeyValue(const Pattern &pattern, const SType stype = SType::DATABASE) : Structure(pattern, stype) {
@@ -49,10 +49,8 @@ namespace fhatos {
       MUTEX_DATA.read<void *>([this, subscription]() {
         for (const auto &[id,obj]: *this->DATA) {
           if (id->matches(subscription->pattern)) {
-            if (!obj.first->is_noobj()) {
-              subscription->onRecv->apply(Message{
-                .source = *obj.second, .target = *id, .payload = obj.first, .retain = RETAIN_MESSAGE
-              }.to_rec());
+            if (!obj->is_noobj()) {
+              subscription->on_recv->apply(Message{.target = *id, .payload = obj, .retain = RETAIN_MESSAGE}.to_rec());
             }
           }
         }
@@ -60,9 +58,9 @@ namespace fhatos {
       });
     }
 
-    void write(const ID_p &target, const Obj_p &payload, const ID_p &source, const bool retain) override {
+    void write(const ID_p &target, const Obj_p &payload, const bool retain) override {
       if (retain) {
-        const Bool_p embed = MUTEX_DATA.write<Bool>([this, target, &payload, source]() {
+        const Bool_p embed = MUTEX_DATA.write<Bool>([this, target, &payload]() {
           // BRANCH
           if (target->is_branch()) {
             return dool(true);
@@ -71,29 +69,27 @@ namespace fhatos {
             if (DATA->count(target))
               DATA->erase(target);
             if (!payload->is_noobj()) {
-              DATA->insert({target, std::make_pair(payload->clone(), source)}); // why such a deep copy needed?
-              LOG_STRUCTURE(TRACE, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
+              DATA->insert({target, payload->clone()}); // why such a deep copy needed?
+              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
                             payload->toString().c_str());
+            } else {
+              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>%s removed\n", target->toString().c_str(),
+                           payload->toString().c_str());
             }
           }
           return dool(false);
         });
         if (embed->bool_value())
-          Algorithm::embed(payload, target, source);
+          Algorithm::embed(payload, target);
       }
-      const Message_p message = share(Message{
-        .source = *source,
-        .target = *target,
-        .payload = payload,
-        .retain = retain
-      });
+      const Message_p message = message_p(*target, payload->clone(), retain);
       distribute_to_subscribers(message);
     }
 
-    Obj_p read(const fURI_p &furi, [[maybe_unused]] const ID_p &source) override {
+    Obj_p read(const fURI_p &furi) override {
       FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      return MUTEX_DATA.read<Objs_p>([this, source, furi]() {
+      return MUTEX_DATA.read<Objs_p>([this, furi]() {
         // FURI BRANCH
         if (furi->is_branch()) {
           // x/+/
@@ -110,7 +106,7 @@ namespace fhatos {
           const Pattern match = furi->extend("+/");
           for (const auto &[f, o]: *this->DATA) {
             if (f->matches(match))
-              rec->rec_set(uri(f), o.first);
+              rec->rec_set(uri(f), o);
           }
           return rec->rec_value()->empty() ? noobj() : rec;
         }
@@ -120,12 +116,12 @@ namespace fhatos {
           Objs_p objs = Obj::to_objs();
           for (const auto &[f, o]: *this->DATA) {
             if (f->matches(*furi)) {
-              objs->add_obj(o.first);
+              objs->add_obj(o);
             }
           }
           return objs;
         }
-        return DATA->count(id_p(*furi)) ? DATA->at(id_p(*furi)).first : noobj(); //x/y
+        return DATA->count(id_p(*furi)) ? DATA->at(id_p(*furi)) : noobj(); //x/y
       });
     }
   };

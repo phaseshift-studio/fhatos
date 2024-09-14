@@ -58,7 +58,7 @@ namespace fhatos {
       }
       // scheduler subscription listening for noobj "kill process" messages
       router()->route_subscription(share(Subscription{
-        .source = fURI(*this->id()), .pattern = ID(*process->id()), .onRecv = bcode({Insts::lambda(
+        .source = fURI(*this->id()), .pattern = ID(*process->id()), .on_recv = bcode({Insts::lambda(
           [](const Obj_p &message) {
             LOG(DEBUG, "Stopping process %s\n", message->rec_get("target")->uri_value().toString().c_str());
             if (message->rec_get("payload")->is_noobj() &&

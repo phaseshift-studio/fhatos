@@ -128,33 +128,32 @@ namespace fhatos {
       });
     }
 
-    [[nodiscard]] Objs_p read(const fURI_p &furi, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) const {
-      const Structure_p &struc = this->get_structure(p_p(*furi), source);
-      LOG_STRUCTURE(DEBUG, this, "!y!_reading!! !b%s!! from " FURI_WRAP " for %s\n", furi->toString().c_str(),
-                    struc->pattern()->toString().c_str(), source->toString().c_str());
-      return struc->read(furi, source);
+    [[nodiscard]] Objs_p read(const fURI_p &furi) const {
+      const Structure_p &struc = this->get_structure(p_p(*furi));
+      LOG_STRUCTURE(DEBUG, this, "!y!_reading!! !b%s!! from " FURI_WRAP "\n", furi->toString().c_str(),
+                    struc->pattern()->toString().c_str());
+      return struc->read(furi);
     }
 
     void write(
       const ID_p &id, const Obj_p &obj,
-      const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID),
       const bool retain = RETAIN_MESSAGE) const {
-      const Structure_p &struc = this->get_structure(p_p(*id), source);
-      LOG_STRUCTURE(DEBUG, this, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP " for %s\n",
+      const Structure_p &struc = this->get_structure(p_p(*id));
+      LOG_STRUCTURE(DEBUG, this, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n",
                     retain ? "retained" : "transient", obj->toString().c_str(),
-                    id->toString().c_str(), struc->pattern()->toString().c_str(), source->toString().c_str());
-      struc->write(id, obj, source, retain);
+                    id->toString().c_str(), struc->pattern()->toString().c_str());
+      struc->write(id, obj, retain);
     }
 
-    void remove(const ID_p &id, const ID_p &source = id_p(FOS_DEFAULT_SOURCE_ID)) const {
-      const Structure_p &struc = this->get_structure(p_p(*id), source);
-      LOG_STRUCTURE(DEBUG, this, "!y!_removing!! !b%s!! from " FURI_WRAP " for %s\n", id->toString().c_str(),
-                    struc->pattern()->toString().c_str(), source->toString().c_str());
-      struc->remove(id, source);
+    void remove(const ID_p &id) const {
+      const Structure_p &struc = this->get_structure(p_p(*id));
+      LOG_STRUCTURE(DEBUG, this, "!y!_removing!! !b%s!! from " FURI_WRAP "\n", id->toString().c_str(),
+                    struc->pattern()->toString().c_str());
+      struc->remove(id);
     }
 
     void route_message(const Message_p &message) const {
-      const Structure_p &struc = this->get_structure(p_p(message->target), id_p(message->source));
+      const Structure_p &struc = this->get_structure(p_p(message->target));
       LOG_STRUCTURE(DEBUG, this, "!y!_routing message!! %s\n", message->toString().c_str());
       struc->recv_publication(message);
     }
@@ -170,13 +169,13 @@ namespace fhatos {
     }
 
     void route_subscription(const Subscription_p &subscription) const {
-      const Structure_p &struc = this->get_structure(p_p(subscription->pattern), id_p(subscription->source));
+      const Structure_p &struc = this->get_structure(p_p(subscription->pattern));
       LOG_STRUCTURE(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
       struc->recv_subscription(subscription);
     }
 
   private:
-    [[nodiscard]] Structure_p &get_structure(const Pattern_p &pattern, const ID_p &source) const {
+    [[nodiscard]] Structure_p &get_structure(const Pattern_p &pattern) const {
       Structure_p *ret = nullptr;
       for (auto &pair: *this->structures_) {
         if (pattern->matches(*pair.second->pattern())) {
@@ -186,8 +185,8 @@ namespace fhatos {
         }
       }
       if (nullptr == ret)
-        throw fError(FURI_WRAP " has no structure to contain !b%s!! for !b%s!!", this->pattern()->toString().c_str(),
-                     pattern->toString().c_str(), source->toString().c_str());
+        throw fError(FURI_WRAP " has no structure to contain !b%s!!", this->pattern()->toString().c_str(),
+                     pattern->toString().c_str());
       return *ret;
     }
   };

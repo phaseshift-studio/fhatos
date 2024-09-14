@@ -84,7 +84,7 @@ namespace fhatos {
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
     virtual void setup() {
-      MESSAGE_INTERCEPT = [this](const ID &, const ID &target, const Obj_p &payload, const bool retain) {
+      MESSAGE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->is_rec())
           return;
         if (is_thread(payload)) {
@@ -181,7 +181,7 @@ namespace fhatos {
       const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;
-      mail->get()->first->onRecv->apply(mail->get()->second->to_rec());
+      mail->get()->first->on_recv->apply(mail->get()->second->to_rec());
       return true;
     }
   };

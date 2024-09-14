@@ -45,17 +45,17 @@ void write_memory_stats(MEM_TYPE mem_type) {
 case INST: this->write(id_p(this->id_->extend("inst")),parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
   ESP.getSketchSize() + ESP.getFreeSketchSpace(),
   ESP.getFreeSketchSpace(),
-  ESP.getSketchSize() == 0 ? 0.0f : (100.0f *(1.0f-(((float)ESP.getFreeSketchSpace()) / ((float)(ESP.getSketchSize() + ESP.getFreeSketchSpace())))))),this->id_,RETAIN_MESSAGE);
+  ESP.getSketchSize() == 0 ? 0.0f : (100.0f *(1.0f-(((float)ESP.getFreeSketchSpace()) / ((float)(ESP.getSketchSize() + ESP.getFreeSketchSpace())))))),RETAIN_MESSAGE);
   break;
 case HEAP: this->write(id_p(this->id_->extend("heap")),parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
   ESP.getHeapSize(),
   ESP.getFreeHeap(),
-  ESP.getHeapSize() == 0 ? 0.0f : (100.0f *(1.0f-(((float)ESP.getFreeHeap()) / ((float)ESP.getHeapSize()))))),this->id_,RETAIN_MESSAGE);
+  ESP.getHeapSize() == 0 ? 0.0f : (100.0f *(1.0f-(((float)ESP.getFreeHeap()) / ((float)ESP.getHeapSize()))))),RETAIN_MESSAGE);
   break;
 case PSRAM : this->write(id_p(this->id_->extend("psram")),parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
   ESP.getPsramSize(),
   ESP.getFreePsram(),
-  ESP.getPsramSize() == 0 ? 0.0f : (100.0f *(1.0f-(((float)ESP.getFreePsram()) / ((float)ESP.getPsramSize()))))),this->id_,RETAIN_MESSAGE);
+  ESP.getPsramSize() == 0 ? 0.0f : (100.0f *(1.0f-(((float)ESP.getFreePsram()) / ((float)ESP.getPsramSize()))))),RETAIN_MESSAGE);
   break;
 }
 }
@@ -73,26 +73,16 @@ static ptr<SoC> singleton(const ID id = "/soc/") {
 void setup() override {
     Actor::setup();
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"),parse("is(gte(0.0)).is(lte(100.0))"));
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>" FOS_TYPE_PREFIX "real/%%[_]]"));
+   //Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>" FOS_TYPE_PREFIX "real/%%[_]]"));
     this->write_memory_stats(INST);
     this->write_memory_stats(HEAP);
-    this->write_memory_stats(PSRAM);
+   this->write_memory_stats(PSRAM);
 }   
 
- Obj_p read(const fURI_p &furi, const ID_p &source) override {
+ Obj_p read(const fURI_p &furi) override {
       this->write_memory_stats(furi->matches(this->id_->extend("inst/#")) ? INST : furi->matches(this->id_->extend("heap/#")) ? HEAP : PSRAM);
-      return Actor::read(furi,source);
+      return Actor::read(furi);
     }
-
-    virtual void write(
-      [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj,
-      [[maybe_unused]] const ID_p &source, [[maybe_unused]] const bool retain) override {
-        if(!source->equals(*this->id_)) {
-            throw fError("only mem can update it's structure");
-        } else {
-            Actor::write(id,obj,source,retain);
-        }
-    }; 
   };
 }
 #endif

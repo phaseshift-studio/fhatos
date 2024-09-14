@@ -49,12 +49,11 @@ namespace fhatos {
           return false;
         }
         // scheduler subscription listening for noobj "kill process" messages
-        router()->route_subscription(share(Subscription{
-            .source = *this->id(), .pattern = *process->id(), .onRecv = Insts::to_bcode([process](const Message_p &message) {
+        router()->route_subscription(subscription_p(*this->id(),*process->id(), QoS::_1, Insts::to_bcode([process](const Message_p &message) {
               if (message->payload->is_noobj()) {
                 process->stop();
               }
-            })}));
+            })));
         ////////////////////////////////
         bool success = false;
         switch (process->ptype) {
@@ -62,7 +61,7 @@ namespace fhatos {
             const BaseType_t threadResult =
                 xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                         process->id()->toString().c_str(), // Name of the task (for debugging)
-                                        10000, // Stack size (bytes)
+                                        15000, // Stack size (bytes)
                                         process.get(), // Parameter to pass
                                         CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
                                         &static_cast<Thread *>(process.get())->handle, // Task handle

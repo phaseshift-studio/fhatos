@@ -28,7 +28,7 @@
 #include <util/mutex_rw.hpp>
 
 #define FOS_TRY_META \
-const Option<Obj_p> meta = this->try_meta(furi,source); \
+const Option<Obj_p> meta = this->try_meta(furi); \
 if (meta.has_value()) return meta.value();
 
 
@@ -79,14 +79,14 @@ namespace fhatos {
     virtual void loop() {
       if (!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
-      Option<Mail_p> mail = this->outbox_->pop_back();
+      Option<Mail_p> mail = this->outbox_->pop_front();
       while (mail.has_value()) {
         LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         if (!(message->retain && message->payload->is_noobj()))
-          mail.value()->first->onRecv->apply(message->to_rec());
-        mail = this->outbox_->pop_back();
+          mail.value()->first->on_recv->apply(message->to_rec());
+        mail = this->outbox_->pop_front();
       }
     }
 
@@ -140,27 +140,21 @@ namespace fhatos {
         throw fError("Structure " FURI_WRAP " is not available", this->pattern()->toString().c_str());
       ///////////////
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
-      this->write(id_p(message->target), message->payload, id_p(message->source), message->retain);
-      MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
+      this->write(id_p(message->target), message->payload, message->retain);
+      MESSAGE_INTERCEPT(message->target, message->payload, message->retain);
       LOG_PUBLISH(OK, *message);
     }
 
 
-    virtual void remove(const ID_p &id, const ID_p &source) {
-      this->write(id, noobj(), source, RETAIN_MESSAGE);
+    virtual void remove(const ID_p &id) {
+      this->write(id, noobj(), RETAIN_MESSAGE);
     }
 
     virtual void publish_retained(const Subscription_p &subscription) = 0;
 
-    virtual Obj_p read(const fURI_p &furi, const ID_p &source) = 0;
+    virtual Obj_p read(const fURI_p &furi) = 0;
 
-    virtual Obj_p read(const fURI_p &furi) { return this->read(furi, id_p(FOS_DEFAULT_SOURCE_ID)); }
-
-    virtual void write(const ID_p &id, const Obj_p &obj, const ID_p &source, bool retain) = 0;
-
-    virtual void write(const ID_p &id, const Obj_p &obj, const bool retain) {
-      this->write(id, obj, id_p(FOS_DEFAULT_SOURCE_ID), retain);
-    }
+    virtual void write(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
   protected:
     ID_p resolve_id(const ID_p &key_id) const {
@@ -172,7 +166,7 @@ namespace fhatos {
         throw fError("Structure " FURI_WRAP " not available for %s", function.c_str());
     }
 
-    Option<Obj_p> try_meta(const fURI_p &furi, const ID_p &) const {
+    Option<Obj_p> try_meta(const fURI_p &furi) const {
       if (furi->has_query()) {
         if (strcmp(furi->query(), "sub") == 0)
           return {objs(this->get_subscription_objs(p_p(furi->query(nullptr))))};
@@ -237,7 +231,7 @@ namespace fhatos {
                                               {uri(":source"), uri(sub->source)},
                                               {uri(":pattern"), uri(sub->pattern)},
                                               {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
-                                              {uri(":on_recv"), sub->onRecv}
+                                              {uri(":on_recv"), sub->on_recv}
                                             }, id_p(REC_FURI->extend("sub")));
           list.push_back(sub_rec);
         }

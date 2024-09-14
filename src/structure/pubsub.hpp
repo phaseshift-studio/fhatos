@@ -32,28 +32,27 @@ namespace fhatos {
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
       (subscription)->pattern.toString().c_str(),                                                                      \
-      (subscription)->onRecv->toString().c_str())
+      (subscription)->on_recv->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(), ((source).toString().c_str()),    \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
-  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=!!%s!b=>!m[!b%s!m]!!\n",               \
+  LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=>!m[!b%s!m]!!\n",                      \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
-      ((message).source.toString().c_str()), (FOS_BOOL_STR((message).retain)),                                         \
-      ((message).payload->toString().c_str()), ((message).target.toString().c_str()))
+      ((message).payload->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                       \
+      ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
   LOG(((rc) == OK ? DEBUG : ERROR),                                                                                    \
       (((subscription).pattern.equals((message).target))                                                               \
-           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!m=[!b%s!m]!!\n"                              \
-           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!m=[!b%s!m]!!\n"),                            \
+           ? "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern|target:!b%s!m]=!!%s!!\n"                                         \
+           : "!m[!!%s!m][!b%s!m]<=!greceive!m[pattern:%s][target:%s]=!!%s!!\n"),                                       \
       (string((rc) == OK ? "!g" : "!r") + RESPONSE_CODE_STR(rc) + "!!").c_str(),                                       \
       ((subscription).source.toString().c_str()), ((subscription).pattern.toString().c_str()),                         \
       ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
                                                         : ((message).target.toString().c_str()),                       \
-      ((subscription).pattern.equals((message).target)) ? ((message).source.toString().c_str())                        \
-                                                        : ((message).payload->toString)().c_str(),                     \
-      ((message).source.toString().c_str()))
+      ((subscription).pattern.equals((message).target)) ? ((message).payload->toString().c_str())                      \
+                                                        : ((message).payload->toString)().c_str())
 
   //////////////////////////////////////////////
   /////////////// ERROR MESSAGES ///////////////
@@ -83,56 +82,34 @@ namespace fhatos {
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
   //////////////////////////////////////////////
-  struct Message {
-    using Message_p = ptr<Message>;
+  struct Message;
+  using Message_p = ptr<Message>;
 
+  struct Message {
   public:
-    const ID source;
     const ID target;
     const Obj_p payload;
     const bool retain;
 
     [[nodiscard]] string toString() const {
       char temp[250];
-      snprintf(temp, 250, "!g[!b%s!g]!!=!y%s!![retain:%s]=>!g[!b%s!g]!!", this->source.toString().c_str(),
+      snprintf(temp, 250, "!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!",
                this->payload->toString().c_str(), FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
 
     [[nodiscard]] Rec_p to_rec() const {
       return rec({
-        {uri("source"), uri(source)},
         {uri("target"), uri(target)},
         {uri("payload"), payload},
         {uri("retain"), dool(retain)}
       });
     }
-
-    /////////////// HELPER METHODS TO HANDLE ROUTERS THAT DON'T PROPAGATE SOURCE (e.g. MQTT) ///////////////
-    static BObj_p wrap_source(const ID_p &source, const Obj_p &obj) {
-      string wrap = source->toString();
-      wrap += '%';
-      wrap += obj->is_uri() ? ("<" + obj->toString(true, false) + ">") : obj->toString(true, false); // TODO: figure out general URI serialization using toString() as <3> doesn't work
-      LOG(TRACE, "bobj source wrap: %s (length:%i)\n", wrap.c_str(), wrap.length());
-      return ptr<BObj>(new BObj({wrap.length(), reinterpret_cast<fbyte *>(strdup(wrap.c_str()))}), bobj_deleter);
-    }
-
-    static Pair<ID_p, Obj_p> unwrap_source(const BObj_p &bobj) {
-      try {
-        const auto unwrap = string(reinterpret_cast<char *>(bobj->second), bobj->first);
-        const size_t index = unwrap.find_first_of('%');
-        LOG(TRACE, "bobj source unwrap: %s and %s (length:%i and %i)\n", unwrap.substr(0, index).c_str(),
-            unwrap.substr(index + 1).c_str(), unwrap.substr(0, index).length(), unwrap.substr(index + 1).length());
-        if (index == string::npos)
-          throw fError("bobj is not wrapped with source: %s\n", bobj->second);
-        return Pair<ID_p, Obj_p>(
-          {id_p(unwrap.substr(0, index).c_str()), Options::singleton()->parser<Obj>(unwrap.substr(index + 1))});
-      } catch (const std::exception &e) {
-        LOG_EXCEPTION(e);
-        throw;
-      }
-    }
   };
+
+  inline Message_p message_p(const ID &target, const Obj_p &payload, const bool retain) {
+    return share(Message{.target = target, .payload = payload, .retain = retain});
+  }
 
   ///////////////////////////////////////////////////
   /////////////// SUBSCRIPTION STRUCT ///////////////
@@ -155,27 +132,31 @@ namespace fhatos {
   };
 
   struct Subscription {
-    fURI source;
+    ID source;
     Pattern pattern;
     QoS qos = QoS::_1;
-    BCode_p onRecv = bcode();
+    BCode_p on_recv = bcode();
 
     [[nodiscard]] Rec_p to_rec() const {
       return rec({
         {uri("source"), uri(source)},
         {uri("pattern"), uri(pattern)},
         {uri("qos"), jnt(static_cast<int>(qos))},
-        {uri("onRecv"), onRecv}
+        {uri("on_recv"), on_recv}
       });
     }
 
     [[nodiscard]] string toString() const {
       char temp[250];
       snprintf(temp, 250, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
-               static_cast<uint8_t>(qos), pattern.toString().c_str(), onRecv->toString().c_str());
+               static_cast<uint8_t>(qos), pattern.toString().c_str(), on_recv->toString().c_str());
       return {temp};
     }
   };
+
+  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const QoS qos, const BCode_p &on_recv) {
+    return share(Subscription{.source = source, .pattern = pattern, .qos = qos, .on_recv = on_recv});
+  }
 } // namespace fhatos
 
 #endif

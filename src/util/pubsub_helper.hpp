@@ -15,25 +15,29 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+#pragma once
+#ifndef pubsub_helper_hpp
+#define pubsub_helper_hpp
 
-#ifndef fhatos_test_mqtt_cpp
-#define fhatos_test_mqtt_cpp
-
-#include "../../../test_base_structure.hpp"
-#include FOS_MQTT(mqtt.hpp)
+#include <fhatos.hpp>
+#include <furi.hpp>
+#include <structure/structure.hpp>
 
 namespace fhatos {
-  FOS_RUN_TESTS( //
-    begin_test_structure(Mqtt::create("//test/#")); //
-    FOS_RUN_TEST(test_subscribe); //
-    //FOS_RUN_TEST(test_data_types); //
-    FOS_RUN_TEST(test_write); //
-    FOS_RUN_TEST(test_read); //
-    FOS_RUN_TEST(test_patterned_reads); //
-    FOS_RUN_TEST(test_ided_reads); //
-    FOS_RUN_TEST(test_embedding); //
-    end_test_structure()
-  );
+  class PubSubHelper final {
+  public:
+    PubSubHelper() = delete;
+
+    static Function<const ID_p, Obj_p> read_selector(const Map<Pattern, Function<ID_p, Obj_p>> &map) {
+      return [map](const ID_p &target) {
+        for (const auto &[pattern,con]: map) {
+          if (target->matches(pattern))
+            return con(target);
+        }
+        return noobj();
+      };
+    }
+  };
 } // namespace fhatos
-SETUP_AND_LOOP();
+
 #endif

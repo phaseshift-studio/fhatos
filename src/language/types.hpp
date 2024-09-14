@@ -117,8 +117,7 @@ namespace fhatos {
       };
       this->load_insts();
       this->subscribe(*this->pattern(), [](const Message_p &message) {
-        if (message->retain && (message->source != *Types::singleton()->id()) &&
-            message->target != ID("anon_tgt"))
+        if (message->retain &&  message->target != ID("anon_tgt"))
           Types::singleton()->save_type(id_p(message->target), message->payload, true);
         // else { // transient provides type checking?
         // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
@@ -133,12 +132,12 @@ namespace fhatos {
     void save_type(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub = false) {
       try {
         if (!viaPub) {
-          const Obj_p current = this->read(typeId, this->id());
+          const Obj_p current = this->read(typeId);
           if (current != typeDef) {
             if (!current->is_noobj())
               LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", typeId->toString().c_str(),
                         current->toString().c_str());
-            this->write(typeId, typeDef, this->id(),RETAIN_MESSAGE);
+            this->write(typeId, typeDef, RETAIN_MESSAGE);
           }
         }
         LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
@@ -150,8 +149,8 @@ namespace fhatos {
 
     inline const static auto MMADT_PREFIX = fURI(FOS_MMADT_URL_PREFIX);
 
-    void save_inst_type(const ID_p &inst_id, const Inst_p &inst, const ID_p &source) {
-      this->write(inst_id, inst, source,RETAIN_MESSAGE);
+    void save_inst_type(const ID_p &inst_id, const Inst_p &inst) {
+      this->write(inst_id, inst,RETAIN_MESSAGE);
       /*this->write(id_p(inst->id()->extend("_kind")), str(ITypeDescriptions.toChars(inst->itype())), source,
                   RETAIN_MESSAGE);
       this->write(id_p(inst->id()->extend("_doc")),
@@ -175,7 +174,7 @@ namespace fhatos {
         // base type (otype)
         return true;
       }
-      const Obj_p type = this->read(typeId, this->id());
+      const Obj_p type = this->read(typeId);
       if (!type->is_noobj()) {
         if (obj.match(type, false)) {
           return true;

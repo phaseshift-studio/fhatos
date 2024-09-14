@@ -40,7 +40,7 @@ namespace fhatos {
     virtual void subscribe(const Pattern &relative_pattern, const Consumer<const ptr<Message> &> &on_recv,
                            const QoS qos = QoS::_1) {
       router()->route_subscription(share(Subscription{
-        .source = fURI(*this->__id), .pattern = this->make_topic(relative_pattern), .qos = qos, .onRecv = Insts::to_bcode(on_recv)}));
+        .source = fURI(*this->__id), .pattern = this->make_topic(relative_pattern), .qos = qos, .on_recv = Insts::to_bcode(on_recv)}));
     }
 
     /// UNSUBSCRIBE
@@ -56,7 +56,7 @@ namespace fhatos {
     /// PUBLISH
     void publish(const ID &relative_target, const ptr<const Obj> &payload,
                  const bool retain = TRANSIENT_MESSAGE) const {
-      router()->route_message(share(Message{.source = *this->__id,
+      router()->route_message(share(Message{
         .target = this->make_topic(relative_target),
         .payload = PtrHelper::clone(*payload),
         .retain = retain}));

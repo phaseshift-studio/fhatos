@@ -63,7 +63,7 @@ namespace fhatos {
     auto *ping_HIT = new atomic_int(0);
     auto *ping_MISS = new atomic_int(0);
     const Subscription_p subscription_HIT = share(Subscription{
-      .source = "tester_HIT", .pattern = *make_test_pattern("+"), .onRecv = Insts::to_bcode(
+      .source = "tester_HIT", .pattern = *make_test_pattern("+"), .on_recv = Insts::to_bcode(
         [ping_HIT](const Message_p &message) {
           LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
           FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
@@ -73,11 +73,10 @@ namespace fhatos {
           TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
           // TEST_ASSERT_TRUE(message->retain);
           ping_HIT->store(ping_HIT->load() + 1);
-          FOS_TEST_ASSERT_EQUAL_FURI(ID((string("piggy") + to_string(payload_int)).c_str()), message->source);
         })
     });
     const Subscription_p subscription_MISS = share(Subscription{
-      .source = "tester_MISS", .pattern = *make_test_pattern("c"), .onRecv = Insts::to_bcode(
+      .source = "tester_MISS", .pattern = *make_test_pattern("c"), .on_recv = Insts::to_bcode(
         [ping_MISS](const Message_p &message) {
           ping_MISS->store(ping_MISS->load() + 1);
           LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
@@ -92,16 +91,15 @@ namespace fhatos {
     router()->route_subscription(subscription_MISS);
     if (auto_loop)
       current_structure->loop();
-    FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/b/c"), jnt(10), id_p("fhatty")));
+    FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/b/c"), jnt(10)));
     //FOS_TEST_EXCEPTION_CXX(router()->write(id_p(*make_test_pattern("b/c")), str("hello_fhatty"), id_p("aus")));
     //FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/a/b/c"), str("hello_fhatty"), id_p("aus")));
     // TODO: FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/a/"), str("hello_fhatty"), id_p("aus")));
     //FOS_TEST_EXCEPTION_CXX(router()->write(id_p(*make_test_pattern("a/a/b/c")), str("hello_fhatty"), id_p("aus")));
-    FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/"), str("hello_fhatty"), id_p("aus")));
+    FOS_TEST_EXCEPTION_CXX(router()->write(id_p("/"), str("hello_fhatty")));
     for (int i = 0; i < 10; i++) {
       TEST_ASSERT_EQUAL_INT(i, ping_HIT->load());
-      router()->write(id_p(*make_test_pattern("b")), rec({{"hello_fhatty", i}}),
-                      id_p((string("piggy") + to_string(i)).c_str()));
+      router()->write(id_p(*make_test_pattern("b")), rec({{"hello_fhatty", i}}));
       if (auto_loop)
         current_structure->loop();
       scheduler()->barrier("waiting_for_messages/test_write/1", [ping_HIT,i]() {
@@ -114,7 +112,7 @@ namespace fhatos {
     if (auto_loop)
       current_structure->loop();
     // should not cause an exception due to str != rec as no subscription exists
-    router()->write(id_p(*make_test_pattern("b")), str("hello_fhatty"), id_p("not_there"));
+    router()->write(id_p(*make_test_pattern("b")), str("hello_fhatty"));
     scheduler()->barrier("waiting_for_messages/test_write/2", [ping_HIT]() {
       if (auto_loop)
         current_structure->loop();
@@ -125,7 +123,7 @@ namespace fhatos {
     router()->route_unsubscribe(id_p("tester_MISS"), p_p(*make_test_pattern("c")));
     if (auto_loop)
       current_structure->loop();
-    router()->write(id_p(*make_test_pattern("c")), str("hello_fhatty"), id_p("not_there"));
+    router()->write(id_p(*make_test_pattern("c")), str("hello_fhatty"));
     if (auto_loop)
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(10, ping_HIT->load());
@@ -168,12 +166,40 @@ namespace fhatos {
       current_structure->loop();
   }
 
+  void test_data_types() {
+    current_structure->recv_subscription(subscription_p(
+      "test_data_types",
+      *make_test_pattern("abc"),
+      QoS::_1,
+      OBJ_PARSER(string("get(payload).print(_).switch(["
+        "type().is(eq(/type/bool/)) => is(eq(true)),"
+        "type().is(eq(/type/int/)) => is(eq(10)),"
+        "type().is(eq(/type/real/)) => is(eq(15.5)),"
+        "type().is(eq(/type/str/)) => is(eq('here')),"
+        "type().is(eq(/type/uri/)) => is(eq(<http://fhatos.org>))]).count().is(eq(0)).error('wrong parse')"))));
+    //"type().is(eq(/type/lst/)) => is(eq([1,2,3])),"
+    //"type().is(eq(/type/rec/)) => is(eq([1=>2,3=>4]))])
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), dool(true), false));
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), jnt(10), false));
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), real(15.5), false));
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), str("here"), false));
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), uri("http://fhatos.org"), false));
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), lst({jnt(1), jnt(2), jnt(3)}), false));
+    //current_structure->recv_publication(message_p(*make_test_pattern("abc"), rec({{jnt(1), jnt(2)}, {jnt(3), jnt(4)}}),
+    //                                             false));
+    if (auto_loop)
+      current_structure->loop();
+    current_structure->recv_unsubscribe(id_p("test_data_types"), id_p(*make_test_pattern("abc")));
+    if (auto_loop)
+      current_structure->loop();
+    current_structure->remove(id_p(*make_test_pattern("abc")));
+  }
+
   void test_subscribe() {
     //Options::singleton()->log_level(TRACE);
     auto *pings = new atomic_int(0);
     const BCode_p on_recv = Insts::to_bcode([pings](const Message_p &message) {
       FOS_TEST_ASSERT_EQUAL_FURI(Pattern(*make_test_pattern("test")), message->target);
-      FOS_TEST_ASSERT_EQUAL_FURI(ID("b/test/case"), message->source);
       TEST_ASSERT_FALSE(message->retain);
       if (message->payload->is_bool()) {
         TEST_ASSERT_TRUE(message->payload->bool_value());
@@ -185,15 +211,15 @@ namespace fhatos {
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(0, pings->load());
     FOS_TEST_EXCEPTION_CXX(router()->route_subscription(share(Subscription{
-      .source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .onRecv = on_recv
+      .source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .on_recv = on_recv
       })));
     router()->route_subscription(share(Subscription{
-      .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .onRecv = on_recv
+      .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .on_recv = on_recv
     }));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
     router()->route_message(share(Message{
-      .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
+      .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
       TRANSIENT_MESSAGE
     }));
     scheduler()->barrier("waiting_for_messages", [pings]() {
@@ -207,7 +233,7 @@ namespace fhatos {
     if (auto_loop)
       current_structure->loop();
     router()->route_message(share(Message{
-      .source = "b/test/case", .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
+      .target = ID(*make_test_pattern("test")), .payload = Obj::to_bool(true), .retain =
       TRANSIENT_MESSAGE
     }));
     if (auto_loop)
@@ -215,7 +241,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, pings->load()); // shouldn't change as subscribe has unsubscribed by now
     delete pings;
     ////// RESET FOR PERSISTENT STRUCTURES
-    router()->remove(id_p(*make_test_pattern("test")), id_p("b/test/case"));
+    router()->remove(id_p(*make_test_pattern("test")));
     if (auto_loop)
       current_structure->loop();
   }
@@ -249,10 +275,10 @@ namespace fhatos {
     }
     TEST_ASSERT_EQUAL_INT(4, counter);
     ////// RESET FOR PERSISTENT STRUCTURES
-    current_structure->remove(id_p(*make_test_pattern("a")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("b")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("c")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("d")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("a")));
+    current_structure->remove(id_p(*make_test_pattern("b")));
+    current_structure->remove(id_p(*make_test_pattern("c")));
+    current_structure->remove(id_p(*make_test_pattern("d")));
     if (auto_loop)
       current_structure->loop();
   }
@@ -280,10 +306,10 @@ namespace fhatos {
     }
     TEST_ASSERT_EQUAL_INT(4, counter);
     ////// RESET FOR PERSISTENT STRUCTURES
-    current_structure->remove(id_p(*make_test_pattern("a")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("b")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("c")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("d")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("a")));
+    current_structure->remove(id_p(*make_test_pattern("b")));
+    current_structure->remove(id_p(*make_test_pattern("c")));
+    current_structure->remove(id_p(*make_test_pattern("d")));
     if (auto_loop)
       current_structure->loop();
   }
@@ -334,13 +360,13 @@ namespace fhatos {
     const Objs_p objs2 = process(StringHelper::format("*%s", make_test_pattern("x/#")->toString().c_str()));
     TEST_ASSERT_EQUAL_INT(10, objs2->objs_value()->size());
     ////// RESET FOR PERSISTENT STRUCTURES
-    current_structure->remove(id_p(*make_test_pattern("x/0")), id_p(FOS_DEFAULT_SOURCE_ID));
-    current_structure->remove(id_p(*make_test_pattern("x/aaa")), id_p(FOS_DEFAULT_SOURCE_ID));
+    current_structure->remove(id_p(*make_test_pattern("x/0")));
+    current_structure->remove(id_p(*make_test_pattern("x/aaa")));
     for (int i = 1; i < 4; i++) {
       const Objs_p objs3 = current_structure->read(
-        p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/"))), id_p(FOS_DEFAULT_SOURCE_ID));
+        p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/"))));
       for (const Uri_p &u: *objs3->objs_value()) {
-        current_structure->remove(id_p(u->uri_value()), id_p(FOS_DEFAULT_SOURCE_ID));
+        current_structure->remove(id_p(u->uri_value()));
       }
       if (auto_loop)
         current_structure->loop();

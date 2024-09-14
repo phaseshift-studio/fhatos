@@ -70,8 +70,8 @@ namespace fhatos {
       return system;
     }
 
-    Obj_p read(const fURI_p &furi, const ID_p &source) override {
-      const Option<Obj_p> meta = this->try_meta(furi, source);
+    Obj_p read(const fURI_p &furi) override {
+      const Option<Obj_p> meta = this->try_meta(furi);
       if (meta.has_value()) return meta.value();
       // TODO: source
       if (furi->is_pattern()) {

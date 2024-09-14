@@ -49,7 +49,6 @@ namespace fhatos {
     });
     actor2->subscribe(ID("/app/actor2@127.0.0.1/X"), [actor2, counter2](const ptr<Message> &message) {
       TEST_ASSERT_FALSE(message->retain);
-      FOS_TEST_ASSERT_EQUAL_FURI(ID("/app/actor1@127.0.0.1"), message->source);
       FOS_TEST_ASSERT_EQUAL_FURI(ID(actor2->id()->extend("X")), message->target);
       actor2->publish(ID("/app/actor1@127.0.0.1/X"), jnt(counter2->load()), TRANSIENT_MESSAGE);
       if (counter2->fetch_add(1) > 198)
@@ -78,23 +77,21 @@ namespace fhatos {
                       [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
                           FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
                           TEST_ASSERT_EQUAL_INT(0, counter1->load());
                           TEST_ASSERT_EQUAL_INT(0, counter2->load());
                           counter1->fetch_add(1);
                           counter2->fetch_add(1);
-                          actor1->publish(message->source.extend("X"), str("pong"),
+                          actor1->publish(ID("/app/actor2@127.0.0.1").extend("X"), str("pong"),
                                           TRANSIENT_MESSAGE);
                           TEST_ASSERT_FALSE(message->retain);
                         } else
                           TEST_FAIL_MESSAGE("All message payloads should be strs");
                       });
     actor2->subscribe("/app/actor2@127.0.0.1/X",
-                      [actor1, actor2, counter1, counter2](const ptr<Message> &message) {
+                      [actor2, counter1, counter2](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("pong", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor1->id());
                           FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor2->id()->extend("X"));
                           TEST_ASSERT_EQUAL_INT(1, counter1->load());
                           TEST_ASSERT_EQUAL_INT(1, counter2->load());
@@ -135,7 +132,6 @@ namespace fhatos {
                       [actor1, actor2, counter1](const ptr<Message> &message) {
                         if (message->payload->is_str()) {
                           TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-                          FOS_TEST_ASSERT_EQUAL_FURI(message->source, ID(*actor2->id()));
                           FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
                           if (scheduler()->at_barrier("first_barrier"))
                             TEST_ASSERT_LESS_THAN_INT(2, counter1->load());
@@ -148,10 +144,9 @@ namespace fhatos {
     scheduler()->barrier("first_barrier", [counter1] { return counter1->load() > 0; });
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(0, counter2->load());
-    actor2->subscribe("/app/actor1@127.0.0.1/X", [actor1, actor2, counter2](const ptr<Message> &message) {
+    actor2->subscribe("/app/actor1@127.0.0.1/X", [actor1, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
         counter2->fetch_add(1);
       }
@@ -160,10 +155,9 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, counter1->load());
     TEST_ASSERT_EQUAL_INT(1, counter2->load());
     actor1->unsubscribe(p_p(actor1->id()->extend("X")));
-    actor1->subscribe("/app/actor1@127.0.0.1/X", [actor1, actor2, counter2](const ptr<Message> &message) {
+    actor1->subscribe("/app/actor1@127.0.0.1/X", [actor1, counter2](const ptr<Message> &message) {
       if (message->payload->is_str()) {
         TEST_ASSERT_EQUAL_STRING("ping", message->payload->str_value().c_str());
-        FOS_TEST_ASSERT_EQUAL_FURI(message->source, *actor2->id());
         FOS_TEST_ASSERT_EQUAL_FURI(message->target, actor1->id()->extend("X"));
         counter2->fetch_add(1);
       }

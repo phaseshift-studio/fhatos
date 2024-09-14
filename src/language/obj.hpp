@@ -236,8 +236,8 @@ namespace fhatos {
     LOG(DEBUG, "BCODE_PROCESSOR undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static QuadConsumer<const ID &, const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
-      [](const ID &, const ID &, const Obj_p &, const bool) {
+  static TriConsumer<const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
+      [](const ID &, const Obj_p &, const bool) {
     LOG(DEBUG, "MESSAGE_INTERCEPT undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -533,7 +533,7 @@ namespace fhatos {
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
-    string toString(const bool includeType = true, const bool ansi = true) const {
+    string toString(const bool includeType = true, const bool ansi = true, const bool strict = false) const {
       string objString;
       switch (this->o_type()) {
         case OType::BOOL:
@@ -546,7 +546,7 @@ namespace fhatos {
           objString = std::to_string(this->real_value());
           break;
         case OType::URI:
-          objString = "!_" + this->uri_value().toString() + "!!";
+          objString = "!_" + (strict ? "<" + this->uri_value().toString() + ">" : this->uri_value().toString()) + "!!";
           break;
         case OType::STR:
           objString = "!m'!!!~" + this->str_value() + "!m'!!";
@@ -1275,22 +1275,16 @@ namespace fhatos {
 
     ptr<BObj> serialize() const {
       LOG(TRACE, "Serializing %s\n", this->toString().c_str());
-      if (this->is_noobj()) {
-        auto *bytes = static_cast<fbyte *>(malloc(1));
-        bytes[0] = 'x';
-        return {new BObj{1, bytes}, bobj_deleter};
-      }
-      // auto *bytes = static_cast<fbyte *>(malloc(sizeof(*this)));
-      // memcpy(bytes, reinterpret_cast<const fbyte *>(this->toString().c_str()), this->toString().length());
+      const string serial = this->toString(true, false, true);
       return ptr<BObj>(
         new BObj{
-          this->toString().length(),
-          reinterpret_cast<fbyte *>(strdup(Ansi<>::strip(this->toString()).c_str()))
+          serial.length(),
+          reinterpret_cast<fbyte *>(strdup(serial.c_str()))
         },
         bobj_deleter);
     }
 
-    template<typename OBJ>
+    template<typename OBJ=Obj>
     static ptr<OBJ> deserialize(const ptr<BObj> &bobj) {
       LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
       if (bobj->first == 1 && bobj->second[0] == 'x')

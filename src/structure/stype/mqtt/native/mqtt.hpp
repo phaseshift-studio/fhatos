@@ -50,7 +50,7 @@ namespace fhatos {
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
       if (will_message.get()) {
-        const BObj_p source_payload = Message::wrap_source(id_p(will_message->source), will_message->payload);
+        const BObj_p source_payload = will_message->payload->serialize();
         pre_connection_options = pre_connection_options.will(
           message(this->will_message_->target.toString(), source_payload->second, this->will_message_->retain));
       }
@@ -58,12 +58,10 @@ namespace fhatos {
       //// MQTT MESSAGE CALLBACK
       this->xmqtt_->set_message_callback([this](const const_message_ptr &mqtt_message) {
         const binary_ref ref = mqtt_message->get_payload_ref();
-        const BObj_p bobj = share(BObj(ref.length(), (fbyte *) ref.data()));
-        const auto &[source, payload] = Message::unwrap_source(bobj);
+        const BObj_p bobj = share(BObj(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data()))));
         const Message_p message = share(Message{
-          .source = *source,
           .target = ID(mqtt_message->get_topic()),
-          .payload = payload,
+          .payload = Obj::deserialize<Obj>(bobj),
           .retain = mqtt_message->is_retained()
         });
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
@@ -71,7 +69,7 @@ namespace fhatos {
         for (const Subscription_p &sub: *matches) {
           this->outbox_->push_back(share(Mail{sub, message}));
         }
-        MESSAGE_INTERCEPT(message->source, message->target, message->payload, message->retain);
+        MESSAGE_INTERCEPT(message->target, message->payload, message->retain);
       });
       /// MQTT CONNECTION ESTABLISHED CALLBACK
       this->xmqtt_->set_connected_handler([this](const string &) {
@@ -96,7 +94,7 @@ namespace fhatos {
       if (message->payload->is_noobj()) {
         this->xmqtt_->publish(message->target.toString().c_str(), const_cast<char *>(""), 0, 2, true)->wait();
       } else {
-        const BObj_p source_payload = Message::wrap_source(id_p(message->source), message->payload);
+        const BObj_p source_payload = message->payload->serialize();
         this->xmqtt_->publish(
           string(message->target.toString().c_str()),
           source_payload->second,

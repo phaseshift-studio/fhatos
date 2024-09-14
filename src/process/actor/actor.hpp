@@ -59,14 +59,14 @@ namespace fhatos {
       this->should_be_active();
       // rename send_mail
       router()->route_message(
-        share(Message{.source = *this->id(), .target = target, .payload = payload, .retain = retain}));
+        share(Message{.target = target, .payload = payload, .retain = retain}));
     }
 
     void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {
       this->should_be_active();
       router()->route_subscription(
         share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1,
-          .onRecv = Insts::to_bcode(on_recv)}));
+          .on_recv = Insts::to_bcode(on_recv)}));
       /*.executeAtSource(this)));*/
     }
 

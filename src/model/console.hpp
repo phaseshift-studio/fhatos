@@ -141,22 +141,18 @@ namespace fhatos {
               Scheduler::singleton()->recv_mail(share(Mail{
                 share(Subscription{
                   .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),
-                  .onRecv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })
+                  .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })
                 }),
-                share(Message{
-                  .source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true
-                })
+                share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})
               }));
             },
             [this]() {
               Scheduler::singleton()->recv_mail(share(Mail{
                 share(Subscription{
                   .source = fURI(*this->id()), .pattern = *Scheduler::singleton()->id(),
-                  .onRecv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })
+                  .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })
                 }),
-                share(Message{
-                  .source = *this->id(), .target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true
-                })
+                share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})
               }));
             }
           }

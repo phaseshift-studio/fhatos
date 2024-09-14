@@ -21,16 +21,35 @@ FhatOS: A Distributed Operating System
 
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
+#include <util/pubsub_helper.hpp>
+#include <language/obj.hpp>
+#include <furi.hpp>
 
 namespace fhatos {
-
   class External : public KeyValue {
-
   protected:
-    explicit External(const Pattern &pattern = "+") : KeyValue(pattern,SType::HARDWARE) {}
+    Map<Pattern, Function<fURI_p, Obj_p>, furi_p_less> data_map_;
+
+    explicit External(
+      const Pattern &pattern = "+",
+      const Map<Pattern, Function<fURI_p, Obj_p>, furi_p_less> &data_map = {}) : KeyValue(pattern, SType::HARDWARE),
+      data_map_(data_map) {
+    }
+
+    // CALL THIS DYNAMIC
+    /*virtual Obj_p read(const fURI_p& target) override {
+         for (const auto &[pattern,con]: this->data_map_) {
+           if (target->matches(pattern))
+             return con(target);
+         }
+         return noobj();
+    }
+
+    virtual void remove(const ID_p& target) override {
+     if(this->data_map_.count(Pattern(*target)))
+        this->data_map_.erase(Pattern(*target));
+    }*/
   };
-
-
 } // namespace fhatos
 
 #endif

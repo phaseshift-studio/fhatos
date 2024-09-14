@@ -295,7 +295,7 @@ static void FOS_CHECK_RESULTS(
         Subscription{
           .source = ID(FOS_DEFAULT_SOURCE_ID),
           .pattern = key.uri_value(),
-          .onRecv = Insts::to_bcode([temp](const ptr<Message> &message) {
+          .on_recv = Insts::to_bcode([temp](const ptr<Message> &message) {
             TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                      (string("Router retain message payload equality: ") +
                                        router()->pattern()->toString() + " " + temp.toString() +
