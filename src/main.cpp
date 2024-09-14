@@ -30,7 +30,6 @@
 
 #ifndef NATIVE
 #include "esp32/spiram.h"
-#include <model/net/esp/wifi.hpp>
 #include <model/soc/esp32/soc.hpp>
 #endif
 
@@ -89,9 +88,6 @@ void setup() {
         ->boot<System>(System::singleton())
 #endif
         ////////////////////////////////////////////////////////////
-#ifndef NATIVE
-        ->boot<Wifi>(Wifi::singleton("/net/wifi"))
-#endif
         ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/terminal/"))

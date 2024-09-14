@@ -21,22 +21,18 @@
 
 #include <atomic>
 #include <fhatos.hpp>
-#include <util/enums.hpp>
 #include <furi.hpp>
+#include <util/enums.hpp>
 #include <util/ptr_helper.hpp>
 
 namespace fhatos {
-class Process;
+  class Process;
   using Process_p = ptr<Process>;
-   static Process_p this_process = nullptr;
+  static Process_p this_process = nullptr;
 
-  enum class PType {
-    THREAD, FIBER, COROUTINE
-  };
-  static const Enums<PType> ProcessTypes = Enums<PType>(
-          {{PType::THREAD,    "thread"},
-           {PType::FIBER,     "fiber"},
-           {PType::COROUTINE, "coroutine"}});
+  enum class PType { THREAD, FIBER, COROUTINE };
+  static const Enums<PType> ProcessTypes =
+      Enums<PType>({{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}});
 
   class Process : public IDed {
 
@@ -45,7 +41,7 @@ class Process;
 
   public:
     const PType ptype;
-  
+
 
     explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {}
 
@@ -66,7 +62,7 @@ class Process;
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
                      ProcessTypes.toChars(this->ptype).c_str());
       }
-       fhatos::this_process = PtrHelper::no_delete(this);
+      fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void stop() {
@@ -81,9 +77,9 @@ class Process;
 
     bool running() const { return this->running_.load(); }
 
-    virtual void delay(const uint64_t) {}; // milliseconds
+    virtual void delay(const uint64_t){}; // milliseconds
 
-    virtual void yield() {};
+    virtual void yield(){};
   };
 } // namespace fhatos
 

@@ -34,16 +34,16 @@
 #include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
- {                                                                                                                     \
- LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),                \
-            ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "spawned" : "!r!_not spawned!!");              \
- }
+  {                                                                                                                    \
+    LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
+                ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "spawned" : "!r!_not spawned!!");          \
+  }
 
 #define LOG_DESTROY(success, process, scheduler)                                                                       \
-{                                                                                                                      \
-LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),          \
-ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");                      \
-}
+  {                                                                                                                    \
+    LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),      \
+                ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");      \
+  }
 
 
 namespace fhatos {
@@ -59,14 +59,13 @@ namespace fhatos {
     ID_p current_barrier_ = nullptr;
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")): IDed(share(id)), Mailbox() {
-    }
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
 
     [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
       if (this->processes_->empty())
         return 0;
       auto *counter = new atomic_int(0);
-      this->processes_->forEach([counter,process_pattern](const Process_p &proc) {
+      this->processes_->forEach([counter, process_pattern](const Process_p &proc) {
         if (proc->id()->matches(process_pattern) && proc->running())
           counter->fetch_add(1);
       });
@@ -103,7 +102,7 @@ namespace fhatos {
       auto *thread_count = new atomic_int(0);
       auto *fiber_count = new atomic_int(0);
       auto *coroutine_count = new atomic_int(0);
-      this->processes_->forEach([thread_count,fiber_count,coroutine_count](const Process_p &proc) {
+      this->processes_->forEach([thread_count, fiber_count, coroutine_count](const Process_p &proc) {
         switch (proc->ptype) {
           case PType::THREAD:
             thread_count->fetch_add(1);
@@ -117,17 +116,13 @@ namespace fhatos {
         }
       });
       LOG_PROCESS(INFO, this, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
-                  thread_count->load(),
-                  fiber_count->load(),
-                  coroutine_count->load());
+                  thread_count->load(), fiber_count->load(), coroutine_count->load());
       delete thread_count;
       delete fiber_count;
       delete coroutine_count;
       router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       auto list = new List<Process_p>();
-      this->processes_->forEach([list](const Process_p &proc) {
-        list->push_back(proc);
-      });
+      this->processes_->forEach([list](const Process_p &proc) { list->push_back(proc); });
       while (!list->empty()) {
         const Process_p p = list->back();
         list->pop_back();
@@ -144,8 +139,7 @@ namespace fhatos {
       LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
-    virtual void feed_local_watchdog() {
-    }
+    virtual void feed_local_watchdog() {}
 
     [[nodiscard]] bool at_barrier(const string &label) const {
       return this->current_barrier_ && *this->current_barrier_ == label;
@@ -163,8 +157,8 @@ namespace fhatos {
         if (message->payload->is_noobj())
           this->stop();
       });*/
-      while (this->read_mail() || (passPredicate && !passPredicate()) || (
-               !passPredicate && this->running_ && !this->processes_->empty())) {
+      while (this->read_mail() || (passPredicate && !passPredicate()) ||
+             (!passPredicate && this->running_ && !this->processes_->empty())) {
         this->feed_local_watchdog();
       }
       LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label.toString().c_str());
