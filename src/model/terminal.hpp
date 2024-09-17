@@ -23,12 +23,11 @@
 #include <fhatos.hpp>
 #include <iostream>
 #include <process/actor/actor.hpp>
-#include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(coroutine.hpp)
 #include <structure/stype/key_value.hpp>
-#include <structure/stype/id_structure.hpp>
 
 namespace fhatos {
-  class Terminal final : public Actor<Thread, KeyValue> {
+  class Terminal final : public Actor<Coroutine, KeyValue> {
   protected:
     explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), current_output_(share(id)) {
     }

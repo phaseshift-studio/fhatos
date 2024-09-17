@@ -370,7 +370,7 @@ namespace fhatos {
             } else if (lhs->is_str()) {
               /// STR
               rec->rec_set(uri("value"), str(lhs->str_value()));
-              rec->rec_set(uri("encoding"), uri(string("UTF") + to_string(FL_STR_ENCODING)));
+              rec->rec_set(uri("encoding"), uri(string("UTF") + to_string(sizeof(char))));
             } else if (lhs->is_uri()) {
               /// URI
               const fURI furi = lhs->uri_value();

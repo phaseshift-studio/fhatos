@@ -28,20 +28,13 @@
 #include "util/string_helper.hpp"
 
 namespace fhatos {
-  enum class URI_PART {
-    SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY
-  };
+  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY };
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
-    {URI_PART::SCHEME, "scheme"},
-    {URI_PART::USER, "user"},
-    {URI_PART::PASSWORD, "password"},
-    {URI_PART::HOST, "host"},
-    {URI_PART::PORT, "port"},
-    {URI_PART::PATH, "path"},
-    {URI_PART::FRAGMENT, "fragment"},
-    {URI_PART::QUERY, "query"},
+      {URI_PART::SCHEME, "scheme"},     {URI_PART::USER, "user"},   {URI_PART::PASSWORD, "password"},
+      {URI_PART::HOST, "host"},         {URI_PART::PORT, "port"},   {URI_PART::PATH, "path"},
+      {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
   };
 
   class fURI {
@@ -140,12 +133,10 @@ namespace fhatos {
     }
 
     [[nodiscard]] fURI authority(const char *authority) const {
-      const string authority_string = (strlen(authority) > 1 && authority[0] == '/' && authority[1] == '/')
-                                        ? authority
-                                        : string("//") + authority;
-      const auto furi = fURI(nullptr != this->scheme_
-                               ? string(this->scheme_) + ":" + authority_string
-                               : authority_string);
+      const string authority_string =
+          (strlen(authority) > 1 && authority[0] == '/' && authority[1] == '/') ? authority : string("//") + authority;
+      const auto furi =
+          fURI(nullptr != this->scheme_ ? string(this->scheme_) + ":" + authority_string : authority_string);
       return this->path_length_ > 0 ? furi.path(this->path()) : furi;
     }
 
@@ -228,9 +219,7 @@ namespace fhatos {
       for (int i = this->path_length_ - 1; i >= 0; i--) {
         if (strlen(this->path_[i]) > 0) {
           const size_t index = string(this->path_[i]).find_last_of(':'); // make find_last_of (indexing is goofy)
-          return index == string::npos
-                   ? string(this->path_[i])
-                   : string(this->path_[i]).substr(index);
+          return index == string::npos ? string(this->path_[i]) : string(this->path_[i]).substr(index);
         }
       }
       return "";
@@ -266,9 +255,7 @@ namespace fhatos {
 
     ////////////////////////////////////////////////////////////////
 
-    fURI extend(const fURI &furi_path) const {
-      return this->extend(furi_path.path().c_str());
-    }
+    fURI extend(const fURI &furi_path) const { return this->extend(furi_path.path().c_str()); }
 
     fURI extend(const char *extension) const {
       if (strlen(extension) == 0) {
@@ -323,13 +310,9 @@ namespace fhatos {
       return first == '.' || first == ':';
     }
 
-    bool is_branch() const {
-      return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_);
-    }
+    bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
 
-    bool is_node() const {
-      return !this->spostfix_;
-    }
+    bool is_node() const { return !this->spostfix_; }
 
     bool is_scheme_path() const {
       return this->scheme_ && this->path_length_ > 0 && !this->host_ && !this->user_ && !this->password_;
@@ -360,8 +343,7 @@ namespace fhatos {
       const bool path_end_slash = this->path()[this->path().length() - 1] == '/' || this->spostfix_;
       const bool path_start_slash = this->path()[0] == '/' || this->sprefix_;
       if (other.path().find('.') == string::npos) {
-        const auto other_path_chars =
-            std::unique_ptr<char, void (*)(void *)>(strdup(other.path().c_str()), free);
+        const auto other_path_chars = std::unique_ptr<char, void (*)(void *)>(strdup(other.path().c_str()), free);
         const bool other_start_slash = other_path_chars.get()[0] == '/';
         if (path_end_slash || this->path_length_ == 0)
           return other_start_slash ? this->path(other_path_chars.get()) : this->extend(other_path_chars.get());
@@ -418,7 +400,7 @@ namespace fhatos {
       if ((strlen(this->host()) == 0 && strlen(pattern.host()) != 0) ||
           (strcmp(pattern.host(), "+") != 0 &&
            strcmp(this->host(), pattern.host()) !=
-           0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
+               0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
         return false;
       if (strcmp(pattern.user(), "#") == 0)
         return true;
@@ -436,6 +418,8 @@ namespace fhatos {
         if (strcmp(pattern.path(i), "+") == 0) {
           if (strcmp(this->path(i), "#") == 0)
             return false;
+          if (this->is_branch() != pattern.is_branch())
+            return false;
           if (this->path_length_ <= i && this->spostfix_)
             return true;
         }
@@ -448,9 +432,7 @@ namespace fhatos {
       return this->path_length_ == pattern.path_length();
     }
 
-    bool operator=(const fURI &other) const {
-      return this->equals(other);
-    }
+    bool operator=(const fURI &other) const { return this->equals(other); }
 
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
@@ -485,8 +467,7 @@ namespace fhatos {
       }
     }
 
-    fURI(const string &uriString) : fURI(uriString.c_str()) {
-    }
+    fURI(const string &uriString) : fURI(uriString.c_str()) {}
 
     fURI(const char *uriChars) {
       if (strlen(uriChars) == 0)
@@ -691,14 +672,11 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const ID &id) : fURI(id.toString()) {
-    }
+    ID(const ID &id) : fURI(id.toString()) {}
 
-    ID(const fURI &id) : fURI(id.toString()) {
-    }
+    ID(const fURI &id) : fURI(id.toString()) {}
 
-    ID(const string &furi_string) : ID(furi_string.c_str()) {
-    }
+    ID(const string &furi_string) : ID(furi_string.c_str()) {}
 
     ID(const char *furi_characters) : fURI(furi_characters) {
       if (strchr(furi_characters, '#')) {
@@ -713,17 +691,13 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
-    Pattern(const Pattern &uri) : fURI(uri) {
-    }
+    Pattern(const Pattern &uri) : fURI(uri) {}
 
-    Pattern(const fURI &uri) : fURI(uri) {
-    }
+    Pattern(const fURI &uri) : fURI(uri) {}
 
-    Pattern(const string &uri_string) : fURI(uri_string) {
-    };
+    Pattern(const string &uri_string) : fURI(uri_string){};
 
-    Pattern(const char *uri_chars) : fURI(uri_chars) {
-    };
+    Pattern(const char *uri_chars) : fURI(uri_chars){};
   };
 
   using fURI_p = ptr<fURI>;
@@ -746,11 +720,9 @@ namespace fhatos {
     ID_p id_;
 
   public:
-    explicit IDed(const fURI_p &uri) : id_(share(ID(uri->toString()))) {
-    }
+    explicit IDed(const fURI_p &uri) : id_(share(ID(uri->toString()))) {}
 
-    explicit IDed(const ID_p &id) : id_(id) {
-    }
+    explicit IDed(const ID_p &id) : id_(id) {}
 
     [[nodiscard]] ID_p id() const override { return this->id_; }
 
@@ -776,11 +748,9 @@ namespace fhatos {
     Pattern_p pattern_;
 
   public:
-    explicit Patterned(const fURI_p &uri) : pattern_(share(Pattern(uri->toString()))) {
-    }
+    explicit Patterned(const fURI_p &uri) : pattern_(share(Pattern(uri->toString()))) {}
 
-    explicit Patterned(const Pattern_p &type) : pattern_(share(Pattern(*type))) {
-    }
+    explicit Patterned(const Pattern_p &type) : pattern_(share(Pattern(*type))) {}
 
     [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }
 

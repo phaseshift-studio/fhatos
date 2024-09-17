@@ -49,7 +49,7 @@ namespace fhatos {
   protected:
     struct Settings {
       // Settings() = delete;
-    
+
       struct Wifi {
         const char *md5name;
         const char *ssids;
@@ -59,15 +59,19 @@ namespace fhatos {
 
     const static inline Settings DEFAULT_SETTINGS =
         Settings{.wifi_ = Settings::Wifi{.md5name = "fhatty", .ssids = STR(WIFI_SSID), .passwords = STR(WIFI_PASS)}};
+    const static inline Settings NO_WIFI_SETTINGS =
+        Settings{.wifi_ = Settings::Wifi{.md5name = "", .ssids = "", .passwords = ""}};
+
 
     explicit SoC(const ID &id = "/soc/", const Settings &settings = DEFAULT_SETTINGS) : Actor(id), settings_(settings) {
-      this->connect_to_wifi_station();
+      if (false && strlen(settings_.wifi_.md5name) > 0)
+        this->connect_to_wifi_station();
       // TODO: *pin/a0
       // TODO: flash/partition/0x44343
     }
 
 
-    enum MEM_TYPE { INST, HEAP, PSRAM };
+    /*enum MEM_TYPE { INST, HEAP, PSRAM };
     void write_memory_stats(MEM_TYPE mem_type) {
       switch (mem_type) {
         case INST:
@@ -99,7 +103,7 @@ namespace fhatos {
                       RETAIN_MESSAGE);
           break;
       }
-    }
+    }*/
 
   public:
     static ptr<SoC> singleton(const ID id = "/soc/", const Settings &settings = DEFAULT_SETTINGS) {
@@ -107,31 +111,68 @@ namespace fhatos {
       return soc;
     }
 
-    // void publish_retained(const Subscription_p &subscription) override {
-    //  Actor::publish_retained(subscription);
-    //}
-
-    void setup() override {
+    virtual void setup() override {
       Actor::setup();
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse("is(gte(0.0)).is(lte(100.0))"));
+      this->read_functions_.insert(
+          {share(this->id()->resolve("memory/inst")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{
+                 {id_p(this->id()->resolve("memory/inst")),
+                  parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                        ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
+                        ESP.getSketchSize() == 0
+                            ? 0.0f
+                            : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
+                                                 ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}};
+           }});
+      this->read_functions_.insert(
+          {share(this->id()->resolve("memory/heap")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{
+                 {id_p(this->id()->resolve("memory/heap")),
+                  parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
+                        ESP.getFreeHeap(),
+                        ESP.getHeapSize() == 0
+                            ? 0.0f
+                            : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}};
+           }});
+      this->read_functions_.insert(
+          {share(this->id()->resolve("memory/psram")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{
+                 {id_p(this->id()->resolve("memory/psram")),
+                  parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
+                        ESP.getFreePsram(),
+                        ESP.getPsramSize() == 0
+                            ? 0.0f
+                            : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}};
+           }});
+      this->read_functions_.insert(
+          {share(this->id()->resolve("pin/+")), [this](const fURI_p furi) {
+             Map<ID_p, Obj_p> map;
+             if (StringHelper::is_integer(furi->name())) {
+               uint8_t pin_number = stoi(furi->name());
+               map.insert({id_p(*furi), jnt(digitalRead(pin_number))});
+             } else {
+               for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
+                 map.insert({id_p(this->id()->resolve(fURI(string("pin/") + to_string(i)))), jnt(digitalRead(i))});
+               }
+             }
+             return map;
+           }});
+
       // Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>"
       // FOS_TYPE_PREFIX "real/%%[_]]"));
-      this->write_memory_stats(INST);
-      this->write_memory_stats(HEAP);
-      this->write_memory_stats(PSRAM);
+      //// this->write_memory_stats(INST);
+      // this->write_memory_stats(HEAP);
+      // this->write_memory_stats(PSRAM);
     }
 
-    Obj_p read(const fURI_p &furi) override {
-      this->write_memory_stats(furi->matches(this->id_->extend("inst/#"))   ? INST
-                               : furi->matches(this->id_->extend("heap/#")) ? HEAP
-                                                                            : PSRAM);
-      return Actor::read(furi);
-    }
 
     void stop() override {
       Actor::stop();
       WiFi.disconnect();
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
 
     void connect_to_wifi_station() const {
       WiFi.mode(WIFI_STA);
@@ -181,9 +222,10 @@ namespace fhatos {
                     "\t!ySubnet mask    : !m%s\n"
                     "\t!yDNS address    : !m%s\n"
                     "\t!yChannel        : !m%i!!\n",
-                    this->id()->toString().c_str(), WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
+                    this->settings_.wifi_.md5name, WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
                     WiFi.SSID().c_str(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),
-                    WiFi.getHostname(), mdnsStatus ? (string(this->settings_.wifi_.md5name) + ".local").c_str() : "<error>",
+                    WiFi.getHostname(),
+                    mdnsStatus ? (string(this->settings_.wifi_.md5name) + ".local").c_str() : "<error>",
                     WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str(),
                     WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {

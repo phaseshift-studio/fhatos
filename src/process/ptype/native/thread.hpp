@@ -40,9 +40,9 @@ namespace fhatos {
       Process::stop();
       if (this->xthread && this->xthread->joinable()) {
         try {
-          // if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *scheduler_thread)
-          //   this->xthread->join();
-          // else
+          if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *scheduler_thread)
+            this->xthread->join();
+           else
           this->xthread->detach();
         } catch (const std::runtime_error &e) {
           LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
