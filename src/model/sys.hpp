@@ -38,14 +38,14 @@ namespace fhatos {
       static ID_p process_id = id_p(this->id()->extend("process/"));
       if (nullptr == ptype)
         return process_id;
-      return id_p(process_id->extend(ProcessTypes.toChars(*ptype)));
+      return id_p(process_id->extend(ProcessTypes.to_chars(*ptype)));
     }
 
     ID_p STRUCTURE_ID(const SType *stype = nullptr) const {
       static ID_p structure_id = id_p(this->id()->extend("structure/"));
       if (nullptr == stype)
         return structure_id;
-      return id_p(structure_id->extend(StructureTypes.toChars(*stype)));
+      return id_p(structure_id->extend(StructureTypes.to_chars(*stype)));
     }
 
     const ID_p SUBSCRIPTION_ID = id_p(this->id()->extend("subscription/"));
@@ -110,12 +110,12 @@ namespace fhatos {
                                        {uri("id"), uri(actor->id())},
                                        {uri("setup"), bcode()},
                                        {uri("loop"), bcode()}},
-                                     id_p(REC_FURI->resolve(ProcessTypes.toChars(actor->ptype))))},
+                                     id_p(REC_FURI->resolve(ProcessTypes.to_chars(actor->ptype))))},
                 {uri("structure"), rec({
                                          {uri("pattern"), uri(*((Structure*)actor.get())->pattern_)},
                                          {uri("setup"), bcode()},
                                          {uri("loop"), bcode()}},
-                                       id_p(REC_FURI->resolve(StructureTypes.toChars(((Structure*)actor.get())->stype))))}});
+                                       id_p(REC_FURI->resolve(StructureTypes.to_chars(((Structure*)actor.get())->stype))))}});
           }
         } else if (PROCESS_ID()->is_subfuri_of(*furi)) {
           const Option<Process_p> option = scheduler()->processes_->find([this,furi](const Process_p &process) {
@@ -126,7 +126,7 @@ namespace fhatos {
             return rec({
                          {uri("id"), uri(process->id())},
                          {uri("setup"), bcode()},
-                         {uri("loop"), bcode()}}, id_p(REC_FURI->resolve(ProcessTypes.toChars(process->ptype))));
+                         {uri("loop"), bcode()}}, id_p(REC_FURI->resolve(ProcessTypes.to_chars(process->ptype))));
           }
         } else if (SUBSCRIPTION_ID->is_subfuri_of(*furi)) {
           Objs_p objs = Obj::to_objs();

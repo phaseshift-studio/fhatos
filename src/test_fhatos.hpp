@@ -38,12 +38,14 @@
 #endif
 #ifdef FOS_DEPLOY_ROUTER
 #include <structure/router.hpp>
-#define FOS_DEPLOY_ROUTER_2 Options::singleton()->router<Router>(Router::singleton()); 
+#include <language/fluent.hpp>
+#define FOS_DEPLOY_ROUTER_2 Options::singleton()->router<Router>(Router::singleton());
 #else
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
+#include <language/fluent.hpp>
 #define FOS_DEPLOY_PARSER_2  Model::deploy(Parser::singleton());
 #else
 #define FOS_DEPLOY_PARSER_2 ;
@@ -67,6 +69,7 @@
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
 #endif
 #define FOS_STOP_ON_BOOT ;
+
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
@@ -104,7 +107,7 @@ namespace fhatos {
 } // namespace fhatos
 
 #ifdef NATIVE
-#define SETUP_AND_LOOP_2 int main(int, char **) {   
+#define SETUP_AND_LOOP_2 int main(int, char **) {
 #else
 #define SETUP_AND_LOOP_2                                                                                               \
   void setup() {                                                                                                       \
@@ -117,7 +120,7 @@ namespace fhatos {
     SETUP_AND_LOOP_2                                                                                                   \
     load_processor();                                                                                                  \
     RUN_UNITY_TESTS();                                                                                                 \
-  };      
+  };
   void loop() {}                                                                                                       \
   void setUp() {}                                                                                                      \
   void tearDown() { FOS_STOP_ON_BOOT; }
@@ -160,11 +163,11 @@ using namespace fhatos;
 
 #define FOS_TEST_ASSERT_MATCH_FURI(x, y)                                                                               \
   FOS_TEST_MESSAGE("!b%s!! =!r~!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                           \
-  TEST_ASSERT_TRUE((x).matches(y))
+  TEST_ASSERT_TRUE((x).matches(y));
 
 #define FOS_TEST_ASSERT_NOT_MATCH_FURI(x, y)                                                                           \
   FOS_TEST_MESSAGE("!b%s!! =!r/~!!= !b%s!!", (x).toString().c_str(), (y).toString().c_str());                          \
-  TEST_ASSERT_FALSE((x).matches(y))
+  TEST_ASSERT_FALSE((x).matches(y));
 
 #define FOS_TEST_EXCEPTION_CXX(x)                                                                                      \
   try {                                                                                                                \
@@ -216,7 +219,7 @@ static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool prin
     int index = 0;
     for (const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
-                       OTypes.toChars(obj->o_type()).c_str());
+                       OTypes.to_chars(obj->o_type()).c_str());
     }
   }
   return result;
@@ -243,7 +246,7 @@ static void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
 template<typename T>
 static const T *FOS_PRINT_OBJ(const T *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),
-                   OTypes.toChars(obj->o_type()).c_str(), ITypeDescriptions.toChars(obj->itype()).c_str());
+                   OTypes.to_chars(obj->o_type()).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
   return obj;
 }
 
@@ -256,7 +259,7 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    Fluent(Parser::singleton()->tryParseObj(monoid).value()).iterate();
+    Fluent(Parser::singleton()->try_parse_obj(monoid).value()).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
   } catch (const fError &error) {
     LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
@@ -320,10 +323,10 @@ static void FOS_CHECK_RESULTS(
   const string &finalString = monoids.back();
   for (size_t i = 0; i < monoids.size() - 1; i++) {
     LOG(DEBUG, FOS_TAB_2 "!yPre-monoid!!: %s\n", monoids.at(i).c_str());
-    Fluent(Parser::singleton()->tryParseObj(monoids.at(i)).value()).iterate();
+    Fluent(Parser::singleton()->try_parse_obj(monoids.at(i)).value()).iterate();
   }
   LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
-  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->tryParseObj(finalString).value()),
+  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->try_parse_obj(finalString).value()),
                                 expectedReferences, clearRouter);
 }
 
@@ -333,7 +336,7 @@ static void FOS_CHECK_RESULTS(
   const List<OBJ> &expected, const string &monoid,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = false) {
-  Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
+  Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse: %s\n", monoid.c_str());
   return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
@@ -341,12 +344,12 @@ static void FOS_CHECK_RESULTS(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 [[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
-  Option<Obj_p> parse = Parser::singleton()->tryParseObj(monoid);
+  Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse monoid: %s\n", monoid.c_str());
   List<Obj> expectedResults = List<Obj>();
   for (const auto &result: expected) {
-    Option<Obj_p> parse2 = Parser::singleton()->tryParseObj(result);
+    Option<Obj_p> parse2 = Parser::singleton()->try_parse_obj(result);
     if (!parse2.has_value())
       throw fError("Unable to parse expected result: %s\n", result.c_str());
     expectedResults.push_back(*parse2.value());

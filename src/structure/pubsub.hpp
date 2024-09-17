@@ -29,17 +29,17 @@ namespace fhatos {
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",    \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                   \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
       (subscription)->pattern.toString().c_str(),                                                                      \
       (subscription)->on_recv->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(), ((source).toString().c_str()),    \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source).toString().c_str()),    \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
   LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=>!m[!b%s!m]!!\n",                      \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.toChars(rc) + "!!").c_str(),                                   \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                   \
       ((message).payload->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                       \
       ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
@@ -92,8 +92,8 @@ namespace fhatos {
     const bool retain;
 
     [[nodiscard]] string toString() const {
-      char temp[250];
-      snprintf(temp, 250, "!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!",
+      char temp[1024];
+      snprintf(temp, 1024, "!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!",
                this->payload->toString().c_str(), FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
@@ -124,6 +124,10 @@ namespace fhatos {
   using Mail = Pair<const Subscription_p, const Message_p>;
   using Mail_p = ptr<Mail>;
 
+  inline Mail_p mail_p(const Subscription_p &subscription, const Message_p &message) {
+    return share(Mail(subscription, message));
+  }
+
   struct Mailbox {
   public:
     virtual ~Mailbox() = default;
@@ -147,14 +151,16 @@ namespace fhatos {
     }
 
     [[nodiscard]] string toString() const {
-      char temp[250];
-      snprintf(temp, 250, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!", source.toString().c_str(),
+      char temp[1024];
+      snprintf(temp, 1024, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!",
+               source.toString().c_str(),
                static_cast<uint8_t>(qos), pattern.toString().c_str(), on_recv->toString().c_str());
       return {temp};
     }
   };
 
-  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const QoS qos, const BCode_p &on_recv) {
+  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const QoS qos,
+                                       const BCode_p &on_recv) {
     return share(Subscription{.source = source, .pattern = pattern, .qos = qos, .on_recv = on_recv});
   }
 } // namespace fhatos

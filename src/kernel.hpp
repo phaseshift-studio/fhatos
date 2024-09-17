@@ -37,7 +37,7 @@ namespace fhatos {
   public:
     static ptr<Kernel> build() {
       static Kernel kernel = Kernel();
-      static ptr<Kernel> kernel_p = PtrHelper::no_delete(&kernel);
+      static ptr<Kernel> kernel_p = share(kernel);
       return kernel_p;
     }
 

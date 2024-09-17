@@ -74,7 +74,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(intA->is_bcode());
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "int/", intA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("int", intA->id()->name());
+    TEST_ASSERT_EQUAL_STRING("int", intA->id()->name().c_str());
     TEST_ASSERT_EQUAL_STRING("/type", intA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("int/", intA->id()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
@@ -103,10 +103,10 @@ namespace fhatos {
     TEST_ASSERT_TRUE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("nat")));
     TEST_ASSERT_FALSE(Obj::to_int(22)->as("nat")->match(Obj::to_int(22)->as("age")));
     TEST_ASSERT_TRUE(Obj::to_int(22)->match(Obj::to_bcode({
-                                                                  Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))
-                                                          })));
+      Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))
+      })));
     TEST_ASSERT_FALSE(
-            Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));
+        Obj::to_int(22)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(23))}))})));
     ////// BYTECODE
     /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age"))._bcode->bcode_value(), "/_bcode/age"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
@@ -131,7 +131,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(realA->is_bcode());
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "real/", realA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("real", realA->id()->name());
+    TEST_ASSERT_EQUAL_STRING("real", realA->id()->name().c_str());
     TEST_ASSERT_EQUAL_STRING("/type", realA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("real/", realA->id()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
@@ -162,9 +162,9 @@ namespace fhatos {
     TEST_ASSERT_TRUE(Obj::to_real(22.1f)->as("weight")->match(Obj::to_real(22.1f)->as("weight")));
     TEST_ASSERT_FALSE(Obj::to_real(22.1f)->as("money")->match(Obj::to_real(22.1f)->as("weight")));
     TEST_ASSERT_TRUE(
-            Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(0.1f))}))})));
+        Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(0.1f))}))})));
     TEST_ASSERT_FALSE(
-            Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(23.1f))}))})));
+        Obj::to_real(22.1f)->match(Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_real(23.1f))}))})));
   }
 
   void test_str() {
@@ -192,7 +192,7 @@ namespace fhatos {
 
     TEST_ASSERT_FALSE(uriA->is_bcode());
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "uri/", uriA->id()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("uri", uriA->id()->name());
+    TEST_ASSERT_EQUAL_STRING("uri", uriA->id()->name().c_str());
     TEST_ASSERT_EQUAL_STRING("/type", uriA->id()->path(0, 1).c_str());
     TEST_ASSERT_EQUAL_STRING("uri/", uriA->id()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::URI, uriA->o_type());
@@ -221,11 +221,11 @@ namespace fhatos {
     TEST_ASSERT_TRUE(uri("/fhatos/index.html")->as("webpage")->match(uri("/+/index.html")->as("webpage")));
     TEST_ASSERT_FALSE(uri("/fhatos/index")->as("webpage")->match(uri("/fhatos/index")->as("ftp")));
     TEST_ASSERT_TRUE(uri("/a/b/c")->match(Obj::to_bcode({
-                                                                Insts::is(Obj::to_bcode({Insts::eq(uri("/a/b/c"))}))
-                                                        })));
+      Insts::is(Obj::to_bcode({Insts::eq(uri("/a/b/c"))}))
+      })));
     TEST_ASSERT_FALSE(uri("/a/b/c")->match(Obj::to_bcode({
-                                                                 Insts::is(Obj::to_bcode({Insts::eq(uri("/a/b/c/d"))}))
-                                                         })));
+      Insts::is(Obj::to_bcode({Insts::eq(uri("/a/b/c/d"))}))
+      })));
   }
 
   void test_lst() {
@@ -265,22 +265,20 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mail"), Obj::to_bcode()); //
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/cost"), Obj::to_bcode()); //
     const Rec recA = *Obj::to_rec({
-                                          {"a", 1},
-                                          {"b", 2}
-                                  });
+        {"a", 1},
+        {"b", 2}
+    });
     const Rec recB = *Obj::to_rec({
-                                          {"a", 1},
-                                          {"b", 2}
-                                  });
+        {"a", 1},
+        {"b", 2}
+    });
     const Rec recC =
-            Obj(share(Obj::RecMap<>(
-                        {
-                                make_pair<const Obj_p, Obj_p>(Obj::to_str("a", id_p(FOS_TYPE_PREFIX "str/letter")),
-                                                              share(Int(1))),
-                                make_pair<const Obj_p, Obj_p>(Obj::to_str("b", id_p(FOS_TYPE_PREFIX "str/letter")),
-                                                              share(Int(2)))
-                        })),
-                id_p(FOS_TYPE_PREFIX "rec/mail"));
+        Obj(share(Obj::RecMap<>({
+                make_pair<const Obj_p, Obj_p>(Obj::to_str("a", id_p(FOS_TYPE_PREFIX "str/letter")),
+                                              share(Int(1))),
+                make_pair<const Obj_p, Obj_p>(Obj::to_str("b", id_p(FOS_TYPE_PREFIX "str/letter")),
+                                              share(Int(2)))})),
+            id_p(FOS_TYPE_PREFIX "rec/mail"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recC).c_str());
     TEST_ASSERT_TRUE(recA == recB);
     TEST_ASSERT_FALSE(recA != recB);
@@ -299,96 +297,61 @@ namespace fhatos {
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recA).c_str());
     // match
     TEST_ASSERT_TRUE(Obj::to_rec({
-                                         {"a", 1},
-                                         {"b", 2}
-                                 })->match(Obj::to_rec({
-                                                               {"a", 1},
-                                                               {"b", 2}
-                                                       })));
+      {"a", 1},
+      {"b", 2}})->match(Obj::to_rec({
+      {"a", 1},
+      {"b", 2}})));
     TEST_ASSERT_FALSE(Obj::to_rec({
-                                          {"a", 1},
-                                          {"b", 2}
-                                  })->match(Obj::to_rec({
-                                                                {"a", 1},
-                                                                {"b", 2},
-                                                                {"c", 3}
-                                                        })));
+      {"a", 1},
+      {"b", 2}
+      })->match(Obj::to_rec({{"a", 1},{"b", 2},{"c", 3}})));
     TEST_ASSERT_TRUE(
-            Obj::to_rec({
-                                {"a", 1},
-                                {"b", 2}
-                        })
-                    ->match(Obj::to_rec(
-                            {
-                                    {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})},
-                                    {"b", 2}
-                            })));
+        Obj::to_rec({
+          {"a", 1},
+          {"b", 2}})->match(Obj::to_rec({
+          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})},
+          {"b", 2}})));
     TEST_ASSERT_FALSE(
-            Obj::to_rec({
-                                {"a", 1},
-                                {"b", 2}
-                        })
-                    ->match(Obj::to_rec(
-                            {
-                                    {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(3))}))})},
-                                    {"b", 2}
-                            })));
+        Obj::to_rec({{"a", 1},{"b", 2}})->match(Obj::to_rec({
+          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(3))}))})},
+          {"b", 2}})));
     TEST_ASSERT_TRUE(
-            Obj::to_rec({
-                                {"a", 1},
-                                {"b", 2}
-                        })
-                    ->match(Obj::to_rec(
-                            {
-                                    {
-                                            "a",        *Obj::to_bcode(
-                                            {Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})
-                                    },
-                                    {       *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str(
-                                            "b"))}))}), 2}
-                            })));
+        Obj::to_rec({{"a", 1},{"b", 2}})->match(Obj::to_rec({
+          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})},
+          { *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("b"))}))}), 2}})));
     TEST_ASSERT_FALSE(
-            Obj::to_rec({
-                                {"a", 1},
-                                {"b", 2}
-                        })
-                    ->match(Obj::to_rec(
-                            {
-                                    {
-                                            "a",        *Obj::to_bcode(
-                                            {Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})
-                                    },
-                                    {       *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str(
-                                            "c"))}))}), 2}
-                            })));
+        Obj::to_rec({{"a", 1},{"b", 2}})->match(Obj::to_rec({
+          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(
+            Obj::to_int(-10))}))})},
+          { *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), 2}})));
   }
 
   void test_serialization() {
     const List<Obj_p> objs = {
-            Obj::to_int(1), Obj::to_int(-453), Obj::to_real(12.035f),
-            // Obj::to_str("fhatos"),
-            // Obj::to_uri("aaaa"),
-            // Obj::to_lst({1, 7, "abc", u("hello/fhat/aus")}),
-            // Obj::to_rec({{u("a"), 2}, {u("b"), 3}}),
-            Obj::to_noobj()
+        Obj::to_int(1), Obj::to_int(-453), Obj::to_real(12.035f),
+        // Obj::to_str("fhatos"),
+        // Obj::to_uri("aaaa"),
+        // Obj::to_lst({1, 7, "abc", u("hello/fhat/aus")}),
+        // Obj::to_rec({{u("a"), 2}, {u("b"), 3}}),
+        Obj::to_noobj()
     };
-    for (const auto &objA: objs) {
-      const BObj_p bobj = objA->serialize();
-      const Obj_p objB = Obj::deserialize<Obj>(bobj);
-      FOS_TEST_OBJ_EQUAL(objA, objB);
+    for (const auto &obj_a: objs) {
+      const BObj_p bobj = obj_a->serialize();
+      const Obj_p obj_b = Obj::deserialize(bobj);
+      FOS_TEST_OBJ_EQUAL(obj_a, obj_b);
     }
   }
 
   FOS_RUN_TESTS( //
-          FOS_RUN_TEST(test_bool); //
-          FOS_RUN_TEST(test_int); //
-          FOS_RUN_TEST(test_real); //
-          FOS_RUN_TEST(test_str); //
-          FOS_RUN_TEST(test_uri); //
-          FOS_RUN_TEST(test_lst); //
-          FOS_RUN_TEST(test_rec); //
-          FOS_RUN_TEST(test_serialization); //
-  )
+      FOS_RUN_TEST(test_bool); //
+      FOS_RUN_TEST(test_int); //
+      FOS_RUN_TEST(test_real); //
+      FOS_RUN_TEST(test_str); //
+      FOS_RUN_TEST(test_uri); //
+      FOS_RUN_TEST(test_lst); //
+      FOS_RUN_TEST(test_rec); //
+      FOS_RUN_TEST(test_serialization); //
+      )
 }; // namespace fhatos
 
 SETUP_AND_LOOP();

@@ -39,9 +39,9 @@ namespace fhatos {
 
     // +[scheme]//+[authority]/#[path]
     explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const string server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                      const Message_p &will_message = ptr<Message>(nullptr)) :
-        Structure(pattern, SType::NETWORKED),
-        server_addr_(server_addr), will_message_(will_message) {
+                      const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::NETWORKED),
+                                                                               server_addr_(server_addr),
+                                                                               will_message_(will_message) {
       this->remote_retains_ = true;
     }
 
@@ -110,20 +110,20 @@ namespace fhatos {
       if (furi->is_pattern() || furi->is_branch())
         thing->store(new Objs(share(List<Obj_p>()), OBJS_FURI));
       this->recv_subscription(
-          share(Subscription{.source = static_cast<fURI>("ABC"),
-                             .pattern = new_furi,
-                             .on_recv = Insts::to_bcode([this, furi, thing](const Message_p &message) {
-                               LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
-                                             furi->toString().c_str(), message->toString().c_str());
-                               if (furi->is_branch()) {
-                                 const auto obj = ptr<Obj>(new Uri(fURI(message->target), URI_FURI));
-                                 thing->load()->add_obj(obj);
-                               } else if (furi->is_pattern()) {
-                                 thing->load()->add_obj(message->payload);
-                               } else {
-                                 thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
-                               }
-                             })}));
+        share(Subscription{.source = static_cast<fURI>("ABC"),
+          .pattern = new_furi,
+          .on_recv = Insts::to_bcode([this, furi, thing](const Message_p &message) {
+            LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
+                          furi->toString().c_str(), message->toString().c_str());
+            if (furi->is_branch()) {
+              const auto obj = ptr<Obj>(new Uri(fURI(message->target), URI_FURI));
+              thing->load()->add_obj(obj);
+            } else if (furi->is_pattern()) {
+              thing->load()->add_obj(message->payload);
+            } else {
+              thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
+            }
+          })}));
       const time_t start_timestamp = time(nullptr);
       if (furi->is_pattern() || furi->is_branch()) {
         while (time(nullptr) - start_timestamp < 2) {
@@ -155,7 +155,7 @@ namespace fhatos {
       check_availability("write");
       LOG_STRUCTURE(DEBUG, this, "writing to mqtt broker: %s\n", obj->toString().c_str());
       if (target->is_branch()) {
-        Algorithm::embed(obj, target);
+        Algorithm::embed(obj, target, PtrHelper::no_delete(this));
       } else {
         native_mqtt_publish(share(Message{.target = ID(*target), .payload = obj, .retain = retain}));
       }

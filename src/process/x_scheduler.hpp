@@ -25,24 +25,23 @@
 #include <furi.hpp>
 #include <process/process.hpp>
 #include <util/mutex_deque.hpp>
-#include FOS_PROCESS(coroutine.hpp)
-#include FOS_PROCESS(fiber.hpp)
-#include FOS_PROCESS(thread.hpp)
-#include <language/f_bcode.hpp>
-#include <process/actor/publisher.hpp>
+//#include FOS_PROCESS(coroutine.hpp)
+//#include FOS_PROCESS(fiber.hpp)
+//#include FOS_PROCESS(thread.hpp)
+#include <structure/router.hpp>
 #include <structure/pubsub.hpp>
 #include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
     LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
-                ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "spawned" : "!r!_not spawned!!");          \
+                ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "spawned" : "!r!_not spawned!!");          \
   }
 
 #define LOG_DESTROY(success, process, scheduler)                                                                       \
   {                                                                                                                    \
     LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),      \
-                ProcessTypes.toChars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");      \
+                ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");      \
   }
 
 
@@ -59,7 +58,8 @@ namespace fhatos {
     ID_p current_barrier_ = nullptr;
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {
+    }
 
     [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
       if (this->processes_->empty())
@@ -83,16 +83,20 @@ namespace fhatos {
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
     virtual void setup() {
+      /*router()->route_subscription(
+        subscription_p(*this->id_, *this->id_, QoS::_1,
+                       Insts::to_bcode(
+                         [this](const Message_p &message) {
+                           if(message->retain && is_thread(message->payload)) {
+                            this->spawn(std::make_shared<ThreadObj>(message->target));
+                           }
+                         })));*/
+
       MESSAGE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->is_rec())
           return;
-        if (is_thread(payload)) {
-          this->spawn(std::make_shared<fBcode<Thread>>(target, payload));
-        } else if (is_fiber(payload)) {
-          this->spawn(std::make_shared<fBcode<Fiber>>(target, payload));
-        } else if (is_coroutine(payload)) {
-          this->spawn(std::make_shared<fBcode<Coroutine>>(target, payload));
-        }
+        LOG_PROCESS(DEBUG, this, "intercepting retained !yrec!! %s\n", payload->toString().c_str());
+        THREAD_SPAWNER(id_p(target));
       };
       this->running_ = true;
       LOG_PROCESS(INFO, this, "!yscheduler!! loaded\n");
@@ -139,7 +143,8 @@ namespace fhatos {
       LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
-    virtual void feed_local_watchdog() {}
+    virtual void feed_local_watchdog() {
+    }
 
     [[nodiscard]] bool at_barrier(const string &label) const {
       return this->current_barrier_ && *this->current_barrier_ == label;

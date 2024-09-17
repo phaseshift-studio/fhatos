@@ -222,12 +222,16 @@ namespace fhatos {
       return new_uri;
     }
 
-    [[nodiscard]] const char *name() const {
+    [[nodiscard]] string name() const {
       if (0 == this->path_length_)
-        return "";
+        return EMPTY_CHARS;
       for (int i = this->path_length_ - 1; i >= 0; i--) {
-        if (strlen(this->path_[i]) > 0)
-          return this->path_[i];
+        if (strlen(this->path_[i]) > 0) {
+          const size_t index = string(this->path_[i]).find_last_of(':'); // make find_last_of (indexing is goofy)
+          return index == string::npos
+                   ? string(this->path_[i])
+                   : string(this->path_[i]).substr(index);
+        }
       }
       return "";
     }
@@ -398,6 +402,8 @@ namespace fhatos {
       if (this->equals(pattern))
         return true;
       const string pattern_str = pattern.toString();
+      if (pattern_str[0] == ':')
+        return this->name() == pattern_str; // ./blah/:setup ~ :setup
       if (pattern.toString() == "#")
         return true;
       if (pattern_str.find('+') == string::npos && pattern_str.find('#') == string::npos)
@@ -685,6 +691,9 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
+    ID(const ID &id) : fURI(id.toString()) {
+    }
+
     ID(const fURI &id) : fURI(id.toString()) {
     }
 
@@ -704,6 +713,9 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
+    Pattern(const Pattern &uri) : fURI(uri) {
+    }
+
     Pattern(const fURI &uri) : fURI(uri) {
     }
 
@@ -777,7 +789,7 @@ namespace fhatos {
     }
   };
 
-  struct furi_p_less : public std::less<fURI_p> {
+  struct furi_p_less : std::less<fURI_p> {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 

@@ -84,8 +84,8 @@ namespace fhatos {
         LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
-        if (!(message->retain && message->payload->is_noobj()))
-          mail.value()->first->on_recv->apply(message->to_rec());
+        //if (!(message->retain && message->payload->is_noobj()))
+        mail.value()->first->on_recv->apply(message->to_rec());
         mail = this->outbox_->pop_front();
       }
     }
@@ -141,7 +141,6 @@ namespace fhatos {
       ///////////////
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       this->write(id_p(message->target), message->payload, message->retain);
-      MESSAGE_INTERCEPT(message->target, message->payload, message->retain);
       LOG_PUBLISH(OK, *message);
     }
 

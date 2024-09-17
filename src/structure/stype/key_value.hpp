@@ -23,13 +23,14 @@
 #include "fhatos.hpp"
 #include "language/obj.hpp"
 #include "structure/structure.hpp"
+#include <language/processor/algorithm.hpp>
 
 namespace fhatos {
   class KeyValue : public Structure {
   protected:
-    ptr<Map<ID_p, const Obj_p, furi_p_less>> DATA = share(
+    ptr<Map<ID_p, const Obj_p, furi_p_less>> data_ = share(
       Map<ID_p, const Obj_p, furi_p_less>());
-    MutexRW<> MUTEX_DATA = MutexRW<>("<key value data>");
+    MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
 
     explicit KeyValue(const Pattern &pattern, const SType stype = SType::DATABASE) : Structure(pattern, stype) {
     };
@@ -42,12 +43,12 @@ namespace fhatos {
 
     void stop() override {
       Structure::stop();
-      DATA->clear();
+      data_->clear();
     }
 
     void publish_retained(const Subscription_p &subscription) override {
-      MUTEX_DATA.read<void *>([this, subscription]() {
-        for (const auto &[id,obj]: *this->DATA) {
+      this->mutex_data_.read<void *>([this, subscription]() {
+        for (const auto &[id,obj]: *this->data_) {
           if (id->matches(subscription->pattern)) {
             if (!obj->is_noobj()) {
               subscription->on_recv->apply(Message{.target = *id, .payload = obj, .retain = RETAIN_MESSAGE}.to_rec());
@@ -60,42 +61,41 @@ namespace fhatos {
 
     void write(const ID_p &target, const Obj_p &payload, const bool retain) override {
       if (retain) {
-        const Bool_p embed = MUTEX_DATA.write<Bool>([this, target, &payload]() {
+        const Bool_p embed = this->mutex_data_.write<Bool>([this, target, &payload]() {
           // BRANCH
-          if (target->is_branch()) {
-            return dool(true);
+          if (payload->is_noobj()) {
+            if (data_->count(target))
+              data_->erase(target);
+            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>%s removed\n", target->toString().c_str(),
+                          payload->toString().c_str());
           } else {
+            if (target->is_branch())
+              return dool(true);
             // NODE
-            if (DATA->count(target))
-              DATA->erase(target);
-            if (!payload->is_noobj()) {
-              DATA->insert({target, payload->clone()}); // why such a deep copy needed?
-              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
-                            payload->toString().c_str());
-            } else {
-              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>%s removed\n", target->toString().c_str(),
-                           payload->toString().c_str());
-            }
+            if (data_->count(target))
+              data_->erase(target);
+            data_->insert({target, payload->clone()}); // why such a deep copy needed?
+            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
+                          payload->toString().c_str());
           }
           return dool(false);
         });
         if (embed->bool_value())
-          Algorithm::embed(payload, target);
+          Algorithm::embed(payload, target, PtrHelper::no_delete(this));
       }
-      const Message_p message = message_p(*target, payload->clone(), retain);
-      distribute_to_subscribers(message);
+      distribute_to_subscribers(message_p(*target, payload, retain));
     }
 
     Obj_p read(const fURI_p &furi) override {
       FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      return MUTEX_DATA.read<Objs_p>([this, furi]() {
+      return mutex_data_.read<Objs_p>([this, furi]() {
         // FURI BRANCH
         if (furi->is_branch()) {
           // x/+/
           if (furi->is_pattern()) {
             Objs_p objs = Obj::to_objs();
-            for (const auto &[f, o]: *this->DATA) {
+            for (const auto &[f, o]: *this->data_) {
               if (f->matches(*furi)) {
                 objs->add_obj(uri(f));
               }
@@ -104,7 +104,7 @@ namespace fhatos {
           }
           Rec_p rec = Obj::to_rec(share(Obj::RecMap<>())); // x/y/
           const Pattern match = furi->extend("+/");
-          for (const auto &[f, o]: *this->DATA) {
+          for (const auto &[f, o]: *this->data_) {
             if (f->matches(match))
               rec->rec_set(uri(f), o);
           }
@@ -114,14 +114,14 @@ namespace fhatos {
         if (furi->is_pattern()) {
           // x/+
           Objs_p objs = Obj::to_objs();
-          for (const auto &[f, o]: *this->DATA) {
+          for (const auto &[f, o]: *this->data_) {
             if (f->matches(*furi)) {
               objs->add_obj(o);
             }
           }
           return objs;
         }
-        return DATA->count(id_p(*furi)) ? DATA->at(id_p(*furi)) : noobj(); //x/y
+        return data_->count(id_p(*furi)) ? data_->at(id_p(*furi)) : noobj(); //x/y
       });
     }
   };

@@ -24,12 +24,14 @@
 #include <iostream>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
+#include <structure/stype/key_value.hpp>
 #include <structure/stype/id_structure.hpp>
 
 namespace fhatos {
   class Terminal final : public Actor<Thread, KeyValue> {
   protected:
-    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), current_output_(share(id)) {}
+    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id), current_output_(share(id)) {
+    }
 
     ID_p current_output_{};
 
@@ -43,12 +45,12 @@ namespace fhatos {
       Actor::setup();
       this->subscribe(this->id()->extend("out"), [](const Message_p &message) {
         //if (message->source.matches(*Terminal::singleton()->current_output_)) {
-          if (strcmp(message->target.name(), "no_color") == 0) {
-            const string no = Ansi<>::strip(message->payload->str_value());
-            printer<>()->print(no.c_str());
-          } else
-            printer<>()->print(message->payload->str_value().c_str());
-       // }
+        if (message->target.name() == "no_color") {
+          const string no = Ansi<>::strip(message->payload->str_value());
+          printer<>()->print(no.c_str());
+        } else
+          printer<>()->print(message->payload->str_value().c_str());
+        // }
       });
     }
 
@@ -65,17 +67,18 @@ namespace fhatos {
 #endif
     }
 
-    static void out(const ID &, const char *format, ...) {
+    static void out(const ID_p &, const char *format, ...) {
       char buffer[1024];
       va_list arg;
       va_start(arg, format);
       const int length = vsnprintf(buffer, 1024, format, arg);
       buffer[length] = '\0';
       va_end(arg);
-      router()->route_message(share(Message{ //
-              .target = Terminal::singleton()->id()->extend("out"), //
-              .payload = Obj::to_str(buffer),
-              .retain = TRANSIENT_MESSAGE}));
+      router()->route_message(share(Message{
+        //
+        .target = Terminal::singleton()->id()->extend("out"), //
+        .payload = Obj::to_str(buffer),
+        .retain = TRANSIENT_MESSAGE}));
     }
 
     static string in(const ID &) {

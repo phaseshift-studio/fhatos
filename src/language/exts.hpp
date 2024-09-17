@@ -34,7 +34,7 @@ namespace fhatos {
           share(Map<ID, List<Pair<ID, Type_p>>>{
             {"/model/sys", {
               {"/type/rec/process", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/thread", OBJ_PARSER("process[_]")},
+              {"/type/rec/thread", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
               {"/type/rec/fiber", OBJ_PARSER("process[_]")},
               {"/type/rec/coroutine", OBJ_PARSER("process[_]")},
               //////

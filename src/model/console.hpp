@@ -39,32 +39,51 @@ namespace fhatos {
     }
 
   protected:
-    string _line;
-    bool _newInput = true;
-    bool _nesting = false;
-    bool _color = true;
+    string line_;
+    bool new_input_ = true;
+    bool nest_ = false;
+    bool color_ = true;
 
     ///// printers
-    void printException(const std::exception &ex) const { Terminal::out(*this->id(), "!r[ERROR]!! %s", ex.what()); }
+    void print_exception(const std::exception &ex) const { Terminal::out(this->id(), "!r[ERROR]!! %s", ex.what()); }
 
-    void printPrompt(const bool blank = false) const {
-      Terminal::out(*this->id(), blank ? "        " : "!mfhatos!g>!! ");
+    void print_prompt(const bool blank = false) const {
+      Terminal::out(this->id(), blank ? "        " : "!mfhatos!g>!! ");
     }
 
-    void printResult(const Obj_p &obj, const uint8_t depth = 0) const {
+    void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
       if (obj->is_objs())
         for (Obj_p &o: *obj->objs_value()) {
-          this->printResult(o, depth + 1);
+          this->print_result(o, depth + 1);
         }
-      else if (this->_nesting && obj->is_lst()) {
-        for (Obj_p &o: *obj->lst_value()) {
-          this->printResult(o, depth + 1);
+      else if (this->nest_ && obj->is_lst()) {
+        bool first = true;
+        for (const auto &e: *obj->lst_value()) {
+          Terminal::out(this->id(), "%s%s%s\n!!",
+                        (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                        first ? "!m[!!" : " ",
+                        e->is_poly() ? "" : e->toString().c_str());
+          if (e->is_poly())
+            this->print_result(e, depth + 1);
+          first = false;
         }
+        Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=") + ">!m]!!\n").c_str());
+      } else if (this->nest_ && obj->is_rec()) {
+        bool first = true;
+        for (const auto &[key, value]: *obj->rec_value()) {
+          Terminal::out(this->id(), "%s%s%s!m=>!!%s\n!!",
+                        (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                        first ? "!m[!!" : " ",
+                        key->toString().c_str(),
+                        value->is_poly() ? "" : value->toString().c_str());
+          if (value->is_poly())
+            this->print_result(value, depth + 1);
+          first = false;
+        }
+        Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=") + ">!m]!!\n").c_str());
       } else {
-        for (uint8_t i = 1; i < depth; i++) {
-          Terminal::out(*this->id(), "!g=!!");
-        }
-        Terminal::out(*this->id(), "!g==>!!%s\n", obj->toString().c_str());
+        Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=")).c_str());
+        Terminal::out(this->id(), "==>!!%s\n", obj->toString().c_str());
       }
     }
 
@@ -89,13 +108,13 @@ namespace fhatos {
           {
             "log level",
             [](const Uri_p &log_level) {
-              Options::singleton()->log_level(LOG_TYPES.toEnum(log_level->uri_value().toString()));
+              Options::singleton()->log_level(LOG_TYPES.to_enum(log_level->uri_value().toString()));
               return log_level;
             },
             [] {
               printer<>()->printf(
                 "!ylog!!: !b%s!!\n",
-                LOG_TYPES.toChars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
+                LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
             }
           }
         });
@@ -113,24 +132,24 @@ namespace fhatos {
         MENU_MAP_->insert({
           ":clear", {
             "clear terminal", [](const Obj_p &) {
-              printer<>()->printf("!X");
+              printer<>()->print("!X!Q");
             },
-            [] { printer<>()->printf("!X"); }
+            [] { printer<>()->print("!X!Q"); }
           }
         });
         MENU_MAP_->insert({
           ":color",
           {
-            "colorize output", [this](const Bool_p &xbool) { this->_color = xbool->bool_value(); },
-            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->_color)); }
+            "colorize output", [this](const Bool_p &xbool) { this->color_ = xbool->bool_value(); },
+            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->color_)); }
           }
         });
         MENU_MAP_->insert(
           {
-            ":nesting",
+            ":nest",
             {
-              "display poly objs nested", [this](const Bool_p &xbool) { this->_nesting = xbool->bool_value(); },
-              [this] { printer<>()->printf("!ynesting!!: %s\n", FOS_BOOL_STR(this->_nesting)); }
+              "display poly objs nested", [this](const Bool_p &xbool) { this->nest_ = xbool->bool_value(); },
+              [this] { printer<>()->printf("!ynest!!: %s\n", FOS_BOOL_STR(this->nest_)); }
             }
           });
         MENU_MAP_->insert({
@@ -171,75 +190,68 @@ namespace fhatos {
     void loop() override {
       Actor::loop();
       //// PROMPT
-      if (this->_newInput)
-        this->printPrompt(!this->_line.empty());
-      this->_newInput = false;
+      if (this->new_input_)
+        this->print_prompt(!this->line_.empty());
+      this->new_input_ = false;
       //// READ CHAR INPUT ONE-BY-ONE
       int x;
       if ((x = Terminal::readChar()) == EOF)
         return;
-      // LOG(TRACE, "key pressed: (dec) %i (hex) 0x%x (char) %c\n", x, x, x);
-      /*if (0x147 == (char) x) /// CTRL-DELETE (clear line)
-        this->_line.clear();
-      else if (0x59 == (char) x) /// F1 (toggle logger)
-        std::get<1>(_MENU_MAP->at(":log"))(
-            Obj::to_str(LOG_TYPES.toChars((LOG_TYPE) (GLOBAL_OPTIONS->logger<uint8_t>() + 1))));
-      else*/
       if ('\n' == static_cast<char>(x))
-        this->_newInput = true;
+        this->new_input_ = true;
       else {
-        this->_line += static_cast<char>(x);
+        this->line_ += static_cast<char>(x);
         return;
       }
-      StringHelper::trim(this->_line);
-      if (this->_line.empty()) {
+      StringHelper::trim(this->line_);
+      if (this->line_.empty()) {
         ///////// DO NOTHING ON EMPTY LINE
         return;
       }
-      if (!Parser::closed_expression(this->_line))
+      if (!Parser::closed_expression(this->line_))
         return;
       ///////// PARSE MULTI-LINE MONOIDS
-      size_t pos = this->_line.find("###");
+      size_t pos = this->line_.find("###");
       while (pos != string::npos) {
-        this->_line.replace(pos, 3, "");
-        pos = this->_line.find("###", pos + 0);
+        this->line_.replace(pos, 3, "");
+        pos = this->line_.find("###", pos);
       }
-      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", this->_line.c_str());
-      StringHelper::trim(this->_line);
-      if (this->_line[0] == ':') {
+      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", this->line_.c_str());
+      StringHelper::trim(this->line_);
+      if (this->line_[0] == ':') {
         ///////// PARSE MENU COMMANDS
         try {
-          const string::size_type index = _line.find_first_of(' ');
-          const string command = index == string::npos ? this->_line : this->_line.substr(0, index);
+          const string::size_type index = line_.find_first_of(' ');
+          const string command = index == string::npos ? this->line_ : this->line_.substr(0, index);
           StringHelper::trim(command);
           if (!MENU_MAP_->count(command)) {
-            this->printException(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
-                                        this->id()->toString().c_str(), command.c_str()));
+            this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
+                                         this->id()->toString().c_str(), command.c_str()));
           } else if (index == string::npos) {
             std::get<2>(MENU_MAP_->at(command))();
           } else {
-            string value = this->_line.substr(index);
+            const string value = this->line_.substr(index);
             StringHelper::trim(value);
             std::get<1>(MENU_MAP_->at(command))(parse(value)->apply(Obj::to_noobj()));
           }
         } catch (std::exception &e) {
-          this->printException(e);
+          this->print_exception(e);
         }
-        this->_line.clear();
+        this->line_.clear();
       } else {
         ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
         try {
-          if (this->_line[0] == '\n')
-            this->_line = this->_line.substr(1);
-          const Option<Obj_p> obj = Parser::singleton()->tryParseObj(this->_line);
+          if (this->line_[0] == '\n')
+            this->line_ = this->line_.substr(1);
+          const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(this->line_);
           if (!obj.has_value())
-            throw fError("Unable to parse input: %s\n", this->_line.c_str());
-          this->printResult(Options::singleton()->processor<Obj, BCode, Obj>(
+            throw fError("Unable to parse input: %s\n", this->line_.c_str());
+          this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
             obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
         } catch (const std::exception &e) {
-          this->printException(e);
+          this->print_exception(e);
         }
-        this->_line.clear();
+        this->line_.clear();
       }
     }
   };

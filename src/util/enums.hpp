@@ -22,15 +22,19 @@
 #include <list>
 #include <string>
 
+#include "string_helper.hpp"
+
 using namespace std;
+
 namespace fhatos {
   template<typename ENUM>
   struct Enums {
     const list<pair<ENUM, string>> ENUM_TO_STR{};
 
-   explicit Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {}
+    explicit Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {
+    }
 
-    string toChars(const ENUM e) const {
+    string to_chars(const ENUM e) const {
       for (const auto &pair: ENUM_TO_STR) {
         if (pair.first == e)
           return pair.second;
@@ -38,12 +42,17 @@ namespace fhatos {
       throw fError("!ychars!! not found for enum !b%i!!\n", e);
     }
 
-    ENUM toEnum(const string &s) const {
+    ENUM to_enum(const string &s) const {
       for (const auto &pair: ENUM_TO_STR) {
         if (s == pair.second)
           return pair.first;
       }
-      throw fError("!yenum!! not found for chars !b%s!!\n", s.c_str());
+      string enums_string;
+      for (const auto &pair: ENUM_TO_STR) {
+        enums_string += pair.second + " ";
+      }
+      StringHelper::trim(enums_string);
+      throw fError("!yenum!! not found for chars !y%s!! [!b%s!!]\n", s.c_str(), enums_string.c_str());
     }
   };
 } // namespace fhatos

@@ -41,7 +41,7 @@ namespace fhatos {
       this->server_addr_ = (string(server_addr).find_first_of("mqtt://") == string::npos
                               ? string("mqtt://").append(string(server_addr))
                               : server_addr);
-      this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, "", mqtt::create_options(MQTTVERSION_5));
+      this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, "", mqtt::create_options());
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
           .clean_start(true)
@@ -61,7 +61,7 @@ namespace fhatos {
         const BObj_p bobj = share(BObj(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data()))));
         const Message_p message = share(Message{
           .target = ID(mqtt_message->get_topic()),
-          .payload = Obj::deserialize<Obj>(bobj),
+          .payload = Obj::deserialize(bobj),
           .retain = mqtt_message->is_retained()
         });
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
@@ -69,7 +69,6 @@ namespace fhatos {
         for (const Subscription_p &sub: *matches) {
           this->outbox_->push_back(share(Mail{sub, message}));
         }
-        MESSAGE_INTERCEPT(message->target, message->payload, message->retain);
       });
       /// MQTT CONNECTION ESTABLISHED CALLBACK
       this->xmqtt_->set_connected_handler([this](const string &) {

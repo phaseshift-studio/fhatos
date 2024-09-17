@@ -51,7 +51,7 @@ namespace fhatos {
         consumer(this->_bcode);
       else {
         Processor<E> proc = Processor<E>(this->_bcode);
-        proc.forEach(consumer);
+        proc.for_each(consumer);
       }
     }
 

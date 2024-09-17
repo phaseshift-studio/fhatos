@@ -22,16 +22,17 @@ FhatOS: A Distributed Operating System
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <furi.hpp>
+#include <structure/router.hpp>
 
 namespace fhatos {
   class Algorithm final {
   public:
     Algorithm() = delete;
 
-    static void embed(const Obj_p &obj, const fURI_p &root) {
+    static void embed(const Obj_p &obj, const fURI_p &root, const Structure_p& structure) {
       if (obj->is_noobj()) {
         // nobj
-        router()->remove(id_p(*root));
+        structure->remove(id_p(*root));
       } else if (obj->is_rec()) {
         // rec
         const auto remaining = share(Obj::RecMap<>());
@@ -41,19 +42,19 @@ namespace fhatos {
             if (key->uri_value().is_pattern()) // pattern key // TODO: should insert {key,value} ?
               remaining->insert({key, value});
             else
-              Algorithm::embed(value, id_p(key->uri_value()));
+              Algorithm::embed(value, id_p(key->uri_value()), structure);
           } else // non-uri key
             remaining->insert({key, value});
         }
         if (!remaining->empty())
-          router()->write(id_p(root->is_branch() ? root->extend("0") : *root), Obj::to_rec(remaining));
+          structure->write(id_p(root->is_branch() ? root->extend("0") : *root), Obj::to_rec(remaining),RETAIN_MESSAGE);
       } else if (obj->is_lst()) {
         const List_p<Obj_p> list = obj->lst_value();
         for (size_t i = 0; i < list->size(); i++) {
-          Algorithm::embed(list->at(i), id_p(root->extend(to_string(i))));
+          Algorithm::embed(list->at(i), id_p(root->extend(to_string(i))), structure);
         }
       } else {
-        router()->write(id_p(root->is_branch() ? root->extend("0") : *root), obj);
+        structure->write(id_p(root->is_branch() ? root->extend("0") : *root), obj,RETAIN_MESSAGE);
       }
     }
   };

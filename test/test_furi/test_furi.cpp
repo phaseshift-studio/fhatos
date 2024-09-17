@@ -33,45 +33,45 @@ namespace fhatos {
   void test_uri_components() {
     // TODO: CAN'T DO FRAGMENTS CAUSE OF MQTT PATTERN MATCHING
     const List<Pair<string, List<int>>> uris = List<Pair<string, List<int>>>({
-      {"furi:", {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-      {"furi://127.0.0.1", {1, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
-      {"furi://127.0.0.1", {1, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
-      {"//127.0.0.1", {0, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
-      {"//127.0.0.1:88", {0, 0, 0, 1, 88, 0, 0, 0, 0, 0}},
-      {"//user@127.0.0.1", {0, 1, 0, 1, 0, 0, 0, 0, 0, 0}},
-      {"//user@127.0.0.1:88", {0, 1, 0, 1, 88, 0, 0, 0, 0, 0}},
-      {"furi://user@127.0.0.1", {1, 1, 0, 1, 0, 0, 0, 0, 0, 0}},
-      {"furi://user:pass@127.0.0.1", {1, 1, 1, 1, 0, 0, 0, 0, 0, 0}},
-      {"furi://127.0.0.1:88", {1, 0, 0, 1, 88, 0, 0, 0, 0, 0}},
-      {"furi://127.0.0.1:88/a", {1, 0, 0, 1, 88, 1, 0, 0, 0, 0}},
-      {"furi://127.0.0.1:88//bb", {1, 0, 0, 1, 88, 0, 1, 0, 0, 0}},
-      {"furi://127.0.0.1:88//bb/c_c_c", {1, 0, 0, 1, 88, 0, 1, 1, 0, 0}},
-      {"furi://127.0.0.1:88///c_c_c", {1, 0, 0, 1, 88, 0, 0, 1, 0, 0}},
-      {"furi://127.0.0.1:88/a/bb", {1, 0, 0, 1, 88, 1, 1, 0, 0, 0}},
-      {"furi://127.0.0.1:88/a/bb/c_c_c", {1, 0, 0, 1, 88, 1, 1, 1, 0, 0}},
-      //{"furi://127.0.0.1:88/a///c_c_c", {1, 0, 0, 1, 88, 1, 0, 1, 0, 0}},
-      {"furi://127.0.0.1:88/a/bb/c_c_c?x=1&y=2", {1, 0, 0, 1, 88, 1, 1, 1, 1, 0}},
-      //{"furi://127.0.0.1:88/a/bb/c_c_c?x=1&y=2#fhatty", {1, 0, 0, 1, 88, 1, 1, 1, 1, 1}},
-      //{"furi://127.0.0.1:88/a/bb#fhatty", {1, 0, 0, 1, 88, 1, 1, 0, 0, 1}},
-      {"furi:a", {1, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
-      {"furi:/a", {1, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
-      {"furi:/a/", {1, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
-      {"furi:/a/bb", {1, 0, 0, 0, 0, 1, 1, 0, 0, 0}},
-      {"a", {0, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
-      {"/a", {0, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
-      {"/a/", {0, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
-      //{"/a/bb#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
-      //{"a#fhatty", {0, 0, 0, 0, 0, 1, 0, 0, 0, 1}},
-      //{"a/bb#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
-      //{"/a/bb#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
-      //{"/a/bb/#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
-      {"a?x=1&y=2", {0, 0, 0, 0, 0, 1, 0, 0, 1, 0}},
-      {"/a?x=1&y=2", {0, 0, 0, 0, 0, 1, 0, 0, 1, 0}},
-      //{"/a/?x=1&y=2", {0, 0, 0, 0, 0, 1, 0, 0, 1, 0}},
-      {"/a/bb?x=1&y=2", {0, 0, 0, 0, 0, 1, 1, 0, 1, 0}},
-      //{"/a/bb?x=1&y=2#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 1, 1}},
-      //{"/a//c_c_c?x=1&y=2#fhatty", {0, 0, 0, 0, 0, 1, 0, 1, 1, 1}},
-      //{"furi:/a//c_c_c?x=1&y=2", {1, 0, 0, 0, 0, 1, 0, 1, 1, 0}}
+        {"furi:", {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+        {"furi://127.0.0.1", {1, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
+        {"furi://127.0.0.1", {1, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
+        {"//127.0.0.1", {0, 0, 0, 1, 0, 0, 0, 0, 0, 0}},
+        {"//127.0.0.1:88", {0, 0, 0, 1, 88, 0, 0, 0, 0, 0}},
+        {"//user@127.0.0.1", {0, 1, 0, 1, 0, 0, 0, 0, 0, 0}},
+        {"//user@127.0.0.1:88", {0, 1, 0, 1, 88, 0, 0, 0, 0, 0}},
+        {"furi://user@127.0.0.1", {1, 1, 0, 1, 0, 0, 0, 0, 0, 0}},
+        {"furi://user:pass@127.0.0.1", {1, 1, 1, 1, 0, 0, 0, 0, 0, 0}},
+        {"furi://127.0.0.1:88", {1, 0, 0, 1, 88, 0, 0, 0, 0, 0}},
+        {"furi://127.0.0.1:88/a", {1, 0, 0, 1, 88, 1, 0, 0, 0, 0}},
+        {"furi://127.0.0.1:88//bb", {1, 0, 0, 1, 88, 0, 1, 0, 0, 0}},
+        {"furi://127.0.0.1:88//bb/c_c_c", {1, 0, 0, 1, 88, 0, 1, 1, 0, 0}},
+        {"furi://127.0.0.1:88///c_c_c", {1, 0, 0, 1, 88, 0, 0, 1, 0, 0}},
+        {"furi://127.0.0.1:88/a/bb", {1, 0, 0, 1, 88, 1, 1, 0, 0, 0}},
+        {"furi://127.0.0.1:88/a/bb/c_c_c", {1, 0, 0, 1, 88, 1, 1, 1, 0, 0}},
+        //{"furi://127.0.0.1:88/a///c_c_c", {1, 0, 0, 1, 88, 1, 0, 1, 0, 0}},
+        {"furi://127.0.0.1:88/a/bb/c_c_c?x=1&y=2", {1, 0, 0, 1, 88, 1, 1, 1, 1, 0}},
+        //{"furi://127.0.0.1:88/a/bb/c_c_c?x=1&y=2#fhatty", {1, 0, 0, 1, 88, 1, 1, 1, 1, 1}},
+        //{"furi://127.0.0.1:88/a/bb#fhatty", {1, 0, 0, 1, 88, 1, 1, 0, 0, 1}},
+        {"furi:a", {1, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
+        {"furi:/a", {1, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
+        {"furi:/a/", {1, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
+        {"furi:/a/bb", {1, 0, 0, 0, 0, 1, 1, 0, 0, 0}},
+        {"a", {0, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
+        {"/a", {0, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
+        {"/a/", {0, 0, 0, 0, 0, 1, 0, 0, 0, 0}},
+        //{"/a/bb#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
+        //{"a#fhatty", {0, 0, 0, 0, 0, 1, 0, 0, 0, 1}},
+        //{"a/bb#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
+        //{"/a/bb#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
+        //{"/a/bb/#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 0, 1}},
+        {"a?x=1&y=2", {0, 0, 0, 0, 0, 1, 0, 0, 1, 0}},
+        {"/a?x=1&y=2", {0, 0, 0, 0, 0, 1, 0, 0, 1, 0}},
+        //{"/a/?x=1&y=2", {0, 0, 0, 0, 0, 1, 0, 0, 1, 0}},
+        {"/a/bb?x=1&y=2", {0, 0, 0, 0, 0, 1, 1, 0, 1, 0}},
+        //{"/a/bb?x=1&y=2#fhatty", {0, 0, 0, 0, 0, 1, 1, 0, 1, 1}},
+        //{"/a//c_c_c?x=1&y=2#fhatty", {0, 0, 0, 0, 0, 1, 0, 1, 1, 1}},
+        //{"furi:/a//c_c_c?x=1&y=2", {1, 0, 0, 0, 0, 1, 0, 1, 1, 0}}
     });
 
     for (Pair<string, List<int>> pair: uris) {
@@ -331,11 +331,13 @@ namespace fhatos {
   }
 
   void test_uri_name() {
-    TEST_ASSERT_EQUAL_STRING("", fURI("").name());
-    TEST_ASSERT_EQUAL_STRING("fhat", fURI("fos://a/fhat").name());
-    TEST_ASSERT_EQUAL_STRING("fs:root", fURI("/type/inst/fs:root").name());
-    TEST_ASSERT_EQUAL_STRING("fs::root", fURI("/type/inst/fs::root").name());
-    TEST_ASSERT_EQUAL_STRING("#", fURI("http://a.com:34/b/c/#").name());
+    TEST_ASSERT_EQUAL_STRING("", fURI("").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("fhat", fURI("fos://a/fhat").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("root", fURI("/type/inst/fs:root").name().c_str());
+    TEST_ASSERT_EQUAL_STRING(":root", fURI("/type/inst/fs::root").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("#", fURI("http://a.com:34/b/c/#").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("fhatty", fURI("http://a.com:34/b/c:fhatty").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("fhatty", fURI("fos/:fhatty").name().c_str());
   }
 
   void test_uri_scheme_path() {
@@ -505,8 +507,8 @@ namespace fhatos {
                                fURI("foi://fhat@127.0.0.1/a").resolve(fURI("b/c")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("foi://fhat@127.0.0.1/b/c"),
                                fURI("foi://fhat@127.0.0.1/a").resolve(fURI("foi://fhat@fhat.org/b/c")));
-  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/").resolve(fURI("./b/")));
-  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("./b/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/").resolve(fURI("./b/")));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("./b/")));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/a/b/"), fURI("/a/").resolve(fURI("b/")));
 
     ////////// PATTERN RESOLUTIONS
@@ -556,11 +558,21 @@ namespace fhatos {
     FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst/abc"), Pattern("/type/inst/+"));
     FOS_TEST_ASSERT_MATCH_FURI(ID("/type/inst/"), Pattern("/type/inst/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/type/inst"), Pattern("/type/inst/+")); // different than #
+    ///////////////////////////////////
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/fhatos/:name"), ID(":name"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID(":name"), ID(":name"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("fos:name"), ID(":name"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("name"), ID(":name"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("aaa/fos:name"), ID(":name"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("name"), ID("fos:name"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("fos:name"), ID("xyz:name"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("fos:name"), ID(":name2"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("fos:name2"), ID(":name"));
   }
 
   void test_fhat_idioms() {
     fURI nat("/int/nat");
-    TEST_ASSERT_EQUAL_STRING("nat", nat.name());
+    TEST_ASSERT_EQUAL_STRING("nat", nat.name().c_str());
     TEST_ASSERT_EQUAL_STRING("/int/nat", nat.toString().c_str());
     TEST_ASSERT_EQUAL_STRING("int", nat.path(0));
     TEST_ASSERT_EQUAL_STRING("nat", nat.path(1));
@@ -638,31 +650,31 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-    FOS_RUN_TEST(test_uri_components); //
-    FOS_RUN_TEST(test_uri_memory_leaks); //
-    FOS_RUN_TEST(test_uri_equals); //
-    FOS_RUN_TEST(test_uri_scheme); //
-    FOS_RUN_TEST(test_uri_user_password); //
-    FOS_RUN_TEST(test_uri_host); //
-    FOS_RUN_TEST(test_uri_authority); //
-    FOS_RUN_TEST(test_uri_path); //
-    FOS_RUN_TEST(test_uri_query); //
-    FOS_RUN_TEST(test_uri_scheme_path);
-    FOS_RUN_TEST(test_uri_empty); //
-    FOS_RUN_TEST(test_uri_name); //
-    //
-    FOS_RUN_TEST(test_uri_extend); //
-    // TODO: FOS_RUN_TEST(test_uri_retract);
-    // TODO: FOS_RUN_TEST(test_uri_retract_pattern);
-    FOS_RUN_TEST(test_is_relative); //
-    FOS_RUN_TEST(test_uri_branch_node);
-    FOS_RUN_TEST(test_uri_resolve); //
-    FOS_RUN_TEST(test_uri_match); //
-    //
-    FOS_RUN_TEST(test_fhat_idioms); //
-    FOS_RUN_TEST(test_pattern_pattern_matching); //
-    FOS_RUN_TEST(test_composite_mutations); //
-  )
+      FOS_RUN_TEST(test_uri_components); //
+      FOS_RUN_TEST(test_uri_memory_leaks); //
+      FOS_RUN_TEST(test_uri_equals); //
+      FOS_RUN_TEST(test_uri_scheme); //
+      FOS_RUN_TEST(test_uri_user_password); //
+      FOS_RUN_TEST(test_uri_host); //
+      FOS_RUN_TEST(test_uri_authority); //
+      FOS_RUN_TEST(test_uri_path); //
+      FOS_RUN_TEST(test_uri_query); //
+      FOS_RUN_TEST(test_uri_scheme_path);
+      FOS_RUN_TEST(test_uri_empty); //
+      FOS_RUN_TEST(test_uri_name); //
+      //
+      FOS_RUN_TEST(test_uri_extend); //
+      // TODO: FOS_RUN_TEST(test_uri_retract);
+      // TODO: FOS_RUN_TEST(test_uri_retract_pattern);
+      FOS_RUN_TEST(test_is_relative); //
+      FOS_RUN_TEST(test_uri_branch_node);
+      FOS_RUN_TEST(test_uri_resolve); //
+      FOS_RUN_TEST(test_uri_match); //
+      //
+      FOS_RUN_TEST(test_fhat_idioms); //
+      FOS_RUN_TEST(test_pattern_pattern_matching); //
+      FOS_RUN_TEST(test_composite_mutations); //
+      )
 } // namespace fhatos
 
 SETUP_AND_LOOP();

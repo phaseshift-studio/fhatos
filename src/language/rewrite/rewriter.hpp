@@ -31,7 +31,8 @@ namespace fhatos {
   struct Rewriter {
     List<Rewrite> _rewrites;
 
-    explicit Rewriter(const List<Rewrite> &rewrites) : _rewrites(rewrites) {}
+    explicit Rewriter(const List<Rewrite> &rewrites) : _rewrites(rewrites) {
+    }
 
     BCode_p apply(const BCode_p &bcode) const {
       BCode_p running = bcode;
@@ -49,90 +50,90 @@ namespace fhatos {
 
     static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
-                      [](const BCode_p &bcode) {
-                        if (bcode->bcode_value()->back()->id()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
-                          auto ex = string();
-                          auto p = Ansi<StringPrinter>(StringPrinter(&ex));
-                          // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
-                          p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
-                          const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
-                                  [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
-                                    string pad = StringHelper::repeat(depth, " ");
-                                    string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
-                                    for (const Inst_p &inst: *bcode->bcode_value()) {
-                                      p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  %s\n", inst->inst_op().c_str(),
-                                               (string(pad2) + inst->toString()).c_str(),
-                                               (string(pad) + ITypeSignatures.toChars(inst->itype())).c_str());
-                                      for (const auto &arg: inst->inst_args()) {
-                                        if (arg->is_bcode()) {
-                                          fun(arg, p, depth + 1);
-                                        }
-                                      }
-                                    }
-                                  };
-                          fun(bcode, p, 0);
-                          BCode_p rewrite = Obj::to_bcode({Insts::start(objs({Obj::to_str(ex)}))});
-                          LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
-                          return rewrite;
-                        }
-                        return bcode;
-                      },
-                      {{}, {}}});
+        [](const BCode_p &bcode) {
+          if (bcode->bcode_value()->back()->id()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
+            auto ex = string();
+            auto p = Ansi<StringPrinter>(StringPrinter(&ex));
+            // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
+            p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
+            const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
+                [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
+              string pad = StringHelper::repeat(depth, " ");
+              string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
+              for (const Inst_p &inst: *bcode->bcode_value()) {
+                p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  %s\n", inst->inst_op().c_str(),
+                         (string(pad2) + inst->toString()).c_str(),
+                         (string(pad) + ITypeSignatures.to_chars(inst->itype())).c_str());
+                for (const auto &arg: inst->inst_args()) {
+                  if (arg->is_bcode()) {
+                    fun(arg, p, depth + 1);
+                  }
+                }
+              }
+            };
+            fun(bcode, p, 0);
+            BCode_p rewrite = Obj::to_bcode({Insts::start(objs({Obj::to_str(ex)}))});
+            LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
+            return rewrite;
+          }
+          return bcode;
+        },
+        {{}, {}}});
     }
 
     static Rewrite by() {
       return Rewrite({ID("/lang/rewrite/by"),
-                      [](const BCode_p &bcode) {
-                        Inst_p prev = Obj::to_noobj();
-                        bool found = false;
-                        List<Inst_p> newInsts;
-                        for (const Inst_p &inst: *bcode->bcode_value()) {
-                          if (inst->id()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->is_noobj()) {
-                            found = true;
-                            // rewrite args
-                            bool done = false;
-                            List<Obj_p> newArgs;
-                            for (const Obj_p &arg: prev->inst_args()) {
-                              if (!done && arg->is_noobj()) {
-                                newArgs.push_back(inst->inst_arg(0));
-                                done = true;
-                              } else {
-                                newArgs.push_back(arg);
-                              }
-                            }
-                            if (!done)
-                              throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s\n",
-                                           prev->toString().c_str(), inst->toString().c_str());
-                            // rewrite inst
-                            newInsts.pop_back();
-                            newInsts.push_back(Insts::to_inst(*prev->id(), newArgs));
-                          } else {
-                            newInsts.push_back(inst);
-                          }
-                          prev = newInsts.back();
-                        }
-                        if (found) {
-                          const BCode_p rewrite = Obj::to_bcode(newInsts);
-                          LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
-                          return rewrite;
-                        }
-                        return bcode;
-                      },
-                      {{}, {}}});
+        [](const BCode_p &bcode) {
+          Inst_p prev = Obj::to_noobj();
+          bool found = false;
+          List<Inst_p> newInsts;
+          for (const Inst_p &inst: *bcode->bcode_value()) {
+            if (inst->id()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->is_noobj()) {
+              found = true;
+              // rewrite args
+              bool done = false;
+              List<Obj_p> newArgs;
+              for (const Obj_p &arg: prev->inst_args()) {
+                if (!done && arg->is_noobj()) {
+                  newArgs.push_back(inst->inst_arg(0));
+                  done = true;
+                } else {
+                  newArgs.push_back(arg);
+                }
+              }
+              if (!done)
+                throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s\n",
+                             prev->toString().c_str(), inst->toString().c_str());
+              // rewrite inst
+              newInsts.pop_back();
+              newInsts.push_back(Insts::to_inst(*prev->id(), newArgs));
+            } else {
+              newInsts.push_back(inst);
+            }
+            prev = newInsts.back();
+          }
+          if (found) {
+            const BCode_p rewrite = Obj::to_bcode(newInsts);
+            LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
+            return rewrite;
+          }
+          return bcode;
+        },
+        {{}, {}}});
     }
 
     static Rewrite starts(const Objs_p &starts) {
       return Rewrite({ID("/lang/rewrite/starts"),
-                      [starts](const BCode_p &bcode) {
-                        if (starts->is_noobj())
-                          return bcode;
-                        List<Inst_p> new_insts = {Insts::start(starts->is_objs() ? starts : objs({starts}))};
-                        for (const Inst_p &inst: *bcode->bcode_value()) {
-                          new_insts.push_back(inst);
-                        }
-                        return Obj::to_bcode(new_insts);
-                      },
-                      {{}, {}}});
+        [starts](const BCode_p &bcode) {
+          if (starts->is_noobj())
+            return bcode;
+          List<Inst_p> new_insts = {Insts::start(starts->is_objs() ? starts : objs({starts}))};
+          for (const Inst_p &inst: *bcode->bcode_value()) {
+            new_insts.push_back(inst);
+          }
+          return Obj::to_bcode(new_insts);
+        },
+        {{}, {}}});
     }
   };
 } // namespace fhatos

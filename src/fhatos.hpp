@@ -199,12 +199,12 @@ namespace fhatos {
       (inst)->opcode().c_str(),                                                                                        \
       (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
                                : (inst)->v_args().at(0)->pattern()->v_furi()->toString().c_str(),                      \
-      (inst)->v_args().empty() ? OTypes.toChars(OType::NOOBJ) : OTypes.toChars((inst)->v_args().at(0)->otype()),       \
-      (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->is_bcode()),                         \
+      (inst)->v_args().empty() ? OTypes.to_chars(OType::NOOBJ).c_str() : OTypes.to_chars((inst)->v_args().at(0)->otype()).c_str(), \
+      (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->is_bcode()),                           \
       (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
 #define FOS_LOG_OBJ(obj)                                                                                               \
   LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
-      OTypes.toChars((obj)->otype()), (obj)->pattern()->toString().c_str());
+      OTypes.to_chars((obj)->otype()).c_str(), (obj)->pattern()->toString().c_str());
 #define NOTE(message) LOG(INFO, "%s\n", (message))
 #define FURI_WRAP "!g[!b%s!g]!!"
 

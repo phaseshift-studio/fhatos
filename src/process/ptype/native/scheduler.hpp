@@ -24,6 +24,10 @@
 ///
 #include <process/x_scheduler.hpp>
 #include <util/ptr_helper.hpp>
+#include <process/process.hpp>
+#include FOS_PROCESS(fiber.hpp)
+#include FOS_PROCESS(thread.hpp)
+#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
   class Scheduler final : public XScheduler {
@@ -40,45 +44,27 @@ namespace fhatos {
     }
 
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
-      static bool _setup = false;
+      static bool setup = false;
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
-      if (!_setup) {
+      if (!setup) {
         scheduler_p->setup();
-        _setup = true;
+        setup = true;
       }
+      scheduler_thread = share(this_thread::get_id());
       return scheduler_p;
     }
 
     bool spawn(const Process_p &process) override {
       process->setup();
       if (!process->running()) {
-        LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.toChars(process->ptype).c_str(),
+        LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
                     process->id()->toString().c_str());
         return false;
       }
-      // scheduler subscription listening for noobj "kill process" messages
-      router()->route_subscription(share(Subscription{
-        .source = fURI(*this->id()), .pattern = ID(*process->id()), .on_recv = bcode({Insts::lambda(
-          [](const Obj_p &message) {
-            LOG(DEBUG, "Stopping process %s\n", message->rec_get("target")->uri_value().toString().c_str());
-            if (message->rec_get("payload")->is_noobj() &&
-                message->rec_get("retain")->bool_value() //&&
-              /*!message->source.equals(*this->id())*/) {
-              const Option<Process_p> p = Scheduler::singleton()->processes_->find([message](const Process_p &proc) {
-                return proc->id()->equals(message->rec_get("target")->uri_value());
-              });
-              if (p.has_value())
-                p.value()->stop();
-            }
-            return noobj();
-          })})
-      }));
       ////////////////////////////////
-      bool success = false;
       switch (process->ptype) {
         case PType::THREAD: {
           static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-          success = true;
           break;
         }
         case PType::FIBER: {
@@ -86,21 +72,16 @@ namespace fhatos {
             FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
           }
           static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
-          success = true;
           break;
         }
         case PType::COROUTINE: {
-          success = true;
           break;
         }
       }
-      if (success) {
-        this->processes_->push_back(process);
-        LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                    ProcessTypes.toChars(process->ptype).c_str());
-      } else
-        router()->route_unsubscribe(this->id(), p_p(*process->id()));
-      return success;
+      this->processes_->push_back(process);
+      LOG_PROCESS(INFO, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+                  ProcessTypes.to_chars(process->ptype).c_str());
+      return true;
     }
 
     //////////////////////////////////////////////////////

@@ -77,9 +77,9 @@ namespace fhatos {
     const char *what() const noexcept override { return this->_message; };
 #endif
 
-    static void OTYPE_CHECK(const char *typeId, std::string otype) {
-      if (strcmp(typeId, otype.c_str()) != 0)
-        throw fError("!b%s!! is not a type of !y%s!!\n", typeId, otype.c_str());
+    static void OTYPE_CHECK(const std::string &type_id, const std::string &otype) {
+      if (type_id != otype.c_str())
+        throw fError("!b%s!! is not a type of !y%s!!\n", type_id, otype.c_str());
     }
   };
 } // namespace fhatos

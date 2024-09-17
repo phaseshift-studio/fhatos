@@ -21,12 +21,12 @@
 
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
-#include FOS_PROCESS(coroutine.hpp)
+#include FOS_PROCESS(fiber.hpp)
 #include <structure/stype/heap.hpp>
 
 namespace fhatos {
 
-  class SharedMemory : public Actor<Coroutine, Heap> {
+  class SharedMemory : public Actor<Fiber, Heap> {
 
   protected:
     explicit SharedMemory(const ID &id = "/memory/shared", const Pattern &pattern = "+") :

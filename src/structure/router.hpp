@@ -75,12 +75,14 @@ namespace fhatos {
           }
           return nullptr;
         });
-      LOG_STRUCTURE(INFO, this, "!yStopping!g %i !yephemeral!! | !g%i !yvariables!! | !g%i !ydatabase!! | !g%i !yhardware!! | !g%i !ynetworked!!\n",
-                    ephemeral_count->load(),
-                    variables_count->load(),
-                    database_count->load(),
-                    hardware_count->load(),
-                    networked_count->load());
+      LOG_STRUCTURE(
+        INFO, this,
+        "!yStopping!g %i !yephemeral!! | !g%i !yvariables!! | !g%i !ydatabase!! | !g%i !yhardware!! | !g%i !ynetworked!!\n",
+        ephemeral_count->load(),
+        variables_count->load(),
+        database_count->load(),
+        hardware_count->load(),
+        networked_count->load());
       delete ephemeral_count;
       delete variables_count;
       delete database_count;
@@ -93,7 +95,7 @@ namespace fhatos {
     void attach(const ptr<Structure> &structure) {
       if (structure->pattern()->equals(Pattern(""))) {
         LOG_STRUCTURE(INFO, this, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
-                      StructureTypes.toChars(structure->stype).c_str());
+                      StructureTypes.to_chars(structure->stype).c_str());
       } else {
         this->structures_mutex_.write<void *>([this, structure]() {
           for (const auto &pair: *this->structures_) {
@@ -105,7 +107,7 @@ namespace fhatos {
             }
           }
           LOG_STRUCTURE(INFO, this, FURI_WRAP " !y%s!! attached\n", structure->pattern()->toString().c_str(),
-                        StructureTypes.toChars(structure->stype).c_str());
+                        StructureTypes.to_chars(structure->stype).c_str());
           this->structures_->insert({structure->pattern(), structure});
           return nullptr;
         });
@@ -122,7 +124,7 @@ namespace fhatos {
         for (const Structure_p &structure: toRemove) {
           this->structures_->erase(structure->pattern());
           LOG_STRUCTURE(INFO, this, FURI_WRAP " !y%s!! detached\n",
-                        structure->pattern()->toString().c_str(), StructureTypes.toChars(structure->stype).c_str());
+                        structure->pattern()->toString().c_str(), StructureTypes.to_chars(structure->stype).c_str());
         }
         return nullptr;
       });
@@ -143,6 +145,7 @@ namespace fhatos {
                     retain ? "retained" : "transient", obj->toString().c_str(),
                     id->toString().c_str(), struc->pattern()->toString().c_str());
       struc->write(id, obj, retain);
+      MESSAGE_INTERCEPT(*id, obj, retain);
     }
 
     void remove(const ID_p &id) const {

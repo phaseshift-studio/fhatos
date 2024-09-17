@@ -30,7 +30,8 @@
 
 namespace fhatos {
 
-  void test_subscribe() {}
+  void test_subscribe() {
+  }
 
   void test_publish() {
     /* TEST_ASSERT_EQUAL(
@@ -51,17 +52,17 @@ namespace fhatos {
                                            {u("b"), 3}}),
                               Obj::to_noobj()};
     for (const auto &o: objs) {
-        const BObj_p bobj = o->serialize();
-        const Obj_p obj = Obj::deserialize<Obj>(bobj);
-        LOG(INFO, "%s\n", obj->toString().c_str());
-        FOS_TEST_OBJ_EQUAL(o, obj);
+      const BObj_p bobj = o->serialize();
+      const Obj_p obj = Obj::deserialize(bobj);
+      LOG(INFO, "%s\n", obj->toString().c_str());
+      FOS_TEST_OBJ_EQUAL(o, obj);
     }
   }
 
   FOS_RUN_TESTS( //
-          FOS_RUN_TEST(test_publish); //
-          FOS_RUN_TEST(test_bobj); //
-  );
+      FOS_RUN_TEST(test_publish); //
+      FOS_RUN_TEST(test_bobj); //
+      );
 
 } // namespace fhatos
 

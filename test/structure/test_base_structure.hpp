@@ -301,7 +301,7 @@ namespace fhatos {
       if (auto_loop)
         current_structure->loop();
       TEST_ASSERT_TRUE(obj->is_str());
-      TEST_ASSERT_EQUAL_STRING(furi.name(), obj->str_value().c_str());
+      TEST_ASSERT_EQUAL_STRING(furi.name().c_str(), obj->str_value().c_str());
       counter++;
     }
     TEST_ASSERT_EQUAL_INT(4, counter);

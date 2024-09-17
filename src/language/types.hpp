@@ -42,6 +42,7 @@ namespace fhatos {
       this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
       this->save_type(inst_id("mult"), Insts::mult(x(0)));
+      this->save_type(inst_id("div"), Insts::div(x(0)));
       this->save_type(inst_id("mod"), Insts::mod(x(0)));
       this->save_type(inst_id("eq"), Insts::eq(x(0)));
       this->save_type(inst_id("neq"), Insts::neq(x(0)));
@@ -111,43 +112,46 @@ namespace fhatos {
 
     void setup() override {
       Actor::setup();
-      TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &typeId) {
-        singleton()->check_type(obj, otype, typeId, true);
-        return typeId;
+      TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) {
+        singleton()->check_type(obj, otype, type_id, true);
+        return type_id;
+      };
+      TYPE_MAKER = [](const Obj_p &obj, const ID_p &type_id) {
+        return share(Obj(singleton()->read(type_id)->apply(obj)->_value,
+                         OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)), type_id));
       };
       this->load_insts();
-      this->subscribe(*this->pattern(), [](const Message_p &message) {
-        if (message->retain &&  message->target != ID("anon_tgt"))
-          Types::singleton()->save_type(id_p(message->target), message->payload, true);
-        // else { // transient provides type checking?
-        // TYPE_CHECKER(*message->payload, OTypes.toEnum(message->target.toString().c_str()),
-        // id_p(message->target));
-        //}
+      this->subscribe(*this->pattern(), [this](const Message_p &message) {
+        const ID_p type_id = id_p(message->target);
+        if (message->retain && !this->type_exists(type_id, message->payload))
+          this->save_type(type_id, message->payload, true);
       });
     }
 
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void save_type(const ID_p &typeId, const Obj_p &typeDef, const bool viaPub = false) {
+    void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false) {
       try {
-        if (!viaPub) {
-          const Obj_p current = this->read(typeId);
-          if (current != typeDef) {
+        if (!via_pub) {
+          const Obj_p current = this->read(type_id);
+          if (current != type_def) {
             if (!current->is_noobj())
-              LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", typeId->toString().c_str(),
+              LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
                         current->toString().c_str());
-            this->write(typeId, typeDef, RETAIN_MESSAGE);
+            this->write(type_id, type_def->clone(), RETAIN_MESSAGE);
           }
         }
-        LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", typeId->toString().c_str(),
-                    typeDef->toString().c_str());
+        LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
+                    type_def->toString().c_str());
       } catch (const fError &e) {
-        LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", typeId->toString().c_str(), e.what());
+        LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 
-    inline const static auto MMADT_PREFIX = fURI(FOS_MMADT_URL_PREFIX);
+    bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
+      return this->data_->count(type_id) && this->data_->at(type_id)->equals(*type_def);
+    }
 
     void save_inst_type(const ID_p &inst_id, const Inst_p &inst) {
       this->write(inst_id, inst,RETAIN_MESSAGE);
@@ -159,36 +163,36 @@ namespace fhatos {
       //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier())) */
     }
 
-    bool check_type(const Obj &obj, const OType otype, const ID_p &typeId,
-                    const bool doThrow = true) noexcept(false) {
-      const OType typeOType = OTypes.toEnum(typeId->path(FOS_BASE_TYPE_INDEX));
-      if (otype == OType::INST || otype == OType::BCODE || typeOType == OType::INST || typeOType == OType::BCODE)
+    bool check_type(const Obj &obj, const OType otype, const ID_p &type_id,
+                    const bool do_throw = true) noexcept(false) {
+      const OType type_otype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
+      if (otype == OType::INST || otype == OType::BCODE || type_otype == OType::INST || type_otype == OType::BCODE)
         return true;
-      if (otype != typeOType) {
-        if (doThrow)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", Types::singleton()->id()->toString().c_str(),
-                       obj.toString().c_str(), typeId->toString().c_str());
+      if (otype != type_otype) {
+        if (do_throw)
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->id()->toString().c_str(),
+                       obj.toString().c_str(), type_id->toString().c_str());
         return false;
       }
-      if (typeId->path_length() == (FOS_BASE_TYPE_INDEX + 1)) {
+      if (type_id->path_length() == (FOS_BASE_TYPE_INDEX + 1)) {
         // base type (otype)
         return true;
       }
-      const Obj_p type = this->read(typeId);
+      const Obj_p type = this->read(type_id);
       if (!type->is_noobj()) {
         if (obj.match(type, false)) {
           return true;
         }
-        if (doThrow)
+        if (do_throw)
           throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!\n",
-                       Types::singleton()->id()->toString().c_str(),
-                       obj.toString().c_str(), typeId->toString().c_str(), type->toString().c_str());
+                       this->id()->toString().c_str(),
+                       obj.toString().c_str(), type_id->toString().c_str(), type->toString().c_str());
         return false;
       }
-      if (doThrow)
+      if (do_throw)
         throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!\n",
-                     Types::singleton()->id()->toString().c_str(),
-                     typeId->toString().c_str());
+                     this->id()->toString().c_str(),
+                     type_id->toString().c_str());
       return false;
     }
   };

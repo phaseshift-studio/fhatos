@@ -27,6 +27,7 @@
 #include <structure/stype/id_structure.hpp>
 #include <util/options.hpp>
 #include FOS_PROCESS(coroutine.hpp)
+#include <language/insts.hpp>
 
 namespace fhatos {
   //template<class P, class S, class Process, class Structure>

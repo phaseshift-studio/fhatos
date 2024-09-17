@@ -29,7 +29,8 @@ namespace fhatos {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID &id) : Process(id, PType::THREAD), xthread(nullptr) {}
+    explicit Thread(const ID &id) : Process(id, PType::THREAD), xthread(nullptr) {
+    }
 
     ~Thread() override { delete this->xthread; }
 
@@ -39,10 +40,10 @@ namespace fhatos {
       Process::stop();
       if (this->xthread && this->xthread->joinable()) {
         try {
-          if((this->xthread->get_id() != std::this_thread::get_id()))
-            this->xthread->join();
-          else
-            this->xthread->detach();
+          // if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *scheduler_thread)
+          //   this->xthread->join();
+          // else
+          this->xthread->detach();
         } catch (const std::runtime_error &e) {
           LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
                       this->xthread->get_id(), std::this_thread::get_id());
@@ -50,7 +51,8 @@ namespace fhatos {
       }
     }
 
-    void loop() override {}
+    void loop() override {
+    }
 
     void delay(const uint64_t milliseconds) override {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));

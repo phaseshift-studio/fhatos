@@ -22,20 +22,25 @@
 #include <atomic>
 #include <fhatos.hpp>
 #include <furi.hpp>
+#include <thread>
+#include <language/obj.hpp>
 #include <util/enums.hpp>
 #include <util/ptr_helper.hpp>
 
 namespace fhatos {
+  const ID_p THREAD_FURI = share<ID>(ID(REC_FURI->resolve("thread")));
+
   class Process;
   using Process_p = ptr<Process>;
   static Process_p this_process = nullptr;
+  static ptr<thread::id> scheduler_thread = nullptr;
 
   enum class PType { THREAD, FIBER, COROUTINE };
+
   static const Enums<PType> ProcessTypes =
       Enums<PType>({{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}});
 
   class Process : public IDed {
-
   protected:
     std::atomic_bool running_ = std::atomic_bool(false);
 
@@ -43,14 +48,15 @@ namespace fhatos {
     const PType ptype;
 
 
-    explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {}
+    explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {
+    }
 
     ~Process() override = default;
 
     virtual void setup() {
       if (this->running_.load()) {
         LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(),
-            ProcessTypes.toChars(this->ptype).c_str());
+            ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       this->running_.store(true);
@@ -60,15 +66,15 @@ namespace fhatos {
     virtual void loop() {
       if (!this->running_.load()) {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
-                     ProcessTypes.toChars(this->ptype).c_str());
+                     ProcessTypes.to_chars(this->ptype).c_str());
       }
-      fhatos::this_process = PtrHelper::no_delete(this);
+       fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void stop() {
       if (!this->running_.load()) {
         LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(),
-            ProcessTypes.toChars(this->ptype).c_str());
+            ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       fhatos::this_process = PtrHelper::no_delete(this);
@@ -77,9 +83,11 @@ namespace fhatos {
 
     bool running() const { return this->running_.load(); }
 
-    virtual void delay(const uint64_t){}; // milliseconds
+    virtual void delay(const uint64_t) {
+    }; // milliseconds
 
-    virtual void yield(){};
+    virtual void yield() {
+    };
   };
 } // namespace fhatos
 

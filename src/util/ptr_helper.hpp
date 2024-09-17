@@ -74,11 +74,11 @@ namespace fhatos {
 
     template<typename T = Obj>
     static List<ptr<T>> clone(const List<T> &list) {
-      List<ptr<T>> newList = List<ptr<T>>();
+      List<ptr<T>> new_list = List<ptr<T>>();
       for (const auto &t: list) {
-        newList.push_back(share(T(t)));
+        new_list.push_back(share(T(t)));
       }
-      return newList;
+      return new_list;
     }
   };
 

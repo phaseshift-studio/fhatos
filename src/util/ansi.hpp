@@ -71,9 +71,9 @@ namespace fhatos {
 
   protected:
     PRINTER printer;
-    std::string _buffer = std::string();
-    StringPrinter _printer = StringPrinter(&_buffer);
-    bool _on = true;
+    std::string buffer_ = std::string();
+    StringPrinter printer_ = StringPrinter(&buffer_);
+    bool on_ = true;
 
 
     enum {
@@ -81,7 +81,7 @@ namespace fhatos {
     };
 
     void color(const uint8_t fgcolor, const uint8_t) {
-      if (this->_on)
+      if (this->on_)
         this->printf("\033[0;%dm", fg_normal + fgcolor);
     }
 
@@ -125,6 +125,12 @@ namespace fhatos {
             this->italic();
           else if ('*' == j)
             this->blink();
+          else if ('X' == j)
+            this->clear();
+          else if ('Q' == j)
+            this->top_left();
+          else if ('Z' == j)
+            this->bottom_left();
           else {
             if (isupper(j))
               this->bold();
@@ -146,16 +152,16 @@ namespace fhatos {
             else if ('d' == jj)
               this->black();
             else {
-              this->_printer.print(buffer[i]);
-              this->_printer.print(buffer[i + 1]);
+              this->printer_.print(buffer[i]);
+              this->printer_.print(buffer[i + 1]);
             }
           }
           i++;
         } else {
-          this->_printer.print(buffer[i]);
+          this->printer_.print(buffer[i]);
         }
       }
-      this->printer.print(this->_buffer.c_str());
+      this->printer.print(this->buffer_.c_str());
       this->flush();
     }
 
@@ -169,7 +175,7 @@ namespace fhatos {
     explicit Ansi(PRINTER printer) : printer(printer) {
     }
 
-    void on(bool turn_on = true) { this->_on = turn_on; }
+    void on(bool turn_on = true) { this->on_ = turn_on; }
 
     void print(const char c) { this->parse(&c, 1); }
 
@@ -184,7 +190,7 @@ namespace fhatos {
     PRINTER get_printer() { return this->printer; }
 
     void flush() {
-      this->_buffer.clear();
+      this->buffer_.clear();
       this->printer.flush();
     }
 
@@ -212,27 +218,32 @@ namespace fhatos {
     //////////////////////////
 
     void normal() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[0m");
     }
 
+    void clear() {
+      if (this->on_)
+        this->print("\033[2J");
+    }
+
     void italic() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[3m");
     }
 
     void underline() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[4m");
     }
 
     void bold() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[1m");
     }
 
     void blink() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[5m");
     }
 
@@ -240,6 +251,21 @@ namespace fhatos {
     //  if (this->_on)
     //    this->print("\033[40m");
     //}
+
+    ////////// POSITIONING
+
+    void top_left() {
+      if (this->on_)
+        this->print("\033[H");
+    }
+
+    void bottom_left() {
+      if (this->on_)
+        this->print("\033[F");
+    }
+
+
+    ////////// COLORING
 
     void red(const bool bright = false) { color(RED + (bright ? BRIGHT : 0), 0); }
 
@@ -258,22 +284,22 @@ namespace fhatos {
     void black(const bool bright = false) { color(BLACK + (bright ? BRIGHT : 0), 0); }
 
     void up() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[1A");
     }
 
     void down() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[1B");
     }
 
     void left() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[1D");
     }
 
     void right() {
-      if (this->_on)
+      if (this->on_)
         this->print("\033[1C");
     }
 

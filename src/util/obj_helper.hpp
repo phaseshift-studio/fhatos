@@ -36,8 +36,8 @@ namespace fhatos {
               "\t!gsize!!  (bytes) : %i\n"
               "\t!gbcode!!         : %s\n"
               "\t!gvalue!!         : %s",
-              obj.id()->name(), obj.id()->toString().c_str(), OTypes.toChars(obj.o_type()).c_str(),
-              OTypes.toChars(obj.o_type()).c_str(), obj.serialize()->first, FOS_BOOL_STR(obj.is_bcode()),
+              obj.id()->name().c_str(), obj.id()->toString().c_str(), OTypes.to_chars(obj.o_type()).c_str(),
+              OTypes.to_chars(obj.o_type()).c_str(), obj.serialize()->first, FOS_BOOL_STR(obj.is_bcode()),
               obj.is_bcode() ? obj.toString().c_str() : obj.toString(false).c_str());
       return string(a);
     }
