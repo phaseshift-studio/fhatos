@@ -105,27 +105,26 @@ namespace fhatos {
     Obj_p read(const fURI_p &furi) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      const fURI new_furi = furi->is_branch() && furi->is_pattern() ? furi->extend("+") : *furi;
-      auto thing = new std::atomic<Obj *>(nullptr);
-      if (furi->is_pattern() || furi->is_branch())
-        thing->store(new Objs(share(List<Obj_p>()), OBJS_FURI));
+      const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
+      const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
+      auto thing = new std::atomic<void *>(nullptr);
+      if (pattern_or_branch)
+        thing->store(new Map<ID_p, Obj_p>());
       this->recv_subscription(
         share(Subscription{.source = static_cast<fURI>("ABC"),
-          .pattern = new_furi,
-          .on_recv = Insts::to_bcode([this, furi, thing](const Message_p &message) {
+          .pattern = temp,
+          .on_recv = Insts::to_bcode([this, furi, thing, pattern_or_branch](const Message_p &message) {
             LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
                           furi->toString().c_str(), message->toString().c_str());
-            if (furi->is_branch()) {
-              const auto obj = ptr<Obj>(new Uri(fURI(message->target), URI_FURI));
-              thing->load()->add_obj(obj);
-            } else if (furi->is_pattern()) {
-              thing->load()->add_obj(message->payload);
+            scheduler()->feed_local_watchdog();
+            if (pattern_or_branch) {
+              static_cast<Map<ID_p, Obj_p> *>(thing->load())->insert({id_p(message->target), message->payload});
             } else {
               thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
             }
           })}));
       const time_t start_timestamp = time(nullptr);
-      if (furi->is_pattern() || furi->is_branch()) {
+      if (pattern_or_branch) {
         while (time(nullptr) - start_timestamp < 2) {
           this->native_mqtt_loop();
         }
@@ -136,19 +135,20 @@ namespace fhatos {
           this->native_mqtt_loop();
         }
       }
-      this->recv_unsubscribe(id_p("ABC"), furi_p(new_furi));
-      if (furi->is_pattern() || furi->is_branch()) {
-        auto objs = ptr<Objs>(thing->load());
+      this->recv_unsubscribe(id_p("ABC"), furi_p(temp));
+      if (pattern_or_branch) {
+        const Obj_p obj = generate_read_output(furi, *static_cast<Map<ID_p, Obj_p> *>(thing->load()));
+        delete static_cast<Map<ID_p, Obj_p> *>(thing->load());
         delete thing;
-        return objs;
+        return obj;
       }
       if (nullptr == thing->load()) {
         delete thing;
         return Obj::to_noobj();
       }
-      const auto ret = ptr<Obj>(thing->load());
+      const auto obj = ptr<Obj>(static_cast<Obj *>(thing->load()));
       delete thing;
-      return ret;
+      return obj;
     }
 
     void write(const ID_p &target, const Obj_p &obj, const bool retain) override {

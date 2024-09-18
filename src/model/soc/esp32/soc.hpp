@@ -83,27 +83,35 @@ namespace fhatos {
       // this->write_functions_.insert(
       ///////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////
-
+      /*
+                   "\t!yID             : !m%s\n"
+                          "\t!yStatus         : !m%s\n"
+                          "\t!ySSID           : !m%s\n"
+                          "\t!yMAC address    : !m%s\n"
+                          "\t!yIP address     : !m%s\n"
+                          "\t!yHostname       : !m%s\n"
+                          "\t!ymDNS name      : !m%s\n"
+                          "\t!yGateway address: !m%s\n"
+                          "\t!ySubnet mask    : !m%s\n"
+                          "\t!yDNS address    : !m%s\n"
+                          "\t!yChannel        : !m%i!!\n",*/
       ////////////
       /// WIFI ///
       ////////////
       this->read_functions_.insert(
-          {share(this->id()->resolve("wifi/md5name")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/md5name")), uri(WiFi.getHostname())}};
+          {share(this->id()->resolve("wifi/+")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{
+                 {id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())},
+                 {id_p(this->id()->resolve("wifi/ssid")), str(this->settings_.wifi_.ssids)},
+                 {id_p(this->id()->resolve("wifi/password")), str(this->settings_.wifi_.passwords)},
+                 {id_p(this->id()->resolve("wifi/md5name")), uri(WiFi.getHostname())},
+                 {id_p(this->id()->resolve("wifi/ip_addr")), uri(WiFi.localIP().toString().c_str())},
+                 {id_p(this->id()->resolve("wifi/gateway_addr")), uri(WiFi.gatewayIP().toString().c_str())},
+                 {id_p(this->id()->resolve("wifi/subnet_mask")), uri(WiFi.subnetMask().toString().c_str())},
+                 {id_p(this->id()->resolve("wifi/dns_addr")), uri(WiFi.dnsIP().toString().c_str())},
+                 {id_p(this->id()->resolve("wifi/channel")), jnt(WiFi.channel())}};
            }});
-      this->read_functions_.insert(
-          {share(this->id()->resolve("wifi/connected")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())}};
-           }});
-      this->read_functions_.insert(
-          {share(this->id()->resolve("wifi/ssid")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/ssid")), str(this->settings_.wifi_.ssids)}};
-           }});
-      this->read_functions_.insert({share(this->id()->resolve("wifi/password")), [this](const fURI_p furi) {
-                                      return Map<ID_p, Obj_p>{
-                                          {id_p(this->id()->resolve("wifi/password")),
-                                           str(StringHelper::repeat(strlen(this->settings_.wifi_.passwords), "*"))}};
-                                    }});
+
       this->write_functions_.insert(
           {share(this->id()->resolve("wifi/connected")), [this](const fURI_p furi, const Obj_p &obj) {
              if (obj->is_bool()) {
@@ -117,6 +125,7 @@ namespace fhatos {
              }
              return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())}};
            }});
+
       //////////////
       /// MEMORY ///
       //////////////
@@ -151,6 +160,8 @@ namespace fhatos {
                             ? 0.0f
                             : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}};
            }});
+
+
       this->read_functions_.insert(
           {share(this->id()->resolve("pin/+")), [this](const fURI_p furi) {
              Map<ID_p, Obj_p> map;
@@ -164,14 +175,28 @@ namespace fhatos {
              }
              return map;
            }});
+      this->write_functions_.insert(
+          {share(this->id()->resolve("pin/+")), [this](const fURI_p furi, const Obj_p &obj) {
+             Map<ID_p, Obj_p> map;
+             if (StringHelper::is_integer(furi->name())) {
+               uint8_t pin_number = stoi(furi->name());
+               digitalWrite(pin_number, obj->int_value());
+               map.insert({id_p(*furi), obj});
+             } else {
+               for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
+                 map.insert({id_p(this->id()->resolve(fURI(string("pin/") + to_string(i)))), jnt(digitalRead(i))});
+               }
+             }
+             return map;
+           }});
       ///////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////
 
 
       ///////////////////////////////////////////////////////
       ///////////////////////////////////////////////////////
-      // Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>"
-      // FOS_TYPE_PREFIX "real/%%[_]]"));
+      // Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX
+      // "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>" FOS_TYPE_PREFIX "real/%%[_]]"));
       //// this->write_memory_stats(INST);
       // this->write_memory_stats(HEAP);
       // this->write_memory_stats(PSRAM);

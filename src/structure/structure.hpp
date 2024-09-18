@@ -151,44 +151,79 @@ namespace fhatos {
 
     virtual void publish_retained(const Subscription_p &subscription) = 0;
 
-    virtual Obj_p read(const fURI_p &furi) {
-      if (furi->is_branch())
-        return furi->is_pattern() ? this->read_branch_pattern(*furi) : this->read_branch_id(*furi);
-      return furi->is_pattern() ? this->read_node_pattern(*furi) : this->read_node_id(*furi);
-    }
+    virtual Obj_p read(const fURI_p &furi) = 0;
 
     virtual void write(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
     /////////////////////////////////////////////////////////////////////////////
   protected:
+    static Obj_p generate_read_output(const fURI_p &furi, const Map<ID_p, Obj_p> &matches) {
+      if (furi->is_branch()) {
+        const Rec_p rec = Obj::to_rec();
+        // BRANCH PATTERN
+        if (furi->is_pattern()) {
+          Objs_p objs = Obj::to_objs();
+          for (const auto &[key,value]: matches) {
+            objs->add_obj(uri(key));
+          }
+          return objs;
+        }
+        // BRANCH ID
+        else {
+          if (matches.empty())
+            return noobj();
+          for (const auto &[key,value]: matches) {
+            rec->rec_set(uri(key), value);
+          }
+          return rec;
+        }
+      } else {
+        // NODE PATTERN
+        if (furi->is_pattern()) {
+          const Objs_p objs = Obj::to_objs();
+          for (const auto &[key,value]: matches) {
+            objs->add_obj(value);
+          }
+          return objs;
+        }
+        // NODE ID
+        else {
+          return matches.empty() ? noobj() : matches.begin()->second;
+        }
+      }
+    }
+
     /**
      * @brief pattern match branches of the structure
      * @return a stream of all objs matching the pattern
      */
-    virtual Objs_p read_branch_pattern(const Pattern &branch_pattern) const {
-      return noobj();
-    }
+    /*  virtual Objs_p read_branch_pattern(const Pattern &branch_pattern) const {
+        return noobj();
+      }*/
+
     /**
      * @brief fetch a branch of the structure
      * @return a rec of the nodes at that branch (noobj if branch doesn't exist)
      */
-    virtual Rec_p read_branch_id(const ID &branch_id) const {
-      return noobj();
-    }
+    /*  virtual Rec_p read_branch_id(const ID &branch_id) const {
+        return noobj();
+      }*/
+
     /**
      * @brief pattern match nodes of the structure
      * @return a stream of all the objs matching the pattern
      */
-    virtual Objs_p read_node_pattern(const Pattern &node_pattern) const {
+    /*virtual Objs_p read_node_pattern(const Pattern &node_pattern) const {
       return noobj();
-    }
+    }*/
+
     /**
      * @brief fetch a node of the structure
      * @return the obj at that node in the structure (noobj if node doesn't exist)
      */
-    virtual Obj_p read_node_id(const ID &node_id) const {
+    /*virtual Obj_p read_node_id(const ID &node_id) const {
       return noobj();
-    }
+    }*/
 
     ID_p resolve_id(const ID_p &key_id) const {
       return key_id->is_relative() ? id_p(this->pattern()->resolve(*key_id)) : key_id;

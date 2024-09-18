@@ -90,7 +90,7 @@ void setup() {
         ->boot<System>(System::singleton())
 #endif
         ////////////////////////////////////////////////////////////
-        ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
+     //   ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/terminal/"))
         ->boot<Parser>(Parser::singleton("/parser/"))
@@ -100,7 +100,7 @@ void setup() {
 #ifdef NATIVE
         ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
 #endif
-        ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
+   //     ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
 #ifdef NATIVE
         ->model({ID("/model/sys"), ID("/model/pubsub")})
 #endif

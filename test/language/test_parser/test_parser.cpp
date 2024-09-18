@@ -21,10 +21,10 @@
 
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
-#include <language/parser.hpp>
 #include <test_fhatos.hpp>
 #include <language/exts.hpp>
 
@@ -258,7 +258,7 @@ namespace fhatos {
 
   void test_define_as_parsing() {
     FOS_CHECK_RESULTS<Obj>({*parse("is(mod(2).eq(0))")},
-                           FOS_TYPE_PREFIX "int/even.->(|(is(mod(2).eq(0))))"); // TODO: parse is off for ->
+                           FOS_TYPE_PREFIX "int/even.->|(is(mod(2).eq(0)))"); // TODO: parse is off for ->
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
     FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{even[32]}.type()");

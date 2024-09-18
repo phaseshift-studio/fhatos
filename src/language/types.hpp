@@ -112,13 +112,18 @@ namespace fhatos {
 
     void setup() override {
       Actor::setup();
-      TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) {
+      TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) -> ID_p {
         singleton()->check_type(obj, otype, type_id, true);
         return type_id;
       };
-      TYPE_MAKER = [](const Obj_p &obj, const ID_p &type_id) {
-        return share(Obj(singleton()->read(type_id)->apply(obj)->_value,
-                         OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)), type_id));
+      TYPE_MAKER = [](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
+        const Obj_p type_def = singleton()->read(type_id);
+        // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
+        const Obj_p proto_obj = is_base_type(type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
+        if (proto_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", singleton()->id()->toString().c_str(),
+                       obj->toString().c_str(), type_id->toString().c_str());
+        return share(Obj(proto_obj->_value, OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)), type_id));
       };
       this->load_insts();
       this->subscribe(*this->pattern(), [this](const Message_p &message) {
@@ -161,6 +166,10 @@ namespace fhatos {
                   uri(MMADT_PREFIX.extend(inst_id->toString().c_str()) //id_p(URI_FURI->extend("url")), source,
           //        RETAIN_MESSAGE);
       //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier())) */
+    }
+
+    static bool is_base_type(const ID_p &type_id) {
+      return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1;
     }
 
     bool check_type(const Obj &obj, const OType otype, const ID_p &type_id,

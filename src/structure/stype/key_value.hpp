@@ -86,39 +86,52 @@ namespace fhatos {
       distribute_to_subscribers(message_p(*target, payload, retain));
     }
 
-    virtual Obj_p read_branch_pattern(const Pattern &branch_pattern) const override {
-      Objs_p objs = Obj::to_objs();
-      for (const auto &[f, o]: *this->data_) {
-        if (f->matches(branch_pattern.extend("+"))) {
-          objs->add_obj(uri(f));
-        }
+    Obj_p read(const fURI_p &furi) override {
+      if (furi->is_node() && !furi->is_pattern())
+        return this->data_->count(id_p(*furi)) ? this->data_->at(id_p(*furi)) : noobj();
+      //////////////////////////////////////////////////////////////////////////////////
+      Map<ID_p, Obj_p> matches;
+      const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
+      for (const auto &[key,value]: *this->data_) {
+        if (key->matches(temp))
+          matches.insert({key, value});
       }
-      return objs;
+      return generate_read_output(furi, matches);
     }
 
-    virtual Rec_p read_branch_id(const ID &branch_id) const override {
-      Rec_p rec = Obj::to_rec(share(Obj::RecMap<>())); // x/y/
-      const Pattern match = branch_id.extend("+");
-      for (const auto &[f, o]: *this->data_) {
-        if (f->matches(match))
-          rec->rec_set(uri(f), o);
-      }
-      return rec->rec_value()->empty() ? noobj() : rec;
-    }
+    /* virtual Obj_p read_branch_pattern(const Pattern &branch_pattern) const override {
+       Objs_p objs = Obj::to_objs();
+       for (const auto &[f, o]: *this->data_) {
+         if (f->matches(branch_pattern.extend("+"))) {
+           objs->add_obj(uri(f));
+         }
+       }
+       return objs;
+     }
 
-    virtual Objs_p read_node_pattern(const Pattern &node_pattern) const override {
-      Objs_p objs = Obj::to_objs();
-      for (const auto &[f, o]: *this->data_) {
-        if (f->matches(node_pattern)) {
-          objs->add_obj(o);
-        }
-      }
-      return objs;
-    }
+     virtual Rec_p read_branch_id(const ID &branch_id) const override {
+       Rec_p rec = Obj::to_rec(share(Obj::RecMap<>())); // x/y/
+       const Pattern match = branch_id.extend("+");
+       for (const auto &[f, o]: *this->data_) {
+         if (f->matches(match))
+           rec->rec_set(uri(f), o);
+       }
+       return rec->rec_value()->empty() ? noobj() : rec;
+     }
 
-    virtual Obj_p read_node_id(const ID &node_id) const override {
-      return data_->count(id_p(node_id)) ? data_->at(id_p(node_id)) : noobj();
-    }
+     virtual Objs_p read_node_pattern(const Pattern &node_pattern) const override {
+       Objs_p objs = Obj::to_objs();
+       for (const auto &[f, o]: *this->data_) {
+         if (f->matches(node_pattern)) {
+           objs->add_obj(o);
+         }
+       }
+       return objs;
+     }
+
+     virtual Obj_p read_node_id(const ID &node_id) const override {
+       return data_->count(id_p(node_id)) ? data_->at(id_p(node_id)) : noobj();
+     }*/
   };
 } // namespace fhatos
 

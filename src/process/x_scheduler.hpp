@@ -156,7 +156,7 @@ namespace fhatos {
       this->current_barrier_ = id_p(label);
 
       if (message)
-        LOG(INFO, message);
+        LOG_PROCESS(INFO, this, message);
       /// barrier break with noobj
       /*this->subscribe("", [this, label](const Message_p &message) {
         if (message->payload->is_noobj())

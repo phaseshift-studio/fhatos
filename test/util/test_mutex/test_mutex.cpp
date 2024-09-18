@@ -138,7 +138,6 @@ namespace fhatos {
   FOS_RUN_TESTS( //
           FOS_RUN_TEST(test_mutex_deque_methods); //
           FOS_RUN_TEST(test_mutex_deque_concurrently); //
-          scheduler()->stop(); //
   );
 } // namespace fhatos
 
