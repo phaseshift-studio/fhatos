@@ -363,8 +363,9 @@ namespace fhatos {
     current_structure->remove(id_p(*make_test_pattern("x/0")));
     current_structure->remove(id_p(*make_test_pattern("x/aaa")));
     for (int i = 1; i < 4; i++) {
-      const Objs_p objs3 = current_structure->read(
-        p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/"))));
+      const Pattern_p p = p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/")));
+      LOG(DEBUG,"!yRemove pattern!!: !b%s!!\n",p->toString().c_str());
+      const Objs_p objs3 = current_structure->read(p);
       for (const Uri_p &u: *objs3->objs_value()) {
         current_structure->remove(id_p(u->uri_value()));
       }

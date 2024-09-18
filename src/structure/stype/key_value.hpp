@@ -92,11 +92,11 @@ namespace fhatos {
       return mutex_data_.read<Objs_p>([this, furi]() {
         // FURI BRANCH
         if (furi->is_branch()) {
-          // x/+/
+          // x/+/ const fURI new_furi = furi->is_branch() && furi->is_pattern() ? furi->extend("+") : *furi;
           if (furi->is_pattern()) {
             Objs_p objs = Obj::to_objs();
             for (const auto &[f, o]: *this->data_) {
-              if (f->matches(*furi)) {
+              if (f->matches(furi->extend("+"))) {
                 objs->add_obj(uri(f));
               }
             }
