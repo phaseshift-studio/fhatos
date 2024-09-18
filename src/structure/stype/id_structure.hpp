@@ -49,7 +49,7 @@ namespace fhatos {
       distribute_to_subscribers(share(Message{.target = *id, .payload = obj, .retain = retain}));
     }
 
-    Obj_p read(const fURI_p &furi) override {
+    Obj_p read(const fURI_p &furi) override  {
       FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       return furi->matches(*this->pattern()) ? this->id_obj_ : noobj();

@@ -16,11 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#define FOS_DEPLOY_SCHEDULER
+/*#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPES
-#define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_SHARED_MEMORY*/
 #include <furi.hpp>
 #include <test_fhatos.hpp>
 
@@ -568,6 +568,13 @@ namespace fhatos {
     FOS_TEST_ASSERT_MATCH_FURI(ID("/soc/pin/1"), Pattern("/soc/pin/#"));
     FOS_TEST_ASSERT_MATCH_FURI(ID("/soc/pin/1/"), Pattern("/soc/pin/+/"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/soc/pin/1"), Pattern("/soc/pin/+/"));
+    ///////////////////////////////////
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("x/#"), ID("x/"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("x/"), Pattern("x/#"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("x/"), Pattern("+/#"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("+/#"), ID("x/"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("x/"), Pattern("+/+"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("+/+"), ID("x/"));
   }
 
   void test_fhat_idioms() {
@@ -672,7 +679,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_fhat_idioms); //
       FOS_RUN_TEST(test_pattern_pattern_matching); //
       FOS_RUN_TEST(test_composite_mutations); //
-  )
+      )
 } // namespace fhatos
 
 SETUP_AND_LOOP();

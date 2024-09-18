@@ -39,7 +39,8 @@ namespace fhatos {
   public:
     Monad() = delete;
 
-    explicit Monad(const Obj_p &obj, const Inst_p &inst) : obj_(obj->clone()), inst_(inst) { // TODO: figure out how to not require a clone()
+    explicit Monad(const Obj_p &obj, const Inst_p &inst) : obj_(obj->clone()), inst_(inst) {
+      // TODO: figure out how to not require a clone()
     }
 
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
@@ -200,7 +201,7 @@ namespace fhatos {
   }
 
 
-  static void load_processor() {
+  [[maybe_unused]] static void load_processor() {
     BCODE_PROCESSOR = [](const Objs_p &starts, const BCode_p &bcode) {
       return Processor<Obj>(bcode, starts).to_objs();
     };

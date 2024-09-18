@@ -32,9 +32,9 @@ namespace fhatos {
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
-      {URI_PART::SCHEME, "scheme"},     {URI_PART::USER, "user"},   {URI_PART::PASSWORD, "password"},
-      {URI_PART::HOST, "host"},         {URI_PART::PORT, "port"},   {URI_PART::PATH, "path"},
-      {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
+    {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
+    {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
+    {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
   };
 
   class fURI {
@@ -400,7 +400,7 @@ namespace fhatos {
       if ((strlen(this->host()) == 0 && strlen(pattern.host()) != 0) ||
           (strcmp(pattern.host(), "+") != 0 &&
            strcmp(this->host(), pattern.host()) !=
-               0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
+           0)) // TODO: this should be just to authority as user:pass can't be wildcard matched ??
         return false;
       if (strcmp(pattern.user(), "#") == 0)
         return true;
@@ -410,7 +410,7 @@ namespace fhatos {
         return true;
       if (strcmp(pattern.password(), "+") != 0 && strcmp(this->password(), pattern.password()) != 0)
         return false;
-      for (size_t i = 0; i < pattern.path_length(); i++) {
+      for (uint8_t i = 0; i < pattern.path_length(); i++) {
         if (strcmp(pattern.path(i), "#") == 0)
           return true;
         if (0 == i && (this->sprefix_ != pattern.sprefix_))
@@ -418,7 +418,7 @@ namespace fhatos {
         if (strcmp(pattern.path(i), "+") == 0) {
           if (strcmp(this->path(i), "#") == 0)
             return false;
-          if (this->is_branch() != pattern.is_branch())
+          if ((i == (pattern.path_length_ - 1)) && this->is_branch() != pattern.is_branch())
             return false;
           if (this->path_length_ <= i && this->spostfix_)
             return true;
@@ -467,7 +467,8 @@ namespace fhatos {
       }
     }
 
-    fURI(const string &uriString) : fURI(uriString.c_str()) {}
+    fURI(const string &uriString) : fURI(uriString.c_str()) {
+    }
 
     fURI(const char *uriChars) {
       if (strlen(uriChars) == 0)
@@ -672,11 +673,14 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const ID &id) : fURI(id.toString()) {}
+    ID(const ID &id) : fURI(id.toString()) {
+    }
 
-    ID(const fURI &id) : fURI(id.toString()) {}
+    ID(const fURI &id) : fURI(id.toString()) {
+    }
 
-    ID(const string &furi_string) : ID(furi_string.c_str()) {}
+    ID(const string &furi_string) : ID(furi_string.c_str()) {
+    }
 
     ID(const char *furi_characters) : fURI(furi_characters) {
       if (strchr(furi_characters, '#')) {
@@ -691,13 +695,17 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
-    Pattern(const Pattern &uri) : fURI(uri) {}
+    Pattern(const Pattern &uri) : fURI(uri) {
+    }
 
-    Pattern(const fURI &uri) : fURI(uri) {}
+    Pattern(const fURI &uri) : fURI(uri) {
+    }
 
-    Pattern(const string &uri_string) : fURI(uri_string){};
+    Pattern(const string &uri_string) : fURI(uri_string) {
+    };
 
-    Pattern(const char *uri_chars) : fURI(uri_chars){};
+    Pattern(const char *uri_chars) : fURI(uri_chars) {
+    };
   };
 
   using fURI_p = ptr<fURI>;
@@ -720,9 +728,11 @@ namespace fhatos {
     ID_p id_;
 
   public:
-    explicit IDed(const fURI_p &uri) : id_(share(ID(uri->toString()))) {}
+    explicit IDed(const fURI_p &uri) : id_(share(ID(uri->toString()))) {
+    }
 
-    explicit IDed(const ID_p &id) : id_(id) {}
+    explicit IDed(const ID_p &id) : id_(id) {
+    }
 
     [[nodiscard]] ID_p id() const override { return this->id_; }
 
@@ -748,9 +758,11 @@ namespace fhatos {
     Pattern_p pattern_;
 
   public:
-    explicit Patterned(const fURI_p &uri) : pattern_(share(Pattern(uri->toString()))) {}
+    explicit Patterned(const fURI_p &uri) : pattern_(share(Pattern(uri->toString()))) {
+    }
 
-    explicit Patterned(const Pattern_p &type) : pattern_(share(Pattern(*type))) {}
+    explicit Patterned(const Pattern_p &type) : pattern_(share(Pattern(*type))) {
+    }
 
     [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }
 

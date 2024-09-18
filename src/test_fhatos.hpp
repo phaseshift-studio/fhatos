@@ -30,6 +30,13 @@
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
   Options::singleton()->log_level(FOS_LOGGING);
+#ifdef FOS_DEPLOY_PROCESSOR
+#include <language/processor.hpp>
+#define FOS_DEPLOY_PROCESSOR_2 load_processor();
+#else
+#define FOS_DEPLOY_PROCESSOR_2 ;
+#endif
+
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
 #define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
@@ -88,6 +95,7 @@ namespace fhatos {
   void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
+      FOS_DEPLOY_PROCESSOR_2                                                                                           \
       FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_ROUTER_2                                                                                              \
       FOS_DEPLOY_PARSER_2                                                                                              \
@@ -118,12 +126,16 @@ namespace fhatos {
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
     SETUP_AND_LOOP_2                                                                                                   \
-    load_processor();                                                                                                  \
     RUN_UNITY_TESTS();                                                                                                 \
   };
-  void loop() {}                                                                                                       \
-  void setUp() {}                                                                                                      \
-  void tearDown() { FOS_STOP_ON_BOOT; }
+
+void loop() {
+}
+
+void setUp() {
+}
+
+void tearDown() { FOS_STOP_ON_BOOT; }
 
 
 //////////////////////////////////////
@@ -211,6 +223,7 @@ using namespace fhatos;
       TEST_FAIL();                                                                                                     \
   }
 
+#ifdef FOS_DEPLOY_PARSER
 template<typename OBJ = Obj>
 static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
@@ -224,6 +237,7 @@ static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool prin
   }
   return result;
 }
+#endif
 
 template<typename OBJ = Obj>
 static void FOS_TEST_OBJ_GT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
