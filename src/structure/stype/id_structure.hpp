@@ -28,27 +28,25 @@ namespace fhatos {
   protected:
     Obj_p id_obj_ = noobj();
 
-    explicit IDStructure(const ID_p &id) : Structure(Pattern(*id), SType::EPHEMERAL) {
-    }
+    explicit IDStructure(const Pattern &id) : Structure(id, SType::EPHEMERAL) {}
 
   public:
-    static ptr<IDStructure> create(const ID_p &id) {
-      auto id_structure_p = ptr<IDStructure>(new IDStructure(id));
+    static ptr<IDStructure> create(const Pattern_p &id) {
+      auto id_structure_p = ptr<IDStructure>(new IDStructure(*id));
       return id_structure_p;
     }
 
     void publish_retained(const Subscription_p &subscription) override {
       if (!this->id_obj_->is_noobj() && this->pattern()->matches(subscription->pattern)) {
-        (*subscription->on_recv)(share(Message{.target = ID(*this->pattern()), .payload = id_obj_, .retain = RETAIN_MESSAGE
-        })->to_rec());
+        (*subscription->on_recv)(
+            share(Message{.target = ID(*this->pattern()), .payload = id_obj_, .retain = RETAIN_MESSAGE})->to_rec());
       }
     }
 
     void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      if (id->equals(*this->pattern()) && retain) {
+      if (this->pattern()->equals(*id) && retain)
         this->id_obj_ = obj;
-        distribute_to_subscribers(share(Message{.target = ID(*this->pattern()), .payload = obj, .retain = retain}));
-      }
+      distribute_to_subscribers(share(Message{.target = *id, .payload = obj, .retain = retain}));
     }
 
     Obj_p read(const fURI_p &furi) override {
@@ -57,5 +55,5 @@ namespace fhatos {
       return furi->matches(*this->pattern()) ? this->id_obj_ : noobj();
     }
   };
-}
+} // namespace fhatos
 #endif

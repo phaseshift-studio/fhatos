@@ -208,14 +208,6 @@ namespace fhatos {
 #define NOTE(message) LOG(INFO, "%s\n", (message))
 #define FURI_WRAP "!g[!b%s!g]!!"
 
-#ifndef FOS_MAILBOX_WARNING_SIZE
-#define FOS_MAILBOX_WARNING_SIZE 15
-#endif
-
-#ifndef FOS_DEFAULT_SOURCE_ID
-#define FOS_DEFAULT_SOURCE_ID STR(anon)
-#endif
-
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
   ////////////////////////////

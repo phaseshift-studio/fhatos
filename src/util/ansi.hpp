@@ -206,10 +206,10 @@ namespace fhatos {
     }
 
     void printf(const char *format, ...) {
-      char message[1024];
+      char message[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(message, 1023, format, arg);
+      int length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
       va_end(arg);
       message[length] = '\0';
       this->parse(message, length);

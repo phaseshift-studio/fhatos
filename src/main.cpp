@@ -100,12 +100,11 @@ void setup() {
 #ifdef NATIVE
         ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
 #endif
- //       ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
+ //     ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
 #ifdef NATIVE
         ->model({ID("/model/sys"), ID("/model/pubsub")})
 #endif
-        ->boot<Console>(Console::create("/home/root/repl/"))
-        ->initial_terminal_owner("/home/root/repl/")
+        ->boot<Console>(Console::create("/home/root/repl/","/terminal/"))
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),

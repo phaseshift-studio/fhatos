@@ -66,44 +66,8 @@ namespace fhatos {
     explicit SoC(const ID &id = "/soc/", const Settings &settings = DEFAULT_SETTINGS) : Actor(id), settings_(settings) {
       if (false && strlen(settings_.wifi_.md5name) > 0)
         this->connect_to_wifi_station();
-      // TODO: *pin/a0
       // TODO: flash/partition/0x44343
     }
-
-
-    /*enum MEM_TYPE { INST, HEAP, PSRAM };
-    void write_memory_stats(MEM_TYPE mem_type) {
-      switch (mem_type) {
-        case INST:
-          this->write(id_p(this->id_->extend("inst")),
-                      parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                            ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
-                            ESP.getSketchSize() == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                     ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace())))))),
-                      RETAIN_MESSAGE);
-          break;
-        case HEAP:
-          this->write(id_p(this->id_->extend("heap")),
-                      parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
-                            ESP.getFreeHeap(),
-                            ESP.getHeapSize() == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize()))))),
-                      RETAIN_MESSAGE);
-          break;
-        case PSRAM:
-          this->write(id_p(this->id_->extend("psram")),
-                      parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
-                            ESP.getFreePsram(),
-                            ESP.getPsramSize() == 0
-                                ? 0.0f
-                                : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize()))))),
-                      RETAIN_MESSAGE);
-          break;
-      }
-    }*/
 
   public:
     static ptr<SoC> singleton(const ID id = "/soc/", const Settings &settings = DEFAULT_SETTINGS) {
@@ -114,6 +78,48 @@ namespace fhatos {
     virtual void setup() override {
       Actor::setup();
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse("is(gte(0.0)).is(lte(100.0))"));
+      ///////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////
+      // this->write_functions_.insert(
+      ///////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////
+
+      ////////////
+      /// WIFI ///
+      ////////////
+      this->read_functions_.insert(
+          {share(this->id()->resolve("wifi/md5name")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/md5name")), uri(WiFi.getHostname())}};
+           }});
+      this->read_functions_.insert(
+          {share(this->id()->resolve("wifi/connected")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())}};
+           }});
+      this->read_functions_.insert(
+          {share(this->id()->resolve("wifi/ssid")), [this](const fURI_p furi) {
+             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/ssid")), str(this->settings_.wifi_.ssids)}};
+           }});
+      this->read_functions_.insert({share(this->id()->resolve("wifi/password")), [this](const fURI_p furi) {
+                                      return Map<ID_p, Obj_p>{
+                                          {id_p(this->id()->resolve("wifi/password")),
+                                           str(StringHelper::repeat(strlen(this->settings_.wifi_.passwords), "*"))}};
+                                    }});
+      this->write_functions_.insert(
+          {share(this->id()->resolve("wifi/connected")), [this](const fURI_p furi, const Obj_p &obj) {
+             if (obj->is_bool()) {
+               if (obj->bool_value()) {
+                 if (!WiFi.isConnected())
+                   connect_to_wifi_station();
+               } else {
+                 if (WiFi.isConnected())
+                   WiFi.disconnect();
+               }
+             }
+             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())}};
+           }});
+      //////////////
+      /// MEMORY ///
+      //////////////
       this->read_functions_.insert(
           {share(this->id()->resolve("memory/inst")), [this](const fURI_p furi) {
              return Map<ID_p, Obj_p>{
@@ -158,7 +164,12 @@ namespace fhatos {
              }
              return map;
            }});
+      ///////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////
 
+
+      ///////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////
       // Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>"
       // FOS_TYPE_PREFIX "real/%%[_]]"));
       //// this->write_memory_stats(INST);

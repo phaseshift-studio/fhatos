@@ -54,10 +54,10 @@ namespace fhatos {
     }
 
     static string format(const char *format, ...) {
-      char message[1024];
+      char message[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      vsnprintf(message, 1024, format, arg);
+      vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
       va_end(arg);
       return string(message);
     }

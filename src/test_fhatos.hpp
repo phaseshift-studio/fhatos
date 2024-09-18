@@ -296,7 +296,7 @@ static void FOS_CHECK_RESULTS(
       const Obj temp = value;
       router()->route_subscription(share<Subscription>(
         Subscription{
-          .source = ID(FOS_DEFAULT_SOURCE_ID),
+          .source = ID("fhatty"),
           .pattern = key.uri_value(),
           .on_recv = Insts::to_bcode([temp](const ptr<Message> &message) {
             TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,

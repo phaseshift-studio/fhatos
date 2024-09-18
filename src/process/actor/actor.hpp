@@ -36,12 +36,10 @@ namespace fhatos {
   template<typename PROCESS = Process, typename STRUCTURE = Structure>
   class Actor
       : public PROCESS,
-        public STRUCTURE,
-        public enable_shared_from_this<Actor<PROCESS, STRUCTURE>> {
+        public STRUCTURE {
   public:
     explicit Actor(const ID &id, const Pattern &pattern): PROCESS(id),
-                                                          STRUCTURE(pattern),
-                                                          enable_shared_from_this<Actor<PROCESS, STRUCTURE>>() {
+                                                          STRUCTURE(pattern) {
       static_assert(std::is_base_of_v<Process, PROCESS>);
       static_assert(std::is_base_of_v<Structure, STRUCTURE>);
     }
@@ -77,16 +75,6 @@ namespace fhatos {
       router()->route_unsubscribe(this->id(), pattern);
     }
 
-    /*void output(const char *format, ...) {
-      char buffer[1024];
-      va_list arg;
-      va_start(arg, format);
-      int length = vsnprintf(buffer, 1024, format, arg);
-      buffer[length] = '\0';
-      va_end(arg);
-      this->publish(this->id()->extend("output"), Obj::to_str(buffer));
-    }*/
-
     virtual bool active() {
       return this->available() && this->running();
     }
@@ -97,7 +85,7 @@ namespace fhatos {
       STRUCTURE::setup();
       PROCESS::setup();
       if (!this->id_->matches(*this->pattern())) {
-        const ptr<IDStructure> id_struct = IDStructure::create(this->id());
+        const ptr<IDStructure> id_struct = IDStructure::create(p_p(*this->id()));
         router()->attach(id_struct);
         id_struct->setup();
       }

@@ -97,14 +97,9 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> initial_terminal_owner(const ID &output) {
-      Terminal::currentOut(share(output));
-      return Kernel::build();
-    }
-
     static void done(const char *barrier = "kernel_barrier", Supplier<bool> ret = nullptr) {
       Scheduler::singleton()->barrier(barrier, ret,
-                                      FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!");
+                                      FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
       exit(EXIT_SUCCESS);
     }

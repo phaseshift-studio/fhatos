@@ -23,6 +23,7 @@ FhatOS: A Distributed Operating System
 #include <furi.hpp>
 #include <language/obj.hpp>
 #include <structure/structure.hpp>
+#include <util/options.hpp>
 #include <util/pubsub_helper.hpp>
 
 namespace fhatos {
@@ -30,12 +31,31 @@ namespace fhatos {
   protected:
     //<query, function<query, <id,result>>
     Map<fURI_p, Function<fURI_p, Map<ID_p, Obj_p>>, furi_p_less> read_functions_;
+    Map<fURI_p, BiFunction<fURI_p, Obj_p, Map<ID_p, Obj_p>>, furi_p_less> write_functions_;
     Map<ID_p, Obj_p, furi_p_less> history{};
 
     explicit External(const Pattern &pattern,
-                      const Map<fURI_p, Function<fURI_p, Map<ID_p, Obj_p>>, furi_p_less> &data_map = {}) :
+                      const Map<fURI_p, Function<fURI_p, Map<ID_p, Obj_p>>, furi_p_less> &read_map = {},
+                      const Map<fURI_p, BiFunction<fURI_p, Obj_p, Map<ID_p, Obj_p>>, furi_p_less> &write_map = {}) :
         Structure(pattern, SType::EPHEMERAL),
-        read_functions_(data_map) {}
+        read_functions_(read_map), write_functions_(write_map) {}
+
+    virtual void write(const ID_p &id, const Obj_p &obj, bool retain) override {
+      Map<ID_p, Obj_p> map;
+      for (const auto &[furi, func]: this->write_functions_) {
+        if (id->matches(*furi) || furi->matches(*id)) {
+          for (const auto &[key, value]: func(id, obj)) {
+            map.insert({key, value});
+          }
+          Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+        }
+      }
+      if (!retain || map.empty())
+        return;
+      for (const auto &sub: *this->subscriptions_) {
+        this->publish_retained_map(map, sub);
+      }
+    }
 
     virtual Obj_p read(const fURI_p &target) override {
       const fURI_p temp = target->is_pattern() ? target : (target->is_branch() ? share(target->extend("+")) : target);
@@ -45,6 +65,7 @@ namespace fhatos {
           for (const auto &[key, value]: func(temp)) {
             map->insert({uri(key), value});
           }
+          Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
         }
       }
       if (map->empty())
@@ -64,12 +85,28 @@ namespace fhatos {
 
     void loop() override {
       for (const auto &sub: *this->subscriptions_) {
-        // this->publish_retained(sub);
+        this->publish_retained(sub);
       }
     }
 
+    void publish_retained_map(const Map<ID_p, Obj_p> &map, const Subscription_p &subscription) {
+      for (const auto &[id, obj]: map) {
+        if (id->matches(subscription->pattern)) {
+          if (history.count(id) && !history.at(id)->equals(*obj)) {
+            this->outbox_->push_back(mail_p(subscription, message_p(*id, obj, RETAIN_MESSAGE)));
+            history.erase(id);
+            if (!obj->is_noobj()) {
+              history.insert({id, obj});
+            }
+          }
+          Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+        }
+      }
+    }
+
+
     virtual void publish_retained(const Subscription_p &subscription) override {
-      /*for (const auto &[furi, func]: read_functions_) {
+      for (const auto &[furi, func]: read_functions_) {
         if (furi->matches(subscription->pattern)) {
           Map<ID_p, Obj_p> map;
           for (const auto &[furi, func]: this->read_functions_) {
@@ -85,12 +122,9 @@ namespace fhatos {
               }
             }
           }
-        }*/
-      //  }
+        }
+      }
     }
-
-    virtual void write(const ID_p &id, const Obj_p &obj, const bool retain) override {}
-
 
     /*
     virtual void remove(const ID_p& target) override {

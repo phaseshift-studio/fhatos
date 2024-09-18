@@ -18,37 +18,29 @@
 #pragma once
 #ifndef fhatos_logger_hpp
 #define fhatos_logger_hpp
-
-#include <list>
 #include <util/enums.hpp>
 #include <util/options.hpp>
 
-#ifndef FOS_LOGGING
-#define FOS_LOGGING INFO
-#endif
-
 
 namespace fhatos {
-  enum LOG_TYPE {
-    ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6
-  };
-  static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL,   "ALL"},
+  enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
+  static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
                                                             {TRACE, "TRACE"},
                                                             {DEBUG, "DEBUG"},
-                                                            {INFO,  "INFO"},
-                                                            {WARN,  "WARN"},
+                                                            {INFO, "INFO"},
+                                                            {WARN, "WARN"},
                                                             {ERROR, "ERROR"},
-                                                            {NONE,  "NONE"}});
+                                                            {NONE, "NONE"}});
 
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
       if ((uint8_t) type < (uint8_t) Options::singleton()->log_level<LOG_TYPE>())
         return;
-      char buffer[1024];
+      char buffer[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      const int length = vsnprintf(buffer, 1024, format, arg);
+      const int length = vsnprintf(buffer, FOS_DEFAULT_BUFFER_SIZE, format, arg);
       buffer[length] = '\0';
       va_end(arg);
       if (type == NONE)

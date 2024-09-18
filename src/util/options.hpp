@@ -24,6 +24,16 @@
 #include <memory>
 #include <util/fhat_error.hpp>
 
+
+#ifndef FOS_MAILBOX_WARNING_SIZE
+#define FOS_MAILBOX_WARNING_SIZE 15
+#endif
+
+#ifndef FOS_DEFAULT_BUFFER_SIZE
+#define FOS_DEFAULT_BUFFER_SIZE 512
+#endif
+
+
 using namespace std;
 
 namespace fhatos {

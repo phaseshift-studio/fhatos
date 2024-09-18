@@ -28,7 +28,7 @@
 namespace fhatos {
   class KeyValue : public Structure {
   protected:
-    ptr<Map<ID_p, const Obj_p, furi_p_less>> data_ = share(
+    ptr<Map<ID_p, const Obj_p, furi_p_less>> data_ /*PROGMEM*/ = share(
       Map<ID_p, const Obj_p, furi_p_less>());
     MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
 
