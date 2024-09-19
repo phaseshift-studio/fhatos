@@ -59,79 +59,53 @@ namespace fhatos {
       });
     }
 
+    List<ID_p> existing_ids(const fURI &match) override {
+      return this->mutex_data_.read<List<ID_p>>([this,match]() {
+        List<ID_p> ids;
+        for (const auto &[id, obj]: *this->data_) {
+          if (id->matches(match))
+            ids.push_back(id);
+        }
+        return ids;
+      });
+    }
+
     void write(const ID_p &target, const Obj_p &payload, const bool retain) override {
       if (retain) {
-        const Bool_p embed = this->mutex_data_.write<Bool>([this, target, &payload]() {
-          // BRANCH
-          if (payload->is_noobj()) {
-            if (data_->count(target))
-              data_->erase(target);
-            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>%s removed\n", target->toString().c_str(),
-                          payload->toString().c_str());
-          } else {
-            if (target->is_branch())
-              return dool(true);
-            // NODE
-            if (data_->count(target))
-              data_->erase(target);
-            data_->insert({target, payload->clone()}); // why such a deep copy needed?
-            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", target->toString().c_str(),
-                          payload->toString().c_str());
+        const Map<ID_p, Obj_p> map = this->generate_write_input(target, payload);
+        this->mutex_data_.write<void *>([this,map]() {
+          for (const auto &[key,value]: map) {
+            if (this->data_->count(key))
+              this->data_->erase(key);
+            if (!value->is_noobj()) {
+              this->data_->insert({id_p(*key), value->clone()});
+              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", key->toString().c_str(),
+                            value->toString().c_str());
+            } else {
+              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>%s removed\n", key->toString().c_str(),
+                            value->toString().c_str());
+            }
           }
-          return dool(false);
+          return nullptr;
         });
-        if (embed->bool_value())
-          Algorithm::embed(payload, target, PtrHelper::no_delete(this));
       }
       distribute_to_subscribers(message_p(*target, payload, retain));
     }
 
     Obj_p read(const fURI_p &furi) override {
-      if (furi->is_node() && !furi->is_pattern())
-        return this->data_->count(id_p(*furi)) ? this->data_->at(id_p(*furi)) : noobj();
-      //////////////////////////////////////////////////////////////////////////////////
-      Map<ID_p, Obj_p> matches;
-      const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
-      for (const auto &[key,value]: *this->data_) {
-        if (key->matches(temp))
-          matches.insert({key, value});
-      }
-      return generate_read_output(furi, matches);
+      return this->mutex_data_.read<Obj_p>([this,furi]() {
+        if (furi->is_node() && !furi->is_pattern())
+          return this->data_->count(id_p(*furi)) ? this->data_->at(id_p(*furi)) : noobj();
+        //////////////////////////////////////////////////////////////////////////////////
+        Map<ID_p, Obj_p> matches;
+        const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
+        for (const auto &[key,value]: *this->data_) {
+          if (key->matches(temp))
+            matches.insert({key, value});
+        }
+        return generate_read_output(furi, matches);
+      });
     }
-
-    /* virtual Obj_p read_branch_pattern(const Pattern &branch_pattern) const override {
-       Objs_p objs = Obj::to_objs();
-       for (const auto &[f, o]: *this->data_) {
-         if (f->matches(branch_pattern.extend("+"))) {
-           objs->add_obj(uri(f));
-         }
-       }
-       return objs;
-     }
-
-     virtual Rec_p read_branch_id(const ID &branch_id) const override {
-       Rec_p rec = Obj::to_rec(share(Obj::RecMap<>())); // x/y/
-       const Pattern match = branch_id.extend("+");
-       for (const auto &[f, o]: *this->data_) {
-         if (f->matches(match))
-           rec->rec_set(uri(f), o);
-       }
-       return rec->rec_value()->empty() ? noobj() : rec;
-     }
-
-     virtual Objs_p read_node_pattern(const Pattern &node_pattern) const override {
-       Objs_p objs = Obj::to_objs();
-       for (const auto &[f, o]: *this->data_) {
-         if (f->matches(node_pattern)) {
-           objs->add_obj(o);
-         }
-       }
-       return objs;
-     }
-
-     virtual Obj_p read_node_id(const ID &node_id) const override {
-       return data_->count(id_p(node_id)) ? data_->at(id_p(node_id)) : noobj();
-     }*/
   };
 } // namespace fhatos
 

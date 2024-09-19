@@ -157,7 +157,64 @@ namespace fhatos {
 
     /////////////////////////////////////////////////////////////////////////////
   protected:
-    static Obj_p generate_read_output(const fURI_p &furi, const Map<ID_p, Obj_p> &matches) {
+    virtual List<ID_p> existing_ids(const fURI &match) {
+      return {};
+    }
+
+    Map<ID_p, Obj_p> generate_write_input(const fURI_p &furi, const Obj_p &obj) {
+      Map<ID_p, Obj_p> map;
+      if (furi->is_branch()) {
+        // BRANCH PATTERN
+        if (furi->is_pattern()) {
+        }
+        // BRANCH ID
+        else {
+          if (obj->is_noobj()) {
+            // nobj
+            List<ID_p> ids = this->existing_ids(furi->extend("+"));
+            for (const auto &id: ids) {
+              map.insert({id, obj});
+            }
+          } else if (obj->is_rec()) {
+            // rec
+            const auto remaining = share(Obj::RecMap<>());
+            for (const auto &[key,value]: *obj->rec_value()) {
+              if (key->is_uri()) {
+                // uri key
+                const Map<ID_p, Obj_p> child = generate_write_input(share(key->uri_value()), value);
+                map.insert(child.begin(), child.end());
+              } else // non-uri key
+                remaining->insert({key, value});
+            }
+            if (!remaining->empty())
+              map.insert({id_p(furi->is_branch() ? furi->extend("0") : *furi), Obj::to_rec(remaining)});
+          } else if (obj->is_lst()) {
+            const List_p<Obj_p> list = obj->lst_value();
+            for (size_t i = 0; i < list->size(); i++) {
+              const Map<ID_p, Obj_p> child = generate_write_input(id_p(furi->extend(to_string(i))), list->at(i));
+              map.insert(child.begin(), child.end());
+            }
+          } else {
+            map.insert({id_p(furi->is_branch() ? furi->extend("0") : *furi), obj});
+          }
+        }
+      } else {
+        // NODE PATTERN
+        if (furi->is_pattern()) {
+          const List<ID_p> matches = existing_ids(*furi);
+          for (const auto &id: matches) {
+            map.insert({id, obj});
+          }
+        }
+        // NODE ID
+        else {
+          map.insert({id_p(*furi), obj});
+        }
+      }
+      return map;
+    }
+
+    Obj_p generate_read_output(const fURI_p &furi, const Map<ID_p, Obj_p> &matches) {
       if (furi->is_branch()) {
         const Rec_p rec = Obj::to_rec();
         // BRANCH PATTERN
@@ -197,34 +254,6 @@ namespace fhatos {
      * @brief pattern match branches of the structure
      * @return a stream of all objs matching the pattern
      */
-    /*  virtual Objs_p read_branch_pattern(const Pattern &branch_pattern) const {
-        return noobj();
-      }*/
-
-    /**
-     * @brief fetch a branch of the structure
-     * @return a rec of the nodes at that branch (noobj if branch doesn't exist)
-     */
-    /*  virtual Rec_p read_branch_id(const ID &branch_id) const {
-        return noobj();
-      }*/
-
-    /**
-     * @brief pattern match nodes of the structure
-     * @return a stream of all the objs matching the pattern
-     */
-    /*virtual Objs_p read_node_pattern(const Pattern &node_pattern) const {
-      return noobj();
-    }*/
-
-    /**
-     * @brief fetch a node of the structure
-     * @return the obj at that node in the structure (noobj if node doesn't exist)
-     */
-    /*virtual Obj_p read_node_id(const ID &node_id) const {
-      return noobj();
-    }*/
-
     ID_p resolve_id(const ID_p &key_id) const {
       return key_id->is_relative() ? id_p(this->pattern()->resolve(*key_id)) : key_id;
     }

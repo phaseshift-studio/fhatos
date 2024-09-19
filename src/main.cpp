@@ -90,7 +90,7 @@ void setup() {
         ->boot<System>(System::singleton())
 #endif
         ////////////////////////////////////////////////////////////
-     //   ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
+        ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
         ->boot<Types>(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/terminal/"))
         ->boot<Parser>(Parser::singleton("/parser/"))
