@@ -71,7 +71,7 @@ int main(int arg, char **argsv) {
       string x = argsv[i];
       StringHelper::trim(x);
       printer<>()->printf("fhatos> %s\n", x.c_str());
-      const Option<Obj_p> obj = Parser::singleton()->tryParseObj(argsv[i]);
+      const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(argsv[i]);
       if (obj.has_value()) {
         printResult(Fluent(obj.value()).toObjs());
       }
