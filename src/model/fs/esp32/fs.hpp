@@ -21,16 +21,16 @@
 #define fhatos_fs_hpp
 
 #include <LittleFS.h>
-#include <model/fs/x_fs.hpp>
+#include <model/fs/base_fs.hpp>
 #include <FS.h>
 
 #define FOS_FS LittleFS
 
 using namespace fs;
 namespace fhatos {
-  class FileSystem : public XFileSystem {
+  class FileSystem : public BaseFileSystem {
   private:
-    explicit FileSystem(const ID &id, const ID &mount_root) : XFileSystem(id, mount_root) {}
+    explicit FileSystem(const ID &id, const ID &mount_root) : BaseFileSystem(id, mount_root) {}
 
   public:
     static ptr<FileSystem> create(const ID &id = ID("/io/fs/"), const ID &root = ID("/")) {
@@ -43,7 +43,7 @@ namespace fhatos {
         throw fError("Unable to mount file system at %s\n",this->mount_root_->toString().c_str());
         return;
       }
-      XFileSystem::setup();
+      BaseFileSystem::setup();
     }
 
     bool is_dir(const ID &path) const override {

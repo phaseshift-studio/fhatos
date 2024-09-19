@@ -46,86 +46,9 @@ namespace fhatos {
 
   class SoC : public Actor<Coroutine, External> {
 
-  protected:
-    struct Settings {
-      // Settings() = delete;
-
-      struct Wifi {
-        const char *md5name;
-        const char *ssids;
-        const char *passwords;
-      } wifi_;
-    } settings_;
-
-    const static inline Settings DEFAULT_SETTINGS =
-        Settings{.wifi_ = Settings::Wifi{.md5name = "fhatty", .ssids = STR(WIFI_SSID), .passwords = STR(WIFI_PASS)}};
-    const static inline Settings NO_WIFI_SETTINGS =
-        Settings{.wifi_ = Settings::Wifi{.md5name = "", .ssids = "", .passwords = ""}};
-
-
-    explicit SoC(const ID &id = "/soc/", const Settings &settings = DEFAULT_SETTINGS) : Actor(id), settings_(settings) {
-      if (false && strlen(settings_.wifi_.md5name) > 0)
-        this->connect_to_wifi_station();
-      // TODO: flash/partition/0x44343
-    }
-
-  public:
-    static ptr<SoC> singleton(const ID id = "/soc/", const Settings &settings = DEFAULT_SETTINGS) {
-      static ptr<SoC> soc = ptr<SoC>(new SoC(id, settings));
-      return soc;
-    }
-
     virtual void setup() override {
       Actor::setup();
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse("is(gte(0.0)).is(lte(100.0))"));
-      ///////////////////////////////////////////////////////
-      ///////////////////////////////////////////////////////
-      // this->write_functions_.insert(
-      ///////////////////////////////////////////////////////
-      ///////////////////////////////////////////////////////
-      /*
-                   "\t!yID             : !m%s\n"
-                          "\t!yStatus         : !m%s\n"
-                          "\t!ySSID           : !m%s\n"
-                          "\t!yMAC address    : !m%s\n"
-                          "\t!yIP address     : !m%s\n"
-                          "\t!yHostname       : !m%s\n"
-                          "\t!ymDNS name      : !m%s\n"
-                          "\t!yGateway address: !m%s\n"
-                          "\t!ySubnet mask    : !m%s\n"
-                          "\t!yDNS address    : !m%s\n"
-                          "\t!yChannel        : !m%i!!\n",*/
-      ////////////
-      /// WIFI ///
-      ////////////
-      this->read_functions_.insert(
-          {share(this->id()->resolve("wifi/+")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
-                 {id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())},
-                 {id_p(this->id()->resolve("wifi/ssid")), str(this->settings_.wifi_.ssids)},
-                 {id_p(this->id()->resolve("wifi/password")), str(this->settings_.wifi_.passwords)},
-                 {id_p(this->id()->resolve("wifi/md5name")), uri(WiFi.getHostname())},
-                 {id_p(this->id()->resolve("wifi/ip_addr")), uri(WiFi.localIP().toString().c_str())},
-                 {id_p(this->id()->resolve("wifi/gateway_addr")), uri(WiFi.gatewayIP().toString().c_str())},
-                 {id_p(this->id()->resolve("wifi/subnet_mask")), uri(WiFi.subnetMask().toString().c_str())},
-                 {id_p(this->id()->resolve("wifi/dns_addr")), uri(WiFi.dnsIP().toString().c_str())},
-                 {id_p(this->id()->resolve("wifi/channel")), jnt(WiFi.channel())}};
-           }});
-
-      this->write_functions_.insert(
-          {share(this->id()->resolve("wifi/connected")), [this](const fURI_p furi, const Obj_p &obj) {
-             if (obj->is_bool()) {
-               if (obj->bool_value()) {
-                 if (!WiFi.isConnected())
-                   connect_to_wifi_station();
-               } else {
-                 if (WiFi.isConnected())
-                   WiFi.disconnect();
-               }
-             }
-             return Map<ID_p, Obj_p>{{id_p(this->id()->resolve("wifi/connected")), dool(WiFi.isConnected())}};
-           }});
-
       //////////////
       /// MEMORY ///
       //////////////
@@ -203,104 +126,9 @@ namespace fhatos {
     }
 
 
-    void stop() override {
-      Actor::stop();
-      WiFi.disconnect();
-    }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
 
-    void connect_to_wifi_station() const {
-      WiFi.mode(WIFI_STA);
-      WiFi.setAutoReconnect(true);
-      const char *delim = ":";
-      char ssidsTemp[strlen(this->settings_.wifi_.ssids) + 1];
-      sprintf(ssidsTemp, this->settings_.wifi_.ssids);
-      char *ssid = strtok(ssidsTemp, delim);
-      int i = 0;
-      char *ssids_parsed[10];
-      LOG_ACTOR(DEBUG, this, "\tWiFi SSIDs:\n");
-      while (ssid != NULL) {
-        LOG_ACTOR(DEBUG, this, "\t\t%s\n", ssid);
-        ssids_parsed[i++] = ssid;
-        ssid = strtok(NULL, delim);
-      }
-      i = 0;
-      char passwordsTemp[50];
-      sprintf(passwordsTemp, this->settings_.wifi_.passwords);
-      char *passwords_parsed[10];
-      char *password = strtok(passwordsTemp, delim);
-      while (password != NULL) {
-        passwords_parsed[i++] = password;
-        password = strtok(NULL, delim);
-      }
-      WIFI_MULTI_CLIENT multi;
-      for (int j = 0; j < i; j++) {
-        multi.addAP(ssids_parsed[j], passwords_parsed[j]);
-      }
-      WiFi.hostname(this->settings_.wifi_.md5name);
-      uint8_t attempts = 0;
-      while (attempts < 10) {
-        attempts++;
-        if (multi.run() == WL_CONNECTED) {
-          // this->__id = Helper::makeId("wifi");
-          const bool mdnsStatus = MDNS.begin(this->settings_.wifi_.md5name);
-          LOG_ACTOR(INFO, this,
-                    "\n\t!g[!bWIFI Station Configuration!g]!!\n"
-                    "\t!yID             : !m%s\n"
-                    "\t!yStatus         : !m%s\n"
-                    "\t!ySSID           : !m%s\n"
-                    "\t!yMAC address    : !m%s\n"
-                    "\t!yIP address     : !m%s\n"
-                    "\t!yHostname       : !m%s\n"
-                    "\t!ymDNS name      : !m%s\n"
-                    "\t!yGateway address: !m%s\n"
-                    "\t!ySubnet mask    : !m%s\n"
-                    "\t!yDNS address    : !m%s\n"
-                    "\t!yChannel        : !m%i!!\n",
-                    this->settings_.wifi_.md5name, WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
-                    WiFi.SSID().c_str(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),
-                    WiFi.getHostname(),
-                    mdnsStatus ? (string(this->settings_.wifi_.md5name) + ".local").c_str() : "<error>",
-                    WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str(),
-                    WiFi.dnsIP().toString().c_str(), WiFi.channel());
-          if (!mdnsStatus) {
-            LOG_ACTOR(WARN, this, "Unable to create mDNS hostname %s\n", this->settings_.wifi_.md5name);
-          }
-          LOG_ACTOR(DEBUG, this, "Connection attempts: %i\n", attempts);
-          attempts = 100;
-        }
-      }
-      if (attempts != 100) {
-        LOG_ACTOR(ERROR, this, "Unable to connect to WIFI after %i attempts\n", attempts);
-      }
-    }
 
-    /*void setAccessPoint(const char *ssid, const char *password,
-                       const bool hideSSID = false,
-                       const uint8_t maxConnections = 8) {
-    WiFi.mode(WIFI_AP_STA);
-    // WiFi.onSoftAPModeStationConnected(onNewStation);
-    // WiFi.softAPConfig();
-    if (!WiFi.softAP(ssid, password, hideSSID, maxConnections)) {
-      LOG_ACTOR(ERROR, this, "Unable to create access point: %s\n", ssid);
-    } else {
-      LOG_ACTOR(INFO, this,
-          "\n[WIFI Access Point Configuration]\n"
-          "\t!yID:              !m%s\n"
-          "\t!ySSID:            !m%s\n"
-          "\t!yLocal IP:        !m%s\n"
-          "\t!yMac Address:     !m%s\n"
-          "\t!yBroadcast:       !m%s\n"
-          "\t!yChannel:         !m%i\n"
-          "\t!yMax connections: !m%i!!\n",
-          this->id()->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
-          WiFi.softAPmacAddress().c_str(), hideSSID ? "false" : "true",
-          WiFi.channel(), maxConnections);
-    }
-
-    WiFi.enableAP(true);
-  }*/
   };
 } // namespace fhatos
 #endif

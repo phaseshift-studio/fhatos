@@ -181,8 +181,10 @@ namespace fhatos {
   private:
     [[nodiscard]] Structure_p &get_structure(const Pattern_p &pattern) const {
       Structure_p *ret = nullptr;
+      const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
       for (auto &pair: *this->structures_) {
-        if (pattern->matches(*pair.second->pattern())) {
+        if (temp->matches(*pair.second->pattern())) {
+          /// TODO: should be flipped?
           if (ret != nullptr)
             throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures",
                          pattern->toString().c_str());
@@ -190,7 +192,7 @@ namespace fhatos {
         }
       }
       if (nullptr == ret)
-        throw fError(ROUTER_FURI_WRAP " has no structure to contain !b%s!!", this->pattern()->toString().c_str(),
+        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->pattern()->toString().c_str(),
                      pattern->toString().c_str());
       return *ret;
     }

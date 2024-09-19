@@ -106,11 +106,11 @@ namespace fhatos {
       this->bcode_ = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for (const Inst_p &inst: *this->bcode_->bcode_value()) {
         const Obj_p seed_copy = inst->inst_seed(inst);
-        if (Insts::is_barrier(inst)) {
+        if (is_barrier(inst->itype())) {
           const Monad_p m = monad_p(seed_copy, inst);
           this->barriers_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", m->toString().c_str());
-        } else if (Insts::is_initial(inst)) {
+        } else if (is_initial(inst->itype())) {
           const Monad_p m = monad_p(seed_copy, inst);
           this->running_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", m->toString().c_str());
@@ -163,7 +163,7 @@ namespace fhatos {
             LOG(TRACE, FOS_TAB_5 "!gHalting!! monad: %s\n", m->toString().c_str());
             this->halted_->push_back(m->obj()->clone());
           } else {
-            if (Insts::is_barrier(m->inst())) {
+            if (is_barrier(m->inst()->itype())) {
               /// MANY-TO-? BARRIER PROCESSING
               LOG(TRACE, "Adding to barrier: %s => %s\n", m->toString().c_str(), m->inst()->toString().c_str());
               this->barriers_->front()->obj()->objs_value()->push_back(m->obj()->clone());

@@ -22,14 +22,14 @@
 
 #include <filesystem>
 #include <fstream>
-#include <model/fs/x_fs.hpp>
+#include <model/fs/base_fs.hpp>
 
 namespace fs = std::filesystem;
 
 namespace fhatos {
-  class FileSystem : public XFileSystem {
+  class FileSystem : public BaseFileSystem {
   protected:
-    explicit FileSystem(const ID &id, const ID &mount_root) : XFileSystem(id, mount_root) {
+    explicit FileSystem(const ID &id, const ID &mount_root) : BaseFileSystem(id, mount_root) {
     }
 
   public:

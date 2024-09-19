@@ -22,10 +22,10 @@
 #include "fhatos.hpp"
 #include FOS_PROCESS(scheduler.hpp)
 #include "language/exts.hpp"
+#include "model/model.hpp"
+#include "model/terminal.hpp"
 #include "process/actor/actor.hpp"
 #include "process/process.hpp"
-#include "model/terminal.hpp"
-#include "model/model.hpp"
 
 #include "language/types.hpp"
 
@@ -78,8 +78,21 @@ namespace fhatos {
 
     template<typename ACTOR>
     static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
-      Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       Model::deploy(bootable);
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> structure(const Structure_p &structure) {
+      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      router()->attach(structure);
+      structure->setup();
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> process(const Process_p &process) {
+      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      scheduler()->spawn(process);
       return Kernel::build();
     }
 
@@ -98,8 +111,7 @@ namespace fhatos {
     }
 
     static void done(const char *barrier = "kernel_barrier", Supplier<bool> ret = nullptr) {
-      Scheduler::singleton()->barrier(barrier, ret,
-                                      FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
+      Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
       exit(EXIT_SUCCESS);
     }

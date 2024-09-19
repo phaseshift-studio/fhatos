@@ -901,22 +901,6 @@ namespace fhatos {
     }
 
   public:
-    ///// HELPER METHODS
-    static bool is_barrier(const Inst_p &inst) {
-      return inst->itype() == IType::MANY_TO_MANY || inst->itype() == IType::MANY_TO_ONE ||
-             inst->itype() == IType::MANY_TO_ZERO;
-    }
-
-    static bool is_initial(const Inst_p &inst) {
-      return inst->itype() == IType::ZERO_TO_ONE || inst->itype() == IType::ZERO_TO_MANY ||
-             inst->itype() == IType::ZERO_TO_ZERO;
-    }
-
-    static bool is_terminal(const Inst_p &inst) {
-      return inst->itype() == IType::ONE_TO_ZERO || inst->itype() == IType::MANY_TO_ZERO ||
-             inst->itype() == IType::ZERO_TO_ZERO;
-    }
-
     static bool are_initial_args(const Obj_p &obj_a = noobj(), const Obj_p &obj_b = noobj(),
                                  const Obj_p &obj_c = noobj(), const Obj_p &obj_d = noobj()) {
       bool result = /*objA->isUri() ? objA->uri_value().isAbsolute() :*/ !obj_a->is_noop_bcode();

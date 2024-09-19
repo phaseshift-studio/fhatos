@@ -40,12 +40,12 @@ namespace fhatos {
   static const ID_p INST_FS_FURI = id_p(FOS_TYPE_PREFIX "inst/fs:");
   static const ID_p INST_ROOT_FURI = id_p(INST_FS_FURI->resolve("root"));
 
-  class XFileSystem : public Actor<Coroutine, External> {
+  class BaseFileSystem : public Actor<Coroutine, External> {
   protected:
     const ID_p mount_root_;
 
   public:
-    explicit XFileSystem(const ID &id, const ID &mount_root): Actor(id, id.extend("#")),
+    explicit BaseFileSystem(const ID &id, const ID &mount_root): Actor(id, id.extend("#")),
                                                               mount_root_(id_p(mount_root.extend("/"))) {
     }
 
@@ -53,9 +53,6 @@ namespace fhatos {
       LOG_ACTOR(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
       //Types::singleton()->loop();
-      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
-      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
-      // Types::singleton()->loop();
       /*this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
           if (message->retain && message->payload->is_noobj()) {
               // delete the fs resource
@@ -71,6 +68,8 @@ namespace fhatos {
               // publish the result to the source id
           }
       });*/
+      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
+      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       ///////////////////////////////////////////////////////////////////
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("root")),
                                     Obj::to_inst(

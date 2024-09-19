@@ -250,14 +250,6 @@ namespace fhatos {
       }
     }
 
-    /**
-     * @brief pattern match branches of the structure
-     * @return a stream of all objs matching the pattern
-     */
-    ID_p resolve_id(const ID_p &key_id) const {
-      return key_id->is_relative() ? id_p(this->pattern()->resolve(*key_id)) : key_id;
-    }
-
     void check_availability(const string &function) const {
       if (!this->available())
         throw fError("Structure " FURI_WRAP " not available for %s", function.c_str());
@@ -273,12 +265,28 @@ namespace fhatos {
       return {};
     }
 
+
     virtual void distribute_to_subscribers(const Message_p &message) {
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (message->target.matches(sub->pattern))
           this->outbox_->push_back(share(Mail(sub, message)));
       }
     }
+
+    /*virtual void distribute_to_subscribers(const Message_p &message) { TODO: see above
+      for (const Subscription_p &sub: *this->get_matching_subscriptions(share(message->target))) {
+        this->outbox_->push_back(share(Mail(sub, message)));
+      }
+    }*/
+
+    virtual void distribute_to_subscribers(const Map<ID_p, Obj_p> &updates, const bool retain) {
+      for (const auto &[key,value]: updates) {
+        for (const Subscription_p &sub: *this->get_matching_subscriptions(key)) {
+          this->outbox_->push_back(mail_p(sub, message_p(*key, value->clone(), retain)));
+        }
+      }
+    }
+
 
     bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) {
       return this->mutex_.read<bool>([this,source,topic]() {
@@ -293,19 +301,6 @@ namespace fhatos {
       });
     }
 
-    bool has_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
-      return this->mutex_.read<bool>([this,source,topic]() {
-        for (const Subscription_p &sub: *this->subscriptions_) {
-          if (source)
-            if (!source->equals(sub->source))
-              continue;
-          if (topic->matches(sub->pattern))
-            return true;
-        }
-        return false;
-      });
-    }
-
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
       return this->mutex_.read<List_p<Subscription_p>>([this,source,topic]() {
         List_p<Subscription_p> matches = share(List<Subscription_p>());
@@ -313,7 +308,7 @@ namespace fhatos {
           if (source)
             if (!source->equals(sub->source))
               continue;
-          if (topic->matches(sub->pattern) || sub->pattern.matches(*topic))
+          if (topic->matches(sub->pattern))
             matches->push_back(sub);
         }
         return matches;

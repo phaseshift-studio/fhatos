@@ -138,6 +138,22 @@ namespace fhatos {
     MANY_TO_ONE,
     MANY_TO_MANY,
   }; // TYPE
+  [[maybe_unused]] static bool is_initial(const IType itype) {
+    return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO;
+  }
+
+  [[maybe_unused]] static bool is_barrier(const IType itype) {
+    return itype == IType::MANY_TO_ONE || itype == IType::MANY_TO_MANY || itype == IType::MANY_TO_ZERO;
+  }
+
+  /*[[maybe_unused]] static bool is_barrier(const IType itype) {
+    return itype == IType::ONE_TO_MANY || itype == IType::MANY_TO_MANY || itype == IType::ZERO_TO_MANY;
+  }*/
+
+  [[maybe_unused]] static bool is_terminal(const IType itype) {
+    return itype == IType::ONE_TO_ZERO || itype == IType::MANY_TO_ZERO || itype == IType::ZERO_TO_ZERO;
+  }
+
   static Consumer<BObj *> bobj_deleter = [](const BObj *bobj) {
     free(bobj->second);
     delete bobj;
@@ -672,7 +688,7 @@ namespace fhatos {
     bool operator&&(const Obj &rhs) const {
       if (this->is_bool() && rhs.is_bool())
         return this->bool_value() && rhs.bool_value();
-      throw fError("Unknown obj type in &&: %s\n", OTypes.to_chars(this->o_type()).c_str());
+      throw fError("%s is not conjunctive (&&)\n", OTypes.to_chars(this->o_type()).c_str());
     }
 
     /*Obj_p operator*() {
@@ -681,7 +697,7 @@ namespace fhatos {
     bool operator||(const Obj &rhs) const {
       if (this->is_bool() && rhs.is_bool())
         return this->bool_value() || rhs.bool_value();
-      throw fError("Unknown obj type in ||: %s\n", OTypes.to_chars(this->o_type()).c_str());
+      throw fError("%s is not disjunctive (||)\n", OTypes.to_chars(this->o_type()).c_str());
     }
 
     bool operator>(const Obj &rhs) const {
@@ -697,7 +713,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() > rhs.str_value();
         default:
-          throw fError("Unknown obj type in >: %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s is not relational (>)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -714,7 +730,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() < rhs.str_value();
         default:
-          throw fError("Unknown obj type in >: %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s is not relational (<)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -763,7 +779,7 @@ namespace fhatos {
            }
         }*/
         default:
-          throw fError("%s can not be multiplied\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be multiplied (*)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -776,7 +792,7 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() / rhs.real_value(), this->id());
         default:
-          throw fError("%s can not be divided\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be divided (/)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -815,7 +831,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("%s can not be added\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be added (+)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -853,14 +869,14 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("%s can not be subtracted\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be subtracted (-)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
     Obj operator%(const Obj &other) const {
       switch (this->o_type()) {
         case OType::INT: return Obj(this->int_value() % other.int_value(), this->id());
-        default: throw fError("%s can not be moduloed\n", OTypes.to_chars(this->o_type()).c_str());
+        default: throw fError("%s can not be moduloed (%)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 

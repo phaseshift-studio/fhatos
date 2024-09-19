@@ -24,7 +24,6 @@ FhatOS: A Distributed Operating System
 #include <language/obj.hpp>
 #include <structure/structure.hpp>
 #include <util/options.hpp>
-#include <util/pubsub_helper.hpp>
 
 namespace fhatos {
   class External : public Structure {
@@ -36,51 +35,61 @@ namespace fhatos {
 
     explicit External(const Pattern &pattern,
                       const Map<fURI_p, Function<fURI_p, Map<ID_p, Obj_p>>, furi_p_less> &read_map = {},
-                      const Map<fURI_p, BiFunction<fURI_p, Obj_p, Map<ID_p, Obj_p>>, furi_p_less> &write_map = {}) :
-        Structure(pattern, SType::EPHEMERAL),
-        read_functions_(read_map), write_functions_(write_map) {}
+                      const Map<fURI_p, BiFunction<fURI_p, Obj_p, Map<ID_p, Obj_p>>, furi_p_less> &write_map =
+                          {}) : Structure(pattern, SType::EPHEMERAL),
+                                read_functions_(read_map), write_functions_(write_map) {
+    }
 
-    virtual void write(const ID_p &id, const Obj_p &obj, bool retain) override {
-      Map<ID_p, Obj_p> map;
-      for (const auto &[furi, func]: this->write_functions_) {
-        if (id->matches(*furi) || furi->matches(*id)) {
-          for (const auto &[key, value]: func(id, obj)) {
-            map.insert({key, value});
+    /* virtual void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
+       Map<ID_p, Obj_p> map;
+       for (const auto &[furi, func]: this->write_functions_) {
+         if (id->matches(*furi) || furi->matches(*id)) {
+           for (const auto &[key, value]: func(id, obj)) {
+             LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", key->toString().c_str(),
+                           value->toString().c_str());
+             map.insert({key, value});
+           }
+           Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+         }
+       }
+       if (!retain || map.empty())
+         return;
+       for (const auto &sub: *this->subscriptions_) {
+         this->publish_retained_map(map, sub);
+       }
+     }*/
+
+    void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
+      if (retain) {
+        Map<ID_p, Obj_p> written;
+        const Map<ID_p, Obj_p> map = this->generate_write_input(id, obj);
+        for (const auto &[key,value]: map) {
+          for (const auto &[furi, func]: this->write_functions_) {
+            if (key->matches(*furi)) {
+              Map<ID_p, Obj_p> temp = func(key, value);
+              written.insert(temp.begin(), temp.end());
+              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", key->toString().c_str(),
+                            value->toString().c_str());
+            }
           }
-          Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
         }
-      }
-      if (!retain || map.empty())
-        return;
-      for (const auto &sub: *this->subscriptions_) {
-        this->publish_retained_map(map, sub);
+        distribute_to_subscribers(written,RETAIN_MESSAGE);
+      } else {
+        distribute_to_subscribers(message_p(*id, obj, retain));
       }
     }
 
-    virtual Obj_p read(const fURI_p &target) override {
-      const fURI_p temp = target->is_pattern() ? target : (target->is_branch() ? share(target->extend("+")) : target);
-      Obj::RecMap_p<Uri_p, Obj_p> map = share(Obj::RecMap<Uri_p, Obj_p>());
+    virtual Obj_p read(const fURI_p &furi) override {
+      const fURI_p temp = furi->is_branch() ? share(furi->extend("+")) : furi;
+      Map<ID_p, Obj_p> matches;
       for (const auto &[furi, func]: this->read_functions_) {
         if (temp->matches(*furi) || furi->matches(*temp)) {
-          for (const auto &[key, value]: func(temp)) {
-            map->insert({uri(key), value});
-          }
-          Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+          Map<ID_p, Obj_p> map = func(temp);
+          matches.insert(map.begin(), map.end());
+          scheduler()->feed_local_watchdog();
         }
       }
-      if (map->empty())
-        return noobj();
-      if (!target->is_pattern()) {
-        if (target->is_node())
-          return map->begin().value();
-        else
-          return Obj::to_rec(map);
-      }
-      Objs_p objs = Obj::to_objs();
-      for (const auto &[k, v]: *map) {
-        objs->add_obj(v->clone());
-      }
-      return objs;
+      return this->generate_read_output(furi, matches);
     }
 
     void loop() override {
@@ -99,7 +108,7 @@ namespace fhatos {
               history.insert({id, obj});
             }
           }
-          Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+          scheduler()->feed_local_watchdog();
         }
       }
     }

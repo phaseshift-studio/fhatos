@@ -20,18 +20,21 @@
 #include <kernel.hpp>
 #include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <model/sys.hpp>
 #include <language/types.hpp>
 #include <model/console.hpp>
-#include <model/terminal.hpp>
-#include <model/shared_memory.hpp>
 #include <model/distributed_memory.hpp>
+#include <model/shared_memory.hpp>
+#include <model/sys.hpp>
+#include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
+#include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 
 #ifndef NATIVE
-#include "esp32/spiram.h"
 #include <model/soc/esp32/soc.hpp>
+#include <model/soc/pinout.hpp>
+#include <model/soc/wifi.hpp>
+#include "esp32/spiram.h"
 #endif
 
 #ifdef NATIVE
@@ -95,16 +98,15 @@ void setup() {
         ->boot<Terminal>(Terminal::singleton("/terminal/"))
         ->boot<Parser>(Parser::singleton("/parser/"))
 #ifndef NATIVE
-         ->boot<SoC>(SoC::singleton("/soc/"))
+        ->structure(Pinout::singleton("/soc/pinout/#"))
+        ->structure(Wifi::singleton("/soc/wifi/+"))
 #endif
 #ifdef NATIVE
-        ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount",FOS_FS_MOUNT)))
-#endif
-   //     ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
-#ifdef NATIVE
+        ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
+        ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
         ->model({ID("/model/sys"), ID("/model/pubsub")})
 #endif
-        ->boot<Console>(Console::create("/home/root/repl/","/terminal/"))
+        ->boot<Console>(Console::create("/home/root/repl/", "/terminal/"))
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
