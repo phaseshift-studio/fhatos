@@ -45,7 +45,7 @@ namespace fhatos {
     bool color_ = true;
 
     ///// printers
-    void print_exception(const std::exception &ex) const { Terminal::out(this->id(), "!r[ERROR]!! %s", ex.what()); }
+    void print_exception(const std::exception &ex) const { Terminal::out(this->id(), "!r[ERROR]!! %s\n", ex.what()); }
 
     void print_prompt(const bool blank = false) const {
       Terminal::out(this->id(), blank ? "        " : "!mfhatos!g>!! ");

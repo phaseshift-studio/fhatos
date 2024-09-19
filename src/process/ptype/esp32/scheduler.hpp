@@ -48,7 +48,7 @@ namespace fhatos {
     virtual bool spawn(const Process_p &process) override {
         process->setup();
         if (!process->running()) {
-          LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
+          LOG_SCHEDULER(ERROR, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
                       process->id()->toString().c_str());
           return false;
         }
@@ -93,7 +93,7 @@ namespace fhatos {
         }
         if (success) {
           this->processes_->push_back(process);
-        LOG_PROCESS(success ? INFO : ERROR, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+        LOG_SCHEDULER(success ? INFO : ERROR, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                     ProcessTypes.to_chars(process->ptype).c_str());
         } else 
         router()->route_unsubscribe(this->id(), p_p(*process->id()));

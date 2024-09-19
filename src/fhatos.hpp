@@ -186,6 +186,10 @@ namespace fhatos {
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
+#define LOG_ROUTER(logtype,format,...) \
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->pattern()->toString().c_str(), ##__VA_ARGS__)
+#define LOG_SCHEDULER(logtype,format,...) \
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
@@ -207,6 +211,8 @@ namespace fhatos {
       OTypes.to_chars((obj)->otype()).c_str(), (obj)->pattern()->toString().c_str());
 #define NOTE(message) LOG(INFO, "%s\n", (message))
 #define FURI_WRAP "!g[!b%s!g]!!"
+#define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
+#define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //

@@ -34,14 +34,15 @@
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
-    LOG_PROCESS((success) ? INFO : ERROR, this, "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),             \
-                ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "spawned" : "!r!_not spawned!!");          \
+    LOG_SCHEDULER((success) ? INFO : ERROR, "!b%s!! !y%s!! %s\n",                                                      \
+                ProcessTypes.to_chars((process)->ptype).c_str(),                                                       \
+                (success) ? "spawned" : "!r!_not spawned!!");                                                          \
   }
 
 #define LOG_DESTROY(success, process, scheduler)                                                                       \
   {                                                                                                                    \
     LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),      \
-                ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");      \
+                ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");     \
   }
 
 
@@ -95,11 +96,11 @@ namespace fhatos {
       MESSAGE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) {
         if (!retain || !payload->is_rec())
           return;
-        LOG_PROCESS(DEBUG, this, "intercepting retained !yrec!! %s\n", payload->toString().c_str());
+        LOG_SCHEDULER(DEBUG, "intercepting retained !yrec!! %s\n", payload->toString().c_str());
         THREAD_SPAWNER(id_p(target));
       };
       this->running_ = true;
-      LOG_PROCESS(INFO, this, "!yscheduler!! loaded\n");
+      LOG_SCHEDULER(INFO, "!yscheduler!! loaded\n");
     }
 
     void stop() {
@@ -119,8 +120,8 @@ namespace fhatos {
             break;
         }
       });
-      LOG_PROCESS(INFO, this, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
-                  thread_count->load(), fiber_count->load(), coroutine_count->load());
+      LOG_SCHEDULER(INFO, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
+                    thread_count->load(), fiber_count->load(), coroutine_count->load());
       delete thread_count;
       delete fiber_count;
       delete coroutine_count;
@@ -140,7 +141,7 @@ namespace fhatos {
       delete list;
       this->processes_->clear();
       this->running_ = false;
-      LOG_PROCESS(INFO, this, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
+      LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
     virtual void feed_local_watchdog() {
@@ -152,11 +153,11 @@ namespace fhatos {
 
     void barrier(const ID &label = ID("unlabeled"), const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      LOG(INFO, "!mScheduler at barrier: <!y%s!m>!!\n", label.toString().c_str());
+      LOG_SCHEDULER(INFO, "!mbarrier start: <!y%s!m>!!\n", label.toString().c_str());
       this->current_barrier_ = id_p(label);
 
       if (message)
-        LOG_PROCESS(INFO, this, message);
+        LOG_SCHEDULER(INFO, message);
       /// barrier break with noobj
       /*this->subscribe("", [this, label](const Message_p &message) {
         if (message->payload->is_noobj())
@@ -166,7 +167,7 @@ namespace fhatos {
              (!passPredicate && this->running_ && !this->processes_->empty())) {
         this->feed_local_watchdog();
       }
-      LOG(INFO, "!mScheduler completed barrier: <!g%s!m>!!\n", label.toString().c_str());
+      LOG_SCHEDULER(INFO, "!mbarrier end: <!g%s!m>!!\n", label.toString().c_str());
       this->current_barrier_ = nullptr;
     }
 

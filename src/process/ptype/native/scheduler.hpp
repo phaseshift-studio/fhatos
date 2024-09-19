@@ -57,8 +57,8 @@ namespace fhatos {
     bool spawn(const Process_p &process) override {
       process->setup();
       if (!process->running()) {
-        LOG_PROCESS(ERROR, this, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
-                    process->id()->toString().c_str());
+        LOG_SCHEDULER(ERROR, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
+                      process->id()->toString().c_str());
         return false;
       }
       ////////////////////////////////
@@ -79,7 +79,7 @@ namespace fhatos {
         }
       }
       this->processes_->push_back(process);
-      LOG_PROCESS(INFO, this, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
+      LOG_SCHEDULER(INFO, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                   ProcessTypes.to_chars(process->ptype).c_str());
       return true;
     }
