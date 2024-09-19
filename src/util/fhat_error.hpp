@@ -22,6 +22,7 @@
 #include <exception>
 
 #define FOS_ERROR_MESSAGE_SIZE 500
+
 namespace fhatos {
 #ifndef NATIVE
   ///////////////////////
@@ -71,7 +72,6 @@ namespace fhatos {
         _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
         _message[FOS_ERROR_MESSAGE_SIZE - 4] = '.';
       }
-
     }
 
     const char *what() const noexcept override { return this->_message; };
@@ -79,7 +79,7 @@ namespace fhatos {
 
     static void OTYPE_CHECK(const std::string &type_id, const std::string &otype) {
       if (type_id != otype.c_str())
-        throw fError("!b%s!! is not a type of !y%s!!\n", type_id, otype.c_str());
+        throw fError("!b%s!! is not a type of !y%s!!\n", type_id.c_str(), otype.c_str());
     }
   };
 } // namespace fhatos

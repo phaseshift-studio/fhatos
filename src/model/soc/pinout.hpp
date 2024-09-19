@@ -57,32 +57,38 @@ namespace fhatos {
              Map<ID_p, Obj_p> map;
              if (StringHelper::is_integer(furi->name())) {
                uint8_t pin_number = stoi(furi->name());
+               //pinMode(pin_number, INPUT);
                map.insert({id_p(*furi), jnt(digitalRead(pin_number))});
              } else {
                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
+                // pinMode(i, INPUT);
                  map.insert(
                      {id_p(this->pattern()->resolve(fURI(string("./pin/") + to_string(i)))), jnt(digitalRead(i))});
                }
              }
              return map;
            }});
-      LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->resolve("./pin/+").toString().c_str());
+      LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n",
+                    this->pattern()->resolve("./pin/+").toString().c_str());
       this->write_functions_.insert(
           {share(this->pattern()->resolve("./pin/+")), [this](const fURI_p furi, const Obj_p &obj) {
              Map<ID_p, Obj_p> map;
              if (StringHelper::is_integer(furi->name())) {
                uint8_t pin_number = stoi(furi->name());
+               pinMode(pin_number, OUTPUT);
                digitalWrite(pin_number, obj->int_value());
                map.insert({id_p(*furi), obj});
              } else {
                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
+                 pinMode(i, OUTPUT);
                  map.insert(
                      {id_p(this->pattern()->resolve(fURI(string("./pin/") + to_string(i)))), jnt(digitalRead(i))});
                }
              }
              return map;
            }});
-      LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n", this->pattern()->resolve("./pin/+").toString().c_str());
+      LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
+                    this->pattern()->resolve("./pin/+").toString().c_str());
     }
   };
 } // namespace fhatos

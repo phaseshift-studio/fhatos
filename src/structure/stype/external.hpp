@@ -40,25 +40,6 @@ namespace fhatos {
                                 read_functions_(read_map), write_functions_(write_map) {
     }
 
-    /* virtual void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
-       Map<ID_p, Obj_p> map;
-       for (const auto &[furi, func]: this->write_functions_) {
-         if (id->matches(*furi) || furi->matches(*id)) {
-           for (const auto &[key, value]: func(id, obj)) {
-             LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", key->toString().c_str(),
-                           value->toString().c_str());
-             map.insert({key, value});
-           }
-           Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
-         }
-       }
-       if (!retain || map.empty())
-         return;
-       for (const auto &sub: *this->subscriptions_) {
-         this->publish_retained_map(map, sub);
-       }
-     }*/
-
     void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
       if (retain) {
         Map<ID_p, Obj_p> written;

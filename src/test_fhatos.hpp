@@ -53,13 +53,13 @@
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
-#define FOS_DEPLOY_PARSER_2  Model::deploy(Parser::singleton());
+#define FOS_DEPLOY_PARSER_2  scheduler()->spawn(Parser::singleton());
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
-#define FOS_DEPLOY_TYPES_2 Model::deploy(Types::singleton());
+#define FOS_DEPLOY_TYPES_2 router()->attach(Types::singleton()); Types::singleton()->setup();
 #else
 #define FOS_DEPLOY_TYPES_2 ;
 #endif
@@ -144,7 +144,6 @@ void setUp() {
 }
 
 void tearDown() {
-
 }
 
 

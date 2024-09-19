@@ -22,13 +22,12 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 
 namespace fhatos {
-  class Types : public Actor<Coroutine, KeyValue> {
-    explicit Types(const ID &id = FOS_TYPE_PREFIX): Actor(id) {
+  class Types : public KeyValue {
+    explicit Types(const ID &id = FOS_TYPE_PREFIX): KeyValue(id.extend("#")) {
     }
 
     static ID_p inst_id(const string &opcode) {
@@ -111,7 +110,7 @@ namespace fhatos {
     }
 
     void setup() override {
-      Actor::setup();
+      KeyValue::setup();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) -> ID_p {
         singleton()->check_type(obj, otype, type_id, true);
         return type_id;
@@ -121,16 +120,20 @@ namespace fhatos {
         // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
         const Obj_p proto_obj = is_base_type(type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
         if (proto_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", singleton()->id()->toString().c_str(),
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", singleton()->pattern()->toString().c_str(),
                        obj->toString().c_str(), type_id->toString().c_str());
         return share(Obj(proto_obj->_value, OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)), type_id));
       };
       this->load_insts();
-      this->subscribe(*this->pattern(), [this](const Message_p &message) {
-        const ID_p type_id = id_p(message->target);
-        if (message->retain && !this->type_exists(type_id, message->payload))
-          this->save_type(type_id, message->payload, true);
-      });
+      router()->route_subscription(subscription_p(
+        ID(*this->pattern()),
+        *this->pattern(),
+        QoS::_1,
+        Insts::to_bcode([this](const Message_p &message) {
+          const ID_p type_id = id_p(message->target);
+          if (message->retain && !this->type_exists(type_id, message->payload))
+            this->save_type(type_id, message->payload, true);
+        })));
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -142,15 +145,15 @@ namespace fhatos {
           const Obj_p current = this->read(type_id);
           if (current != type_def) {
             if (!current->is_noobj())
-              LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
-                        current->toString().c_str());
+              LOG_STRUCTURE(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
+                          current->toString().c_str());
             this->write(type_id, type_def->clone(), RETAIN_MESSAGE);
           }
         }
-        LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
-                    type_def->toString().c_str());
+        LOG_STRUCTURE(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
+                      type_def->toString().c_str());
       } catch (const fError &e) {
-        LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 
@@ -179,7 +182,7 @@ namespace fhatos {
         return true;
       if (otype != type_otype) {
         if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->id()->toString().c_str(),
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->pattern()->toString().c_str(),
                        obj.toString().c_str(), type_id->toString().c_str());
         return false;
       }
@@ -194,13 +197,13 @@ namespace fhatos {
         }
         if (do_throw)
           throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!\n",
-                       this->id()->toString().c_str(),
+                       this->pattern()->toString().c_str(),
                        obj.toString().c_str(), type_id->toString().c_str(), type->toString().c_str());
         return false;
       }
       if (do_throw)
         throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!\n",
-                     this->id()->toString().c_str(),
+                     this->pattern()->toString().c_str(),
                      type_id->toString().c_str());
       return false;
     }

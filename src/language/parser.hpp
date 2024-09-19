@@ -22,9 +22,7 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include <process/actor/actor.hpp>
 #include <sstream>
-#include <structure/stype/key_value.hpp>
 #include <util/string_helper.hpp>
 #include <util/enums.hpp>
 #include FOS_PROCESS(coroutine.hpp)
@@ -134,31 +132,31 @@ namespace fhatos {
       {GROUPING::BRACE, "{}"}
     });
 
-  class Parser : public Actor<Coroutine, KeyValue> {
-    explicit Parser(const ID &id = ID("/parser/")): Actor(id, id.extend("#")) {
+  class Parser : public Coroutine {
+    explicit Parser(const ID &id = ID("/parser/")): Coroutine(id) {
     }
 
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
-      static ptr<Parser> parser_p = ptr<Parser>(new Parser(id));
-      static bool setup = false;
-      if (!setup) {
-        setup = true;
-        OBJ_PARSER = [](const string &obj_string) {
-          try {
-            return fhatos::Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());
-          } catch (std::exception &e) {
-            LOG_EXCEPTION(e);
-            return Obj::to_noobj();
-          }
-        };
-        Options::singleton()->parser<Obj>(OBJ_PARSER);
-      }
+      static auto parser_p = ptr<Parser>(new Parser(id));
       return parser_p;
     }
 
     void setup() override {
-      Actor::setup();
+      Coroutine::setup();
+      OBJ_PARSER = [](const string &obj_string) {
+        try {
+          return Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());
+        } catch (std::exception &e) {
+          LOG_EXCEPTION(e);
+          return Obj::to_noobj();
+        }
+      };
+      Options::singleton()->parser<Obj>(OBJ_PARSER);
+    }
+
+    /*void setup() override {
+      Coroutine::setup();
       this->subscribe(this->id()->extend("parse/+/in"), [this](const Message_p &message) {
         LOG_PROCESS(DEBUG, this, "Parsing %s\n", message->payload->toString().c_str());
         this->publish(message->target.resolve("./out"),
@@ -168,8 +166,7 @@ namespace fhatos {
                       RETAIN_MESSAGE
         );
         //
-      });
-    }
+      });}*/
 
     static bool closed_expression(const string &line) {
       auto ss = stringstream(line);
@@ -664,9 +661,7 @@ namespace fhatos {
             const Option<Obj_p> obj = try_parse_obj(instToken);
             if (!obj.has_value())
               return {};
-            insts.push_back(insts.empty()
-                              ? Insts::start(obj.value())
-                              : Insts::map(obj.value()));
+            insts.push_back(Insts::map(obj.value()));
           } else {
             // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
             LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", typeValue.first.c_str(),
@@ -703,7 +698,6 @@ namespace fhatos {
       // TODO: make that a universal distinction
     }
   };
-
 
   [[maybe_unused]] static Obj_p parse(const char *format, ...) {
     char message[1024];

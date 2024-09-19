@@ -31,10 +31,11 @@
 #include <process/obj_process.hpp>
 
 #ifndef NATIVE
+#include <esp32/spiram.h>
 #include <model/soc/esp32/soc.hpp>
+#include <model/soc/memory.hpp>
 #include <model/soc/pinout.hpp>
 #include <model/soc/wifi.hpp>
-#include "esp32/spiram.h"
 #endif
 
 #ifdef NATIVE
@@ -77,8 +78,8 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 void setup() {
   try {
-    load_processor();
-    load_threader();
+    load_processor(); // TODO: remove
+    load_threader(); // TODO: remove
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_ansi_color(args.option("--ansi", "true") == "true")
@@ -89,23 +90,22 @@ void setup() {
         ////////////////////////////////////////////////////////////
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/#"))
-#ifdef NATIVE
-        ->boot<System>(System::singleton())
-#endif
         ////////////////////////////////////////////////////////////
-        ->boot<SharedMemory>(SharedMemory::create("/var/", "+/#"))
-        ->boot<Types>(Types::singleton("/type/"))
+        ->structure(KeyValue::create("+/#"))
+        ->structure(Types::singleton("/type/"))
         ->boot<Terminal>(Terminal::singleton("/terminal/"))
-        ->boot<Parser>(Parser::singleton("/parser/"))
+        ->process(Parser::singleton("/parser/"))
 #ifndef NATIVE
+        //->structure(Memory::singleton("/soc/memory/#"))
         ->structure(Pinout::singleton("/soc/pinout/#"))
-        ->structure(Wifi::singleton("/soc/wifi/+"))
+        //->structure(Wifi::singleton("/soc/wifi/+"))
+        ->model({ID("/model/sys")})
 #endif
 #ifdef NATIVE
         ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
-        ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
-        ->model({ID("/model/sys"), ID("/model/pubsub")})
+        // ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
 #endif
+        ->model({ID("/model/sys")})
         ->boot<Console>(Console::create("/home/root/repl/", "/terminal/"))
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
