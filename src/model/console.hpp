@@ -33,16 +33,23 @@ namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
   static Map<string, Command> *MENU_MAP_ = nullptr;
 
-  class Console final : public Actor<Thread, IDStructure> {
+  class Console final : public Thread {
   public:
     ~Console() override { delete MENU_MAP_; }
+
+    struct Settings {
+      bool nest = false;
+      bool ansi = true;
+    };
 
   protected:
     string line_;
     ID_p terminal_id_;
     bool new_input_ = true;
-    bool nest_ = false;
-    bool color_ = true;
+    Settings settings_;
+
+
+    static constexpr Settings DEFAULT_SETTINGS = Settings{.nest = false, .ansi = true};
 
     ///// printers
     void print_exception(const std::exception &ex) const { Terminal::out(this->id(), "!r[ERROR]!! %s\n", ex.what()); }
@@ -56,10 +63,10 @@ namespace fhatos {
         for (Obj_p &o: *obj->objs_value()) {
           this->print_result(o, depth + 1);
         }
-      else if (this->nest_ && obj->is_lst()) {
+      else if (this->settings_.nest && obj->is_lst()) {
         Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                                    (obj->id()->path_length() > 2 ? obj->id()->name().c_str() : "") + "!m[!!\n")
-                                      .c_str());
+                      .c_str());
         for (const auto &e: *obj->lst_value()) {
           Terminal::out(this->id(), "%s%s\n!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
                         e->is_poly() ? "" : e->toString().c_str());
@@ -67,105 +74,110 @@ namespace fhatos {
             this->print_result(e, depth + 1);
         }
         Terminal::out(
-            this->id(),
-            (string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-             (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
-             "!m]!!\n")
-                .c_str());
-      } else if (this->nest_ && obj->is_rec()) {
+          this->id(),
+          (string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+           (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
+           "!m]!!\n")
+          .c_str());
+      } else if (this->settings_.nest && obj->is_rec()) {
         Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                                    (obj->id()->path_length() > 2 ? obj->id()->name().c_str() : "") + "!m[!!\n")
-                                      .c_str());
+                      .c_str());
         for (const auto &[key, value]: *obj->rec_value()) {
           Terminal::out(this->id(), "%s!c%s!m=>!!%s\n!!",
-                        (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(), key->toString(true, false).c_str(),
+                        (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                        key->toString(true, false).c_str(),
                         value->is_poly() ? "" : value->toString().c_str());
           if (value->is_poly())
             this->print_result(value, depth + 1);
         }
         Terminal::out(
-            this->id(),
-            (string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-             (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
-             "!m]!!\n")
-                .c_str());
+          this->id(),
+          (string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+           (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
+           "!m]!!\n")
+          .c_str());
       } else {
         Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=")).c_str());
         Terminal::out(this->id(), "==>!!%s\n", obj->toString().c_str());
       }
     }
 
-    explicit Console(const ID &id = ID("/io/repl/"), const ID &terminal = ID("/terminal/")) :
-        Actor<Thread, IDStructure>(id), terminal_id_(id_p(terminal)) {
+    explicit Console(const ID &id = ID("/io/repl/"), const ID &terminal = ID("/terminal/"),
+                     const Settings &settings = DEFAULT_SETTINGS) : Thread(id),
+                                                                    terminal_id_(id_p(terminal)),
+                                                                    settings_(settings) {
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
         MENU_MAP_->insert({":help",
-                           {"help menu", [](const Obj_p &) { std::get<2>(MENU_MAP_->at(":help"))(); },
-                            []() {
-                              printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-                              for (const auto &[command, description]: *MENU_MAP_) {
-                                printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
-                                                    std::get<0>(description).c_str());
-                              }
-                            }}});
+          {"help menu", [](const Obj_p &) { std::get<2>(MENU_MAP_->at(":help"))(); },
+            []() {
+              printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+              for (const auto &[command, description]: *MENU_MAP_) {
+                printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
+                                    std::get<0>(description).c_str());
+              }
+            }}});
         MENU_MAP_->insert({":log",
-                           {"log level",
-                            [](const Uri_p &log_level) {
-                              Options::singleton()->log_level(LOG_TYPES.to_enum(log_level->uri_value().toString()));
-                              return log_level;
-                            },
-                            [] {
-                              printer<>()->printf(
-                                  "!ylog!!: !b%s!!\n",
-                                  LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
-                            }}});
+          {"log level",
+            [](const Uri_p &log_level) {
+              Options::singleton()->log_level(LOG_TYPES.to_enum(log_level->uri_value().toString()));
+              return log_level;
+            },
+            [] {
+              printer<>()->printf(
+                "!ylog!!: !b%s!!\n",
+                LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
+            }}});
         MENU_MAP_->insert(
-            {":output",
-             {"terminal out id", [this](const Uri_p &uri) { this->terminal_id_ = id_p(uri->uri_value()); },
+          {":output",
+            {"terminal out id", [this](const Uri_p &uri) { this->terminal_id_ = id_p(uri->uri_value()); },
               [this] { printer<>()->printf("!youtput!!: !b%s!!\n", this->terminal_id_->toString().c_str()); }}});
         MENU_MAP_->insert({":clear",
-                           {"clear terminal", [](const Obj_p &) { printer<>()->print("!X!Q"); },
-                            [] { printer<>()->print("!X!Q"); }}});
+          {"clear terminal", [](const Obj_p &) { printer<>()->print("!X!Q"); },
+            [] { printer<>()->print("!X!Q"); }}});
         MENU_MAP_->insert({":color",
-                           {"colorize output", [this](const Bool_p &xbool) { this->color_ = xbool->bool_value(); },
-                            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->color_)); }}});
+          {"colorize output", [this](const Bool_p &xbool) { this->settings_.ansi = xbool->bool_value(); },
+            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->settings_.ansi)); }}});
         MENU_MAP_->insert(
-            {":nest",
-             {"display poly objs nested", [this](const Bool_p &xbool) { this->nest_ = xbool->bool_value(); },
-              [this] { printer<>()->printf("!ynest!!: %s\n", FOS_BOOL_STR(this->nest_)); }}});
+          {":nest",
+            {"display poly objs nested", [this](const Bool_p &xbool) { this->settings_.nest = xbool->bool_value(); },
+              [this] { printer<>()->printf("!ynest!!: %s\n", FOS_BOOL_STR(this->settings_.nest)); }}});
         MENU_MAP_->insert(
-            {":shutdown",
-             {// TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
+          {":shutdown",
+            {
+              // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
               "kill scheduler",
               [this](const Obj_p &) {
                 Scheduler::singleton()->recv_mail(share(
-                    Mail{share(Subscription{
-                             .source = fURI(*this->id()),
-                             .pattern = *Scheduler::singleton()->id(),
-                             .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
-                         share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
+                  Mail{share(Subscription{
+                      .source = fURI(*this->id()),
+                      .pattern = *Scheduler::singleton()->id(),
+                      .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
+                    share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
               },
               [this]() {
                 Scheduler::singleton()->recv_mail(share(
-                    Mail{share(Subscription{
-                             .source = fURI(*this->id()),
-                             .pattern = *Scheduler::singleton()->id(),
-                             .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
-                         share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
+                  Mail{share(Subscription{
+                      .source = fURI(*this->id()),
+                      .pattern = *Scheduler::singleton()->id(),
+                      .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
+                    share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
               }}});
         MENU_MAP_->insert(
-            {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
+          {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
 
   public:
-    static ptr<Console> create(const ID &id = ID("/io/console"), const ID &terminal = ID("/terminal/")) {
-      auto *console = new Console(id, terminal);
+    static ptr<Console> create(const ID &id = ID("/io/console"), const ID &terminal = ID("/terminal/"),
+                               const Settings &settings = DEFAULT_SETTINGS) {
+      auto *console = new Console(id, terminal, settings);
       return ptr<Console>(console);
     }
 
     void loop() override {
-      Actor::loop();
+      Thread::loop();
       //// PROMPT
       if (this->new_input_)
         this->print_prompt(!this->line_.empty());
@@ -224,7 +236,7 @@ namespace fhatos {
           if (!obj.has_value())
             throw fError("Unable to parse input: %s\n", this->line_.c_str());
           this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
-              obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
+            obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
         } catch (const std::exception &e) {
           this->print_exception(e);
         }

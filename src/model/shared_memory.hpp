@@ -20,25 +20,20 @@
 #define fhatos_shared_memory_hpp
 
 #include <fhatos.hpp>
-#include <process/actor/actor.hpp>
-#include FOS_PROCESS(fiber.hpp)
-#include <structure/stype/heap.hpp>
+#include <structure/stype/key_value.hpp>
 
 namespace fhatos {
-
-  class SharedMemory : public Actor<Fiber, Heap> {
-
+  class SharedMemory : public KeyValue {
   protected:
-    explicit SharedMemory(const ID &id = "/memory/shared", const Pattern &pattern = "+") :
-            Actor(id, pattern) {}
+    explicit SharedMemory(const Pattern &pattern = "+") : KeyValue(pattern) {
+    }
 
   public:
-    static ptr<SharedMemory> create(const ID &id = "/memory/shared", const Pattern &pattern = "+") {
-      auto cluster_p = ptr<SharedMemory>(new SharedMemory(id, pattern));
+    static ptr<SharedMemory> create(const Pattern &pattern = "+") {
+      auto cluster_p = ptr<SharedMemory>(new SharedMemory(pattern));
       return cluster_p;
     }
   };
-
 } // namespace fhatos
 
 #endif

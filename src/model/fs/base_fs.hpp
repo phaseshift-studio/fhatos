@@ -40,17 +40,17 @@ namespace fhatos {
   static const ID_p INST_FS_FURI = id_p(FOS_TYPE_PREFIX "inst/fs:");
   static const ID_p INST_ROOT_FURI = id_p(INST_FS_FURI->resolve("root"));
 
-  class BaseFileSystem : public Actor<Coroutine, External> {
+  class BaseFileSystem : public External {
   protected:
     const ID_p mount_root_;
 
   public:
-    explicit BaseFileSystem(const ID &id, const ID &mount_root): Actor(id, id.extend("#")),
+    explicit BaseFileSystem(const Pattern &root, const ID &mount_root): External(root),
                                                               mount_root_(id_p(mount_root.extend("/"))) {
     }
 
     void setup() override {
-      LOG_ACTOR(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
+      LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       // define filesystem types
       //Types::singleton()->loop();
       /*this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
@@ -142,20 +142,20 @@ namespace fhatos {
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(),
                                       id_p(INST_FS_FURI->resolve("touch"))));
-      Actor::setup();
+      External::setup();
     }
 
     virtual File_p to_file(const ID &path) const {
       if (this->is_file(path))
         return uri(id_p(path), FILE_FURI);
-      throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->id()->toString().c_str(),
+      throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
     virtual Dir_p to_dir(const ID &path) const {
       if (this->is_dir(path))
         return uri(id_p(path), DIR_FURI);
-      throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->id()->toString().c_str(),
+      throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
@@ -165,7 +165,7 @@ namespace fhatos {
 
     virtual fURI make_native_path(const ID &path) const {
       const string temp_path_string = path.toString();
-      const string temp_id_string = this->id()->toString();
+      const string temp_id_string = this->pattern_->toString();
       const string temp_path = ((temp_path_string.length() >= temp_id_string.length()) &&
                                 (temp_path_string.substr(0, temp_id_string.length()) == temp_id_string))
                                  ? temp_path_string.substr(temp_id_string.length())
@@ -173,11 +173,11 @@ namespace fhatos {
       const fURI local_path =
           this->mount_root_->resolve(
             (!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
-      LOG_ACTOR(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
+      LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                 path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
         throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
-                     this->id()->toString().c_str(), local_path.toString().c_str(),
+                     this->pattern()->toString().c_str(), local_path.toString().c_str(),
                      this->mount_root_->toString().c_str());
       }
       return local_path;
@@ -190,7 +190,7 @@ namespace fhatos {
     /////
 
     virtual Dir_p root() const {
-      return to_dir(*this->id());
+      return to_dir(*this->pattern());
     }
 
     virtual bool is_fs(const ID &path) const {
@@ -222,7 +222,7 @@ namespace fhatos {
       if (furi->is_pattern()) {
         List<Dir_p> list_a = {root()};
         List<Dir_p> list_b = {};
-        for (int i = this->id()->path_length(); i < furi->path_length(); i++) {
+        for (int i = this->pattern()->path_length(); i < furi->path_length(); i++) {
           string segment = furi->path(i);
           for (const Dir_p &d: list_a) {
             if (is_dir(d->uri_value())) {

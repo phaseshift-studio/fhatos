@@ -62,13 +62,13 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *file_system->to_dir("/")->id());
     TEST_ASSERT_EQUAL_INT(0, file_system->ls(file_system->to_dir("/"))->objs_value()->size());
     for (int i = 0; i < 10; i++) {
-      const ID id = file_system->id()->extend(("a_" + to_string(i) + ".txt").c_str());
+      const ID id = file_system->pattern()->extend(("a_" + to_string(i) + ".txt").c_str());
       File_p a = file_system->touch(id);
     }
     for (int i = 0; i < 10; i++) {
-      const ID id = file_system->id()->extend(("a_" + to_string(i) + ".txt").c_str());
+      const ID id = file_system->pattern()->extend(("a_" + to_string(i) + ".txt").c_str());
       File_p a = file_system->to_file(id);
-      FOS_TEST_ASSERT_EQUAL_FURI(file_system->id()->extend(("a_" + to_string(i) + ".txt").c_str()), a->uri_value());
+      FOS_TEST_ASSERT_EQUAL_FURI(file_system->pattern()->extend(("a_" + to_string(i) + ".txt").c_str()), a->uri_value());
     }
     const Objs_p files = file_system->ls(file_system->to_dir("/"));
     TEST_ASSERT_TRUE(files->is_objs());
@@ -87,7 +87,6 @@ namespace fhatos {
 
   FOS_RUN_TESTS( //
     base_directory = string(fs::current_path().c_str()) + "/build"; //
-    file_system = Model::deploy<FileSystem>(FileSystem::create("/fs", string(base_directory.c_str()) + "/tmp"));
     FOS_RUN_TEST(test_uris); //
     FOS_RUN_TEST(test_files); //
   );

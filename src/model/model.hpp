@@ -21,18 +21,15 @@
 #define fhatos_model_hpp
 
 #include <fhatos.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include <structure/router.hpp>
-#include <swarm.hpp>
-
+// #include FOS_PROCESS(scheduler.hpp)
+// #include <structure/router.hpp>
 
 namespace fhatos {
   class Model {
   public:
-    template<typename ACTOR>
-    static ptr<ACTOR> deploy(const ptr<ACTOR> &actor) {
-      return Swarm::singleton()->deploy(actor);
-    }
+    //static ptr<Process> deploy(const ptr<ACTOR> &actor) {
+    // return Swarm::singleton()->deploy(actor);
+    // }
   };
 }
 #endif

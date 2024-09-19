@@ -76,13 +76,6 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    template<typename ACTOR>
-    static ptr<Kernel> boot(const ptr<ACTOR> bootable) {
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      Model::deploy(bootable);
-      return Kernel::build();
-    }
-
     static ptr<Kernel> structure(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);

@@ -37,8 +37,10 @@ namespace fhatos {
     auto counter2 = new std::atomic<int>(0);
     auto actor1 = std::make_shared<Actor<Thread, KeyValue>>(ID("/app/actor1@127.0.0.1"));
     auto actor2 = std::make_shared<Actor<Thread, KeyValue>>(ID("/app/actor2@127.0.0.1"));
-    Model::deploy(actor1);
-    Model::deploy(actor2);
+    router()->attach(actor1);
+    scheduler()->spawn(actor1);
+    router()->attach(actor2);
+    scheduler()->spawn(actor2);
     actor1->subscribe(ID("/app/actor1@127.0.0.1/X"), [counter1, counter2, actor1](const ptr<Message> &message) {
       TEST_ASSERT_FALSE(message->retain);
       if (counter1->fetch_add(1) > 198)
@@ -69,8 +71,10 @@ namespace fhatos {
     auto *counter2 = new std::atomic<int>(0);
     auto actor1 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor1@127.0.0.1");
     auto actor2 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor2@127.0.0.1");
-    Model::deploy(actor1);
-    Model::deploy(actor2);
+    router()->attach(actor1);
+    scheduler()->spawn(actor1);
+    router()->attach(actor2);
+    scheduler()->spawn(actor2);
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor1@127.0.0.1"), *actor1->id());
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/app/actor2@127.0.0.1"), *actor2->id());
     actor1->subscribe("/app/actor1@127.0.0.1/X",
@@ -126,8 +130,10 @@ namespace fhatos {
     auto *counter2 = new std::atomic<int>(0);
     auto actor1 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor1@127.0.0.1");
     auto actor2 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor2@127.0.0.1");
-    Model::deploy(actor1);
-    Model::deploy(actor2);
+    router()->attach(actor1);
+    scheduler()->spawn(actor1);
+    router()->attach(actor2);
+    scheduler()->spawn(actor2);
     actor1->subscribe(actor1->id()->extend("X"),
                       [actor1, actor2, counter1](const ptr<Message> &message) {
                         if (message->payload->is_str()) {

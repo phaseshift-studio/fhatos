@@ -65,7 +65,7 @@ namespace fhatos {
             const BaseType_t threadResult =
                 xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                         process->id()->toString().c_str(), // Name of the task (for debugging)
-                                        15000, // Stack size (bytes)
+                                        10000, // Stack size (bytes)
                                         process.get(), // Parameter to pass
                                         CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
                                         &static_cast<Thread *>(process.get())->handle, // Task handle
@@ -78,7 +78,7 @@ namespace fhatos {
             if (!FIBER_THREAD_HANDLE) {
               success &= pdPASS == xTaskCreatePinnedToCore(FIBER_FUNCTION, // Function that should be called
                                                            "fiber_bundle", // Name of the task (for debugging)
-                                                           15000, // Stack size (bytes)
+                                                           7500, // Stack size (bytes)
                                                            nullptr, // Parameter to pass
                                                            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
                                                            &FIBER_THREAD_HANDLE, // Task handle
@@ -97,12 +97,6 @@ namespace fhatos {
                     ProcessTypes.to_chars(process->ptype).c_str());
         } else 
         router()->route_unsubscribe(this->id(), p_p(*process->id()));
-      /*LOG(NONE,
-          "\t!yFree memory\n"
-          "\t  !b[inst:" FOS_BYTES_MB_STR "][heap: " FOS_BYTES_MB_STR "][psram: " FOS_BYTES_MB_STR
-          "][flash: " FOS_BYTES_MB_STR "]\n",
-          FOS_BYTES_MB(ESP.getFreeSketchSpace()), FOS_BYTES_MB(ESP.getFreeHeap()), FOS_BYTES_MB(ESP.getFreePsram()),
-          FOS_BYTES_MB(ESP.getFlashChipSize()));*/
       return success;
     }
 

@@ -23,7 +23,6 @@ FhatOS: A Distributed Operating System
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <structure/stype/heap.hpp>
-#include <swarm.hpp>
 
 namespace fhatos {
   class System : public Actor<Thread, KeyValue> {
@@ -79,10 +78,10 @@ namespace fhatos {
         Objs_p objs = Obj::to_objs();
         Objs *objs_ptr = objs.get();
 
-        for (const auto &actor: *Swarm::singleton()->actors_) {
-          if (ACTOR_ID()->extend(*actor->id()).matches(*furi))
-            objs->add_obj(uri(ACTOR_ID()->extend(*actor->id())));
-        }
+        /*  for (const auto &actor: *Swarm::singleton()->actors_) {
+            if (ACTOR_ID()->extend(*actor->id()).matches(*furi))
+              objs->add_obj(uri(ACTOR_ID()->extend(*actor->id())));
+          }*/
         scheduler()->processes_->forEach([this,furi,objs_ptr](const Process_p &process) {
           if (PROCESS_ID(&process->ptype)->extend(*process->id()).matches(*furi))
             objs_ptr->add_obj(uri(PROCESS_ID(&process->ptype)->extend(*process->id())));
@@ -102,22 +101,22 @@ namespace fhatos {
         // ID
         if (furi->equals(*BARRIER_ID(scheduler()->current_barrier_)))
           return dool(true);
-        else if (ACTOR_ID()->is_subfuri_of(*furi)) {
-          for (const auto& actor: *Swarm::singleton()->actors_) {
-            if (furi->matches(ACTOR_ID()->extend(*actor->id())))
-              return rec({
-                {uri("process"), rec({
-                                       {uri("id"), uri(actor->id())},
-                                       {uri("setup"), bcode()},
-                                       {uri("loop"), bcode()}},
-                                     id_p(REC_FURI->resolve(ProcessTypes.to_chars(actor->ptype))))},
-                {uri("structure"), rec({
-                                         {uri("pattern"), uri(*((Structure*)actor.get())->pattern_)},
+          /*else if (ACTOR_ID()->is_subfuri_of(*furi)) {
+            for (const auto& actor: *Swarm::singleton()->actors_) {
+              if (furi->matches(ACTOR_ID()->extend(*actor->id())))
+                return rec({
+                  {uri("process"), rec({
+                                         {uri("id"), uri(actor->id())},
                                          {uri("setup"), bcode()},
                                          {uri("loop"), bcode()}},
-                                       id_p(REC_FURI->resolve(StructureTypes.to_chars(((Structure*)actor.get())->stype))))}});
-          }
-        } else if (PROCESS_ID()->is_subfuri_of(*furi)) {
+                                       id_p(REC_FURI->resolve(ProcessTypes.to_chars(actor->ptype))))},
+                  {uri("structure"), rec({
+                                           {uri("pattern"), uri(*((Structure*)actor.get())->pattern_)},
+                                           {uri("setup"), bcode()},
+                                           {uri("loop"), bcode()}},
+                                         id_p(REC_FURI->resolve(StructureTypes.to_chars(((Structure*)actor.get())->stype))))}});
+            }*/
+        else if (PROCESS_ID()->is_subfuri_of(*furi)) {
           const Option<Process_p> option = scheduler()->processes_->find([this,furi](const Process_p &process) {
             return furi->matches(PROCESS_ID(&process->ptype)->extend(*process->id()));
           });

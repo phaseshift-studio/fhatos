@@ -93,20 +93,23 @@ void setup() {
         ////////////////////////////////////////////////////////////
         ->structure(KeyValue::create("+/#"))
         ->structure(Types::singleton("/type/"))
-        ->boot<Terminal>(Terminal::singleton("/terminal/"))
+        ->structure(Terminal::singleton("/terminal"))
         ->process(Parser::singleton("/parser/"))
 #ifndef NATIVE
-        //->structure(Memory::singleton("/soc/memory/#"))
+        ->structure(Memory::singleton("/soc/memory/#"))
         ->structure(Pinout::singleton("/soc/pinout/#"))
-        //->structure(Wifi::singleton("/soc/wifi/+"))
+        ->structure(Wifi::singleton("/soc/wifi/+"))
         ->model({ID("/model/sys")})
 #endif
 #ifdef NATIVE
-        ->boot<FileSystem>(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
-        // ->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
+        ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
+        //->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
 #endif
         ->model({ID("/model/sys")})
-        ->boot<Console>(Console::create("/home/root/repl/", "/terminal/"))
+        ->process(Console::create("/console/", "/terminal",
+                                  Console::Settings{
+                                      .nest = args.option("--nest", "false") == "true",
+                                      .ansi = args.option("--ansi", "true") == "true"}))
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),

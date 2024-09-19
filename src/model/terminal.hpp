@@ -23,28 +23,29 @@
 #include <fhatos.hpp>
 #include <iostream>
 #include <process/actor/actor.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 #include <structure/stype/id_structure.hpp>
 
 namespace fhatos {
-  class Terminal final : public Actor<Coroutine, IDStructure> {
+  class Terminal final : public IDStructure {
   protected:
-    explicit Terminal(const ID &id = ID("/io/terminal/")) : Actor(id) {}
+    explicit Terminal(const Pattern &id = "/io/terminal/") : IDStructure(id) {
+    }
 
   public:
-    static ptr<Terminal> singleton(const ID &id = "/io/terminal/") {
+    static ptr<Terminal> singleton(const Pattern &id = "/io/terminal/") {
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }
 
     void setup() override {
-      Actor::setup();
-      this->subscribe(*this->id_, [this](const Message_p &message) {
-        if (message->retain && message->payload->is_noobj())
-          this->stop();
-        else
-          printer<>()->print(message->payload->str_value().c_str());
-      });
+      IDStructure::setup();
+      router()->route_subscription(subscription_p(ID(*this->pattern_), *this->pattern_, QoS::_1, Insts::to_bcode(
+                                                    [this](const Message_p &message) {
+                                                      if (message->retain && message->payload->is_noobj())
+                                                        this->stop();
+                                                      else
+                                                        printer<>()->print(message->payload->str_value().c_str());
+                                                    })));
     }
 
     static int readChar() {
@@ -62,10 +63,11 @@ namespace fhatos {
       const int length = vsnprintf(buffer, FOS_DEFAULT_BUFFER_SIZE, format, arg);
       buffer[length] = '\0';
       va_end(arg);
-      router()->route_message(share(Message{//
-                                            .target = *Terminal::singleton()->id(), //
-                                            .payload = Obj::to_str(buffer),
-                                            .retain = TRANSIENT_MESSAGE}));
+      router()->route_message(share(Message{
+        //
+        .target = ID(*singleton()->pattern_), //
+        .payload = Obj::to_str(buffer),
+        .retain = TRANSIENT_MESSAGE}));
     }
   };
 } // namespace fhatos

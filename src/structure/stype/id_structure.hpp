@@ -28,7 +28,8 @@ namespace fhatos {
   protected:
     Obj_p id_obj_ = noobj();
 
-    explicit IDStructure(const Pattern &id) : Structure(id, SType::EPHEMERAL) {}
+    explicit IDStructure(const Pattern &id) : Structure(id, SType::EPHEMERAL) {
+    }
 
   public:
     static ptr<IDStructure> create(const Pattern_p &id) {
@@ -39,7 +40,7 @@ namespace fhatos {
     void publish_retained(const Subscription_p &subscription) override {
       if (!this->id_obj_->is_noobj() && this->pattern()->matches(subscription->pattern)) {
         (*subscription->on_recv)(
-            share(Message{.target = ID(*this->pattern()), .payload = id_obj_, .retain = RETAIN_MESSAGE})->to_rec());
+          share(Message{.target = ID(*this->pattern()), .payload = id_obj_, .retain = RETAIN_MESSAGE})->to_rec());
       }
     }
 
@@ -47,9 +48,10 @@ namespace fhatos {
       if (this->pattern()->equals(*id) && retain)
         this->id_obj_ = obj;
       distribute_to_subscribers(share(Message{.target = *id, .payload = obj, .retain = retain}));
+      this->loop();
     }
 
-    Obj_p read(const fURI_p &furi) override  {
+    Obj_p read(const fURI_p &furi) override {
       FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       return furi->matches(*this->pattern()) ? this->id_obj_ : noobj();

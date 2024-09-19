@@ -48,7 +48,7 @@ namespace fhatos {
 
     Dir_p mkdir(const ID &path) const override {
       if (fs::is_directory(this->make_native_path(path).toString())) {
-        throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
+        throw fError("!g[!b%s!g]!! %s already exists\n", this->pattern()->toString().c_str(), path.toString().c_str());
       }
       fs::create_directory(this->make_native_path(path).toString());
       return to_dir(path);
@@ -92,7 +92,7 @@ namespace fhatos {
       const string nativePathString = this->make_native_path(path).toString();
       LOG(INFO, "HERE %s %s\n", nativePathString.c_str(), path.toString().c_str());
       if (fs::is_regular_file(nativePathString)) {
-        throw fError("!g[!!%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
+        throw fError("!g[!!%s!g]!! %s already exists\n", this->pattern()->toString().c_str(), path.toString().c_str());
       }
       fstream fo;
       fo.open(fs::path(nativePathString), ios::out);

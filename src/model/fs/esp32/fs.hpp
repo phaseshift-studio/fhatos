@@ -54,9 +54,9 @@ namespace fhatos {
 
     Dir_p mkdir(const ID &path) const override {
       if (is_dir(path))
-        throw fError("!g[!b%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
+        throw fError("!g[!b%s!g]!! %s already exists\n", this->pattern()->toString().c_str(), path.toString().c_str());
       if (!FOS_FS.mkdir(this->make_native_path(path).toString().c_str()))
-        throw fError("!g[!b%s!g]!! %s can't be created\n", this->id()->toString().c_str(), path.toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be created\n", this->pattern()->toString().c_str(), path.toString().c_str());
       return this->to_dir(path);
     }
 
@@ -68,13 +68,13 @@ namespace fhatos {
         result = FOS_FS.remove(this->make_native_path(uri->uri_value()).toString().c_str());
       }
       if (!result)
-        throw fError("!g[!b%s!g]!! %s can't be deleted\n", this->id()->toString().c_str(), uri->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be deleted\n", this->pattern()->toString().c_str(), uri->toString().c_str());
     }
 
     Objs_p ls(const Dir_p &dir) const override {
       auto listing = share<List<Uri_p>>(List<Uri_p>());
       if (!is_dir(dir->uri_value())) {
-        throw fError("!g[!b%s!g]!! %s can't be opened\n", this->id()->toString().c_str(), dir->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be opened\n", this->pattern()->toString().c_str(), dir->toString().c_str());
       }
       fs::File root = FOS_FS.open(this->make_native_path(dir->uri_value()).toString().c_str());
       fs::File file = root.openNextFile();
@@ -101,9 +101,9 @@ namespace fhatos {
     File_p cat(const File_p &file, const Obj_p &content) override {
       fs::File f = FOS_FS.open(this->make_native_path(file->uri_value()).toString().c_str(), "rw", true);
       if (!f)
-        throw fError("!g[!b%s!g]!! %s can't be opened\n", this->id()->toString().c_str(), file->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be opened\n", this->pattern()->toString().c_str(), file->toString().c_str());
       if (!f.print(content->toString().c_str())) {
-        throw fError("!g[!b%s!g]!! %s can't be written to\n", this->id()->toString().c_str(), file->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be written to\n", this->pattern()->toString().c_str(), file->toString().c_str());
       }
       f.close();
       return file;
@@ -111,7 +111,7 @@ namespace fhatos {
 
     File_p touch(const ID &path) const override {
       if (this->is_file(path)) {
-        throw fError("!g[!!%s!g]!! %s already exists\n", this->id()->toString().c_str(), path.toString().c_str());
+        throw fError("!g[!!%s!g]!! %s already exists\n", this->pattern()->toString().c_str(), path.toString().c_str());
       }
       FOS_FS.open(this->make_native_path(path).toString().c_str(), "rw", true);
       return to_file(path);

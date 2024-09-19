@@ -1000,7 +1000,7 @@ namespace fhatos {
     [[nodiscard]] bool is_lst() const { return this->o_type() == OType::LST; }
 
     [[nodiscard]] bool is_poly() const {
-      return this->is_lst() || this->is_rec() || this->is_objs() || this->is_bcode() || this->is_inst();
+      return this->is_lst() || this->is_rec() /*|| this->is_objs() || this->is_bcode() || this->is_inst()*/;
     }
 
     [[nodiscard]] bool is_rec() const { return this->o_type() == OType::REC; }

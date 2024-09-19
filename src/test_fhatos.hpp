@@ -28,6 +28,7 @@
 #include <unity.h>
 #include <model/model.hpp>
 #include <util/options.hpp>
+#include <language/obj.hpp>
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
   Options::singleton()->log_level(FOS_LOGGING);
@@ -65,13 +66,16 @@
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <model/shared_memory.hpp>
-#define FOS_DEPLOY_SHARED_MEMORY_2 Model::deploy(SharedMemory::create(ID("/memory/shared"), Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
+#define FOS_DEPLOY_SHARED_MEMORY_2 router()->attach(SharedMemory::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
 #ifdef FOS_DEPLOY_FILE_SYSTEM
 #include FOS_FILE_SYSTEM(fs.hpp)
-#define FOS_DEPLOY_FILE_SYSTEM_2 Model::deploy(FileSystem::create(ID("/io/fs/")));
+#define FOS_DEPLOY_FILE_SYSTEM_2 \
+  ptr<FileSystem> fs = FileSystem::create("/fs/", string(base_directory.c_str()) + "/tmp"); \
+  router()->attach(fs); \
+  fs->setup();
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
 #endif
