@@ -57,7 +57,7 @@ namespace fhatos {
     void rm(const Uri_p &uri) const override { fs::remove(uri->uri_value().toString()); }
 
     Objs_p ls(const Dir_p &dir) const override {
-      auto listing = share<List<Uri_p>>(List<Uri_p>());
+      const auto listing = share<List<Uri_p>>(List<Uri_p>());
       for (const auto &p: fs::directory_iterator(this->make_native_path(dir->uri_value()).toString())) {
         if ((fs::is_directory(p) || fs::is_regular_file(p))) {
           listing->push_back(
@@ -89,13 +89,12 @@ namespace fhatos {
     }
 
     File_p touch(const ID &path) const override {
-      const string nativePathString = this->make_native_path(path).toString();
-      LOG(INFO, "HERE %s %s\n", nativePathString.c_str(), path.toString().c_str());
-      if (fs::is_regular_file(nativePathString)) {
+      const string native_path_string = this->make_native_path(path).toString();
+      if (fs::is_regular_file(native_path_string)) {
         throw fError("!g[!!%s!g]!! %s already exists\n", this->pattern()->toString().c_str(), path.toString().c_str());
       }
       fstream fo;
-      fo.open(fs::path(nativePathString), ios::out);
+      fo.open(fs::path(native_path_string), ios::out);
       fo.close();
       return to_file(path);
     }
