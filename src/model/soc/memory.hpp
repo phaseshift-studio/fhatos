@@ -31,14 +31,10 @@ namespace fhatos {
   class Memory : public External {
 
   protected:
-    ID_p FOS_INST_MEMORY_FURI;
-    ID_p FOS_HEAP_MEMORY_FURI;
-    ID_p FOS_PSRAM_MEMORY_FURI;
+    List<ID_p> MEMORY_IDS_;
     explicit Memory(const Pattern &pattern = "/soc/memory/#") :
-        External(pattern), FOS_INST_MEMORY_FURI{id_p(pattern.resolve("./inst"))},
-        FOS_HEAP_MEMORY_FURI{id_p(pattern.resolve("./heap"))}, FOS_PSRAM_MEMORY_FURI{id_p(pattern.resolve("./psram"))} {
-
-    }
+        External(pattern), MEMORY_IDS_{{id_p(pattern.resolve("./inst")), id_p(pattern.resolve("./heap")),
+                                        id_p(pattern.resolve("./psram")), id_p(pattern.resolve("./hwm"))}} {}
     // TODO: flash/partition/0x4434
 
 
@@ -48,16 +44,7 @@ namespace fhatos {
       return memory;
     }
 
-    virtual List<ID_p> existing_ids(const fURI &match) override {
-      List<ID_p> ids;
-      if (FOS_INST_MEMORY_FURI->matches(match))
-        ids.push_back(FOS_INST_MEMORY_FURI);
-      if (FOS_HEAP_MEMORY_FURI->matches(match))
-        ids.push_back(FOS_HEAP_MEMORY_FURI);
-      if (FOS_PSRAM_MEMORY_FURI->matches(match))
-        ids.push_back(FOS_PSRAM_MEMORY_FURI);
-      return ids;
-    }
+    virtual List<ID_p> existing_ids(const fURI &match) override { return MEMORY_IDS_; }
 
     virtual void setup() override {
       External::setup();
@@ -65,9 +52,9 @@ namespace fhatos {
       // "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>" FOS_TYPE_PREFIX "real/%%[_]]"));
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse("is(gte(0.0)).is(lte(100.0))"));
       this->read_functions_.insert(
-          {FOS_INST_MEMORY_FURI, [this](const fURI_p furi) {
+          {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
              return Map<ID_p, Obj_p>{
-                 {FOS_INST_MEMORY_FURI,
+                 {MEMORY_IDS_.at(0),
                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
                         ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
                         ESP.getSketchSize() == 0
@@ -76,9 +63,9 @@ namespace fhatos {
                                                  ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}};
            }});
       this->read_functions_.insert(
-          {FOS_HEAP_MEMORY_FURI, [this](const fURI_p furi) {
+          {MEMORY_IDS_.at(1), [this](const fURI_p furi) {
              return Map<ID_p, Obj_p>{
-                 {FOS_HEAP_MEMORY_FURI,
+                 {MEMORY_IDS_.at(1),
                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
                         ESP.getFreeHeap(),
                         ESP.getHeapSize() == 0
@@ -86,14 +73,22 @@ namespace fhatos {
                             : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}};
            }});
       this->read_functions_.insert(
-          {FOS_PSRAM_MEMORY_FURI, [this](const fURI_p furi) {
+          {MEMORY_IDS_.at(2), [this](const fURI_p furi) {
              return Map<ID_p, Obj_p>{
-                 {FOS_PSRAM_MEMORY_FURI,
+                 {MEMORY_IDS_.at(2),
                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
                         ESP.getFreePsram(),
                         ESP.getPsramSize() == 0
                             ? 0.0f
                             : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}};
+           }});
+      this->read_functions_.insert(
+          {MEMORY_IDS_.at(3), [this](const fURI_p furi) {
+             uint16_t free = ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+             float used = ESP_THREAD_STACK_SIZE == 0 ? 0.0f : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
+             return Map<ID_p, Obj_p>{
+                 {MEMORY_IDS_.at(3), parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                                           ESP_THREAD_STACK_SIZE, free, used)}};
            }});
       // LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded:!y\n\t%s\n\t%s\n\t%s!!\n",
       //     FOS_INST_MEMORY_FURI->toString().c_str(), FOS_HEAP_MEMORY_FURI->toString().c_str(),

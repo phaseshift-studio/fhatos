@@ -26,7 +26,6 @@
 #include <fhatos.hpp>
 #include <../build/_deps/unity-src/src/unity.h>
 #include <unity.h>
-#include <model/model.hpp>
 #include <util/options.hpp>
 #include <language/obj.hpp>
 #define FOS_DEPLOY_PRINTER_2                              \
@@ -237,11 +236,10 @@ using namespace fhatos;
   }
 
 #ifdef FOS_DEPLOY_PARSER
-template<typename OBJ = Obj>
-static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool printResult = true) {
+static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_result = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  ptr<List<Obj_p>> result = fluent.toList<Obj>();
-  if (printResult) {
+  List_p<Obj_p> result = fluent.toList();
+  if (print_result) {
     int index = 0;
     for (const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
@@ -252,34 +250,31 @@ static ptr<List<ptr<OBJ>>> FOS_TEST_RESULT(const Fluent &fluent, const bool prin
 }
 #endif
 
-template<typename OBJ = Obj>
-static void FOS_TEST_OBJ_GT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
-  const bool test = *objA > *objB;
-  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", objA->toString().c_str(),
-                   test ? ">" : "!=", objB->toString().c_str());
+static void FOS_TEST_OBJ_GT(const Obj_p &obj_a, const Obj_p &obj_b) {
+  const bool test = *obj_a > *obj_b;
+  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", obj_a->toString().c_str(),
+                   test ? ">" : "!=", obj_b->toString().c_str());
   if (!test)
     TEST_FAIL();
 }
 
-template<typename OBJ = Obj>
-static void FOS_TEST_OBJ_LT(const ptr<OBJ> objA, const ptr<OBJ> objB) {
-  const bool test = *objA < *objB;
-  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", objA->toString().c_str(),
-                   test ? "<" : "!=", objB->toString().c_str());
+
+static void FOS_TEST_OBJ_LT(const Obj_p &obj_a, const Obj_p &obj_b) {
+  const bool test = *obj_a < *obj_b;
+  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", obj_a->toString().c_str(),
+                   test ? "<" : "!=", obj_b->toString().c_str());
   if (!test)
     TEST_FAIL();
 }
 
-template<typename T>
-static const T *FOS_PRINT_OBJ(const T *obj) {
+static const Obj *FOS_PRINT_OBJ(const Obj *obj) {
   FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),
                    OTypes.to_chars(obj->o_type()).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
   return obj;
 }
 
-template<typename T>
-static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
-  FOS_PRINT_OBJ<T>(obj.get());
+static Obj_p FOS_PRINT_OBJ(const Obj_p &obj) {
+  FOS_PRINT_OBJ(obj.get());
   return obj;
 }
 
@@ -297,15 +292,14 @@ static const ptr<T> FOS_PRINT_OBJ(const ptr<T> obj) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
-template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
-  const List<OBJ> &expected, const Fluent &fluent,
+  const List<Obj> &expected, const Fluent &fluent,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   [[maybe_unused]] const bool clearRouter = true) {
-  const ptr<List<ptr<OBJ>>> result = FOS_TEST_RESULT<OBJ>(fluent);
+  const ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(fluent, true);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
-  for (const OBJ &obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const ptr<OBJ> element) {
+  for (const Obj &obj: expected) {
+    auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p& element) {
       if (obj.is_real()) {
         return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
       } else
@@ -342,9 +336,8 @@ static void FOS_CHECK_RESULTS(
 
 #ifdef FOS_DEPLOY_PARSER
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
-  const List<OBJ> &expected, const List<string> &monoids,
+  const List<Obj> &expected, const List<string> &monoids,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = true) {
   const string &finalString = monoids.back();
@@ -353,20 +346,19 @@ static void FOS_CHECK_RESULTS(
     Fluent(Parser::singleton()->try_parse_obj(monoids.at(i)).value()).iterate();
   }
   LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
-  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(Parser::singleton()->try_parse_obj(finalString).value()),
-                                expectedReferences, clearRouter);
+  return FOS_CHECK_RESULTS(expected, Fluent(Parser::singleton()->try_parse_obj(finalString).value()),
+                           expectedReferences, clearRouter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename OBJ = Obj>
 static void FOS_CHECK_RESULTS(
-  const List<OBJ> &expected, const string &monoid,
+  const List<Obj> &expected, const string &monoid,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = false) {
   Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse: %s\n", monoid.c_str());
-  return FOS_CHECK_RESULTS<OBJ>(expected, Fluent(parse.value()), expectedReferences, clearRouter);
+  return FOS_CHECK_RESULTS(expected, Fluent(parse.value()), expectedReferences, clearRouter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -381,7 +373,7 @@ static void FOS_CHECK_RESULTS(
       throw fError("Unable to parse expected result: %s\n", result.c_str());
     expectedResults.push_back(*parse2.value());
   }
-  return FOS_CHECK_RESULTS<Obj>(expectedResults, Fluent(parse.value()));
+  return FOS_CHECK_RESULTS(expectedResults, Fluent(parse.value()));
 }
 #endif
 #endif

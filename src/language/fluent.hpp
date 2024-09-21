@@ -37,39 +37,36 @@ namespace fhatos {
             Fluent(Obj::to_bcode(List<Obj_p>({}))) {}
 
     //////////////////////////////////////////////////////////////////////////////
-    template<typename E = Obj>
-    ptr<E> next() const {
+    Obj_p next() const {
       if (!this->_bcode->is_bcode())
         return this->_bcode;
-      static Processor<E> proc = Processor<E>(this->_bcode);
+      static Processor proc = Processor(this->_bcode);
       return proc.next();
     }
 
-    template<typename E = Obj>
-    void forEach(const Consumer<const ptr<E>> &consumer) const {
+    void forEach(const Consumer<const Obj_p> &consumer) const {
       if (!this->_bcode->is_bcode())
         consumer(this->_bcode);
       else {
-        Processor<E> proc = Processor<E>(this->_bcode);
+        Processor proc = Processor(this->_bcode);
         proc.for_each(consumer);
       }
     }
 
-    template<typename E = Obj>
-    ptr<List<ptr<E>>> toList() const {
-      ptr<List<ptr<E>>> list = share<List<ptr<E>>>(List<ptr<E>>());
-      this->forEach<E>([list](const ptr<E> &end) { list->push_back(end); });
+    ptr<List<Obj_p>> toList() const {
+      ptr<List<Obj_p>> list = share<List<Obj_p>>(List<Obj_p>());
+      this->forEach([list](const Obj_p &end) { list->push_back(end); });
       return list;
     }
 
     Objs_p toObjs() const {
       Objs_p xobjs = objs();
-      this->forEach<Obj>([xobjs](const Obj_p &end) { xobjs->add_obj(end); });
+      this->forEach([xobjs](const Obj_p &end) { xobjs->add_obj(end); });
       return xobjs;
     }
 
     void iterate() const {
-      this->forEach<Obj>([](const Obj_p &) {});
+      this->forEach([](const Obj_p &) {});
     }
 
     string toString() const { return this->_bcode->toString(); }

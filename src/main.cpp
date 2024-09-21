@@ -98,8 +98,7 @@ void setup() {
 #ifndef NATIVE
         ->structure(Memory::singleton("/soc/memory/#"))
         ->structure(Pinout::singleton("/soc/pinout/#"))
-        ->structure(Wifi::singleton("/soc/wifi/+"))
-        ->model({ID("/model/sys")})
+        //->structure(Wifi::singleton("/soc/wifi/+"))
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))

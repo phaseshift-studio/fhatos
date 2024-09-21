@@ -80,7 +80,7 @@ namespace fhatos {
       }
       this->processes_->push_back(process);
       LOG_SCHEDULER(INFO, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                  ProcessTypes.to_chars(process->ptype).c_str());
+                    ProcessTypes.to_chars(process->ptype).c_str());
       return true;
     }
 
@@ -94,7 +94,7 @@ namespace fhatos {
       while (counter > 0) {
         counter = 0;
         auto *fibers = new List<Process_p>();
-        Scheduler::singleton()->processes_->forEach([fibers](const Process_p &proc) {
+        singleton()->processes_->forEach([fibers](const Process_p &proc) {
           if (proc->ptype == PType::FIBER)
             fibers->push_back(proc);
         });
@@ -103,7 +103,7 @@ namespace fhatos {
             fiber->loop();
           counter++;
         }
-        Scheduler::singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
+        singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
           const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
           if (remove) LOG_DESTROY(true, fiber, Scheduler::singleton());
           return remove;
@@ -120,7 +120,7 @@ namespace fhatos {
       while (thread->running()) {
         thread->loop();
       }
-      Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
+      singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->id()->equals(*thread->id()) || !proc->running();
         if (remove) LOG_DESTROY(true, proc, Scheduler::singleton());
         return remove;

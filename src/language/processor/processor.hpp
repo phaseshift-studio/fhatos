@@ -82,10 +82,9 @@ namespace fhatos {
     return share(Monad(obj, inst));
   }
 
-  template<typename E>
-  class Processor /*: Actor<Thread,KeyValue>*/ {
+  class Processor {
   protected:
-    BCode_p bcode_{};
+    BCode_p bcode_;
     Deque<Monad_p> *running_;
     Deque<Monad_p> *barriers_;
     Deque<Obj_p> *halted_;
@@ -124,14 +123,14 @@ namespace fhatos {
       }
     }
 
-    ptr<E> next(const int steps = -1) {
+    Obj_p next(const int steps = -1) {
       while (true) {
         if (this->halted_->empty()) {
           if (this->running_->empty())
             return nullptr;
           this->execute(steps);
         } else {
-          const ptr<E> end = std::dynamic_pointer_cast<E>(this->halted_->front());
+          const Obj_p end = this->halted_->front();
           this->halted_->pop_front();
           if (!end->is_noobj())
             return end;
@@ -180,9 +179,9 @@ namespace fhatos {
       return this->halted_->size();
     }
 
-    void for_each(const Consumer<const ptr<E>> &consumer, const int steps = -1) {
+    void for_each(const Consumer<const Obj_p> &consumer, const int steps = -1) {
       while (true) {
-        const ptr<E> end = this->next(steps);
+        const Obj_p end = this->next(steps);
         if (!end) {
           break;
         } else if (!end->is_noobj()) {
@@ -193,20 +192,20 @@ namespace fhatos {
   };
 
   [[maybe_unused]] static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
-    return Processor<Obj>(bcode, starts).to_objs();
+    return Processor(bcode, starts).to_objs();
   }
 
   [[maybe_unused]] static Objs_p process(const string &monoid) {
-    return Processor<Obj>(Options::singleton()->parser<Obj>(monoid), noobj()).to_objs();
+    return Processor(Options::singleton()->parser<Obj>(monoid), noobj()).to_objs();
   }
 
 
   [[maybe_unused]] static void load_processor() {
     BCODE_PROCESSOR = [](const Objs_p &starts, const BCode_p &bcode) {
-      return Processor<Obj>(bcode, starts).to_objs();
+      return Processor(bcode, starts).to_objs();
     };
     Options::singleton()->processor<Obj, BCode, Objs>(
-      [](const Obj_p &st, const BCode_p &bc) { return Processor<Obj>(bc, st).to_objs(); });
+      [](const Obj_p &st, const BCode_p &bc) { return Processor(bc, st).to_objs(); });
   }
 } // namespace fhatos
 

@@ -28,6 +28,9 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 
+#define ESP_THREAD_STACK_SIZE 16000
+#define ESP_FIBER_STACK_SIZE 7500
+
 namespace fhatos {
   class Scheduler final : public XScheduler {
   public:
@@ -65,7 +68,7 @@ namespace fhatos {
             const BaseType_t threadResult =
                 xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
                                         process->id()->toString().c_str(), // Name of the task (for debugging)
-                                        10000, // Stack size (bytes)
+                                        ESP_THREAD_STACK_SIZE, // Stack size (bytes)
                                         process.get(), // Parameter to pass
                                         CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
                                         &static_cast<Thread *>(process.get())->handle, // Task handle
@@ -78,7 +81,7 @@ namespace fhatos {
             if (!FIBER_THREAD_HANDLE) {
               success &= pdPASS == xTaskCreatePinnedToCore(FIBER_FUNCTION, // Function that should be called
                                                            "fiber_bundle", // Name of the task (for debugging)
-                                                           7500, // Stack size (bytes)
+                                                           ESP_THREAD_STACK_SIZE, // Stack size (bytes)
                                                            nullptr, // Parameter to pass
                                                            CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
                                                            &FIBER_THREAD_HANDLE, // Task handle

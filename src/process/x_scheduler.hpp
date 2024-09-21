@@ -84,30 +84,22 @@ namespace fhatos {
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
     virtual void setup() {
-      /*router()->route_subscription(
-        subscription_p(*this->id_, *this->id_, QoS::_1,
-                       Insts::to_bcode(
-                         [this](const Message_p &message) {
-                           if(message->retain && is_thread(message->payload)) {
-                            this->spawn(std::make_shared<ThreadObj>(message->target));
-                           }
-                         })));*/
-
       MESSAGE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) {
-        if (!retain || !payload->is_rec())
-          return;
-        LOG_SCHEDULER(DEBUG, "intercepting retained !yrec!! %s\n", payload->toString().c_str());
-        THREAD_SPAWNER(id_p(target));
+        if (retain && payload->is_rec() && payload->id()->matches(THREAD_FURI->extend("#"))) {
+          LOG_SCHEDULER(DEBUG, "intercepting retained !ythread!! %s\n", payload->toString().c_str());
+          THREAD_SPAWNER(id_p(target));
+        }
       };
       this->running_ = true;
-      LOG_SCHEDULER(INFO, "!yscheduler!! loaded\n");
+      LOG_SCHEDULER(INFO, "!yscheduler!! started\n");
     }
 
     void stop() {
       auto *thread_count = new atomic_int(0);
       auto *fiber_count = new atomic_int(0);
       auto *coroutine_count = new atomic_int(0);
-      this->processes_->forEach([thread_count, fiber_count, coroutine_count](const Process_p &proc) {
+      auto list = new List<Process_p>();
+      this->processes_->forEach([list,thread_count, fiber_count, coroutine_count](const Process_p &proc) {
         switch (proc->ptype) {
           case PType::THREAD:
             thread_count->fetch_add(1);
@@ -119,6 +111,7 @@ namespace fhatos {
             coroutine_count->fetch_add(1);
             break;
         }
+        list->push_back(proc);
       });
       LOG_SCHEDULER(INFO, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
                     thread_count->load(), fiber_count->load(), coroutine_count->load());
@@ -126,8 +119,6 @@ namespace fhatos {
       delete fiber_count;
       delete coroutine_count;
       router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
-      auto list = new List<Process_p>();
-      this->processes_->forEach([list](const Process_p &proc) { list->push_back(proc); });
       while (!list->empty()) {
         const Process_p p = list->back();
         list->pop_back();

@@ -27,6 +27,9 @@
 
 namespace fhatos {
   class ThreadObj : public Thread {
+  protected:
+    BCode_p stop_bcode_{};
+
   public:
     explicit ThreadObj(const ID &id): Thread(id) {
     }
@@ -43,7 +46,8 @@ namespace fhatos {
                                                           }
                                                         }
                                                       })));
-        const BCode_p setup_bcode = router()->read(id_p(this->id()->resolve(":setup")));
+        this->stop_bcode_ = router()->read(this->id())->rec_get(uri(this->id()->resolve(":stop")));
+        const BCode_p setup_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":setup")));
         LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n", setup_bcode->toString().c_str());
         process(setup_bcode, uri(this->id()));
       } catch (const fError &error) {
@@ -55,7 +59,7 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->running_.load()) {
-          const BCode_p loop_bcode = router()->read(id_p(this->id()->resolve(":loop")));
+          const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
           process(loop_bcode, uri(this->id()));
         }
       } catch (const fError &error) {
@@ -65,11 +69,16 @@ namespace fhatos {
     }
 
     void stop() override {
-      const BCode_p stop_bcode = router()->read(id_p(this->id()->resolve(":stop")));
-      LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n", stop_bcode->toString().c_str());
-      process(stop_bcode, uri(this->id()));
-      router()->route_unsubscribe(this->id(), p_p(*this->id()));
-      Thread::stop();
+      try {
+        if (this->running_.load()) {
+          // const BCode_p stop_bcode = router()->read(id_p(this->id()->resolve(":stop"))); (deletes before it can be read)
+          LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n", this->stop_bcode_->toString().c_str());
+          process(this->stop_bcode_, uri(this->id()));
+          Thread::stop();
+        }
+      } catch (const fError &error) {
+        LOG_EXCEPTION(error);
+      }
     }
   };
 

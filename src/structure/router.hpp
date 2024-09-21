@@ -32,7 +32,7 @@ namespace fhatos {
     ptr<Map<Pattern_p, Structure_p, furi_p_less>> structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
 
     explicit Router(const Pattern &pattern): Patterned(p_p(pattern)) {
-      LOG_ROUTER(INFO, "!yrouter!! !b%s!! loaded\n", pattern.toString().c_str());
+      LOG_ROUTER(INFO, "!yrouter!! started\n");
     }
 
   public:

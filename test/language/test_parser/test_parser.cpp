@@ -36,9 +36,9 @@ namespace fhatos {
   void test_no_input_parsing() { TEST_ASSERT_FALSE(Parser::singleton()->try_parse_obj("").has_value()); }
 
   void test_start_inst_parsing() {
-    FOS_CHECK_RESULTS<Rec>({"fhat"}, "'fh'.plus('at')");
-    FOS_CHECK_RESULTS<Rec>({22}, "1.plus(21)");
-    FOS_CHECK_RESULTS<Rec>({u("a/b")}, "a.plus(b)");
+    FOS_CHECK_RESULTS({"fhat"}, "'fh'.plus('at')");
+    FOS_CHECK_RESULTS({22}, "1.plus(21)");
+    FOS_CHECK_RESULTS({u("a/b")}, "a.plus(b)");
   }
 
   void test_noobj_parsing() {
@@ -149,8 +149,8 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/ctype"), Obj::to_bcode());
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
     ///// EMPTY LIST
-    FOS_CHECK_RESULTS<Obj>({*Obj::to_lst(share(List<Obj_p>()))}, "[]"); // empty list
-    FOS_CHECK_RESULTS<Obj>({*Obj::to_lst(share(List<Obj_p>()), id_p(FOS_TYPE_PREFIX "lst/atype"))},
+   FOS_CHECK_RESULTS({*Obj::to_lst(share(List<Obj_p>()))}, "[]"); // empty list
+   FOS_CHECK_RESULTS({*Obj::to_lst(share(List<Obj_p>()), id_p(FOS_TYPE_PREFIX "lst/atype"))},
                            "atype[[]]"); // empty list
     ///// CONSTRUCTION PERMUTATIONS
     const auto lsts = List<Trip<string, List<Obj_p>, fURI>>(
@@ -257,19 +257,19 @@ namespace fhatos {
   }
 
   void test_define_as_parsing() {
-    FOS_CHECK_RESULTS<Obj>({*parse("is(mod(2).eq(0))")},
+   FOS_CHECK_RESULTS({*parse("is(mod(2).eq(0))")},
                            FOS_TYPE_PREFIX "int/even.->|(is(mod(2).eq(0)))"); // TODO: parse is off for ->
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{even[32]}.type()");
+    FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
+    FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
+   FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "{even[32]}.type()");
     FOS_TEST_ERROR("even[1]");
     FOS_TEST_ERROR("even[3]");
     FOS_TEST_ERROR("even[5]");
     ////// INLINE TYPE-SLOT
-    FOS_CHECK_RESULTS<Uri>({u(FOS_TYPE_PREFIX "int/even")}, "{32}.even[_].type()");
-    FOS_CHECK_RESULTS<Uri>({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.even[_]");
-    FOS_CHECK_RESULTS<Uri>({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.map(even[_])");
-    FOS_CHECK_RESULTS<Uri>({*jnt(10, id_p(FOS_TYPE_PREFIX "int/even")), *jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))},
+   FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "{32}.even[_].type()");
+   FOS_CHECK_RESULTS({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.even[_]");
+   FOS_CHECK_RESULTS({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.map(even[_])");
+   FOS_CHECK_RESULTS({*jnt(10, id_p(FOS_TYPE_PREFIX "int/even")), *jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))},
                            "{10,32}.map(even[_])");
     FOS_TEST_ERROR("{1}.even[_]");
     FOS_TEST_ERROR("{3}.map(even[_])");
@@ -277,30 +277,30 @@ namespace fhatos {
   }
 
   void test_to_from() {
-    FOS_CHECK_RESULTS<Int>({10},
+    FOS_CHECK_RESULTS({10},
                            List<string>({"y.to(x)", "z.to(y)", "10.to(z)"})); // TODO: fix to() so it doesn't Ø on start
-    FOS_CHECK_RESULTS<Int>({10}, "from(z)");
-    FOS_CHECK_RESULTS<Int>({10}, "from(from(y))");
-    FOS_CHECK_RESULTS<Int>({10}, "from(from(from(x)))");
-    FOS_CHECK_RESULTS<Int>({10}, "*z");
-    FOS_CHECK_RESULTS<Int>({10}, "**y");
-    FOS_CHECK_RESULTS<Int>({10}, "*(**x)", {}, true); // TODO:: parse is off for *
+   FOS_CHECK_RESULTS({10}, "from(z)");
+   FOS_CHECK_RESULTS({10}, "from(from(y))");
+   FOS_CHECK_RESULTS({10}, "from(from(from(x)))");
+   FOS_CHECK_RESULTS({10}, "*z");
+   FOS_CHECK_RESULTS({10}, "**y");
+   FOS_CHECK_RESULTS({10}, "*(**x)", {}, true); // TODO:: parse is off for *
     ///// VARIATIONS OF TYPE DEFINITIONS
     process("/type/inst/testing.->(block(plus(10).mult(2)))");
-    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+   FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
     process("/type/inst/testing.-> block(plus(10).mult(2))");
-    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+   FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
     process("/type/inst/testing -> block(plus(10).mult(2))");
-    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+   FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
     process("/type/inst/testing -> |(plus(10).mult(2))");
-    FOS_CHECK_RESULTS<Obj>({22}, "{1}.testing(6)");
+   FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
   }
 
   void test_process_thread_parsing() {
     for (const Pair<ID, Type_p> &pair: Exts::exts("/mod/proc")) {
       Types::singleton()->save_type(id_p(pair.first), pair.second);
     }
-    const ptr<BCode> bcode = FOS_PRINT_OBJ<BCode>(Parser::singleton()
+    const ptr<BCode> bcode = FOS_PRINT_OBJ(Parser::singleton()
         ->try_parse_obj("thread[[setup => |print('.setup complete.'),"
             "        loop  => |stop(/abc/)]].to(/abc/)")
         .value());
@@ -310,10 +310,10 @@ namespace fhatos {
   }
 
   void test_group_parsing() {
-    FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {1, 3}},
+    FOS_CHECK_RESULTS(List<Obj>({*Obj::to_rec({{false, {1, 3}},
                                                  {true, {2, 4}}})}),
                         "{0,1,2,3}.plus(1).group(mod(2).eq(0))");
-    FOS_CHECK_RESULTS<>(List<Obj>({*Obj::to_rec({{false, {2, 4}},
+    FOS_CHECK_RESULTS(List<Obj>({*Obj::to_rec({{false, {2, 4}},
                                                  {true, {3, 5}}})}),
                         "{0,1,2,3}.plus(1).group(mod(2).eq(0),plus(1))");
     ////////////////////
@@ -327,31 +327,31 @@ namespace fhatos {
   }
 
   void test_window_parsing() {
-    FOS_CHECK_RESULTS<>(List<Obj>{{1, 2},
+    FOS_CHECK_RESULTS(List<Obj>{{1, 2},
                                   {2, 3},
                                   {3, 4}}, "[1,2,3,4].window([_,_])");
-    FOS_CHECK_RESULTS<>(List<Obj>{"12", "23", "34"}, "'1234'.window([_,_])");
+    FOS_CHECK_RESULTS(List<Obj>{"12", "23", "34"}, "'1234'.window([_,_])");
   }
 
   void test_split_within_merge_parsing() {
-    FOS_CHECK_RESULTS<>(List<Obj>{{1, 3, 1}}, "1-<[_,plus(2),_]");
-    FOS_CHECK_RESULTS<>(List<Obj>{{2, 30, 1}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]");
-    FOS_CHECK_RESULTS<>(List<Obj>{2, 30, 1}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]>-");
-    FOS_CHECK_RESULTS<>(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
-    FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
-    FOS_CHECK_RESULTS<>(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]_/sum()\\_>-");
-    FOS_CHECK_RESULTS<>(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
+    FOS_CHECK_RESULTS(List<Obj>{{1, 3, 1}}, "1-<[_,plus(2),_]");
+    FOS_CHECK_RESULTS(List<Obj>{{2, 30, 1}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]");
+    FOS_CHECK_RESULTS(List<Obj>{2, 30, 1}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]>-");
+    FOS_CHECK_RESULTS(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
+    FOS_CHECK_RESULTS(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
+    FOS_CHECK_RESULTS(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]_/sum()\\_>-");
+    FOS_CHECK_RESULTS(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
   }
 
   void test_one_to_many() {
     // without
-    FOS_CHECK_RESULTS<>({5}, "{1,2,3,4,5}.count()");
-    FOS_CHECK_RESULTS<>({15}, "{1,2,3,4,5}.sum()");
-    FOS_CHECK_RESULTS<>({120}, "{1,2,3,4,5}.prod()");
+    FOS_CHECK_RESULTS({5}, "{1,2,3,4,5}.count()");
+    FOS_CHECK_RESULTS({15}, "{1,2,3,4,5}.sum()");
+    FOS_CHECK_RESULTS({120}, "{1,2,3,4,5}.prod()");
     // within
-    FOS_CHECK_RESULTS<>({5}, "[1,2,3,4,5]_/count()\\_>-");
-    FOS_CHECK_RESULTS<>({15}, "[1,2,3,4,5]_/sum()\\_>-");
-    FOS_CHECK_RESULTS<>({120}, "[1,2,3,4,5]_/prod()\\_>-");
+    FOS_CHECK_RESULTS({5}, "[1,2,3,4,5]_/count()\\_>-");
+    FOS_CHECK_RESULTS({15}, "[1,2,3,4,5]_/sum()\\_>-");
+    FOS_CHECK_RESULTS({120}, "[1,2,3,4,5]_/prod()\\_>-");
   }
 
   FOS_RUN_TESTS( //

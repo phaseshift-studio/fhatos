@@ -38,13 +38,9 @@ namespace fhatos {
       static CPrinter printer = CPrinter();
       return &printer;
     }
-
 #ifdef NATIVE
-
     static int print(const char *c_str) { return printf("%s", c_str); }
-
     static void flush() { fflush(stdout); }
-
 #else
     static int print(const char *c_str) { return Serial.printf("%s", c_str); }
     static void flush() { Serial.flush(); }
@@ -74,7 +70,6 @@ namespace fhatos {
     std::string buffer_ = std::string();
     StringPrinter printer_ = StringPrinter(&buffer_);
     bool on_ = true;
-
 
     enum {
       fg_normal = 30, bg_normal = 40, bright_color = 52
@@ -196,12 +191,12 @@ namespace fhatos {
 
     static string strip(const string &s) {
       auto a = std::string();
-      auto b = StringPrinter(&a);
+      const auto b = StringPrinter(&a);
       auto ansi = Ansi<StringPrinter>(b);
       ansi.on(false);
       ansi.print(s.c_str());
       ansi.flush();
-      string ret = string(ansi.get_printer().get());
+      auto ret = string(ansi.get_printer().get());
       return ret;
     }
 
@@ -209,7 +204,7 @@ namespace fhatos {
       char message[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      const int length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
       va_end(arg);
       message[length] = '\0';
       this->parse(message, length);

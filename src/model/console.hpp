@@ -155,7 +155,7 @@ namespace fhatos {
                       .pattern = *Scheduler::singleton()->id(),
                       .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
                     share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
-                this->stop();
+                this->delay(100);
               },
               [this]() {
                 Scheduler::singleton()->recv_mail(share(
@@ -164,7 +164,7 @@ namespace fhatos {
                       .pattern = *Scheduler::singleton()->id(),
                       .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
                     share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
-                this->stop();
+                this->delay(100);
               }}});
         MENU_MAP_->insert(
           {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
