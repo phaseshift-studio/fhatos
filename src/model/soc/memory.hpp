@@ -87,7 +87,7 @@ namespace fhatos {
              uint16_t free = ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
              float used = ESP_THREAD_STACK_SIZE == 0 ? 0.0f : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
              return Map<ID_p, Obj_p>{
-                 {MEMORY_IDS_.at(3), parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                 {MEMORY_IDS_.at(3), parse("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
                                            ESP_THREAD_STACK_SIZE, free, used)}};
            }});
       // LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded:!y\n\t%s\n\t%s\n\t%s!!\n",

@@ -28,6 +28,7 @@
 namespace fhatos {
   class ThreadObj : public Thread {
   protected:
+    BCode_p loop_bcode_{};
     BCode_p stop_bcode_{};
 
   public:
@@ -46,8 +47,10 @@ namespace fhatos {
                                                           }
                                                         }
                                                       })));
-        this->stop_bcode_ = router()->read(this->id())->rec_get(uri(this->id()->resolve(":stop")));
-        const BCode_p setup_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":setup")));
+        const Rec_p thread_rec = router()->read(this->id());
+        this->stop_bcode_ = thread_rec->rec_get(uri(this->id()->resolve(":stop")));
+        this->loop_bcode_ = thread_rec->rec_get(uri(this->id()->resolve(":loop")));
+        const BCode_p setup_bcode = thread_rec->rec_get(uri(this->id()->resolve(":setup")));
         LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n", setup_bcode->toString().c_str());
         process(setup_bcode, uri(this->id()));
       } catch (const fError &error) {
@@ -59,8 +62,8 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->running_.load()) {
-          const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
-          process(loop_bcode, uri(this->id()));
+          //const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
+          process(this->loop_bcode_, uri(this->id()));
         }
       } catch (const fError &error) {
         LOG_EXCEPTION(error);

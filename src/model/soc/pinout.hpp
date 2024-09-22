@@ -42,7 +42,7 @@ namespace fhatos {
     virtual List<ID_p> existing_ids(const fURI &match) override {
       List<ID_p> ids;
       for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-        ID_p pin = id_p(const_cast<Pinout *>(this)->pattern()->resolve("./pin/").extend(to_string(i)));
+        ID_p pin = id_p(const_cast<Pinout *>(this)->pattern()->resolve(string("./pin/") + to_string(i)));
         if (pin->matches(match))
           ids.push_back(pin);
       }
