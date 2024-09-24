@@ -37,24 +37,23 @@ namespace fhatos {
       return id_structure_p;
     }
 
-    void publish_retained(const Subscription_p &subscription) override {
-      if (!this->id_obj_->is_noobj() && this->pattern()->matches(subscription->pattern)) {
-        (*subscription->on_recv)(
-          share(Message{.target = ID(*this->pattern()), .payload = id_obj_, .retain = RETAIN_MESSAGE})->to_rec());
-      }
-    }
-
     void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      if (this->pattern()->equals(*id) && retain)
-        this->id_obj_ = obj;
-      distribute_to_subscribers(share(Message{.target = *id, .payload = obj, .retain = retain}));
+      Structure::write(id, obj, retain);
       this->loop();
     }
 
-    Obj_p read(const fURI_p &furi) override {
-      FOS_TRY_META
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
+      if (this->pattern()->equals(*id))
+        this->id_obj_ = obj;
+      //distribute_to_subscribers(share(Message{.target = *id, .payload = obj, .retain = true}));
+    }
+
+    List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
+      // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      return furi->matches(*this->pattern()) ? this->id_obj_ : noobj();
+      return furi->matches(*this->pattern())
+               ? List<Pair<ID_p, Obj_p>>({{id_p(*this->pattern()), this->id_obj_}})
+               : List<Pair<ID_p, Obj_p>>();
     }
   };
 } // namespace fhatos

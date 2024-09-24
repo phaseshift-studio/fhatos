@@ -38,7 +38,7 @@ namespace fhatos {
     const Message_p will_message_;
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const string server_addr = STR(FOS_MQTT_BROKER_ADDR),
+    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const string &server_addr = STR(FOS_MQTT_BROKER_ADDR),
                       const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::NETWORKED),
                                                                                server_addr_(server_addr),
                                                                                will_message_(will_message) {
@@ -102,26 +102,22 @@ namespace fhatos {
       }
     }
 
-    Obj_p read(const fURI_p &furi) override {
+    List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
       const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
-      auto thing = new std::atomic<void *>(nullptr);
-      if (pattern_or_branch)
-        thing->store(new Map<ID_p, Obj_p>());
+      auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(nullptr);
+      thing->store(new List<Pair<ID_p, Obj_p>>());
+      const string client_name = string("client") + to_string(rand());
       this->recv_subscription(
-        share(Subscription{.source = static_cast<fURI>("ABC"),
+        share(Subscription{.source = static_cast<fURI>(client_name),
           .pattern = temp,
           .on_recv = Insts::to_bcode([this, furi, thing, pattern_or_branch](const Message_p &message) {
             LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
                           furi->toString().c_str(), message->toString().c_str());
             scheduler()->feed_local_watchdog();
-            if (pattern_or_branch) {
-              static_cast<Map<ID_p, Obj_p> *>(thing->load())->insert({id_p(message->target), message->payload});
-            } else {
-              thing->store(new Obj(Any(message->payload->_value), id_p(*message->payload->id())));
-            }
+            thing->load()->push_back({id_p(message->target), message->payload});
           })}));
       const time_t start_timestamp = time(nullptr);
       if (pattern_or_branch) {
@@ -129,36 +125,21 @@ namespace fhatos {
           this->native_mqtt_loop();
         }
       } else {
-        while (!thing->load()) {
+        while (thing->load()->empty()) {
           if (time(nullptr) - start_timestamp > 1)
             break;
           this->native_mqtt_loop();
         }
       }
-      this->recv_unsubscribe(id_p("ABC"), furi_p(temp));
-      if (pattern_or_branch) {
-        const Obj_p obj = generate_read_output(furi, *static_cast<Map<ID_p, Obj_p> *>(thing->load()));
-        delete static_cast<Map<ID_p, Obj_p> *>(thing->load());
-        delete thing;
-        return obj;
-      }
-      if (nullptr == thing->load()) {
-        delete thing;
-        return Obj::to_noobj();
-      }
-      const auto obj = ptr<Obj>(static_cast<Obj *>(thing->load()));
+      this->recv_unsubscribe(id_p(client_name.c_str()), furi_p(temp));
+      const List<Pair<ID_p, Obj_p>> list = *thing->load();
       delete thing;
-      return obj;
+      return list;
     }
 
-    void write(const ID_p &target, const Obj_p &obj, const bool retain) override {
-      check_availability("write");
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
       LOG_STRUCTURE(DEBUG, this, "writing to mqtt broker: %s\n", obj->toString().c_str());
-      if (target->is_branch()) {
-        Algorithm::embed(obj, target, PtrHelper::no_delete(this));
-      } else {
-        native_mqtt_publish(share(Message{.target = ID(*target), .payload = obj, .retain = retain}));
-      }
+      native_mqtt_publish(message_p(*id, obj, true));
     }
 
     void publish_retained(const Subscription_p &) override {

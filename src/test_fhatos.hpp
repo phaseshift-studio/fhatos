@@ -28,6 +28,7 @@
 #include <unity.h>
 #include <util/options.hpp>
 #include <language/obj.hpp>
+#include <language/fluent.hpp>
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
   Options::singleton()->log_level(FOS_LOGGING);
@@ -235,7 +236,7 @@ using namespace fhatos;
       TEST_FAIL();                                                                                                     \
   }
 
-#ifdef FOS_DEPLOY_PARSER
+//#ifdef FOS_DEPLOY_PARSER
 static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_result = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
   List_p<Obj_p> result = fluent.toList();
@@ -248,7 +249,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
   }
   return result;
 }
-#endif
+//#endif
 
 static void FOS_TEST_OBJ_GT(const Obj_p &obj_a, const Obj_p &obj_b) {
   const bool test = *obj_a > *obj_b;

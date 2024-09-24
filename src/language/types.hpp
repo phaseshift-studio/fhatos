@@ -27,16 +27,13 @@
 
 namespace fhatos {
   class Types : public KeyValue {
-    explicit Types(const ID &id = FOS_TYPE_PREFIX): KeyValue(id.extend("#")) {
-    }
+    explicit Types(const ID &id = FOS_TYPE_PREFIX) : KeyValue(id.extend("#")) {}
 
-    static ID_p inst_id(const string &opcode) {
-      return id_p(INST_FURI->resolve(opcode));
-    }
+    static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
 
     void load_insts() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
-      //this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
+      // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       this->save_type(inst_id("optional"), Insts::optional(x(0)));
       this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
@@ -69,8 +66,8 @@ namespace fhatos {
       this->save_type(inst_id("by"), Insts::by(x(0)));
       this->save_type(inst_id("type"), Insts::type());
       this->save_type(inst_id("is"), Insts::is(x(0)));
-      this->save_type(inst_id("from"), Insts::from(x(0), x(1)));
-      this->save_type(inst_id("*"), Insts::from(x(0), x(1)));
+      this->save_type(inst_id("from"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
+      this->save_type(inst_id("*"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
       this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
       this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->save_type(inst_id("within"), Insts::within(x(0)));
@@ -126,14 +123,11 @@ namespace fhatos {
       };
       this->load_insts();
       router()->route_subscription(subscription_p(
-        ID(*this->pattern()),
-        *this->pattern(),
-        QoS::_1,
-        Insts::to_bcode([this](const Message_p &message) {
-          const ID_p type_id = id_p(message->target);
-          if (message->retain && !this->type_exists(type_id, message->payload))
-            this->save_type(type_id, message->payload, true);
-        })));
+          ID(*this->pattern()), *this->pattern(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
+            const ID_p type_id = id_p(message->target);
+            if (message->retain && !this->type_exists(type_id, message->payload))
+              this->save_type(type_id, message->payload, true);
+          })));
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -146,7 +140,7 @@ namespace fhatos {
           if (current != type_def) {
             if (!current->is_noobj())
               LOG_STRUCTURE(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
-                          current->toString().c_str());
+                            current->toString().c_str());
             this->write(type_id, type_def->clone(), RETAIN_MESSAGE);
           }
         }
@@ -162,7 +156,7 @@ namespace fhatos {
     }
 
     void save_inst_type(const ID_p &inst_id, const Inst_p &inst) {
-      this->write(inst_id, inst,RETAIN_MESSAGE);
+      this->write(inst_id, inst, RETAIN_MESSAGE);
       /*this->write(id_p(inst->id()->extend("_kind")), str(ITypeDescriptions.toChars(inst->itype())), source,
                   RETAIN_MESSAGE);
       this->write(id_p(inst->id()->extend("_doc")),
@@ -171,9 +165,7 @@ namespace fhatos {
       //this->saveType(inst->id()->extend("_seed"),inst->inst_seed_supplier())) */
     }
 
-    static bool is_base_type(const ID_p &type_id) {
-      return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1;
-    }
+    static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }
 
     bool check_type(const Obj &obj, const OType otype, const ID_p &type_id,
                     const bool do_throw = true) noexcept(false) {
@@ -182,8 +174,8 @@ namespace fhatos {
         return true;
       if (otype != type_otype) {
         if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->pattern()->toString().c_str(),
-                       obj.toString().c_str(), type_id->toString().c_str());
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->pattern()->toString().c_str(), obj.toString().c_str(),
+                       type_id->toString().c_str());
         return false;
       }
       if (type_id->path_length() == (FOS_BASE_TYPE_INDEX + 1)) {
@@ -196,14 +188,12 @@ namespace fhatos {
           return true;
         }
         if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!\n",
-                       this->pattern()->toString().c_str(),
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!\n", this->pattern()->toString().c_str(),
                        obj.toString().c_str(), type_id->toString().c_str(), type->toString().c_str());
         return false;
       }
       if (do_throw)
-        throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!\n",
-                     this->pattern()->toString().c_str(),
+        throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!\n", this->pattern()->toString().c_str(),
                      type_id->toString().c_str());
       return false;
     }

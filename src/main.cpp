@@ -22,11 +22,11 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
 #include <model/console.hpp>
-#include <model/distributed_memory.hpp>
 #include <model/shared_memory.hpp>
 #include <model/sys.hpp>
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
+#include FOS_MQTT(mqtt.hpp)
 #include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 
@@ -78,6 +78,9 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 void setup() {
   try {
+#ifdef DBOARD_HAS_PSRAM
+    LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
+#endif
     load_processor(); // TODO: remove
     load_threader(); // TODO: remove
     Kernel::build()
@@ -98,17 +101,17 @@ void setup() {
 #ifndef NATIVE
         ->structure(Memory::singleton("/soc/memory/#"))
         ->structure(Pinout::singleton("/soc/pinout/#"))
-        //->structure(Wifi::singleton("/soc/wifi/+"))
+        ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
+        ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
-        //->boot<DistributedMemory>(DistributedMemory::create("/cluster/", "//+/#"))
+        ->structure(Mqtt::create("//+/#"))
 #endif
         ->model({ID("/model/sys")})
         ->process(Console::create("/console/", "/terminal",
-                                  Console::Settings{
-                                      .nest = args.option("--nest", "false") == "true",
-                                      .ansi = args.option("--ansi", "true") == "true"}))
+                                  Console::Settings{.nest = args.option("--nest", "false") == "true",
+                                                    .ansi = args.option("--ansi", "true") == "true"}))
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),

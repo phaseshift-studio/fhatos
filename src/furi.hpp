@@ -724,7 +724,7 @@ namespace fhatos {
     ID_p id_;
 
   public:
-    explicit IDed(const fURI_p &uri) : id_(share(ID(uri->toString()))) {}
+    explicit IDed(const fURI_p &uri) : id_(make_shared<ID>(uri->toString())) {}
 
     explicit IDed(const ID_p &id) : id_(id) {}
 
@@ -752,9 +752,9 @@ namespace fhatos {
     Pattern_p pattern_;
 
   public:
-    explicit Patterned(const fURI_p &uri) : pattern_(share(Pattern(uri->toString()))) {}
+    explicit Patterned(const fURI_p &uri) : pattern_(make_shared<Pattern>(uri->toString())) {}
 
-    explicit Patterned(const Pattern_p &type) : pattern_(share(Pattern(*type))) {}
+    explicit Patterned(const Pattern_p &type) : pattern_(make_shared<Pattern>(*type)) {}
 
     [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }
 
@@ -767,21 +767,21 @@ namespace fhatos {
     auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
   };
 
-  [[maybe_unused]] static fURI_p furi_p(const char *id_chars) { return share(fURI(id_chars)); }
+  [[maybe_unused]] static fURI_p furi_p(const char *id_chars) { return make_shared<fURI>(id_chars); }
 
-  [[maybe_unused]] static fURI_p furi_p(const fURI &furi) { return share(fURI(furi)); }
+  [[maybe_unused]] static fURI_p furi_p(const fURI &furi) { return make_shared<fURI>(furi); }
 
-  [[maybe_unused]] static ID_p id_p(const char *id_chars) { return share(ID(id_chars)); }
+  [[maybe_unused]] static ID_p id_p(const char *id_chars) { return make_shared<ID>(id_chars); }
 
-  [[maybe_unused]] static ID_p id_p(const ID &id) { return share(ID(id)); }
+  [[maybe_unused]] static ID_p id_p(const ID &id) { return make_shared<ID>(id); }
 
-  [[maybe_unused]] static ID_p id_p(const fURI &id) { return share(ID(id)); }
+  [[maybe_unused]] static ID_p id_p(const fURI &id) { return make_shared<ID>(id); }
 
-  [[maybe_unused]] static Pattern_p p_p(const char *pattern_chars) { return share(Pattern(pattern_chars)); }
+  [[maybe_unused]] static Pattern_p p_p(const char *pattern_chars) { return make_shared<Pattern>(pattern_chars); }
 
-  [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return share(Pattern(pattern)); }
+  [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return make_shared<Pattern>(pattern); }
 
-  [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return share(Pattern(pattern)); }
+  [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return make_shared<Pattern>(pattern); }
 } // namespace fhatos
 
 #endif

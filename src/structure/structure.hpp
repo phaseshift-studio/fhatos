@@ -27,26 +27,22 @@
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
 
-#define FOS_TRY_META \
-const Option<Obj_p> meta = this->try_meta(furi); \
-if (meta.has_value()) return meta.value();
+#define FOS_TRY_META                                                                                                   \
+  const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
+  if (meta.has_value())                                                                                                \
+    return meta.value();
 
 
 namespace fhatos {
   class Router;
 
-  enum class SType {
-    EPHEMERAL, VARIABLES, DATABASE, HARDWARE, NETWORKED
-  };
+  enum class SType { EPHEMERAL, VARIABLES, DATABASE, HARDWARE, NETWORKED };
 
-  static const Enums<SType> StructureTypes =
-      Enums<SType>({
-        {SType::EPHEMERAL, "ephemeral"},
-        {SType::VARIABLES, "variables"},
-        {SType::DATABASE, "database"},
-        {SType::HARDWARE, "hardware"},
-        {SType::NETWORKED, "networked"}
-      });
+  static const Enums<SType> StructureTypes = Enums<SType>({{SType::EPHEMERAL, "ephemeral"},
+    {SType::VARIABLES, "variables"},
+    {SType::DATABASE, "database"},
+    {SType::HARDWARE, "hardware"},
+    {SType::NETWORKED, "networked"}});
 
   class Structure : public Patterned {
     friend class System;
@@ -61,12 +57,10 @@ namespace fhatos {
   public:
     const SType stype;
 
-    explicit Structure(const Pattern &pattern, const SType stype): Patterned(p_p(pattern)), stype(stype) {
+    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {
     }
 
-    [[nodiscard]] bool available() const {
-      return this->available_.load();
-    }
+    [[nodiscard]] bool available() const { return this->available_.load(); }
 
     virtual void setup() {
       if (this->available_.load()) {
@@ -84,7 +78,7 @@ namespace fhatos {
         LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
-        //if (!(message->retain && message->payload->is_noobj()))
+        // if (!(message->retain && message->payload->is_noobj()))
         mail.value()->first->on_recv->apply(message->to_rec());
         mail = this->outbox_->pop_front();
       }
@@ -105,7 +99,7 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
                     target->toString().c_str());
       else
-        this->mutex_.write<void *>([this, source,target]() {
+        this->mutex_.write<void *>([this, source, target]() {
           this->subscriptions_->erase(remove_if(this->subscriptions_->begin(), this->subscriptions_->end(),
                                                 [source, target](const Subscription_p &sub) {
                                                   const bool removing =
@@ -144,101 +138,34 @@ namespace fhatos {
       LOG_PUBLISH(OK, *message);
     }
 
+    virtual void remove(const ID_p &id) { this->write(id, noobj(), RETAIN_MESSAGE); }
 
-    virtual void remove(const ID_p &id) {
-      this->write(id, noobj(), RETAIN_MESSAGE);
-    }
-
-    virtual void publish_retained(const Subscription_p &subscription) = 0;
-
-    virtual Obj_p read(const fURI_p &furi) = 0;
-
-    virtual void write(const ID_p &id, const Obj_p &obj, bool retain) = 0;
-
-    /////////////////////////////////////////////////////////////////////////////
-  protected:
-    virtual List<ID_p> existing_ids(const fURI &match) {
-      return {};
-    }
-
-    Map<ID_p, Obj_p> generate_write_input(const fURI_p &furi, const Obj_p &obj) {
-      Map<ID_p, Obj_p> map;
-      if (furi->is_branch()) {
-        // BRANCH PATTERN
-        if (furi->is_pattern()) {
-        }
-        // BRANCH ID
-        else {
-          if (obj->is_noobj()) {
-            // nobj
-            List<ID_p> ids = this->existing_ids(furi->extend("+"));
-            for (const auto &id: ids) {
-              map.insert({id, obj});
-            }
-          } else if (obj->is_rec()) {
-            // rec
-            const auto remaining = share(Obj::RecMap<>());
-            for (const auto &[key,value]: *obj->rec_value()) {
-              if (key->is_uri()) {
-                // uri key
-                const Map<ID_p, Obj_p> child = generate_write_input(share(key->uri_value()), value);
-                map.insert(child.begin(), child.end());
-              } else // non-uri key
-                remaining->insert({key, value});
-            }
-            if (!remaining->empty())
-              map.insert({id_p(furi->is_branch() ? furi->extend("0") : *furi), Obj::to_rec(remaining)});
-          } else if (obj->is_lst()) {
-            const List_p<Obj_p> list = obj->lst_value();
-            for (size_t i = 0; i < list->size(); i++) {
-              const Map<ID_p, Obj_p> child = generate_write_input(id_p(furi->extend(to_string(i))), list->at(i));
-              map.insert(child.begin(), child.end());
-            }
-          } else {
-            map.insert({id_p(furi->is_branch() ? furi->extend("0") : *furi), obj});
+    virtual void publish_retained(const Subscription_p &subscription) {
+      const List<Pair<ID_p, Obj_p>> list = this->read_raw_pairs(furi_p(subscription->pattern));
+      for (const auto &[id, obj]: list) {
+        if (id->matches(subscription->pattern)) {
+          if (!obj->is_noobj()) {
+            subscription->on_recv->apply(Message{.target = *id, .payload = obj, .retain = RETAIN_MESSAGE}.to_rec());
           }
-        }
-      } else {
-        // NODE PATTERN
-        if (furi->is_pattern()) {
-          const List<ID_p> matches = existing_ids(*furi);
-          for (const auto &id: matches) {
-            map.insert({id, obj});
-          }
-        }
-        // NODE ID
-        else {
-          map.insert({id_p(*furi), obj});
         }
       }
-      return map;
     }
 
-    Obj_p generate_read_output(const fURI_p &furi, const Map<ID_p, Obj_p> &matches) {
+    virtual Obj_p read(const fURI_p &furi) {
+      const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
+      const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(temp);
       if (furi->is_branch()) {
         const Rec_p rec = Obj::to_rec();
-        // BRANCH PATTERN
-        if (furi->is_pattern()) {
-          Objs_p objs = Obj::to_objs();
-          for (const auto &[key,value]: matches) {
-            objs->add_obj(uri(key));
-          }
-          return objs;
+        // BRANCH ID AND PATTERN
+        for (const auto &[key, value]: matches) {
+          rec->rec_set(uri(key), value);
         }
-        // BRANCH ID
-        else {
-          if (matches.empty())
-            return noobj();
-          for (const auto &[key,value]: matches) {
-            rec->rec_set(uri(key), value);
-          }
-          return rec;
-        }
+        return rec;
       } else {
         // NODE PATTERN
         if (furi->is_pattern()) {
           const Objs_p objs = Obj::to_objs();
-          for (const auto &[key,value]: matches) {
+          for (const auto &[key, value]: matches) {
             objs->add_obj(value);
           }
           return objs;
@@ -249,6 +176,71 @@ namespace fhatos {
         }
       }
     }
+
+    virtual void write(const ID_p &furi, const Obj_p &obj, const bool retain) {
+      if (retain) {
+        if (furi->is_branch()) {
+          // BRANCH PATTERN
+          if (obj->is_noobj()) {
+            // nobj
+            const List<Pair<ID_p, Obj_p>> ids = this->read_raw_pairs(furi_p(furi->extend("+")));
+            for (const auto &id2: ids) {
+              this->write_raw_pairs(id2.first, obj);
+              distribute_to_subscribers(message_p(*id2.first, obj, retain));
+            }
+          } else if (obj->is_rec()) {
+            // rec
+            const auto remaining = share(Obj::RecMap<>());
+            for (const auto &[key, value]: *obj->rec_value()) {
+              if (key->is_uri()) {
+                // uri key
+                this->write(id_p(key->uri_value()), value, retain);
+                distribute_to_subscribers(message_p(ID(key->uri_value()), value, retain));
+              } else // non-uri key
+                remaining->insert({key, value});
+            }
+            if (!remaining->empty()) {
+              this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining));
+              distribute_to_subscribers(
+                message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
+            }
+          } else if (obj->is_lst()) {
+            const List_p<Obj_p> list = obj->lst_value();
+            for (size_t i = 0; i < list->size(); i++) {
+              this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i));
+              distribute_to_subscribers(message_p(furi->extend(to_string(i)), list->at(i), retain));
+            }
+          } else {
+            // BRANCH ID
+            this->write_raw_pairs(id_p(furi->extend("0")), obj);
+            distribute_to_subscribers(message_p(ID(furi->extend("0")), obj, retain));
+          }
+          //}
+        } else {
+          // NODE PATTERN
+          if (furi->is_pattern()) {
+            const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(furi_p(*furi));
+            for (const auto &id: matches) {
+              this->write_raw_pairs(id.first, obj);
+              distribute_to_subscribers(message_p(*id.first, obj, retain));
+            }
+          }
+          // NODE ID
+          else {
+            this->write_raw_pairs(id_p(*furi), obj);
+            distribute_to_subscribers(message_p(furi->is_branch() ? ID(furi->extend("0")) : ID(*furi), obj, retain));
+          }
+        }
+      } else {
+        distribute_to_subscribers(message_p(ID(*furi), obj, retain));
+      }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+  protected:
+    virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj) = 0;
+
+    virtual List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) = 0;
 
     void check_availability(const string &function) const {
       if (!this->available())
@@ -273,23 +265,8 @@ namespace fhatos {
       }
     }
 
-    /*virtual void distribute_to_subscribers(const Message_p &message) { TODO: see above
-      for (const Subscription_p &sub: *this->get_matching_subscriptions(share(message->target))) {
-        this->outbox_->push_back(share(Mail(sub, message)));
-      }
-    }*/
-
-    virtual void distribute_to_subscribers(const Map<ID_p, Obj_p> &updates, const bool retain) {
-      for (const auto &[key,value]: updates) {
-        for (const Subscription_p &sub: *this->get_matching_subscriptions(key)) {
-          this->outbox_->push_back(mail_p(sub, message_p(*key, value->clone(), retain)));
-        }
-      }
-    }
-
-
     bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) {
-      return this->mutex_.read<bool>([this,source,topic]() {
+      return this->mutex_.read<bool>([this, source, topic]() {
         for (const Subscription_p &sub: *this->subscriptions_) {
           if (source)
             if (!source->equals(sub->source))
@@ -302,7 +279,7 @@ namespace fhatos {
     }
 
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
-      return this->mutex_.read<List_p<Subscription_p>>([this,source,topic]() {
+      return this->mutex_.read<List_p<Subscription_p>>([this, source, topic]() {
         List_p<Subscription_p> matches = share(List<Subscription_p>());
         for (const Subscription_p &sub: *this->subscriptions_) {
           if (source)
@@ -319,12 +296,11 @@ namespace fhatos {
       List<Obj_p> list;
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (sub->pattern.matches(*pattern)) {
-          const Rec_p sub_rec = Obj::to_rec({
-                                              {uri(":source"), uri(sub->source)},
+          const Rec_p sub_rec = Obj::to_rec({{uri(":source"), uri(sub->source)},
                                               {uri(":pattern"), uri(sub->pattern)},
                                               {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
-                                              {uri(":on_recv"), sub->on_recv}
-                                            }, id_p(REC_FURI->extend("sub")));
+                                              {uri(":on_recv"), sub->on_recv}},
+                                            id_p(REC_FURI->extend("sub")));
           list.push_back(sub_rec);
         }
       }

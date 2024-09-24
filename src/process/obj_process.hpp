@@ -28,31 +28,28 @@
 namespace fhatos {
   class ThreadObj : public Thread {
   protected:
-    BCode_p loop_bcode_{};
-    BCode_p stop_bcode_{};
+    const Rec_p thread_rec_;
+    const Uri_p id_uri_;
 
   public:
-    explicit ThreadObj(const ID &id): Thread(id) {
+    explicit ThreadObj(const ID &id) : Thread(id), thread_rec_(router()->read(make_shared<ID>(id))->clone()),
+                                       id_uri_(Obj::to_uri(id)) {
     }
 
     void setup() override {
       try {
         Thread::setup();
-        router()->route_subscription(subscription_p(*this->id(), *this->id(), QoS::_1, Insts::to_bcode(
-                                                      [this](const Message_p &message) {
-                                                        if (this->running()) {
-                                                          if (message->retain && message->payload->is_noobj()) {
-                                                            router()->route_unsubscribe(this->id(), p_p(*this->id()));
-                                                            this->stop();
-                                                          }
-                                                        }
-                                                      })));
-        const Rec_p thread_rec = router()->read(this->id());
-        this->stop_bcode_ = thread_rec->rec_get(uri(this->id()->resolve(":stop")));
-        this->loop_bcode_ = thread_rec->rec_get(uri(this->id()->resolve(":loop")));
-        const BCode_p setup_bcode = thread_rec->rec_get(uri(this->id()->resolve(":setup")));
-        LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n", setup_bcode->toString().c_str());
-        process(setup_bcode, uri(this->id()));
+        router()->route_subscription(
+          subscription_p(*this->id(), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
+            if (this->running()) {
+              if (message->retain && message->payload->is_noobj()) {
+                router()->route_unsubscribe(this->id(), p_p(*this->id()));
+                this->stop();
+              }
+            }
+          })));
+        // LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n", setup_bcode->toString().c_str());
+        process(this->thread_rec_->rec_get(uri(this->id()->resolve(":setup"))), this->id_uri_);
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();
@@ -62,8 +59,9 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->running_.load()) {
-          //const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
-          process(this->loop_bcode_, uri(this->id()));
+          const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
+          process(loop_bcode, this->id_uri_);
+          //process(this->thread_rec_->rec_get(uri(this->id()->resolve(":loop"))), this->id_uri_);
         }
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
@@ -74,9 +72,10 @@ namespace fhatos {
     void stop() override {
       try {
         if (this->running_.load()) {
-          // const BCode_p stop_bcode = router()->read(id_p(this->id()->resolve(":stop"))); (deletes before it can be read)
-          LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n", this->stop_bcode_->toString().c_str());
-          process(this->stop_bcode_, uri(this->id()));
+          // const BCode_p stop_bcode = router()->read(id_p(this->id()->resolve(":stop"))); (deletes before it can be
+          // read)
+          // LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n", this->stop_bcode_->toString().c_str());
+          process(this->thread_rec_->rec_get(uri(this->id()->resolve(":stop"))), this->id_uri_);
           Thread::stop();
         }
       } catch (const fError &error) {

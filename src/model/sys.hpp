@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 #include <fhatos.hpp>
 #include <process/actor/actor.hpp>
 #include FOS_PROCESS(thread.hpp)
-#include <structure/stype/heap.hpp>
 
 namespace fhatos {
   class System : public Actor<Thread, KeyValue> {

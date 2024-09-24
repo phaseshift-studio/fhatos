@@ -344,18 +344,17 @@ namespace fhatos {
                             "        ./aaa => 9, "
                             "        'aaaa' => 'the number 10']", make_test_pattern("x/")->toString().c_str()))->
                           objs_value()->size());
-    TEST_ASSERT_EQUAL_INT(1, current_structure->read(id_p(*make_test_pattern("x/a/b")))->int_value());
-    TEST_ASSERT_EQUAL_STRING("2", current_structure->read(id_p(*make_test_pattern("x/aa/bb")))->str_value().c_str());
+    FOS_TEST_OBJ_EQUAL(jnt(1), current_structure->read(id_p(*make_test_pattern("x/a/b"))));
+    FOS_TEST_OBJ_EQUAL(str("2"), current_structure->read(id_p(*make_test_pattern("x/aa/bb"))));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("3"), current_structure->read(id_p(*make_test_pattern("x/aa/cc")))->uri_value());
     TEST_ASSERT_TRUE(current_structure->read(id_p(*make_test_pattern("x/aa/dd/aaa")))->bool_value());
-    TEST_ASSERT_EQUAL_FLOAT(5.0f, current_structure->read(id_p(*make_test_pattern("x/aa/dd/bbb")))->real_value());
-    TEST_ASSERT_EQUAL_INT(6, current_structure->read(id_p(*make_test_pattern("x/aa/ee/0")))->int_value());
-    TEST_ASSERT_EQUAL_INT(7, current_structure->read(id_p(*make_test_pattern("x/aa/ee/1")))->int_value());
-    TEST_ASSERT_EQUAL_INT(8, current_structure->read(id_p(*make_test_pattern("x/aa/ee/2")))->int_value());
-    TEST_ASSERT_EQUAL_INT(9, current_structure->read(id_p(*make_test_pattern("x/aaa")))->int_value());
-    TEST_ASSERT_EQUAL_STRING("the number 10",
-                             current_structure->read(id_p(*make_test_pattern("x/0")))->rec_value()->at(str("aaaa"))->
-                             str_value().c_str());
+    FOS_TEST_OBJ_EQUAL(real(5.0f), current_structure->read(id_p(*make_test_pattern("x/aa/dd/bbb"))));
+    FOS_TEST_OBJ_EQUAL(jnt(6), current_structure->read(id_p(*make_test_pattern("x/aa/ee/0"))));
+    FOS_TEST_OBJ_EQUAL(jnt(7), current_structure->read(id_p(*make_test_pattern("x/aa/ee/1"))));
+    FOS_TEST_OBJ_EQUAL(jnt(8), current_structure->read(id_p(*make_test_pattern("x/aa/ee/2"))));
+    FOS_TEST_OBJ_EQUAL(jnt(9), current_structure->read(id_p(*make_test_pattern("x/aaa"))));
+    FOS_TEST_OBJ_EQUAL(str("the number 10"),
+                       current_structure->read(id_p(*make_test_pattern("x/0")))->rec_value()->at(str("aaaa")));
 
     const Objs_p objs2 = process(StringHelper::format("*%s", make_test_pattern("x/#")->toString().c_str()));
     TEST_ASSERT_EQUAL_INT(10, objs2->objs_value()->size());
@@ -364,10 +363,10 @@ namespace fhatos {
     current_structure->remove(id_p(*make_test_pattern("x/aaa")));
     for (int i = 1; i < 4; i++) {
       const Pattern_p p = p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/")));
-      LOG(DEBUG,"!yRemove pattern!!: !b%s!!\n",p->toString().c_str());
-      const Objs_p objs3 = current_structure->read(p);
-      for (const Uri_p &u: *objs3->objs_value()) {
-        current_structure->remove(id_p(u->uri_value()));
+      LOG(DEBUG, "!yRemove pattern!!: !b%s!!\n", p->toString().c_str());
+      const Rec_p rec3 = current_structure->read(p);
+      for (const auto &[key,value]: *rec3->rec_value()) {
+        current_structure->remove(id_p(key->uri_value()));
       }
       if (auto_loop)
         current_structure->loop();

@@ -85,7 +85,8 @@ clean_native() {
 
 clean_esp32() {
   if [[ $platform == "esp32" || $platform == " " ]]; then
-    platformio run --target clean
+    platformio run --environment esp32 --target clean
+    platformio run --environment esp32 --target erase
   fi
 }
 

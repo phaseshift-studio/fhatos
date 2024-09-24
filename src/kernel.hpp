@@ -36,8 +36,7 @@ namespace fhatos {
 
   public:
     static ptr<Kernel> build() {
-      static Kernel kernel = Kernel();
-      static ptr<Kernel> kernel_p = share(kernel);
+      static ptr<Kernel> kernel_p = make_shared<Kernel>();
       return kernel_p;
     }
 
@@ -93,7 +92,7 @@ namespace fhatos {
       for (const ID &id: models) {
         // List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
-          const ID_p idp = share(pair.first);
+          const ID_p idp = make_shared<ID>(pair.first);
           Types::singleton()->save_type(idp, pair.second);
           // list->push_back(Obj::to_uri(*idp));
         }

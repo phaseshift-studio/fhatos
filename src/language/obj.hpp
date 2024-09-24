@@ -79,21 +79,19 @@ namespace fhatos {
     TYPE
   };
 
-  static const Enums<OType> OTypes = Enums<OType>({
-    {OType::OBJ, "obj"},
-    {OType::NOOBJ, "noobj"},
-    {OType::OBJS, "objs"},
-    {OType::BOOL, "bool"},
-    {OType::INT, "int"},
-    {OType::REAL, "real"},
-    {OType::URI, "uri"},
-    {OType::STR, "str"},
-    {OType::LST, "lst"},
-    {OType::REC, "rec"},
-    {OType::INST, "inst"},
-    {OType::BCODE, "bcode"},
-    {OType::TYPE, "type"}
-  });
+  static const Enums<OType> OTypes = Enums<OType>({{OType::OBJ, "obj"},
+                                                   {OType::NOOBJ, "noobj"},
+                                                   {OType::OBJS, "objs"},
+                                                   {OType::BOOL, "bool"},
+                                                   {OType::INT, "int"},
+                                                   {OType::REAL, "real"},
+                                                   {OType::URI, "uri"},
+                                                   {OType::STR, "str"},
+                                                   {OType::LST, "lst"},
+                                                   {OType::REC, "rec"},
+                                                   {OType::INST, "inst"},
+                                                   {OType::BCODE, "bcode"},
+                                                   {OType::TYPE, "type"}});
 
   class Obj;
 
@@ -158,49 +156,43 @@ namespace fhatos {
     free(bobj->second);
     delete bobj;
   };
-  static const Enums<IType> ITypeDomains = Enums<IType>({
-    {IType::ZERO_TO_ZERO, "."},
-    {IType::ZERO_TO_ONE, "."},
-    {IType::ZERO_TO_MANY, "."},
-    {IType::ONE_TO_ZERO, "o"},
-    {IType::MANY_TO_ZERO, "O"},
-    {IType::ONE_TO_ONE, "o"},
-    {IType::ONE_TO_MANY, "o"},
-    {IType::MANY_TO_ONE, "O"},
-    {IType::MANY_TO_MANY, "O"}
-  });
-  static const Enums<IType> ITypeRanges = Enums<IType>({
-    {IType::ZERO_TO_ZERO, "."},
-    {IType::ZERO_TO_ONE, "o"},
-    {IType::ZERO_TO_MANY, "O"},
-    {IType::ONE_TO_ZERO, "."},
-    {IType::MANY_TO_ZERO, "."},
-    {IType::ONE_TO_ONE, "o"},
-    {IType::ONE_TO_MANY, "O"},
-    {IType::MANY_TO_ONE, "o"},
-    {IType::MANY_TO_MANY, "O"}
-  });
-  static const Enums<IType> ITypeSignatures = Enums<IType>({
-    {IType::ZERO_TO_ZERO, ".->."},
-    {IType::ZERO_TO_ONE, ".->o"},
-    {IType::ZERO_TO_MANY, ".->O"},
-    {IType::ONE_TO_ZERO, "o->."},
-    {IType::MANY_TO_ZERO, "O->."},
-    {IType::ONE_TO_ONE, "o->o"},
-    {IType::ONE_TO_MANY, "o->O"},
-    {IType::MANY_TO_ONE, "O->o"},
-    {IType::MANY_TO_MANY, "O->O"}
-  });
+  static const Enums<IType> ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
+                                                         {IType::ZERO_TO_ONE, "."},
+                                                         {IType::ZERO_TO_MANY, "."},
+                                                         {IType::ONE_TO_ZERO, "o"},
+                                                         {IType::MANY_TO_ZERO, "O"},
+                                                         {IType::ONE_TO_ONE, "o"},
+                                                         {IType::ONE_TO_MANY, "o"},
+                                                         {IType::MANY_TO_ONE, "O"},
+                                                         {IType::MANY_TO_MANY, "O"}});
+  static const Enums<IType> ITypeRanges = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
+                                                        {IType::ZERO_TO_ONE, "o"},
+                                                        {IType::ZERO_TO_MANY, "O"},
+                                                        {IType::ONE_TO_ZERO, "."},
+                                                        {IType::MANY_TO_ZERO, "."},
+                                                        {IType::ONE_TO_ONE, "o"},
+                                                        {IType::ONE_TO_MANY, "O"},
+                                                        {IType::MANY_TO_ONE, "o"},
+                                                        {IType::MANY_TO_MANY, "O"}});
+  static const Enums<IType> ITypeSignatures = Enums<IType>({{IType::ZERO_TO_ZERO, ".->."},
+                                                            {IType::ZERO_TO_ONE, ".->o"},
+                                                            {IType::ZERO_TO_MANY, ".->O"},
+                                                            {IType::ONE_TO_ZERO, "o->."},
+                                                            {IType::MANY_TO_ZERO, "O->."},
+                                                            {IType::ONE_TO_ONE, "o->o"},
+                                                            {IType::ONE_TO_MANY, "o->O"},
+                                                            {IType::MANY_TO_ONE, "O->o"},
+                                                            {IType::MANY_TO_MANY, "O->O"}});
   static const Enums<IType> ITypeDescriptions = Enums<IType>({
-    {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
-    {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
-    {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
-    {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
-    {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
-    {IType::ONE_TO_ONE, "o->o (map)"},
-    {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
-    {IType::MANY_TO_ONE, "Œ->o (reduce)"},
-    {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
+      {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
+      {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
+      {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
+      {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
+      {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
+      {IType::ONE_TO_ONE, "o->o (map)"},
+      {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
+      {IType::MANY_TO_ONE, "Œ->o (reduce)"},
+      {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
   });
   //
 
@@ -213,38 +205,34 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstFunctionSupplier, IType, InstSeedSupplier>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const ID_p OBJ_FURI = share<ID>(ID(FOS_TYPE_PREFIX "obj/"));
-  static const ID_p NOOBJ_FURI = share<ID>(ID(FOS_TYPE_PREFIX "noobj/"));
-  static const ID_p TYPE_FURI = share<ID>(ID(FOS_TYPE_PREFIX "type/"));
-  static const ID_p BOOL_FURI = share<ID>(ID(FOS_TYPE_PREFIX "bool/"));
-  static const ID_p INT_FURI = share<ID>(ID(FOS_TYPE_PREFIX "int/"));
-  static const ID_p REAL_FURI = share<ID>(ID(FOS_TYPE_PREFIX "real/"));
-  static const ID_p URI_FURI = share<ID>(ID(FOS_TYPE_PREFIX "uri/"));
-  static const ID_p STR_FURI = share<ID>(ID(FOS_TYPE_PREFIX "str/"));
-  static const ID_p LST_FURI = share<ID>(ID(FOS_TYPE_PREFIX "lst/"));
-  static const ID_p REC_FURI = share<ID>(ID(FOS_TYPE_PREFIX "rec/"));
-  static const ID_p INST_FURI = share<ID>(ID(FOS_TYPE_PREFIX "inst/"));
-  static const ID_p BCODE_FURI = share<ID>(ID(FOS_TYPE_PREFIX "bcode/"));
-  static const ID_p OBJS_FURI = share<ID>(ID(FOS_TYPE_PREFIX "objs/"));
-  static const Map<OType, ID_p> OTYPE_FURI = {
-    {
-      {OType::NOOBJ, NOOBJ_FURI},
-      {OType::OBJ, OBJ_FURI},
-      {OType::OBJS, OBJS_FURI},
-      {OType::URI, URI_FURI},
-      {OType::BOOL, BOOL_FURI},
-      {OType::INT, INT_FURI},
-      {OType::REAL, REAL_FURI},
-      {OType::STR, STR_FURI},
-      {OType::LST, LST_FURI},
-      {OType::REC, REC_FURI},
-      {OType::INST, INST_FURI},
-      {OType::BCODE, BCODE_FURI},
-      {OType::TYPE, TYPE_FURI}
-    }
-  };
+  static const ID_p OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj/");
+  static const ID_p NOOBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "noobj/");
+  static const ID_p TYPE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "type/");
+  static const ID_p BOOL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bool/");
+  static const ID_p INT_FURI = make_shared<ID>(FOS_TYPE_PREFIX "int/");
+  static const ID_p REAL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "real/");
+  static const ID_p URI_FURI = make_shared<ID>(FOS_TYPE_PREFIX "uri/");
+  static const ID_p STR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "str/");
+  static const ID_p LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst/");
+  static const ID_p REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec/");
+  static const ID_p INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst/");
+  static const ID_p BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
+  static const ID_p OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
+  static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
+                                               {OType::OBJ, OBJ_FURI},
+                                               {OType::OBJS, OBJS_FURI},
+                                               {OType::URI, URI_FURI},
+                                               {OType::BOOL, BOOL_FURI},
+                                               {OType::INT, INT_FURI},
+                                               {OType::REAL, REAL_FURI},
+                                               {OType::STR, STR_FURI},
+                                               {OType::LST, LST_FURI},
+                                               {OType::REC, REC_FURI},
+                                               {OType::INST, INST_FURI},
+                                               {OType::BCODE, BCODE_FURI},
+                                               {OType::TYPE, TYPE_FURI}}};
   static TriFunction<const Obj &, const OType, const ID_p &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
-    const ID_p &) {
+                                                                                     const ID_p &) {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -263,8 +251,8 @@ namespace fhatos {
   static Consumer<const ID_p> THREAD_SPAWNER = [](const ID_p &) {
     LOG(DEBUG, "!yTHREAD_SPAWNER!! undefined at this point in bootstrap.\n");
   };
-  static TriConsumer<const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT =
-      [](const ID &, const Obj_p &, const bool) {
+  static TriConsumer<const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT = [](const ID &, const Obj_p &,
+                                                                                   const bool) {
     LOG(DEBUG, "!yMESSAGE_INTERCEPT!! undefined at this point in bootstrap.\n");
   };
 
@@ -300,19 +288,16 @@ namespace fhatos {
     template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = objp_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
-    explicit Obj(const Any &value, const OType otype, const ID_p &type_id) : IDed(OTYPE_FURI.at(otype)),
-                                                                             _value(value) {
+    explicit Obj(const Any &value, const OType otype, const ID_p &type_id) : IDed(OTYPE_FURI.at(otype)), _value(value) {
       TYPE_CHECKER(*this, otype, type_id);
       this->id_ = type_id;
     }
 
-    explicit Obj(const Any &value, const ID_p &type_id) : Obj(
-      value, OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX))), type_id) {
-    }
+    explicit Obj(const Any &value, const ID_p &type_id) :
+        Obj(value, OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX))), type_id) {}
 
     /////
-    static fError TYPE_ERROR(const Obj *obj, const char *function,
-                             [[maybe_unused]] const int lineNumber = __LINE__) {
+    static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
       return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!\n", OTypes.to_chars(obj->o_type()).c_str(),
                     obj->toString().c_str(), string(function).replace(string(function).find("_value"), 6, "").c_str());
       /*
@@ -328,54 +313,47 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
+    //Obj(const Obj &other) : Obj(other._value, other.id()) {}
     template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *type_id = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL,
-                                                                id_p(BOOL_FURI->resolve(type_id))) {
-    }
+    Obj(const T xbool, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(type_id))) {}
 
-    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {
-    }
+    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {}
 
-    Obj(const FL_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {
-    }
+    Obj(const FL_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {}
 
-    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) : Obj(Any(xuri), OType::URI,
-                                                                   id_p(URI_FURI->resolve(type_id))) {
-    }
+    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(xuri), OType::URI, id_p(URI_FURI->resolve(type_id))) {}
 
-    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(string(xstr)), OType::STR,
-                                                                   id_p(STR_FURI->resolve(type_id))) {
-    }
+    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(string(xstr)), OType::STR, id_p(STR_FURI->resolve(type_id))) {}
 
-    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xstr), OType::STR, id_p(STR_FURI->resolve(type_id))) {
-    }
+    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(xstr), OType::STR, id_p(STR_FURI->resolve(type_id))) {}
 
-    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(share(RecMap<>())), OType::REC, id_p(REC_FURI->resolve(type_id))) {
+    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(make_shared<RecMap<>>()), OType::REC, id_p(REC_FURI->resolve(type_id))) {
       auto map = this->value<RecMap<>>();
       for (const auto &[key, val]: xrec) {
-        map.insert(make_pair(share(Obj(key)), share(Obj(val))));
+        map.insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(val)));
       }
     }
 
-    Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(share(LstList<>())), OType::LST, id_p(LST_FURI->resolve(type_id))) {
+    Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(make_shared<LstList<>>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
       const auto list = this->value<LstList_p<>>();
       for (const auto &obj: xlst) {
-        list->push_back(share(Obj(obj)));
+        list->push_back(make_shared<Obj>(obj));
       }
     }
 
-    Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(share<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
-    }
+    Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {}
 
-    Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
-    }
+    Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) :
+        Obj(Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {}
 
     //////////////////////////////////////////////////////////////
     [[nodiscard]] OType o_type() const { return OTypes.to_enum(string(this->id_->path(FOS_BASE_TYPE_INDEX))); }
@@ -395,9 +373,7 @@ namespace fhatos {
       return this->value<List_p<Obj_p>>();
     }
 
-    [[nodiscard]] Obj_p objs_value(const uint16_t index) const {
-      return this->objs_value()->at(index);
-    }
+    [[nodiscard]] Obj_p objs_value(const uint16_t index) const { return this->objs_value()->at(index); }
 
     [[nodiscard]] bool bool_value() const {
       if (!this->is_bool())
@@ -465,10 +441,10 @@ namespace fhatos {
           return v;
       }
       return Obj::to_noobj();
-      //return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
+      // return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
-    [[nodiscard]] Obj_p rec_get(const Obj &key) const { return Obj::rec_get(share(key)); }
+    [[nodiscard]] Obj_p rec_get(const Obj &key) const { return Obj::rec_get(make_shared<Obj>(key)); }
 
     void rec_set(const Obj_p &key, const Obj_p &val) const {
       this->rec_value()->erase(key);
@@ -476,9 +452,11 @@ namespace fhatos {
         this->rec_value()->insert({key, val});
     }
 
-    void rec_set(const Obj &key, const Obj &value) const { Obj::rec_set(share(key), share(value)); }
+    void rec_set(const Obj &key, const Obj &value) const {
+      Obj::rec_set(make_shared<Obj>(key), make_shared<Obj>(value));
+    }
 
-    void rec_delete(const Obj &key) const { Obj::rec_set(share(key), Obj::to_noobj()); }
+    void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
 
     [[nodiscard]] InstValue inst_value() const {
       if (!this->is_inst())
@@ -502,9 +480,7 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()(arg); }
 
-    Obj_p operator()(const Obj_p &input) {
-      return this->apply(input);
-    }
+    Obj_p operator()(const Obj_p &input) { return this->apply(input); }
 
     IType itype() const {
       if (this->is_inst())
@@ -535,7 +511,7 @@ namespace fhatos {
         insts->push_back(inst);
         return to_bcode(insts);
       } else {
-        InstList_p insts = share<InstList>({});
+        InstList_p insts = make_shared<InstList>();
         for (const auto &i: *this->bcode_value()) {
           insts->push_back(i);
         }
@@ -547,7 +523,7 @@ namespace fhatos {
     [[nodiscard]] BCode_p add_bcode(const BCode_p &bcode, [[maybe_unused]] const bool mutate = true) const {
       if (!this->is_bcode() || !bcode->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      InstList_p insts = share<InstList>({});
+      InstList_p insts = make_shared<InstList>();
       for (const auto &inst: *bcode->bcode_value()) {
         insts->push_back(inst);
       }
@@ -672,13 +648,12 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTypes.to_chars(this->o_type()).c_str());
       }
-      obj_string = (include_type && (this->id_->path_length() > 2))
-                     ? string("!b")
-                     .append(this->id_->name())
-                     .append(this->is_inst() ? "!g(!!" : "!g[!!")
-                     .append(obj_string)
-                     .append(this->is_inst() ? "!g)!!" : "!g]!!")
-                     : obj_string;
+      obj_string = (include_type && (this->id_->path_length() > 2)) ? string("!b")
+                                                                          .append(this->id_->name())
+                                                                          .append(this->is_inst() ? "!g(!!" : "!g[!!")
+                                                                          .append(obj_string)
+                                                                          .append(this->is_inst() ? "!g)!!" : "!g]!!")
+                                                                    : obj_string;
       return ansi ? obj_string : Ansi<>::strip(obj_string);
     }
 
@@ -852,8 +827,7 @@ namespace fhatos {
         case OType::LST: {
           auto list = std::make_shared<LstList<>>();
           for (const auto &obj: *this->lst_value()) {
-            if (std::find(rhs.lst_value()->begin(), rhs.lst_value()->end(), obj) != std::end(
-                  *rhs.lst_value()))
+            if (std::find(rhs.lst_value()->begin(), rhs.lst_value()->end(), obj) != std::end(*rhs.lst_value()))
               list->push_back(obj);
           }
           return Lst(list, this->id());
@@ -875,8 +849,10 @@ namespace fhatos {
 
     Obj operator%(const Obj &other) const {
       switch (this->o_type()) {
-        case OType::INT: return Obj(this->int_value() % other.int_value(), this->id());
-        default: throw fError("%s can not be moduloed (%)\n", OTypes.to_chars(this->o_type()).c_str());
+        case OType::INT:
+          return Obj(this->int_value() % other.int_value(), this->id());
+        default:
+          throw fError("%s can not be moduloed (%)\n", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1023,20 +999,20 @@ namespace fhatos {
           return PtrHelper::no_delete<Real>(this);
         case OType::URI: {
           return (lhs->is_uri() && this->uri_value().is_relative())
-                   ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
-                   : PtrHelper::no_delete<Uri>(this);
+                     ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
+                     : PtrHelper::no_delete<Uri>(this);
         }
         case OType::STR:
           return PtrHelper::no_delete<Str>(this);
         case OType::LST: {
-          const LstList_p<Obj_p> new_values = share(LstList<Obj_p>());
+          const LstList_p<Obj_p> new_values = make_shared<LstList<Obj_p>>();
           for (const auto &obj: *this->lst_value()) {
             new_values->push_back(obj->apply(lhs));
           }
           return Obj::to_lst(new_values);
         }
         case OType::REC: {
-          RecMap_p<> new_pairs = share(RecMap<>());
+          RecMap_p<> new_pairs = make_shared<RecMap<>>();
           for (const auto &[key, value]: *this->rec_value()) {
             const Obj_p key_apply = key->apply(lhs);
             new_pairs->insert({key_apply, value->apply(key_apply)});
@@ -1047,18 +1023,17 @@ namespace fhatos {
           return this->inst_f()(this->inst_args())(lhs);
         }
         case OType::BCODE: {
-          //if (lhs->is_bcode())
-          //  return lhs->add_bcode(PtrHelper::no_delete(this), true);
+          // if (lhs->is_bcode())
+          //   return lhs->add_bcode(PtrHelper::no_delete(this), true);
           ptr<Obj> current_obj = lhs; //->clone();
           for (const Inst_p &current_inst: *this->bcode_value()) {
-            LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(),
-                current_inst->toString().c_str());
+            LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
             if (current_inst->is_noobj())
               break;
             current_obj = current_inst->apply(current_obj);
           }
-          //const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
-          // return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
+          // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
+          //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
           return current_obj;
         }
         case OType::OBJS: {
@@ -1162,7 +1137,7 @@ namespace fhatos {
       const ID_p resolution = share(ID(this->id_->resolve(*furi)));
       const Obj_p obj = TYPE_MAKER(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)), resolution);
       return obj;
-      //return share<Obj>(Obj(this->_value, OTypes.to_enum(resolution->path(FOS_BASE_TYPE_INDEX)), resolution));
+      // return share<Obj>(Obj(this->_value, OTypes.to_enum(resolution->path(FOS_BASE_TYPE_INDEX)), resolution));
     }
 
     Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
@@ -1184,53 +1159,53 @@ namespace fhatos {
 
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
     static Obj_p to_noobj() {
-      static Obj_p noobj = share(Obj(Any(nullptr), NOOBJ_FURI));
+      static Obj_p noobj = make_shared<Obj>(Any(nullptr), NOOBJ_FURI);
       return noobj;
     }
 
     static Bool_p to_bool(const bool value, const ID_p &furi = BOOL_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BOOL));
-      return share(Obj(value, furi));
+      return make_shared<Bool>(value, furi);
     }
 
     static Int_p to_int(const FL_INT_TYPE value, const ID_p &furi = INT_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INT));
-      return share(Obj(value, furi));
+      return make_shared<Int>(value, furi);
     }
 
     static Real_p to_real(const FL_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REAL));
-      return share(Obj(value, furi));
+      return make_shared<Real>(value, furi);
     }
 
     static Str_p to_str(const string &value, const ID_p &furi = STR_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::STR));
-      return share(Obj(value, furi));
+      return make_shared<Str>(value, furi);
     }
 
     static Str_p to_str(const char *value, const ID_p &furi = STR_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::STR));
-      return share(Obj(string(value), furi));
+      return make_shared<Str>(string(value), furi);
     }
 
     static Uri_p to_uri(const fURI &value, const ID_p &furi = URI_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::URI));
-      return share(Obj(value, furi));
+      return make_shared<Uri>(value, furi);
     }
 
     static Uri_p to_uri(const char *value, const ID_p &furi = URI_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::URI));
-      return share(Obj(fURI(value), furi));
+      return make_shared<Uri>(fURI(value), furi);
     }
 
     static Lst_p to_lst(const ID_p &furi = LST_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::LST));
-      return share(Obj(share(LstList<>()), furi));
+      return make_shared<Lst>(make_shared<LstList<>>(), furi);
     }
 
     static Lst_p to_lst(const LstList_p<> &xlst, const ID_p &furi = LST_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::LST));
-      return share(Obj(xlst, furi));
+      return make_shared<Lst>(xlst, furi);
     }
 
     static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &furi = LST_FURI) {
@@ -1247,57 +1222,56 @@ namespace fhatos {
 
     static Rec_p to_rec(const ID_p &furi = REC_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
-      return share(Obj(share(RecMap<>()), furi));
+      return make_shared<Rec>(make_shared<RecMap<>>(), furi);
     }
 
     static Rec_p to_rec(const RecMap_p<> &map, const ID_p &furi = REC_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
-      return share(Obj(map, furi));
+      return make_shared<Rec>(map, furi);
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &furi = REC_FURI) {
-      auto map = RecMap<>();
+      Obj::RecMap_p<> map = make_shared<Obj::RecMap<>>();
       for (const auto &[key, value]: xrec) {
-        map.insert(make_pair(share(key), share(value)));
+        map->insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(value)));
       }
-      return to_rec(share(map), furi);
+      return to_rec(map, furi);
     }
 
     static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const ID_p &furi = REC_FURI) {
-      RecMap<> map = RecMap<>();
+      Obj::RecMap_p<> map = make_shared<Obj::RecMap<>>();
       for (const auto &pair: xrec) {
-        map.insert(make_pair(pair.first, pair.second));
+        map->insert(make_pair(pair.first, pair.second));
       }
-      return to_rec(share(map), furi);
+      return to_rec(map, furi);
     }
 
     static Inst_p to_inst(const InstValue &value, const ID_p &furi = INST_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INST));
-      return share(Inst(value, furi));
+      return make_shared<Inst>(value, furi);
     }
 
-    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function,
-                          const IType itype,
-                          const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); },
-                          const ID_p &furi = nullptr) {
-      const ID_p fix = furi ? furi : share(ID(string(FOS_TYPE_PREFIX "inst/") + opcode));
+    static Inst_p to_inst(
+        const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function, const IType itype,
+        const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &furi = nullptr) {
+      const ID_p fix = furi ? furi : make_shared<ID>(string(FOS_TYPE_PREFIX "inst/") + opcode);
       return to_inst({args, function, itype, seed}, fix);
     }
 
     static BCode_p to_bcode(const InstList &insts, const ID_p &furi = BCODE_FURI) {
-      return Obj::to_bcode(share(insts), furi);
+      return Obj::to_bcode(make_shared<InstList>(insts), furi);
     }
 
     static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
 
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &furi = BCODE_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BCODE));
-      return share(BCode(insts, furi));
+      return make_shared<BCode>(insts, furi);
     }
 
     static Objs_p to_objs(const ID_p &furi = OBJS_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
-      return to_objs(share(List<Obj_p>()), furi);
+      return to_objs(make_shared<List<Obj_p>>(), furi);
     }
 
     static InstSeedSupplier objs_seed() {
@@ -1310,7 +1284,7 @@ namespace fhatos {
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &furi = OBJS_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
-      Objs_p os = share(Objs(objs, furi));
+      Objs_p os = make_shared<Objs>(objs, furi);
       return os;
     }
 
@@ -1322,19 +1296,19 @@ namespace fhatos {
       const ID_p id_clone = id_p(*this->id_);
       if (this->is_rec()) {
         // REC
-        RecMap<> new_map;
-        for (const auto &[k,v]: *this->rec_value()) {
-          new_map.insert({k->clone(), v->clone()});
+        RecMap_p<> new_map = make_shared<RecMap<>>();
+        for (const auto &[k, v]: *this->rec_value()) {
+          new_map->insert({k->clone(), v->clone()});
         }
-        return to_rec(share(new_map), id_clone);
+        return to_rec(new_map, id_clone);
       }
       if (this->is_lst()) {
         // LST
-        LstList<> new_list;
+        LstList_p<> new_list = make_shared<LstList<>>();
         for (const auto &e: *this->lst_value()) {
-          new_list.push_back(e->clone());
+          new_list->push_back(e->clone());
         }
-        return to_lst(share(new_list), id_clone);
+        return to_lst(new_list, id_clone);
       }
       if (this->is_inst()) {
         // INST
@@ -1358,24 +1332,19 @@ namespace fhatos {
       }
       if (this->is_objs()) {
         // OBJS
-        List<Obj_p> new_list;
+        List_p<Obj_p> new_list = make_shared<List<Obj_p>>();
         for (const auto &e: *this->objs_value()) {
-          new_list.push_back(e->clone());
+          new_list->push_back(e->clone());
         }
-        return to_objs(share(new_list), id_clone);
+        return to_objs(new_list, id_clone);
       }
-      return share(Obj(any(this->_value), id_clone));
+      return make_shared<Obj>(any(this->_value), id_clone);
     }
 
     BObj_p serialize() const {
       LOG(TRACE, "Serializing %s\n", this->toString().c_str());
       const string serial = this->toString(true, false, true);
-      return ptr<BObj>(
-        new BObj{
-          serial.length(),
-          reinterpret_cast<fbyte *>(strdup(serial.c_str()))
-        },
-        bobj_deleter);
+      return ptr<BObj>(new BObj{serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
@@ -1420,19 +1389,19 @@ namespace fhatos {
 
   [[maybe_unused]] static NoObj_p noobj() { return Obj::to_noobj(); }
 
-  [[maybe_unused]] static Obj_p obj(const Any &value, const ID_p &type) { return share(Obj(value, type)); }
+  [[maybe_unused]] static Obj_p obj(const Any &value, const ID_p &type) { return make_shared<Obj>(value, type); }
 
-  [[maybe_unused]] static Obj_p obj(const Obj &obj) { return share(Obj(obj)); }
+  [[maybe_unused]] static Obj_p obj(const Obj &obj) { return make_shared<Obj>(obj); }
 
-  [[maybe_unused]] static Lst_p lst() { return Obj::to_lst(share(Obj::LstList<>())); }
+  [[maybe_unused]] static Lst_p lst() { return Obj::to_lst(make_shared<Obj::LstList<>>()); }
 
   [[maybe_unused]] static Lst_p lst(const List<Obj_p> &list) { return Obj::to_lst(share(list)); }
 
   [[maybe_unused]] static Lst_p lst(const List_p<Obj_p> &list) { return Obj::to_lst(list); }
 
-  [[maybe_unused]] static Rec_p rec() { return Obj::to_rec(share(Obj::RecMap<>())); }
+  [[maybe_unused]] static Rec_p rec() { return Obj::to_rec(make_shared<Obj::RecMap<>>()); }
 
-  [[maybe_unused]] static Rec_p rec(const Obj::RecMap<> &map) { return Obj::to_rec(share(map)); }
+  [[maybe_unused]] static Rec_p rec(const Obj::RecMap<> &map) { return Obj::to_rec(make_shared<Obj::RecMap<>>(map)); }
 
   [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const Obj, Obj>> &map,
                                     const ID_p &furi = REC_FURI) {
@@ -1444,7 +1413,7 @@ namespace fhatos {
     return Obj::to_rec(map, furi);
   }
 
-  [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(share(List<Obj_p>())); }
+  [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(make_shared<List<Obj_p>>()); }
 
   [[maybe_unused]] static Objs_p objs(const List<Obj_p> &list) { return Obj::to_objs(share(list)); }
 

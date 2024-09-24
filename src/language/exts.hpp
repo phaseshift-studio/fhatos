@@ -31,7 +31,7 @@ namespace fhatos {
 
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
-          share(Map<ID, List<Pair<ID, Type_p>>>{
+          ptr<Map<ID, List<Pair<ID, Type_p>>>>(new Map<ID, List<Pair<ID, Type_p>>>{
             {"/model/sys", {
              // {"/type/rec/process", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
               {"/type/rec/thread", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},

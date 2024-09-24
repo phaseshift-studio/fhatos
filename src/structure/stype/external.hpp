@@ -40,87 +40,29 @@ namespace fhatos {
                                 read_functions_(read_map), write_functions_(write_map) {
     }
 
-    void write(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      if (retain) {
-        Map<ID_p, Obj_p> written;
-        const Map<ID_p, Obj_p> map = this->generate_write_input(id, obj);
-        for (const auto &[key,value]: map) {
-          for (const auto &[furi, func]: this->write_functions_) {
-            if (key->matches(*furi)) {
-              Map<ID_p, Obj_p> temp = func(key, value);
-              written.insert(temp.begin(), temp.end());
-              LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", key->toString().c_str(),
-                            value->toString().c_str());
-            }
-          }
-        }
-        distribute_to_subscribers(written,RETAIN_MESSAGE);
-      } else {
-        distribute_to_subscribers(message_p(*id, obj, retain));
-      }
-    }
-
-    virtual Obj_p read(const fURI_p &furi) override {
-      const fURI_p temp = furi->is_branch() ? share(furi->extend("+")) : furi;
-      Map<ID_p, Obj_p> matches;
-      for (const auto &[furi, func]: this->read_functions_) {
-        if (temp->matches(*furi) || furi->matches(*temp)) {
-          Map<ID_p, Obj_p> map = func(temp);
-          matches.insert(map.begin(), map.end());
-          scheduler()->feed_local_watchdog();
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
+      for (const auto &[furi, func]: this->write_functions_) {
+        if (id->matches(*furi)) {
+          func(id, obj);
+          LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(),
+                        obj->toString().c_str());
         }
       }
-      return this->generate_read_output(furi, matches);
     }
 
-    void loop() override {
-      for (const auto &sub: *this->subscriptions_) {
-        this->publish_retained(sub);
-      }
-    }
-
-    void publish_retained_map(const Map<ID_p, Obj_p> &map, const Subscription_p &subscription) {
-      for (const auto &[id, obj]: map) {
-        if (id->matches(subscription->pattern)) {
-          if (history.count(id) && !history.at(id)->equals(*obj)) {
-            this->outbox_->push_back(mail_p(subscription, message_p(*id, obj, RETAIN_MESSAGE)));
-            history.erase(id);
-            if (!obj->is_noobj()) {
-              history.insert({id, obj});
-            }
+    List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
+      List<Pair<ID_p, Obj_p>> list;
+      for (const auto &[furi2, func]: this->read_functions_) {
+        if (furi2->matches(*furi)) {
+          Map<ID_p, Obj_p> map = func(furi);
+          for (const auto &pair: map) {
+            list.push_back({pair.first, pair.second});
           }
           scheduler()->feed_local_watchdog();
         }
       }
+      return list;
     }
-
-
-    virtual void publish_retained(const Subscription_p &subscription) override {
-      for (const auto &[furi, func]: read_functions_) {
-        if (furi->matches(subscription->pattern)) {
-          Map<ID_p, Obj_p> map;
-          for (const auto &[furi, func]: this->read_functions_) {
-            if (furi->matches(subscription->pattern)) {
-              for (const auto &[i, o]: func(furi_p(subscription->pattern))) {
-                if (history.count(i) && !history.at(i)->equals(*o)) {
-                  this->outbox_->push_back(mail_p(subscription, message_p(*i, o, RETAIN_MESSAGE)));
-                  history.erase(i);
-                  if (!o->is_noobj()) {
-                    history.insert({i, o});
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    /*
-    virtual void remove(const ID_p& target) override {
-     if(this->read_functions_.count(Pattern(*target)))
-        this->read_functions_.erase(Pattern(*target));
-    }*/
   };
 } // namespace fhatos
 

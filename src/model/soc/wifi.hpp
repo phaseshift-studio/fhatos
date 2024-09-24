@@ -34,7 +34,7 @@
 #include <WiFiMulti.h>
 #define WIFI_MULTI_CLIENT WiFiMulti
 #else
-#error Architecture unrecognized by this FhatOS deployment.
+#error Architecture unrecognized by FhatOS
 #endif
 
 
@@ -42,80 +42,66 @@ namespace fhatos {
 
   class Wifi : public External {
 
+  public:
     struct Settings {
-      // Settings() = delete;
-
-      struct Wifi {
-        const char *md5name;
-        const char *ssids;
-        const char *passwords;
-      } wifi_;
+      bool connected = false;
+      char *md5name = "";
+      char *ssids = "";
+      char *passwords = "";
+      Settings connect(bool c) const {
+        Settings s = Settings(*this);
+        s.connected = c;
+        return s;
+      }
     } settings_;
 
-    const static inline Settings DEFAULT_SETTINGS =
-        Settings{.wifi_ = Settings::Wifi{.md5name = "fhatty", .ssids = STR(WIFI_SSID), .passwords = STR(WIFI_PASS)}};
-    const static inline Settings NO_WIFI_SETTINGS =
-        Settings{.wifi_ = Settings::Wifi{.md5name = "", .ssids = "", .passwords = ""}};
+
+    const List<ID_p> WIFI_IDS = {
+        id_p(this->pattern()->resolve("./connected")),   id_p(this->pattern()->resolve("./ssid")),
+        id_p(this->pattern()->resolve("./password")),    id_p(this->pattern()->resolve("./md5name")),
+        id_p(this->pattern()->resolve("./ip_addr")),     id_p(this->pattern()->resolve("./gateway_addr")),
+        id_p(this->pattern()->resolve("./subnet_mask")), id_p(this->pattern()->resolve("./dns_addr"))};
+
+    const static inline Settings DEFAULT_SETTINGS = {
+        .connected = true, .md5name = "fhatty", .ssids = STR(WIFI_SSID), .passwords = STR(WIFI_PASS)};
+    const static inline Settings NO_WIFI_SETTINGS = {.connected = false, .md5name = "", .ssids = "", .passwords = ""};
 
   protected:
     explicit Wifi(const Pattern &pattern = "/soc/wifi/+", const Settings &settings = DEFAULT_SETTINGS) :
         External(pattern), settings_(settings) {
-      if (false && strlen(settings_.wifi_.md5name) > 0)
+      if (settings_.connected)
         this->connect_to_wifi_station();
       // TODO: flash/partition/0x44343
     }
 
   public:
     static ptr<Wifi> singleton(const Pattern &pattern = "/soc/wifi/+", const Settings &settings = DEFAULT_SETTINGS) {
-      static ptr<Wifi> pinout = ptr<Wifi>(new Wifi(pattern));
-      return pinout;
+      static ptr<Wifi> wifi = ptr<Wifi>(new Wifi(pattern, settings));
+      return wifi;
     }
 
-    virtual List<ID_p> existing_ids(const fURI &match) override {
-      List<ID_p> ids;
-      ids.push_back(id_p(this->pattern()->resolve("./connected")));
-      ids.push_back(id_p(this->pattern()->resolve("./ssid")));
-      ids.push_back(id_p(this->pattern()->resolve("./password")));
-      ids.push_back(id_p(this->pattern()->resolve("./md5name")));
-      ids.push_back(id_p(this->pattern()->resolve("./ip_addr")));
-      ids.push_back(id_p(this->pattern()->resolve("./gateway_addr")));
-      ids.push_back(id_p(this->pattern()->resolve("./subnet_mask")));
-      ids.push_back(id_p(this->pattern()->resolve("./dns_addr")));
-      ids.push_back(id_p(this->pattern()->resolve("./channel")));
-      return ids;
-    }
+   // virtual List<ID_p> existing_ids(const fURI &match) override { return WIFI_IDS; }
     virtual void setup() override {
       External::setup();
       this->read_functions_.insert({this->pattern(), [this](const fURI_p furi) {
                                       Map<ID_p, Obj_p> map;
                                       ID_p current;
-                                      current = id_p(this->pattern()->resolve("./connected"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, dool(WiFi.isConnected())});
-                                      current = id_p(this->pattern()->resolve("./ssid"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, str(this->settings_.wifi_.ssids)});
-                                      current = id_p(this->pattern()->resolve("./password"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, str(this->settings_.wifi_.passwords)});
-                                      current = id_p(this->pattern()->resolve("./md5name"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, uri(WiFi.getHostname())});
-                                      current = id_p(this->pattern()->resolve("./ip_addr"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, uri(WiFi.localIP().toString().c_str())});
-                                      current = id_p(this->pattern()->resolve("./gateway_addr"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, uri(WiFi.gatewayIP().toString().c_str())});
-                                      current = id_p(this->pattern()->resolve("./subnet_mask"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, uri(WiFi.subnetMask().toString().c_str())});
-                                      current = id_p(this->pattern()->resolve("./dns_addr"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, uri(WiFi.dnsIP().toString().c_str())});
-                                      current = id_p(this->pattern()->resolve("./channel"));
-                                      if (current->matches(*furi))
-                                        map.insert({current, jnt(WiFi.channel())});
+                                      if (WIFI_IDS.at(0)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(0), dool(WiFi.isConnected())});
+                                      if (WIFI_IDS.at(1)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(1), str(this->settings_.ssids)});
+                                      if (WIFI_IDS.at(2)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(2), str(this->settings_.passwords)});
+                                      if (WIFI_IDS.at(3)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(3), uri(WiFi.getHostname())});
+                                      if (WIFI_IDS.at(4)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(4), uri(WiFi.localIP().toString().c_str())});
+                                      if (WIFI_IDS.at(5)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(5), uri(WiFi.gatewayIP().toString().c_str())});
+                                      if (WIFI_IDS.at(6)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(6), uri(WiFi.subnetMask().toString().c_str())});
+                                      if (WIFI_IDS.at(7)->matches(*furi))
+                                        map.insert({WIFI_IDS.at(7), uri(WiFi.dnsIP().toString().c_str())});
                                       return map;
                                     }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
@@ -124,12 +110,13 @@ namespace fhatos {
              if (obj->is_bool()) {
                if (obj->bool_value()) {
                  if (!WiFi.isConnected())
-                   connect_to_wifi_station();
+                   this->settings_.connect(connect_to_wifi_station());
                } else {
                  if (WiFi.isConnected())
                    WiFi.disconnect();
                }
-             }
+             } else if (obj->is_noobj() && WiFi.isConnected())
+               WiFi.disconnect();
              return Map<ID_p, Obj_p>{{id_p(this->pattern()->resolve("./connected")), dool(WiFi.isConnected())}};
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
@@ -144,12 +131,12 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////
 
   private:
-    void connect_to_wifi_station() const {
+    bool connect_to_wifi_station() const {
       WiFi.mode(WIFI_STA);
       WiFi.setAutoReconnect(true);
       const char *delim = ":";
-      char ssidsTemp[strlen(this->settings_.wifi_.ssids) + 1];
-      sprintf(ssidsTemp, this->settings_.wifi_.ssids);
+      char ssidsTemp[strlen(this->settings_.ssids) + 1];
+      sprintf(ssidsTemp, this->settings_.ssids);
       char *ssid = strtok(ssidsTemp, delim);
       int i = 0;
       char *ssids_parsed[10];
@@ -161,7 +148,7 @@ namespace fhatos {
       }
       i = 0;
       char passwordsTemp[50];
-      sprintf(passwordsTemp, this->settings_.wifi_.passwords);
+      sprintf(passwordsTemp, this->settings_.passwords);
       char *passwords_parsed[10];
       char *password = strtok(passwordsTemp, delim);
       while (password != NULL) {
@@ -172,13 +159,13 @@ namespace fhatos {
       for (int j = 0; j < i; j++) {
         multi.addAP(ssids_parsed[j], passwords_parsed[j]);
       }
-      WiFi.hostname(this->settings_.wifi_.md5name);
+      WiFi.hostname(this->settings_.md5name);
       uint8_t attempts = 0;
       while (attempts < 10) {
         attempts++;
         if (multi.run() == WL_CONNECTED) {
           // this->__id = Helper::makeId("wifi");
-          const bool mdnsStatus = MDNS.begin(this->settings_.wifi_.md5name);
+          const bool mdnsStatus = MDNS.begin(this->settings_.md5name);
           LOG_STRUCTURE(INFO, this,
                         "\n\t!g[!bWIFI Station Configuration!g]!!\n"
                         "\t!yID             : !m%s\n"
@@ -192,14 +179,13 @@ namespace fhatos {
                         "\t!ySubnet mask    : !m%s\n"
                         "\t!yDNS address    : !m%s\n"
                         "\t!yChannel        : !m%i!!\n",
-                        this->settings_.wifi_.md5name, WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED",
-                        WiFi.SSID().c_str(), WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(),
-                        WiFi.getHostname(),
-                        mdnsStatus ? (string(this->settings_.wifi_.md5name) + ".local").c_str() : "<error>",
+                        this->settings_.md5name, WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED", WiFi.SSID().c_str(),
+                        WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(), WiFi.getHostname(),
+                        mdnsStatus ? (string(this->settings_.md5name) + ".local").c_str() : "<error>",
                         WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str(),
                         WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
-            LOG_STRUCTURE(WARN, this, "Unable to create mDNS hostname %s\n", this->settings_.wifi_.md5name);
+            LOG_STRUCTURE(WARN, this, "Unable to create mDNS hostname %s\n", this->settings_.md5name);
           }
           LOG_STRUCTURE(DEBUG, this, "Connection attempts: %i\n", attempts);
           attempts = 100;
@@ -207,7 +193,9 @@ namespace fhatos {
       }
       if (attempts != 100) {
         LOG_STRUCTURE(ERROR, this, "Unable to connect to WIFI after %i attempts\n", attempts);
+        return false;
       }
+      return true;
     }
 
     /*void setAccessPoint(const char *ssid, const char *password,

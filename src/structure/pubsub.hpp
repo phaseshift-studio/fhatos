@@ -29,17 +29,16 @@ namespace fhatos {
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",    \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                   \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
       (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
-      (subscription)->pattern.toString().c_str(),                                                                      \
-      (subscription)->on_recv->toString().c_str())
+      (subscription)->pattern.toString().c_str(), (subscription)->on_recv->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source).toString().c_str()),    \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source).toString().c_str()),   \
       nullptr == (pattern) ? "ALL" : (pattern)->toString().c_str())
 #define LOG_PUBLISH(rc, message)                                                                                       \
   LOG(((rc) == OK ? DEBUG : WARN), "!m[!!%s!m][!b%s!m]=!gpublish!m[retain:%s]!b=>!m[!b%s!m]!!\n",                      \
-      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                   \
+      (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
       ((message).payload->toString().c_str()), (FOS_BOOL_STR((message).retain)),                                       \
       ((message).target.toString().c_str()))
 #define LOG_RECEIVE(rc, subscription, message)                                                                         \
@@ -69,15 +68,13 @@ namespace fhatos {
     MUTEX_LOCKOUT
   };
 
-  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({
-    {OK, "OK"},
-    {NO_TARGETS, "no targets"},
-    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-    {NO_SUBSCRIPTION, "no subscription"},
-    {NO_MESSAGE, "no message"},
-    {ROUTER_ERROR, "internal router error"},
-    {MUTEX_TIMEOUT, "router timeout"}
-  });
+  static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
+                                                                    {NO_TARGETS, "no targets"},
+                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+                                                                    {NO_SUBSCRIPTION, "no subscription"},
+                                                                    {NO_MESSAGE, "no message"},
+                                                                    {ROUTER_ERROR, "internal router error"},
+                                                                    {MUTEX_TIMEOUT, "router timeout"}});
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
@@ -93,30 +90,24 @@ namespace fhatos {
 
     [[nodiscard]] string toString() const {
       char temp[1024];
-      snprintf(temp, 1024, "!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!",
-               this->payload->toString().c_str(), FOS_BOOL_STR(this->retain), this->target.toString().c_str());
+      snprintf(temp, 1024, "!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!", this->payload->toString().c_str(),
+               FOS_BOOL_STR(this->retain), this->target.toString().c_str());
       return {temp};
     }
 
     [[nodiscard]] Rec_p to_rec() const {
-      return rec({
-        {uri("target"), uri(target)},
-        {uri("payload"), payload},
-        {uri("retain"), dool(retain)}
-      });
+      return rec({{uri("target"), uri(target)}, {uri("payload"), payload}, {uri("retain"), dool(retain)}});
     }
   };
 
   inline Message_p message_p(const ID &target, const Obj_p &payload, const bool retain) {
-    return share(Message{.target = target, .payload = payload, .retain = retain});
+    return ptr<Message>(new Message{.target = target, .payload = payload, .retain = retain});
   }
 
   ///////////////////////////////////////////////////
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
-  enum class QoS {
-    _0 = 0, _1 = 1, _2 = 2, _3 = 3
-  };
+  enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
@@ -125,7 +116,7 @@ namespace fhatos {
   using Mail_p = ptr<Mail>;
 
   inline Mail_p mail_p(const Subscription_p &subscription, const Message_p &message) {
-    return share(Mail(subscription, message));
+    return make_shared<Mail>(subscription, message);
   }
 
   struct Mailbox {
@@ -142,19 +133,17 @@ namespace fhatos {
     BCode_p on_recv = bcode();
 
     [[nodiscard]] Rec_p to_rec() const {
-      return rec({
-        {uri("source"), uri(source)},
-        {uri("pattern"), uri(pattern)},
-        {uri("qos"), jnt(static_cast<int>(qos))},
-        {uri("on_recv"), on_recv}
-      });
+      return rec({{uri("source"), uri(source)},
+                  {uri("pattern"), uri(pattern)},
+                  {uri("qos"), jnt(static_cast<int>(qos))},
+                  {uri("on_recv"), on_recv}});
     }
 
     [[nodiscard]] string toString() const {
       char temp[1024];
       snprintf(temp, 1024, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!",
-               source.toString().c_str(),
-               static_cast<uint8_t>(qos), pattern.toString().c_str(), on_recv->toString().c_str());
+               source.toString().c_str(), static_cast<uint8_t>(qos), pattern.toString().c_str(),
+               on_recv->toString().c_str());
       return {temp};
     }
   };

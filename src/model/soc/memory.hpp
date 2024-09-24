@@ -44,8 +44,6 @@ namespace fhatos {
       return memory;
     }
 
-    virtual List<ID_p> existing_ids(const fURI &match) override { return MEMORY_IDS_; }
-
     virtual void setup() override {
       External::setup();
       // Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX
