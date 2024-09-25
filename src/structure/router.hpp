@@ -94,7 +94,7 @@ namespace fhatos {
       } else {
         this->structures_mutex_.write<void *>([this, structure]() {
           for (const Structure_p &s: this->structures_) {
-            if (structure->pattern()->matches(*s->pattern()) || s->pattern()->matches(*structure->pattern())) {
+            if (structure->pattern()->bimatches(*s->pattern())) {
               // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
               throw fError(ROUTER_FURI_WRAP
                            " Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
