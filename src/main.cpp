@@ -31,10 +31,9 @@
 
 #ifndef NATIVE
 #include <esp32/spiram.h>
-#include <model/soc/esp32/soc.hpp>
-#include <model/soc/memory.hpp>
-#include <model/soc/pinout.hpp>
-#include <model/soc/wifi.hpp>
+#include <model/soc/esp32/memory.hpp>
+#include <model/soc/esp/pinout.hpp>
+#include <model/soc/esp/wifi.hpp>
 #endif
 
 #ifdef NATIVE

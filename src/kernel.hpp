@@ -22,7 +22,6 @@
 #include "fhatos.hpp"
 #include FOS_PROCESS(scheduler.hpp)
 #include "language/exts.hpp"
-#include "model/model.hpp"
 #include "model/terminal.hpp"
 #include "process/actor/actor.hpp"
 #include "process/process.hpp"

@@ -23,11 +23,9 @@
 #include <furi.hpp>
 #include <language/fluent.hpp>
 #include <language/parser.hpp>
-#include <process/actor/actor.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <model/terminal.hpp>
-#include <structure/stype/id_structure.hpp>
 
 namespace fhatos {
   using Command = Trip<string, Consumer<Obj_p>, Runnable>;
@@ -47,7 +45,6 @@ namespace fhatos {
     ID_p terminal_id_;
     bool new_input_ = true;
     Settings settings_;
-
 
     static constexpr Settings DEFAULT_SETTINGS = Settings{.nest = false, .ansi = true};
 

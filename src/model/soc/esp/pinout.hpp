@@ -27,7 +27,7 @@
 namespace fhatos {
 
   void ARDUINO_ISR_ATTR isr(void *arg) {
-    const ID_p id = make_shared<ID>(*static_cast<ID *>(arg));
+    const ID_p id = make_shared<ID>(static_cast<ID *>(arg)->toString().c_str());
     const BCode_p bcode = router()->read(id);
     process(bcode, uri(id));
   };

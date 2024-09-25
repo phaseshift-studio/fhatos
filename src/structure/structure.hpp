@@ -27,6 +27,8 @@
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
 
+#include "router.hpp"
+
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
   if (meta.has_value())                                                                                                \
@@ -64,7 +66,7 @@ namespace fhatos {
 
     virtual void setup() {
       if (this->available_.load()) {
-        LOG_STRUCTURE(WARN, this, "!ystructure!! already open");
+        LOG_STRUCTURE(WARN, this, "!ystructure!! already available\n");
         return;
       }
       this->available_.store(true);
@@ -86,7 +88,7 @@ namespace fhatos {
 
     virtual void stop() {
       if (!this->available_.load())
-        LOG_STRUCTURE(WARN, this, "!ystructure!! already closed");
+        LOG_STRUCTURE(WARN, this, "!ystructure!! already unavailable\n");
       this->subscriptions_->clear();
       this->outbox_->clear(false);
       this->available_.store(false);

@@ -124,7 +124,6 @@ namespace fhatos {
                                           [this, pattern](const Structure_p &structure) -> bool {
                                             const bool to_erase = structure->pattern()->matches(*pattern);
                                             if (to_erase) {
-                                              structure->stop();
                                               LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n",
                                                          structure->pattern()->toString().c_str(),
                                                          StructureTypes.to_chars(structure->stype).c_str());
@@ -137,8 +136,10 @@ namespace fhatos {
     }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) const {
+      ////////////////////////////////////////////////////////
       ///////////////////// ROUTER READS /////////////////////
-      if (furi->matches(this->pattern()->resolve("./structure/"))) {
+      ////////////////////////////////////////////////////////
+      if (this->pattern()->resolve("./structure/").bimatches(*furi)) {
         List<Uri_p> uris;
         for (const Structure_p &structure: this->structures_) {
           uris.push_back(uri(structure->pattern()));
@@ -146,7 +147,7 @@ namespace fhatos {
         const Rec_p rec = ObjHelper::encode_lst(this->pattern()->resolve("./structure/"), uris);
         return rec;
       }
-      if (furi->matches(this->pattern()->resolve("./structure/+"))) {
+      if (this->pattern()->resolve("./structure/+").bimatches(*furi)) {
         if (StringHelper::is_integer(furi->name()))
           return uri(this->structures_.at(stoi(furi->name()))->pattern());
         if (furi->name() == "+" || furi->name() == "#") {
@@ -158,17 +159,23 @@ namespace fhatos {
         }
       }
       //////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////
       const Structure_p &struc = this->get_structure(p_p(*furi));
       LOG_ROUTER(DEBUG, "!y!_reading!! !b%s!! from " FURI_WRAP "\n", furi->toString().c_str(),
                  struc->pattern()->toString().c_str());
       return struc->read(furi);
     }
 
-    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) const {
+    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
       const Structure_p &struc = this->get_structure(p_p(*furi));
       LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
                  obj->toString().c_str(), furi->toString().c_str(), struc->pattern()->toString().c_str());
       struc->write(furi, obj, retain);
+      if (retain && obj->is_noobj() && furi->equals(*struc->pattern())) {
+        struc->stop();
+        this->detach(struc->pattern());
+      }
       MESSAGE_INTERCEPT(*furi, obj, retain);
     }
 

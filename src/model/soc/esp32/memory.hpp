@@ -30,6 +30,9 @@ namespace fhatos {
 
   class Memory : public External {
 
+    const char* MEMORY_REC_STRING PROGMEM = "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
+    const char* PERCENT_TYPE_DEF PROGMEM = "is(gte(0.0)).is(lte(100.0))";
+
   protected:
     List<ID_p> MEMORY_IDS_;
     explicit Memory(const Pattern &pattern = "/soc/memory/#") :
@@ -48,13 +51,12 @@ namespace fhatos {
       External::setup();
       // Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX
       // "rec/mem_stat"),parse("~[total=>int[_],free=>int[_],used=>" FOS_TYPE_PREFIX "real/%%[_]]"));
-      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse("is(gte(0.0)).is(lte(100.0))"));
+      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
       this->read_functions_.insert(
           {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
              return List<Pair<ID_p, Obj_p>>(
                  {{MEMORY_IDS_.at(0),
-                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                         ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
+                   parse(MEMORY_REC_STRING, ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
                          ESP.getSketchSize() == 0
                              ? 0.0f
                              : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
@@ -64,8 +66,7 @@ namespace fhatos {
           {MEMORY_IDS_.at(1), [this](const fURI_p furi) {
              return List<Pair<ID_p, Obj_p>>(
                  {{MEMORY_IDS_.at(1),
-                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
-                         ESP.getFreeHeap(),
+                   parse(MEMORY_REC_STRING, ESP.getHeapSize(), ESP.getFreeHeap(),
                          ESP.getHeapSize() == 0
                              ? 0.0f
                              : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}});
@@ -74,8 +75,7 @@ namespace fhatos {
           {{MEMORY_IDS_.at(2), [this](const fURI_p furi) {
               return List<Pair<ID_p, Obj_p>>(
                   {{MEMORY_IDS_.at(2),
-                    parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
-                          ESP.getFreePsram(),
+                    parse(MEMORY_REC_STRING, ESP.getPsramSize(), ESP.getFreePsram(),
                           ESP.getPsramSize() == 0
                               ? 0.0f
                               : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}});
