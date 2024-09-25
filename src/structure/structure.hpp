@@ -177,10 +177,10 @@ namespace fhatos {
       }
     }
 
-    virtual void write(const ID_p &furi, const Obj_p &obj, const bool retain) {
+    virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
       if (retain) {
         if (furi->is_branch()) {
-          // BRANCH PATTERN
+          // BRANCH (POLYS)
           if (obj->is_noobj()) {
             // nobj
             const List<Pair<ID_p, Obj_p>> ids = this->read_raw_pairs(furi_p(furi->extend("+")));
@@ -200,22 +200,24 @@ namespace fhatos {
                 remaining->insert({key, value});
             }
             if (!remaining->empty()) {
+              // non-uri keyed pairs written to /0
               this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining));
               distribute_to_subscribers(
                 message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
             }
           } else if (obj->is_lst()) {
+            // lst /0,/1,/2 indexing
             const List_p<Obj_p> list = obj->lst_value();
             for (size_t i = 0; i < list->size(); i++) {
               this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i));
               distribute_to_subscribers(message_p(furi->extend(to_string(i)), list->at(i), retain));
             }
           } else {
-            // BRANCH ID
+            // BRANCH (MONOS)
+            // monos written to /0
             this->write_raw_pairs(id_p(furi->extend("0")), obj);
             distribute_to_subscribers(message_p(ID(furi->extend("0")), obj, retain));
           }
-          //}
         } else {
           // NODE PATTERN
           if (furi->is_pattern()) {
@@ -228,7 +230,7 @@ namespace fhatos {
           // NODE ID
           else {
             this->write_raw_pairs(id_p(*furi), obj);
-            distribute_to_subscribers(message_p(furi->is_branch() ? ID(furi->extend("0")) : ID(*furi), obj, retain));
+            distribute_to_subscribers(message_p(ID(*furi), obj, retain));
           }
         }
       } else {

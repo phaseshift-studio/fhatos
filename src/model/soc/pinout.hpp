@@ -26,9 +26,17 @@
 
 namespace fhatos {
 
+  void ARDUINO_ISR_ATTR isr(void *arg) {
+    const ID_p id = make_shared<ID>(*static_cast<ID *>(arg));
+    const BCode_p bcode = router()->read(id);
+    process(bcode, uri(id));
+  };
+
   class Pinout : public External {
 
+
   protected:
+    Map<ID_p, BCode_p, furi_p_less> interrupts_;
     explicit Pinout(const Pattern &pattern = "/soc/pinout/#") : External(pattern) {
       // TODO: flash/partition/0x44343
     }
@@ -42,40 +50,84 @@ namespace fhatos {
     virtual void setup() override {
       External::setup();
 
+      // READ DIGITAL INPUT
       this->read_functions_.insert(
           {share(this->pattern()->resolve("./pin/+")), [this](const fURI_p furi) {
-             Map<ID_p, Obj_p> map;
+             List<Pair<ID_p, Obj_p>> list;
              if (StringHelper::is_integer(furi->name())) {
                uint8_t pin_number = stoi(furi->name());
-               //pinMode(pin_number, INPUT);
-               map.insert({id_p(*furi), jnt(digitalRead(pin_number))});
+               // pinMode(pin_number, INPUT);
+               list.push_back({id_p(*furi), jnt(digitalRead(pin_number))});
              } else {
                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-                // pinMode(i, INPUT);
-                 map.insert(
+                 // pinMode(i, INPUT);
+                 list.push_back(
                      {id_p(this->pattern()->resolve(fURI(string("./pin/") + to_string(i)))), jnt(digitalRead(i))});
                }
              }
-             return map;
+             return list;
+           }});
+      // READ INTERRUPTS
+      this->read_functions_.insert(
+          {share(this->pattern()->resolve("./pin/+/interrupt")), [this](const fURI_p furi) {
+             List<Pair<ID_p, Obj_p>> list;
+             uint8_t single = StringHelper::is_integer(furi->retract().name()) ? stoi(furi->retract().name()) : 99;
+             for (uint8_t i = ((99 == single) ? 0 : single); i < ((99 == single) ? NUM_DIGITAL_PINS : (single + 1));
+                  i++) {
+               ID_p id = id_p(this->pattern()->resolve(fURI(string("./pin/") + to_string(i) + "/interrupt")));
+               LOG_STRUCTURE(DEBUG, this, "Searching interrupts for !b%s!!\n", id->toString().c_str());
+               if (this->interrupts_.count(id)) {
+                 LOG_STRUCTURE(DEBUG, this, "Interrupt !gfound!! for !b%s!!\n", id->toString().c_str());
+                 list.push_back({id, this->interrupts_.at(id)});
+               }
+             }
+             return list;
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n",
-                    this->pattern()->resolve("./pin/+").toString().c_str());
+                    this->pattern()->resolve("./pin/#").toString().c_str());
+      ////////////////////////////// WRITE FUNCTIONS
       this->write_functions_.insert(
-          {share(this->pattern()->resolve("./pin/+")), [this](const fURI_p furi, const Obj_p &obj) {
-             Map<ID_p, Obj_p> map;
-             if (StringHelper::is_integer(furi->name())) {
-               uint8_t pin_number = stoi(furi->name());
-               pinMode(pin_number, OUTPUT);
-               digitalWrite(pin_number, obj->int_value());
-               map.insert({id_p(*furi), obj});
+          {furi_p(this->pattern()->resolve("./pin/+")), [this](const fURI_p furi, const Obj_p &obj) {
+             List<Pair<ID_p, Obj_p>> list;
+             // if (StringHelper::is_integer(furi->name())) {
+             uint8_t pin_number = stoi(furi->name());
+             pinMode(pin_number, OUTPUT);
+             digitalWrite(pin_number, obj->int_value());
+             // list.push_back({id_p(*furi), obj});
+             /* } else {
+                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
+                  pinMode(i, OUTPUT);
+                  list.push_back(
+                      {id_p(this->pattern()->resolve(fURI(string("./pin/") + to_string(i)))), jnt(digitalRead(i))});
+                }
+              }*/
+             return list;
+           }});
+      /*
+      DISABLED
+
+ RISING
+ FALLING
+ CHANGE
+ ONLOW
+ ONHIGH
+ ONLOW_WE
+ ONHIGH_WE*/
+      this->write_functions_.insert(
+          {furi_p(this->pattern()->resolve("./pin/+/interrupt")), [this](const fURI_p furi, const Obj_p &obj) {
+             uint8_t pin_number = stoi(furi->retract().name());
+             if (this->interrupts_.count(id_p(*furi)))
+               this->interrupts_.erase(id_p(*furi));
+             if (obj->is_noobj()) {
+               detachInterrupt(pin_number);
+               LOG_STRUCTURE(INFO, this, "!bpin %i!! !yinterrupt!! detached\n", pin_number);
              } else {
-               for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-                 pinMode(i, OUTPUT);
-                 map.insert(
-                     {id_p(this->pattern()->resolve(fURI(string("./pin/") + to_string(i)))), jnt(digitalRead(i))});
-               }
+               this->interrupts_.insert({id_p(*furi), obj});
+               ID *heap_id = new ID(*furi);
+               attachInterruptArg(pin_number, isr, (void *) heap_id, RISING);
+               LOG_STRUCTURE(INFO, this, "!bpin %i!! !yinterrupt!! attached\n", pin_number);
              }
-             return map;
+             return List<Pair<ID_p, Obj_p>>();
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
                     this->pattern()->resolve("./pin/+").toString().c_str());

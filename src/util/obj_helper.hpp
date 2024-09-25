@@ -41,6 +41,14 @@ namespace fhatos {
               obj.is_bcode() ? obj.toString().c_str() : obj.toString(false).c_str());
       return string(a);
     }
+
+    static Rec_p encode_lst(const fURI &base_furi, const List<Obj_p> &list) {
+      const Rec_p rec = Obj::to_rec();
+      for (size_t i = 0; i < list.size(); i++) {
+        rec->rec_set(uri(base_furi.resolve(string("./") + to_string(i))), list.at(i));
+      }
+      return rec;
+    }
   };
 } // namespace fhatos
 #endif

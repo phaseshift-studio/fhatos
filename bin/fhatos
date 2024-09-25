@@ -32,8 +32,7 @@ BLUE='\033[0;34m'
 FHATOS="${MAGENTA}F${GREEN}h${BLUE}a${RED}t${MAGENTA}O${BLUE}S${NC}"
 LB="${MAGENTA}[${NC}"
 RB="${MAGENTA}]${NC}"
-#############################
-
+#############################################
 if [ -z "$FHATOS_HOME" ]; then
   echo -e " ${RED}FHATOS_HOME${NC} must be set to proceed";
   exit 1
@@ -41,8 +40,12 @@ else
   # using build as working directory to protect from FHAT32 file system mount
   cd "${FHATOS_HOME}/build" || exit 1
 fi
+#############################################
+#############################################
 if [[ $1 == "esp32" ]]; then
   rlwrap --quote-characters "\"'" --always-readline --ansi-colour-aware pio device monitor -e $1 -b 115200 -f direct --echo
+elif [ ! -f $FHATOS_HOME/build/fhatos.out ]; then
+    echo -e "${RED}ERROR${NC} ${FHATOS} unable to locate ${BLUE}${FHATOS_HOME}/build/fhatos.out${NC}. Ensure ${FHATOS} has been built using ${BLUE}bin/fhat-dev${NC}."
 else
   rlwrap --quote-characters "\"'" --ansi-colour-aware ${FHATOS_HOME}/build/fhatos.out "$@"
 fi

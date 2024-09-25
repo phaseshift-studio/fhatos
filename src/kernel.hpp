@@ -78,7 +78,6 @@ namespace fhatos {
     static ptr<Kernel> structure(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
-      structure->setup();
       return Kernel::build();
     }
 

@@ -84,24 +84,24 @@ namespace fhatos {
     virtual void setup() override {
       External::setup();
       this->read_functions_.insert({this->pattern(), [this](const fURI_p furi) {
-                                      Map<ID_p, Obj_p> map;
+                                      List<Pair<ID_p, Obj_p>> map;
                                       ID_p current;
                                       if (WIFI_IDS.at(0)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(0), dool(WiFi.isConnected())});
+                                        map.push_back({WIFI_IDS.at(0), dool(WiFi.isConnected())});
                                       if (WIFI_IDS.at(1)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(1), str(this->settings_.ssids)});
+                                        map.push_back({WIFI_IDS.at(1), str(this->settings_.ssids)});
                                       if (WIFI_IDS.at(2)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(2), str(this->settings_.passwords)});
+                                        map.push_back({WIFI_IDS.at(2), str(this->settings_.passwords)});
                                       if (WIFI_IDS.at(3)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(3), uri(WiFi.getHostname())});
+                                        map.push_back({WIFI_IDS.at(3), uri(WiFi.getHostname())});
                                       if (WIFI_IDS.at(4)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(4), uri(WiFi.localIP().toString().c_str())});
+                                        map.push_back({WIFI_IDS.at(4), uri(WiFi.localIP().toString().c_str())});
                                       if (WIFI_IDS.at(5)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(5), uri(WiFi.gatewayIP().toString().c_str())});
+                                        map.push_back({WIFI_IDS.at(5), uri(WiFi.gatewayIP().toString().c_str())});
                                       if (WIFI_IDS.at(6)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(6), uri(WiFi.subnetMask().toString().c_str())});
+                                        map.push_back({WIFI_IDS.at(6), uri(WiFi.subnetMask().toString().c_str())});
                                       if (WIFI_IDS.at(7)->matches(*furi))
-                                        map.insert({WIFI_IDS.at(7), uri(WiFi.dnsIP().toString().c_str())});
+                                        map.push_back({WIFI_IDS.at(7), uri(WiFi.dnsIP().toString().c_str())});
                                       return map;
                                     }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
@@ -117,7 +117,7 @@ namespace fhatos {
                }
              } else if (obj->is_noobj() && WiFi.isConnected())
                WiFi.disconnect();
-             return Map<ID_p, Obj_p>{{id_p(this->pattern()->resolve("./connected")), dool(WiFi.isConnected())}};
+             return List<Pair<ID_p, Obj_p>>{{id_p(this->pattern()->resolve("./connected")), dool(WiFi.isConnected())}};
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
                     this->pattern()->resolve("connected").toString().c_str());

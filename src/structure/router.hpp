@@ -22,6 +22,7 @@
 
 #include <structure/structure.hpp>
 #include <util/mutex_rw.hpp>
+#include <util/obj_helper.hpp>
 
 namespace fhatos {
   class Router final : public Patterned {
@@ -29,11 +30,9 @@ namespace fhatos {
 
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");
-    ptr<Map<Pattern_p, Structure_p, furi_p_less>> structures_ = share(Map<Pattern_p, Structure_p, furi_p_less>());
+    List<Structure_p> structures_ = List<Structure_p>();
 
-    explicit Router(const Pattern &pattern): Patterned(p_p(pattern)) {
-      LOG_ROUTER(INFO, "!yrouter!! started\n");
-    }
+    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) { LOG_ROUTER(INFO, "!yrouter!! started\n"); }
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
@@ -52,9 +51,9 @@ namespace fhatos {
       auto *hardware_count = new atomic_int(0);
       auto *networked_count = new atomic_int(0);
       this->structures_mutex_.read<void *>(
-        [this, ephemeral_count, variables_count, hardware_count,database_count,networked_count]() {
-          for (const auto &pair: *this->structures_) {
-            switch (pair.second->stype) {
+        [this, ephemeral_count, variables_count, hardware_count, database_count, networked_count]() {
+          for (const Structure_p &structure: this->structures_) {
+            switch (structure->stype) {
               case SType::EPHEMERAL:
                 ephemeral_count->fetch_add(1);
                 break;
@@ -74,14 +73,11 @@ namespace fhatos {
           }
           return nullptr;
         });
-      LOG_ROUTER(
-        INFO,
-        "!yStopping!g %i !yephemeral!! | !g%i !yvariables!! | !g%i !ydatabase!! | !g%i !yhardware!! | !g%i !ynetworked!!\n",
-        ephemeral_count->load(),
-        variables_count->load(),
-        database_count->load(),
-        hardware_count->load(),
-        networked_count->load());
+      LOG_ROUTER(INFO,
+                 "!yStopping!g %i !yephemeral!! | !g%i !yvariables!! | !g%i !ydatabase!! | !g%i !yhardware!! | !g%i "
+                 "!ynetworked!!\n",
+                 ephemeral_count->load(), variables_count->load(), database_count->load(), hardware_count->load(),
+                 networked_count->load());
       delete ephemeral_count;
       delete variables_count;
       delete database_count;
@@ -97,19 +93,26 @@ namespace fhatos {
                    StructureTypes.to_chars(structure->stype).c_str());
       } else {
         this->structures_mutex_.write<void *>([this, structure]() {
-          for (const auto &pair: *this->structures_) {
-            if (structure->pattern()->matches(*pair.second->pattern()) ||
-                pair.second->pattern()->matches(*structure->pattern())) {
+          for (const Structure_p &s: this->structures_) {
+            if (structure->pattern()->matches(*s->pattern()) || s->pattern()->matches(*structure->pattern())) {
               // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
-              throw fError(
-                ROUTER_FURI_WRAP " Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
-                this->pattern_->toString().c_str(),
-                pair.second->pattern()->toString().c_str(), structure->pattern()->toString().c_str());
+              throw fError(ROUTER_FURI_WRAP
+                           " Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
+                           this->pattern_->toString().c_str(), s->pattern()->toString().c_str(),
+                           structure->pattern()->toString().c_str());
             }
           }
-          LOG_ROUTER(INFO, FURI_WRAP " !y%s!! attached\n", structure->pattern()->toString().c_str(),
-                     StructureTypes.to_chars(structure->stype).c_str());
-          this->structures_->insert({structure->pattern(), structure});
+
+          this->structures_.push_back(structure);
+          structure->setup();
+          if (structure->available()) {
+            LOG_ROUTER(INFO, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
+                       StructureTypes.to_chars(structure->stype).c_str());
+          } else {
+            LOG_ROUTER(ERROR, "!RUnable to attach %s: %s!!\n", StructureTypes.to_chars(structure->stype).c_str(),
+                       structure->pattern()->toString().c_str());
+            this->structures_.pop_back();
+          }
           return nullptr;
         });
       }
@@ -117,36 +120,56 @@ namespace fhatos {
 
     void detach(const Pattern_p &pattern) {
       this->structures_mutex_.write<void *>([this, pattern]() {
-        List<Structure_p> toRemove;
-        for (const auto &pair: *this->structures_) {
-          if (pair.second->pattern()->matches(*pattern))
-            toRemove.push_back(pair.second);
-        }
-        for (const Structure_p &structure: toRemove) {
-          this->structures_->erase(structure->pattern());
-          LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n",
-                     structure->pattern()->toString().c_str(), StructureTypes.to_chars(structure->stype).c_str());
-        }
+        this->structures_.erase(remove_if(this->structures_.begin(), this->structures_.end(),
+                                          [this, pattern](const Structure_p &structure) -> bool {
+                                            const bool to_erase = structure->pattern()->matches(*pattern);
+                                            if (to_erase) {
+                                              structure->stop();
+                                              LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n",
+                                                         structure->pattern()->toString().c_str(),
+                                                         StructureTypes.to_chars(structure->stype).c_str());
+                                            }
+                                            return to_erase;
+                                          }),
+                                this->structures_.end());
         return nullptr;
       });
     }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) const {
+      ///////////////////// ROUTER READS /////////////////////
+      if (furi->matches(this->pattern()->resolve("./structure/"))) {
+        List<Uri_p> uris;
+        for (const Structure_p &structure: this->structures_) {
+          uris.push_back(uri(structure->pattern()));
+        }
+        const Rec_p rec = ObjHelper::encode_lst(this->pattern()->resolve("./structure/"), uris);
+        return rec;
+      }
+      if (furi->matches(this->pattern()->resolve("./structure/+"))) {
+        if (StringHelper::is_integer(furi->name()))
+          return uri(this->structures_.at(stoi(furi->name()))->pattern());
+        if (furi->name() == "+" || furi->name() == "#") {
+          const Objs_p objs = Obj::to_objs();
+          for (const Structure_p &structure: this->structures_) {
+            objs->add_obj(uri(structure->pattern()));
+          }
+          return objs;
+        }
+      }
+      //////////////////////////////////////////////////////////
       const Structure_p &struc = this->get_structure(p_p(*furi));
       LOG_ROUTER(DEBUG, "!y!_reading!! !b%s!! from " FURI_WRAP "\n", furi->toString().c_str(),
                  struc->pattern()->toString().c_str());
       return struc->read(furi);
     }
 
-    void write(
-      const ID_p &id, const Obj_p &obj,
-      const bool retain = RETAIN_MESSAGE) const {
-      const Structure_p &struc = this->get_structure(p_p(*id));
-      LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n",
-                 retain ? "retained" : "transient", obj->toString().c_str(),
-                 id->toString().c_str(), struc->pattern()->toString().c_str());
-      struc->write(id, obj, retain);
-      MESSAGE_INTERCEPT(*id, obj, retain);
+    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) const {
+      const Structure_p &struc = this->get_structure(p_p(*furi));
+      LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
+                 obj->toString().c_str(), furi->toString().c_str(), struc->pattern()->toString().c_str());
+      struc->write(furi, obj, retain);
+      MESSAGE_INTERCEPT(*furi, obj, retain);
     }
 
     void remove(const ID_p &id) const {
@@ -163,11 +186,11 @@ namespace fhatos {
     }
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {
-      for (const auto &pair: *this->structures_) {
-        if (pair.second->pattern()->matches(*pattern) || pattern->matches(*pair.second->pattern())) {
+      for (const Structure_p &structure: this->structures_) {
+        if (structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
           LOG_ROUTER(DEBUG, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
                      subscriber->toString().c_str());
-          pair.second->recv_unsubscribe(subscriber, pattern);
+          structure->recv_unsubscribe(subscriber, pattern);
         }
       }
     }
@@ -179,28 +202,28 @@ namespace fhatos {
     }
 
   private:
-    [[nodiscard]] Structure_p &get_structure(const Pattern_p &pattern) const {
-      Structure_p *ret = nullptr;
+    [[nodiscard]] const Structure_p &get_structure(const Pattern_p &pattern) const {
+      //  return *this->structures_mutex_.read<Structure_p *>([this,pattern]() {
+      const Structure_p *ret = nullptr;
       const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
-      for (auto &pair: *this->structures_) {
-        if (temp->matches(*pair.second->pattern())) {
+      for (const Structure_p &structure: this->structures_) {
+        if (temp->matches(*structure->pattern())) {
           /// TODO: should be flipped?
           if (ret != nullptr)
             throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures",
                          pattern->toString().c_str());
-          ret = &pair.second;
+          ret = &structure;
         }
       }
       if (nullptr == ret)
         throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->pattern()->toString().c_str(),
                      pattern->toString().c_str());
       return *ret;
+      //});
     }
   };
 
-  inline ptr<Router> router() {
-    return Options::singleton()->router<Router>();
-  }
+  inline ptr<Router> router() { return Options::singleton()->router<Router>(); }
 } // namespace fhatos
 
 #endif

@@ -74,7 +74,7 @@ namespace fhatos {
       Structure::stop();
     }
 
-    virtual void recv_publication(const Message_p &message) override {
+    void recv_publication(const Message_p &message) override {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
       this->write(id_p(message->target), message->payload, message->retain);
       LOG_PUBLISH(OK, *message);
@@ -107,18 +107,17 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
       const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
-      auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(nullptr);
-      thing->store(new List<Pair<ID_p, Obj_p>>());
-      const string client_name = string("client") + to_string(rand());
+      auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
+      const ID source_id = ID(string("client_") + to_string(rand()));
       this->recv_subscription(
-        share(Subscription{.source = static_cast<fURI>(client_name),
-          .pattern = temp,
-          .on_recv = Insts::to_bcode([this, furi, thing, pattern_or_branch](const Message_p &message) {
-            LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
-                          furi->toString().c_str(), message->toString().c_str());
-            scheduler()->feed_local_watchdog();
-            thing->load()->push_back({id_p(message->target), message->payload});
-          })}));
+        subscription_p(source_id, temp, QoS::_1,
+                       Insts::to_bcode([this, furi, thing](const Message_p &message) {
+                         LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
+                                       furi->toString().c_str(), message->toString().c_str());
+                         scheduler()->feed_local_watchdog();
+                         thing->load()->push_back({id_p(message->target), message->payload});
+                       })));
+      ///////////////////////////////////////////////
       const time_t start_timestamp = time(nullptr);
       if (pattern_or_branch) {
         while (time(nullptr) - start_timestamp < 2) {
@@ -131,7 +130,8 @@ namespace fhatos {
           this->native_mqtt_loop();
         }
       }
-      this->recv_unsubscribe(id_p(client_name.c_str()), furi_p(temp));
+      ///////////////////////////////////////////////
+      this->recv_unsubscribe(id_p(source_id), furi_p(temp));
       const List<Pair<ID_p, Obj_p>> list = *thing->load();
       delete thing;
       return list;

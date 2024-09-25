@@ -65,8 +65,8 @@
 #define FOS_DEPLOY_TYPES_2 ;
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
-#include <model/shared_memory.hpp>
-#define FOS_DEPLOY_SHARED_MEMORY_2 router()->attach(SharedMemory::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
+#include <structure/stype/key_value.hpp>
+#define FOS_DEPLOY_SHARED_MEMORY_2 router()->attach(KeyValue::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
@@ -157,12 +157,8 @@ void tearDown() {
 
 using namespace fhatos;
 
-#define FOS_PRINT_FLUENT(fluent)                                                                                       \
-  FOS_TEST_MESSAGE("!yTesting!!: %s", (fluent).toString().c_str())                                                     \
-  (fluent)
-
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
-  if (FOS_LOGGING < ERROR) {                                                                                           \
+  if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
     printer<>()->printf("  !rline %i!!\t", __LINE__);                                                                  \
     printer<>()->printf((format), ##__VA_ARGS__);                                                                      \
     printer<>()->println();                                                                                            \
@@ -249,35 +245,26 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
   }
   return result;
 }
+
 //#endif
 
-static void FOS_TEST_OBJ_GT(const Obj_p &obj_a, const Obj_p &obj_b) {
-  const bool test = *obj_a > *obj_b;
-  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", obj_a->toString().c_str(),
-                   test ? ">" : "!=", obj_b->toString().c_str());
-  if (!test)
+#define FOS_TEST_OBJ_GT(obj_a, obj_b)                                                                                  \
+  const bool test = *obj_a > *obj_b;                                                                                   \
+  FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", obj_a->toString().c_str(),                                   \
+                   test ? ">" : "!=", obj_b->toString().c_str());                                                      \
+  if (!test)                                                                                                           \
     TEST_FAIL();
-}
 
-
-static void FOS_TEST_OBJ_LT(const Obj_p &obj_a, const Obj_p &obj_b) {
-  const bool test = *obj_a < *obj_b;
-  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", obj_a->toString().c_str(),
-                   test ? "<" : "!=", obj_b->toString().c_str());
-  if (!test)
+#define FOS_TEST_OBJ_LT(obj_a, obj_b)                                                                                  \
+  const bool test = *obj_a < *obj_b;                                                                                   \
+  FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", obj_a->toString().c_str(),                                      \
+  test ? "<" : "!=", obj_b->toString().c_str());                                                                       \
+  if (!test)                                                                                                           \
     TEST_FAIL();
-}
 
-static const Obj *FOS_PRINT_OBJ(const Obj *obj) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(),
+#define FOS_PRINT_OBJ(obj) \
+  FOS_TEST_MESSAGE("!yTesting!!: %s [otype:!y%s!!][itype:!y%s!!]", obj->toString().c_str(), \
                    OTypes.to_chars(obj->o_type()).c_str(), ITypeDescriptions.to_chars(obj->itype()).c_str());
-  return obj;
-}
-
-static Obj_p FOS_PRINT_OBJ(const Obj_p &obj) {
-  FOS_PRINT_OBJ(obj.get());
-  return obj;
-}
 
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
@@ -293,14 +280,14 @@ static Obj_p FOS_PRINT_OBJ(const Obj_p &obj) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
-static void FOS_CHECK_RESULTS(
+[[maybe_unused]] static void FOS_CHECK_RESULTS(
   const List<Obj> &expected, const Fluent &fluent,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   [[maybe_unused]] const bool clearRouter = true) {
   const ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(fluent, true);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const Obj &obj: expected) {
-    auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p& element) {
+    auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p &element) {
       if (obj.is_real()) {
         return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
       } else
@@ -337,7 +324,7 @@ static void FOS_CHECK_RESULTS(
 
 #ifdef FOS_DEPLOY_PARSER
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void FOS_CHECK_RESULTS(
+[[maybe_unused]] static void FOS_CHECK_RESULTS(
   const List<Obj> &expected, const List<string> &monoids,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = true) {
@@ -352,7 +339,7 @@ static void FOS_CHECK_RESULTS(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void FOS_CHECK_RESULTS(
+[[maybe_unused]] static void FOS_CHECK_RESULTS(
   const List<Obj> &expected, const string &monoid,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = false) {

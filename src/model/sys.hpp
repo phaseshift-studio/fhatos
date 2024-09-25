@@ -88,10 +88,10 @@ namespace fhatos {
         if (BARRIER_ID(scheduler()->current_barrier_)->matches(*furi))
           objs->add_obj(uri(BARRIER_ID(scheduler()->current_barrier_)));
 
-        for (const auto &[patt, struc]: *router()->structures_) {
-          if (STRUCTURE_ID(&struc->stype)->extend(*struc->pattern()).matches(*furi))
-            objs->add_obj(uri(STRUCTURE_ID(&struc->stype)->extend(*struc->pattern())));
-          for (const auto &sub: struc->get_subscription_objs(p_p(*furi))) {
+        for (const Structure_p& structure: router()->structures_) {
+          if (STRUCTURE_ID(&structure->stype)->extend(*structure->pattern()).matches(*furi))
+            objs->add_obj(uri(STRUCTURE_ID(&structure->stype)->extend(*structure->pattern())));
+          for (const auto &sub: structure->get_subscription_objs(p_p(*furi))) {
             objs->add_obj(sub->rec_get(uri(":source")));
           }
         }
@@ -128,8 +128,8 @@ namespace fhatos {
           }
         } else if (SUBSCRIPTION_ID->is_subfuri_of(*furi)) {
           Objs_p objs = Obj::to_objs();
-          for (const auto &[patt, struc]: *router()->structures_) {
-            for (const auto &sub: struc->get_subscription_objs(
+          for (const Structure_p& structure: router()->structures_) {
+            for (const auto &sub: structure->get_subscription_objs(
                    p_p(furi->toString().substr(0, SUBSCRIPTION_ID->toString().length()).c_str()))) {
               objs->add_obj(sub);
             }

@@ -54,60 +54,60 @@ namespace fhatos {
       //////////////
       this->read_functions_.insert(
           {share(this->id()->resolve("memory/inst")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
+             return List<Pair<ID_p, Obj_p>>({
                  {id_p(this->id()->resolve("memory/inst")),
                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
                         ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
                         ESP.getSketchSize() == 0
                             ? 0.0f
                             : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                 ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}};
+                                                 ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}});
            }});
       this->read_functions_.insert(
           {share(this->id()->resolve("memory/heap")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
+             return List<Pair<ID_p, Obj_p>>({
                  {id_p(this->id()->resolve("memory/heap")),
                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
                         ESP.getFreeHeap(),
                         ESP.getHeapSize() == 0
                             ? 0.0f
-                            : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}};
+                            : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}});
            }});
       this->read_functions_.insert(
           {share(this->id()->resolve("memory/psram")), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
+             return List<Pair<ID_p, Obj_p>>({
                  {id_p(this->id()->resolve("memory/psram")),
                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
                         ESP.getFreePsram(),
                         ESP.getPsramSize() == 0
                             ? 0.0f
-                            : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}};
+                            : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}});
            }});
 
 
       this->read_functions_.insert(
           {share(this->id()->resolve("pin/+")), [this](const fURI_p furi) {
-             Map<ID_p, Obj_p> map;
+             List<Pair<ID_p, Obj_p>> map;
              if (StringHelper::is_integer(furi->name())) {
                uint8_t pin_number = stoi(furi->name());
-               map.insert({id_p(*furi), jnt(digitalRead(pin_number))});
+               map.push_back({id_p(*furi), jnt(digitalRead(pin_number))});
              } else {
                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-                 map.insert({id_p(this->id()->resolve(fURI(string("pin/") + to_string(i)))), jnt(digitalRead(i))});
+                 map.push_back({id_p(this->id()->resolve(fURI(string("pin/") + to_string(i)))), jnt(digitalRead(i))});
                }
              }
              return map;
            }});
       this->write_functions_.insert(
           {share(this->id()->resolve("pin/+")), [this](const fURI_p furi, const Obj_p &obj) {
-             Map<ID_p, Obj_p> map;
+             List<Pair<ID_p, Obj_p>> map;
              if (StringHelper::is_integer(furi->name())) {
                uint8_t pin_number = stoi(furi->name());
                digitalWrite(pin_number, obj->int_value());
-               map.insert({id_p(*furi), obj});
+               map.push_back({id_p(*furi), obj});
              } else {
                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-                 map.insert({id_p(this->id()->resolve(fURI(string("pin/") + to_string(i)))), jnt(digitalRead(i))});
+                 map.push_back({id_p(this->id()->resolve(fURI(string("pin/") + to_string(i)))), jnt(digitalRead(i))});
                }
              }
              return map;

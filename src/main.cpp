@@ -22,7 +22,6 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
 #include <model/console.hpp>
-#include <model/shared_memory.hpp>
 #include <model/sys.hpp>
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
@@ -102,7 +101,7 @@ void setup() {
         ->structure(Memory::singleton("/soc/memory/#"))
         ->structure(Pinout::singleton("/soc/pinout/#"))
         ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
-        ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
+     //   ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))

@@ -51,42 +51,44 @@ namespace fhatos {
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse("is(gte(0.0)).is(lte(100.0))"));
       this->read_functions_.insert(
           {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
-                 {MEMORY_IDS_.at(0),
-                  parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                        ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
-                        ESP.getSketchSize() == 0
-                            ? 0.0f
-                            : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                 ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}};
+             return List<Pair<ID_p, Obj_p>>(
+                 {{MEMORY_IDS_.at(0),
+                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                         ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
+                         ESP.getSketchSize() == 0
+                             ? 0.0f
+                             : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
+                                                  ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}});
            }});
       this->read_functions_.insert(
           {MEMORY_IDS_.at(1), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
-                 {MEMORY_IDS_.at(1),
-                  parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
-                        ESP.getFreeHeap(),
-                        ESP.getHeapSize() == 0
-                            ? 0.0f
-                            : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}};
+             return List<Pair<ID_p, Obj_p>>(
+                 {{MEMORY_IDS_.at(1),
+                   parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getHeapSize(),
+                         ESP.getFreeHeap(),
+                         ESP.getHeapSize() == 0
+                             ? 0.0f
+                             : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}});
            }});
       this->read_functions_.insert(
-          {MEMORY_IDS_.at(2), [this](const fURI_p furi) {
-             return Map<ID_p, Obj_p>{
-                 {MEMORY_IDS_.at(2),
-                  parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
-                        ESP.getFreePsram(),
-                        ESP.getPsramSize() == 0
-                            ? 0.0f
-                            : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}};
-           }});
+          {{MEMORY_IDS_.at(2), [this](const fURI_p furi) {
+              return List<Pair<ID_p, Obj_p>>(
+                  {{MEMORY_IDS_.at(2),
+                    parse("[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]", ESP.getPsramSize(),
+                          ESP.getFreePsram(),
+                          ESP.getPsramSize() == 0
+                              ? 0.0f
+                              : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}});
+            }}});
       this->read_functions_.insert(
           {MEMORY_IDS_.at(3), [this](const fURI_p furi) {
              uint16_t free = ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-             float used = ESP_THREAD_STACK_SIZE == 0 ? 0.0f : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
-             return Map<ID_p, Obj_p>{
-                 {MEMORY_IDS_.at(3), parse("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                                           ESP_THREAD_STACK_SIZE, free, used)}};
+             float used = ESP_THREAD_STACK_SIZE == 0
+                              ? 0.0f
+                              : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
+             return List<Pair<ID_p, Obj_p>>(
+                 {{MEMORY_IDS_.at(3), parse("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                                            ESP_THREAD_STACK_SIZE, free, used)}});
            }});
       // LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded:!y\n\t%s\n\t%s\n\t%s!!\n",
       //     FOS_INST_MEMORY_FURI->toString().c_str(), FOS_HEAP_MEMORY_FURI->toString().c_str(),

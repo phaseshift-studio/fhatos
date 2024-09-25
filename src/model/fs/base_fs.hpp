@@ -254,7 +254,7 @@ namespace fhatos {
     }
 
     virtual void write(
-      [[maybe_unused]] const ID_p &id, [[maybe_unused]] const Obj_p &obj, [[maybe_unused]] const bool retain) override {
+      [[maybe_unused]] const fURI_p &furi, [[maybe_unused]] const Obj_p &obj, [[maybe_unused]] const bool retain) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

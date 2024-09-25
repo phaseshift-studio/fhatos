@@ -29,23 +29,27 @@ namespace fhatos {
   class External : public Structure {
   protected:
     //<query, function<query, <id,result>>
-    Map<fURI_p, Function<fURI_p, Map<ID_p, Obj_p>>, furi_p_less> read_functions_;
-    Map<fURI_p, BiFunction<fURI_p, Obj_p, Map<ID_p, Obj_p>>, furi_p_less> write_functions_;
+    Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> read_functions_;
+    Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
     Map<ID_p, Obj_p, furi_p_less> history{};
 
-    explicit External(const Pattern &pattern,
-                      const Map<fURI_p, Function<fURI_p, Map<ID_p, Obj_p>>, furi_p_less> &read_map = {},
-                      const Map<fURI_p, BiFunction<fURI_p, Obj_p, Map<ID_p, Obj_p>>, furi_p_less> &write_map =
-                          {}) : Structure(pattern, SType::EPHEMERAL),
-                                read_functions_(read_map), write_functions_(write_map) {
+    explicit External(
+        const Pattern &pattern,
+        const Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &read_map = {},
+        const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map = {}) :
+        Structure(pattern, SType::EPHEMERAL),
+        read_functions_(read_map), write_functions_(write_map) {}
+
+    void write(const fURI_p &id, const Obj_p &obj, const bool retain) override {
+      Structure::write(id, obj, retain);
+      this->loop();
     }
 
     void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
       for (const auto &[furi, func]: this->write_functions_) {
         if (id->matches(*furi)) {
           func(id, obj);
-          LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(),
-                        obj->toString().c_str());
+          LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(), obj->toString().c_str());
         }
       }
     }
@@ -53,11 +57,9 @@ namespace fhatos {
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
       List<Pair<ID_p, Obj_p>> list;
       for (const auto &[furi2, func]: this->read_functions_) {
-        if (furi2->matches(*furi)) {
-          Map<ID_p, Obj_p> map = func(furi);
-          for (const auto &pair: map) {
-            list.push_back({pair.first, pair.second});
-          }
+        if (furi->matches(*furi2) || furi2->matches(*furi)) {
+          const List<Pair<ID_p, Obj_p>> list2 = func(furi);
+          list.insert(list.end(), list2.begin(), list2.end());
           scheduler()->feed_local_watchdog();
         }
       }

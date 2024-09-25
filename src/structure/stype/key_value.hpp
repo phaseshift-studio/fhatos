@@ -55,9 +55,9 @@ namespace fhatos {
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
       List<Pair<ID_p, Obj_p>> list;
-      for (const auto &pair: *this->data_) {
-        if (pair.first->matches(*match)) {
-          list.push_back({pair.first, pair.second});
+      for (const auto &[id, obj]: *this->data_) {
+        if (id->matches(*match)) {
+          list.push_back({id, obj});
         }
       }
       return list;
