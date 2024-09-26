@@ -22,12 +22,12 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/types.hpp>
 #include <model/console.hpp>
-#include <model/sys.hpp>
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
 #include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
+#include <structure/obj_structure.hpp>
 
 #ifndef NATIVE
 #include <esp32/spiram.h>
@@ -80,7 +80,8 @@ void setup() {
     LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
     load_processor(); // TODO: remove
-    load_threader(); // TODO: remove
+    load_process_spawner(); // TODO: remove
+    load_attacher(); // TODO: remove
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_ansi_color(args.option("--ansi", "true") == "true")
@@ -92,7 +93,7 @@ void setup() {
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
-        ->structure(KeyValue::create("+/#"))
+        ->structure(KeyValue::create("+"))
         ->structure(Types::singleton("/type/"))
         ->structure(Terminal::singleton("/terminal"))
         ->process(Parser::singleton("/parser/"))

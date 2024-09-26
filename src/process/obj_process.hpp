@@ -26,19 +26,20 @@
 #include FOS_PROCESS(scheduler.hpp)
 
 namespace fhatos {
-  class ThreadObj : public Thread {
+  template<typename PROCESS>
+  class ProcessObj : public PROCESS {
   protected:
-    const Rec_p thread_rec_;
+    const Rec_p process_rec_;
     const Uri_p id_uri_;
 
   public:
-    explicit ThreadObj(const ID &id) : Thread(id), thread_rec_(router()->read(make_shared<ID>(id))->clone()),
-                                       id_uri_(Obj::to_uri(id)) {
+    explicit ProcessObj(const ID &id) : PROCESS(id), process_rec_(router()->read(make_shared<ID>(id))->clone()),
+                                        id_uri_(Obj::to_uri(id)) {
     }
 
     void setup() override {
       try {
-        Thread::setup();
+        PROCESS::setup();
         router()->route_subscription(
           subscription_p(*this->id(), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
             if (this->running()) {
@@ -48,8 +49,9 @@ namespace fhatos {
               }
             }
           })));
-        // LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n", setup_bcode->toString().c_str());
-        process(this->thread_rec_->rec_get(uri(this->id()->resolve(":setup"))), this->id_uri_);
+        LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n",
+                    this->process_rec_->rec_get(uri(this->id()->resolve(":setup")))->toString().c_str());
+        process(this->process_rec_->rec_get(uri(this->id()->resolve(":setup"))), this->id_uri_);
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();
@@ -61,7 +63,6 @@ namespace fhatos {
         if (this->running_.load()) {
           const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
           process(loop_bcode, this->id_uri_);
-          //process(this->thread_rec_->rec_get(uri(this->id()->resolve(":loop"))), this->id_uri_);
         }
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
@@ -72,11 +73,10 @@ namespace fhatos {
     void stop() override {
       try {
         if (this->running_.load()) {
-          // const BCode_p stop_bcode = router()->read(id_p(this->id()->resolve(":stop"))); (deletes before it can be
-          // read)
-          // LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n", this->stop_bcode_->toString().c_str());
-          process(this->thread_rec_->rec_get(uri(this->id()->resolve(":stop"))), this->id_uri_);
-          Thread::stop();
+          LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n",
+                      this->process_rec_->rec_get(uri(this->id()->resolve(":stop")))->toString().c_str());
+          process(this->process_rec_->rec_get(uri(this->id()->resolve(":stop"))), this->id_uri_);
+          PROCESS::stop();
         }
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
@@ -84,9 +84,34 @@ namespace fhatos {
     }
   };
 
-  inline void load_threader() {
-    THREAD_SPAWNER = [](const ID_p &thread_id) {
-      scheduler()->spawn(std::make_shared<ThreadObj>(ID(*thread_id)));
+  class ThreadObj : public ProcessObj<Thread> {
+  public:
+    explicit ThreadObj(const ID &id) : ProcessObj(id) {
+    }
+  };
+
+  class FiberObj : public ProcessObj<Fiber> {
+  public:
+    explicit FiberObj(const ID &id) : ProcessObj(id) {
+    }
+  };
+
+  class CoroutineObj : public ProcessObj<Coroutine> {
+  public:
+    explicit CoroutineObj(const ID &id) : ProcessObj(id) {
+    }
+  };
+
+  inline void load_process_spawner() {
+    PROCESS_SPAWNER = [](const ID &type, const ID &process_id) {
+      if (THREAD_FURI->equals(type))
+        scheduler()->spawn(std::make_shared<ThreadObj>(process_id));
+      else if (FIBER_FURI->equals(type))
+        scheduler()->spawn(std::make_shared<FiberObj>(process_id));
+      else if (COROUTINE_FURI->equals(type))
+        scheduler()->spawn(std::make_shared<CoroutineObj>(process_id));
+      else
+        throw fError("Unknown process type: %s", type.toString().c_str());
     };
   }
 } // namespace fhatos

@@ -28,10 +28,11 @@
 namespace fhatos {
   class KeyValue : public Structure {
   protected:
-    ptr<Map<ID_p, const Obj_p, furi_p_less>> data_ /*PROGMEM*/ = share(Map<ID_p, const Obj_p, furi_p_less>());
+    Map<ID_p, const Obj_p, furi_p_less> data_ /*PROGMEM*/ = Map<ID_p, const Obj_p, furi_p_less>();
     MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern, const SType stype = SType::DATABASE) : Structure(pattern, stype){};
+    explicit KeyValue(const Pattern &pattern, const SType stype = SType::LOCAL) : Structure(pattern, stype) {
+    };
 
   public:
     static ptr<KeyValue> create(const Pattern &pattern) {
@@ -41,21 +42,21 @@ namespace fhatos {
 
     void stop() override {
       Structure::stop();
-      data_->clear();
+      data_.clear();
     }
 
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
-      if (this->data_->count(id))
-        this->data_->erase(id);
+      if (this->data_.count(id))
+        this->data_.erase(id);
       if (!obj->is_noobj()) {
-        this->data_->insert({id, obj->clone()});
+        this->data_.insert({id, obj->clone()});
       }
     }
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
       List<Pair<ID_p, Obj_p>> list;
-      for (const auto &[id, obj]: *this->data_) {
+      for (const auto &[id, obj]: this->data_) {
         if (id->matches(*match)) {
           list.push_back({id, obj});
         }

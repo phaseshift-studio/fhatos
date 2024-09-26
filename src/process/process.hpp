@@ -22,13 +22,17 @@
 #include <atomic>
 #include <fhatos.hpp>
 #include <furi.hpp>
-#include <thread>
 #include <language/obj.hpp>
+#include <thread>
 #include <util/enums.hpp>
 #include <util/ptr_helper.hpp>
 
 namespace fhatos {
   const ID_p THREAD_FURI = share<ID>(ID(REC_FURI->resolve("thread")));
+  const ID_p FIBER_FURI = share<ID>(ID(REC_FURI->resolve("fiber")));
+  const ID_p COROUTINE_FURI = share<ID>(ID(REC_FURI->resolve("coroutine")));
+  CONST_CHAR(ALREADY_STOPPED, "!g[!b%s!g] !y%s!! already stopped\n");
+  CONST_CHAR(ALREADY_SETUP, "!g[!b%s!g] !y%s!! already setup\n");
 
   class Process;
   using Process_p = ptr<Process>;
@@ -39,6 +43,10 @@ namespace fhatos {
 
   static const Enums<PType> ProcessTypes =
       Enums<PType>({{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}});
+
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 
   class Process : public IDed {
   protected:
@@ -55,8 +63,7 @@ namespace fhatos {
 
     virtual void setup() {
       if (this->running_.load()) {
-        LOG(WARN, "!g[!b%s!g] !y%s!! already setup\n", this->id()->toString().c_str(),
-            ProcessTypes.to_chars(this->ptype).c_str());
+        LOG(WARN, ALREADY_SETUP, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       this->running_.store(true);
@@ -68,13 +75,12 @@ namespace fhatos {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
                      ProcessTypes.to_chars(this->ptype).c_str());
       }
-       fhatos::this_process = PtrHelper::no_delete(this);
+      fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void stop() {
       if (!this->running_.load()) {
-        LOG(WARN, "!g[!b%s!g] !y%s!! already stopped\n", this->id()->toString().c_str(),
-            ProcessTypes.to_chars(this->ptype).c_str());
+        LOG(WARN, ALREADY_STOPPED, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       fhatos::this_process = PtrHelper::no_delete(this);

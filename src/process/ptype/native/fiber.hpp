@@ -27,12 +27,31 @@ namespace fhatos {
   class Fiber : public Process {
   public:
     std::thread *xthread;
+    atomic_int* FIBER_COUNT;
 
     explicit Fiber(const ID &id) : Process(id, PType::FIBER), xthread(nullptr) {}
+
+    void stop() override {
+      Process::stop();
+      if (0 == FIBER_COUNT->load() && this->xthread && this->xthread->joinable()) {
+        try {
+          if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *scheduler_thread)
+            this->xthread->join();
+          else
+            this->xthread->detach();
+        } catch (const std::runtime_error &e) {
+          LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
+                      this->xthread->get_id(), std::this_thread::get_id());
+        }
+      }
+    }
 
     void delay(const uint64_t milliseconds) override {
       // delay to next fiber
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
+
+    void loop() override {
     }
 
     void yield() override {

@@ -41,7 +41,8 @@
 
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
-#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
+#include <process/obj_process.hpp>
+#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton()); load_process_spawner();
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
@@ -79,6 +80,14 @@
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
 #endif
+#ifdef FOS_DEPLOY_EXT
+#include <language/exts.hpp>
+#define FOS_DEPLOY_EXT_2 Exts::load_extension("/model/sys");
+#else
+#define FOS_DEPLOY_EXT_2 ;
+#endif
+
+
 #ifdef FOS_DEPLOY_SCHEDULER
 #define FOS_STOP_ON_BOOT  \
 router()->stop(); \
@@ -86,6 +95,8 @@ scheduler()->stop();
 #else
 #define FOS_STOP_ON_BOOT ;
 #endif
+
+
 
 
 ////////////////////////////////////////////////////////
@@ -113,6 +124,7 @@ namespace fhatos {
       FOS_DEPLOY_TYPES_2                                                                                               \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
       FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
+      FOS_DEPLOY_EXT_2                                                                                                 \
       UNITY_BEGIN();                                                                                                   \
       /*uint32_t __test_freeSketch;                                                                                    \
       uint32_t __test_freeHeap;  */                                                                                    \
@@ -249,17 +261,15 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
 //#endif
 
 #define FOS_TEST_OBJ_GT(obj_a, obj_b)                                                                                  \
-  const bool test = *obj_a > *obj_b;                                                                                   \
   FOS_TEST_MESSAGE("!yTesting greater than!! : %s %s %s", obj_a->toString().c_str(),                                   \
-                   test ? ">" : "!=", obj_b->toString().c_str());                                                      \
-  if (!test)                                                                                                           \
+                   (*obj_a > *obj_b) ? ">" : "!=", obj_b->toString().c_str());                                         \
+  if (!(*obj_a > *obj_b))                                                                                              \
     TEST_FAIL();
 
 #define FOS_TEST_OBJ_LT(obj_a, obj_b)                                                                                  \
-  const bool test = *obj_a < *obj_b;                                                                                   \
   FOS_TEST_MESSAGE("!yTesting less than!! : %s %s %s", obj_a->toString().c_str(),                                      \
-  test ? "<" : "!=", obj_b->toString().c_str());                                                                       \
-  if (!test)                                                                                                           \
+  (*obj_a < *obj_b) ? "<" : "!=", obj_b->toString().c_str());                                                          \
+  if (!(*obj_a < *obj_b))                                                                                              \
     TEST_FAIL();
 
 #define FOS_PRINT_OBJ(obj) \

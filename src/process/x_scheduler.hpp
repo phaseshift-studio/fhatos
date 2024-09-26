@@ -25,9 +25,6 @@
 #include <furi.hpp>
 #include <process/process.hpp>
 #include <util/mutex_deque.hpp>
-//#include FOS_PROCESS(coroutine.hpp)
-//#include FOS_PROCESS(fiber.hpp)
-//#include FOS_PROCESS(thread.hpp)
 #include <structure/router.hpp>
 #include <structure/pubsub.hpp>
 #include <util/mutex_rw.hpp>
@@ -75,20 +72,19 @@ namespace fhatos {
       return c;
     }
 
-    static bool is_thread(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/thread"); }
-
-    static bool is_fiber(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/fiber"); }
-
-    static bool is_coroutine(const Obj_p &obj) { return obj->id()->equals(FOS_TYPE_PREFIX "rec/coroutine"); }
-
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
     virtual void setup() {
-      MESSAGE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) {
-        if (retain && payload->is_rec() && payload->id()->matches(THREAD_FURI->extend("#"))) {
-          LOG_SCHEDULER(DEBUG, "intercepting retained !ythread!! %s\n", payload->toString().c_str());
-          THREAD_SPAWNER(id_p(target));
+      SCHEDULER_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
+        if (retain && payload->is_rec() && (
+              payload->id()->matches(THREAD_FURI->extend("#")) ||
+              payload->id()->matches(FIBER_FURI->extend("#")) ||
+              payload->id()->matches(COROUTINE_FURI->extend("#")))) {
+          LOG_SCHEDULER(DEBUG, "intercepting retained !yprocess!! %s\n", payload->toString().c_str());
+          PROCESS_SPAWNER(*payload->id(), target);
+          return true;
         }
+        return false;
       };
       this->running_ = true;
       LOG_SCHEDULER(INFO, "!yscheduler!! started\n");
@@ -156,6 +152,7 @@ namespace fhatos {
       });*/
       while (this->read_mail() || (passPredicate && !passPredicate()) ||
              (!passPredicate && this->running_ && !this->processes_->empty())) {
+        router()->loop();
         this->feed_local_watchdog();
       }
       LOG_SCHEDULER(INFO, "!mbarrier end: <!g%s!m>!!\n", label.toString().c_str());

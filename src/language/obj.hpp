@@ -80,18 +80,18 @@ namespace fhatos {
   };
 
   static const Enums<OType> OTypes = Enums<OType>({{OType::OBJ, "obj"},
-                                                   {OType::NOOBJ, "noobj"},
-                                                   {OType::OBJS, "objs"},
-                                                   {OType::BOOL, "bool"},
-                                                   {OType::INT, "int"},
-                                                   {OType::REAL, "real"},
-                                                   {OType::URI, "uri"},
-                                                   {OType::STR, "str"},
-                                                   {OType::LST, "lst"},
-                                                   {OType::REC, "rec"},
-                                                   {OType::INST, "inst"},
-                                                   {OType::BCODE, "bcode"},
-                                                   {OType::TYPE, "type"}});
+    {OType::NOOBJ, "noobj"},
+    {OType::OBJS, "objs"},
+    {OType::BOOL, "bool"},
+    {OType::INT, "int"},
+    {OType::REAL, "real"},
+    {OType::URI, "uri"},
+    {OType::STR, "str"},
+    {OType::LST, "lst"},
+    {OType::REC, "rec"},
+    {OType::INST, "inst"},
+    {OType::BCODE, "bcode"},
+    {OType::TYPE, "type"}});
 
   class Obj;
 
@@ -157,42 +157,42 @@ namespace fhatos {
     delete bobj;
   };
   static const Enums<IType> ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
-                                                         {IType::ZERO_TO_ONE, "."},
-                                                         {IType::ZERO_TO_MANY, "."},
-                                                         {IType::ONE_TO_ZERO, "o"},
-                                                         {IType::MANY_TO_ZERO, "O"},
-                                                         {IType::ONE_TO_ONE, "o"},
-                                                         {IType::ONE_TO_MANY, "o"},
-                                                         {IType::MANY_TO_ONE, "O"},
-                                                         {IType::MANY_TO_MANY, "O"}});
+    {IType::ZERO_TO_ONE, "."},
+    {IType::ZERO_TO_MANY, "."},
+    {IType::ONE_TO_ZERO, "o"},
+    {IType::MANY_TO_ZERO, "O"},
+    {IType::ONE_TO_ONE, "o"},
+    {IType::ONE_TO_MANY, "o"},
+    {IType::MANY_TO_ONE, "O"},
+    {IType::MANY_TO_MANY, "O"}});
   static const Enums<IType> ITypeRanges = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
-                                                        {IType::ZERO_TO_ONE, "o"},
-                                                        {IType::ZERO_TO_MANY, "O"},
-                                                        {IType::ONE_TO_ZERO, "."},
-                                                        {IType::MANY_TO_ZERO, "."},
-                                                        {IType::ONE_TO_ONE, "o"},
-                                                        {IType::ONE_TO_MANY, "O"},
-                                                        {IType::MANY_TO_ONE, "o"},
-                                                        {IType::MANY_TO_MANY, "O"}});
+    {IType::ZERO_TO_ONE, "o"},
+    {IType::ZERO_TO_MANY, "O"},
+    {IType::ONE_TO_ZERO, "."},
+    {IType::MANY_TO_ZERO, "."},
+    {IType::ONE_TO_ONE, "o"},
+    {IType::ONE_TO_MANY, "O"},
+    {IType::MANY_TO_ONE, "o"},
+    {IType::MANY_TO_MANY, "O"}});
   static const Enums<IType> ITypeSignatures = Enums<IType>({{IType::ZERO_TO_ZERO, ".->."},
-                                                            {IType::ZERO_TO_ONE, ".->o"},
-                                                            {IType::ZERO_TO_MANY, ".->O"},
-                                                            {IType::ONE_TO_ZERO, "o->."},
-                                                            {IType::MANY_TO_ZERO, "O->."},
-                                                            {IType::ONE_TO_ONE, "o->o"},
-                                                            {IType::ONE_TO_MANY, "o->O"},
-                                                            {IType::MANY_TO_ONE, "O->o"},
-                                                            {IType::MANY_TO_MANY, "O->O"}});
+    {IType::ZERO_TO_ONE, ".->o"},
+    {IType::ZERO_TO_MANY, ".->O"},
+    {IType::ONE_TO_ZERO, "o->."},
+    {IType::MANY_TO_ZERO, "O->."},
+    {IType::ONE_TO_ONE, "o->o"},
+    {IType::ONE_TO_MANY, "o->O"},
+    {IType::MANY_TO_ONE, "O->o"},
+    {IType::MANY_TO_MANY, "O->O"}});
   static const Enums<IType> ITypeDescriptions = Enums<IType>({
-      {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
-      {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
-      {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
-      {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
-      {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
-      {IType::ONE_TO_ONE, "o->o (map)"},
-      {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
-      {IType::MANY_TO_ONE, "Œ->o (reduce)"},
-      {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
+    {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
+    {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
+    {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
+    {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
+    {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
+    {IType::ONE_TO_ONE, "o->o (map)"},
+    {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
+    {IType::MANY_TO_ONE, "Œ->o (reduce)"},
+    {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
   });
   //
 
@@ -219,20 +219,20 @@ namespace fhatos {
   static const ID_p BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
   static const ID_p OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
-                                               {OType::OBJ, OBJ_FURI},
-                                               {OType::OBJS, OBJS_FURI},
-                                               {OType::URI, URI_FURI},
-                                               {OType::BOOL, BOOL_FURI},
-                                               {OType::INT, INT_FURI},
-                                               {OType::REAL, REAL_FURI},
-                                               {OType::STR, STR_FURI},
-                                               {OType::LST, LST_FURI},
-                                               {OType::REC, REC_FURI},
-                                               {OType::INST, INST_FURI},
-                                               {OType::BCODE, BCODE_FURI},
-                                               {OType::TYPE, TYPE_FURI}}};
+    {OType::OBJ, OBJ_FURI},
+    {OType::OBJS, OBJS_FURI},
+    {OType::URI, URI_FURI},
+    {OType::BOOL, BOOL_FURI},
+    {OType::INT, INT_FURI},
+    {OType::REAL, REAL_FURI},
+    {OType::STR, STR_FURI},
+    {OType::LST, LST_FURI},
+    {OType::REC, REC_FURI},
+    {OType::INST, INST_FURI},
+    {OType::BCODE, BCODE_FURI},
+    {OType::TYPE, TYPE_FURI}}};
   static TriFunction<const Obj &, const OType, const ID_p &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
-                                                                                     const ID_p &) {
+    const ID_p &) {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -248,12 +248,21 @@ namespace fhatos {
     LOG(DEBUG, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static Consumer<const ID_p> THREAD_SPAWNER = [](const ID_p &) {
+  static BiConsumer<const ID, const ID> PROCESS_SPAWNER = [](const ID&, const ID &) {
     LOG(DEBUG, "!yTHREAD_SPAWNER!! undefined at this point in bootstrap.\n");
   };
-  static TriConsumer<const ID &, const Obj_p &, const bool> MESSAGE_INTERCEPT = [](const ID &, const Obj_p &,
-                                                                                   const bool) {
-    LOG(DEBUG, "!yMESSAGE_INTERCEPT!! undefined at this point in bootstrap.\n");
+  static Consumer<const Pattern> STRUCTURE_ATTACHER = [](const Pattern &) {
+    LOG(DEBUG, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
+  };
+  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_INTERCEPT = [](
+    const fURI &, const Obj_p &, const bool) -> bool {
+    LOG(DEBUG, "!ySCHEDULER_INTERCEPT!! undefined at this point in bootstrap.\n");
+    return false;
+  };
+  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_INTERCEPT = [](
+    const fURI &, const Obj_p &, const bool) -> bool {
+    LOG(DEBUG, "!yROUTER_INTERCEPT!! undefined at this point in bootstrap.\n");
+    return false;
   };
 
   //////////////////////////////////////////////////
@@ -293,8 +302,9 @@ namespace fhatos {
       this->id_ = type_id;
     }
 
-    explicit Obj(const Any &value, const ID_p &type_id) :
-        Obj(value, OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX))), type_id) {}
+    explicit Obj(const Any &value, const ID_p &type_id) : Obj(
+      value, OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX))), type_id) {
+    }
 
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
@@ -315,45 +325,53 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     //Obj(const Obj &other) : Obj(other._value, other.id()) {}
     template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(type_id))) {}
+    Obj(const T xbool, const char *type_id = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL,
+                                                                id_p(BOOL_FURI->resolve(type_id))) {
+    }
 
-    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {}
+    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) : Obj(
+      Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {
+    }
 
-    Obj(const FL_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {}
+    Obj(const FL_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) : Obj(
+      Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {
+    }
 
-    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(xuri), OType::URI, id_p(URI_FURI->resolve(type_id))) {}
+    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) : Obj(Any(xuri), OType::URI,
+                                                                   id_p(URI_FURI->resolve(type_id))) {
+    }
 
-    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(string(xstr)), OType::STR, id_p(STR_FURI->resolve(type_id))) {}
+    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(string(xstr)), OType::STR,
+                                                                   id_p(STR_FURI->resolve(type_id))) {
+    }
 
-    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(xstr), OType::STR, id_p(STR_FURI->resolve(type_id))) {}
+    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(xstr), OType::STR,
+                                                                     id_p(STR_FURI->resolve(type_id))) {
+    }
 
-    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(make_shared<RecMap<>>()), OType::REC, id_p(REC_FURI->resolve(type_id))) {
+    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) : Obj(
+      Any(make_shared<RecMap<>>()), OType::REC, id_p(REC_FURI->resolve(type_id))) {
       auto map = this->value<RecMap<>>();
       for (const auto &[key, val]: xrec) {
         map.insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(val)));
       }
     }
 
-    Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(make_shared<LstList<>>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
+    Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) : Obj(
+      Any(make_shared<LstList<>>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
       const auto list = this->value<LstList_p<>>();
       for (const auto &obj: xlst) {
         list->push_back(make_shared<Obj>(obj));
       }
     }
 
-    Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {}
+    Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) : Obj(
+      Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
+    }
 
-    Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) :
-        Obj(Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {}
+    Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) : Obj(
+      Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
+    }
 
     //////////////////////////////////////////////////////////////
     [[nodiscard]] OType o_type() const { return OTypes.to_enum(string(this->id_->path(FOS_BASE_TYPE_INDEX))); }
@@ -648,12 +666,13 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in toString(): %s\n", OTypes.to_chars(this->o_type()).c_str());
       }
-      obj_string = (include_type && (this->id_->path_length() > 2)) ? string("!b")
-                                                                          .append(this->id_->name())
-                                                                          .append(this->is_inst() ? "!g(!!" : "!g[!!")
-                                                                          .append(obj_string)
-                                                                          .append(this->is_inst() ? "!g)!!" : "!g]!!")
-                                                                    : obj_string;
+      obj_string = (include_type && (this->id_->path_length() > 2))
+                     ? string("!b")
+                     .append(this->id_->name())
+                     .append(this->is_inst() ? "!g(!!" : "!g[!!")
+                     .append(obj_string)
+                     .append(this->is_inst() ? "!g)!!" : "!g]!!")
+                     : obj_string;
       return ansi ? obj_string : Ansi<>::strip(obj_string);
     }
 
@@ -999,8 +1018,8 @@ namespace fhatos {
           return PtrHelper::no_delete<Real>(this);
         case OType::URI: {
           return (lhs->is_uri() && this->uri_value().is_relative())
-                     ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
-                     : PtrHelper::no_delete<Uri>(this);
+                   ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
+                   : PtrHelper::no_delete<Uri>(this);
         }
         case OType::STR:
           return PtrHelper::no_delete<Str>(this);
@@ -1252,8 +1271,8 @@ namespace fhatos {
     }
 
     static Inst_p to_inst(
-        const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function, const IType itype,
-        const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &furi = nullptr) {
+      const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function, const IType itype,
+      const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &furi = nullptr) {
       const ID_p fix = furi ? furi : make_shared<ID>(string(FOS_TYPE_PREFIX "inst/") + opcode);
       return to_inst({args, function, itype, seed}, fix);
     }

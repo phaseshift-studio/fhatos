@@ -24,6 +24,8 @@
 #include <furi.hpp>
 #include <language/obj.hpp>
 
+#include "types.hpp"
+
 namespace fhatos {
   class Exts {
   public:
@@ -33,31 +35,42 @@ namespace fhatos {
       static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
           ptr<Map<ID, List<Pair<ID, Type_p>>>>(new Map<ID, List<Pair<ID, Type_p>>>{
             {"/model/sys", {
-             // {"/type/rec/process", OBJ_PARSER("[id=>uri[_],setup=>_,loop=>_]")},
-              {"/type/rec/thread", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
-             // {"/type/rec/fiber", OBJ_PARSER("process[_]")},
-             // {"/type/rec/coroutine", OBJ_PARSER("process[_]")},
-             ///////
-             // {"/type/rec/structure", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
-            //  {"/type/rec/database", OBJ_PARSER("structure[_]")},
-            //  {"/type/rec/ephemeral", OBJ_PARSER("structure[_]")},
-            // {"/type/rec/hardware", OBJ_PARSER("structure[_]")},
-             // {"/type/rec/networked", OBJ_PARSER("structure[_]")},
-             // {"/type/rec/variables", OBJ_PARSER("structure[_]")},
-              //////
-            //  {"/type/rec/actor", OBJ_PARSER("~[process=>lst,structure=>lst]")},
-              {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")},
-           // {"/model/pubsub", {
-             //   {"/type/rec/sub",
-           //       OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>is(gt(0)).is(lt(4)),:on_recv=>_]")},
-             //   {"/type/rec/pub", OBJ_PARSER("[:source=>uri[_],:target=>uri[_],:payload=>_,:retain=>bool[_]]")}}
-            }
-          }});
+                /// PROCESSES
+                {"/type/rec/thread", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
+                {"/type/rec/fiber", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
+                {"/type/rec/coroutine", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
+                /// STRUCTURES
+                {"/type/rec/kv", OBJ_PARSER("[_=>_]")},
+                // {"/type/rec/fiber", OBJ_PARSER("process[_]")},
+                // {"/type/rec/coroutine", OBJ_PARSER("process[_]")},
+                ///////
+                // {"/type/rec/structure", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
+                //  {"/type/rec/database", OBJ_PARSER("structure[_]")},
+                //  {"/type/rec/ephemeral", OBJ_PARSER("structure[_]")},
+                // {"/type/rec/hardware", OBJ_PARSER("structure[_]")},
+                // {"/type/rec/networked", OBJ_PARSER("structure[_]")},
+                // {"/type/rec/variables", OBJ_PARSER("structure[_]")},
+                //////
+                //  {"/type/rec/actor", OBJ_PARSER("~[process=>lst,structure=>lst]")},
+                {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")},
+                // {"/model/pubsub", {
+                //   {"/type/rec/sub",
+                //       OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>is(gt(0)).is(lt(4)),:on_recv=>_]")},
+                //   {"/type/rec/pub", OBJ_PARSER("[:source=>uri[_],:target=>uri[_],:payload=>_,:retain=>bool[_]]")}}
+              }
+            }});
       /* {"/ext/collection",
         {{"/lst/pair", TYPE_PARSER("[_,_]")},
          {"/lst/trip", TYPE_PARSER("[_,_,_]")},
          {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}*/
       return _exts->at(extId);
+    }
+
+    static void load_extension(const ID &extId) {
+      for (const Pair<ID, Type_p> &pair: Exts::exts(extId)) {
+        const ID_p idp = make_shared<ID>(pair.first);
+        Types::singleton()->save_type(idp, pair.second);
+      }
     }
   };
 } // namespace fhatos

@@ -25,6 +25,8 @@
 #include <util/obj_helper.hpp>
 
 namespace fhatos {
+  const ID_p KV_FURI = share<ID>(ID(REC_FURI->resolve("kv")));
+
   class Router final : public Patterned {
     friend class System;
 
@@ -32,7 +34,17 @@ namespace fhatos {
     MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");
     List<Structure_p> structures_ = List<Structure_p>();
 
-    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) { LOG_ROUTER(INFO, "!yrouter!! started\n"); }
+    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
+      ROUTER_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
+        if (retain && payload->is_rec() && payload->id()->matches(KV_FURI->extend("#"))) {
+          LOG_ROUTER(DEBUG, "intercepting retained !ykv!! %s\n", payload->toString().c_str());
+          STRUCTURE_ATTACHER(furi);
+          return true;
+        }
+        return false;
+      };
+      LOG_ROUTER(INFO, "!yrouter!! started\n");
+    }
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
@@ -43,46 +55,38 @@ namespace fhatos {
       return router_p;
     }
 
+    void loop() {
+      for (const Structure_p &structure: this->structures_) {
+        structure->loop();
+      }
+    }
+
     void stop() {
-      //   EPHEMERAL, VARIABLES, HARDWARE, DATABASE, DISTRIBUTED
       auto *ephemeral_count = new atomic_int(0);
-      auto *variables_count = new atomic_int(0);
-      auto *database_count = new atomic_int(0);
-      auto *hardware_count = new atomic_int(0);
-      auto *networked_count = new atomic_int(0);
+      auto *local_count = new atomic_int(0);
+      auto *network_count = new atomic_int(0);
       this->structures_mutex_.read<void *>(
-        [this, ephemeral_count, variables_count, hardware_count, database_count, networked_count]() {
+        [this, ephemeral_count, local_count, network_count]() {
           for (const Structure_p &structure: this->structures_) {
             switch (structure->stype) {
               case SType::EPHEMERAL:
                 ephemeral_count->fetch_add(1);
                 break;
-              case SType::VARIABLES:
-                variables_count->fetch_add(1);
+              case SType::LOCAL:
+                local_count->fetch_add(1);
                 break;
-              case SType::DATABASE:
-                database_count->fetch_add(1);
-                break;
-              case SType::HARDWARE:
-                hardware_count->fetch_add(1);
-                break;
-              case SType::NETWORKED:
-                networked_count->fetch_add(1);
+              case SType::NETWORK:
+                network_count->fetch_add(1);
                 break;
             }
           }
           return nullptr;
         });
-      LOG_ROUTER(INFO,
-                 "!yStopping!g %i !yephemeral!! | !g%i !yvariables!! | !g%i !ydatabase!! | !g%i !yhardware!! | !g%i "
-                 "!ynetworked!!\n",
-                 ephemeral_count->load(), variables_count->load(), database_count->load(), hardware_count->load(),
-                 networked_count->load());
+      LOG_ROUTER(INFO, "!yStopping!g %i !yephemeral!! | !g%i !yram!! | !g%i !ynetwork!!\n",
+                 ephemeral_count->load(), local_count->load(), network_count->load());
       delete ephemeral_count;
-      delete variables_count;
-      delete database_count;
-      delete hardware_count;
-      delete networked_count;
+      delete local_count;
+      delete network_count;
       this->detach(p_p("#"));
       LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->pattern()->toString().c_str());
     }
@@ -168,15 +172,17 @@ namespace fhatos {
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
-      const Structure_p &struc = this->get_structure(p_p(*furi));
-      LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
-                 obj->toString().c_str(), furi->toString().c_str(), struc->pattern()->toString().c_str());
-      struc->write(furi, obj, retain);
-      if (retain && obj->is_noobj() && furi->equals(*struc->pattern())) {
-        struc->stop();
-        this->detach(struc->pattern());
+      if (!ROUTER_INTERCEPT(*furi, obj, retain)) {
+        const Structure_p &struc = this->get_structure(p_p(*furi));
+        LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
+                   obj->toString().c_str(), furi->toString().c_str(), struc->pattern()->toString().c_str());
+        struc->write(furi, obj, retain);
+        if (retain && obj->is_noobj() && furi->equals(*struc->pattern())) {
+          struc->stop();
+          this->detach(struc->pattern());
+        }
+        SCHEDULER_INTERCEPT(*furi, obj, retain);
       }
-      MESSAGE_INTERCEPT(*furi, obj, retain);
     }
 
     void remove(const ID_p &id) const {

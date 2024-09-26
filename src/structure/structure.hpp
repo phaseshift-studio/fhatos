@@ -38,17 +38,18 @@
 namespace fhatos {
   class Router;
 
-  enum class SType { EPHEMERAL, VARIABLES, DATABASE, HARDWARE, NETWORKED };
+  enum class SType { EPHEMERAL, LOCAL, NETWORK };
 
-  static const Enums<SType> StructureTypes = Enums<SType>({{SType::EPHEMERAL, "ephemeral"},
-    {SType::VARIABLES, "variables"},
-    {SType::DATABASE, "database"},
-    {SType::HARDWARE, "hardware"},
-    {SType::NETWORKED, "networked"}});
+  static const Enums<SType> StructureTypes = Enums<SType>({
+    {SType::EPHEMERAL, "ephemeral"},
+    {SType::LOCAL, "local"},
+    {SType::NETWORK, "network"}});
+
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 
   class Structure : public Patterned {
-    friend class System;
-
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<List<Subscription_p>> subscriptions_ = std::make_shared<List<Subscription_p>>();

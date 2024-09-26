@@ -152,7 +152,7 @@ namespace fhatos {
     }
 
     bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
-      return this->data_->count(type_id) && this->data_->at(type_id)->equals(*type_def);
+      return this->data_.count(type_id) && this->data_.at(type_id)->equals(*type_def);
     }
 
     void save_inst_type(const ID_p &inst_id, const Inst_p &inst) {

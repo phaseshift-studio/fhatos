@@ -30,6 +30,8 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
+  static atomic_int FIBER_COUNT;
+
   class Scheduler final : public XScheduler {
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {
@@ -72,6 +74,7 @@ namespace fhatos {
             FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
           }
           static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
+          static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
           break;
         }
         case PType::COROUTINE: {
@@ -90,18 +93,18 @@ namespace fhatos {
     std::thread *FIBER_THREAD_HANDLE = nullptr;
 
     static void FIBER_FUNCTION(void *) {
-      int counter = 1;
-      while (counter > 0) {
-        counter = 0;
+      FIBER_COUNT = 1;
+      while (FIBER_COUNT > 0) {
+        FIBER_COUNT = 0;
         auto *fibers = new List<Process_p>();
-        singleton()->processes_->forEach([fibers](const Process_p &proc) {
-          if (proc->ptype == PType::FIBER)
-            fibers->push_back(proc);
+        singleton()->processes_->forEach([fibers](const Process_p &process) {
+          if (process->ptype == PType::FIBER)
+            fibers->push_back(process);
         });
         for (const Process_p &fiber: *fibers) {
           if (fiber->running())
             fiber->loop();
-          counter++;
+          ++FIBER_COUNT;
         }
         singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
           const bool remove = fiber->ptype == PType::FIBER && !fiber->running();

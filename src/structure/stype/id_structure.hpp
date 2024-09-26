@@ -37,11 +37,6 @@ namespace fhatos {
       return id_structure_p;
     }
 
-    void write(const fURI_p &id, const Obj_p &obj, const bool retain) override {
-      Structure::write(id, obj, retain);
-      this->loop();
-    }
-
     void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
       if (this->pattern()->equals(*id))
         this->id_obj_ = obj;

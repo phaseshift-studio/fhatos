@@ -19,13 +19,17 @@
 #ifndef fhatos_obj_structure_hpp
 #define fhatos_obj_structure_hpp
 
-/*#include <fhatos.hpp>
+#include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 
+#include "router.hpp"
+
 namespace fhatos {
   class KeyValueObj : public KeyValue {
+    const Rec_p kv_rec_;
+
   public:
     explicit KeyValueObj(const Pattern &pattern): KeyValue(pattern) {
     }
@@ -33,36 +37,17 @@ namespace fhatos {
     void setup() override {
       try {
         KeyValue::setup();
-        router()->attach(ptr<Structure>(this));
-        /*const BCode_p setup_bcode = router()->read(id_p(this->id()->resolve(":setup")));
-        LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n", setup_bcode->toString().c_str());
-        process(setup_bcode, uri(this->id()));
-        */
-    /*  } catch (const fError &error) {
+      } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();
       }
     }
-
-    void loop() override {
-      /* try {
-         if (this->running_.load()) {
-           const BCode_p loop_bcode = router()->read(id_p(this->id()->resolve(":loop")));
-           process(loop_bcode, uri(this->id()));
-         }
-       } catch (const fError &error) {
-         LOG_EXCEPTION(error);
-         this->stop();
-       }*/
-  /*  }
-
-    void stop() override {
-      /*const BCode_p stop_bcode = router()->read(id_p(this->id()->resolve(":stop")));
-      LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n", stop_bcode->toString().c_str());
-      process(stop_bcode, uri(this->id()));
-      router()->route_unsubscribe(this->id(), p_p(*this->id()));
-      Thread::stop();*/
-   /* }
   };
-}*/ // namespace fhatos
+
+  inline void load_attacher() {
+    STRUCTURE_ATTACHER = [](const Pattern &structure_pattern) {
+      Router::singleton()->attach(std::make_shared<KeyValueObj>(structure_pattern));
+    };
+  }
+} // namespace fhatos
 #endif

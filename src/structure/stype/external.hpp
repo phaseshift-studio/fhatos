@@ -40,11 +40,6 @@ namespace fhatos {
         Structure(pattern, SType::EPHEMERAL),
         read_functions_(read_map), write_functions_(write_map) {}
 
-    void write(const fURI_p &id, const Obj_p &obj, const bool retain) override {
-      Structure::write(id, obj, retain);
-      this->loop();
-    }
-
     void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
       for (const auto &[furi, func]: this->write_functions_) {
         if (id->matches(*furi)) {

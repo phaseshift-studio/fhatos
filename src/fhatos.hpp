@@ -186,24 +186,24 @@ namespace fhatos {
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
-#define LOG_ROUTER(logtype,format,...) \
+#define LOG_ROUTER(logtype, format, ...)                                                                               \
   LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->pattern()->toString().c_str(), ##__VA_ARGS__)
-#define LOG_SCHEDULER(logtype,format,...) \
+#define LOG_SCHEDULER(logtype, format, ...)                                                                            \
   LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
-#define LOG_ACTOR(logtype, actor, format, ...) \
-  LOG((logtype), (string("%s ") + (format)).c_str(), (actor)->toString().c_str(),                            \
-      ##__VA_ARGS__)
+#define LOG_ACTOR(logtype, actor, format, ...)                                                                         \
+  LOG((logtype), (string("%s ") + (format)).c_str(), (actor)->toString().c_str(), ##__VA_ARGS__)
 #define FOS_LOG_INST(inst)                                                                                             \
   LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
       (inst)->opcode().c_str(),                                                                                        \
       (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
                                : (inst)->v_args().at(0)->pattern()->v_furi()->toString().c_str(),                      \
-      (inst)->v_args().empty() ? OTypes.to_chars(OType::NOOBJ).c_str() : OTypes.to_chars((inst)->v_args().at(0)->otype()).c_str(), \
+      (inst)->v_args().empty() ? OTypes.to_chars(OType::NOOBJ).c_str()                                                 \
+                               : OTypes.to_chars((inst)->v_args().at(0)->otype()).c_str(),                             \
       (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->is_bcode()),                           \
       (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
 #define FOS_LOG_OBJ(obj)                                                                                               \
@@ -213,6 +213,11 @@ namespace fhatos {
 #define FURI_WRAP "!g[!b%s!g]!!"
 #define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
+#ifdef NATIVE
+#define CONST_CHAR(__var_name__, __chars__) inline const char *__var_name__ = (__chars__)
+#else
+#define CONST_CHAR(__var_name__, __chars__) inline const char *__var_name__ PROGMEM = (__chars__)
+#endif
 
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
@@ -221,16 +226,16 @@ namespace fhatos {
 #if defined(ESP32)
 #define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
-#define FOS_UTIL(utl) <util/esp/utl>
+#define FOS_UTIL(__util__) <util/esp/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
 #elif defined(ESP8266)
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
-#define FOS_UTIL(utl) <util/esp/utl>
+#define FOS_UTIL(__util__) <util/esp/__util__>
 #elif defined(NATIVE)
 #define FOS_PROCESS(__process__) <process/ptype/native/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/native/__mqtt__>
-#define FOS_UTIL(utl) <util/std/utl>
+#define FOS_UTIL(__util__) <util/std/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/native/__fs__>
 #else
 #error "Unknown architecture."

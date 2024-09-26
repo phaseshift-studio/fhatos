@@ -105,7 +105,7 @@ IF (BUILD_TESTS)
     ########### TEST SUITES ############
     ####################################
     MAKE_TESTS(language "test_fluent;test_obj;test_parser;test_insts" true)
-    MAKE_TESTS(process "test_scheduler" true)
+    MAKE_TESTS(process "test_scheduler;test_process" true)
     MAKE_TESTS(process/actor "test_actor" true)
     MAKE_TESTS(structure/router "test_router" true)
     MAKE_TESTS(structure/stype/key_value "test_key_value" , true)
