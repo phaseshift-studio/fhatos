@@ -26,8 +26,7 @@
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
-
-#include "router.hpp"
+#include <process/process.hpp>
 
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
@@ -199,9 +198,9 @@ namespace fhatos {
         if (furi->has_query() && string(furi->query()) == "sub") {
           const Pattern_p pattern = p_p(furi->query(""));
           if (obj->is_noobj())
-            this->recv_unsubscribe(id_p("abc"), pattern);
+            this->recv_unsubscribe(Process::current_process()->id(), pattern);
           else
-            this->recv_subscription(subscription_p(ID("abc"), *pattern, QoS::_1, obj));
+            this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, QoS::_1, obj));
         } else {
           //// WRITES
           if (furi->is_branch()) {

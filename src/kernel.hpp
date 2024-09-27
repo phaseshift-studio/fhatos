@@ -64,6 +64,22 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static ptr<Kernel> displaying_architecture() {
+      string arch = "<undefined>";
+#ifdef ESP32
+       arch = "ESP32";
+#elif defined(ESP8266)
+      arch = "ESP8266";
+#elif defined(LINUX)
+     arch = "Linux";
+#elif defined(APPLE)
+     arch = "MacOSX";
+#endif
+      printer<>()->printf("                                       "
+                          "!bRunning on !y%s!!\n", arch.c_str());
+      return Kernel::build();
+    }
+
     static ptr<Kernel> using_scheduler(const ptr<Scheduler> &scheduler) {
       Options::singleton()->scheduler<Scheduler>(scheduler);
       return Kernel::build();
@@ -91,12 +107,17 @@ namespace fhatos {
         // List_p<Obj_p> list = share(List<Obj_p>());
         for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
           const ID_p idp = make_shared<ID>(pair.first);
-          Types::singleton()->save_type(idp, pair.second);
+          Types<>::singleton()->save_type(idp, pair.second);
           // list->push_back(Obj::to_uri(*idp));
         }
         // router<Router>()->publish(
         //    Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
       }
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> eval(const Runnable &runnable) {
+      runnable();
       return Kernel::build();
     }
 

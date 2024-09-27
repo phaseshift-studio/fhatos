@@ -49,7 +49,7 @@ namespace fhatos {
   }
 
   void test_bool_parsing() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/fact"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/fact"), Obj::to_bcode());
     const auto bools = List<Trip<string, bool, fURI>>(
     {{"true", true, *BOOL_FURI},
      {"false", false, *BOOL_FURI},
@@ -63,8 +63,8 @@ namespace fhatos {
   }
 
   void test_int_parsing() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/zero"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/zero"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
     const auto ints =
         List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
                                                {"0", 0, *INT_FURI},
@@ -85,8 +85,8 @@ namespace fhatos {
   }
 
   void test_real_parsing() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/zero"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/nat"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/zero"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/nat"), Obj::to_bcode());
     // REAL
     const auto reals = List<Trip<string, FL_REAL_TYPE, fURI>>(
     {{"45.1", 45.1f, *REAL_FURI},
@@ -107,8 +107,8 @@ namespace fhatos {
   }
 
   void test_uri_parsing() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/x"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/furi:"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/x"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/furi:"), Obj::to_bcode());
     const auto uris = List<Trip<string, fURI, fURI>>({{"<blah.com>", fURI("blah.com"), *URI_FURI},
                                                       {"ga", fURI("ga"), *URI_FURI},
                                                       {"x[x]", fURI("x"), URI_FURI->resolve("x")},
@@ -124,8 +124,8 @@ namespace fhatos {
   }
 
   void test_str_parsing() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/name"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/origin"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/name"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/origin"), Obj::to_bcode());
     const auto strs = List<Trip<string, string, fURI>>(
     {{"'bob'", "bob", *STR_FURI},
      {"'ga'", "ga", *STR_FURI},
@@ -143,11 +143,11 @@ namespace fhatos {
 
   void test_lst_parsing() {
     // LST
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/atype"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/btype"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/ctype"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/atype"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/btype"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/ctype"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
     ///// EMPTY LIST
     FOS_CHECK_RESULTS({*Obj::to_lst(share(List<Obj_p>()))}, "[]"); // empty list
     FOS_CHECK_RESULTS({*Obj::to_lst(share(List<Obj_p>()), id_p(FOS_TYPE_PREFIX "lst/atype"))},
@@ -205,12 +205,12 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/atype"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/btype"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/ctype"), Obj::to_bcode());
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/atype"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/btype"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/ctype"), Obj::to_bcode());
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
     List<string> recs = {"['a'=>13,actor=>false]",
                          "['a' => 13,actor => false ]",
                          "['a'=> 13 , actor=>false]",
@@ -229,7 +229,7 @@ namespace fhatos {
       TEST_ASSERT_FALSE(rc1->rec_get(uri("actor"))->bool_value());
     }
 
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"),
+    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"),
                                   parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
     recs = {"person[[:age=>nat[29],:name=>'dogturd']]"};
     for (const string &form: recs) {
@@ -298,7 +298,7 @@ namespace fhatos {
 
   void test_process_thread_parsing() {
     for (const Pair<ID, Type_p> &pair: Exts::exts("/mod/proc")) {
-      Types::singleton()->save_type(id_p(pair.first), pair.second);
+      Types<>::singleton()->save_type(id_p(pair.first), pair.second);
     }
     const ptr<BCode> bcode = Parser::singleton()
         ->try_parse_obj("thread[[setup => |print('.setup complete.'),"

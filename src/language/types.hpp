@@ -24,10 +24,13 @@
 #include <language/obj.hpp>
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
+#include FOS_MQTT(mqtt.hpp)
 
 namespace fhatos {
-  class Types : public KeyValue {
-    explicit Types(const ID &id = FOS_TYPE_PREFIX) : KeyValue(id.extend("#")) {}
+  template<typename STRUCTURE = KeyValue>
+  class Types : public STRUCTURE {
+    explicit Types(const ID &id = FOS_TYPE_PREFIX) : STRUCTURE(id.extend("#")) {
+    }
 
     static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
 
@@ -101,13 +104,14 @@ namespace fhatos {
     }
 
   public:
-    static ptr<Types> singleton(const ID &id = FOS_TYPE_PREFIX) {
-      static ptr<Types> types_p = ptr<Types>(new Types(id));
+    // template <typename STRUCTURE = KeyValue>
+    static ptr<Types<STRUCTURE>> singleton(const ID &id = FOS_TYPE_PREFIX) {
+      static ptr<Types<STRUCTURE>> types_p = ptr<Types<STRUCTURE>>(new Types<STRUCTURE>(id));
       return types_p;
     }
 
     void setup() override {
-      KeyValue::setup();
+      STRUCTURE::setup();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) -> ID_p {
         singleton()->check_type(obj, otype, type_id, true);
         return type_id;
@@ -123,11 +127,11 @@ namespace fhatos {
       };
       this->load_insts();
       router()->route_subscription(subscription_p(
-          ID(*this->pattern()), *this->pattern(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
-            const ID_p type_id = id_p(message->target);
-            if (message->retain && !this->type_exists(type_id, message->payload))
-              this->save_type(type_id, message->payload, true);
-          })));
+        ID(*this->pattern()), *this->pattern(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
+          const ID_p type_id = id_p(message->target);
+          if (message->retain && !this->type_exists(type_id, message->payload))
+            this->save_type(type_id, message->payload, true);
+        })));
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -140,7 +144,7 @@ namespace fhatos {
           if (current != type_def) {
             if (!current->is_noobj())
               LOG_STRUCTURE(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
-                            current->toString().c_str());
+                          current->toString().c_str());
             this->write(type_id, type_def->clone(), RETAIN_MESSAGE);
           }
         }
@@ -151,8 +155,9 @@ namespace fhatos {
       }
     }
 
-    bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
-      return this->data_.count(type_id) && this->data_.at(type_id)->equals(*type_def);
+    bool type_exists(const ID_p &type_id, const Obj_p &type_def) {
+      const Obj_p existing_type_def = this->read(type_id);
+      return !existing_type_def->is_noobj() && existing_type_def->equals(*type_def);
     }
 
     void save_inst_type(const ID_p &inst_id, const Inst_p &inst) {

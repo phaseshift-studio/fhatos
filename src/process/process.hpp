@@ -36,8 +36,8 @@ namespace fhatos {
 
   class Process;
   using Process_p = ptr<Process>;
-  static Process_p this_process = nullptr;
   static ptr<thread::id> scheduler_thread = nullptr;
+  static atomic<Process *> this_process;
 
   enum class PType { THREAD, FIBER, COROUTINE };
 
@@ -47,6 +47,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
+
 
   class Process : public IDed {
   protected:
@@ -61,13 +62,17 @@ namespace fhatos {
 
     ~Process() override = default;
 
+    static Process_p current_process() {
+      return PtrHelper::no_delete(this_process.load());
+    }
+
     virtual void setup() {
+      this_process = this;
       if (this->running_.load()) {
         LOG(WARN, ALREADY_SETUP, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       this->running_.store(true);
-      fhatos::this_process = PtrHelper::no_delete(this);
     };
 
     virtual void loop() {
@@ -75,15 +80,15 @@ namespace fhatos {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
                      ProcessTypes.to_chars(this->ptype).c_str());
       }
-      fhatos::this_process = PtrHelper::no_delete(this);
+      this_process = this;
     };
 
     virtual void stop() {
+      this_process = this;
       if (!this->running_.load()) {
         LOG(WARN, ALREADY_STOPPED, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
-      fhatos::this_process = PtrHelper::no_delete(this);
       this->running_.store(false);
     };
 

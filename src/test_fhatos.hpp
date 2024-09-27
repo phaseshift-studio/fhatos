@@ -61,7 +61,7 @@
 #endif
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
-#define FOS_DEPLOY_TYPES_2 router()->attach(Types::singleton()); Types::singleton()->setup();
+#define FOS_DEPLOY_TYPES_2 router()->attach(Types<>::singleton()); Types<>::singleton()->setup();
 #else
 #define FOS_DEPLOY_TYPES_2 ;
 #endif

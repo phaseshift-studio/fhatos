@@ -26,7 +26,6 @@
 
 namespace fhatos {
   class Router final : public Patterned {
-    friend class System;
 
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");

@@ -29,7 +29,7 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 
-#ifndef NATIVE
+#ifdef ESP_ARCH
 #include <esp32/spiram.h>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/pwm.hpp>
@@ -64,18 +64,18 @@ namespace fhatos {
       }
     }
 
-    string option(const string &option, const char *orElse) const {
-      return this->map_.count(option) ? this->map_.at(option) : orElse;
+    string option(const string &option, const char *or_else) const {
+      return this->map_.count(option) ? this->map_.at(option) : or_else;
     }
   };
 } // namespace fhatos
 using namespace fhatos;
-static ArgvParser args = ArgvParser();
-
+ArgvParser *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 void setup() {
+  std::srand(std::time(nullptr));
   try {
 #ifdef BOARD_HAS_PSRAM
     LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
@@ -85,9 +85,10 @@ void setup() {
     load_structure_attacher(); // TODO: remove
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
-        ->with_ansi_color(args.option("--ansi", "true") == "true")
-        ->with_log_level(LOG_TYPES.to_enum(args.option("--log", "INFO")))
+        ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+        ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))
         ->displaying_splash(ANSI_ART)
+        ->displaying_architecture()
         ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
         ->displaying_notes("Use !b:help!! for !yconsole commands!!")
         ////////////////////////////////////////////////////////////
@@ -95,24 +96,25 @@ void setup() {
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
         ->structure(KeyValue::create("+/#"))
-        ->structure(Types::singleton("/type/"))
+        ->structure(Types<KeyValue>::singleton("/type/"))
         ->structure(Terminal::singleton("/terminal"))
         ->process(Parser::singleton("/parser/"))
-#ifndef NATIVE
+#ifdef ESP_ARCH
         ->structure(Memory::singleton("/soc/memory/#"))
         ->structure(GPIO::singleton("/soc/gpio/#"))
         ->structure(PWM::singleton("/soc/pwm/#"))
-    //  ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
-    //  ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
+    // ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
+    // ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
 #endif
 #ifdef NATIVE
-        ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
+        ->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
         ->structure(Mqtt::create("//+/#"))
 #endif
         ->model({ID("/model/sys")})
         ->process(Console::create("/console/", "/terminal",
-                                  Console::Settings{.nest = args.option("--nest", "false") == "true",
-                                                    .ansi = args.option("--ansi", "true") == "true"}))
+                                  Console::Settings{.nest = args_parser->option("--nest", "false") == "true",
+                                                    .ansi = args_parser->option("--ansi", "true") == "true"}))
+        ->eval([] { delete args_parser; })
         ->done("kernel_barrier");
   } catch (const std::exception &e) {
     LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
@@ -128,10 +130,9 @@ void loop() {
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 #ifdef NATIVE
-
 int main(const int argc, char **argv) {
-  args.init(argc, argv);
-  if (args.option("--help", "NO_HELP") != "NO_HELP") {
+  args_parser->init(argc, argv);
+  if (args_parser->option("--help", "NO_HELP") != "NO_HELP") {
     const auto ansi = new Ansi();
     ansi->printf("%s: A Distributed Operating System\n", ansi->silly_print("FhatOS", true, true).c_str());
     ansi->printf("  --!b%-5s!!\n", "help");
@@ -145,5 +146,4 @@ int main(const int argc, char **argv) {
   }
   return 0;
 }
-
 #endif

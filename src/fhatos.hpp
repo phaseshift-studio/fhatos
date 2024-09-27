@@ -62,6 +62,7 @@
 #include <string>
 #include <tsl/ordered_map.h>
 #include <util/logger.hpp>
+#include <random>
 #include <util/options.hpp>
 
 namespace fhatos {
@@ -224,11 +225,13 @@ namespace fhatos {
   ////////////////////////////
 
 #if defined(ESP32)
+#define ESP_ARCH
 #define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
 #elif defined(ESP8266)
+#define ESP_ARCH
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>

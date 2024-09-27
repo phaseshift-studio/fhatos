@@ -47,7 +47,6 @@ namespace fhatos {
   using Process_p = ptr<Process>;
 
   class XScheduler : public IDed, public Mailbox {
-    friend class System;
 
   protected:
     ptr<MutexDeque<Process_p>> processes_ = std::make_shared<MutexDeque<Process_p>>();

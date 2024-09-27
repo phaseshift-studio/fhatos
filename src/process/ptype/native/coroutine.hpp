@@ -34,10 +34,6 @@ namespace fhatos {
     void yield() override {
       // do nothing
     }
-
-    void loop() override {
-      // do nothing
-    }
   };
 } // namespace fhatos
 

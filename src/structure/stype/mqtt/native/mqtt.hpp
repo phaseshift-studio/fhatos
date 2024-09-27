@@ -41,7 +41,7 @@ namespace fhatos {
       this->server_addr_ = string(server_addr).find_first_of("mqtt://") == string::npos
                              ? string("mqtt://").append(string(server_addr))
                              : server_addr;
-      this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, string("client_" + to_string(rand())),
+      this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, string("client_" + to_string(std::rand())),
                                                     mqtt::create_options());
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})

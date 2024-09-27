@@ -51,9 +51,6 @@ namespace fhatos {
       }
     }
 
-    void loop() override {
-    }
-
     void delay(const uint64_t milliseconds) override {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }

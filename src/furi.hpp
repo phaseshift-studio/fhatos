@@ -586,10 +586,10 @@ namespace fhatos {
               } else
                 this->spostfix_ = true;
               part = URI_PART::QUERY;
-              this->query_ = strdup("");
+             // this->query_ = strdup("");
               token.clear();
             } else if (part == URI_PART::HOST || part == URI_PART::USER) {
-              host_ = strdup(token.c_str());
+              this->host_ = strdup(token.c_str());
               part = URI_PART::QUERY;
               token.clear();
             } else {

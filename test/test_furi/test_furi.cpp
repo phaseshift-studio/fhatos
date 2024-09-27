@@ -329,7 +329,8 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("?a,b,c"), fURI("").query("a,b,c"));
     ////////////////
     TEST_ASSERT_TRUE(fURI("127.0.0.1/a?a=1").has_query());
-    TEST_ASSERT_TRUE(fURI("127.0.0.1/a?").has_query());
+    TEST_ASSERT_FALSE(fURI("127.0.0.1/a?").has_query());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a?"));
     TEST_ASSERT_TRUE(fURI("127.0.0.1/?sub").has_query());
     TEST_ASSERT_TRUE(fURI("fos://127.0.0.1/?sub").has_query());
     TEST_ASSERT_FALSE(fURI("fos://127.0.0.1/sub").has_query());
