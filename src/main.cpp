@@ -31,9 +31,10 @@
 
 #ifndef NATIVE
 #include <esp32/spiram.h>
-#include <model/soc/esp32/memory.hpp>
-#include <model/soc/esp/pinout.hpp>
+#include <model/soc/esp/gpio.hpp>
+#include <model/soc/esp/pwm.hpp>
 #include <model/soc/esp/wifi.hpp>
+#include <model/soc/esp32/memory.hpp>
 #endif
 
 #ifdef NATIVE
@@ -93,15 +94,16 @@ void setup() {
         ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
-        ->structure(KeyValue::create("+"))
+        ->structure(KeyValue::create("+/#"))
         ->structure(Types::singleton("/type/"))
         ->structure(Terminal::singleton("/terminal"))
         ->process(Parser::singleton("/parser/"))
 #ifndef NATIVE
         ->structure(Memory::singleton("/soc/memory/#"))
-        ->structure(Pinout::singleton("/soc/pinout/#"))
-        ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
-     //   ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
+        ->structure(GPIO::singleton("/soc/gpio/#"))
+        ->structure(PWM::singleton("/soc/pwm/#"))
+    //  ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
+    //  ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))

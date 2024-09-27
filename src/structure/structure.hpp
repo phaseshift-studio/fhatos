@@ -41,6 +41,7 @@ namespace fhatos {
   const Pattern_p EXTERNAL_FURI = p_p(REC_FURI->resolve("external"));
 
   class Router;
+
   enum class SType { EPHEMERAL, LOCAL, NETWORK };
 
   static const Enums<SType> StructureTypes = Enums<SType>({
@@ -158,85 +159,104 @@ namespace fhatos {
     }
 
     virtual Obj_p read(const fURI_p &furi) {
-      const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
-      const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(temp);
-      if (furi->is_branch()) {
-        const Rec_p rec = Obj::to_rec();
-        // BRANCH ID AND PATTERN
-        for (const auto &[key, value]: matches) {
-          rec->rec_set(uri(key), value);
+      if (furi->has_query() && string(furi->query()) == "sub") {
+        const List_p<Subscription_p> subscriptions = this->get_matching_subscriptions(furi_p(furi->query("")));
+        const Objs_p objs = Obj::to_objs();
+        for (const auto &subscription: *subscriptions) {
+          objs->add_obj(subscription->to_rec());
         }
-        return rec;
+        return objs;
       } else {
-        // NODE PATTERN
-        if (furi->is_pattern()) {
-          const Objs_p objs = Obj::to_objs();
+        const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
+        const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(temp);
+        if (furi->is_branch()) {
+          const Rec_p rec = Obj::to_rec();
+          // BRANCH ID AND PATTERN
           for (const auto &[key, value]: matches) {
-            objs->add_obj(value);
+            rec->rec_set(uri(key), value);
           }
-          return objs;
-        }
-        // NODE ID
-        else {
-          return matches.empty() ? noobj() : matches.begin()->second;
+          return rec;
+        } else {
+          // NODE PATTERN
+          if (furi->is_pattern()) {
+            const Objs_p objs = Obj::to_objs();
+            for (const auto &[key, value]: matches) {
+              objs->add_obj(value);
+            }
+            return objs;
+          }
+          // NODE ID
+          else {
+            return matches.empty() ? noobj() : matches.begin()->second;
+          }
         }
       }
     }
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
       if (retain) {
-        if (furi->is_branch()) {
-          // BRANCH (POLYS)
-          if (obj->is_noobj()) {
-            // nobj
-            const List<Pair<ID_p, Obj_p>> ids = this->read_raw_pairs(furi_p(furi->extend("+")));
-            for (const auto &id2: ids) {
-              this->write_raw_pairs(id2.first, obj);
-              distribute_to_subscribers(message_p(*id2.first, obj, retain));
-            }
-          } else if (obj->is_rec()) {
-            // rec
-            const auto remaining = share(Obj::RecMap<>());
-            for (const auto &[key, value]: *obj->rec_value()) {
-              if (key->is_uri()) {
-                // uri key
-                this->write(id_p(key->uri_value()), value, retain);
-                distribute_to_subscribers(message_p(ID(key->uri_value()), value, retain));
-              } else // non-uri key
-                remaining->insert({key, value});
-            }
-            if (!remaining->empty()) {
-              // non-uri keyed pairs written to /0
-              this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining));
-              distribute_to_subscribers(
-                message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
-            }
-          } else if (obj->is_lst()) {
-            // lst /0,/1,/2 indexing
-            const List_p<Obj_p> list = obj->lst_value();
-            for (size_t i = 0; i < list->size(); i++) {
-              this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i));
-              distribute_to_subscribers(message_p(furi->extend(to_string(i)), list->at(i), retain));
+        //// SUBSCRIBE
+        if (furi->has_query() && string(furi->query()) == "sub") {
+          const Pattern_p pattern = p_p(furi->query(""));
+          if (obj->is_noobj())
+            this->recv_unsubscribe(id_p("abc"), pattern);
+          else
+            this->recv_subscription(subscription_p(ID("abc"), *pattern, QoS::_1, obj));
+        } else {
+          //// WRITES
+          if (furi->is_branch()) {
+            // BRANCH (POLYS)
+            if (obj->is_noobj()) {
+              // nobj
+              const List<Pair<ID_p, Obj_p>> ids = this->read_raw_pairs(furi_p(furi->extend("+")));
+              for (const auto &id2: ids) {
+                this->write_raw_pairs(id2.first, obj);
+                distribute_to_subscribers(message_p(*id2.first, obj, retain));
+              }
+            } else if (obj->is_rec()) {
+              // rec
+              const auto remaining = share(Obj::RecMap<>());
+              for (const auto &[key, value]: *obj->rec_value()) {
+                if (key->is_uri()) {
+                  // uri key
+                  this->write(id_p(key->uri_value()), value, retain);
+                  distribute_to_subscribers(message_p(ID(key->uri_value()), value, retain));
+                } else // non-uri key
+                  remaining->insert({key, value});
+              }
+              if (!remaining->empty()) {
+                // non-uri keyed pairs written to /0
+                this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining));
+                distribute_to_subscribers(
+                  message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
+              }
+            } else if (obj->is_lst()) {
+              // lst /0,/1,/2 indexing
+              const List_p<Obj_p> list = obj->lst_value();
+              for (size_t i = 0; i < list->size(); i++) {
+                this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i));
+                distribute_to_subscribers(message_p(furi->extend(to_string(i)), list->at(i), retain));
+              }
+            } else {
+              // BRANCH (MONOS)
+              // monos written to /0
+              this->write_raw_pairs(id_p(furi->extend("0")), obj);
+              distribute_to_subscribers(message_p(ID(furi->extend("0")), obj, retain));
             }
           } else {
-            // BRANCH (MONOS)
-            // monos written to /0
-            this->write_raw_pairs(id_p(furi->extend("0")), obj);
-            distribute_to_subscribers(message_p(ID(furi->extend("0")), obj, retain));
-          }
-        } else {
-          // NODE PATTERN
-          if (furi->is_pattern()) {
-            const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(furi_p(*furi));
-            for (const auto &id: matches) {
-              this->write_raw_pairs(id.first, obj);
-              distribute_to_subscribers(message_p(*id.first, obj, retain));
+            // NODE PATTERN
+            if (furi->is_pattern()) {
+              const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(furi_p(*furi));
+              for (const auto &id: matches) {
+                this->write_raw_pairs(id.first, obj);
+                distribute_to_subscribers(message_p(*id.first, obj, retain));
+              }
             }
-          }
-          // NODE ID
-          else {
-            this->write_raw_pairs(id_p(*furi), obj);
-            distribute_to_subscribers(message_p(ID(*furi), obj, retain));
+            // NODE ID
+            else {
+              this->write_raw_pairs(id_p(*furi), obj);
+              distribute_to_subscribers(message_p(ID(*furi), obj, retain));
+            }
           }
         }
       } else {
@@ -288,12 +308,11 @@ namespace fhatos {
 
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) {
       return this->mutex_.read<List_p<Subscription_p>>([this, source, topic]() {
-        List_p<Subscription_p> matches = share(List<Subscription_p>());
+        const List_p<Subscription_p> matches = share(List<Subscription_p>());
         for (const Subscription_p &sub: *this->subscriptions_) {
-          if (source)
-            if (!source->equals(sub->source))
-              continue;
-          if (topic->matches(sub->pattern))
+          if (source && !source->equals(sub->source))
+            continue;
+          if (topic->bimatches(sub->pattern))
             matches->push_back(sub);
         }
         return matches;
