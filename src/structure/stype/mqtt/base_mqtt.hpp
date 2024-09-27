@@ -42,7 +42,6 @@ namespace fhatos {
                       const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::NETWORK),
                                                                                server_addr_(server_addr),
                                                                                will_message_(will_message) {
-      this->remote_retains_ = true;
     }
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;

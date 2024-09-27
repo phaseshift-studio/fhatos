@@ -216,8 +216,6 @@ namespace fhatos {
     //// CORE STRUCTURE FUNCTIONS
 
     Obj_p read(const fURI_p &furi) override {
-      const Option<Obj_p> meta = this->try_meta(furi);
-      if (meta.has_value()) return meta.value();
       // TODO: source
       if (furi->is_pattern()) {
         List<Dir_p> list_a = {root()};

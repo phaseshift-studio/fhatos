@@ -46,6 +46,7 @@ namespace fhatos {
                 ///////
                 //  {"/type/rec/actor", OBJ_PARSER("~[process=>lst,structure=>lst]")},
                 {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")},
+                {"/type/rec/sub", OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>int[_],:on_recv=>_]")},
                 // {"/model/pubsub", {
                 //   {"/type/rec/sub",
                 //       OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>is(gt(0)).is(lt(4)),:on_recv=>_]")},

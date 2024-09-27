@@ -58,7 +58,6 @@ namespace fhatos {
     ptr<List<Subscription_p>> subscriptions_ = std::make_shared<List<Subscription_p>>();
     MutexRW<> mutex_ = MutexRW<>();
     std::atomic_bool available_ = std::atomic_bool(false);
-    bool remote_retains_ = false;
 
   public:
     const SType stype;
@@ -131,8 +130,7 @@ namespace fhatos {
       this->subscriptions_->push_back(subscription);
       LOG_SUBSCRIBE(OK, subscription);
       /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-      if (!this->remote_retains_)
-        this->publish_retained(subscription);
+      this->publish_retained(subscription);
     }
 
     virtual void recv_publication(const Message_p &message) {
@@ -159,12 +157,8 @@ namespace fhatos {
 
     virtual Obj_p read(const fURI_p &furi) {
       if (furi->has_query() && string(furi->query()) == "sub") {
-        const List_p<Subscription_p> subscriptions = this->get_matching_subscriptions(furi_p(furi->query("")));
-        const Objs_p objs = Obj::to_objs();
-        for (const auto &subscription: *subscriptions) {
-          objs->add_obj(subscription->to_rec());
-        }
-        return objs;
+        const Objs_p subs = this->get_subscription_objs(p_p(furi->query("")));
+        return subs;
       } else {
         const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
         const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(temp);
@@ -195,7 +189,7 @@ namespace fhatos {
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
       if (retain) {
         //// SUBSCRIBE
-        if (furi->has_query() && string(furi->query()) == "sub") {
+        if (furi->query_value("sub").has_value()) {
           const Pattern_p pattern = p_p(furi->query(""));
           if (obj->is_noobj())
             this->recv_unsubscribe(Process::current_process()->id(), pattern);
@@ -274,17 +268,6 @@ namespace fhatos {
         throw fError("Structure " FURI_WRAP " not available for %s", function.c_str());
     }
 
-    Option<Obj_p> try_meta(const fURI_p &furi) const {
-      if (furi->has_query()) {
-        if (strcmp(furi->query(), "sub") == 0)
-          return {objs(this->get_subscription_objs(p_p(furi->query(nullptr))))};
-        else
-          return Obj::to_objs();
-      }
-      return {};
-    }
-
-
     virtual void distribute_to_subscribers(const Message_p &message) {
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (message->target.matches(sub->pattern))
@@ -318,8 +301,8 @@ namespace fhatos {
       });
     }
 
-    List<Obj_p> get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
-      List<Obj_p> list;
+    Objs_p get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
+      Objs_p objs = Obj::to_objs();
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (sub->pattern.matches(*pattern)) {
           const Rec_p sub_rec = Obj::to_rec({{uri(":source"), uri(sub->source)},
@@ -327,10 +310,10 @@ namespace fhatos {
                                               {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
                                               {uri(":on_recv"), sub->on_recv}},
                                             id_p(REC_FURI->extend("sub")));
-          list.push_back(sub_rec);
+          objs->add_obj(sub_rec);
         }
       }
-      return list;
+      return objs;
     }
   };
 

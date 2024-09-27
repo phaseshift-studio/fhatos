@@ -105,7 +105,7 @@ namespace fhatos {
         TEST_ASSERT_EQUAL_INT(2, uri.path_length());
       }
       TEST_ASSERT_EQUAL_STRING(pair.second.at(8) ? "x=1&y=2" : "", uri.query());
-      TEST_ASSERT_EQUAL_STRING(pair.second.at(9) ? "fhatty" : "", uri.fragment());
+      // TEST_ASSERT_EQUAL_STRING(pair.second.at(9) ? "fhatty" : "", uri.fragment());
     }
   }
 
@@ -334,6 +334,18 @@ namespace fhatos {
     TEST_ASSERT_TRUE(fURI("127.0.0.1/?sub").has_query());
     TEST_ASSERT_TRUE(fURI("fos://127.0.0.1/?sub").has_query());
     TEST_ASSERT_FALSE(fURI("fos://127.0.0.1/sub").has_query());
+  }
+
+  void test_uri_query_value() {
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?").query_value("x").has_value());
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?z=123").query_value("x").has_value());
+    TEST_ASSERT_FALSE(fURI("foi://127.0.0.1?z").query_value("x").has_value());
+    TEST_ASSERT_EQUAL_STRING("", fURI("127.0.0.1?x").query_value("x").value().c_str());
+    TEST_ASSERT_EQUAL_STRING("", fURI("127.0.0.1?y=abc&x").query_value("x").value().c_str());
+    TEST_ASSERT_EQUAL_STRING("", fURI("127.0.0.1?x&y=abc").query_value("x").value().c_str());
+    TEST_ASSERT_EQUAL_STRING("123", fURI("127.0.0.1?x=123").query_value("x").value().c_str());
+    TEST_ASSERT_EQUAL_STRING("123", fURI("127.0.0.1?y=abc&x=123").query_value("x").value().c_str());
+    TEST_ASSERT_EQUAL_STRING("123", fURI("127.0.0.1?x=123&y=abc").query_value("x").value().c_str());
   }
 
   void test_uri_name() {
@@ -673,6 +685,7 @@ namespace fhatos {
       FOS_RUN_TEST(test_uri_authority); //
       FOS_RUN_TEST(test_uri_path); //
       FOS_RUN_TEST(test_uri_query); //
+      FOS_RUN_TEST(test_uri_query_value); //
       FOS_RUN_TEST(test_uri_scheme_path); FOS_RUN_TEST(test_uri_empty); //
       FOS_RUN_TEST(test_uri_name); //
       //

@@ -230,7 +230,7 @@ namespace fhatos {
     }
 
     Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"),
-                                  parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
+                                    parse("[:age=>as(/type/int/nat),:name=>as(/type/str/)]"));
     recs = {"person[[:age=>nat[29],:name=>'dogturd']]"};
     for (const string &form: recs) {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
@@ -355,6 +355,18 @@ namespace fhatos {
     FOS_CHECK_RESULTS({120}, "[1,2,3,4,5]_/prod()\\_>-");
   }
 
+  void test_pubsub_writeread() {
+    process("z2 -> noobj");
+    TEST_ASSERT_TRUE(process("*z2")->objs_value()->empty());
+    process("<z?sub> -> |(z2 -> 'abc')");
+    //LOG(INFO, "HERE %s\n", process("*z2")->toString().c_str());
+    //TEST_ASSERT_TRUE(process("*z2")->objs_value()->empty());
+    process("z -> 55");
+    TEST_ASSERT_EQUAL_STRING("abc", process("*z2")->objs_value()->front()->str_value().c_str());
+    process("z2 -> noobj");
+    TEST_ASSERT_TRUE(process("*z2")->objs_value()->empty());
+  }
+
   FOS_RUN_TESTS( //
       //Options::singleton()->log_level(TRACE); //
       FOS_RUN_TEST(test_no_input_parsing); //
@@ -374,7 +386,8 @@ namespace fhatos {
       FOS_RUN_TEST(test_group_parsing); //
       FOS_RUN_TEST(test_window_parsing); //
       FOS_RUN_TEST(test_split_within_merge_parsing); //
-      FOS_RUN_TEST(test_one_to_many);
+      FOS_RUN_TEST(test_one_to_many); //
+      FOS_RUN_TEST(test_pubsub_writeread);
       )
 }; // namespace fhatos
 

@@ -28,13 +28,13 @@
 #include "util/string_helper.hpp"
 
 namespace fhatos {
-  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, FRAGMENT, QUERY };
+  enum class URI_PART { SCHEME, USER, PASSWORD, HOST, PORT, PATH, /*FRAGMENT,*/ QUERY };
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
     {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
     {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
-    {URI_PART::FRAGMENT, "fragment"}, {URI_PART::QUERY, "query"},
+    /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
   };
 
   class fURI {
@@ -49,7 +49,7 @@ namespace fhatos {
     bool spostfix_ = false;
     uint8_t path_length_ = 0;
     const char *query_ = nullptr;
-    const char *fragment_ = nullptr;
+    // const char *fragment_ = nullptr;
 
   public:
     [[nodiscard]] const char *scheme() const { return this->scheme_ ? this->scheme_ : ""; }
@@ -230,8 +230,9 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool empty() const {
-      return this->path_length_ == 0 && !this->host_ && !this->scheme_ && !this->user_ && !this->password_ &&
-             !this->fragment_ && !this->query_;
+      return this->path_length_ == 0 && !this->host_ && !this->scheme_ &&
+             !this->user_ && !this->password_ && !this->query_;
+      /*!this->fragment_ && */
     }
 
     [[nodiscard]] uint8_t path_length() const { return this->path_length_; }
@@ -241,27 +242,46 @@ namespace fhatos {
 
     [[nodiscard]] bool has_query() const { return this->query_ != nullptr && 0 != strlen(this->query_); }
 
-    fURI query(const char *query) const {
+    [[nodiscard]] fURI query(const char *query) const {
       auto new_uri = fURI(*this);
       FOS_SAFE_FREE(new_uri.query_);
       new_uri.query_ = nullptr == query || 0 == strlen(query) ? nullptr : strdup(query);
       return new_uri;
     }
 
-    /// FRAGMENT
-    [[nodiscard]] const char *fragment() const { return this->fragment_ ? this->fragment_ : ""; }
+    [[nodiscard]] Option<string> query_value(const char *key) const {
+      if (!this->query_)
+        return {};
+      const char *index = strstr(this->query_, key);
+      if (!index) return {};
+      size_t counter = 0;
+      char c = index[strlen(key) + counter];
+      if (c != '=') return {""};
+      counter++;
+      c = index[strlen(key) + counter];
+      string value = "";
+      while (c != '\0' && c != '&') {
+        value += c;
+        counter++;
+        c = index[strlen(key) + counter];
+      }
+      return {value};
+    }
 
-    fURI fragment(const char *fragment) const {
+    /// FRAGMENT
+    /*[[nodiscard]] const char *fragment() const { return this->fragment_ ? this->fragment_ : ""; }
+
+    [[nodiscard]] fURI fragment(const char *fragment) const {
       auto new_uri = fURI(*this);
       new_uri.fragment_ = 0 == strlen(fragment) ? nullptr : fragment;
       return new_uri;
-    }
+    }*/
 
     ////////////////////////////////////////////////////////////////
 
-    fURI extend(const fURI &furi_path) const { return this->extend(furi_path.path().c_str()); }
+    [[nodiscard]] fURI extend(const fURI &furi_path) const { return this->extend(furi_path.path().c_str()); }
 
-    fURI extend(const char *extension) const {
+    [[nodiscard]] fURI extend(const char *extension) const {
       if (strlen(extension) == 0) {
         auto new_uri = fURI(*this);
         new_uri.spostfix_ = true;
@@ -304,25 +324,20 @@ namespace fhatos {
              other_string.substr(0, this_string.length()) == this_string;
     }
 
-    fURI dissolve() const {
-      const string temp = this->path();
-      return temp.empty() ? fURI("") : fURI(temp[0] == '/' ? temp.substr(1) : temp);
-    }
-
-    bool is_relative() const {
+    [[nodiscard]] bool is_relative() const {
       const char first = this->toString()[0];
       return first == '.' || first == ':';
     }
 
-    bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
+    [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
 
-    bool is_node() const { return !this->spostfix_; }
+    [[nodiscard]] bool is_node() const { return !this->spostfix_; }
 
-    bool is_scheme_path() const {
+    [[nodiscard]] bool is_scheme_path() const {
       return this->scheme_ && this->path_length_ > 0 && !this->host_ && !this->user_ && !this->password_;
     }
 
-    virtual fURI resolve(const fURI &other) const {
+    [[nodiscard]] virtual fURI resolve(const fURI &other) const {
       if (this->is_pattern() && other.matches(*this))
         return other;
       ///////////////////////////////////////////////////////////////
@@ -451,7 +466,7 @@ namespace fhatos {
       free((void *) this->user_);
       free((void *) this->password_);
       free((void *) this->query_);
-      free((void *) this->fragment_);
+      // free((void *) this->fragment_);
       for (size_t i = 0; i < this->path_length_; i++) {
         free(path_[i]);
       }
@@ -468,7 +483,7 @@ namespace fhatos {
       this->spostfix_ = other.spostfix_;
       this->path_length_ = other.path_length_;
       this->query_ = other.query_ && strcmp("", other.query_) != 0 ? strdup(other.query_) : nullptr;
-      this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
+      // this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
       for (uint8_t i = 0; i < other.path_length_; i++) {
         this->path_[i] = strdup(other.path_[i]);
@@ -586,7 +601,7 @@ namespace fhatos {
               } else
                 this->spostfix_ = true;
               part = URI_PART::QUERY;
-             // this->query_ = strdup("");
+              // this->query_ = strdup("");
               token.clear();
             } else if (part == URI_PART::HOST || part == URI_PART::USER) {
               this->host_ = strdup(token.c_str());
