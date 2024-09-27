@@ -85,7 +85,7 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
   }
 
     virtual void native_mqtt_loop() override {
-      fhatos::this_process->yield();
+      Process::current_process()->yield();
     }
 
   void native_mqtt_subscribe(const Subscription_p &subscription) override {
@@ -119,7 +119,7 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
     if (!this->xmqtt_->connected()) {
       LOG_STRUCTURE(INFO, this, "Reconnecting to MQTT broker after connection loss [%s]\n", MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
       if(!this->xmqtt_->connect("fhatos")) {
-        fhatos::this_process->delay(FOS_MQTT_RETRY_WAIT / 1000);
+       Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
       }
      }     else if(!this->xmqtt_->loop()) {
       LOG_STRUCTURE(ERROR, this, "MQTT processing loop failure: %s\n",MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
