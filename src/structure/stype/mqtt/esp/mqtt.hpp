@@ -79,7 +79,7 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
         for (const Subscription_p &sub: *matches) {
           this->outbox_->push_back(share(Mail{sub, message}));
         }
-        MESSAGE_INTERCEPT(message->target, message->payload, message->retain);
+        SCHEDULER_INTERCEPT(message->target, message->payload, message->retain);
       });
   }
   }

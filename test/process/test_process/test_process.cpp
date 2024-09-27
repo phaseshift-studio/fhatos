@@ -31,31 +31,51 @@
 
 namespace fhatos {
 
-  void test_threads() {
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/thread/"));
-    process("/test/thread/ -> "
-            "thread[["
-              ":setup=>block(/test/thread/a->345),"
-              ":loop=>block(*(/test/thread/x,0).plus(1).to(/test/thread/x)),"
-              ":stop=>block(/test/thread/b->57)]]");
+
+  void test_process(const PType ptype) {
+    const string& p = ProcessTypes.to_chars(ptype);
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count(Pattern(StringHelper::format("/test/%s/",p.c_str()).c_str())));
+    process("/test/%s/ -> "
+            "%s[["
+              ":setup=>block(/test/%s/a->345),"
+              ":loop=>block(from(/test/%s/x,0).plus(1).to(/test/%s/x)),"
+              ":stop=>block(/test/%s/b->57)]]",p.c_str(),p.c_str(),p.c_str(),p.c_str(),p.c_str(),p.c_str());
     sleep(1);
-    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/thread/"));
+    TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count(Pattern(StringHelper::format("/test/%s/",p.c_str()).c_str())));
     //const Obj_p b_1 = process("*/test/thread/b")->objs_value()->at(0);
     //TEST_ASSERT_TRUE(b_1->is_noobj());
-    const Int_p x_1 = process("*/test/thread/x")->objs_value()->at(0);
+    if(ptype == PType::COROUTINE) {
+      process("{/test/%s/}.*/test/%s/:loop",p.c_str(),p.c_str());
+    }
+    const Int_p x_1 = process("*/test/%s/x",p.c_str())->objs_value()->at(0);
     FOS_TEST_OBJ_GT(x_1, jnt(0))
-    const Int_p x_2 = process("*/test/thread/x")->objs_value()->at(0);
+    if(ptype == PType::COROUTINE) {
+      process("{/test/%s/}.*/test/%s/:loop",p.c_str(),p.c_str());
+    }
+    const Int_p x_2 = process("*/test/%s/x",p.c_str())->objs_value()->at(0);
     FOS_TEST_OBJ_GT(x_2, jnt(0));
     FOS_TEST_OBJ_GT(x_2, x_1);
-    TEST_ASSERT_EQUAL_INT(345,process("*/test/thread/a")->objs_value()->at(0)->int_value());
-    process("/test/thread/ -> noobj");
+    TEST_ASSERT_EQUAL_INT(345,process("*/test/%s/a",p.c_str())->objs_value()->at(0)->int_value());
+    process("/test/%s/ -> noobj",p.c_str(),p.c_str());
     sleep(1);
-    TEST_ASSERT_EQUAL_INT(57,process("*/test/thread/b")->objs_value()->at(0)->int_value());
-    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/thread/"));
+    TEST_ASSERT_EQUAL_INT(57,process("*/test/%s/b",p.c_str())->objs_value()->at(0)->int_value());
+    TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count(Pattern(StringHelper::format("/test/%s/",p.c_str()).c_str())));
+  }
+
+  void test_thread() {
+      test_process(PType::THREAD);
+  }
+  void test_fiber() {
+    test_process(PType::FIBER);
+  }
+  void test_coroutine() {
+    test_process(PType::COROUTINE);
   }
 
   FOS_RUN_TESTS( //
-          FOS_RUN_TEST(test_threads); //
+          FOS_RUN_TEST(test_thread); //
+         // FOS_RUN_TEST(test_fiber); //
+         // FOS_RUN_TEST(test_coroutine); //
   );
 
 } // namespace fhatos

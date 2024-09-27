@@ -76,12 +76,12 @@ static ArgvParser args = ArgvParser();
 ////////////////////////////////////////////////////////////
 void setup() {
   try {
-#ifdef DBOARD_HAS_PSRAM
+#ifdef BOARD_HAS_PSRAM
     LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
     load_processor(); // TODO: remove
     load_process_spawner(); // TODO: remove
-    load_attacher(); // TODO: remove
+    load_structure_attacher(); // TODO: remove
     Kernel::build()
         ->using_printer(Ansi<>::singleton())
         ->with_ansi_color(args.option("--ansi", "true") == "true")

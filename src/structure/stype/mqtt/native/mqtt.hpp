@@ -59,12 +59,10 @@ namespace fhatos {
       //// MQTT MESSAGE CALLBACK
       this->xmqtt_->set_message_callback([this](const const_message_ptr &mqtt_message) {
         const binary_ref ref = mqtt_message->get_payload_ref();
-        const BObj_p bobj = share(BObj(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data()))));
-        const Message_p message = share(Message{
-          .target = ID(mqtt_message->get_topic()),
-          .payload = Obj::deserialize(bobj),
-          .retain = mqtt_message->is_retained()
-        });
+        const auto bobj = std::make_shared<BObj>(ref.length(),
+                                                 reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
+        const Message_p message = message_p(ID(mqtt_message->get_topic()), Obj::deserialize(bobj),
+                                            mqtt_message->is_retained());
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
         const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(message->target));
         for (const Subscription_p &sub: *matches) {

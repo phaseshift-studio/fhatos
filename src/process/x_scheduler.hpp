@@ -131,8 +131,7 @@ namespace fhatos {
       LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
-    virtual void feed_local_watchdog() {
-    }
+    virtual void feed_local_watchdog() = 0;
 
     [[nodiscard]] bool at_barrier(const string &label) const {
       return this->current_barrier_ && *this->current_barrier_ == label;

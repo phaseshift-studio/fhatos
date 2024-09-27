@@ -332,12 +332,12 @@ namespace fhatos {
       ///////////////////////////////////////////////////////////////
       if ((!other.toString().empty() && other.toString()[0] == ':') ||
           (!this->toString().empty() && this->toString()[this->toString().length() - 1] == ':'))
-        return fURI(this->toString() + other.toString());
+        return fURI(this->retract_pattern().toString() + other.toString());
       if (other.is_scheme_path()) {
         if (!this->scheme_)
-          return other.sprefix_ ? other : this->extend(other.toString().c_str());
+          return other.sprefix_ ? other : this->retract_pattern().extend(other.toString().c_str());
         else if (strcmp(this->scheme_, other.scheme_) != 0) {
-          return this->extend(other.toString().c_str());
+          return this->retract_pattern().extend(other.toString().c_str());
         }
       }
       ///////////////////////////////////////////////////////////////

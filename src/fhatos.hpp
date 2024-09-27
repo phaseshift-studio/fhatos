@@ -216,7 +216,7 @@ namespace fhatos {
 #ifdef NATIVE
 #define CONST_CHAR(__var_name__, __chars__) inline const char *__var_name__ = (__chars__)
 #else
-#define CONST_CHAR(__var_name__, __chars__) inline const char *__var_name__ PROGMEM = (__chars__)
+#define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ PROGMEM = (__chars__)
 #endif
 
   ////////////////////////////

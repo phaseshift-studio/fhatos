@@ -25,8 +25,6 @@
 #include <util/obj_helper.hpp>
 
 namespace fhatos {
-  const ID_p KV_FURI = share<ID>(ID(REC_FURI->resolve("kv")));
-
   class Router final : public Patterned {
     friend class System;
 
@@ -36,9 +34,12 @@ namespace fhatos {
 
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
       ROUTER_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
-        if (retain && payload->is_rec() && payload->id()->matches(KV_FURI->extend("#"))) {
+        if (retain && payload->is_rec() && (
+              payload->id()->matches(LOCAL_FURI->extend("#")) ||
+              payload->id()->matches(NETWORK_FURI->extend("#")) ||
+              payload->id()->matches(EXTERNAL_FURI->extend("#")))) {
           LOG_ROUTER(DEBUG, "intercepting retained !ykv!! %s\n", payload->toString().c_str());
-          STRUCTURE_ATTACHER(furi);
+          STRUCTURE_ATTACHER(furi, payload);
           return true;
         }
         return false;
@@ -173,13 +174,13 @@ namespace fhatos {
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
       if (!ROUTER_INTERCEPT(*furi, obj, retain)) {
-        const Structure_p &struc = this->get_structure(p_p(*furi));
+        const Structure_p &structure = this->get_structure(p_p(*furi));
         LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
-                   obj->toString().c_str(), furi->toString().c_str(), struc->pattern()->toString().c_str());
-        struc->write(furi, obj, retain);
-        if (retain && obj->is_noobj() && furi->equals(*struc->pattern())) {
-          struc->stop();
-          this->detach(struc->pattern());
+                   obj->toString().c_str(), furi->toString().c_str(), structure->pattern()->toString().c_str());
+        structure->write(furi, obj, retain);
+        if (retain && obj->is_noobj() && furi->equals(*structure->pattern())) {
+          structure->stop();
+          this->detach(structure->pattern());
         }
         SCHEDULER_INTERCEPT(*furi, obj, retain);
       }

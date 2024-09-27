@@ -195,8 +195,28 @@ namespace fhatos {
     return Processor(bcode, starts).to_objs();
   }
 
-  [[maybe_unused]] static Objs_p process(const string &monoid) {
-    return Processor(Options::singleton()->parser<Obj>(monoid), noobj()).to_objs();
+  [[maybe_unused]] static Objs_p process(const char *monoid_format, ...) {
+    bool has_format = false;
+    for (size_t i = 0; i < strlen(monoid_format); i++) {
+      if (monoid_format[i] == '%') {
+        has_format = true;
+        break;
+      }
+    }
+    if (has_format) {
+      const size_t max_length = strlen(monoid_format) * 5;
+      char monoid_format_formatted[max_length];
+      va_list arg;
+      va_start(arg, monoid_format);
+      const size_t length = vsnprintf(monoid_format_formatted, max_length, monoid_format, arg);
+      va_end(arg);
+      if (length >= max_length) {
+        throw fError("Monoid string longer than expected. Increase max_length");
+      }
+      return Processor(Options::singleton()->parser<Obj>(monoid_format_formatted), noobj()).to_objs();
+    } else {
+      return Processor(Options::singleton()->parser<Obj>(monoid_format), noobj()).to_objs();
+    }
   }
 
 

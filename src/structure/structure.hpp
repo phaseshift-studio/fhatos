@@ -36,8 +36,11 @@
 
 
 namespace fhatos {
-  class Router;
+  const Pattern_p LOCAL_FURI = p_p(REC_FURI->resolve("local"));
+  const Pattern_p NETWORK_FURI = p_p(REC_FURI->resolve("network"));
+  const Pattern_p EXTERNAL_FURI = p_p(REC_FURI->resolve("external"));
 
+  class Router;
   enum class SType { EPHEMERAL, LOCAL, NETWORK };
 
   static const Enums<SType> StructureTypes = Enums<SType>({

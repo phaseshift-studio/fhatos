@@ -56,6 +56,9 @@ namespace fhatos {
       return scheduler_p;
     }
 
+    void feed_local_watchdog() override {
+    }
+
     bool spawn(const Process_p &process) override {
       process->setup();
       if (!process->running()) {
@@ -95,16 +98,17 @@ namespace fhatos {
     static void FIBER_FUNCTION(void *) {
       FIBER_COUNT = 1;
       while (FIBER_COUNT > 0) {
-        FIBER_COUNT = 0;
         auto *fibers = new List<Process_p>();
         singleton()->processes_->forEach([fibers](const Process_p &process) {
-          if (process->ptype == PType::FIBER)
+          if (process->ptype == PType::FIBER && process->running())
             fibers->push_back(process);
         });
+        FIBER_COUNT = 0;
         for (const Process_p &fiber: *fibers) {
-          if (fiber->running())
+          if (fiber->running()) {
             fiber->loop();
-          ++FIBER_COUNT;
+            ++FIBER_COUNT;
+          }
         }
         singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
           const bool remove = fiber->ptype == PType::FIBER && !fiber->running();

@@ -23,30 +23,90 @@
 #include <language/obj.hpp>
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
+#include <structure/stype/external.hpp>
+#include FOS_MQTT(mqtt.hpp)
 
 #include "router.hpp"
 
 namespace fhatos {
-  class KeyValueObj : public KeyValue {
-    const Rec_p kv_rec_;
+  template<typename STRUCTURE>
+  class StructureObj : public STRUCTURE {
+  protected:
+    const Rec_p structure_rec_;
+    const Uri_p pattern_uri_;
 
   public:
-    explicit KeyValueObj(const Pattern &pattern): KeyValue(pattern) {
+    explicit StructureObj(const Pattern &pattern, const Rec_p &structure_rec) : STRUCTURE(pattern),
+      structure_rec_(structure_rec),
+      pattern_uri_(Obj::to_uri(pattern)) {
     }
 
     void setup() override {
       try {
-        KeyValue::setup();
+        STRUCTURE::setup();
+        LOG_STRUCTURE(DEBUG, this, "Executing setup()-bcode: %s\n",
+                      this->structure_rec_->rec_get(uri(this->pattern()->resolve(":setup")))->toString().c_str());
+        process(this->structure_rec_->rec_get(uri(this->pattern()->resolve(":setup"))), this->pattern_uri_);
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();
       }
     }
+
+    void loop() override {
+      try {
+        if (this->available_.load()) {
+          const BCode_p loop_bcode = this->structure_rec_->rec_get(uri(this->pattern()->resolve(":loop")));
+          process(loop_bcode, this->pattern_uri_);
+        }
+      } catch (const fError &error) {
+        LOG_EXCEPTION(error);
+        this->stop();
+      }
+    }
+
+    void stop() override {
+      try {
+        if (this->available_.load()) {
+          LOG_STRUCTURE(DEBUG, this, "Executing stop()-bcode: %s\n",
+                        this->structure_rec_->rec_get(uri(this->pattern()->resolve(":stop")))->toString().c_str());
+          process(this->structure_rec_->rec_get(uri(this->pattern()->resolve(":stop"))), this->pattern_uri_);
+          STRUCTURE::stop();
+        }
+      } catch (const fError &error) {
+        LOG_EXCEPTION(error);
+      }
+    }
   };
 
-  inline void load_attacher() {
-    STRUCTURE_ATTACHER = [](const Pattern &structure_pattern) {
-      Router::singleton()->attach(std::make_shared<KeyValueObj>(structure_pattern));
+  class LocalObj : public StructureObj<KeyValue> {
+  public:
+    explicit LocalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {
+    }
+  };
+
+  class NetworkObj : public StructureObj<Mqtt> {
+  public:
+    explicit NetworkObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {
+    }
+  };
+
+  class ExternalObj : public StructureObj<External> {
+  public:
+    explicit ExternalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {
+    }
+  };
+
+  inline void load_structure_attacher() {
+    STRUCTURE_ATTACHER = [](const Pattern &structure_pattern, const Obj_p &structure_rec) {
+      if (LOCAL_FURI->equals(*structure_rec->id()))
+        router()->attach(std::make_shared<LocalObj>(structure_pattern, structure_rec));
+      else if (NETWORK_FURI->equals(*structure_rec->id()))
+        router()->attach(std::make_shared<NetworkObj>(structure_pattern, structure_rec));
+      else if (EXTERNAL_FURI->equals(*structure_rec->id()))
+        router()->attach(std::make_shared<ExternalObj>(structure_pattern, structure_rec));
+      else
+        throw fError("Unknown structure type: %s", structure_rec->id()->toString().c_str());
     };
   }
 } // namespace fhatos

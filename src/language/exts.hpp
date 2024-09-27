@@ -32,25 +32,18 @@ namespace fhatos {
     Exts() = delete;
 
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
-      static Map_p<ID, List<Pair<ID, Type_p>>> _exts =
-          ptr<Map<ID, List<Pair<ID, Type_p>>>>(new Map<ID, List<Pair<ID, Type_p>>>{
+      static Map_p<ID, List<Pair<ID, Type_p>>> exts =
+          std::make_shared<Map<ID, List<Pair<ID, Type_p>>>>(Map<ID, List<Pair<ID, Type_p>>>{
             {"/model/sys", {
                 /// PROCESSES
                 {"/type/rec/thread", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/fiber", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/coroutine", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 /// STRUCTURES
-                {"/type/rec/kv", OBJ_PARSER("[_=>_]")},
-                // {"/type/rec/fiber", OBJ_PARSER("process[_]")},
-                // {"/type/rec/coroutine", OBJ_PARSER("process[_]")},
+                {"/type/rec/local", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
+                {"/type/rec/network", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
+                {"/type/rec/external", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 ///////
-                // {"/type/rec/structure", OBJ_PARSER("[pattern=>uri[_],setup=>_,loop=>_]")},
-                //  {"/type/rec/database", OBJ_PARSER("structure[_]")},
-                //  {"/type/rec/ephemeral", OBJ_PARSER("structure[_]")},
-                // {"/type/rec/hardware", OBJ_PARSER("structure[_]")},
-                // {"/type/rec/networked", OBJ_PARSER("structure[_]")},
-                // {"/type/rec/variables", OBJ_PARSER("structure[_]")},
-                //////
                 //  {"/type/rec/actor", OBJ_PARSER("~[process=>lst,structure=>lst]")},
                 {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")},
                 // {"/model/pubsub", {
@@ -63,13 +56,13 @@ namespace fhatos {
         {{"/lst/pair", TYPE_PARSER("[_,_]")},
          {"/lst/trip", TYPE_PARSER("[_,_,_]")},
          {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}*/
-      return _exts->at(extId);
+      return exts->at(extId);
     }
 
-    static void load_extension(const ID &extId) {
-      for (const Pair<ID, Type_p> &pair: Exts::exts(extId)) {
-        const ID_p idp = make_shared<ID>(pair.first);
-        Types::singleton()->save_type(idp, pair.second);
+    static void load_extension(const ID &ext_id) {
+      for (const auto &[key, value]: Exts::exts(ext_id)) {
+        const auto type_id = make_shared<ID>(key);
+        Types::singleton()->save_type(type_id, value);
       }
     }
   };

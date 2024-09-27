@@ -107,38 +107,38 @@ namespace fhatos {
 
     static Obj_p plus(const Obj_p &rhs) {
       return Obj::to_inst(
-          "plus", {rhs},
-          [](const InstArgs &args) {
-            return [args](const Obj_p &lhs) { return share(*lhs + *args.at(0)->apply(lhs)); };
-          },
-          IType::ONE_TO_ONE);
+        "plus", {rhs},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) { return share(*lhs + *args.at(0)->apply(lhs)); };
+        },
+        IType::ONE_TO_ONE);
     }
 
     static Obj_p mult(const Obj_p &rhs) {
       return Obj::to_inst(
-          "mult", {rhs},
-          [](const InstArgs &args) {
-            return [args](const Obj_p &lhs) { return share(*lhs * *args.at(0)->apply(lhs)); };
-          },
-          IType::ONE_TO_ONE);
+        "mult", {rhs},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) { return share(*lhs * *args.at(0)->apply(lhs)); };
+        },
+        IType::ONE_TO_ONE);
     }
 
     static Obj_p div(const Obj_p &rhs) {
       return Obj::to_inst(
-          "div", {rhs},
-          [](const InstArgs &args) {
-            return [args](const Obj_p &lhs) { return share(*lhs / *args.at(0)->apply(lhs)); };
-          },
-          IType::ONE_TO_ONE);
+        "div", {rhs},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) { return share(*lhs / *args.at(0)->apply(lhs)); };
+        },
+        IType::ONE_TO_ONE);
     }
 
     static Obj_p mod(const Obj_p &rhs) {
       return Obj::to_inst(
-          "mod", {rhs},
-          [](const InstArgs &args) {
-            return [args](const Obj_p &lhs) { return share(*lhs % *args.at(0)->apply(lhs)); };
-          },
-          IType::ONE_TO_ONE);
+        "mod", {rhs},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) { return share(*lhs % *args.at(0)->apply(lhs)); };
+        },
+        IType::ONE_TO_ONE);
     }
 
     static Obj_p bswitch(const Rec_p &rec) {
@@ -343,53 +343,53 @@ namespace fhatos {
 
     static Rec_p inspect() {
       return Obj::to_inst(
-          "inspect", {},
-          [](const InstArgs &) {
-            return [](const Obj_p &lhs) {
-              Rec_p rec = Obj::to_rec({{uri("type"), uri(lhs->id())}});
-              if (lhs->is_int()) {
-                /// INT
-                rec->rec_set(uri("value"), jnt(lhs->int_value()));
-                rec->rec_set(uri("encoding"), uri(STR(FL_INT_TYPE)));
-              } else if (lhs->is_real()) {
-                /// REAL
-                rec->rec_set(uri("value"), real(lhs->real_value()));
-                rec->rec_set(uri("encoding"), uri(STR(FL_REAL_TYPE)));
-              } else if (lhs->is_str()) {
-                /// STR
-                rec->rec_set(uri("value"), str(lhs->str_value()));
-                rec->rec_set(uri("encoding"), uri(string("UTF") + to_string(sizeof(char))));
-              } else if (lhs->is_uri()) {
-                /// URI
-                const fURI furi = lhs->uri_value();
-                if (furi.has_scheme())
-                  rec->rec_set(uri("scheme"), uri(furi.scheme()));
-                if (furi.has_user())
-                  rec->rec_set(uri("user"), uri(furi.user()));
-                if (furi.has_password())
-                  rec->rec_set(uri("password"), uri(furi.password()));
-                if (furi.has_host())
-                  rec->rec_set(uri("host"), uri(furi.host()));
-                if (furi.has_port())
-                  rec->rec_set(uri("port"), jnt(lhs->uri_value().port()));
-                rec->rec_set(uri("relative"), dool(furi.is_relative()));
-                rec->rec_set(uri("branch"), dool(furi.is_branch()));
-                rec->rec_set(uri("pattern"), dool(furi.is_pattern()));
-                if (furi.has_path()) {
-                  Lst_p path = Obj::to_lst();
-                  for (int i = 0; i < furi.path_length(); i++) {
-                    path->lst_add(uri(furi.path(i)));
-                  }
-                  rec->rec_set(uri("path"), path);
+        "inspect", {},
+        [](const InstArgs &) {
+          return [](const Obj_p &lhs) {
+            Rec_p rec = Obj::to_rec({{uri("type"), uri(lhs->id())}});
+            if (lhs->is_int()) {
+              /// INT
+              rec->rec_set(uri("value"), jnt(lhs->int_value()));
+              rec->rec_set(uri("encoding"), uri(STR(FL_INT_TYPE)));
+            } else if (lhs->is_real()) {
+              /// REAL
+              rec->rec_set(uri("value"), real(lhs->real_value()));
+              rec->rec_set(uri("encoding"), uri(STR(FL_REAL_TYPE)));
+            } else if (lhs->is_str()) {
+              /// STR
+              rec->rec_set(uri("value"), str(lhs->str_value()));
+              rec->rec_set(uri("encoding"), uri(string("UTF") + to_string(sizeof(char))));
+            } else if (lhs->is_uri()) {
+              /// URI
+              const fURI furi = lhs->uri_value();
+              if (furi.has_scheme())
+                rec->rec_set(uri("scheme"), uri(furi.scheme()));
+              if (furi.has_user())
+                rec->rec_set(uri("user"), uri(furi.user()));
+              if (furi.has_password())
+                rec->rec_set(uri("password"), uri(furi.password()));
+              if (furi.has_host())
+                rec->rec_set(uri("host"), uri(furi.host()));
+              if (furi.has_port())
+                rec->rec_set(uri("port"), jnt(lhs->uri_value().port()));
+              rec->rec_set(uri("relative"), dool(furi.is_relative()));
+              rec->rec_set(uri("branch"), dool(furi.is_branch()));
+              rec->rec_set(uri("pattern"), dool(furi.is_pattern()));
+              if (furi.has_path()) {
+                Lst_p path = Obj::to_lst();
+                for (int i = 0; i < furi.path_length(); i++) {
+                  path->lst_add(uri(furi.path(i)));
                 }
-                if (furi.has_query()) {
-                  rec->rec_set(uri("query"), str(furi.query()));
-                }
+                rec->rec_set(uri("path"), path);
               }
-              return rec;
-            };
-          },
-          IType::ONE_TO_ONE);
+              if (furi.has_query()) {
+                rec->rec_set(uri("query"), str(furi.query()));
+              }
+            }
+            return rec;
+          };
+        },
+        IType::ONE_TO_ONE);
     }
 
     static Obj_p as(const Uri_p &type_id) {
@@ -409,29 +409,10 @@ namespace fhatos {
             const Obj_p lhs_apply = lhs->apply(args.at(0));
             const Obj_p rhs_apply = args.at(0)->apply(lhs);
             router()->write(id_p(rhs_apply->uri_value()), lhs_apply);
-            // Algorithm::embed(lhs_apply, furi_p(rhs_apply->uri_value()), id_p(FOS_DEFAULT_SOURCE_ID));
             return lhs_apply;
-            /*
-            if (lhs_apply->is_uri()) {
-              if (lhs_apply->uri_value().is_pattern()) {
-                if (rhs_apply->is_rec()) {
-                  const fURI furi = lhs_apply->uri_value();
-                  Rec_p rec = Rec_p(rhs_apply);
-                  const Objs_p objs = BCODE_PROCESSOR(Obj::to_uri(furi),
-                                                      OBJ_PARSER("-<[_=>*_]"));
-                  for (const auto &pair_rec: *objs->objs_value()) {
-                    LOG(INFO, "Adding recs of %s: %s + %s\n", furi.toString().c_str(),
-                        rec->toString().c_str(), objs->toString().c_str());
-                    rec = share(*rec + *pair_rec);
-                  }
-                  return rec;
-                }
-              }
-            }
-            throw fError("bad args");*/
           };
         },
-        /* areInitialArgs(uri) ? IType::ZERO_TO_ONE :*/ IType::ONE_TO_ONE);
+        IType::ONE_TO_ONE);
     }
 
     static Obj_p to_inv(const Obj_p &obj) {
@@ -978,6 +959,7 @@ namespace fhatos {
           base_inst->is_inst() ? base_inst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
           id_p(type_id));
       }
+      //return replace_from_obj(args, base_inst);
       throw fError("!b%s!! does not resolve to an inst or bytecode: %s\n", type_id_resolved->toString().c_str(),
                    base_inst->toString().c_str());
     }
@@ -997,29 +979,24 @@ namespace fhatos {
       } else {
         InstArgs new_args;
         for (const Obj_p &old_arg: old_inst->inst_args()) {
-          if (old_arg->is_bcode())
-            new_args.push_back(replace_from_bcode(args, old_arg));
-          else if (old_arg->is_inst())
-            new_args.push_back(replace_from_inst(args, old_arg));
-            /*else if (old_arg->is_inst() &&
-                       old_arg->inst_op() == "from" &&
-                       old_arg->inst_arg(0)->is_uri() &&
-                       old_arg->inst_arg(0)->uri_value().toString()[0] == '_' &&
-                       StringHelper::is_integer(old_arg->inst_arg(0)->uri_value().toString().substr(1))) {
-              const uint8_t index = stoi(old_arg->inst_arg(0)->uri_value().toString().substr(1));
-              if (index < args.size())
-                new_args.push_back(args.at(index));
-              else if (old_arg->inst_args().size() == 2)
-                new_args.push_back(old_arg->inst_args().at(1)); // default argument
-              else
-                throw fError("%s requires !y%i!! arguments and !y%i!! were provided\n",
-                             old_inst->toString().c_str(), old_arg->inst_args().size(), args.size());*/
-          else
-            new_args.push_back(old_arg);
+          new_args.push_back(replace_from_obj(args, old_arg));
         }
         return Obj::to_inst(old_inst->inst_op(), new_args, old_inst->inst_f(), old_inst->itype(),
                             old_inst->inst_seed_supplier());
       }
+    }
+
+    static Obj_p replace_from_obj(const InstArgs &args, const Obj_p &old_obj) {
+      if (old_obj->is_inst())
+        return replace_from_inst(args, old_obj);
+      else if (old_obj->is_bcode())
+        return replace_from_bcode(args, old_obj);
+      else if (old_obj->is_rec())
+        return replace_from_rec(args, old_obj);
+      else if (old_obj->is_lst())
+        return replace_from_lst(args, old_obj);
+      else
+        return old_obj;
     }
 
     static BCode_p replace_from_bcode(const InstArgs &args, const BCode_p &old_bcode) {
@@ -1032,6 +1009,22 @@ namespace fhatos {
       }
       LOG(TRACE, "new bcode: %s\n", new_bcode->toString().c_str());
       return new_bcode;
+    }
+
+    static Rec_p replace_from_rec(const InstArgs &args, const Rec_p &old_rec) {
+      Rec_p new_rec = rec();
+      for (const auto &[key,value]: *old_rec->rec_value()) {
+        new_rec->rec_set(replace_from_obj(args, key), replace_from_obj(args, value));
+      }
+      return new_rec;
+    }
+
+    static Lst_p replace_from_lst(const InstArgs &args, const Lst_p &old_lst) {
+      Lst_p new_lst = lst();
+      for (const auto &element: *old_lst->lst_value()) {
+        new_lst->lst_add(replace_from_obj(args, element));
+      }
+      return new_lst;
     }
   };
 

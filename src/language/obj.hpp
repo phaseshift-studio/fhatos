@@ -248,10 +248,10 @@ namespace fhatos {
     LOG(DEBUG, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static BiConsumer<const ID, const ID> PROCESS_SPAWNER = [](const ID&, const ID &) {
-    LOG(DEBUG, "!yTHREAD_SPAWNER!! undefined at this point in bootstrap.\n");
+  static BiConsumer<const ID, const ID> PROCESS_SPAWNER = [](const ID &, const ID &) {
+    LOG(DEBUG, "!PROCESS_SPAWNER!! undefined at this point in bootstrap.\n");
   };
-  static Consumer<const Pattern> STRUCTURE_ATTACHER = [](const Pattern &) {
+  static BiConsumer<const Pattern, const Rec_p> STRUCTURE_ATTACHER = [](const ID &, const Rec_p &) {
     LOG(DEBUG, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
   };
   static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_INTERCEPT = [](
