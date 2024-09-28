@@ -53,7 +53,7 @@ namespace fhatos {
       this->save_type(inst_id("to_inv"), Insts::to_inv(x(0)));
       this->save_type(inst_id("->"), Insts::from(uri(inst_id("to_inv"))));
       this->save_type(inst_id("start"), Insts::start(x(0)));
-      this->save_type(inst_id("merge"), Insts::merge());
+      this->save_type(inst_id("merge"), Insts::merge(x(0)));
       this->save_type(inst_id(">-"), Insts::from(uri(inst_id("merge"))));
       this->save_type(inst_id("map"), Insts::map(x(0)));
       this->save_type(inst_id("filter"), Insts::filter(x(0)));
@@ -75,7 +75,7 @@ namespace fhatos {
       //this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->save_type(inst_id("within"), Insts::within(x(0)));
       this->save_type(inst_id("print"), Insts::print(x(0, bcode())));
-      this->save_type(inst_id("switch"), Insts::bswitch(x(0)));
+      //this->save_type(inst_id("switch"), Insts::bswitch(x(0)));
       this->save_type(inst_id("explain"), Insts::explain());
       this->save_type(inst_id("drop"), Insts::drop(x(0)));
       this->save_type(inst_id("V"), Insts::from(uri(inst_id("drop"))));

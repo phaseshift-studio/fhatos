@@ -141,7 +141,7 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-    static Obj_p bswitch(const Rec_p &rec) {
+   /* static Obj_p bswitch(const Rec_p &rec) {
       return Obj::to_inst(
         "switch", {rec},
         [](const InstArgs &args) {
@@ -158,7 +158,7 @@ namespace fhatos {
           };
         },
         IType::ONE_TO_MANY);
-    }
+    }*/
 
     /* static Objs_p bunion(const Rec_p rec) {
    return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
@@ -778,22 +778,36 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-    static Obj_p merge() {
+    static Obj_p merge(const Int_p &amount) {
       return Obj::to_inst(
-        "merge", {},
-        [](const InstArgs &) {
-          return [](const Poly_p &lhs) {
+        "merge", {amount},
+        [](const InstArgs &args) {
+          return [args](const Poly_p &lhs) {
+            const int amnt = args.at(0)->is_noobj() ? 10000 : args.at(0)->apply(lhs)->int_value();
             Objs_p objs = Obj::to_objs();
             if (lhs->is_lst()) {
-              for (const auto &obj: *lhs->lst_value()) {
-                objs->add_obj(obj);
+              int counter = 0;
+              for (const auto &element: *lhs->lst_value()) {
+                if (counter >= amnt)
+                  break;
+                if (!element->is_noobj()) {
+                  objs->add_obj(element);
+                  ++counter;
+                }
               }
             } else if (lhs->is_rec()) {
+              int counter = 0;
               for (const auto &[key,value]: *lhs->rec_value()) {
-                objs->add_obj(Obj::to_lst({key, value}));
+                if (counter >= amnt)
+                  break;
+                if (!value->is_noobj()) {
+                  objs->add_obj(value);
+                  ++counter;
+                }
               }
             } else {
-              objs->add_obj(lhs);
+              if (amnt > 0)
+                objs->add_obj(lhs);
             }
             return objs;
           };
@@ -809,9 +823,9 @@ namespace fhatos {
           const Obj_p &end = args.at(1);
           return [start, end](const Poly_p &lhs) {
             if (lhs->is_lst()) {
-              Obj::LstList_p<Obj_p> sub = make_shared<List<Obj_p>>();
-              int s = start->apply(lhs)->int_value();
-              int e = end->apply(lhs)->int_value();
+              const Obj::LstList_p<Obj_p> sub = make_shared<List<Obj_p>>();
+              const int s = start->apply(lhs)->int_value();
+              const int e = end->apply(lhs)->int_value();
               int counter = 0;
               for (const auto &obj: *lhs->lst_value()) {
                 if (counter >= s && counter < e) {
@@ -835,7 +849,7 @@ namespace fhatos {
         [](const InstArgs &args) {
           const Obj_p &arg = args.at(0);
           return [arg](const Poly_p &lhs) {
-            Lst_p poly = arg->is_lst() ? arg : arg->apply(lhs);
+            const Lst_p poly = arg->is_lst() ? arg : arg->apply(lhs);
             if (lhs->is_lst()) {
               Lst_p ret = Obj::to_lst();
               for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
@@ -893,7 +907,7 @@ namespace fhatos {
     static Map<string, string> unary_sugars() {
       static Map<string, string> map = {{"@", "get"}, {"`", "optional"}, {"-<", "split"},
         {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"}, {"|", "block"},
-        {"^", "lift"}, {"V", "drop"}, {"*", "from"}, {"=", "each"}};
+        {"^", "lift"}, {"V", "drop"}, {"*", "from"}, {"=", "each"}, {";", "end"}};
       return map;
     }
 

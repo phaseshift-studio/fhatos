@@ -171,12 +171,12 @@ namespace fhatos {
       "test_data_types",
       *make_test_pattern("abc"),
       QoS::_1,
-      OBJ_PARSER(string("get(payload).print(_).switch(["
+      OBJ_PARSER(string("get(payload).print(_).-<(["
         "type().is(eq(/type/bool/)) => is(eq(true)),"
         "type().is(eq(/type/int/)) => is(eq(10)),"
         "type().is(eq(/type/real/)) => is(eq(15.5)),"
         "type().is(eq(/type/str/)) => is(eq('here')),"
-        "type().is(eq(/type/uri/)) => is(eq(<http://fhatos.org>))]).count().is(eq(0)).error('wrong parse')"))));
+        "type().is(eq(/type/uri/)) => is(eq(<http://fhatos.org>))]).merge(1).count().is(eq(0)).error('wrong parse')"))));
     //"type().is(eq(/type/lst/)) => is(eq([1,2,3])),"
     //"type().is(eq(/type/rec/)) => is(eq([1=>2,3=>4]))])
     //current_structure->recv_publication(message_p(*make_test_pattern("abc"), dool(true), false));

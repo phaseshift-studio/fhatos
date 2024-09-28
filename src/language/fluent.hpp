@@ -154,11 +154,11 @@ namespace fhatos {
     //////////////////////////// BRANCHING ////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) const {
+    /*Fluent bswitch(const std::initializer_list<Pair<const Obj, Obj>> &recPairs) const {
       return this->bswitch(Rec(recPairs));
-    }
+    }*/
 
-    Fluent bswitch(const Rec &branches) const { return this->addInst(Insts::bswitch(share(branches))); }
+    //Fluent bswitch(const Rec &branches) const { return this->addInst(Insts::bswitch(share(branches))); }
 
     ///////////////////////////////////////////////////////////////////
     //////////////////////////// FILTERING ////////////////////////////

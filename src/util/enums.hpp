@@ -49,7 +49,7 @@ namespace fhatos {
       }
       string enums_string;
       for (const auto &pair: ENUM_TO_STR) {
-        enums_string += pair.second + " ";
+        enums_string += (pair.second + " ");
       }
       StringHelper::trim(enums_string);
       throw fError("!yenum!! not found for chars !y%s!! [!b%s!!]\n", s.c_str(), enums_string.c_str());

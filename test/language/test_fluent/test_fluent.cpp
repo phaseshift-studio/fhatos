@@ -38,12 +38,6 @@ namespace fhatos {
     FOS_CHECK_RESULTS({2}, __(1).to(u("a")).plus(_.from(u("a"))), {{u("a"), 1}});
     FOS_CHECK_RESULTS({23}, __(10).to(u("b")).plus(3).plus(_.from(u("b"))), {{u("b"), 10}});
     FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(u("c")).plus("os"), {{u("c"), "fhat"}});
-    /*FOS_CHECK_RESULTS<Str>(
-        {"fhaty", "pigy"},
-        __(List<Obj>{"fhat", "pig"})
-            .bswitch({{*_.is(_.gt("gonzo"))._bcode, *_.to(u("b"))._bcode}, {*_._bcode, *_.to(u("c"))._bcode}})
-            .plus("y"),
-        {{u("b"), "pig"}, {u("c"), "fhat"}});*/
   }
 
   void test_relational_predicates() {

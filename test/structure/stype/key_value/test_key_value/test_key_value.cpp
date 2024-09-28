@@ -26,7 +26,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
     begin_test_structure(KeyValue::create("/test/#")); //
     FOS_RUN_TEST(test_subscribe); //
-    //FOS_RUN_TEST(test_data_types); //
+    FOS_RUN_TEST(test_data_types); //
     FOS_RUN_TEST(test_write); //
     FOS_RUN_TEST(test_read); //
     FOS_RUN_TEST(test_patterned_reads); //
