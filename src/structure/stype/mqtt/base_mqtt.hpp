@@ -20,6 +20,7 @@
 
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
+#include <chrono>
 
 #ifndef FOS_MQTT_BROKER_ADDR
 #define FOS_MQTT_BROKER_ADDR localhost
@@ -32,16 +33,24 @@
 #define FOS_MQTT_RETRY_WAIT 5000
 
 namespace fhatos {
+  using namespace chrono;
+
   class BaseMqtt : public Structure {
+  public:
+    struct Settings {
+      string broker = STR(FOS_MQTT_BROKER_ADDR);
+      Message_p will = nullptr;
+      uint16_t read_ms_wait = 500;
+    };
+
   protected:
     string server_addr_;
     const Message_p will_message_;
+    const Settings settings_;
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern = Pattern("//+/#"), const string &server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                      const Message_p &will_message = ptr<Message>(nullptr)) : Structure(pattern, SType::NETWORK),
-                                                                               server_addr_(server_addr),
-                                                                               will_message_(will_message) {
+    explicit BaseMqtt(const Pattern &pattern, const Settings &settings) : Structure(pattern, SType::NETWORK),
+                                                                          settings_(settings) {
     }
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
@@ -117,17 +126,12 @@ namespace fhatos {
                          thing->load()->push_back({id_p(message->target), message->payload});
                        })));
       ///////////////////////////////////////////////
-      const time_t start_timestamp = time(nullptr);
-      if (pattern_or_branch) {
-        while (time(nullptr) - start_timestamp < 2) {
-          this->native_mqtt_loop();
-        }
-      } else {
-        while (thing->load()->empty()) {
-          if (time(nullptr) - start_timestamp > 1)
-            break;
-          this->native_mqtt_loop();
-        }
+      const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+      while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
+             milliseconds(this->settings_.read_ms_wait)) {
+        if (!pattern_or_branch && !thing->load()->empty())
+          break;
+        this->native_mqtt_loop();
       }
       ///////////////////////////////////////////////
       this->recv_unsubscribe(id_p(source_id), furi_p(temp));

@@ -141,24 +141,24 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-   /* static Obj_p bswitch(const Rec_p &rec) {
-      return Obj::to_inst(
-        "switch", {rec},
-        [](const InstArgs &args) {
-          return [args](const Obj_p &lhs) {
-            try {
-              for (const auto &[key, value]: *args.at(0)->rec_value()) {
-                if (!key->apply(lhs)->is_noobj())
-                  return value->apply(lhs);
-              }
-            } catch (const std::bad_any_cast &e) {
-              LOG_EXCEPTION(e);
-            }
-            return noobj();
-          };
-        },
-        IType::ONE_TO_MANY);
-    }*/
+    /* static Obj_p bswitch(const Rec_p &rec) {
+       return Obj::to_inst(
+         "switch", {rec},
+         [](const InstArgs &args) {
+           return [args](const Obj_p &lhs) {
+             try {
+               for (const auto &[key, value]: *args.at(0)->rec_value()) {
+                 if (!key->apply(lhs)->is_noobj())
+                   return value->apply(lhs);
+               }
+             } catch (const std::bad_any_cast &e) {
+               LOG_EXCEPTION(e);
+             }
+             return noobj();
+           };
+         },
+         IType::ONE_TO_MANY);
+     }*/
 
     /* static Objs_p bunion(const Rec_p rec) {
    return Obj::to_inst("union", {rec}, [rec](const Obj_p &lhs) {
@@ -909,6 +909,14 @@ namespace fhatos {
         {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"}, {"|", "block"},
         {"^", "lift"}, {"V", "drop"}, {"*", "from"}, {"=", "each"}, {";", "end"}};
       return map;
+    }
+
+    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cpp-impl")) {
+      return bcode({Insts::lambda(
+        [function](const Obj_p &obj) {
+          return function(obj);
+        },
+        uri(label))});
     }
 
     static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cpp-impl")) {

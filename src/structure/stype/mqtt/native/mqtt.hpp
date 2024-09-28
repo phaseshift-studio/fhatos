@@ -33,14 +33,11 @@ namespace fhatos {
     ptr<async_client> xmqtt_;
     connect_options connection_options_{};
 
-    // +[scheme]//+[authority]/#[path]
-    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"),
-                  string server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                  const Message_p &will_message = ptr<Message>(nullptr)) : BaseMqtt(
-      pattern, server_addr, will_message) {
-      this->server_addr_ = string(server_addr).find_first_of("mqtt://") == string::npos
-                             ? string("mqtt://").append(string(server_addr))
-                             : server_addr;
+    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) : BaseMqtt(
+      pattern, settings) {
+      this->server_addr_ = string(this->settings_.broker).find_first_of("mqtt://") == string::npos
+                             ? string("mqtt://").append(string(this->settings_.broker))
+                             : settings_.broker;
       this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, string("client_" + to_string(std::rand())),
                                                     mqtt::create_options());
       connect_options_builder pre_connection_options = connect_options_builder()
@@ -50,8 +47,8 @@ namespace fhatos {
           .user_name(string("client_" + to_string(rand())))
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
-      if (will_message.get()) {
-        const BObj_p source_payload = will_message->payload->serialize();
+      if (this->settings_.will.get()) {
+        const BObj_p source_payload = this->settings_.will->payload->serialize();
         pre_connection_options = pre_connection_options.will(
           message(this->will_message_->target.toString(), source_payload->second, this->will_message_->retain));
       }
@@ -109,9 +106,8 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const char *server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                            const Message_p &will_message = ptr<Message>(nullptr)) {
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
+    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings = Settings()) {
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings));
       return mqtt_p;
     }
 

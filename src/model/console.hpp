@@ -28,7 +28,7 @@
 #include <model/terminal.hpp>
 
 namespace fhatos {
-  using Command = Trip<string, Consumer<Obj_p>, Runnable>;
+  using Command = Pair<string, Function<Obj_p, Obj_p>>;
   static Map<string, Command> *MENU_MAP_ = nullptr;
 
   class Console final : public Thread {
@@ -38,6 +38,7 @@ namespace fhatos {
     struct Settings {
       bool nest = false;
       bool ansi = true;
+      bool strict = false;
     };
 
   protected:
@@ -46,7 +47,7 @@ namespace fhatos {
     bool new_input_ = true;
     Settings settings_;
 
-    static constexpr Settings DEFAULT_SETTINGS = Settings{.nest = false, .ansi = true};
+    static constexpr Settings DEFAULT_SETTINGS = Settings{.nest = false, .ansi = true, .strict = false};
 
     ///// printers
     void print_exception(const std::exception &ex) const { Terminal::out(this->id(), "!r[ERROR]!! %s\n", ex.what()); }
@@ -66,7 +67,7 @@ namespace fhatos {
                       .c_str());
         for (const auto &e: *obj->lst_value()) {
           Terminal::out(this->id(), "%s%s\n!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                        e->is_poly() ? "" : e->toString().c_str());
+                        e->is_poly() ? "" : e->toString(true, this->settings_.ansi, this->settings_.strict).c_str());
           if (e->is_poly())
             this->print_result(e, depth + 1);
         }
@@ -83,8 +84,10 @@ namespace fhatos {
         for (const auto &[key, value]: *obj->rec_value()) {
           Terminal::out(this->id(), "%s!c%s!m=>!!%s\n!!",
                         (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                        key->toString(true, false).c_str(),
-                        value->is_poly() ? "" : value->toString().c_str());
+                        key->toString(true, false, this->settings_.strict).c_str(),
+                        value->is_poly()
+                          ? ""
+                          : value->toString(true, this->settings_.ansi, this->settings_.strict).c_str());
           if (value->is_poly())
             this->print_result(value, depth + 1);
         }
@@ -96,50 +99,63 @@ namespace fhatos {
           .c_str());
       } else {
         Terminal::out(this->id(), (string("!g") + StringHelper::repeat(depth, "=")).c_str());
-        Terminal::out(this->id(), "==>!!%s\n", obj->toString().c_str());
+        Terminal::out(this->id(), "==>!!%s\n",
+                      obj->toString(true, this->settings_.ansi, this->settings_.strict).c_str());
       }
     }
 
-    explicit Console(const ID &id = ID("/io/repl/"), const ID &terminal = ID("/terminal/"),
-                     const Settings &settings = DEFAULT_SETTINGS) : Thread(id),
-                                                                    terminal_id_(id_p(terminal)),
-                                                                    settings_(settings) {
+    explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(id),
+      terminal_id_(id_p(terminal)),
+      settings_(settings) {
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
         MENU_MAP_->insert({":help",
-          {"help menu", [](const Obj_p &) { std::get<2>(MENU_MAP_->at(":help"))(); },
-            []() {
-              printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-              for (const auto &[command, description]: *MENU_MAP_) {
-                printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
-                                    std::get<0>(description).c_str());
-              }
-            }}});
+          {"help menu", [](const Obj_p &) {
+            printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+            for (const auto &[command, description]: *MENU_MAP_) {
+              printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
+                                  std::get<0>(description).c_str());
+            }
+            return noobj();
+          }}});
         MENU_MAP_->insert({":log",
           {"log level",
             [](const Uri_p &log_level) {
+              if (log_level->is_noobj())
+                return uri(LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()));
               Options::singleton()->log_level(LOG_TYPES.to_enum(log_level->uri_value().toString()));
               return log_level;
-            },
-            [] {
-              printer<>()->printf(
-                "!ylog!!: !b%s!!\n",
-                LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()).c_str());
             }}});
         MENU_MAP_->insert(
           {":output",
-            {"terminal out id", [this](const Uri_p &uri) { this->terminal_id_ = id_p(uri->uri_value()); },
-              [this] { printer<>()->printf("!youtput!!: !b%s!!\n", this->terminal_id_->toString().c_str()); }}});
+            {"terminal out id", [this](const Uri_p &uri) {
+              if (!uri->is_noobj())
+                this->terminal_id_ = id_p(uri->uri_value());
+              return Obj::to_uri(*this->terminal_id_);
+            }}});
         MENU_MAP_->insert({":clear",
-          {"clear terminal", [](const Obj_p &) { printer<>()->print("!X!Q"); },
-            [] { printer<>()->print("!X!Q"); }}});
+          {"clear terminal", [](const Obj_p &) {
+            printer<>()->print("!X!Q");
+            return noobj();
+          }}});
         MENU_MAP_->insert({":color",
-          {"colorize output", [this](const Bool_p &xbool) { this->settings_.ansi = xbool->bool_value(); },
-            [this] { printer<>()->printf("!ycolor!!: %s\n", FOS_BOOL_STR(this->settings_.ansi)); }}});
-        MENU_MAP_->insert(
-          {":nest",
-            {"display poly objs nested", [this](const Bool_p &xbool) { this->settings_.nest = xbool->bool_value(); },
-              [this] { printer<>()->printf("!ynest!!: %s\n", FOS_BOOL_STR(this->settings_.nest)); }}});
+          {"colorize output", [this](const Bool_p &xbool) {
+            if (!xbool->is_noobj())
+              this->settings_.ansi = xbool->bool_value();
+            return dool(this->settings_.ansi);
+          }}});
+        MENU_MAP_->insert({":strict",
+          {"strict formatting", [this](const Bool_p &xbool) {
+            if (!xbool->is_noobj())
+              this->settings_.strict = xbool->bool_value();
+            return dool(this->settings_.strict);
+          }}});
+        MENU_MAP_->insert({":nest",
+          {"display poly objs nested", [this](const Bool_p &xbool) {
+            if (!xbool->is_noobj())
+              this->settings_.nest = xbool->bool_value();
+            return dool(this->settings_.nest);
+          }}});
         MENU_MAP_->insert(
           {":shutdown",
             {
@@ -153,18 +169,8 @@ namespace fhatos {
                       .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
                     share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
                 this->delay(100);
-              },
-              [this]() {
-                Scheduler::singleton()->recv_mail(share(
-                  Mail{share(Subscription{
-                      .source = fURI(*this->id()),
-                      .pattern = *Scheduler::singleton()->id(),
-                      .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
-                    share(Message{.target = *Scheduler::singleton()->id(), .payload = noobj(), .retain = true})}));
-                this->delay(100);
+                return noobj();
               }}});
-        MENU_MAP_->insert(
-          {":quit", {"kill console process", [this](const Obj_p &) { this->stop(); }, [this] { this->stop(); }}});
       }
     }
 
@@ -216,11 +222,11 @@ namespace fhatos {
             this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
                                          this->id()->toString().c_str(), command.c_str()));
           } else if (index == string::npos) {
-            std::get<2>(MENU_MAP_->at(command))();
+            this->print_result(MENU_MAP_->at(command).second(noobj()));
           } else {
             const string value = this->line_.substr(index);
             StringHelper::trim(value);
-            std::get<1>(MENU_MAP_->at(command))(parse(value)->apply(Obj::to_noobj()));
+            this->print_result(MENU_MAP_->at(command).second(parse(value)->apply(noobj())));
           }
         } catch (std::exception &e) {
           this->print_exception(e);

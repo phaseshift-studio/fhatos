@@ -326,7 +326,7 @@ namespace fhatos {
 
     [[nodiscard]] bool is_relative() const {
       const char first = this->toString()[0];
-      return first == '.' || first == ':';
+      return first == '.' || first == ':' || (first != '/' && !this->scheme_ && !this->host_);
     }
 
     [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
@@ -404,6 +404,9 @@ namespace fhatos {
     }
 
     [[nodiscard]] virtual bool matches(const fURI &pattern) const {
+      //if (this->has_query() || pattern.has_query()) {
+      //  return this->query("").matches(pattern.query(""));
+      // }
       if (this->equals(pattern))
         return true;
       const string pattern_str = pattern.toString();
@@ -497,13 +500,13 @@ namespace fhatos {
       if (strlen(uriChars) == 0)
         return;
       const char *dups = strdup(uriChars);
-      for (size_t i = 0; i < strlen(dups); i++) {
+      /*for (size_t i = 0; i < strlen(dups); i++) {
         if (dups[i] == '#' && i != strlen(dups) - 1) {
           const string temp = string(dups);
           free((void *) dups);
-          throw fError("Recurssive !b#!! wildcard must be the last character: %s\n", temp.c_str());
+      throw fError("Recurssive !b#!! wildcard must be the last character: %s\n", temp.c_str());
         }
-      }
+      }*/
       try {
         std::stringstream ss = std::stringstream(dups);
         string token;
@@ -636,6 +639,12 @@ namespace fhatos {
           } // else if (part == URI_PART::FRAGMENT) {
           // this->_fragment = strdup(token.c_str());
           // }
+        }
+        for (uint8_t i = 0; i < this->path_length_; i++) {
+          if (this->path_[i][0] == '#' && i != this->path_length_ - 1) {
+            throw fError("Only the last path segment can contain the recurssive !b#!! wildcard: %s\n",
+                         this->path().c_str());
+          }
         }
       } catch (const std::exception &) {
         FOS_SAFE_FREE(dups);
