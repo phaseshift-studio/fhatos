@@ -215,7 +215,7 @@ namespace fhatos {
 #define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE
-#define CONST_CHAR(__var_name__, __chars__) inline const char *__var_name__ = (__chars__)
+#define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
 #else
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ PROGMEM = (__chars__)
 #endif
@@ -230,6 +230,7 @@ namespace fhatos {
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
+#define FOS_MEMORY(__memory__) <model/soc/memory/esp32/__memory__>
 #elif defined(ESP8266)
 #define ESP_ARCH
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
@@ -240,6 +241,7 @@ namespace fhatos {
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/native/__mqtt__>
 #define FOS_UTIL(__util__) <util/std/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/native/__fs__>
+#define FOS_MEMORY(__memory__) <model/soc/memory/native/__memory__>
 #else
 #error "Unknown architecture."
 #endif

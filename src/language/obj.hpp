@@ -423,6 +423,14 @@ namespace fhatos {
       return this->value<string>();
     }
 
+    [[nodiscard]] Obj_p str_get(const Int_p &index) const {
+      if (!this->is_str())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return index->int_value() >= this->str_value().length()
+               ? Obj::to_noobj()
+               : Obj::to_str(string() + (this->str_value()[index->int_value()]));
+    }
+
     [[nodiscard]] LstList_p<> lst_value() const {
       if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -438,7 +446,9 @@ namespace fhatos {
     [[nodiscard]] Obj_p lst_get(const Int_p &index) const {
       if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->lst_value()->at(index->int_value());
+      return index->int_value() >= this->lst_value()->size()
+               ? Obj::to_noobj()
+               : this->lst_value()->at(index->int_value());
     }
 
     void lst_set(const Int_p &index, const Obj_p &obj) const {
@@ -970,7 +980,7 @@ namespace fhatos {
     Obj operator[](const Obj &key) const {
       switch (this->o_type()) {
         case OType::STR:
-          return Obj(this->str_value()[key.int_value()]);
+          return *this->str_get(share(key));
         case OType::LST:
           return *this->lst_get(share(key));
         case OType::REC:

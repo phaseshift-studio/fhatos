@@ -71,8 +71,8 @@ namespace fhatos {
       this->save_type(inst_id("is"), Insts::is(x(0)));
       this->save_type(inst_id("from"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
       this->save_type(inst_id("*"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
-      this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
-      this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
+      //this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
+      //this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->save_type(inst_id("within"), Insts::within(x(0)));
       this->save_type(inst_id("print"), Insts::print(x(0, bcode())));
       this->save_type(inst_id("switch"), Insts::bswitch(x(0)));

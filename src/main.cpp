@@ -28,13 +28,13 @@
 #include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
+#include FOS_MEMORY(memory.hpp)
 
 #ifdef ESP_ARCH
 #include <esp32/spiram.h>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/pwm.hpp>
 #include <model/soc/esp/wifi.hpp>
-#include <model/soc/esp32/memory.hpp>
 #endif
 
 #ifdef NATIVE

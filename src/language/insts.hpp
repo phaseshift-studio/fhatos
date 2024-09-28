@@ -528,19 +528,6 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-    static Obj_p pub(const Uri_p &target, const Obj_p &payload, const Bool_p &retain) {
-      return Obj::to_inst(
-        "pub", {target, payload, retain},
-        [](const InstArgs &args) {
-          return [args](const Obj_p &lhs) {
-            router()->route_message(message_p(args.at(0)->apply(lhs)->uri_value(), args.at(1)->apply(lhs),
-                                              args.at(2)->apply(lhs)->bool_value()));
-            return lhs;
-          };
-        },
-        are_initial_args(target, payload, retain) ? IType::ZERO_TO_ONE : IType::ONE_TO_ONE);
-    }
-
     static Obj_p lift(const BCode_p &bcode) {
       return Obj::to_inst(
         "lift", {bcode},
@@ -566,25 +553,6 @@ namespace fhatos {
         "drop", {bcode},
         [](const InstArgs &args) { return [args](const Obj_p &lhs) { return args.at(0)->apply(lhs)->apply(lhs); }; },
         IType::ONE_TO_ONE);
-    }
-
-    static Obj_p sub(const Uri_p &pattern, const BCode_p &on_recv) {
-      return Obj::to_inst(
-        "sub", {pattern, on_recv},
-        [](const InstArgs &args) {
-          return [args](const Obj_p &lhs) {
-            const Uri_p pattern_applied = args.at(0)->apply(lhs);
-            const BCode_p on_recv_applied = args.at(1)->apply(lhs);
-            if (on_recv_applied->is_noobj()) {
-              router()->route_unsubscribe(id_p("mmadt"), p_p(pattern_applied->uri_value()));
-            } else {
-              router()->route_subscription(
-                subscription_p(ID("mmadt"), pattern_applied->uri_value(), QoS::_1, on_recv_applied));
-            }
-            return lhs;
-          };
-        },
-        are_initial_args(pattern) ? IType::ZERO_TO_MANY : IType::ONE_TO_MANY);
     }
 
   private:
@@ -818,8 +786,14 @@ namespace fhatos {
             Objs_p objs = Obj::to_objs();
             if (lhs->is_lst()) {
               for (const auto &obj: *lhs->lst_value()) {
-                objs->objs_value()->push_back(obj);
+                objs->add_obj(obj);
               }
+            } else if (lhs->is_rec()) {
+              for (const auto &[key,value]: *lhs->rec_value()) {
+                objs->add_obj(Obj::to_lst({key, value}));
+              }
+            } else {
+              objs->add_obj(lhs);
             }
             return objs;
           };
@@ -917,9 +891,9 @@ namespace fhatos {
     }*/
 
     static Map<string, string> unary_sugars() {
-      static Map<string, string> map = {{"?", "optional"}, {"-<", "split"}, {">-", "merge"}, {"~", "match"},
-        {"<-", "to"}, {"->", "to_inv"}, {"|", "block"}, {"^", "lift"},
-        {"V", "drop"}, {"*", "from"}, {"=", "each"}};
+      static Map<string, string> map = {{"@", "get"}, {"`", "optional"}, {"-<", "split"},
+        {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"}, {"|", "block"},
+        {"^", "lift"}, {"V", "drop"}, {"*", "from"}, {"=", "each"}};
       return map;
     }
 
