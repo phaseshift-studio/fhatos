@@ -21,10 +21,10 @@
 
 #ifndef NATIVE
 
-#include <structure/stype/mqtt/base_mqtt.hpp>
-#include <fhatos.hpp>
-#include <WiFiClient.h>
 #include <PubSubClient.h>
+#include <WiFiClient.h>
+#include <fhatos.hpp>
+#include <structure/stype/mqtt/base_mqtt.hpp>
 
 #ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 512
@@ -32,101 +32,95 @@
 
 namespace fhatos {
 
-class Mqtt : public BaseMqtt {
+  class Mqtt : public BaseMqtt {
 
 
   protected:
-const Map<int8_t, string> MQTT_STATE_CODES = {
-      {{-4, "MQTT_CONNECTION_TIMEOUT"},
-       {-3, "MQTT_CONNECTION_LOST"},
-       {-2, "MQTT_CONNECT_FAILED"},
-       {-1, "MQTT_DISCONNECTED"},
-       {0, "MQTT_CONNECTED"},
-       {1, "MQTT_CONNECT_BAD_PROTOCOL"},
-       {2, "MQTT_CONNECT_BAD_CLIENT_ID"},
-       {3, "MQTT_CONNECT_UNAVAILABLE"},
-       {4, "MQTT_CONNECT_BAD_CREDENTIALS"},
-       {5, "MQTT_CONNECT_UNAUTHORIZED"}}};
+    const Map<int8_t, string> MQTT_STATE_CODES = {{{-4, "MQTT_CONNECTION_TIMEOUT"},
+                                                   {-3, "MQTT_CONNECTION_LOST"},
+                                                   {-2, "MQTT_CONNECT_FAILED"},
+                                                   {-1, "MQTT_DISCONNECTED"},
+                                                   {0, "MQTT_CONNECTED"},
+                                                   {1, "MQTT_CONNECT_BAD_PROTOCOL"},
+                                                   {2, "MQTT_CONNECT_BAD_CLIENT_ID"},
+                                                   {3, "MQTT_CONNECT_UNAVAILABLE"},
+                                                   {4, "MQTT_CONNECT_BAD_CREDENTIALS"},
+                                                   {5, "MQTT_CONNECT_UNAUTHORIZED"}}};
 
-   ptr<PubSubClient> xmqtt_;
+    ptr<PubSubClient> xmqtt_;
 
-   explicit Mqtt(const Pattern &pattern = Pattern("//+/#"),
-                 const string server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                 const Message_p &will_message = ptr<Message>(nullptr)) : BaseMqtt(pattern, server_addr, will_message) {
+    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) : BaseMqtt(pattern, settings) {
 
-  if (server_addr_.empty()) {
-    LOG_STRUCTURE(WARN, this, "MQTT disabled as no broker address provided.\n");
-  } else {
-    WiFiClient *client = new WiFiClient();
-    this->xmqtt_ = ptr<PubSubClient>(new PubSubClient(server_addr_.c_str(), FOS_MQTT_BROKER_PORT, *client));
-    // this->xmqtt->setSocketTimeout(25);
-    this->xmqtt_->setServer(server_addr_.c_str(), FOS_MQTT_BROKER_PORT);
-    this->xmqtt_->setBufferSize(MQTT_MAX_PACKET_SIZE);
-    this->xmqtt_->setSocketTimeout(1000); // may be too excessive
-    this->xmqtt_->setKeepAlive(1000);     // may be too excessive
-    this->xmqtt_->setCallback([this](const char *topic, const uint8_t *data, const uint32_t length) {
-        ((char *)data)[length] = '\0';
-       // const fbyte* data_dup[length];
-        //memcpy(data_dup,data,length);
-        const BObj_p bobj = share(BObj(length, (fbyte *) data));
-        const Message_p message = share(Message{
-          .target = ID(topic),
-          .payload = Obj::deserialize(bobj),
-          .retain = true //mqtt_message->is_retained() TODO: BOBj wrap should allow any properties of a message to be encodded in the byte stream
+      if (this->settings_.broker.empty()) {
+        LOG_STRUCTURE(WARN, this, "MQTT disabled as no broker address provided.\n");
+      } else {
+        WiFiClient *client = new WiFiClient();
+        this->xmqtt_ =
+            ptr<PubSubClient>(new PubSubClient(this->settings_.broker.c_str(), FOS_MQTT_BROKER_PORT, *client));
+        // this->xmqtt->setSocketTimeout(25);
+        this->xmqtt_->setServer(this->settings_.broker.c_str(), FOS_MQTT_BROKER_PORT);
+        this->xmqtt_->setBufferSize(MQTT_MAX_PACKET_SIZE);
+        this->xmqtt_->setSocketTimeout(1000); // may be too excessive
+        this->xmqtt_->setKeepAlive(1000); // may be too excessive
+        this->xmqtt_->setCallback([this](const char *topic, const uint8_t *data, const uint32_t length) {
+          ((char *) data)[length] = '\0';
+          // const fbyte* data_dup[length];
+          // memcpy(data_dup,data,length);
+          const BObj_p bobj = share(BObj(length, (fbyte *) data));
+          const Message_p message = share(Message{
+              .target = ID(topic),
+              .payload = Obj::deserialize(bobj),
+              .retain = true // mqtt_message->is_retained() TODO: BOBj wrap should allow any properties of a message to
+                             // be encodded in the byte stream
+          });
+          LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
+          const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(topic));
+          for (const Subscription_p &sub: *matches) {
+            this->outbox_->push_back(share(Mail{sub, message}));
+          }
+          SCHEDULER_INTERCEPT(message->target, message->payload, message->retain);
         });
-        LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
-        const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(topic));
-        for (const Subscription_p &sub: *matches) {
-          this->outbox_->push_back(share(Mail{sub, message}));
-        }
-        SCHEDULER_INTERCEPT(message->target, message->payload, message->retain);
-      });
-  }
-  }
-
-    virtual void native_mqtt_loop() override {
-      Process::current_process()->yield();
+      }
     }
 
-  void native_mqtt_subscribe(const Subscription_p &subscription) override {
-    this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), static_cast<uint8_t>(subscription->qos));
-  }
+    virtual void native_mqtt_loop() override { Process::current_process()->yield(); }
 
-  void native_mqtt_unsubscribe(const fURI_p &pattern) override {
-    this->xmqtt_->unsubscribe(pattern->toString().c_str());
-  }
+    void native_mqtt_subscribe(const Subscription_p &subscription) override {
+      this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), static_cast<uint8_t>(subscription->qos));
+    }
 
-  void native_mqtt_publish(const Message_p &message) override {
-    const BObj_p payload = message->payload->serialize();
-    this->xmqtt_->publish(message->target.toString().c_str(),payload->second,payload->first,message->retain);
-  }
+    void native_mqtt_unsubscribe(const fURI_p &pattern) override {
+      this->xmqtt_->unsubscribe(pattern->toString().c_str());
+    }
 
-  void native_mqtt_disconnect() override {
-    this->xmqtt_->disconnect();
-  }
+    void native_mqtt_publish(const Message_p &message) override {
+      const BObj_p payload = message->payload->serialize();
+      this->xmqtt_->publish(message->target.toString().c_str(), payload->second, payload->first, message->retain);
+    }
+
+    void native_mqtt_disconnect() override { this->xmqtt_->disconnect(); }
 
 
   public:
-  static ptr<Mqtt> create(const Pattern &pattern, string server_addr = STR(FOS_MQTT_BROKER_ADDR),
-                       const Message_p &will_message = ptr<Message>(nullptr)) {
-    static const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, server_addr, will_message));
-    return mqtt_p;
-  }
+    static ptr<Mqtt> create(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) {
+      static const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings));
+      return mqtt_p;
+    }
 
     void loop() override {
-    Structure::loop();
-    scheduler()->feed_local_watchdog();
-    if (!this->xmqtt_->connected()) {
-      LOG_STRUCTURE(INFO, this, "Reconnecting to MQTT broker after connection loss [%s]\n", MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-      if(!this->xmqtt_->connect("fhatos")) {
-       Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
+      Structure::loop();
+      scheduler()->feed_local_watchdog();
+      if (!this->xmqtt_->connected()) {
+        LOG_STRUCTURE(INFO, this, "Reconnecting to MQTT broker after connection loss [%s]\n",
+                      MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
+        if (!this->xmqtt_->connect("fhatos")) {
+          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
+        }
+      } else if (!this->xmqtt_->loop()) {
+        LOG_STRUCTURE(ERROR, this, "MQTT processing loop failure: %s\n",
+                      MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
       }
-     }     else if(!this->xmqtt_->loop()) {
-      LOG_STRUCTURE(ERROR, this, "MQTT processing loop failure: %s\n",MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-     } 
-     
-
-  }
+    }
 
     void setup() override {
       Structure::setup();
@@ -136,7 +130,8 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
           if (!this->xmqtt_->connect("fhatos")) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->server_addr_.c_str(), FOS_MQTT_BROKER_PORT);
+            LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->settings_.broker.c_str(),
+                          FOS_MQTT_BROKER_PORT);
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->connected()) {
@@ -145,13 +140,12 @@ const Map<int8_t, string> MQTT_STATE_CODES = {
           }
         }
       } catch (const fError &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr_.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker.c_str(), e.what());
       }
     }
+  };
 
-};
-
-}
+} // namespace fhatos
 
 #endif
 #endif

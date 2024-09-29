@@ -104,14 +104,9 @@ namespace fhatos {
 
     static ptr<Kernel> model(const List<ID> &models) {
       for (const ID &id: models) {
-        // List_p<Obj_p> list = share(List<Obj_p>());
-        for (const Pair<ID, Type_p> &pair: Exts::exts(id)) {
-          const ID_p idp = make_shared<ID>(pair.first);
-          Types<>::singleton()->save_type(idp, pair.second);
-          // list->push_back(Obj::to_uri(*idp));
+        for (const auto &[id2, type]: Exts::exts(id)) {
+          Types::singleton()->save_type(id_p(id2), type);
         }
-        // router<Router>()->publish(
-        //    Message{.source = FOS_DEFAULT_SOURCE_ID, .target = id, .payload = Obj::to_lst(list), .retain = true});
       }
       return Kernel::build();
     }

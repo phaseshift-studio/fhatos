@@ -61,7 +61,9 @@
 #endif
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
-#define FOS_DEPLOY_TYPES_2 router()->attach(Types<>::singleton()); Types<>::singleton()->setup();
+#define FOS_DEPLOY_TYPES_2 \
+  router()->attach(KeyValue::create(Pattern("/type/#"))); \
+  scheduler()->spawn(Types::singleton());
 #else
 #define FOS_DEPLOY_TYPES_2 ;
 #endif
@@ -95,8 +97,6 @@ scheduler()->stop();
 #else
 #define FOS_STOP_ON_BOOT ;
 #endif
-
-
 
 
 ////////////////////////////////////////////////////////

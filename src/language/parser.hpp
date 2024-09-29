@@ -193,9 +193,7 @@ namespace fhatos {
       StringHelper::trim(token);
       if (token.empty() || try_parse_comment(token).has_value())
         return {};
-      const Pair<string, string> typeValue = try_parse_obj_type(token, GROUPING::BRACKET);
-      const string typeToken = typeValue.first;
-      const string valueToken = typeValue.second;
+      const auto [typeToken, valueToken] = try_parse_obj_type(token, GROUPING::BRACKET);
       const bool dot_type = dotType(typeToken); // .obj. in _bcode (apply)
       Option<Obj_p> b = {};
       ////////////////
@@ -234,7 +232,7 @@ namespace fhatos {
           return b.value();
       }
       b = dot_type
-            ? try_parse_bcode(token, EMPTY_CHARS, BCODE_FURI)
+            ? try_parse_bcode(token, "", BCODE_FURI)
             : try_parse_bcode(valueToken, typeToken, BCODE_FURI);
       if (b.has_value())
         return b.value();

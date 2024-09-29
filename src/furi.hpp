@@ -326,7 +326,7 @@ namespace fhatos {
 
     [[nodiscard]] bool is_relative() const {
       const char first = this->toString()[0];
-      return first == '.' || first == ':' || (first != '/' && !this->scheme_ && !this->host_);
+      return first == '.' || first == ':' ;//|| (first != '/' && !this->scheme_ && !this->host_);
     }
 
     [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }

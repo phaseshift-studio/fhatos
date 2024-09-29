@@ -22,8 +22,8 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <structure/router.hpp>
-#include <structure/stype/key_value.hpp>
 #include <structure/stype/external.hpp>
+#include <structure/stype/key_value.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
 #include "router.hpp"
@@ -36,10 +36,8 @@ namespace fhatos {
     const Uri_p pattern_uri_;
 
   public:
-    explicit StructureObj(const Pattern &pattern, const Rec_p &structure_rec) : STRUCTURE(pattern),
-      structure_rec_(structure_rec),
-      pattern_uri_(Obj::to_uri(pattern)) {
-    }
+    explicit StructureObj(const Pattern &pattern, const Rec_p &structure_rec) :
+        STRUCTURE(pattern), structure_rec_(structure_rec), pattern_uri_(Obj::to_uri(pattern)) {}
 
     void setup() override {
       try {
@@ -81,20 +79,17 @@ namespace fhatos {
 
   class LocalObj : public StructureObj<KeyValue> {
   public:
-    explicit LocalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {
-    }
+    explicit LocalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
   class NetworkObj : public StructureObj<Mqtt> {
   public:
-    explicit NetworkObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {
-    }
+    explicit NetworkObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
   class ExternalObj : public StructureObj<External> {
   public:
-    explicit ExternalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {
-    }
+    explicit ExternalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
   inline void load_structure_attacher() {

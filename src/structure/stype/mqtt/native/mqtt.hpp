@@ -35,10 +35,10 @@ namespace fhatos {
 
     explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) : BaseMqtt(
       pattern, settings) {
-      this->server_addr_ = string(this->settings_.broker).find_first_of("mqtt://") == string::npos
-                             ? string("mqtt://").append(string(this->settings_.broker))
-                             : settings_.broker;
-      this->xmqtt_ = std::make_shared<async_client>(this->server_addr_, string("client_" + to_string(std::rand())),
+      this->settings_.broker = string(this->settings_.broker).find_first_of("mqtt://") == string::npos
+                                 ? string("mqtt://").append(string(this->settings_.broker))
+                                 : settings_.broker;
+      this->xmqtt_ = std::make_shared<async_client>(this->settings_.broker, string("client_" + to_string(std::rand())),
                                                     mqtt::create_options());
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
@@ -50,7 +50,7 @@ namespace fhatos {
       if (this->settings_.will.get()) {
         const BObj_p source_payload = this->settings_.will->payload->serialize();
         pre_connection_options = pre_connection_options.will(
-          message(this->will_message_->target.toString(), source_payload->second, this->will_message_->retain));
+          message(this->settings_.will->target.toString(), source_payload->second, this->settings_.will->retain));
       }
       this->connection_options_ = pre_connection_options.finalize();
       //// MQTT MESSAGE CALLBACK
@@ -119,14 +119,14 @@ namespace fhatos {
           if (!this->xmqtt_->connect(this->connection_options_)->wait_for(1000)) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->server_addr_.c_str());
+            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->settings_.broker.c_str());
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->is_connected())
             break;
         }
       } catch (const mqtt::exception &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->server_addr_.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker.c_str(), e.what());
       }
     }
   };

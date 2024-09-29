@@ -44,9 +44,7 @@ namespace fhatos {
     };
 
   protected:
-    string server_addr_;
-    const Message_p will_message_;
-    const Settings settings_;
+    Settings settings_;
 
     // +[scheme]//+[authority]/#[path]
     explicit BaseMqtt(const Pattern &pattern, const Settings &settings) : Structure(pattern, SType::NETWORK),
@@ -68,16 +66,16 @@ namespace fhatos {
                     "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
                     "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
-                    this->server_addr_.c_str(), client_id->toString().c_str(),
-                    this->will_message_.get() ? this->will_message_->target.toString().c_str() : "<none>",
-                    this->will_message_.get() ? this->will_message_->payload->toString().c_str() : "<none>",
-                    this->will_message_.get() ? "1" : "<none>",
-                    this->will_message_.get() ? FOS_BOOL_STR(this->will_message_->retain) : "<none>");
+                    this->settings_.broker.c_str(), client_id->toString().c_str(),
+                    this->settings_.will.get() ? this->settings_.will->target.toString().c_str() : "<none>",
+                    this->settings_.will.get() ?this->settings_.will->payload->toString().c_str() : "<none>",
+                    this->settings_.will.get() ? "1" : "<none>",
+                    this->settings_.will.get() ? FOS_BOOL_STR(this->settings_.will->retain) : "<none>");
     }
 
   public:
     void stop() override {
-      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->server_addr_.c_str());
+      LOG_STRUCTURE(INFO, this, "Disconnecting from mqtt broker !g[!y%s!g]!!\n", this->settings_.broker.c_str());
       native_mqtt_disconnect();
       Structure::stop();
     }

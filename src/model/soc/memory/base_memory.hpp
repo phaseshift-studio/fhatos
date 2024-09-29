@@ -59,7 +59,7 @@ namespace fhatos {
 
     virtual void setup() override {
       External::setup();
-      Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
+      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
 
       this->read_functions_.insert(
         {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
@@ -103,7 +103,7 @@ namespace fhatos {
   };
 
   static void enable_esp32_memory() {
-    Types<>::singleton()->save_type(id_p(FOS_TYPE_PREFIX "/structure/soc/esp32/memory"), parse("[uri[_]=>_]"));
+    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "/structure/soc/esp32/memory"), parse("[uri[_]=>_]"));
   }
 } // namespace fhatos
 #endif

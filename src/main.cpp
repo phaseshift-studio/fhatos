@@ -96,7 +96,8 @@ void setup() {
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
         ->structure(KeyValue::create("+/#"))
-        ->structure(Types<KeyValue>::singleton("/type/"))
+        ->structure(KeyValue::create("/type/#"))
+        ->process(Types::singleton("/type/"))
         ->structure(Terminal::singleton("/terminal"))
         ->process(Parser::singleton("/parser/"))
 #ifdef ESP_ARCH
