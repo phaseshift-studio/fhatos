@@ -29,7 +29,6 @@ namespace fhatos {
 
   class Pin : public External {
 
-
   protected:
     Map<ID_p, BCode_p, furi_p_less> interrupts_;
     explicit Pin(const Pattern &pattern, 
@@ -44,8 +43,8 @@ namespace fhatos {
           {share(this->pattern()->resolve("./+")), [this, readFunc](const fURI_p &pin_furi) {
              List<Pair<ID_p, Obj_p>> list;
              if (StringHelper::is_integer(pin_furi->name())) {
-               uint8_t pin_number = stoi(pin_furi->name());
-               list.push_back({id_p(*pin_furi), jnt(digitalRead(pin_number))});
+               uint8_t i = stoi(pin_furi->name());
+               list.push_back({id_p(*pin_furi), readFunc(i)});
              } else {
                for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
                  list.push_back({id_p(this->pattern()->resolve(fURI(string("./") + to_string(i)))), readFunc(i)});
@@ -60,9 +59,9 @@ namespace fhatos {
       this->write_functions_.insert(
           {furi_p(this->pattern()->resolve("./+")), [this, writeFunc](const fURI_p &pin_furi, const Int_p &pin_value) {
              List<Pair<ID_p, Obj_p>> list;
-             uint8_t pin_number = stoi(pin_furi->name());
-             pinMode(pin_number, OUTPUT);
-             writeFunc(pin_number, pin_value->int_value());
+             uint8_t i = stoi(pin_furi->name());
+             pinMode(i, OUTPUT);
+             writeFunc(i, pin_value->int_value());
              return list;
            }});
     }

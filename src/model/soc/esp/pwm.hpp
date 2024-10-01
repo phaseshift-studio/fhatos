@@ -21,9 +21,10 @@
 #define fhatos_pwm_hpp
 
 #include <fhatos.hpp>
-#include <structure/stype/external.hpp>
 #include <model/soc/esp/pin.hpp>
+#include <structure/stype/external.hpp>
 
+#define FOS_PWM_ANALOG_RESOLUTION 4095
 
 namespace fhatos {
 
@@ -32,9 +33,15 @@ namespace fhatos {
   protected:
     Map<ID_p, BCode_p, furi_p_less> interrupts_;
     explicit PWM(const Pattern &pattern = "/soc/pwm/#") :
-        Pin(pattern, 
-            [](const uint8_t pin) -> Int_p { return jnt(analogRead(pin)); },
-            [](const uint8_t pin, const int value) { analogWrite(pin, value); }) {}
+        Pin(
+            pattern,
+            [](const uint8_t pin) -> Int_p {
+              return jnt(::map(analogRead(pin), 0, FOS_PWM_ANALOG_RESOLUTION, 0, 255));
+            },
+            [](const uint8_t pin, const int value) -> void {
+              pinMode(pin, OUTPUT);
+              analogWrite(pin, value);
+            }) {}
 
   public:
     static ptr<PWM> singleton(const Pattern &pattern = "/soc/pwm/#") {

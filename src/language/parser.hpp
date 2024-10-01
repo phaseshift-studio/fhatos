@@ -360,35 +360,35 @@ namespace fhatos {
     }
 
     static Option<Int_p> try_parse_int(
-      const string &valueToken, const string &typeToken,
-      const fURI_p &baseType = INT_FURI) {
-      if ((valueToken[0] != '-' && !isdigit(valueToken[0])) || valueToken.find_first_of('.') != string::npos)
+      const string &value_token, const string &type_token,
+      const fURI_p &base_type = INT_FURI) {
+      if ((value_token[0] != '-' && !isdigit(value_token[0])) || value_token.find_first_of('.') != string::npos)
         return {};
-      for (size_t i = 1; i < valueToken.length(); i++) {
-        if (!isdigit(valueToken[i]))
+      for (size_t i = 1; i < value_token.length(); i++) {
+        if (!isdigit(value_token[i]))
           return {};
       }
-      return Option<Int_p>{Int::to_int(stoi(valueToken), share<ID>(baseType->resolve(typeToken.c_str())))};
+      return Option<Int_p>{Int::to_int(stoi(value_token), share<ID>(base_type->resolve(type_token.c_str())))};
     }
 
     static Option<Real_p> try_parse_real(
-      const string &valueToken, const string &type_token,
-      const fURI_p &baseType = REAL_FURI) {
-      if (valueToken[0] != '-' && !isdigit(valueToken[0]))
+      const string &value_token, const string &type_token,
+      const fURI_p &base_type = REAL_FURI) {
+      if (value_token[0] != '-' && !isdigit(value_token[0]))
         return {};
       bool dotFound = false;
-      for (size_t i = 1; i < valueToken.length(); i++) {
-        if (valueToken[i] == '.') {
+      for (size_t i = 1; i < value_token.length(); i++) {
+        if (value_token[i] == '.') {
           if (dotFound)
             return {};
           dotFound = true;
         }
-        if (valueToken[i] != '.' && !isdigit(valueToken[i]))
+        if (value_token[i] != '.' && !isdigit(value_token[i]))
           return {};
       }
       return dotFound
                ? Option<Real_p>{
-                 Real::to_real(stof(valueToken), share<ID>(baseType->resolve(type_token.c_str())))
+                 Real::to_real(stof(value_token), share<ID>(base_type->resolve(type_token.c_str())))
                }
                : Option<Real_p>{};
     }
@@ -408,12 +408,12 @@ namespace fhatos {
     }
 
     static Option<Str_p> try_parse_str(
-      const string &valueToken, const string &typeToken,
-      const fURI_p &baseType = STR_FURI) {
-      return (valueToken[0] == '\'' && valueToken[valueToken.length() - 1] == '\'')
+      const string &value_token, const string &type_token,
+      const fURI_p &base_type = STR_FURI) {
+      return (value_token[0] == '\'' && value_token[value_token.length() - 1] == '\'')
                ? Option<Str_p>{
-                 Str::to_str(valueToken.substr(1, valueToken.length() - 2).c_str(),
-                             id_p(baseType->resolve(typeToken)))
+                 Str::to_str(value_token.substr(1, value_token.length() - 2).c_str(),
+                             id_p(base_type->resolve(type_token)))
                }
                : Option<Str_p>{};
     }
@@ -459,16 +459,16 @@ namespace fhatos {
       if (token[0] != '[' || token[token.length() - 1] != ']' || token.find("=>") == string::npos)
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
-      Obj::RecMap<> map = Obj::RecMap<>();
+      auto map = Obj::RecMap<>();
       string key;
       string value;
-      bool onKey = true;
+      bool on_key = true;
       Tracker tracker;
-      while (!ss.eof() || (!onKey && !value.empty())) {
+      while (!ss.eof() || (!on_key && !value.empty())) {
         //// KEY PARSE
-        if (onKey) {
+        if (on_key) {
           if (tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
-            onKey = false;
+            on_key = false;
           } else if (!ss.eof()) {
             char c = tracker.track(static_cast<char>(ss.get()));
             if (tracker.printable())
@@ -488,7 +488,7 @@ namespace fhatos {
             map.insert({k.value(), v.value()});
             key.clear();
             value.clear();
-            onKey = true;
+            on_key = true;
           } else {
             char c = tracker.track(static_cast<char>(ss.get()));
             if (tracker.printable())
@@ -536,7 +536,7 @@ namespace fhatos {
       const string &value_token, const string &type_token,
       const fURI_p &base_type = INST_FURI) {
       auto args = List<ptr<Obj>>();
-      stringstream ss = stringstream(value_token);
+      auto ss = stringstream(value_token);
       while (!ss.eof()) {
         string arg_token;
         Tracker tracker;
@@ -576,16 +576,16 @@ namespace fhatos {
       //////////////////////////////////////////////////////////////////////////////////////
       //////////////// lookahead to determine if token is potentially _bcode ////////////////
       //////////////////////////////////////////////////////////////////////////////////////
-      bool mayBCode = value_token.find('.') != string::npos || //
+      bool may_b_code = value_token.find('.') != string::npos || //
                       (value_token.find('(') != string::npos && value_token.find(')') != string::npos);
-      if (!mayBCode) {
+      if (!may_b_code) {
         for (const auto &[k, v]: Insts::unary_sugars()) {
           if (value_token.find(k) != string::npos || value_token.find(v + "(") != string::npos) {
-            mayBCode = true;
+            may_b_code = true;
             break;
           }
         }
-        if (!mayBCode)
+        if (!may_b_code)
           return {};
       }
       //////////////////////////////////////////////////////////////////////////////////////
@@ -596,22 +596,22 @@ namespace fhatos {
         Tracker tracker;
         bool unary = false;
         bool fullbreak = false;
-        string instToken;
+        string inst_token;
         while (!ss.eof()) {
           // inst-level (tokens are chars)
           if (tracker.closed()) {
             for (const auto &[k, v]: Insts::unary_sugars()) {
-              if (StringHelper::look_ahead(k, &ss, instToken.empty())) {
-                if (!instToken.empty()) {
-                  LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), instToken.c_str());
+              if (StringHelper::look_ahead(k, &ss, inst_token.empty())) {
+                if (!inst_token.empty()) {
+                  LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), inst_token.c_str());
                   fullbreak = true;
                   break;
                 }
-                instToken += v;
+                inst_token += v;
                 StringHelper::eat_space(&ss);
                 if (ss.peek() != '(') {
                   // enable paren-use of unary operators
-                  instToken += '(';
+                  inst_token += '(';
                   tracker.parens++;
                   unary = true;
                 }
@@ -631,7 +631,7 @@ namespace fhatos {
           ///////////////////////////////////////////////////////////////
           char c = tracker.track(static_cast<char>(ss.get()));
           if ((tracker.quotes || !isspace(c)) && tracker.printable())
-            instToken += c;
+            inst_token += c;
           ///////////////////////////////////////////////////////////////
           if (((unary && tracker.parens == 1) || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 &&
               tracker.braces == 0 && tracker.within == 0 && !tracker.quotes &&
@@ -643,28 +643,28 @@ namespace fhatos {
           }
         }
         if (unary)
-          instToken += ')';
-        if (instToken.empty())
+          inst_token += ')';
+        if (inst_token.empty())
           continue;
-        LOG(TRACE, "Parsing !ginst token!!: !y%s!!\n", instToken.c_str());
+        LOG(TRACE, "Parsing !ginst token!!: !y%s!!\n", inst_token.c_str());
         // TODO: end inst with ; sugar
-        Option<Inst_p> within = try_parse_poly_within(instToken);
+        Option<Inst_p> within = try_parse_poly_within(inst_token);
         if (!unary && within.has_value()) {
           insts.push_back(within.value());
         } else {
-          Pair<string, string> typeValue = try_parse_obj_type(instToken, GROUPING::PAREN);
-          if (!unary && instToken[typeValue.first.length()] != '(') {
+          auto [key, value] = try_parse_obj_type(inst_token, GROUPING::PAREN);
+          if (!unary && inst_token[key.length()] != '(') {
             // OBJ AS ARGUMENT (START OR MAP)
-            LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", instToken.c_str());
-            const Option<Obj_p> obj = try_parse_obj(instToken);
+            LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", inst_token.c_str());
+            const Option<Obj_p> obj = try_parse_obj(inst_token);
             if (!obj.has_value())
               return {};
             insts.push_back(Insts::map(obj.value()));
           } else {
             // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
-            LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", typeValue.first.c_str(),
-                typeValue.second.c_str());
-            const Option<Inst_p> inst = try_parse_inst(typeValue.second, typeValue.first, INST_FURI);
+            LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", key.c_str(),
+                value.c_str());
+            const Option<Inst_p> inst = try_parse_inst(value, key, INST_FURI);
             if (inst.has_value()) {
               insts.push_back(inst.value());
             } else {
@@ -672,15 +672,15 @@ namespace fhatos {
             }
           }
         }
-        instToken.clear();
+        inst_token.clear();
       }
       return Option<BCode_p>{BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))};
     }
 
     static Option<Uri_p> try_parse_default(
-      const string &valueToken, const string &typeToken,
-      const fURI_p &baseType = URI_FURI) {
-      return Option<Uri_p>{Uri::to_uri(valueToken, id_p(baseType->resolve(typeToken)))};
+      const string &value_token, const string &type_token,
+      const fURI_p &base_type = URI_FURI) {
+      return Option<Uri_p>{Uri::to_uri(value_token, id_p(base_type->resolve(type_token)))};
     }
 
   private:

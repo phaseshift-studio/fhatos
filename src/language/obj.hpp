@@ -426,7 +426,7 @@ namespace fhatos {
     [[nodiscard]] Obj_p str_get(const Int_p &index) const {
       if (!this->is_str())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return index->int_value() >= this->str_value().length()
+      return (static_cast<size_t>(index->int_value()) >= this->str_value().length())
                ? Obj::to_noobj()
                : Obj::to_str(string() + (this->str_value()[index->int_value()]));
     }
@@ -446,7 +446,7 @@ namespace fhatos {
     [[nodiscard]] Obj_p lst_get(const Int_p &index) const {
       if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return index->int_value() >= this->lst_value()->size()
+      return (static_cast<size_t>(index->int_value()) >= this->lst_value()->size())
                ? Obj::to_noobj()
                : this->lst_value()->at(index->int_value());
     }
@@ -482,6 +482,14 @@ namespace fhatos {
 
     void rec_set(const Obj &key, const Obj &value) const {
       Obj::rec_set(make_shared<Obj>(key), make_shared<Obj>(value));
+    }
+
+    void rec_add(const Rec_p &other) const {
+      for (const auto &[k,v]: *other->rec_value()) {
+        if (this->rec_value()->count(k))
+          this->rec_value()->erase(k);
+        this->rec_value()->insert({k, v});
+      }
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }

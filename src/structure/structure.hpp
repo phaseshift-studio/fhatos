@@ -126,11 +126,13 @@ namespace fhatos {
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
       this->recv_unsubscribe(id_p(subscription->source), p_p(subscription->pattern));
-      /////////////// ADD NEW SUBSCRIPTION
-      this->subscriptions_->push_back(subscription);
-      LOG_SUBSCRIBE(OK, subscription);
-      /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
-      this->publish_retained(subscription);
+      if (!subscription->on_recv->is_noobj()) {
+        /////////////// ADD NEW SUBSCRIPTION
+        this->subscriptions_->push_back(subscription);
+        LOG_SUBSCRIBE(OK, subscription);
+        /////////////// HANDLE RETAINS MATCHING NEW SUBSCRIPTION
+        this->publish_retained(subscription);
+      }
     }
 
     virtual void recv_publication(const Message_p &message) {
@@ -193,8 +195,10 @@ namespace fhatos {
           const Pattern_p pattern = p_p(furi->query(""));
           if (obj->is_noobj())
             this->recv_unsubscribe(Process::current_process()->id(), pattern);
-          else
+          else if (obj->is_bcode()) {
             this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, QoS::_1, obj));
+          } else if (obj->is_rec())
+            this->recv_subscription(from_subscription_obj(obj));
         } else {
           //// WRITES
           if (furi->is_branch()) {
@@ -202,9 +206,9 @@ namespace fhatos {
             if (obj->is_noobj()) {
               // nobj
               const List<Pair<ID_p, Obj_p>> ids = this->read_raw_pairs(furi_p(furi->extend("+")));
-              for (const auto &id2: ids) {
-                this->write_raw_pairs(id2.first, obj);
-                distribute_to_subscribers(message_p(*id2.first, obj, retain));
+              for (const auto &[key, value]: ids) {
+                this->write_raw_pairs(key, obj);
+                distribute_to_subscribers(message_p(*key, obj, retain));
               }
             } else if (obj->is_rec()) {
               // rec
@@ -271,7 +275,7 @@ namespace fhatos {
     virtual void distribute_to_subscribers(const Message_p &message) {
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (message->target.matches(sub->pattern))
-          this->outbox_->push_back(share(Mail(sub, message)));
+          this->outbox_->push_back(mail_p(sub, message));
       }
     }
 
@@ -304,7 +308,7 @@ namespace fhatos {
     Objs_p get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
       Objs_p objs = Obj::to_objs();
       for (const Subscription_p &sub: *this->subscriptions_) {
-        if (sub->pattern.matches(*pattern)) {
+        if (sub->pattern.bimatches(*pattern)) {
           const Rec_p sub_rec = Obj::to_rec({{uri(":source"), uri(sub->source)},
                                               {uri(":pattern"), uri(sub->pattern)},
                                               {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
@@ -314,6 +318,14 @@ namespace fhatos {
         }
       }
       return objs;
+    }
+
+    static Subscription_p from_subscription_obj(const Rec_p &rec) {
+      return subscription_p(
+        rec->rec_get(uri(":source"))->uri_value(),
+        rec->rec_get(uri(":pattern"))->uri_value(),
+        static_cast<QoS>(rec->rec_get(uri(":qos"))->int_value()),
+        rec->rec_get(uri(":on_recv")));
     }
   };
 

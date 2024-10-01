@@ -317,6 +317,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
         Subscription{
           .source = ID("fhatty"),
           .pattern = key.uri_value(),
+          .qos = QoS::_1,
           .on_recv = Insts::to_bcode([temp](const ptr<Message> &message) {
             TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                      (string("Router retain message payload equality: ") +

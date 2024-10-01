@@ -99,7 +99,7 @@ namespace fhatos {
       return count;
     }
 
-    static string pad(const uint8_t total, const string &text, [[maybe_unused]] const bool ignoreAnsi = true) {
+    static string pad(const uint8_t total, const string &text) {
       auto text2 = string(text);
       for (size_t i = 0; i < (total - text.length()); i++) {
         text2 += ' ';

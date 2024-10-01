@@ -16,6 +16,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#ifndef fhatos_test_furi_cpp
+#define fhatos_test_furi_cpp
+
 /*#define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PARSER
@@ -703,3 +706,5 @@ namespace fhatos {
 } // namespace fhatos
 
 SETUP_AND_LOOP();
+
+#endif

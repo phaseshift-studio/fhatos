@@ -46,29 +46,13 @@ namespace fhatos {
 
   public:
     explicit BaseFileSystem(const Pattern &root, const ID &mount_root): External(root),
-                                                              mount_root_(id_p(mount_root.extend("/"))) {
+                                                                        mount_root_(id_p(mount_root.extend("/"))) {
     }
 
     void setup() override {
       LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
-      // define filesystem types
-      //Types::singleton()->loop();
-      /*this->subscribe(this->id()->extend("#"), [this](const Message_p &message) {
-          if (message->retain && message->payload->is_noobj()) {
-              // delete the fs resource
-              this->rm(to_fs(message->target));
-          } else {
-              const Obj_p result = message->payload->apply(to_fs(message->target));
-              // apply the fs resource to the bytecode
-              if (message->retain) // if retain, then ---
-                  this->write(id_p(message->target), result, id_p(message->source));
-                  // write the result to the fs resource
-              else // else ---
-                  this->publish(message->source, result, TRANSIENT_MESSAGE);
-              // publish the result to the source id
-          }
-      });*/
-      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
+      ProgressBar progress_bar = ProgressBar::start(printer<Ansi<>>().get(), 9);
+      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}), &progress_bar);
       Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
       ///////////////////////////////////////////////////////////////////
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("root")),
@@ -123,7 +107,7 @@ namespace fhatos {
                                       id_p(INST_FS_FURI->resolve("more"))));
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("append")),
                                     Obj::to_inst(
-                                     "fs:append", {x(0)},
+                                      "fs:append", {x(0)},
                                       [this](const InstArgs &args) {
                                         Insts::arg_check(id_p(INST_FS_FURI->resolve("append")), args, 1);
                                         return [this, args](const Obj_p &lhs) {
@@ -142,6 +126,7 @@ namespace fhatos {
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(),
                                       id_p(INST_FS_FURI->resolve("touch"))));
+      progress_bar.end("!bfile system !ytypes!! loaded\n");
       External::setup();
     }
 
@@ -174,7 +159,7 @@ namespace fhatos {
           this->mount_root_->resolve(
             (!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
-                path.toString().c_str(), this->mount_root_->toString().c_str());
+                    path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
         throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
                      this->pattern()->toString().c_str(), local_path.toString().c_str(),
@@ -252,7 +237,8 @@ namespace fhatos {
     }
 
     virtual void write(
-      [[maybe_unused]] const fURI_p &furi, [[maybe_unused]] const Obj_p &obj, [[maybe_unused]] const bool retain) override {
+      [[maybe_unused]] const fURI_p &furi, [[maybe_unused]] const Obj_p &obj,
+      [[maybe_unused]] const bool retain) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

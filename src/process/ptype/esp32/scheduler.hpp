@@ -28,7 +28,7 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 
-#define ESP_THREAD_STACK_SIZE 5000
+#define ESP_THREAD_STACK_SIZE 6000
 #define ESP_FIBER_STACK_SIZE 5000
 
 namespace fhatos {
@@ -65,7 +65,7 @@ namespace fhatos {
       uint16_t stack_size =
           process->ptype == PType::FIBER
               ? ESP_FIBER_STACK_SIZE
-              : (process->ptype == PType::THREAD ? (process->id()->equals("/console/") ? 20000 : ESP_THREAD_STACK_SIZE)
+              : (process->ptype == PType::THREAD ? (process->id()->equals("/console/") ? 12000 : ESP_THREAD_STACK_SIZE)
                                                  : 0);
       switch (process->ptype) {
         case PType::THREAD: {

@@ -50,7 +50,7 @@ namespace fhatos {
   public:
     void init(const int &argc, char **argv) {
       for (int i = 1; i < argc; ++i) {
-        const string temp = string(argv[i]);
+        const auto temp = string(argv[i]);
         size_t j = temp.find_first_of('=');
         if (j != string::npos) {
           string key = temp.substr(0, j);
@@ -98,7 +98,8 @@ void setup() {
         ->structure(KeyValue::create("+/#"))
         ->structure(KeyValue::create("/type/#"))
         ->process(Types::singleton("/type/"))
-        ->structure(Terminal::singleton("/terminal"))
+        ->structure(Terminal::singleton("/terminal/#"))
+        ->structure(KeyValue::create("/parser/#"))
         ->process(Parser::singleton("/parser/"))
 #ifdef ESP_ARCH
         ->structure(Memory::singleton("/soc/memory/#"))
@@ -109,12 +110,15 @@ void setup() {
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
-        ->structure(Mqtt::create("//+/#"))
+        //->structure(Mqtt::create("//+/#"))
 #endif
         ->model({ID("/model/sys")})
-        ->process(Console::create("/console/", "/terminal",
-                                  Console::Settings{.nest = args_parser->option("--nest", "false") == "true",
-                                                    .ansi = args_parser->option("--ansi", "true") == "true"}))
+        ->structure(KeyValue::create("/console/#"))
+        ->process(Console::create("/console/", "/terminal/:owner", Console::Settings(
+                                      args_parser->option("--nest", "false") == "true",
+                                      args_parser->option("--ansi", "true") == "true",
+                                      args_parser->option("--strict", "false") == "true",
+                                      LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
         ->eval([] { delete args_parser; })
         ->done("kernel_barrier");
   } catch (const std::exception &e) {

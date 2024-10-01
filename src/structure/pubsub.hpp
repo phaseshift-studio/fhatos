@@ -69,12 +69,12 @@ namespace fhatos {
   };
 
   static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
-                                                                    {NO_TARGETS, "no targets"},
-                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-                                                                    {NO_SUBSCRIPTION, "no subscription"},
-                                                                    {NO_MESSAGE, "no message"},
-                                                                    {ROUTER_ERROR, "internal router error"},
-                                                                    {MUTEX_TIMEOUT, "router timeout"}});
+    {NO_TARGETS, "no targets"},
+    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+    {NO_SUBSCRIPTION, "no subscription"},
+    {NO_MESSAGE, "no message"},
+    {ROUTER_ERROR, "internal router error"},
+    {MUTEX_TIMEOUT, "router timeout"}});
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
@@ -96,12 +96,16 @@ namespace fhatos {
     }
 
     [[nodiscard]] Rec_p to_rec() const {
-      return rec({{uri("target"), uri(target)}, {uri("payload"), payload}, {uri("retain"), dool(retain)}});
+      return Obj::to_rec({
+                           {uri(":target"), uri(target)},
+                           {uri(":payload"), this->payload->clone()},
+                           {uri(":retain"), dool(retain)}},
+                         id_p(REC_FURI->extend("msg")));
     }
   };
 
   inline Message_p message_p(const ID &target, const Obj_p &payload, const bool retain) {
-    return ptr<Message>(new Message{.target = target, .payload = payload, .retain = retain});
+    return std::make_shared<Message>(Message{.target = target, .payload = payload, .retain = retain});
   }
 
   ///////////////////////////////////////////////////
@@ -127,16 +131,16 @@ namespace fhatos {
   };
 
   struct Subscription {
-    ID source;
-    Pattern pattern;
-    QoS qos = QoS::_1;
-    BCode_p on_recv = bcode();
+    const ID source;
+    const Pattern pattern;
+    const QoS qos;
+    const BCode_p on_recv;
 
     [[nodiscard]] Rec_p to_rec() const {
-      return rec({{uri("source"), uri(source)},
-                  {uri("pattern"), uri(pattern)},
-                  {uri("qos"), jnt(static_cast<int>(qos))},
-                  {uri("on_recv"), on_recv}});
+      return rec({{uri(":source"), uri(source)},
+                   {uri(":pattern"), uri(pattern)},
+                   {uri(":qos"), jnt(static_cast<int>(qos))},
+                   {uri(":on_recv"), on_recv}}, id_p(REC_FURI->extend("sub")));
     }
 
     [[nodiscard]] string toString() const {
@@ -150,7 +154,12 @@ namespace fhatos {
 
   inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const QoS qos,
                                        const BCode_p &on_recv) {
-    return share(Subscription{.source = source, .pattern = pattern, .qos = qos, .on_recv = on_recv});
+    return make_shared<Subscription>(
+      Subscription{
+        .source = source,
+        .pattern = pattern,
+        .qos = qos,
+        .on_recv = on_recv});
   }
 } // namespace fhatos
 

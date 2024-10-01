@@ -25,6 +25,7 @@
 #include <random>
 #include <stdio.h>
 #include <string.h>
+#include <thread>
 #include <time.h>
 #include <util/options.hpp>
 #include <util/string_printer.hpp>
@@ -311,6 +312,50 @@ namespace fhatos {
       if (rainbow)
         ret = ret.append("!!");
       return ret;
+    }
+  };
+
+  struct ProgressBar {
+  protected:
+    Ansi<> *ansi_;
+    const uint8_t total_counts_;
+    uint8_t current_counts_;
+    const char meter_icon_;
+
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char meter_icon = '#') : ansi_(ansi),
+      total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
+    }
+
+  public:
+    static ProgressBar start(Ansi<> *ansi, const uint8_t total_counts, const char meter_icon = '#') {
+      return ProgressBar(ansi, total_counts, meter_icon);
+    }
+
+    bool done() const {
+      return this->current_counts_ >= this->total_counts_;
+    }
+
+    void end(const string &end_message = "done") {
+      this->current_counts_ = this->total_counts_;
+      this->incr_count(end_message);
+      //this->ansi->printf("%s", end_message.c_str());
+    }
+
+    void incr_count(const string &message = "") {
+      const uint8_t percentage = 0 == this->current_counts_
+                                   ? 0
+                                   : ((static_cast<float>(this->current_counts_) /
+                                       static_cast<float>(this->total_counts_)) * 100.f);
+      ++this->current_counts_;
+      this->ansi_->print("!g[INFO]  [!b");
+      for (int j = 0; j < percentage; j = j + 2) {
+        this->ansi_->print('#');
+      }
+      this->ansi_->print("!!");
+      for (int j = percentage; j < 99; j = j + 2) {
+        this->ansi_->print(' ');
+      }
+      this->ansi_->printf("!g] !y%i%%!! %s \r", percentage, message.c_str());
     }
   };
 

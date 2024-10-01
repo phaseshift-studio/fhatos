@@ -401,25 +401,27 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-    static Obj_p to(const Uri_p &uri) {
+    static Obj_p to(const Uri_p &uri, const Bool_p &retain = dool(true)) {
       return Obj::to_inst(
-        "to", {uri},
+        "to", {uri, retain},
         [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
             const Obj_p lhs_apply = lhs->apply(args.at(0));
             const Obj_p rhs_apply = args.at(0)->apply(lhs);
-            router()->write(id_p(rhs_apply->uri_value()), lhs_apply);
+            router()->write(id_p(rhs_apply->uri_value()), lhs_apply, args.at(1)->apply(lhs)->bool_value());
             return lhs_apply;
           };
         },
         IType::ONE_TO_ONE);
     }
 
-    static Obj_p to_inv(const Obj_p &obj) {
+    static Obj_p to_inv(const Obj_p &obj, const Bool_p &retain = dool(true)) {
       return Obj::to_inst(
-        "to_inv", {obj},
+        "to_inv", {obj, retain},
         [](const InstArgs &args) {
-          return [args](const Obj_p &lhs) { return Insts::to(lhs)->inst_f()({lhs})(args.at(0)); };
+          return [args](const Obj_p &lhs) {
+            return Insts::to(lhs, args.at(1))->inst_f()({lhs, args.at(1)})(args.at(0));
+          };
         },
         IType::ONE_TO_ONE);
     }
@@ -904,10 +906,22 @@ namespace fhatos {
       return list;
     }*/
 
-    static Map<string, string> unary_sugars() {
-      static Map<string, string> map = {{"@", "get"}, {"`", "optional"}, {"-<", "split"},
-        {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"}, {"|", "block"},
-        {"^", "lift"}, {"V", "drop"}, {"*", "from"}, {"=", "each"}, {";", "end"}};
+    static List<Pair<string, string>> unary_sugars() {
+      static List<Pair<string, string>> map = {
+        {"--", "via_inv"},
+        {"@", "get"},
+        {"`", "optional"},
+        {"-<", "split"},
+        {">-", "merge"},
+        {"~", "match"},
+        {"<-", "to"},
+        {"->", "to_inv"},
+        {"|", "block"},
+        {"^", "lift"},
+        {"V", "drop"},
+        {"*", "from"},
+        {"=", "each"},
+        {";", "end"}};
       return map;
     }
 
@@ -923,8 +937,8 @@ namespace fhatos {
       return bcode({Insts::lambda(
         [consumer](const Rec_p &message) {
           const Message_p mess =
-              message_p(message->rec_get(uri("target"))->uri_value(), message->rec_get(uri("payload")),
-                        message->rec_get(uri("retain"))->bool_value());
+              message_p(message->rec_get(uri(":target"))->uri_value(), message->rec_get(uri(":payload")),
+                        message->rec_get(uri(":retain"))->bool_value());
           consumer(mess);
           return noobj();
         },

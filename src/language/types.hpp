@@ -22,13 +22,17 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
+#include <process/obj_process.hpp>
 #include <structure/router.hpp>
 #include <structure/stype/key_value.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
+#define TOTAL_INSTRUCTIONS 65
+
 namespace fhatos {
   class Types : public Coroutine {
     explicit Types(const ID &id = FOS_TYPE_PREFIX) : Coroutine(id) {
+      load_process(PtrHelper::no_delete<Process>(this));
     }
 
     static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
@@ -36,7 +40,8 @@ namespace fhatos {
     void load_insts() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      this->save_type(inst_id("optional"), Insts::optional(x(0)));
+      ProgressBar progress_bar = ProgressBar::start(printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS, '#');
+      this->save_type(inst_id("optional"), Insts::optional(x(0)), false, &progress_bar);
       this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
       this->save_type(inst_id("mult"), Insts::mult(x(0)));
@@ -51,6 +56,8 @@ namespace fhatos {
       this->save_type(inst_id("to"), Insts::to(x(0)));
       this->save_type(inst_id("to_inv"), Insts::to_inv(x(0)));
       this->save_type(inst_id("->"), Insts::from(uri(inst_id("to_inv"))));
+      this->save_type(inst_id("via_inv"), Insts::to_inv(x(0), dool(false)));
+      this->save_type(inst_id("--"), Insts::from(uri(inst_id("via_inv"))));
       this->save_type(inst_id("start"), Insts::start(x(0)));
       this->save_type(inst_id("merge"), Insts::merge(x(0)));
       this->save_type(inst_id(">-"), Insts::from(uri(inst_id("merge"))));
@@ -70,11 +77,11 @@ namespace fhatos {
       this->save_type(inst_id("is"), Insts::is(x(0)));
       this->save_type(inst_id("from"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
       this->save_type(inst_id("*"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
-      //this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
-      //this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
+      // this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
+      // this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->save_type(inst_id("within"), Insts::within(x(0)));
       this->save_type(inst_id("print"), Insts::print(x(0, bcode())));
-      //this->save_type(inst_id("switch"), Insts::bswitch(x(0)));
+      // this->save_type(inst_id("switch"), Insts::bswitch(x(0)));
       this->save_type(inst_id("explain"), Insts::explain());
       this->save_type(inst_id("drop"), Insts::drop(x(0)));
       this->save_type(inst_id("V"), Insts::from(uri(inst_id("drop"))));
@@ -100,26 +107,12 @@ namespace fhatos {
       this->save_type(inst_id("and"), Insts::x_and(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       this->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
+      progress_bar.end("!bmm-adt !yinstruction set!! loaded\n");
     }
 
   public:
     static ptr<Types> singleton(const ID &id = FOS_TYPE_PREFIX) {
       static auto types_p = ptr<Types>(new Types(id));
-      static bool setup = false;
-      if (!setup) {
-        setup = true;
-        Types *types_ptr = types_p.get();
-        router()->write(types_p->id(), rec({
-                          {uri(COROUTINE_FURI->extend(":setup")), Insts::to_bcode([types_ptr](const Obj_p &obj) {
-                            types_ptr->setup();
-                            return obj;
-                          }, ID(__FILE__).resolve(string(":") + to_string(__LINE__)))},
-                          {uri(COROUTINE_FURI->extend(":stop")), Insts::to_bcode([types_ptr](const Obj_p &obj) {
-                            types_ptr->setup();
-                            return obj;
-                          }, ID(__FILE__).resolve(string(":") + to_string(__LINE__)))},
-                        }));
-      }
       return types_p;
     }
 
@@ -134,13 +127,13 @@ namespace fhatos {
         // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
         const Obj_p proto_obj = is_base_type(type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
         if (proto_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->id()->toString().c_str(),
-                       obj->toString().c_str(), type_id->toString().c_str());
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!\n", this->id()->toString().c_str(), obj->toString().c_str(),
+                       type_id->toString().c_str());
         return share(Obj(proto_obj->_value, OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)), type_id));
       };
       this->load_insts();
-      router()->route_subscription(subscription_p(
-        ID(*this->id()), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
+      router()->route_subscription(
+        subscription_p(ID(*this->id()), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
           const ID_p type_id = id_p(message->target);
           if (message->retain && !this->type_exists(type_id, message->payload))
             this->save_type(type_id, message->payload, true);
@@ -150,25 +143,37 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false) {
+    void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false,
+                   ProgressBar *progress_bar = nullptr) const {
+      static ProgressBar *pb = nullptr;
+      if (progress_bar)
+        pb = progress_bar;
+      if (pb && pb->done())
+        pb = nullptr;
       try {
         if (!via_pub) {
           const Obj_p current = router()->read(type_id);
           if (current != type_def) {
-            if (!current->is_noobj())
+            if (!current->is_noobj() && !pb)
               LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
                         current->toString().c_str());
             router()->write(type_id, type_def->clone(), RETAIN_MESSAGE);
           }
         }
-        LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
+        if (!pb)
+          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
                     type_def->toString().c_str());
+        else {
+          pb->incr_count(type_id->toString());
+          if (pb->done())
+            pb = nullptr;
+        }
       } catch (const fError &e) {
         LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 
-    bool type_exists(const ID_p &type_id, const Obj_p &type_def) {
+    bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
       const Obj_p existing_type_def = router()->read(type_id);
       return !existing_type_def->is_noobj() && existing_type_def->equals(*type_def);
     }
@@ -176,7 +181,7 @@ namespace fhatos {
     static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }
 
     bool check_type(const Obj &obj, const OType otype, const ID_p &type_id,
-                    const bool do_throw = true) noexcept(false) {
+                    const bool do_throw = true) const noexcept(false) {
       const OType type_otype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
       if (otype == OType::INST || otype == OType::BCODE || type_otype == OType::INST || type_otype == OType::BCODE)
         return true;

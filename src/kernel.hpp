@@ -98,6 +98,16 @@ namespace fhatos {
 
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      load_process(process);
+      scheduler()->spawn(process);
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> deploy(const Structure_p &structure, const Process_p &process) {
+      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      router()->attach(structure);
+      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+     // load_process(process);
       scheduler()->spawn(process);
       return Kernel::build();
     }

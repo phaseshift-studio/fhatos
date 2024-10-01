@@ -38,9 +38,16 @@ namespace fhatos {
   protected:
     Map<ID_p, BCode_p, furi_p_less> interrupts_;
     explicit GPIO(const Pattern &pattern = "/soc/gpio/#") :
-        Pin(pattern, 
-            [](const uint8_t pin) -> Int_p { return jnt(digitalRead(pin)); },
-            [](const uint8_t pin, const int value) { digitalWrite(pin, value); }) {}
+        Pin(
+            pattern,
+            [](const uint8_t pin) -> Int_p {
+              pinMode(pin, INPUT);
+              return jnt(digitalRead(pin));
+            },
+            [](const uint8_t pin, const int value) {
+              pinMode(pin, OUTPUT);
+              digitalWrite(pin, value);
+            }) {}
 
   public:
     static ptr<GPIO> singleton(const Pattern &pattern = "/soc/gpio/#") {

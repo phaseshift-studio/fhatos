@@ -22,6 +22,7 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <structure/router.hpp>
+#include <language/processor/processor.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
@@ -113,6 +114,32 @@ namespace fhatos {
       else
         throw fError("Unknown process type: %s", type.toString().c_str());
     };
+  }
+
+  inline Rec_p load_process(const Process_p &process) {
+    const ID process_id = REC_FURI->resolve(ProcessTypes.to_chars(process->ptype));
+    const Rec_p record = rec();
+    record->rec_set(uri(process->id()->extend(":setup")), Insts::to_bcode(
+                      [process](const Obj_p &) {
+                        process->setup();
+                        return noobj();
+                      },
+                      ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
+    if (PType::COROUTINE != process->ptype) {
+      record->rec_set(uri(process->id()->extend(":loop")), Insts::to_bcode(
+                        [process](const Obj_p &) {
+                          process->loop();
+                          return noobj();
+                        },
+                        ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
+    }
+    record->rec_set(uri(process->id()->extend(":stop")), Insts::to_bcode(
+                      [process](const Obj_p &) {
+                        process->setup();
+                        return noobj();
+                      },
+                      ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
+    return record;
   }
 } // namespace fhatos
 #endif

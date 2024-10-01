@@ -17,7 +17,6 @@
  ******************************************************************************/
 
 #ifdef NATIVE
-
 #ifndef fhatos_test_furi_boost_cpp
 #define fhatos_test_furi_boost_cpp
 #define BOOST_TEST_MODULE test_furi_boost

@@ -63,7 +63,8 @@ namespace fhatos {
     ~Process() override = default;
 
     static Process_p current_process() {
-      return PtrHelper::no_delete(this_process.load());
+      const Process_p current = PtrHelper::no_delete<Process>(this_process.load());
+      return current;
     }
 
     virtual void setup() {

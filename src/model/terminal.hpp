@@ -26,9 +26,9 @@
 #include <structure/stype/id_structure.hpp>
 
 namespace fhatos {
-  class Terminal final : public IDStructure {
+  class Terminal final : public KeyValue {
   protected:
-    explicit Terminal(const Pattern &id = "/io/terminal/") : IDStructure(id) {
+    explicit Terminal(const Pattern &id = "/io/terminal/") : KeyValue(id) {
     }
 
   public:
@@ -38,14 +38,21 @@ namespace fhatos {
     }
 
     void setup() override {
-      IDStructure::setup();
-      router()->route_subscription(subscription_p(ID(*this->pattern_), *this->pattern_, QoS::_1, Insts::to_bcode(
-                                                    [this](const Message_p &message) {
-                                                      if (message->retain && message->payload->is_noobj())
-                                                        this->stop();
-                                                      else
-                                                        printer<>()->print(message->payload->str_value().c_str());
+      KeyValue::setup();
+      KeyValue::write(p_p(this->pattern()->resolve("./:owner")), uri("none"), true);
+    }
+
+    void write(const fURI_p &furi, const Obj_p &obj, const bool retain) override {
+      if (furi->equals(this->pattern()->resolve("./:owner"))) {
+        for (const auto &x: *this->subscriptions_) {
+          this->recv_unsubscribe(id_p(x->source), p_p(x->pattern));
+        }
+        router()->route_subscription(subscription_p(ID(*this->pattern_), Pattern(obj->uri_value()), QoS::_1,
+                                                    Insts::to_bcode([](const Message_p &message) {
+                                                      printer<>()->print(message->payload->str_value().c_str());
                                                     })));
+      }
+      KeyValue::write(furi, obj, retain);
     }
 
     static int readChar() {
@@ -56,7 +63,7 @@ namespace fhatos {
 #endif
     }
 
-    static void out(const ID_p &, const char *format, ...) {
+    /*static void out(const ID_p &, const char *format, ...) {
       char buffer[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
@@ -68,7 +75,7 @@ namespace fhatos {
         .target = ID(*singleton()->pattern_), //
         .payload = Obj::to_str(buffer),
         .retain = TRANSIENT_MESSAGE}));
-    }
+    }*/
   };
 } // namespace fhatos
 #endif

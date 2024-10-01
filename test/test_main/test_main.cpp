@@ -1,4 +1,3 @@
-
 /*******************************************************************************
   FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
@@ -17,18 +16,24 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#ifndef fhatos_test_main_cpp
+#define fhatos_test_main_cpp
+
 //#include <main.cpp>
 namespace fhatos {
   static int test_boot() {
-    char** args = new char*[1]();
-    args[0] = (char*)"fhatos";
-    args[1] = (char*)"--barrier=false";
+    char **args = new char *[1]();
+    args[0] = (char *) "fhatos";
+    args[1] = (char *) "--barrier=false";
     //int result = main(2, args);
     int result = 0;
     delete[] args;
     return result;
   }
 }
+
 int main(const int, char **) {
- return fhatos::test_boot();
+  return fhatos::test_boot();
 }
+
+#endif
