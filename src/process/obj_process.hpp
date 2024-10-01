@@ -21,8 +21,8 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <structure/router.hpp>
 #include <language/processor/processor.hpp>
+#include <structure/router.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(scheduler.hpp)
 
@@ -34,22 +34,21 @@ namespace fhatos {
     const Uri_p id_uri_;
 
   public:
-    explicit ProcessObj(const ID &id) : PROCESS(id), process_rec_(router()->read(make_shared<ID>(id))->clone()),
-                                        id_uri_(Obj::to_uri(id)) {
-    }
+    explicit ProcessObj(const ID &id) :
+        PROCESS(id), process_rec_(router()->read(make_shared<ID>(id))->clone()), id_uri_(Obj::to_uri(id)) {}
 
     void setup() override {
       try {
         PROCESS::setup();
         router()->route_subscription(
-          subscription_p(*this->id(), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
-            if (this->running()) {
-              if (message->retain && message->payload->is_noobj()) {
-                router()->route_unsubscribe(this->id(), p_p(*this->id()));
-                this->stop();
+            subscription_p(*this->id(), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
+              if (this->running()) {
+                if (message->retain && message->payload->is_noobj()) {
+                  router()->route_unsubscribe(this->id(), p_p(*this->id()));
+                  this->stop();
+                }
               }
-            }
-          })));
+            })));
         LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n",
                     this->process_rec_->rec_get(uri(this->id()->resolve(":setup")))->toString().c_str());
         process(this->process_rec_->rec_get(uri(this->id()->resolve(":setup"))), this->id_uri_);
@@ -62,7 +61,8 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->running_.load()) {
-          const BCode_p loop_bcode = router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
+          const BCode_p loop_bcode = this->process_rec_->rec_get(uri(
+              this->id()->resolve(":loop"))); // router()->read(this->id())->rec_get(uri(this->id()->resolve(":loop")));
           process(loop_bcode, this->id_uri_);
         }
       } catch (const fError &error) {
@@ -87,20 +87,17 @@ namespace fhatos {
 
   class ThreadObj : public ProcessObj<Thread> {
   public:
-    explicit ThreadObj(const ID &id) : ProcessObj(id) {
-    }
+    explicit ThreadObj(const ID &id) : ProcessObj(id) {}
   };
 
   class FiberObj : public ProcessObj<Fiber> {
   public:
-    explicit FiberObj(const ID &id) : ProcessObj(id) {
-    }
+    explicit FiberObj(const ID &id) : ProcessObj(id) {}
   };
 
   class CoroutineObj : public ProcessObj<Coroutine> {
   public:
-    explicit CoroutineObj(const ID &id) : ProcessObj(id) {
-    }
+    explicit CoroutineObj(const ID &id) : ProcessObj(id) {}
   };
 
   inline void load_process_spawner() {
@@ -120,25 +117,26 @@ namespace fhatos {
     const ID process_id = REC_FURI->resolve(ProcessTypes.to_chars(process->ptype));
     const Rec_p record = rec();
     record->rec_set(uri(process->id()->extend(":setup")), Insts::to_bcode(
-                      [process](const Obj_p &) {
-                        process->setup();
-                        return noobj();
-                      },
-                      ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
+                                                              [process](const Obj_p &) {
+                                                                process->setup();
+                                                                return noobj();
+                                                              },
+                                                              ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
     if (PType::COROUTINE != process->ptype) {
-      record->rec_set(uri(process->id()->extend(":loop")), Insts::to_bcode(
-                        [process](const Obj_p &) {
-                          process->loop();
-                          return noobj();
-                        },
-                        ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
+      record->rec_set(uri(process->id()->extend(":loop")),
+                      Insts::to_bcode(
+                          [process](const Obj_p &) {
+                            process->loop();
+                            return noobj();
+                          },
+                          ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
     }
     record->rec_set(uri(process->id()->extend(":stop")), Insts::to_bcode(
-                      [process](const Obj_p &) {
-                        process->setup();
-                        return noobj();
-                      },
-                      ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
+                                                             [process](const Obj_p &) {
+                                                               process->setup();
+                                                               return noobj();
+                                                             },
+                                                             ID(__FILE__).resolve(string(":") + to_string(__LINE__))));
     return record;
   }
 } // namespace fhatos

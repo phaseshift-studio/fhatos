@@ -28,12 +28,6 @@
 
 namespace fhatos {
 
-  void ARDUINO_ISR_ATTR isr(void *arg) {
-    const ID_p id = make_shared<ID>(static_cast<ID *>(arg)->toString().c_str());
-    const BCode_p bcode = router()->read(id);
-    process(bcode, uri(id));
-  };
-
   class GPIO : public Pin {
   protected:
     Map<ID_p, BCode_p, furi_p_less> interrupts_;
@@ -41,62 +35,18 @@ namespace fhatos {
         Pin(
             pattern,
             [](const uint8_t pin) -> Int_p {
-              pinMode(pin, INPUT);
-              return jnt(digitalRead(pin));
+              // pinMode(pin, INPUT);
+              return digitalPinIsValid(pin) ? jnt(digitalRead(pin)) : noobj();
             },
             [](const uint8_t pin, const int value) {
-              pinMode(pin, OUTPUT);
-              digitalWrite(pin, value);
+              if (digitalPinIsValid(pin) && digitalPinCanOutput(pin))
+                digitalWrite(pin, value);
             }) {}
 
   public:
     static ptr<GPIO> singleton(const Pattern &pattern = "/soc/gpio/#") {
       static ptr<GPIO> gpio = ptr<GPIO>(new GPIO(pattern));
       return gpio;
-    }
-
-    virtual void setup() override {
-      External::setup();
-      ////////////////////////////////////////////////////////////
-      ////////////////////////////// READ INTERRUPTS /////////////
-      ////////////////////////////////////////////////////////////
-      this->read_functions_.insert(
-          {share(this->pattern()->resolve("./+/interrupt")), [this](const fURI_p furi) {
-             List<Pair<ID_p, Obj_p>> list;
-             uint8_t single = StringHelper::is_integer(furi->retract().name()) ? stoi(furi->retract().name()) : 99;
-             for (uint8_t i = ((99 == single) ? 0 : single); i < ((99 == single) ? NUM_DIGITAL_PINS : (single + 1));
-                  i++) {
-               ID_p id = id_p(this->pattern()->resolve(fURI(string("./") + to_string(i) + "/interrupt")));
-               LOG_STRUCTURE(DEBUG, this, "Searching interrupts for !b%s!!\n", id->toString().c_str());
-               if (this->interrupts_.count(id)) {
-                 LOG_STRUCTURE(DEBUG, this, "Interrupt !gfound!! for !b%s!!\n", id->toString().c_str());
-                 list.push_back({id, this->interrupts_.at(id)});
-               }
-             }
-             return list;
-           }});
-      LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->resolve("./#").toString().c_str());
-      ////////////////////////////////////////////////////////////
-      ////////////////////////////// WRITE INTERRUPTS ////////////
-      ////////////////////////////////////////////////////////////
-      this->write_functions_.insert(
-          {furi_p(this->pattern()->resolve("./+/interrupt")), [this](const fURI_p furi, const Obj_p &obj) {
-             uint8_t pin_number = stoi(furi->retract().name());
-             if (this->interrupts_.count(id_p(*furi)))
-               this->interrupts_.erase(id_p(*furi));
-             if (obj->is_noobj()) {
-               detachInterrupt(pin_number);
-               LOG_STRUCTURE(INFO, this, "!bpin %i!! !yinterrupt!! detached\n", pin_number);
-             } else {
-               this->interrupts_.insert({id_p(*furi), obj});
-               ID *heap_id = new ID(*furi);
-               attachInterruptArg(pin_number, isr, (void *) heap_id, RISING);
-               LOG_STRUCTURE(INFO, this, "!bpin %i!! !yinterrupt!! attached\n", pin_number);
-             }
-             return List<Pair<ID_p, Obj_p>>();
-           }});
-      LOG_STRUCTURE(INFO, this, "!b%s !ywrite functions!! loaded\n",
-                    this->pattern()->resolve("./+").toString().c_str());
     }
   };
 } // namespace fhatos

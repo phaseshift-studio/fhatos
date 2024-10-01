@@ -36,11 +36,13 @@ namespace fhatos {
         Pin(
             pattern,
             [](const uint8_t pin) -> Int_p {
-              return jnt(::map(analogRead(pin), 0, FOS_PWM_ANALOG_RESOLUTION, 0, 255));
+              // pinMode(pin, INPUT);
+              return digitalPinHasPWM(pin) ? jnt(::map(analogRead(pin), 0, FOS_PWM_ANALOG_RESOLUTION, 0, 255))
+                                           : noobj();
             },
             [](const uint8_t pin, const int value) -> void {
-              pinMode(pin, OUTPUT);
-              analogWrite(pin, value);
+              if (digitalPinHasPWM(pin))
+                analogWrite(pin, value);
             }) {}
 
   public:

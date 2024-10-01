@@ -24,6 +24,7 @@
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_EXT
 #include <test_fhatos.hpp>
 #include <process/actor/actor.hpp>
 

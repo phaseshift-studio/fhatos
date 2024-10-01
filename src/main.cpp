@@ -33,6 +33,7 @@
 #ifdef ESP_ARCH
 #include <esp32/spiram.h>
 #include <model/soc/esp/gpio.hpp>
+#include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/pwm.hpp>
 #include <model/soc/esp/wifi.hpp>
 #endif
@@ -96,29 +97,33 @@ void setup() {
         ->using_router(Router::singleton("/sys/router/#"))
         ////////////////////////////////////////////////////////////
         ->structure(KeyValue::create("+/#"))
+        //
         ->structure(KeyValue::create("/type/#"))
         ->process(Types::singleton("/type/"))
+        //
         ->structure(Terminal::singleton("/terminal/#"))
+        //
         ->structure(KeyValue::create("/parser/#"))
         ->process(Parser::singleton("/parser/"))
 #ifdef ESP_ARCH
-        ->structure(Memory::singleton("/soc/memory/#"))
+        //->structure(Memory::singleton("/soc/memory/#"))
         ->structure(GPIO::singleton("/soc/gpio/#"))
         ->structure(PWM::singleton("/soc/pwm/#"))
+        //->structure(Interrupt::singleton("/soc/interrupt/#"))
     // ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
     // ->structure(FileSystem::create("/io/fs/", args.option("--mount", FOS_FS_MOUNT)))
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
-        //->structure(Mqtt::create("//+/#"))
+    //->structure(Mqtt::create("//+/#"))
 #endif
         ->model({ID("/model/sys")})
         ->structure(KeyValue::create("/console/#"))
-        ->process(Console::create("/console/", "/terminal/:owner", Console::Settings(
-                                      args_parser->option("--nest", "false") == "true",
-                                      args_parser->option("--ansi", "true") == "true",
-                                      args_parser->option("--strict", "false") == "true",
-                                      LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
+        ->process(Console::create("/console/", "/terminal/:owner",
+                                  Console::Settings(args_parser->option("--nest", "false") == "true",
+                                                    args_parser->option("--ansi", "true") == "true",
+                                                    args_parser->option("--strict", "false") == "true",
+                                                    LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
         ->eval([] { delete args_parser; })
         ->done("kernel_barrier");
   } catch (const std::exception &e) {

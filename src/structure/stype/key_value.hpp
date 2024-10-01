@@ -28,7 +28,7 @@
 namespace fhatos {
   class KeyValue : public Structure {
   protected:
-    Map<ID_p, const Obj_p, furi_p_less> data_ /*PROGMEM*/ = Map<ID_p, const Obj_p, furi_p_less>();
+    Map<ID_p, const Obj_p, furi_p_less> data_ = Map<ID_p, const Obj_p, furi_p_less>();
     MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
 
     explicit KeyValue(const Pattern &pattern, const SType stype = SType::LOCAL) : Structure(pattern, stype) {

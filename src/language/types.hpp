@@ -27,7 +27,7 @@
 #include <structure/stype/key_value.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
-#define TOTAL_INSTRUCTIONS 65
+#define TOTAL_INSTRUCTIONS 68
 
 namespace fhatos {
   class Types : public Coroutine {
@@ -42,6 +42,7 @@ namespace fhatos {
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       ProgressBar progress_bar = ProgressBar::start(printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS, '#');
       this->save_type(inst_id("optional"), Insts::optional(x(0)), false, &progress_bar);
+      this->save_type(inst_id("??"), Insts::from(uri(inst_id("optional"))));
       this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
       this->save_type(inst_id("mult"), Insts::mult(x(0)));
@@ -106,6 +107,7 @@ namespace fhatos {
       this->save_type(inst_id("insert"), Insts::insert(x(0)));
       this->save_type(inst_id("and"), Insts::x_and(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       this->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
+      this->save_type(inst_id("rand"), Insts::rand(x(0, uri(BOOL_FURI))));
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       progress_bar.end("!bmm-adt !yinstruction set!! loaded\n");
     }
@@ -157,7 +159,7 @@ namespace fhatos {
             if (!current->is_noobj() && !pb)
               LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
                         current->toString().c_str());
-            router()->write(type_id, type_def->clone(), RETAIN_MESSAGE);
+            router()->write(type_id, type_def, RETAIN_MESSAGE);
           }
         }
         if (!pb)
@@ -180,8 +182,8 @@ namespace fhatos {
 
     static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }
 
-    bool check_type(const Obj &obj, const OType otype, const ID_p &type_id,
-                    const bool do_throw = true) const noexcept(false) {
+    bool check_type(const Obj &obj, const OType otype, const ID_p &type_id, const bool do_throw = true) const
+      noexcept(false) {
       const OType type_otype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
       if (otype == OType::INST || otype == OType::BCODE || type_otype == OType::INST || type_otype == OType::BCODE)
         return true;

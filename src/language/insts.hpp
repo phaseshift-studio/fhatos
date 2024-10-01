@@ -136,7 +136,7 @@ namespace fhatos {
       return Obj::to_inst(
         "mod", {rhs},
         [](const InstArgs &args) {
-          return [args](const Obj_p &lhs) { return share(*lhs % *args.at(0)->apply(lhs)); };
+          return [args](const Obj_p &lhs) { return make_shared<Obj>(*lhs % *args.at(0)->apply(lhs)); };
         },
         IType::ONE_TO_ONE);
     }
@@ -189,6 +189,29 @@ namespace fhatos {
           return [args](const Obj_p &lhs) { return args.at(0)->apply(lhs)->is_noobj() ? Obj::to_noobj() : lhs; };
         },
         IType::ONE_TO_ONE);
+    }
+
+    static Obj_p rand(const Uri_p &type) {
+      return Obj::to_inst(
+        "rand", {type},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) {
+            const fURI temp = args.at(0)->apply(lhs)->uri_value();
+            const OType otype = OTypes.to_enum(temp.path_length() < 2
+                                                 ? temp.toString()
+                                                 : string(temp.path(FOS_BASE_TYPE_INDEX)));
+            switch (otype) {
+              case OType::BOOL: return dool(::rand() & 1);
+                break;
+              case OType::INT: return jnt((FL_INT_TYPE) ::rand());
+                break;
+              case OType::REAL: return real(static_cast<float>(::rand()) / (FL_REAL_TYPE) (RAND_MAX / 1.0f));
+                break;
+              default: throw fError("%s can not be randomly generated", OTypes.to_chars(otype).c_str());
+            }
+            return noobj();
+          };
+        }, IType::ONE_TO_ONE);
     }
 
     static Int_p size() {
@@ -910,7 +933,7 @@ namespace fhatos {
       static List<Pair<string, string>> map = {
         {"--", "via_inv"},
         {"@", "get"},
-        {"`", "optional"},
+        {"??", "optional"},
         {"-<", "split"},
         {">-", "merge"},
         {"~", "match"},

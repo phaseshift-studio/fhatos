@@ -25,7 +25,6 @@
 #include <language/types.hpp>
 #include <structure/stype/external.hpp>
 
-
 namespace fhatos {
 
   class Memory : public External {

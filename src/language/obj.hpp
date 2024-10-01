@@ -1410,7 +1410,7 @@ namespace fhatos {
     return Obj::to_uri(fURI(xuri), type);
   }
 
-  [[maybe_unused]] static Int_p dool(const bool xbool, const ID_p &type = BOOL_FURI) {
+  [[maybe_unused]] static Bool_p dool(const bool xbool, const ID_p &type = BOOL_FURI) {
     return Obj::to_bool(xbool, type);
   }
 

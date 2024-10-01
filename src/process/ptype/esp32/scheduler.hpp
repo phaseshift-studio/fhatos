@@ -28,7 +28,7 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 
-#define ESP_THREAD_STACK_SIZE 6000
+#define ESP_THREAD_STACK_SIZE 6500
 #define ESP_FIBER_STACK_SIZE 5000
 
 namespace fhatos {

@@ -31,8 +31,6 @@
 
 namespace fhatos {
   class Memory : public BaseMemory {
-
-
   protected:
     List<ID_p> MEMORY_IDS_;
 
