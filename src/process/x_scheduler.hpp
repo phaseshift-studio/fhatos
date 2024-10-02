@@ -47,7 +47,6 @@ namespace fhatos {
   using Process_p = ptr<Process>;
 
   class XScheduler : public IDed, public Mailbox {
-
   protected:
     ptr<MutexDeque<Process_p>> processes_ = std::make_shared<MutexDeque<Process_p>>();
     MutexDeque<Mail_p> inbox_;
@@ -75,7 +74,18 @@ namespace fhatos {
 
     virtual void setup() {
       SCHEDULER_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
-        if (retain && payload->is_rec() && (
+        if (!retain) return false;
+        if (payload->is_noobj()) {
+          return this->processes_->exists([target](const Process_p &process) {
+            const bool found = process->id()->equals(target);
+            if (found) {
+              router()->route_unsubscribe(id_p(target));
+              process->stop();
+            }
+            return found;
+          });
+        }
+        if (payload->is_rec() && (
               payload->id()->matches(THREAD_FURI->extend("#")) ||
               payload->id()->matches(FIBER_FURI->extend("#")) ||
               payload->id()->matches(COROUTINE_FURI->extend("#")))) {

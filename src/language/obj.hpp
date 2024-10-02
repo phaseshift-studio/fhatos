@@ -1171,7 +1171,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p as(const ID_p &furi) const {
-      const ID_p resolution = share(ID(this->id_->resolve(*furi)));
+      const ID_p resolution = id_p(this->id_->resolve(*furi));
       const Obj_p obj = TYPE_MAKER(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)), resolution);
       return obj;
       // return share<Obj>(Obj(this->_value, OTypes.to_enum(resolution->path(FOS_BASE_TYPE_INDEX)), resolution));

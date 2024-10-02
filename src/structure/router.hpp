@@ -26,25 +26,9 @@
 
 namespace fhatos {
   class Router final : public Patterned {
-
   protected:
     MutexRW<> structures_mutex_ = MutexRW<>("<router structures mutex>");
     List<Structure_p> structures_ = List<Structure_p>();
-
-    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
-      ROUTER_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
-        if (retain && payload->is_rec() && (
-              payload->id()->matches(LOCAL_FURI->extend("#")) ||
-              payload->id()->matches(NETWORK_FURI->extend("#")) ||
-              payload->id()->matches(EXTERNAL_FURI->extend("#")))) {
-          LOG_ROUTER(DEBUG, "intercepting retained !ykv!! %s\n", payload->toString().c_str());
-          STRUCTURE_ATTACHER(furi, payload);
-          return true;
-        }
-        return false;
-      };
-      LOG_ROUTER(INFO, "!yrouter!! started\n");
-    }
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
@@ -177,10 +161,6 @@ namespace fhatos {
         LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
                    obj->toString().c_str(), furi->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
-        if (retain && obj->is_noobj() && furi->equals(*structure->pattern())) {
-          structure->stop();
-          this->detach(structure->pattern());
-        }
         SCHEDULER_INTERCEPT(*furi, obj, retain);
       }
     }
@@ -233,6 +213,33 @@ namespace fhatos {
                      pattern->toString().c_str());
       return *ret;
       //});
+    }
+
+  protected:
+    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
+      ROUTER_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
+        if (!retain) return false;
+        if (payload->is_noobj()) {
+          for (const auto &structure: this->structures_) {
+            if (structure->pattern()->equals(furi)) {
+              structure->stop();
+              this->detach(structure->pattern());
+              return true;
+            }
+          }
+          return false;
+        }
+        if (payload->is_rec() && (
+              payload->id()->matches(LOCAL_FURI->extend("#")) ||
+              payload->id()->matches(NETWORK_FURI->extend("#")) ||
+              payload->id()->matches(EXTERNAL_FURI->extend("#")))) {
+          LOG_ROUTER(DEBUG, "intercepting retained %s\n", payload->toString().c_str());
+          STRUCTURE_ATTACHER(furi, payload);
+          return true;
+        }
+        return false;
+      };
+      LOG_ROUTER(INFO, "!yrouter!! started\n");
     }
   };
 

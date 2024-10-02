@@ -31,7 +31,6 @@ namespace fhatos {
     //<query, function<query, <id,result>>
     Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> read_functions_;
     Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
-    Map<ID_p, Obj_p, furi_p_less> history{};
 
     explicit External(
         const Pattern &pattern,

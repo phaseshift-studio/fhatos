@@ -64,7 +64,8 @@ namespace fhatos {
     static void load_extension(const ID &ext_id) {
       for (const auto &[key, value]: Exts::exts(ext_id)) {
         const auto type_id = make_shared<ID>(key);
-        Types::singleton()->save_type(type_id, value);
+        const auto value_clone = value->clone();
+        Types::singleton()->save_type(type_id, value_clone);
       }
     }
   };

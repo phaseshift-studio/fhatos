@@ -47,21 +47,26 @@ namespace fhatos {
 
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
-      if (this->data_.count(id))
-        this->data_.erase(id);
-      if (!obj->is_noobj()) {
-        this->data_.insert({id, obj->clone()});
-      }
+      this->mutex_data_.write<ID>([this,id,obj]() {
+        if (this->data_.count(id))
+          this->data_.erase(id);
+        if (!obj->is_noobj()) {
+          this->data_.insert({id, obj->clone()});
+        }
+        return id;
+      });
     }
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
-      List<Pair<ID_p, Obj_p>> list;
-      for (const auto &[id, obj]: this->data_) {
-        if (id->matches(*match)) {
-          list.push_back({id, obj});
+      return *this->mutex_data_.read<List_p<Pair<ID_p, Obj_p>>>([this,match] {
+        auto list = make_shared<List<Pair<ID_p, Obj_p>>>();
+        for (const auto &[id, obj]: this->data_) {
+          if (id->matches(*match)) {
+            list->push_back({id, obj});
+          }
         }
-      }
-      return list;
+        return list;
+      });
     }
   };
 } // namespace fhatos

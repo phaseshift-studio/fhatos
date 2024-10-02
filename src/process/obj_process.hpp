@@ -40,15 +40,6 @@ namespace fhatos {
     void setup() override {
       try {
         PROCESS::setup();
-        router()->route_subscription(
-            subscription_p(*this->id(), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
-              if (this->running()) {
-                if (message->retain && message->payload->is_noobj()) {
-                  router()->route_unsubscribe(this->id(), p_p(*this->id()));
-                  this->stop();
-                }
-              }
-            })));
         LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n",
                     this->process_rec_->rec_get(uri(this->id()->resolve(":setup")))->toString().c_str());
         process(this->process_rec_->rec_get(uri(this->id()->resolve(":setup"))), this->id_uri_);

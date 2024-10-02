@@ -27,14 +27,14 @@ namespace fhatos {
   template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 250>
   class MutexDeque {
   protected:
-    Deque<T> _deque;
-    Mutex<WAIT_TIME_MS> _mutex;
+    Deque<T> deque_;
+    Mutex<WAIT_TIME_MS> mutex_;
 
   private:
     template<typename A = void *>
     A lockUnlock(const bool withMutex, Supplier<A> function) {
       if (withMutex)
-        return _mutex.lockUnlock(function, WAIT_TIME_MS);
+        return mutex_.lockUnlock(function, WAIT_TIME_MS);
       else {
         A temp = function();
         return temp;
@@ -43,12 +43,23 @@ namespace fhatos {
 
   public:
     // MutexDeque(Mutex *mutex = new Mutex()) : _mutex(mutex) {}
-    explicit MutexDeque(const char *label = "<anon>") : _mutex(label) {}
+    explicit MutexDeque(const char *label = "<anon>") : mutex_(label) {
+    }
 
-    Option<T> find(Predicate<T> predicate, const bool withMutex = true) {
-      return lockUnlock<Option<T>>(withMutex, [this, predicate]() {
+    bool exists(Predicate<T> predicate, const bool with_mutex = true) {
+      return lockUnlock<bool>(with_mutex, [this, predicate]() {
+        for (T t: deque_) {
+          if (predicate(t))
+            return true;
+        }
+        return false;
+      });
+    }
+
+    Option<T> find(Predicate<T> predicate, const bool with_mutex = true) {
+      return lockUnlock<Option<T>>(with_mutex, [this, predicate]() {
         T *temp = nullptr;
-        for (T t: _deque) {
+        for (T t: deque_) {
           if (predicate(t)) {
             temp = &t;
             break;
@@ -58,10 +69,10 @@ namespace fhatos {
       });
     }
 
-    List<T> find_all(Predicate<T> predicate, const bool withMutex = true) {
-      return lockUnlock<List<T>>(withMutex, [this, predicate]() {
+    List<T> find_all(Predicate<T> predicate, const bool with_mutex = true) {
+      return lockUnlock<List<T>>(with_mutex, [this, predicate]() {
         List<T> list;
-        for (T t: _deque) {
+        for (T t: deque_) {
           if (predicate(t)) {
             list.push_back(t);
           }
@@ -70,22 +81,22 @@ namespace fhatos {
       });
     }
 
-    Option<T> pop_front(const bool withMutex = true) {
-      return lockUnlock<Option<T>>(withMutex, [this]() {
-        if (_deque.empty()) {
+    Option<T> pop_front(const bool with_mutex = true) {
+      return lockUnlock<Option<T>>(with_mutex, [this]() {
+        if (deque_.empty()) {
           return Option<T>();
         } else {
-          T t = _deque.front();
-          _deque.pop_front();
+          T t = deque_.front();
+          deque_.pop_front();
           return Option<T>(t);
         }
       });
     }
 
-    List_p<T> match(const Predicate<T> predicate, const bool withMutex = true) {
+    List_p<T> match(const Predicate<T> predicate, const bool with_mutex = true) {
       auto results = share(List<T>());
-      lockUnlock<void *>(withMutex, [this, results, predicate]() {
-        for (const T &t: _deque) {
+      lockUnlock<void *>(with_mutex, [this, results, predicate]() {
+        for (const T &t: deque_) {
           if (predicate(t))
             results->push_back(t);
         }
@@ -94,19 +105,19 @@ namespace fhatos {
       return results;
     }
 
-    void forEach(Consumer<T> consumer, const bool withMutex = true) {
-      lockUnlock<void *>(withMutex, [this, consumer]() {
-        for (const T &t: _deque) {
+    void forEach(Consumer<T> consumer, const bool with_mutex = true) {
+      lockUnlock<void *>(with_mutex, [this, consumer]() {
+        for (const T &t: deque_) {
           consumer(t);
         }
         return nullptr;
       });
     }
 
-    Option<T> get(int index, const bool withMutex = true) {
-      return lockUnlock<Option<T>>(withMutex, [this, index]() {
+    Option<T> get(int index, const bool with_mutex = true) {
+      return lockUnlock<Option<T>>(with_mutex, [this, index]() {
         int counter = 0;
-        for (const T &t: _deque) {
+        for (const T &t: deque_) {
           if (counter++ == index) {
             return Option<T>(t);
             break;
@@ -116,63 +127,63 @@ namespace fhatos {
       });
     }
 
-    List_p<T> remove_if(Predicate<T> predicate, const bool withMutex = true) {
+    List_p<T> remove_if(Predicate<T> predicate, const bool with_mutex = true) {
       auto *removed = new List<T>();
-      lockUnlock<void *>(withMutex, [this, predicate, removed] {
-        _deque.erase(std::remove_if(_deque.begin(), _deque.end(),
+      lockUnlock<void *>(with_mutex, [this, predicate, removed] {
+        deque_.erase(std::remove_if(deque_.begin(), deque_.end(),
                                     [predicate, removed](T t) {
                                       const bool r = predicate(t);
                                       if (r)
                                         removed->push_back(t);
                                       return r;
                                     }),
-                     _deque.end());
+                     deque_.end());
         return nullptr;
       });
       const List_p<T> removed_p = ptr<List<T>>(removed);
       return removed_p;
     }
 
-    void remove(const T &toRemove, const bool withMutex = true) {
-      this->remove_if([this, toRemove](T t) { return t == toRemove; }, withMutex);
+    void remove(const T &to_remove, const bool with_mutex = true) {
+      this->remove_if([this, to_remove](T t) { return t == to_remove; }, with_mutex);
     }
 
-    Option<T> pop_back(const bool withMutex = true) {
-      return lockUnlock<Option<T>>(withMutex, [this]() {
-        if (_deque.empty())
+    Option<T> pop_back(const bool with_mutex = true) {
+      return lockUnlock<Option<T>>(with_mutex, [this]() {
+        if (deque_.empty())
           return Option<T>();
-        T t = _deque.back();
-        _deque.pop_back();
+        T t = deque_.back();
+        deque_.pop_back();
         return Option<T>(t);
       });
     }
 
-    bool push_front(const T t, const bool withMutex = true) {
-      return lockUnlock<bool>(withMutex, [this, t]() {
-        _deque.push_front(t);
+    bool push_front(const T t, const bool with_mutex = true) {
+      return lockUnlock<bool>(with_mutex, [this, t]() {
+        deque_.push_front(t);
         return true;
       });
     }
 
-    bool push_back(const T t, const bool withMutex = true) {
-      return lockUnlock<bool>(withMutex, [this, t]() {
-        _deque.push_back(t);
+    bool push_back(const T t, const bool with_mutex = true) {
+      return lockUnlock<bool>(with_mutex, [this, t]() {
+        deque_.push_back(t);
         return true;
       });
     }
 
-    SIZE_TYPE size(const bool withMutex = true) {
-      return lockUnlock<SIZE_TYPE>(withMutex, [this]() { return _deque.size(); });
+    SIZE_TYPE size(const bool with_mutex = true) {
+      return lockUnlock<SIZE_TYPE>(with_mutex, [this]() { return deque_.size(); });
     }
 
-    bool empty(const bool withMutex = true) {
-      return lockUnlock<bool>(withMutex, [this]() { return _deque.empty(); });
+    bool empty(const bool with_mutex = true) {
+      return lockUnlock<bool>(with_mutex, [this]() { return deque_.empty(); });
     }
 
-    string toString(const bool withMutex = true) {
-      return lockUnlock<string>(withMutex, [this]() {
+    string toString(const bool with_mutex = true) {
+      return lockUnlock<string>(with_mutex, [this]() {
         string temp = "[";
-        for (const auto &t: _deque) {
+        for (const auto &t: deque_) {
           if (t)
             temp = temp + t->toString() + ", ";
         }
@@ -181,10 +192,10 @@ namespace fhatos {
       });
     }
 
-    void clear(const bool withMutex = true) {
-      lockUnlock<void *>(withMutex, [this]() {
-        if (!_deque.empty())
-          _deque.clear();
+    void clear(const bool with_mutex = true) {
+      lockUnlock<void *>(with_mutex, [this]() {
+        if (!deque_.empty())
+          deque_.clear();
         return nullptr;
       });
     }

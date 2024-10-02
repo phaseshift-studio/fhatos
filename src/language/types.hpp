@@ -145,7 +145,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false,
+    void save_type(const ID_p type_id, const Obj_p type_def, const bool via_pub = false,
                    ProgressBar *progress_bar = nullptr) const {
       static ProgressBar *pb = nullptr;
       if (progress_bar)
