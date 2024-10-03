@@ -31,7 +31,6 @@
 #include FOS_MEMORY(memory.hpp)
 
 #ifdef ESP_ARCH
-//#include <esp32/spiram.h>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/pwm.hpp>
@@ -106,12 +105,12 @@ void setup() {
         ->structure(KeyValue::create("/parser/#"))
         ->process(Parser::singleton("/parser/"))
 #ifdef ESP_ARCH
-        ->structure(Memory::singleton("/soc/memory/#"))
         ->structure(GPIO::singleton("/soc/gpio/#"))
         ->structure(PWM::singleton("/soc/pwm/#"))
+        ->structure(Memory::singleton("/soc/memory/#"))
         //->structure(Interrupt::singleton("/soc/interrupt/#"))
-        //->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
-        //->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
+        ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
+    //->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
 #endif
 #ifdef NATIVE
         ->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))

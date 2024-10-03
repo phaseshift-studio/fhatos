@@ -57,8 +57,8 @@ namespace fhatos {
       const bool retain = TRANSIENT_MESSAGE) {
       this->should_be_active();
       // rename send_mail
-      router()->route_message(
-        share(Message{.target = target, .payload = payload, .retain = retain}));
+      //router()->route_message(
+      //share(Message{.target = target, .payload = payload, .retain = retain}));
     }
 
     void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {

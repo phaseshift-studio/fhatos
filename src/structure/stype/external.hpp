@@ -33,11 +33,12 @@ namespace fhatos {
     Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
 
     explicit External(
-        const Pattern &pattern,
-        const Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &read_map = {},
-        const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map = {}) :
-        Structure(pattern, SType::EPHEMERAL),
-        read_functions_(read_map), write_functions_(write_map) {}
+      const Pattern &pattern,
+      const Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &read_map = {},
+      const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map =
+          {}) : Structure(pattern, SType::EPHEMERAL),
+                read_functions_(read_map), write_functions_(write_map) {
+    }
 
     void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
       for (const auto &[furi, func]: this->write_functions_) {
@@ -51,7 +52,7 @@ namespace fhatos {
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
       List<Pair<ID_p, Obj_p>> list;
       for (const auto &[furi2, func]: this->read_functions_) {
-        if (furi->matches(*furi2) || furi2->matches(*furi)) {
+        if (furi->bimatches(*furi2)) {
           const List<Pair<ID_p, Obj_p>> list2 = func(furi);
           list.insert(list.end(), list2.begin(), list2.end());
           scheduler()->feed_local_watchdog();

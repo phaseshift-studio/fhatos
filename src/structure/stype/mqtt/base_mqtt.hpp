@@ -80,12 +80,6 @@ namespace fhatos {
       Structure::stop();
     }
 
-    void recv_publication(const Message_p &message) override {
-      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
-      this->write(id_p(message->target), message->payload, message->retain);
-      LOG_PUBLISH(OK, *message);
-    }
-
     void recv_subscription(const Subscription_p &subscription) override {
       check_availability("subscription");
       const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern));

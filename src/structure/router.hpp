@@ -172,11 +172,11 @@ namespace fhatos {
       struc->remove(id);
     }
 
-    void route_message(const Message_p &message) const {
+    /*void route_message(const Message_p &message) const {
       const Structure_p &struc = this->get_structure(p_p(message->target));
       LOG_ROUTER(DEBUG, "!y!_routing message!! %s\n", message->toString().c_str());
       struc->recv_publication(message);
-    }
+    }*/
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {
       for (const Structure_p &structure: this->structures_) {

@@ -22,11 +22,11 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
+#include <process/process.hpp>
 #include <structure/pubsub.hpp>
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
-#include <process/process.hpp>
 
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
@@ -43,10 +43,8 @@ namespace fhatos {
 
   enum class SType { EPHEMERAL, LOCAL, NETWORK };
 
-  static const Enums<SType> StructureTypes = Enums<SType>({
-    {SType::EPHEMERAL, "ephemeral"},
-    {SType::LOCAL, "local"},
-    {SType::NETWORK, "network"}});
+  static const Enums<SType> StructureTypes =
+      Enums<SType>({{SType::EPHEMERAL, "ephemeral"}, {SType::LOCAL, "local"}, {SType::NETWORK, "network"}});
 
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
@@ -135,15 +133,6 @@ namespace fhatos {
       }
     }
 
-    virtual void recv_publication(const Message_p &message) {
-      if (!this->available_.load())
-        throw fError("Structure " FURI_WRAP " is not available", this->pattern()->toString().c_str());
-      ///////////////
-      LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", message->toString().c_str());
-      this->write(id_p(message->target), message->payload, message->retain);
-      LOG_PUBLISH(OK, *message);
-    }
-
     virtual void remove(const ID_p &id) { this->write(id, noobj(), RETAIN_MESSAGE); }
 
     virtual void publish_retained(const Subscription_p &subscription) {
@@ -158,9 +147,18 @@ namespace fhatos {
     }
 
     virtual Obj_p read(const fURI_p &furi) {
-      if (furi->has_query() && string(furi->query()) == "sub") {
-        const Objs_p subs = this->get_subscription_objs(p_p(furi->query("")));
-        return subs;
+      if (!this->available_.load()) {
+        LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
+        return noobj();
+      }
+      if (furi->has_query()) {
+        if (string(furi->query()) == "sub") {
+          const Objs_p subs = this->get_subscription_objs(p_p(furi->query("")));
+          return subs;
+        } else if (furi->query_value("doc").has_value()) {
+          return noobj();
+          // const Str_p doc = this->getd
+        }
       } else {
         const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
         const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(temp);
@@ -189,16 +187,26 @@ namespace fhatos {
     }
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
+      if (!this->available_.load()) {
+        LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
+        return;
+      }
       if (retain) {
-        //// SUBSCRIBE
-        if (furi->query_value("sub").has_value()) {
-          const Pattern_p pattern = p_p(furi->query(""));
-          if (obj->is_noobj())
-            this->recv_unsubscribe(Process::current_process()->id(), pattern);
-          else if (obj->is_bcode()) {
-            this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, QoS::_1, obj));
-          } else if (obj->is_rec())
-            this->recv_subscription(from_subscription_obj(obj));
+        if (furi->has_query()) {
+          //// SUBSCRIBE
+          if (furi->query_value("sub").has_value()) {
+            const Pattern_p pattern = p_p(furi->query(""));
+            if (obj->is_noobj()) {
+              // unsubscribe
+              this->recv_unsubscribe(Process::current_process()->id(), pattern);
+            } else if (obj->is_bcode()) {
+              // bcode for on_recv
+              this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, QoS::_1, obj));
+            } else if (obj->is_rec()) {
+              // complete sub[=>] record
+              this->recv_subscription(from_subscription_obj(obj));
+            }
+          }
         } else {
           //// WRITES
           if (furi->is_branch()) {
@@ -224,8 +232,7 @@ namespace fhatos {
               if (!remaining->empty()) {
                 // non-uri keyed pairs written to /0
                 this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining));
-                distribute_to_subscribers(
-                  message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
+                distribute_to_subscribers(message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
               }
             } else if (obj->is_lst()) {
               // lst /0,/1,/2 indexing
@@ -321,11 +328,8 @@ namespace fhatos {
     }
 
     static Subscription_p from_subscription_obj(const Rec_p &rec) {
-      return subscription_p(
-        rec->rec_get(uri(":source"))->uri_value(),
-        rec->rec_get(uri(":pattern"))->uri_value(),
-        static_cast<QoS>(rec->rec_get(uri(":qos"))->int_value()),
-        rec->rec_get(uri(":on_recv")));
+      return subscription_p(rec->rec_get(uri(":source"))->uri_value(), rec->rec_get(uri(":pattern"))->uri_value(),
+                            static_cast<QoS>(rec->rec_get(uri(":qos"))->int_value()), rec->rec_get(uri(":on_recv")));
     }
   };
 

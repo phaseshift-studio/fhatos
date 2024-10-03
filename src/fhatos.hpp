@@ -37,7 +37,15 @@
 #endif
 #endif
 
-#ifndef NATIVE
+// define ESP_ARCH as generalized ESPXXXX flag
+#ifdef ESP32
+#define ESP_ARCH
+#endif
+#ifdef ESP8266
+#define ESP_ARCH
+#endif
+
+#ifdef ESP_ARCH
 #include <Arduino.h>
 #ifndef FOS_SERIAL_BAUDRATE
 #define FOS_SERIAL_BAUDRATE 115200
@@ -45,6 +53,7 @@
 #ifndef FOS_SERIAL_TIMEOUT
 #define FOS_SERIAL_TIMEOUT 10
 #endif
+//#include <structure/stype/esp32/allocator.hpp>
 #endif
 
 #include <util/ansi.hpp>
@@ -64,6 +73,7 @@
 #include <util/logger.hpp>
 #include <random>
 #include <util/options.hpp>
+
 
 namespace fhatos {
   [[maybe_unused]] static const char *ANSI_ART =
@@ -217,7 +227,7 @@ namespace fhatos {
 #ifdef NATIVE
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
 #else
-#define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ PROGMEM = (__chars__)
+#define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
 #endif
 
   ////////////////////////////
@@ -225,14 +235,12 @@ namespace fhatos {
   ////////////////////////////
 
 #if defined(ESP32)
-#define ESP_ARCH
 #define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
 #define FOS_MEMORY(__memory__) <model/soc/memory/esp32/__memory__>
 #elif defined(ESP8266)
-#define ESP_ARCH
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>

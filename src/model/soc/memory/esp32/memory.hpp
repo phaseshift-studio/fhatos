@@ -30,7 +30,7 @@ namespace fhatos {
   class Memory : public External {
 
     CONST_CHAR(MEMORY_REC_STRING, "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]");
-    CONST_CHAR(PERCENT_TYPE_DEF, "is(gte(0.0)).is(lte(100.0))");
+    //CONST_CHAR(PERCENT_TYPE_DEF, "");
 
   protected:
     List<ID_p> MEMORY_IDS_;
@@ -48,7 +48,8 @@ namespace fhatos {
 
     virtual void setup() override {
       External::setup();
-      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
+      const Obj_p percent_type_def = OBJ_PARSER("is(and(gte(0.0)),lte(100.0)))");
+      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
       this->read_functions_.insert(
           {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
              return List<Pair<ID_p, Obj_p>>(
@@ -92,10 +93,5 @@ namespace fhatos {
       //     FOS_PSRAM_MEMORY_FURI->toString().c_str());
     }
   };
-
-  static void enable_esp32_memory() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "/structure/soc/esp32/memory"),parse("[uri[_]=>_]"));
-  }
-
 } // namespace fhatos
 #endif

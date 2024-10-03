@@ -254,13 +254,13 @@ namespace fhatos {
   static BiConsumer<const Pattern, const Rec_p> STRUCTURE_ATTACHER = [](const ID &, const Rec_p &) {
     LOG(DEBUG, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
   };
-  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_INTERCEPT = [](
-    const fURI &, const Obj_p &, const bool) -> bool {
+  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_INTERCEPT =
+      [](const fURI &, const Obj_p &, const bool) -> bool {
     LOG(DEBUG, "!ySCHEDULER_INTERCEPT!! undefined at this point in bootstrap.\n");
     return false;
   };
-  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_INTERCEPT = [](
-    const fURI &, const Obj_p &, const bool) -> bool {
+  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_INTERCEPT =
+      [](const fURI &, const Obj_p &, const bool) -> bool {
     LOG(DEBUG, "!yROUTER_INTERCEPT!! undefined at this point in bootstrap.\n");
     return false;
   };
@@ -323,7 +323,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
     //////////////////////////////////////////////////////////////
-    //Obj(const Obj &other) : Obj(other._value, other.id()) {}
+    // Obj(const Obj &other) : Obj(other._value, other.id()) {}
     template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
     Obj(const T xbool, const char *type_id = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL,
                                                                 id_p(BOOL_FURI->resolve(type_id))) {
@@ -485,7 +485,7 @@ namespace fhatos {
     }
 
     void rec_add(const Rec_p &other) const {
-      for (const auto &[k,v]: *other->rec_value()) {
+      for (const auto &[k, v]: *other->rec_value()) {
         if (this->rec_value()->count(k))
           this->rec_value()->erase(k);
         this->rec_value()->insert({k, v});
@@ -1329,6 +1329,7 @@ namespace fhatos {
       return Obj::to_objs(share(PtrHelper::clone(objs)), furi);
     }
 
+    /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/
     Obj_p clone() const {
       const ID_p id_clone = id_p(*this->id_);
       if (this->is_rec()) {
