@@ -188,7 +188,7 @@ namespace fhatos {
                       .pattern = *Scheduler::singleton()->id(),
                       .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
                     message_p(*Scheduler::singleton()->id(), noobj(), true)}));
-                this->delay(100);
+                this->delay(250);
                 return noobj();
               }}});
       }
@@ -213,7 +213,7 @@ namespace fhatos {
                         {uri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
                         {uri(this->id()->extend("config/log")), uri(LOG_TYPES.to_chars(this->settings_.log))},
                         {uri(this->id()->extend("config/clear")),
-                          bcode({Insts::block(bcode({Insts::print(str("!X!Q"))}))})}
+                          OBJ_PARSER("{'!'}.plus('X').plus('!').plus('Q').print(_)")}
                       }));
       return noobj();
     }
@@ -248,9 +248,10 @@ namespace fhatos {
       int x;
       if ((x = Terminal::readChar()) == EOF)
         return;
-      if ('\n' == static_cast<char>(x))
+      if ('\n' == static_cast<char>(x)) {
         this->new_input_ = true;
-      else {
+        this->line_ += static_cast<char>(x);
+      } else {
         this->line_ += static_cast<char>(x);
         return;
       }

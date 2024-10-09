@@ -86,7 +86,7 @@ namespace fhatos {
     //  * RGB color:                      ANSI::rgb2color(r, g, b)
 
     void parse(const char *buffer, const int buffer_length) {
-      for (int i = 0; i < buffer_length; i++) {
+      for (uint16_t i = 0; i < buffer_length; i++) {
         if (buffer[i] < 0 || buffer[i] > 126)
           continue;
         if (buffer[i] == '!') {
@@ -107,7 +107,10 @@ namespace fhatos {
             this->top_left();
           else if ('Z' == j)
             this->bottom_left();
-          else {
+          else if (!isalpha(j)) {
+            this->printer_.print(buffer[i]);
+            this->printer_.print(j);
+          } else {
             if (isupper(j))
               this->bold();
             const char jj = tolower(j);
@@ -129,7 +132,7 @@ namespace fhatos {
               this->black();
             else {
               this->printer_.print(buffer[i]);
-              this->printer_.print(buffer[i + 1]);
+              this->printer_.print(j);
             }
           }
           i++;
@@ -299,7 +302,7 @@ namespace fhatos {
         if (rainbow)
           ret = ret.append("!").append(string("") + colors[rand() % colors.length()]);
         ret = ret.append(string("") +
-                         (char) (rollercoaster ? (rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
+                         static_cast<char>(rollercoaster ? (rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
       }
       if (rainbow)
         ret = ret.append("!!");

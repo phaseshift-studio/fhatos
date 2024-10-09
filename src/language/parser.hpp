@@ -344,7 +344,7 @@ namespace fhatos {
                                          const fURI_p &base_type = BOOL_FURI) {
       return ((strcmp("true", value_token.c_str()) == 0) || (strcmp("false", value_token.c_str()) == 0))
                ? Option<Bool_p>{Bool::to_bool(strcmp("true", value_token.c_str()) == 0,
-                                              share<ID>(base_type->resolve(type_token.c_str())))}
+                                              id_p(base_type->resolve(type_token.c_str())))}
                : Option<Bool_p>{};
     }
 
@@ -356,7 +356,7 @@ namespace fhatos {
         if (!isdigit(value_token[i]))
           return {};
       }
-      return Option<Int_p>{Int::to_int(stoi(value_token), share<ID>(base_type->resolve(type_token.c_str())))};
+      return Option<Int_p>{Int::to_int(stoi(value_token), id_p(base_type->resolve(type_token.c_str())))};
     }
 
     static Option<Real_p> try_parse_real(const string &value_token, const string &type_token,
@@ -374,7 +374,7 @@ namespace fhatos {
           return {};
       }
       return dotFound
-               ? Option<Real_p>{Real::to_real(stof(value_token), share<ID>(base_type->resolve(type_token.c_str())))}
+               ? Option<Real_p>{Real::to_real(stof(value_token), id_p(base_type->resolve(type_token.c_str())))}
                : Option<Real_p>{};
     }
 
@@ -402,13 +402,13 @@ namespace fhatos {
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
       string value;
-      auto list = Obj::LstList<>();
+      const auto list = make_shared<Obj::LstList<>>();
       Tracker tracker;
       while (!ss.eof()) {
         if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
           Option<Obj_p> element = try_parse_obj(value);
           if (element.has_value())
-            list.push_back(element.value());
+            list->push_back(element.value());
           if (ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
@@ -420,7 +420,7 @@ namespace fhatos {
             value += c;
         }
       }
-      return Option<Lst_p>{Lst::to_lst(share(list), id_p(base_type->resolve(type)))};
+      return Option<Lst_p>{Lst::to_lst(list, id_p(base_type->resolve(type)))};
     }
 
     static Option<Inst_p> try_parse_poly_within(const string &token) {
@@ -476,10 +476,8 @@ namespace fhatos {
         }
       }
       ////
-      Obj::RecMap_p<> map2 = share(Obj::RecMap<>()); // necessary to reverse entries
-      for (const auto &[kk, vv]: map) {
-        map2->insert({PtrHelper::clone(kk), PtrHelper::clone(vv)});
-      }
+      auto map2 = make_shared<Obj::RecMap<>>(); // necessary to reverse entries
+      map2->insert(map.begin(), map.end());
       ////
       return Option<Rec_p>{Rec::to_rec(map2, id_p(base_type->resolve(type.c_str())))};
     }
@@ -489,13 +487,13 @@ namespace fhatos {
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
       string value;
-      auto list = List<Obj_p>();
+      auto list = make_shared<List<Obj_p>>();
       Tracker tracker;
       while (!ss.eof()) {
         if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
           Option<Obj_p> element = try_parse_obj(value);
           if (element.has_value())
-            list.push_back(element.value());
+            list->push_back(element.value());
           if (ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
@@ -505,8 +503,8 @@ namespace fhatos {
             value += c;
         }
       }
-      LOG(TRACE, "parsed as objs: %s\n", Objs::to_objs(share(list))->toString().c_str());
-      return Option<Objs_p>{Objs::to_objs(share(list), id_p(base_type->resolve(type)))};
+      //LOG(TRACE, "parsed as objs: %s\n", Objs::to_objs(list)->toString().c_str());
+      return Option<Objs_p>{Objs::to_objs(list, id_p(base_type->resolve(type)))};
     }
 
     static Option<Inst_p> try_parse_inst(const string &value_token, const string &type_token,
@@ -565,7 +563,7 @@ namespace fhatos {
       }
       //////////////////////////////////////////////////////////////////////////////////////
       List<Inst_p> insts;
-      std::stringstream ss = std::stringstream(value_token);
+      auto ss = std::stringstream(value_token);
       while (!ss.eof()) {
         // _bcode-level (tokens are insts)
         Tracker tracker;
