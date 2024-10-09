@@ -115,7 +115,7 @@ void setup() {
 
 #endif
         ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
-        //->structure(Mqtt::create("//+/#"))
+        ->structure(Mqtt::create("//+/#"))
         ->model({ID("/model/sys")})
         ->structure(KeyValue::create("/console/#"))
         ->process(Console::create("/console/", "/terminal/:owner",

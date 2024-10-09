@@ -45,7 +45,7 @@ namespace fhatos {
                 {"/type/rec/external", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 ///////
                 {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")},
-                {"/type/rec/sub", OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>int[_],:on_recv=>_]")},
+                {"/type/rec/sub", OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:on_recv=>_]")},
                 {"/type/rec/msg", OBJ_PARSER("[:target=>uri[_],:payload=>_,:retain=>bool[_]]")},
               }
             }});

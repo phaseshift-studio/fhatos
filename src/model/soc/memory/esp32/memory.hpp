@@ -48,7 +48,7 @@ namespace fhatos {
 
     virtual void setup() override {
       External::setup();
-      const Obj_p percent_type_def = OBJ_PARSER("is(and(gte(0.0)),lte(100.0)))");
+      const Obj_p percent_type_def = OBJ_PARSER("is(and(gte(0.0),lte(100.0)))");
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
       this->read_functions_.insert(
           {MEMORY_IDS_.at(0), [this](const fURI_p furi) {

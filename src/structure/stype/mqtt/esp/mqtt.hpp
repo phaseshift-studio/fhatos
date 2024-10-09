@@ -85,7 +85,7 @@ namespace fhatos {
     virtual void native_mqtt_loop() override { Process::current_process()->yield(); }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
-      this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), static_cast<uint8_t>(subscription->qos));
+      this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), 1);
     }
 
     void native_mqtt_unsubscribe(const fURI_p &pattern) override {

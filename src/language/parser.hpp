@@ -139,7 +139,7 @@ namespace fhatos {
       OBJ_PARSER = [](const string &obj_string) {
         try {
           const Obj_p obj = Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());
-          return obj->clone();
+          return obj;
         } catch (std::exception &e) {
           LOG_EXCEPTION(e);
           return Obj::to_noobj();
