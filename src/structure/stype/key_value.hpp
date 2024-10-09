@@ -20,7 +20,6 @@
 #ifndef fhatos_key_value_hpp
 #define fhatos_key_value_hpp
 
-#include <language/processor/algorithm.hpp>
 #include "fhatos.hpp"
 #include "language/obj.hpp"
 #include "structure/structure.hpp"
@@ -46,15 +45,18 @@ namespace fhatos {
     }
 
   protected:
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
-      this->mutex_data_.write<ID>([this,id,obj]() {
-        if (this->data_.count(id))
-          this->data_.erase(id);
-        if (!obj->is_noobj()) {
-          this->data_.insert({id, obj->clone()});
-        }
-        return id;
-      });
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+      if (retain) {
+        this->mutex_data_.write<ID>([this,id,obj]() {
+          if (this->data_.count(id))
+            this->data_.erase(id);
+          if (!obj->is_noobj()) {
+            this->data_.insert({id, obj->clone()});
+          }
+          return id;
+        });
+      }
+      this->distribute_to_subscribers(message_p(*id, obj, retain));
     }
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {

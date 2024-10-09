@@ -26,6 +26,7 @@
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_EXT
 #include <test_fhatos.hpp>
 #include <language/fluent.hpp>
 
@@ -35,86 +36,75 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_to_from() {
-    FOS_CHECK_RESULTS({2}, __(1).to(u("a")).plus(_.from(u("a"))), {{u("a"), 1}});
-    FOS_CHECK_RESULTS({23}, __(10).to(u("b")).plus(3).plus(_.from(u("b"))), {{u("b"), 10}});
-    FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(u("c")).plus("os"), {{u("c"), "fhat"}});
+    FOS_CHECK_RESULTS({2}, __(1).to(u("a")).plus(_.from(u("a")))._bcode, {{u("a"), 1}});
+    FOS_CHECK_RESULTS({23}, __(10).to(u("b")).plus(3).plus(_.from(u("b")))._bcode, {{u("b"), 10}});
+    FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(u("c")).plus("os")._bcode, {{u("c"), "fhat"}});
   }
 
   void test_relational_predicates() {
     //// INT
-    FOS_CHECK_RESULTS({1}, __(1).is(_.eq(1)));
-    FOS_CHECK_RESULTS({}, __(1).is(_.neq(1)));
-    FOS_CHECK_RESULTS({12}, __({1, 2, 3}).plus(10).is(_.eq(12)));
-    FOS_CHECK_RESULTS({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12)));
-    FOS_CHECK_RESULTS({13}, __({1, 2, 3}).plus(10).is(_.gt(12)));
-    FOS_CHECK_RESULTS({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12)));
-    FOS_CHECK_RESULTS({11}, __({1, 2, 3}).plus(10).is(_.lt(12)));
-    FOS_CHECK_RESULTS({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12)));
+    FOS_CHECK_RESULTS({1}, __(1).is(_.eq(1))._bcode);
+    FOS_CHECK_RESULTS({}, __(1).is(_.neq(1))._bcode);
+    FOS_CHECK_RESULTS({12}, __({1, 2, 3}).plus(10).is(_.eq(12))._bcode);
+    FOS_CHECK_RESULTS({11, 13}, __({1, 2, 3}).plus(10).is(_.neq(12))._bcode);
+    FOS_CHECK_RESULTS({13}, __({1, 2, 3}).plus(10).is(_.gt(12))._bcode);
+    FOS_CHECK_RESULTS({12, 13}, __({1, 2, 3}).plus(10).is(_.gte(12))._bcode);
+    FOS_CHECK_RESULTS({11}, __({1, 2, 3}).plus(10).is(_.lt(12))._bcode);
+    FOS_CHECK_RESULTS({11, 12}, __({1, 2, 3}).plus(10).is(_.lte(12))._bcode);
     //// REAL
-    FOS_CHECK_RESULTS({1.0f}, __(1.0f).is(_.eq(1.0f)));
-    FOS_CHECK_RESULTS({}, __(1.0f).is(_.neq(1.0f)));
-    FOS_CHECK_RESULTS({12.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.eq(12.0f)));
-    FOS_CHECK_RESULTS({11.0f, 13.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.neq(12.0f)));
-    FOS_CHECK_RESULTS({13.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.gt(12.0f)));
-    FOS_CHECK_RESULTS({12.0f, 13.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.gte(12.0f)));
-    FOS_CHECK_RESULTS({11.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.lt(12.0f)));
-    FOS_CHECK_RESULTS({11.0f, 12.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.lte(12.0f)));
+    FOS_CHECK_RESULTS({1.0f}, __(1.0f).is(_.eq(1.0f))._bcode);
+    FOS_CHECK_RESULTS({}, __(1.0f).is(_.neq(1.0f))._bcode);
+    FOS_CHECK_RESULTS({12.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.eq(12.0f))._bcode);
+    FOS_CHECK_RESULTS({11.0f, 13.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.neq(12.0f))._bcode);
+    FOS_CHECK_RESULTS({13.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.gt(12.0f))._bcode);
+    FOS_CHECK_RESULTS({12.0f, 13.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.gte(12.0f))._bcode);
+    FOS_CHECK_RESULTS({11.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.lt(12.0f))._bcode);
+    FOS_CHECK_RESULTS({11.0f, 12.0f}, __({1.0f, 2.0f, 3.0f}).plus(10.0f).is(_.lte(12.0f))._bcode);
     //// STR
-    FOS_CHECK_RESULTS({"1"}, __("1").is(_.eq("1")));
-    FOS_CHECK_RESULTS({}, __("1").is(_.neq("1")));
-    FOS_CHECK_RESULTS({"20"}, __({"1", "2", "3"}).plus("0").is(_.eq("20")));
-    FOS_CHECK_RESULTS({"10", "30"}, __({"1", "2", "3"}).plus("0").is(_.neq("20")));
-    FOS_CHECK_RESULTS({"30"}, __({"1", "2", "3"}).plus("0").is(_.gt("20")));
-    FOS_CHECK_RESULTS({"20", "30"}, __({"1", "2", "3"}).plus("0").is(_.gte("20")));
-    FOS_CHECK_RESULTS({"10"}, __({"1", "2", "3"}).plus("0").is(_.lt("20")));
-    FOS_CHECK_RESULTS({"10", "20"}, __({"1", "2", "3"}).plus("0").is(_.lte("20")));
+    FOS_CHECK_RESULTS({"1"}, __("1").is(_.eq("1"))._bcode);
+    FOS_CHECK_RESULTS({}, __("1").is(_.neq("1"))._bcode);
+    FOS_CHECK_RESULTS({"20"}, __({"1", "2", "3"}).plus("0").is(_.eq("20"))._bcode);
+    FOS_CHECK_RESULTS({"10", "30"}, __({"1", "2", "3"}).plus("0").is(_.neq("20"))._bcode);
+    FOS_CHECK_RESULTS({"30"}, __({"1", "2", "3"}).plus("0").is(_.gt("20"))._bcode);
+    FOS_CHECK_RESULTS({"20", "30"}, __({"1", "2", "3"}).plus("0").is(_.gte("20"))._bcode);
+    FOS_CHECK_RESULTS({"10"}, __({"1", "2", "3"}).plus("0").is(_.lt("20"))._bcode);
+    FOS_CHECK_RESULTS({"10", "20"}, __({"1", "2", "3"}).plus("0").is(_.lte("20"))._bcode);
   }
 
   void test_plus() {
-    FOS_CHECK_RESULTS({true}, __(true).plus(false));
-    FOS_CHECK_RESULTS({true}, __(true).plus(true));
-    FOS_CHECK_RESULTS({false, true, false}, __(List<Obj>{false, true, false}).plus(false));
+    FOS_CHECK_RESULTS({true}, __(true).plus(false)._bcode);
+    FOS_CHECK_RESULTS({true}, __(true).plus(true)._bcode);
+    FOS_CHECK_RESULTS({false, true, false}, __(List<Obj>{false, true, false}).plus(false)._bcode);
     //
-    FOS_CHECK_RESULTS({3}, __(1).plus(2));
-    FOS_CHECK_RESULTS({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2)));
+    FOS_CHECK_RESULTS({3}, __(1).plus(2)._bcode);
+    FOS_CHECK_RESULTS({54, 50, 46}, __({1, 2, 3}).plus(10).plus(_).plus(_.plus(2))._bcode);
     //
-    FOS_CHECK_RESULTS({46.5f}, __(1.121f).plus(10.002f).plus(_).plus(_.plus(2.0f)));
-    FOS_CHECK_RESULTS({54.4f, 50.4f, 46.4f}, __({1.05f, 2.05f, 3.05f}).plus(10.05f).plus(_).plus(_.plus(2.0f)));
+    FOS_CHECK_RESULTS({46.5f}, __(1.121f).plus(10.002f).plus(_).plus(_.plus(2.0f))._bcode);
+    FOS_CHECK_RESULTS({54.4f, 50.4f, 46.4f}, __({1.05f, 2.05f, 3.05f}).plus(10.05f).plus(_).plus(_.plus(2.0f))._bcode);
     //
-    /* FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).plus(u("/a")).plus(u("b")));
-     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).plus(u("/a")).plus(u("/b")));
-     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//b")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b")));
-     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).plus(u("/a/")).plus(u("b/")));
-     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//../b/")},
-                            __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b/")));
-     FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a//../b/.")},
-                            __(u("http://fhatos.org")).plus(u("/a/")).plus(u("../b")).plus(u(".")));
-     //
-     FOS_CHECK_RESULTS<Str>({"http://fhatos.org/a/b", "fhat.pig/a/b"},
-                            __({"http://fhatos.org", "fhat.pig"}).plus("/a").plus("/b"));*/
     FOS_CHECK_RESULTS(
         {*Obj::to_rec({{"a", 1},
                        {"b", 2},
                        {"c", 3},
                        {"d", 4}})},
         __(*Obj::to_rec({{"a", 1}})).plus(*Obj::to_rec({{"b", 2}})).plus(*Obj::to_rec({{"c", 3},
-          {"d", 4}})));
+          {"d", 4}}))._bcode);
   }
 
   void test_mult() {
     // URI
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("b")));
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("/b")));
-    FOS_CHECK_RESULTS({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b")));
+    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("b"))._bcode);
+    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("/b"))._bcode);
+    FOS_CHECK_RESULTS({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b"))._bcode);
     // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b/")));
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b/")));
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b")));
+    FOS_CHECK_RESULTS({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b/"))._bcode);
+    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b"))._bcode);
     // FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}}));
   }
 
   void test_count() {
-    FOS_CHECK_RESULTS({3}, __({5, 4, 7}).plus(2).count());
-    FOS_CHECK_RESULTS({1}, __({5, 4, 7}).plus(2).count().count());
+    FOS_CHECK_RESULTS({3}, __({5, 4, 7}).plus(2).count()._bcode);
+    FOS_CHECK_RESULTS({1}, __({5, 4, 7}).plus(2).count().count()._bcode);
   }
 
   FOS_RUN_TESTS( //

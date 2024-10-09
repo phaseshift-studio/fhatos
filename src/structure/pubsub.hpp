@@ -28,9 +28,9 @@ namespace fhatos {
 #define TRANSIENT_MESSAGE false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
-  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",    \
+  LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      (subscription)->source.toString().c_str(), (uint8_t) (subscription)->qos,                                        \
+      (subscription)->source.toString().c_str(),                                                                       \
       (subscription)->pattern.toString().c_str(), (subscription)->on_recv->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
@@ -111,7 +111,7 @@ namespace fhatos {
   ///////////////////////////////////////////////////
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
-  enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
+  //enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
@@ -133,32 +133,32 @@ namespace fhatos {
   struct Subscription {
     const ID source;
     const Pattern pattern;
-    const QoS qos;
+    //const QoS qos;
     const BCode_p on_recv;
 
     [[nodiscard]] Rec_p to_rec() const {
       return rec({{uri(":source"), uri(source)},
                    {uri(":pattern"), uri(pattern)},
-                   {uri(":qos"), jnt(static_cast<int>(qos))},
+                   //{uri(":qos"), jnt(static_cast<int>(qos))},
                    {uri(":on_recv"), on_recv}}, id_p(REC_FURI->extend("sub")));
     }
 
     [[nodiscard]] string toString() const {
       char temp[1024];
-      snprintf(temp, 1024, "[!b%s!m]=!gsubscribe!m[qos:%i]=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!",
-               source.toString().c_str(), static_cast<uint8_t>(qos), pattern.toString().c_str(),
+      snprintf(temp, 1024, "[!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!",
+               source.toString().c_str()/*, static_cast<uint8_t>(qos)*/, pattern.toString().c_str(),
                on_recv->toString().c_str());
       return {temp};
     }
   };
 
-  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const QoS qos,
+  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, /*const QoS qos,*/
                                        const BCode_p &on_recv) {
     return make_shared<Subscription>(
       Subscription{
         .source = source,
         .pattern = pattern,
-        .qos = qos,
+        // .qos = qos,
         .on_recv = on_recv});
   }
 } // namespace fhatos

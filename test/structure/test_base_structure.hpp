@@ -160,7 +160,7 @@ namespace fhatos {
 
   void test_data_types() {
     current_structure->recv_subscription(subscription_p(
-        "test_data_types", *make_test_pattern("abc"), QoS::_1,
+        "test_data_types", *make_test_pattern("abc"),
         OBJ_PARSER(string("get(payload).print(_).-<(["
                           "type().is(eq(/type/bool/)) => is(eq(true)),"
                           "type().is(eq(/type/int/)) => is(eq(10)),"
@@ -203,9 +203,9 @@ namespace fhatos {
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(0, pings->load());
     FOS_TEST_EXCEPTION_CXX(router()->route_subscription(
-        share(Subscription{.source = "a/test/case", .pattern = "a/test/bad", .qos = QoS::_1, .on_recv = on_recv})));
+        share(Subscription{.source = "a/test/case", .pattern = "a/test/bad",  .on_recv = on_recv})));
     router()->route_subscription(share(Subscription{
-        .source = "a/test/case", .pattern = *make_test_pattern("test"), .qos = QoS::_1, .on_recv = on_recv}));
+        .source = "a/test/case", .pattern = *make_test_pattern("test"), .on_recv = on_recv}));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
     router()->write(id_p(*make_test_pattern("test")), Obj::to_bool(true), TRANSIENT_MESSAGE);

@@ -43,33 +43,32 @@ namespace fhatos {
   class BaseFileSystem : public External {
   protected:
     const ID_p mount_root_;
+    const ID clean_root_;
 
   public:
-    explicit BaseFileSystem(const Pattern &root, const ID &mount_root): External(root),
-                                                                        mount_root_(id_p(mount_root.extend("/"))) {
+    // Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>
+    explicit BaseFileSystem(const Pattern &root, const ID &mount_root) : External(root),
+                                                                         mount_root_(id_p(mount_root.extend("/"))),
+                                                                         clean_root_(root.retract_pattern()) {
     }
 
     void setup() override {
       LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
-      ProgressBar progress_bar = ProgressBar::start(printer<Ansi<>>().get(), 9);
-      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}), &progress_bar);
-      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(FOS_TYPE_PREFIX "uri/"))}));
+      Types::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), 9);
+      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(URI_FURI))}));
+      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(URI_FURI))}));
       ///////////////////////////////////////////////////////////////////
-      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("root")),
-                                    Obj::to_inst(
-                                      "root", {}, [this](const InstArgs &) {
-                                        return [this](const Obj_p &) { return this->root(); };
-                                      },
-                                      IType::ZERO_TO_ONE, Obj::objs_seed(),
-                                      id_p(INST_FS_FURI->resolve("root"))));
+      Types::singleton()->save_type(
+        id_p(INST_FS_FURI->resolve("root")),
+        Obj::to_inst(
+          "root", {}, [this](const InstArgs &) { return [this](const Obj_p &) { return this->root(); }; },
+          IType::ZERO_TO_ONE, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("root"))));
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("ls")),
                                     Obj::to_inst(
                                       "ls", {x(0, bcode())},
                                       [this](const InstArgs &args) {
                                         return [this, args](const Obj_p &lhs) {
-                                          return args.empty()
-                                                   ? this->ls(lhs)
-                                                   : this->ls(args.at(0)->apply(lhs));
+                                          return args.empty() ? this->ls(lhs) : this->ls(args.at(0)->apply(lhs));
                                         };
                                       },
                                       IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
@@ -81,8 +80,7 @@ namespace fhatos {
                                           return this->mkdir(args.at(0)->apply(lhs)->uri_value());
                                         };
                                       },
-                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                      id_p(INST_FS_FURI->resolve("mkdir"))));
+                                      IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("mkdir"))));
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("more")),
                                     Obj::to_inst(
                                       "fs:more", {x(0, Obj::to_bcode()), x(1, jnt(10))},
@@ -103,8 +101,7 @@ namespace fhatos {
                                           }
                                         };
                                       },
-                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                      id_p(INST_FS_FURI->resolve("more"))));
+                                      IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("more"))));
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("append")),
                                     Obj::to_inst(
                                       "fs:append", {x(0)},
@@ -114,8 +111,7 @@ namespace fhatos {
                                           return this->cat(lhs, args.at(0)->apply(lhs));
                                         };
                                       },
-                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                      id_p(INST_FS_FURI->resolve("append"))));
+                                      IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("append"))));
       Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("touch")),
                                     Obj::to_inst(
                                       "fs:touch", {x(0, bcode())},
@@ -124,22 +120,23 @@ namespace fhatos {
                                           return this->touch(args.at(0)->apply(lhs)->uri_value());
                                         };
                                       },
-                                      IType::ONE_TO_ONE, Obj::noobj_seed(),
-                                      id_p(INST_FS_FURI->resolve("touch"))));
-      progress_bar.end("!bfile system !ytypes!! loaded\n");
+                                      IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));
+      Types::singleton()->progress_bar_->end("!bfile system !ytypes!! loaded\n");
+      Types::singleton()->progress_bar_ = nullptr;
       External::setup();
     }
 
     virtual File_p to_file(const ID &path) const {
-      if (this->is_file(path))
-        return uri(id_p(path), FILE_FURI);
+      if (this->is_file(path)) {
+        return uri(this->clean_root_.is_subfuri_of(path) ? path : ID(this->clean_root_.extend(path)));
+      }
       throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
     virtual Dir_p to_dir(const ID &path) const {
       if (this->is_dir(path))
-        return uri(id_p(path), DIR_FURI);
+        return uri((this->clean_root_.is_subfuri_of(path) ? fURI(path) : this->clean_root_.extend(path)).to_branch());
       throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
@@ -150,14 +147,13 @@ namespace fhatos {
 
     virtual fURI make_native_path(const ID &path) const {
       const string temp_path_string = path.toString();
-      const string temp_id_string = this->pattern_->toString();
+      const string temp_id_string = this->pattern_->retract_pattern().toString();
       const string temp_path = ((temp_path_string.length() >= temp_id_string.length()) &&
                                 (temp_path_string.substr(0, temp_id_string.length()) == temp_id_string))
                                  ? temp_path_string.substr(temp_id_string.length())
                                  : temp_path_string;
       const fURI local_path =
-          this->mount_root_->resolve(
-            (!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
+          this->mount_root_->resolve((!temp_path.empty() && temp_path[0] == '/') ? temp_path.substr(1) : temp_path);
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
@@ -174,13 +170,9 @@ namespace fhatos {
 
     /////
 
-    virtual Dir_p root() const {
-      return to_dir(*this->pattern());
-    }
+    virtual Dir_p root() const { return to_dir(this->pattern()->retract_pattern()); }
 
-    virtual bool is_fs(const ID &path) const {
-      return this->is_dir(path) || this->is_file(path);
-    }
+    virtual bool is_fs(const ID &path) const { return this->is_dir(path) || this->is_file(path); }
 
     virtual bool is_dir(const ID &) const = 0;
 
@@ -198,47 +190,72 @@ namespace fhatos {
 
     virtual File_p cat(const File_p &, const Obj_p &) = 0;
 
+    virtual Obj_p to_obj(const File_p &file) const = 0;
+
     //// CORE STRUCTURE FUNCTIONS
 
     Obj_p read(const fURI_p &furi) override {
-      // TODO: source
       if (furi->is_pattern()) {
-        List<Dir_p> list_a = {root()};
-        List<Dir_p> list_b = {};
-        for (int i = this->pattern()->path_length(); i < furi->path_length(); i++) {
-          string segment = furi->path(i);
-          for (const Dir_p &d: list_a) {
-            if (is_dir(d->uri_value())) {
-              const Objs_p objs = ls(d);
+        List<fURI> list_a = {fURI(this->clean_root_)};
+        List<fURI> list_b = {};
+        for (int i = this->clean_root_.path_length(); i < furi->path_length(); i++) {
+          const string segment = furi->path(i);
+          for (const fURI &d: list_a) {
+            if (is_dir(d)) {
+              const Objs_p objs = this->ls(to_dir(d));
               for (const Obj_p &fd: *objs->objs_value()) {
-                if (segment == "+" || segment == "#" ||
-                    (fd->uri_value().name() == segment)) // todo: # infinite recurssion?
-                  list_b.push_back(this->to_fs(fd->uri_value()));
+                if (segment == "+" || segment == "#" || fd->uri_value().name() == segment) // todo: # recurssion?
+                  list_b.push_back(fd->uri_value());
               }
+            } else if (i == furi->path_length() - 1 && (segment == "+" || segment == "#" || d.name() == segment)) {
+              list_b.push_back(d);
             }
           }
           list_a.clear();
-          list_a = List<Dir_p>(list_b);
+          list_a = List<fURI>(list_b);
           list_b.clear();
         }
+        //////////////////////////////
         List<Uri_p> ret;
         for (const auto &f: list_a) {
-          if (f->uri_value().matches(*furi))
-            ret.push_back(f->as(URI_FURI));
+          if (f.matches(*furi))
+            ret.push_back(to_fs(f));
         }
         return objs(ret);
       } else {
-        return !is_fs(*furi) ? noobj() : to_fs(*furi);
+        if (furi->is_branch()) {
+          // ls
+          if (is_dir(*furi)) {
+            return this->ls(to_dir(*furi));
+          }
+        } else {
+          if (is_file(*furi)) {
+            // more
+            return this->to_obj(to_file(*furi));
+          } else if (is_dir(*furi)) {
+            Rec_p rec = Obj::to_rec();
+            const Objs_p objs = this->ls(to_dir(*furi));
+            for (const Obj_p &obj: *objs->objs_value()) {
+              if (is_file(obj->uri_value())) {
+                rec->rec_set(obj, to_obj(to_file(obj->uri_value())));
+              } else {
+                const Objs_p objs_dir = this->ls(to_dir(obj->uri_value()));
+                rec->rec_set(obj, objs_dir);
+              }
+            }
+            return rec;
+          }
+        }
       }
+      return noobj();
     }
 
     void publish_retained(const Subscription_p &) override {
       // TODO:
     }
 
-    virtual void write(
-      [[maybe_unused]] const fURI_p &furi, [[maybe_unused]] const Obj_p &obj,
-      [[maybe_unused]] const bool retain) override {
+    virtual void write([[maybe_unused]] const fURI_p &furi, [[maybe_unused]] const Obj_p &obj,
+                       [[maybe_unused]] const bool retain) override {
     }; // TODO: implement and remove unused
   };
 } // namespace fhatos

@@ -20,34 +20,37 @@
 #ifndef fhatos_fs_hpp
 #define fhatos_fs_hpp
 
+#include <FS.h>
 #include <LittleFS.h>
 #include <model/fs/base_fs.hpp>
-#include <FS.h>
 
 #define FOS_FS LittleFS
 
 using namespace fs;
 namespace fhatos {
   class FileSystem : public BaseFileSystem {
-  private:
-    explicit FileSystem(const ID &id, const ID &mount_root) : BaseFileSystem(id, mount_root) {}
+  protected:
+    explicit FileSystem(const Pattern &pattern, const ID &mount_root) : BaseFileSystem(pattern, mount_root) {}
 
   public:
-    static ptr<FileSystem> create(const ID &id = ID("/io/fs/"), const ID &root = ID("/")) {
-      static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(id, root));
+    static ptr<FileSystem> create(const Pattern &pattern = Pattern("/io/fs/#"), const ID &root = ID("/")) {
+      static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(pattern, root));
       return fs_p;
     }
 
     virtual void setup() override {
       if (!FOS_FS.begin()) {
-        throw fError("Unable to mount file system at %s\n",this->mount_root_->toString().c_str());
+        throw fError("Unable to mount file system at %s\n", this->mount_root_->toString().c_str());
         return;
       }
       BaseFileSystem::setup();
     }
 
     bool is_dir(const ID &path) const override {
-      return FOS_FS.open(make_native_path(path).toString().c_str()).isDirectory();
+      fs::File file = FOS_FS.open(make_native_path(path).toString().c_str(), "r", false);
+      const bool dir = file.isDirectory();
+      file.close();
+      return dir;
     }
 
     bool is_file(const ID &path) const override { return !is_dir(path); }
@@ -56,7 +59,8 @@ namespace fhatos {
       if (is_dir(path))
         throw fError("!g[!b%s!g]!! %s already exists\n", this->pattern()->toString().c_str(), path.toString().c_str());
       if (!FOS_FS.mkdir(this->make_native_path(path).toString().c_str()))
-        throw fError("!g[!b%s!g]!! %s can't be created\n", this->pattern()->toString().c_str(), path.toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be created\n", this->pattern()->toString().c_str(),
+                     path.toString().c_str());
       return this->to_dir(path);
     }
 
@@ -68,7 +72,8 @@ namespace fhatos {
         result = FOS_FS.remove(this->make_native_path(uri->uri_value()).toString().c_str());
       }
       if (!result)
-        throw fError("!g[!b%s!g]!! %s can't be deleted\n", this->pattern()->toString().c_str(), uri->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be deleted\n", this->pattern()->toString().c_str(),
+                     uri->toString().c_str());
     }
 
     Objs_p ls(const Dir_p &dir) const override {
@@ -80,8 +85,7 @@ namespace fhatos {
       fs::File file = root.openNextFile();
       while (file) {
         listing->push_back(
-                uri(string(file.path()).substr(
-                        this->mount_root_->toString().length()))); // clip off local mount location
+            to_fs(string(file.path()).substr(this->mount_root_->toString().length()))); // clip off local mount location
         file = root.openNextFile();
       }
       return Obj::to_objs(listing);
@@ -98,12 +102,31 @@ namespace fhatos {
       return Obj::to_lst(lines);
     }
 
+    Objs_p to_obj(const File_p &file) const override {
+      Objs_p objs = Obj::to_objs();
+      fs::File f = FOS_FS.open(this->make_native_path(file->uri_value()).toString().c_str(), "r", false);
+      string source;
+      while (f.available()) {
+        source += f.readStringUntil('\n').c_str();
+        if(Parser::closed_expression(source)) {
+          const Obj_p obj = OBJ_PARSER(source);
+          if(!obj->is_noobj())
+            objs->add_obj(obj);
+          source.clear();
+        }
+      }
+      f.close();
+      return objs;
+    }
+
     File_p cat(const File_p &file, const Obj_p &content) override {
       fs::File f = FOS_FS.open(this->make_native_path(file->uri_value()).toString().c_str(), "rw", true);
       if (!f)
-        throw fError("!g[!b%s!g]!! %s can't be opened\n", this->pattern()->toString().c_str(), file->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be opened\n", this->pattern()->toString().c_str(),
+                     file->toString().c_str());
       if (!f.print(content->toString().c_str())) {
-        throw fError("!g[!b%s!g]!! %s can't be written to\n", this->pattern()->toString().c_str(), file->toString().c_str());
+        throw fError("!g[!b%s!g]!! %s can't be written to\n", this->pattern()->toString().c_str(),
+                     file->toString().c_str());
       }
       f.close();
       return file;

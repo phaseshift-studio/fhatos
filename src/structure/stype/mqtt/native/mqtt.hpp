@@ -58,8 +58,9 @@ namespace fhatos {
         const binary_ref ref = mqtt_message->get_payload_ref();
         const auto bobj = std::make_shared<BObj>(ref.length(),
                                                  reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
-        const Message_p message = message_p(ID(mqtt_message->get_topic()), Obj::deserialize(bobj),
-                                            mqtt_message->is_retained());
+        const auto [payload, retained] = make_payload(bobj);
+       // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
+        const Message_p message = message_p(ID(mqtt_message->get_topic()), payload, retained);
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
         const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(message->target));
         for (const Subscription_p &sub: *matches) {
@@ -73,11 +74,11 @@ namespace fhatos {
     }
 
     void native_mqtt_loop() override {
-      this->loop();
+      Structure::loop();
     }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
-      this->xmqtt_->subscribe(subscription->pattern.toString(), static_cast<int>(subscription->qos))->wait();
+      this->xmqtt_->subscribe(subscription->pattern.toString(), 1)->wait();
     }
 
     void native_mqtt_unsubscribe(const fURI_p &pattern) override {
@@ -88,7 +89,7 @@ namespace fhatos {
       if (message->payload->is_noobj()) {
         this->xmqtt_->publish(message->target.toString().c_str(), const_cast<char *>(""), 0, 2, true)->wait();
       } else {
-        const BObj_p source_payload = message->payload->serialize();
+        const BObj_p source_payload = make_bobj(message->payload, message->retain);
         this->xmqtt_->publish(
           message->target.toString(),
           source_payload->second,

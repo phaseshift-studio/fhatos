@@ -72,32 +72,12 @@ namespace fhatos {
     StringPrinter printer_ = StringPrinter(&buffer_);
     bool on_ = true;
 
-    enum {
-      fg_normal = 30, bg_normal = 40, bright_color = 52
-    };
+    enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
     void color(const uint8_t fgcolor, const uint8_t) {
       if (this->on_)
         this->printf("\033[0;%dm", fg_normal + fgcolor);
     }
-
-    //  COLOR
-    enum {
-      BLACK = 0, // !b
-      RED = 1, // !r
-      GREEN = 2, // !g
-      YELLOW = 3, // !y
-      BLUE = 4, // !b
-      MAGENTA = 5, // !m
-      CYAN = 6, // !c
-      WHITE = 7, // !w
-      BRIGHT = 8, //  Add this to any of the previous 8 to get a bright color
-    };
-
-    // STYLE
-    enum {
-      UNDERLINE, // !_
-    };
 
     //  foreground, background, and color accept one of the following colors:
     //  * color name from above:          ANSI::red
@@ -113,8 +93,8 @@ namespace fhatos {
           const char j = buffer[i + 1];
           if ('!' == j)
             this->normal();
-            //else if('*' == j)
-            //  this->background();
+            // else if('*' == j)
+            //   this->background();
           else if ('_' == j)
             this->underline();
           else if ('~' == j)
@@ -243,10 +223,10 @@ namespace fhatos {
         this->print("\033[5m");
     }
 
-    //void background() {
-    //  if (this->_on)
-    //    this->print("\033[40m");
-    //}
+    // void background() {
+    //   if (this->_on)
+    //     this->print("\033[40m");
+    // }
 
     ////////// POSITIONING
 
@@ -262,22 +242,28 @@ namespace fhatos {
 
 
     ////////// COLORING
-
-    void red(const bool bright = false) { color(RED + (bright ? BRIGHT : 0), 0); }
-
-    void green(const bool bright = false) { color(GREEN + (bright ? BRIGHT : 0), 0); }
-
-    void blue(const bool bright = false) { color(BLUE + (bright ? BRIGHT : 0), 0); }
-
-    void magenta(const bool bright = false) { color(MAGENTA + (bright ? BRIGHT : 0), 0); }
-
-    void cyan(const bool bright = false) { color(CYAN + (bright ? BRIGHT : 0), 0); }
-
-    void white(const bool bright = false) { color(WHITE + (bright ? BRIGHT : 0), 0); }
-
-    void yellow(const bool bright = false) { color(YELLOW + (bright ? BRIGHT : 0), 0); }
-
-    void black(const bool bright = false) { color(BLACK + (bright ? BRIGHT : 0), 0); }
+    /*
+        //  COLOR
+        enum {
+        BLACK = 0, // !b
+        RED = 1, // !r
+        GREEN = 2, // !g
+        YELLOW = 3, // !y
+        BLUE = 4, // !b
+        MAGENTA = 5, // !m
+        CYAN = 6, // !c
+        WHITE = 7, // !w
+        BRIGHT = 8, //  Add this to any of the previous 8 to get a bright color
+        };
+        */
+    void black(const bool bright = false) { color(0 + (bright ? 8 : 0), 0); }
+    void red(const bool bright = false) { color(1 + (bright ? 8 : 0), 0); }
+    void green(const bool bright = false) { color(2 + (bright ? 8 : 0), 0); }
+    void yellow(const bool bright = false) { color(3 + (bright ? 8 : 0), 0); }
+    void blue(const bool bright = false) { color(4 + (bright ? 8 : 0), 0); }
+    void magenta(const bool bright = false) { color(5 + (bright ? 8 : 0), 0); }
+    void cyan(const bool bright = false) { color(6 + (bright ? 8 : 0), 0); }
+    void white(const bool bright = false) { color(7 + (bright ? 8 : 0), 0); }
 
     void up() {
       if (this->on_)
@@ -297,6 +283,12 @@ namespace fhatos {
     void right() {
       if (this->on_)
         this->print("\033[1C");
+    }
+
+    void cursor(const bool visible) {
+      if (this->on_) {
+        this->print(visible ? "\x1b[?25h" : "\x1b[?25l");
+      }
     }
 
     static string silly_print(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
@@ -324,36 +316,37 @@ namespace fhatos {
     Ansi<> *ansi_;
     const uint8_t total_counts_;
     uint8_t current_counts_;
-    const char meter_icon_;
+    const char *meter_icon_;
 
-    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char meter_icon = '#') : ansi_(ansi),
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") : ansi_(ansi),
       total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
     }
 
   public:
-    static ProgressBar start(Ansi<> *ansi, const uint8_t total_counts, const char meter_icon = '#') {
-      return ProgressBar(ansi, total_counts, meter_icon);
+    static shared_ptr<ProgressBar> start(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") {
+      ansi->cursor(false);
+      return shared_ptr<ProgressBar>(new ProgressBar(ansi, total_counts, meter_icon));
     }
 
-    bool done() const {
-      return this->current_counts_ >= this->total_counts_;
-    }
+    bool done() const { return this->current_counts_ >= this->total_counts_; }
 
     void end(const string &end_message = "done") {
       this->current_counts_ = this->total_counts_;
       this->incr_count(end_message);
-      //this->ansi->printf("%s", end_message.c_str());
+      this->ansi_->cursor(true);
     }
 
     void incr_count(const string &message = "") {
-      const uint8_t percentage = 0 == this->current_counts_
-                                   ? 0
-                                   : ((static_cast<float>(this->current_counts_) /
-                                       static_cast<float>(this->total_counts_)) * 100.f);
+      const uint8_t percentage =
+          0 == this->current_counts_
+            ? 0
+            : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
       ++this->current_counts_;
+      const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
       this->ansi_->print("!g[INFO]  [!b");
-      for (int j = 0; j < percentage; j = j + 2) {
-        this->ansi_->print('#');
+      for (int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
+        // + 2 to make bar half as long
+        this->ansi_->print(this->meter_icon_);
       }
       this->ansi_->print("!!");
       for (int j = percentage; j < 99; j = j + 2) {
@@ -367,11 +360,8 @@ namespace fhatos {
   ///////////////////////////////////// TREE BAR /////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-struct ObjTree {
-
-
-
-};
+  struct ObjTree {
+  };
 
 
   template<typename PRINTER = Ansi<>>

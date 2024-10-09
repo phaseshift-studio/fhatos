@@ -146,6 +146,7 @@ namespace fhatos {
         }
       };
       Options::singleton()->parser<Obj>(OBJ_PARSER);
+      router()->write(this->id(), load_process(PtrHelper::no_delete(this)));
     }
 
     /*void setup() override {
@@ -327,7 +328,9 @@ namespace fhatos {
     }
 
     static Option<NoObj_p> try_parse_comment(const string &value_token) {
-      return value_token.substr(0, 3) == "---" ? Option<NoObj_p>{NoObj::to_noobj()} : Option<NoObj_p>();
+      return value_token.substr(0, 3) == "---" || value_token.substr(0, 3) == "==="
+               ? Option<NoObj_p>{noobj()}
+               : Option<NoObj_p>();
     }
 
     static Option<NoObj_p> try_parse_no_obj(const string &value_token, const string &type_token,

@@ -47,17 +47,17 @@ namespace fhatos {
                                                    {4, "MQTT_CONNECT_BAD_CREDENTIALS"},
                                                    {5, "MQTT_CONNECT_UNAUTHORIZED"}}};
 
+
     ptr<PubSubClient> xmqtt_;
 
-    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) : BaseMqtt(pattern, settings) {
+    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) :
+        BaseMqtt(pattern, settings) {
 
       if (this->settings_.broker.empty()) {
-        LOG_STRUCTURE(WARN, this, "MQTT disabled as no broker address provided.\n");
+        LOG_STRUCTURE(WARN, this, "mqtt disabled as no broker address provided\n");
       } else {
         WiFiClient *client = new WiFiClient();
-        this->xmqtt_ =
-            ptr<PubSubClient>(new PubSubClient(this->settings_.broker.c_str(), FOS_MQTT_BROKER_PORT, *client));
-        // this->xmqtt->setSocketTimeout(25);
+        this->xmqtt_ = ptr<PubSubClient>(new PubSubClient(*client));
         this->xmqtt_->setServer(this->settings_.broker.c_str(), FOS_MQTT_BROKER_PORT);
         this->xmqtt_->setBufferSize(MQTT_MAX_PACKET_SIZE);
         this->xmqtt_->setSocketTimeout(1000); // may be too excessive
@@ -67,12 +67,11 @@ namespace fhatos {
           // const fbyte* data_dup[length];
           // memcpy(data_dup,data,length);
           const BObj_p bobj = share(BObj(length, (fbyte *) data));
-          const Message_p message = share(Message{
-              .target = ID(topic),
-              .payload = Obj::deserialize(bobj),
-              .retain = true // mqtt_message->is_retained() TODO: BOBj wrap should allow any properties of a message to
-                             // be encodded in the byte stream
-          });
+          const auto [payload, retained] = make_payload(bobj);
+          // [payload,retain]
+          const Message_p message = share(Message{.target = ID(topic),
+                                                  .payload = payload,
+                                                  .retain = retained});
           LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
           const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(topic));
           for (const Subscription_p &sub: *matches) {
@@ -94,8 +93,13 @@ namespace fhatos {
     }
 
     void native_mqtt_publish(const Message_p &message) override {
-      const BObj_p payload = message->payload->serialize();
-      this->xmqtt_->publish(message->target.toString().c_str(), payload->second, payload->first, message->retain);
+      if (message->payload->is_noobj()) {
+        this->xmqtt_->publish(message->target.toString().c_str(), nullptr, 0, true);
+      } else {
+        const Lst_p lst = Obj::to_lst({message->payload, dool(message->retain)});
+        const BObj_p payload = make_bobj(message->payload, message->retain);
+        this->xmqtt_->publish(message->target.toString().c_str(), payload->second, payload->first, message->retain);
+      }
     }
 
     void native_mqtt_disconnect() override { this->xmqtt_->disconnect(); }

@@ -73,10 +73,11 @@ namespace fhatos {
         for (Obj_p &o: *obj->objs_value()) {
           this->print_result(o, depth + 1);
         }
-      else if (this->settings_.nest && obj->is_lst()) {
+      else if (this->settings_.nest && (obj->is_lst() || obj->is_objs())) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->id()->path_length() > 2 ? obj->id()->name().c_str() : "") + "!m[!!\n"), false);
+                            (obj->id()->path_length() > 2 ? obj->id()->name().c_str() : "") + "!m" + (
+                              obj->is_lst() ? "[" : "{") + "!!\n"), false);
         for (const auto &e: *obj->lst_value()) {
           router()->write(this->id(), str(StringHelper::format(
                             "%s%s\n!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
@@ -90,7 +91,7 @@ namespace fhatos {
           this->id(),
           str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
               (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
-              "!m]!!\n"), false);
+              "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"), false);
       } else if (this->settings_.nest && obj->is_rec()) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
@@ -210,7 +211,9 @@ namespace fhatos {
                         {uri(this->id()->extend("config/nest")), dool(this->settings_.nest)},
                         {uri(this->id()->extend("config/strict")), dool(this->settings_.strict)},
                         {uri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
-                        {uri(this->id()->extend("config/log")), uri(LOG_TYPES.to_chars(this->settings_.log))}
+                        {uri(this->id()->extend("config/log")), uri(LOG_TYPES.to_chars(this->settings_.log))},
+                        {uri(this->id()->extend("config/clear")),
+                          bcode({Insts::block(bcode({Insts::print(str("!X!Q"))}))})}
                       }));
       return noobj();
     }
@@ -221,7 +224,6 @@ namespace fhatos {
       router()->route_subscription(subscription_p(
         *this->id(),
         this->id()->extend("config/+"),
-        QoS::_1,
         Insts::to_bcode([this](const Message_p &message) {
           if (message->retain) {
             if (message->target.name() == "nest")

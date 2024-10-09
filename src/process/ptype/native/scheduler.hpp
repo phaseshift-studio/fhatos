@@ -40,7 +40,9 @@ namespace fhatos {
   public:
     ~Scheduler() override {
       if (FIBER_THREAD_HANDLE) {
-        this->FIBER_THREAD_HANDLE->detach();
+        if (FIBER_THREAD_HANDLE->joinable()) {
+          this->FIBER_THREAD_HANDLE->detach();
+        }
         delete this->FIBER_THREAD_HANDLE;
       }
     }
@@ -49,10 +51,10 @@ namespace fhatos {
       static bool setup = false;
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
       if (!setup) {
+        scheduler_thread = make_shared<thread::id>(this_thread::get_id());
         scheduler_p->setup();
         setup = true;
       }
-      scheduler_thread = share(this_thread::get_id());
       return scheduler_p;
     }
 

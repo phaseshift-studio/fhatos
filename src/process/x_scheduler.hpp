@@ -48,13 +48,17 @@ namespace fhatos {
 
   class XScheduler : public IDed, public Mailbox {
   protected:
-    ptr<MutexDeque<Process_p>> processes_ = std::make_shared<MutexDeque<Process_p>>();
-    MutexDeque<Mail_p> inbox_;
+    MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<xscheduler_processes>");
+    MutexDeque<Mail_p> inbox_ = MutexDeque<Mail_p>("<xscheduler_mail>");
     bool running_ = false;
     ID_p current_barrier_ = nullptr;
 
   public:
     explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {
+    }
+
+    ~XScheduler() {
+      delete processes_;
     }
 
     [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
@@ -76,14 +80,14 @@ namespace fhatos {
       SCHEDULER_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
         if (!retain) return false;
         if (payload->is_noobj()) {
-          return this->processes_->exists([target](const Process_p &process) {
-            const bool found = process->id()->equals(target);
-            if (found) {
-              router()->route_unsubscribe(id_p(target));
-              process->stop();
-            }
-            return found;
+          const Option<Process_p> found_process = this->processes_->find([target](const Process_p &process) {
+            return process->id()->equals(target);
           });
+          if (found_process.has_value()) {
+            router()->route_unsubscribe(id_p(target));
+            found_process.value()->stop();
+            return true;
+          }
         }
         if (payload->is_rec() && (
               payload->id()->matches(THREAD_FURI->extend("#")) ||

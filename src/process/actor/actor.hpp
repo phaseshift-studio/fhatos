@@ -24,10 +24,10 @@
 #include <process/process.hpp>
 #include <structure/pubsub.hpp>
 #include <structure/structure.hpp>
-#include <structure/stype/id_structure.hpp>
 #include <util/options.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/insts.hpp>
+#include <structure/stype/key_value.hpp>
 
 namespace fhatos {
   //template<class P, class S, class Process, class Structure>
@@ -57,6 +57,7 @@ namespace fhatos {
       const bool retain = TRANSIENT_MESSAGE) {
       this->should_be_active();
       // rename send_mail
+      router()->write(id_p(target),payload,retain);
       //router()->route_message(
       //share(Message{.target = target, .payload = payload, .retain = retain}));
     }
@@ -64,7 +65,7 @@ namespace fhatos {
     void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {
       this->should_be_active();
       router()->route_subscription(
-        share(Subscription{.source = *this->id(), .pattern = pattern, .qos = QoS::_1,
+        share(Subscription{.source = *this->id(), .pattern = pattern,
           .on_recv = Insts::to_bcode(on_recv)}));
       /*.executeAtSource(this)));*/
     }
@@ -85,7 +86,7 @@ namespace fhatos {
       STRUCTURE::setup();
       PROCESS::setup();
       if (!this->id_->matches(*this->pattern())) {
-        const ptr<IDStructure> id_struct = IDStructure::create(p_p(*this->id()));
+        const ptr<KeyValue> id_struct = KeyValue::create(*this->id());
         router()->attach(id_struct);
         id_struct->setup();
       }

@@ -29,12 +29,13 @@ namespace fs = std::filesystem;
 namespace fhatos {
   class FileSystem : public BaseFileSystem {
   protected:
-    explicit FileSystem(const ID &id, const ID &mount_root) : BaseFileSystem(id, mount_root) {
+    explicit FileSystem(const Pattern &pattern, const ID &mount_root) : BaseFileSystem(pattern, mount_root) {
     }
 
   public:
-    static ptr<FileSystem> create(const ID &id = ID("/io/fs"), const ID &root = ID(fs::current_path())) {
-      ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(id, ID(fs::current_path()).resolve(root)));
+    static ptr<FileSystem> create(const Pattern &pattern = Pattern("/io/fs/#"),
+                                  const ID &root = ID(fs::current_path())) {
+      static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(pattern, root));
       return fs_p;
     }
 
@@ -97,6 +98,24 @@ namespace fhatos {
       fo.open(fs::path(native_path_string), ios::out);
       fo.close();
       return to_file(path);
+    }
+
+    Objs_p to_obj(const File_p &file) const override {
+      Objs_p objs = Obj::to_objs();
+      std::ifstream infile(fs::path(this->make_native_path(file->uri_value()).toString()));
+      List_p<Str_p> lines = share(List<Str_p>());
+      string source;
+      string line;
+      while (std::getline(infile, line)) {
+        source += line;
+        if (Parser::closed_expression(source)) {
+          const Obj_p obj = OBJ_PARSER(source);
+          if (!obj->is_noobj())
+            objs->add_obj(obj);
+          source.clear();
+        }
+      }
+      return objs;
     }
   };
 } // namespace fhatos

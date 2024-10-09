@@ -611,7 +611,7 @@ namespace fhatos {
             } else {
               obj_string += "!m,!!";
             }
-            obj_string += obj->toString();
+            obj_string += obj->toString(include_type, ansi, strict);
           }
           obj_string += "!m]!!";
           break;
@@ -626,7 +626,7 @@ namespace fhatos {
               obj_string += "!m,";
             }
             obj_string += "!c";
-            obj_string += k->toString(include_type, false);
+            obj_string += k->toString(include_type, false, strict);
             obj_string += "!m=>!!";
             obj_string += v->toString();
           }
@@ -641,7 +641,7 @@ namespace fhatos {
             } else {
               obj_string += "!m,!!";
             }
-            obj_string += arg->toString();
+            obj_string += arg->toString(include_type, ansi, strict);
           }
           break;
         }
@@ -657,7 +657,7 @@ namespace fhatos {
               } else {
                 obj_string += "!g.!!";
               }
-              obj_string += inst->toString();
+              obj_string += inst->toString(include_type, ansi, strict);
             }
             // objString += "!g]!!";
           }
@@ -676,7 +676,7 @@ namespace fhatos {
             } else {
               obj_string += "!m,!!";
             }
-            obj_string += obj->toString();
+            obj_string += obj->toString(include_type, ansi, strict);
           };
           obj_string += "!m}!!";
           break;
@@ -1013,7 +1013,7 @@ namespace fhatos {
     [[nodiscard]] bool is_lst() const { return this->o_type() == OType::LST; }
 
     [[nodiscard]] bool is_poly() const {
-      return this->is_lst() || this->is_rec() /*|| this->is_objs() || this->is_bcode() || this->is_inst()*/;
+      return this->is_lst() || this->is_rec() || this->is_objs() /*|| this->is_bcode() || this->is_inst()*/;
     }
 
     [[nodiscard]] bool is_rec() const { return this->o_type() == OType::REC; }
@@ -1090,7 +1090,7 @@ namespace fhatos {
     // const fURI type() const { return this->_id->authority(""); }
 
     [[nodiscard]] bool match(const Obj_p &type, const bool same_type = true) const {
-      LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
+      //LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
       if (type->is_noop_bcode())
         return true;
       if (type->is_bcode() && !this->is_bcode())
@@ -1380,15 +1380,13 @@ namespace fhatos {
     }
 
     BObj_p serialize() const {
-      LOG(TRACE, "Serializing %s\n", this->toString().c_str());
+      LOG(DEBUG, "Serializing obj %s\n", this->toString().c_str());
       const string serial = this->toString(true, false, true);
       return ptr<BObj>(new BObj{serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
     }
 
     static Obj_p deserialize(const BObj_p &bobj) {
-      LOG(TRACE, "Deserializing obj with bytes %s (length %i)\n", bobj->second, bobj->first);
-      if (bobj->first == 1 && bobj->second[0] == 'x')
-        return Obj::to_noobj();
+      LOG(DEBUG, "Deserializing bytes %s (length %i)\n", bobj->second, bobj->first);
       return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
     }
   };

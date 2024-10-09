@@ -22,7 +22,6 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <language/rewrite/rewriter.hpp>
-#include <language/insts.hpp>
 #include <process/actor/actor.hpp>
 
 namespace fhatos {

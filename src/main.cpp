@@ -31,6 +31,7 @@
 #include FOS_MEMORY(memory.hpp)
 
 #ifdef ESP_ARCH
+#include <EEPROM.h>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/pwm.hpp>
@@ -38,7 +39,7 @@
 #endif
 
 #ifdef NATIVE
-#define FOS_FS_MOUNT "./build/tmp"
+#define FOS_FS_MOUNT string(getenv("FHATOS_HOME")).append("/data").c_str()
 #else
 #define FOS_FS_MOUNT "/"
 #endif
@@ -78,6 +79,7 @@ void setup() {
   std::srand(std::time(nullptr));
   try {
 #ifdef BOARD_HAS_PSRAM
+    heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
     // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
     load_processor(); // TODO: remove
@@ -108,14 +110,12 @@ void setup() {
         ->structure(GPIO::singleton("/soc/gpio/#"))
         ->structure(PWM::singleton("/soc/pwm/#"))
         ->structure(Memory::singleton("/soc/memory/#"))
-        //->structure(Interrupt::singleton("/soc/interrupt/#"))
-        ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(false)))
-    //->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
+       // ->structure(Interrupt::singleton("/soc/interrupt/#"))
+        ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
+
 #endif
-#ifdef NATIVE
-        ->structure(FileSystem::create("/io/fs/", args_parser->option("--mount", FOS_FS_MOUNT)))
-    //->structure(Mqtt::create("//+/#"))
-#endif
+        ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
+        //->structure(Mqtt::create("//+/#"))
         ->model({ID("/model/sys")})
         ->structure(KeyValue::create("/console/#"))
         ->process(Console::create("/console/", "/terminal/:owner",

@@ -47,11 +47,15 @@
 
 #ifdef ESP_ARCH
 #include <Arduino.h>
+#include <esp_heap_caps.h>
 #ifndef FOS_SERIAL_BAUDRATE
 #define FOS_SERIAL_BAUDRATE 115200
 #endif
 #ifndef FOS_SERIAL_TIMEOUT
 #define FOS_SERIAL_TIMEOUT 10
+#endif
+#ifndef FOS_EXTERNAL_MEMORY_LIMIT
+#define FOS_EXTERNAL_MEMORY_LIMIT 128
 #endif
 //#include <structure/stype/esp32/allocator.hpp>
 #endif

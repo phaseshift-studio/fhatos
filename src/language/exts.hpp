@@ -44,20 +44,11 @@ namespace fhatos {
                 {"/type/rec/network", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/external", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 ///////
-                //  {"/type/rec/actor", OBJ_PARSER("~[process=>lst,structure=>lst]")},
                 {"/type/inst/stop", OBJ_PARSER("map(noobj).to(*_0)")},
                 {"/type/rec/sub", OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>int[_],:on_recv=>_]")},
                 {"/type/rec/msg", OBJ_PARSER("[:target=>uri[_],:payload=>_,:retain=>bool[_]]")},
-                // {"/model/pubsub", {
-                //   {"/type/rec/sub",
-                //       OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:qos=>is(gt(0)).is(lt(4)),:on_recv=>_]")},
-                //   {"/type/rec/pub", OBJ_PARSER("[:source=>uri[_],:target=>uri[_],:payload=>_,:retain=>bool[_]]")}}
               }
             }});
-      /* {"/ext/collection",
-        {{"/lst/pair", TYPE_PARSER("[_,_]")},
-         {"/lst/trip", TYPE_PARSER("[_,_,_]")},
-         {"/lst/quad", TYPE_PARSER("[_,_,_,_]")}}}*/
       return exts->at(extId);
     }
 

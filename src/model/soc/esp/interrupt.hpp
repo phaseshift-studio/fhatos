@@ -38,14 +38,14 @@ namespace fhatos {
     Map<ID_p, BCode_p, furi_p_less> interrupts_{};
     explicit Interrupt(const Pattern &pattern = "/soc/interrupt/#") :
         External(pattern,
-                 {{furi_p(this->pattern()->resolve("./+/interrupt")),
+                 {{furi_p(this->pattern()->resolve("./+")),
                    [this](const fURI_p furi) {
                      List<Pair<ID_p, Obj_p>> list;
                      const uint8_t single =
                          StringHelper::is_integer(furi->retract().name()) ? stoi(furi->retract().name()) : 99;
                      for (uint8_t i = ((99 == single) ? 0 : single);
                           i < ((99 == single) ? NUM_DIGITAL_PINS : (single + 1)); i++) {
-                       ID_p id = id_p(this->pattern()->resolve(fURI(string("./") + to_string(i) + "/interrupt")));
+                       ID_p id = id_p(this->pattern()->resolve(fURI(string("./") + to_string(i))));
                        LOG_STRUCTURE(DEBUG, this, "Searching interrupts for !b%s!!\n", id->toString().c_str());
                        if (this->interrupts_.count(id)) {
                          LOG_STRUCTURE(DEBUG, this, "Interrupt !gfound!! for !b%s!!\n", id->toString().c_str());
@@ -54,8 +54,8 @@ namespace fhatos {
                      }
                      return list;
                    }}},
-                 {{furi_p(this->pattern()->resolve("./+/interrupt")), [this](const fURI_p furi, const Obj_p &obj) {
-                     const uint8_t pin_number = stoi(furi->retract().name());
+                 {{furi_p(this->pattern()->resolve("./+")), [this](const fURI_p furi, const Obj_p &obj) {
+                     const uint8_t pin_number = stoi(furi->name());
                      if (this->interrupts_.count(id_p(*furi)))
                        this->interrupts_.erase(id_p(*furi));
                      if (obj->is_noobj()) {

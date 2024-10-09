@@ -22,7 +22,6 @@
 #include <fhatos.hpp>
 //
 #include <language/obj.hpp>
-#include <language/processor/algorithm.hpp>
 #include <structure/router.hpp>
 #include <util/options.hpp>
 #include <utility>
@@ -902,7 +901,7 @@ namespace fhatos {
 
     static List<Pair<string, string>> unary_sugars() {
       static List<Pair<string, string>> map = {
-        {"--", "via_inv"},
+        {"-->", "via_inv"},
         {"@", "get"},
         {"??", "optional"},
         {"-<", "split"},

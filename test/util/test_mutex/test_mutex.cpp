@@ -30,11 +30,11 @@ namespace fhatos {
 
   ///////////////////// UTILITY THREAD
 
-  struct Worker : public Thread {
+  struct Worker final : public Thread {
     MutexDeque<int> *mutex;
     int counter = 0;
 
-    Worker(int index, MutexDeque<int> *mutex) : Thread(ID(string("worker/").append(std::to_string(index)))) {
+    Worker(const int index, MutexDeque<int> *mutex) : Thread(ID(string("worker/").append(std::to_string(index)))) {
       this->mutex = mutex;
     }
 
@@ -68,7 +68,7 @@ namespace fhatos {
   void test_mutex_deque_methods() {
     MutexDeque<int> m;
     ////// test push
-    populateMutex(&m, [](MutexDeque<int> *m, int i) {
+    populateMutex(&m, [](MutexDeque<int> *m, const int i) {
       m->push_front(i);
       TEST_ASSERT_EQUAL(i, m->pop_front().value());
       m->push_front(i);
@@ -78,7 +78,7 @@ namespace fhatos {
     TEST_ASSERT_FALSE(m.empty());
     TEST_ASSERT_EQUAL(100, m.size());
     ////// test pop
-    populateMutex(&m, [](MutexDeque<int> *m, int i) { TEST_ASSERT_EQUAL_INT32(i, m->pop_back().value()); });
+    populateMutex(&m, [](MutexDeque<int> *m, const int i) { TEST_ASSERT_EQUAL_INT32(i, m->pop_back().value()); });
     TEST_ASSERT_TRUE(m.empty());
     TEST_ASSERT_EQUAL(0, m.size());
     ////// test clear
@@ -93,29 +93,30 @@ namespace fhatos {
     TEST_ASSERT_TRUE(m.empty());
     TEST_ASSERT_EQUAL(0, m.size());
     ////// test remove_if
-    populateMutex(&m, [](MutexDeque<int> *m, int i) {
+    populateMutex(&m, [](MutexDeque<int> *m, const int i) {
       m->push_back(i);
       TEST_ASSERT_EQUAL(i, m->pop_back().value());
       m->push_back(i);
       TEST_ASSERT_EQUAL(0, m->pop_front().value());
       m->push_front(0);
     });
-    m.remove_if([](int i) { return i % 2 == 0; });
+    m.remove_if([](const int i) { return i % 2 == 0; });
     TEST_ASSERT_FALSE(m.empty());
     TEST_ASSERT_EQUAL(50, m.size());
     MutexDeque<int>* m_ptr = &m;
     scheduler()->barrier("mutex filling",[m_ptr] { return m_ptr->size() == 50; });
+    sleep(1);
   }
 
   void test_mutex_deque_concurrently() {
-    int WORKER_COUNT = 10;
+    constexpr int WORKER_COUNT = 10;
     ptr<Scheduler> s = Scheduler::singleton();
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
-    MutexDeque<int> m = MutexDeque<int>();
+    auto m = MutexDeque<int>();
     TEST_ASSERT_EQUAL(0, m.size());
     TEST_ASSERT_TRUE(m.empty());
     for (int i = 0; i < WORKER_COUNT; i++) {
-      TEST_ASSERT_TRUE(s->spawn((ptr<Thread>(new Worker(i, &m)))));
+      TEST_ASSERT_TRUE(s->spawn((std::make_shared<Worker> (i, &m))));
     }
     scheduler()->barrier("no_workers", [s] { return s->count("worker/+") == 0; });
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));

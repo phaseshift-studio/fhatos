@@ -55,7 +55,9 @@
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
-#define FOS_DEPLOY_PARSER_2  scheduler()->spawn(Parser::singleton());
+#define FOS_DEPLOY_PARSER_2  \
+  router()->attach(KeyValue::create(Pattern("/parser/#"))); \
+  scheduler()->spawn(Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -69,7 +71,10 @@
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <structure/stype/key_value.hpp>
-#define FOS_DEPLOY_SHARED_MEMORY_2 router()->attach(KeyValue::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? "+" : STR(FOS_DEPLOY_SHARED_MEMORY))));
+#define FOS_DEPLOY_SHARED_MEMORY_2 \
+  router()->attach(KeyValue::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  "+" : \
+  STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
 #define FOS_DEPLOY_SHARED_MEMORY_2 ;
 #endif
@@ -245,9 +250,11 @@ using namespace fhatos;
   }
 
 //#ifdef FOS_DEPLOY_PARSER
-static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_result = true) {
-  FOS_TEST_MESSAGE("!yTesting!!: %s", fluent.toString().c_str());
-  List_p<Obj_p> result = fluent.toList();
+static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_result = true) {
+  FOS_TEST_MESSAGE("!yTesting!!: %s", bcode->toString().c_str());
+  if (!bcode->is_bcode())
+    return std::make_shared<List<Obj_p>>(List<Obj_p>{bcode});
+  List_p<Obj_p> result = Processor(bcode).to_objs()->objs_value();
   if (print_result) {
     int index = 0;
     for (const auto &obj: *result) {
@@ -291,10 +298,10 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FOS_DEPLOY_ROUTER
 [[maybe_unused]] static void FOS_CHECK_RESULTS(
-  const List<Obj> &expected, const Fluent &fluent,
+  const List<Obj> &expected, const BCode_p &bcode,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   [[maybe_unused]] const bool clearRouter = true) {
-  const ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(fluent, true);
+  const ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(bcode, true);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
   for (const Obj &obj: expected) {
     auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p &element) {
@@ -317,7 +324,6 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
         Subscription{
           .source = ID("fhatty"),
           .pattern = key.uri_value(),
-          .qos = QoS::_1,
           .on_recv = Insts::to_bcode([temp](const ptr<Message> &message) {
             TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                      (string("Router retain message payload equality: ") +
@@ -345,7 +351,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
     Fluent(Parser::singleton()->try_parse_obj(monoids.at(i)).value()).iterate();
   }
   LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
-  return FOS_CHECK_RESULTS(expected, Fluent(Parser::singleton()->try_parse_obj(finalString).value()),
+  return FOS_CHECK_RESULTS(expected, Parser::singleton()->try_parse_obj(finalString).value(),
                            expectedReferences, clearRouter);
 }
 
@@ -357,7 +363,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
   Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse: %s\n", monoid.c_str());
-  return FOS_CHECK_RESULTS(expected, Fluent(parse.value()), expectedReferences, clearRouter);
+  return FOS_CHECK_RESULTS(expected, parse.value(), expectedReferences, clearRouter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -372,7 +378,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const Fluent &fluent, const bool print_r
       throw fError("Unable to parse expected result: %s\n", result.c_str());
     expectedResults.push_back(*parse2.value());
   }
-  return FOS_CHECK_RESULTS(expectedResults, Fluent(parse.value()));
+  return FOS_CHECK_RESULTS(expectedResults, parse.value());
 }
 #endif
 #endif

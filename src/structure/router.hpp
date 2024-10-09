@@ -49,25 +49,24 @@ namespace fhatos {
       auto *ephemeral_count = new atomic_int(0);
       auto *local_count = new atomic_int(0);
       auto *network_count = new atomic_int(0);
-      this->structures_mutex_.read<void *>(
-        [this, ephemeral_count, local_count, network_count]() {
-          for (const Structure_p &structure: this->structures_) {
-            switch (structure->stype) {
-              case SType::EPHEMERAL:
-                ephemeral_count->fetch_add(1);
-                break;
-              case SType::LOCAL:
-                local_count->fetch_add(1);
-                break;
-              case SType::NETWORK:
-                network_count->fetch_add(1);
-                break;
-            }
+      this->structures_mutex_.read<void *>([this, ephemeral_count, local_count, network_count]() {
+        for (const Structure_p &structure: this->structures_) {
+          switch (structure->stype) {
+            case SType::EPHEMERAL:
+              ephemeral_count->fetch_add(1);
+              break;
+            case SType::LOCAL:
+              local_count->fetch_add(1);
+              break;
+            case SType::NETWORK:
+              network_count->fetch_add(1);
+              break;
           }
-          return nullptr;
-        });
-      LOG_ROUTER(INFO, "!yStopping!g %i !yephemeral!! | !g%i !yram!! | !g%i !ynetwork!!\n",
-                 ephemeral_count->load(), local_count->load(), network_count->load());
+        }
+        return nullptr;
+      });
+      LOG_ROUTER(INFO, "!yStopping!g %i !yephemeral!! | !g%i !yram!! | !g%i !ynetwork!!\n", ephemeral_count->load(),
+                 local_count->load(), network_count->load());
       delete ephemeral_count;
       delete local_count;
       delete network_count;
@@ -218,21 +217,24 @@ namespace fhatos {
   protected:
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
       ROUTER_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
-        if (!retain) return false;
+        if (!retain)
+          return false;
         if (payload->is_noobj()) {
+          Structure_p found = nullptr;
           for (const auto &structure: this->structures_) {
             if (structure->pattern()->equals(furi)) {
-              structure->stop();
-              this->detach(structure->pattern());
-              return true;
+              found = structure;
             }
           }
-          return false;
+          if (!found)
+            return false;
+          found->stop();
+          this->detach(found->pattern());
+          return true;
         }
-        if (payload->is_rec() && (
-              payload->id()->matches(LOCAL_FURI->extend("#")) ||
-              payload->id()->matches(NETWORK_FURI->extend("#")) ||
-              payload->id()->matches(EXTERNAL_FURI->extend("#")))) {
+        if (payload->is_rec() &&
+            (payload->id()->matches(LOCAL_FURI->extend("#")) || payload->id()->matches(NETWORK_FURI->extend("#")) ||
+             payload->id()->matches(EXTERNAL_FURI->extend("#")))) {
           LOG_ROUTER(DEBUG, "intercepting retained %s\n", payload->toString().c_str());
           STRUCTURE_ATTACHER(furi, payload);
           return true;

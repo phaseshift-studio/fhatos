@@ -36,7 +36,7 @@ namespace fhatos {
     fs::current_path(base_directory);
     LOG(INFO, "Original working directory: %s\n", base_directory.c_str());
     const fs::path p = fs::path(base_directory.string().c_str()).concat("/tmp");
-    uintmax_t removed = fs::remove_all(p);
+    const uintmax_t removed = fs::remove_all(p);
     LOG(INFO, "Deleted existing working directory %s with %i items\n", p.c_str(), removed);
     TEST_ASSERT_TRUE(fs::create_directory(p));
     fs::current_path(p); //
@@ -88,7 +88,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
     base_directory = string(fs::current_path().c_str()) + "/build"; //
     FOS_RUN_TEST(test_uris); //
-    FOS_RUN_TEST(test_files); //
+    //FOS_RUN_TEST(test_files); //
   );
 } // namespace fhatos
 

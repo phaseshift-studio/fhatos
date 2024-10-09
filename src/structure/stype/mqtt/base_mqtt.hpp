@@ -41,6 +41,7 @@ namespace fhatos {
       string broker = STR(FOS_MQTT_BROKER_ADDR);
       Message_p will = nullptr;
       uint16_t read_ms_wait = 500;
+      bool connected = true;
     };
 
   protected:
@@ -80,6 +81,12 @@ namespace fhatos {
       Structure::stop();
     }
 
+    /*void loop() override {
+      if (!this->available_.load())
+        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
+      this->native_mqtt_loop();
+    }*/
+
     void recv_subscription(const Subscription_p &subscription) override {
       check_availability("subscription");
       const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern));
@@ -110,7 +117,7 @@ namespace fhatos {
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = ID(string("client_") + to_string(rand()));
       this->recv_subscription(
-        subscription_p(source_id, temp, QoS::_1,
+        subscription_p(source_id, temp,
                        Insts::to_bcode([this, furi, thing](const Message_p &message) {
                          LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
                                        furi->toString().c_str(), message->toString().c_str());
@@ -132,13 +139,26 @@ namespace fhatos {
       return list;
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
       LOG_STRUCTURE(DEBUG, this, "writing to mqtt broker: %s\n", obj->toString().c_str());
-      native_mqtt_publish(message_p(*id, obj, true));
+      /*if(id == this->pattern()->retract_pattern()->extend("config/connected")) {
+        this->
+      }*/
+      native_mqtt_publish(message_p(*id, obj, retain));
     }
 
     void publish_retained(const Subscription_p &) override {
       // handled by mqtt broker
+    }
+
+    static BObj_p make_bobj(const Obj_p &payload, const bool retain) {
+      const Lst_p lst = Obj::to_lst({payload, dool(retain)});
+      return lst->serialize();
+    }
+
+    static Pair<Obj_p, bool> make_payload(const BObj_p &bobj) {
+      const Lst_p lst = Obj::deserialize(bobj);
+      return {lst->lst_value()->at(0), lst->lst_value()->at(1)->bool_value()};
     }
   };
 } // namespace fhatos

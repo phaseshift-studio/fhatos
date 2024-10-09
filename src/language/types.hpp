@@ -30,7 +30,11 @@
 #define TOTAL_INSTRUCTIONS 68
 
 namespace fhatos {
-  class Types : public Coroutine {
+  class Types final : public Coroutine {
+  public:
+    ptr<ProgressBar> progress_bar_ = nullptr;
+
+  protected:
     explicit Types(const ID &id = FOS_TYPE_PREFIX) : Coroutine(id) {
       load_process(PtrHelper::no_delete<Process>(this));
     }
@@ -40,8 +44,8 @@ namespace fhatos {
     void load_insts() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      ProgressBar progress_bar = ProgressBar::start(printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS, '#');
-      this->save_type(inst_id("optional"), Insts::optional(x(0)), false, &progress_bar);
+      this->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
+      this->save_type(inst_id("optional"), Insts::optional(x(0)), false);
       this->save_type(inst_id("??"), Insts::from(uri(inst_id("optional"))));
       this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
@@ -54,11 +58,11 @@ namespace fhatos {
       this->save_type(inst_id("lte"), Insts::lte(x(0)));
       this->save_type(inst_id("lt"), Insts::lt(x(0)));
       this->save_type(inst_id("gt"), Insts::gt(x(0)));
-      this->save_type(inst_id("to"), Insts::to(x(0)));
-      this->save_type(inst_id("to_inv"), Insts::to_inv(x(0)));
+      this->save_type(inst_id("to"), Insts::to(x(0), x(1, dool(true))));
+      this->save_type(inst_id("to_inv"), Insts::to_inv(x(0), x(1, dool(true))));
       this->save_type(inst_id("->"), Insts::from(uri(inst_id("to_inv"))));
       this->save_type(inst_id("via_inv"), Insts::to_inv(x(0), dool(false)));
-      this->save_type(inst_id("--"), Insts::from(uri(inst_id("via_inv"))));
+      this->save_type(inst_id("-->"), Insts::from(uri(inst_id("via_inv"))));
       this->save_type(inst_id("start"), Insts::start(x(0)));
       this->save_type(inst_id("merge"), Insts::merge(x(0)));
       this->save_type(inst_id(">-"), Insts::from(uri(inst_id("merge"))));
@@ -109,7 +113,8 @@ namespace fhatos {
       this->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       this->save_type(inst_id("rand"), Insts::rand(x(0, uri(BOOL_FURI))));
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
-      progress_bar.end("!bmm-adt !yinstruction set!! loaded\n");
+      this->progress_bar_->end("!bmm-adt !yinstruction set!! loaded\n");
+      this->progress_bar_ = nullptr;
     }
 
   public:
@@ -135,40 +140,33 @@ namespace fhatos {
       };
       this->load_insts();
       router()->route_subscription(
-        subscription_p(ID(*this->id()), *this->id(), QoS::_1, Insts::to_bcode([this](const Message_p &message) {
+        subscription_p(ID(*this->id()), *this->id(), Insts::to_bcode([this](const Message_p &message) {
           const ID_p type_id = id_p(message->target);
           if (message->retain && !this->type_exists(type_id, message->payload))
             this->save_type(type_id, message->payload, true);
         })));
+      router()->write(this->id(), load_process(PtrHelper::no_delete(this)));
     }
 
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void save_type(const ID_p type_id, const Obj_p type_def, const bool via_pub = false,
-                   ProgressBar *progress_bar = nullptr) const {
-      static ProgressBar *pb = nullptr;
-      if (progress_bar)
-        pb = progress_bar;
-      if (pb && pb->done())
-        pb = nullptr;
+    void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false) const {
       try {
         if (!via_pub) {
           const Obj_p current = router()->read(type_id);
           if (current != type_def) {
-            if (!current->is_noobj() && !pb)
+            if (!current->is_noobj() && !progress_bar_)
               LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
                         current->toString().c_str());
             router()->write(type_id, type_def, RETAIN_MESSAGE);
           }
         }
-        if (!pb)
+        if (!progress_bar_)
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
                     type_def->toString().c_str());
         else {
-          pb->incr_count(type_id->toString());
-          if (pb->done())
-            pb = nullptr;
+          progress_bar_->incr_count(type_id->toString());
         }
       } catch (const fError &e) {
         LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());

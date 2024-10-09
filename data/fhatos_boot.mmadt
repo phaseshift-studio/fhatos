@@ -1,0 +1,12 @@
+[
+  :deployment => [
+    mmadt:type[[
+        :structure => /type/# -> kv[],
+        :process => /type/ -> coroutine[]
+    ]],
+    mmadt:parser[[
+      :structure => /parser/ -> empty[],
+      :process   => /parser/ -> coroutine[]
+    ]]
+  ]
+ ]

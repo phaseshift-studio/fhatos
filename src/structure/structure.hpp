@@ -54,7 +54,7 @@ namespace fhatos {
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<List<Subscription_p>> subscriptions_ = std::make_shared<List<Subscription_p>>();
-    MutexRW<> mutex_ = MutexRW<>();
+    MutexRW<> mutex_ = MutexRW<>("structure_mutex");
     std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
@@ -75,7 +75,7 @@ namespace fhatos {
 
     virtual void loop() {
       if (!this->available_.load())
-        throw fError(FURI_WRAP " !ystructure!! is closed\n", this->pattern()->toString().c_str());
+        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
       while (mail.has_value()) {
         LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
@@ -184,6 +184,7 @@ namespace fhatos {
           }
         }
       }
+      return noobj();
     }
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
@@ -201,7 +202,7 @@ namespace fhatos {
               this->recv_unsubscribe(Process::current_process()->id(), pattern);
             } else if (obj->is_bcode()) {
               // bcode for on_recv
-              this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, QoS::_1, obj));
+              this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, obj));
             } else if (obj->is_rec()) {
               // complete sub[=>] record
               this->recv_subscription(from_subscription_obj(obj));
@@ -215,8 +216,7 @@ namespace fhatos {
               // nobj
               const List<Pair<ID_p, Obj_p>> ids = this->read_raw_pairs(furi_p(furi->extend("+")));
               for (const auto &[key, value]: ids) {
-                this->write_raw_pairs(key, obj);
-                distribute_to_subscribers(message_p(*key, obj, retain));
+                this->write_raw_pairs(key, obj, retain);
               }
             } else if (obj->is_rec()) {
               // rec
@@ -231,46 +231,41 @@ namespace fhatos {
               }
               if (!remaining->empty()) {
                 // non-uri keyed pairs written to /0
-                this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining));
-                distribute_to_subscribers(message_p(ID(furi->extend("0")), Obj::to_rec(remaining), retain));
+                this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
               }
             } else if (obj->is_lst()) {
               // lst /0,/1,/2 indexing
               const List_p<Obj_p> list = obj->lst_value();
               for (size_t i = 0; i < list->size(); i++) {
-                this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i));
-                distribute_to_subscribers(message_p(furi->extend(to_string(i)), list->at(i), retain));
+                this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
               }
             } else {
               // BRANCH (MONOS)
               // monos written to /0
-              this->write_raw_pairs(id_p(furi->extend("0")), obj);
-              distribute_to_subscribers(message_p(ID(furi->extend("0")), obj, retain));
+              this->write_raw_pairs(id_p(furi->extend("0")), obj, retain);
             }
           } else {
             // NODE PATTERN
             if (furi->is_pattern()) {
               const List<Pair<ID_p, Obj_p>> matches = this->read_raw_pairs(furi_p(*furi));
-              for (const auto &id: matches) {
-                this->write_raw_pairs(id.first, obj);
-                distribute_to_subscribers(message_p(*id.first, obj, retain));
+              for (const auto &[key, value]: matches) {
+                this->write_raw_pairs(key, obj, retain);
               }
             }
             // NODE ID
             else {
-              this->write_raw_pairs(id_p(*furi), obj);
-              distribute_to_subscribers(message_p(ID(*furi), obj, retain));
+              this->write_raw_pairs(id_p(*furi), obj, retain);
             }
           }
         }
       } else {
-        distribute_to_subscribers(message_p(ID(*furi), obj, retain));
+        this->write_raw_pairs(id_p(*furi), obj, retain);
       }
     }
 
     /////////////////////////////////////////////////////////////////////////////
   protected:
-    virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj) = 0;
+    virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
     virtual List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) = 0;
 
@@ -318,7 +313,6 @@ namespace fhatos {
         if (sub->pattern.bimatches(*pattern)) {
           const Rec_p sub_rec = Obj::to_rec({{uri(":source"), uri(sub->source)},
                                               {uri(":pattern"), uri(sub->pattern)},
-                                              {uri(":qos"), jnt(static_cast<uint8_t>(sub->qos))},
                                               {uri(":on_recv"), sub->on_recv}},
                                             id_p(REC_FURI->extend("sub")));
           objs->add_obj(sub_rec);
@@ -328,8 +322,9 @@ namespace fhatos {
     }
 
     static Subscription_p from_subscription_obj(const Rec_p &rec) {
-      return subscription_p(rec->rec_get(uri(":source"))->uri_value(), rec->rec_get(uri(":pattern"))->uri_value(),
-                            static_cast<QoS>(rec->rec_get(uri(":qos"))->int_value()), rec->rec_get(uri(":on_recv")));
+      return subscription_p(rec->rec_get(uri(":source"))->uri_value(),
+                            rec->rec_get(uri(":pattern"))->uri_value(),
+                            rec->rec_get(uri(":on_recv")));
     }
   };
 

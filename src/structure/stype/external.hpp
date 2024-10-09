@@ -40,13 +40,16 @@ namespace fhatos {
                 read_functions_(read_map), write_functions_(write_map) {
     }
 
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj) override {
-      for (const auto &[furi, func]: this->write_functions_) {
-        if (id->matches(*furi)) {
-          func(id, obj);
-          LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(), obj->toString().c_str());
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+      if (retain) {
+        for (const auto &[furi, func]: this->write_functions_) {
+          if (id->matches(*furi)) {
+            func(id, obj);
+            LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(), obj->toString().c_str());
+          }
         }
       }
+      this->distribute_to_subscribers(message_p(*id, obj, retain));
     }
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
