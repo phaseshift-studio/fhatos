@@ -21,15 +21,17 @@
 
 #include <chrono>
 #include <fhatos.hpp>
+#include <kernel.hpp>
 #include <language/insts.hpp>
 #include <language/parser.hpp>
 #include <language/types.hpp>
-#include <process/ptype/native/scheduler.hpp>
-#include <kernel.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
+#include <process/ptype/native/scheduler.hpp>
 #include <thread>
 #include <util/ansi.hpp>
+#include <util/options.hpp>
+#include <boot_loader.hpp>
 
 using namespace fhatos;
 
@@ -47,20 +49,15 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 
 int main(int arg, char **argsv) {
   try {
-    Kernel::build()
-            ->using_printer(Ansi<>::singleton())
-            ->with_log_level(ERROR)
-            ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-            ->using_router(Router::singleton("/sys/router/"))
-            ->boot<Terminal>(Terminal::singleton("/io/terminal/"))
-            ->boot<Types>(Types::singleton("/type/"))
-            ->boot<Parser>(Parser::singleton("/sys/lang/parser/"))
-            ->boot<Console>(ptr<Console>(Console::create("/home/root/repl/")))
-                    //->boot<FileSystem, Fiber, Mount>(FileSystem::singleton("/io/fs"))
-           // ->model({ID("/model/proc")})
-        ->initial_terminal_owner("/home/root/repl/");
-    //->done("kernel_barrier");
-    printer<>()->on(false);
+    char** args = new char*();
+    args[0] = (char*) "main_runner";
+    args[1] = (char*) "--headers=false";
+    args[2] = (char*) "--log=ERROR";
+    args[3] = (char*) "--ansi=false";
+    ArgvParser* argv_parser = new ArgvParser();
+    argv_parser->init(4,args);
+    BootLoader::primary_boot(argv_parser);
+    Options::singleton()->printer<Ansi<>>()->on(false);
   } catch (const std::exception &e) {
     throw;
   }
@@ -73,6 +70,7 @@ int main(int arg, char **argsv) {
       printer<>()->printf("fhatos> %s\n", x.c_str());
       const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(argsv[i]);
       if (obj.has_value()) {
+        //printResult(Options::singleton()->processor<Obj,BCode,Obj>(noobj(),obj.value()));
         printResult(Fluent(obj.value()).toObjs());
       }
     } catch (std::exception &e) {

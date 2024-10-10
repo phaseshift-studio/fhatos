@@ -17,6 +17,8 @@
  ******************************************************************************/
 
 #include <fhatos.hpp>
+#include <boot_loader.hpp>
+#include <util/argv_parser.hpp>
 #include <kernel.hpp>
 #include <structure/router.hpp>
 #include FOS_PROCESS(scheduler.hpp)
@@ -44,91 +46,14 @@
 #define FOS_FS_MOUNT "/"
 #endif
 
-namespace fhatos {
-  class ArgvParser {
-    Map<const string, string> map_ = Map<const string, string>();
-
-  public:
-    void init(const int &argc, char **argv) {
-      for (int i = 1; i < argc; ++i) {
-        const auto temp = string(argv[i]);
-        size_t j = temp.find_first_of('=');
-        if (j != string::npos) {
-          string key = temp.substr(0, j);
-          string value = temp.substr(j + 1);
-          this->map_.insert({key, value});
-        } else {
-          string key = temp;
-          string value = "";
-          this->map_.insert({key, value});
-        }
-      }
-    }
-
-    string option(const string &option, const char *or_else) const {
-      return this->map_.count(option) ? this->map_.at(option) : or_else;
-    }
-  };
-} // namespace fhatos
 using namespace fhatos;
 ArgvParser *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 void setup() {
-  std::srand(std::time(nullptr));
-  try {
-#ifdef BOARD_HAS_PSRAM
-    heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
-    // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
-#endif
-    load_processor(); // TODO: remove
-    load_process_spawner(); // TODO: remove
-    load_structure_attacher(); // TODO: remove
-    Kernel::build()
-        ->using_printer(Ansi<>::singleton())
-        ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-        ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))
-        ->displaying_splash(ANSI_ART)
-        ->displaying_architecture()
-        ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
-        ->displaying_notes("Use !b:help!! for !yconsole commands!!")
-        ////////////////////////////////////////////////////////////
-        ->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
-        ->using_router(Router::singleton("/sys/router/#"))
-        ////////////////////////////////////////////////////////////
-        ->structure(KeyValue::create("+/#"))
-        //
-        ->structure(KeyValue::create("/type/#"))
-        ->process(Types::singleton("/type/"))
-        //
-        ->structure(Terminal::singleton("/terminal/#"))
-        //
-        ->structure(KeyValue::create("/parser/#"))
-        ->process(Parser::singleton("/parser/"))
-#ifdef ESP_ARCH
-        ->structure(GPIO::singleton("/soc/gpio/#"))
-        ->structure(PWM::singleton("/soc/pwm/#"))
-        ->structure(Memory::singleton("/soc/memory/#"))
-       // ->structure(Interrupt::singleton("/soc/interrupt/#"))
-        ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
-
-#endif
-        ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
-        ->structure(Mqtt::create("//+/#"))
-        ->model({ID("/model/sys")})
-        ->structure(KeyValue::create("/console/#"))
-        ->process(Console::create("/console/", "/terminal/:owner",
-                                  Console::Settings(args_parser->option("--nest", "false") == "true",
-                                                    args_parser->option("--ansi", "true") == "true",
-                                                    args_parser->option("--strict", "false") == "true",
-                                                    LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
-        ->eval([] { delete args_parser; })
-        ->done("kernel_barrier");
-  } catch (const std::exception &e) {
-    LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
-        e.what());
-  }
+  BootLoader::primary_boot(args_parser)
+      ->done("kernel_barrier");
 }
 
 void loop() {

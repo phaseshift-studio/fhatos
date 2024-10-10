@@ -156,6 +156,10 @@ namespace fhatos {
 
     void on(bool turn_on = true) { this->on_ = turn_on; }
 
+    bool is_on() const {
+      return this->on_;
+    }
+
     void print(const char c) { this->parse(&c, 1); }
 
     void print(const char *c) { this->parse(c, strlen(c)); }
@@ -169,6 +173,7 @@ namespace fhatos {
     PRINTER get_printer() { return this->printer; }
 
     void flush() {
+      //if (this->buffer_)
       this->buffer_.clear();
       this->printer.flush();
     }
@@ -302,7 +307,9 @@ namespace fhatos {
         if (rainbow)
           ret = ret.append("!").append(string("") + colors[rand() % colors.length()]);
         ret = ret.append(string("") +
-                         static_cast<char>(rollercoaster ? (rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
+                         static_cast<char>(rollercoaster
+                                             ? (rand() % 2 ? tolower(text[i]) : toupper(text[i]))
+                                             : text[i]));
       }
       if (rainbow)
         ret = ret.append("!!");
@@ -345,17 +352,19 @@ namespace fhatos {
             ? 0
             : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
       ++this->current_counts_;
-      const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
-      this->ansi_->print("!g[INFO]  [!b");
-      for (int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
-        // + 2 to make bar half as long
-        this->ansi_->print(this->meter_icon_);
+      if (this->ansi_->is_on()) {
+        const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
+        this->ansi_->print("!g[INFO]  [!b");
+        for (int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
+          // + 2 to make bar half as long
+          this->ansi_->print(this->meter_icon_);
+        }
+        this->ansi_->print("!!");
+        for (int j = percentage; j < 99; j = j + 2) {
+          this->ansi_->print(' ');
+        }
+        this->ansi_->printf("!g] !y%i%%!! %-25s\r", percentage, message.c_str());
       }
-      this->ansi_->print("!!");
-      for (int j = percentage; j < 99; j = j + 2) {
-        this->ansi_->print(' ');
-      }
-      this->ansi_->printf("!g] !y%i%%!! %-25s\r", percentage, message.c_str());
     }
   };
 

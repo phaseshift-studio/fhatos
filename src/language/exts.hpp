@@ -34,13 +34,14 @@ namespace fhatos {
     static List<Pair<ID, Type_p>> exts(const ID &extId) {
       static Map_p<ID, List<Pair<ID, Type_p>>> exts =
           std::make_shared<Map<ID, List<Pair<ID, Type_p>>>>(Map<ID, List<Pair<ID, Type_p>>>{
-            {"/model/sys", {
+            {
+              "/model/sys", {
                 /// PROCESSES
                 {"/type/rec/thread", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/fiber", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/coroutine", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 /// STRUCTURES
-                {"/type/rec/local", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
+                {"/type/rec/local",  OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/network", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 {"/type/rec/external", OBJ_PARSER("[:setup=>_,:loop=>_,:stop=>_]")},
                 ///////
@@ -48,6 +49,8 @@ namespace fhatos {
                 {"/type/rec/sub", OBJ_PARSER("[:source=>uri[_],:pattern=>uri[_],:on_recv=>_]")},
                 {"/type/rec/msg", OBJ_PARSER("[:target=>uri[_],:payload=>_,:retain=>bool[_]]")},
               }
+            },
+            {"/model/nothing", {}
             }});
       return exts->at(extId);
     }
