@@ -21,23 +21,23 @@
 @import url(//fonts.googleapis.com/css?family=Noto+Sans);
 @import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
 
-/* CUSTOMISATIONS */
-/* Change the values in root for quick customisation. If you want even more fine grain... venture further. */
 :root{
-    --maincolor:#FFFFFF;
+    --maincolor:#8F9779;
     --primarycolor:#000000;
-    --secondarycolor: #7d7d7d;
-    --tertiarycolor:#CCCCCC;
-    --sidebarbackground:#CACACA;
-    --linkcolor:#0D47A1;
+    --secondarycolor: #701313;
+    --tertiarycolor: #878787;
+    --sidebarbackground: #9e9595;
+    --linkcolor: #493053;
     --linkcoloralternate:#B71C1C;
-    --white:#FFFFFF;
+    --white: #706565;
     --black:#000000;
 }
-
 /* Text styles */
-
-body{font-family: "Noto Sans",sans-serif;background-color: var(--maincolor);color:var(--black);}
+body{
+    font-family: "Noto Sans",sans-serif;
+    background-color: var(--maincolor);
+    color:var(--black);
+}
 
 h1{color:var(--primarycolor) !important;font-family:"Noto Sans",sans-serif;}
 h2,h3,h4,h5,h6{color:var(--secondarycolor) !important;font-family:"Noto Sans",sans-serif;}
@@ -49,7 +49,16 @@ p{font-family: "Noto Sans",sans-serif ! important}
 blockquote{color:var(--secondarycolor) !important}
 .quoteblock{color:var(--black)}
 .quoteblock blockquote:before{color:var(--black)}
-code{color:var(--white);background-color: var(--tertiarycolor) !important}
+
+code{
+    color: var(--white);
+    background-color: var(--tertiarycolor);
+    border-color: #0b1c2c;
+    border-width: thin;
+    border-radius: 1em;
+    border-style: groove;
+!important}
+
 mark{background-color: var(--tertiarycolor)} /* Text highlighting color */
 
 /* Table styles */
