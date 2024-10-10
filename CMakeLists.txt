@@ -13,7 +13,7 @@ IF (BUILD_DOCS)
         FOREACH (PACKAGE_RUNNER ${PACKAGE_RUNNERS})
             MATH(EXPR COUNTER "${COUNTER}+1")
             MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_RUNNER}${..}")
-            ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}/${PACKAGE_RUNNER}.cpp)
+            ADD_EXECUTABLE(${PACKAGE_RUNNER} ${CMAKE_SOURCE_DIR}/docs/src/${PACKAGE}/${PACKAGE_RUNNER}.cpp)
             TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} ordered_map paho-mqttpp3)
             TARGET_PRECOMPILE_HEADERS(${PACKAGE_RUNNER} REUSE_FROM ${PROJECT_NAME})
             SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES
@@ -27,16 +27,17 @@ IF (BUILD_DOCS)
         MATH(EXPR COUNTER "${COUNTER}+${TOTAL}")
         SET(TOTAL ${COUNTER} PARENT_SCOPE)
     ENDFUNCTION(MAKE_CODE_RUNNERS)
-    MAKE_CODE_RUNNERS(runners main_runner)
+    MAKE_CODE_RUNNERS(runner main_runner)
+    MAKE_CODE_RUNNERS(runner boot_runner)
     MESSAGE(STATUS "Total runners produced: ${.g}${TOTAL}${..}")
     #####################################################################
     MESSAGE(CHECK_START "${.y}CMaking AsciiDoc Documentation${..}")
-    ADD_CUSTOM_TARGET(asciidoc ALL DEPENDS main_runner)
+    ADD_CUSTOM_TARGET(asciidoc ALL DEPENDS main_runner boot_runner)
     SET(FILES ${CMAKE_SOURCE_DIR}/docs/fhatos.adoc)
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMAND markdown-code-runner ${FILES}
+            COMMAND markdown-code-runner --verbose ${FILES}
             COMMENT "Evaluating markdown-code-runner: ${FILES}")
     ADD_CUSTOM_COMMAND(TARGET asciidoc
             POST_BUILD
