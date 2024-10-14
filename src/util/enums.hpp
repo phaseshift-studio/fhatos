@@ -39,7 +39,7 @@ namespace fhatos {
         if (pair.first == e)
           return pair.second;
       }
-      throw fError("!ychars!! not found for enum !b%i!!\n", e);
+      throw fError("!ychars!! not found for enum !b%i!!", e);
     }
 
     ENUM to_enum(const string &s) const {
@@ -52,7 +52,7 @@ namespace fhatos {
         enums_string += (pair.second + " ");
       }
       StringHelper::trim(enums_string);
-      throw fError("!yenum!! not found for chars !y%s!! [!b%s!!]\n", s.c_str(), enums_string.c_str());
+      throw fError("!yenum!! not found for chars !y%s!! [!b%s!!]", s.c_str(), enums_string.c_str());
     }
   };
 } // namespace fhatos

@@ -102,7 +102,7 @@ namespace fhatos {
                 }
               }
               if (!done)
-                throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s\n",
+                throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
                              prev->toString().c_str(), inst->toString().c_str());
               // rewrite inst
               newInsts.pop_back();

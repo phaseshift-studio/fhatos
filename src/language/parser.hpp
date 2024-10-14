@@ -95,7 +95,7 @@ namespace fhatos {
         return parens > 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
       if (grouping == '}')
         return parens == 0 && brackets == 0 && angles == 0 && braces < 0 && within == 0 && !quotes;
-      throw fError("unknown grouping symbol: %c\n", grouping);
+      throw fError("unknown grouping symbol: %c", grouping);
     }
 
     [[nodiscard]] bool closed(const char grouping) const {
@@ -105,7 +105,7 @@ namespace fhatos {
         return parens == 0 && !quotes;
       if (grouping == '}')
         return braces == 0 && !quotes;
-      throw fError("unknown closed-grouping symbol: %c\n", grouping);
+      throw fError("unknown closed-grouping symbol: %c", grouping);
     }
 
     [[nodiscard]] bool open(const char grouping) const {
@@ -115,7 +115,7 @@ namespace fhatos {
         return parens > 0 && !quotes;
       if (grouping == '{')
         return braces > 0 && !quotes;
-      throw fError("unknown open-grouping symbol: %c\n", grouping);
+      throw fError("unknown open-grouping symbol: %c", grouping);
     }
   };
 

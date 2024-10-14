@@ -78,7 +78,7 @@ namespace fhatos {
 
     virtual void loop() {
       if (!this->running_.load()) {
-        throw fError("!g[!b%s!g] !y%s!! can't loop when stopped\n", this->id()->toString().c_str(),
+        throw fError("!g[!b%s!g] !y%s!! can't loop when stopped", this->id()->toString().c_str(),
                      ProcessTypes.to_chars(this->ptype).c_str());
       }
       this_process = this;

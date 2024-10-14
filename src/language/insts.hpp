@@ -255,7 +255,7 @@ namespace fhatos {
                 return lhs;
               }
               default:
-                throw fError("Unknown obj type in []: %s\n", OTypes.to_chars(lhs->o_type()).c_str());
+                throw fError("Unknown obj type in []: %s", OTypes.to_chars(lhs->o_type()).c_str());
             }
           };
         },
@@ -699,7 +699,7 @@ namespace fhatos {
         [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
             if (true)
-              throw fError((args.at(0)->str_value() + "\n").c_str());
+              throw fError((args.at(0)->str_value()).c_str());
             return lhs;
           };
         },
@@ -886,7 +886,7 @@ namespace fhatos {
 
     static const List<Obj_p> &arg_check(const ID_p &inst, const List<Obj_p> &args, const uint8_t expected_size) {
       if (args.size() != expected_size)
-        throw fError("Incorrect number of arguments provided to %s: %i != %i\n", inst->toString().c_str(), args.size(),
+        throw fError("Incorrect number of arguments provided to %s: %i != %i", inst->toString().c_str(), args.size(),
                      expected_size);
       return args;
     }
@@ -955,7 +955,7 @@ namespace fhatos {
       const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
       const Obj_p base_inst = router()->read(type_id_resolved);
       if (base_inst->is_noobj())
-        throw fError("Unknown instruction: %s\n", type_id_resolved->toString().c_str());
+        throw fError("Unknown instruction: %s", type_id_resolved->toString().c_str());
       LOG(TRACE, "Located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
           base_inst->toString().c_str(), base_inst->id()->toString().c_str());
       if (base_inst->is_inst())
@@ -988,7 +988,7 @@ namespace fhatos {
           return args.at(index);
         if (old_inst->inst_args().size() == 2)
           return old_inst->inst_args().at(1); // default argument
-        throw fError("%s requires !y%i!! arguments and !y%i!! were provided\n", old_inst->toString().c_str(),
+        throw fError("%s requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
                      old_inst->inst_args().size(), args.size());
       } else {
         InstArgs new_args;

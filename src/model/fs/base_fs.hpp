@@ -130,14 +130,14 @@ namespace fhatos {
       if (this->is_file(path)) {
         return vri(this->clean_root_.is_subfuri_of(path) ? path : ID(this->clean_root_.extend(path)));
       }
-      throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->pattern()->toString().c_str(),
+      throw fError("!g[!!%s!g]!! %s does not reference a file", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
     virtual Dir_p to_dir(const ID &path) const {
       if (this->is_dir(path))
         return vri((this->clean_root_.is_subfuri_of(path) ? fURI(path) : this->clean_root_.extend(path)).to_branch());
-      throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->pattern()->toString().c_str(),
+      throw fError("!g[!b%s!g]!! %s does not reference a directory", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }
 
@@ -157,7 +157,7 @@ namespace fhatos {
       LOG_STRUCTURE(TRACE, this, "created native path %s from %s relative to %s\n", local_path.toString().c_str(),
                     path.toString().c_str(), this->mount_root_->toString().c_str());
       if (!this->mount_root_->is_subfuri_of(local_path)) {
-        throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!\n",
+        throw fError("!y[!r!*SECURITY!!!y]!! !g[!b%s!g]!! !b%s!! outside mount location !b%s!!",
                      this->pattern()->toString().c_str(), local_path.toString().c_str(),
                      this->mount_root_->toString().c_str());
       }

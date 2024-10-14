@@ -308,7 +308,7 @@ namespace fhatos {
 
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
-      return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!\n", OTypes.to_chars(obj->o_type()).c_str(),
+      return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!", OTypes.to_chars(obj->o_type()).c_str(),
                     obj->toString().c_str(), string(function).replace(string(function).find("_value"), 6, "").c_str());
       /*
             const size_t index = string(function).find("_value");
@@ -682,7 +682,7 @@ namespace fhatos {
           break;
         }
         default:
-          throw fError("Unknown obj type in toString(): %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
       obj_string = (include_type && (this->id_->path_length() > 2))
                      ? string("!b")
@@ -699,13 +699,13 @@ namespace fhatos {
     bool operator&&(const Obj &rhs) const {
       if (this->is_bool() && rhs.is_bool())
         return this->bool_value() && rhs.bool_value();
-      throw fError("%s is not conjunctive (&&)\n", OTypes.to_chars(this->o_type()).c_str());
+      throw fError("%s is not conjunctive (&&)", OTypes.to_chars(this->o_type()).c_str());
     }
 
     bool operator||(const Obj &rhs) const {
       if (this->is_bool() && rhs.is_bool())
         return this->bool_value() || rhs.bool_value();
-      throw fError("%s is not disjunctive (||)\n", OTypes.to_chars(this->o_type()).c_str());
+      throw fError("%s is not disjunctive (||)", OTypes.to_chars(this->o_type()).c_str());
     }
 
     bool operator>(const Obj &rhs) const {
@@ -721,7 +721,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() > rhs.str_value();
         default:
-          throw fError("%s is not relational (>)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s is not relational (>)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -738,7 +738,7 @@ namespace fhatos {
         case OType::STR:
           return this->str_value() < rhs.str_value();
         default:
-          throw fError("%s is not relational (<)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s is not relational (<)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -787,7 +787,7 @@ namespace fhatos {
            }
         }*/
         default:
-          throw fError("%s can not be multiplied (*)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be multiplied (*)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -800,7 +800,7 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() / rhs.real_value(), this->id());
         default:
-          throw fError("%s can not be divided (/)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be divided (/)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -839,7 +839,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("%s can not be added (+)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be added (+)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -876,7 +876,7 @@ namespace fhatos {
           return Rec(map, this->id());
         }
         default:
-          throw fError("%s can not be subtracted (-)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be subtracted (-)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -885,7 +885,7 @@ namespace fhatos {
         case OType::INT:
           return Obj(this->int_value() % other.int_value(), this->id());
         default:
-          throw fError("%s can not be moduloed (%)\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("%s can not be moduloed (%)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -977,7 +977,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in ==: %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -990,7 +990,7 @@ namespace fhatos {
         case OType::REC:
           return *this->rec_get(share(key));
         default:
-          throw fError("Unknown obj type in []: %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in []: %s", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1079,7 +1079,7 @@ namespace fhatos {
         case OType::NOOBJ:
           return Obj::to_noobj();
         default:
-          throw fError("Unknown obj type in apply(): %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
@@ -1161,7 +1161,7 @@ namespace fhatos {
           return true;
         }
         default:
-          throw fError("Unknown obj type in match(): %s\n", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("Unknown obj type in match(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
       return false;
     }

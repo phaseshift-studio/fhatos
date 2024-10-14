@@ -650,7 +650,7 @@ namespace fhatos {
         }
         for (uint8_t i = 0; i < this->path_length_; i++) {
           if (this->path_[i][0] == '#' && i != this->path_length_ - 1) {
-            throw fError("Only the last path segment can contain the recurssive !b#!! wildcard: %s\n",
+            throw fError("Only the last path segment can contain the recurssive !b#!! wildcard: %s",
                          this->path().c_str());
           }
         }
@@ -707,7 +707,7 @@ namespace fhatos {
   private:
     void check_path_length(const char *self) const {
       if (this->path_length_ >= FOS_MAX_PATH_SEGMENTS)
-        throw fError("!ymax path length!! of !r%i!! has been reached: !b%s!!\n", FOS_MAX_PATH_SEGMENTS, self);
+        throw fError("!ymax path length!! of !r%i!! has been reached: !b%s!!", FOS_MAX_PATH_SEGMENTS, self);
     }
   };
 
@@ -724,9 +724,9 @@ namespace fhatos {
 
     ID(const char *furi_characters) : fURI(furi_characters) {
       if (strchr(furi_characters, '#')) {
-        throw fError("IDs can not contain pattern symbols: !b#!!: %s\n", furi_characters);
+        throw fError("IDs can not contain pattern symbols: !b#!!: %s", furi_characters);
       } else if (strchr(furi_characters, '+')) {
-        throw fError("IDs can not contain pattern symbols: !b+!!: %s\n", furi_characters);
+        throw fError("IDs can not contain pattern symbols: !b+!!: %s", furi_characters);
       }
     }
 

@@ -297,7 +297,7 @@ namespace fhatos {
             this->line_ = this->line_.substr(1);
           const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(this->line_);
           if (!obj.has_value())
-            throw fError("Unable to parse input: %s\n", this->line_.c_str());
+            throw fError("Unable to parse input: %s", this->line_.c_str());
           this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
             obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
         } catch (const std::exception &e) {

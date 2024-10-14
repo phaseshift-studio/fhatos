@@ -117,7 +117,7 @@ namespace fhatos {
                                                                               barriers_(new Deque<Monad_p>()),
                                                                               halted_(new Deque<Obj_p>()) {
       if (!this->bcode_->is_bcode())
-        throw fError("Processor requires a !bbcode!! obj to execute: %s\n", bcode_->toString().c_str());
+        throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
       this->bcode_ = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for (const Inst_p &inst: *this->bcode_->bcode_value()) {
         const Obj_p seed_copy = inst->inst_seed(inst);
