@@ -25,7 +25,7 @@
     --maincolor:#8F9779;
     --primarycolor:#000000;
     --secondarycolor: #701313;
-    --tertiarycolor: #878787;
+    --tertiarycolor: #bdbdbd;
     --sidebarbackground: #9e9595;
     --linkcolor: #493053;
     --linkcoloralternate:#B71C1C;
@@ -52,7 +52,7 @@ blockquote{color:var(--secondarycolor) !important}
 
 code{
     color: var(--white);
-    background-color: var(--tertiarycolor);
+    background-color: #e3e3e3;
     border-color: #0b1c2c;
     border-width: thin;
     border-radius: 1em;
@@ -81,3 +81,55 @@ video {
         width: 55vw!important;
         font-size: 3vw;
     }}
+
+/******************************************************************/
+
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+}
+
+.hljs-subst {
+    color: black;
+}
+
+.hljs-keyword {
+    color: darkgreen;
+}
+
+.hljs-mmadt-real,
+.hljs-mmadt-int {
+    color: darkgoldenrod;
+}
+
+.hljs-mmadt-rec {
+    color: darkmagenta;
+}
+
+.hljs-prompt-begin {
+    color: #430043;
+}
+.hljs-prompt-end {
+    color: darkgreen;
+}
+
+.hljs-result-prefix {
+    color: green;
+}
+
+.hljs-log-info {
+    color: green;
+}
+
+.hljs-log-error {
+    color: darkred;
+}
+
+.hljs-mmadt-type {
+    color: #1e54a0;
+}
+
+.hljs-string {
+    color: #9e7b35;
+}

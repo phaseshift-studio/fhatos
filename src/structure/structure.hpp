@@ -166,7 +166,7 @@ namespace fhatos {
           const Rec_p rec = Obj::to_rec();
           // BRANCH ID AND PATTERN
           for (const auto &[key, value]: matches) {
-            rec->rec_set(uri(key), value);
+            rec->rec_set(vri(key), value);
           }
           return rec;
         } else {
@@ -311,9 +311,9 @@ namespace fhatos {
       Objs_p objs = Obj::to_objs();
       for (const Subscription_p &sub: *this->subscriptions_) {
         if (sub->pattern.bimatches(*pattern)) {
-          const Rec_p sub_rec = Obj::to_rec({{uri(":source"), uri(sub->source)},
-                                              {uri(":pattern"), uri(sub->pattern)},
-                                              {uri(":on_recv"), sub->on_recv}},
+          const Rec_p sub_rec = Obj::to_rec({{vri(":source"), vri(sub->source)},
+                                              {vri(":pattern"), vri(sub->pattern)},
+                                              {vri(":on_recv"), sub->on_recv}},
                                             id_p(REC_FURI->extend("sub")));
           objs->add_obj(sub_rec);
         }
@@ -322,9 +322,9 @@ namespace fhatos {
     }
 
     static Subscription_p from_subscription_obj(const Rec_p &rec) {
-      return subscription_p(rec->rec_get(uri(":source"))->uri_value(),
-                            rec->rec_get(uri(":pattern"))->uri_value(),
-                            rec->rec_get(uri(":on_recv")));
+      return subscription_p(rec->rec_get(vri(":source"))->uri_value(),
+                            rec->rec_get(vri(":pattern"))->uri_value(),
+                            rec->rec_get(vri(":on_recv")));
     }
   };
 

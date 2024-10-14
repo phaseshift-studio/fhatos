@@ -36,9 +36,9 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_to_from() {
-    FOS_CHECK_RESULTS({2}, __(1).to(u("a")).plus(_.from(u("a")))._bcode, {{u("a"), 1}});
-    FOS_CHECK_RESULTS({23}, __(10).to(u("b")).plus(3).plus(_.from(u("b")))._bcode, {{u("b"), 10}});
-    FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(u("c")).plus("os")._bcode, {{u("c"), "fhat"}});
+    FOS_CHECK_RESULTS({2}, __(1).to(*vri("a")).plus(_.from(*vri("a")))._bcode, {{*vri("a"), 1}});
+    FOS_CHECK_RESULTS({23}, __(10).to(*vri("b")).plus(3).plus(_.from(*vri("b")))._bcode, {{*vri("b"), 10}});
+    FOS_CHECK_RESULTS({"fhatos"}, __("fhat").to(*vri("c")).plus("os")._bcode, {{*vri("c"), "fhat"}});
   }
 
   void test_relational_predicates() {
@@ -93,12 +93,12 @@ namespace fhatos {
 
   void test_mult() {
     // URI
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("b"))._bcode);
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a")).mult(u("/b"))._bcode);
-    FOS_CHECK_RESULTS({u("http://fhatos.org/a/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b"))._bcode);
+    FOS_CHECK_RESULTS({*vri("http://fhatos.org/b")}, __(*vri("http://fhatos.org")).mult(*vri("/a")).mult(*vri("b"))._bcode);
+    FOS_CHECK_RESULTS({*vri("http://fhatos.org/b")}, __(*vri("http://fhatos.org")).mult(*vri("/a")).mult(*vri("/b"))._bcode);
+    FOS_CHECK_RESULTS({*vri("http://fhatos.org/a/b")}, __(*vri("http://fhatos.org")).mult(*vri("/a/")).mult(*vri("b"))._bcode);
     // FOS_CHECK_RESULTS<Uri>({u("http://fhatos.org/a/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("b/")));
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b/")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b/"))._bcode);
-    FOS_CHECK_RESULTS({u("http://fhatos.org/b")}, __(u("http://fhatos.org")).mult(u("/a/")).mult(u("../b"))._bcode);
+    FOS_CHECK_RESULTS({*vri("http://fhatos.org/b/")}, __(*vri("http://fhatos.org")).mult(*vri("/a/")).mult(*vri("../b/"))._bcode);
+    FOS_CHECK_RESULTS({*vri("http://fhatos.org/b")}, __(*vri("http://fhatos.org")).mult(*vri("/a/")).mult(*vri("../b"))._bcode);
     // FOS_CHECK_RESULTS<Rec>({Rec{{21, 10}, {48, 36}}}, __(Rec{{3, 2}, {6, 4}}).mult(Rec{{7, 5}, {8, 9}}));
   }
 

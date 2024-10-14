@@ -146,7 +146,7 @@ namespace fhatos {
         }
       };
       Options::singleton()->parser<Obj>(OBJ_PARSER);
-      router()->write(this->id(), load_process(PtrHelper::no_delete(this)));
+      router()->write(this->id(), load_process(PtrHelper::no_delete(this), __FILE__, 137));
     }
 
     /*void setup() override {
@@ -544,7 +544,7 @@ namespace fhatos {
       if (value_token == "_") {
         return type_token.empty()
                  ? Option<BCode_p>(Obj::to_bcode())
-                 : Option<BCode_p>(Obj::to_bcode({Insts::as(uri(type_token))}));
+                 : Option<BCode_p>(Obj::to_bcode({Insts::as(vri(type_token))}));
       } // special character for 'no instructions' (no general common parse pattern)
       //////////////////////////////////////////////////////////////////////////////////////
       //////////////// lookahead to determine if token is potentially _bcode ////////////////

@@ -1,21 +1,3 @@
-/*
-  FhatOS: A Distributed Operating System
-  Copyright (c) 2024 PhaseShift Studio, LLC
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
-
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 /*!
   Highlight.js v11.10.0 (git: 366a8bd012)
   (c) 2006-2024 Josh Goebel <hello@joshgoebel.com> and other contributors
@@ -3996,38 +3978,7 @@ if (typeof exports === 'object' && typeof module !== 'undefined') {
 
         /** @type LanguageFn */
         function mmadt(hljs) {
-            const regex = hljs.regex;
             const VAR = {};
-            const BRACED_VAR = {
-                begin: /\$\{/,
-                end: /\}/,
-                contains: [
-                    "self",
-                    {
-                        begin: /:-/,
-                        contains: [VAR]
-                    } // default values
-                ]
-            };
-            Object.assign(VAR, {
-                className: 'variable',
-                variants: [
-                    {
-                        begin: regex.concat(/\$[\w\d#@][\w\d_]*/,
-                            // negative look-ahead tries to avoid matching patterns that are not
-                            // Perl at all like $ident$, @ident@, etc.
-                            `(?![\\w\\d])(?![$])`)
-                    },
-                    BRACED_VAR
-                ]
-            });
-
-            const SUBST = {
-                className: 'subst',
-                begin: /\$\(/,
-                end: /\)/,
-                contains: [hljs.BACKSLASH_ESCAPE]
-            };
             const COMMENT = hljs.inherit(
                 hljs.COMMENT(),
                 {
@@ -4040,29 +3991,14 @@ if (typeof exports === 'object' && typeof module !== 'undefined') {
                     }
                 }
             );
-            const HERE_DOC = {
-                begin: /<<-?\s*(?=\w+)/,
-                starts: {
-                    contains: [
-                        hljs.END_SAME_AS_BEGIN({
-                            begin: /(\w+)/,
-                            end: /(\w+)/,
-                            className: 'string'
-                        })
-                    ]
-                }
-            };
             const QUOTE_STRING = {
                 className: 'string',
                 begin: /'/,
                 end: /'/,
                 contains: [
                     hljs.BACKSLASH_ESCAPE,
-                    VAR,
-                    SUBST
                 ]
             };
-            SUBST.contains.push(QUOTE_STRING);
             const ESCAPED_QUOTE = {
                 match: /\\"/
             };
@@ -4086,17 +4022,7 @@ if (typeof exports === 'object' && typeof module !== 'undefined') {
                     VAR
                 ]
             };
-            const SH_LIKE_SHELLS = [
-                "fish",
-                "bash",
-                "zsh",
-                "sh",
-                "csh",
-                "ksh",
-                "tcsh",
-                "dash",
-                "scsh",
-            ];
+
             const FUNCTION = {
                 className: 'function',
                 begin: /\w[\w\d_]*\s*\(\s*\)\s*\{/,
@@ -4105,11 +4031,61 @@ if (typeof exports === 'object' && typeof module !== 'undefined') {
                 relevance: 10
             };
 
-            const TYPES = [
-                "nat"
-                ];
+            const PROMPT_BEGIN = {
+                className: 'prompt-begin',
+                begin: /fhatos(?=>)/,
+                returnBegin: false,
+                relevance: 10
+            }
+
+            const PROMPT_END = {
+                className: 'prompt-end',
+                begin: /(?<=(fhatos))>/,
+                returnBegin: false,
+                relevance: 10
+            }
+
+            const RESULT_PREFIX = {
+                className: 'result-prefix',
+                begin: /=+>/,
+                returnBegin: false,
+                relevance: 5
+            }
+
+            const MMADT_REC = {
+                className: 'mmadt-rec',
+                begin: /=>/,
+                returnBegin: false,
+                relevance: 6
+            }
+
+            const MMADT_TYPE = {
+                className: 'mmadt-type',
+                begin: /[a-zA-Z]+(?=\[)/,
+                returnBegin: false,
+                relevance: 10
+            }
+
+            const LOG_INFO = {
+                className: 'log-info',
+                begin: /\[INFO]/,
+                returnBegin: false
+            }
+            const LOG_ERROR = {
+                className: 'log-error',
+                begin: /\[ERROR]/,
+                returnBegin: false
+            }
 
             const KEYWORDS = [
+                "as",
+                "is",
+                "gt",
+                "lt",
+                "eq",
+                "gte",
+                "lte",
+                "neq",
                 "plus",
                 "mult",
                 "get",
@@ -4123,56 +4099,92 @@ if (typeof exports === 'object' && typeof module !== 'undefined') {
                 "setup",
                 "loop",
                 "stop",
-                "nat",
-
-                ///
-                "abc"
-
+                //"nat",
+                "person",
             ];
-
-            const SHELL_BUILT_INS = [
-                "fhatos>",
-                "==>",
-                "=>"
-            ]
 
             const LITERALS = [
                 "true",
-                "false"
+                "false",
+                "name",
+                "age",
             ];
 
             // to consume paths to prevent keyword matches inside them
             const PATH_MODE = {match: /(\/[a-z._-]+)+/};
 
+            const MMADT_REAL = {
+                classname: 'mmadt-real',
+                begin:
+                    "[+-]?(?:" // Leading sign.
+                    // Decimal.
+                    + "(?:"
+                    + "[0-9](?:'?[0-9])*\\.(?:[0-9](?:'?[0-9])*)?"
+                    + "|\\.[0-9](?:'?[0-9])*"
+                    + ")(?:[Ee][+-]?[0-9](?:'?[0-9])*)?"
+                    + "|[0-9](?:'?[0-9])*[Ee][+-]?[0-9](?:'?[0-9])*"
+                    // Hexadecimal.
+                    + "|0[Xx](?:"
+                    + "[0-9A-Fa-f](?:'?[0-9A-Fa-f])*(?:\\.(?:[0-9A-Fa-f](?:'?[0-9A-Fa-f])*)?)?"
+                    + "|\\.[0-9A-Fa-f](?:'?[0-9A-Fa-f])*"
+                    + ")[Pp][+-]?[0-9](?:'?[0-9])*"
+                    + ")(?:" // Literal suffixes.
+                    + "[Ff](?:16|32|64|128)?"
+                    + "|(BF|bf)16"
+                    + "|[Ll]"
+                    + "|" // Literal suffix is optional.
+                    + ")"
+            }
+
+            const MMADT_INT = {
+                className: 'mmadt-int',
+                begin:
+                    "[+-]?\\b(?:" // Leading sign.
+                    + "0[Bb][01](?:'?[01])*" // Binary.
+                    + "|0[Xx][0-9A-Fa-f](?:'?[0-9A-Fa-f])*" // Hexadecimal.
+                    + "|0(?:'?[0-7])*" // Octal or just a lone zero.
+                    + "|[1-9](?:'?[0-9])*" // Decimal.
+                    + ")(?:" // Literal suffixes.
+                    + "[Uu](?:LL?|ll?)"
+                    + "|[Uu][Zz]?"
+                    + "|(?:LL?|ll?)[Uu]?"
+                    + "|[Zz][Uu]"
+                    + "|" // Literal suffix is optional.
+                    + ")",
+                relevance: 0
+            };
+
             return {
                 name: 'mmadt',
                 aliases: [],
                 keywords: {
-                    $pattern: /\b[a-z][a-z0-9._-]+\b/,
+                    $pattern: /\[?\b[a-zA-Z][a-zA-Z0-9._-]+\b]?/,
                     keyword: KEYWORDS,
                     literal: LITERALS,
-                    built_in: [
-                        ...SHELL_BUILT_INS,
-                    ]
                 },
                 contains: [
-                    TYPES,
+                    PROMPT_BEGIN,
+                    PROMPT_END,
+                    RESULT_PREFIX,
+                    LOG_INFO,
+                    LOG_ERROR,
                     FUNCTION,
+                    MMADT_INT,
+                    MMADT_REAL,
+                    MMADT_REC,
+                    MMADT_TYPE,
                     ARITHMETIC,
                     COMMENT,
-                    HERE_DOC,
                     PATH_MODE,
                     QUOTE_STRING,
                     ESCAPED_QUOTE,
                     APOS_STRING,
-                    ESCAPED_APOS,
-                    VAR
+                    ESCAPED_APOS
                 ]
             };
         }
 
         return mmadt;
-
     })();
 
     hljs.registerLanguage('mmadt', hljsGrammar);

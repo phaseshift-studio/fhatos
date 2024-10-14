@@ -142,7 +142,7 @@ namespace fhatos {
           {"log level",
             [](const Uri_p &log_level) {
               if (log_level->is_noobj())
-                return uri(LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()));
+                return vri(LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()));
               Options::singleton()->log_level(LOG_TYPES.to_enum(log_level->uri_value().toString()));
               return log_level;
             }}});
@@ -199,20 +199,20 @@ namespace fhatos {
                                const Console::Settings &settings = Settings()) {
       const auto console = ptr<Console>(new Console(id, terminal, settings));
       const Rec_p console_rec = console->to_rec();
-      router()->write(id_p(id.resolve("./terminal")), uri(terminal));
+      router()->write(id_p(id.resolve("./terminal")), vri(terminal));
       //  router()->write(id_p(id), console_rec);
       return console;
     }
 
     Rec_p to_rec() {
       // const ID settings_id = this->id()->resolve("./config");
-      router()->write(this->id(), load_process(PtrHelper::no_delete<Console>(this)));
+      router()->write(this->id(), load_process(PtrHelper::no_delete<Console>(this), __FILE__, 221, 241));
       router()->write(id_p(this->id()->extend("config/")), Obj::to_rec({
-                        {uri(this->id()->extend("config/nest")), dool(this->settings_.nest)},
-                        {uri(this->id()->extend("config/strict")), dool(this->settings_.strict)},
-                        {uri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
-                        {uri(this->id()->extend("config/log")), uri(LOG_TYPES.to_chars(this->settings_.log))},
-                        {uri(this->id()->extend("config/clear")),
+                        {vri(this->id()->extend("config/nest")), dool(this->settings_.nest)},
+                        {vri(this->id()->extend("config/strict")), dool(this->settings_.strict)},
+                        {vri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
+                        {vri(this->id()->extend("config/log")), vri(LOG_TYPES.to_chars(this->settings_.log))},
+                        {vri(this->id()->extend("config/clear")),
                           OBJ_PARSER("{'!'}.plus('X').plus('!').plus('Q').print(_)")}
                       }));
       return noobj();
@@ -220,7 +220,7 @@ namespace fhatos {
 
     void setup() override {
       Thread::setup();
-      router()->write(this->terminal_id_, uri(*this->id()));
+      router()->write(this->terminal_id_, vri(*this->id()));
       router()->route_subscription(subscription_p(
         *this->id(),
         this->id()->extend("config/+"),

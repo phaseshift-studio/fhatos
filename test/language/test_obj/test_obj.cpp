@@ -183,7 +183,7 @@ namespace fhatos {
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/webpage"), Obj::to_bcode()); //
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/ftp"), Obj::to_bcode()); //
     const Uri_p uriA = share(Uri(fURI("home/web/html/index.html")));
-    const Uri_p uriB = uri("home/web/html/index.html");
+    const Uri_p uriB = vri("home/web/html/index.html");
     const Uri_p uriC = share(Uri(fURI("home/web/html/index.html"), FOS_TYPE_PREFIX "uri/webpage"));
     const Uri_p uriD = ptr<Uri>(new Uri(fURI("ftp://localhost:23/"), FOS_TYPE_PREFIX "uri/ftp"));
     ///
@@ -198,7 +198,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::URI, uriA->o_type());
     TEST_ASSERT_FALSE(uriA->is_noobj());
     TEST_ASSERT_TRUE(uriA->match(uriB));
-    TEST_ASSERT_FALSE(uriA->match(uri("http://nothing.org")));
+    TEST_ASSERT_FALSE(uriA->match(vri("http://nothing.org")));
     ///
     FOS_TEST_ASSERT_EQUAL_FURI(*uriC->id(), *uriA->as(id_p("webpage"))->id());
     FOS_TEST_OBJ_EQUAL(uriA, uriB);
@@ -217,14 +217,14 @@ namespace fhatos {
     // TEST_ASSERT_GREATER_THAN_INT(uriA->as("ftp")->uri_value(), uriD->int_value());
     // TEST_ASSERT_LESS_THAN_INT(uriD->uri_value(), uriB->as(FOS_TYPE_PREFIX "int/nat")->int_value());
     /// match
-    TEST_ASSERT_TRUE(uri("example.com")->match(Obj::to_uri("example.com")));
-    TEST_ASSERT_TRUE(uri("/fhatos/index.html")->as("webpage")->match(uri("/+/index.html")->as("webpage")));
-    TEST_ASSERT_FALSE(uri("/fhatos/index")->as("webpage")->match(uri("/fhatos/index")->as("ftp")));
-    TEST_ASSERT_TRUE(uri("/a/b/c")->match(Obj::to_bcode({
-      Insts::is(Obj::to_bcode({Insts::eq(uri("/a/b/c"))}))
+    TEST_ASSERT_TRUE(vri("example.com")->match(Obj::to_uri("example.com")));
+    TEST_ASSERT_TRUE(vri("/fhatos/index.html")->as("webpage")->match(vri("/+/index.html")->as("webpage")));
+    TEST_ASSERT_FALSE(vri("/fhatos/index")->as("webpage")->match(vri("/fhatos/index")->as("ftp")));
+    TEST_ASSERT_TRUE(vri("/a/b/c")->match(Obj::to_bcode({
+      Insts::is(Obj::to_bcode({Insts::eq(vri("/a/b/c"))}))
       })));
-    TEST_ASSERT_FALSE(uri("/a/b/c")->match(Obj::to_bcode({
-      Insts::is(Obj::to_bcode({Insts::eq(uri("/a/b/c/d"))}))
+    TEST_ASSERT_FALSE(vri("/a/b/c")->match(Obj::to_bcode({
+      Insts::is(Obj::to_bcode({Insts::eq(vri("/a/b/c/d"))}))
       })));
   }
 

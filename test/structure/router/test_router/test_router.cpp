@@ -47,9 +47,9 @@ namespace fhatos {
                               Obj::to_real(12.035f),
                               Obj::to_str("fhatos"),
                               Obj::to_uri("aaaa"),
-                              Obj::to_lst({1, 7, "abc", u("hello/fhat/aus")}),
-                              Obj::to_rec({{u("a"), 2},
-                                           {u("b"), 3}}),
+                              Obj::to_lst({jnt(1), jnt(7), str("abc"), vri("hello/fhat/aus")}),
+                              Obj::to_rec({{vri("a"), jnt(2)},
+                                           {vri("b"), jnt(3)}}),
                               Obj::to_noobj()};
     for (const auto &o: objs) {
       const BObj_p bobj = o->serialize();

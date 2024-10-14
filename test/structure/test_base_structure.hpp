@@ -134,7 +134,7 @@ namespace fhatos {
   void test_read() {
     router()->write(id_p(*make_test_pattern("x")), str("good"));
     router()->write(id_p(*make_test_pattern("y")), jnt(6));
-    router()->write(id_p(*make_test_pattern("z")), uri(*make_test_pattern("x")));
+    router()->write(id_p(*make_test_pattern("z")), vri(*make_test_pattern("x")));
     scheduler()->barrier("waiting_for_messages/test_read/1", []() {
       if (auto_loop)
         current_structure->loop();
@@ -146,7 +146,7 @@ namespace fhatos {
       current_structure->loop();
     TEST_ASSERT_EQUAL_STRING("good", router()->read(id_p(*make_test_pattern("x")))->str_value().c_str());
     TEST_ASSERT_EQUAL_INT(Obj::to_int(6)->int_value(), router()->read(id_p(*make_test_pattern("y")))->int_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(uri(*make_test_pattern("x"))->uri_value(),
+    FOS_TEST_ASSERT_EQUAL_FURI(vri(*make_test_pattern("x"))->uri_value(),
                                router()->read(id_p(*make_test_pattern("z")))->uri_value());
     TEST_ASSERT_EQUAL_STRING(
         "good", router()->read(share(router()->read(id_p(*make_test_pattern("z")))->uri_value()))->str_value().c_str());

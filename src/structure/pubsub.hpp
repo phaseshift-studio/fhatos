@@ -97,9 +97,9 @@ namespace fhatos {
 
     [[nodiscard]] Rec_p to_rec() const {
       return Obj::to_rec({
-                           {uri(":target"), uri(target)},
-                           {uri(":payload"), this->payload->clone()},
-                           {uri(":retain"), dool(retain)}},
+                           {vri(":target"),vri(target)},
+                           {vri(":payload"), this->payload->clone()},
+                           {vri(":retain"), dool(retain)}},
                          id_p(REC_FURI->extend("msg")));
     }
   };
@@ -137,10 +137,10 @@ namespace fhatos {
     const BCode_p on_recv;
 
     [[nodiscard]] Rec_p to_rec() const {
-      return rec({{uri(":source"), uri(source)},
-                   {uri(":pattern"), uri(pattern)},
+      return rec({{vri(":source"), vri(source)},
+                   {vri(":pattern"), vri(pattern)},
                    //{uri(":qos"), jnt(static_cast<int>(qos))},
-                   {uri(":on_recv"), on_recv}}, id_p(REC_FURI->extend("sub")));
+                   {vri(":on_recv"), on_recv}}, id_p(REC_FURI->extend("sub")));
     }
 
     [[nodiscard]] string toString() const {

@@ -67,7 +67,7 @@ namespace fhatos {
     test_obj(obj(6), obj(5), obj(5));
     test_obj(obj(3), obj("a"), obj("a"));
     test_obj(obj("a"), obj("b"), obj("b"));
-    test_obj(obj(u("http://fhatos.org")), obj({1, 2, 3}), obj({1, 2, 3}));
+    test_obj(vri("http://fhatos.org"), obj({1, 2, 3}), obj({1, 2, 3}));
     /// _bcode => mult[int]
    // test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
     //          Insts::mult(obj(10)), //
@@ -91,7 +91,7 @@ namespace fhatos {
 
   void test_barrier() {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
-    test_inst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), uri("abc")})}), //
+    test_inst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), vri("abc")})}), //
               Insts::barrier(bcode({Insts::count()})), //
               objs({obj(4)}));
   }

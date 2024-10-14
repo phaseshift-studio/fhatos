@@ -40,7 +40,7 @@ namespace fhatos {
   void test_start_inst_parsing() {
     FOS_CHECK_RESULTS({"fhat"}, "'fh'.plus('at')");
     FOS_CHECK_RESULTS({22}, "1.plus(21)");
-    FOS_CHECK_RESULTS({u("a/b")}, "a.plus(b)");
+    FOS_CHECK_RESULTS({*vri("a/b")}, "a.plus(b)");
   }
 
   void test_noobj_parsing() {
@@ -228,7 +228,7 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(13, rc1->rec_get(str("a"))->int_value()); // a's value is 13
       TEST_ASSERT_TRUE(rc1->rec_get(jnt(13))->is_noobj()); // no key is 13
       TEST_ASSERT_TRUE(rc1->rec_get(str("no key"))->is_noobj()); // no key is no key
-      TEST_ASSERT_FALSE(rc1->rec_get(uri("actor"))->bool_value());
+      TEST_ASSERT_FALSE(rc1->rec_get(vri("actor"))->bool_value());
     }
 
     Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"),
@@ -239,8 +239,8 @@ namespace fhatos {
       const Rec_p rc2 = Parser::singleton()->try_parse_obj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
       TEST_ASSERT_EQUAL_STRING("person", rc2->id()->name().c_str());
-      TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(u(":age"))->int_value());
-      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(u(":name"))->str_value().c_str());
+      TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(vri(":age"))->int_value());
+      TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(vri(":name"))->str_value().c_str());
       TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
       TEST_ASSERT_TRUE(rc2->rec_get("no key")->is_noobj());
     } /*
@@ -261,14 +261,14 @@ namespace fhatos {
   void test_define_as_parsing() {
     FOS_CHECK_RESULTS({*parse("is(mod(2).eq(0))")},
                       FOS_TYPE_PREFIX "int/even.->|(is(mod(2).eq(0)))"); // TODO: parse is off for ->
-    FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
-    FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
-    FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "{even[32]}.type()");
+    FOS_CHECK_RESULTS({*vri(FOS_TYPE_PREFIX "int/even")}, "{32}.as(even).type()");
+    FOS_CHECK_RESULTS({*vri(FOS_TYPE_PREFIX "int/even")}, "even[32].type()");
+    FOS_CHECK_RESULTS({*vri(FOS_TYPE_PREFIX "int/even")}, "{even[32]}.type()");
     FOS_TEST_ERROR("even[1]");
     FOS_TEST_ERROR("even[3]");
     FOS_TEST_ERROR("even[5]");
     ////// INLINE TYPE-SLOT
-    FOS_CHECK_RESULTS({u(FOS_TYPE_PREFIX "int/even")}, "{32}.even[_].type()");
+    FOS_CHECK_RESULTS({*vri(FOS_TYPE_PREFIX "int/even")}, "{32}.even[_].type()");
     FOS_CHECK_RESULTS({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.even[_]");
     FOS_CHECK_RESULTS({*jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))}, "{32}.map(even[_])");
     FOS_CHECK_RESULTS({*jnt(10, id_p(FOS_TYPE_PREFIX "int/even")), *jnt(32, id_p(FOS_TYPE_PREFIX "int/even"))},
@@ -343,7 +343,7 @@ namespace fhatos {
     FOS_CHECK_RESULTS(List<Obj>{{33}}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_");
     FOS_CHECK_RESULTS(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]._/sum()\\_>-");
     FOS_CHECK_RESULTS(List<Obj>{33}, "1-<[_,plus(2),_]=[plus(1),mult(10),_]_/sum()\\_>-");
-    FOS_CHECK_RESULTS(List<Obj>{u("/abc/"), u("/abc/d"), u("/d")}, "/abc/-<[_,./d,/d]>-");
+    FOS_CHECK_RESULTS(List<Obj>{*vri("/abc/"), *vri("/abc/d"), *vri("/d")}, "/abc/-<[_,./d,/d]>-");
   }
 
   void test_one_to_many() {

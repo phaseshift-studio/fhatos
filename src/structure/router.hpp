@@ -129,18 +129,18 @@ namespace fhatos {
       if (this->pattern()->resolve("./structure/").bimatches(*furi)) {
         List<Uri_p> uris;
         for (const Structure_p &structure: this->structures_) {
-          uris.push_back(uri(structure->pattern()));
+          uris.push_back(vri(structure->pattern()));
         }
         const Rec_p rec = ObjHelper::encode_lst(this->pattern()->resolve("./structure/"), uris);
         return rec;
       }
       if (this->pattern()->resolve("./structure/+").bimatches(*furi)) {
         if (StringHelper::is_integer(furi->name()))
-          return uri(this->structures_.at(stoi(furi->name()))->pattern());
+          return vri(this->structures_.at(stoi(furi->name()))->pattern());
         if (furi->name() == "+" || furi->name() == "#") {
           const Objs_p objs = Obj::to_objs();
           for (const Structure_p &structure: this->structures_) {
-            objs->add_obj(uri(structure->pattern()));
+            objs->add_obj(vri(structure->pattern()));
           }
           return objs;
         }

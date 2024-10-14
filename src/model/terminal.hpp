@@ -38,7 +38,7 @@ namespace fhatos {
 
     void setup() override {
       KeyValue::setup();
-      KeyValue::write(p_p(this->pattern()->resolve("./:owner")), uri("none"), true);
+      KeyValue::write(p_p(this->pattern()->resolve("./:owner")), vri("none"), true);
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain) override {

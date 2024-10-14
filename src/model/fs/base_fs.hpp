@@ -55,8 +55,8 @@ namespace fhatos {
     void setup() override {
       LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       Types::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), 9);
-      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(uri(URI_FURI))}));
-      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(uri(URI_FURI))}));
+      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(vri(URI_FURI))}));
+      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(vri(URI_FURI))}));
       ///////////////////////////////////////////////////////////////////
       Types::singleton()->save_type(
         id_p(INST_FS_FURI->resolve("root")),
@@ -128,7 +128,7 @@ namespace fhatos {
 
     virtual File_p to_file(const ID &path) const {
       if (this->is_file(path)) {
-        return uri(this->clean_root_.is_subfuri_of(path) ? path : ID(this->clean_root_.extend(path)));
+        return vri(this->clean_root_.is_subfuri_of(path) ? path : ID(this->clean_root_.extend(path)));
       }
       throw fError("!g[!!%s!g]!! %s does not reference a file\n", this->pattern()->toString().c_str(),
                    path.toString().c_str());
@@ -136,7 +136,7 @@ namespace fhatos {
 
     virtual Dir_p to_dir(const ID &path) const {
       if (this->is_dir(path))
-        return uri((this->clean_root_.is_subfuri_of(path) ? fURI(path) : this->clean_root_.extend(path)).to_branch());
+        return vri((this->clean_root_.is_subfuri_of(path) ? fURI(path) : this->clean_root_.extend(path)).to_branch());
       throw fError("!g[!b%s!g]!! %s does not reference a directory\n", this->pattern()->toString().c_str(),
                    path.toString().c_str());
     }

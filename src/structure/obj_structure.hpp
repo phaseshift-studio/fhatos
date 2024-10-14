@@ -43,8 +43,8 @@ namespace fhatos {
       try {
         STRUCTURE::setup();
         LOG_STRUCTURE(DEBUG, this, "Executing setup()-bcode: %s\n",
-                      this->structure_rec_->rec_get(uri(this->pattern()->resolve(":setup")))->toString().c_str());
-        process(this->structure_rec_->rec_get(uri(this->pattern()->resolve(":setup"))), this->pattern_uri_);
+                      this->structure_rec_->rec_get(vri(this->pattern()->resolve(":setup")))->toString().c_str());
+        process(this->structure_rec_->rec_get(vri(this->pattern()->resolve(":setup"))), this->pattern_uri_);
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();
@@ -54,7 +54,7 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->available_.load()) {
-          const BCode_p loop_bcode = this->structure_rec_->rec_get(uri(this->pattern()->resolve(":loop")));
+          const BCode_p loop_bcode = this->structure_rec_->rec_get(vri(this->pattern()->resolve(":loop")));
           process(loop_bcode, this->pattern_uri_);
         }
       } catch (const fError &error) {
@@ -67,8 +67,8 @@ namespace fhatos {
       try {
         if (this->available_.load()) {
           LOG_STRUCTURE(DEBUG, this, "Executing stop()-bcode: %s\n",
-                        this->structure_rec_->rec_get(uri(this->pattern()->resolve(":stop")))->toString().c_str());
-          process(this->structure_rec_->rec_get(uri(this->pattern()->resolve(":stop"))), this->pattern_uri_);
+                        this->structure_rec_->rec_get(vri(this->pattern()->resolve(":stop")))->toString().c_str());
+          process(this->structure_rec_->rec_get(vri(this->pattern()->resolve(":stop"))), this->pattern_uri_);
           STRUCTURE::stop();
         }
       } catch (const fError &error) {

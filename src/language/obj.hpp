@@ -1387,21 +1387,17 @@ namespace fhatos {
     }
   };
 
-  [[maybe_unused]] static Uri u(const char *uri) { return Uri(fURI(uri)); }
+  [[maybe_unused]] static Uri_p vri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
 
-  [[maybe_unused]] static Uri u(const fURI &uri) { return Uri(uri); }
-
-  [[maybe_unused]] static Uri_p uri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
-
-  [[maybe_unused]] static Uri_p uri(const fURI_p &xuri, const ID_p &type = URI_FURI) {
+  [[maybe_unused]] static Uri_p vri(const fURI_p &xuri, const ID_p &type = URI_FURI) {
     return Obj::to_uri(*xuri, type);
   }
 
-  [[maybe_unused]] static Uri_p uri(const char *xuri, const ID_p &type = URI_FURI) {
+  [[maybe_unused]] static Uri_p vri(const char *xuri, const ID_p &type = URI_FURI) {
     return Obj::to_uri(fURI(xuri), type);
   }
 
-  [[maybe_unused]] static Uri_p uri(const string &xuri, const ID_p &type = URI_FURI) {
+  [[maybe_unused]] static Uri_p vri(const string &xuri, const ID_p &type = URI_FURI) {
     return Obj::to_uri(fURI(xuri), type);
   }
 
