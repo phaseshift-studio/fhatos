@@ -76,10 +76,9 @@ int main(int arg, char **argsv) {
     } catch (std::exception &e) {
       LOG_EXCEPTION(e);
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
-  printer<>()->print("----\n++++");
-  // Scheduler::singleton()->stop();
+  printer<>()->print("\n----\n++++");
   return 0;
 }
 #endif

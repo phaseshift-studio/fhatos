@@ -1,0 +1,8 @@
+[env.texmacro]
+--
+\def\Bool{\mathbb{B}}
+
+\def{\mb}{\mathbb}
+\newcommand{\set}[1]{ \{\,#1\,  \} }
+\newcommand{\sett}[2]{ \{\,#1\, \mid\, #2\, \} }
+--
