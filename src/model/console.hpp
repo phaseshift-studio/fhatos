@@ -80,7 +80,7 @@ namespace fhatos {
                               obj->is_lst() ? "[" : "{") + "!!\n"), false);
         for (const auto &e: *obj->lst_value()) {
           router()->write(this->id(), str(StringHelper::format(
-                            "%s%s\n!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                            "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
                             e->is_poly()
                               ? ""
                               : e->toString(true, this->settings_.ansi, this->settings_.strict).c_str())), false);
@@ -99,7 +99,7 @@ namespace fhatos {
         for (const auto &[key, value]: *obj->rec_value()) {
           router()->write(this->id(),
                           str(StringHelper::format(
-                            "%s!c%s!m=>!!%s\n!!", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                            "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
                             key->toString(true, false, this->settings_.strict).c_str(),
                             value->is_poly()
                               ? ""
@@ -277,7 +277,7 @@ namespace fhatos {
           const string command = index == string::npos ? this->line_ : this->line_.substr(0, index);
           StringHelper::trim(command);
           if (!MENU_MAP_->count(command)) {
-            this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!\n",
+            this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!",
                                          this->id()->toString().c_str(), command.c_str()));
           } else if (index == string::npos) {
             this->print_result(MENU_MAP_->at(command).second(noobj()));

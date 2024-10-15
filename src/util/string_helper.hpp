@@ -57,7 +57,10 @@ namespace fhatos {
       char message[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      const size_t length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      if (format[strlen(format) - 1] == '\n')
+        message[length - 1] = '\n';
+      message[length] = '\0';
       va_end(arg);
       return string(message);
     }

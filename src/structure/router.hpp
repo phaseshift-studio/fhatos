@@ -124,27 +124,13 @@ namespace fhatos {
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) const {
       ////////////////////////////////////////////////////////
-      ///////////////////// ROUTER READS /////////////////////
+      //////////// ROUTER/SCEDULER READ INTERCEPTS ///////////
       ////////////////////////////////////////////////////////
-      if (this->pattern()->resolve("./structure/").bimatches(*furi)) {
-        List<Uri_p> uris;
-        for (const Structure_p &structure: this->structures_) {
-          uris.push_back(vri(structure->pattern()));
-        }
-        const Rec_p rec = ObjHelper::encode_lst(this->pattern()->resolve("./structure/"), uris);
-        return rec;
-      }
-      if (this->pattern()->resolve("./structure/+").bimatches(*furi)) {
-        if (StringHelper::is_integer(furi->name()))
-          return vri(this->structures_.at(stoi(furi->name()))->pattern());
-        if (furi->name() == "+" || furi->name() == "#") {
-          const Objs_p objs = Obj::to_objs();
-          for (const Structure_p &structure: this->structures_) {
-            objs->add_obj(vri(structure->pattern()));
-          }
-          return objs;
-        }
-      }
+      const Objs_p objs = Obj::to_objs();
+      objs->add_obj(ROUTER_READ_INTERCEPT(*furi));
+      objs->add_obj(SCHEDULER_READ_INTERCEPT(*furi));
+      if (!objs->objs_value()->empty())
+        return objs;
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
@@ -154,13 +140,13 @@ namespace fhatos {
       return struc->read(furi);
     }
 
-    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
-      if (!ROUTER_INTERCEPT(*furi, obj, retain)) {
+    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) const {
+      if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(p_p(*furi));
         LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
                    obj->toString().c_str(), furi->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
-        SCHEDULER_INTERCEPT(*furi, obj, retain);
+        SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain);
       }
     }
 
@@ -170,12 +156,6 @@ namespace fhatos {
                  struc->pattern()->toString().c_str());
       struc->remove(id);
     }
-
-    /*void route_message(const Message_p &message) const {
-      const Structure_p &struc = this->get_structure(p_p(message->target));
-      LOG_ROUTER(DEBUG, "!y!_routing message!! %s\n", message->toString().c_str());
-      struc->recv_publication(message);
-    }*/
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) const {
       for (const Structure_p &structure: this->structures_) {
@@ -216,7 +196,7 @@ namespace fhatos {
 
   protected:
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
-      ROUTER_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
+      ROUTER_WRITE_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
         if (!retain)
           return false;
         if (payload->is_noobj()) {
@@ -240,6 +220,28 @@ namespace fhatos {
           return true;
         }
         return false;
+      };
+      ROUTER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
+        if (this->pattern()->resolve("./structure/").bimatches(furi)) {
+          List<Uri_p> uris;
+          for (const Structure_p &structure: this->structures_) {
+            uris.push_back(vri(structure->pattern()));
+          }
+          const Rec_p rec = ObjHelper::encode_lst(this->pattern()->resolve("./structure/"), uris);
+          return rec;
+        }
+        if (this->pattern()->resolve("./structure/+").bimatches(furi)) {
+          if (StringHelper::is_integer(furi.name()))
+            return vri(this->structures_.at(stoi(furi.name()))->pattern());
+          if (furi.name() == "+" || furi.name() == "#") {
+            const Objs_p objs = Obj::to_objs();
+            for (const Structure_p &structure: this->structures_) {
+              objs->add_obj(vri(structure->pattern()));
+            }
+            return objs;
+          }
+        }
+        return noobj();
       };
       LOG_ROUTER(INFO, "!yrouter!! started\n");
     }

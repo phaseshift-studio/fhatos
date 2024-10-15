@@ -57,7 +57,7 @@ namespace fhatos {
     explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {
     }
 
-    ~XScheduler() {
+    ~XScheduler() override {
       delete processes_;
     }
 
@@ -77,7 +77,30 @@ namespace fhatos {
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
     virtual void setup() {
-      SCHEDULER_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
+      SCHEDULER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
+        if (this->id()->extend("process/").bimatches(furi)) {
+          auto uris = make_shared<List<Uri_p>>();
+          this->processes_->forEach([uris](const Process_p &process) {
+            uris->push_back(vri(process->id()));
+          });
+          const Rec_p rec = ObjHelper::encode_lst(this->id()->extend("process/"), *uris);
+          return rec;
+        }
+        if (this->id()->extend("process/+").bimatches(furi)) {
+          if (StringHelper::is_integer(furi.name()))
+            return vri(this->processes_->get(stoi(furi.name())).value()->id());
+          if (furi.name() == "+" || furi.name() == "#") {
+            const Objs_p objs = Obj::to_objs();
+            this->processes_->forEach([objs](const Process_p &process) {
+              objs->add_obj(vri(process->id()));
+            });
+            return objs;
+          }
+        }
+        return noobj();
+      };
+
+      SCHEDULER_WRITE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
         if (!retain) return false;
         if (payload->is_noobj()) {
           const Option<Process_p> found_process = this->processes_->find([target](const Process_p &process) {

@@ -254,15 +254,24 @@ namespace fhatos {
   static BiConsumer<const Pattern, const Rec_p> STRUCTURE_ATTACHER = [](const ID &, const Rec_p &) {
     LOG(DEBUG, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
   };
-  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_INTERCEPT =
+  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_WRITE_INTERCEPT =
       [](const fURI &, const Obj_p &, const bool) -> bool {
-    LOG(DEBUG, "!ySCHEDULER_INTERCEPT!! undefined at this point in bootstrap.\n");
+    LOG(DEBUG, "!ySCHEDULER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
     return false;
   };
-  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_INTERCEPT =
+  static Function<const fURI &, const Objs_p> SCHEDULER_READ_INTERCEPT = [](const fURI &) -> Objs_p {
+    LOG(DEBUG, "!ySCHEDULER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
+    return nullptr;
+  };
+  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_WRITE_INTERCEPT =
       [](const fURI &, const Obj_p &, const bool) -> bool {
-    LOG(DEBUG, "!yROUTER_INTERCEPT!! undefined at this point in bootstrap.\n");
+    LOG(DEBUG, "!yROUTER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
     return false;
+  };
+  static Function<const fURI &, const Objs_p> ROUTER_READ_INTERCEPT =
+      [](const fURI &) -> Objs_p {
+    LOG(DEBUG, "!yROUTER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
+    return nullptr;
   };
 
   //////////////////////////////////////////////////
@@ -569,6 +578,8 @@ namespace fhatos {
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
       if (!this->is_objs())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if (obj->is_noobj())
+        return;
       if (obj->is_objs()) {
         for (const Obj_p &o: *obj->objs_value()) {
           this->add_obj(o);

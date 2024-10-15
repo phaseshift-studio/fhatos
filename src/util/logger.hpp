@@ -24,7 +24,7 @@
 
 namespace fhatos {
   enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
-  static const Enums<LOG_TYPE> LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
+  static const auto LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
                                                             {TRACE, "TRACE"},
                                                             {DEBUG, "DEBUG"},
                                                             {INFO, "INFO"},
@@ -35,12 +35,14 @@ namespace fhatos {
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
-      if ((uint8_t) type < (uint8_t) Options::singleton()->log_level<LOG_TYPE>())
+      if (static_cast<uint8_t>(type) < static_cast<uint8_t>(Options::singleton()->log_level<LOG_TYPE>()))
         return;
       char buffer[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      const int length = vsnprintf(buffer, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      const size_t length = vsnprintf(buffer, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      if (format[strlen(format) - 1] == '\n')
+        buffer[length - 1] = '\n';
       buffer[length] = '\0';
       va_end(arg);
       if (type == NONE)
