@@ -141,9 +141,10 @@ FhatOS software can be written in C/C\++ or mm-ADT (**multi-model abstract data 
 
 ==== Expression Structure
 
-```
+[source]
+----
 obj.f(obj).f(obj).f(obj)
-```
+----
 
 ==== Types
 
@@ -341,7 +342,7 @@ terminal/in =[str]=> console
         =[str]=> terminal/out
 ----
 
-### fURI and MQTT
+=== fURI and MQTT
 
 https://en.wikipedia.org/wiki/MQTT[MQTT] is a publish/subscribe message passing protocol that has found extensive usage in embedded systems.
 Hierarchically specified _topics_ can be **subscribed** and **published** to.
@@ -404,35 +405,47 @@ fhatos> {1,2,3}.plus(plus(_))
 <!-- OUTPUT:END -->
 ++++
 
-## FhatOS Modules
+== FhatOS Modules
 
-### Kernel Modules
+=== Kernel Modules
 
-#### mmADT Module (mmadt)
-##### Type Module (mmadt:type)
-##### Parser Module (mmadt:parser)
-#### Scheduler Module (scheduler)
-#### Router Module (router)
+==== mmADT Module (mmadt)
 
-### Core Modules
+===== Type Module (mmadt:type)
 
-#### FileSystem Module (fs)
-#### Terminal Module (terminal)
-#### REPL Module (repl)
-#### Logging Module (log)
+===== Parser Module (mmadt:parser)
 
-### Embedded Systems Modules
-#### Sensors
-#### Actuators
+==== Scheduler Module (scheduler)
 
-## Reference
+==== Router Module (router)
 
-### mm-ADT Core Instructions
+=== Core Modules
 
-#### as `[_]`
-#### block `|`
-#### is
-#### plus
+==== FileSystem Module (fs)
+
+==== Terminal Module (terminal)
+
+==== REPL Module (repl)
+
+
+==== Logging Module (log)
+
+=== Embedded Systems Modules
+
+==== Sensors
+
+==== Actuators
+
+== Reference
+
+=== mm-ADT Core Instructions
+
+==== as `[_]`
+
+==== block `|`
+
+==== is
+==== plus
 
 ++++
 <!-- CODE:BASH:START -->
@@ -455,19 +468,30 @@ fhatos> 'a'.plus('b')
 <!-- OUTPUT:END -->
 ++++
 
-#### mult
-#### mod
-#### lift `^`
-#### drop `v`
-#### split `-<`
-#### each `=`
-#### within `\_/ \_`
-#### merge `>-`
-#### from `*`
-#### to `\->`
-#### get `@`
-#### pass `-\->`
-#### match `~`
+==== mult
+
+==== mod
+
+==== lift `^`
+
+==== drop `v`
+
+==== split `-<`
+
+==== each `=`
+
+==== within `\_/ \_`
+
+==== merge `>-`
+
+==== from `*`
+
+==== to `\->`
+
+==== get `@`
+
+==== pass `-\->`
+==== match `~`
 
 ++++
 <!-- CODE:BASH:START -->
@@ -488,29 +512,39 @@ fhatos> [a=>2].match([a=>_])
 <!-- OUTPUT:END -->
 ++++
 
-#### eq
-#### neq
-#### gt
-#### lt
-#### gte
-#### lte
+==== eq
 
-## FhatOS Types
+==== neq
 
-### Process Types
-#### thread
-#### fiber
-#### coroutine
+==== gt
 
-### PubSub Types
-#### sub
+==== lt
 
-```mmadt
+==== gte
+
+==== lte
+
+== FhatOS Types
+
+=== Process Types
+
+==== thread
+
+==== fiber
+
+==== coroutine
+
+=== PubSub Types
+==== sub
+
+[source,mmadt]
+----
 sub[[:source=>_, :pattern=>_, :on_recv=>bcode[_]]]
-```
+----
 
-#### msg
+==== msg
 
-```mmadt
+[source,mmadt]
+----
 msg[[:target=>uri[_], :payload=>_, :retain=>bool[_]]]
-```
+----
