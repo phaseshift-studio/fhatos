@@ -23,8 +23,6 @@
 #include <fhatos.hpp>
 #include <language/processor/processor.hpp>
 #include <model/soc/esp/pin.hpp>
-#include <structure/stype/external.hpp>
-
 
 namespace fhatos {
 
@@ -38,9 +36,9 @@ namespace fhatos {
               // pinMode(pin, INPUT);
               return digitalPinIsValid(pin) ? jnt(digitalRead(pin)) : noobj();
             },
-            [](const uint8_t pin, const int value) {
+            [](const uint8_t pin, const Int_p& value) {
               if (digitalPinIsValid(pin) && digitalPinCanOutput(pin))
-                digitalWrite(pin, value);
+                digitalWrite(pin, value->int_value());
             }) {}
 
   public:

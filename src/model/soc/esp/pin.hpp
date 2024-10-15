@@ -28,9 +28,8 @@
 namespace fhatos {
   class Pin : public External {
   protected:
-    explicit Pin(const Pattern &pattern, 
-                 const Function<uint8_t, Int_p> &readFunc,
-                 const BiConsumer<uint8_t, int> &writeFunc) :
+    explicit Pin(const Pattern &pattern, const Function<uint8_t, Obj_p> &readFunc,
+                 const BiConsumer<uint8_t, Obj_p> &writeFunc) :
         External(pattern) {
       //////////////////
       //// READ PIN ////
@@ -52,11 +51,11 @@ namespace fhatos {
       //// WRITE PIN ////
       ///////////////////
       this->write_functions_.insert(
-          {furi_p(this->pattern()->resolve("./+")), [writeFunc](const fURI_p &pin_furi, const Int_p &pin_value) {
+          {furi_p(this->pattern()->resolve("./+")), [writeFunc](const fURI_p &pin_furi, const Obj_p &pin_value) {
              List<Pair<ID_p, Obj_p>> list;
              const uint8_t i = stoi(pin_furi->name());
              pinMode(i, OUTPUT);
-             writeFunc(i, pin_value->int_value());
+             writeFunc(i, pin_value);
              return list;
            }});
     }

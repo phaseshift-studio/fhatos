@@ -90,7 +90,7 @@ namespace fhatos {
             ->structure(GPIO::singleton("/soc/gpio/#"))
             ->structure(PWM::singleton("/soc/pwm/#"))
             ->structure(Memory::singleton("/soc/memory/#"))
-            //->structure(Interrupt::singleton("/soc/interrupt/#"))
+            ->structure(Interrupt::singleton("/soc/interrupt/#"))
             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
 #endif
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))

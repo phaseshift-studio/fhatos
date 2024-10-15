@@ -31,7 +31,7 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include FOS_MEMORY(memory.hpp)
-
+//#include <model/ui/fhatui.hpp>
 #ifdef ESP_ARCH
 #include <EEPROM.h>
 #include <model/soc/esp/gpio.hpp>
@@ -53,6 +53,7 @@ ArgvParser *args_parser = new ArgvParser();
 ////////////////////////////////////////////////////////////
 void setup() {
   BootLoader::primary_boot(args_parser)
+      //->process(StructureTree::create(ID("/ui/tree"), fURI("/sys/router/structure/")))
       ->done("kernel_barrier");
 }
 

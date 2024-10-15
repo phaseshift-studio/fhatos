@@ -148,54 +148,24 @@ ENDIF()
 
 ####################################
 ####################################
-### LIBWEBSOCKETS: UNIVERSAL WEB PROTOCOL API
-OPTION(USE_LIBWEBSOCKETS "Use libwebsockets" OFF) # ON/OFF
-IF(USE_LIBWEBSOCKETS)
-    MESSAGE(CHECK_START "${.y}CMaking libwebsockets library${..}")
-    FIND_PACKAGE(PkgConfig)
-    PKG_CHECK_MODULES(LIB_WEBSOCKETS REQUIRED libwebsockets)
-    GET_FILENAME_COMPONENT(
-            LIB_WEBSOCKETS_INSTALL_DIR
-            ${LIB_WEBSOCKETS_LIBRARY_DIRS}
-            DIRECTORY
-    )
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
-            ${LIB_WEBSOCKETS_LIBRARIES})
-    #SET_TARGET_PROPERTIES(
-    #        ${PROJECT_NAME}
-    #        PROPERTIES
-    #        INCLUDE_DIRECTORIES
-    #        ${LIB_WEBSOCKETS_INCLUDE_DIRS}
-    #        LINK_FLAGS
-    #        "-L${LIB_WEBSOCKETS_LIBRARY_DIRS}"
-    #        COMPILE_DEFINITIONS
-    #        INSTALL_DATADIR="${LIB_WEBSOCKETS_INSTALL_DIR}/share"
-    #)
-    CMAKE_PRINT_VARIABLES(LIB_WEBSOCKETS_LIBRARIES,LIB_WEBSOCKETS_INCLUDE_DIRS)
-    MESSAGE(STATUS "${.y}libwebsockets libs${..}: ${.g}${LIB_WEBSOCKETS_INCLUDE_DIRS}${..}")
-    #ADD_DEPENDENCIES(${PROJECT_NAME}
-    #        websockets_shared)
-    FILE(COPY ${LIB_WEBSOCKETS_INCLUDE_DIRS} DESTINATION ${CMAKE_BINARY_DIR}/_deps/libwebsockets-src)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF()
-####################################
-####################################
-### YAML: YAML parser_ IMPLEMENTATION
-OPTION(USE_YAML "YAML build" OFF) # ON/OFF
-IF(USE_YAML)
-    FETCHCONTENT_DECLARE(
-            yaml-cpp
-            GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-            GIT_TAG 0.8.0
-    )
-    FETCHCONTENT_GETPROPERTIES(yaml-cpp)
-    IF(NOT yaml-cpp_POPULATED)
-        MESSAGE(STATUS "Fetching yaml-cpp...")
-        FETCHCONTENT_MAKEAVAILABLE(yaml-cpp)
-        #ADD_SUBDIRECTORY(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
-    ENDIF()
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC yaml-cpp::yaml-cpp)
-ENDIF()
+### FTXUI: ANSI C++ TERMINAL UI
+MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
+SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+FETCHCONTENT_DECLARE(
+        ftxui
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+        GIT_TAG v5.0.0
+)
+FETCHCONTENT_MAKEAVAILABLE(ftxui)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
+TARGET_LINK_LIBRARIES(fhatos
+        PRIVATE ftxui::screen
+        PRIVATE ftxui::dom
+        PRIVATE ftxui::component # Not needed for this example.
+)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION

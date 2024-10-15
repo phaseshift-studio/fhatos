@@ -30,7 +30,7 @@ namespace fhatos {
   class Memory : public External {
 
     CONST_CHAR(MEMORY_REC_STRING, "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]");
-    //CONST_CHAR(PERCENT_TYPE_DEF, "");
+    // CONST_CHAR(PERCENT_TYPE_DEF, "");
 
   protected:
     List<ID_p> MEMORY_IDS_;
@@ -88,9 +88,6 @@ namespace fhatos {
                  {{MEMORY_IDS_.at(3), parse("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
                                             ESP_THREAD_STACK_SIZE, free, used)}});
            }});
-      // LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded:!y\n\t%s\n\t%s\n\t%s!!\n",
-      //     FOS_INST_MEMORY_FURI->toString().c_str(), FOS_HEAP_MEMORY_FURI->toString().c_str(),
-      //     FOS_PSRAM_MEMORY_FURI->toString().c_str());
     }
   };
 } // namespace fhatos

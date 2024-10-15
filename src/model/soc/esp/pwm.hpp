@@ -22,7 +22,6 @@
 
 #include <fhatos.hpp>
 #include <model/soc/esp/pin.hpp>
-#include <structure/stype/external.hpp>
 
 #define FOS_PWM_ANALOG_RESOLUTION 4095
 
@@ -31,7 +30,6 @@ namespace fhatos {
   class PWM : public Pin {
 
   protected:
-    Map<ID_p, BCode_p, furi_p_less> interrupts_;
     explicit PWM(const Pattern &pattern = "/soc/pwm/#") :
         Pin(
             pattern,
@@ -40,9 +38,9 @@ namespace fhatos {
               return digitalPinHasPWM(pin) ? jnt(::map(analogRead(pin), 0, FOS_PWM_ANALOG_RESOLUTION, 0, 255))
                                            : noobj();
             },
-            [](const uint8_t pin, const int value) -> void {
+            [](const uint8_t pin, const Int_p value) -> void {
               if (digitalPinHasPWM(pin))
-                analogWrite(pin, value);
+                analogWrite(pin, value->int_value());
             }) {}
 
   public:
