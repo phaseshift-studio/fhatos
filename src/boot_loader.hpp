@@ -35,6 +35,7 @@
 #include FOS_MEMORY(memory.hpp)
 
 #ifdef ESP_ARCH
+#include <model/bluetooth/ble.hpp>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/pwm.hpp>
@@ -64,9 +65,9 @@ namespace fhatos {
         load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-            ->using_printer(Ansi<>::singleton())
-            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+                                   ->using_printer(Ansi<>::singleton())
+                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -92,6 +93,7 @@ namespace fhatos {
             ->structure(Memory::singleton("/soc/memory/#"))
             ->structure(Interrupt::singleton("/soc/interrupt/#"))
             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
+            ->structure(BLE::create("/io/bt/#"))
 #endif
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
             ->structure(Mqtt::create("//+/#"))

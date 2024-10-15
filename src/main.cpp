@@ -16,46 +16,18 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include <fhatos.hpp>
 #include <boot_loader.hpp>
-#include <util/argv_parser.hpp>
+#include <fhatos.hpp>
 #include <kernel.hpp>
 #include <structure/router.hpp>
-#include FOS_PROCESS(scheduler.hpp)
-#include <language/types.hpp>
-#include <model/console.hpp>
-#include <model/terminal.hpp>
-#include FOS_FILE_SYSTEM(fs.hpp)
-#include FOS_MQTT(mqtt.hpp)
-#include <model/fs/base_fs.hpp>
-#include <process/obj_process.hpp>
-#include <structure/obj_structure.hpp>
-#include FOS_MEMORY(memory.hpp)
-//#include <model/ui/fhatui.hpp>
-#ifdef ESP_ARCH
-#include <EEPROM.h>
-#include <model/soc/esp/gpio.hpp>
-#include <model/soc/esp/interrupt.hpp>
-#include <model/soc/esp/pwm.hpp>
-#include <model/soc/esp/wifi.hpp>
-#endif
-
-#ifdef NATIVE
-#define FOS_FS_MOUNT string(getenv("FHATOS_HOME")).append("/data").c_str()
-#else
-#define FOS_FS_MOUNT "/"
-#endif
+#include <util/argv_parser.hpp>
 
 using namespace fhatos;
 ArgvParser *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-void setup() {
-  BootLoader::primary_boot(args_parser)
-      //->process(StructureTree::create(ID("/ui/tree"), fURI("/sys/router/structure/")))
-      ->done("kernel_barrier");
-}
+void setup() { BootLoader::primary_boot(args_parser)->done("kernel_barrier"); }
 
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler
