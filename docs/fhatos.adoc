@@ -23,6 +23,8 @@ image:fhatos-logo.png[width=140,float=left] **FhatOS** (pronounced _fat-ahs_) is
 All FhatOS resources, from individual datum, complex structures, files, and processes exist within a single https://en.wikipedia.org/wiki/Uniform_Resource_Identifier[URI] address repeat called **furi** (pronounced "fury" or "fhat URI").
 Processes communicate via a publish-subscribe message passing protocol that rides atop the https://en.wikipedia.org/wiki/MQTT[MQTT] pubsub protocol while supporting various levels of access from thread local, to machine local and ultimately, globally via cluster remote.
 
+image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-studio/fhatos] **source code** +
+
 == FhatOS Features
 
 . A hardware-agnostic https://en.wikipedia.org/wiki/Scheduling_(computing)[scheduler] for multi-tasking (https://en.wikipedia.org/wiki/Cooperative_multitasking[cooperative]) and multi-threading (https://en.wikipedia.org/wiki/Preemption_(computing)[premptive]) https://en.wikipedia.org/wiki/Monoid_(category_theory)[monoids].
