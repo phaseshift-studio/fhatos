@@ -1059,7 +1059,8 @@ namespace fhatos {
           const auto new_pairs = make_shared<RecMap<>>();
           for (const auto &[key, value]: *this->rec_value()) {
             const Obj_p key_apply = key->apply(lhs);
-            new_pairs->insert({key_apply, value->apply(key_apply)});
+            if (!key_apply->is_noobj())
+              new_pairs->insert({key_apply, value->apply(key_apply)});
           }
           return Obj::to_rec(new_pairs, this->id_);
         }
