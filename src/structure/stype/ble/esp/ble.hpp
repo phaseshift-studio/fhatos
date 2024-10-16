@@ -33,7 +33,7 @@
 #error Bluetooth not enabled. Enable with -DCONFIG_BT_ENABLE=1.
 #endif
 
-#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+// #define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 // #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 namespace fhatos {
@@ -49,12 +49,13 @@ namespace fhatos {
     void setup() override {
       External::setup();
       BLEDevice::init(this->pattern_->toString().c_str());
+      const BLEUUID service_uuid = BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str()));
       this->server_ = BLEDevice::createServer();
-      this->service_ = this->server_->createService(
-          BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str())));
+
+      this->service_ = this->server_->createService(service_uuid);
       this->service_->start();
       BLEAdvertising *advertising = BLEDevice::getAdvertising();
-      advertising->addServiceUUID(SERVICE_UUID);
+      advertising->addServiceUUID(service_uuid);
       advertising->setScanResponse(true);
       advertising->setMinPreferred(0x06); // functions that help with iPhone connections issue
       advertising->setMinPreferred(0x12);

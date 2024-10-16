@@ -213,8 +213,8 @@ namespace fhatos {
           return true;
         }
         if (payload->is_rec() &&
-            (payload->id()->matches(LOCAL_FURI->extend("#")) || payload->id()->matches(NETWORK_FURI->extend("#")) ||
-             payload->id()->matches(EXTERNAL_FURI->extend("#")))) {
+            (payload->type()->matches(LOCAL_FURI->extend("#")) || payload->type()->matches(NETWORK_FURI->extend("#")) ||
+             payload->type()->matches(EXTERNAL_FURI->extend("#")))) {
           LOG_ROUTER(DEBUG, "intercepting retained %s\n", payload->toString().c_str());
           STRUCTURE_ATTACHER(furi, payload);
           return true;

@@ -209,6 +209,9 @@ namespace fhatos {
         b = try_parse_real(valueToken, typeToken, REAL_FURI);
         if (b.has_value())
           return b.value();
+        b = try_parse_error(valueToken, typeToken, ERROR_FURI);
+        if (b.has_value())
+          return b.value();
         b = try_parse_uri(valueToken, typeToken, URI_FURI);
         if (b.has_value())
           return b.value();
@@ -314,6 +317,8 @@ namespace fhatos {
         type_token = INST_FURI->toString();
       else if (type_token == "bcode")
         type_token = BCODE_FURI->toString();
+      else if (type_token == "error")
+        type_token = ERROR_FURI->toString();
       else if (type_token == "objs")
         type_token = OBJS_FURI->toString();
       if (Options::singleton()->log_level<LOG_TYPE>() <= TRACE) {
@@ -482,12 +487,26 @@ namespace fhatos {
       return Option<Rec_p>{Rec::to_rec(map2, id_p(base_type->resolve(type.c_str())))};
     }
 
+    static Option<Objs_p> try_parse_error(const string &token, const string &type,
+                                          const fURI_p &base_type = ERROR_FURI) {
+      if (token[0] != '<' || token[1] != '<' || token[token.length() - 2] != '>' || token[token.length() - 1] != '>' ||
+          token.find("@") == string::npos)
+        return {};
+      const size_t split = token.find("@");
+      const string obj_token = token.substr(2, split-2);
+      const string inst_token = token.substr(split + 1, token.length() - split - 3);
+      const auto [v, t] = try_parse_obj_type(inst_token, GROUPING::PAREN);
+      return Option<Error_p>{Obj::to_error(
+        try_parse_obj(obj_token).value(),
+        try_parse_inst(t,v).value(), id_p(base_type->resolve(type)))};
+    }
+
     static Option<Objs_p> try_parse_objs(const string &token, const string &type, const fURI_p &base_type = OBJS_FURI) {
       if (token[0] != '{' || token[token.length() - 1] != '}')
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
       string value;
-      auto list = make_shared<List<Obj_p>>();
+      const auto list = make_shared<List<Obj_p>>();
       Tracker tracker;
       while (!ss.eof()) {
         if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {

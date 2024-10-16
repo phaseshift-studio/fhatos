@@ -44,6 +44,7 @@ namespace fhatos {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       this->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
+      this->save_type(inst_id("a"), Insts::a(x(0)));
       this->save_type(inst_id("optional"), Insts::optional(x(0)), false);
       this->save_type(inst_id("??"), Insts::from(vri(inst_id("optional"))));
       this->save_type(inst_id("inspect"), Insts::inspect());
@@ -112,7 +113,7 @@ namespace fhatos {
       this->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       this->save_type(inst_id("rand"), Insts::rand(x(0, vri(BOOL_FURI))));
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
-      this->save_type(inst_id("repeat"), Insts::repeat(x(0),x(1,bcode()),x(2)));
+      this->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
       this->progress_bar_->end("!bmm-adt !yinstruction set!! loaded\n");
       this->progress_bar_ = nullptr;
     }
@@ -126,17 +127,19 @@ namespace fhatos {
     void setup() override {
       Coroutine::setup();
       TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) -> ID_p {
-        singleton()->check_type(obj, otype, type_id, true);
-        return type_id;
+        const ID_p resolved_type_id = resolve_sugar_type(obj.type(), type_id);
+        singleton()->check_type(obj, otype, resolved_type_id, true);
+        return resolved_type_id;
       };
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
-        const Obj_p type_def = router()->read(type_id);
+        const ID_p resolved_type_id = resolve_sugar_type(obj->type(), type_id);
+        const Obj_p type_def = router()->read(resolved_type_id);
         // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
-        const Obj_p proto_obj = is_base_type(type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
-        if (proto_obj->is_noobj() && !type_id->equals(*NOOBJ_FURI))
+        const Obj_p proto_obj = is_base_type(resolved_type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
+        if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
-                       type_id->toString().c_str());
-        return share(Obj(proto_obj->_value, OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)), type_id));
+                       resolved_type_id->toString().c_str());
+        return share(Obj(proto_obj->_value, OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)), resolved_type_id));
       };
       this->load_insts();
       router()->route_subscription(
@@ -176,6 +179,12 @@ namespace fhatos {
     bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
       const Obj_p existing_type_def = router()->read(type_id);
       return !existing_type_def->is_noobj() && existing_type_def->equals(*type_def);
+    }
+
+    static ID_p resolve_sugar_type(const fURI_p &type, const fURI_p &furi) {
+      return OTypes.has_enum(furi->toString())
+               ? id_p(ID(string(FOS_TYPE_PREFIX) + furi->name()))
+               : id_p(type->resolve(*furi));
     }
 
     static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }

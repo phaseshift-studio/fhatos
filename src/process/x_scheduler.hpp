@@ -113,11 +113,11 @@ namespace fhatos {
           }
         }
         if (payload->is_rec() && (
-              payload->id()->matches(THREAD_FURI->extend("#")) ||
-              payload->id()->matches(FIBER_FURI->extend("#")) ||
-              payload->id()->matches(COROUTINE_FURI->extend("#")))) {
+              payload->type()->matches(THREAD_FURI->extend("#")) ||
+              payload->type()->matches(FIBER_FURI->extend("#")) ||
+              payload->type()->matches(COROUTINE_FURI->extend("#")))) {
           LOG_SCHEDULER(DEBUG, "intercepting retained !yprocess!! %s\n", payload->toString().c_str());
-          PROCESS_SPAWNER(*payload->id(), target);
+          PROCESS_SPAWNER(*payload->type(), target);
           return true;
         }
         return false;

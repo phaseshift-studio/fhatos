@@ -33,9 +33,9 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include FOS_MEMORY(memory.hpp)
-
 #ifdef ESP_ARCH
-#include <model/bluetooth/ble.hpp>
+#include FOS_BLE(ble.hpp)
+#include <structure/stype/ble/esp/ble.hpp>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/pwm.hpp>

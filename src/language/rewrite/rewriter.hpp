@@ -51,7 +51,7 @@ namespace fhatos {
     static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
         [](const BCode_p &bcode) {
-          if (bcode->bcode_value()->back()->id()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
+          if (bcode->bcode_value()->back()->type()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
             auto ex = string();
             auto p = Ansi<StringPrinter>(StringPrinter(&ex));
             // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
@@ -88,7 +88,7 @@ namespace fhatos {
           bool found = false;
           List<Inst_p> newInsts;
           for (const Inst_p &inst: *bcode->bcode_value()) {
-            if (inst->id()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->is_noobj()) {
+            if (inst->type()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->is_noobj()) {
               found = true;
               // rewrite args
               bool done = false;
@@ -106,7 +106,7 @@ namespace fhatos {
                              prev->toString().c_str(), inst->toString().c_str());
               // rewrite inst
               newInsts.pop_back();
-              newInsts.push_back(Insts::to_inst(*prev->id(), newArgs));
+              newInsts.push_back(Insts::to_inst(*prev->type(), newArgs));
             } else {
               newInsts.push_back(inst);
             }

@@ -163,7 +163,7 @@ namespace fhatos {
 
     static Obj_p repeat(const BCode_p &code, const BCode_p &until, const BCode_p &emit) {
       return Obj::to_inst(
-        "repeat", {code, until,emit},
+        "repeat", {code, until, emit},
         [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
             Objs_p r = Options::singleton()->processor<Obj, BCode, Obj>(lhs, args.at(0));
@@ -350,7 +350,7 @@ namespace fhatos {
         "inspect", {},
         [](const InstArgs &) {
           return [](const Obj_p &lhs) {
-            Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->id())}});
+            Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->type())}});
             if (lhs->is_int()) {
               /// INT
               rec->rec_set(vri("value"), jnt(lhs->int_value()));
@@ -391,6 +391,22 @@ namespace fhatos {
               }
             }
             return rec;
+          };
+        },
+        IType::ONE_TO_ONE);
+    }
+
+    static Bool_p a(const Uri_p &type_id) {
+      return Obj::to_inst(
+        "a", {type_id},
+        [](const InstArgs &args) {
+          return [args](const Obj_p &lhs) {
+            try {
+              TYPE_CHECKER(*lhs, lhs->o_type(), id_p(args.at(0)->apply(lhs)->uri_value()));
+              return dool(true);
+            } catch (fError &) {
+              return dool(false);
+            }
           };
         },
         IType::ONE_TO_ONE);
@@ -444,7 +460,7 @@ namespace fhatos {
 
     static Uri_p type() {
       return Obj::to_inst(
-        "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->id()); }; },
+        "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->type()); }; },
         IType::ONE_TO_ONE);
     }
 
@@ -957,7 +973,7 @@ namespace fhatos {
       if (base_inst->is_noobj())
         throw fError("Unknown instruction: %s", type_id_resolved->toString().c_str());
       LOG(TRACE, "Located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
-          base_inst->toString().c_str(), base_inst->id()->toString().c_str());
+          base_inst->toString().c_str(), base_inst->type()->toString().c_str());
       if (base_inst->is_inst())
         return replace_from_inst(args, base_inst);
       if (base_inst->is_bcode()) {

@@ -754,6 +754,31 @@ namespace fhatos {
   using SourceID = ID;
   using TargetID = ID;
 
+  /////////////////
+  class BaseTyped {
+  public:
+    virtual ~BaseTyped() = default;
+
+    [[nodiscard]] virtual fURI_p type() const = 0;
+
+    [[nodiscard]] virtual bool equals(const BaseTyped &) const { return false; }
+  };
+
+  class Typed : public BaseTyped {
+  protected:
+    fURI_p type_;
+
+  public:
+    explicit Typed(const fURI_p &type) : type_(type) {
+    }
+
+    [[nodiscard]] fURI_p type() const override { return this->type_; }
+
+    [[nodiscard]] bool equals(const BaseTyped &other) const override { return this->type_->equals(*other.type()); }
+  };
+
+  ///////////////////
+
   class BaseIDed {
   public:
     virtual ~BaseIDed() = default;
@@ -775,8 +800,6 @@ namespace fhatos {
     }
 
     [[nodiscard]] ID_p id() const override { return this->id_; }
-
-    // const String toString() const { return this->id().toString(); }
 
     [[nodiscard]] bool equals(const BaseIDed &other) const override { return this->id_->equals(*other.id()); }
   };

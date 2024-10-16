@@ -34,6 +34,14 @@ namespace fhatos {
     explicit Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {
     }
 
+   bool has_enum(const string &s) const {
+      for (const auto &pair: ENUM_TO_STR) {
+        if (s == pair.second)
+          return true;
+      }
+      return false;
+    }
+
     string to_chars(const ENUM e) const {
       for (const auto &pair: ENUM_TO_STR) {
         if (pair.first == e)

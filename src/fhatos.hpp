@@ -244,6 +244,7 @@ namespace fhatos {
 #define FOS_UTIL(__util__) <util/esp/__util__>
 #define FOS_FILE_SYSTEM(__fs__) <model/fs/esp32/__fs__>
 #define FOS_MEMORY(__memory__) <model/soc/memory/esp32/__memory__>
+#define FOS_BLE(__ble__) <structure/stype/ble/esp/__ble__>
 #elif defined(ESP8266)
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>

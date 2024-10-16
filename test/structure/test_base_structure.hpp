@@ -66,7 +66,7 @@ namespace fhatos {
           LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
           FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
           TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
-                                   (string("Expected rec but received ") + message->payload->id()->toString()).c_str());
+                                   (string("Expected rec but received ") + message->payload->type()->toString()).c_str());
           FL_INT_TYPE payload_int = message->payload->rec_value()->at(str("hello_fhatty"))->int_value();
           TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
           // TEST_ASSERT_TRUE(message->retain);
@@ -246,7 +246,7 @@ namespace fhatos {
     for (const Str_p &furi: {str("a"), str("b"), str("c"), str("d")}) {
       TEST_ASSERT_EQUAL_INT(
           1, std::count_if(objs->objs_value()->begin(), objs->objs_value()->end(), [furi](const Obj_p &obj) {
-            FOS_TEST_ASSERT_MATCH_FURI(*obj->id(), *STR_FURI);
+            FOS_TEST_ASSERT_MATCH_FURI(*obj->type(), *STR_FURI);
             TEST_ASSERT_TRUE(obj->is_str());
             return obj->str_value() == furi->str_value();
           }));

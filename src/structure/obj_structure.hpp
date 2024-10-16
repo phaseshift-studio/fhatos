@@ -94,14 +94,14 @@ namespace fhatos {
 
   inline void load_structure_attacher() {
     STRUCTURE_ATTACHER = [](const Pattern &structure_pattern, const Obj_p &structure_rec) {
-      if (LOCAL_FURI->equals(*structure_rec->id()))
+      if (LOCAL_FURI->equals(*structure_rec->type()))
         router()->attach(std::make_shared<LocalObj>(structure_pattern, structure_rec));
-      else if (NETWORK_FURI->equals(*structure_rec->id()))
+      else if (NETWORK_FURI->equals(*structure_rec->type()))
         router()->attach(std::make_shared<NetworkObj>(structure_pattern, structure_rec));
-      else if (EXTERNAL_FURI->equals(*structure_rec->id()))
+      else if (EXTERNAL_FURI->equals(*structure_rec->type()))
         router()->attach(std::make_shared<ExternalObj>(structure_pattern, structure_rec));
       else
-        throw fError("Unknown structure type: %s", structure_rec->id()->toString().c_str());
+        throw fError("Unknown structure type: %s", structure_rec->type()->toString().c_str());
     };
   }
 } // namespace fhatos

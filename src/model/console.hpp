@@ -76,7 +76,7 @@ namespace fhatos {
       else if (this->settings_.nest && (obj->is_lst() || obj->is_objs())) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->id()->path_length() > 2 ? obj->id()->name().c_str() : "") + "!m" + (
+                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m" + (
                               obj->is_lst() ? "[" : "{") + "!!\n"), false);
         for (const auto &e: *obj->lst_value()) {
           router()->write(this->id(), str(StringHelper::format(
@@ -90,12 +90,12 @@ namespace fhatos {
         router()->write(
           this->id(),
           str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-              (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
+              (obj->type()->path_length() > 2 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str() : "") +
               "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"), false);
       } else if (this->settings_.nest && obj->is_rec()) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->id()->path_length() > 2 ? obj->id()->name().c_str() : "") + "!m[!!\n"), false);
+                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m[!!\n"), false);
         for (const auto &[key, value]: *obj->rec_value()) {
           router()->write(this->id(),
                           str(StringHelper::format(
@@ -113,7 +113,7 @@ namespace fhatos {
         router()->write(
           this->id(),
           str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-              (obj->id()->path_length() > 2 ? StringHelper::repeat(obj->id()->name().length(), " ").c_str() : "") +
+              (obj->type()->path_length() > 2 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str() : "") +
               "!m]!!\n"), false);
       } else {
         router()->write(this->id(), str(string("!g") + StringHelper::repeat(depth, "=")), false);
