@@ -54,29 +54,29 @@ namespace fhatos {
           {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
              return List<Pair<ID_p, Obj_p>>(
                  {{MEMORY_IDS_.at(0),
-                   parse(MEMORY_REC_STRING, ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
+                   parse(StringHelper::format(MEMORY_REC_STRING, ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
                          ESP.getSketchSize() == 0
                              ? 0.0f
                              : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                  ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))))}});
+                                                  ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace())))))))}});
            }});
       this->read_functions_.insert(
           {MEMORY_IDS_.at(1), [this](const fURI_p furi) {
              return List<Pair<ID_p, Obj_p>>(
                  {{MEMORY_IDS_.at(1),
-                   parse(MEMORY_REC_STRING, ESP.getHeapSize(), ESP.getFreeHeap(),
+                   parse(StringHelper::format(MEMORY_REC_STRING, ESP.getHeapSize(), ESP.getFreeHeap(),
                          ESP.getHeapSize() == 0
                              ? 0.0f
-                             : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))))}});
+                             : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize()))))))}});
            }});
       this->read_functions_.insert(
           {{MEMORY_IDS_.at(2), [this](const fURI_p furi) {
               return List<Pair<ID_p, Obj_p>>(
                   {{MEMORY_IDS_.at(2),
-                    parse(MEMORY_REC_STRING, ESP.getPsramSize(), ESP.getFreePsram(),
+                    parse(StringHelper::format(MEMORY_REC_STRING, ESP.getPsramSize(), ESP.getFreePsram(),
                           ESP.getPsramSize() == 0
                               ? 0.0f
-                              : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))))}});
+                              : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize()))))))}});
             }}});
       this->read_functions_.insert(
           {MEMORY_IDS_.at(3), [this](const fURI_p furi) {
@@ -85,8 +85,8 @@ namespace fhatos {
                               ? 0.0f
                               : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
              return List<Pair<ID_p, Obj_p>>(
-                 {{MEMORY_IDS_.at(3), parse("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                                            ESP_THREAD_STACK_SIZE, free, used)}});
+                 {{MEMORY_IDS_.at(3), parse(StringHelper::format("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                                            ESP_THREAD_STACK_SIZE, free, used))}});
            }});
     }
   };
