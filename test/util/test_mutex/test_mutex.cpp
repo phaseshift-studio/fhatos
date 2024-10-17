@@ -25,6 +25,7 @@
 #include <test_fhatos.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
+#include <unistd.h>
 
 namespace fhatos {
 
