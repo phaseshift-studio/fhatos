@@ -105,7 +105,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(50, m.size());
     MutexDeque<int>* m_ptr = &m;
     scheduler()->barrier("mutex filling",[m_ptr] { return m_ptr->size() == 50; });
-    sleep(1);
+    usleep(1);
   }
 
   void test_mutex_deque_concurrently() {
