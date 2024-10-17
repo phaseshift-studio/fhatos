@@ -32,6 +32,7 @@ namespace fhatos {
     FOS_RUN_TEST(test_patterned_reads); //
     FOS_RUN_TEST(test_ided_reads); //
     FOS_RUN_TEST(test_embedding); //
+    FOS_RUN_TEST(test_from_at); //
     end_test_structure()
   );
 } // namespace fhatos

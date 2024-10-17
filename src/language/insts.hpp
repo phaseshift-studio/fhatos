@@ -380,7 +380,7 @@ namespace fhatos {
               rec->rec_set(vri("branch"), dool(furi.is_branch()));
               rec->rec_set(vri("pattern"), dool(furi.is_pattern()));
               if (furi.has_path()) {
-                Lst_p path = Obj::to_lst();
+                const Lst_p path = Obj::to_lst();
                 for (int i = 0; i < furi.path_length(); i++) {
                   path->lst_add(vri(furi.path(i)));
                 }
@@ -452,7 +452,7 @@ namespace fhatos {
         "from", {uri, default_arg},
         [](const InstArgs &args) {
           return [args](const Uri_p &lhs) {
-            Obj_p result = router()->read(furi_p(args.at(0)->apply(lhs)->uri_value()));
+            Obj_p result = router()->read(furi_p(args.at(0)->apply(lhs)->uri_value()))->at(nullptr);
             return result->is_noobj() ? args.at(1)->apply(lhs) : result;
           };
         },

@@ -196,8 +196,9 @@ namespace fhatos {
 
   protected:
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
-      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj) {
-        this->write(id, obj);
+      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj) -> const Obj_p {
+        this->write(id, obj, true);
+        return obj;
         /*this->route_subscription(subscription_p(
           id, id,
           bcode({

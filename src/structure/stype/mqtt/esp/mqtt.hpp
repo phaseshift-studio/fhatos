@@ -66,12 +66,10 @@ namespace fhatos {
           ((char *) data)[length] = '\0';
           // const fbyte* data_dup[length];
           // memcpy(data_dup,data,length);
-          const BObj_p bobj = share(BObj(length, (fbyte *) data));
+          const BObj_p bobj = make_shared<BObj>(length, (fbyte *) data);
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
-          const Message_p message = share(Message{.target = ID(topic),
-                                                  .payload = payload,
-                                                  .retain = retained});
+          const Message_p message = share(Message{.target = ID(topic), .payload = payload, .retain = retained});
           LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
           const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(topic));
           for (const Subscription_p &sub: *matches) {
@@ -82,7 +80,10 @@ namespace fhatos {
       }
     }
 
-    virtual void native_mqtt_loop() override { Process::current_process()->yield(); }
+    virtual void native_mqtt_loop() override {
+      this->xmqtt_->loop();
+      scheduler()->feed_local_watchdog();
+    }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
       this->xmqtt_->subscribe(subscription->pattern.toString().c_str(), 1);

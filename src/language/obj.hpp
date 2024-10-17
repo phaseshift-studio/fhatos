@@ -503,6 +503,8 @@ namespace fhatos {
       this->rec_value()->erase(key);
       if (!val->is_noobj())
         this->rec_value()->insert({key, val});
+      if (this->id_)
+        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)));
     }
 
     void rec_set(const Obj &key, const Obj &value) const {
@@ -515,6 +517,8 @@ namespace fhatos {
           this->rec_value()->erase(k);
         this->rec_value()->insert({k, v});
       }
+      if (this->id_)
+        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)));
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
@@ -1236,6 +1240,8 @@ namespace fhatos {
     Obj_p at(const ID_p &value_id) {
       if (value_id) {
         this->id_ = id_p(*value_id);
+      } else {
+        this->id_ = nullptr;
       }
       return make_shared<Obj>(*this);
     }
@@ -1447,7 +1453,7 @@ namespace fhatos {
         r->id_ = this->id_;
         return r;
       }
-      auto r=  make_shared<Obj>(any(this->_value), type_id_clone);
+      auto r = make_shared<Obj>(any(this->_value), type_id_clone);
       r->id_ = this->id_;
       return r;
     }
