@@ -117,7 +117,7 @@ namespace fhatos {
               payload->type()->matches(FIBER_FURI->extend("#")) ||
               payload->type()->matches(COROUTINE_FURI->extend("#")))) {
           LOG_SCHEDULER(DEBUG, "intercepting retained !yprocess!! %s\n", payload->toString().c_str());
-          PROCESS_SPAWNER(*payload->type(), target);
+          PROCESS_SPAWNER(ID(*payload->type()), target);
           return true;
         }
         return false;

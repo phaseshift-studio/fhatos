@@ -113,8 +113,7 @@ namespace fhatos {
                             const int setup_linenumber = __LINE__,
                             const int loop_linenumber = __LINE__,
                             const int stop_linenumber = __LINE__) {
-    const ID process_id = REC_FURI->resolve(ProcessTypes.to_chars(process->ptype));
-    const Rec_p record = rec();
+    const Rec_p record = rec();//Obj::to_rec(make_shared<Obj::RecMap<>>(), id_p(*process->id()));
     record->rec_set(vri(process->id()->extend(":setup")), Insts::to_bcode(
                       [process](const Obj_p &) {
                         process->setup();

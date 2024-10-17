@@ -66,7 +66,8 @@ namespace fhatos {
           const MemInfo mem_info = this->get_mem_info();
           return List<Pair<ID_p, Obj_p>>(
             {{MEMORY_IDS_.at(0),
-              parse(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem, mem_info.usage_mem)}});
+              OBJ_PARSER(StringHelper::format(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem,
+                                              mem_info.usage_mem))}});
         }});
       /* this->read_functions_.insert(
            {MEMORY_IDS_.at(1), [this](const fURI_p furi) {

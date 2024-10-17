@@ -35,11 +35,11 @@
 #include FOS_MEMORY(memory.hpp)
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
-#include <structure/stype/ble/esp/ble.hpp>
 #include <model/soc/esp/gpio.hpp>
 #include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/pwm.hpp>
 #include <model/soc/esp/wifi.hpp>
+#include <structure/stype/ble/esp/ble.hpp>
 #endif
 
 #ifdef NATIVE
@@ -90,8 +90,8 @@ namespace fhatos {
 #ifdef ESP_ARCH
             ->structure(GPIO::singleton("/soc/gpio/#"))
             ->structure(PWM::singleton("/soc/pwm/#"))
-            ->structure(Memory::singleton("/soc/memory/#"))
             ->structure(Interrupt::singleton("/soc/interrupt/#"))
+            //->structure(Memory::singleton("/soc/memory/#"))
             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
             ->structure(BLE::create("/io/bt/#"))
 #endif

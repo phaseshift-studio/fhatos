@@ -337,6 +337,9 @@ namespace fhatos {
     TEST_ASSERT_TRUE(fURI("127.0.0.1/?sub").has_query());
     TEST_ASSERT_TRUE(fURI("fos://127.0.0.1/?sub").has_query());
     TEST_ASSERT_FALSE(fURI("fos://127.0.0.1/sub").has_query());
+    /////////////////
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y"), fURI("//x/y?sub").query(""));
+   // TODO: FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y/"), fURI("//x/y/?sub").query(""));
   }
 
   void test_uri_query_value() {

@@ -16,10 +16,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include <boot_loader.hpp>
 #include <fhatos.hpp>
+#include <boot_loader.hpp>
 #include <kernel.hpp>
-#include <structure/router.hpp>
 #include <util/argv_parser.hpp>
 
 using namespace fhatos;

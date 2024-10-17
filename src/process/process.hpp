@@ -56,9 +56,8 @@ namespace fhatos {
   public:
     const PType ptype;
 
-
-    explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {
-    }
+    explicit Process(const ID &id, const PType pType) :
+        IDed(id_p(id)),  ptype(pType) {}
 
     ~Process() override = default;
 
@@ -66,6 +65,10 @@ namespace fhatos {
       const Process_p current = PtrHelper::no_delete<Process>(this_process.load());
       return current;
     }
+
+    /*fURI_p type() const override {
+      return this->type_;
+    }*/
 
     virtual void setup() {
       this_process = this;
@@ -95,11 +98,9 @@ namespace fhatos {
 
     bool running() const { return this->running_.load(); }
 
-    virtual void delay(const uint64_t) {
-    }; // milliseconds
+    virtual void delay(const uint64_t){}; // milliseconds
 
-    virtual void yield() {
-    };
+    virtual void yield(){};
   };
 } // namespace fhatos
 

@@ -313,7 +313,8 @@ namespace fhatos {
     template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = objp_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
-    explicit Obj(const Any &value, const OType otype, const fURI_p &type_id) : Typed(OTYPE_FURI.at(otype)), _value(value) {
+    explicit Obj(const Any &value, const OType otype, const fURI_p &type_id) : Typed(OTYPE_FURI.at(otype)),
+                                                                               _value(value) {
       TYPE_CHECKER(*this, otype, id_p(*type_id));
       this->type_ = type_id;
     }
@@ -786,7 +787,7 @@ namespace fhatos {
         case OType::BOOL:
           return Obj(this->bool_value() && rhs.bool_value(), this->type_);
         case OType::INT:
-          return Obj(this->int_value() * rhs.int_value(),  this->type_);
+          return Obj(this->int_value() * rhs.int_value(), this->type_);
         case OType::REAL:
           return Obj(this->real_value() * rhs.real_value(), this->type_);
         case OType::URI:
@@ -829,9 +830,9 @@ namespace fhatos {
         case OType::NOOBJ:
           return *to_noobj();
         case OType::INT:
-          return Obj(this->int_value() / rhs.int_value(),  this->type_);
+          return Obj(this->int_value() / rhs.int_value(), this->type_);
         case OType::REAL:
-          return Obj(this->real_value() / rhs.real_value(),  this->type_);
+          return Obj(this->real_value() / rhs.real_value(), this->type_);
         default:
           throw fError("%s can not be divided (/)", OTypes.to_chars(this->o_type()).c_str());
       }
@@ -842,15 +843,15 @@ namespace fhatos {
         case OType::NOOBJ:
           return *to_noobj();
         case OType::BOOL:
-          return Obj(this->bool_value() || rhs.bool_value(),  this->type_);
+          return Obj(this->bool_value() || rhs.bool_value(), this->type_);
         case OType::INT:
-          return Obj(this->int_value() + rhs.int_value(),  this->type_);
+          return Obj(this->int_value() + rhs.int_value(), this->type_);
         case OType::REAL:
-          return Obj(this->real_value() + rhs.real_value(),  this->type_);
+          return Obj(this->real_value() + rhs.real_value(), this->type_);
         case OType::URI:
-          return Obj(this->uri_value().extend(rhs.uri_value().toString().c_str()),  this->type_);
+          return Obj(this->uri_value().extend(rhs.uri_value().toString().c_str()), this->type_);
         case OType::STR:
-          return Obj(string(this->str_value()) + string(rhs.str_value()),  this->type_);
+          return Obj(string(this->str_value()) + string(rhs.str_value()), this->type_);
         case OType::LST: {
           auto list = std::make_shared<LstList<>>();
           for (const auto &obj: *this->lst_value()) {
@@ -859,7 +860,7 @@ namespace fhatos {
           for (const auto &obj: *rhs.lst_value()) {
             list->push_back(obj);
           }
-          return Lst(list,  this->type_);
+          return Lst(list, this->type_);
         }
         case OType::REC: {
           auto map = std::make_shared<RecMap<>>();
@@ -869,7 +870,7 @@ namespace fhatos {
           for (const auto &pair: *rhs.rec_value()) {
             map->insert(pair);
           }
-          return Rec(map,  this->type_);
+          return Rec(map, this->type_);
         }
         default:
           throw fError("%s can not be added (+)", OTypes.to_chars(this->o_type()).c_str());
@@ -1086,7 +1087,7 @@ namespace fhatos {
             if (!key_apply->is_noobj())
               new_pairs->insert({key_apply, value->apply(key_apply)});
           }
-          return Obj::to_rec(new_pairs);//, this->type_);
+          return Obj::to_rec(new_pairs, id_p(*this->type_));
         }
         case OType::INST: {
           return this->inst_f()(this->inst_args())(lhs);
@@ -1103,12 +1104,13 @@ namespace fhatos {
           }
           // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
           //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
-          return current_obj;
+          return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj;
+          // objs unrolled (front popped)
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
           for (const Obj_p &obj: *this->objs_value()) {
-            objs->objs_value()->push_back(obj->apply(lhs));
+            objs->add_obj(obj->apply(lhs));
           }
           return objs;
         }
