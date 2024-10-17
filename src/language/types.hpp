@@ -82,6 +82,8 @@ namespace fhatos {
       this->save_type(inst_id("is"), Insts::is(x(0)));
       this->save_type(inst_id("from"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
       this->save_type(inst_id("*"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
+      this->save_type(inst_id("at"), Insts::at(x(0, Insts::error(ARG_ERROR)), x(1)));
+      this->save_type(inst_id("@"), Insts::at(x(0, Insts::error(ARG_ERROR)), x(1)));
       // this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
       // this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
       this->save_type(inst_id("within"), Insts::within(x(0)));
@@ -139,7 +141,8 @@ namespace fhatos {
         if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
-        return share(Obj(proto_obj->_value, OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)), resolved_type_id));
+        return make_shared<Obj>(proto_obj->_value, OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)),
+                                resolved_type_id, obj->id());
       };
       this->load_insts();
       router()->route_subscription(
@@ -178,7 +181,7 @@ namespace fhatos {
 
     bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
       const Obj_p existing_type_def = router()->read(type_id);
-      return !existing_type_def->is_noobj() && existing_type_def->equals(*type_def);
+      return !existing_type_def->is_noobj() && (*existing_type_def == *type_def);
     }
 
     static ID_p resolve_sugar_type(const fURI_p &type, const fURI_p &furi) {

@@ -774,7 +774,7 @@ namespace fhatos {
 
     [[nodiscard]] fURI_p type() const override { return this->type_; }
 
-    [[nodiscard]] bool equals(const BaseTyped &other) const override { return this->type_->equals(*other.type()); }
+    [[nodiscard]] virtual bool equals(const BaseTyped &other) const override { return this->type_->equals(*other.type()); }
   };
 
   ///////////////////
@@ -801,7 +801,7 @@ namespace fhatos {
 
     [[nodiscard]] ID_p id() const override { return this->id_; }
 
-    [[nodiscard]] bool equals(const BaseIDed &other) const override { return this->id_->equals(*other.id()); }
+    [[nodiscard]] virtual bool equals(const BaseIDed &other) const override { return this->id_->equals(*other.id()); }
   };
 
   //////////////////////////////////////////////
@@ -829,7 +829,7 @@ namespace fhatos {
 
     [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }
 
-    [[nodiscard]] bool equals(const BasePatterned &other) const override {
+    [[nodiscard]] virtual bool equals(const BasePatterned &other) const override {
       return this->pattern_->equals(*other.pattern());
     }
   };

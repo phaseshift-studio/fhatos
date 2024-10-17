@@ -196,6 +196,23 @@ namespace fhatos {
 
   protected:
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
+      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj) {
+        this->write(id, obj);
+        /*this->route_subscription(subscription_p(
+          id, id,
+          bcode({
+            Obj::to_inst(
+              "lambda",
+              {obj},
+              [obj](const InstArgs &args) {
+                return [obj](const Obj_p& lhs) {
+                  Obj_p payload = lhs->rec_get(vri(":payload"));
+                  obj->_value = payload->_value;
+                  return noobj();
+                };
+              },
+              IType::ONE_TO_ONE)})));*/
+      };
       ROUTER_WRITE_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
         if (!retain)
           return false;

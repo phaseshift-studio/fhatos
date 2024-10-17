@@ -428,7 +428,8 @@ namespace fhatos {
           return [args](const Obj_p &lhs) {
             const Obj_p lhs_apply = lhs->apply(args.at(0));
             const Obj_p rhs_apply = args.at(0)->apply(lhs);
-            router()->write(id_p(rhs_apply->uri_value()), lhs_apply, args.at(1)->apply(lhs)->bool_value());
+            const ID_p value_id = id_p(rhs_apply->uri_value());
+            router()->write(value_id, lhs_apply, args.at(1)->apply(lhs)->bool_value());
             return lhs_apply;
           };
         },
@@ -865,6 +866,19 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
+static Obj_p at(const Uri_p& uri, const Obj_p& default_arg) {
+      return Obj::to_inst(
+     "at", {uri, default_arg},
+     [](const InstArgs &args) {
+       return [args](const Uri_p &lhs) {
+         const ID_p at_id = id_p(args.at(0)->apply(lhs)->uri_value());
+         Obj_p result = router()->read(at_id)->at(at_id);
+         return result->is_noobj() ? args.at(1)->apply(lhs) : result;
+       };
+     },
+     (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
+    }
+
     static Poly_p each(const Poly_p &poly) {
       return Obj::to_inst(
         "each", {poly},
@@ -929,7 +943,7 @@ namespace fhatos {
     static List<Pair<string, string>> unary_sugars() {
       static List<Pair<string, string>> map = {
         {"-->", "via_inv"},
-        {"@", "get"},
+        {"@", "at"},
         {"??", "optional"},
         {"-<", "split"},
         {">-", "merge"},

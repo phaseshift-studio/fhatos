@@ -177,7 +177,7 @@ namespace fhatos {
     static Option<Obj_p> try_parse_source(const Lst_p &lst_src) {
       Option<Obj_p> last = {};
       for (const Obj_p &obj: *lst_src->lst_value()) {
-        last = try_parse_obj(obj->is_str() ? obj->str_value() : obj->toString(true, false));
+        last = try_parse_obj(obj->is_str() ? obj->str_value() : obj->toString(true, true, false));
       }
       return last;
     }

@@ -83,7 +83,7 @@ namespace fhatos {
                             "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
                             e->is_poly()
                               ? ""
-                              : e->toString(true, this->settings_.ansi, this->settings_.strict).c_str())), false);
+                              : e->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())), false);
           if (e->is_poly())
             this->print_result(e, depth + 1);
         }
@@ -100,11 +100,11 @@ namespace fhatos {
           router()->write(this->id(),
                           str(StringHelper::format(
                             "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                            key->toString(true, false, this->settings_.strict).c_str(),
+                            key->toString(true, false, false, this->settings_.strict).c_str(),
                             value->is_poly()
                               ? ""
                               : value->toString(
-                                true, this->settings_.ansi,
+                                true, true, this->settings_.ansi,
                                 this->settings_.strict).c_str())),
                           false);
           if (value->is_poly())
@@ -119,7 +119,7 @@ namespace fhatos {
         router()->write(this->id(), str(string("!g") + StringHelper::repeat(depth, "=")), false);
         router()->write(this->id(), str(StringHelper::format("==>!!%s\n",
                                                              obj->toString(
-                                                               true, this->settings_.ansi, this->settings_.strict).
+                                                               true, true, this->settings_.ansi, this->settings_.strict).
                                                              c_str())), false);
       }
     }

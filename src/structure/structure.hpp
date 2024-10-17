@@ -138,8 +138,8 @@ namespace fhatos {
     virtual void publish_retained(const Subscription_p &subscription) {
       const List<Pair<ID_p, Obj_p>> list = this->read_raw_pairs(furi_p(subscription->pattern));
       for (const auto &[id, obj]: list) {
-        if (id->matches(subscription->pattern)) {
-          if (!obj->is_noobj()) {
+        if (!obj->is_noobj()) {
+          if (id->matches(subscription->pattern)) {
             subscription->on_recv->apply(Message{.target = *id, .payload = obj, .retain = RETAIN_MESSAGE}.to_rec());
           }
         }
