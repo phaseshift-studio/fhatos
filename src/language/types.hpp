@@ -46,7 +46,7 @@ namespace fhatos {
       this->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
       this->save_type(inst_id("a"), Insts::a(x(0)));
       this->save_type(inst_id("optional"), Insts::optional(x(0)), false);
-      this->save_type(inst_id("??"), Insts::from(vri(inst_id("optional"))));
+      //this->save_type(inst_id("??"), Insts::from(vri(inst_id("optional"))));
       this->save_type(inst_id("inspect"), Insts::inspect());
       this->save_type(inst_id("plus"), Insts::plus(x(0)));
       this->save_type(inst_id("mult"), Insts::mult(x(0)));
@@ -60,12 +60,12 @@ namespace fhatos {
       this->save_type(inst_id("gt"), Insts::gt(x(0)));
       this->save_type(inst_id("to"), Insts::to(x(0), x(1, dool(true))));
       this->save_type(inst_id("to_inv"), Insts::to_inv(x(0), x(1, dool(true))));
-      this->save_type(inst_id("->"), Insts::from(vri(inst_id("to_inv"))));
+      //this->save_type(inst_id("->"), Insts::from(vri(inst_id("to_inv"))));
       this->save_type(inst_id("via_inv"), Insts::to_inv(x(0), dool(false)));
-      this->save_type(inst_id("-->"), Insts::from(vri(inst_id("via_inv"))));
+      //this->save_type(inst_id("-->"), Insts::from(vri(inst_id("via_inv"))));
       this->save_type(inst_id("start"), Insts::start(x(0)));
       this->save_type(inst_id("merge"), Insts::merge(x(0)));
-      this->save_type(inst_id(">-"), Insts::from(vri(inst_id("merge"))));
+      //this->save_type(inst_id(">-"), Insts::from(vri(inst_id("merge"))));
       this->save_type(inst_id("map"), Insts::map(x(0)));
       this->save_type(inst_id("filter"), Insts::filter(x(0)));
       this->save_type(inst_id("count"), Insts::count());
@@ -81,32 +81,30 @@ namespace fhatos {
       this->save_type(inst_id("type"), Insts::type());
       this->save_type(inst_id("is"), Insts::is(x(0)));
       this->save_type(inst_id("from"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
-      this->save_type(inst_id("*"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
+      //this->save_type(inst_id("*"), Insts::from(x(0, Insts::error(ARG_ERROR)), x(1)));
       this->save_type(inst_id("at"), Insts::at(x(0, Insts::error(ARG_ERROR)), x(1)));
-      this->save_type(inst_id("@"), Insts::at(x(0, Insts::error(ARG_ERROR)), x(1)));
-      // this->save_type(inst_id("pub"), Insts::pub(x(0), x(1), x(2, dool(true))));
-      // this->save_type(inst_id("sub"), Insts::sub(x(0), x(1)));
+      //this->save_type(inst_id("@"), Insts::at(x(0, Insts::error(ARG_ERROR)), x(1)));
       this->save_type(inst_id("within"), Insts::within(x(0)));
       this->save_type(inst_id("print"), Insts::print(x(0, bcode())));
       // this->save_type(inst_id("switch"), Insts::bswitch(x(0)));
       this->save_type(inst_id("explain"), Insts::explain());
       this->save_type(inst_id("drop"), Insts::drop(x(0)));
-      this->save_type(inst_id("V"), Insts::from(vri(inst_id("drop"))));
+      //this->save_type(inst_id("V"), Insts::from(vri(inst_id("drop"))));
       this->save_type(inst_id("lift"), Insts::lift(x(0)));
-      this->save_type(inst_id("^"), Insts::from(vri(inst_id("lift"))));
+      //this->save_type(inst_id("^"), Insts::from(vri(inst_id("lift"))));
       this->save_type(inst_id("size"), Insts::size());
       this->save_type(inst_id("foldr"), Insts::foldr(x(0)));
       this->save_type(inst_id("barrier"), Insts::barrier(x(0)));
       this->save_type(inst_id("block"), Insts::block(x(0)));
-      this->save_type(inst_id("|"), Insts::from(vri(inst_id("block"))));
+      //this->save_type(inst_id("|"), Insts::from(vri(inst_id("block"))));
       this->save_type(inst_id("cleave"), Insts::cleave(x(0)));
       this->save_type(inst_id("split"), Insts::split(x(0)));
-      this->save_type(inst_id("-<"), Insts::from(vri(inst_id("split"))));
+      //this->save_type(inst_id("-<"), Insts::from(vri(inst_id("split"))));
       this->save_type(inst_id("each"), Insts::each(x(0)));
-      this->save_type(inst_id("="), Insts::from(vri(inst_id("each"))));
+      //this->save_type(inst_id("="), Insts::from(vri(inst_id("each"))));
       this->save_type(inst_id("window"), Insts::window(x(0)));
       this->save_type(inst_id("match"), Insts::match(x(0)));
-      this->save_type(inst_id("~"), Insts::from(vri(inst_id("match"))));
+      //this->save_type(inst_id("~"), Insts::from(vri(inst_id("match"))));
       this->save_type(inst_id("end"), Insts::end());
       this->save_type(inst_id("until"), Insts::until(x(0)));
       this->save_type(inst_id("dedup"), Insts::dedup(x(0, bcode())));
@@ -117,7 +115,7 @@ namespace fhatos {
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       this->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
       this->progress_bar_->end("!bmm-adt !yinstruction set!! loaded\n");
-      this->progress_bar_ = nullptr;
+      //this->progress_bar_ = nullptr;
     }
 
   public:
@@ -168,14 +166,14 @@ namespace fhatos {
             router()->write(type_id, type_def, RETAIN_MESSAGE);
           }
         }
-        if (!progress_bar_)
+        if (!this->progress_bar_)
           LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
                     type_def->toString().c_str());
         else {
-          progress_bar_->incr_count(type_id->toString());
+          this->progress_bar_->incr_count(type_id->toString());
         }
       } catch (const fError &e) {
-        LOG_PROCESS(ERROR, this, "Unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
+        LOG_PROCESS(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 
@@ -199,7 +197,7 @@ namespace fhatos {
         return true;
       if (otype != type_otype) {
         if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj.toString().c_str(),
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj.toString(false).c_str(),
                        type_id->toString().c_str());
         return false;
       }
@@ -214,7 +212,7 @@ namespace fhatos {
         }
         if (do_throw)
           throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!", this->id()->toString().c_str(),
-                       obj.toString().c_str(), type_id->toString().c_str(), type->toString().c_str());
+                       obj.toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());
         return false;
       }
       if (do_throw)

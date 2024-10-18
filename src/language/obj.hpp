@@ -317,7 +317,7 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
     explicit Obj(const Any &value, const OType otype, const fURI_p &type_id,
-                 const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)),
+                 const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)), // Typed(id_p(type_id->retract(2))),
                                                    IDed(value_id),
                                                    _value(value) {
       TYPE_CHECKER(*this, otype, id_p(*type_id));
@@ -733,15 +733,15 @@ namespace fhatos {
           break;
         }
         default:
-          throw fError("Unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
+          throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
-      obj_string = (this->is_error() || (include_type && (this->type_->path_length() > 2)))
-                     ? string("!b")
-                     .append(this->type_->name())
-                     .append(this->is_inst() ? "!g(!!" : "!g[!!")
-                     .append(obj_string)
-                     .append(this->is_inst() ? "!g)!!" : "!g]!!")
-                     : obj_string;
+      if (this->is_error() || (include_type && (this->type_->path_length() > 2))) {
+        obj_string = string("!b")
+            .append(this->type_->name())
+            .append(this->is_inst() ? "!g(!!" : "!g[!!")
+            .append(obj_string)
+            .append(this->is_inst() ? "!g)!!" : "!g]!!");
+      }
       if (include_id && this->id_) {
         obj_string += "!m@!b";
         obj_string += this->id_->toString();
@@ -1358,7 +1358,7 @@ namespace fhatos {
     static Inst_p to_inst(
       const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function, const IType itype,
       const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &furi = nullptr) {
-      const ID_p fix = furi ? furi : make_shared<ID>(string(FOS_TYPE_PREFIX "inst/") + opcode);
+      const ID_p fix = furi ? furi : id_p(INST_FURI->extend(opcode));
       return to_inst({args, function, itype, seed}, fix);
     }
 
