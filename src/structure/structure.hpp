@@ -265,6 +265,10 @@ namespace fhatos {
 
     /////////////////////////////////////////////////////////////////////////////
   protected:
+    static Obj_p strip_value_id(const Obj_p obj) {
+      return nullptr == obj->id() ? obj : make_shared<Obj>(obj->_value, obj->type(), nullptr);
+    }
+
     virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
     virtual List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) = 0;

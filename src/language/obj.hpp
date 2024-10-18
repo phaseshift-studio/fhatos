@@ -238,10 +238,9 @@ namespace fhatos {
     {OType::BCODE, BCODE_FURI},
     {OType::ERROR, ERROR_FURI},
     {OType::TYPE, TYPE_FURI}}};
-  static TriFunction<const Obj &, const OType, const ID_p &, ID_p> TYPE_CHECKER = [](const Obj &, const OType,
-    const ID_p &) {
+  static BiConsumer<const Obj &, const fURI_p &> TYPE_CHECKER = [](const Obj &,
+                                                                   const fURI_p &) {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap.\n");
-    return nullptr;
   };
   static BiFunction<const Obj_p, const ID_p, Obj_p> TYPE_MAKER = [](const Obj_p &, const ID_p &) {
     LOG(DEBUG, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
@@ -316,18 +315,19 @@ namespace fhatos {
     template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = objp_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
-    explicit Obj(const Any &value, const OType otype, const fURI_p &type_id,
-                 const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)), // Typed(id_p(type_id->retract(2))),
+    explicit Obj(const Any &value,
+                 const fURI_p &type_id,
+                 const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(
+                                                     OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)))),
                                                    IDed(value_id),
                                                    _value(value) {
-      TYPE_CHECKER(*this, otype, id_p(*type_id));
+      TYPE_CHECKER(*this, type_id);
       this->type_ = type_id;
-      if (value_id)
-        ROUTER_WRITE_AT(value_id, PtrHelper::no_delete(this));
-    }
-
-    explicit Obj(const Any &value, const fURI_p &type_id, const ID_p &value_id = nullptr) : Obj(
-      value, OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX))), type_id, value_id) {
+      if (value_id) {
+        const Obj_p strip = this->clone();
+        strip->id_ = nullptr;
+        ROUTER_WRITE_AT(value_id, strip);
+      }
     }
 
     /////
@@ -349,32 +349,32 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     // Obj(const Obj &other) : Obj(other._value, other.id()) {}
     template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *type_id = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL,
+    Obj(const T xbool, const char *type_id = EMPTY_CHARS) : Obj(Any(xbool),
                                                                 id_p(BOOL_FURI->resolve(type_id))) {
     }
 
-    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {
+    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) : Obj(Any(xint),
+                                                                         id_p(INT_FURI->resolve(type_id))) {
     }
 
     Obj(const FL_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {
+      Any(xreal), id_p(REAL_FURI->resolve(type_id))) {
     }
 
-    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) : Obj(Any(xuri), OType::URI,
+    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) : Obj(Any(xuri),
                                                                    id_p(URI_FURI->resolve(type_id))) {
     }
 
-    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(string(xstr)), OType::STR,
+    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(string(xstr)),
                                                                    id_p(STR_FURI->resolve(type_id))) {
     }
 
-    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(xstr), OType::STR,
+    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(xstr),
                                                                      id_p(STR_FURI->resolve(type_id))) {
     }
 
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<RecMap<>>()), OType::REC, id_p(REC_FURI->resolve(type_id))) {
+      Any(make_shared<RecMap<>>()), id_p(REC_FURI->resolve(type_id))) {
       auto map = this->value<RecMap<>>();
       for (const auto &[key, val]: xrec) {
         map.insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(val)));
@@ -383,7 +383,7 @@ namespace fhatos {
 
     ///////////////////
     Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<LstList<>>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
+      Any(make_shared<LstList<>>()), id_p(LST_FURI->resolve(type_id))) {
       const auto list = this->value<LstList_p<>>();
       for (const auto &obj: xlst) {
         list->push_back(make_shared<Obj>(obj));
@@ -391,11 +391,11 @@ namespace fhatos {
     }
 
     Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
+      Any(make_shared<InstList>(PtrHelper::clone(bcode))), id_p(BCODE_FURI->resolve(type_id))) {
     }
 
     Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
+      Any(bcode), id_p(BCODE_FURI->resolve(type_id))) {
     }
 
     //////////////////////////////////////////////////////////////
@@ -813,7 +813,7 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() * rhs.real_value(), this->type_, this->id_);
         case OType::URI:
-          return Obj(fURI(this->uri_value()).resolve(fURI(rhs.uri_value()).toString().c_str()), this->type_, this->id_);
+          return Obj(this->uri_value().resolve(rhs.uri_value()), this->type_, this->id_);
         //   case OType::STR:
         //   return Obj(this->str_value() + rhs.str_value(), this->id());
         case OType::LST: {
@@ -872,7 +872,7 @@ namespace fhatos {
         case OType::REAL:
           return Obj(this->real_value() + rhs.real_value(), this->type_, this->id_);
         case OType::URI:
-          return Obj(this->uri_value().extend(rhs.uri_value().toString().c_str()), this->type_, this->id_);
+          return Obj(this->uri_value().extend(rhs.uri_value()), this->type_, this->id_);
         case OType::STR:
           return Obj(string(this->str_value()) + string(rhs.str_value()), this->type_, this->id_);
         case OType::LST: {
@@ -911,7 +911,7 @@ namespace fhatos {
         case OType::REAL:
           return Real(this->real_value() - rhs.real_value(), this->type_, this->id_);
         case OType::URI:
-          return Uri(fURI(this->uri_value()).retract(), this->type_, this->id_);
+          return Uri(this->uri_value().retract(), this->type_, this->id_);
         // case OType::STR:
         //  return Obj(string(this->str_value()).replace(string(rhs.str_value()), this->id());
         case OType::LST: {
@@ -1238,12 +1238,7 @@ namespace fhatos {
     Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
 
     Obj_p at(const ID_p &value_id) {
-      if (value_id) {
-        this->id_ = id_p(*value_id);
-      } else {
-        this->id_ = nullptr;
-      }
-      return make_shared<Obj>(*this);
+      return make_shared<Obj>(this->_value,this->type_,value_id);
     }
 
     [[nodiscard]] Inst_p next_inst(const Inst_p &current_inst) const {

@@ -126,21 +126,23 @@ namespace fhatos {
 
     void setup() override {
       Coroutine::setup();
-      TYPE_CHECKER = [](const Obj &obj, const OType otype, const ID_p &type_id) -> ID_p {
-        const ID_p resolved_type_id = resolve_sugar_type(obj.type(), type_id);
-        singleton()->check_type(obj, otype, resolved_type_id, true);
-        return resolved_type_id;
+      TYPE_CHECKER = [](const Obj &obj, const fURI_p &type_id) -> void {
+        //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
+        const fURI_p resolved_type_id = resolve_sugar_type(obj.type(), type_id);
+        singleton()->check_type(obj, resolved_type_id, true);
       };
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
         const ID_p resolved_type_id = resolve_sugar_type(obj->type(), type_id);
+        if (OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)) != obj->o_type())
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
+                       resolved_type_id->toString().c_str());
         const Obj_p type_def = router()->read(resolved_type_id);
         // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
         const Obj_p proto_obj = is_base_type(resolved_type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
         if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
-        return make_shared<Obj>(proto_obj->_value, OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)),
-                                resolved_type_id, obj->id());
+        return make_shared<Obj>(proto_obj->_value, resolved_type_id, obj->id());
       };
       this->load_insts();
       router()->route_subscription(
@@ -190,12 +192,13 @@ namespace fhatos {
 
     static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }
 
-    bool check_type(const Obj &obj, const OType otype, const ID_p &type_id, const bool do_throw = true) const
+    bool check_type(const Obj &obj, const fURI_p &type_id, const bool do_throw = true) const
       noexcept(false) {
       const OType type_otype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-      if (otype == OType::INST || otype == OType::BCODE || type_otype == OType::INST || type_otype == OType::BCODE)
+      if (obj.o_type() == OType::INST || obj.o_type() == OType::BCODE || type_otype == OType::INST || type_otype ==
+          OType::BCODE)
         return true;
-      if (otype != type_otype) {
+      if (obj.o_type() != type_otype) {
         if (do_throw)
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj.toString(false).c_str(),
                        type_id->toString().c_str());

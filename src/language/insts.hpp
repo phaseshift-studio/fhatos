@@ -402,7 +402,7 @@ namespace fhatos {
         [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
             try {
-              TYPE_CHECKER(*lhs, lhs->o_type(), id_p(args.at(0)->apply(lhs)->uri_value()));
+              TYPE_CHECKER(*lhs, id_p(args.at(0)->apply(lhs)->uri_value()));
               return dool(true);
             } catch (fError &) {
               return dool(false);
@@ -426,11 +426,8 @@ namespace fhatos {
         "to", {uri, retain},
         [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
-            const Obj_p lhs_apply = lhs->apply(args.at(0));
-            const Obj_p rhs_apply = args.at(0)->apply(lhs);
-            const ID_p value_id = id_p(rhs_apply->uri_value());
-            router()->write(value_id, lhs_apply, args.at(1)->apply(lhs)->bool_value());
-            return lhs_apply;
+            router()->write(furi_p(args.at(0)->apply(lhs)->uri_value()),lhs,args.at(1)->apply(lhs)->bool_value());
+            return lhs;
           };
         },
         IType::ONE_TO_ONE);
@@ -441,7 +438,9 @@ namespace fhatos {
         "to_inv", {obj, retain},
         [](const InstArgs &args) {
           return [args](const Obj_p &lhs) {
-            return Insts::to(lhs, args.at(1))->inst_f()({lhs, args.at(1)})(args.at(0));
+            const Obj_p ret = args.at(0)->apply(lhs);
+            router()->write(furi_p(lhs->uri_value()), ret, args.at(1)->apply(lhs)->bool_value());
+            return ret;
           };
         },
         IType::ONE_TO_ONE);
@@ -842,13 +841,13 @@ namespace fhatos {
       return Obj::to_inst(
         "subset", {start, end},
         [](const InstArgs &args) {
-          const Obj_p &start = args.at(0);
-          const Obj_p &end = args.at(1);
-          return [start, end](const Poly_p &lhs) {
+          const Obj_p &start1 = args.at(0);
+          const Obj_p &end1 = args.at(1);
+          return [start1, end1](const Poly_p &lhs) {
             if (lhs->is_lst()) {
-              const Obj::LstList_p<Obj_p> sub = make_shared<List<Obj_p>>();
-              const int s = start->apply(lhs)->int_value();
-              const int e = end->apply(lhs)->int_value();
+              const auto sub = make_shared<List<Obj_p>>();
+              const int s = start1->apply(lhs)->int_value();
+              const int e = end1->apply(lhs)->int_value();
               int counter = 0;
               for (const auto &obj: *lhs->lst_value()) {
                 if (counter >= s && counter < e) {
@@ -866,17 +865,17 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-static Obj_p at(const Uri_p& uri, const Obj_p& default_arg) {
+    static Obj_p at(const Uri_p &uri, const Obj_p &default_arg) {
       return Obj::to_inst(
-     "at", {uri, default_arg},
-     [](const InstArgs &args) {
-       return [args](const Uri_p &lhs) {
-         const ID_p at_id = id_p(args.at(0)->apply(lhs)->uri_value());
-         Obj_p result = router()->read(at_id)->at(at_id);
-         return result->is_noobj() ? args.at(1)->apply(lhs) : result;
-       };
-     },
-     (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
+        "at", {uri, default_arg},
+        [](const InstArgs &args) {
+          return [args](const Uri_p &lhs) {
+            const ID_p at_id = id_p(args.at(0)->apply(lhs)->uri_value());
+            Obj_p result = router()->read(at_id)->at(at_id);
+            return result->is_noobj() ? args.at(1)->apply(lhs) : result;
+          };
+        },
+        (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
     static Poly_p each(const Poly_p &poly) {
@@ -885,12 +884,12 @@ static Obj_p at(const Uri_p& uri, const Obj_p& default_arg) {
         [](const InstArgs &args) {
           const Obj_p &arg = args.at(0);
           return [arg](const Poly_p &lhs) {
-            const Lst_p poly = arg->is_lst() ? arg : arg->apply(lhs);
+            const Lst_p poly2 = arg->is_lst() ? arg : arg->apply(lhs);
             if (lhs->is_lst()) {
               Lst_p ret = Obj::to_lst();
               for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
-                if (poly->lst_value()->size() >= i) {
-                  ret->lst_add(poly->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
+                if (poly2->lst_value()->size() >= i) {
+                  ret->lst_add(poly2->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
                 } else {
                   ret->lst_add(Obj::to_noobj()->apply(lhs->lst_value()->at(i)));
                 }
@@ -920,25 +919,6 @@ static Obj_p at(const Uri_p& uri, const Obj_p& default_arg) {
                      expected_size);
       return args;
     }
-
-
-    /*static List<Quad<string, string, string, int>>& sugars() {
-      static List<Quad<string, string, string, int>> list = {
-        {"-<", "", "split", 1},
-        {">-", "", "merge", 0},
-        {"~", "", "match", 1},
-        {"<-", "", "to", 1},
-        {"->", "", "to_inv", 1},
-        {"|", "", "block", 1},
-        {"^", "", "lift", 1},
-        {"V", "", "drop", 1},
-        {"*", "", "from", 1},
-        {"=", "", "each", 1},
-        {"_/", "\\_", "within", 1},
-        {"((", "))", "sub", 2}
-      };
-      return list;
-    }*/
 
     static List<Pair<string, string>> unary_sugars() {
       static List<Pair<string, string>> map = {

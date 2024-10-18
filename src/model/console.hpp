@@ -182,12 +182,12 @@ namespace fhatos {
               // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
               "kill scheduler",
               [this](const Obj_p &) {
-                Scheduler::singleton()->recv_mail(share(
+                scheduler()->recv_mail(share(
                   Mail{share(Subscription{
                       .source = fURI(*this->id()),
                       .pattern = *Scheduler::singleton()->id(),
-                      .on_recv = Insts::to_bcode([](const Message_p &) { Scheduler::singleton()->stop(); })}),
-                    message_p(*Scheduler::singleton()->id(), noobj(), true)}));
+                      .on_recv = Insts::to_bcode([](const Message_p &) { scheduler()->stop(); })}),
+                    message_p(*scheduler()->id(), noobj(), true)}));
                 this->delay(250);
                 return noobj();
               }}});
