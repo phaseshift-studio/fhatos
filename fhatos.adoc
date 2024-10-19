@@ -69,7 +69,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/sys/router/#] /io/fs/# ephemeral attached
 [INFO]  [//+/#] 
     broker address: localhost
-    client name   : client_1604715565
+    client name   : client_777326024
     will topic    : <none>
     will message  : <none>
     will qos      : <none>
@@ -294,12 +294,12 @@ thread[[:setup => __]
 3
 4
 fhatos> 5
-6
 abc/ -> thread[[:setup=>|(x->0),:loop=>|(*x.[is(gt(10))=>abc/->noobj,_=>plus(1).print(_)]>-().to(x)),:stop=>|print('done')]]
+6
 7
 =8
-9
 ==>thread[[abc/:setup=>map(x).to_inv(0,true),abc/:loop=>from(x,noobj).map([is(gt(10))=>map(abc/).to_inv(noobj,true),_=>plus(1).print(_)]).merge(noobj).to(x,true),abc/:stop=>print('done')]]
+9
 10
 fhatos> 11
 'done'
