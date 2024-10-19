@@ -33,6 +33,7 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include FOS_MEMORY(memory.hpp)
+//////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
 #include <model/soc/esp/gpio.hpp>
@@ -40,6 +41,7 @@
 #include <model/soc/esp/pwm.hpp>
 #include <model/soc/esp/wifi.hpp>
 #include <structure/stype/ble/esp/ble.hpp>
+#include FOS_TIMER(timer.hpp)
 #endif
 
 #ifdef NATIVE
@@ -91,6 +93,7 @@ namespace fhatos {
             ->structure(GPIO::singleton("/soc/gpio/#"))
             ->structure(PWM::singleton("/soc/pwm/#"))
             ->structure(Interrupt::singleton("/soc/interrupt/#"))
+            ->structure(Timer::singleton("/soc/timer/#"))
             //->structure(Memory::singleton("/soc/memory/#"))
             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
             ->structure(BLE::create("/io/bt/#"))

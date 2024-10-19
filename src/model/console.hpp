@@ -119,7 +119,8 @@ namespace fhatos {
         router()->write(this->id(), str(string("!g") + StringHelper::repeat(depth, "=")), false);
         router()->write(this->id(), str(StringHelper::format("==>!!%s\n",
                                                              obj->toString(
-                                                               true, true, this->settings_.ansi, this->settings_.strict).
+                                                               true, true, this->settings_.ansi,
+                                                               this->settings_.strict).
                                                              c_str())), false);
       }
     }
@@ -236,6 +237,52 @@ namespace fhatos {
               this->settings_.log = LOG_TYPES.to_enum(message->payload->uri_value().toString());
           }
         })));
+      router()->route_subscription(subscription_p(
+        *this->id(),
+        this->id()->extend("prompt"),
+        Insts::to_bcode([this](const Message_p &message) {
+          router()->write(this->id_, str(message->payload->str_value() + "\n"), false);
+          this->process_line(message->payload->str_value());
+          this->print_prompt();
+        })));
+    }
+
+    void process_line(string line) const {
+      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", line.c_str());
+      StringHelper::trim(line);
+      if (line[0] == ':') {
+        ///////// PARSE MENU COMMANDS
+        try {
+          const string::size_type index = line.find_first_of(' ');
+          const string command = index == string::npos ? line : line.substr(0, index);
+          StringHelper::trim(command);
+          if (!MENU_MAP_->count(command)) {
+            this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!",
+                                         this->id()->toString().c_str(), command.c_str()));
+          } else if (index == string::npos) {
+            this->print_result(MENU_MAP_->at(command).second(noobj()));
+          } else {
+            const string value = line.substr(index);
+            StringHelper::trim(value);
+            this->print_result(MENU_MAP_->at(command).second(parse(value)->apply(noobj())));
+          }
+        } catch (std::exception &e) {
+          this->print_exception(e);
+        }
+      } else {
+        ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
+        try {
+          if (line[0] == '\n')
+            line = line.substr(1);
+          const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(line);
+          if (!obj.has_value())
+            throw fError("Unable to parse input: %s", line.c_str());
+          this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
+            obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
+        } catch (const std::exception &e) {
+          this->print_exception(e);
+        }
+      }
     }
 
     void loop() override {
@@ -268,43 +315,8 @@ namespace fhatos {
         this->line_.replace(pos, 3, "");
         pos = this->line_.find("###", pos);
       }
-      LOG_PROCESS(DEBUG, this, "line to parse: %s\n", this->line_.c_str());
-      StringHelper::trim(this->line_);
-      if (this->line_[0] == ':') {
-        ///////// PARSE MENU COMMANDS
-        try {
-          const string::size_type index = line_.find_first_of(' ');
-          const string command = index == string::npos ? this->line_ : this->line_.substr(0, index);
-          StringHelper::trim(command);
-          if (!MENU_MAP_->count(command)) {
-            this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!",
-                                         this->id()->toString().c_str(), command.c_str()));
-          } else if (index == string::npos) {
-            this->print_result(MENU_MAP_->at(command).second(noobj()));
-          } else {
-            const string value = this->line_.substr(index);
-            StringHelper::trim(value);
-            this->print_result(MENU_MAP_->at(command).second(parse(value)->apply(noobj())));
-          }
-        } catch (std::exception &e) {
-          this->print_exception(e);
-        }
-        this->line_.clear();
-      } else {
-        ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
-        try {
-          if (this->line_[0] == '\n')
-            this->line_ = this->line_.substr(1);
-          const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(this->line_);
-          if (!obj.has_value())
-            throw fError("Unable to parse input: %s", this->line_.c_str());
-          this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
-            obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
-        } catch (const std::exception &e) {
-          this->print_exception(e);
-        }
-        this->line_.clear();
-      }
+      this->process_line(this->line_);
+      this->line_.clear();
     }
   };
 } // namespace fhatos

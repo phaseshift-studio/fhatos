@@ -98,11 +98,19 @@ video {
     color: darkgreen;
 }
 
+.hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int {
     color: darkgoldenrod;
 }
+.hljs-string {
+    color: darkgoldenrod;
+    font-style: italic;
+}
 
+.hljs-mmadt-rec-key {
+    color: #1e54a0;
+}
 .hljs-mmadt-rec {
     color: darkmagenta;
 }
@@ -126,10 +134,7 @@ video {
     color: darkred;
 }
 
+.hljs-mmadt-uri,
 .hljs-mmadt-type {
     color: #1e54a0;
-}
-
-.hljs-string {
-    color: #9e7b35;
 }

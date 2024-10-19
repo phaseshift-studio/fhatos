@@ -242,7 +242,7 @@ namespace fhatos {
             } else {
               // BRANCH (MONOS)
               // monos written to /0
-              this->write_raw_pairs(id_p(furi->extend("0")), obj, retain);
+              this->write_raw_pairs(id_p(*furi), obj, retain);
             }
           } else {
             // NODE PATTERN

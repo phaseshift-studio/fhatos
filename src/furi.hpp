@@ -622,10 +622,11 @@ namespace fhatos {
               token += c;
             }
           } else if (!isspace(c) && isascii(c)) {
-            this->spostfix_ = false;
+            if (part != URI_PART::QUERY)
+              this->spostfix_ = false;
             token += c;
           }
-          if (ss.eof() && c == '/')
+          if ((ss.eof() && c == '/'))
             this->spostfix_ = true;
         }
         StringHelper::trim(token);

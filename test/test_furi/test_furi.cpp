@@ -339,7 +339,8 @@ namespace fhatos {
     TEST_ASSERT_FALSE(fURI("fos://127.0.0.1/sub").has_query());
     /////////////////
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y"), fURI("//x/y?sub").query(""));
-   // TODO: FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y/"), fURI("//x/y/?sub").query(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y/"), fURI("//x/y/?sub").query(""));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("//x/y/?sub"), fURI(fURI("//x/y/?sub").toString()));
   }
 
   void test_uri_query_value() {
@@ -594,6 +595,7 @@ namespace fhatos {
     FOS_TEST_ASSERT_MATCH_FURI(ID("/soc/pin/1/"), Pattern("/soc/pin/+/"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/soc/pin/1"), Pattern("/soc/pin/+/"));
     ///////////////////////////////////
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/abc/"), Pattern("/+/"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("x/#"), ID("x/"));
     FOS_TEST_ASSERT_MATCH_FURI(ID("x/"), Pattern("x/#"));
     FOS_TEST_ASSERT_MATCH_FURI(ID("x/"), Pattern("+/#"));

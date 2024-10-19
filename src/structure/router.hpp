@@ -179,7 +179,7 @@ namespace fhatos {
       const Structure_p *ret = nullptr;
       const Pattern_p temp = pattern->is_branch() ? p_p(pattern->extend("+")) : pattern;
       for (const Structure_p &structure: this->structures_) {
-        if (temp->matches(*structure->pattern())) {
+        if (pattern->matches(*structure->pattern()) || temp->matches(*structure->pattern())) {
           /// TODO: should be flipped?
           if (ret != nullptr)
             throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures",

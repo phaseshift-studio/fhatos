@@ -23,7 +23,8 @@
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPES
-#define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_SHARED_MEMORY /+/
+#define FOS_DEPLOY_EXT
 #include <test_fhatos.hpp>
 #include <util/obj_helper.hpp>
 
@@ -59,7 +60,25 @@ namespace fhatos {
     }
   }
 
+  void test_subscriptions() {
+    auto counter = new uint8_t(0);
+    router()->route_subscription(subscription_p(ID("a_source"), Pattern("/abc/"), Insts::to_bcode(
+                                                    [counter](const Message_p &message) {
+                                                      LOG(INFO, "Message received: %s\n", message->toString().c_str());
+                                                      (*counter)++;
+                                                      TEST_ASSERT_EQUAL_INT(134, message->payload->int_value());
+                                                    })));
+
+    router()->write(id_p("/abc/"), jnt(134));
+    router()->loop();
+    while (*counter < 1) {
+      // waiting
+    }
+    TEST_ASSERT_EQUAL_INT(1, *counter);
+  }
+
   FOS_RUN_TESTS( //
+      FOS_RUN_TEST(test_subscriptions); //
       FOS_RUN_TEST(test_publish); //
       FOS_RUN_TEST(test_bobj); //
       );
