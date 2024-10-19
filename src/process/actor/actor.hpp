@@ -57,16 +57,14 @@ namespace fhatos {
       const bool retain = TRANSIENT_MESSAGE) {
       this->should_be_active();
       // rename send_mail
-      router()->write(id_p(target),payload,retain);
+      router()->write(id_p(target), payload, retain);
       //router()->route_message(
       //share(Message{.target = target, .payload = payload, .retain = retain}));
     }
 
     void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {
       this->should_be_active();
-      router()->route_subscription(
-        share(Subscription{.source = *this->id(), .pattern = pattern,
-          .on_recv = Insts::to_bcode(on_recv)}));
+      router()->route_subscription(subscription_p(*this->id(), pattern, Insts::to_bcode(on_recv)));
       /*.executeAtSource(this)));*/
     }
 

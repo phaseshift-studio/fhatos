@@ -58,10 +58,10 @@ namespace fhatos {
   inline void test_write() {
     auto *ping_HIT = new atomic_int(0);
     auto *ping_MISS = new atomic_int(0);
-    const Subscription_p subscription_HIT = share(Subscription{
-      .source = "tester_HIT",
-      .pattern = *make_test_pattern("+"),
-      .on_recv = Insts::to_bcode([ping_HIT](const Message_p &message) {
+    const Subscription_p subscription_HIT = subscription_p(
+      "tester_HIT",
+      *make_test_pattern("+"),
+      Insts::to_bcode([ping_HIT](const Message_p &message) {
         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
         TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
@@ -70,17 +70,17 @@ namespace fhatos {
         TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
         // TEST_ASSERT_TRUE(message->retain);
         ping_HIT->store(ping_HIT->load() + 1);
-      })});
+      }));
     const Subscription_p subscription_MISS =
-        share(Subscription{.source = "tester_MISS",
-          .pattern = *make_test_pattern("c"),
-          .on_recv = Insts::to_bcode([ping_MISS](const Message_p &message) {
-            ping_MISS->store(ping_MISS->load() + 1);
-            LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
-            TEST_FAIL_MESSAGE((string("Subscription ") + make_test_pattern("c")->toString() +
-                " does not match payload target:" + message->target.toString())
-              .c_str());
-          })});
+        subscription_p("tester_MISS",
+                       *make_test_pattern("c"),
+                       Insts::to_bcode([ping_MISS](const Message_p &message) {
+                         ping_MISS->store(ping_MISS->load() + 1);
+                         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
+                         TEST_FAIL_MESSAGE((string("Subscription ") + make_test_pattern("c")->toString() +
+                             " does not match payload target:" + message->target.toString())
+                           .c_str());
+                       }));
     router()->route_subscription(subscription_HIT);
     router()->route_subscription(subscription_MISS);
     if (auto_loop)
@@ -201,10 +201,8 @@ namespace fhatos {
     if (auto_loop)
       current_structure->loop();
     TEST_ASSERT_EQUAL_INT(0, pings->load());
-    FOS_TEST_EXCEPTION_CXX(router()->route_subscription(
-      share(Subscription{.source = "a/test/case", .pattern = "a/test/bad", .on_recv = on_recv})));
-    router()->route_subscription(share(Subscription{
-      .source = "a/test/case", .pattern = *make_test_pattern("test"), .on_recv = on_recv}));
+    FOS_TEST_EXCEPTION_CXX(router()->route_subscription(subscription_p("a/test/case","a/test/bad",on_recv)));
+    router()->route_subscription(subscription_p("a/test/case", *make_test_pattern("test"), on_recv));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
     router()->write(id_p(*make_test_pattern("test")), Obj::to_bool(true), TRANSIENT_MESSAGE);

@@ -135,7 +135,7 @@ namespace fhatos {
     }
 
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(id),
-      terminal_id_(id_p(terminal)), settings_(settings) {
+      terminal_id_(id_p(terminal)), settings_(Settings(settings)) {
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
         MENU_MAP_->insert({":help", {"help menu", [](const Obj_p &) {
@@ -182,11 +182,11 @@ namespace fhatos {
             {
               // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
               "kill scheduler", [this](const Obj_p &) {
-                scheduler()->recv_mail(share(Mail{
-                  share(Subscription{.source = fURI(*this->id()),
-                    .pattern = *Scheduler::singleton()->id(),
-                    .on_recv = Insts::to_bcode([](const Message_p &) { scheduler()->stop(); })}),
-                  message_p(*scheduler()->id(), noobj(), true)}));
+                scheduler()->recv_mail(mail_p(
+                  subscription_p(*this->id(),
+                                 *Scheduler::singleton()->id(),
+                                 Insts::to_bcode([](const Message_p &) { scheduler()->stop(); })),
+                  message_p(*scheduler()->id(), noobj(), true)));
                 this->delay(250);
                 return noobj();
               }}});

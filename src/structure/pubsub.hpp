@@ -83,7 +83,12 @@ namespace fhatos {
   using Message_p = ptr<Message>;
 
   struct Message {
-  public:
+    Message(const ID &target,
+            const Obj_p &payload,
+            const bool retain) : target(ID(target)),
+                                 payload(payload),
+                                 retain(retain) {
+    }
     const ID target;
     const Obj_p payload;
     const bool retain;
@@ -96,22 +101,20 @@ namespace fhatos {
     }
 
     [[nodiscard]] Rec_p to_rec() const {
-      return Obj::to_rec({
-                           {vri(":target"),vri(target)},
+      return Obj::to_rec({{vri(":target"), vri(this->target)},
                            {vri(":payload"), this->payload->clone()},
-                           {vri(":retain"), dool(retain)}},
+                           {vri(":retain"), dool(this->retain)}},
                          id_p(REC_FURI->extend("msg")));
     }
   };
 
   inline Message_p message_p(const ID &target, const Obj_p &payload, const bool retain) {
-    return std::make_shared<Message>(Message{.target = target, .payload = payload, .retain = retain});
+    return std::make_shared<Message>(target, payload, retain);
   }
 
   ///////////////////////////////////////////////////
   /////////////// SUBSCRIPTION STRUCT ///////////////
   ///////////////////////////////////////////////////
-  //enum class QoS { _0 = 0, _1 = 1, _2 = 2, _3 = 3 };
 
   struct Subscription;
   using Subscription_p = ptr<Subscription>;
@@ -124,23 +127,28 @@ namespace fhatos {
   }
 
   struct Mailbox {
-  public:
     virtual ~Mailbox() = default;
 
     virtual bool recv_mail(const Mail_p &mail) = 0;
   };
 
   struct Subscription {
+    Subscription(const ID &source,
+                 const Pattern &pattern,
+                 const BCode_p &on_recv): source(ID(source)),
+                                          pattern(Pattern(pattern)),
+                                          on_recv(on_recv) {
+    }
+
     const ID source;
     const Pattern pattern;
-    //const QoS qos;
     const BCode_p on_recv;
 
     [[nodiscard]] Rec_p to_rec() const {
       return rec({{vri(":source"), vri(source)},
                    {vri(":pattern"), vri(pattern)},
-                   //{uri(":qos"), jnt(static_cast<int>(qos))},
-                   {vri(":on_recv"), on_recv}}, id_p(REC_FURI->extend("sub")));
+                   {vri(":on_recv"), on_recv}},
+                 id_p(REC_FURI->extend("sub")));
     }
 
     [[nodiscard]] string toString() const {
@@ -152,14 +160,8 @@ namespace fhatos {
     }
   };
 
-  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, /*const QoS qos,*/
-                                       const BCode_p &on_recv) {
-    return make_shared<Subscription>(
-      Subscription{
-        .source = source,
-        .pattern = pattern,
-        // .qos = qos,
-        .on_recv = on_recv});
+  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {
+    return make_shared<Subscription>(source, pattern, on_recv);
   }
 } // namespace fhatos
 

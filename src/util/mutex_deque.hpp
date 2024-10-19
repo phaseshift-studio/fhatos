@@ -46,7 +46,7 @@ namespace fhatos {
     explicit MutexDeque(const char *label = "<anon>") : mutex_(label) {
     }
 
-    bool exists(Predicate<T> predicate, const bool with_mutex = true) {
+    bool exists(const Predicate<T> &predicate, const bool with_mutex = true) {
       return lockUnlock<bool>(with_mutex, [this, predicate]() {
         for (T t: deque_) {
           if (predicate(t))
@@ -56,7 +56,7 @@ namespace fhatos {
       });
     }
 
-    Option<T> find(Predicate<T> predicate, const bool with_mutex = true) {
+    Option<T> find(const Predicate<T> &predicate, const bool with_mutex = true) {
       return lockUnlock<Option<T>>(with_mutex, [this, predicate]() {
         T *temp = nullptr;
         for (T t: deque_) {
@@ -69,7 +69,7 @@ namespace fhatos {
       });
     }
 
-    List<T> find_all(Predicate<T> predicate, const bool with_mutex = true) {
+    List<T> find_all(const Predicate<T> &predicate, const bool with_mutex = true) {
       return lockUnlock<List<T>>(with_mutex, [this, predicate]() {
         List<T> list;
         for (T t: deque_) {
@@ -93,7 +93,7 @@ namespace fhatos {
       });
     }
 
-    List_p<T> match(const Predicate<T> predicate, const bool with_mutex = true) {
+    List_p<T> match(const Predicate<T> &predicate, const bool with_mutex = true) {
       auto results = share(List<T>());
       lockUnlock<void *>(with_mutex, [this, results, predicate]() {
         for (const T &t: deque_) {
@@ -105,7 +105,7 @@ namespace fhatos {
       return results;
     }
 
-    void forEach(Consumer<T> consumer, const bool with_mutex = true) {
+    void forEach(const Consumer<T> &consumer, const bool with_mutex = true) {
       lockUnlock<void *>(with_mutex, [this, consumer]() {
         for (const T &t: deque_) {
           consumer(t);
@@ -114,7 +114,7 @@ namespace fhatos {
       });
     }
 
-    Option<T> get(int index, const bool with_mutex = true) {
+    Option<T> get(const int index, const bool with_mutex = true) {
       return lockUnlock<Option<T>>(with_mutex, [this, index]() {
         int counter = 0;
         for (const T &t: deque_) {
@@ -127,7 +127,7 @@ namespace fhatos {
       });
     }
 
-    List_p<T> remove_if(Predicate<T> predicate, const bool with_mutex = true) {
+    List_p<T> remove_if(const Predicate<T> &predicate, const bool with_mutex = true) {
       auto *removed = new List<T>();
       lockUnlock<void *>(with_mutex, [this, predicate, removed] {
         deque_.erase(std::remove_if(deque_.begin(), deque_.end(),

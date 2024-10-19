@@ -140,7 +140,7 @@ namespace fhatos {
       for (const auto &[id, obj]: list) {
         if (!obj->is_noobj()) {
           if (id->matches(subscription->pattern)) {
-            subscription->on_recv->apply(Message{.target = *id, .payload = obj, .retain = RETAIN_MESSAGE}.to_rec());
+            subscription->on_recv->apply(Message(*id,obj,RETAIN_MESSAGE).to_rec());
           }
         }
       }

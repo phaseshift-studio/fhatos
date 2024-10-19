@@ -320,18 +320,17 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
          (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
-      router()->route_subscription(share<Subscription>(
-        Subscription{
-          .source = ID("fhatty"),
-          .pattern = key.uri_value(),
-          .on_recv = Insts::to_bcode([temp](const ptr<Message> &message) {
-            TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
-                                     (string("Router retain message payload equality: ") +
-                                       router()->pattern()->toString() + " " + temp.toString() +
-                                       " != " + message->payload->toString())
-                                     .c_str());
-          })
-        }));
+      router()->route_subscription(
+        subscription_p(ID("fhatty"),
+                       key.uri_value(),
+                       Insts::to_bcode([temp](const ptr<Message> &message) {
+                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
+                                                  (string("Router retain message payload equality: ") +
+                                                    router()->pattern()->toString() + " " + temp.toString() +
+                                                    " != " + message->payload->toString())
+                                                  .c_str());
+                       })
+        ));
     }
   }
   // if (clearRouter)
@@ -368,10 +367,10 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 [[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
-  Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
+  const Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse monoid: %s\n", monoid.c_str());
-  List<Obj> expectedResults = List<Obj>();
+  auto expectedResults = List<Obj>();
   for (const auto &result: expected) {
     Option<Obj_p> parse2 = Parser::singleton()->try_parse_obj(result);
     if (!parse2.has_value())
