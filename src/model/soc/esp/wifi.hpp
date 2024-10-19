@@ -46,9 +46,9 @@ namespace fhatos {
   public:
     struct Settings {
       bool connected = false;
-      char *md5name = "";
-      char *ssids = "";
-      char *passwords = "";
+      string md5name = "";
+      string ssids = "";
+      string passwords = "";
       Settings connect(bool c) const {
         Settings s = Settings(*this);
         s.connected = c;
@@ -84,7 +84,7 @@ namespace fhatos {
    // virtual List<ID_p> existing_ids(const fURI &match) override { return WIFI_IDS; }
     virtual void setup() override {
       External::setup();
-      this->read_functions_.insert({this->pattern(), [this](const fURI_p furi) {
+      this->read_functions_->insert({this->pattern(), [this](const fURI_p furi) {
                                       List<Pair<ID_p, Obj_p>> map;
                                       ID_p current;
                                       if (WIFI_IDS.at(0)->matches(*furi))
@@ -106,7 +106,7 @@ namespace fhatos {
                                       return map;
                                     }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
-      this->write_functions_.insert(
+      this->write_functions_->insert(
           {share(this->pattern()->resolve("./connected")), [this](const fURI_p furi, const Obj_p &obj) {
              if (obj->is_bool()) {
                if (obj->bool_value()) {
@@ -136,8 +136,8 @@ namespace fhatos {
       WiFi.mode(WIFI_STA);
       WiFi.setAutoReconnect(true);
       const char *delim = ":";
-      char ssidsTemp[strlen(this->settings_.ssids) + 1];
-      sprintf(ssidsTemp, this->settings_.ssids);
+      char ssidsTemp[this->settings_.ssids.length() + 1];
+      sprintf(ssidsTemp, "%s", this->settings_.ssids.c_str());
       char *ssid = strtok(ssidsTemp, delim);
       int i = 0;
       char *ssids_parsed[10];
@@ -149,7 +149,7 @@ namespace fhatos {
       }
       i = 0;
       char passwordsTemp[50];
-      sprintf(passwordsTemp, this->settings_.passwords);
+      sprintf(passwordsTemp, "%s", this->settings_.passwords.c_str());
       char *passwords_parsed[10];
       char *password = strtok(passwordsTemp, delim);
       while (password != NULL) {
@@ -160,13 +160,13 @@ namespace fhatos {
       for (int j = 0; j < i; j++) {
         multi.addAP(ssids_parsed[j], passwords_parsed[j]);
       }
-      WiFi.hostname(this->settings_.md5name);
+      WiFi.hostname(this->settings_.md5name.c_str());
       uint8_t attempts = 0;
       while (attempts < 10) {
         attempts++;
         if (multi.run() == WL_CONNECTED) {
           // this->__id = Helper::makeId("wifi");
-          const bool mdnsStatus = MDNS.begin(this->settings_.md5name);
+          const bool mdnsStatus = MDNS.begin(this->settings_.md5name.c_str());
           LOG_STRUCTURE(INFO, this,
                         "\n\t!g[!bWIFI Station Configuration!g]!!\n"
                         "\t!yID             : !m%s\n"
@@ -180,13 +180,13 @@ namespace fhatos {
                         "\t!ySubnet mask    : !m%s\n"
                         "\t!yDNS address    : !m%s\n"
                         "\t!yChannel        : !m%i!!\n",
-                        this->settings_.md5name, WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED", WiFi.SSID().c_str(),
+                        this->settings_.md5name.c_str(), WiFi.isConnected() ? "CONNECTED" : "DISCONNECTED", WiFi.SSID().c_str(),
                         WiFi.macAddress().c_str(), WiFi.localIP().toString().c_str(), WiFi.getHostname(),
-                        mdnsStatus ? (string(this->settings_.md5name) + ".local").c_str() : "<error>",
+                        mdnsStatus ? (this->settings_.md5name + ".local").c_str() : "<error>",
                         WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str(),
                         WiFi.dnsIP().toString().c_str(), WiFi.channel());
           if (!mdnsStatus) {
-            LOG_STRUCTURE(WARN, this, "Unable to create mDNS hostname %s\n", this->settings_.md5name);
+            LOG_STRUCTURE(WARN, this, "Unable to create mDNS hostname %s\n", this->settings_.md5name.c_str());
           }
           LOG_STRUCTURE(DEBUG, this, "Connection attempts: %i\n", attempts);
           attempts = 100;

@@ -62,7 +62,7 @@ namespace fhatos {
       BLEDevice::startAdvertising();
       //advertising->start();
       /////
-      this->read_functions_.insert(
+      this->read_functions_->insert(
           {furi_p(this->pattern()->resolve("./+")), [this](const fURI_p &furi) {
              List<Pair<ID_p, Obj_p>> list;
              BLECharacteristic *c = this->service_->getCharacteristic(furi->toString());
@@ -76,7 +76,7 @@ namespace fhatos {
              return list;
            }});
 
-      this->write_functions_.insert(
+      this->write_functions_->insert(
           {furi_p(this->pattern()->resolve("./+")), [this](const fURI_p &furi, const Obj_p &obj) {
              BLECharacteristic *c = this->service_->createCharacteristic(
                  furi->toString(), BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);

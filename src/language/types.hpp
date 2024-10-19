@@ -27,7 +27,7 @@
 #include <structure/stype/key_value.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
-#define TOTAL_INSTRUCTIONS 68
+#define TOTAL_INSTRUCTIONS 75
 
 namespace fhatos {
   class Types final : public Coroutine {
@@ -115,7 +115,7 @@ namespace fhatos {
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       this->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
       this->progress_bar_->end("!bmm-adt !yinstruction set!! loaded\n");
-      //this->progress_bar_ = nullptr;
+      this->progress_bar_ = nullptr;
     }
 
   public:

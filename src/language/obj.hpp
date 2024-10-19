@@ -823,7 +823,7 @@ namespace fhatos {
             list->push_back(make_shared<Obj>(**itA * **itB, itA->get()->type_, itA->get()->id_));
             ++itB;
           }
-          return Lst(list, this->type_);
+          return Lst(list, this->type_, this->id_);
         }
         case OType::REC: {
           auto map = std::make_shared<RecMap<>>();
@@ -834,7 +834,7 @@ namespace fhatos {
                                                         itA->second->id_)));
             ++itB;
           }
-          return Rec(map, this->type_);
+          return Rec(map, this->type_, this->id_);
         }
         /*case OType::BCODE: {
           if (rhs.isInst()) {
@@ -961,7 +961,7 @@ namespace fhatos {
         case OType::REAL:
           return this->real_value() == other.real_value();
         case OType::URI:
-          return this->uri_value().equals(other.uri_value());
+          return this->uri_value() == other.uri_value();
         case OType::STR:
           return this->str_value() == other.str_value();
         case OType::LST: {
@@ -1238,7 +1238,7 @@ namespace fhatos {
     Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
 
     Obj_p at(const ID_p &value_id) {
-      return make_shared<Obj>(this->_value,this->type_,value_id);
+      return make_shared<Obj>(this->_value, this->type_, value_id);
     }
 
     [[nodiscard]] Inst_p next_inst(const Inst_p &current_inst) const {

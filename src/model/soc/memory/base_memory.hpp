@@ -61,12 +61,12 @@ namespace fhatos {
       External::setup();
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
 
-      this->read_functions_.insert(
-        {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
+      this->read_functions_->insert(
+        {MEMORY_IDS_.at(0), [this](const fURI_p&) {
           const MemInfo mem_info = this->get_mem_info();
           return List<Pair<ID_p, Obj_p>>(
             {{MEMORY_IDS_.at(0),
-              OBJ_PARSER(StringHelper::format(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem,
+              parse(StringHelper::format(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem,
                                               mem_info.usage_mem))}});
         }});
       /* this->read_functions_.insert(

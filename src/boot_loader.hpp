@@ -94,7 +94,7 @@ namespace fhatos {
             ->structure(PWM::singleton("/soc/pwm/#"))
             ->structure(Interrupt::singleton("/soc/interrupt/#"))
             ->structure(Timer::singleton("/soc/timer/#"))
-            //->structure(Memory::singleton("/soc/memory/#"))
+            ->structure(Memory::singleton("/soc/memory/#"))
             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
             ->structure(BLE::create("/io/bt/#"))
 #endif

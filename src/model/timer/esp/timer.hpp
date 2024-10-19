@@ -43,52 +43,36 @@ namespace fhatos {
 
   protected:
     static void GENERAL_TIMER_ISR(const uint8_t timer_number) {
-      if (Timer::singleton()->interrupts_.count(timer_number)) {
-        const BCode_p bcode = Timer::singleton()->interrupts_.at(timer_number);
+      if (Timer::singleton()->interrupts_->count(timer_number)) {
+        const BCode_p bcode = Timer::singleton()->interrupts_->at(timer_number);
         Options::singleton()->processor<Obj, BCode, Obj>(noobj(), bcode);
       } else {
         LOG_STRUCTURE(ERROR, Timer::singleton(), "no interrupt code found for TIMER_%i_ISR", timer_number);
       }
     };
 
-    Map<uint8_t, BCode_p> interrupts_;
+    Map_p<uint8_t, BCode_p> interrupts_;
     explicit Timer(const Pattern &pattern = "/soc/timer/#") :
-        External(pattern,
-                 {{furi_p(pattern.retract_pattern().extend("+")),
-                   [this](const fURI_p timer_furi) -> List<Pair<ID_p,Obj_p>> {
-                    List<Pair<ID_p, Obj_p>> list;
-                    if (StringHelper::is_integer(timer_furi->name())) {
-                      const uint8_t timer_number = stoi(timer_furi->name());
-                      if(!this->interrupts_.count(timer_number)) {
-                        list.push_back({id_p(*timer_furi), this->interrupts_.at(timer_number)});
-                      }
-                    } else {
-                      for (uint8_t timer_number = 0; timer_number < NUM_TIMERS; timer_number++) {
-                        if(this->interrupts_.count(timer_number))
-                          list.push_back({
-                            id_p(this->pattern()->resolve(fURI(string("./") + to_string(timer_number)))), 
-                            this->interrupts_.at(timer_number)
-                        });  
-                      }
-                    }
-                    return list;    
-                }}}
-               /*  {{furi_p(pattern.retract_pattern().extend("+")),
-                   [this](const uint8_t pin, const BCode_p &bcode) -> void {
-                     if (this->interrupts_->count(pin)) {
-                       this->interrupts_->erase(pin);
-                       detachInterrupt(pin);
-                       LOG_STRUCTURE(INFO, this, "!bpin %i!! !yinterrupt!! detached\n", pin);
-                     }
-                     if (!bcode->is_noobj()) {
-                       const BCode_p bclone = bcode->clone();
-                       this->interrupts_->insert({pin, bclone});
-                       uint8_t *pin_ptr = new uint8_t(pin);
-                       attachInterruptArg(pin, ISR_FUNCTION, (void *) pin_ptr, RISING);
-                       LOG_STRUCTURE(INFO, this, "!bpin %i!! !yinterrupt!! attached\n", pin);
-                     }
-                   }}}*/),
-        interrupts_{{}} {}
+        External(pattern), interrupts_(make_shared<Map<uint8_t, BCode_p>>()) {
+      this->read_functions_->insert(
+          {furi_p(this->pattern_->resolve("./+")), [this](const fURI_p timer_furi) -> List<Pair<ID_p, Obj_p>> {
+             List<Pair<ID_p, Obj_p>> list;
+             if (StringHelper::is_integer(timer_furi->name())) {
+               const uint8_t timer_number = stoi(timer_furi->name());
+               if (this->interrupts_->count(timer_number)) {
+                 list.push_back({id_p(*timer_furi), this->interrupts_->at(timer_number)});
+               }
+             } else {
+               for (uint8_t timer_number = 0; timer_number < NUM_TIMERS; timer_number++) {
+                 if (this->interrupts_->count(timer_number))
+                   list.push_back({id_p(this->pattern_->resolve(fURI(string("./") + to_string(timer_number)))),
+                                   this->interrupts_->at(timer_number)});
+               }
+             }
+             return list;
+           }});
+    };
+
 
   public:
     static ptr<Timer> singleton(const Pattern &pattern = "/soc/timer/#") {

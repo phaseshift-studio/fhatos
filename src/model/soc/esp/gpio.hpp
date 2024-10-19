@@ -28,7 +28,6 @@ namespace fhatos {
 
   class GPIO : public Pin {
   protected:
-    Map<ID_p, BCode_p, furi_p_less> interrupts_;
     explicit GPIO(const Pattern &pattern = "/soc/gpio/#") :
         Pin(
             pattern,

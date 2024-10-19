@@ -29,20 +29,20 @@ namespace fhatos {
   class External : public Structure {
   protected:
     //<query, function<query, <id,result>>
-    Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> read_functions_;
-    Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
+    Map_p<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> read_functions_;
+    Map_p<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
 
     explicit External(
-      const Pattern &pattern,
-      const Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &read_map = {},
-      const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map =
-          {}) : Structure(pattern, SType::EPHEMERAL),
-                read_functions_(read_map), write_functions_(write_map) {
-    }
+        const Pattern &pattern,
+        const Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &read_map = {},
+        const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map = {}) :
+        Structure(pattern, SType::EPHEMERAL),
+        read_functions_(make_shared<Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
+        write_functions_(make_shared<Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(write_map)) {}
 
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
       if (retain) {
-        for (const auto &[furi, func]: this->write_functions_) {
+        for (const auto &[furi, func]: *this->write_functions_) {
           if (id->matches(*furi)) {
             func(id, obj);
             LOG_STRUCTURE(DEBUG, this, "!g%s!y=>!g%s!! written\n", id->toString().c_str(), obj->toString().c_str());
@@ -54,7 +54,7 @@ namespace fhatos {
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
       List<Pair<ID_p, Obj_p>> list;
-      for (const auto &[furi2, func]: this->read_functions_) {
+      for (const auto &[furi2, func]: *this->read_functions_) {
         if (furi->bimatches(*furi2)) {
           const List<Pair<ID_p, Obj_p>> list2 = func(furi);
           list.insert(list.end(), list2.begin(), list2.end());

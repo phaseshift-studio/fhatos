@@ -25,18 +25,58 @@
 #include <language/types.hpp>
 #include <structure/stype/external.hpp>
 
+#define MEMORY_REC_STRING "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]"
+
 namespace fhatos {
 
   class Memory : public External {
 
-    CONST_CHAR(MEMORY_REC_STRING, "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]");
-    // CONST_CHAR(PERCENT_TYPE_DEF, "");
-
   protected:
-    List<ID_p> MEMORY_IDS_;
-    explicit Memory(const Pattern &pattern = "/soc/memory/#") :
-        External(pattern), MEMORY_IDS_{{id_p(pattern.resolve("./inst")), id_p(pattern.resolve("./heap")),
-                                        id_p(pattern.resolve("./psram")), id_p(pattern.resolve("./hwm"))}} {}
+    explicit Memory(const Pattern &pattern = "/soc/memory/#") : External(pattern) {
+      const Obj_p percent_type_def = parse("is(and(gte(0.0),lte(100.0)))");
+      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
+      this->read_functions_->insert(
+          {id_p(this->pattern_->resolve("./inst")), [this](const fURI_p &) {
+             return List<Pair<ID_p, Obj_p>>(
+                 {{id_p(this->pattern_->resolve("./inst")),
+                   parse(StringHelper::format(
+                       MEMORY_REC_STRING, ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
+                       ESP.getSketchSize() == 0
+                           ? 0.0f
+                           : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
+                                                ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace())))))))}});
+           }});
+      this->read_functions_->insert(
+          {id_p(this->pattern_->resolve("./heap")), [this](const fURI_p &) {
+             const float used = (float) ESP.getHeapSize() == 0
+                                    ? 0.0f
+                                    : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize()))));
+             return List<Pair<ID_p, Obj_p>>(
+                 {{id_p(this->pattern_->resolve("./heap")),
+                   parse(StringHelper::format(MEMORY_REC_STRING, ESP.getHeapSize(), ESP.getFreeHeap(), used))}});
+           }});
+      this->read_functions_->insert(
+          {{id_p(this->pattern_->resolve("./psram")), [this](const fURI_p &) {
+              const float used =
+                  (float) ESP.getPsramSize() == 0
+                      ? 0.0f
+                      : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize()))));
+              return List<Pair<ID_p, Obj_p>>(
+                  {{id_p(this->pattern_->resolve("./psram")),
+                    parse(StringHelper::format(MEMORY_REC_STRING, ESP.getPsramSize(), ESP.getFreePsram(), used))}});
+            }}});
+      this->read_functions_->insert(
+          {{id_p(this->pattern_->resolve("./hwm")), [this](const fURI_p &) {
+              const uint16_t free = ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+              const float used = ESP_THREAD_STACK_SIZE == 0
+                                     ? 0.0f
+                                     : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
+              return List<Pair<ID_p, Obj_p>>(
+                  {{id_p(this->pattern_->resolve("./hwm")),
+                    parse(StringHelper::format("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
+                                               ESP_THREAD_STACK_SIZE, free, used))}});
+            }}});
+    }
     // TODO: flash/partition/0x4434
 
 
@@ -44,50 +84,6 @@ namespace fhatos {
     static ptr<Memory> singleton(const Pattern &pattern = "/soc/memory/#") {
       static ptr<Memory> memory = ptr<Memory>(new Memory(pattern));
       return memory;
-    }
-
-    virtual void setup() override {
-      External::setup();
-      const Obj_p percent_type_def = OBJ_PARSER("is(and(gte(0.0),lte(100.0)))");
-      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
-      this->read_functions_.insert(
-          {MEMORY_IDS_.at(0), [this](const fURI_p furi) {
-             return List<Pair<ID_p, Obj_p>>(
-                 {{MEMORY_IDS_.at(0),
-                   parse(StringHelper::format(MEMORY_REC_STRING, ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
-                         ESP.getSketchSize() == 0
-                             ? 0.0f
-                             : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                  ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace())))))))}});
-           }});
-      this->read_functions_.insert(
-          {MEMORY_IDS_.at(1), [this](const fURI_p furi) {
-             return List<Pair<ID_p, Obj_p>>(
-                 {{MEMORY_IDS_.at(1),
-                   parse(StringHelper::format(MEMORY_REC_STRING, ESP.getHeapSize(), ESP.getFreeHeap(),
-                         ESP.getHeapSize() == 0
-                             ? 0.0f
-                             : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize()))))))}});
-           }});
-      this->read_functions_.insert(
-          {{MEMORY_IDS_.at(2), [this](const fURI_p furi) {
-              return List<Pair<ID_p, Obj_p>>(
-                  {{MEMORY_IDS_.at(2),
-                    parse(StringHelper::format(MEMORY_REC_STRING, ESP.getPsramSize(), ESP.getFreePsram(),
-                          ESP.getPsramSize() == 0
-                              ? 0.0f
-                              : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize()))))))}});
-            }}});
-      this->read_functions_.insert(
-          {MEMORY_IDS_.at(3), [this](const fURI_p furi) {
-             uint16_t free = ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-             float used = ESP_THREAD_STACK_SIZE == 0
-                              ? 0.0f
-                              : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
-             return List<Pair<ID_p, Obj_p>>(
-                 {{MEMORY_IDS_.at(3), parse(StringHelper::format("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                                            ESP_THREAD_STACK_SIZE, free, used))}});
-           }});
     }
   };
 } // namespace fhatos

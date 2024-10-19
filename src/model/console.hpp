@@ -214,7 +214,7 @@ namespace fhatos {
                         {vri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
                         {vri(this->id()->extend("config/log")), vri(LOG_TYPES.to_chars(this->settings_.log))},
                         {vri(this->id()->extend("config/clear")),
-                          OBJ_PARSER("{'!'}.plus('X').plus('!').plus('Q').print(_)")}
+                          parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}
                       }));
       return noobj();
     }
@@ -224,7 +224,7 @@ namespace fhatos {
       router()->write(this->terminal_id_, vri(*this->id()));
       router()->route_subscription(subscription_p(
         *this->id(),
-        this->id()->extend("config/+"),
+        this->id()->resolve("./config/+"),
         Insts::to_bcode([this](const Message_p &message) {
           if (message->retain) {
             if (message->target.name() == "nest")
@@ -239,7 +239,7 @@ namespace fhatos {
         })));
       router()->route_subscription(subscription_p(
         *this->id(),
-        this->id()->extend("prompt"),
+        this->id()->resolve("./prompt"),
         Insts::to_bcode([this](const Message_p &message) {
           router()->write(this->id_, str(message->payload->str_value() + "\n"), false);
           this->process_line(message->payload->str_value());
