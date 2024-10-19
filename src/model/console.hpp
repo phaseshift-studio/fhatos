@@ -76,26 +76,32 @@ namespace fhatos {
       else if (this->settings_.nest && (obj->is_lst() || obj->is_objs())) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m" + (
-                              obj->is_lst() ? "[" : "{") + "!!\n"), false);
+                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m" +
+                            (obj->is_lst() ? "[" : "{") + "!!\n"),
+                        false);
         for (const auto &e: *obj->lst_value()) {
-          router()->write(this->id(), str(StringHelper::format(
-                            "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                            e->is_poly()
-                              ? ""
-                              : e->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())), false);
+          router()->write(
+            this->id(),
+            str(StringHelper::format(
+              "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+              e->is_poly() ? "" : e->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())),
+            false);
           if (e->is_poly())
             this->print_result(e, depth + 1);
         }
         router()->write(
           this->id(),
           str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-              (obj->type()->path_length() > 2 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str() : "") +
-              "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"), false);
+              (obj->type()->path_length() > 2
+                 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str()
+                 : "") +
+              "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"),
+          false);
       } else if (this->settings_.nest && obj->is_rec()) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m[!!\n"), false);
+                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m[!!\n"),
+                        false);
         for (const auto &[key, value]: *obj->rec_value()) {
           router()->write(this->id(),
                           str(StringHelper::format(
@@ -103,92 +109,84 @@ namespace fhatos {
                             key->toString(true, false, false, this->settings_.strict).c_str(),
                             value->is_poly()
                               ? ""
-                              : value->toString(
-                                true, true, this->settings_.ansi,
-                                this->settings_.strict).c_str())),
+                              : value->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())),
                           false);
           if (value->is_poly())
             this->print_result(value, depth + 1);
         }
-        router()->write(
-          this->id(),
-          str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-              (obj->type()->path_length() > 2 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str() : "") +
-              "!m]!!\n"), false);
+        string obj_string =
+            string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+            (obj->type()->path_length() > 2 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str() : "") +
+            "!m]";
+        if (obj->id()) {
+          obj_string += "!m@!b";
+          obj_string += obj->id()->toString();
+        }
+        obj_string += "!!\n";
+        router()->write(this->id(), str(obj_string), false);
       } else {
         router()->write(this->id(), str(string("!g") + StringHelper::repeat(depth, "=")), false);
-        router()->write(this->id(), str(StringHelper::format("==>!!%s\n",
-                                                             obj->toString(
-                                                               true, true, this->settings_.ansi,
-                                                               this->settings_.strict).
-                                                             c_str())), false);
+        router()->write(
+          this->id(),
+          str(StringHelper::format("==>!!%s\n",
+                                   obj->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())),
+          false);
       }
     }
 
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(id),
-      terminal_id_(id_p(terminal)),
-      settings_(settings) {
+      terminal_id_(id_p(terminal)), settings_(settings) {
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
-        MENU_MAP_->insert({":help",
-          {"help menu", [](const Obj_p &) {
-            printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-            for (const auto &[command, description]: *MENU_MAP_) {
-              printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
-                                  std::get<0>(description).c_str());
-            }
-            return noobj();
-          }}});
-        MENU_MAP_->insert({":log",
-          {"log level",
-            [](const Uri_p &log_level) {
-              if (log_level->is_noobj())
-                return vri(LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()));
-              Options::singleton()->log_level(LOG_TYPES.to_enum(log_level->uri_value().toString()));
-              return log_level;
-            }}});
-        MENU_MAP_->insert(
-          {":output",
-            {"terminal out id", [this](const Uri_p &uri) {
-              if (!uri->is_noobj())
-                this->terminal_id_ = id_p(uri->uri_value());
-              return Obj::to_uri(*this->terminal_id_);
-            }}});
-        MENU_MAP_->insert({":clear",
-          {"clear terminal", [](const Obj_p &) {
-            printer<>()->print("!X!Q");
-            return noobj();
-          }}});
-        MENU_MAP_->insert({":color",
-          {"colorize output", [this](const Bool_p &xbool) {
-            if (!xbool->is_noobj())
-              this->settings_.ansi = xbool->bool_value();
-            return dool(this->settings_.ansi);
-          }}});
-        MENU_MAP_->insert({":strict",
-          {"strict formatting", [this](const Bool_p &xbool) {
-            if (!xbool->is_noobj())
-              this->settings_.strict = xbool->bool_value();
-            return dool(this->settings_.strict);
-          }}});
-        MENU_MAP_->insert({":nest",
-          {"display poly objs nested", [this](const Bool_p &xbool) {
-            if (!xbool->is_noobj())
-              this->settings_.nest = xbool->bool_value();
-            return dool(this->settings_.nest);
-          }}});
+        MENU_MAP_->insert({":help", {"help menu", [](const Obj_p &) {
+          printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
+          for (const auto &[command, description]: *MENU_MAP_) {
+            printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
+                                std::get<0>(description).c_str());
+          }
+          return noobj();
+        }}});
+        MENU_MAP_->insert({":log", {"log level", [](const Uri_p &log_level) {
+          if (log_level->is_noobj())
+            return vri(LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()));
+          Options::singleton()->log_level(
+            LOG_TYPES.to_enum(log_level->uri_value().toString()));
+          return log_level;
+        }}});
+        MENU_MAP_->insert({":output", {"terminal out id", [this](const Uri_p &uri) {
+          if (!uri->is_noobj())
+            this->terminal_id_ = id_p(uri->uri_value());
+          return Obj::to_uri(*this->terminal_id_);
+        }}});
+        MENU_MAP_->insert({":clear", {"clear terminal", [](const Obj_p &) {
+          printer<>()->print("!X!Q");
+          return noobj();
+        }}});
+        MENU_MAP_->insert({":color", {"colorize output", [this](const Bool_p &xbool) {
+          if (!xbool->is_noobj())
+            this->settings_.ansi = xbool->bool_value();
+          return dool(this->settings_.ansi);
+        }}});
+        MENU_MAP_->insert({":strict", {"strict formatting", [this](const Bool_p &xbool) {
+          if (!xbool->is_noobj())
+            this->settings_.strict = xbool->bool_value();
+          return dool(this->settings_.strict);
+        }}});
+        MENU_MAP_->insert({":nest", {"display poly objs nested", [this](const Bool_p &xbool) {
+          if (!xbool->is_noobj())
+            this->settings_.nest = xbool->bool_value();
+          return dool(this->settings_.nest);
+        }}});
         MENU_MAP_->insert(
           {":shutdown",
             {
               // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
-              "kill scheduler",
-              [this](const Obj_p &) {
-                scheduler()->recv_mail(share(
-                  Mail{share(Subscription{
-                      .source = fURI(*this->id()),
-                      .pattern = *Scheduler::singleton()->id(),
-                      .on_recv = Insts::to_bcode([](const Message_p &) { scheduler()->stop(); })}),
-                    message_p(*scheduler()->id(), noobj(), true)}));
+              "kill scheduler", [this](const Obj_p &) {
+                scheduler()->recv_mail(share(Mail{
+                  share(Subscription{.source = fURI(*this->id()),
+                    .pattern = *Scheduler::singleton()->id(),
+                    .on_recv = Insts::to_bcode([](const Message_p &) { scheduler()->stop(); })}),
+                  message_p(*scheduler()->id(), noobj(), true)}));
                 this->delay(250);
                 return noobj();
               }}});
@@ -208,14 +206,14 @@ namespace fhatos {
     Rec_p to_rec() {
       // const ID settings_id = this->id()->resolve("./config");
       router()->write(this->id(), load_process(PtrHelper::no_delete<Console>(this), __FILE__, 221, 241));
-      router()->write(id_p(this->id()->extend("config/")), Obj::to_rec({
-                        {vri(this->id()->extend("config/nest")), dool(this->settings_.nest)},
-                        {vri(this->id()->extend("config/strict")), dool(this->settings_.strict)},
-                        {vri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
-                        {vri(this->id()->extend("config/log")), vri(LOG_TYPES.to_chars(this->settings_.log))},
-                        {vri(this->id()->extend("config/clear")),
-                          parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}
-                      }));
+      router()->write(
+        id_p(this->id()->extend("config/")),
+        Obj::to_rec(
+          {{vri(this->id()->extend("config/nest")), dool(this->settings_.nest)},
+            {vri(this->id()->extend("config/strict")), dool(this->settings_.strict)},
+            {vri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
+            {vri(this->id()->extend("config/log")), vri(LOG_TYPES.to_chars(this->settings_.log))},
+            {vri(this->id()->extend("config/clear")), parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}}));
       return noobj();
     }
 
@@ -223,9 +221,7 @@ namespace fhatos {
       Thread::setup();
       router()->write(this->terminal_id_, vri(*this->id()));
       router()->route_subscription(subscription_p(
-        *this->id(),
-        this->id()->resolve("./config/+"),
-        Insts::to_bcode([this](const Message_p &message) {
+        *this->id(), this->id()->resolve("./config/+"), Insts::to_bcode([this](const Message_p &message) {
           if (message->retain) {
             if (message->target.name() == "nest")
               this->settings_.nest = message->payload->bool_value();
@@ -238,9 +234,7 @@ namespace fhatos {
           }
         })));
       router()->route_subscription(subscription_p(
-        *this->id(),
-        this->id()->resolve("./prompt"),
-        Insts::to_bcode([this](const Message_p &message) {
+        *this->id(), this->id()->resolve("./prompt"), Insts::to_bcode([this](const Message_p &message) {
           router()->write(this->id_, str(message->payload->str_value() + "\n"), false);
           this->process_line(message->payload->str_value());
           this->print_prompt();
