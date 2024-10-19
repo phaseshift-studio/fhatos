@@ -67,12 +67,19 @@ int main(int arg, char **argsv) {
     try {
       string x = argsv[i];
       StringHelper::trim(x);
-      printer<>()->printf("fhatos> %s\n", x.c_str());
+      if(x == "/console/config/nest -> true") {
+         router()->write(id_p("/console/config/nest"),dool(true));
+      } else {
+      //printer<>()->printf("%s\n", x.c_str());
+      router()->write(id_p("/console/prompt"),str(x),false);
+      router()->loop();
+      }
+      /*printer<>()->printf("fhatos> %s\n", x.c_str());
       const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(argsv[i]);
       if (obj.has_value()) {
         //printResult(Options::singleton()->processor<Obj,BCode,Obj>(noobj(),obj.value()));
         printResult(Fluent(obj.value()).toObjs());
-      }
+      }*/
     } catch (std::exception &e) {
       LOG_EXCEPTION(e);
     }
