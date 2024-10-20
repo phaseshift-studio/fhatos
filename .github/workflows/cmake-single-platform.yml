@@ -64,10 +64,8 @@ jobs:
         CC: clang
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        mkdir build
-        cd build
-        cmake .. -DCHECK_INTERNET=OFF
-        make -o1 -j8
+        export FHATOS_HOME=${{github.workspace}}
+        fhat-dev build native -DCHECK_INTERNET=OFF
 
     - name: Deploy MQTT Broker
       working-directory: ${{github.workspace}}
