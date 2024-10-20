@@ -67,14 +67,14 @@ namespace fhatos {
             }}});
       this->read_functions_->insert(
           {{id_p(this->pattern_->resolve("./hwm")), [this](const fURI_p &) {
-              const uint16_t free = ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-              const float used = ESP_THREAD_STACK_SIZE == 0
+              const uint16_t free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+              const float used = FOS_ESP_THREAD_STACK_SIZE == 0
                                      ? 0.0f
-                                     : (100.0f * (1.0f - ((float) free) / ((float) ESP_THREAD_STACK_SIZE)));
+                                     : (100.0f * (1.0f - ((float) free) / ((float) FOS_ESP_THREAD_STACK_SIZE)));
               return List<Pair<ID_p, Obj_p>>(
                   {{id_p(this->pattern_->resolve("./hwm")),
                     parse(StringHelper::format("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                                               ESP_THREAD_STACK_SIZE, free, used))}});
+                                               FOS_ESP_THREAD_STACK_SIZE, free, used))}});
             }}});
     }
     // TODO: flash/partition/0x4434

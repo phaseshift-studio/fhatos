@@ -239,6 +239,9 @@ namespace fhatos {
   ////////////////////////////
 
 #if defined(ESP32)
+#ifndef FOS_MACHINE_NAME
+#define FOS_MACHINE_NAME fhatos_esp32
+#endif
 #define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
@@ -247,10 +250,16 @@ namespace fhatos {
 #define FOS_BLE(__ble__) <structure/stype/ble/esp/__ble__>
 #define FOS_TIMER(__timer__) <model/timer/esp/__timer__>
 #elif defined(ESP8266)
+#ifndef FOS_MACHINE_NAME
+#define FOS_MACHINE_NAME fhatos_esp8266
+#endif
 #define FOS_PROCESS(__process__) <process/esp8266/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
 #elif defined(NATIVE)
+#ifndef FOS_MACHINE_NAME
+#define FOS_MACHINE_NAME fhatos_native
+#endif
 #define FOS_PROCESS(__process__) <process/ptype/native/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/native/__mqtt__>
 #define FOS_UTIL(__util__) <util/std/__util__>

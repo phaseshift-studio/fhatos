@@ -17,58 +17,50 @@
  ******************************************************************************/
 
 #pragma once
-#ifndef fhatos_key_value_hpp
-#define fhatos_key_value_hpp
+#ifndef fhatos_redirect_hpp
+#define fhatos_redirect_hpp
 
 #include "fhatos.hpp"
 #include "language/obj.hpp"
 #include "structure/structure.hpp"
 
 namespace fhatos {
-  class KeyValue : public Structure {
+  class Redirect : public Structure {
   protected:
-    Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
-    MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
+    Structure_p base_structure_;
+    BCode_p uri_mapper_;
 
-    explicit KeyValue(const Pattern &pattern, const SType stype = SType::LOCAL) : Structure(pattern, stype) {
+    explicit Redirect(const Pattern &pattern, const Structure_p &base_structure,
+                      const BCode_p &uri_mapper) : Structure(pattern, base_structure->stype),
+                                                   base_structure_(base_structure),
+                                                   uri_mapper_(uri_mapper) {
     }
 
   public:
-    static ptr<KeyValue> create(const Pattern &pattern) {
-      auto kv_p = ptr<KeyValue>(new KeyValue(pattern));
-      return kv_p;
+    static ptr<Redirect> create(const Pattern &pattern, const Structure_p &base_structure, const BCode_p &uri_mapper) {
+      auto redirect_p = ptr<Redirect>(new Redirect(pattern, base_structure, uri_mapper));
+      return redirect_p;
+    }
+
+    void setup() override {
+      Structure::setup();
+      if (!this->base_structure_->available())
+        this->base_structure_->setup();
     }
 
     void stop() override {
+      if (this->base_structure_->available())
+        this->base_structure_->stop();
       Structure::stop();
-      this->data_->clear();
     }
 
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      if (retain) {
-        this->mutex_data_.write<ID>([this,id,obj]() {
-          if (this->data_->count(id))
-            this->data_->erase(id);
-          if (!obj->is_noobj()) {
-            this->data_->insert({id_p(*id), obj->clone()});
-          }
-          return id;
-        });
-      }
-      this->distribute_to_subscribers(message_p(*id, obj->clone(), retain));
+      this->base_structure_->write_raw_pairs(id_p(this->uri_mapper_->apply(vri(id))->uri_value()), obj, retain);
     }
 
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
-      return *this->mutex_data_.read<List_p<Pair<ID_p, Obj_p>>>([this,match] {
-        auto list = make_shared<List<Pair<ID_p, Obj_p>>>();
-        for (const auto &[id, obj]: *this->data_) {
-          if (id->matches(*match)) {
-            list->push_back({id, obj});
-          }
-        }
-        return list;
-      });
+      return this->base_structure_->read_raw_pairs(furi_p(this->uri_mapper_->apply(vri(match))->uri_value()));
     }
   };
 } // namespace fhatos

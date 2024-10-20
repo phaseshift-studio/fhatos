@@ -69,7 +69,7 @@ namespace fhatos {
           const BObj_p bobj = make_shared<BObj>(length, (fbyte *) data);
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
-          const Message_p message = share(Message{.target = ID(topic), .payload = payload, .retain = retained});
+          const Message_p message = message_p(ID(topic), payload, retained);
           LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
           const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(topic));
           for (const Subscription_p &sub: *matches) {
@@ -118,7 +118,7 @@ namespace fhatos {
       if (!this->xmqtt_->connected()) {
         LOG_STRUCTURE(INFO, this, "Reconnecting to MQTT broker after connection loss [%s]\n",
                       MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-        if (!this->xmqtt_->connect("fhatos")) {
+        if (!this->xmqtt_->connect(this->settings_.client.c_str())) {
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
         }
       } else if (!this->xmqtt_->loop()) {
@@ -132,7 +132,7 @@ namespace fhatos {
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {
-          if (!this->xmqtt_->connect("fhatos")) {
+          if (!this->xmqtt_->connect(this->settings_.client.c_str())) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
             LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->settings_.broker.c_str(),
@@ -140,7 +140,7 @@ namespace fhatos {
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->connected()) {
-            connection_logging(id_p("fhatos"));
+            connection_logging();
             break;
           }
         }

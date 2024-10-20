@@ -23,7 +23,6 @@ FhatOS: A Distributed Operating System
 #include <furi.hpp>
 #include <language/obj.hpp>
 #include <structure/structure.hpp>
-#include <util/options.hpp>
 
 namespace fhatos {
   class External : public Structure {

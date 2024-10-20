@@ -38,10 +38,20 @@ namespace fhatos {
   class BaseMqtt : public Structure {
   public:
     struct Settings {
+      string client = STR(FOS_MACHINE_NAME);
       string broker = STR(FOS_MQTT_BROKER_ADDR);
       Message_p will = nullptr;
       uint16_t read_ms_wait = 500;
       bool connected = true;
+
+      Settings(const string &client = STR(FOS_MACHINE_NAME), const string &broker = STR(FOS_MQTT_BROKER_ADDR),
+               const Message_p &will = nullptr, const uint16_t read_ms_wait = 500, const bool connected = true) {
+        this->client = client;
+        this->broker = broker;
+        this->will = will;
+        this->read_ms_wait = read_ms_wait;
+        this->connected = connected;
+      };
     };
 
   protected:
@@ -62,12 +72,12 @@ namespace fhatos {
 
     virtual void native_mqtt_loop() = 0;
 
-    void connection_logging(const ID_p &client_id) const {
+    void connection_logging() const {
       LOG_STRUCTURE(INFO, this,
                     "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
                     "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
-                    this->settings_.broker.c_str(), client_id->toString().c_str(),
+                    this->settings_.broker.c_str(), this->settings_.client.c_str(),
                     this->settings_.will.get() ? this->settings_.will->target.toString().c_str() : "<none>",
                     this->settings_.will.get() ?this->settings_.will->payload->toString().c_str() : "<none>",
                     this->settings_.will.get() ? "1" : "<none>",
@@ -115,7 +125,7 @@ namespace fhatos {
       const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
       const fURI temp = furi->is_branch() ? furi->extend("+") : *furi;
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
-      const auto source_id = ID(string("client_") + to_string(rand()));
+      const auto source_id = ID(this->settings_.client.c_str());
       this->recv_subscription(
         subscription_p(source_id, temp,
                        Insts::to_bcode([this, furi, thing](const Message_p &message) {

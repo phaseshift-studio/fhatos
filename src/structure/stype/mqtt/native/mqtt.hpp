@@ -38,13 +38,13 @@ namespace fhatos {
       this->settings_.broker = string(this->settings_.broker).find_first_of("mqtt://") == string::npos
                                  ? string("mqtt://").append(string(this->settings_.broker))
                                  : settings_.broker;
-      this->xmqtt_ = std::make_shared<async_client>(this->settings_.broker, string("client_" + to_string(std::rand())),
+      this->xmqtt_ = std::make_shared<async_client>(this->settings_.broker, this->settings_.client,
                                                     mqtt::create_options());
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
           .clean_start(true)
           .clean_session(true)
-          .user_name(string("client_" + to_string(rand())))
+          .user_name(this->settings_.client)
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
       if (this->settings_.will.get()) {
@@ -59,7 +59,7 @@ namespace fhatos {
         const auto bobj = std::make_shared<BObj>(ref.length(),
                                                  reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
         const auto [payload, retained] = make_payload(bobj);
-       // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
+        // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
         const Message_p message = message_p(ID(mqtt_message->get_topic()), payload, retained);
         LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
         const List_p<Subscription_p> matches = this->get_matching_subscriptions(furi_p(message->target));
@@ -69,7 +69,7 @@ namespace fhatos {
       });
       /// MQTT CONNECTION ESTABLISHED CALLBACK
       this->xmqtt_->set_connected_handler([this](const string &) {
-        connection_logging(id_p(this->xmqtt_->get_client_id().c_str()));
+        connection_logging();
       });
     }
 

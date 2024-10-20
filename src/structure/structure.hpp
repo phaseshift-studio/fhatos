@@ -82,7 +82,8 @@ namespace fhatos {
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         // if (!(message->retain && message->payload->is_noobj()))
-        mail.value()->first->on_recv->apply(message->to_rec());
+        const Subscription_p subscription = mail.value()->first;
+        subscription->on_recv->apply(message->to_rec());
         mail = this->outbox_->pop_front();
       }
     }
@@ -140,7 +141,7 @@ namespace fhatos {
       for (const auto &[id, obj]: list) {
         if (!obj->is_noobj()) {
           if (id->matches(subscription->pattern)) {
-            subscription->on_recv->apply(Message(*id,obj,RETAIN_MESSAGE).to_rec());
+            subscription->on_recv->apply(Message(*id, obj,RETAIN_MESSAGE).to_rec());
           }
         }
       }
@@ -264,14 +265,15 @@ namespace fhatos {
     }
 
     /////////////////////////////////////////////////////////////////////////////
+  public:
+    virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
+
+    virtual List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) = 0;
+
   protected:
     static Obj_p strip_value_id(const Obj_p obj) {
       return nullptr == obj->id() ? obj : make_shared<Obj>(obj->_value, obj->type(), nullptr);
     }
-
-    virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
-
-    virtual List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) = 0;
 
     void check_availability(const string &function) const {
       if (!this->available())

@@ -28,8 +28,12 @@
 #include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 
-#define ESP_THREAD_STACK_SIZE 20000
-#define ESP_FIBER_STACK_SIZE 15000
+#ifndef FOS_ESP_THREAD_STACK_SIZE
+#define FOS_ESP_THREAD_STACK_SIZE 25000
+#endif
+#ifndef FOS_ESP_FIBER_STACK_SIZE
+#define FOS_ESP_FIBER_STACK_SIZE 20000
+#endif
 
 namespace fhatos {
   class Scheduler final : public XScheduler {
@@ -64,8 +68,8 @@ namespace fhatos {
       bool success = false;
       uint16_t stack_size =
           process->ptype == PType::FIBER
-              ? ESP_FIBER_STACK_SIZE
-              : (process->ptype == PType::THREAD ?  ESP_THREAD_STACK_SIZE : 0);
+              ? FOS_ESP_FIBER_STACK_SIZE
+              : (process->ptype == PType::THREAD ?  FOS_ESP_THREAD_STACK_SIZE : 0);
       switch (process->ptype) {
         case PType::THREAD: {
           const BaseType_t threadResult =

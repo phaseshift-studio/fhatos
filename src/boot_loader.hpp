@@ -33,6 +33,7 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include FOS_MEMORY(memory.hpp)
+#include <structure/stype/redirect.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
@@ -67,9 +68,9 @@ namespace fhatos {
         load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-                                   ->using_printer(Ansi<>::singleton())
-                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+            ->using_printer(Ansi<>::singleton())
+            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -89,18 +90,23 @@ namespace fhatos {
             //
             ->structure(KeyValue::create("/parser/#"))
             ->process(Parser::singleton("/parser/"))
+            //
 #ifdef ESP_ARCH
             ->structure(GPIO::singleton("/soc/gpio/#"))
             ->structure(PWM::singleton("/soc/pwm/#"))
             ->structure(Interrupt::singleton("/soc/interrupt/#"))
             ->structure(Timer::singleton("/soc/timer/#"))
             ->structure(Memory::singleton("/soc/memory/#"))
-            ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true)))
+            ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
+                                                           args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
             ->structure(BLE::create("/io/bt/#"))
 #endif
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
-            ->structure(Mqtt::create("//+/#"))
+            ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
             ->model({ID("/model/sys")})
+            //->structure(Redirect::create("/soc2/gpio/#", Mqtt::create("/mqtt/#"),
+            //                            Insts::to_bcode([](const Uri_p &uri) { return uri; })))
+            //
             ->structure(KeyValue::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
                                       Console::Settings(args_parser->option("--nest", "false") == "true",

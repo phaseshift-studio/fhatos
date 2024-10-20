@@ -38,7 +38,6 @@
 #error Architecture unrecognized by FhatOS
 #endif
 
-
 namespace fhatos {
 
   class Wifi : public External {
@@ -54,6 +53,11 @@ namespace fhatos {
         s.connected = c;
         return s;
       }
+      Settings md5(string md5name) const {
+        Settings s = Settings(*this);
+        s.md5name = md5name;
+        return s;
+      }
     } settings_;
 
 
@@ -64,7 +68,7 @@ namespace fhatos {
         id_p(this->pattern()->resolve("./subnet_mask")), id_p(this->pattern()->resolve("./dns_addr"))};
 
     const static inline Settings DEFAULT_SETTINGS = {
-        .connected = true, .md5name = "fhatty", .ssids = STR(WIFI_SSID), .passwords = STR(WIFI_PASS)};
+        .connected = true, .md5name = STR(FOS_MACHINE_NAME), .ssids = STR(WIFI_SSID), .passwords = STR(WIFI_PASS)};
     const static inline Settings NO_WIFI_SETTINGS = {.connected = false, .md5name = "", .ssids = "", .passwords = ""};
 
   protected:
