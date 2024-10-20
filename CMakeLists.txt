@@ -149,6 +149,7 @@ ENDIF()
 ####################################
 ####################################
 ### FTXUI: ANSI C++ TERMINAL UI
+IF(DO_NOT)
 MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
 SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 FETCHCONTENT_DECLARE(
@@ -166,6 +167,7 @@ TARGET_LINK_LIBRARIES(fhatos
         PRIVATE ftxui::component # Not needed for this example.
 )
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+ENDIF()
 ####################################
 ####################################
 ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
@@ -185,6 +187,10 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
 #################################### C
+#FILE(GLOB_RECURSE PROJECT_SRCS "src/*.c" "src/*.cpp" "include/*.h")
+#SET(PAHO_BUILD_STATIC TRUE)
+#SET(PAHO_BUILD_WITH_SSL FALSE)
+INCLUDE(pahomqttc.cmake)
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
@@ -199,10 +205,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 #################################### C++
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
+#INCLUDE(pahomqttcpp.cmake)
 FETCHCONTENT_DECLARE(
         paho-mqttpp3
         GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
-        GIT_TAG v1.4.0
+        GIT_TAG v1.4.1
 )
 FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqttpp3)
@@ -213,6 +220,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### MPC: MICRO PARSER COMBINATORS
+IF(DO_NOT)
 MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
 FETCHCONTENT_DECLARE(
         mpc
@@ -225,6 +233,7 @@ INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+ENDIF()
 ####################################
 ############# TESTING ##############
 ####################################

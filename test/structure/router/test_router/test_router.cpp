@@ -75,6 +75,7 @@ namespace fhatos {
       // waiting
     }
     TEST_ASSERT_EQUAL_INT(1, *counter);
+    delete counter;
   }
 
   FOS_RUN_TESTS( //

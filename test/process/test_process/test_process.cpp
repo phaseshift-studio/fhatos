@@ -59,7 +59,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(57), process("*/test/%s/b",pc)->objs_value()->at(0));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count(Pattern(StringHelper::format("/test/%s/",pc).c_str())));
     //FOS_TEST_OBJ_EQUAL(noobj(),process("/test/%s/b -> noobj",pc)->objs_value()->at(0));
-    delete pc;
+    free((void*)pc);
     sleep(1);
   }
 

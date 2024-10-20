@@ -25,43 +25,56 @@
 #include "structure/structure.hpp"
 
 namespace fhatos {
-  class Redirect : public Structure {
+  class Redirect : public KeyValue {
   protected:
-    Structure_p base_structure_;
+    List<Pair<fURI_p, BCode_p>> mappings_;
+
+    fURI_p base_subscription_;
     BCode_p uri_mapper_;
 
-    explicit Redirect(const Pattern &pattern, const Structure_p &base_structure,
-                      const BCode_p &uri_mapper) : Structure(pattern, base_structure->stype),
-                                                   base_structure_(base_structure),
-                                                   uri_mapper_(uri_mapper) {
+    explicit Redirect(const Pattern &pattern,
+                      const List<Pair<fURI_p, BCode_p>> &mappings = {}) : KeyValue(pattern), mappings_(mappings) {
     }
 
   public:
-    static ptr<Redirect> create(const Pattern &pattern, const Structure_p &base_structure, const BCode_p &uri_mapper) {
-      auto redirect_p = ptr<Redirect>(new Redirect(pattern, base_structure, uri_mapper));
+    static ptr<Redirect> create(const Pattern &pattern, const List<Pair<fURI_p, BCode_p>> &mappings = {}) {
+      auto redirect_p = ptr<Redirect>(new Redirect(pattern, mappings));
       return redirect_p;
     }
 
     void setup() override {
-      Structure::setup();
-      if (!this->base_structure_->available())
-        this->base_structure_->setup();
+      KeyValue::setup();
+     /* for(Pair<fURI_p,BCode_p>& pair : this->mappings_) {
+        router()->route_subscription(subscription_p(ID(this->pattern()->retract_pattern()), Pattern(*this->base_subscription_), Insts::to_bcode(
+                                                      [this](const Message_p &message) {
+                                                        router()->write(
+                                                          furi_p(
+                                                            this->uri_mapper_->apply(vri(message->target))->uri_value()),
+                                                          message->payload, message->retain);
+                                                      })));
+      }*/
     }
 
-    void stop() override {
-      if (this->base_structure_->available())
-        this->base_structure_->stop();
-      Structure::stop();
-    }
+    /* void stop() override {
+       Thread::stop();
+     }*/
 
-  protected:
-    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      this->base_structure_->write_raw_pairs(id_p(this->uri_mapper_->apply(vri(id))->uri_value()), obj, retain);
-    }
+      public:
+        void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+         const auto base = ID(id->toString().substr(this->pattern_->retract_pattern().toString().length()));
+          if(this->data_->count(id)) {
+            if(obj->is_noobj()) {
+              router()->route_unsubscribe(id_p(this->pattern()->retract_pattern()),p_p(*id));
+            } else {
+              //router()->route_subscription(subscription_p(id_p(this->pattern()->retract_pattern()),))
+            }
+          }
 
-    List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
-      return this->base_structure_->read_raw_pairs(furi_p(this->uri_mapper_->apply(vri(match))->uri_value()));
-    }
+        }
+
+        //List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
+         // return this->base_structure_->read_raw_pairs(furi_p(this->uri_mapper_->apply(vri(match))->uri_value()));
+        //}
   };
 } // namespace fhatos
 

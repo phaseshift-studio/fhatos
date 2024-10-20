@@ -48,7 +48,7 @@ namespace fhatos {
 
     bool exists(const Predicate<T> &predicate, const bool with_mutex = true) {
       return lockUnlock<bool>(with_mutex, [this, predicate]() {
-        for (T t: deque_) {
+        for (const T& t: this->deque_) {
           if (predicate(t))
             return true;
         }
@@ -58,21 +58,19 @@ namespace fhatos {
 
     Option<T> find(const Predicate<T> &predicate, const bool with_mutex = true) {
       return lockUnlock<Option<T>>(with_mutex, [this, predicate]() {
-        T *temp = nullptr;
-        for (T t: deque_) {
+        for (const T& t: this->deque_) {
           if (predicate(t)) {
-            temp = &t;
-            break;
+           return Option<T>(t);
           }
         }
-        return temp ? Option<T>(*temp) : Option<T>();
+        return Option<T>();
       });
     }
 
     List<T> find_all(const Predicate<T> &predicate, const bool with_mutex = true) {
       return lockUnlock<List<T>>(with_mutex, [this, predicate]() {
         List<T> list;
-        for (T t: deque_) {
+        for (const T& t: deque_) {
           if (predicate(t)) {
             list.push_back(t);
           }
@@ -86,7 +84,7 @@ namespace fhatos {
         if (deque_.empty()) {
           return Option<T>();
         } else {
-          T t = deque_.front();
+          const T t = this->deque_.front();
           deque_.pop_front();
           return Option<T>(t);
         }
@@ -152,7 +150,7 @@ namespace fhatos {
       return lockUnlock<Option<T>>(with_mutex, [this]() {
         if (deque_.empty())
           return Option<T>();
-        T t = deque_.back();
+        const T t = deque_.back();
         deque_.pop_back();
         return Option<T>(t);
       });
@@ -167,23 +165,23 @@ namespace fhatos {
 
     bool push_back(const T t, const bool with_mutex = true) {
       return lockUnlock<bool>(with_mutex, [this, t]() {
-        deque_.push_back(t);
+        this->deque_.push_back(t);
         return true;
       });
     }
 
     SIZE_TYPE size(const bool with_mutex = true) {
-      return lockUnlock<SIZE_TYPE>(with_mutex, [this]() { return deque_.size(); });
+      return lockUnlock<SIZE_TYPE>(with_mutex, [this]() { return this->deque_.size(); });
     }
 
     bool empty(const bool with_mutex = true) {
-      return lockUnlock<bool>(with_mutex, [this]() { return deque_.empty(); });
+      return lockUnlock<bool>(with_mutex, [this]() { return this->deque_.empty(); });
     }
 
     string toString(const bool with_mutex = true) {
       return lockUnlock<string>(with_mutex, [this]() {
         string temp = "[";
-        for (const auto &t: deque_) {
+        for (const auto &t: this->deque_) {
           if (t)
             temp = temp + t->toString() + ", ";
         }
@@ -194,8 +192,8 @@ namespace fhatos {
 
     void clear(const bool with_mutex = true) {
       lockUnlock<void *>(with_mutex, [this]() {
-        if (!deque_.empty())
-          deque_.clear();
+        if (!this->deque_.empty())
+          this->deque_.clear();
         return nullptr;
       });
     }

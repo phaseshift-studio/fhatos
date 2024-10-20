@@ -104,9 +104,20 @@ namespace fhatos {
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
             ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
             ->model({ID("/model/sys")})
-            //->structure(Redirect::create("/soc2/gpio/#", Mqtt::create("/mqtt/#"),
-            //                            Insts::to_bcode([](const Uri_p &uri) { return uri; })))
-            //
+#ifdef ESP_ARCH
+        ->structure(Redirect::create(Pattern("/redirect/"),
+                                         {{furi_p("/x/#"),
+                                           Insts::to_bcode([](const Uri_p &uri) {
+                                             return vri(fURI("//x/y/").extend(uri->uri_value()));
+                                           })}}))
+#else
+            ->structure(Redirect::create(Pattern("/redirect/"),
+                                         {{furi_p("/x/#"),
+                                           Insts::to_bcode([](const Uri_p &uri) {
+                                             return vri(fURI("//x/y/").extend(uri->uri_value()));
+                                           })}}))
+#endif
+
             ->structure(KeyValue::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
                                       Console::Settings(args_parser->option("--nest", "false") == "true",
