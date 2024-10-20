@@ -63,9 +63,9 @@ jobs:
       env:
         CC: clang
       run: |
-        export PATH=$PATH:$HOME/.local/bin
         export FHATOS_HOME=${{github.workspace}}
-        bin/fhat-dev build native -DCHECK_INTERNET=OFF
+        export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
+        fhat-dev build native -DCHECK_INTERNET=OFF
 
     - name: Deploy MQTT Broker
       working-directory: ${{github.workspace}}
