@@ -65,7 +65,7 @@ jobs:
       run: |
         export FHATOS_HOME=${{github.workspace}}
         export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
-        fhat-dev build native -DCHECK_INTERNET=OFF
+        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF
 
     - name: Deploy MQTT Broker
       working-directory: ${{github.workspace}}

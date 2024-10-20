@@ -190,7 +190,7 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 #FILE(GLOB_RECURSE PROJECT_SRCS "src/*.c" "src/*.cpp" "include/*.h")
 #SET(PAHO_BUILD_STATIC TRUE)
 #SET(PAHO_BUILD_WITH_SSL FALSE)
-INCLUDE(pahomqttc.cmake)
+#INCLUDE(pahomqttc.cmake)
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
 FETCHCONTENT_DECLARE(
         paho-mqtt3c
@@ -201,7 +201,6 @@ FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqtt3c)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 #################################### C++
 MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
@@ -215,7 +214,7 @@ FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqttpp3)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
 INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqtt3c PRIVATE paho-mqttpp3)
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
