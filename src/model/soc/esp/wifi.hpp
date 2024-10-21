@@ -89,24 +89,24 @@ namespace fhatos {
     virtual void setup() override {
       External::setup();
       this->read_functions_->insert({this->pattern(), [this](const fURI_p furi) {
-                                      List<Pair<ID_p, Obj_p>> map;
+                                      ReadRawResult_p map = make_shared<ReadRawResult>();
                                       ID_p current;
                                       if (WIFI_IDS.at(0)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(0), dool(WiFi.isConnected())});
+                                        map->push_back({WIFI_IDS.at(0), dool(WiFi.isConnected())});
                                       if (WIFI_IDS.at(1)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(1), str(this->settings_.ssids)});
+                                        map->push_back({WIFI_IDS.at(1), str(this->settings_.ssids)});
                                       if (WIFI_IDS.at(2)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(2), str(this->settings_.passwords)});
+                                        map->push_back({WIFI_IDS.at(2), str(this->settings_.passwords)});
                                       if (WIFI_IDS.at(3)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(3), vri(WiFi.getHostname())});
+                                        map->push_back({WIFI_IDS.at(3), vri(WiFi.getHostname())});
                                       if (WIFI_IDS.at(4)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(4), vri(WiFi.localIP().toString().c_str())});
+                                        map->push_back({WIFI_IDS.at(4), vri(WiFi.localIP().toString().c_str())});
                                       if (WIFI_IDS.at(5)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(5), vri(WiFi.gatewayIP().toString().c_str())});
+                                        map->push_back({WIFI_IDS.at(5), vri(WiFi.gatewayIP().toString().c_str())});
                                       if (WIFI_IDS.at(6)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(6), vri(WiFi.subnetMask().toString().c_str())});
+                                        map->push_back({WIFI_IDS.at(6), vri(WiFi.subnetMask().toString().c_str())});
                                       if (WIFI_IDS.at(7)->matches(*furi))
-                                        map.push_back({WIFI_IDS.at(7), vri(WiFi.dnsIP().toString().c_str())});
+                                        map->push_back({WIFI_IDS.at(7), vri(WiFi.dnsIP().toString().c_str())});
                                       return map;
                                     }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());

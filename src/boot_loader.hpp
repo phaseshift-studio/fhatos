@@ -32,14 +32,17 @@
 #include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
-#include FOS_MEMORY(memory.hpp)
 #include <structure/stype/redirect.hpp>
+///////////// COMMON MODELS /////////////
+#include <model/soc/pin_driver.hpp>
+#include <model/led/led.hpp>
+#include <model/soc/esp/gpio.hpp>
+#include <model/soc/esp/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
-#include <model/soc/esp/gpio.hpp>
-#include <model/soc/esp/interrupt.hpp>
-#include <model/soc/esp/pwm.hpp>
+//#include <model/soc/memory/esp32/memory.hpp>
+//#include <model/soc/esp/interrupt.hpp>
 #include <model/soc/esp/wifi.hpp>
 #include <structure/stype/ble/esp/ble.hpp>
 #include FOS_TIMER(timer.hpp)
@@ -91,16 +94,22 @@ namespace fhatos {
             ->structure(KeyValue::create("/parser/#"))
             ->process(Parser::singleton("/parser/"))
             //
-#ifdef ESP_ARCH
-            ->structure(GPIO::singleton("/soc/gpio/#"))
-            ->structure(PWM::singleton("/soc/pwm/#"))
-            ->structure(Interrupt::singleton("/soc/interrupt/#"))
+#ifdef NATIVE
+            ->structure(PWM<NativePinDriver>::create(Pattern("/soc/pwm/#"),
+                                                     NativePinDriver::create("//soc/gpio/#", "//soc/pwm/#")))
+            ->structure(GPIO<NativePinDriver>::create("/soc/gpio/#",
+                                                      NativePinDriver::create("//soc/gpio/#", "//soc/pwm/#")))
+#elif defined(ESP_ARCH)
+            ->structure(GPIO<ArduinoPinDriver>::create("/soc/gpio/#", ArduinoPinDriver::singleton()))
+            ->structure(PWM<ArduinoPinDriver>::create("/soc/pwm/#", ArduinoPinDriver::singleton()))
+            //->structure(Interrupt::singleton("/soc/interrupt/#"))
             ->structure(Timer::singleton("/soc/timer/#"))
-            ->structure(Memory::singleton("/soc/memory/#"))
-            ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
-                                                           args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
+            //->structure(Memory::singleton(Pattern("/soc/memory/#")))
+             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
+                                                args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
             ->structure(BLE::create("/io/bt/#"))
 #endif
+            ->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
             ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
             ->model({ID("/model/sys")})

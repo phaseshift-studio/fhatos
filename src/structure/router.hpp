@@ -20,9 +20,11 @@
 #ifndef fhatos_router_hpp
 #define fhatos_router_hpp
 
+#include <fhatos.hpp>
 #include <structure/structure.hpp>
 #include <util/mutex_rw.hpp>
 #include <util/obj_helper.hpp>
+
 
 namespace fhatos {
   class Router final : public Patterned {

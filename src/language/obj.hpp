@@ -1082,6 +1082,8 @@ namespace fhatos {
     [[nodiscard]] bool is_noop_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
     Obj_p apply(const Obj_p &lhs) {
+      if(lhs->is_error())
+        return lhs;
       switch (this->o_type()) {
         case OType::BOOL:
           return PtrHelper::no_delete<Bool>(this);

@@ -35,6 +35,9 @@
 
 
 namespace fhatos {
+  using ReadRawResult = List<Pair<ID_p,Obj_p>>;
+  using ReadRawResult_p = List_p<Pair<ID_p,Obj_p>>;
+
   const Pattern_p LOCAL_FURI = p_p(REC_FURI->resolve("local"));
   const Pattern_p NETWORK_FURI = p_p(REC_FURI->resolve("network"));
   const Pattern_p EXTERNAL_FURI = p_p(REC_FURI->resolve("external"));
@@ -152,7 +155,7 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
         return noobj();
       }
-      if (furi->has_query()) {
+      if (furi->has_query() && string(furi->query()) == "sub") {
         if (string(furi->query()) == "sub") {
           const Objs_p subs = this->get_subscription_objs(p_p(furi->query("")));
           return subs;
@@ -194,7 +197,7 @@ namespace fhatos {
         return;
       }
       if (retain) {
-        if (furi->has_query()) {
+        if (furi->has_query() && furi->query_value("sub").has_value()) {
           //// SUBSCRIBE
           if (furi->query_value("sub").has_value()) {
             const Pattern_p pattern = p_p(furi->query(""));
@@ -271,7 +274,7 @@ namespace fhatos {
     virtual List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) = 0;
 
   protected:
-    static Obj_p strip_value_id(const Obj_p obj) {
+    static Obj_p strip_value_id(const Obj_p &obj) {
       return nullptr == obj->id() ? obj : make_shared<Obj>(obj->_value, obj->type(), nullptr);
     }
 

@@ -26,26 +26,24 @@
 #define FOS_PWM_ANALOG_RESOLUTION 4095
 
 namespace fhatos {
-
-  class PWM : public Pin {
-
+  template<typename PIN_DRIVER>
+  class PWM : public Pin<PIN_DRIVER> {
   protected:
-    explicit PWM(const Pattern &pattern = "/soc/pwm/#") :
-        Pin(
-            pattern,
-            [](const uint8_t pin) -> Int_p {
-              // pinMode(pin, INPUT);
-              return digitalPinHasPWM(pin) ? jnt(::map(analogRead(pin), 0, FOS_PWM_ANALOG_RESOLUTION, 0, 255))
-                                           : noobj();
-            },
-            [](const uint8_t pin, const Int_p value) -> void {
-              if (digitalPinHasPWM(pin))
-                analogWrite(pin, value->int_value());
-            }) {}
+    explicit PWM(const Pattern &pattern = "/soc/pwm/#", const ptr<PIN_DRIVER> driver = nullptr) : Pin<PIN_DRIVER>(
+      pattern,
+      [this](const uint8_t pin) -> Int_p {
+        return this->driver_->is_analog_pin(pin) ? jnt(this->driver_->analog_read(pin)) : noobj();
+      },
+      [this](const uint8_t pin, const Int_p &value) -> void {
+        if (this->driver_->is_analog_pin(pin))
+          this->driver_->analog_write(pin, value->int_value());
+      },
+      driver) {
+    }
 
   public:
-    static ptr<PWM> singleton(const Pattern &pattern = "/soc/pwm/#") {
-      static ptr<PWM> pwm = ptr<PWM>(new PWM(pattern));
+    static ptr<PWM> create(const Pattern &pattern = "/soc/pwm/#", const ptr<PIN_DRIVER> &driver = nullptr) {
+      auto pwm = ptr<PWM<PIN_DRIVER>>(new PWM<PIN_DRIVER>(pattern, driver));
       return pwm;
     }
   };

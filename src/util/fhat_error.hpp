@@ -63,14 +63,13 @@ namespace fhatos {
     explicit fError(const char *format, ...) noexcept {
       va_list arg;
       va_start(arg, format);
-      int length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
+      const size_t length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
       va_end(arg);
       //_message[length] = '\0';
       if (length >= FOS_ERROR_MESSAGE_SIZE) {
-        _message[FOS_ERROR_MESSAGE_SIZE - 1] = '\n';
-        _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
         _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
-        _message[FOS_ERROR_MESSAGE_SIZE - 4] = '.';
+        _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
+        _message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
       }
     }
 
@@ -79,7 +78,7 @@ namespace fhatos {
 
     static void OTYPE_CHECK(const std::string &type_id, const std::string &otype) {
       if (type_id != otype.c_str())
-        throw fError("!b%s!! is not a type of !y%s!!\n", type_id.c_str(), otype.c_str());
+        throw fError("!b%s!! is not a type of !y%s!!", type_id.c_str(), otype.c_str());
     }
   };
 } // namespace fhatos

@@ -57,7 +57,6 @@ namespace fhatos {
     string line_;
     ID_p terminal_id_;
     bool new_input_ = true;
-    Settings settings_;
 
     ///// printers
     void print_exception(const std::exception &ex) const {
@@ -69,11 +68,16 @@ namespace fhatos {
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
+      ///// read configuration
+      const bool nest = router()->read(id_p(this->id()->extend("config/nest")))->bool_value();
+      const bool ansi = router()->read(id_p(this->id()->extend("config/ansi")))->bool_value();
+      const bool strict = router()->read(id_p(this->id()->extend("config/strict")))->bool_value();
+      /////
       if (obj->is_objs())
         for (Obj_p &o: *obj->objs_value()) {
           this->print_result(o, depth + 1);
         }
-      else if (this->settings_.nest && (obj->is_lst() || obj->is_objs())) {
+      else if (nest && (obj->is_lst() || obj->is_objs())) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                             (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m" +
@@ -84,7 +88,7 @@ namespace fhatos {
             this->id(),
             str(StringHelper::format(
               "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-              e->is_poly() ? "" : e->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())),
+              e->is_poly() ? "" : e->toString(true, true, ansi, strict).c_str())),
             false);
           if (e->is_poly())
             this->print_result(e, depth + 1);
@@ -97,7 +101,7 @@ namespace fhatos {
                  : "") +
               "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"),
           false);
-      } else if (this->settings_.nest && obj->is_rec()) {
+      } else if (nest && obj->is_rec()) {
         router()->write(this->id(),
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                             (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m[!!\n"),
@@ -106,10 +110,10 @@ namespace fhatos {
           router()->write(this->id(),
                           str(StringHelper::format(
                             "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                            key->toString(true, false, false, this->settings_.strict).c_str(),
+                            key->toString(true, false, false, strict).c_str(),
                             value->is_poly()
                               ? ""
-                              : value->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())),
+                              : value->toString(true, true, ansi, strict).c_str())),
                           false);
           if (value->is_poly())
             this->print_result(value, depth + 1);
@@ -129,54 +133,23 @@ namespace fhatos {
         router()->write(
           this->id(),
           str(StringHelper::format("==>!!%s\n",
-                                   obj->toString(true, true, this->settings_.ansi, this->settings_.strict).c_str())),
+                                   obj->toString(true, true, ansi, strict).c_str())),
           false);
       }
     }
 
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(id),
-      terminal_id_(id_p(terminal)), settings_(Settings(settings)) {
+      terminal_id_(id_p(terminal)) {
+      router()->write(id_p(id.resolve("./config/nest")), dool(settings.nest));
+      router()->write(id_p(id.resolve("./config/nest").query("doc")), str("pretty print polys"));
+      router()->write(id_p(id.resolve("./config/strict")), dool(settings.strict));
+      router()->write(id_p(id.resolve("./config/strict").query("doc")), str("strict formatting"));
+      router()->write(id_p(id.resolve("./config/ansi")), dool(settings.ansi));
+      router()->write(id_p(id.resolve("./config/ansi").query("doc")), str("colorize output"));
+      router()->write(id_p(id.resolve("./config/log")), vri(LOG_TYPES.to_chars(settings.log)));
+      router()->write(id_p(id.resolve("./config/log").query("doc")), str("log level"));
       if (!MENU_MAP_) {
         MENU_MAP_ = new Map<string, Command>();
-        MENU_MAP_->insert({":help", {"help menu", [](const Obj_p &) {
-          printer<>()->println("!m!_FhatOS !g!_Console Commands!!");
-          for (const auto &[command, description]: *MENU_MAP_) {
-            printer<>()->printf("!y%-10s!! %s\n", command.c_str(),
-                                std::get<0>(description).c_str());
-          }
-          return noobj();
-        }}});
-        MENU_MAP_->insert({":log", {"log level", [](const Uri_p &log_level) {
-          if (log_level->is_noobj())
-            return vri(LOG_TYPES.to_chars(Options::singleton()->log_level<LOG_TYPE>()));
-          Options::singleton()->log_level(
-            LOG_TYPES.to_enum(log_level->uri_value().toString()));
-          return log_level;
-        }}});
-        MENU_MAP_->insert({":output", {"terminal out id", [this](const Uri_p &uri) {
-          if (!uri->is_noobj())
-            this->terminal_id_ = id_p(uri->uri_value());
-          return Obj::to_uri(*this->terminal_id_);
-        }}});
-        MENU_MAP_->insert({":clear", {"clear terminal", [](const Obj_p &) {
-          printer<>()->print("!X!Q");
-          return noobj();
-        }}});
-        MENU_MAP_->insert({":color", {"colorize output", [this](const Bool_p &xbool) {
-          if (!xbool->is_noobj())
-            this->settings_.ansi = xbool->bool_value();
-          return dool(this->settings_.ansi);
-        }}});
-        MENU_MAP_->insert({":strict", {"strict formatting", [this](const Bool_p &xbool) {
-          if (!xbool->is_noobj())
-            this->settings_.strict = xbool->bool_value();
-          return dool(this->settings_.strict);
-        }}});
-        MENU_MAP_->insert({":nest", {"display poly objs nested", [this](const Bool_p &xbool) {
-          if (!xbool->is_noobj())
-            this->settings_.nest = xbool->bool_value();
-          return dool(this->settings_.nest);
-        }}});
         MENU_MAP_->insert(
           {":shutdown",
             {
@@ -199,7 +172,6 @@ namespace fhatos {
       const auto console = ptr<Console>(new Console(id, terminal, settings));
       const Rec_p console_rec = console->to_rec();
       router()->write(id_p(id.resolve("./terminal")), vri(terminal));
-      //  router()->write(id_p(id), console_rec);
       return console;
     }
 
@@ -209,10 +181,10 @@ namespace fhatos {
       router()->write(
         id_p(this->id()->extend("config/")),
         Obj::to_rec(
-          {{vri(this->id()->extend("config/nest")), dool(this->settings_.nest)},
-            {vri(this->id()->extend("config/strict")), dool(this->settings_.strict)},
-            {vri(this->id()->extend("config/ansi")), dool(this->settings_.ansi)},
-            {vri(this->id()->extend("config/log")), vri(LOG_TYPES.to_chars(this->settings_.log))},
+          {{vri(this->id()->extend("config/nest")), router()->read(id_p(this->id()->extend("config/nest")))},
+            {vri(this->id()->extend("config/strict")), router()->read(id_p(this->id()->extend("config/strict")))},
+            {vri(this->id()->extend("config/ansi")), router()->read(id_p(this->id()->extend("config/ansi")))},
+            {vri(this->id()->extend("config/log")), router()->read(id_p(this->id()->extend("config/log")))},
             {vri(this->id()->extend("config/clear")), parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}}));
       return noobj();
     }
@@ -220,17 +192,16 @@ namespace fhatos {
     void setup() override {
       Thread::setup();
       router()->write(this->terminal_id_, vri(*this->id()));
+
+      //////////////////////////////////////////
       router()->route_subscription(subscription_p(
         *this->id(), this->id()->resolve("./config/+"), Insts::to_bcode([this](const Message_p &message) {
-          if (message->retain) {
-            if (message->target.name() == "nest")
-              this->settings_.nest = message->payload->bool_value();
-            else if (message->target.name() == "strict")
-              this->settings_.strict = message->payload->bool_value();
-            else if (message->target.name() == "ansi")
-              this->settings_.ansi = message->payload->bool_value();
-            else if (message->target.name() == "log")
-              this->settings_.log = LOG_TYPES.to_enum(message->payload->uri_value().toString());
+          if (message->retain && !message->target.has_query()) {
+            if (message->target.name() == "ansi") {
+              Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());
+            } else if (message->target.name() == "log") {
+              Options::singleton()->log_level(LOG_TYPES.to_enum(message->payload->uri_value().toString()));
+            }
           }
         })));
       router()->route_subscription(subscription_p(

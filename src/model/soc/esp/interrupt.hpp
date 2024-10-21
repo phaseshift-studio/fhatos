@@ -27,7 +27,8 @@
 // using namespace fhatos;
 
 namespace fhatos {
-  class Interrupt : public Pin {
+template <typename PIN_DRIVER>
+  class Interrupt : public Pin<PIN_DRIVER> {
 
     static void ARDUINO_ISR_ATTR ISR_FUNCTION(void *arg) {
       const uint8_t pin = *(uint8_t *) arg;

@@ -25,24 +25,25 @@
 #include <model/soc/esp/pin.hpp>
 
 namespace fhatos {
-
-  class GPIO : public Pin {
+  template<typename PIN_DRIVER>
+  class GPIO : public Pin<PIN_DRIVER> {
   protected:
-    explicit GPIO(const Pattern &pattern = "/soc/gpio/#") :
-        Pin(
-            pattern,
-            [](const uint8_t pin) -> Int_p {
-              // pinMode(pin, INPUT);
-              return digitalPinIsValid(pin) ? jnt(digitalRead(pin)) : noobj();
-            },
-            [](const uint8_t pin, const Int_p& value) {
-              if (digitalPinIsValid(pin) && digitalPinCanOutput(pin))
-                digitalWrite(pin, value->int_value());
-            }) {}
+    explicit GPIO(const Pattern &pattern = "/soc/gpio/#", const ptr<PIN_DRIVER> &driver = nullptr) : Pin<PIN_DRIVER>(
+      pattern,
+      [this](const uint8_t pin) -> Bool_p {
+        return this->driver_->is_digital_pin(pin) ? dool(this->driver_->digital_read(pin)) : noobj();
+      },
+      [this](const uint8_t pin, const Bool_p &value) {
+        if (this->driver_->is_digital_pin(pin))
+          this->driver_->digital_write(pin, value->bool_value());
+      },
+      driver) {
+    }
 
   public:
-    static ptr<GPIO> singleton(const Pattern &pattern = "/soc/gpio/#") {
-      static ptr<GPIO> gpio = ptr<GPIO>(new GPIO(pattern));
+    static ptr<GPIO> create(const Pattern &pattern = "/soc/gpio/#",
+                            const ptr<PIN_DRIVER> driver = nullptr) {
+      auto gpio = ptr<GPIO<PIN_DRIVER>>(new GPIO<PIN_DRIVER>(pattern, driver));
       return gpio;
     }
   };

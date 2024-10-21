@@ -49,7 +49,8 @@ namespace fhatos {
     void setup() override {
       External::setup();
       BLEDevice::init(this->pattern_->toString().c_str());
-      const BLEUUID service_uuid = BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str()));
+      const BLEUUID service_uuid =
+          BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str()));
       this->server_ = BLEDevice::createServer();
 
       this->service_ = this->server_->createService(service_uuid);
@@ -60,18 +61,18 @@ namespace fhatos {
       advertising->setMinPreferred(0x06); // functions that help with iPhone connections issue
       advertising->setMinPreferred(0x12);
       BLEDevice::startAdvertising();
-      //advertising->start();
+      // advertising->start();
       /////
       this->read_functions_->insert(
           {furi_p(this->pattern()->resolve("./+")), [this](const fURI_p &furi) {
-             List<Pair<ID_p, Obj_p>> list;
+             ReadRawResult_p list = make_shared<ReadRawResult>();
              BLECharacteristic *c = this->service_->getCharacteristic(furi->toString());
              if (c) {
                LOG_STRUCTURE(DEBUG, this, "Reading BLE characteristic: %s\n", c->toString().c_str());
                const string v = c->getValue();
                const Obj_p obj = Obj::deserialize(
                    ptr<Pair<uint32_t, fbyte *>>((new Pair<uint32_t, fbyte *>(v.length(), (fbyte *) v.c_str()))));
-               list.push_back(Pair<ID_p, Obj_p>(id_p(*furi), obj));
+               list->push_back(Pair<ID_p, Obj_p>(id_p(*furi), obj));
              }
              return list;
            }});
@@ -81,7 +82,7 @@ namespace fhatos {
              BLECharacteristic *c = this->service_->createCharacteristic(
                  furi->toString(), BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
              c->setValue(string((char *) obj->serialize()->second));
-             //c->setBroadcastProperty(true);
+             // c->setBroadcastProperty(true);
              LOG_STRUCTURE(DEBUG, this, "Writing BLE characteristic: %s\n", c->toString().c_str());
              return List<Pair<ID_p, Obj_p>>();
            }});

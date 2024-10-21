@@ -32,7 +32,7 @@ namespace fhatos {
   class Memory : public External {
 
   protected:
-    explicit Memory(const Pattern &pattern = "/soc/memory/#") : External(pattern) {
+    explicit Memory(const Pattern &pattern = Pattern("/soc/memory/#")) : External(pattern) {
       const Obj_p percent_type_def = parse("is(and(gte(0.0),lte(100.0)))");
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
       this->read_functions_->insert(
@@ -81,7 +81,7 @@ namespace fhatos {
 
 
   public:
-    static ptr<Memory> singleton(const Pattern &pattern = "/soc/memory/#") {
+    static ptr<Memory> singleton(const Pattern &pattern = Pattern("/soc/memory/#")) {
       static ptr<Memory> memory = ptr<Memory>(new Memory(pattern));
       return memory;
     }

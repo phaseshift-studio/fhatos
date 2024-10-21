@@ -22,45 +22,49 @@
 
 #include <fhatos.hpp>
 #include <language/processor/processor.hpp>
+#include <model/soc/pin_driver.hpp>
 #include <structure/stype/external.hpp>
 
+#define FOS_NUM_DIGITAL_PINS 40
 
 namespace fhatos {
+  template<typename PIN_DRIVER>
   class Pin : public External {
   protected:
-    explicit Pin(const Pattern &pattern,
-                 const Function<uint8_t, Obj_p> &readFunc,
-                 const BiConsumer<uint8_t, Obj_p> &writeFunc) :
-        External(pattern) {
-           this->read_functions_->insert({
-             //////////////////
-             //// READ PIN ////
-             //////////////////
-             {furi_p(this->pattern()->resolve("./+")),
-              [this, readFunc](const fURI_p &pin_furi) {
-                List<Pair<ID_p, Obj_p>> list;
-                if (StringHelper::is_integer(pin_furi->name())) {
-                  const uint8_t i = stoi(pin_furi->name());
-                  list.push_back({id_p(*pin_furi), readFunc(i)});
-                } else {
-                  for (uint8_t i = 0; i < NUM_DIGITAL_PINS; i++) {
-                    list.push_back({id_p(this->pattern()->resolve(fURI(string("./") + to_string(i)))), readFunc(i)});
-                  }
-                }
-                return list;
-              }}});
-           this->write_functions_->insert(
-            {///////////////////
-             //// WRITE PIN ////
-             ///////////////////
-             {furi_p(this->pattern()->resolve("./+")), [writeFunc](const fURI_p &pin_furi, const Obj_p &pin_value) {
-                List<Pair<ID_p, Obj_p>> list;
+    ptr<PIN_DRIVER> driver_;
+    explicit Pin(const Pattern &pattern, const Function<uint8_t, Obj_p> &readFunc,
+                 const BiConsumer<uint8_t, Obj_p> &writeFunc, ptr<PIN_DRIVER> driver) :
+        External(pattern),
+        driver_(driver) {
+      this->read_functions_->insert(
+          {//////////////////
+           //// READ PIN ////
+           //////////////////
+           {furi_p(pattern.resolve("./+")), [this, readFunc](const fURI_p &pin_furi) {
+              ReadRawResult_p list = make_shared<ReadRawResult>();
+              if (StringHelper::is_integer(pin_furi->name())) {
                 const uint8_t i = stoi(pin_furi->name());
-                pinMode(i, OUTPUT);
-                writeFunc(i, pin_value);
-                return list;
-              }}});
-           }
+                const Obj_p r = readFunc(i);
+                list->push_back({id_p(*pin_furi), r});
+              } else {
+                for (uint8_t i = 0; i < FOS_NUM_DIGITAL_PINS; i++) {
+                  const Obj_p r = readFunc(i);
+                  list->push_back({id_p(this->pattern()->resolve(fURI(string("./") + to_string(i)))), r});
+                }
+              }
+              return list;
+            }}});
+      this->write_functions_->insert(
+          {///////////////////
+           //// WRITE PIN ////
+           ///////////////////
+           {furi_p(pattern.resolve("./+")), [writeFunc](const fURI_p &pin_furi, const Obj_p &pin_value) {
+              List<Pair<ID_p, Obj_p>> list;
+              const uint8_t i = stoi(pin_furi->name());
+              writeFunc(i, pin_value);
+              return list;
+            }}});
+    }
   };
 } // namespace fhatos
 #endif
