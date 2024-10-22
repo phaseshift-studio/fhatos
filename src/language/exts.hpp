@@ -31,9 +31,9 @@ namespace fhatos {
   public:
     Exts() = delete;
 
-    static List<Pair<ID, Type_p>> exts(const ID &extId) {
-      static Map_p<ID, List<Pair<ID, Type_p>>> exts =
-          std::make_shared<Map<ID, List<Pair<ID, Type_p>>>>(Map<ID, List<Pair<ID, Type_p>>>{
+    static List<Pair<ID, Obj_p>> exts(const ID &extId) {
+      static Map_p<ID, List<Pair<ID, Obj_p>>> exts =
+          std::make_shared<Map<ID, List<Pair<ID, Obj_p>>>>(Map<ID, List<Pair<ID, Obj_p>>>{
             {
               "/model/sys", {
                 /// PROCESSES

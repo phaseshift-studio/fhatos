@@ -56,6 +56,7 @@ namespace fhatos {
     OBJ,
     /// A "null" object type used to kill a processing monad
     NOOBJ,
+    /// A stream of objs
     OBJS,
     /// A boolean monotype
     BOOL,
@@ -76,9 +77,7 @@ namespace fhatos {
     /// A sequence of instructions denoting a program
     BCODE,
     /// An error
-    ERROR,
-    /// A valueless obj
-    TYPE
+    ERROR
   };
 
   static const Enums<OType> OTypes = Enums<OType>({{OType::OBJ, "obj"},
@@ -93,8 +92,7 @@ namespace fhatos {
     {OType::REC, "rec"},
     {OType::INST, "inst"},
     {OType::BCODE, "bcode"},
-    {OType::ERROR, "error"},
-    {OType::TYPE, "type"}});
+    {OType::ERROR, "error"}});
 
   class Obj;
 
@@ -123,8 +121,6 @@ namespace fhatos {
   using BCode_p = Obj_p;
   using Objs = Obj;
   using Objs_p = Obj_p;
-  using Type = Obj;
-  using Type_p = Obj_p;
   using Error = Obj;
   using Error_p = Obj_p;
   using BObj = Pair<uint32_t, fbyte *>;
@@ -210,34 +206,36 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstFunctionSupplier, IType, InstSeedSupplier>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const ID_p OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj/");
-  static const ID_p NOOBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "noobj/");
-  static const ID_p TYPE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "type/");
-  static const ID_p BOOL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bool/");
-  static const ID_p INT_FURI = make_shared<ID>(FOS_TYPE_PREFIX "int/");
-  static const ID_p REAL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "real/");
-  static const ID_p URI_FURI = make_shared<ID>(FOS_TYPE_PREFIX "uri/");
-  static const ID_p STR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "str/");
-  static const ID_p LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst/");
-  static const ID_p REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec/");
-  static const ID_p INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst/");
-  static const ID_p BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
-  static const ID_p ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error/");
-  static const ID_p OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
-  static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
-    {OType::OBJ, OBJ_FURI},
-    {OType::OBJS, OBJS_FURI},
-    {OType::URI, URI_FURI},
-    {OType::BOOL, BOOL_FURI},
-    {OType::INT, INT_FURI},
-    {OType::REAL, REAL_FURI},
-    {OType::STR, STR_FURI},
-    {OType::LST, LST_FURI},
-    {OType::REC, REC_FURI},
-    {OType::INST, INST_FURI},
-    {OType::BCODE, BCODE_FURI},
-    {OType::ERROR, ERROR_FURI},
-    {OType::TYPE, TYPE_FURI}}};
+  static const auto OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj/");
+  static const auto NOOBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "noobj/");
+  static const auto TYPE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "type/");
+  static const auto BOOL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bool/");
+  static const auto INT_FURI = make_shared<ID>(FOS_TYPE_PREFIX "int/");
+  static const auto REAL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "real/");
+  static const auto URI_FURI = make_shared<ID>(FOS_TYPE_PREFIX "uri/");
+  static const auto STR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "str/");
+  static const auto LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst/");
+  static const auto REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec/");
+  static const auto INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst/");
+  static const auto BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
+  static const auto ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error/");
+  static const auto OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
+  static const Map<OType, ID_p> OTYPE_FURI = {
+    {
+      {OType::NOOBJ, NOOBJ_FURI},
+      {OType::OBJ, OBJ_FURI},
+      {OType::OBJS, OBJS_FURI},
+      {OType::URI, URI_FURI},
+      {OType::BOOL, BOOL_FURI},
+      {OType::INT, INT_FURI},
+      {OType::REAL, REAL_FURI},
+      {OType::STR, STR_FURI},
+      {OType::LST, LST_FURI},
+      {OType::REC, REC_FURI},
+      {OType::INST, INST_FURI},
+      {OType::BCODE, BCODE_FURI},
+      {OType::ERROR, ERROR_FURI}}};
+
   static BiConsumer<const Obj &, const fURI_p &> TYPE_CHECKER = [](const Obj &,
                                                                    const fURI_p &) {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap.\n");
@@ -1082,7 +1080,7 @@ namespace fhatos {
     [[nodiscard]] bool is_noop_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
     Obj_p apply(const Obj_p &lhs) {
-      if(lhs->is_error())
+      if (lhs->is_error())
         return lhs;
       switch (this->o_type()) {
         case OType::BOOL:
@@ -1234,7 +1232,6 @@ namespace fhatos {
     [[nodiscard]] Obj_p as(const ID_p &furi) const {
       const Obj_p obj = TYPE_MAKER(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)), furi);
       return obj;
-      // return share<Obj>(Obj(this->_value, OTypes.to_enum(resolution->path(FOS_BASE_TYPE_INDEX)), resolution));
     }
 
     Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
