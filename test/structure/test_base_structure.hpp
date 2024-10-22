@@ -124,8 +124,8 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(0, ping_MISS->load());
     delete ping_HIT;
     delete ping_MISS;
-    router()->remove(id_p(*make_test_pattern("b")));
-    router()->remove(id_p(*make_test_pattern("c")));
+    router()->write(id_p(*make_test_pattern("b")),noobj());
+    router()->write(id_p(*make_test_pattern("c")),noobj());
     if (auto_loop)
       current_structure->loop();
   }
@@ -150,9 +150,9 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING(
       "good", router()->read(share(router()->read(id_p(*make_test_pattern("z")))->uri_value()))->str_value().c_str());
     ////// RESET FOR PERSISTENT STRUCTURES
-    router()->remove(id_p(*make_test_pattern("x")));
-    router()->remove(id_p(*make_test_pattern("y")));
-    router()->remove(id_p(*make_test_pattern("z")));
+    router()->write(id_p(*make_test_pattern("x")),noobj());
+    router()->write(id_p(*make_test_pattern("y")),noobj());
+    router()->write(id_p(*make_test_pattern("z")),noobj());
     if (auto_loop)
       current_structure->loop();
   }
@@ -183,7 +183,7 @@ namespace fhatos {
     current_structure->recv_unsubscribe(id_p("test_data_types"), id_p(*make_test_pattern("abc")));
     if (auto_loop)
       current_structure->loop();
-    current_structure->remove(id_p(*make_test_pattern("abc")));
+    current_structure->write(id_p(*make_test_pattern("abc")),noobj(),RETAIN_MESSAGE);
   }
 
   void test_subscribe() {
@@ -222,7 +222,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, pings->load()); // shouldn't change as subscribe has unsubscribed by now
     delete pings;
     ////// RESET FOR PERSISTENT STRUCTURES
-    router()->remove(id_p(*make_test_pattern("test")));
+    router()->write(id_p(*make_test_pattern("test")),noobj());
     if (auto_loop)
       current_structure->loop();
   }
@@ -251,10 +251,10 @@ namespace fhatos {
     }
     TEST_ASSERT_EQUAL_INT(4, counter);
     ////// RESET FOR PERSISTENT STRUCTURES
-    current_structure->remove(id_p(*make_test_pattern("a")));
-    current_structure->remove(id_p(*make_test_pattern("b")));
-    current_structure->remove(id_p(*make_test_pattern("c")));
-    current_structure->remove(id_p(*make_test_pattern("d")));
+    current_structure->write(id_p(*make_test_pattern("a")),noobj());
+    current_structure->write(id_p(*make_test_pattern("b")),noobj());
+    current_structure->write(id_p(*make_test_pattern("c")),noobj());
+    current_structure->write(id_p(*make_test_pattern("d")),noobj());
     if (auto_loop)
       current_structure->loop();
   }
@@ -278,10 +278,10 @@ namespace fhatos {
     }
     TEST_ASSERT_EQUAL_INT(4, counter);
     ////// RESET FOR PERSISTENT STRUCTURES
-    current_structure->remove(id_p(*make_test_pattern("a")));
-    current_structure->remove(id_p(*make_test_pattern("b")));
-    current_structure->remove(id_p(*make_test_pattern("c")));
-    current_structure->remove(id_p(*make_test_pattern("d")));
+    current_structure->write(id_p(*make_test_pattern("a")),noobj());
+    current_structure->write(id_p(*make_test_pattern("b")),noobj());
+    current_structure->write(id_p(*make_test_pattern("c")),noobj());
+    current_structure->write(id_p(*make_test_pattern("d")),noobj());
     if (auto_loop)
       current_structure->loop();
   }
@@ -332,14 +332,14 @@ namespace fhatos {
     const Objs_p objs2 = process("*%s", make_test_pattern("x/#")->toString().c_str());
     TEST_ASSERT_EQUAL_INT(10, objs2->objs_value()->size());
     ////// RESET FOR PERSISTENT STRUCTURES
-    current_structure->remove(id_p(*make_test_pattern("x/0")));
-    current_structure->remove(id_p(*make_test_pattern("x/aaa")));
+    current_structure->write(id_p(*make_test_pattern("x/0")),noobj());
+    current_structure->write(id_p(*make_test_pattern("x/aaa")),noobj());
     for (int i = 1; i < 4; i++) {
       const Pattern_p p = p_p(make_test_pattern("x/")->extend(StringHelper::repeat(i, "+/")));
       LOG(DEBUG, "!yRemove pattern!!: !b%s!!\n", p->toString().c_str());
       const Rec_p rec3 = current_structure->read(p);
       for (const auto &[key, value]: *rec3->rec_value()) {
-        current_structure->remove(id_p(key->uri_value()));
+        current_structure->write(id_p(key->uri_value()),noobj());
       }
       if (auto_loop)
         current_structure->loop();

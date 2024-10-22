@@ -94,38 +94,32 @@ namespace fhatos {
             ->structure(KeyValue::create("/parser/#"))
             ->process(Parser::singleton("/parser/"))
             //
+            ->model({ID("/model/sys")})
+            //
+#ifdef ESP_ARCH
+            ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
+                                   args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
+#endif
+            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
+            ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
 #ifdef NATIVE
-            ->structure(PWM<NativePinDriver>::create(Pattern("/soc/pwm/#"),
-                                                     NativePinDriver::create("//soc/gpio/#", "//soc/pwm/#")))
             ->structure(GPIO<NativePinDriver>::create("/soc/gpio/#",
-                                                      NativePinDriver::create("//soc/gpio/#", "//soc/pwm/#")))
+                                                      NativePinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(PWM<NativePinDriver>::create(Pattern("/soc/pwm/#"),
+                                                     NativePinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
 #elif defined(ESP_ARCH)
             ->structure(GPIO<ArduinoPinDriver>::create("/soc/gpio/#", ArduinoPinDriver::singleton()))
             ->structure(PWM<ArduinoPinDriver>::create("/soc/pwm/#", ArduinoPinDriver::singleton()))
-            //->structure(Interrupt::singleton("/soc/interrupt/#"))
+
             ->structure(Timer::singleton("/soc/timer/#"))
+            //->structure(Interrupt::singleton("/soc/interrupt/#"))
             //->structure(Memory::singleton(Pattern("/soc/memory/#")))
-             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
-                                                args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
             ->structure(BLE::create("/io/bt/#"))
+            ->structure(Redirect::create(Pattern("/redirect/+"),
+                             Pair<Pattern_p,Pattern_p>{p_p("//remote/soc/gpio/#"), p_p("/soc/gpio/#")},
+                             Pair<Pattern_p,Pattern_p>{p_p("/soc/gpio/#"), p_p("//remote/soc/gpio/#")}))
 #endif
             ->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
-            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
-            ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
-            ->model({ID("/model/sys")})
-#ifdef ESP_ARCH
-        ->structure(Redirect::create(Pattern("/redirect/"),
-                                         {{furi_p("/x/#"),
-                                           Insts::to_bcode([](const Uri_p &uri) {
-                                             return vri(fURI("//x/y/").extend(uri->uri_value()));
-                                           })}}))
-#else
-            ->structure(Redirect::create(Pattern("/redirect/"),
-                                         {{furi_p("/x/#"),
-                                           Insts::to_bcode([](const Uri_p &uri) {
-                                             return vri(fURI("//x/y/").extend(uri->uri_value()));
-                                           })}}))
-#endif
 
             ->structure(KeyValue::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",

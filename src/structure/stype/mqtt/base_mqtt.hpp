@@ -18,9 +18,9 @@
 #ifndef fhatos_base_mqtt_hpp
 #define fhatos_base_mqtt_hpp
 
+#include <chrono>
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
-#include <chrono>
 
 #ifndef FOS_MQTT_BROKER_ADDR
 #define FOS_MQTT_BROKER_ADDR localhost
@@ -58,9 +58,8 @@ namespace fhatos {
     Settings settings_;
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern, const Settings &settings) : Structure(pattern, SType::NETWORK),
-                                                                          settings_(settings) {
-    }
+    explicit BaseMqtt(const Pattern &pattern, const Settings &settings) :
+        Structure(pattern, SType::NETWORK), settings_(settings) {}
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
 
@@ -70,8 +69,6 @@ namespace fhatos {
 
     virtual void native_mqtt_disconnect() = 0;
 
-    virtual void native_mqtt_loop() = 0;
-
     void connection_logging() const {
       LOG_STRUCTURE(INFO, this,
                     "\n" FOS_TAB_4 "!ybroker address!!: !b%s!!\n" FOS_TAB_4 "!yclient name!!   : !b%s!!\n" FOS_TAB_4
@@ -79,7 +76,7 @@ namespace fhatos {
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
                     this->settings_.broker.c_str(), this->settings_.client.c_str(),
                     this->settings_.will.get() ? this->settings_.will->target.toString().c_str() : "<none>",
-                    this->settings_.will.get() ?this->settings_.will->payload->toString().c_str() : "<none>",
+                    this->settings_.will.get() ? this->settings_.will->payload->toString().c_str() : "<none>",
                     this->settings_.will.get() ? "1" : "<none>",
                     this->settings_.will.get() ? FOS_BOOL_STR(this->settings_.will->retain) : "<none>");
     }
@@ -90,12 +87,6 @@ namespace fhatos {
       native_mqtt_disconnect();
       Structure::stop();
     }
-
-    /*void loop() override {
-      if (!this->available_.load())
-        throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
-      this->native_mqtt_loop();
-    }*/
 
     void recv_subscription(const Subscription_p &subscription) override {
       check_availability("subscription");
@@ -119,6 +110,11 @@ namespace fhatos {
       }
     }
 
+    void loop() override {
+      Structure::loop();
+      scheduler()->feed_local_watchdog();
+    }
+
     List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,20 +123,19 @@ namespace fhatos {
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = ID(this->settings_.client.c_str());
       this->recv_subscription(
-        subscription_p(source_id, temp,
-                       Insts::to_bcode([this, furi, thing](const Message_p &message) {
-                         LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
-                                       furi->toString().c_str(), message->toString().c_str());
-                         scheduler()->feed_local_watchdog();
-                         thing->load()->push_back({id_p(message->target), message->payload});
-                       })));
+          subscription_p(source_id, temp, Insts::to_bcode([this, furi, thing](const Message_p &message) {
+                           LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
+                                         message->toString().c_str());
+                           scheduler()->feed_local_watchdog();
+                           thing->load()->push_back({id_p(message->target), message->payload});
+                         })));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
              milliseconds(this->settings_.read_ms_wait)) {
         if (!pattern_or_branch && !thing->load()->empty())
           break;
-        this->native_mqtt_loop();
+        this->loop();
       }
       ///////////////////////////////////////////////
       this->recv_unsubscribe(id_p(source_id), furi_p(temp));

@@ -73,10 +73,6 @@ namespace fhatos {
       });
     }
 
-    void native_mqtt_loop() override {
-      Structure::loop();
-    }
-
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
       this->xmqtt_->subscribe(subscription->pattern.toString(), 1)->wait();
     }
@@ -113,7 +109,7 @@ namespace fhatos {
     }
 
     void setup() override {
-      Structure::setup();
+      BaseMqtt::setup();
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {

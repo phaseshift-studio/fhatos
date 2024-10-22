@@ -124,26 +124,22 @@ namespace fhatos {
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
       const Structure_p &struc = this->get_structure(*furi);
-      LOG_ROUTER(DEBUG, "!y!_reading!! !b%s!! from " FURI_WRAP "\n", furi->toString().c_str(),
+      const Obj_p obj = struc->read(furi);
+      LOG_ROUTER(DEBUG, "!g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
+                 furi->toString().c_str(),
+                 obj->toString().c_str(),
                  struc->pattern()->toString().c_str());
-      return struc->read(furi);
+      return obj;
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
       if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(*furi);
-        LOG_ROUTER(DEBUG, "!y!_writing!! !g%s!! %s to !b%s!! at " FURI_WRAP "\n", retain ? "retained" : "transient",
-                   obj->toString().c_str(), furi->toString().c_str(), structure->pattern()->toString().c_str());
+        LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",
+                   furi->toString().c_str(), obj->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
         SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain);
       }
-    }
-
-    void remove(const ID_p &id) {
-      const Structure_p &struc = this->get_structure(*id);
-      LOG_ROUTER(DEBUG, "!y!_removing!! !b%s!! from " FURI_WRAP "\n", id->toString().c_str(),
-                 struc->pattern()->toString().c_str());
-      struc->remove(id);
     }
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) {

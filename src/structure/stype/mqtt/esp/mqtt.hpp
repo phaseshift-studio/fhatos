@@ -25,6 +25,8 @@
 #include <WiFiClient.h>
 #include <fhatos.hpp>
 #include <structure/stype/mqtt/base_mqtt.hpp>
+#include <util/options.hpp>
+#include FOS_PROCESS(scheduler.hpp)
 
 #ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 512
@@ -80,9 +82,19 @@ namespace fhatos {
       }
     }
 
-    virtual void native_mqtt_loop() override {
-      this->xmqtt_->loop();
-      scheduler()->feed_local_watchdog();
+    virtual void loop() override {
+      BaseMqtt::loop();
+      if (!this->xmqtt_->connected()) {
+        LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
+                      MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
+        if (!this->xmqtt_->connect(this->settings_.client.c_str())) {
+          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
+        }
+      } 
+       if (!this->xmqtt_->loop()) {
+        LOG_STRUCTURE(ERROR, this, "mqtt processing loop failure: !r%s!!\n",
+                      MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
+      }
     }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
@@ -101,6 +113,7 @@ namespace fhatos {
         const BObj_p payload = make_bobj(message->payload, message->retain);
         this->xmqtt_->publish(message->target.toString().c_str(), payload->second, payload->first, message->retain);
       }
+      this->xmqtt_->loop();
     }
 
     void native_mqtt_disconnect() override { this->xmqtt_->disconnect(); }
@@ -112,23 +125,8 @@ namespace fhatos {
       return mqtt_p;
     }
 
-    void loop() override {
-      Structure::loop();
-      scheduler()->feed_local_watchdog();
-      if (!this->xmqtt_->connected()) {
-        LOG_STRUCTURE(INFO, this, "Reconnecting to MQTT broker after connection loss [%s]\n",
-                      MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-        if (!this->xmqtt_->connect(this->settings_.client.c_str())) {
-          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
-        }
-      } else if (!this->xmqtt_->loop()) {
-        LOG_STRUCTURE(ERROR, this, "MQTT processing loop failure: %s\n",
-                      MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-      }
-    }
-
     void setup() override {
-      Structure::setup();
+      BaseMqtt::setup();
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {

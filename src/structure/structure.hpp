@@ -35,8 +35,8 @@
 
 
 namespace fhatos {
-  using ReadRawResult = List<Pair<ID_p,Obj_p>>;
-  using ReadRawResult_p = List_p<Pair<ID_p,Obj_p>>;
+  using ReadRawResult = List<Pair<ID_p, Obj_p>>;
+  using ReadRawResult_p = List_p<Pair<ID_p, Obj_p>>;
 
   const Pattern_p LOCAL_FURI = p_p(REC_FURI->resolve("local"));
   const Pattern_p NETWORK_FURI = p_p(REC_FURI->resolve("network"));
@@ -137,8 +137,6 @@ namespace fhatos {
       }
     }
 
-    virtual void remove(const ID_p &id) { this->write(id, noobj(), RETAIN_MESSAGE); }
-
     virtual void publish_retained(const Subscription_p &subscription) {
       const List<Pair<ID_p, Obj_p>> list = this->read_raw_pairs(furi_p(subscription->pattern));
       for (const auto &[id, obj]: list) {
@@ -184,14 +182,17 @@ namespace fhatos {
           }
           // NODE ID
           else {
-            return matches.empty() ? noobj() : matches.begin()->second;
+            if (matches.empty())
+              return noobj();
+            const Obj_p o = matches.begin()->second;
+            return o;
           }
         }
       }
       return noobj();
     }
 
-    virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain) {
+    virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
       if (!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
         return;
