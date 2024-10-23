@@ -35,7 +35,8 @@ namespace fhatos {
     MutexDeque<int> *mutex;
     int counter = 0;
 
-    Worker(const int index, MutexDeque<int> *mutex) : Thread(ID(string("worker/").append(std::to_string(index)))) {
+    Worker(const int index, MutexDeque<int> *mutex) :
+      Thread(ID(string("worker/").append(std::to_string(index)))) {
       this->mutex = mutex;
     }
 
@@ -67,46 +68,45 @@ namespace fhatos {
   }
 
   void test_mutex_deque_methods() {
-    MutexDeque<int> m;
+    auto m = new MutexDeque<int>();
     ////// test push
-    populateMutex(&m, [](MutexDeque<int> *m, const int i) {
+    populateMutex(m, [](MutexDeque<int> *m, const int i) {
       m->push_front(i);
       TEST_ASSERT_EQUAL(i, m->pop_front().value());
       m->push_front(i);
       TEST_ASSERT_EQUAL(0, m->pop_back().value());
       m->push_back(0);
     });
-    TEST_ASSERT_FALSE(m.empty());
-    TEST_ASSERT_EQUAL(100, m.size());
+    TEST_ASSERT_FALSE(m->empty());
+    TEST_ASSERT_EQUAL(100, m->size());
     ////// test pop
-    populateMutex(&m, [](MutexDeque<int> *m, const int i) { TEST_ASSERT_EQUAL_INT32(i, m->pop_back().value()); });
-    TEST_ASSERT_TRUE(m.empty());
-    TEST_ASSERT_EQUAL(0, m.size());
+    populateMutex(m, [](MutexDeque<int> *m, const int i) { TEST_ASSERT_EQUAL_INT32(i, m->pop_back().value()); });
+    TEST_ASSERT_TRUE(m->empty());
+    TEST_ASSERT_EQUAL(0, m->size());
     ////// test clear
-    populateMutex(&m, [](MutexDeque<int> *m, int i) {
+    populateMutex(m, [](MutexDeque<int> *m, int i) {
       m->push_back(i);
       TEST_ASSERT_EQUAL(i, m->pop_back().value());
       m->push_back(i);
       TEST_ASSERT_EQUAL(0, m->pop_front().value());
       m->push_front(0);
     });
-    m.clear();
-    TEST_ASSERT_TRUE(m.empty());
-    TEST_ASSERT_EQUAL(0, m.size());
+    m->clear();
+    TEST_ASSERT_TRUE(m->empty());
+    TEST_ASSERT_EQUAL(0, m->size());
     ////// test remove_if
-    populateMutex(&m, [](MutexDeque<int> *m, const int i) {
+    populateMutex(m, [](MutexDeque<int> *m, const int i) {
       m->push_back(i);
       TEST_ASSERT_EQUAL(i, m->pop_back().value());
       m->push_back(i);
       TEST_ASSERT_EQUAL(0, m->pop_front().value());
       m->push_front(0);
     });
-    m.remove_if([](const int i) { return i % 2 == 0; });
-    TEST_ASSERT_FALSE(m.empty());
-    TEST_ASSERT_EQUAL(50, m.size());
-    MutexDeque<int>* m_ptr = &m;
-    scheduler()->barrier("mutex filling",[m_ptr] { return m_ptr->size() == 50; });
-    usleep(1);
+    m->remove_if([](const int i) { return i % 2 == 0; });
+    TEST_ASSERT_FALSE(m->empty());
+    TEST_ASSERT_EQUAL(50, m->size());
+    scheduler()->barrier("mutex filling", [m] { return m->size() == 50; });
+    delete m;
   }
 
   void test_mutex_deque_concurrently() {
@@ -138,9 +138,9 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
-          FOS_RUN_TEST(test_mutex_deque_methods); //
-          FOS_RUN_TEST(test_mutex_deque_concurrently); //
-  );
+      FOS_RUN_TEST(test_mutex_deque_methods); //
+      FOS_RUN_TEST(test_mutex_deque_concurrently); //
+      );
 } // namespace fhatos
 
 SETUP_AND_LOOP()
