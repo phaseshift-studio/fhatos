@@ -38,16 +38,18 @@ namespace fhatos {
   using ReadRawResult = List<Pair<ID_p, Obj_p>>;
   using ReadRawResult_p = List_p<Pair<ID_p, Obj_p>>;
 
-  const Pattern_p LOCAL_FURI = p_p(REC_FURI->resolve("local"));
-  const Pattern_p NETWORK_FURI = p_p(REC_FURI->resolve("network"));
-  const Pattern_p EXTERNAL_FURI = p_p(REC_FURI->resolve("external"));
+  const Pattern_p HEAP_FURI = p_p(REC_FURI->resolve("heap"));
+  const Pattern_p COMPUTED_FURI = p_p(REC_FURI->resolve("computed"));
+  const Pattern_p MQTT_FURI = p_p(REC_FURI->resolve("mqtt"));
+  const Pattern_p DISK_FURI = p_p(REC_FURI->resolve("disk"));
+  const Pattern_p BLE_FURI = p_p(REC_FURI->resolve("ble"));
 
   class Router;
 
-  enum class SType { EPHEMERAL, LOCAL, NETWORK };
+  enum class SType { COMPUTED, HEAP, MQTT, DISK, BLE };
 
   static const Enums<SType> StructureTypes =
-      Enums<SType>({{SType::EPHEMERAL, "ephemeral"}, {SType::LOCAL, "local"}, {SType::NETWORK, "network"}});
+      Enums<SType>({{SType::COMPUTED, "computed"}, {SType::HEAP, "heap"}, {SType::MQTT, "mqtt"}, {SType::DISK, "disk"}, {SType::BLE,"ble"}});
 
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////

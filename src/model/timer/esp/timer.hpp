@@ -22,13 +22,13 @@
 
 #include <fhatos.hpp>
 #include <language/processor/processor.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 
 #define NUM_TIMERS 4
 
 namespace fhatos {
 
-  class Timer : public External {
+  class Timer : public Computed {
 
     hw_timer_t *TIMER_0 = nullptr;
     hw_timer_t *TIMER_1 = nullptr;
@@ -53,7 +53,7 @@ namespace fhatos {
 
     Map_p<uint8_t, BCode_p> interrupts_;
     explicit Timer(const Pattern &pattern = "/soc/timer/#") :
-        External(pattern), interrupts_(make_shared<Map<uint8_t, BCode_p>>()) {
+        Computed(pattern), interrupts_(make_shared<Map<uint8_t, BCode_p>>()) {
       this->read_functions_->insert(
           {furi_p(this->pattern_->resolve("./+")), [this](const fURI_p timer_furi) -> ReadRawResult_p {
              ReadRawResult_p list = make_shared<ReadRawResult>();

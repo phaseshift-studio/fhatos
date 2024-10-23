@@ -32,6 +32,7 @@
 #include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
+#include <structure/stype/heap.hpp>
 #include <structure/stype/redirect.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/soc/pin_driver.hpp>
@@ -39,6 +40,7 @@
 #include <model/soc/gpio.hpp>
 #include <model/soc/pwm.hpp>
 #include <model/soc/interrupt.hpp>
+#include <model/i2c.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
@@ -86,14 +88,14 @@ namespace fhatos {
         return kp->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
             ->using_router(Router::singleton("/sys/router/#"))
             ////////////////////////////////////////////////////////////
-            ->structure(KeyValue::create("+/#"))
+            ->structure(Heap::create("+/#"))
             //
-            ->structure(KeyValue::create("/type/#"))
+            ->structure(Heap::create("/type/#"))
             ->process(Types::singleton("/type/"))
             //
             ->structure(Terminal::singleton("/terminal/#"))
             //
-            ->structure(KeyValue::create("/parser/#"))
+            ->structure(Heap::create("/parser/#"))
             ->process(Parser::singleton("/parser/"))
             //
             ->model({ID("/model/sys")})
@@ -126,7 +128,7 @@ namespace fhatos {
 #endif
 
             ->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
-            ->structure(KeyValue::create("/console/#"))
+            ->structure(Heap::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
                                       Console::Settings(args_parser->option("--nest", "false") == "true",
                                                         args_parser->option("--ansi", "true") == "true",

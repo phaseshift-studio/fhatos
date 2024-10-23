@@ -17,25 +17,25 @@
  ******************************************************************************/
 
 #pragma once
-#ifndef fhatos_key_value_hpp
-#define fhatos_key_value_hpp
+#ifndef fhatos_heaped_hpp
+#define fhatos_heaped_hpp
 
 #include "fhatos.hpp"
 #include "language/obj.hpp"
 #include "structure/structure.hpp"
 
 namespace fhatos {
-  class KeyValue : public Structure {
+  class Heap : public Structure {
   protected:
     Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
     MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
 
-    explicit KeyValue(const Pattern &pattern, const SType stype = SType::LOCAL) : Structure(pattern, stype) {
+    explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) : Structure(pattern, stype) {
     }
 
   public:
-    static ptr<KeyValue> create(const Pattern &pattern) {
-      auto kv_p = ptr<KeyValue>(new KeyValue(pattern));
+    static ptr<Heap> create(const Pattern &pattern) {
+      auto kv_p = ptr<Heap>(new Heap(pattern));
       return kv_p;
     }
 

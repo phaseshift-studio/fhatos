@@ -23,17 +23,17 @@
 #include <fhatos.hpp>
 #include <language/parser.hpp>
 #include <language/types.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 
 namespace fhatos {
 
   // static constexpr char *MEMORY_REC_STRING = "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
   // static constexpr char *MEMORY_REC_STRING_2 = "[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
 
-  class Memory : public External {
+  class Memory : public Computed {
 
   protected:
-    explicit Memory(const Pattern &pattern) : External(pattern) {
+    explicit Memory(const Pattern &pattern) : Computed(pattern) {
       const Obj_p percent_type_def = bcode({Insts::is(
           Insts::x_and(Insts::gte(real(0.0)), Insts::lte(real(100.0))))}); // parse("is(and(gte(0.0),lte(100.0)))"); //
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);

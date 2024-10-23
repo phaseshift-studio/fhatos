@@ -27,7 +27,7 @@
 #include <util/options.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/insts.hpp>
-#include <structure/stype/key_value.hpp>
+#include <structure/stype/heap.hpp>
 
 namespace fhatos {
   //template<class P, class S, class Process, class Structure>
@@ -84,7 +84,7 @@ namespace fhatos {
       STRUCTURE::setup();
       PROCESS::setup();
       if (!this->id_->matches(*this->pattern())) {
-        const ptr<KeyValue> id_struct = KeyValue::create(*this->id());
+        const ptr<Heap> id_struct = Heap::create(*this->id());
         router()->attach(id_struct);
         id_struct->setup();
       }

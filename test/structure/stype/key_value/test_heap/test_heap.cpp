@@ -16,15 +16,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_test_key_value_cpp
-#define fhatos_test_key_value_cpp
+#ifndef fhatos_test_heap_cpp
+#define fhatos_test_heap_cpp
 
 #include "../../../test_base_structure.hpp"
-#include <structure/stype/key_value.hpp>
+#include <structure/stype/heap.hpp>
 
 namespace fhatos {
   FOS_RUN_TESTS( //
-    begin_test_structure(KeyValue::create("/test/#")); //
+    begin_test_structure(Heap::create("/test/#")); //
     FOS_RUN_TEST(test_subscribe); //
     //FOS_RUN_TEST(test_data_types); //
     FOS_RUN_TEST(test_write); //

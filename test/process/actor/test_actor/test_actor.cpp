@@ -36,8 +36,8 @@ namespace fhatos {
   void test_actor_throughput() {
     auto counter1 = new std::atomic<int>(0);
     auto counter2 = new std::atomic<int>(0);
-    auto actor1 = std::make_shared<Actor<Thread, KeyValue>>(ID("/app/actor1@127.0.0.1"));
-    auto actor2 = std::make_shared<Actor<Thread, KeyValue>>(ID("/app/actor2@127.0.0.1"));
+    auto actor1 = std::make_shared<Actor<Thread, Heap>>(ID("/app/actor1@127.0.0.1"));
+    auto actor2 = std::make_shared<Actor<Thread, Heap>>(ID("/app/actor2@127.0.0.1"));
     router()->attach(actor1);
     scheduler()->spawn(actor1);
     router()->attach(actor2);
@@ -70,8 +70,8 @@ namespace fhatos {
   void test_actor_by_router() {
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto actor1 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor1@127.0.0.1");
-    auto actor2 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor2@127.0.0.1");
+    auto actor1 = std::make_shared<Actor<Thread, Heap>>("/app/actor1@127.0.0.1");
+    auto actor2 = std::make_shared<Actor<Thread, Heap>>("/app/actor2@127.0.0.1");
     router()->attach(actor1);
     scheduler()->spawn(actor1);
     router()->attach(actor2);
@@ -129,8 +129,8 @@ namespace fhatos {
   void test_message_retain() {
     auto *counter1 = new std::atomic<int>(0);
     auto *counter2 = new std::atomic<int>(0);
-    auto actor1 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor1@127.0.0.1");
-    auto actor2 = std::make_shared<Actor<Thread, KeyValue>>("/app/actor2@127.0.0.1");
+    auto actor1 = std::make_shared<Actor<Thread, Heap>>("/app/actor1@127.0.0.1");
+    auto actor2 = std::make_shared<Actor<Thread, Heap>>("/app/actor2@127.0.0.1");
     router()->attach(actor1);
     scheduler()->spawn(actor1);
     router()->attach(actor2);

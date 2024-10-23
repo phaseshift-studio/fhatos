@@ -22,8 +22,8 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <structure/router.hpp>
-#include <structure/stype/external.hpp>
-#include <structure/stype/key_value.hpp>
+#include <structure/stype/computed.hpp>
+#include <structure/stype/heap.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
 #include "router.hpp"
@@ -77,29 +77,29 @@ namespace fhatos {
     }
   };
 
-  class LocalObj : public StructureObj<KeyValue> {
+  class HeapObj : public StructureObj<Heap> {
   public:
-    explicit LocalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
+    explicit HeapObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
-  class NetworkObj : public StructureObj<Mqtt> {
+  class MqttObj : public StructureObj<Mqtt> {
   public:
-    explicit NetworkObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
+    explicit MqttObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
-  class ExternalObj : public StructureObj<External> {
+  class ComputedObj : public StructureObj<Computed> {
   public:
-    explicit ExternalObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
+    explicit ComputedObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
   inline void load_structure_attacher() {
     STRUCTURE_ATTACHER = [](const Pattern &structure_pattern, const Obj_p &structure_rec) {
-      if (LOCAL_FURI->equals(*structure_rec->type()))
-        router()->attach(std::make_shared<LocalObj>(structure_pattern, structure_rec));
-      else if (NETWORK_FURI->equals(*structure_rec->type()))
-        router()->attach(std::make_shared<NetworkObj>(structure_pattern, structure_rec));
-      else if (EXTERNAL_FURI->equals(*structure_rec->type()))
-        router()->attach(std::make_shared<ExternalObj>(structure_pattern, structure_rec));
+      if (HEAP_FURI->equals(*structure_rec->type()))
+        router()->attach(std::make_shared<HeapObj>(structure_pattern, structure_rec));
+      else if (MQTT_FURI->equals(*structure_rec->type()))
+        router()->attach(std::make_shared<MqttObj>(structure_pattern, structure_rec));
+      else if (COMPUTED_FURI->equals(*structure_rec->type()))
+        router()->attach(std::make_shared<ComputedObj>(structure_pattern, structure_rec));
       else
         throw fError("Unknown structure type: %s", structure_rec->type()->toString().c_str());
     };

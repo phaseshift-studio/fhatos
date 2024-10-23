@@ -21,14 +21,14 @@ FhatOS: A Distributed Operating System
 #define fhatos_led_hpp
 
 #include <fhatos.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 
 namespace fhatos {
-  class Led : public External {
+  class Led : public Computed {
   protected:
     Pattern_p pwm_pattern_;
 
-    explicit Led(const Pattern &pattern = "/ui/led/#", const Pattern &pwm_pattern = "/soc/pwm/#") : External(pattern),
+    explicit Led(const Pattern &pattern = "/ui/led/#", const Pattern &pwm_pattern = "/soc/pwm/#") : Computed(pattern),
       pwm_pattern_(p_p(pwm_pattern)) {
       this->read_functions_->insert({p_p("/ui/led/+"), [this](const fURI_p &furi) -> ReadRawResult_p {
         return make_shared<ReadRawResult>(ReadRawResult{

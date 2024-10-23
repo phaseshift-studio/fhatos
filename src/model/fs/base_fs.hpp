@@ -23,7 +23,7 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <process/actor/actor.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 #include FOS_PROCESS(coroutine.hpp)
 #include <language/types.hpp>
 
@@ -40,14 +40,14 @@ namespace fhatos {
   static const ID_p INST_FS_FURI = id_p(FOS_TYPE_PREFIX "inst/fs:");
   static const ID_p INST_ROOT_FURI = id_p(INST_FS_FURI->resolve("root"));
 
-  class BaseFileSystem : public External {
+  class BaseFileSystem : public Computed {
   protected:
     const ID_p mount_root_;
     const ID clean_root_;
 
   public:
     // Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>
-    explicit BaseFileSystem(const Pattern &root, const ID &mount_root) : External(root),
+    explicit BaseFileSystem(const Pattern &root, const ID &mount_root) : Computed(root),
                                                                          mount_root_(id_p(mount_root.extend("/"))),
                                                                          clean_root_(root.retract_pattern()) {
     }
@@ -123,7 +123,7 @@ namespace fhatos {
                                       IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));
       Types::singleton()->progress_bar_->end("!bfile system !ytypes!! loaded\n");
       Types::singleton()->progress_bar_ = nullptr;
-      External::setup();
+      Computed::setup();
     }
 
     virtual File_p to_file(const ID &path) const {

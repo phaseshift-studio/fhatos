@@ -21,20 +21,19 @@
 #define fhatos_pin_hpp
 
 #include <fhatos.hpp>
-#include <language/processor/processor.hpp>
 #include <model/soc/pin_driver.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 
 #define FOS_NUM_DIGITAL_PINS 40
 
 namespace fhatos {
   template<typename PIN_DRIVER>
-  class Pin : public External {
+  class Pin : public Computed {
   protected:
     ptr<PIN_DRIVER> driver_;
     explicit Pin(const Pattern &pattern, const Function<uint8_t, Obj_p> &readFunc,
                  const BiConsumer<uint8_t, Obj_p> &writeFunc, ptr<PIN_DRIVER> driver) :
-        External(pattern),
+        Computed(pattern),
         driver_(driver) {
       this->read_functions_->insert(
           {//////////////////

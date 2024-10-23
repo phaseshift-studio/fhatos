@@ -25,14 +25,14 @@
 #include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
-  class Redirect : public KeyValue {
+  class Redirect : public Heap {
   public:
     Pair<Pattern_p, Pattern_p> read_mapping_;
     Pair<Pattern_p, Pattern_p> write_mapping_;
 
     explicit Redirect(const Pattern &pattern,
                       const Pair<Pattern_p, Pattern_p> &read_mapping,
-                      const Pair<Pattern_p, Pattern_p> &write_mapping) : KeyValue(pattern), read_mapping_(read_mapping),
+                      const Pair<Pattern_p, Pattern_p> &write_mapping) : Heap(pattern), read_mapping_(read_mapping),
                                                                          write_mapping_(write_mapping) {
     }
 
@@ -44,7 +44,7 @@ namespace fhatos {
     }
 
     void setup() override {
-      KeyValue::setup();
+      Heap::setup();
       //   //remote/soc/gpio/#    /
       this->write(id_p(this->pattern()->resolve("./0")),
                   Obj::to_lst({vri(this->read_mapping_.first), vri(this->read_mapping_.second)}),RETAIN_MESSAGE);

@@ -23,11 +23,12 @@
 #include <fhatos.hpp>
 #include <iostream>
 #include <process/actor/actor.hpp>
+#include <structure/stype/heap.hpp>
 
 namespace fhatos {
-  class Terminal final : public KeyValue {
+  class Terminal final : public Heap {
   protected:
-    explicit Terminal(const Pattern &id = "/io/terminal/") : KeyValue(id) {
+    explicit Terminal(const Pattern &id = "/io/terminal/") : Heap(id) {
     }
 
   public:
@@ -37,8 +38,8 @@ namespace fhatos {
     }
 
     void setup() override {
-      KeyValue::setup();
-      KeyValue::write(p_p(this->pattern()->resolve("./:owner")), vri("none"), true);
+      Heap::setup();
+      Heap::write(p_p(this->pattern()->resolve("./:owner")), vri("none"), true);
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain) override {
@@ -51,7 +52,7 @@ namespace fhatos {
                                                       printer<>()->print(message->payload->str_value().c_str());
                                                     })));
       }
-      KeyValue::write(furi, obj, retain);
+      Heap::write(furi, obj, retain);
     }
 
     static int readChar() {

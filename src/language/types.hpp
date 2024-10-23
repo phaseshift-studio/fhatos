@@ -24,7 +24,6 @@
 #include <language/obj.hpp>
 #include <process/obj_process.hpp>
 #include <structure/router.hpp>
-#include <structure/stype/key_value.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 75

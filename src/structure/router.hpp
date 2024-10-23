@@ -47,27 +47,27 @@ namespace fhatos {
     }
 
     void stop() {
-      auto *ephemeral_count = new atomic_int(0);
-      auto *local_count = new atomic_int(0);
-      auto *network_count = new atomic_int(0);
-      this->structures_.forEach([ephemeral_count,local_count,network_count](const Structure_p &structure) {
+      auto *computed_count = new atomic_int(0);
+      auto *heap_count = new atomic_int(0);
+      auto *mqtt_count = new atomic_int(0);
+      this->structures_.forEach([computed_count,heap_count,mqtt_count](const Structure_p &structure) {
         switch (structure->stype) {
-          case SType::EPHEMERAL:
-            ephemeral_count->fetch_add(1);
+          case SType::COMPUTED:
+            computed_count->fetch_add(1);
             break;
-          case SType::LOCAL:
-            local_count->fetch_add(1);
+          case SType::HEAP:
+            heap_count->fetch_add(1);
             break;
-          case SType::NETWORK:
-            network_count->fetch_add(1);
+          case SType::MQTT:
+            mqtt_count->fetch_add(1);
             break;
         }
       });
-      LOG_ROUTER(INFO, "!yStopping!g %i !yephemeral!! | !g%i !yram!! | !g%i !ynetwork!!\n", ephemeral_count->load(),
-                 local_count->load(), network_count->load());
-      delete ephemeral_count;
-      delete local_count;
-      delete network_count;
+      LOG_ROUTER(INFO, "!yStopping!g %i !yephemeral!! | !g%i !yram!! | !g%i !ynetwork!!\n", computed_count->load(),
+                 heap_count->load(), mqtt_count->load());
+      delete computed_count;
+      delete heap_count;
+      delete mqtt_count;
       this->detach(p_p("#"));
       LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->pattern()->toString().c_str());
     }
@@ -194,8 +194,8 @@ namespace fhatos {
           return true;
         }
         if (payload->is_rec() &&
-            (payload->type()->matches(LOCAL_FURI->extend("#")) || payload->type()->matches(NETWORK_FURI->extend("#")) ||
-             payload->type()->matches(EXTERNAL_FURI->extend("#")))) {
+            (payload->type()->matches(HEAP_FURI->extend("#")) || payload->type()->matches(MQTT_FURI->extend("#")) ||
+             payload->type()->matches(COMPUTED_FURI->extend("#")))) {
           LOG_ROUTER(DEBUG, "intercepting retained %s\n", payload->toString().c_str());
           STRUCTURE_ATTACHER(furi, payload);
           return true;

@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_external_hpp
-#define fhatos_external_hpp
+#ifndef fhatos_computed_hpp
+#define fhatos_computed_hpp
 
 #include <fhatos.hpp>
 #include <furi.hpp>
@@ -25,17 +25,17 @@ FhatOS: A Distributed Operating System
 #include <structure/structure.hpp>
 
 namespace fhatos {
-  class External : public Structure {
+  class Computed : public Structure {
   protected:
     //<query, function<query, <id,result>>
     Map_p<fURI_p, Function<fURI_p, ReadRawResult_p>, furi_p_less> read_functions_;
     Map_p<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
 
-    explicit External(
+    explicit Computed(
         const Pattern &pattern,
         const Map<fURI_p, Function<fURI_p, ReadRawResult_p>, furi_p_less> &read_map = {},
         const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map = {}) :
-        Structure(pattern, SType::EPHEMERAL),
+        Structure(pattern, SType::COMPUTED),
         read_functions_(make_shared<Map<fURI_p, Function<fURI_p, List_p<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
         write_functions_(make_shared<Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(write_map)) {}
 

@@ -22,7 +22,7 @@
 #define fhatos_wifi_hpp
 
 #include <fhatos.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
@@ -40,7 +40,7 @@
 
 namespace fhatos {
 
-  class Wifi : public External {
+  class Wifi : public Computed {
 
   public:
     struct Settings {
@@ -73,7 +73,7 @@ namespace fhatos {
 
   protected:
     explicit Wifi(const Pattern &pattern = "/soc/wifi/+", const Settings &settings = DEFAULT_SETTINGS) :
-        External(pattern), settings_(settings) {
+        Computed(pattern), settings_(settings) {
       if (settings_.connected)
         this->connect_to_wifi_station();
       // TODO: flash/partition/0x44343
@@ -87,7 +87,7 @@ namespace fhatos {
 
    // virtual List<ID_p> existing_ids(const fURI &match) override { return WIFI_IDS; }
     virtual void setup() override {
-      External::setup();
+      Computed::setup();
       this->read_functions_->insert({this->pattern(), [this](const fURI_p furi) {
                                       ReadRawResult_p map = make_shared<ReadRawResult>();
                                       ID_p current;
@@ -129,7 +129,7 @@ namespace fhatos {
     }
 
     void stop() override {
-      External::stop();
+      Computed::stop();
       WiFi.disconnect();
     }
 

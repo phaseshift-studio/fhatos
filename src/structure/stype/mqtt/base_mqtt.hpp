@@ -59,7 +59,7 @@ namespace fhatos {
 
     // +[scheme]//+[authority]/#[path]
     explicit BaseMqtt(const Pattern &pattern, const Settings &settings) :
-        Structure(pattern, SType::NETWORK), settings_(settings) {}
+        Structure(pattern, SType::MQTT), settings_(settings) {}
 
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
 

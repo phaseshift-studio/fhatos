@@ -26,7 +26,7 @@
 
 #include <fhatos.hpp>
 #include <language/processor/processor.hpp>
-#include <structure/stype/external.hpp>
+#include <structure/stype/computed.hpp>
 
 // Check if Bluetooth is available
 #if !defined(CONFIG_BT_ENABLED)
@@ -40,14 +40,14 @@ namespace fhatos {
 
 #define BT_DISCOVER_TIME 10000
 
-  class BLE : public External {
+  class BLE : public Computed {
   protected:
     BLEServer *server_{};
     BLEService *service_{};
-    explicit BLE(const Pattern &pattern = "/io/ble/#") : External(pattern) {}
+    explicit BLE(const Pattern &pattern = "/io/ble/#") : Computed(pattern) {}
 
     void setup() override {
-      External::setup();
+      Computed::setup();
       BLEDevice::init(this->pattern_->toString().c_str());
       const BLEUUID service_uuid =
           BLEUUID::fromString(StringHelper::format("0x%s", this->pattern_->toString().c_str()));
@@ -89,7 +89,7 @@ namespace fhatos {
     }
 
     void stop() override {
-      External::stop();
+      Computed::stop();
       this->service_->stop();
       this->server_->disconnect(this->server_->getConnId());
     }

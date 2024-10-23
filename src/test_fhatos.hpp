@@ -56,7 +56,7 @@
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
 #define FOS_DEPLOY_PARSER_2  \
-  router()->attach(KeyValue::create(Pattern("/parser/#"))); \
+  router()->attach(Heap::create(Pattern("/parser/#"))); \
   scheduler()->spawn(Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
@@ -64,15 +64,15 @@
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
 #define FOS_DEPLOY_TYPES_2 \
-  router()->attach(KeyValue::create(Pattern("/type/#"))); \
+  router()->attach(Heap::create(Pattern("/type/#"))); \
   scheduler()->spawn(Types::singleton());
 #else
 #define FOS_DEPLOY_TYPES_2 ;
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
-#include <structure/stype/key_value.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
-  router()->attach(KeyValue::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  router()->attach(Heap::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
   "+" : \
   STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
