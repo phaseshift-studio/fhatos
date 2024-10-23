@@ -41,7 +41,7 @@ namespace fhatos {
            //// READ PIN ////
            //////////////////
            {furi_p(pattern.resolve("./+")), [this, readFunc](const fURI_p &pin_furi) {
-              ReadRawResult_p list = make_shared<ReadRawResult>();
+              const auto list = make_shared<ReadRawResult>();
               if (StringHelper::is_integer(pin_furi->name())) {
                 const uint8_t i = stoi(pin_furi->name());
                 const Obj_p r = readFunc(i);

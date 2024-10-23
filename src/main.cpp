@@ -26,7 +26,7 @@ ArgvParser *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-void setup() { BootLoader::primary_boot(args_parser)->done("kernel_barrier"); }
+void setup() { BootLoader::primary_boot(args_parser)->done("main"); }
 
 void loop() {
   // do nothing -- all looping handled by FhatOS scheduler

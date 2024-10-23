@@ -25,65 +25,82 @@
 #include <language/types.hpp>
 #include <structure/stype/external.hpp>
 
-#define MEMORY_REC_STRING "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]"
-
 namespace fhatos {
+
+  // static constexpr char *MEMORY_REC_STRING = "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
+  // static constexpr char *MEMORY_REC_STRING_2 = "[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]";
 
   class Memory : public External {
 
   protected:
-    explicit Memory(const Pattern &pattern = Pattern("/soc/memory/#")) : External(pattern) {
-      const Obj_p percent_type_def = parse("is(and(gte(0.0),lte(100.0)))");
+    explicit Memory(const Pattern &pattern) : External(pattern) {
+      const Obj_p percent_type_def = bcode({Insts::is(
+          Insts::x_and(Insts::gte(real(0.0)), Insts::lte(real(100.0))))}); // parse("is(and(gte(0.0),lte(100.0)))"); //
       Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
+      const ID_p inst = id_p(this->pattern_->resolve("./inst"));
+      const ID_p heap = id_p(this->pattern_->resolve("./heap"));
+      const ID_p psram = id_p(this->pattern_->resolve("./psram"));
+      const ID_p hwm = id_p(this->pattern_->resolve("./hwm"));
+      const ID_p percent = id_p(FOS_TYPE_PREFIX "real/%");
+      ///////
       this->read_functions_->insert(
-          {id_p(this->pattern_->resolve("./inst")), [this](const fURI_p &) {
-             return List<Pair<ID_p, Obj_p>>(
-                 {{id_p(this->pattern_->resolve("./inst")),
-                   parse(StringHelper::format(
-                       MEMORY_REC_STRING, ESP.getSketchSize() + ESP.getFreeSketchSpace(), ESP.getFreeSketchSpace(),
-                       ESP.getSketchSize() == 0
-                           ? 0.0f
-                           : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
-                                                ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace())))))))}});
+          {inst, [this, inst, percent](const fURI_p &) {
+             const Rec_p r =
+                 rec({{vri("total"), jnt(ESP.getSketchSize() + ESP.getFreeSketchSpace())},
+                      {vri("free"), jnt(ESP.getFreeSketchSpace())},
+                      {vri("used"),
+                       real(ESP.getSketchSize() == 0
+                                ? 0.0f
+                                : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
+                                                     ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))),
+                            percent)}});
+             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, r}}));
            }});
       this->read_functions_->insert(
-          {id_p(this->pattern_->resolve("./heap")), [this](const fURI_p &) {
-             const float used = (float) ESP.getHeapSize() == 0
-                                    ? 0.0f
-                                    : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize()))));
-             return List<Pair<ID_p, Obj_p>>(
-                 {{id_p(this->pattern_->resolve("./heap")),
-                   parse(StringHelper::format(MEMORY_REC_STRING, ESP.getHeapSize(), ESP.getFreeHeap(), used))}});
+          {heap, [this, heap, percent](const fURI_p &) {
+             const Rec_p r =
+                 rec({{vri("total"), jnt(ESP.getHeapSize())},
+                      {vri("free"), jnt(ESP.getFreeHeap())},
+                      {vri("used"),
+                       real((float) ESP.getHeapSize() == 0
+                                ? 0.0f
+                                : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))),
+                            percent)}});
+             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
            }});
       this->read_functions_->insert(
-          {{id_p(this->pattern_->resolve("./psram")), [this](const fURI_p &) {
-              const float used =
-                  (float) ESP.getPsramSize() == 0
-                      ? 0.0f
-                      : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize()))));
-              return List<Pair<ID_p, Obj_p>>(
-                  {{id_p(this->pattern_->resolve("./psram")),
-                    parse(StringHelper::format(MEMORY_REC_STRING, ESP.getPsramSize(), ESP.getFreePsram(), used))}});
-            }}});
+          {psram, [this, psram, percent](const fURI_p &) {
+             const Rec_p r =
+                 rec({{vri("total"), jnt(ESP.getPsramSize())},
+                      {vri("free"), jnt(ESP.getFreePsram())},
+                      {vri("used"),
+                       real((float) ESP.getPsramSize() == 0
+                                ? 0.0f
+                                : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))),
+                            percent)}});
+             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
+           }});
+
       this->read_functions_->insert(
-          {{id_p(this->pattern_->resolve("./hwm")), [this](const fURI_p &) {
-              const uint16_t free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
-              const float used = FOS_ESP_THREAD_STACK_SIZE == 0
-                                     ? 0.0f
-                                     : (100.0f * (1.0f - ((float) free) / ((float) FOS_ESP_THREAD_STACK_SIZE)));
-              return List<Pair<ID_p, Obj_p>>(
-                  {{id_p(this->pattern_->resolve("./hwm")),
-                    parse(StringHelper::format("[total=>%i,min_free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]",
-                                               FOS_ESP_THREAD_STACK_SIZE, free, used))}});
-            }}});
+          {hwm, [this, hwm, percent](const fURI_p &) {
+             const int free = FOS_ESP_THREAD_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr);
+             const Rec_p r =
+                 rec({{vri("total"), jnt(FOS_ESP_THREAD_STACK_SIZE)},
+                      {vri("min_free"), jnt(free)},
+                      {vri("used"), real(FOS_ESP_THREAD_STACK_SIZE == 0
+                                             ? 0.0f
+                                             : (100.0f * (1.0f - ((float) free) / ((float) FOS_ESP_THREAD_STACK_SIZE))),
+                                         percent)}});
+             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, r}}));
+           }});
     }
     // TODO: flash/partition/0x4434
 
 
   public:
-    static ptr<Memory> singleton(const Pattern &pattern = Pattern("/soc/memory/#")) {
-      static ptr<Memory> memory = ptr<Memory>(new Memory(pattern));
-      return memory;
+    static ptr<Memory> singleton(const Pattern &pattern) {
+      static ptr<Memory> mem_p = ptr<Memory>(new Memory(pattern));
+      return mem_p;
     }
   };
 } // namespace fhatos

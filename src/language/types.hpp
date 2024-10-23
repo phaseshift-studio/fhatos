@@ -138,7 +138,7 @@ namespace fhatos {
                        resolved_type_id->toString().c_str());
         const Obj_p type_def = router()->read(resolved_type_id);
         // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
-        const Obj_p proto_obj = is_base_type(resolved_type_id) || !type_def->is_bcode() ? obj : type_def->apply(obj);
+        const Obj_p proto_obj = is_base_type(resolved_type_id) || (!type_def->is_bcode() && !type_def->is_inst()) ? obj : type_def->apply(obj);
         if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());

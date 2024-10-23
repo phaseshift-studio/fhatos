@@ -677,7 +677,7 @@ namespace fhatos {
         IType::MANY_TO_MANY, Obj::objs_seed());
     }
 
-    static Bool_p x_or(const Bool_p &a, const Bool_p &b, const Bool_p &c, const Bool_p &d) {
+    static Bool_p x_or(const Bool_p &a, const Bool_p &b, const Bool_p &c = noobj(), const Bool_p &d = noobj()) {
       return Obj::to_inst(
         "or", {a, b, c, d},
         [](const InstArgs &args) {
@@ -693,7 +693,7 @@ namespace fhatos {
         IType::ONE_TO_ONE);
     }
 
-    static Bool_p x_and(const Bool_p &a, const Bool_p &b, const Bool_p &c, const Bool_p &d) {
+    static Bool_p x_and(const Bool_p &a, const Bool_p &b, const Bool_p &c = noobj(), const Bool_p &d = noobj()) {
       return Obj::to_inst(
         "and", {a, b, c, d},
         [](const InstArgs &args) {
@@ -915,7 +915,7 @@ namespace fhatos {
 
     static const List<Obj_p> &arg_check(const ID_p &inst, const List<Obj_p> &args, const uint8_t expected_size) {
       if (args.size() != expected_size)
-        throw fError("Incorrect number of arguments provided to %s: %i != %i", inst->toString().c_str(), args.size(),
+        throw fError("incorrect number of arguments provided to %s: %i != %i", inst->toString().c_str(), args.size(),
                      expected_size);
       return args;
     }
@@ -965,7 +965,7 @@ namespace fhatos {
       const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
       const Obj_p base_inst = router()->read(type_id_resolved);
       if (base_inst->is_noobj())
-        throw fError("Unknown instruction: %s", type_id_resolved->toString().c_str());
+        throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
       LOG(TRACE, "Located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
           base_inst->toString().c_str(), base_inst->type()->toString().c_str());
       if (base_inst->is_inst())
@@ -984,8 +984,7 @@ namespace fhatos {
           id_p(type_id));
       }
       //return replace_from_obj(args, base_inst);
-      throw fError("!b%s!! does not resolve to an inst or bytecode: %s\n", type_id_resolved->toString().c_str(),
-                   base_inst->toString().c_str());
+      throw fError("!b%s!! does not resolve to inst or bcode", type_id_resolved->toString().c_str());
     }
 
   private:

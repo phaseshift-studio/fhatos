@@ -67,16 +67,57 @@ namespace fhatos {
     static ptr<Kernel> displaying_architecture() {
       string arch = "<undefined>";
 #ifdef ESP32
-       arch = "ESP32";
+      arch = "ESP32";
 #elif defined(ESP8266)
       arch = "ESP8266";
 #elif defined(LINUX)
-     arch = "Linux";
+      arch = "Linux";
 #elif defined(APPLE)
-     arch = "MacOSX";
+      arch = "MacOSX";
 #endif
       printer<>()->printf("                                       "
-                          "!bRunning on !y%s!!\n", arch.c_str());
+                          "!brunning on !y%s!!\n",
+                          arch.c_str());
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> displaying_history() {
+#ifdef ESP_ARCH
+      esp_reset_reason_t reason = esp_reset_reason();
+      string r;
+      switch (reason) {
+        case ESP_RST_UNKNOWN:
+          r = "unknown";
+          break;
+        case ESP_RST_POWERON:
+          r = "powered up";
+          break;
+        case ESP_RST_EXT:
+          r = "hardware reset";
+          break;
+        case ESP_RST_SW:
+          r = "software reset";
+          break;
+        case ESP_RST_PANIC:
+          r = "exception/panic";
+          break;
+        case ESP_RST_INT_WDT:
+          r = "interrupt watchdog";
+          break;
+        case ESP_RST_TASK_WDT:
+          r = "task watchdog";
+          break;
+        case ESP_RST_BROWNOUT:
+          r = "power brownout";
+          break;
+        default:
+          to_string(reason) + " code";
+          break;
+      }
+      printer<>()->printf("                                       "
+                          "!breset reason: !y%s!!\n",
+                          r.c_str());
+#endif
       return Kernel::build();
     }
 
@@ -107,7 +148,7 @@ namespace fhatos {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-     // load_process(process);
+      // load_process(process);
       scheduler()->spawn(process);
       return Kernel::build();
     }
@@ -126,10 +167,15 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static void done(const char *barrier = "kernel_barrier", Supplier<bool> ret = nullptr) {
+    static void done(const char *barrier, Supplier<bool> ret = nullptr) {
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
+      Scheduler::singleton()->stop();
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
+#ifdef ESP_ARCH
+      esp_restart();
+#else
       exit(EXIT_SUCCESS);
+#endif
     }
   };
 } // namespace fhatos

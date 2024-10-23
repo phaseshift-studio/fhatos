@@ -36,15 +36,16 @@
 ///////////// COMMON MODELS /////////////
 #include <model/soc/pin_driver.hpp>
 #include <model/led/led.hpp>
-#include <model/soc/esp/gpio.hpp>
-#include <model/soc/esp/pwm.hpp>
+#include <model/soc/gpio.hpp>
+#include <model/soc/pwm.hpp>
+#include <model/soc/interrupt.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
-//#include <model/soc/memory/esp32/memory.hpp>
-//#include <model/soc/esp/interrupt.hpp>
+#include <model/soc/memory/esp32/memory.hpp>
 #include <model/soc/esp/wifi.hpp>
 #include <structure/stype/ble/esp/ble.hpp>
+#include <model/led/led_strip.hpp>
 #include FOS_TIMER(timer.hpp)
 #endif
 
@@ -77,6 +78,7 @@ namespace fhatos {
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
+              ->displaying_history()
               ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
               ->displaying_notes("Use !b:help!! for !yconsole commands!!");
         }
@@ -99,28 +101,31 @@ namespace fhatos {
 #ifdef ESP_ARCH
             ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
                                    args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
+
 #endif
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
             ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
 #ifdef NATIVE
-            ->structure(GPIO<NativePinDriver>::create("/soc/gpio/#",
-                                                      NativePinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
-            ->structure(PWM<NativePinDriver>::create(Pattern("/soc/pwm/#"),
-                                                     NativePinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(GPIO<fURIPinDriver>::create("/soc/gpio/#",
+                                                    fURIPinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(PWM<fURIPinDriver>::create(Pattern("/soc/pwm/#"),
+                                                   fURIPinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(Interrupt<fURIPinDriver>::singleton("/soc/interrupt/#",
+                                                            fURIPinDriver::create(
+                                                              "//remote/soc/gpio/#", "//remote/soc/pwm/#")))
 #elif defined(ESP_ARCH)
             ->structure(GPIO<ArduinoPinDriver>::create("/soc/gpio/#", ArduinoPinDriver::singleton()))
             ->structure(PWM<ArduinoPinDriver>::create("/soc/pwm/#", ArduinoPinDriver::singleton()))
-
+            ->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#",ArduinoPinDriver::singleton()))
             ->structure(Timer::singleton("/soc/timer/#"))
-            //->structure(Interrupt::singleton("/soc/interrupt/#"))
-            //->structure(Memory::singleton(Pattern("/soc/memory/#")))
+            ->structure(Memory::singleton("/soc/memory/#"))
             ->structure(BLE::create("/io/bt/#"))
             ->structure(Redirect::create(Pattern("/redirect/+"),
                              Pair<Pattern_p,Pattern_p>{p_p("//remote/soc/gpio/#"), p_p("/soc/gpio/#")},
                              Pair<Pattern_p,Pattern_p>{p_p("/soc/gpio/#"), p_p("//remote/soc/gpio/#")}))
 #endif
-            ->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
 
+            ->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
             ->structure(KeyValue::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
                                       Console::Settings(args_parser->option("--nest", "false") == "true",

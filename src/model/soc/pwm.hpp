@@ -21,7 +21,7 @@
 #define fhatos_pwm_hpp
 
 #include <fhatos.hpp>
-#include <model/soc/esp/pin.hpp>
+#include <model/soc/pin.hpp>
 
 #define FOS_PWM_ANALOG_RESOLUTION 4095
 

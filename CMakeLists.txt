@@ -15,7 +15,7 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
 ENDIF()
 IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE "DEBUG")
+    SET(CMAKE_BUILD_TYPE "Debug")
 ENDIF()
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -101,10 +101,21 @@ ELSE()
 ENDIF()
 ##################################
 
+IF(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    OPTION(USE_CONAN "Conan Package Manager" ON)
+    conan_basic_setup()
+ELSE()
+    OPTION(USE_CONAN "Conan Package Manager" OFF)
+    MESSAGE(WARNING "\n${.w}The file ${.y}conanbuildinfo.cmake${..} ${.w}doesn't exist${..}.\n\t\tRun ${.b}conan install${..}.")
+ENDIF()
+
 ######## PROJECT LIBRARY (NATIVE)
 OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF(BUILD_NATIVE)
-    SET(CMAKE_MACOSX_RPATH 1)
+    IF(APPLE)
+        SET(CMAKE_MACOSX_RPATH 1)
+    ENDIF()
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
@@ -132,7 +143,7 @@ IF(BUILD_NATIVE)
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     OPTION(SANITIZER "Address Sanitizer" OFF)
-    IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
+    IF(CMAKE_BUILD_TYPE MATCHES "Debug")
         IF(SANITIZER)
             MESSAGE(STATUS "${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
@@ -145,90 +156,93 @@ ENDIF()
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################
-
-####################################
-####################################
-### FTXUI: ANSI C++ TERMINAL UI
-IF(DO_NOT)
-MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
-SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-FETCHCONTENT_DECLARE(
-        ftxui
-        GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-        GIT_TAG v5.0.0
-)
-FETCHCONTENT_MAKEAVAILABLE(ftxui)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
-TARGET_LINK_LIBRARIES(fhatos
-        PRIVATE ftxui::screen
-        PRIVATE ftxui::dom
-        PRIVATE ftxui::component # Not needed for this example.
-)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF()
-####################################
-####################################
-### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
-FETCHCONTENT_DECLARE(
-        ordered_map
-        GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
-        GIT_TAG v1.1.0
-)
-FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ordered_map)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-####################################
-####################################
-### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
-#################################### C
-MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
-FETCHCONTENT_DECLARE(
-        paho-mqtt3c
-        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
-        GIT_TAG v1.3.13
-)
-FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-#################################### C++
-MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
-OPTION(PAHO_WITH_MQTT_C TRUE)
-FETCHCONTENT_DECLARE(
-        paho-mqttpp3
-        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
-        GIT_TAG v1.4.1
-)
-FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
-#INCLUDE(pahomqttcpp.cmake)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqttpp3)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-####################################
-####################################
-### MPC: MICRO PARSER COMBINATORS
-IF(DO_NOT)
-MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
-FETCHCONTENT_DECLARE(
-        mpc
-        GIT_REPOSITORY https://github.com/orangeduck/mpc.git
-        GIT_TAG 0.9.0
-)
-FETCHCONTENT_MAKEAVAILABLE(mpc)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+IF(USE_CONAN)
+    TARGET_LINK_LIBRARIES($executable_name ${CONAN_LIBS})
+ELSE()
+    ####################################
+    ####################################
+    ### FTXUI: ANSI C++ TERMINAL UI
+    IF(DO_NOT)
+        MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
+        SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+        FETCHCONTENT_DECLARE(
+                ftxui
+                GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+                GIT_TAG v5.0.0
+        )
+        FETCHCONTENT_MAKEAVAILABLE(ftxui)
+        TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
+        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
+        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
+        TARGET_LINK_LIBRARIES(fhatos
+                PRIVATE ftxui::screen
+                PRIVATE ftxui::dom
+                PRIVATE ftxui::component # Not needed for this example.
+        )
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ENDIF()
+    ####################################
+    ####################################
+    ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
+    MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+    FETCHCONTENT_DECLARE(
+            ordered_map
+            GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
+            GIT_TAG v1.1.0
+    )
+    FETCHCONTENT_MAKEAVAILABLE(ordered_map)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ordered_map)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ####################################
+    ####################################
+    ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
+    #################################### C
+    MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
+    FETCHCONTENT_DECLARE(
+            paho-mqtt3c
+            GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
+            GIT_TAG v1.3.13
+    )
+    FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    #################################### C++
+    MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
+    OPTION(PAHO_WITH_MQTT_C TRUE)
+    FETCHCONTENT_DECLARE(
+            paho-mqttpp3
+            GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
+            GIT_TAG v1.4.1
+    )
+    FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
+    #INCLUDE(pahomqttcpp.cmake)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqttpp3)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ####################################
+    ####################################
+    ### MPC: MICRO PARSER COMBINATORS
+    IF(DO_NOT)
+        MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
+        FETCHCONTENT_DECLARE(
+                mpc
+                GIT_REPOSITORY https://github.com/orangeduck/mpc.git
+                GIT_TAG 0.9.0
+        )
+        FETCHCONTENT_MAKEAVAILABLE(mpc)
+        TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
+        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
+        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
+        TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ENDIF()
 ENDIF()
 ####################################
 ############# TESTING ##############

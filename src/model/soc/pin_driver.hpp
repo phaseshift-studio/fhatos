@@ -38,17 +38,30 @@ namespace fhatos {
     virtual void analog_write(uint8_t pin, uint16_t value) = 0;
 
     virtual uint16_t analog_read(uint8_t pin) = 0;
+
+    virtual void set_interrupt(uint8_t pin, const ID_p &furi, const BCode_p &code) = 0;
   };
 
 
 #ifdef ESP_ARCH
 #define FOS_PWM_ANALOG_RESOLUTION 4095
+
+  static void ARDUINO_ISR_ATTR ISR_FUNCTION(void *arg) {
+    const fURI *code_furi = (fURI *) arg;
+    const BCode_p bcode = router()->read(id_p(*code_furi));
+    LOG(INFO, "%s interrupt triggered: %s\n", code_furi->toString().c_str(), bcode->toString().c_str());
+    if (bcode->is_noobj())
+      LOG(ERROR, "No interrupt code found for ISR_FUNCTION at %s", code_furi->toString().c_str());
+    else
+      Options::singleton()->processor<Obj, BCode, Obj>(noobj(), bcode);
+  };
+
   class ArduinoPinDriver : public PinDriver {
   protected:
     ArduinoPinDriver() : PinDriver() {}
 
   public:
-    bool is_digital_pin(const uint8_t pin) override { return digitalPinIsValid(pin); } 
+    bool is_digital_pin(const uint8_t pin) override { return digitalPinIsValid(pin); }
     // digitalPinCanOutput(pin)
 
     void digital_write(const uint8_t pin, const bool value) override {
@@ -57,36 +70,43 @@ namespace fhatos {
     }
 
     bool digital_read(const uint8_t pin) override {
-      //pinMode(pin, INPUT);
+      // pinMode(pin, INPUT);
       return digitalRead(pin) > 0;
     }
 
-    bool is_analog_pin(const uint8_t pin) override { return digitalPinHasPWM(pin) ; }
+    bool is_analog_pin(const uint8_t pin) override { return digitalPinHasPWM(pin); }
 
     void analog_write(const uint8_t pin, const uint16_t value) override { analogWrite(pin, value); }
 
     uint16_t analog_read(const uint8_t pin) override { return analogRead(pin); }
 
+    void set_interrupt(const uint8_t pin, const ID_p &furi, const BCode_p &code) override {
+      if (code->is_noobj())
+        detachInterrupt(pin);
+      else {
+        const fURI *f = new fURI(furi->toString().c_str());
+        attachInterruptArg(pin, ISR_FUNCTION, (void *) f, RISING);
+      }
+    }
+
     static ptr<ArduinoPinDriver> singleton() {
       static ptr<ArduinoPinDriver> driver = ptr<ArduinoPinDriver>(new ArduinoPinDriver());
       return driver;
-    
     }
   };
 #elif defined(NATIVE)
-  class NativePinDriver final : public PinDriver {
+  class fURIPinDriver final : public PinDriver {
   protected:
     Pattern gpio_pattern_;
     Pattern pwm_pattern_;
 
   protected:
-    NativePinDriver(const Pattern &gpio_pattern, const Pattern &pwm_pattern) : PinDriver(), gpio_pattern_(gpio_pattern),
-                                                                               pwm_pattern_(pwm_pattern) {
-    }
+    fURIPinDriver(const Pattern &gpio_pattern, const Pattern &pwm_pattern) :
+        PinDriver(), gpio_pattern_(gpio_pattern), pwm_pattern_(pwm_pattern) {}
 
   public:
-    static ptr<NativePinDriver> create(const Pattern &gpio_pattern, const Pattern &pwm_pattern) {
-      const auto driver = ptr<NativePinDriver>(new NativePinDriver(gpio_pattern, pwm_pattern));
+    static ptr<fURIPinDriver> create(const Pattern &gpio_pattern, const Pattern &pwm_pattern) {
+      const auto driver = ptr<fURIPinDriver>(new fURIPinDriver(gpio_pattern, pwm_pattern));
       return driver;
     }
 
@@ -111,6 +131,8 @@ namespace fhatos {
       const Int_p i = router()->read(furi_p(this->gpio_pattern_.resolve(string("./") + to_string(pin))));
       return !i->is_noobj() && i->int_value();
     }
+
+    void set_interrupt(const uint8_t pin, const ID_p &furi, const BCode_p &code) override {}
   };
 #endif
 } // namespace fhatos

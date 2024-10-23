@@ -1,0 +1,11 @@
+[requires]
+tsl-ordered-map/1.1.0
+paho-mqtt-cpp/1.4.0
+
+[tools]
+cmake/3.30.2
+
+[generators]
+CMakeDeps
+CMakeToolchain
+cmake

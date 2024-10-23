@@ -24,16 +24,15 @@
 #include <atomic>
 #include <furi.hpp>
 #include <process/process.hpp>
-#include <util/mutex_deque.hpp>
-#include <structure/router.hpp>
 #include <structure/pubsub.hpp>
+#include <structure/router.hpp>
+#include <util/mutex_deque.hpp>
 #include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \
-    LOG_SCHEDULER((success) ? INFO : ERROR, "!b%s!! !y%s!! %s\n",                                                      \
-                ProcessTypes.to_chars((process)->ptype).c_str(),                                                       \
-                (success) ? "spawned" : "!r!_not spawned!!");                                                          \
+    LOG_SCHEDULER((success) ? INFO : ERROR, "!b%s!! !y%s!! %s\n", ProcessTypes.to_chars((process)->ptype).c_str(),     \
+                  (success) ? "spawned" : "!r!_not spawned!!");                                                        \
   }
 
 #define LOG_DESTROY(success, process, scheduler)                                                                       \
@@ -51,15 +50,12 @@ namespace fhatos {
     MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<xscheduler_processes>");
     MutexDeque<Mail_p> inbox_ = MutexDeque<Mail_p>("<xscheduler_mail>");
     bool running_ = false;
-    ID_p current_barrier_ = nullptr;
+    Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {
-    }
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
 
-    ~XScheduler() override {
-      delete processes_;
-    }
+    ~XScheduler() override { delete processes_; }
 
     [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
       if (this->processes_->empty())
@@ -78,44 +74,65 @@ namespace fhatos {
 
     virtual void setup() {
       SCHEDULER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
-        if (this->id()->extend("process/").bimatches(furi)) {
-          auto uris = make_shared<List<Uri_p>>();
-          this->processes_->forEach([uris](const Process_p &process) {
-            uris->push_back(vri(process->id()));
-          });
-          const Rec_p rec = ObjHelper::encode_lst(this->id()->extend("process/"), *uris);
+        bool proc_branch = this->id()->resolve("./process/").bimatches(furi);
+        bool barr_branch =
+            this->barrier_.first && this->barrier_.second && this->id()->resolve("./barrier/").bimatches(furi);
+        if (proc_branch || barr_branch) {
+          Rec_p rec = Obj::to_rec();
+          if (proc_branch) {
+            auto uris = make_shared<List<Uri_p>>();
+            this->processes_->forEach([uris](const Process_p &process) { uris->push_back(vri(process->id())); });
+            rec = ObjHelper::encode_lst(this->id()->resolve("./process/"), *uris);
+          }
+          if (barr_branch) {
+            rec->rec_set(vri(this->barrier_.first), this->barrier_.second);
+          }
           return rec;
         }
-        if (this->id()->extend("process/+").bimatches(furi)) {
-          if (StringHelper::is_integer(furi.name()))
-            return vri(this->processes_->get(stoi(furi.name())).value()->id());
-          if (furi.name() == "+" || furi.name() == "#") {
-            const Objs_p objs = Obj::to_objs();
-            this->processes_->forEach([objs](const Process_p &process) {
-              objs->add_obj(vri(process->id()));
-            });
-            return objs;
+        bool proc_node = this->id()->resolve("./process/+").bimatches(furi);
+        bool barr_node =
+            this->barrier_.first && this->barrier_.second && this->id()->resolve("./barrier/+").bimatches(furi);
+        if (proc_node || barr_node) {
+          const Objs_p objs = Obj::to_objs();
+          if (proc_node) {
+            if (StringHelper::is_integer(furi.name()))
+              return vri(this->processes_->get(stoi(furi.name())).value()->id());
+            if (furi.name() == "+" || furi.name() == "#") {
+              this->processes_->forEach([objs](const Process_p &process) { objs->add_obj(vri(process->id())); });
+            }
           }
+          if (barr_node) {
+            objs->add_obj(this->barrier_.second);
+          }
+          return objs;
         }
         return noobj();
       };
 
       SCHEDULER_WRITE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
-        if (!retain) return false;
+        if (!retain)
+          return false;
         if (payload->is_noobj()) {
-          const Option<Process_p> found_process = this->processes_->find([target](const Process_p &process) {
-            return process->id()->equals(target);
-          });
+          if (this->id()->equals(target)) {
+            this->stop();
+            return true;
+          }
+          if (this->barrier_.first && this->barrier_.first->equals(target)) {
+            this->barrier_.first = nullptr;
+            this->barrier_.second = nullptr;
+            return true;
+          }
+          const Option<Process_p> found_process =
+              this->processes_->find([target](const Process_p &process) { return process->id()->equals(target); });
           if (found_process.has_value()) {
             router()->route_unsubscribe(id_p(target));
             found_process.value()->stop();
             return true;
           }
         }
-        if (payload->is_rec() && (
-              payload->type()->matches(THREAD_FURI->extend("#")) ||
-              payload->type()->matches(FIBER_FURI->extend("#")) ||
-              payload->type()->matches(COROUTINE_FURI->extend("#")))) {
+        if (payload->is_rec() &&
+            (payload->type()->matches(THREAD_FURI->extend("#")) || payload->type()->matches(FIBER_FURI->extend("#")) ||
+             payload->type()->matches(COROUTINE_FURI->extend("#")))) {
           LOG_SCHEDULER(DEBUG, "intercepting retained !yprocess!! %s\n", payload->toString().c_str());
           PROCESS_SPAWNER(ID(*payload->type()), target);
           return true;
@@ -131,7 +148,7 @@ namespace fhatos {
       auto *fiber_count = new atomic_int(0);
       auto *coroutine_count = new atomic_int(0);
       auto list = new List<Process_p>();
-      this->processes_->forEach([list,thread_count, fiber_count, coroutine_count](const Process_p &proc) {
+      this->processes_->forEach([list, thread_count, fiber_count, coroutine_count](const Process_p &proc) {
         switch (proc->ptype) {
           case PType::THREAD:
             thread_count->fetch_add(1);
@@ -145,8 +162,8 @@ namespace fhatos {
         }
         list->push_back(proc);
       });
-      LOG_SCHEDULER(INFO, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n",
-                    thread_count->load(), fiber_count->load(), coroutine_count->load());
+      LOG_SCHEDULER(INFO, "!yStopping!g %i !ythreads!! | !g%i !yfibers!! | !g%i !ycoroutines!!\n", thread_count->load(),
+                    fiber_count->load(), coroutine_count->load());
       delete thread_count;
       delete fiber_count;
       delete coroutine_count;
@@ -170,14 +187,13 @@ namespace fhatos {
     virtual void feed_local_watchdog() = 0;
 
     [[nodiscard]] bool at_barrier(const string &label) const {
-      return this->current_barrier_ && *this->current_barrier_ == label;
+      return this->barrier_.first && this->barrier_.first->name() == label;
     }
 
-    void barrier(const ID &label = ID("unlabeled"), const Supplier<bool> &passPredicate = nullptr,
+    void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      LOG_SCHEDULER(INFO, "!mbarrier start: <!y%s!m>!!\n", label.toString().c_str());
-      this->current_barrier_ = id_p(label);
-
+      this->barrier_ = {id_p(this->id()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
+      LOG_SCHEDULER(INFO, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
       if (message)
         LOG_SCHEDULER(INFO, message);
       /// barrier break with noobj
@@ -185,13 +201,15 @@ namespace fhatos {
         if (message->payload->is_noobj())
           this->stop();
       });*/
-      while (this->read_mail() || (passPredicate && !passPredicate()) ||
-             (!passPredicate && this->running_ && !this->processes_->empty())) {
+      while ((this->read_mail() || (passPredicate && !passPredicate()) ||
+              (!passPredicate && this->running_ && !this->processes_->empty())) &&
+             (this->barrier_.first && this->barrier_.second)) {
         router()->loop();
         this->feed_local_watchdog();
       }
-      LOG_SCHEDULER(INFO, "!mbarrier end: <!g%s!m>!!\n", label.toString().c_str());
-      this->current_barrier_ = nullptr;
+      LOG_SCHEDULER(INFO, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
+      this->barrier_.first = nullptr;
+      this->barrier_.second = nullptr;
     }
 
     virtual bool spawn(const Process_p &) = 0;

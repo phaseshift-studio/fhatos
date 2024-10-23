@@ -22,7 +22,7 @@
 
 #include <fhatos.hpp>
 #include <language/processor/processor.hpp>
-#include <model/soc/esp/pin.hpp>
+#include <model/soc/pin.hpp>
 
 namespace fhatos {
   template<typename PIN_DRIVER>

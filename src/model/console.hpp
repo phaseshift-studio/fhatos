@@ -29,13 +29,9 @@
 #include <process/obj_process.hpp>
 
 namespace fhatos {
-  using Command = Pair<string, Function<Obj_p, Obj_p>>;
-  static Map<string, Command> *MENU_MAP_ = nullptr;
 
   class Console final : public Thread {
   public:
-    ~Console() override { delete MENU_MAP_; }
-
     struct Settings {
       bool nest = false;
       bool ansi = true;
@@ -148,22 +144,6 @@ namespace fhatos {
       router()->write(id_p(id.resolve("./config/ansi").query("doc")), str("colorize output"));
       router()->write(id_p(id.resolve("./config/log")), vri(LOG_TYPES.to_chars(settings.log)));
       router()->write(id_p(id.resolve("./config/log").query("doc")), str("log level"));
-      if (!MENU_MAP_) {
-        MENU_MAP_ = new Map<string, Command>();
-        MENU_MAP_->insert(
-          {":shutdown",
-            {
-              // TODO: MAKE THIS MAIL CONSTRUCTION A FUNCTION CALL IN SCHEDULER
-              "kill scheduler", [this](const Obj_p &) {
-                scheduler()->recv_mail(mail_p(
-                  subscription_p(*this->id(),
-                                 *Scheduler::singleton()->id(),
-                                 Insts::to_bcode([](const Message_p &) { scheduler()->stop(); })),
-                  message_p(*scheduler()->id(), noobj(), true)));
-                this->delay(250);
-                return noobj();
-              }}});
-      }
     }
 
   public:
@@ -215,26 +195,7 @@ namespace fhatos {
     void process_line(string line) const {
       LOG_PROCESS(DEBUG, this, "line to parse: %s\n", line.c_str());
       StringHelper::trim(line);
-      if (line[0] == ':') {
-        ///////// PARSE MENU COMMANDS
-        try {
-          const string::size_type index = line.find_first_of(' ');
-          const string command = index == string::npos ? line : line.substr(0, index);
-          StringHelper::trim(command);
-          if (!MENU_MAP_->count(command)) {
-            this->print_exception(fError("!g[!b%s!g] !b%s!! is an unknown !yconsole command!!",
-                                         this->id()->toString().c_str(), command.c_str()));
-          } else if (index == string::npos) {
-            this->print_result(MENU_MAP_->at(command).second(noobj()));
-          } else {
-            const string value = line.substr(index);
-            StringHelper::trim(value);
-            this->print_result(MENU_MAP_->at(command).second(parse(value)->apply(noobj())));
-          }
-        } catch (std::exception &e) {
-          this->print_exception(e);
-        }
-      } else {
+
         ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT
         try {
           if (line[0] == '\n')
@@ -247,7 +208,6 @@ namespace fhatos {
         } catch (const std::exception &e) {
           this->print_exception(e);
         }
-      }
     }
 
     void loop() override {
