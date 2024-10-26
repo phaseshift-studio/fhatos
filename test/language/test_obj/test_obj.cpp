@@ -21,7 +21,7 @@
 
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_TYPES
+#define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
 #include <test_fhatos.hpp>
@@ -33,7 +33,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////
 
   void test_bool() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/truth"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/truth"), Obj::to_bcode()); //
     const Bool_p bool_a = share(Bool(true, FOS_TYPE_PREFIX "bool/truth"));
     const Bool_p bool_b = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*bool_a).c_str());
@@ -62,8 +62,8 @@ namespace fhatos {
   }
 
   void test_int() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/age"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode()); //
     const Int_p intA = share(Int(1));
     const Int_p intB = share<Int>(Int(1));
     const Int_p intC = share(Int(1, FOS_TYPE_PREFIX "int/age"));
@@ -119,8 +119,8 @@ namespace fhatos {
   }
 
   void test_real() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/money"), Obj::to_bcode()); //
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/weight"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/money"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/weight"), Obj::to_bcode()); //
     const Real_p realA = share(Real(1.0f));
     const Real_p realB = share<Real>(Real(1.0f));
     const Real_p realC = share(Real(1.0f, FOS_TYPE_PREFIX "real/money"));
@@ -168,8 +168,8 @@ namespace fhatos {
   }
 
   void test_str() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/first_name"), Obj::to_bcode()); //
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/letter"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/first_name"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "str/letter"), Obj::to_bcode()); //
     const Str strA = *Obj::to_str("fhat", id_p(FOS_TYPE_PREFIX "str/first_name"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(strA).c_str());
     TEST_ASSERT_FALSE(strA.is_bcode());
@@ -180,8 +180,8 @@ namespace fhatos {
   }
 
   void test_uri() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/webpage"), Obj::to_bcode()); //
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/ftp"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/webpage"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "uri/ftp"), Obj::to_bcode()); //
     const Uri_p uriA = share(Uri(fURI("home/web/html/index.html")));
     const Uri_p uriB = vri("home/web/html/index.html");
     const Uri_p uriC = share(Uri(fURI("home/web/html/index.html"), FOS_TYPE_PREFIX "uri/webpage"));
@@ -229,7 +229,7 @@ namespace fhatos {
   }
 
   void test_lst() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/ones"), Obj::to_lst({1, 1, 1}));
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "lst/ones"), Obj::to_lst({1, 1, 1}));
     const Lst lstA = *Obj::to_lst({1, 2, 3, 4});
     const Lst lstB = *Obj::to_lst({1, 2, 3, 4});
     const Lst lstC = *Obj::to_lst({2, 3, 4});
@@ -262,8 +262,8 @@ namespace fhatos {
   }
 
   void test_rec() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mail"), Obj::to_bcode()); //
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/cost"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mail"), Obj::to_bcode()); //
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/cost"), Obj::to_bcode()); //
     const Rec recA = *Obj::to_rec({
         {"a", 1},
         {"b", 2}

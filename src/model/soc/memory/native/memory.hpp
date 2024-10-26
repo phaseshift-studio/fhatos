@@ -22,8 +22,8 @@
 
 #include <fhatos.hpp>
 #include <language/parser.hpp>
-#include <language/types.hpp>
-#include <structure/stype/external.hpp>
+#include <language/type.hpp>
+#include <structure/stype/computed.hpp>
 #include <model/soc/memory/base_memory.hpp>
 #include <unistd.h>
 #include <iostream>

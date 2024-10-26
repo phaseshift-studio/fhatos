@@ -23,7 +23,7 @@
 #include <furi.hpp>
 #include <language/obj.hpp>
 #include <language/insts.hpp>
-#include <language/types.hpp>
+#include <language/type.hpp>
 
 namespace fhatos {
   static ID inst_id(const string &opcode) { return INST_FURI->resolve(opcode); }
@@ -146,16 +146,16 @@ namespace fhatos {
 
     static void load_extension(const ID &ext_id) {
       const List<Pair<ID, Obj_p>>& pairs = MODELS->at(ext_id);
-      Types::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(),
+      Type::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(),
                                                              pairs.size());
       for (const auto &[key, value]: pairs) {
         const auto type_id = id_p(key);
         const auto value_clone = value->clone();
-        Types::singleton()->save_type(type_id, value_clone);
+        Type::singleton()->save_type(type_id, value_clone);
       }
-      Types::singleton()->progress_bar_->
+      Type::singleton()->progress_bar_->
           end(StringHelper::format("!b%s !yobjs!! loaded\n", ext_id.toString().c_str()));
-      Types::singleton()->progress_bar_ = nullptr;
+      Type::singleton()->progress_bar_ = nullptr;
     }
   };
 } // namespace fhatos

@@ -22,8 +22,8 @@
 
 #include <fhatos.hpp>
 #include <language/parser.hpp>
-#include <language/types.hpp>
-#include <structure/stype/external.hpp>
+#include <language/type.hpp>
+#include <structure/stype/computed.hpp>
 
 
 namespace fhatos {
@@ -37,14 +37,14 @@ namespace fhatos {
     double hwm = -1.0;;
   };
 
-  class BaseMemory : public External {
+  class BaseMemory : public Computed {
     CONST_CHAR(MEMORY_REC_STRING, "[total=>%i,free=>%i,used=>" FOS_TYPE_PREFIX "real/%%[%.2f]]");
     CONST_CHAR(PERCENT_TYPE_DEF, "is(gte(0.0)).is(lte(100.0))");
 
   protected:
     List<ID_p> MEMORY_IDS_;
 
-    explicit BaseMemory(const Pattern &pattern = "/soc/memory/#") : External(pattern), MEMORY_IDS_{{
+    explicit BaseMemory(const Pattern &pattern = "/soc/memory/#") : Computed(pattern), MEMORY_IDS_{{
                                                                       id_p(pattern.resolve("./inst")),
                                                                       id_p(pattern.resolve("./heap")),
                                                                       id_p(pattern.resolve("./psram")),
@@ -58,17 +58,17 @@ namespace fhatos {
     virtual MemInfo get_mem_info() = 0;
 
     virtual void setup() override {
-      External::setup();
-      Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
+      Computed::setup();
+      Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), parse(PERCENT_TYPE_DEF));
 
-      this->read_functions_->insert(
+    /*  this->read_functions_->insert(
         {MEMORY_IDS_.at(0), [this](const fURI_p&) {
           const MemInfo mem_info = this->get_mem_info();
           return List<Pair<ID_p, Obj_p>>(
             {{MEMORY_IDS_.at(0),
               parse(StringHelper::format(MEMORY_REC_STRING, mem_info.total_mem, mem_info.free_mem,
                                               mem_info.usage_mem))}});
-        }});
+        }});*/
       /* this->read_functions_.insert(
            {MEMORY_IDS_.at(1), [this](const fURI_p furi) {
               return List<Pair<ID_p, Obj_p>>(
@@ -104,7 +104,7 @@ namespace fhatos {
   };
 
   static void enable_esp32_memory() {
-    Types::singleton()->save_type(id_p(FOS_TYPE_PREFIX "/structure/soc/esp32/memory"), parse("[uri[_]=>_]"));
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "/structure/soc/esp32/memory"), parse("[uri[_]=>_]"));
   }
 } // namespace fhatos
 #endif

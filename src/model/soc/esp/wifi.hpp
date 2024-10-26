@@ -38,6 +38,15 @@
 #error Architecture unrecognized by FhatOS
 #endif
 
+#define FOS_WIFI_CONNECT id_p(pattern()->resolve("./connect"))
+#define FOS_WIFI_SSID id_p(pattern()->resolve("./ssid"))
+#define FOS_WIFI_PASSWORD id_p(pattern()->resolve("./password"))
+#define FOS_WIFI_MDNS id_p(pattern()->resolve("./mdns"))
+#define FOS_WIFI_ID_ADDR id_p(pattern()->resolve("./ip_addr"))
+#define FOS_WIFI_GATEWAY_ADDR id_p(pattern()->resolve("./gateway_addr"))
+#define FOS_WIFI_SUBNET_MASK id_p(pattern()->resolve("./subnet_mask"))
+#define FOS_WIFI_DNS_ADDR id_p(pattern()->resolve("./dns_addr"))
+
 namespace fhatos {
 
   class Wifi : public Computed {
@@ -54,14 +63,7 @@ namespace fhatos {
 
   protected:
     Settings settings_;
-    const List_p<ID_p> WIFI_IDS;
-    explicit Wifi(const Pattern &pattern, const Settings &settings) :
-        Computed(pattern), settings_(settings),
-        WIFI_IDS(make_shared<List<ID_p>>(
-            List<ID_p>{id_p(pattern.resolve("./connect")), id_p(pattern.resolve("./ssid")),
-                       id_p(pattern.resolve("./password")), id_p(pattern.resolve("./mdns")),
-                       id_p(pattern.resolve("./ip_addr")), id_p(pattern.resolve("./gateway_addr")),
-                       id_p(pattern.resolve("./subnet_mask")), id_p(pattern.resolve("./dns_addr"))})) {
+    explicit Wifi(const Pattern &pattern, const Settings &settings) : Computed(pattern), settings_(settings) {
       if (settings.connect_)
         this->connect_to_wifi_station();
       // TODO: flash/partition/0x44343
@@ -69,16 +71,6 @@ namespace fhatos {
 
   public:
     static ptr<Wifi> singleton(const Pattern &pattern, const Settings &settings) {
-      /*if (WIFI_IDS->empty()) {
-        WIFI_IDS->push_back(id_p(pattern.resolve("./connect")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./ssid")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./password")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./mdns")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./ip_addr")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./gateway_addr")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./subnet_mask")));
-        WIFI_IDS->push_back(id_p(pattern.resolve("./dns_addr")));
-      }*/
       static ptr<Wifi> wifi = ptr<Wifi>(new Wifi(pattern, settings));
       return wifi;
     }
@@ -86,27 +78,28 @@ namespace fhatos {
     // virtual List<ID_p> existing_ids(const fURI &match) override { return WIFI_IDS; }
     virtual void setup() override {
       Computed::setup();
-      this->read_functions_->insert({this->pattern(), [this](const fURI_p furi) {
-                                       ReadRawResult_p map = make_shared<ReadRawResult>();
-                                       ID_p current;
-                                       if (WIFI_IDS->at(0)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(0), dool(WiFi.isConnected())});
-                                       if (WIFI_IDS->at(1)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(1), str(this->settings_.ssid_)});
-                                       if (WIFI_IDS->at(2)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(2), str(this->settings_.password_)});
-                                       if (WIFI_IDS->at(3)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(3), vri(WiFi.getHostname())});
-                                       if (WIFI_IDS->at(4)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(4), vri(WiFi.localIP().toString().c_str())});
-                                       if (WIFI_IDS->at(5)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(5), vri(WiFi.gatewayIP().toString().c_str())});
-                                       if (WIFI_IDS->at(6)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(6), vri(WiFi.subnetMask().toString().c_str())});
-                                       if (WIFI_IDS->at(7)->matches(*furi))
-                                         map->push_back({WIFI_IDS->at(7), vri(WiFi.dnsIP().toString().c_str())});
-                                       return map;
-                                     }});
+      this->read_functions_->insert(
+          {this->pattern(), [this](const fURI_p furi) {
+             ReadRawResult_p map = make_shared<ReadRawResult>();
+             ID_p current;
+             if (FOS_WIFI_CONNECT->matches(*furi))
+               map->push_back({FOS_WIFI_CONNECT, dool(WiFi.isConnected())});
+             if (FOS_WIFI_SSID->matches(*furi))
+               map->push_back({FOS_WIFI_SSID, str(this->settings_.ssid_)});
+             if (FOS_WIFI_PASSWORD->matches(*furi))
+               map->push_back({FOS_WIFI_PASSWORD, str(this->settings_.password_)});
+             if (FOS_WIFI_MDNS->matches(*furi))
+               map->push_back({FOS_WIFI_MDNS, vri(WiFi.getHostname())});
+             if (FOS_WIFI_ID_ADDR->matches(*furi))
+               map->push_back({FOS_WIFI_ID_ADDR, vri(WiFi.localIP().toString().c_str())});
+             if (FOS_WIFI_GATEWAY_ADDR->matches(*furi))
+               map->push_back({FOS_WIFI_GATEWAY_ADDR, vri(WiFi.gatewayIP().toString().c_str())});
+             if (FOS_WIFI_SUBNET_MASK->matches(*furi))
+               map->push_back({FOS_WIFI_SUBNET_MASK, vri(WiFi.subnetMask().toString().c_str())});
+             if (FOS_WIFI_DNS_ADDR->matches(*furi))
+               map->push_back({FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
+             return map;
+           }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());
       this->write_functions_->insert(
           {share(this->pattern()->resolve("./connect")), [this](const fURI_p furi, const Obj_p &obj) {

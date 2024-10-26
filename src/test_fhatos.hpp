@@ -61,15 +61,15 @@
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
-#ifdef FOS_DEPLOY_TYPES
-#include <language/types.hpp>
+#ifdef FOS_DEPLOY_TYPE
+#include <language/type.hpp>
 #include <language/exts.hpp>
-#define FOS_DEPLOY_TYPES_2 \
+#define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap::create(Pattern("/type/#"))); \
-  scheduler()->spawn(Types::singleton()); \
+  scheduler()->spawn(Type::singleton()); \
   //Exts::load_extension("/model/mmadt/");
 #else
-#define FOS_DEPLOY_TYPES_2 ;
+#define FOS_DEPLOY_TYPE_2 ;
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <structure/stype/heap.hpp>
@@ -128,7 +128,7 @@ namespace fhatos {
       FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_ROUTER_2                                                                                              \
       FOS_DEPLOY_PARSER_2                                                                                              \
-      FOS_DEPLOY_TYPES_2                                                                                               \
+      FOS_DEPLOY_TYPE_2                                                                                               \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
       FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
       FOS_DEPLOY_EXT_2                                                                                                 \

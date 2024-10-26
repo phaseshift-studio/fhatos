@@ -21,30 +21,26 @@
 
 #include <fhatos.hpp>
 #include <kernel.hpp>
-#include <model/program.hpp>
 #include <structure/router.hpp>
 #include <util/argv_parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/types.hpp>
+#include <language/type.hpp>
+#include <language/mmadt/type.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
-//#include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/driver/pin_driver.hpp>
-#include <model/led/led.hpp>
 #include <model/pin/gpio.hpp>
 #include <model/pin/interrupt.hpp>
-//#include <model/pin/protocol/i2c.hpp>
 #include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
-#include <model/led/led_strip.hpp>
 #include <model/soc/esp/wifi.hpp>
 #include <model/soc/memory/esp32/memory.hpp>
 #include <structure/stype/ble/esp/ble.hpp>
@@ -91,15 +87,15 @@ namespace fhatos {
             ////////////////////////////////////////////////////////////
             ->structure(Heap::create("+/#"))
             //
-            ->structure(Heap::create("/type/#"))
-            ->process(Types::singleton("/type/"))
+            ->program(Heap::create("/type/#"),Type::singleton("/type/"))
             //
-            //->model("/model/mmadt/")
+           ->eval([]() {
+             mmadt::mmADT::load();
+           })
             //
             ->structure(Terminal::singleton("/terminal/#"))
             //
-            ->structure(Heap::create("/parser/#"))
-            ->process(Parser::singleton("/parser/"))
+            ->program(Heap::create("/parser/#"),Parser::singleton("/parser/"))
             //
             ->model("/model/sys/")
         //
@@ -127,12 +123,11 @@ namespace fhatos {
             ->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#", ArduinoPinDriver::singleton()))
             ->structure(Timer::singleton("/soc/timer/#"))
             ->structure(Memory::singleton("/soc/memory/#"))
-            //->structure(BLE::create("/io/bt/#"))
+            ->structure(BLE::create("/io/bt/#"))
             ->process(Redirect::create("/redirect/",
                                        Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
                                        Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
-            //->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",

@@ -23,7 +23,7 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <structure/stype/computed.hpp>
-#include <language/types.hpp>
+#include <language/type.hpp>
 
 #define FOS_DEFAULT_MORE_LINES 10
 
@@ -51,17 +51,16 @@ namespace fhatos {
     }
 
     void setup() override {
-      LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
-      Types::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), 9);
-      Types::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(vri(URI_FURI))}));
-      Types::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(vri(URI_FURI))}));
+      Type::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), 9);
+      Type::singleton()->save_type(FILE_FURI, Obj::to_bcode({Insts::as(vri(URI_FURI))}));
+      Type::singleton()->save_type(DIR_FURI, Obj::to_bcode({Insts::as(vri(URI_FURI))}));
       ///////////////////////////////////////////////////////////////////
-      Types::singleton()->save_type(
+      Type::singleton()->save_type(
         id_p(INST_FS_FURI->resolve("root")),
         Obj::to_inst(
           "root", {}, [this](const InstArgs &) { return [this](const Obj_p &) { return this->root(); }; },
           IType::ZERO_TO_ONE, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("root"))));
-      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("ls")),
+      Type::singleton()->save_type(id_p(INST_FS_FURI->resolve("ls")),
                                     Obj::to_inst(
                                       "ls", {x(0, bcode())},
                                       [this](const InstArgs &args) {
@@ -70,7 +69,7 @@ namespace fhatos {
                                         };
                                       },
                                       IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
-      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("mkdir")),
+      Type::singleton()->save_type(id_p(INST_FS_FURI->resolve("mkdir")),
                                     Obj::to_inst(
                                       "fs:mkdir", {x(0, bcode())},
                                       [this](const InstArgs &args) {
@@ -79,7 +78,7 @@ namespace fhatos {
                                         };
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("mkdir"))));
-      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("more")),
+      Type::singleton()->save_type(id_p(INST_FS_FURI->resolve("more")),
                                     Obj::to_inst(
                                       "fs:more", {x(0, Obj::to_bcode()), x(1, jnt(10))},
                                       [this](const InstArgs &args) {
@@ -100,7 +99,7 @@ namespace fhatos {
                                         };
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("more"))));
-      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("append")),
+      Type::singleton()->save_type(id_p(INST_FS_FURI->resolve("append")),
                                     Obj::to_inst(
                                       "fs:append", {x(0)},
                                       [this](const InstArgs &args) {
@@ -110,7 +109,7 @@ namespace fhatos {
                                         };
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("append"))));
-      Types::singleton()->save_type(id_p(INST_FS_FURI->resolve("touch")),
+      Type::singleton()->save_type(id_p(INST_FS_FURI->resolve("touch")),
                                     Obj::to_inst(
                                       "fs:touch", {x(0, bcode())},
                                       [this](const InstArgs &args) {
@@ -119,8 +118,11 @@ namespace fhatos {
                                         };
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));
-      Types::singleton()->progress_bar_->end("!bfile system !ytobjs!! loaded\n");
-      Types::singleton()->progress_bar_ = nullptr;
+      Type::singleton()->progress_bar_->end(
+        StringHelper::format("!b%s !yobjs!! loaded\n", pattern()->toString().c_str()));
+      Type::singleton()->progress_bar_ = nullptr;
+      to_dir(this->clean_root_); // test to ensure mount root is a valid local directory
+      LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       Computed::setup();
     }
 

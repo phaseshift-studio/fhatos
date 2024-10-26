@@ -21,17 +21,16 @@
 
 #include <model/program.hpp>
 
-#include "fhatos.hpp"
+#include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include "language/exts.hpp"
-#include "model/terminal.hpp"
-#include "process/process.hpp"
+#include <language/exts.hpp>
+#include <model/terminal.hpp>
+#include <process/process.hpp>
 
-#include "language/types.hpp"
+#include <language/type.hpp>
 
 namespace fhatos {
   class Kernel {
-
   public:
     static ptr<Kernel> build() {
       static auto kernel_p = make_shared<Kernel>();
@@ -143,19 +142,14 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    /* static ptr<Kernel> program(const Program_p&program) {
-       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-       Kernel::build()->
-       scheduler()->spawn(process);
-       return Kernel::build();
-     }*/
-
-    static ptr<Kernel> deploy(const Structure_p &structure, const Process_p &process) {
+    static ptr<Kernel> program(const Structure_p &structure, const Process_p &process) {
+      LOG(INFO, "!c[START]!!: !yloading program!!\n");
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       // load_process(process);
       scheduler()->spawn(process);
+      LOG(INFO, "!c[ END ]!!: !yloading program!!\n");
       return Kernel::build();
     }
 

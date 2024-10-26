@@ -5,10 +5,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
 PROJECT(fhatos)
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 SET(ENV{no-dev})
-OPTION(USE_CCACHE "Use ccache" ON) # ON/OFF
-IF(USE_CCACHE)
-    SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-ENDIF()
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -23,6 +19,8 @@ OPTION(CHECK_INTERNET "Check Internet" ON)
 OPTION(BUILD_TESTS "Build Tests" ON)
 OPTION(BUILD_DOCS "Build Docs" OFF)
 OPTION(SANITIZER "Address Sanitizer" OFF)
+OPTION(USE_CCACHE "Use CCache" ON)
+OPTION(USE_CONAN "Conan Package Manager" OFF)
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
@@ -69,12 +67,14 @@ ELSEIF(LINUX)
     ADD_DEFINITIONS("-DLINUX")
 ENDIF()
 
-MESSAGE(NOTICE "\n\t${.y}CoMmon bUilD ParAmETerS${..}
+MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
 \t${.g}PROJECT_NAME${..}: ${PROJECT_NAME}
 \t${.g}CMAKE_BUILD_TYPE${..}: ${CMAKE_BUILD_TYPE}
+\t${.g}USE_CONAN${..}: ${USE_CONAN}
 \t${.g}SANITIZER${..}: ${SANITIZER}
 \t${.g}BUILD_TESTS${..}: ${BUILD_TESTS}
 \t${.g}BUILD_DOCS${..}: ${BUILD_DOCS}
+\t${.g}USE_CCACHE${..}: ${USE_CCACHE}
 ")
 CMAKE_PRINT_VARIABLES(CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 ## PARALLELISM LEVEL (HARDCODED TO 8)
@@ -111,12 +111,10 @@ ELSE()
 ENDIF()
 ##################################
 
-IF(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+IF(USE_CONAN AND EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    OPTION(USE_CONAN "Conan Package Manager" ON)
     conan_basic_setup()
 ELSE()
-    OPTION(USE_CONAN "Conan Package Manager" OFF)
     MESSAGE(WARNING "\n${.w}The file ${.y}conanbuildinfo.cmake${..} ${.w}doesn't exist${..}.\n\t\tRun ${.b}conan install${..}.")
 ENDIF()
 
@@ -129,6 +127,9 @@ IF(BUILD_NATIVE)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}N${.c}A${.g}T${.r}I${.y}V${.b}E${..}\n")
     MESSAGE(CHECK_START "${.y}CMaking ${PROJECT_NAME} (${.r}${PLATFORM}${..}${.y})${..} (${.y}-D${.g}NATIVE${..})")
     MESSAGE(STATUS "${.y}Build type${..}: ${.g}${CMAKE_BUILD_TYPE}${..}")
+    IF(USE_CCACHE)
+        SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+    ENDIF()
     INCLUDE_DIRECTORIES(src)
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp)
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES

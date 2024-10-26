@@ -22,7 +22,7 @@
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PARSER
-#define FOS_DEPLOY_TYPES
+#define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_FILE_SYSTEM
 #include <test_fhatos.hpp>
