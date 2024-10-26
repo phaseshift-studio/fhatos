@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_test_actor_hpp
-#define fhatos_test_actor_hpp
+#ifndef fhatos_test_program_cpp
+#define fhatos_test_program_cpp
 
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
@@ -26,18 +26,20 @@
 #define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_EXT
 #include <test_fhatos.hpp>
-#include <process/actor/actor.hpp>
+#include <model/program.hpp>
+#include <process/obj_process.hpp>
+#include <structure/obj_structure.hpp>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  void test_actor_throughput() {
+  /*void test_actor_throughput() {
     auto counter1 = new std::atomic<int>(0);
     auto counter2 = new std::atomic<int>(0);
-    auto actor1 = std::make_shared<Actor<Thread, Heap>>(ID("/app/actor1@127.0.0.1"));
-    auto actor2 = std::make_shared<Actor<Thread, Heap>>(ID("/app/actor2@127.0.0.1"));
+    auto actor1 = std::make_shared<Program>(std::make_shared<HeapObj>("",Obj::to_rec()),std::make_shared<ThreadObj>("/app/actor1@127.0.0.1"));
+    auto actor2 = std::make_shared<Program>(ID("/app/actor2@127.0.0.1"));
     router()->attach(actor1);
     scheduler()->spawn(actor1);
     router()->attach(actor2);
@@ -105,10 +107,10 @@ namespace fhatos {
                         } else
                           TEST_FAIL_MESSAGE("All message payloads should be strs");
                       });
-    /*TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
+    TEST_ASSERT_EQUAL(RESPONSE_CODE::REPEAT_SUBSCRIPTION,
                       actor1->subscribe("/app/actor1@127.0.0.1/X", [](const ptr<Message> &message) {
                         TEST_ASSERT_EQUAL_STRING("ping", message->payload->toString().c_str());
-                      }));*/
+                      }));
     actor2->publish(actor1->id()->extend("X"), str("ping"), TRANSIENT_MESSAGE);
     scheduler()->barrier("first_barrier", [counter1, counter2] {
       return counter2->load() > 1 && counter1->load() > 0;
@@ -182,8 +184,9 @@ namespace fhatos {
     FOS_RUN_TEST(test_actor_throughput); //
     FOS_RUN_TEST(test_actor_by_router); //
     FOS_RUN_TEST(test_message_retain); //
-  );
+  );*/
 } // namespace fhatos
 
-SETUP_AND_LOOP()
+/*SETUP_AND_LOOP()*/
+
 #endif

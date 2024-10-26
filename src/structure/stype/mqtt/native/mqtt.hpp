@@ -33,24 +33,24 @@ namespace fhatos {
     ptr<async_client> xmqtt_;
     connect_options connection_options_{};
 
-    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) : BaseMqtt(
+    explicit Mqtt(const Pattern &pattern, const Settings &settings) : BaseMqtt(
       pattern, settings) {
-      this->settings_.broker = string(this->settings_.broker).find_first_of("mqtt://") == string::npos
-                                 ? string("mqtt://").append(string(this->settings_.broker))
-                                 : settings_.broker;
-      this->xmqtt_ = std::make_shared<async_client>(this->settings_.broker, this->settings_.client,
+      this->settings_.broker_ = string(string(ID(this->settings_.broker_).scheme()) == "mqtt"
+                                      ? this->settings_.broker_
+                                      : (string("mqtt://") + this->settings_.broker_));
+      this->xmqtt_ = std::make_shared<async_client>(this->settings_.broker_, this->settings_.client_,
                                                     mqtt::create_options());
       connect_options_builder pre_connection_options = connect_options_builder()
           .properties({{property::SESSION_EXPIRY_INTERVAL, 604800}})
           .clean_start(true)
           .clean_session(true)
-          .user_name(this->settings_.client)
+          .user_name(this->settings_.client_)
           .keep_alive_interval(std::chrono::seconds(20))
           .automatic_reconnect();
-      if (this->settings_.will.get()) {
-        const BObj_p source_payload = this->settings_.will->payload->serialize();
+      if (this->settings_.will_.get()) {
+        const BObj_p source_payload = this->settings_.will_->payload->serialize();
         pre_connection_options = pre_connection_options.will(
-          message(this->settings_.will->target.toString(), source_payload->second, this->settings_.will->retain));
+          message(this->settings_.will_->target.toString(), source_payload->second, this->settings_.will_->retain));
       }
       this->connection_options_ = pre_connection_options.finalize();
       //// MQTT MESSAGE CALLBACK
@@ -103,7 +103,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings = Settings()) {
+    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings) {
       const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings));
       return mqtt_p;
     }
@@ -116,14 +116,15 @@ namespace fhatos {
           if (!this->xmqtt_->connect(this->connection_options_)->wait_for(1000)) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->settings_.broker.c_str());
+            LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->settings_.broker_.c_str());
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->is_connected())
             break;
         }
       } catch (const mqtt::exception &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(),
+                      e.what());
       }
     }
   };

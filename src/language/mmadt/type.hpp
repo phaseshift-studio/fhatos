@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_types_hpp
-#define fhatos_types_hpp
+#ifndef mmadt_types_hpp
+#define mmadt_types_hpp
 
 #include <fhatos.hpp>
 #include <language/insts.hpp>
@@ -28,18 +28,51 @@
 
 #define TOTAL_INSTRUCTIONS 75
 
-namespace fhatos {
-  class Types final : public Coroutine {
+using namespace fhatos;
+namespace mmadt {
+  class Type final : public Heap {
+    /// mmadt:/rec/thread
+    //  mmadt:/str/
   public:
     ptr<ProgressBar> progress_bar_ = nullptr;
 
   protected:
-    explicit Types(const ID &id = FOS_TYPE_PREFIX) : Coroutine(id) {
+    explicit Type(const Pattern &pattern = FOS_TYPE_PREFIX) : Heap(pattern) {
     }
 
     static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
 
-    void load_insts() {
+  public:
+    static ptr<Type> singleton(const Pattern &pattern = FOS_TYPE_PREFIX) {
+      static auto types_p = ptr<Type>(new Type(pattern));
+      return types_p;
+    }
+
+    void setup() override {
+    Heap::setup();
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////
+      TYPE_CHECKER = [](const Obj &obj, const fURI_p &type_id) -> void {
+        //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
+        const fURI_p resolved_type_id = resolve_sugar_type(obj.type(), type_id);
+        singleton()->check_type(obj, resolved_type_id, true);
+      };
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////
+      TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
+        const ID_p resolved_type_id = resolve_sugar_type(obj->type(), type_id);
+        if (OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)) != obj->o_type())
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->pattern()->toString().c_str(), obj->toString().c_str(),
+                       resolved_type_id->toString().c_str());
+        const Obj_p type_def = router()->read(resolved_type_id);
+        // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
+        const Obj_p proto_obj = is_base_type(resolved_type_id) || (!type_def->is_bcode() && !type_def->is_inst()) ? obj : type_def->apply(obj);
+        if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->pattern()->toString().c_str(), obj->toString().c_str(),
+                       resolved_type_id->toString().c_str());
+        return make_shared<Obj>(proto_obj->_value, resolved_type_id, obj->id());
+      };
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       this->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
@@ -113,83 +146,31 @@ namespace fhatos {
       this->save_type(inst_id("rand"), Insts::rand(x(0, vri(BOOL_FURI))));
       this->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       this->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
-      ///////
-      this->save_type(id_p("/type/rec/thread"), Obj::to_rec({
-                        {vri(":setup"), Obj::to_bcode()},
-                        {vri(":loop"), Obj::to_bcode()},
-                        {vri(":stop"), Obj::to_bcode()}}));
-      this->save_type(id_p("/type/rec/coroutine"), Obj::to_rec({
-                        {vri(":setup"), Obj::to_bcode()},
-                        //{vri(":loop"), Obj::to_bcode()},
-                        {vri(":stop"), Obj::to_bcode()}}));
-      this->save_type(id_p("/type/rec/fiber"), Obj::to_rec({
-                        {vri(":setup"), Obj::to_bcode()},
-                        {vri(":loop"), Obj::to_bcode()},
-                        {vri(":stop"), Obj::to_bcode()}}));
-      this->progress_bar_->end("!bmm-adt !yobjs!! loaded\n");
+      this->progress_bar_->end("!bmm-adt !yinstruction set!! loaded\n");
       this->progress_bar_ = nullptr;
     }
-
-  public:
-    static ptr<Types> singleton(const ID &id = FOS_TYPE_PREFIX) {
-      static auto types_p = ptr<Types>(new Types(id));
-      return types_p;
-    }
-
-    void setup() override {
-      Coroutine::setup();
-      TYPE_CHECKER = [](const Obj &obj, const fURI_p &type_id) -> void {
-        //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-        const fURI_p resolved_type_id = resolve_sugar_type(obj.type(), type_id);
-        singleton()->check_type(obj, resolved_type_id, true);
-      };
-      TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
-        const ID_p resolved_type_id = resolve_sugar_type(obj->type(), type_id);
-        if (OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)) != obj->o_type())
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
-                       resolved_type_id->toString().c_str());
-        const Obj_p type_def = router()->read(resolved_type_id);
-        // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
-        const Obj_p proto_obj = is_base_type(resolved_type_id) || (!type_def->is_bcode() && !type_def->is_inst())
-                                  ? obj
-                                  : type_def->apply(obj);
-        if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
-                       resolved_type_id->toString().c_str());
-        return make_shared<Obj>(proto_obj->_value, resolved_type_id, obj->id());
-      };
-      this->load_insts();
-      router()->route_subscription(
-        subscription_p(ID(*this->id()), *this->id(), Insts::to_bcode([this](const Message_p &message) {
-          const ID_p type_id = id_p(message->target);
-          if (message->retain && !this->type_exists(type_id, message->payload))
-            this->save_type(type_id, message->payload, true);
-        })));
-      router()->write(this->id(), load_process(PtrHelper::no_delete(this),__FILE__, 125));
-    }
-
-    /////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
     void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false) const {
       try {
         if (!via_pub) {
           const Obj_p current = router()->read(type_id);
           if (current != type_def) {
-            if (!current->is_noobj() && !this->progress_bar_)
-              LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
+            if (!current->is_noobj() && !progress_bar_)
+              LOG_STRUCTURE(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
                         current->toString().c_str());
             router()->write(type_id, type_def, RETAIN_MESSAGE);
           }
         }
         if (!this->progress_bar_)
-          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
+          LOG_STRUCTURE(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
                     type_def->toString().c_str());
         else {
           this->progress_bar_->incr_count(type_id->toString());
         }
       } catch (const fError &e) {
-        LOG_PROCESS(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 
@@ -237,6 +218,13 @@ namespace fhatos {
                      type_id->toString().c_str());
       return false;
     }
+    ////////////////////////////////////////////
+    ////////////////////////////////////////////
+    ////////////////////////////////////////////
+    void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
+       this->check_type(*obj,id,true);
+       Heap::write_raw_pairs(id,obj,retain);
+     }
   };
 } // namespace fhatos
 #endif

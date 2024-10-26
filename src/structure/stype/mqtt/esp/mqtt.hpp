@@ -28,9 +28,9 @@
 #include <util/options.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 
-#ifndef MQTT_MAX_PACKET_SIZE
+//#ifndef MQTT_MAX_PACKET_SIZE
 #define MQTT_MAX_PACKET_SIZE 512
-#endif
+//#endif
 
 namespace fhatos {
 
@@ -52,22 +52,20 @@ namespace fhatos {
 
     ptr<PubSubClient> xmqtt_;
 
-    explicit Mqtt(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) :
+    explicit Mqtt(const Pattern &pattern, const Settings &settings) :
         BaseMqtt(pattern, settings) {
 
-      if (this->settings_.broker.empty()) {
+      if (this->settings_.broker_.empty()) {
         LOG_STRUCTURE(WARN, this, "mqtt disabled as no broker address provided\n");
       } else {
         WiFiClient *client = new WiFiClient();
         this->xmqtt_ = ptr<PubSubClient>(new PubSubClient(*client));
-        this->xmqtt_->setServer(this->settings_.broker.c_str(), FOS_MQTT_BROKER_PORT);
+        this->xmqtt_->setServer(this->settings_.broker_.c_str(), 1883); // TODO: parse port from uri
         this->xmqtt_->setBufferSize(MQTT_MAX_PACKET_SIZE);
         this->xmqtt_->setSocketTimeout(1000); // may be too excessive
         this->xmqtt_->setKeepAlive(1000); // may be too excessive
         this->xmqtt_->setCallback([this](const char *topic, const uint8_t *data, const uint32_t length) {
           ((char *) data)[length] = '\0';
-          // const fbyte* data_dup[length];
-          // memcpy(data_dup,data,length);
           const BObj_p bobj = make_shared<BObj>(length, (fbyte *) data);
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
@@ -87,11 +85,11 @@ namespace fhatos {
       if (!this->xmqtt_->connected()) {
         LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
                       MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
-        if (!this->xmqtt_->connect(this->settings_.client.c_str())) {
+        if (!this->xmqtt_->connect(this->settings_.client_.c_str())) {
           Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
         }
-      } 
-       if (!this->xmqtt_->loop()) {
+      }
+      if (!this->xmqtt_->loop()) {
         LOG_STRUCTURE(ERROR, this, "mqtt processing loop failure: !r%s!!\n",
                       MQTT_STATE_CODES.at(this->xmqtt_->state()).c_str());
       }
@@ -120,8 +118,8 @@ namespace fhatos {
 
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern = Pattern("//+/#"), const Settings &settings = Settings()) {
-      static const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings));
+    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings) {
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings));
       return mqtt_p;
     }
 
@@ -130,11 +128,11 @@ namespace fhatos {
       try {
         int counter = 0;
         while (counter < FOS_MQTT_MAX_RETRIES) {
-          if (!this->xmqtt_->connect(this->settings_.client.c_str())) {
+          const bool pass = this->xmqtt_->connect(this->settings_.client_.c_str());
+          if (!pass) {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
-            LOG_STRUCTURE(WARN, this, "!bmqtt://%s:%i !yconnection!! retry\n", this->settings_.broker.c_str(),
-                          FOS_MQTT_BROKER_PORT);
+            LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n", this->settings_.broker_.c_str());
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
           if (this->xmqtt_->connected()) {
@@ -143,7 +141,8 @@ namespace fhatos {
           }
         }
       } catch (const fError &e) {
-        LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker.c_str(), e.what());
+        LOG_STRUCTURE(ERROR, this, "unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(),
+                      e.what());
       }
     }
   };

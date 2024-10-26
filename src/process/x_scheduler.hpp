@@ -89,9 +89,9 @@ namespace fhatos {
           }
           return rec;
         }
-        bool proc_node = this->id()->resolve("./process/+").bimatches(furi);
-        bool barr_node =
-            this->barrier_.first && this->barrier_.second && this->id()->resolve("./barrier/+").bimatches(furi);
+        const bool proc_node = this->id()->resolve("./process/+").bimatches(furi);
+        const bool barr_node =
+            this->barrier_.first && this->barrier_.second && this->barrier_.first->bimatches(furi);
         if (proc_node || barr_node) {
           const Objs_p objs = Obj::to_objs();
           if (proc_node) {

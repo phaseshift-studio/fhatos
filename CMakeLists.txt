@@ -14,12 +14,15 @@ SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
 ENDIF()
-IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE "Debug")
-ENDIF()
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
+##################################
+OPTION(CMAKE_BUILD_TYPE "Build type" DEBUG)
+OPTION(CHECK_INTERNET "Check Internet" ON)
+OPTION(BUILD_TESTS "Build Tests" ON)
+OPTION(BUILD_DOCS "Build Docs" OFF)
+OPTION(SANITIZER "Address Sanitizer" OFF)
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
@@ -65,14 +68,21 @@ ELSEIF(LINUX)
     MESSAGE(NOTICE "${.g}https://cmake.org/cmake/help/latest/variable/LINUX.html?highlight=linux${..}")
     ADD_DEFINITIONS("-DLINUX")
 ENDIF()
+
+MESSAGE(NOTICE "\n\t${.y}CoMmon bUilD ParAmETerS${..}
+\t${.g}PROJECT_NAME${..}: ${PROJECT_NAME}
+\t${.g}CMAKE_BUILD_TYPE${..}: ${CMAKE_BUILD_TYPE}
+\t${.g}SANITIZER${..}: ${SANITIZER}
+\t${.g}BUILD_TESTS${..}: ${BUILD_TESTS}
+\t${.g}BUILD_DOCS${..}: ${BUILD_DOCS}
+")
+CMAKE_PRINT_VARIABLES(CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 ## PARALLELISM LEVEL (HARDCODED TO 8)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
-CMAKE_PRINT_VARIABLES(PROJECT_NAME SANITIZER CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVEL}${..}")
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
 ##################################
-OPTION(CHECK_INTERNET "Check Internet" ON) # ON/OFF
 IF(CHECK_INTERNET)
     MESSAGE(CHECK_START "${.y}Testing Internet connection${..}")
     IF(MSVC)
@@ -142,8 +152,7 @@ IF(BUILD_NATIVE)
     ADD_DEFINITIONS("-DNATIVE")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
-    OPTION(SANITIZER "Address Sanitizer" OFF)
-    IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+    IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
         IF(SANITIZER)
             MESSAGE(STATUS "${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")

@@ -28,15 +28,15 @@ namespace fhatos {
   class Heap : public Structure {
   protected:
     Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
-    MutexRW<> mutex_data_ = MutexRW<>("<key value data>");
+    MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
     explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) : Structure(pattern, stype) {
     }
 
   public:
     static ptr<Heap> create(const Pattern &pattern) {
-      auto kv_p = ptr<Heap>(new Heap(pattern));
-      return kv_p;
+      auto heap_p = ptr<Heap>(new Heap(pattern));
+      return heap_p;
     }
 
     void stop() override {
@@ -59,7 +59,7 @@ namespace fhatos {
       this->distribute_to_subscribers(message_p(*id, obj->clone(), retain));
     }
 
-    List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &match) override {
+    ReadRawResult read_raw_pairs(const fURI_p &match) override {
       return *this->mutex_data_.read<List_p<Pair<ID_p, Obj_p>>>([this,match] {
         auto list = make_shared<List<Pair<ID_p, Obj_p>>>();
         for (const auto &[id, obj]: *this->data_) {

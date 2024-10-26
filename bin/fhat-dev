@@ -94,10 +94,10 @@ make_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    cmake .. -DBUILD_TESTS=ON -DBUILD_DOCS=OFF ${extra_args};
+    cmake .. -DBUILD_DOCS=OFF ${extra_args};
     make -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
   fi
@@ -105,6 +105,17 @@ make_native() {
 
 make_esp32() {
   if [[ $platform == "esp32" || $platform = " " ]]; then
+    shift
+    shift
+    local extra_args=$1
+    platformio run ${environ} ${extra_args}
+    platformio run ${environ} --target buildfs
+    printf '%b\n' "$(cat partition/large_code.csv)"
+  fi
+}
+
+make_rpi() {
+  if [[ $platform == "rpi" || $platform = " " ]]; then
     shift
     shift
     local extra_args=$1
@@ -172,6 +183,7 @@ elif [[ $1 == "test" ]]; then
 elif [[ $1 == "build" ]]; then
   make_native ${@}
   make_esp32 ${@}
+  make_rpi ${@}
 elif [[ $1 == "upload" ]]; then
   # clean_esp32
   echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}Flash Memory Partition${NC}\n"

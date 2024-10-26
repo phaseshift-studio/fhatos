@@ -49,11 +49,23 @@ namespace fhatos {
   enum class SType { COMPUTED, HEAP, MQTT, DISK, BLE };
 
   static const Enums<SType> StructureTypes =
-      Enums<SType>({{SType::COMPUTED, "computed"}, {SType::HEAP, "heap"}, {SType::MQTT, "mqtt"}, {SType::DISK, "disk"}, {SType::BLE,"ble"}});
+      Enums<SType>({{SType::COMPUTED, "computed"}, {SType::HEAP, "heap"}, {SType::MQTT, "mqtt"}, {SType::DISK, "disk"},
+        {SType::BLE, "ble"}});
 
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
+
+  /*enum Store { TRANSIENT = 0, OVERWRITE = 1, APPEND = 2 };
+
+  static string StoreChars(const Store &store) {
+    switch (store) {
+      case TRANSIENT: return "-->";
+      case OVERWRITE: return "->";
+      case APPEND: return "-+>";
+      default: throw fError("unknown storage type: %i", store);
+    }
+  }*/
 
   class Structure : public Patterned {
   protected:
@@ -83,7 +95,7 @@ namespace fhatos {
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
       while (mail.has_value()) {
-        LOG_STRUCTURE(TRACE, this, "Processing message %s for subscription %s\n",
+        LOG_STRUCTURE(TRACE, this, "processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
         // if (!(message->retain && message->payload->is_noobj()))
@@ -283,7 +295,7 @@ namespace fhatos {
 
     void check_availability(const string &function) const {
       if (!this->available())
-        throw fError("Structure " FURI_WRAP " not available for %s", function.c_str());
+        throw fError("structure " FURI_WRAP " not available for %s", function.c_str());
     }
 
     virtual void distribute_to_subscribers(const Message_p &message) {

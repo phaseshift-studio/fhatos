@@ -1,4 +1,3 @@
-OPTION(BUILD_TESTS "Build tests" ON) # ON/OFF
 SET(CMAKE_MACOSX_RPATH 1)
 IF (BUILD_TESTS)
     MESSAGE("\n${.g}=====> ${.r}P${.y}R${.m}O${.y}C${.b}E${.m}S${.g}S${.c}I${.y}N${.r}G ${.m}T${.c}E${.g}S${.r}T${.y}S${..}\n")
@@ -88,7 +87,7 @@ IF (BUILD_TESTS)
                     # UNITY_BUILD ON
                     UNITY_BUILD_MODE BATCH
                     UNITY_BUILD_BATCH_SIZE 16)
-            IF (CMAKE_BUILD_TYPE MATCHES "DEBUG")
+            IF (CMAKE_BUILD_TYPE MATCHES "Debug")
                 #TARGET_COMPILE_OPTIONS(${PACKAGE_TEST} PUBLIC -fsanitize=address)
                 #TARGET_LINK_OPTIONS(${PACKAGE_TEST} PUBLIC -fsanitize=address)
                 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
@@ -106,7 +105,6 @@ IF (BUILD_TESTS)
     ####################################
     MAKE_TESTS(language "test_fluent;test_obj;test_parser;test_insts" true)
     MAKE_TESTS(process "test_scheduler;test_process" true)
-    MAKE_TESTS(process/actor "test_actor" true)
     MAKE_TESTS(structure/router "test_router" true)
     MAKE_TESTS(structure/stype/key_value "test_heap" , true)
     IF (BUILD_MQTT_TESTS)

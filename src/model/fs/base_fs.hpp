@@ -22,9 +22,7 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <process/actor/actor.hpp>
 #include <structure/stype/computed.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 #include <language/types.hpp>
 
 #define FOS_DEFAULT_MORE_LINES 10
@@ -121,7 +119,7 @@ namespace fhatos {
                                         };
                                       },
                                       IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));
-      Types::singleton()->progress_bar_->end("!bfile system !ytypes!! loaded\n");
+      Types::singleton()->progress_bar_->end("!bfile system !ytobjs!! loaded\n");
       Types::singleton()->progress_bar_ = nullptr;
       Computed::setup();
     }

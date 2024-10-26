@@ -19,23 +19,22 @@
 #ifndef fhatos_kernel_hpp
 #define fhatos_kernel_hpp
 
+#include <model/program.hpp>
+
 #include "fhatos.hpp"
 #include FOS_PROCESS(scheduler.hpp)
 #include "language/exts.hpp"
 #include "model/terminal.hpp"
-#include "process/actor/actor.hpp"
 #include "process/process.hpp"
 
 #include "language/types.hpp"
 
 namespace fhatos {
   class Kernel {
-    int boot_success = 0;
-    int boot_failure = 0;
 
   public:
     static ptr<Kernel> build() {
-      static ptr<Kernel> kernel_p = make_shared<Kernel>();
+      static auto kernel_p = make_shared<Kernel>();
       return kernel_p;
     }
 
@@ -144,6 +143,13 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    /* static ptr<Kernel> program(const Program_p&program) {
+       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+       Kernel::build()->
+       scheduler()->spawn(process);
+       return Kernel::build();
+     }*/
+
     static ptr<Kernel> deploy(const Structure_p &structure, const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
@@ -153,12 +159,8 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> model(const List<ID> &models) {
-      for (const ID &id: models) {
-        for (const auto &[id2, type]: Exts::exts(id)) {
-          Types::singleton()->save_type(id_p(id2), type);
-        }
-      }
+    static ptr<Kernel> model(const ID &model) {
+      Exts::load_extension(model);
       return Kernel::build();
     }
 
@@ -167,7 +169,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static void done(const char *barrier, Supplier<bool> ret = nullptr) {
+    static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
       Scheduler::singleton()->stop();
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());

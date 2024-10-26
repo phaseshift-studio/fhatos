@@ -775,7 +775,7 @@ namespace fhatos {
 
     [[nodiscard]] fURI_p type() const override { return this->type_; }
 
-    [[nodiscard]] virtual bool equals(const BaseTyped &other) const override {
+    [[nodiscard]] bool equals(const BaseTyped &other) const override {
       return this->type_->equals(*other.type());
     }
   };

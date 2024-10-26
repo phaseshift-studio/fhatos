@@ -63,9 +63,11 @@
 #endif
 #ifdef FOS_DEPLOY_TYPES
 #include <language/types.hpp>
+#include <language/exts.hpp>
 #define FOS_DEPLOY_TYPES_2 \
   router()->attach(Heap::create(Pattern("/type/#"))); \
-  scheduler()->spawn(Types::singleton());
+  scheduler()->spawn(Types::singleton()); \
+  //Exts::load_extension("/model/mmadt/");
 #else
 #define FOS_DEPLOY_TYPES_2 ;
 #endif
@@ -89,7 +91,7 @@
 #endif
 #ifdef FOS_DEPLOY_EXT
 #include <language/exts.hpp>
-#define FOS_DEPLOY_EXT_2 Exts::load_extension("/model/sys");
+#define FOS_DEPLOY_EXT_2 Exts::load_extension("/model/sys/");
 #else
 #define FOS_DEPLOY_EXT_2 ;
 #endif

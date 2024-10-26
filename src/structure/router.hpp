@@ -63,7 +63,7 @@ namespace fhatos {
             break;
         }
       });
-      LOG_ROUTER(INFO, "!yStopping!g %i !yephemeral!! | !g%i !yram!! | !g%i !ynetwork!!\n", computed_count->load(),
+      LOG_ROUTER(INFO, "!yStopping!g %i !ycomputed!! | !g%i !yheap!! | !g%i !ymqtt!!\n", computed_count->load(),
                  heap_count->load(), mqtt_count->load());
       delete computed_count;
       delete heap_count;
@@ -133,12 +133,12 @@ namespace fhatos {
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
-      if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain) && !SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain)) {
+      if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(*furi);
         LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",
                    furi->toString().c_str(), obj->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
-        
+        SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain);
       }
     }
 

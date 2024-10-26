@@ -44,7 +44,7 @@ namespace fhatos {
   protected:
     BLEServer *server_{};
     BLEService *service_{};
-    explicit BLE(const Pattern &pattern = "/io/ble/#") : Computed(pattern) {}
+    explicit BLE(const Pattern &pattern) : Computed(pattern) {}
 
     void setup() override {
       Computed::setup();
@@ -95,9 +95,9 @@ namespace fhatos {
     }
 
   public:
-    static ptr<BLE> create(const Pattern &pattern = "/io/ble/#") {
-      ptr<BLE> bt = ptr<BLE>(new BLE(pattern));
-      return bt;
+    static ptr<BLE> create(const Pattern &pattern) {
+      ptr<BLE> bt_p = ptr<BLE>(new BLE(pattern));
+      return bt_p;
     }
   };
 } // namespace fhatos

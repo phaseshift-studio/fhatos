@@ -21,6 +21,8 @@
 #include <kernel.hpp>
 #include <util/argv_parser.hpp>
 
+#define HELP "  --!b%-15s!!= %5s\n"
+
 using namespace fhatos;
 ArgvParser *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
@@ -41,10 +43,13 @@ int main(const int argc, char **argv) {
   if (args_parser->option("--help", "NO_HELP") != "NO_HELP") {
     const auto ansi = new Ansi();
     ansi->printf("%s: A Distributed Operating System\n", ansi->silly_print("FhatOS", true, true).c_str());
-    ansi->printf("  --!b%-5s!!\n", "help");
-    ansi->printf("  --!b%-5s!!=%5s\n", "ansi", "{!gtrue!!|!gfalse!!}");
-    ansi->printf("  --!b%-5s!!=%5s\n", "log", "{!gINFO!!,!yWARN!!,!rERROR!!,!mDEBUG!!,!cTRACE!!,!bALL!!,!cNONE!!}");
-    ansi->printf("  --!b%-5s!!=%5s\n", "mount", "{!glocal_dir_path!!}");
+    ansi->printf("  --!B%-15s!!\n", "help");
+    ansi->printf(HELP, "ansi", "{!gtrue!!|!gfalse!!}");
+    ansi->printf(HELP, "log", "{!gINFO!!,!yWARN!!,!rERROR!!,!mDEBUG!!,!cTRACE!!,!bALL!!,!cNONE!!}");
+    ansi->printf(HELP, "fs:mount", "{!glocal_dir_path!!}");
+    ansi->printf(HELP, "mqtt:broker", "{!gserver uri!!}");
+    ansi->printf(HELP, "mqtt:client", "{!gclient_name!!}");
+    ansi->printf(HELP, "console:nest", "{!gtrue!!|!gfalse!!}");
     delete ansi;
   } else {
     setup();

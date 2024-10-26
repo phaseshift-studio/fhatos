@@ -299,9 +299,7 @@ namespace fhatos {
   }
 
   void test_process_thread_parsing() {
-    for (const auto &[id, type_def]: Exts::exts("/mod/proc")) {
-      Types::singleton()->save_type(id_p(id), type_def);
-    }
+    Exts::load_extension("/mod/proc/");
     const ptr<BCode> bcode = Parser::singleton()
         ->try_parse_obj("thread[[setup => |print('.setup complete.'),"
             "        loop  => |stop(/abc/)]].to(/abc/)")

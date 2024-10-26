@@ -21,18 +21,16 @@
 #define fhatos_terminal_hpp
 
 #include <fhatos.hpp>
-#include <iostream>
-#include <process/actor/actor.hpp>
 #include <structure/stype/heap.hpp>
 
 namespace fhatos {
   class Terminal final : public Heap {
   protected:
-    explicit Terminal(const Pattern &id = "/io/terminal/") : Heap(id) {
+    explicit Terminal(const Pattern &id) : Heap(id) {
     }
 
   public:
-    static ptr<Terminal> singleton(const Pattern &id = "/io/terminal/") {
+    static ptr<Terminal> singleton(const Pattern &id) {
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
     }
@@ -55,6 +53,17 @@ namespace fhatos {
       Heap::write(furi, obj, retain);
     }
 
+    /* ReadRawResult read_raw_pairs(const fURI_p &furi) override {
+       if (furi->matches(*this->pattern())) {
+         return {
+           {
+             id_p(this->pattern()->retract_pattern()),
+             str(to_string(Terminal::readChar()))
+           }};
+       }
+       return {};
+     } */
+
     static int readChar() {
 #ifdef NATIVE
       return getchar();
@@ -62,20 +71,6 @@ namespace fhatos {
       return (Serial.available() > 0) ? Serial.read() : EOF;
 #endif
     }
-
-    /*static void out(const ID_p &, const char *format, ...) {
-      char buffer[FOS_DEFAULT_BUFFER_SIZE];
-      va_list arg;
-      va_start(arg, format);
-      const int length = vsnprintf(buffer, FOS_DEFAULT_BUFFER_SIZE, format, arg);
-      buffer[length] = '\0';
-      va_end(arg);
-      router()->route_message(share(Message{
-        //
-        .target = ID(*singleton()->pattern_), //
-        .payload = Obj::to_str(buffer),
-        .retain = TRANSIENT_MESSAGE}));
-    }*/
   };
 } // namespace fhatos
 #endif

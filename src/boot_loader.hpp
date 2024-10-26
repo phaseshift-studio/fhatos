@@ -21,6 +21,7 @@
 
 #include <fhatos.hpp>
 #include <kernel.hpp>
+#include <model/program.hpp>
 #include <structure/router.hpp>
 #include <util/argv_parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
@@ -29,26 +30,26 @@
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
-#include <model/fs/base_fs.hpp>
+//#include <model/fs/base_fs.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
-#include <structure/stype/redirect.hpp>
 ///////////// COMMON MODELS /////////////
-#include <model/soc/pin_driver.hpp>
+#include <model/driver/pin_driver.hpp>
 #include <model/led/led.hpp>
-#include <model/soc/gpio.hpp>
-#include <model/soc/pwm.hpp>
-#include <model/soc/interrupt.hpp>
-#include <model/i2c.hpp>
+#include <model/pin/gpio.hpp>
+#include <model/pin/interrupt.hpp>
+//#include <model/pin/protocol/i2c.hpp>
+#include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 #include FOS_BLE(ble.hpp)
-#include <model/soc/memory/esp32/memory.hpp>
-#include <model/soc/esp/wifi.hpp>
-#include <structure/stype/ble/esp/ble.hpp>
 #include <model/led/led_strip.hpp>
+#include <model/soc/esp/wifi.hpp>
+#include <model/soc/memory/esp32/memory.hpp>
+#include <structure/stype/ble/esp/ble.hpp>
 #include FOS_TIMER(timer.hpp)
+#include <structure/stype/redirect.hpp>
 #endif
 
 #ifdef NATIVE
@@ -74,9 +75,9 @@ namespace fhatos {
         load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-            ->using_printer(Ansi<>::singleton())
-            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+                                   ->using_printer(Ansi<>::singleton())
+                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -93,46 +94,51 @@ namespace fhatos {
             ->structure(Heap::create("/type/#"))
             ->process(Types::singleton("/type/"))
             //
+            //->model("/model/mmadt/")
+            //
             ->structure(Terminal::singleton("/terminal/#"))
             //
             ->structure(Heap::create("/parser/#"))
             ->process(Parser::singleton("/parser/"))
             //
-            ->model({ID("/model/sys")})
-            //
+            ->model("/model/sys/")
+        //
 #ifdef ESP_ARCH
-            ->structure(Wifi::singleton("/soc/wifi/+", Wifi::DEFAULT_SETTINGS.connect(true).md5(
-                                   args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
-
+            ->structure(
+                Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
+                                                              args_parser->option("--wifi:mdns", STR(FOS_MACHINE_NAME)),
+                                                              args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
+                                                              args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--mount", FOS_FS_MOUNT)))
-            ->structure(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--client", STR(FOS_MACHINE_NAME)))))
+            ->structure(
+                Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                                     args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
 #ifdef NATIVE
-            ->structure(GPIO<fURIPinDriver>::create("/soc/gpio/#",
-                                                    fURIPinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
-            ->structure(PWM<fURIPinDriver>::create(Pattern("/soc/pwm/#"),
-                                                   fURIPinDriver::create("//remote/soc/gpio/#", "//remote/soc/pwm/#")))
-            ->structure(Interrupt<fURIPinDriver>::singleton("/soc/interrupt/#",
-                                                            fURIPinDriver::create(
-                                                              "//remote/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(GPIO<fURIPinDriver>::create(
+                "/soc/gpio/#", fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(PWM<fURIPinDriver>::create(
+                "/soc/pwm/#", fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(Interrupt<fURIPinDriver>::singleton(
+                "/soc/interrupt/#",
+                fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))
 #elif defined(ESP_ARCH)
             ->structure(GPIO<ArduinoPinDriver>::create("/soc/gpio/#", ArduinoPinDriver::singleton()))
             ->structure(PWM<ArduinoPinDriver>::create("/soc/pwm/#", ArduinoPinDriver::singleton()))
-            ->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#",ArduinoPinDriver::singleton()))
+            ->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#", ArduinoPinDriver::singleton()))
             ->structure(Timer::singleton("/soc/timer/#"))
             ->structure(Memory::singleton("/soc/memory/#"))
-            ->structure(BLE::create("/io/bt/#"))
-            ->structure(Redirect::create(Pattern("/redirect/+"),
-                             Pair<Pattern_p,Pattern_p>{p_p("//remote/soc/gpio/#"), p_p("/soc/gpio/#")},
-                             Pair<Pattern_p,Pattern_p>{p_p("/soc/gpio/#"), p_p("//remote/soc/gpio/#")}))
+            //->structure(BLE::create("/io/bt/#"))
+            ->process(Redirect::create("/redirect/",
+                                       Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
+                                       Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
-
-            ->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
+            //->structure(Led::create("/ui/led/#", "/soc/pwm/#"))
+            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
-                                      Console::Settings(args_parser->option("--nest", "false") == "true",
+                                      Console::Settings(args_parser->option("--console:nest", "false") == "true",
                                                         args_parser->option("--ansi", "true") == "true",
-                                                        args_parser->option("--strict", "false") == "true",
+                                                        args_parser->option("--console:strict", "false") == "true",
                                                         LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
             ->eval([args_parser] { delete args_parser; });
       } catch (const std::exception &e) {

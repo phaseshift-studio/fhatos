@@ -25,7 +25,6 @@
 #include <structure/stype/computed.hpp>
 #include <structure/stype/heap.hpp>
 #include FOS_MQTT(mqtt.hpp)
-
 #include "router.hpp"
 
 namespace fhatos {
@@ -82,10 +81,10 @@ namespace fhatos {
     explicit HeapObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
   };
 
-  class MqttObj : public StructureObj<Mqtt> {
+  /*class MqttObj : public StructureObj<Mqtt> {
   public:
     explicit MqttObj(const Pattern &pattern, const Rec_p &structure_rec) : StructureObj(pattern, structure_rec) {}
-  };
+  };*/
 
   class ComputedObj : public StructureObj<Computed> {
   public:
@@ -96,8 +95,8 @@ namespace fhatos {
     STRUCTURE_ATTACHER = [](const Pattern &structure_pattern, const Obj_p &structure_rec) {
       if (HEAP_FURI->equals(*structure_rec->type()))
         router()->attach(std::make_shared<HeapObj>(structure_pattern, structure_rec));
-      else if (MQTT_FURI->equals(*structure_rec->type()))
-        router()->attach(std::make_shared<MqttObj>(structure_pattern, structure_rec));
+     // else if (MQTT_FURI->equals(*structure_rec->type()))
+     //   router()->attach(std::make_shared<MqttObj>(structure_pattern, structure_rec));
       else if (COMPUTED_FURI->equals(*structure_rec->type()))
         router()->attach(std::make_shared<ComputedObj>(structure_pattern, structure_rec));
       else

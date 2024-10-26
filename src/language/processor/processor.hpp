@@ -22,7 +22,6 @@
 #include <fhatos.hpp>
 #include <language/obj.hpp>
 #include <language/rewrite/rewriter.hpp>
-#include <process/actor/actor.hpp>
 
 namespace fhatos {
   class Monad;
