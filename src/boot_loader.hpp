@@ -33,6 +33,7 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
+#include <model/pin/protocol/i2c.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/driver/pin_driver.hpp>
 #include <model/pin/gpio.hpp>
