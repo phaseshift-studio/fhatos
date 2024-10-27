@@ -21,7 +21,6 @@
 #define fhatos_pin_hpp
 
 #include <fhatos.hpp>
-#include <model/driver/pin_driver.hpp>
 #include <structure/stype/computed.hpp>
 
 #define FOS_NUM_DIGITAL_PINS 40

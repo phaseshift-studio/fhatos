@@ -22,28 +22,28 @@
 
 #include <fhatos.hpp>
 #include <model/pin/pin.hpp>
+#include <model/driver/analog_pin_driver.hpp>
 
 #define FOS_PWM_ANALOG_RESOLUTION 4095
 
 namespace fhatos {
-  template<typename PIN_DRIVER>
-  class PWM : public Pin<PIN_DRIVER> {
+  template<typename ANALOG_PIN_DRIVER>
+  class PWM : public Pin<ANALOG_PIN_DRIVER> {
   protected:
-    explicit PWM(const Pattern &pattern, const ptr<PIN_DRIVER> driver = nullptr) : Pin<PIN_DRIVER>(
+    explicit PWM(const Pattern &pattern, const ptr<ANALOG_PIN_DRIVER> driver) : Pin<ANALOG_PIN_DRIVER>(
       pattern,
       [this](const uint8_t pin) -> Int_p {
-        return this->driver_->is_analog_pin(pin) ? jnt(this->driver_->analog_read(pin)) : noobj();
+        return jnt(this->driver_->analogRead(pin));
       },
       [this](const uint8_t pin, const Int_p &value) -> void {
-        if (this->driver_->is_analog_pin(pin))
-          this->driver_->analog_write(pin, value->int_value());
+        this->driver_->analogWrite(pin, value->int_value());
       },
       driver) {
     }
 
   public:
-    static ptr<PWM> create(const Pattern &pattern, const ptr<PIN_DRIVER> &driver = nullptr) {
-      auto pwm = ptr<PWM<PIN_DRIVER>>(new PWM<PIN_DRIVER>(pattern, driver));
+    static ptr<PWM> create(const Pattern &pattern, const ptr<ANALOG_PIN_DRIVER> &driver) {
+      auto pwm = ptr<PWM<ANALOG_PIN_DRIVER>>(new PWM<ANALOG_PIN_DRIVER>(pattern, driver));
       return pwm;
     }
   };

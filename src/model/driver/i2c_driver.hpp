@@ -16,8 +16,8 @@ FhatOS: A Distributed Operating System
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
-#ifndef fhatos_i2c_hpp
-#define fhatos_i2c_hpp
+#ifndef fhatos_i2c_driver_hpp
+#define fhatos_i2c_driver_hpp
 
 #include <fhatos.hpp>
 #include <structure/router.hpp>

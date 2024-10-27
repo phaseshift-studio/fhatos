@@ -33,11 +33,12 @@
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
-#include <model/pin/protocol/i2c.hpp>
 ///////////// COMMON MODELS /////////////
-#include <model/driver/pin_driver.hpp>
+#include <model/driver/analog_pin_driver.hpp>
+#include <model/driver/digital_pin_diver.hpp>
+#include <model/driver/i2c_driver.hpp>
 #include <model/pin/gpio.hpp>
-#include <model/pin/interrupt.hpp>
+//#include <model/pin/interrupt.hpp>
 #include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
@@ -72,9 +73,9 @@ namespace fhatos {
         load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-                                   ->using_printer(Ansi<>::singleton())
-                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+            ->using_printer(Ansi<>::singleton())
+            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -88,18 +89,18 @@ namespace fhatos {
             ////////////////////////////////////////////////////////////
             ->structure(Heap::create("+/#"))
             //
-            ->program(Heap::create("/type/#"),Type::singleton("/type/"))
+            ->program(Heap::create("/type/#"), Type::singleton("/type/"))
             //
-           ->eval([]() {
-             mmadt::mmADT::load();
-           })
+            ->eval([]() {
+              mmadt::mmADT::load();
+            })
             //
             ->structure(Terminal::singleton("/terminal/#"))
             //
-            ->program(Heap::create("/parser/#"),Parser::singleton("/parser/"))
+            ->program(Heap::create("/parser/#"), Parser::singleton("/parser/"))
             //
             ->model("/model/sys/")
-        //
+            //
 #ifdef ESP_ARCH
             ->structure(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
@@ -108,23 +109,23 @@ namespace fhatos {
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
             ->structure(
-                Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                     args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+              Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                                   args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
 #ifdef NATIVE
-            ->structure(GPIO<fURIPinDriver>::create(
-                "/soc/gpio/#", fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))
-            ->structure(PWM<fURIPinDriver>::create(
-                "/soc/pwm/#", fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))
-            ->structure(Interrupt<fURIPinDriver>::singleton(
-                "/soc/interrupt/#",
-                fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))
+            ->structure(GPIO<fURIDigitalPinDriver>::create(
+              "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
+            ->structure(PWM<fURIAnalogPinDriver>::create(
+              "/soc/pwm/#", fURIAnalogPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
+            /*->structure(Interrupt<fURIPinDriver>::singleton(
+              "/soc/interrupt/#",
+              fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))*/
 #elif defined(ESP_ARCH)
-            ->structure(GPIO<ArduinoPinDriver>::create("/soc/gpio/#", ArduinoPinDriver::singleton()))
-            ->structure(PWM<ArduinoPinDriver>::create("/soc/pwm/#", ArduinoPinDriver::singleton()))
-            ->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#", ArduinoPinDriver::singleton()))
-            ->structure(Timer::singleton("/soc/timer/#"))
+            ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
+            ->structure(PWM<ArduinoAnalogPinDriver>::create("/soc/pwm/#", ArduinoAnalogPinDriver::singleton()))
+            //->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#", ArduinoPinDriver::singleton()))
+            //->structure(Timer::singleton("/soc/timer/#"))
             ->structure(Memory::singleton("/soc/memory/#"))
-            ->structure(BLE::create("/io/bt/#"))
+            //->structure(BLE::create("/io/bt/#"))
             ->process(Redirect::create("/redirect/",
                                        Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
                                        Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))

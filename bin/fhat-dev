@@ -90,6 +90,13 @@ clean_esp32() {
   fi
 }
 
+clean_rpi() {
+  if [[ $platform == "rpi" || $platform == " " ]]; then
+    platformio run --environment rpi --target clean
+    platformio run --environment rpi --target erase
+  fi
+}
+
 make_native() {
   if [[ $platform == "native" || $platform = " " ]]; then
     shift
@@ -172,6 +179,7 @@ build_docs() {
 if [[ $1 == "clean" ]]; then
   clean_native
   clean_esp32
+  clean_rpi
 elif [[ $1 == "build" &&  $2 == "docs" ]]; then
   build_docs ${@}
 elif [[ $1 == "ctest" ]]; then

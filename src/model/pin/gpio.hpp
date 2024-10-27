@@ -21,29 +21,28 @@
 #define fhatos_gpio_hpp
 
 #include <fhatos.hpp>
-#include <language/processor/processor.hpp>
 #include <model/pin/pin.hpp>
+#include <model/driver/digital_pin_diver.hpp>
 
 namespace fhatos {
-  template<typename PIN_DRIVER>
-  class GPIO : public Pin<PIN_DRIVER> {
+  template<typename DIGITAL_PIN_DRIVER>
+  class GPIO : public Pin<DIGITAL_PIN_DRIVER> {
   protected:
-    explicit GPIO(const Pattern &pattern, const ptr<PIN_DRIVER> &driver = nullptr) : Pin<PIN_DRIVER>(
+    explicit GPIO(const Pattern &pattern, const ptr<DIGITAL_PIN_DRIVER> &driver) : Pin<DIGITAL_PIN_DRIVER>(
       pattern,
-      [this](const uint8_t pin) -> Bool_p {
-        return this->driver_->is_digital_pin(pin) ? dool(this->driver_->digital_read(pin)) : noobj();
+      [this](const uint8_t pin) -> Int_p {
+        return jnt(this->driver_->digitalRead(pin));
       },
-      [this](const uint8_t pin, const Bool_p &value) {
-        if (this->driver_->is_digital_pin(pin))
-          this->driver_->digital_write(pin, value->bool_value());
+      [this](const uint8_t pin, const Int_p &value) {
+        this->driver_->digitalWrite(pin, value->int_value());
       },
       driver) {
     }
 
   public:
     static ptr<GPIO> create(const Pattern &pattern,
-                            const ptr<PIN_DRIVER> driver = nullptr) {
-      auto gpio = ptr<GPIO<PIN_DRIVER>>(new GPIO<PIN_DRIVER>(pattern, driver));
+                            const ptr<DIGITAL_PIN_DRIVER> driver) {
+      auto gpio = ptr<GPIO<DIGITAL_PIN_DRIVER>>(new GPIO<DIGITAL_PIN_DRIVER>(pattern, driver));
       return gpio;
     }
   };
