@@ -111,7 +111,7 @@ namespace fhatos {
       scheduler()->feed_local_watchdog();
     }
 
-    List<Pair<ID_p, Obj_p>> read_raw_pairs(const fURI_p &furi) override {
+    IdObjPairs_p read_raw_pairs(const fURI_p &furi) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
@@ -135,7 +135,7 @@ namespace fhatos {
       }
       ///////////////////////////////////////////////
       this->recv_unsubscribe(id_p(source_id), furi_p(temp));
-      const List<Pair<ID_p, Obj_p>> list = *thing->load();
+      const IdObjPairs_p list = ptr<IdObjPairs>(thing->load());
       delete thing;
       return list;
     }

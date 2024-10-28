@@ -20,9 +20,10 @@
 #ifndef fhatos_heaped_hpp
 #define fhatos_heaped_hpp
 
-#include "fhatos.hpp"
-#include "language/obj.hpp"
-#include "structure/structure.hpp"
+#include <fhatos.hpp>
+#include <language/obj.hpp>
+#include <structure/structure.hpp>
+#include <process/util/mutex_rw.hpp>
 
 namespace fhatos {
   class Heap : public Structure {
@@ -59,9 +60,9 @@ namespace fhatos {
       this->distribute_to_subscribers(message_p(*id, obj->clone(), retain));
     }
 
-    ReadRawResult read_raw_pairs(const fURI_p &match) override {
-      return *this->mutex_data_.read<List_p<Pair<ID_p, Obj_p>>>([this,match] {
-        auto list = make_shared<List<Pair<ID_p, Obj_p>>>();
+    IdObjPairs_p read_raw_pairs(const fURI_p &match) override {
+      return this->mutex_data_.read<IdObjPairs_p>([this,match] {
+        auto list = make_shared<IdObjPairs>();
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
             list->push_back({id, obj});

@@ -22,7 +22,6 @@
 
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
-#include <util/mutex_rw.hpp>
 #include <util/obj_helper.hpp>
 
 

@@ -22,7 +22,7 @@
 #include <fhatos.hpp>
 #include <structure/pubsub.hpp>
 ////
-#include FOS_UTIL(mutex.hpp)
+#include FOS_MUTEX(mutex.hpp)
 
 namespace fhatos {
   template<typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 500>
@@ -33,7 +33,8 @@ namespace fhatos {
     SIZE_TYPE READER_COUNT = 0;
 
   public:
-    explicit MutexRW(const char *label = "<anon>") : READER_LOCK(label) {}
+    explicit MutexRW(const char *label = "<anon>") : READER_LOCK(label) {
+    }
 
     template<typename A>
     ptr<A> write(const Supplier<ptr<A>> &supplier) {

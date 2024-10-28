@@ -27,7 +27,6 @@
 #include <structure/pubsub.hpp>
 #include <structure/router.hpp>
 #include <util/mutex_deque.hpp>
-#include <util/mutex_rw.hpp>
 
 #define LOG_SPAWN(success, process)                                                                                    \
   {                                                                                                                    \

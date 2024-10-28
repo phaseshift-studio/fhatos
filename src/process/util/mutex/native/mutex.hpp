@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef fhatos_std_mutex_hpp
-#define fhatos_std_mutex_hpp
+#ifndef fhatos_mutex_hpp
+#define fhatos_mutex_hpp
 
 #include <chrono>
 #include <ctime>

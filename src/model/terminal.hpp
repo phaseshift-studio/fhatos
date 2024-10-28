@@ -42,9 +42,9 @@ namespace fhatos {
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain) override {
       if (furi->equals(this->pattern()->resolve("./:owner"))) {
-        for (const auto &x: *this->subscriptions_) {
-          this->recv_unsubscribe(id_p(x->source), p_p(x->pattern));
-        }
+        this->subscriptions_->forEach([this](const Subscription_p& subscrption) {
+          this->recv_unsubscribe(id_p(subscrption->source), p_p(subscrption->pattern));
+        });
         router()->route_subscription(subscription_p(ID(this->pattern_->retract_pattern()), Pattern(obj->uri_value()),
                                                     Insts::to_bcode([](const Message_p &message) {
                                                       printer<>()->print(message->payload->str_value().c_str());

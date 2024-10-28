@@ -20,7 +20,7 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_digital_pin_driver_hpp
 #define fhatos_digital_pin_driver_hpp
 
-#include <fhatos.hpp>
+#include <structure/router.hpp>
 
 namespace fhatos {
   class DigitalPinDriver {

@@ -34,6 +34,7 @@
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
+#include <model/sys.hpp>
 #include <model/driver/analog_pin_driver.hpp>
 #include <model/driver/digital_pin_diver.hpp>
 #include <model/driver/i2c_driver.hpp>
@@ -116,14 +117,10 @@ namespace fhatos {
               "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
             ->structure(PWM<fURIAnalogPinDriver>::create(
               "/soc/pwm/#", fURIAnalogPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
-            /*->structure(Interrupt<fURIPinDriver>::singleton(
-              "/soc/interrupt/#",
-              fURIPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#", "//remote/soc/pwm/#")))*/
+            ->structure(Sys::singleton("/sys/#"))
 #elif defined(ESP_ARCH)
             ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
             ->structure(PWM<ArduinoAnalogPinDriver>::create("/soc/pwm/#", ArduinoAnalogPinDriver::singleton()))
-            //->structure(Interrupt<ArduinoPinDriver>::singleton("/soc/interrupt/#", ArduinoPinDriver::singleton()))
-            //->structure(Timer::singleton("/soc/timer/#"))
             ->structure(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
             ->process(Redirect::create("/redirect/",

@@ -28,13 +28,13 @@ namespace fhatos {
   class Computed : public Structure {
   protected:
     //<query, function<query, <id,result>>
-    Map_p<fURI_p, Function<fURI_p, ReadRawResult_p>, furi_p_less> read_functions_;
-    Map_p<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> write_functions_;
+    Map_p<fURI_p, Function<fURI_p, IdObjPairs_p>, furi_p_less> read_functions_;
+    Map_p<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> write_functions_;
 
     explicit Computed(
       const Pattern &pattern,
-      const Map<fURI_p, Function<fURI_p, ReadRawResult_p>, furi_p_less> &read_map = {},
-      const Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less> &write_map =
+      const Map<fURI_p, Function<fURI_p, IdObjPairs_p>, furi_p_less> &read_map = {},
+      const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map =
           {}) : Structure(pattern, SType::COMPUTED),
                 read_functions_(
                   make_shared<Map<fURI_p, Function<fURI_p, List_p<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
@@ -57,13 +57,13 @@ namespace fhatos {
       this->distribute_to_subscribers(message_p(*id, obj, retain));
     }
 
-    ReadRawResult read_raw_pairs(const fURI_p &furi) override {
-      ReadRawResult list;
+    IdObjPairs_p read_raw_pairs(const fURI_p &furi) override {
+      IdObjPairs_p list = make_shared<IdObjPairs>();
       for (const auto &[furi2, func]: *this->read_functions_) {
         if (furi->bimatches(*furi2)) {
           scheduler()->feed_local_watchdog();
-          const ReadRawResult_p list2 = func(furi);
-          list.insert(list.end(), list2->begin(), list2->end());
+          const IdObjPairs_p list2 = func(furi);
+          list->insert(list->end(), list2->begin(), list2->end());
           scheduler()->feed_local_watchdog();
         }
       }

@@ -63,11 +63,13 @@
 #endif
 #ifdef FOS_DEPLOY_TYPE
 #include <language/type.hpp>
+#include <language/mmadt/type.hpp>
 #include <language/exts.hpp>
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap::create(Pattern("/type/#"))); \
   scheduler()->spawn(Type::singleton()); \
-  //Exts::load_extension("/model/mmadt/");
+  mmadt::mmADT::load();
+//Exts::load_extension("/model/mmadt/");
 #else
 #define FOS_DEPLOY_TYPE_2 ;
 #endif

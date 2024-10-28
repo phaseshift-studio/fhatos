@@ -65,7 +65,7 @@ namespace fhatos {
       /////
       this->read_functions_->insert(
           {furi_p(this->pattern()->resolve("./+")), [this](const fURI_p &furi) {
-             ReadRawResult_p list = make_shared<ReadRawResult>();
+             IdObjPairs_p list = make_shared<IdObjPairs>();
              BLECharacteristic *c = this->service_->getCharacteristic(furi->toString());
              if (c) {
                LOG_STRUCTURE(DEBUG, this, "Reading BLE characteristic: %s\n", c->toString().c_str());

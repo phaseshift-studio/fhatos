@@ -27,6 +27,9 @@
 namespace fhatos {
   template<typename DIGITAL_PIN_DRIVER>
   class GPIO : public Pin<DIGITAL_PIN_DRIVER> {
+    static_assert(std::is_base_of_v<DigitalPinDriver, DIGITAL_PIN_DRIVER>,
+                  "template must reference a digital pin driver");
+
   protected:
     explicit GPIO(const Pattern &pattern, const ptr<DIGITAL_PIN_DRIVER> &driver) : Pin<DIGITAL_PIN_DRIVER>(
       pattern,
@@ -42,7 +45,7 @@ namespace fhatos {
   public:
     static ptr<GPIO> create(const Pattern &pattern,
                             const ptr<DIGITAL_PIN_DRIVER> driver) {
-      auto gpio = ptr<GPIO<DIGITAL_PIN_DRIVER>>(new GPIO<DIGITAL_PIN_DRIVER>(pattern, driver));
+      auto gpio = ptr<GPIO>(new GPIO(pattern, driver));
       return gpio;
     }
   };

@@ -29,6 +29,9 @@
 namespace fhatos {
   template<typename ANALOG_PIN_DRIVER>
   class PWM : public Pin<ANALOG_PIN_DRIVER> {
+    static_assert(std::is_base_of_v<AnalogPinDriver, ANALOG_PIN_DRIVER>,
+                  "template must reference an analog pin driver");
+
   protected:
     explicit PWM(const Pattern &pattern, const ptr<ANALOG_PIN_DRIVER> driver) : Pin<ANALOG_PIN_DRIVER>(
       pattern,

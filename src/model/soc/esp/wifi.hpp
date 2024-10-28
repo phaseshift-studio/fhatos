@@ -80,7 +80,7 @@ namespace fhatos {
       Computed::setup();
       this->read_functions_->insert(
           {this->pattern(), [this](const fURI_p furi) {
-             ReadRawResult_p map = make_shared<ReadRawResult>();
+             IdObjPairs_p map = make_shared<IdObjPairs>();
              ID_p current;
              if (FOS_WIFI_CONNECT->matches(*furi))
                map->push_back({FOS_WIFI_CONNECT, dool(WiFi.isConnected())});

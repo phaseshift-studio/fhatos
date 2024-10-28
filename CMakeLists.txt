@@ -5,14 +5,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
 PROJECT(fhatos)
 SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 SET(ENV{no-dev})
-SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
 ENDIF()
+SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
+#SET(CMAKE_C_COMPILER /usr/bin/clang)
+#SET(CMAKE_CXX_COMPILER /usr/bin/clang)
 
 #SET(CMAKE_SYSTEM_NAME Linux)
 #SET(CMAKE_C_COMPILER   i586-mingw32msvc-gcc)
@@ -74,13 +76,13 @@ ELSEIF(LINUX)
 ENDIF()
 
 MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
-\t${.g}PROJECT_NAME${..}: ${PROJECT_NAME}
-\t${.g}CMAKE_BUILD_TYPE${..}: ${CMAKE_BUILD_TYPE}
-\t${.g}USE_CONAN${..}: ${USE_CONAN}
-\t${.g}SANITIZER${..}: ${SANITIZER}
-\t${.g}BUILD_TESTS${..}: ${BUILD_TESTS}
-\t${.g}BUILD_DOCS${..}: ${BUILD_DOCS}
-\t${.g}USE_CCACHE${..}: ${USE_CCACHE}
+\t  ${.g}PROJECT_NAME${..}: ${PROJECT_NAME}
+\t  ${.g}CMAKE_BUILD_TYPE${..}: ${CMAKE_BUILD_TYPE}
+\t  ${.g}USE_CONAN${..}: ${USE_CONAN}
+\t  ${.g}SANITIZER${..}: ${SANITIZER}
+\t  ${.g}BUILD_TESTS${..}: ${BUILD_TESTS}
+\t  ${.g}BUILD_DOCS${..}: ${BUILD_DOCS}
+\t  ${.g}USE_CCACHE${..}: ${USE_CCACHE}
 ")
 CMAKE_PRINT_VARIABLES(CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 ## PARALLELISM LEVEL (HARDCODED TO 8)
@@ -207,9 +209,9 @@ ELSE()
             GIT_TAG v1.1.0
     )
     FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ordered_map)
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_INSTALL_PREFIX}/include/tsl)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
@@ -237,9 +239,10 @@ ELSE()
     )
     FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
     #INCLUDE(pahomqttcpp.cmake)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC paho-mqttpp3)
+
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_INSTALL_PREFIX}/include/mqtt)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################

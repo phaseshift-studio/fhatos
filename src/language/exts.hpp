@@ -104,7 +104,7 @@ namespace fhatos {
         }},*/
         {
           "/model/sys/", {
-         /*   {"/type/rec/thread", Obj::to_rec({
+            {"/type/rec/thread", Obj::to_rec({
               {vri(":setup"), Obj::to_bcode()},
               {vri(":loop"), Obj::to_bcode()},
               {vri(":stop"), Obj::to_bcode()}})},
@@ -115,7 +115,7 @@ namespace fhatos {
             {"/type/rec/coroutine", Obj::to_rec({
               {vri(":setup"), Obj::to_bcode()},
               {vri(":loop"), Obj::to_bcode()},
-              {vri(":stop"), Obj::to_bcode()}})},*/
+              {vri(":stop"), Obj::to_bcode()}})},
             {"/type/rec/heap", Obj::to_rec({
               {vri(":setup"), Obj::to_bcode()},
               {vri(":loop"), Obj::to_bcode()},

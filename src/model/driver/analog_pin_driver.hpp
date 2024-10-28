@@ -20,8 +20,6 @@ FhatOS: A Distributed Operating System
 #ifndef fhatos_analog_pin_driver_hpp
 #define fhatos_analog_pin_driver_hpp
 
-#include <fhatos.hpp>
-#include <furi.hpp>
 #include <structure/router.hpp>
 
 namespace fhatos {
@@ -31,8 +29,7 @@ namespace fhatos {
 
     virtual void analogWrite(uint8_t pin, int value) = 0;
 
-    virtual int analogRead(uint8_t pin) = 0;
-
+    virtual uint16_t analogRead(uint8_t pin) = 0;
   };
 
 #ifdef ESP_ARCH
@@ -44,9 +41,15 @@ namespace fhatos {
 
   public:
 
-    void analogWrite(const uint8_t pin, const int value) override { ::analogWrite(pin, value); }
+    void analogWrite(const uint8_t pin, const int value) override {
+      ::pinMode(pin,OUTPUT);
+      ::analogWrite(pin, value);
+    }
 
-    int analogRead(const uint8_t pin) override { return ::analogRead(pin); }
+    uint16_t analogRead(const uint8_t pin) override {
+      ::pinMode(pin,INPUT);
+      return ::analogRead(pin);
+    }
 
     static ptr<ArduinoAnalogPinDriver> singleton() {
       static ptr<ArduinoAnalogPinDriver> driver = ptr<ArduinoAnalogPinDriver>(new ArduinoAnalogPinDriver());
@@ -60,8 +63,10 @@ namespace fhatos {
     Pattern write_analog_pattern_;
 
   protected:
-    fURIAnalogPinDriver(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) : AnalogPinDriver(), read_analog_pattern_(read_analog_pattern),
-                                                write_analog_pattern_(write_analog_pattern) {}
+    fURIAnalogPinDriver(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) : AnalogPinDriver(),
+      read_analog_pattern_(read_analog_pattern),
+      write_analog_pattern_(write_analog_pattern) {
+    }
 
   public:
     static ptr<fURIAnalogPinDriver> create(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) {
@@ -73,8 +78,8 @@ namespace fhatos {
       router()->write(furi_p(this->write_analog_pattern_.resolve(string("./") + to_string(pin))), jnt(value));
     }
 
-    int analogRead(const uint8_t pin) override {
-     return router()->read(furi_p(this->read_analog_pattern_.resolve(string("./") + to_string(pin))))->int_value();
+    uint16_t analogRead(const uint8_t pin) override {
+      return router()->read(furi_p(this->read_analog_pattern_.resolve(string("./") + to_string(pin))))->int_value();
     }
   };
 #endif

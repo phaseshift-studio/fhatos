@@ -55,8 +55,8 @@ namespace fhatos {
     explicit Timer(const Pattern &pattern = "/soc/timer/#") :
         Computed(pattern), interrupts_(make_shared<Map<uint8_t, BCode_p>>()) {
       this->read_functions_->insert(
-          {furi_p(this->pattern_->resolve("./+")), [this](const fURI_p timer_furi) -> ReadRawResult_p {
-             ReadRawResult_p list = make_shared<ReadRawResult>();
+          {furi_p(this->pattern_->resolve("./+")), [this](const fURI_p timer_furi) -> IdObjPairs_p {
+             IdObjPairs_p list = make_shared<IdObjPairs>();
              if (StringHelper::is_integer(timer_furi->name())) {
                const uint8_t timer_number = stoi(timer_furi->name());
                if (this->interrupts_->count(timer_number)) {
