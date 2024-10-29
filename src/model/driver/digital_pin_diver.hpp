@@ -21,11 +21,15 @@ FhatOS: A Distributed Operating System
 #define fhatos_digital_pin_driver_hpp
 
 #include <structure/router.hpp>
+#include <model/driver/base_driver.hpp>
 
 namespace fhatos {
-  class DigitalPinDriver {
+  class DigitalPinDriver : BaseDriver {
   public:
-    virtual ~DigitalPinDriver() = default;
+    explicit DigitalPinDriver(const ID& id) : BaseDriver(id, PROTOCOL::GPIO) {
+    }
+
+    ~DigitalPinDriver() override = default;
 
     // virtual void pinMode();
 
@@ -39,9 +43,12 @@ namespace fhatos {
 
   class ArduinoDigitalPinDriver : public DigitalPinDriver {
   protected:
-    ArduinoDigitalPinDriver() : DigitalPinDriver() {}
+   explicit ArduinoDigitalPinDriver() : DigitalPinDriver(*ArduinoDigitalPinDriver::static_id()) {}
 
   public:
+    static ID_p static_id()  {
+      return id_p("/driver/arduino/digital");
+    }
     void digitalWrite(const uint8_t pin, const uint8_t value) override {
       if (digitalPinCanOutput(pin)) {
         ::pinMode(pin, OUTPUT);
@@ -66,12 +73,16 @@ namespace fhatos {
     Pattern read_digital_pattern_;
     Pattern write_digital_pattern_;
 
-  protected:
-    fURIDigitalPinDriver(const Pattern &read_digital_pattern, const Pattern &write_digital_pattern) :
-        DigitalPinDriver(), read_digital_pattern_(read_digital_pattern), write_digital_pattern_(write_digital_pattern) {
+    explicit fURIDigitalPinDriver(const Pattern &read_digital_pattern,
+                         const Pattern &write_digital_pattern) : DigitalPinDriver(*fURIDigitalPinDriver::static_id()),
+                                                                 read_digital_pattern_(read_digital_pattern),
+                                                                 write_digital_pattern_(write_digital_pattern) {
     }
 
   public:
+    static ID_p static_id()  {
+      return id_p("/driver/furi/digital");
+    }
     static ptr<fURIDigitalPinDriver> create(const Pattern &read_digital_pattern, const Pattern &write_digital_pattern) {
       const auto driver =
           ptr<fURIDigitalPinDriver>(new fURIDigitalPinDriver(read_digital_pattern, write_digital_pattern));

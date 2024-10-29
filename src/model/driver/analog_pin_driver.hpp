@@ -22,10 +22,15 @@ FhatOS: A Distributed Operating System
 
 #include <structure/router.hpp>
 
+#include "base_driver.hpp"
+
 namespace fhatos {
-  class AnalogPinDriver {
+  class AnalogPinDriver : BaseDriver {
   public:
-    virtual ~AnalogPinDriver() = default;
+    explicit AnalogPinDriver(const ID &id) : BaseDriver(id, PROTOCOL::PWM) {
+    }
+
+    ~AnalogPinDriver() override = default;
 
     virtual void analogWrite(uint8_t pin, int value) = 0;
 
@@ -37,9 +42,12 @@ namespace fhatos {
 
   class ArduinoAnalogPinDriver : public AnalogPinDriver {
   protected:
-    ArduinoAnalogPinDriver() : AnalogPinDriver() {}
+  explicit  ArduinoAnalogPinDriver() : AnalogPinDriver(*ArduinoAnalogPinDriver::static_id()) {}
 
   public:
+    static ID_p static_id()  {
+      return id_p("/driver/arduino/analog");
+    }
     void analogWrite(const uint8_t pin, const int value) override {
       ::pinMode(pin, OUTPUT);
       ::analogWrite(pin, value);
@@ -62,10 +70,18 @@ namespace fhatos {
     Pattern write_analog_pattern_;
 
   protected:
-    fURIAnalogPinDriver(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) :
-        AnalogPinDriver(), read_analog_pattern_(read_analog_pattern), write_analog_pattern_(write_analog_pattern) {}
+    explicit fURIAnalogPinDriver(const Pattern &read_analog_pattern,
+                                 const Pattern &write_analog_pattern) : AnalogPinDriver(
+                                                                          *fURIAnalogPinDriver::static_id()),
+                                                                        read_analog_pattern_(read_analog_pattern),
+                                                                        write_analog_pattern_(write_analog_pattern) {
+    }
 
   public:
+    static ID_p static_id() {
+      return id_p("/driver/furi/analog");
+    }
+
     static ptr<fURIAnalogPinDriver> create(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) {
       const auto driver = ptr<fURIAnalogPinDriver>(new fURIAnalogPinDriver(read_analog_pattern, write_analog_pattern));
       return driver;

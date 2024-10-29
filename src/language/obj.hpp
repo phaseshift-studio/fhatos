@@ -260,10 +260,6 @@ namespace fhatos {
     LOG(DEBUG, "!ySCHEDULER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
     return false;
   };
-  static Function<const fURI &, const Objs_p> SCHEDULER_READ_INTERCEPT = [](const fURI &) -> Objs_p {
-    LOG(DEBUG, "!ySCHEDULER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
-    return nullptr;
-  };
   static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_WRITE_INTERCEPT =
       [](const fURI &, const Obj_p &, const bool) -> bool {
     LOG(DEBUG, "!yROUTER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");

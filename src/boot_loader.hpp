@@ -38,15 +38,16 @@
 #include <model/driver/analog_pin_driver.hpp>
 #include <model/driver/digital_pin_diver.hpp>
 #include <model/driver/i2c_driver.hpp>
+#include <model/pin/i2c.hpp>
 #include <model/pin/gpio.hpp>
 //#include <model/pin/interrupt.hpp>
 #include <model/pin/pwm.hpp>
+#include <model/driver/driver.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
-#include FOS_BLE(ble.hpp)
+// #include FOS_BLE(ble.hpp)
 #include <model/soc/esp/wifi.hpp>
 #include <model/soc/memory/esp32/memory.hpp>
-#include <structure/stype/ble/esp/ble.hpp>
 #include FOS_TIMER(timer.hpp)
 #include <structure/stype/redirect.hpp>
 #endif
@@ -101,6 +102,7 @@ namespace fhatos {
             ->program(Heap::create("/parser/#"), Parser::singleton("/parser/"))
             //
             ->model("/model/sys/")
+            ->structure(Sys::singleton("/sys/#"))
             //
 #ifdef ESP_ARCH
             ->structure(
@@ -117,7 +119,7 @@ namespace fhatos {
               "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
             ->structure(PWM<fURIAnalogPinDriver>::create(
               "/soc/pwm/#", fURIAnalogPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
-            ->structure(Sys::singleton("/sys/#"))
+            ->structure(I2C<I2CDriver>::create("/soc/i2c/#", fURII2CDriver::create()))
 #elif defined(ESP_ARCH)
             ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
             ->structure(PWM<ArduinoAnalogPinDriver>::create("/soc/pwm/#", ArduinoAnalogPinDriver::singleton()))
@@ -127,6 +129,7 @@ namespace fhatos {
                                        Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
                                        Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
+            ->structure(Driver::singleton("/driver/#"))
             ->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",

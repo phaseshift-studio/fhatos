@@ -27,23 +27,84 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class Sys : public Computed {
     explicit Sys(const Pattern &pattern = "/sys/#") : Computed(pattern) {
+      ////////////////////////////////////////////////////////////////////////
+      /////////////////////////////// SCHEDULER //////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
+      this->read_functions_->insert(
+        {furi_p(pattern.resolve("./scheduler")), [this](const fURI_p &furi) {
+          return make_id_objs({{id_p(*furi), Obj::to_rec({{vri(":spawm"), Insts::to_bcode([](const Uri_p &uri) {
+            return uri;
+          })}})}});
+        }});
+      this->read_functions_->insert(
+        {furi_p(pattern.resolve("./scheduler/process/#")), [this](const fURI_p &furi) {
+          IdObjPairs_p pairs = make_id_objs();
+          int counter = 0;
+          int *c = &counter;
+          scheduler()->processes_->forEach([this,pairs,c,furi](const Process_p &process) {
+            ID_p pid = id_p(this->pattern()->resolve(string("./scheduler/process/") + to_string((*c)++)));
+            if (pid->matches(*furi))
+              pairs->push_back({pid, vri(process->id())});
+          });
+          return pairs;
+        }});
+      ////////////////////////////////////////////////////////////////////////
+      //////////////////////////////// ROUTER ////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
+      this->read_functions_->insert(
+        {furi_p(pattern.resolve("./router")), [this](const fURI_p &furi) {
+          return make_id_objs({{id_p(*furi), Obj::to_rec({{vri(":mount"), Insts::to_bcode([](const Uri_p &uri) {
+            return uri;
+          })}})}});
+        }});
+      this->read_functions_->insert(
+        {furi_p(pattern.resolve("./router/structure/#")), [this](const fURI_p &furi) {
+          IdObjPairs_p pairs = make_id_objs();
+          int counter = 0;
+          int *c = &counter;
+          router()->structures_.forEach([this,pairs,c,furi](const Structure_p &structure) {
+            ID_p pid = id_p(this->pattern()->resolve(string("./router/structure/") + to_string((*c)++)));
+            if (pid->matches(*furi))
+              pairs->push_back({pid, vri(structure->pattern())});
+          });
+          return pairs;
+        }});
+      ////////////////////////////////////////////////////////////////////////
+      /////////////////////////////// HARDWARE ///////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
 #ifdef NATIVE
       this->read_functions_->insert(
-        {furi_p(pattern.resolve("./+")), [this](const fURI_p &furi) {
-          std::ifstream cpuInfo("/proc/cpuinfo");
-          std::string line;
-          IdObjPairs result;
-          while (std::getline(cpuInfo, line)) {
-            if (line.find("processor") != std::string::npos) {
-              result.push_back({id_p(this->pattern_->resolve("./processor")), str(line)});
-            } else if (line.find("cpu architecture") != std::string::npos) {
-              result.push_back({id_p(this->pattern_->resolve("./cpu")), str(line)});
-            } else if (line.find("physical id") != std::string::npos) {
-              result.push_back({id_p(this->pattern_->resolve("./id")), str(line)});
+        {furi_p(pattern.resolve("./hardware/#")), [pattern](const fURI_p &furi) {
+            std::ifstream cpuInfo("/proc/cpuinfo");
+            std::string line;
+            const IdObjPairs_p result = make_id_objs();
+            int proc = -1;
+            int cores = -1;
+            string cpu;
+            while (std::getline(cpuInfo, line)) {
+              const std::string value = StringHelper::substring(':', line);
+              StringHelper::trim(value);
+              if (line.find("processor") != std::string::npos) {
+                if (proc != -1) {
+                  const Rec_p r = rec();
+                  if (cores != -1)
+                    r->rec_set(vri(":cores"), jnt(cores));
+                  if (!cpu.empty())
+                    r->rec_set(vri(":cpu"), str(cpu));
+                  result->push_back({id_p(pattern.resolve("./hardware/processor/" + to_string(proc))), r});
+                }
+                proc = stoi(value);
+                cores = -1;
+                cpu.clear();
+              } else if (line.find("model name") != std::string::npos) {
+                cpu = value;
+              } else if (line.find("cpu cores") != std::string::npos) {
+                cores = stoi(value);
+              }
             }
+            return result;
           }
-          return make_shared<IdObjPairs>(result);
-        }});
+        });
 #endif
     }
 

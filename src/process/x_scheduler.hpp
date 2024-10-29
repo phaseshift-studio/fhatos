@@ -42,6 +42,7 @@
 
 
 namespace fhatos {
+  class Sys;
   using Process_p = ptr<Process>;
 
   class XScheduler : public IDed, public Mailbox {
@@ -80,42 +81,6 @@ namespace fhatos {
     bool recv_mail(const Mail_p &mail) override { return this->inbox_.push_back(mail); }
 
     virtual void setup() {
-      SCHEDULER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
-        const bool proc_branch = this->id()->resolve("./process/").bimatches(furi);
-        const bool barr_branch =
-            this->barrier_.first && this->barrier_.second && this->id()->resolve("./barrier/").bimatches(furi);
-        if (proc_branch || barr_branch) {
-          Rec_p rec = Obj::to_rec();
-          if (proc_branch) {
-            auto uris = make_shared<List<Uri_p>>();
-            this->processes_->forEach([uris](const Process_p &process) { uris->push_back(vri(process->id())); });
-            rec = ObjHelper::encode_lst(this->id()->resolve("./process/"), *uris);
-          }
-          if (barr_branch) {
-            rec->rec_set(vri(this->barrier_.first), this->barrier_.second);
-          }
-          return rec;
-        }
-        const bool proc_node = this->id()->resolve("./process/+").bimatches(furi);
-        const bool barr_node =
-            this->barrier_.first && this->barrier_.second && this->barrier_.first->bimatches(furi);
-        if (proc_node || barr_node) {
-          const Objs_p objs = Obj::to_objs();
-          if (proc_node) {
-            if (StringHelper::is_integer(furi.name()))
-              return vri(this->processes_->get(stoi(furi.name())).value()->id());
-            if (furi.name() == "+" || furi.name() == "#") {
-              this->processes_->forEach([objs](const Process_p &process) { objs->add_obj(vri(process->id())); });
-            }
-          }
-          if (barr_node) {
-            objs->add_obj(this->barrier_.second);
-          }
-          return objs;
-        }
-        return noobj();
-      };
-
       SCHEDULER_WRITE_INTERCEPT = [this](const ID &target, const Obj_p &payload, const bool retain) -> bool {
         if (!retain)
           return false;
@@ -232,6 +197,8 @@ namespace fhatos {
       mail->get()->first->on_recv->apply(mail->get()->second->to_rec());
       return true;
     }
+
+    friend Sys;
   };
 } // namespace fhatos
 #endif

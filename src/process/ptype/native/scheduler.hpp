@@ -29,10 +29,14 @@
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(coroutine.hpp)
 
+
 namespace fhatos {
+  class Sys;
   static atomic_int FIBER_COUNT;
 
   class Scheduler final : public XScheduler {
+    friend Sys;
+
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {
     }

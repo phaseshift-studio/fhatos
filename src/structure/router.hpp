@@ -26,6 +26,40 @@
 
 
 namespace fhatos {
+  static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init) {
+    return make_shared<IdObjPairs>(init);
+  }
+
+  template<class IDED>
+  static IdObjPairs_p make_id_objs(const List<ptr<IDED>> &init) {
+    static_assert(std::is_base_of_v<Process, IDED>,
+                  "template must reference a i2c driver");
+    const auto list = new IdObjPairs();
+    for (const ptr<IDED> &ided: init) {
+      list->push_back(make_pair<ID_p, Obj_p>(ided->id(), ided->to_rec()));
+    }
+    const auto list_p = ptr<IdObjPairs>(list);
+    return list_p;
+  }
+
+  template<class IDED>
+  static IdObjPairs_p make_id_objs(const fURI_p &base_furi, const List<ptr<IDED>> &init) {
+    const auto list = new IdObjPairs();
+    int counter = 0;
+    for (const ptr<IDED> &ided: init) {
+      list->push_back(make_pair<ID_p, Obj_p>(id_p(base_furi->resolve(string("./") + to_string(counter++))), vri(ided->id())));
+    }
+    const auto list_p = ptr<IdObjPairs>(list);
+    return list_p;
+  }
+
+  static IdObjPairs_p make_id_objs() {
+    return make_shared<IdObjPairs>();
+  }
+
+
+  class Sys;
+
   class Router final : public Patterned {
   protected:
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
@@ -111,12 +145,11 @@ namespace fhatos {
     }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
-      ////////////////////////////////////////////////////////
-      //////////// ROUTER/SCEDULER READ INTERCEPTS ///////////
-      ////////////////////////////////////////////////////////
+      ///////////////////////////////////////////////
+      //////////// ROUTER READ INTERCEPTS ///////////
+      ///////////////////////////////////////////////
       const Objs_p objs = Obj::to_objs();
       objs->add_obj(ROUTER_READ_INTERCEPT(*furi));
-      objs->add_obj(SCHEDULER_READ_INTERCEPT(*furi));
       if (!objs->objs_value()->empty())
         return objs;
       //////////////////////////////////////////////////////////
@@ -229,6 +262,8 @@ namespace fhatos {
       };
       LOG_ROUTER(INFO, "!yrouter!! started\n");
     }
+
+    friend Sys;
   };
 
   inline ptr<Router> router() { return Options::singleton()->router<Router>(); }
