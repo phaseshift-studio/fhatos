@@ -146,8 +146,11 @@ namespace fhatos {
         }
         Scheduler::singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
           const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
-          if (remove)
-            LOG_DESTROY(true, fiber, Scheduler::singleton());
+          if (remove) {
+            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
+                           fiber->id()->toString().c_str(),
+                           ProcessTypes.to_chars(fiber->ptype).c_str());
+          }
           return remove;
         });
         vTaskDelay(1); // feeds the watchdog for the task
@@ -188,8 +191,11 @@ namespace fhatos {
 
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->id()->equals(*thread->id());
-        if (remove)
-          LOG_DESTROY(true, proc, Scheduler::singleton());
+        if (remove) {
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
+                          proc->id()->toString().c_str(),
+                          ProcessTypes.to_chars(proc->ptype).c_str());
+        }
         return remove;
       });
       vTaskDelete(nullptr);

@@ -28,19 +28,6 @@
 #include <structure/router.hpp>
 #include <util/mutex_deque.hpp>
 
-#define LOG_SPAWN(success, process)                                                                                    \
-  {                                                                                                                    \
-    LOG_SCHEDULER((success) ? INFO : ERROR, "!b%s!! !y%s!! %s\n", ProcessTypes.to_chars((process)->ptype).c_str(),     \
-                  (success) ? "spawned" : "!r!_not spawned!!");                                                        \
-  }
-
-#define LOG_DESTROY(success, process, scheduler)                                                                       \
-  {                                                                                                                    \
-    LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!y%s!! !g[!b%s!g]!! %s\n", (process)->id()->toString().c_str(),      \
-                ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");     \
-  }
-
-
 namespace fhatos {
   class Sys;
   using Process_p = ptr<Process>;
@@ -192,9 +179,9 @@ namespace fhatos {
 
   protected:
     bool read_mail() {
-      if (*scheduler_thread.get() != this_thread::get_id())
-        throw fError("Mail can only be read by the primary thread: %i != %i\n", *scheduler_thread.get(),
-                     this_thread::get_id());
+     // if (*scheduler_thread.get() != this_thread::get_id())
+     //   throw fError("Mail can only be read by the primary thread: %i != %i\n", *scheduler_thread.get(),
+     //                this_thread::get_id());
       const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;
