@@ -13,9 +13,8 @@ SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
-# SET(CMAKE_C_COMPILER /usr/bin/gcc)
-# SET(CMAKE_CXX_COMPILER /usr/bin/g++)
-
+#SET(CMAKE_C_COMPILER /usr/bin/gcc)
+#SET(CMAKE_CXX_COMPILER /usr/bin/g++)
 #SET(CMAKE_SYSTEM_NAME Linux)
 #SET(CMAKE_C_COMPILER   i586-mingw32msvc-gcc)
 #SET(CMAKE_CXX_COMPILER i586-mingw32msvc-g++)
@@ -84,8 +83,8 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.g}BUILD_DOCS${..}      : ${BUILD_DOCS}
 \t  ${.g}USE_CCACHE${..}      : ${USE_CCACHE}
                     ${.m}----${..}
-\t  ${.y}CMAKE_C_COMPILER${..}  : ${CMAKE_C_COMPILER}
-\t  ${.y}CMAKE_CXX_COMPILER${..}: ${CMAKE_CXX_COMPILER}
+\t  ${.y}CMAKE_C_COMPILER${..}  : ${CMAKE_C_COMPILER} (${.c}${CMAKE_C_COMPILER_ID}${..})
+\t  ${.y}CMAKE_CXX_COMPILER${..}: ${CMAKE_CXX_COMPILER} (${.c}${CMAKE_CXX_COMPILER_ID}${..})
 \t  ${.y}CMAKE_C_COMPILER_VERSION${..}  : ${CMAKE_C_COMPILER_VERSION}
 \t  ${.y}CMAKE_CXX_COMPILER_VERSION${..}: ${CMAKE_CXX_COMPILER_VERSION}
 ")

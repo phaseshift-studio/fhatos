@@ -27,7 +27,7 @@ namespace fhatos {
   public:
     virtual ~DigitalPinDriver() = default;
 
-    //virtual void pinMode();
+    // virtual void pinMode();
 
     virtual void digitalWrite(uint8_t pin, uint8_t value) = 0;
 
@@ -59,24 +59,22 @@ namespace fhatos {
       return driver;
     }
   };
-#elif defined(NATIVE)
+#endif
+
   class fURIDigitalPinDriver final : public DigitalPinDriver {
   protected:
     Pattern read_digital_pattern_;
     Pattern write_digital_pattern_;
 
   protected:
-    fURIDigitalPinDriver(const Pattern &read_digital_pattern,
-                         const Pattern &write_digital_pattern) : DigitalPinDriver(),
-                                                                 read_digital_pattern_(read_digital_pattern),
-                                                                 write_digital_pattern_(write_digital_pattern) {
+    fURIDigitalPinDriver(const Pattern &read_digital_pattern, const Pattern &write_digital_pattern) :
+        DigitalPinDriver(), read_digital_pattern_(read_digital_pattern), write_digital_pattern_(write_digital_pattern) {
     }
 
   public:
-    static ptr<fURIDigitalPinDriver> create(const Pattern &read_digital_pattern,
-                                            const Pattern &write_digital_pattern) {
-      const auto driver = ptr<fURIDigitalPinDriver>(
-        new fURIDigitalPinDriver(read_digital_pattern, write_digital_pattern));
+    static ptr<fURIDigitalPinDriver> create(const Pattern &read_digital_pattern, const Pattern &write_digital_pattern) {
+      const auto driver =
+          ptr<fURIDigitalPinDriver>(new fURIDigitalPinDriver(read_digital_pattern, write_digital_pattern));
       return driver;
     }
 
@@ -88,6 +86,5 @@ namespace fhatos {
       return router()->read(furi_p(this->read_digital_pattern_.resolve(string("./") + to_string(pin))))->int_value();
     }
   };
-#endif
 } // namespace fhatos
 #endif

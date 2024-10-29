@@ -22,9 +22,9 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
+#include <language/type.hpp>
 #include <process/obj_process.hpp>
 #include <structure/router.hpp>
-#include <language/type.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 75
@@ -39,11 +39,11 @@ namespace mmadt {
     static void load() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      Type::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(),
-                                                             TOTAL_INSTRUCTIONS);
+      Type::singleton()->progress_bar_ =
+          ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(inst_id("a"), Insts::a(x(0)));
       Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)), false);
-      //this->save_type(inst_id("??"), Insts::from(vri(inst_id("optional"))));
+      // this->save_type(inst_id("??"), Insts::from(vri(inst_id("optional"))));
       Type::singleton()->save_type(inst_id("inspect"), Insts::inspect());
       Type::singleton()->save_type(inst_id("plus"), Insts::plus(x(0)));
       Type::singleton()->save_type(inst_id("mult"), Insts::mult(x(0)));
@@ -57,12 +57,12 @@ namespace mmadt {
       Type::singleton()->save_type(inst_id("gt"), Insts::gt(x(0)));
       Type::singleton()->save_type(inst_id("to"), Insts::to(x(0), x(1, dool(true))));
       Type::singleton()->save_type(inst_id("to_inv"), Insts::to_inv(x(0), x(1, dool(true))));
-      //this->save_type(inst_id("->"), Insts::from(vri(inst_id("to_inv"))));
+      // this->save_type(inst_id("->"), Insts::from(vri(inst_id("to_inv"))));
       Type::singleton()->save_type(inst_id("via_inv"), Insts::to_inv(x(0), dool(false)));
-      //this->save_type(inst_id("-->"), Insts::from(vri(inst_id("via_inv"))));
+      // this->save_type(inst_id("-->"), Insts::from(vri(inst_id("via_inv"))));
       Type::singleton()->save_type(inst_id("start"), Insts::start(x(0)));
       Type::singleton()->save_type(inst_id("merge"), Insts::merge(x(0)));
-      //this->save_type(inst_id(">-"), Insts::from(vri(inst_id("merge"))));
+      // this->save_type(inst_id(">-"), Insts::from(vri(inst_id("merge"))));
       Type::singleton()->save_type(inst_id("map"), Insts::map(x(0)));
       Type::singleton()->save_type(inst_id("filter"), Insts::filter(x(0)));
       Type::singleton()->save_type(inst_id("count"), Insts::count());
@@ -97,6 +97,7 @@ namespace mmadt {
       Type::singleton()->save_type(inst_id("until"), Insts::until(x(0)));
       Type::singleton()->save_type(inst_id("dedup"), Insts::dedup(x(0, bcode())));
       Type::singleton()->save_type(inst_id("insert"), Insts::insert(x(0)));
+      Type::singleton()->save_type(inst_id("delay"), Insts::delay(x(0)));
       Type::singleton()->save_type(inst_id("and"), Insts::x_and(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       Type::singleton()->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       Type::singleton()->save_type(inst_id("rand"), Insts::rand(x(0, vri(BOOL_FURI))));
@@ -106,5 +107,5 @@ namespace mmadt {
       Type::singleton()->progress_bar_ = nullptr;
     }
   };
-} // namespace fhatos
+} // namespace mmadt
 #endif

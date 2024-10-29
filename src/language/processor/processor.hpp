@@ -38,7 +38,7 @@ namespace fhatos {
   public:
     Monad() = delete;
 
-    explicit Monad(const Obj_p &obj, const Inst_p &inst) : obj_(obj->clone()), inst_(inst) {
+    explicit Monad(const Obj_p &obj, const Inst_p &inst) : obj_(obj), inst_(inst) {
       // TODO: figure out how to not require a clone()
     }
 
@@ -94,7 +94,7 @@ namespace fhatos {
   };
 
   static Monad_p monad_p(const Obj_p &obj, const Inst_p &inst) {
-    return share(Monad(obj, inst));
+    return make_shared<Monad>(obj, inst);
   }
 
   class Processor {
@@ -140,6 +140,7 @@ namespace fhatos {
 
     Obj_p next(const int steps = -1) {
       while (true) {
+       // Process::current_process()->feed_watchdog_via_counter();
         if (this->halted_->empty()) {
           if (this->running_->empty())
             return nullptr;
@@ -162,8 +163,8 @@ namespace fhatos {
       return objs;
     }
 
-    int execute(const int steps = -1) const {
-      int counter = 0;
+    int execute(const int steps = -1) {
+      uint16_t counter = 0;
       while ((!this->running_->empty() || !this->barriers_->empty()) && (counter++ < steps || steps == -1)) {
         if (this->running_->empty() && !this->barriers_->empty()) {
           const Monad_p barrier = this->barriers_->front();

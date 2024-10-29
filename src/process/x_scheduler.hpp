@@ -52,9 +52,17 @@ namespace fhatos {
     Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {}
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {
+      FEED_WATCDOG = [this] {
+        this->feed_local_watchdog();
+      };
+    }
 
-    ~XScheduler() override { delete processes_; }
+    ~XScheduler() override {
+      delete processes_;
+      FEED_WATCDOG = []() {
+      };
+    }
 
     [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
       if (this->processes_->empty())
@@ -73,8 +81,8 @@ namespace fhatos {
 
     virtual void setup() {
       SCHEDULER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
-        bool proc_branch = this->id()->resolve("./process/").bimatches(furi);
-        bool barr_branch =
+        const bool proc_branch = this->id()->resolve("./process/").bimatches(furi);
+        const bool barr_branch =
             this->barrier_.first && this->barrier_.second && this->id()->resolve("./barrier/").bimatches(furi);
         if (proc_branch || barr_branch) {
           Rec_p rec = Obj::to_rec();

@@ -67,14 +67,12 @@ namespace fhatos {
                        resolved_type_id->toString().c_str());
         return make_shared<Obj>(proto_obj->_value, resolved_type_id, obj->id());
       };
-     // this->load_insts();
       router()->route_subscription(
         subscription_p(ID(*this->id()), *this->id(), Insts::to_bcode([this](const Message_p &message) {
           const ID_p type_id = id_p(message->target);
           if (message->retain && !this->type_exists(type_id, message->payload))
             this->save_type(type_id, message->payload, true);
         })));
-      router()->write(this->id(), load_process(PtrHelper::no_delete(this),__FILE__, 125));
     }
 
     /////////////////////////////////////////////////////////////////////

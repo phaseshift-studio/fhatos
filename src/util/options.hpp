@@ -39,6 +39,9 @@ using namespace std;
 namespace fhatos {
   // TODO: singleton methods in global fhatos namespace for terser syntax
 
+  inline function<void()> FEED_WATCDOG = []() {
+  };
+
   class Options final {
   private:
     uint8_t log_level_ = 3; // INFO
@@ -73,7 +76,7 @@ namespace fhatos {
 
     template<typename SYSTEM>
     shared_ptr<SYSTEM> system() {
-      if(!this->system_.has_value())
+      if (!this->system_.has_value())
         throw fError("No system specified in global options\n");
       return std::any_cast<shared_ptr<SYSTEM>>(this->system_);
     }

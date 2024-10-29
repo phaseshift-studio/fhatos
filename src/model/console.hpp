@@ -26,7 +26,6 @@
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include <model/terminal.hpp>
-#include <process/obj_process.hpp>
 
 namespace fhatos {
   class Console final : public Thread {
@@ -37,8 +36,9 @@ namespace fhatos {
       bool strict_;
       LOG_TYPE log_;
 
-      Settings(const bool nest, const bool ansi, const bool strict, const LOG_TYPE log) :
-          nest_(nest), ansi_(ansi), strict_(strict), log_(log){};
+      Settings(const bool nest, const bool ansi, const bool strict, const LOG_TYPE log) : nest_(nest), ansi_(ansi),
+        strict_(strict), log_(log) {
+      };
     };
 
   protected:
@@ -63,6 +63,7 @@ namespace fhatos {
       /////
       if (obj->is_objs())
         for (Obj_p &o: *obj->objs_value()) {
+          Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth + 1);
         }
       else if (nest && (obj->is_lst() || obj->is_objs())) {
@@ -72,6 +73,7 @@ namespace fhatos {
                             (obj->is_lst() ? "[" : "{") + "!!\n"),
                         false);
         for (const auto &e: *obj->lst_value()) {
+          Process::current_process()->feed_watchdog_via_counter();
           router()->write(
               this->id(),
               str(StringHelper::format("%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
@@ -93,6 +95,7 @@ namespace fhatos {
                             (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m[!!\n"),
                         false);
         for (const auto &[key, value]: *obj->rec_value()) {
+          Process::current_process()->feed_watchdog_via_counter();
           router()->write(this->id(),
                           str(StringHelper::format(
                               "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
@@ -119,8 +122,8 @@ namespace fhatos {
       }
     }
 
-    explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
-        Thread(id), terminal_id_(id_p(terminal)) {
+    explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(id),
+      terminal_id_(id_p(terminal)) {
       router()->write(id_p(id.resolve("./config/nest")), dool(settings.nest_));
       router()->write(id_p(id.resolve("./config/nest").query("doc")), str("pretty print polys"));
       router()->write(id_p(id.resolve("./config/strict")), dool(settings.strict_));
@@ -149,10 +152,10 @@ namespace fhatos {
       const ID_p clear_id = id_p(this->id()->extend("config/clear"));
       router()->write(id_p(this->id()->extend("config/")),
                       Obj::to_rec({{vri(nest_id), router()->read(nest_id)},
-                                   {vri(strict_id), router()->read(strict_id)},
-                                   {vri(ansi_id), router()->read(ansi_id)},
-                                   {vri(log_id), router()->read(log_id)},
-                                   {vri(clear_id), parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}}));
+                        {vri(strict_id), router()->read(strict_id)},
+                        {vri(ansi_id), router()->read(ansi_id)},
+                        {vri(log_id), router()->read(log_id)},
+                        {vri(clear_id), parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}}));
       return noobj();
     }
 
@@ -162,21 +165,21 @@ namespace fhatos {
 
       //////////////////////////////////////////
       router()->route_subscription(subscription_p(
-          *this->id(), this->id()->resolve("./config/+"), Insts::to_bcode([this](const Message_p &message) {
-            if (message->retain && !message->target.has_query()) {
-              if (message->target.name() == "ansi") {
-                Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());
-              } else if (message->target.name() == "log") {
-                Options::singleton()->log_level(LOG_TYPES.to_enum(message->payload->uri_value().toString()));
-              }
+        *this->id(), this->id()->resolve("./config/+"), Insts::to_bcode([this](const Message_p &message) {
+          if (message->retain && !message->target.has_query()) {
+            if (message->target.name() == "ansi") {
+              Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());
+            } else if (message->target.name() == "log") {
+              Options::singleton()->log_level(LOG_TYPES.to_enum(message->payload->uri_value().toString()));
             }
-          })));
+          }
+        })));
       router()->route_subscription(subscription_p(
-          *this->id(), this->id()->resolve("./prompt"), Insts::to_bcode([this](const Message_p &message) {
-            router()->write(this->id_, str(message->payload->str_value() + "\n"), false);
-            this->process_line(message->payload->str_value());
-            this->print_prompt();
-          })));
+        *this->id(), this->id()->resolve("./prompt"), Insts::to_bcode([this](const Message_p &message) {
+          router()->write(this->id_, str(message->payload->str_value() + "\n"), false);
+          this->process_line(message->payload->str_value());
+          this->print_prompt();
+        })));
     }
 
     void process_line(string line) const {
@@ -191,7 +194,7 @@ namespace fhatos {
         if (!obj.has_value())
           throw fError("unable to parse input: %s", line.c_str());
         this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
-            obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
+          obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
       } catch (const std::exception &e) {
         this->print_exception(e);
       }

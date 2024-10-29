@@ -145,21 +145,7 @@ namespace fhatos {
         }
       };
       Options::singleton()->parser<Obj>(OBJ_PARSER);
-      router()->write(this->id(), load_process(PtrHelper::no_delete(this), __FILE__, 137));
     }
-
-    /*void setup() override {
-      Coroutine::setup();
-      this->subscribe(this->id()->extend("parse/+/in"), [this](const Message_p &message) {
-        LOG_PROCESS(DEBUG, this, "Parsing %s\n", message->payload->toString().c_str());
-        this->publish(message->target.resolve("./out"),
-                      Options::singleton()->processor<Obj, BCode, Obj>(
-                        noobj(),
-                        fhatos::Parser::try_parse_obj(message->payload->str_value()).value()),
-                      RETAIN_MESSAGE
-        );
-        //
-      });}*/
 
     static bool closed_expression(const string &line) {
       auto ss = stringstream(line);

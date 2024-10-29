@@ -40,14 +40,13 @@ namespace fhatos {
     ArduinoAnalogPinDriver() : AnalogPinDriver() {}
 
   public:
-
     void analogWrite(const uint8_t pin, const int value) override {
-      ::pinMode(pin,OUTPUT);
+      ::pinMode(pin, OUTPUT);
       ::analogWrite(pin, value);
     }
 
     uint16_t analogRead(const uint8_t pin) override {
-      ::pinMode(pin,INPUT);
+      ::pinMode(pin, INPUT);
       return ::analogRead(pin);
     }
 
@@ -56,17 +55,15 @@ namespace fhatos {
       return driver;
     }
   };
-#elif defined(NATIVE)
+#endif
   class fURIAnalogPinDriver final : public AnalogPinDriver {
   protected:
     Pattern read_analog_pattern_;
     Pattern write_analog_pattern_;
 
   protected:
-    fURIAnalogPinDriver(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) : AnalogPinDriver(),
-      read_analog_pattern_(read_analog_pattern),
-      write_analog_pattern_(write_analog_pattern) {
-    }
+    fURIAnalogPinDriver(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) :
+        AnalogPinDriver(), read_analog_pattern_(read_analog_pattern), write_analog_pattern_(write_analog_pattern) {}
 
   public:
     static ptr<fURIAnalogPinDriver> create(const Pattern &read_analog_pattern, const Pattern &write_analog_pattern) {
@@ -82,6 +79,5 @@ namespace fhatos {
       return router()->read(furi_p(this->read_analog_pattern_.resolve(string("./") + to_string(pin))))->int_value();
     }
   };
-#endif
 } // namespace fhatos
 #endif

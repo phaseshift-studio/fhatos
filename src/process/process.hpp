@@ -27,12 +27,16 @@
 #include <util/enums.hpp>
 #include <util/ptr_helper.hpp>
 
+#define FOS_ALREADY_STOPPED "!g[!b%s!g] !y%s!! already stopped\n"
+#define FOS_ALREADY_SETUP "!g[!b%s!g] !y%s!! already setup\n"
+#ifndef FOS_PROCESS_WDT_COUNTER
+#define FOS_PROCESS_WDT_COUNTER 25
+#endif
+
 namespace fhatos {
   const ID_p THREAD_FURI = share<ID>(ID(REC_FURI->resolve("thread")));
   const ID_p FIBER_FURI = share<ID>(ID(REC_FURI->resolve("fiber")));
   const ID_p COROUTINE_FURI = share<ID>(ID(REC_FURI->resolve("coroutine")));
-  CONST_CHAR(ALREADY_STOPPED, "!g[!b%s!g] !y%s!! already stopped\n");
-  CONST_CHAR(ALREADY_SETUP, "!g[!b%s!g] !y%s!! already setup\n");
 
   class Process;
   using Process_p = ptr<Process>;
@@ -41,7 +45,7 @@ namespace fhatos {
 
   enum class PType { THREAD, FIBER, COROUTINE };
 
-  static const Enums<PType> ProcessTypes =
+  static const auto ProcessTypes =
       Enums<PType>({{PType::THREAD, "thread"}, {PType::FIBER, "fiber"}, {PType::COROUTINE, "coroutine"}});
 
   //////////////////////////////////////////////////////////////////////
@@ -51,29 +55,33 @@ namespace fhatos {
 
   class Process : public IDed {
   protected:
-    std::atomic_bool running_ = std::atomic_bool(false);
+    std::atomic_bool running_ = false;
+    std::atomic_int16_t wdt_timer_counter = 0;
 
   public:
     const PType ptype;
 
-    explicit Process(const ID &id, const PType pType) :
-        IDed(id_p(id)),  ptype(pType) {}
+    explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {
+    }
 
     ~Process() override = default;
 
-    static Process_p current_process() {
-      const Process_p current = PtrHelper::no_delete<Process>(this_process.load());
-      return current;
+    void feed_watchdog_via_counter() {
+      if (this->wdt_timer_counter.fetch_add(1) >= FOS_PROCESS_WDT_COUNTER) {
+        // LOG(INFO, "reset watchdog timer: %i >= %i\n", this->wdt_timer_counter.load(), FOS_PROCESS_WDT_COUNTER);
+        FEED_WATCDOG();
+        this->wdt_timer_counter.store(0);
+      }
     }
 
-    /*fURI_p type() const override {
-      return this->type_;
-    }*/
+    static Process* current_process() {
+      return this_process.load();
+    }
 
     virtual void setup() {
       this_process = this;
       if (this->running_.load()) {
-        LOG(WARN, ALREADY_SETUP, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
+        LOG(WARN, FOS_ALREADY_SETUP, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       this->running_.store(true);
@@ -84,13 +92,13 @@ namespace fhatos {
         throw fError("!g[!b%s!g] !y%s!! can't loop when stopped", this->id()->toString().c_str(),
                      ProcessTypes.to_chars(this->ptype).c_str());
       }
-      this_process = this;
+      this_process.store(this);
     };
 
     virtual void stop() {
       this_process = this;
       if (!this->running_.load()) {
-        LOG(WARN, ALREADY_STOPPED, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
+        LOG(WARN, FOS_ALREADY_STOPPED, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
       this->running_.store(false);
@@ -98,9 +106,11 @@ namespace fhatos {
 
     bool running() const { return this->running_.load(); }
 
-    virtual void delay(const uint64_t){}; // milliseconds
+    virtual void delay(const uint64_t) {
+    }; // milliseconds
 
-    virtual void yield(){};
+    virtual void yield() {
+    };
   };
 } // namespace fhatos
 

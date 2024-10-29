@@ -39,8 +39,8 @@
 
 //#ifdef CONFIG_HEAP_TRACING_DEST
 //#define NUM_RECORDS 100
-//static heap_trace_record_t* trace_record = new heap_trace_record_t[NUM_RECORDS]; // This buffer must be in internal RAM
-//#endif
+// static heap_trace_record_t* trace_record = new heap_trace_record_t[NUM_RECORDS]; // This buffer must be in internal
+// RAM #endif
 
 namespace fhatos {
   class Scheduler final : public XScheduler {
@@ -73,9 +73,9 @@ namespace fhatos {
            })));*/
       ////////////////////////////////
       bool success = false;
-      uint16_t stack_size = process->ptype == PType::FIBER
-                                ? FOS_ESP_FIBER_STACK_SIZE
-                                : (process->ptype == PType::THREAD ? FOS_ESP_THREAD_STACK_SIZE : 0);
+      const uint16_t stack_size = process->ptype == PType::FIBER
+                                      ? FOS_ESP_FIBER_STACK_SIZE
+                                      : (process->ptype == PType::THREAD ? FOS_ESP_THREAD_STACK_SIZE : 0);
       switch (process->ptype) {
         case PType::THREAD: {
           const BaseType_t threadResult =
@@ -106,6 +106,10 @@ namespace fhatos {
           success = true;
           break;
         }
+        default: {
+          throw fError("unknown process type: %i", (int) process->ptype);
+          break;
+        }
       }
       if (success) {
         this->processes_->push_back(process);
@@ -118,7 +122,7 @@ namespace fhatos {
 
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {
-      //ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
+      // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
@@ -174,13 +178,13 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     static void THREAD_FUNCTION(void *vptr_thread) {
       auto *thread = static_cast<Thread *>(vptr_thread);
-      //ESP_ERROR_CHECK(heap_trace_start(HEAP_TRACE_LEAKS));
+      // ESP_ERROR_CHECK(heap_trace_start(HEAP_TRACE_LEAKS));
       while (thread->running()) {
         thread->loop();
         vTaskDelay(1); // feeds the watchdog for the task
       }
-      //ESP_ERROR_CHECK(heap_trace_stop());
-      //heap_trace_dump();
+      // ESP_ERROR_CHECK(heap_trace_stop());
+      // heap_trace_dump();
 
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->id()->equals(*thread->id());
