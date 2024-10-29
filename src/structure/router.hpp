@@ -47,7 +47,8 @@ namespace fhatos {
     const auto list = new IdObjPairs();
     int counter = 0;
     for (const ptr<IDED> &ided: init) {
-      list->push_back(make_pair<ID_p, Obj_p>(id_p(base_furi->resolve(string("./") + to_string(counter++))), vri(ided->id())));
+      list->push_back(make_pair<ID_p, Obj_p>(id_p(base_furi->resolve(string("./") + to_string(counter++))),
+                                             vri(ided->id())));
     }
     const auto list_p = ptr<IdObjPairs>(list);
     return list_p;
@@ -266,7 +267,7 @@ namespace fhatos {
     friend Sys;
   };
 
-  inline ptr<Router> router() { return Options::singleton()->router<Router>(); }
+  inline ptr<Router> router() { return Router::singleton(); }
 } // namespace fhatos
 
 #endif

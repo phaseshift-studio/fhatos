@@ -165,7 +165,6 @@ namespace fhatos {
 
     static void done(const char *barrier, const Supplier<bool> &ret = nullptr) {
       Scheduler::singleton()->barrier(barrier, ret, FOS_TAB_3 "!mPress!! <!yenter!!> !mto access terminal!! !gI/O!!\n");
-      Scheduler::singleton()->stop();
       printer()->printf("\n" FOS_TAB_8 "%s !mFhat!gOS!!\n\n", Ansi<>::silly_print("shutting down").c_str());
 #ifdef ESP_ARCH
       esp_restart();

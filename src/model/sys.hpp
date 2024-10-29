@@ -39,14 +39,31 @@ namespace fhatos {
       this->read_functions_->insert(
         {furi_p(pattern.resolve("./scheduler/process/#")), [this](const fURI_p &furi) {
           IdObjPairs_p pairs = make_id_objs();
-          int counter = 0;
-          int *c = &counter;
+          auto c = new int(0);
           scheduler()->processes_->forEach([this,pairs,c,furi](const Process_p &process) {
             ID_p pid = id_p(this->pattern()->resolve(string("./scheduler/process/") + to_string((*c)++)));
             if (pid->matches(*furi))
               pairs->push_back({pid, vri(process->id())});
           });
+          delete c;
           return pairs;
+        }});
+      ///////////// SCHEDULER BARRIER /////////////
+      this->read_functions_->insert(
+        {furi_p(pattern.resolve("./scheduler/barrier/#")), [this](const fURI_p &) {
+          return make_id_objs({scheduler()->barrier_});
+        }});
+      this->write_functions_->insert(
+        {furi_p(pattern.resolve("./scheduler/barrier/#")), [this](const fURI_p &furi, const Obj_p &obj) -> IdObjPairs {
+          if (obj->is_noobj() && scheduler()->barrier_.first->bimatches(*furi))
+            scheduler()->recv_mail(mail_p(
+              subscription_p(*scheduler()->id(), *furi, Insts::to_bcode([](const Obj_p &obj) {
+                scheduler()->stop();
+                printer<Ansi<>>()->flush();
+                return noobj();
+              })),
+              message_p(*scheduler()->id(), noobj(), true)));
+          return *make_id_objs();
         }});
       ////////////////////////////////////////////////////////////////////////
       //////////////////////////////// ROUTER ////////////////////////////////
@@ -74,7 +91,7 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////
 #ifdef NATIVE
       this->read_functions_->insert(
-        {furi_p(pattern.resolve("./hardware/#")), [pattern](const fURI_p &furi) {
+        {furi_p(pattern.resolve("./hardware/#")), [pattern](const fURI_p &) {
             std::ifstream cpuInfo("/proc/cpuinfo");
             std::string line;
             const IdObjPairs_p result = make_id_objs();

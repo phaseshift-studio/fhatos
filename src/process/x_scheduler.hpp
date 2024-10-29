@@ -36,7 +36,7 @@
 
 #define LOG_DESTROY(success, process, scheduler)                                                                       \
   {                                                                                                                    \
-    LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!b%s!! !y%s!! %s\n", (process)->id()->toString().c_str(),      \
+    LOG_PROCESS((success) ? INFO : ERROR, (scheduler), "!y%s!! !g[!b%s!g]!! %s\n", (process)->id()->toString().c_str(),      \
                 ProcessTypes.to_chars((process)->ptype).c_str(), (success) ? "destroyed" : "!r!_not destroyed!!");     \
   }
 
@@ -144,7 +144,9 @@ namespace fhatos {
         const Process_p p = list->back();
         list->pop_back();
         if (PType::COROUTINE == p->ptype) {
-          LOG_DESTROY(true, p, this);
+          LOG_SCHEDULER(INFO, FURI_WRAP " !y%s!! destoyed\n",
+                        p->id()->toString().c_str(),
+                        ProcessTypes.to_chars(p->ptype).c_str());
         }
         if (p->running())
           p->stop();
@@ -153,6 +155,8 @@ namespace fhatos {
       delete list;
       this->processes_->clear();
       this->running_ = false;
+      this->barrier_.first = nullptr;
+      this->barrier_.second = nullptr;
       LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
     }
 
@@ -188,9 +192,9 @@ namespace fhatos {
 
   protected:
     bool read_mail() {
-      //   if (this->main_thread != this_thread::get_id())
-      //     throw fError("Mail can only be read by the primary thread: %i != %i\n", this->main_thread,
-      //                this_thread::get_id());
+      if (*scheduler_thread.get() != this_thread::get_id())
+        throw fError("Mail can only be read by the primary thread: %i != %i\n", *scheduler_thread.get(),
+                     this_thread::get_id());
       const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;

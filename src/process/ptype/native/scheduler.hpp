@@ -118,7 +118,11 @@ namespace fhatos {
         }
         singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
           const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
-          if (remove) LOG_DESTROY(true, fiber, Scheduler::singleton());
+          if (remove) {
+            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
+                          fiber->id()->toString().c_str(),
+                          ProcessTypes.to_chars(fiber->ptype).c_str());
+          }
           return remove;
         });
         delete fibers;
@@ -135,13 +139,18 @@ namespace fhatos {
       }
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->id()->equals(*thread->id()) || !proc->running();
-        if (remove) LOG_DESTROY(true, proc, Scheduler::singleton());
+
+        if (remove) {
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
+                        proc->id()->toString().c_str(),
+                        ProcessTypes.to_chars(proc->ptype).c_str());
+        }
         return remove;
       });
     }
   };
 
-  inline ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }
+  inline ptr<Scheduler> scheduler() { return Scheduler::singleton(); }
 } // namespace fhatos
 #endif
 #endif
