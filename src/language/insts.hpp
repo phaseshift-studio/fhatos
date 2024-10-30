@@ -34,6 +34,23 @@ namespace fhatos {
       return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
     }
 
+    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cpp-impl")) {
+      return bcode({Insts::lambda([function](const Obj_p &obj) { return function(obj); }, vri(label))});
+    }
+
+    static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cpp-impl")) {
+      return bcode({Insts::lambda(
+          [consumer](const Rec_p &message) {
+            const Message_p mess =
+                message_p(message->rec_get(vri(":target"))->uri_value(), message->rec_get(vri(":payload")),
+                          message->rec_get(vri(":retain"))->bool_value());
+            consumer(mess);
+            return noobj();
+          },
+          vri(label))});
+    }
+
+
     static Obj_p start(const Obj_p &starts) {
       return Obj::to_inst(
           "start", {starts}, [](const InstArgs &) { return [](const Obj_p &seed) { return seed; }; },
@@ -350,17 +367,28 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
-    static Rec_p inspect() {
-      return Obj::to_inst(
-          "inspect", {},
-          [](const InstArgs &) {
-            return [](const Obj_p &lhs) {
-              Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->type())}});
-              if (lhs->is_int()) {
+    static Rec_p build_inspect_rec(const Obj_p& lhs) {
+       Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->type())}});
+               if(lhs->is_bcode()) {
+                  const Lst_p l = lst();
+                  for(const Inst_p i : *lhs->bcode_value()) {
+                      l->lst_add(build_inspect_rec(i));
+                  }
+                  rec->rec_set(vri("insts"),l);
+               }              else if (lhs->is_int()) {
                 /// INT
                 rec->rec_set(vri("value"), jnt(lhs->int_value()));
                 rec->rec_set(vri("encoding"), vri(STR(FL_INT_TYPE)));
-              } else if (lhs->is_real()) {
+              } else if(lhs->is_inst()) {
+                rec->rec_set(vri("op"), str(lhs->inst_op()));
+                const Lst_p& alist = lst();
+                for(const Obj_p& o : lhs->inst_args()) {
+                    alist->lst_value()->push_back(build_inspect_rec(o));
+                }
+                if(!alist->lst_value()->empty())
+                  rec->rec_set(vri("args"), alist);
+               // rec->rec_set(vri("f"), Insts::to_bcode(lhs->inst_f()));
+              }else if (lhs->is_real()) {
                 /// REAL
                 rec->rec_set(vri("value"), real(lhs->real_value()));
                 rec->rec_set(vri("encoding"), vri(STR(FL_REAL_TYPE)));
@@ -396,6 +424,14 @@ namespace fhatos {
                 }
               }
               return rec;
+      }
+
+    static Rec_p inspect() {
+      return Obj::to_inst(
+          "inspect", {},
+          [](const InstArgs &) {
+            return [](const Obj_p &lhs) {
+             return Insts::build_inspect_rec(lhs);
             };
           },
           IType::ONE_TO_ONE);
@@ -944,21 +980,6 @@ namespace fhatos {
       return map;
     }
 
-    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cpp-impl")) {
-      return bcode({Insts::lambda([function](const Obj_p &obj) { return function(obj); }, vri(label))});
-    }
-
-    static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cpp-impl")) {
-      return bcode({Insts::lambda(
-          [consumer](const Rec_p &message) {
-            const Message_p mess =
-                message_p(message->rec_get(vri(":target"))->uri_value(), message->rec_get(vri(":payload")),
-                          message->rec_get(vri(":retain"))->bool_value());
-            consumer(mess);
-            return noobj();
-          },
-          vri(label))});
-    }
 
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());

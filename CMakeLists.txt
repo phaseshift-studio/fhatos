@@ -54,19 +54,20 @@ SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
 
 ####################################################################
 ####################### DEFAULT SETTINGS ###########################
+MESSAGE(CHECK_START "${.y}Setting Default Values${..}")
 ####################################################################
 IF(NOT EXISTS CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE DEBUG)
 ENDIF()
-####################################################################
+#########################################
 IF(NOT EXISTS CMAKE_BINARY_DIR)
     SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 ENDIF()
-####################################################################
+#########################################
 IF(NOT EXISTS CMAKE_BUILD_PARALLEL_LEVEL)
     SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
 ENDIF()
-####################################################################
+#########################################
 IF(WIN32)
     SET(PLATFORM "WIN32")
     ADD_DEFINITIONS("-DWIN32")
@@ -77,7 +78,11 @@ ELSEIF(LINUX)
     SET(PLATFORM "LINUX")
     ADD_DEFINITIONS("-DLINUX")
 ENDIF()
-####################################################################
+#########################################
+IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
+ENDIF()
+##########################################
 OPTION(FOS_SKIP_CMAKE "Abort the CMake Build Process" OFF)
 OPTION(CHECK_INTERNET "Check Internet" ON)
 OPTION(BUILD_TESTS "Build Tests" ON)
@@ -86,6 +91,9 @@ OPTION(SANITIZER "Address Sanitizer" OFF)
 OPTION(USE_CCACHE "Use CCache" ON)
 OPTION(USE_CONAN "Conan Package Manager" OFF)
 OPTION(USE_PAHO_MQTT_HACK "Fix Paho MQTT Build Process" OFF)
+####################################################################
+####################################################################
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
 \t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
@@ -118,6 +126,11 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
 ENDIF()
 ##################
+IF(SANITIZER)
+    MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
+ELSE()
+    MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}(${.y}-D${.g}SANITIZER${.y}=${.g}OFF${.c}) =${.g}-${.m}.${..}")
+ENDIF()
 
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
@@ -174,6 +187,7 @@ IF(BUILD_NATIVE)
         SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
     ENDIF()
     INCLUDE_DIRECTORIES(src)
+    file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "src/*.hpp")
     ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp)
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -196,12 +210,6 @@ IF(BUILD_NATIVE)
     ADD_DEFINITIONS("-DNATIVE")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
-    IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
-        MESSAGE(STATUS "${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
-    ELSE()
-        MESSAGE(STATUS "${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}(${.y}-D${.g}SANITIZER${.y}=${.g}OFF${.c}) =${.g}-${.m}.${..}")
-    ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF()
 ####################################

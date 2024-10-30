@@ -180,7 +180,6 @@ namespace fhatos {
   };
 #endif
 
-
   class fURII2CDriver : public I2CDriver {
   protected:
     const ID_p write_id_;
@@ -238,9 +237,61 @@ namespace fhatos {
     static ID_p static_id() { return id_p("/driver/furi/i2c"); }
 
     static ptr<fURII2CDriver> create() {
+      static bool setup_ = false;
+      if(!setup_) {
+        setup_ = true;
+        fURII2CDriver::setup();
+      }
       static ptr<fURII2CDriver> driver = ptr<fURII2CDriver>(new fURII2CDriver("a", "b", "c"));
       return driver;
     }
+
+    static void setup() {
+      Type::singleton()->save_type(inst_i2c_id("begin"), Obj::to_inst(
+                                                             "begin", {},
+                                                             noobj_func(),
+                                                             IType::ONE_TO_ZERO));
+      Type::singleton()->save_type(inst_i2c_id("end"), Obj::to_inst(
+                                                           "end", {},
+                                                           noobj_func(),
+                                                           IType::ONE_TO_ZERO));
+      Type::singleton()->save_type(
+          inst_i2c_id("request_from"),
+          Obj::to_inst(
+              "request_from", {x(0), x(1)},
+               noobj_func(),
+              IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("begin_transmission"),
+                                   Obj::to_inst(
+                                       "begin_transmission", {x(0)},
+                                       noobj_func(),
+                                       IType::ONE_TO_ZERO));
+      Type::singleton()->save_type(inst_i2c_id("end_transmission"),
+                                   Obj::to_inst(
+                                       "end_transmission", {},
+                                       noobj_func(),
+                                       IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("write"), Obj::to_inst(
+                                                             "write", {x(0)},
+                                                              noobj_func(),
+                                                             IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("available"),
+                                   Obj::to_inst(
+                                       "available", {},
+                                        noobj_func(),
+                                       IType::ONE_TO_ONE));
+
+      Type::singleton()->save_type(inst_i2c_id("read"), Obj::to_inst(
+                                                            "read", {},
+                                                             noobj_func(),
+                                                            IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("set_clock"),
+                                   Obj::to_inst(
+                                       "set_clock", {x(0)},
+                                        noobj_func(),
+                                       IType::ONE_TO_ZERO));
+    }
+
   };
 } // namespace fhatos
 #endif

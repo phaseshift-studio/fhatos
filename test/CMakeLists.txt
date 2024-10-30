@@ -55,6 +55,7 @@
                 unity
                 GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
                 GIT_TAG v2.6.0
+                GIT_PROGRESS TRUE
         )
         FETCHCONTENT_MAKEAVAILABLE(unity)
         INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/unity-src/src/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/unity)
