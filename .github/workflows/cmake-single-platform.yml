@@ -65,8 +65,8 @@ jobs:
       run: |
         export FHATOS_HOME=${{github.workspace}}
         export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
-        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=OFF
-        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=ON
+        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=OFF -DUSE_CCACHE=OFF
+        sudo -E bin/fhat-dev build native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=ON -DUSE_CCACHE=OFF
 
     - name: Deploy MQTT Broker
       working-directory: ${{github.workspace}}
@@ -81,7 +81,7 @@ jobs:
       run: |
         export FHATOS_HOME=${{github.workspace}}
         export PATH=$PATH:$HOME/.local/bin:$FHATOS_HOME/bin
-        sudo -E bin/fhat-dev test native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=ON
+        sudo -E bin/fhat-dev test native -DCHECK_INTERNET=OFF -DUSE_PAHO_MQTT_HACK=ON -DBUILD_TESTS=ON -DUSE_CCACHE=OFF
 
 #  chmod 777 bin/fhat-dev
   #        sudo bin/fhat-dev build

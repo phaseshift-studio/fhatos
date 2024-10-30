@@ -68,6 +68,10 @@ IF(NOT EXISTS CMAKE_BUILD_PARALLEL_LEVEL)
     SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
 ENDIF()
 #########################################
+IF(NOT EXISTS FOS_SHOW_GIT_PROGRESS)
+    SET(FOS_SHOW_GIT_PROGRESS ON)
+ENDIF()
+#########################################
 IF(WIN32)
     SET(PLATFORM "WIN32")
     ADD_DEFINITIONS("-DWIN32")
@@ -83,14 +87,15 @@ IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
 ENDIF()
 ##########################################
-OPTION(FOS_SKIP_CMAKE "Abort the CMake Build Process" OFF)
-OPTION(CHECK_INTERNET "Check Internet" ON)
-OPTION(BUILD_TESTS "Build Tests" ON)
-OPTION(BUILD_DOCS "Build Docs" OFF)
-OPTION(SANITIZER "Address Sanitizer" OFF)
-OPTION(USE_CCACHE "Use CCache" ON)
-OPTION(USE_CONAN "Conan Package Manager" OFF)
-OPTION(USE_PAHO_MQTT_HACK "Fix Paho MQTT Build Process" OFF)
+OPTION(FOS_SKIP_CMAKE "abort the cnake build process" OFF)
+OPTION(CHECK_INTERNET "check internet" ON)
+OPTION(BUILD_TESTS "build fhatos tests" ON)
+OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
+OPTION(SANITIZER "use address sanitizer" OFF)
+OPTION(USE_CCACHE "use ccache" ON)
+OPTION(USE_CONAN "conan package manager" OFF)
+OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" OFF)
+OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 ####################################################################
 ####################################################################
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
@@ -228,6 +233,7 @@ ELSE()
                 ftxui
                 GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
                 GIT_TAG v5.0.0
+                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
         )
         FETCHCONTENT_MAKEAVAILABLE(ftxui)
         TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
@@ -248,7 +254,7 @@ ELSE()
             ordered_map
             GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
             GIT_TAG v1.1.0
-            GIT_PROGRESS TRUE
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
     )
     FETCHCONTENT_MAKEAVAILABLE(ordered_map)
     INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
@@ -265,7 +271,7 @@ ELSE()
             paho-mqtt3c
             GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
             GIT_TAG v1.3.13
-            GIT_PROGRESS TRUE
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
     )
     FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
@@ -275,7 +281,7 @@ ELSE()
             paho-mqttpp3
             GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
             GIT_TAG v1.4.1
-            GIT_PROGRESS TRUE
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
     )
     ##################################################################
     ##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
@@ -327,6 +333,7 @@ ELSE()
                 mpc
                 GIT_REPOSITORY https://github.com/orangeduck/mpc.git
                 GIT_TAG 0.9.0
+                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
         )
         FETCHCONTENT_MAKEAVAILABLE(mpc)
         TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
