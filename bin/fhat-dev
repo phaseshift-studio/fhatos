@@ -84,7 +84,7 @@ clean_native() {
 }
 
 clean_esp32() {
-  if [[ $platform == "esp32" || $platform == " " ]]; then
+  if [[ $platform == esp32* || $platform == " " ]]; then
     platformio run --environment esp32 --target clean
     platformio run --environment esp32 --target erase
   fi
@@ -111,7 +111,7 @@ make_native() {
 }
 
 make_esp32() {
-  if [[ $platform == "esp32" || $platform = " " ]]; then
+  if [[ $platform == esp32* || $platform = " " ]]; then
     shift
     shift
     local extra_args=$1
@@ -156,7 +156,7 @@ test_native() {
 }
 
 test_esp32() {
-  if [[ $platform == "esp32" || $platform = " " ]]; then
+  if [[ $platform == esp32* || $platform = " " ]]; then
     shift
     shift
     local extra_args=$1
