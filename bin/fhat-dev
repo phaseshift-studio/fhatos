@@ -165,6 +165,10 @@ test_esp32() {
   fi
 }
 
+build_rlwrap_completions() {
+  cat ${FHATOS_HOME}/src/language/mmadt/type.hpp | grep inst_id | grep -o -P '(?<=inst_id\(").*(?="\),?(\s)Insts)' > ${FHATOS_HOME}/bin/.fhatos_completions
+}
+
 build_docs() {
     shift
     shift
@@ -192,6 +196,7 @@ elif [[ $1 == "build" ]]; then
   make_native ${@}
   make_esp32 ${@}
   make_rpi ${@}
+  build_rlwrap_completions
 elif [[ $1 == "upload" ]]; then
   # clean_esp32
   echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}Flash Memory Partition${NC}\n"
@@ -199,6 +204,7 @@ elif [[ $1 == "upload" ]]; then
   platformio run ${environ} --target buildfs
   platformio run ${environ} --target uploadfs
   platformio run ${environ} --target upload
+  build_rlwrap_completions
 else
    echo -e "usage: 
   fhat-dev {clean | test | build | upload} {esp32 | native | <empty>} {<extra_args>}
