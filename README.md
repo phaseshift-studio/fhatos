@@ -13,3 +13,5 @@ __FhatOS__
 
 A Distributed Operating System for ESP32 and ESP8266 Microprocessors
 ```
+
+[![CMake FhatOS using Ubuntu](https://github.com/phaseshift-studio/fhatos/actions/workflows/cmake-single-platform.yml/badge.svg)](https://github.com/phaseshift-studio/fhatos/actions/workflows/cmake-single-platform.yml)
