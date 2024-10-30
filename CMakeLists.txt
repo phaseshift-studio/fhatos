@@ -123,7 +123,8 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 # CMAKE_PRINT_VARIABLES(CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 ##################
 IF(FOS_SKIP_CMAKE)
-    MESSAGE(NOTICE "\t${.r}FOS_SKIP_CMAKE${..} is ${.y}${FOS_SKIP_CMAKE}${..}")
+    MESSAGE(NOTICE "\t\t ${.R}FOS_SKIP_CMAKE${..} is ${.Y}${FOS_SKIP_CMAKE}${..}")
+    MESSAGE(NOTICE "\t\t\t${.m}s${.r}H${.c}u${.b}Tt${.y}i${.m}N${.c}g D${.b}o${.r}W${.m}n${..}\n")
     RETURN()
 ENDIF()
 ##################
