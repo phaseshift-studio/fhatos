@@ -165,7 +165,7 @@ namespace fhatos {
     [[nodiscard]] string path() const { return this->path(0, this->path_length_); }
 
     [[nodiscard]] const char *path(const uint8_t segment) const {
-      return (this->path_ && this->path_length_ > segment) ? this->path_[segment] : "";
+      return (this->path_ && this->path_length_ > segment) ? this->path_[segment] : EMPTY_CHARS;
     }
 
     [[nodiscard]] fURI path(const string &path) const {
