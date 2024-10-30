@@ -32,17 +32,18 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////
       this->read_functions_->insert(
         {furi_p(pattern.resolve("./scheduler")), [this](const fURI_p &furi) {
-          return make_id_objs({{id_p(*furi), Obj::to_rec({{vri(":spawm"), Insts::to_bcode([](const Uri_p &uri) {
-            return uri;
-          })}})}});
+          return make_id_objs({{id_p(this->pattern()->resolve("./scheduler")), Obj::to_rec({{vri(":spawm"),
+            Insts::to_bcode([](const Uri_p &uri) {
+              return uri;
+            })}})}});
         }});
       this->read_functions_->insert(
         {furi_p(pattern.resolve("./scheduler/process/#")), [this](const fURI_p &furi) {
           IdObjPairs_p pairs = make_id_objs();
           auto c = new int(0);
           scheduler()->processes_->forEach([this,pairs,c,furi](const Process_p &process) {
-            ID_p pid = id_p(this->pattern()->resolve(string("./scheduler/process/") + to_string((*c)++)));
-            if (pid->matches(*furi))
+            const ID_p pid = id_p(this->pattern()->resolve(string("./scheduler/process/") + to_string((*c)++)));
+            if (pid->bimatches(*furi))
               pairs->push_back({pid, vri(process->id())});
           });
           delete c;
@@ -69,10 +70,11 @@ namespace fhatos {
       //////////////////////////////// ROUTER ////////////////////////////////
       ////////////////////////////////////////////////////////////////////////
       this->read_functions_->insert(
-        {furi_p(pattern.resolve("./router")), [this](const fURI_p &furi) {
-          return make_id_objs({{id_p(*furi), Obj::to_rec({{vri(":mount"), Insts::to_bcode([](const Uri_p &uri) {
-            return uri;
-          })}})}});
+        {furi_p(pattern.resolve("./router")), [this](const fURI_p &) {
+          return make_id_objs({{id_p(this->pattern()->resolve("./router")), Obj::to_rec({{vri(":mount"),
+            Insts::to_bcode([](const Uri_p &uri) {
+              return uri;
+            })}})}});
         }});
       this->read_functions_->insert(
         {furi_p(pattern.resolve("./router/structure/#")), [this](const fURI_p &furi) {
@@ -80,8 +82,8 @@ namespace fhatos {
           int counter = 0;
           int *c = &counter;
           router()->structures_.forEach([this,pairs,c,furi](const Structure_p &structure) {
-            ID_p pid = id_p(this->pattern()->resolve(string("./router/structure/") + to_string((*c)++)));
-            if (pid->matches(*furi))
+            const ID_p pid = id_p(this->pattern()->resolve(string("./router/structure/") + to_string((*c)++)));
+            if (pid->bimatches(*furi))
               pairs->push_back({pid, vri(structure->pattern())});
           });
           return pairs;

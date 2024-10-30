@@ -19,16 +19,6 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 #SET(CMAKE_C_COMPILER   i586-mingw32msvc-gcc)
 #SET(CMAKE_CXX_COMPILER i586-mingw32msvc-g++)
 ##################################
-IF(NOT EXISTS CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE DEBUG)
-ENDIF()
-OPTION(CHECK_INTERNET "Check Internet" ON)
-OPTION(BUILD_TESTS "Build Tests" ON)
-OPTION(BUILD_DOCS "Build Docs" OFF)
-OPTION(SANITIZER "Address Sanitizer" OFF)
-OPTION(USE_CCACHE "Use CCache" ON)
-OPTION(USE_CONAN "Conan Package Manager" OFF)
-##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
 IF(NOT WIN32)
@@ -73,24 +63,40 @@ ELSEIF(LINUX)
     MESSAGE(NOTICE "${.g}https://cmake.org/cmake/help/latest/variable/LINUX.html?highlight=linux${..}")
     ADD_DEFINITIONS("-DLINUX")
 ENDIF()
-
+####################################################################
+####################################################################
+IF(NOT EXISTS CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE DEBUG)
+ENDIF()
+OPTION(CHECK_INTERNET "Check Internet" ON)
+OPTION(BUILD_TESTS "Build Tests" ON)
+OPTION(BUILD_DOCS "Build Docs" OFF)
+OPTION(SANITIZER "Address Sanitizer" OFF)
+OPTION(USE_CCACHE "Use CCache" ON)
+OPTION(USE_CONAN "Conan Package Manager" OFF)
+OPTION(USE_PAHO_MQTT_HACK "Fix Paho MQTT Build Process" OFF)
+####################################################################
 MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
-\t  ${.g}PROJECT_NAME${..}    : ${PROJECT_NAME}
-\t  ${.g}CMAKE_BUILD_TYPE${..}: ${CMAKE_BUILD_TYPE}
-\t  ${.g}USE_CONAN${..}       : ${USE_CONAN}
-\t  ${.g}SANITIZER${..}       : ${SANITIZER}
-\t  ${.g}BUILD_TESTS${..}     : ${BUILD_TESTS}
-\t  ${.g}BUILD_DOCS${..}      : ${BUILD_DOCS}
-\t  ${.g}USE_CCACHE${..}      : ${USE_CCACHE}
-                    ${.m}----${..}
-\t  ${.y}CMAKE_C_COMPILER${..}  : ${CMAKE_C_COMPILER} (${.c}${CMAKE_C_COMPILER_ID}${..})
-\t  ${.y}CMAKE_CXX_COMPILER${..}: ${CMAKE_CXX_COMPILER} (${.c}${CMAKE_CXX_COMPILER_ID}${..})
-\t  ${.y}CMAKE_C_COMPILER_VERSION${..}  : ${CMAKE_C_COMPILER_VERSION}
-\t  ${.y}CMAKE_CXX_COMPILER_VERSION${..}: ${CMAKE_CXX_COMPILER_VERSION}
+\t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
+\t  ${.g}CMAKE_BUILD_TYPE${..}   : ${CMAKE_BUILD_TYPE}
+\t  ${.g}BUILD_TESTS${..}        : ${BUILD_TESTS}
+\t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
+\t  ${.g}USE_CONAN${..}          : ${USE_CONAN}
+\t  ${.g}SANITIZER${..}          : ${SANITIZER}
+\t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
+\t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
+\t  \t${.m}--------------${..}
+\t  ${.y}PLATFORM${..}                   : ${PLATFORM}
+\t  ${.y}CMAKE_C_COMPILER${..}           : ${CMAKE_C_COMPILER} (${.c}${CMAKE_C_COMPILER_ID}${..})
+\t  ${.y}CMAKE_CXX_COMPILER${..}         : ${CMAKE_CXX_COMPILER} (${.c}${CMAKE_CXX_COMPILER_ID}${..})
+\t  ${.y}CMAKE_C_COMPILER_VERSION${..}   : ${CMAKE_C_COMPILER_VERSION}
+\t  ${.y}CMAKE_CXX_COMPILER_VERSION${..} : ${CMAKE_CXX_COMPILER_VERSION}
 ")
-CMAKE_PRINT_VARIABLES(CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_ID CMAKE_CXX_COMPILER_VERSION CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
+CMAKE_PRINT_VARIABLES(CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 ## PARALLELISM LEVEL (HARDCODED TO 8)
-SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
+IF(NOT EXISTS CMAKE_BUILD_PARALLEL_LEVEL)
+    SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
+ENDIF()
 MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVEL}${..}")
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
@@ -155,7 +161,7 @@ IF(BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>;<mqtt/async_client.h>")
+    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>")
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
@@ -211,11 +217,12 @@ ELSE()
             ordered_map
             GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
             GIT_TAG v1.1.0
+            GIT_PROGRESS TRUE
     )
     FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/tsl)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_SOURCE_DIR}/include/tsl)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_INSTALL_PREFIX}/include/tsl)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+    #FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
@@ -227,27 +234,58 @@ ELSE()
             paho-mqtt3c
             GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
             GIT_TAG v1.3.13
+            GIT_PROGRESS TRUE
     )
     FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE paho-mqtt3c)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/include/mqtt DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     #################################### C++
     MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
-    OPTION(PAHO_WITH_MQTT_C TRUE)
     FETCHCONTENT_DECLARE(
             paho-mqttpp3
             GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
             GIT_TAG v1.4.1
+            GIT_PROGRESS TRUE
     )
+    ##################################################################
+    ##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
+    ##################################################################
+    IF(USE_PAHO_MQTT_HACK)
+        MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART 1${.g}]${..}")
+        SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
+        FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
+        FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
+        FILE(RENAME ${PAHO_MQTTPP3_DIR}/CMakeLists-paho-mqtt-fix.txt ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
+        FILE(REMOVE ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
+        FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-src-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR}/src)
+        FILE(RENAME ${PAHO_MQTTPP3_DIR}/src/CMakeLists-paho-mqtt-src-fix.txt ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ENDIF()
+    ##################################################################
+    ##################################################################
+    ##################################################################
     FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
-    #INCLUDE(pahomqttcpp.cmake)
-
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_SOURCE_DIR}/include/mqtt)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_INSTALL_PREFIX}/include/mqtt)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE paho-mqttpp3)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-c/src)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-cpp)
+    IF(USE_PAHO_MQTT_HACK)
+        MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART DEUX${.g}]${..}")
+        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
+        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
+        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
+        SET(PAHO_MQTT_C_LIB ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13)
+        INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c)
+        INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
+        INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-cpp)
+        TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
+                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
+                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
+                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
+                paho-mqttpp3)
+        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ELSE()
+        TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3c paho-mqttpp3)
+    ENDIF()
+    TARGET_LINK_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
+    SET(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
     ####################################
     ####################################

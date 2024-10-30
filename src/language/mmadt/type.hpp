@@ -103,7 +103,7 @@ namespace mmadt {
       Type::singleton()->save_type(inst_id("rand"), Insts::rand(x(0, vri(BOOL_FURI))));
       Type::singleton()->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       Type::singleton()->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
-      Type::singleton()->progress_bar_->end("!bmm-adt !yinstruction set!! loaded\n");
+      Type::singleton()->progress_bar_->end("!bmm-adt !yobjs!! loaded\n");
       Type::singleton()->progress_bar_ = nullptr;
     }
   };

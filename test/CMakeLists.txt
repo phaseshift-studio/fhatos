@@ -12,7 +12,7 @@
                 OUTPUT_VARIABLE port_info
                 ERROR_VARIABLE port_error
         )
-        STRING(REGEX MATCHALL ".${MQTT_BROKER_PORT}" BUILD_MQTT_TESTS ${port_info})
+        STRING(REGEX MATCH ".${MQTT_BROKER_PORT}" BUILD_MQTT_TESTS ${port_info} NOTHING NOTHING)
         IF(BUILD_MQTT_TESTS)
             MESSAGE(STATUS "${.m}Will build MQTT tests as port ${.y}${MQTT_BROKER_PORT}${.m} is ${.g}available${..}")
         ELSE()
@@ -79,7 +79,17 @@
                     MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
                     TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
                 ENDIF()
-                TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqttpp3)
+                IF(USE_PAHO_MQTT_HACK)
+                    MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC
+                            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
+                            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
+                            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
+                            unity ordered_map paho-mqttpp3)
+                    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+                ELSE()
+                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqtt3c paho-mqttpp3)
+                ENDIF()
                 SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
                         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
@@ -89,7 +99,7 @@
                         # UNITY_BUILD ON
                         UNITY_BUILD_MODE BATCH
                         UNITY_BUILD_BATCH_SIZE 16)
-                IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+                IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
                     #TARGET_COMPILE_OPTIONS(${PACKAGE_TEST} PUBLIC -fsanitize=address)
                     #TARGET_LINK_OPTIONS(${PACKAGE_TEST} PUBLIC -fsanitize=address)
                     #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
