@@ -30,7 +30,7 @@
 #endif
 
 #ifndef FOS_DEFAULT_BUFFER_SIZE
-#define FOS_DEFAULT_BUFFER_SIZE 512
+#define FOS_DEFAULT_BUFFER_SIZE 1024
 #endif
 
 
