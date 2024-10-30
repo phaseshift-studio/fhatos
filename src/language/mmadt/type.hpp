@@ -43,6 +43,10 @@ namespace mmadt {
           ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(inst_id("a"), Insts::a(x(0)));
       Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)), false);
+      // this->save_type(inst_id("*"), Insts::from(vri(inst_id("from"))));
+      // this->save_type(inst_id("V"), Insts::from(vri(inst_id("drop"))));
+      // this->save_type(inst_id("^"), Insts::from(vri(inst_id("lift"))));
+      // this->save_type(inst_id("|"), Insts::from(vri(inst_id("block"))));
       // this->save_type(inst_id("??"), Insts::from(vri(inst_id("optional"))));
       Type::singleton()->save_type(inst_id("inspect"), Insts::inspect());
       Type::singleton()->save_type(inst_id("plus"), Insts::plus(x(0)));
@@ -62,7 +66,10 @@ namespace mmadt {
       // this->save_type(inst_id("-->"), Insts::from(vri(inst_id("via_inv"))));
       Type::singleton()->save_type(inst_id("start"), Insts::start(x(0)));
       Type::singleton()->save_type(inst_id("merge"), Insts::merge(x(0)));
+      // this->save_type(inst_id("-<"), Insts::from(vri(inst_id("split"))));
       // this->save_type(inst_id(">-"), Insts::from(vri(inst_id("merge"))));
+      // this->save_type(inst_id("_/"), Insts::from(vri(inst_id("within"))));
+      // this->save_type(inst_id("\_"), Insts::from(vri(inst_id("within"))));
       Type::singleton()->save_type(inst_id("map"), Insts::map(x(0)));
       Type::singleton()->save_type(inst_id("filter"), Insts::filter(x(0)));
       Type::singleton()->save_type(inst_id("count"), Insts::count());

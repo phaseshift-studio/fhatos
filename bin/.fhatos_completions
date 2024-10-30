@@ -1,5 +1,9 @@
 a
 optional
+*
+V
+^
+|
 ??
 inspect
 plus
@@ -19,7 +23,10 @@ via_inv
 -->
 start
 merge
+-<
 >-
+_/
+\_
 map
 filter
 count

@@ -42,10 +42,11 @@ else
 fi
 #############################################
 #############################################
+RLWRAP_BASE="--quote-characters \"\\\"'\" --always-readline --ansi-colour-aware --extra-char-after-completion ( -f ${FHATOS_HOME}/bin/.fhatos_completions"
 if [[ $1 == esp32* ]]; then
-  rlwrap --quote-characters "\"'" --always-readline --ansi-colour-aware pio device monitor -e $1 -b 115200 -f $FHATOS_HOME/bin/.fhatos_completions --echo
+  rlwrap "${RLWRAP_BASE}" pio device monitor -e $1 -b 115200 --echo
 elif [ ! -f $FHATOS_HOME/build/fhatos.out ]; then
     echo -e "${RED}ERROR${NC} ${FHATOS} unable to locate ${BLUE}${FHATOS_HOME}/build/fhatos.out${NC}. Ensure ${FHATOS} has been built using ${BLUE}bin/fhat-dev${NC}."
 else
-  rlwrap --quote-characters "\"'" --always-readline --ansi-colour-aware -f $FHATOS_HOME/bin/.fhatos_completions ${FHATOS_HOME}/build/fhatos.out "$@"
+  rlwrap ${RLWRAP_BASE} "${FHATOS_HOME}"/build/fhatos.out "$@"
 fi
