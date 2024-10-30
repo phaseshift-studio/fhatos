@@ -1509,5 +1509,9 @@ namespace fhatos {
   [[maybe_unused]] static BCode_p bcode(const InstList &list) { return Obj::to_bcode(list); }
 
   [[maybe_unused]] static BCode_p bcode() { return Obj::to_bcode(); }
+
+  [[maybe_unused]] static InstFunctionSupplier noobj_func() {
+    return [](const InstArgs &) { return [](const Obj_p &) { return noobj(); }; };
+  }
 } // namespace fhatos
 #endif

@@ -122,15 +122,16 @@ namespace fhatos {
             ->structure(I2C<I2CDriver>::create("/soc/i2c/#", fURII2CDriver::create()))
 #elif defined(ESP_ARCH)
             ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
-            ->structure(PWM<ArduinoAnalogPinDriver>::create("/soc/pwm/#", ArduinoAnalogPinDriver::singleton()))
+            //->structure(PWM<ArduinoAnalogPinDriver>::create("/soc/pwm/#", ArduinoAnalogPinDriver::singleton()))
+            ->structure(I2C<ArduinoI2CDriver>::create("/soc/i2c/#",ArduinoI2CDriver::singleton()))
             ->structure(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
             ->process(Redirect::create("/redirect/",
                                        Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
                                        Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
-            ->structure(Driver::singleton("/driver/#"))
-            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
+            ->structure(Driver::singleton("/driver/#")) // TODO: put into /sys/ ?
+            //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
                                       Console::Settings(args_parser->option("--console:nest", "false") == "true",

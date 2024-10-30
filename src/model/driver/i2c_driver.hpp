@@ -20,6 +20,9 @@ FhatOS: A Distributed Operating System
 #define fhatos_i2c_driver_hpp
 
 #include <fhatos.hpp>
+#include <language/insts.hpp>
+#include <language/obj.hpp>
+#include <language/type.hpp>
 #include <structure/router.hpp>
 #ifdef ESP_ARCH
 #include <Wire.h>
@@ -27,9 +30,11 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   class I2CDriver : BaseDriver {
+  protected:
+    static ID_p inst_i2c_id(const string &opcode) { return id_p(INST_FURI->resolve(string("i2c:") + opcode)); }
+
   public:
-    explicit I2CDriver(const ID &id) : BaseDriver(id, PROTOCOL::I2C) {
-    }
+    explicit I2CDriver(const ID &id) : BaseDriver(id, PROTOCOL::I2C) {}
 
     virtual void begin() = 0;
 
@@ -55,7 +60,6 @@ namespace fhatos {
   };
 
 #ifdef ESP_ARCH
-
   class ArduinoI2CDriver : public I2CDriver {
   protected:
     ArduinoI2CDriver() : I2CDriver(*ArduinoI2CDriver::static_id()) {}
@@ -73,15 +77,109 @@ namespace fhatos {
     void onReceive(void (*function)(int)) override { Wire.onReceive(function); }
     void onRequest(void (*function)(void)) override { Wire.onRequest(function); }
 
-    static ID_p static_id() {
-      return id_p("/driver/arduino/i2c");
-    }
+    static ID_p static_id() { return id_p("/driver/arduino/i2c"); }
     static ptr<ArduinoI2CDriver> singleton() {
+      static bool setup = false;
       static ptr<ArduinoI2CDriver> driver = ptr<ArduinoI2CDriver>(new ArduinoI2CDriver());
+      if (!setup) {
+        setup = true;
+        driver->setup();
+      }
       return driver;
+    }
+
+  protected:
+    static void setup() {
+      Type::singleton()->save_type(inst_i2c_id("begin"), Obj::to_inst(
+                                                             "begin", {},
+                                                             [](const InstArgs &args) {
+                                                               return [args](const Obj_p &lhs) {
+                                                                 ArduinoI2CDriver::singleton()->begin();
+                                                                 return noobj();
+                                                               };
+                                                             },
+                                                             IType::ONE_TO_ZERO));
+      Type::singleton()->save_type(inst_i2c_id("end"), Obj::to_inst(
+                                                           "end", {},
+                                                           [](const InstArgs &args) {
+                                                             return [args](const Obj_p &lhs) {
+                                                               ArduinoI2CDriver::singleton()->end();
+                                                               return noobj();
+                                                             };
+                                                           },
+                                                           IType::ONE_TO_ZERO));
+      Type::singleton()->save_type(
+          inst_i2c_id("request_from"),
+          Obj::to_inst(
+              "request_from", {x(0), x(1)},
+              [](const InstArgs &args) {
+                return [args](const Obj_p &lhs) {
+                  return jnt(ArduinoI2CDriver::singleton()->requestFrom(args.at(0)->apply(lhs)->int_value(),
+                                                                        args.at(1)->apply(lhs)->int_value()));
+                };
+              },
+              IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("begin_transmission"),
+                                   Obj::to_inst(
+                                       "begin_transmission", {x(0)},
+                                       [](const InstArgs &args) {
+                                         return [args](const Obj_p &lhs) {
+                                           ArduinoI2CDriver::singleton()->beginTransmission(
+                                               args.at(0)->apply(lhs)->int_value());
+                                           return noobj();
+                                         };
+                                       },
+                                       IType::ONE_TO_ZERO));
+      Type::singleton()->save_type(inst_i2c_id("end_transmission"),
+                                   Obj::to_inst(
+                                       "end_transmission", {},
+                                       [](const InstArgs &) {
+                                         return [](const Obj_p &lhs) {
+                                           return jnt(ArduinoI2CDriver::singleton()->endTransmission());
+                                         };
+                                       },
+                                       IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("write"), Obj::to_inst(
+                                                             "write", {x(0)},
+                                                             [](const InstArgs &args) {
+                                                               return [args](const Obj_p &lhs) {
+                                                                 return jnt(ArduinoI2CDriver::singleton()->write(
+                                                                     args.at(0)->apply(lhs)->int_value()));
+                                                               };
+                                                             },
+                                                             IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("available"),
+                                   Obj::to_inst(
+                                       "available", {},
+                                       [](const InstArgs &) {
+                                         return [](const Obj_p &lhs) {
+                                           return jnt(ArduinoI2CDriver::singleton()->available());
+                                         };
+                                       },
+                                       IType::ONE_TO_ONE));
+
+      Type::singleton()->save_type(inst_i2c_id("read"), Obj::to_inst(
+                                                            "read", {},
+                                                            [](const InstArgs &) {
+                                                              return [](const Obj_p &lhs) {
+                                                                return jnt(ArduinoI2CDriver::singleton()->read());
+                                                              };
+                                                            },
+                                                            IType::ONE_TO_ONE));
+      Type::singleton()->save_type(inst_i2c_id("set_clock"),
+                                   Obj::to_inst(
+                                       "set_clock", {x(0)},
+                                       [](const InstArgs &args) {
+                                         return [args](const Obj_p &lhs) {
+                                           ArduinoI2CDriver::singleton()->setClock(args.at(0)->apply(lhs)->int_value());
+                                           return noobj();
+                                         };
+                                       },
+                                       IType::ONE_TO_ZERO));
     }
   };
 #endif
+
 
   class fURII2CDriver : public I2CDriver {
   protected:
@@ -90,29 +188,26 @@ namespace fhatos {
     const Pattern_p address_prefix_;
     const Uri_p write_address;
 
-    explicit fURII2CDriver(const ID &write_id, const ID &read_id,
-                  const Pattern &address_prefix) : I2CDriver(*fURII2CDriver::static_id()),
-                                                   write_id_(id_p(write_id)), read_id_(id_p(read_id)),
-                                                   address_prefix_(p_p(address_prefix)) {
-    }
+    explicit fURII2CDriver(const ID &write_id, const ID &read_id, const Pattern &address_prefix) :
+        I2CDriver(*fURII2CDriver::static_id()), write_id_(id_p(write_id)), read_id_(id_p(read_id)),
+        address_prefix_(p_p(address_prefix)) {}
 
   public:
     void begin() override { router()->write(this->write_id_, vri(":begin")); }
     void end() override { router()->write(this->write_id_, vri(":end")); }
 
     int requestFrom(const int address, const int quantity) override {
-      return 1;
-      // router()->write(this->read_id_,)
+      router()->write(this->write_id_,
+                      Obj::to_inst("i2c:request_from", {jnt(address), jnt(quantity)}, noobj_func(), IType::ONE_TO_ONE));
     }
 
     void beginTransmission(const int address) override {
-      router()->write(this->write_id_,
-                      lst({vri(":begin"), vri(this->address_prefix_->resolve(string("./") + to_string(address)))}));
+       router()->write(this->write_id_,
+                      Obj::to_inst("i2c:begin_transmission", {jnt(address)}, noobj_func(), IType::ONE_TO_ZERO));
     }
 
     int endTransmission() override {
-      router()->write(this->write_id_,
-                      lst({vri(":end"), noobj()}));
+      router()->write(this->write_id_, lst({vri(":end"), noobj()}));
       return router()->read(this->read_id_)->int_value();
     }
 
@@ -126,12 +221,10 @@ namespace fhatos {
       //  return Wire.available();
     }
 
-    int read() override {
-      return router()->read(this->read_id_)->int_value();
-    }
+    int read() override { return router()->read(this->read_id_)->int_value(); }
 
     void setClock(uint32_t frequency) override {
-      //Wire.setClock(frequency);
+      // Wire.setClock(frequency);
     }
 
     void onReceive(void (*function)(int)) override {
@@ -142,9 +235,7 @@ namespace fhatos {
       //  Wire.onRequest(function);
     }
 
-    static ID_p static_id() {
-      return id_p("/driver/furi/i2c");
-    }
+    static ID_p static_id() { return id_p("/driver/furi/i2c"); }
 
     static ptr<fURII2CDriver> create() {
       static ptr<fURII2CDriver> driver = ptr<fURII2CDriver>(new fURII2CDriver("a", "b", "c"));
