@@ -3,21 +3,6 @@ INCLUDE(FetchContent)
 INCLUDE(ExternalProject)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
 PROJECT(fhatos)
-SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
-SET(ENV{no-dev})
-SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
-IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
-ENDIF()
-SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
-SET(CMAKE_CXX_FLAGS_DEBUG "-g")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
-#SET(CMAKE_C_COMPILER /usr/bin/gcc)
-#SET(CMAKE_CXX_COMPILER /usr/bin/g++)
-#SET(CMAKE_SYSTEM_NAME Linux)
-#SET(CMAKE_C_COMPILER   i586-mingw32msvc-gcc)
-#SET(CMAKE_CXX_COMPILER i586-mingw32msvc-g++)
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
@@ -39,6 +24,9 @@ IF(NOT WIN32)
     SET(.C "${Esc}[1;36m")
     SET(.W "${Esc}[1;37m")
 ENDIF()
+####################################################################################################################
+############################################ ANSI ART HEADER #######################################################
+####################################################################################################################
 MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m} <`--'>____${.g}  ______ __  __  ______  ______  ${.b}______  ______${..} \n"
         "${.m} /. .  `'  \\${.g}/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\${.b}/\\  __ \\/\\  "
@@ -50,24 +38,47 @@ MESSAGE("${.r}            PhaseShift Studio Presents \n"
         "${.m}    )-)_/-(>${.g}  \\/_/   \\/_/\\/_/\\/_/\\/_/  \\/_/  "
         "${.b}\\/_____/\\/_____/ \n"
         "${.r}                                   A Dogturd Stynx Production${..} \n")
-IF(WIN32)
-    SET(PLATFORM "WIN32")
-    MESSAGE(NOTICE "${.r}https://cmake.org/cmake/help/latest/variable/WIN32.html?highlight=win32${..}")
-    ADD_DEFINITIONS("-DWIN32")
-ELSEIF(APPLE)
-    SET(PLATFORM "APPLE")
-    MESSAGE(NOTICE "${.y}https://cmake.org/cmake/help/latest/variable/APPLE.html?highlight=apple${..}")
-    ADD_DEFINITIONS("-DAPPLE")
-ELSEIF(LINUX)
-    SET(PLATFORM "LINUX")
-    MESSAGE(NOTICE "${.g}https://cmake.org/cmake/help/latest/variable/LINUX.html?highlight=linux${..}")
-    ADD_DEFINITIONS("-DLINUX")
-ENDIF()
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+
+###################
+
+SET(no-dev) # remove mqtt-c warning for developers of mqtt-c
+
+#SET(CMAKE_C_COMPILER /usr/bin/gcc)
+#SET(CMAKE_CXX_COMPILER /usr/bin/g++)
+#SET(CMAKE_SYSTEM_NAME Linux)
+#SET(CMAKE_C_COMPILER   i586-mingw32msvc-gcc)
+#SET(CMAKE_CXX_COMPILER i586-mingw32msvc-g++)
+
 ####################################################################
+####################### DEFAULT SETTINGS ###########################
 ####################################################################
 IF(NOT EXISTS CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE DEBUG)
 ENDIF()
+####################################################################
+IF(NOT EXISTS CMAKE_BINARY_DIR)
+    SET(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
+ENDIF()
+####################################################################
+IF(NOT EXISTS CMAKE_BUILD_PARALLEL_LEVEL)
+    SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
+ENDIF()
+####################################################################
+IF(WIN32)
+    SET(PLATFORM "WIN32")
+    ADD_DEFINITIONS("-DWIN32")
+ELSEIF(APPLE)
+    SET(PLATFORM "APPLE")
+    ADD_DEFINITIONS("-DAPPLE")
+ELSEIF(LINUX)
+    SET(PLATFORM "LINUX")
+    ADD_DEFINITIONS("-DLINUX")
+ENDIF()
+####################################################################
+OPTION(FOS_SKIP_CMAKE "Abort the CMake Build Process" OFF)
 OPTION(CHECK_INTERNET "Check Internet" ON)
 OPTION(BUILD_TESTS "Build Tests" ON)
 OPTION(BUILD_DOCS "Build Docs" OFF)
@@ -79,6 +90,9 @@ OPTION(USE_PAHO_MQTT_HACK "Fix Paho MQTT Build Process" OFF)
 MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
 \t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
 \t  ${.g}CMAKE_BUILD_TYPE${..}   : ${CMAKE_BUILD_TYPE}
+\t  ${.g}CMAKE_SOURCE_DIR${..}   : ${CMAKE_SOURCE_DIR}
+\t  ${.g}CMAKE_BINARY_DIR${..}   : ${CMAKE_BINARY_DIR}
+\t  ${.g}FOS_SKIP_CMAKE${..}     : ${FOS_SKIP_CMAKE}
 \t  ${.g}BUILD_TESTS${..}        : ${BUILD_TESTS}
 \t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
 \t  ${.g}USE_CONAN${..}          : ${USE_CONAN}
@@ -91,13 +105,20 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.y}CMAKE_CXX_COMPILER${..}         : ${CMAKE_CXX_COMPILER} (${.c}${CMAKE_CXX_COMPILER_ID}${..})
 \t  ${.y}CMAKE_C_COMPILER_VERSION${..}   : ${CMAKE_C_COMPILER_VERSION}
 \t  ${.y}CMAKE_CXX_COMPILER_VERSION${..} : ${CMAKE_CXX_COMPILER_VERSION}
+\t  ${.y}CMAKE_BUILD_PARALLEL_LEVEL${..} : ${CMAKE_BUILD_PARALLEL_LEVEL}
 ")
-CMAKE_PRINT_VARIABLES(CMAKE_SOURCE_DIR CMAKE_BINARY_DIR CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
-## PARALLELISM LEVEL (HARDCODED TO 8)
-IF(NOT EXISTS CMAKE_BUILD_PARALLEL_LEVEL)
-    SET(CMAKE_BUILD_PARALLEL_LEVEL 8)
+# CMAKE_PRINT_VARIABLES(CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
+##################
+IF(FOS_SKIP_CMAKE)
+    MESSAGE(NOTICE "\t${.r}FOS_SKIP_CMAKE${..} is ${.y}${FOS_SKIP_CMAKE}${..}")
+    RETURN()
 ENDIF()
-MESSAGE(STATUS "${.g}Parallel build level${..}: ${.y}${CMAKE_BUILD_PARALLEL_LEVEL}${..}")
+##################
+IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    MESSAGE(FATAL_ERROR "In-source builds not allowed. Create a fhatos/build directory and run CMake from there (cmake ..).")
+ENDIF()
+##################
+
 ##################################
 ## TEST FOR INTERNET CONNECTION ##
 ##################################
@@ -128,14 +149,18 @@ ELSE()
     SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
 ENDIF()
 ##################################
-
 IF(USE_CONAN AND EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup()
 ELSE()
     MESSAGE(WARNING "\n${.w}The file ${.y}conanbuildinfo.cmake${..} ${.w}doesn't exist${..}.\n\t\tRun ${.b}conan install${..}.")
 ENDIF()
-
+################################
+SET(ENV{no-dev})
+SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
+SET(CMAKE_CXX_FLAGS_DEBUG "-g")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ######## PROJECT LIBRARY (NATIVE)
 OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF(BUILD_NATIVE)
@@ -171,13 +196,11 @@ IF(BUILD_NATIVE)
     ADD_DEFINITIONS("-DNATIVE")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
-    IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
-        IF(SANITIZER)
-            MESSAGE(STATUS "${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
-        ELSE()
-            MESSAGE(STATUS "${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}(${.y}-D${.g}SANITIZER${.y}=${.g}OFF${.c}) =${.g}-${.m}.${..}")
-        ENDIF()
+    IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
+        MESSAGE(STATUS "${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer ${.c}(${.y}-D${.g}SANITIZER${.y}=${.g}ON${.c}) =${.r}-${.m}.${..}")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
+    ELSE()
+        MESSAGE(STATUS "${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer ${.y}(${.y}-D${.g}SANITIZER${.y}=${.g}OFF${.c}) =${.g}-${.m}.${..}")
     ENDIF()
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF()
