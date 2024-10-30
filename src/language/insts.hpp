@@ -371,7 +371,7 @@ namespace fhatos {
        Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->type())}});
                if(lhs->is_bcode()) {
                   const Lst_p l = lst();
-                  for(const Inst_p i : *lhs->bcode_value()) {
+                  for(const Inst_p& i : *lhs->bcode_value()) {
                       l->lst_add(build_inspect_rec(i));
                   }
                   rec->rec_set(vri("insts"),l);
@@ -390,6 +390,7 @@ namespace fhatos {
                // rec->rec_set(vri("f"), Insts::to_bcode(lhs->inst_f()));
               }else if (lhs->is_real()) {
                 /// REAL
+                rec->rec_set(vri("value"), real(lhs->real_value()));
                 rec->rec_set(vri("value"), real(lhs->real_value()));
                 rec->rec_set(vri("encoding"), vri(STR(FL_REAL_TYPE)));
               } else if (lhs->is_str()) {
