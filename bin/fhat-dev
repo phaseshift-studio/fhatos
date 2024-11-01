@@ -65,7 +65,7 @@ if [[ -z $3  ]]; then
   filter=" "
   echo -e " ${LB}no configurations${RB}"
 else
-  filter="--filter=${@:3}"
+  filter="${@:3}"
   echo -e " ${LB}configurations: ${GREEN}$filter${NC}${RB}"
 fi
 echo -e " ${LB}current location: ${BLUE}$(pwd)${NC}${RB}"
@@ -104,7 +104,8 @@ make_native() {
     local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    cmake .. -DBUILD_DOCS=OFF "${extra_args}";
+    echo -e " ${LB}evaluating: ${GREEN}cmake .. -DBUILD_DOCS=OFF ${extra_args}; make -j6 -o1${RB}"
+    cmake .. -DBUILD_DOCS=OFF ${extra_args};
     make -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
   fi
@@ -138,7 +139,7 @@ ctest_native() {
     shift
     local extra_args=${@:1}
     cd build/test || exit 1;
-    ctest "${extra_args}"
+    ctest ${extra_args}
     cd ../..
   fi
 }
@@ -150,7 +151,7 @@ test_native() {
     local extra_args=${@:1}
     make_native
     cd build/test || exit 1;
-    ctest "${extra_args}"
+    ctest ${extra_args}
     cd ../..
   fi
 }
@@ -161,7 +162,7 @@ test_esp32() {
     shift
     local extra_args=${@:1}
     # platformio run --target clean
-    platformio test "${environ}" -v "${filter}"
+    platformio test ${environ} -v "--filter=${filter}"
   fi
 }
 
