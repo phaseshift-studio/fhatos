@@ -22,24 +22,25 @@
 
 #include <fhatos.hpp>
 #include <model/pin/pin.hpp>
-#include <model/driver/digital_pin_diver.hpp>
+#include <model/driver/fdriver.hpp>
 
 namespace fhatos {
   template<typename DIGITAL_PIN_DRIVER>
   class GPIO : public Pin<DIGITAL_PIN_DRIVER> {
-    static_assert(std::is_base_of_v<DigitalPinDriver, DIGITAL_PIN_DRIVER>,
+    static_assert(std::is_base_of_v<fDriver, DIGITAL_PIN_DRIVER>,
                   "template must reference a digital pin driver");
 
   protected:
-    explicit GPIO(const Pattern &pattern, const ptr<DIGITAL_PIN_DRIVER> &driver) : Pin<DIGITAL_PIN_DRIVER>(
-      pattern,
-      [this](const uint8_t pin) -> Int_p {
-        return jnt(this->driver_->digitalRead(pin));
-      },
-      [this](const uint8_t pin, const Int_p &value) {
-        this->driver_->digitalWrite(pin, value->int_value());
-      },
-      driver) {
+    explicit GPIO(const Pattern &pattern, const ptr<DIGITAL_PIN_DRIVER> &driver) :
+      Pin<DIGITAL_PIN_DRIVER>(
+          pattern,
+          [this](const uint8_t pin) -> Int_p {
+            return jnt(this->driver_->digital_read(pin));
+          },
+          [this](const uint8_t pin, const Int_p &value) {
+            this->driver_->digital_write(pin, value->int_value());
+          },
+          driver) {
     }
 
   public:

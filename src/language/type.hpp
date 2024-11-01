@@ -34,7 +34,8 @@ namespace fhatos {
     ptr<ProgressBar> progress_bar_ = nullptr;
 
   protected:
-    explicit Type(const ID &id = FOS_TYPE_PREFIX) : Coroutine(id) {
+    explicit Type(const ID &id = FOS_TYPE_PREFIX) :
+      Coroutine(id) {
     }
 
     static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
@@ -43,6 +44,15 @@ namespace fhatos {
     static ptr<Type> singleton(const ID &id = FOS_TYPE_PREFIX) {
       static auto types_p = ptr<Type>(new Type(id));
       return types_p;
+    }
+
+    static void start_progress_bar(const uint16_t size) {
+      Type::singleton()->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), size);
+    }
+
+    static void end_progress_bar(const string &message) {
+      Type::singleton()->progress_bar_->end(message);
+      Type::singleton()->progress_bar_ = nullptr;
     }
 
     void setup() override {
@@ -68,11 +78,11 @@ namespace fhatos {
         return make_shared<Obj>(proto_obj->_value, resolved_type_id, obj->id());
       };
       router()->route_subscription(
-        subscription_p(ID(*this->id()), *this->id(), Insts::to_bcode([this](const Message_p &message) {
-          const ID_p type_id = id_p(message->target);
-          if (message->retain && !this->type_exists(type_id, message->payload))
-            this->save_type(type_id, message->payload, true);
-        })));
+          subscription_p(ID(*this->id()), *this->id(), Insts::to_bcode([this](const Message_p &message) {
+            const ID_p type_id = id_p(message->target);
+            if (message->retain && !this->type_exists(type_id, message->payload))
+              this->save_type(type_id, message->payload, true);
+          })));
     }
 
     /////////////////////////////////////////////////////////////////////

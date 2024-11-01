@@ -29,6 +29,8 @@
 
 #include <language/type.hpp>
 
+#include "model/driver/fdriver.hpp"
+
 namespace fhatos {
   class Kernel {
   public:
@@ -63,19 +65,14 @@ namespace fhatos {
     }
 
     static ptr<Kernel> displaying_architecture() {
-      string arch = "<undefined>";
-#ifdef ESP32
-      arch = "ESP32";
-#elif defined(ESP8266)
-      arch = "ESP8266";
-#elif defined(LINUX)
-      arch = "Linux";
-#elif defined(APPLE)
-      arch = "MacOSX";
-#endif
-      printer<>()->printf("                                       "
-                          "!brunning on !y%s!!\n",
-                          arch.c_str());
+      string fhatos = STR(FOS_NAME) "-" STR(FOS_VERSION);
+      string subos = STR(CMAKE_SYSTEM);
+      string hardware = STR(CMAKE_SYSTEM_PROCESSOR);
+      StringHelper::lower_case(fhatos);
+      StringHelper::lower_case(subos);
+      StringHelper::lower_case(hardware);
+      printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!!\n",
+                          fhatos.c_str(), subos.c_str(), hardware.c_str());
       return Kernel::build();
     }
 
@@ -112,9 +109,7 @@ namespace fhatos {
           to_string(reason) + " code";
           break;
       }
-      printer<>()->printf("                                       "
-                          "!breset reason: !y%s!!\n",
-                          r.c_str());
+      printer<>()->printf(FOS_TAB_4 "!blast reset reason: !y%s!!\n",r.c_str());
 #endif
       return Kernel::build();
     }
@@ -139,6 +134,11 @@ namespace fhatos {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       //router()->write(process->id(), load_process(process));
       scheduler()->spawn(process);
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> driver(const fDriver_p &driver) {
+      driver->setup();
       return Kernel::build();
     }
 

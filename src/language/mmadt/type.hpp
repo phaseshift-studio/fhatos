@@ -39,8 +39,7 @@ namespace mmadt {
     static void load() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      Type::singleton()->progress_bar_ =
-          ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), TOTAL_INSTRUCTIONS);
+      Type::start_progress_bar(TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(inst_id("a"), Insts::a(x(0)));
       Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)), false);
       // this->save_type(inst_id("*"), Insts::from(vri(inst_id("from"))));
@@ -110,8 +109,8 @@ namespace mmadt {
       Type::singleton()->save_type(inst_id("rand"), Insts::rand(x(0, vri(BOOL_FURI))));
       Type::singleton()->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       Type::singleton()->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
-      Type::singleton()->progress_bar_->end("!bmm-adt !yobjs!! loaded\n");
-      Type::singleton()->progress_bar_ = nullptr;
+      Type::singleton()->save_type(inst_id("side"), Insts::side(x(0)));
+      Type::end_progress_bar("!bmm-adt !yobjs!! loaded\n");
     }
   };
 } // namespace mmadt

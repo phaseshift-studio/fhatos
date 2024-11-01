@@ -668,7 +668,20 @@ namespace fhatos {
   };
 
   [[maybe_unused]] static Obj_p parse(const string &source) {
-    const Obj_p obj = Parser::try_parse_obj(source).value_or(noobj());
+    const Obj_p obj = Parser::singleton()->try_parse_obj(source).value_or(noobj());
+    return obj;
+  }
+
+  [[maybe_unused]] static Obj_p parse(const char* format, ...) {
+      char source[FOS_DEFAULT_BUFFER_SIZE];
+      va_list arg;
+      va_start(arg, format);
+      const size_t length = vsnprintf(source, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      if (format[strlen(format) - 1] == '\n')
+        source[length - 1] = '\n';
+      source[length] = '\0';
+      va_end(arg);
+    const Obj_p obj = Parser::singleton()->try_parse_obj(string(source)).value_or(noobj());
     return obj;
   }
 } // namespace fhatos

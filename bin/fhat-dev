@@ -26,7 +26,7 @@ RED='\033[0;31m'
 #BOLDRED='\033[1;31m'
 #IRED='\033[0;91m'
 GREEN='\033[0;32m'
-#BOLDGREEN='\033[1;32m'
+BOLDGREEN='\033[1;32m'
 MAGENTA='\033[0;35m'
 BLUE='\033[0;34m'
 FHATOS="${MAGENTA}F${GREEN}h${BLUE}a${RED}t${MAGENTA}O${BLUE}S${NC}"
@@ -63,15 +63,15 @@ fi
 
 if [[ -z $3  ]]; then
   filter=" "
-  echo -e " ${LB}no test filtering${RB}"
+  echo -e " ${LB}no configurations${RB}"
 else
-  filter="--filter=$3"
-  echo -e " ${LB}filtering tests: ${GREEN}$filter${NC}${RB}"
+  filter="--filter=${@:3}"
+  echo -e " ${LB}configurations: ${GREEN}$filter${NC}${RB}"
 fi
 echo -e " ${LB}current location: ${BLUE}$(pwd)${NC}${RB}"
 
 clean_native() {
-  if [[ $platform == "native" || $platform = " " ]]; then
+  if [[ $platform == "native" || -z "${platform}"  ]]; then
      mv build/_deps .
      rm -rf build/
      mkdir build/
@@ -84,37 +84,37 @@ clean_native() {
 }
 
 clean_esp32() {
-  if [[ $platform == esp32* || $platform == " " ]]; then
-    platformio run --environment esp32 --target clean
-    platformio run --environment esp32 --target erase
+  if [[ $platform == esp32* || -z "${platform}"  ]]; then
+    platformio run --environment ${platform} --target clean
+    platformio run --environment ${platform} --target erase
   fi
 }
 
 clean_rpi() {
-  if [[ $platform == "rpi" || $platform == " " ]]; then
-    platformio run --environment rpi --target clean
-    platformio run --environment rpi --target erase
+  if [[ $platform == "rpi" || -z "${platform}"  ]]; then
+    platformio run --environment ${platform} --target clean
+    platformio run --environment ${platform} --target erase
   fi
 }
 
 make_native() {
-  if [[ $platform == "native" || $platform = " " ]]; then
+  if [[ $platform == "native" || -z "${platform}"  ]]; then
     shift
     shift
     local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    cmake .. -DBUILD_DOCS=OFF ${extra_args};
+    cmake .. -DBUILD_DOCS=OFF "${extra_args}";
     make -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
   fi
 }
 
 make_esp32() {
-  if [[ $platform == esp32* || $platform = " " ]]; then
+  if [[ $platform == esp32* || -z "${platform}" ]]; then
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     platformio run ${environ} ${extra_args}
     platformio run ${environ} --target buildfs
     printf '%b\n' "$(cat partition/large_code.csv)"
@@ -122,10 +122,10 @@ make_esp32() {
 }
 
 make_rpi() {
-  if [[ $platform == "rpi" || $platform = " " ]]; then
+  if [[ $platform == "rpi" || -z "${platform}"  ]]; then
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     platformio run ${environ} ${extra_args}
     platformio run ${environ} --target buildfs
     printf '%b\n' "$(cat partition/large_code.csv)"
@@ -133,46 +133,47 @@ make_rpi() {
 }
 
 ctest_native() {
-  if [[ $platform == "native" || $platform = " " ]]; then
+  if [[ $platform == "native" || -z "${platform}" ]]; then
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     cd build/test || exit 1;
-    ctest ${extra_args}
+    ctest "${extra_args}"
     cd ../..
   fi
 }
 
 test_native() {
-  if [[ $platform == "native" || $platform = " " ]]; then
+  if [[ $platform == "native" || -z "${platform}"  ]]; then
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     make_native
     cd build/test || exit 1;
-    ctest ${extra_args}
+    ctest "${extra_args}"
     cd ../..
   fi
 }
 
 test_esp32() {
-  if [[ $platform == esp32* || $platform = " " ]]; then
+  if [[ $platform == esp32* || -z "${platform}" ]]; then
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     # platformio run --target clean
-    platformio test ${environ} -v ${filter}
+    platformio test "${environ}" -v "${filter}"
   fi
 }
 
 build_rlwrap_completions() {
-  cat ${FHATOS_HOME}/src/language/mmadt/type.hpp | grep inst_id | grep -o -P '(?<=inst_id\(").*(?="\),?(\s)Insts)' > ${FHATOS_HOME}/bin/.fhatos_completions
+  echo -e "[101%] ${BOLDGREEN}Analyzing CXX source to create rlwrap .fhatos_completions${NC}"
+  cat "${FHATOS_HOME}"/src/language/mmadt/type.hpp | grep inst_id | grep -o -P '(?<=inst_id\(").*(?="\),?(\s)Insts)' > "${FHATOS_HOME}"/bin/.fhatos_completions
 }
 
 build_docs() {
     shift
     shift
-    local extra_args=$1
+    local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
     cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON;
@@ -185,17 +186,17 @@ if [[ $1 == "clean" ]]; then
   clean_esp32
   clean_rpi
 elif [[ $1 == "build" &&  $2 == "docs" ]]; then
-  build_docs ${@}
+  build_docs "${@}"
 elif [[ $1 == "ctest" ]]; then
-  ctest_native ${@}
+  ctest_native "${@}"
   # test_esp32
 elif [[ $1 == "test" ]]; then
-  test_native ${@}
-  test_esp32 ${@}
+  test_native "${@}"
+  test_esp32 "${@}"
 elif [[ $1 == "build" ]]; then
-  make_native ${@}
-  make_esp32 ${@}
-  make_rpi ${@}
+  make_native "${@}"
+  make_esp32 "${@}"
+  make_rpi "${@}"
   build_rlwrap_completions
 elif [[ $1 == "upload" ]]; then
   # clean_esp32

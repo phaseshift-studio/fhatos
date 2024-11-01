@@ -72,15 +72,19 @@ namespace fhatos {
 
     static void rtrim(std::string &s) {
       s.erase(
-        std::find_if(s.rbegin(), s.rend(),
-                     [](const char c) { return !std::isspace(c) && c < 127; }).base(),
-        s.end());
+          std::find_if(s.rbegin(), s.rend(),
+                       [](const char c) { return !std::isspace(c) && c < 127; }).base(),
+          s.end());
     }
 
     static bool has_wildcards(const std::string &s) {
       return s.find('+') != string::npos || s.find('#') != string::npos;
     }
 
+    static void lower_case(string &s) {
+      std::transform(s.begin(), s.end(), s.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
+    }
 
     static WILDCARD has_wildcard(const char *s) {
       for (size_t i = 0; i < strlen(s); i++) {

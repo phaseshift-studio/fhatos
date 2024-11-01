@@ -358,10 +358,10 @@ namespace fhatos {
   void test_uri_name() {
     TEST_ASSERT_EQUAL_STRING("", fURI("").name().c_str());
     TEST_ASSERT_EQUAL_STRING("fhat", fURI("fos://a/fhat").name().c_str());
-    TEST_ASSERT_EQUAL_STRING(":root", fURI("/type/inst/fs:root").name().c_str());
-    TEST_ASSERT_EQUAL_STRING(":root", fURI("/type/inst/fs::root").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("fs:root", fURI("/type/inst/fs:root").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("fs::root", fURI("/type/inst/fs::root").name().c_str());
     TEST_ASSERT_EQUAL_STRING("#", fURI("http://a.com:34/b/c/#").name().c_str());
-    TEST_ASSERT_EQUAL_STRING(":fhatty", fURI("http://a.com:34/b/c:fhatty").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("c:fhatty", fURI("http://a.com:34/b/c:fhatty").name().c_str());
     TEST_ASSERT_EQUAL_STRING(":fhatty", fURI("fos/:fhatty").name().c_str());
   }
 

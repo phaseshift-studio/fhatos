@@ -29,7 +29,7 @@ namespace fhatos {
     void init(const int &argc, char **argv) {
       for (int i = 1; i < argc; ++i) {
         const auto temp = string(argv[i]);
-        size_t j = temp.find_first_of('=');
+        const size_t j = temp.find_first_of('=');
         if (j != string::npos) {
           string key = temp.substr(0, j);
           string value = temp.substr(j + 1);

@@ -32,9 +32,9 @@ namespace fhatos {
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
-    {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
-    {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
-    /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
+      {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
+      {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
+      /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
   };
 
   class fURI {
@@ -222,7 +222,8 @@ namespace fhatos {
         return EMPTY_CHARS;
       for (int i = this->path_length_ - 1; i >= 0; i--) {
         if (strlen(this->path_[i]) > 0) {
-          const size_t index = string(this->path_[i]).find_last_of(':'); // make find_last_of (indexing is goofy)
+          //const size_t index = string(this->path_[i]).find_last_of(':'); // make find_last_of (indexing is goofy)
+          const size_t index = string::npos;
           return index == string::npos ? string(this->path_[i]) : string(this->path_[i]).substr(index);
         }
       }
@@ -253,10 +254,12 @@ namespace fhatos {
       if (!this->query_)
         return {};
       const char *index = strstr(this->query_, key);
-      if (!index) return {};
+      if (!index)
+        return {};
       size_t counter = 0;
       char c = index[strlen(key) + counter];
-      if (c != '=') return {""};
+      if (c != '=')
+        return {""};
       counter++;
       c = index[strlen(key) + counter];
       string value = "";
@@ -501,7 +504,8 @@ namespace fhatos {
       }
     }
 
-    fURI(const string &uriString) : fURI(uriString.c_str()) {
+    fURI(const string &uriString) :
+      fURI(uriString.c_str()) {
     }
 
     fURI(const char *uriChars) {
@@ -714,16 +718,20 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const ID &id) : fURI(id.toString()) {
+    ID(const ID &id) :
+      fURI(id.toString()) {
     }
 
-    ID(const fURI &id) : fURI(id.toString()) {
+    ID(const fURI &id) :
+      fURI(id.toString()) {
     }
 
-    ID(const string &furi_string) : ID(furi_string.c_str()) {
+    ID(const string &furi_string) :
+      ID(furi_string.c_str()) {
     }
 
-    ID(const char *furi_characters) : fURI(furi_characters) {
+    ID(const char *furi_characters) :
+      fURI(furi_characters) {
       if (strchr(furi_characters, '#')) {
         throw fError("IDs can not contain pattern symbols: !b#!!: %s", furi_characters);
       } else if (strchr(furi_characters, '+')) {
@@ -736,16 +744,20 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
-    Pattern(const Pattern &uri) : fURI(uri) {
+    Pattern(const Pattern &uri) :
+      fURI(uri) {
     }
 
-    Pattern(const fURI &uri) : fURI(uri) {
+    Pattern(const fURI &uri) :
+      fURI(uri) {
     }
 
-    Pattern(const string &uri_string) : fURI(uri_string) {
+    Pattern(const string &uri_string) :
+      fURI(uri_string) {
     };
 
-    Pattern(const char *uri_chars) : fURI(uri_chars) {
+    Pattern(const char *uri_chars) :
+      fURI(uri_chars) {
     };
   };
 
@@ -770,7 +782,8 @@ namespace fhatos {
     fURI_p type_;
 
   public:
-    explicit Typed(const fURI_p &type) : type_(type) {
+    explicit Typed(const fURI_p &type) :
+      type_(type) {
     }
 
     [[nodiscard]] fURI_p type() const override { return this->type_; }
@@ -796,12 +809,15 @@ namespace fhatos {
     ID_p id_;
 
   public:
-    explicit IDed(const fURI_p &uri) : id_(make_shared<ID>(uri->toString())) {
+    explicit IDed(const fURI_p &uri) :
+      id_(make_shared<ID>(uri->toString())) {
     }
 
-    explicit IDed(const ID_p &id) : id_(id) {
+    explicit IDed(const ID_p &id) :
+      id_(id) {
     }
 
+  public:
     [[nodiscard]] ID_p id() const override { return this->id_; }
 
     [[nodiscard]] virtual bool equals(const BaseIDed &other) const override { return this->id_->equals(*other.id()); }
@@ -824,10 +840,12 @@ namespace fhatos {
     Pattern_p pattern_;
 
   public:
-    explicit Patterned(const fURI_p &uri) : pattern_(make_shared<Pattern>(uri->toString())) {
+    explicit Patterned(const fURI_p &uri) :
+      pattern_(make_shared<Pattern>(uri->toString())) {
     }
 
-    explicit Patterned(const Pattern_p &type) : pattern_(make_shared<Pattern>(*type)) {
+    explicit Patterned(const Pattern_p &type) :
+      pattern_(make_shared<Pattern>(*type)) {
     }
 
     [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }

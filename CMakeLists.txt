@@ -1,8 +1,10 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.25.0)  # CMake version check
 INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 INCLUDE(ExternalProject)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.30.0)  # CMake version check
 PROJECT(fhatos)
+ADD_DEFINITIONS("-DFOS_NAME=FhatOS")
+ADD_DEFINITIONS("-DFOS_VERSION=0.1-alpha")
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################
@@ -214,6 +216,9 @@ IF(BUILD_NATIVE)
         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
     ENDIF()
     ADD_DEFINITIONS("-DNATIVE")
+    ADD_DEFINITIONS("-DCMAKE_SYSTEM=${CMAKE_SYSTEM}")
+    ADD_DEFINITIONS("-DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
+    ADD_DEFINITIONS("-DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}")
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")

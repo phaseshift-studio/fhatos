@@ -35,14 +35,12 @@
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/sys.hpp>
-#include <model/driver/analog_pin_driver.hpp>
-#include <model/driver/digital_pin_diver.hpp>
-#include <model/driver/i2c_driver.hpp>
-#include <model/pin/i2c.hpp>
+
+#include <model/driver/gpio/arduino_gpio_driver.hpp>
+#include <model/driver/i2c/arduino_i2c_driver.hpp>
 #include <model/pin/gpio.hpp>
 //#include <model/pin/interrupt.hpp>
-#include <model/pin/pwm.hpp>
-#include <model/driver/driver.hpp>
+//#include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 // #include FOS_BLE(ble.hpp)
@@ -82,8 +80,7 @@ namespace fhatos {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
               ->displaying_history()
-              ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!")
-              ->displaying_notes("Use !b:help!! for !yconsole commands!!");
+              ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
         }
         ////////////////////////////////////////////////////////////
         return kp->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
@@ -112,26 +109,23 @@ namespace fhatos {
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
             ->structure(
-              Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                   args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+                Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                                     args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
 #ifdef NATIVE
-            ->structure(GPIO<fURIDigitalPinDriver>::create(
-              "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
-            ->structure(PWM<fURIAnalogPinDriver>::create(
-              "/soc/pwm/#", fURIAnalogPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
-            ->structure(I2C<I2CDriver>::create("/soc/i2c/#", fURII2CDriver::create()))
+            //   ->structure(GPIO<fURIDigitalPinDriver>::create(
+            //       "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
 #elif defined(ESP_ARCH)
-            ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
-            //->structure(PWM<ArduinoAnalogPinDriver>::create("/soc/pwm/#", ArduinoAnalogPinDriver::singleton()))
-            ->structure(I2C<ArduinoI2CDriver>::create("/soc/i2c/#",ArduinoI2CDriver::singleton()))
-            ->structure(Memory::singleton("/soc/memory/#"))
+            //       ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
+             ->structure(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
-            ->process(Redirect::create("/redirect/",
-                                       Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
-                                       Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
+            //  ->process(Redirect::create("/redirect/",
+            //                            Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
+            //                            Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
-            ->structure(Driver::singleton("/driver/#")) // TODO: put into /sys/ ?
-            //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
+
+            ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
+            //->driver(ArduinoI2CDriver::create("//i2c/arduino/request", "//i2c/arduino/response"))
+            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))
             ->process(Console::create("/console/", "/terminal/:owner",
                                       Console::Settings(args_parser->option("--console:nest", "false") == "true",
