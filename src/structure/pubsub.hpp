@@ -69,12 +69,12 @@ namespace fhatos {
   };
 
   static Enums<RESPONSE_CODE> ResponseCodes = Enums<RESPONSE_CODE>({{OK, "OK"},
-    {NO_TARGETS, "no targets"},
-    {REPEAT_SUBSCRIPTION, "repeat subscription"},
-    {NO_SUBSCRIPTION, "no subscription"},
-    {NO_MESSAGE, "no message"},
-    {ROUTER_ERROR, "internal router error"},
-    {MUTEX_TIMEOUT, "router timeout"}});
+                                                                    {NO_TARGETS, "no targets"},
+                                                                    {REPEAT_SUBSCRIPTION, "repeat subscription"},
+                                                                    {NO_SUBSCRIPTION, "no subscription"},
+                                                                    {NO_MESSAGE, "no message"},
+                                                                    {ROUTER_ERROR, "internal router error"},
+                                                                    {MUTEX_TIMEOUT, "router timeout"}});
 
   //////////////////////////////////////////////
   /////////////// MESSAGE STRUCT ///////////////
@@ -82,29 +82,36 @@ namespace fhatos {
   struct Message;
   using Message_p = ptr<Message>;
 
-  struct Message {
+  static const ID_p MESSAGE_FURI = id_p(REC_FURI->resolve("./msg"));
+
+  struct Message final : ObjWrap {
     Message(const ID &target,
             const Obj_p &payload,
-            const bool retain) : target(ID(target)),
-                                 payload(payload),
-                                 retain(retain) {
+            const bool retain) :
+      target(ID(target)),
+      payload(payload),
+      retain(retain) {
     }
+
     const ID target;
     const Obj_p payload;
     const bool retain;
 
-    [[nodiscard]] string toString() const {
-      char temp[1024];
-      snprintf(temp, 1024, "!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!", this->payload->toString().c_str(),
-               FOS_BOOL_STR(this->retain), this->target.toString().c_str());
-      return {temp};
+    fURI_p type() const override {
+      return MESSAGE_FURI;
     }
 
-    [[nodiscard]] Rec_p to_rec() const {
+
+    [[nodiscard]] string toString() const override {
+      return StringHelper::format("!g[!b%s!g]!!=[retain:%s]=>!g[!b%s!g]!!", this->payload->toString().c_str(),
+                                  FOS_BOOL_STR(this->retain), this->target.toString().c_str());
+    }
+
+    [[nodiscard]] Rec_p to_rec() const override {
       return Obj::to_rec({{vri(":target"), vri(this->target)},
-                           {vri(":payload"), this->payload->clone()},
-                           {vri(":retain"), dool(this->retain)}},
-                         id_p(REC_FURI->extend("msg")));
+                          {vri(":payload"), this->payload->clone()},
+                          {vri(":retain"), dool(this->retain)}},
+                         MESSAGE_FURI);
     }
   };
 
@@ -132,35 +139,40 @@ namespace fhatos {
     virtual bool recv_mail(const Mail_p &mail) = 0;
   };
 
-  struct Subscription {
+  static const ID_p SUBSCRIPTION_FURI = id_p(REC_FURI->resolve("./sub"));
+
+  struct Subscription final : ObjWrap {
     Subscription(const ID &source,
                  const Pattern &pattern,
-                 const BCode_p &on_recv): source(ID(source)),
-                                          pattern(Pattern(pattern)),
-                                          on_recv(on_recv) {
+                 const BCode_p &on_recv):
+      source(ID(source)),
+      pattern(Pattern(pattern)),
+      on_recv(on_recv) {
     }
 
     const ID source;
     const Pattern pattern;
     const BCode_p on_recv;
 
-    [[nodiscard]] Rec_p to_rec() const {
-      return rec({{vri(":source"), vri(source)},
-                   {vri(":pattern"), vri(pattern)},
-                   {vri(":on_recv"), on_recv}},
-                 id_p(REC_FURI->extend("sub")));
+    fURI_p type() const override {
+      return SUBSCRIPTION_FURI;
     }
 
-    [[nodiscard]] string toString() const {
-      char temp[1024];
-      snprintf(temp, 1024, "[!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!",
-               source.toString().c_str()/*, static_cast<uint8_t>(qos)*/, pattern.toString().c_str(),
-               on_recv->toString().c_str());
-      return {temp};
+    [[nodiscard]] Rec_p to_rec() const override {
+      return rec({{vri(":source"), vri(this->source)},
+                  {vri(":pattern"), vri(this->pattern)},
+                  {vri(":on_recv"), this->on_recv}},
+                 SUBSCRIPTION_FURI);
+    }
+
+    [[nodiscard]] string toString() const override {
+      return StringHelper::format("[!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!",
+                                  this->source.toString().c_str(), this->pattern.toString().c_str(),
+                                  this->on_recv->toString().c_str());
     }
   };
 
-  inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {
+  [[nodiscard]] inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {
     return make_shared<Subscription>(source, pattern, on_recv);
   }
 } // namespace fhatos

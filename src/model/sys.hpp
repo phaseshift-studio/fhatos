@@ -35,8 +35,15 @@ namespace fhatos {
       {furi_p(pattern.resolve("./scheduler")), [this](const fURI_p &furi) {
         return make_id_objs({{id_p(this->pattern()->resolve("./scheduler")), Obj::to_rec({{vri(":spawm"),
                                 Insts::to_bcode([](const Uri_p &uri) {
-                                  return uri;
+                                return router()->read(id_p(uri->uri_value()));
                                 })}})}});
+      }});
+      this->read_functions_->insert(
+      {furi_p(pattern.resolve("./scheduler/:spawn")), [this](const fURI_p &furi) {
+        return make_id_objs({{id_p(this->pattern()->resolve("./scheduler/:spawn")),
+                                Insts::to_bcode([](const Uri_p &uri) {
+                                  return router()->read(id_p(uri->uri_value()));
+                                })}});
       }});
       this->read_functions_->insert(
       {furi_p(pattern.resolve("./scheduler/process/#")), [this](const fURI_p &furi) {

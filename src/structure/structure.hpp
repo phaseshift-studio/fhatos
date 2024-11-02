@@ -27,6 +27,8 @@
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 
+#include "util/obj_helper.hpp"
+
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
   if (meta.has_value())                                                                                                \
@@ -49,7 +51,7 @@ namespace fhatos {
 
   static const Enums<SType> StructureTypes =
       Enums<SType>({{SType::COMPUTED, "computed"}, {SType::HEAP, "heap"}, {SType::MQTT, "mqtt"}, {SType::DISK, "disk"},
-        {SType::BLE, "ble"}});
+                    {SType::BLE, "ble"}});
 
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
@@ -75,7 +77,8 @@ namespace fhatos {
   public:
     const SType stype;
 
-    explicit Structure(const Pattern &pattern, const SType stype) : Patterned(p_p(pattern)), stype(stype) {
+    explicit Structure(const Pattern &pattern, const SType stype) :
+      Patterned(p_p(pattern)), stype(stype) {
     }
 
     [[nodiscard]] bool available() const { return this->available_.load(); }
@@ -119,13 +122,13 @@ namespace fhatos {
                     target->toString().c_str());
       else
         this->subscriptions_->remove_if(
-          [source, target](const Subscription_p &sub) {
-            const bool removing =
-                sub->source.equals(*source) && (sub->pattern.matches(*target));
-            if (removing)
-              LOG_UNSUBSCRIBE(OK, *source, target);
-            return removing;
-          });
+            [source, target](const Subscription_p &sub) {
+              const bool removing =
+                  sub->source.equals(*source) && (sub->pattern.matches(*target));
+              if (removing)
+                LOG_UNSUBSCRIBE(OK, *source, target);
+              return removing;
+            });
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
@@ -146,7 +149,7 @@ namespace fhatos {
     }
 
     virtual void publish_retained(const Subscription_p &subscription) {
-      const IdObjPairs_p list = this->read_raw_pairs(furi_p(subscription->pattern));
+      IdObjPairs_p list = this->read_raw_pairs(furi_p(subscription->pattern));
       for (const auto &[id, obj]: *list) {
         if (!obj->is_noobj()) {
           if (id->matches(subscription->pattern)) {
@@ -190,10 +193,16 @@ namespace fhatos {
           }
           // NODE ID
           else {
-            if (matches->empty())
+            if (matches->empty()) {
+              if (furi->path_length() > 0) {
+                const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
+                if (maybe_rec->is_rec()) {
+                  return maybe_rec->rec_get(vri(furi->name()));
+                }
+              }
               return noobj();
-            const Obj_p o = matches->begin()->second;
-            return o;
+            }
+            return matches->begin()->second;
           }
         }
       }
@@ -206,7 +215,9 @@ namespace fhatos {
         return;
       }
       if (retain) {
+        // x -> y
         if (furi->has_query() && furi->query_value("sub").has_value()) {
+          // x -> ?meta (writing to meta furis)
           //// SUBSCRIBE
           if (furi->query_value("sub").has_value()) {
             const Pattern_p pattern = p_p(furi->query(""));
@@ -216,7 +227,7 @@ namespace fhatos {
             } else if (obj->is_bcode()) {
               // bcode for on_recv
               this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, obj));
-            } else if (obj->is_rec()) {
+            } else if (obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
               // complete sub[=>] record
               this->recv_subscription(from_subscription_obj(obj));
             }
@@ -272,7 +283,20 @@ namespace fhatos {
           }
         }
       } else {
-        this->write_raw_pairs(id_p(*furi), obj, retain);
+        // x --> y -< subscribers
+        // non-retained writes 'pass through' (via application) any existing obj at that write furi location
+        const Obj_p applicable_obj = this->read(furi); // get the obj that current exists at that furi
+        if (applicable_obj->is_noobj())
+          // no obj, pass the written obj through to subscribers (optimization assuming noobj is _ ?? bad??)
+          this->write_raw_pairs(id_p(*furi), obj, retain);
+        else if (applicable_obj->is_bcode()) {
+          // bcode, pass the output of applying the written obj to bcode to subscribers
+          const BCode_p b = ObjHelper::replace_from_bcode({obj}, applicable_obj);
+          const Obj_p result = Options::singleton()->processor<Obj, BCode, Obj>(obj, b);
+          this->write_raw_pairs(id_p(*furi), result, retain);
+        } else
+        // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)
+          this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj), retain);
       }
     }
 
@@ -323,8 +347,8 @@ namespace fhatos {
       this->subscriptions_->forEach([pattern,objs](const Subscription_p &subscription) {
         if (subscription->pattern.bimatches(*pattern)) {
           const Rec_p sub_rec = Obj::to_rec({{vri(":source"), vri(subscription->source)},
-                                              {vri(":pattern"), vri(subscription->pattern)},
-                                              {vri(":on_recv"), subscription->on_recv}},
+                                             {vri(":pattern"), vri(subscription->pattern)},
+                                             {vri(":on_recv"), subscription->on_recv}},
                                             id_p(REC_FURI->extend("sub")));
           objs->add_obj(sub_rec);
         }

@@ -145,6 +145,10 @@ namespace fhatos {
       });
     }
 
+    [[nodiscard]] Obj_p exec(const ID_p& bcode_id, const Obj_p& arg) {
+      return this->read(bcode_id)->apply(arg);
+    }
+
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       ///////////////////////////////////////////////
       //////////// ROUTER READ INTERCEPTS ///////////
@@ -209,8 +213,8 @@ namespace fhatos {
 
   protected:
     explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
-      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj) -> const Obj_p {
-        this->write(id, obj, true);
+      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj,const bool retain) -> const Obj_p {
+        this->write(id, obj, retain);
         return obj;
       };
       ROUTER_WRITE_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {

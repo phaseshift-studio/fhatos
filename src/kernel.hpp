@@ -130,6 +130,11 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static ptr<Kernel> obj(const ID &id, const Obj_p& obj) {
+      router()->write(id_p(id), obj);
+      return Kernel::build();
+    }
+
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       //router()->write(process->id(), load_process(process));

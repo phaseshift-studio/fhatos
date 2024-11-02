@@ -236,8 +236,10 @@ namespace fhatos {
                                                {OType::BCODE, BCODE_FURI},
                                                {OType::ERROR, ERROR_FURI}}};
 
-  static BiConsumer<const Obj &, const fURI_p &> TYPE_CHECKER = [](const Obj &, const fURI_p &) {
+  static TriFunction<const Obj *, const fURI_p &, const bool, const bool> TYPE_CHECKER = [
+      ](const Obj *, const fURI_p &, const bool = true) -> bool {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap.\n");
+    return false;
   };
   static BiFunction<const Obj_p, const ID_p, Obj_p> TYPE_MAKER = [](const Obj_p &, const ID_p &) {
     LOG(DEBUG, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
@@ -271,7 +273,8 @@ namespace fhatos {
     LOG(DEBUG, "!yROUTER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static BiConsumer<const ID_p &, const Obj_p &> ROUTER_WRITE_AT = [](const ID_p &, const Obj_p &) -> void {
+  static TriConsumer<const ID_p &, const Obj_p &, const bool> ROUTER_WRITE_AT = [
+      ](const ID_p &, const Obj_p &, const bool) -> void {
     LOG(DEBUG, "!yROUTER_WRITE_AT!! undefined at this point in bootstrap.\n");
   };
 
@@ -309,12 +312,12 @@ namespace fhatos {
 
     explicit Obj(const Any &value, const fURI_p &type_id, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)))), IDed(value_id), _value(value) {
-      TYPE_CHECKER(*this, type_id);
+      TYPE_CHECKER(this, type_id, true);
       this->type_ = type_id;
       if (value_id) {
         const Obj_p strip = this->clone();
         strip->id_ = nullptr;
-        ROUTER_WRITE_AT(value_id, strip);
+        ROUTER_WRITE_AT(value_id, strip, true);
       }
     }
 
@@ -498,7 +501,7 @@ namespace fhatos {
       if (!val->is_noobj())
         this->rec_value()->insert({key, val});
       if (this->id_)
-        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)));
+        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
     }
 
     void rec_set(const Obj &key, const Obj &value) const {
@@ -512,7 +515,7 @@ namespace fhatos {
         this->rec_value()->insert({k, v});
       }
       if (this->id_)
-        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)));
+        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
@@ -1458,21 +1461,37 @@ namespace fhatos {
 
   class ObjWrap : public BaseTyped, BaseIDed {
   protected:
-    const Rec_p internal_;
+    Rec_p internal_;
 
   public:
+    explicit ObjWrap():
+      internal_(nullptr) {
+    };
+
+    explicit ObjWrap(const Rec_p &internal_rec):
+      internal_(internal_rec) {
+    }
+
     ~ObjWrap() override = default;
-
-    fURI_p type() const override {
-      return this->internal_->type();
-    }
-
-    ID_p id() const override {
-      return this->internal_->id();
-    }
 
     virtual Rec_p to_rec() const {
       return this->internal_;
+    }
+
+    fURI_p type() const override {
+      return this->to_rec()->type();
+    }
+
+    ID_p id() const override {
+      return this->to_rec()->id();
+    }
+
+    virtual Obj::RecMap_p<> rec_value() const {
+      return this->to_rec()->rec_value();
+    }
+
+    virtual string toString() const {
+      return this->to_rec()->toString();
     }
   };
 

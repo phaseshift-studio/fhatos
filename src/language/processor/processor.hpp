@@ -38,12 +38,19 @@ namespace fhatos {
   public:
     Monad() = delete;
 
-    explicit Monad(const Obj_p &obj, const Inst_p &inst) : obj_(obj), inst_(inst) {
+    explicit Monad(const Obj_p &obj, const Inst_p &inst) :
+      obj_(obj), inst_(inst) {
       // TODO: figure out how to not require a clone()
     }
 
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
-      const Obj_p next_obj = this->inst_->apply(this->obj_);
+      Obj_p next_obj;
+      try {
+        next_obj = this->inst_->apply(this->obj_);
+      } catch (const fError &error) {
+        throw fError("%s !rthrown by!! %s(%s)", error.what(), this->inst_->toString().c_str(),
+                     this->obj_->toString().c_str());
+      }
       const Inst_p next_inst = bcode->next_inst(this->inst_);
       if (!next_obj->is_noobj()) {
         LOG(DEBUG, FOS_TAB_2 "!mProcessing!! monad(s): %s\n", next_obj->toString().c_str());
@@ -111,10 +118,11 @@ namespace fhatos {
       delete this->halted_;
     }
 
-    explicit Processor(const BCode_p &bcode, const Obj_p &starts = noobj()) : bcode_(bcode),
-                                                                              running_(new Deque<Monad_p>()),
-                                                                              barriers_(new Deque<Monad_p>()),
-                                                                              halted_(new Deque<Obj_p>()) {
+    explicit Processor(const BCode_p &bcode, const Obj_p &starts = noobj()) :
+      bcode_(bcode),
+      running_(new Deque<Monad_p>()),
+      barriers_(new Deque<Monad_p>()),
+      halted_(new Deque<Obj_p>()) {
       if (!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
       this->bcode_ = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
@@ -134,13 +142,13 @@ namespace fhatos {
       if (this->running_->empty()) {
         const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
         this->running_->push_back(
-          monad_p(seed_copy, this->bcode_->bcode_value()->front()));
+            monad_p(seed_copy, this->bcode_->bcode_value()->front()));
       }
     }
 
     Obj_p next(const int steps = -1) {
       while (true) {
-       // Process::current_process()->feed_watchdog_via_counter();
+        // Process::current_process()->feed_watchdog_via_counter();
         if (this->halted_->empty()) {
           if (this->running_->empty())
             return nullptr;
@@ -198,11 +206,10 @@ namespace fhatos {
     void for_each(const Consumer<const Obj_p> &consumer, const int steps = -1) {
       while (true) {
         const Obj_p end = this->next(steps);
-        if (!end) {
+        if (!end)
           break;
-        } else if (!end->is_noobj()) {
+        if (!end->is_noobj())
           consumer(end);
-        }
       }
     }
   };
@@ -241,7 +248,7 @@ namespace fhatos {
       return Processor(bcode, starts).to_objs();
     };
     Options::singleton()->processor<Obj, BCode, Objs>(
-      [](const Obj_p &st, const BCode_p &bc) { return Processor(bc, st).to_objs(); });
+        [](const Obj_p &st, const BCode_p &bc) { return Processor(bc, st).to_objs(); });
   }
 } // namespace fhatos
 

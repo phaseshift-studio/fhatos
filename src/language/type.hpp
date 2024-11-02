@@ -57,13 +57,13 @@ namespace fhatos {
 
     void setup() override {
       Coroutine::setup();
-      TYPE_CHECKER = [](const Obj &obj, const fURI_p &type_id) -> void {
+      TYPE_CHECKER = [](const Obj *obj, const fURI_p &type_id, const bool throw_on_fail) -> bool {
         //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-        const fURI_p resolved_type_id = resolve_sugar_type(obj.type(), type_id);
-        singleton()->check_type(obj, resolved_type_id, true);
+        const fURI_p resolved_type_id = resolve_shortened_base_type(obj->type(), type_id);
+        return singleton()->check_type(obj, resolved_type_id, throw_on_fail);
       };
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
-        const ID_p resolved_type_id = resolve_sugar_type(obj->type(), type_id);
+        const ID_p resolved_type_id = resolve_shortened_base_type(obj->type(), type_id);
         if (OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)) != obj->o_type())
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
@@ -115,7 +115,7 @@ namespace fhatos {
       return !existing_type_def->is_noobj() && (*existing_type_def == *type_def);
     }
 
-    static ID_p resolve_sugar_type(const fURI_p &type, const fURI_p &furi) {
+    static ID_p resolve_shortened_base_type(const fURI_p &type, const fURI_p &furi) {
       return OTypes.has_enum(furi->toString())
                ? id_p(ID(string(FOS_TYPE_PREFIX) + furi->name()))
                : id_p(type->resolve(*furi));
@@ -123,15 +123,18 @@ namespace fhatos {
 
     static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }
 
-    bool check_type(const Obj &obj, const fURI_p &type_id, const bool do_throw = true) const
+    bool check_type(const Obj *obj, const fURI_p &type_id, const bool do_throw = true) const
       noexcept(false) {
+     // if (obj->type()->equals(*type_id))
+        // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
+     //   return true;
       const OType type_otype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-      if (obj.o_type() == OType::INST || obj.o_type() == OType::BCODE || type_otype == OType::INST || type_otype ==
+      if (obj->o_type() == OType::INST || obj->o_type() == OType::BCODE || type_otype == OType::INST || type_otype ==
           OType::BCODE)
         return true;
-      if (obj.o_type() != type_otype) {
+      if (obj->o_type() != type_otype) {
         if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj.toString(false).c_str(),
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->id()->toString().c_str(), obj->toString(false).c_str(),
                        type_id->toString().c_str());
         return false;
       }
@@ -141,12 +144,12 @@ namespace fhatos {
       }
       const Obj_p type = router()->read(type_id);
       if (!type->is_noobj()) {
-        if (obj.match(type, false)) {
+        if (obj->match(type, false)) {
           return true;
         }
         if (do_throw)
           throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!", this->id()->toString().c_str(),
-                       obj.toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());
+                       obj->toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());
         return false;
       }
       if (do_throw)

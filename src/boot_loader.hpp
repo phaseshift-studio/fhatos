@@ -30,6 +30,7 @@
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
+#include <util/common_objs.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
@@ -37,8 +38,8 @@
 #include <model/sys.hpp>
 
 #include <model/driver/gpio/arduino_gpio_driver.hpp>
-#include <model/driver/i2c/arduino_i2c_driver.hpp>
-#include <model/pin/gpio.hpp>
+//#include <model/driver/i2c/arduino_i2c_driver.hpp>
+//#include <model/pin/gpio.hpp>
 //#include <model/pin/interrupt.hpp>
 //#include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
@@ -46,8 +47,8 @@
 // #include FOS_BLE(ble.hpp)
 #include <model/soc/esp/wifi.hpp>
 #include <model/soc/memory/esp32/memory.hpp>
-#include FOS_TIMER(timer.hpp)
-#include <structure/stype/redirect.hpp>
+//#include FOS_TIMER(timer.hpp)
+//#include <structure/stype/redirect.hpp>
 #endif
 
 #ifdef NATIVE
@@ -87,14 +88,13 @@ namespace fhatos {
             ->using_router(Router::singleton("/sys/router/#"))
             ////////////////////////////////////////////////////////////
             ->structure(Heap::create("+/#"))
+            ->obj("terminal", CommonObjs::terminal())
             //
             ->program(Heap::create("/type/#"), Type::singleton("/type/"))
             //
             ->eval([]() {
               mmadt::mmADT::load();
             })
-            //
-            ->structure(Terminal::singleton("/terminal/#"))
             //
             ->program(Heap::create("/parser/#"), Parser::singleton("/parser/"))
             //
@@ -125,9 +125,9 @@ namespace fhatos {
 
             ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
             //->driver(ArduinoI2CDriver::create("//i2c/arduino/request", "//i2c/arduino/response"))
-            ->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
+            //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))
-            ->process(Console::create("/console/", "/terminal/:owner",
+            ->process(Console::create("/console/", "terminal/",
                                       Console::Settings(args_parser->option("--console:nest", "false") == "true",
                                                         args_parser->option("--ansi", "true") == "true",
                                                         args_parser->option("--console:strict", "false") == "true",
