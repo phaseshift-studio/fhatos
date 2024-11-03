@@ -26,6 +26,8 @@
 #include <util/options.hpp>
 #include <utility>
 
+#include "type.hpp"
+
 namespace fhatos {
   struct Insts {
     explicit Insts() = delete;
@@ -33,23 +35,6 @@ namespace fhatos {
     [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
       return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
     }
-
-    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cpp-impl")) {
-      return bcode({Insts::lambda([function](const Obj_p &obj) { return function(obj); }, vri(label))});
-    }
-
-    static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cpp-impl")) {
-      return bcode({Insts::lambda(
-          [consumer](const Rec_p &message) {
-            const Message_p mess =
-                message_p(message->rec_get(vri(":target"))->uri_value(), message->rec_get(vri(":payload")),
-                          message->rec_get(vri(":retain"))->bool_value());
-            consumer(mess);
-            return noobj();
-          },
-          vri(label))});
-    }
-
 
     static Obj_p start(const Obj_p &starts) {
       return Obj::to_inst(
@@ -982,7 +967,7 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
       const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
-      const Obj_p base_inst = router()->read(type_id_resolved);
+      const Obj_p base_inst = Type::singleton()->rec_get(type_id_resolved);// router()->read(type_id_resolved);
       if (base_inst->is_noobj())
         throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),

@@ -89,7 +89,7 @@ namespace fhatos {
                                                })),
                                                id_p(DRIVER_FURI->resolve("./gpio/arduino/hardware")));
       router()->route_subscription(subscription_p(*driver->type(),
-                                                  *request_id, Insts::to_bcode(
+                                                  *request_id, Subscription::to_bcode(
                                                     [response_id](const Message_p &message) {
                                                       const Obj_p result = message->payload->apply(noobj());
                                                       if (!result->is_noobj())

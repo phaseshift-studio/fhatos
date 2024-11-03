@@ -88,6 +88,7 @@ namespace fhatos {
     Message(const ID &target,
             const Obj_p &payload,
             const bool retain) :
+      ObjWrap(MESSAGE_FURI),
       target(ID(target)),
       payload(payload),
       retain(retain) {
@@ -145,6 +146,7 @@ namespace fhatos {
     Subscription(const ID &source,
                  const Pattern &pattern,
                  const BCode_p &on_recv):
+      ObjWrap(SUBSCRIPTION_FURI),
       source(ID(source)),
       pattern(Pattern(pattern)),
       on_recv(on_recv) {
@@ -170,11 +172,24 @@ namespace fhatos {
                                   this->source.toString().c_str(), this->pattern.toString().c_str(),
                                   this->on_recv->toString().c_str());
     }
+
+    static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cxx:func")) {
+      return bcode({Obj::lambda(
+          [consumer](const Rec_p &message) {
+            const Message_p mess =
+                message_p(message->rec_get(vri(":target"))->uri_value(), message->rec_get(vri(":payload")),
+                          message->rec_get(vri(":retain"))->bool_value());
+            consumer(mess);
+            return noobj();
+          },
+          vri(label))});
+    }
   };
 
   [[nodiscard]] inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {
     return make_shared<Subscription>(source, pattern, on_recv);
   }
+
 } // namespace fhatos
 
 #endif

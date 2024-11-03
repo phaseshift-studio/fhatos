@@ -37,7 +37,7 @@
 ///////////// COMMON MODELS /////////////
 #include <model/sys.hpp>
 
-#include <model/driver/gpio/arduino_gpio_driver.hpp>
+//#include <model/driver/gpio/arduino_gpio_driver.hpp>
 //#include <model/driver/i2c/arduino_i2c_driver.hpp>
 //#include <model/pin/gpio.hpp>
 //#include <model/pin/interrupt.hpp>
@@ -88,15 +88,14 @@ namespace fhatos {
             ->using_router(Router::singleton("/sys/router/#"))
             ////////////////////////////////////////////////////////////
             ->structure(Heap::create("+/#"))
-            ->obj("terminal", CommonObjs::terminal())
-            //
-            ->program(Heap::create("/type/#"), Type::singleton("/type/"))
-            //
+            ->structure(Heap::create("/type/#"))
+            ->structure(Heap::create("/parser/#"))
+            ->obj("terminal", CommonObjs::terminal("terminal"))
+            ->obj("/type", Type::singleton("/type"))
+            ->obj("/parser", Parser::singleton("/parser"))
             ->eval([]() {
               mmadt::mmADT::load();
             })
-            //
-            ->program(Heap::create("/parser/#"), Parser::singleton("/parser/"))
             //
             ->model("/model/sys/")
             ->structure(Sys::singleton("/sys/#"))
@@ -123,7 +122,7 @@ namespace fhatos {
             //                            Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
 
-            ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
+            //  ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
             //->driver(ArduinoI2CDriver::create("//i2c/arduino/request", "//i2c/arduino/response"))
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->structure(Heap::create("/console/#"))

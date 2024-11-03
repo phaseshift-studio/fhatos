@@ -327,7 +327,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
       router()->route_subscription(
         subscription_p(ID("fhatty"),
                        key.uri_value(),
-                       Insts::to_bcode([temp](const ptr<Message> &message) {
+                       Subscription::to_bcode([temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                                   (string("Router retain message payload equality: ") +
                                                     router()->pattern()->toString() + " " + temp.toString() +

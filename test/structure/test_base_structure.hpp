@@ -61,7 +61,7 @@ namespace fhatos {
     const Subscription_p subscription_HIT = subscription_p(
       "tester_HIT",
       *make_test_pattern("+"),
-      Insts::to_bcode([ping_HIT](const Message_p &message) {
+      Subscription::to_bcode([ping_HIT](const Message_p &message) {
         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
         TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
@@ -74,7 +74,7 @@ namespace fhatos {
     const Subscription_p subscription_MISS =
         subscription_p("tester_MISS",
                        *make_test_pattern("c"),
-                       Insts::to_bcode([ping_MISS](const Message_p &message) {
+                       Subscription::to_bcode([ping_MISS](const Message_p &message) {
                          ping_MISS->store(ping_MISS->load() + 1);
                          LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
                          TEST_FAIL_MESSAGE((string("Subscription ") + make_test_pattern("c")->toString() +
@@ -189,7 +189,7 @@ namespace fhatos {
   void test_subscribe() {
     // Options::singleton()->log_level(TRACE);
     auto *pings = new atomic_int(0);
-    const BCode_p on_recv = Insts::to_bcode([pings](const Message_p &message) {
+    const BCode_p on_recv = Subscription::to_bcode([pings](const Message_p &message) {
       FOS_TEST_ASSERT_EQUAL_FURI(Pattern(*make_test_pattern("test")), message->target);
       TEST_ASSERT_FALSE(message->retain);
       if (message->payload->is_bool()) {

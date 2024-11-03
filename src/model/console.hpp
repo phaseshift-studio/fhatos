@@ -166,7 +166,7 @@ namespace fhatos {
       Thread::setup();
       //////////////////////////////////////////
       router()->route_subscription(subscription_p(
-          *this->id(), this->id()->resolve("./config/+"), Insts::to_bcode([this](const Message_p &message) {
+          *this->id(), this->id()->resolve("./config/+"), Subscription::to_bcode([this](const Message_p &message) {
             if (message->retain && !message->target.has_query()) {
               if (message->target.name() == "ansi") {
                 Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());

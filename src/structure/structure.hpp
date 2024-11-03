@@ -195,6 +195,7 @@ namespace fhatos {
           else {
             if (matches->empty()) {
               if (furi->path_length() > 0) {
+                // recurse backwards to find a root map that has respective furi path
                 const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
                 if (maybe_rec->is_rec()) {
                   return maybe_rec->rec_get(vri(furi->name()));
@@ -278,6 +279,17 @@ namespace fhatos {
             }
             // NODE ID
             else {
+             /* const IdObjPairs_p matches = this->read_raw_pairs(furi);
+              if (matches->empty()) {
+                if (furi->path_length() > 0) {
+                  // recurse backwards to find a root map that has respective furi path
+                  const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
+                  if (maybe_rec->is_rec()) {
+                    maybe_rec->rec_set(furi_p(furi->name()), obj);
+                    return;
+                  }
+                }
+              }*/
               this->write_raw_pairs(id_p(*furi), obj, retain);
             }
           }
@@ -291,8 +303,14 @@ namespace fhatos {
           this->write_raw_pairs(id_p(*furi), obj, retain);
         else if (applicable_obj->is_bcode()) {
           // bcode, pass the output of applying the written obj to bcode to subscribers
-          const BCode_p b = ObjHelper::replace_from_bcode({obj}, applicable_obj);
-          const Obj_p result = Options::singleton()->processor<Obj, BCode, Obj>(obj, b);
+          InstArgs args;
+          if (obj->is_lst())
+            args = *obj->lst_value();
+          else
+            args = List<Obj_p>({obj});
+          const BCode_p rewritten_bcode = ObjHelper::replace_from_bcode(args, applicable_obj);
+          // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
+          const Obj_p result = Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
           this->write_raw_pairs(id_p(*furi), result, retain);
         } else
         // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)

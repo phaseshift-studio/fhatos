@@ -203,6 +203,8 @@ namespace fhatos {
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
 #define LOG_ROUTER(logtype, format, ...)                                                                               \
   LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->pattern()->toString().c_str(), ##__VA_ARGS__)
+#define LOG_ROUTER_STATIC(logtype, format, ...)                                                                               \
+LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),Options::singleton()->router<Router>()->pattern()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER(logtype, format, ...)                                                                            \
   LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->id()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \

@@ -237,8 +237,8 @@ namespace fhatos {
                                                {OType::ERROR, ERROR_FURI}}};
 
   static TriFunction<const Obj *, const fURI_p &, const bool, const bool> TYPE_CHECKER = [
-      ](const Obj *, const fURI_p &, const bool = true) -> bool {
-    LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap.\n");
+      ](const Obj *, const fURI_p &type_id, const bool = true) -> bool {
+    LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     return false;
   };
   static BiFunction<const Obj_p, const ID_p, Obj_p> TYPE_MAKER = [](const Obj_p &, const ID_p &) {
@@ -282,7 +282,7 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Obj final : public Typed, public IDed, public Function<Obj_p, Obj_p> {
+  class Obj : public Typed, public IDed, public Function<Obj_p, Obj_p> {
   public:
     Any _value;
 
@@ -494,25 +494,35 @@ namespace fhatos {
       // return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
-    [[nodiscard]] Obj_p rec_get(const Obj &key) const { return Obj::rec_get(make_shared<Obj>(key)); }
+    [[nodiscard]] Obj_p rec_get(const Obj &key) const { return rec_get(make_shared<Obj>(key)); }
 
-    void rec_set(const Obj_p &key, const Obj_p &val) const {
+    [[nodiscard]] Obj_p rec_get(const fURI_p &key) const { return rec_get(to_uri(*key)); }
+
+    virtual void rec_set(const Obj_p &key, const Obj_p &val) const {
       this->rec_value()->erase(key);
       if (!val->is_noobj())
         this->rec_value()->insert({key, val});
-      if (this->id_)
-        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
+      //if (this->id_)
+      //  ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
     }
 
-    void rec_set(const Obj &key, const Obj &value) const {
+    virtual void rec_set(const Obj &key, const Obj &value) const {
       Obj::rec_set(make_shared<Obj>(key), make_shared<Obj>(value));
     }
 
-    void rec_add(const Rec_p &other) const {
+    virtual void rec_set(const fURI_p &key, const Obj &value) const {
+      Obj::rec_set(Obj::to_uri(*key), make_shared<Obj>(value));
+    }
+
+    virtual void rec_set(const fURI_p &key, const Obj_p &value) const {
+      Obj::rec_set(Obj::to_uri(*key), value);
+    }
+
+    virtual void rec_add(const Rec_p &other) const {
       for (const auto &[k, v]: *other->rec_value()) {
         if (this->rec_value()->count(k))
           this->rec_value()->erase(k);
-        this->rec_value()->insert({k, v});
+        this->rec_set(k, v);
       }
       if (this->id_)
         ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
@@ -1313,30 +1323,32 @@ namespace fhatos {
       return to_lst(make_shared<LstList<>>(xlst), furi);
     }
 
-    static Rec_p to_rec(const ID_p &furi = REC_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
-      return make_shared<Rec>(make_shared<RecMap<>>(), furi);
+    static Rec_p to_rec(const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
+      fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
+      return make_shared<Rec>(make_shared<RecMap<>>(), type, id);
     }
 
-    static Rec_p to_rec(const RecMap_p<> &map, const ID_p &furi = REC_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
-      return make_shared<Rec>(map, furi);
+    static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
+      fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
+      return make_shared<Rec>(map, type, id);
     }
 
-    static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &furi = REC_FURI) {
+    static Rec_p to_rec(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const ID_p &type = REC_FURI,
+                        const ID_p &id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
       for (const auto &[key, value]: xrec) {
         map->insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(value)));
       }
-      return to_rec(map, furi);
+      return to_rec(map, type, id);
     }
 
-    static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const ID_p &furi = REC_FURI) {
+    static Rec_p to_rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &xrec, const ID_p &type = REC_FURI,
+                        const ID_p &id = nullptr) {
       const auto map = make_shared<Obj::RecMap<>>();
       for (const auto &[key, value]: xrec) {
         map->insert(make_pair(key, value));
       }
-      return to_rec(map, furi);
+      return to_rec(map, type, id);
     }
 
     static Inst_p to_inst(const InstValue &value, const ID_p &furi = INST_FURI) {
@@ -1360,6 +1372,17 @@ namespace fhatos {
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &furi = BCODE_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BCODE));
       return make_shared<BCode>(insts, furi);
+    }
+
+    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cxx:func")) {
+      return Obj::to_bcode({Obj::lambda([function](const Obj_p &obj) { return function(obj); }, to_uri(label))});
+    }
+
+    static Obj_p lambda(const Function<Obj_p, Obj_p> &function, const Uri_p &location = to_uri("cpp-impl")) {
+      return Obj::to_inst(
+          "lambda", {location},
+          [function](const InstArgs &) { return [function](const Obj_p &input) { return function(input); }; },
+          IType::ONE_TO_ONE);
     }
 
     static Objs_p to_objs(const ID_p &furi = OBJS_FURI) {
@@ -1461,11 +1484,11 @@ namespace fhatos {
 
   class ObjWrap : public BaseTyped, BaseIDed {
   protected:
-    Rec_p internal_;
+    const Rec_p internal_;
 
   public:
-    explicit ObjWrap():
-      internal_(nullptr) {
+    explicit ObjWrap(const ID_p &type, const ID_p &id = nullptr):
+      internal_(make_shared<Rec>(make_shared<Obj::RecMap<>>(), type, id)) {
     };
 
     explicit ObjWrap(const Rec_p &internal_rec):
@@ -1478,20 +1501,28 @@ namespace fhatos {
       return this->internal_;
     }
 
+    Obj_p get(const fURI_p &furi) const {
+      return this->internal_->rec_get(Obj::to_uri(*furi));
+    }
+
+    void set(const fURI_p &furi, const Obj_p &obj) const {
+      this->internal_->rec_set(Obj::to_uri(*furi), obj);
+    }
+
     fURI_p type() const override {
-      return this->to_rec()->type();
+      return this->internal_->type();
     }
 
     ID_p id() const override {
-      return this->to_rec()->id();
+      return this->internal_->id();
     }
 
     virtual Obj::RecMap_p<> rec_value() const {
-      return this->to_rec()->rec_value();
+      return this->internal_->rec_value();
     }
 
     virtual string toString() const {
-      return this->to_rec()->toString();
+      return this->internal_->toString();
     }
   };
 
@@ -1547,8 +1578,8 @@ namespace fhatos {
   }
 
   [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &map,
-                                    const ID_p &furi = REC_FURI) {
-    return Obj::to_rec(map, furi);
+                                    const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
+    return Obj::to_rec(map, type, id);
   }
 
   [[maybe_unused]] static Objs_p objs() { return Obj::to_objs(make_shared<List<Obj_p>>()); }

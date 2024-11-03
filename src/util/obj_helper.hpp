@@ -91,7 +91,7 @@ namespace fhatos {
 
     ////////////////////////////////////////////////
 
-    static const string objAnalysis(const Obj &obj) {
+    static string objAnalysis(const Obj &obj) {
       char a[250];
       sprintf(a,
               "!b%s!! structure:\n"

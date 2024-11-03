@@ -43,7 +43,7 @@ namespace fhatos {
   public:
     explicit fDriver(const ID_p &request_id, const ID_p &response_id, const List_p<Inst_p> &instructions,
                      const ID_p &type) :
-      ObjWrap(), type_(type) {
+      ObjWrap(type), type_(type) {
       this->internal_ = Obj::to_rec({{vri("request"), vri(request_id)},
                                      {vri("response"), vri(response_id)},
                                      {vri("insts"), Obj::to_lst(instructions)}});
@@ -52,12 +52,13 @@ namespace fhatos {
   public:
     void setup() const {
       const List_p<Obj_p> inst_list = this->internal_->rec_get(vri("insts"))->lst_value();
-      Type::start_progress_bar(inst_list->size() + 1);
+      Type::singleton()->start_progress_bar(inst_list->size() + 1);
       for (const auto &inst: *inst_list) {
         Type::singleton()->save_type(id_p(*inst->type()), inst);
       }
       Type::singleton()->save_type(this->type_, this->internal_);
-      Type::end_progress_bar(StringHelper::format("!b%s !yinsts!! loaded\n", this->type()->toString().c_str()));
+      Type::singleton()->end_progress_bar(
+          StringHelper::format("!b%s !yinsts!! loaded\n", this->type()->toString().c_str()));
 
     }
 

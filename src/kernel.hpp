@@ -130,8 +130,9 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> obj(const ID &id, const Obj_p& obj) {
+    static ptr<Kernel> obj(const ID &id, const Obj_p &obj) {
       router()->write(id_p(id), obj);
+      LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->id()->toString().c_str());
       return Kernel::build();
     }
 
@@ -153,7 +154,8 @@ namespace fhatos {
       router()->attach(structure);
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       //router()->write(process->id(), load_process(process));
-      scheduler()->spawn(process);
+      router()->write(process->id(), process);
+      //scheduler()->spawn(process);
       LOG(INFO, "!c[ END ]!!: !yloading program!!\n");
       return Kernel::build();
     }

@@ -39,7 +39,23 @@ namespace mmadt {
     static void load() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      Type::start_progress_bar(TOTAL_INSTRUCTIONS);
+      Type::singleton()->save_type(MESSAGE_FURI,
+                                   Obj::to_rec({
+                                       {vri(":target"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {vri(":payload"), Obj::to_bcode()},
+                                       {vri(":retain"), Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}
+                                   }));
+      Type::singleton()->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
+                                       {vri(":source"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {vri(":pattern"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {vri(":on_recv"), Obj::to_bcode()}}));
+      Type::singleton()->save_type(THREAD_FURI, Obj::to_rec({
+                                       {vri(":setup"), Obj::to_bcode()},
+                                       {vri(":loop"), Obj::to_bcode()},
+                                       {vri(":stop"), Obj::to_bcode()},
+                                       {vri(":delay"), Obj::to_bcode()},
+                                       {vri(":yield"), Obj::to_bcode()}}));
+      Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(inst_id("a"), Insts::a(x(0)));
       Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)), false);
       // this->save_type(inst_id("*"), Insts::from(vri(inst_id("from"))));
@@ -110,7 +126,7 @@ namespace mmadt {
       Type::singleton()->save_type(inst_id("error"), Insts::error(x(0, str("an error occurred"))));
       Type::singleton()->save_type(inst_id("repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
       Type::singleton()->save_type(inst_id("side"), Insts::side(x(0)));
-      Type::end_progress_bar("!bmm-adt !yobjs!! loaded\n");
+      Type::singleton()->end_progress_bar("!bmm-adt !yobjs!! loaded\n");
     }
   };
 } // namespace mmadt

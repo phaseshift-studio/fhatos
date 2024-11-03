@@ -46,7 +46,7 @@ namespace fhatos {
           this->recv_unsubscribe(id_p(subscrption->source), p_p(subscrption->pattern));
         });
         router()->route_subscription(subscription_p(ID(this->pattern_->retract_pattern()), Pattern(obj->uri_value()),
-                                                    Insts::to_bcode([](const Message_p &message) {
+                                                    Subscription::to_bcode([](const Message_p &message) {
                                                       printer<>()->print(message->payload->str_value().c_str());
                                                     })));
       }

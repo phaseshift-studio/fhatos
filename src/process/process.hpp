@@ -27,6 +27,7 @@
 #include <util/enums.hpp>
 #include <util/ptr_helper.hpp>
 
+
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !y%s!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b%s!g] !y%s!! already setup\n"
 #ifndef FOS_PROCESS_WDT_COUNTER
@@ -53,7 +54,7 @@ namespace fhatos {
   //////////////////////////////////////////////////////////////////////
 
 
-  class Process : public IDed {
+  class Process : public Obj {
   protected:
     std::atomic_bool running_ = false;
     std::atomic_int16_t wdt_timer_counter = 0;
@@ -61,7 +62,31 @@ namespace fhatos {
   public:
     const PType ptype;
 
-    explicit Process(const ID &id, const PType pType) : IDed(id_p(id)), ptype(pType) {
+    explicit Process(const ID &id, const PType pType) :
+      Obj(
+          *Obj::to_rec({{vri(":setup"), Obj::to_bcode([this](const Obj_p &) {
+                          this->setup();
+                          return noobj();
+                        }, "cpp:setup")},
+                        {vri(":loop"), Obj::to_bcode([this](const Obj_p &) {
+                          this->loop();
+                          return noobj();
+                        }, "cpp:loop")},
+                        {vri(":stop"), Obj::to_bcode([this](const Obj_p &) {
+                          this->stop();
+                          return noobj();
+                        }, "cpp:stop")},
+                        {vri(":delay"), Obj::to_bcode([this](const Int_p &milliseconds) {
+                          this->delay(milliseconds->int_value());
+                          return noobj();
+                        }, "cpp:delay")},
+                        {vri(":yield"), Obj::to_bcode([this](const Obj_p &) {
+                          this->yield();
+                          return noobj();
+                        }, "cpp:yield")}},
+                       id_p(REC_FURI->extend(ProcessTypes.to_chars(pType))))), ptype(pType) {
+      this->id_ = id_p(id);
+
     }
 
     ~Process() override = default;
@@ -74,7 +99,7 @@ namespace fhatos {
       }
     }
 
-    static Process* current_process() {
+    static Process *current_process() {
       return this_process.load();
     }
 

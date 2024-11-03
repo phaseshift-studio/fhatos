@@ -21,6 +21,7 @@
 #include <chrono>
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
+#include FOS_PROCESS(scheduler.hpp)
 
 #ifndef FOS_MQTT_BROKER
 #define FOS_MQTT_BROKER localhost
@@ -108,7 +109,7 @@ namespace fhatos {
 
     void loop() override {
       Structure::loop();
-      scheduler()->feed_local_watchdog();
+    ///  Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
     }
 
     IdObjPairs_p read_raw_pairs(const fURI_p &furi) override {
@@ -119,10 +120,10 @@ namespace fhatos {
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = ID(this->settings_.client_.c_str());
       this->recv_subscription(
-        subscription_p(source_id, temp, Insts::to_bcode([this, furi, thing](const Message_p &message) {
+        subscription_p(source_id, temp, Subscription::to_bcode([this, furi, thing](const Message_p &message) {
           LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
                         message->toString().c_str());
-          scheduler()->feed_local_watchdog();
+          ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
           thing->load()->push_back({id_p(message->target), message->payload});
         })));
       ///////////////////////////////////////////////

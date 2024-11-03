@@ -108,6 +108,7 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.g}CMAKE_SOURCE_DIR${..}   : ${CMAKE_SOURCE_DIR}
 \t  ${.g}CMAKE_BINARY_DIR${..}   : ${CMAKE_BINARY_DIR}
 \t  ${.g}FOS_SKIP_CMAKE${..}     : ${FOS_SKIP_CMAKE}
+\t  ${.g}CHECK_INTERNET${..}     : ${CHECK_INTERNET}
 \t  ${.g}BUILD_TESTS${..}        : ${BUILD_TESTS}
 \t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
 \t  ${.g}USE_CONAN${..}          : ${USE_CONAN}
@@ -294,6 +295,7 @@ ELSE()
     ##################################################################
     IF(USE_PAHO_MQTT_HACK)
         MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART 1${.g}]${..}")
+        MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}Paho${..}-${.b}MQTT${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
         SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
         FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
         FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})

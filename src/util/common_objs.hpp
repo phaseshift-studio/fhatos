@@ -26,19 +26,19 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class CommonObjs {
   public:
-    static Rec_p terminal() {
+    static Rec_p terminal(const ID &id) {
       return Obj::to_rec({
-        {vri(":stdout"), Insts::to_bcode([](const Obj_p &obj) {
-          printer<>()->print(obj->str_value().c_str());
-          return noobj();
-        })},
-        {vri(":stdin"), Insts::to_bcode([](const NoObj_p &) {
+                             {vri(":stdout"), Obj::to_bcode([](const Obj_p &obj) {
+                               printer<>()->print(obj->str_value().c_str());
+                               return noobj();
+                             }, "cxx:printf")},
+                             {vri(":stdin"), Obj::to_bcode([](const NoObj_p &) {
 #ifdef NATIVE
-          return jnt(getchar());
+                               return jnt(getchar());
 #else
           return jnt((Serial.available() > 0) ? Serial.read() : EOF);
 #endif
-        })}});
+                             }, "cxx:getchar")}}, REC_FURI, id_p(id));
     }
   };
 } // namespace fhatos

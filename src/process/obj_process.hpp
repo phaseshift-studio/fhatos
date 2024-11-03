@@ -42,8 +42,8 @@ namespace fhatos {
       try {
         PROCESS::setup();
         LOG_PROCESS(DEBUG, this, "Executing setup()-bcode: %s\n",
-                    this->process_rec_->rec_get(vri(this->id()->resolve(":setup")))->toString().c_str());
-        process(this->process_rec_->rec_get(vri(this->id()->resolve(":setup"))), this->id_uri_);
+                    this->process_rec_->rec_get(vri(":setup"))->toString().c_str());
+        process(this->process_rec_->rec_get(vri(":setup")), this->id_uri_);
       } catch (const fError &error) {
         LOG_EXCEPTION(error);
         this->stop();
@@ -53,8 +53,7 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->running_.load()) {
-          const BCode_p loop_bcode = this->process_rec_->rec_get(vri(
-            this->id()->resolve(":loop"))); // router()->read(this->id())->rec_get(vri(this->id()->resolve(":loop")));
+          const BCode_p loop_bcode = this->process_rec_->rec_get(vri(":loop")); // router()->read(this->id())->rec_get(vri(this->id()->resolve(":loop")));
           process(loop_bcode, this->id_uri_);
         }
       } catch (const fError &error) {
@@ -67,8 +66,8 @@ namespace fhatos {
       try {
         if (this->running_.load()) {
           LOG_PROCESS(DEBUG, this, "Executing stop()-bcode: %s\n",
-                      this->process_rec_->rec_get(vri(this->id()->resolve(":stop")))->toString().c_str());
-          process(this->process_rec_->rec_get(vri(this->id()->resolve(":stop"))), this->id_uri_);
+                      this->process_rec_->rec_get(vri(":stop"))->toString().c_str());
+          process(this->process_rec_->rec_get(vri(":stop")), this->id_uri_);
           PROCESS::stop();
         }
       } catch (const fError &error) {
@@ -114,7 +113,7 @@ namespace fhatos {
                             const int loop_linenumber = __LINE__,
                             const int stop_linenumber = __LINE__) {
     const Rec_p record = rec();//Obj::to_rec(make_shared<Obj::RecMap<>>(), id_p(*process->id()));
-    record->rec_set(vri(process->id()->extend(":setup")), Insts::to_bcode(
+    record->rec_set(vri(process->id()->extend(":setup")), Obj::to_bcode(
                       [process](const Obj_p &) {
                         process->setup();
                         return noobj();
@@ -122,14 +121,14 @@ namespace fhatos {
                       ID(filename).resolve(string(":") + to_string(setup_linenumber))));
     if (PType::COROUTINE != process->ptype) {
       record->rec_set(vri(process->id()->extend(":loop")),
-                      Insts::to_bcode(
+                      Obj::to_bcode(
                         [process](const Obj_p &) {
                           process->loop();
                           return noobj();
                         },
                         ID(filename).resolve(string(":") + to_string(loop_linenumber))));
     }
-    record->rec_set(vri(process->id()->extend(":stop")), Insts::to_bcode(
+    record->rec_set(vri(process->id()->extend(":stop")), Obj::to_bcode(
                       [process](const Obj_p &) {
                         process->setup();
                         return noobj();

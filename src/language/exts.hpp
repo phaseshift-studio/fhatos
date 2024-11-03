@@ -146,13 +146,13 @@ namespace fhatos {
 
     static void load_extension(const ID &ext_id) {
       const List<Pair<ID, Obj_p>> &pairs = MODELS->at(ext_id);
-      Type::start_progress_bar(pairs.size());
+      Type::singleton()->start_progress_bar(pairs.size());
       for (const auto &[key, value]: pairs) {
         const auto type_id = id_p(key);
         const auto value_clone = value->clone();
         Type::singleton()->save_type(type_id, value_clone);
       }
-      Type::end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", ext_id.toString().c_str()));
+      Type::singleton()->end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", ext_id.toString().c_str()));
     }
   };
 } // namespace fhatos

@@ -21,7 +21,6 @@
 
 #include "fhatos.hpp"
 #include "language/obj.hpp"
-#include "language/insts.hpp"
 #include "util/string_printer.hpp"
 
 namespace fhatos {
@@ -121,6 +120,10 @@ namespace fhatos {
         },
         {{}, {}}});
     }
+
+
+
+
 
     static Rewrite starts(const Objs_p &starts) {
       return Rewrite({ID("/lang/rewrite/starts"),

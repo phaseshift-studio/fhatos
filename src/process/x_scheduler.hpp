@@ -32,7 +32,7 @@ namespace fhatos {
   class Sys;
   using Process_p = ptr<Process>;
 
-  class XScheduler : public IDed, public Mailbox {
+  class XScheduler : public ObjWrap, public Mailbox {
   protected:
     MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<xscheduler_processes>");
     MutexDeque<Mail_p> inbox_ = MutexDeque<Mail_p>("<xscheduler_mail>");
@@ -40,7 +40,7 @@ namespace fhatos {
     Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : IDed(share(id)), Mailbox() {
+    explicit XScheduler(const ID &id = ID("/scheduler/")) : ObjWrap(Obj::to_rec()->at(id_p(id))), Mailbox() {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
