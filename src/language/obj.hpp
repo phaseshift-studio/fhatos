@@ -439,6 +439,13 @@ namespace fhatos {
       return this->value<fURI>();
     }
 
+    template <typename FURI>
+    [[nodiscard]] ptr<FURI> uri_p_value() const {
+      if (!this->is_uri())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return make_shared<FURI>(this->value<FURI>());
+    }
+
     [[nodiscard]] string str_value() const {
       if (!this->is_str())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);

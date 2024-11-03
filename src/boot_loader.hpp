@@ -87,18 +87,16 @@ namespace fhatos {
         return kp->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
             ->using_router(Router::singleton("/sys/router/#"))
             ////////////////////////////////////////////////////////////
-            ->structure(Heap::create("+/#"))
-            ->structure(Heap::create("/type/#"))
-            ->structure(Heap::create("/parser/#"))
-            ->obj("terminal", CommonObjs::terminal("terminal"))
-            ->obj("/type", Type::singleton("/type"))
-            ->obj("/parser", Parser::singleton("/parser"))
-            ->eval([]() {
-              mmadt::mmADT::load();
-            })
-            //
+            ->mount(Heap::create("+/#"))
+           // ->mount(Heap::create("/terminal/#"))
+            ->install(CommonObjs::terminal("terminal"))
+            ->mount(Heap::create("/type/#"))
+            ->install(Type::singleton("/type/"))
+            ->mount(Heap::create("/parser/#"))
+            ->install(Parser::singleton("/parser"))
+            ->define(mmadt::mmADT::singleton())
             ->model("/model/sys/")
-            ->structure(Sys::singleton("/sys/#"))
+            ->mount(Sys::singleton("/sys/#"))
             //
 #ifdef ESP_ARCH
             ->structure(
@@ -107,7 +105,7 @@ namespace fhatos {
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-            ->structure(
+            ->mount(
                 Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
                                                      args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
 #ifdef NATIVE
@@ -125,7 +123,7 @@ namespace fhatos {
             //  ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
             //->driver(ArduinoI2CDriver::create("//i2c/arduino/request", "//i2c/arduino/response"))
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
-            ->structure(Heap::create("/console/#"))
+            ->mount(Heap::create("/console/#"))
             ->process(Console::create("/console/", "terminal/",
                                       Console::Settings(args_parser->option("--console:nest", "false") == "true",
                                                         args_parser->option("--ansi", "true") == "true",

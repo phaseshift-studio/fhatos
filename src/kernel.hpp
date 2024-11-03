@@ -124,17 +124,29 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> structure(const Structure_p &structure) {
+    static ptr<Kernel> mount(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
       return Kernel::build();
     }
 
-    static ptr<Kernel> obj(const ID &id, const Obj_p &obj) {
-      router()->write(id_p(id), obj);
+    static ptr<Kernel> install(const Obj_p &obj) {
+      router()->write(obj->id(), obj);
       LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->id()->toString().c_str());
       return Kernel::build();
     }
+
+    static ptr<Kernel> define(const Rec_p &types) {
+      Type::singleton()->start_progress_bar(types->rec_value()->size());
+      for (const auto &[type_id, type_def]: *types->rec_value()) {
+        Type::singleton()->save_type(id_p(type_id->uri_value()), type_def);
+      }
+      Type::singleton()->end_progress_bar(
+          StringHelper::format("!b%s !yobjs!! loaded\n", types->type()->toString().c_str()));
+      //LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->id()->toString().c_str());
+      return Kernel::build();
+    }
+
 
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot

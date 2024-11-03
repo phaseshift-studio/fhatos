@@ -141,7 +141,7 @@ namespace fhatos {
     static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
       const auto console = ptr<Console>(new Console(id, terminal, settings));
       //  const Rec_p console_rec = console->to_rec();
-      router()->write(id_p(id.resolve("terminal/")), vri(terminal));
+     // router()->write(id_p(id.resolve("terminal/")), vri(terminal));
       return console;
     }
 
