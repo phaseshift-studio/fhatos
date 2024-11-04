@@ -26,6 +26,14 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class CommonObjs {
   public:
+    static Rec_p type(const ID &id) {
+      return Type::singleton(id);
+    }
+
+    static Rec_p parser(const ID &id) {
+      return Parser::singleton(id);
+    }
+
     static Rec_p terminal(const ID &id) {
       return Obj::to_rec({
                              {vri(":stdout"), Obj::to_bcode([](const Obj_p &obj) {

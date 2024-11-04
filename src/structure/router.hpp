@@ -32,8 +32,6 @@ namespace fhatos {
 
   template<class IDED>
   static IdObjPairs_p make_id_objs(const List<ptr<IDED>> &init) {
-    static_assert(std::is_base_of_v<Process, IDED>,
-                  "template must reference a i2c driver");
     const auto list = new IdObjPairs();
     for (const ptr<IDED> &ided: init) {
       list->push_back(make_pair<ID_p, Obj_p>(ided->id(), ided->to_rec()));
@@ -69,8 +67,9 @@ namespace fhatos {
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
       static auto router_p = ptr<Router>(new Router(pattern));
       static bool setup = false;
-      if (!setup)
+      if (!setup) {
         setup = true;
+      }
       return router_p;
     }
 
@@ -145,7 +144,7 @@ namespace fhatos {
       });
     }
 
-    [[nodiscard]] Obj_p exec(const ID_p& bcode_id, const Obj_p& arg) {
+    [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) {
       return this->read(bcode_id)->apply(arg);
     }
 
@@ -155,8 +154,8 @@ namespace fhatos {
       ///////////////////////////////////////////////
       const Objs_p objs = Obj::to_objs();
       objs->add_obj(ROUTER_READ_INTERCEPT(*furi));
-      if (!objs->objs_value()->empty())
-        return objs;
+      // if (!objs->objs_value()->empty())
+      //  return objs;
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
@@ -166,14 +165,17 @@ namespace fhatos {
                  furi->toString().c_str(),
                  obj->toString().c_str(),
                  struc->pattern()->toString().c_str());
-      return obj;
+      if (obj->is_noobj())
+        return objs;
+      else
+        return obj;
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
       if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(*furi);
         LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",
-                   furi->toString().c_str(), obj->toString().c_str(), structure->pattern()->toString().c_str());
+                   furi->toString().c_str(), obj->type()->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
         SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain);
       }
@@ -212,8 +214,12 @@ namespace fhatos {
     }
 
   protected:
-    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
-      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj,const bool retain) -> const Obj_p {
+    explicit Router(const Pattern &pattern) :
+      Patterned(p_p(pattern)) {
+      ROUTER_READ = [this](const ID_p &id) -> Obj_p {
+        return this->read(id);
+      };
+      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(id, obj, retain);
         return obj;
       };

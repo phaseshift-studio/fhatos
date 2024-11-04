@@ -277,6 +277,10 @@ namespace fhatos {
       ](const ID_p &, const Obj_p &, const bool) -> void {
     LOG(DEBUG, "!yROUTER_WRITE_AT!! undefined at this point in bootstrap.\n");
   };
+  static Function<const ID_p &, const Obj_p> ROUTER_READ = [](const ID_p &) -> Obj_p {
+    LOG(DEBUG, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
+    return nullptr;
+  };
 
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
@@ -439,7 +443,7 @@ namespace fhatos {
       return this->value<fURI>();
     }
 
-    template <typename FURI>
+    template<typename FURI>
     [[nodiscard]] ptr<FURI> uri_p_value() const {
       if (!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
@@ -1250,7 +1254,9 @@ namespace fhatos {
 
     Obj_p as(const char *furi) const { return this->as(id_p(furi)); }
 
-    Obj_p at(const ID_p &value_id) { return make_shared<Obj>(this->_value, this->type_, value_id); }
+    Obj_p at(const ID_p &value_id) {
+      return make_shared<Obj>(this->_value, this->type_, value_id);
+    }
 
     [[nodiscard]] Inst_p next_inst(const Inst_p &current_inst) const {
       if (current_inst == nullptr)
@@ -1601,6 +1607,22 @@ namespace fhatos {
 
   [[maybe_unused]] static InstFunctionSupplier noobj_func() {
     return [](const InstArgs &) { return [](const Obj_p &) { return noobj(); }; };
+  }
+
+  static Obj::RecMap_p<> rmap(const initializer_list<Pair<ID, Obj_p>> &pairs) {
+    auto m = make_shared<Obj::RecMap<>>();
+    for (const auto &[id, obj]: pairs) {
+      m->insert({vri(id), obj});
+    }
+    return m;
+  }
+
+  static Obj::RecMap_p<> rmap(const initializer_list<Pair<ID_p, Obj_p>> &pairs) {
+    auto m = make_shared<Obj::RecMap<>>();
+    for (const auto &[id, obj]: pairs) {
+      m->insert({vri(id), obj});
+    }
+    return m;
   }
 } // namespace fhatos
 #endif

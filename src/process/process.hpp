@@ -27,7 +27,6 @@
 #include <util/enums.hpp>
 #include <util/ptr_helper.hpp>
 
-
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !y%s!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b%s!g] !y%s!! already setup\n"
 #ifndef FOS_PROCESS_WDT_COUNTER
@@ -58,35 +57,27 @@ namespace fhatos {
   protected:
     std::atomic_bool running_ = false;
     std::atomic_int16_t wdt_timer_counter = 0;
+    int32_t sleep_ = 0;
+    bool yield_ = false;
 
   public:
     const PType ptype;
 
-    explicit Process(const ID &id, const PType pType) :
-      Obj(
-          *Obj::to_rec({{vri(":setup"), Obj::to_bcode([this](const Obj_p &) {
-                          this->setup();
-                          return noobj();
-                        }, "cpp:setup")},
-                        {vri(":loop"), Obj::to_bcode([this](const Obj_p &) {
-                          this->loop();
-                          return noobj();
-                        }, "cpp:loop")},
-                        {vri(":stop"), Obj::to_bcode([this](const Obj_p &) {
-                          this->stop();
-                          return noobj();
-                        }, "cpp:stop")},
-                        {vri(":delay"), Obj::to_bcode([this](const Int_p &milliseconds) {
-                          this->delay(milliseconds->int_value());
-                          return noobj();
-                        }, "cpp:delay")},
-                        {vri(":yield"), Obj::to_bcode([this](const Obj_p &) {
-                          this->yield();
-                          return noobj();
-                        }, "cpp:yield")}},
-                       id_p(REC_FURI->extend(ProcessTypes.to_chars(pType))))), ptype(pType) {
-      this->id_ = id_p(id);
-
+    explicit Process(const ID &id, const PType pType, const Rec_p &setup_loop_stop) :
+      Obj(rmap({{id_p(":delay"), Obj::to_bcode([this](const Int_p &milliseconds) {
+                  this->sleep_ = milliseconds->int_value();
+                  return noobj();
+                }, "cxx:delay")},
+                {id_p(":yield"), Obj::to_bcode([this](const Obj_p &) {
+                  this->yield_ = true;
+                  return noobj();
+                }, "cxx:yield")},
+                {id_p(":halt"), Obj::to_bcode([this](const Obj_p &) {
+                  this->stop();
+                  return noobj();
+                }, "cxx:yield")}}),
+          REC_FURI, id_p(id)), ptype(pType) {
+      this->rec_add(setup_loop_stop);
     }
 
     ~Process() override = default;
@@ -105,28 +96,48 @@ namespace fhatos {
 
     virtual void setup() {
       this_process = this;
+      const BCode_p setup_bcode = ROUTER_READ(id_p(this->id()->extend(":setup")));
+      if (!setup_bcode->is_noobj())
+        Options::singleton()->processor<Obj, BCode, Obj>(noobj(), setup_bcode);
+      else
+        LOG_PROCESS(INFO, this, "setup !ybcode!! undefined\n");
+      ////
       if (this->running_.load()) {
         LOG(WARN, FOS_ALREADY_SETUP, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
-      this->running_.store(true);
+      this->running_ = true;
     };
 
     virtual void loop() {
-      if (!this->running_.load()) {
-        throw fError("!g[!b%s!g] !y%s!! can't loop when stopped", this->id()->toString().c_str(),
-                     ProcessTypes.to_chars(this->ptype).c_str());
+      this_process = this;
+      if (this->sleep_ > 0) {
+        this->delay(sleep_);
+        this->sleep_ = 0;
       }
-      this_process.store(this);
+      if (this->yield_) {
+        this->yield();
+        this->yield_ = false;
+      }
+      const BCode_p loop_bcode = ROUTER_READ(id_p(this->id()->extend(":loop")));
+      if (!loop_bcode->is_noobj()) {
+        Obj_p result = Options::singleton()->processor<Obj, BCode, Obj>(noobj(), loop_bcode);
+      } else
+        throw fError("!b%s!! loop !ybcode!! undefined", this->id()->toString().c_str());
     };
 
     virtual void stop() {
       this_process = this;
+      const BCode_p stop_bcode = ROUTER_READ(id_p(this->id()->extend(":stop")));
+      if (!stop_bcode->is_noobj())
+        Options::singleton()->processor<Obj, BCode, Obj>(noobj(), stop_bcode);
+      else
+        LOG_PROCESS(INFO, this, "stop !ybcode!! undefined\n");
       if (!this->running_.load()) {
         LOG(WARN, FOS_ALREADY_STOPPED, this->id()->toString().c_str(), ProcessTypes.to_chars(this->ptype).c_str());
         return;
       }
-      this->running_.store(false);
+      this->running_ = false;
     };
 
     bool running() const { return this->running_.load(); }

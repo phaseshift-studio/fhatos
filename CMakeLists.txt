@@ -83,6 +83,13 @@ ELSEIF(APPLE)
 ELSEIF(LINUX)
     SET(PLATFORM "LINUX")
     ADD_DEFINITIONS("-DLINUX")
+    IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l")
+        SET(MACHINE "RPI")
+        ADD_DEFINITIONS("-DRPI")
+        MESSAGE(NOTICE "Building for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
+            \t MACHINE: ${MACHINE}
+            \t RPI    : ${RPI}")
+    ENDIF()
 ENDIF()
 #########################################
 IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
@@ -332,6 +339,13 @@ ELSE()
     TARGET_LINK_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
     SET(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+    ####################################
+    ####################################
+    ### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
+    IF(RPI)
+        FIND_LIBRARY(wiringPi_LIB wiringPi)
+        TARGET_LINK_LIBRARIES(Object ${wiringPi_LIB})
+    ENDIF()
     ####################################
     ####################################
     ### MPC: MICRO PARSER COMBINATORS

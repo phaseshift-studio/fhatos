@@ -127,6 +127,9 @@ namespace fhatos {
     static ptr<Kernel> mount(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
+      if (structure->pattern()->equals("/sys/#")) {
+        install(scheduler());
+      }
       return Kernel::build();
     }
 
@@ -150,7 +153,7 @@ namespace fhatos {
 
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      //router()->write(process->id(), load_process(process));
+      router()->write(process->id(), process);
       scheduler()->spawn(process);
       return Kernel::build();
     }

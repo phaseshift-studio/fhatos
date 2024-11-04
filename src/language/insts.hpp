@@ -967,9 +967,12 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
       const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
-      const Obj_p base_inst = Type::singleton()->rec_get(type_id_resolved);// router()->read(type_id_resolved);
-      if (base_inst->is_noobj())
-        throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
+      Obj_p base_inst = Type::singleton()->rec_get(type_id_resolved); // router()->read(type_id_resolved);
+      if (base_inst->is_noobj()) {
+        base_inst = router()->read(id_p(type_id));
+        if (!base_inst->is_bcode())
+          throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
+      }
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
           base_inst->toString().c_str(), base_inst->type()->toString().c_str());
       if (base_inst->is_inst())

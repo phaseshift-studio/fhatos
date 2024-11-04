@@ -34,8 +34,9 @@ namespace fhatos {
     const Uri_p id_uri_;
 
   public:
-    explicit ProcessObj(const ID &id) : PROCESS(id), process_rec_(router()->read(make_shared<ID>(id))->clone()),
-                                        id_uri_(Obj::to_uri(id)) {
+    explicit ProcessObj(const ID &id) :
+      PROCESS(id, rec()), process_rec_(router()->read(make_shared<ID>(id))->clone()),
+      id_uri_(Obj::to_uri(id)) {
     }
 
     void setup() override {
@@ -53,7 +54,8 @@ namespace fhatos {
     void loop() override {
       try {
         if (this->running_.load()) {
-          const BCode_p loop_bcode = this->process_rec_->rec_get(vri(":loop")); // router()->read(this->id())->rec_get(vri(this->id()->resolve(":loop")));
+          const BCode_p loop_bcode = this->process_rec_->rec_get(vri(":loop"));
+          // router()->read(this->id())->rec_get(vri(this->id()->resolve(":loop")));
           process(loop_bcode, this->id_uri_);
         }
       } catch (const fError &error) {
@@ -78,19 +80,22 @@ namespace fhatos {
 
   class ThreadObj : public ProcessObj<Thread> {
   public:
-    explicit ThreadObj(const ID &id) : ProcessObj(id) {
+    explicit ThreadObj(const ID &id) :
+      ProcessObj(id) {
     }
   };
 
   class FiberObj : public ProcessObj<Fiber> {
   public:
-    explicit FiberObj(const ID &id) : ProcessObj(id) {
+    explicit FiberObj(const ID &id) :
+      ProcessObj(id) {
     }
   };
 
   class CoroutineObj : public ProcessObj<Coroutine> {
   public:
-    explicit CoroutineObj(const ID &id) : ProcessObj(id) {
+    explicit CoroutineObj(const ID &id) :
+      ProcessObj(id) {
     }
   };
 
@@ -107,34 +112,34 @@ namespace fhatos {
     };
   }
 
-  inline Rec_p load_process(const Process_p &process,
-                            const string &filename = __FILE__,
-                            const int setup_linenumber = __LINE__,
-                            const int loop_linenumber = __LINE__,
-                            const int stop_linenumber = __LINE__) {
-    const Rec_p record = rec();//Obj::to_rec(make_shared<Obj::RecMap<>>(), id_p(*process->id()));
-    record->rec_set(vri(process->id()->extend(":setup")), Obj::to_bcode(
-                      [process](const Obj_p &) {
-                        process->setup();
-                        return noobj();
-                      },
-                      ID(filename).resolve(string(":") + to_string(setup_linenumber))));
-    if (PType::COROUTINE != process->ptype) {
-      record->rec_set(vri(process->id()->extend(":loop")),
-                      Obj::to_bcode(
-                        [process](const Obj_p &) {
-                          process->loop();
-                          return noobj();
-                        },
-                        ID(filename).resolve(string(":") + to_string(loop_linenumber))));
-    }
-    record->rec_set(vri(process->id()->extend(":stop")), Obj::to_bcode(
-                      [process](const Obj_p &) {
-                        process->setup();
-                        return noobj();
-                      },
-                      ID(filename).resolve(string(":") + to_string(stop_linenumber))));
-    return record;
-  }
+  /* inline Rec_p load_process(const Process_p &process,
+                             const string &filename = __FILE__,
+                             const int setup_linenumber = __LINE__,
+                             const int loop_linenumber = __LINE__,
+                             const int stop_linenumber = __LINE__) {
+     const Rec_p record = rec();//Obj::to_rec(make_shared<Obj::RecMap<>>(), id_p(*process->id()));
+     record->rec_set(vri(process->id()->extend(":setup")), Obj::to_bcode(
+                       [process](const Obj_p &) {
+                         process->setup();
+                         return noobj();
+                       },
+                       ID(filename).resolve(string(":") + to_string(setup_linenumber))));
+     if (PType::COROUTINE != process->ptype) {
+       record->rec_set(vri(process->id()->extend(":loop")),
+                       Obj::to_bcode(
+                         [process](const Obj_p &) {
+                           process->loop();
+                           return noobj();
+                         },
+                         ID(filename).resolve(string(":") + to_string(loop_linenumber))));
+     }
+     record->rec_set(vri(process->id()->extend(":stop")), Obj::to_bcode(
+                       [process](const Obj_p &) {
+                         process->setup();
+                         return noobj();
+                       },
+                       ID(filename).resolve(string(":") + to_string(stop_linenumber))));
+     return record;
+   }*/
 } // namespace fhatos
 #endif

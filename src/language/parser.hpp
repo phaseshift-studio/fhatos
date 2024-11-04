@@ -536,7 +536,7 @@ namespace fhatos {
           }
         }
       }
-      const Inst_p inst = Insts::to_inst(base_type->resolve(type_token.c_str()), args);
+      const Inst_p inst = Insts::to_inst(type_token.c_str(), args); // don't resolve to inst as it might be bcode
       return inst->is_noobj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 

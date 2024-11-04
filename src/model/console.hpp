@@ -123,60 +123,6 @@ namespace fhatos {
       }
     }
 
-    explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
-      Thread(id),
-      stdin_id(id_p(terminal.resolve("./:stdin"))),
-      stdout_id(id_p(terminal.resolve("./:stdout"))) {
-      router()->write(id_p(id.resolve("./config/nest")), dool(settings.nest_));
-      router()->write(id_p(id.resolve("./config/nest").query("doc")), str("pretty print polys"));
-      router()->write(id_p(id.resolve("./config/strict")), dool(settings.strict_));
-      router()->write(id_p(id.resolve("./config/strict").query("doc")), str("strict formatting"));
-      router()->write(id_p(id.resolve("./config/ansi")), dool(settings.ansi_));
-      router()->write(id_p(id.resolve("./config/ansi").query("doc")), str("colorize output"));
-      router()->write(id_p(id.resolve("./config/log")), vri(LOG_TYPES.to_chars(settings.log_)));
-      router()->write(id_p(id.resolve("./config/log").query("doc")), str("log level"));
-    }
-
-  public:
-    static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
-      const auto console = ptr<Console>(new Console(id, terminal, settings));
-      //  const Rec_p console_rec = console->to_rec();
-     // router()->write(id_p(id.resolve("terminal/")), vri(terminal));
-      return console;
-    }
-
-    Rec_p to_rec() const {
-      // const ID settings_id = this->id()->resolve("./config");
-      //router()->write(this->id(), load_process(PtrHelper::no_delete<Console>(this), __FILE__, 221, 241));
-      const ID_p nest_id = id_p(this->id()->extend("config/nest"));
-      const ID_p strict_id = id_p(this->id()->extend("config/strict"));
-      const ID_p ansi_id = id_p(this->id()->extend("config/ansi"));
-      const ID_p log_id = id_p(this->id()->extend("config/log"));
-      const ID_p clear_id = id_p(this->id()->extend("config/clear"));
-      router()->write(id_p(this->id()->extend("config/")),
-                      Obj::to_rec({{vri(nest_id), router()->read(nest_id)},
-                                   {vri(strict_id), router()->read(strict_id)},
-                                   {vri(ansi_id), router()->read(ansi_id)},
-                                   {vri(log_id), router()->read(log_id)},
-                                   {vri(clear_id), parse("{'!'}.plus('X').plus('!').plus('Q').print(_)")}}));
-      return noobj();
-    }
-
-    void setup() override {
-      Thread::setup();
-      //////////////////////////////////////////
-      router()->route_subscription(subscription_p(
-          *this->id(), this->id()->resolve("./config/+"), Subscription::to_bcode([this](const Message_p &message) {
-            if (message->retain && !message->target.has_query()) {
-              if (message->target.name() == "ansi") {
-                Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());
-              } else if (message->target.name() == "log") {
-                Options::singleton()->log_level(LOG_TYPES.to_enum(message->payload->uri_value().toString()));
-              }
-            }
-          })));
-    }
-
     void process_line(string line) const {
       LOG_PROCESS(DEBUG, this, "line to parse: %s\n", line.c_str());
       StringHelper::trim(line);
@@ -194,38 +140,69 @@ namespace fhatos {
       }
     }
 
-    void loop() override {
-      Thread::loop();
-      //// PROMPT
-      if (this->new_input_)
-        this->print_prompt(!this->line_.empty());
-      this->new_input_ = false;
-      //// READ CHAR INPUT ONE-BY-ONE
-      int x;
-      if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
-        return;
-      if ('\n' == static_cast<char>(x)) {
-        this->new_input_ = true;
-        this->line_ += static_cast<char>(x);
-      } else {
-        this->line_ += static_cast<char>(x);
-        return;
-      }
-      StringHelper::trim(this->line_);
-      if (this->line_.empty()) {
-        ///////// DO NOTHING ON EMPTY LINE
-        return;
-      }
-      if (!Parser::closed_expression(this->line_))
-        return;
-      ///////// PARSE MULTI-LINE MONOIDS
-      size_t pos = this->line_.find("###");
-      while (pos != string::npos) {
-        this->line_.replace(pos, 3, "");
-        pos = this->line_.find("###", pos);
-      }
-      this->process_line(this->line_);
-      this->line_.clear();
+    explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
+      Thread(id,
+             rec({
+                 {vri(":setup"), Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+                   router()->route_subscription(subscription_p(
+                       *this->id(), this->id()->extend("config/+"), Subscription::to_bcode(
+                           [this](const Message_p &message) {
+                             if (message->retain && !message->target.has_query()) {
+                               if (message->target.name() == "ansi") {
+                                 Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());
+                               } else if (message->target.name() == "log") {
+                                 Options::singleton()->log_level(
+                                     LOG_TYPES.to_enum(message->payload->uri_value().toString()));
+                               }
+                             }
+                           })));
+                   return noobj();
+                 })},
+                 {vri(":loop"), Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+                   if (this->new_input_)
+                     this->print_prompt(!this->line_.empty());
+                   this->new_input_ = false;
+                   //// READ CHAR INPUT ONE-BY-ONE
+                   int x;
+                   if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
+                     return noobj();
+                   if ('\n' == static_cast<char>(x)) {
+                     this->new_input_ = true;
+                     this->line_ += static_cast<char>(x);
+                   } else {
+                     this->line_ += static_cast<char>(x);
+                     return noobj();
+                   }
+                   StringHelper::trim(this->line_);
+                   if (this->line_.empty()) {
+                     ///////// DO NOTHING ON EMPTY LINE
+                     return noobj();
+                   }
+                   if (!Parser::closed_expression(this->line_))
+                     return noobj();
+                   ///////// PARSE MULTI-LINE MONOIDS
+                   size_t pos = this->line_.find("###");
+                   while (pos != string::npos) {
+                     this->line_.replace(pos, 3, "");
+                     pos = this->line_.find("###", pos);
+                   }
+                   this->process_line(this->line_);
+                   this->line_.clear();
+                   return noobj();
+                 })},
+                 {vri("config"), rec({{vri("nest"), dool(settings.nest_)},
+                                      {vri("strict"), dool(settings.strict_)},
+                                      {vri("ansi"), dool(settings.ansi_)},
+                                      {vri("log"), dool(settings.log_)}
+                  })}})),
+      stdin_id(id_p(terminal.resolve("./:stdin"))),
+      stdout_id(id_p(terminal.resolve("./:stdout"))) {
+    }
+
+  public:
+    static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
+      const auto console = ptr<Console>(new Console(id, terminal, settings));
+      return console;
     }
   };
 } // namespace fhatos

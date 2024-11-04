@@ -27,7 +27,7 @@
 
 namespace fhatos {
   class Heap : public Structure {
-  protected:
+  public:
     Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 

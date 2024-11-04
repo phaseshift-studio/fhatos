@@ -38,7 +38,13 @@ namespace fhatos {
     friend Sys;
 
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {
+    explicit Scheduler(const ID &id = ID("/scheduler/")):
+      XScheduler(id) {
+      rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
+        if (!obj->id())
+          throw fError("value id required to spawn %s", obj->toString().c_str());
+        return dool(this->spawn(make_shared<Thread>(*obj->id(), obj)));
+      }, "cxx:spawn"));
     }
 
   public:
@@ -93,6 +99,12 @@ namespace fhatos {
       this->processes_->push_back(process);
       LOG_SCHEDULER(INFO, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
                     ProcessTypes.to_chars(process->ptype).c_str());
+
+      if (this->rec_get(vri(":process"))->is_noobj())
+        this->rec_set(vri(":process"), rec());
+      this->rec_get(vri(":process"))->rec_set(process->id(), process);
+      router()->write(this->id(), PtrHelper::no_delete(this));
+
       return true;
     }
 
@@ -120,8 +132,8 @@ namespace fhatos {
           const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
           if (remove) {
             LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
-                          fiber->id()->toString().c_str(),
-                          ProcessTypes.to_chars(fiber->ptype).c_str());
+                                 fiber->id()->toString().c_str(),
+                                 ProcessTypes.to_chars(fiber->ptype).c_str());
           }
           return remove;
         });
@@ -142,8 +154,8 @@ namespace fhatos {
 
         if (remove) {
           LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
-                        proc->id()->toString().c_str(),
-                        ProcessTypes.to_chars(proc->ptype).c_str());
+                               proc->id()->toString().c_str(),
+                               ProcessTypes.to_chars(proc->ptype).c_str());
         }
         return remove;
       });

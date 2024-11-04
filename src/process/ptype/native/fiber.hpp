@@ -27,9 +27,11 @@ namespace fhatos {
   class Fiber : public Process {
   public:
     std::thread *xthread;
-    atomic_int* FIBER_COUNT;
+    atomic_int *FIBER_COUNT;
 
-    explicit Fiber(const ID &id) : Process(id, PType::FIBER), xthread(nullptr) {}
+    explicit Fiber(const ID &id, const Rec_p &setup_loop_stop) :
+      Process(id, PType::FIBER, setup_loop_stop), xthread(nullptr) {
+    }
 
     void stop() override {
       Process::stop();
@@ -39,7 +41,7 @@ namespace fhatos {
             this->xthread->join();
           else
             this->xthread->detach();
-          LOG_PROCESS(INFO,this,"!bfiber bundle!! !ythread!! destroyed\n");
+          LOG_PROCESS(INFO, this, "!bfiber bundle!! !ythread!! destroyed\n");
         } catch (const std::runtime_error &e) {
           LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
                       this->xthread->get_id(), std::this_thread::get_id());

@@ -32,7 +32,7 @@ namespace fhatos {
   class Sys;
   using Process_p = ptr<Process>;
 
-  class XScheduler : public ObjWrap, public Mailbox {
+  class XScheduler : public Rec, public Mailbox {
   protected:
     MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<xscheduler_processes>");
     MutexDeque<Mail_p> inbox_ = MutexDeque<Mail_p>("<xscheduler_mail>");
@@ -40,7 +40,8 @@ namespace fhatos {
     Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler/")) : ObjWrap(Obj::to_rec()->at(id_p(id))), Mailbox() {
+    explicit XScheduler(const ID &id = ID("/scheduler")) :
+      Rec(rmap({{"barrier", noobj()}}), REC_FURI, id_p(id)), Mailbox() {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
@@ -179,9 +180,9 @@ namespace fhatos {
 
   protected:
     bool read_mail() {
-     // if (*scheduler_thread.get() != this_thread::get_id())
-     //   throw fError("Mail can only be read by the primary thread: %i != %i\n", *scheduler_thread.get(),
-     //                this_thread::get_id());
+      // if (*scheduler_thread.get() != this_thread::get_id())
+      //   throw fError("Mail can only be read by the primary thread: %i != %i\n", *scheduler_thread.get(),
+      //                this_thread::get_id());
       const Option<ptr<Mail>> mail = this->inbox_.pop_front();
       if (!mail.has_value())
         return false;

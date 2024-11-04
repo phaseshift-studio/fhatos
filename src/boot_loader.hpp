@@ -84,22 +84,24 @@ namespace fhatos {
               ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
         }
         ////////////////////////////////////////////////////////////
-        return kp->using_scheduler(Scheduler::singleton("/sys/scheduler/"))
+        return kp
+            ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router/#"))
             ////////////////////////////////////////////////////////////
+            ->mount(Heap::create("/sys/#"))
             ->mount(Heap::create("+/#"))
-           // ->mount(Heap::create("/terminal/#"))
-            ->install(CommonObjs::terminal("terminal"))
             ->mount(Heap::create("/type/#"))
-            ->install(Type::singleton("/type/"))
-            ->mount(Heap::create("/parser/#"))
-            ->install(Parser::singleton("/parser"))
+            ->mount(Heap::create("/dev/#"))
+
+            ->install(CommonObjs::type("/type/"))
+            ->install(CommonObjs::terminal("/dev/terminal"))
+            ->install(CommonObjs::parser("/dev/parser"))
             ->define(mmadt::mmADT::singleton())
             ->model("/model/sys/")
-            ->mount(Sys::singleton("/sys/#"))
+            //->mount(Sys::singleton("/sys/#"))
             //
 #ifdef ESP_ARCH
-            ->structure(
+            ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
                                                               args_parser->option("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
@@ -113,7 +115,7 @@ namespace fhatos {
             //       "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
 #elif defined(ESP_ARCH)
             //       ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
-             ->structure(Memory::singleton("/soc/memory/#"))
+             ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
             //  ->process(Redirect::create("/redirect/",
             //                            Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
@@ -124,7 +126,7 @@ namespace fhatos {
             //->driver(ArduinoI2CDriver::create("//i2c/arduino/request", "//i2c/arduino/response"))
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap::create("/console/#"))
-            ->process(Console::create("/console/", "terminal/",
+            ->process(Console::create("/console", "/dev/terminal/",
                                       Console::Settings(args_parser->option("--console:nest", "false") == "true",
                                                         args_parser->option("--ansi", "true") == "true",
                                                         args_parser->option("--console:strict", "false") == "true",
