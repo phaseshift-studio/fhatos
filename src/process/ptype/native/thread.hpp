@@ -21,16 +21,16 @@
 
 #include <chrono>
 #include <thread>
-#include "fhatos.hpp"
-#include "process/process.hpp"
+#include <fhatos.hpp>
+#include <process/process.hpp>
 
 namespace fhatos {
   class Thread : public Process {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID &id, const Rec_p &setup_loop_stop) :
-      Process(id, PType::THREAD, setup_loop_stop), xthread(nullptr) {
+    explicit Thread(const Rec_p &setup_loop_stop) :
+      Process(setup_loop_stop), xthread(nullptr) {
     }
 
     ~Thread() override { delete this->xthread; }
@@ -53,7 +53,7 @@ namespace fhatos {
     }
 
     void delay(const uint64_t milliseconds) override {
-        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
     void yield() override { std::this_thread::yield(); }

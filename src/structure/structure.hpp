@@ -195,11 +195,12 @@ namespace fhatos {
           else {
             if (matches->empty()) {
               if (furi->path_length() > 0) {
-                // recurse backwards to find a root map that has respective furi path
-                const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
-                if (maybe_rec->is_rec()) {
-                  return maybe_rec->rec_get(vri(furi->name()));
-                }
+                // recurse backwards to find a root poly that has respective furi path
+                const Obj_p maybe_poly = this->read(furi_p(furi->retract()));
+                if (maybe_poly->is_rec())
+                  return maybe_poly->rec_get(vri(furi->name()));
+                if (maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
+                  return maybe_poly->lst_get(jnt(stoi(furi->name())));
               }
               return noobj();
             }
@@ -279,17 +280,17 @@ namespace fhatos {
             }
             // NODE ID
             else {
-             /* const IdObjPairs_p matches = this->read_raw_pairs(furi);
-              if (matches->empty()) {
-                if (furi->path_length() > 0) {
-                  // recurse backwards to find a root map that has respective furi path
-                  const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
-                  if (maybe_rec->is_rec()) {
-                    maybe_rec->rec_set(furi_p(furi->name()), obj);
-                    return;
-                  }
-                }
-              }*/
+              /* const IdObjPairs_p matches = this->read_raw_pairs(furi);
+               if (matches->empty()) {
+                 if (furi->path_length() > 0) {
+                   // recurse backwards to find a root map that has respective furi path
+                   const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
+                   if (maybe_rec->is_rec()) {
+                     maybe_rec->rec_set(furi_p(furi->name()), obj);
+                     return;
+                   }
+                 }
+               }*/
               this->write_raw_pairs(id_p(*furi), obj, retain);
             }
           }

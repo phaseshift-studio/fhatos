@@ -75,7 +75,6 @@ namespace fhatos {
           for (const Subscription_p &sub: *matches) {
             this->outbox_->push_back(share(Mail{sub, message}));
           }
-          SCHEDULER_WRITE_INTERCEPT(message->target, message->payload, message->retain);
         });
       }
     }

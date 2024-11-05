@@ -62,7 +62,7 @@ namespace fhatos {
     }*/
 
     bool active() const {
-      return this->structure_->available() && this->process_->running();
+      return this->structure_->available() && this->process_->running;
     }
 
     //////////////////////////////////////////////////// SETUP

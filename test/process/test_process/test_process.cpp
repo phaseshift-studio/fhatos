@@ -34,10 +34,10 @@ namespace fhatos {
     const char *pc = strdup(ProcessTypes.to_chars(ptype).c_str());
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count(Pattern(StringHelper::format("/test/%s/",pc).c_str())));
     process("/test/%s/ -> "
-            "%s[["
-            ":setup=>block(/test/%s/a->345),"
-            ":loop=>block(from(/test/%s/x,0).plus(1).to(/test/%s/x)),"
-            ":stop=>block(/test/%s/b->57)]]", pc, pc, pc, pc, pc, pc);
+            "block(%s[["
+            ":setup=>/test/%s/a->345,"
+            ":loop=>from(/test/%s/x,0).plus(1).to(/test/%s/x)),"
+            ":stop=>/test/%s/b->57)]])", pc, pc, pc, pc, pc, pc);
     sleep(1);
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count(Pattern(StringHelper::format("/test/%s/",pc).c_str())));
     //const Obj_p b_1 = process("*/test/thread/b")->objs_value()->at(0);

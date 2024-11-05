@@ -35,8 +35,7 @@ namespace fhatos {
       bool strict_;
       LOG_TYPE log_;
 
-      Settings(const bool nest, const bool ansi, const bool strict, const LOG_TYPE log) :
-        nest_(nest), ansi_(ansi),
+      Settings(const bool nest, const bool ansi, const bool strict, const LOG_TYPE log) : nest_(nest), ansi_(ansi),
         strict_(strict), log_(log) {
       };
     };
@@ -77,8 +76,8 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           router()->write(this->stdout_id,
                           str(StringHelper::format(
-                              "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                              e->is_poly() ? "" : e->toString(true, true, ansi, strict).c_str())),
+                            "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                            e->is_poly() ? "" : e->toString(true, true, ansi, strict).c_str())),
                           false);
           if (e->is_poly())
             this->print_result(e, depth + 1);
@@ -99,9 +98,9 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           router()->write(this->stdout_id,
                           str(StringHelper::format(
-                              "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                              key->toString(true, false, false, strict).c_str(),
-                              value->is_poly() ? "" : value->toString(true, true, ansi, strict).c_str())),
+                            "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+                            key->toString(true, false, false, strict).c_str(),
+                            value->is_poly() ? "" : value->toString(true, true, ansi, strict).c_str())),
                           false);
           if (value->is_poly())
             this->print_result(value, depth + 1);
@@ -130,71 +129,64 @@ namespace fhatos {
       try {
         if (line[0] == '\n')
           line = line.substr(1);
+        if (line.empty()) {
+          router()->write(this->stdout_id, str("\n"), false);
+          return;
+        }
         const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(line);
         if (!obj.has_value())
           throw fError("unable to parse input: %s", line.c_str());
         this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
-            obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
+          obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
       } catch (const std::exception &e) {
         this->print_exception(e);
       }
     }
 
-    explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
-      Thread(id,
-             rec({
-                 {vri(":setup"), Obj::to_bcode([this](const Obj_p &) -> Obj_p {
-                   router()->route_subscription(subscription_p(
-                       *this->id(), this->id()->extend("config/+"), Subscription::to_bcode(
-                           [this](const Message_p &message) {
-                             if (message->retain && !message->target.has_query()) {
-                               if (message->target.name() == "ansi") {
-                                 Options::singleton()->printer<Ansi<>>()->on(message->payload->bool_value());
-                               } else if (message->target.name() == "log") {
-                                 Options::singleton()->log_level(
-                                     LOG_TYPES.to_enum(message->payload->uri_value().toString()));
-                               }
-                             }
-                           })));
-                   return noobj();
-                 })},
-                 {vri(":loop"), Obj::to_bcode([this](const Obj_p &) -> Obj_p {
-                   if (this->new_input_)
-                     this->print_prompt(!this->line_.empty());
-                   this->new_input_ = false;
-                   //// READ CHAR INPUT ONE-BY-ONE
-                   int x;
-                   if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
-                     return noobj();
-                   if ('\n' == static_cast<char>(x)) {
-                     this->new_input_ = true;
-                     this->line_ += static_cast<char>(x);
-                   } else {
-                     this->line_ += static_cast<char>(x);
-                     return noobj();
-                   }
-                   StringHelper::trim(this->line_);
-                   if (this->line_.empty()) {
-                     ///////// DO NOTHING ON EMPTY LINE
-                     return noobj();
-                   }
-                   if (!Parser::closed_expression(this->line_))
-                     return noobj();
-                   ///////// PARSE MULTI-LINE MONOIDS
-                   size_t pos = this->line_.find("###");
-                   while (pos != string::npos) {
-                     this->line_.replace(pos, 3, "");
-                     pos = this->line_.find("###", pos);
-                   }
-                   this->process_line(this->line_);
-                   this->line_.clear();
-                   return noobj();
-                 })},
-                 {vri("config"), rec({{vri("nest"), dool(settings.nest_)},
-                                      {vri("strict"), dool(settings.strict_)},
-                                      {vri("ansi"), dool(settings.ansi_)},
-                                      {vri("log"), dool(settings.log_)}
-                  })}})),
+    explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(rec({{vri(":loop"),
+            Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+              if (this->new_input_)
+                this->print_prompt(!this->line_.empty());
+              this->new_input_ = false;
+              //// READ CHAR INPUT ONE-BY-ONE
+              int x;
+              if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
+                return noobj();
+              if ('\n' == static_cast<char>(x)) {
+                this->new_input_ = true;
+                this->line_ += static_cast<char>(x);
+              } else {
+                this->line_ += static_cast<char>(x);
+                return noobj();
+              }
+              StringHelper::trim(this->line_);
+              if (this->line_.empty()) {
+                ///////// DO NOTHING ON EMPTY LINE
+                return noobj();
+              }
+              if (!Parser::closed_expression(this->line_))
+                return noobj();
+              ///////// PARSE MULTI-LINE MONOIDS
+              size_t pos = this->line_.find("###");
+              while (pos != string::npos) {
+                this->line_.replace(pos, 3, "");
+                pos = this->line_.find("###", pos);
+              }
+              this->process_line(this->line_);
+              this->line_.clear();
+              return noobj();
+            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+          {vri(":prompt"), Obj::to_bcode([this](const Obj_p &obj) {
+            printer<>()->printf("%s\n", obj->str_value().c_str());
+            this->process_line(obj->str_value());
+            this->print_prompt();
+            return noobj();
+          }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+          {vri("config"), rec({{vri("nest"), dool(settings.nest_)},
+            {vri("strict"), dool(settings.strict_)},
+            {vri("ansi"), dool(settings.ansi_)},
+            {vri("log"), dool(settings.log_)}
+          })}}, THREAD_FURI, id_p(id))),
       stdin_id(id_p(terminal.resolve("./:stdin"))),
       stdout_id(id_p(terminal.resolve("./:stdout"))) {
     }

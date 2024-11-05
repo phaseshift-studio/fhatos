@@ -21,6 +21,7 @@
 #define fhatos_furi_hpp
 
 #define FOS_MAX_PATH_SEGMENTS 15
+#define FOS_BASE_TYPE_INDEX 1
 
 #include "fhatos.hpp"
 //
@@ -158,6 +159,14 @@ namespace fhatos {
           path_str += '/';
       }
       return path_str;
+    }
+
+    [[nodiscard]] bool has_path(const char *segment, const uint8_t start_index = FOS_BASE_TYPE_INDEX + 1) const {
+      for (int i = start_index; i < path_length_; i++) {
+        if (strcmp(path_[i], segment) == 0)
+          return true;
+      }
+      return false;
     }
 
     [[nodiscard]] bool has_path() const { return this->path_length_ > 0; }

@@ -31,7 +31,6 @@
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
 #include <util/common_objs.hpp>
-#include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
@@ -71,7 +70,7 @@ namespace fhatos {
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
         load_processor(); // TODO: remove
-        load_process_spawner(); // TODO: remove
+        // load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
             ->using_printer(Ansi<>::singleton())
@@ -96,7 +95,7 @@ namespace fhatos {
             ->install(CommonObjs::type("/type/"))
             ->install(CommonObjs::terminal("/dev/terminal"))
             ->install(CommonObjs::parser("/dev/parser"))
-            ->define(mmadt::mmADT::singleton())
+            ->install(mmadt::mmADT::singleton())
             ->model("/model/sys/")
             //->mount(Sys::singleton("/sys/#"))
             //
@@ -107,9 +106,9 @@ namespace fhatos {
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-            ->mount(
-                Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                     args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+            // ->mount(
+            //     Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+            //                                         args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
 #ifdef NATIVE
             //   ->structure(GPIO<fURIDigitalPinDriver>::create(
             //       "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
@@ -131,7 +130,9 @@ namespace fhatos {
                                                         args_parser->option("--ansi", "true") == "true",
                                                         args_parser->option("--console:strict", "false") == "true",
                                                         LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
-            ->eval([args_parser] { delete args_parser; });
+            ->eval([args_parser] {
+              delete args_parser;
+            });
       } catch (const std::exception &e) {
         LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());

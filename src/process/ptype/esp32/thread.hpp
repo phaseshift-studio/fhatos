@@ -19,21 +19,18 @@
 #ifndef fhatos_thread_hpp
 #define fhatos_thread_hpp
 
-#include "fhatos.hpp"
+#include <fhatos.hpp>
 //
-#include "process/process.hpp"
+#include <process/process.hpp>
 
 namespace fhatos {
   class Thread : public Process {
   public:
     TaskHandle_t handle;
 
-    explicit Thread(const ID &id) : Process(id, PType::THREAD) {
-    }
+    explicit Thread(const Rec_p &setup_loop_stop) : Process(setup_loop_stop) {}
 
-    void delay(const uint64_t milliseconds) override {
-      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
-    }
+    void delay(const uint64_t milliseconds) override { vTaskDelay(milliseconds / portTICK_PERIOD_MS); }
 
     void yield() override { taskYIELD(); }
   };

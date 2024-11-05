@@ -20,15 +20,12 @@
 #define fhatos_kernel_hpp
 
 #include <model/program.hpp>
-
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/exts.hpp>
 #include <model/terminal.hpp>
 #include <process/process.hpp>
-
 #include <language/type.hpp>
-
 #include "model/driver/fdriver.hpp"
 
 namespace fhatos {
@@ -134,22 +131,12 @@ namespace fhatos {
     }
 
     static ptr<Kernel> install(const Obj_p &obj) {
-      router()->write(obj->id(), obj);
-      LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->id()->toString().c_str());
-      return Kernel::build();
-    }
-
-    static ptr<Kernel> define(const Rec_p &types) {
-      Type::singleton()->start_progress_bar(types->rec_value()->size());
-      for (const auto &[type_id, type_def]: *types->rec_value()) {
-        Type::singleton()->save_type(id_p(type_id->uri_value()), type_def);
+      if (obj->id()) {
+        router()->write(obj->id(), obj);
+        LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->id()->toString().c_str());
       }
-      Type::singleton()->end_progress_bar(
-          StringHelper::format("!b%s !yobjs!! loaded\n", types->type()->toString().c_str()));
-      //LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->id()->toString().c_str());
       return Kernel::build();
     }
-
 
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot

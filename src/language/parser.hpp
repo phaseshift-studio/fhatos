@@ -25,7 +25,6 @@
 #include <sstream>
 #include <util/enums.hpp>
 #include <util/string_helper.hpp>
-#include FOS_PROCESS(coroutine.hpp)
 
 namespace fhatos {
   using namespace std;

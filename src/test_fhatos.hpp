@@ -41,8 +41,7 @@
 
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
-#include <process/obj_process.hpp>
-#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton()); load_process_spawner();
+#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
@@ -57,7 +56,7 @@
 #include <language/parser.hpp>
 #define FOS_DEPLOY_PARSER_2  \
   router()->attach(Heap::create(Pattern("/parser/#"))); \
-  scheduler()->spawn(Parser::singleton("/parser/"));
+  router()->write(id_p("/parser/"), Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -67,8 +66,8 @@
 #include <language/exts.hpp>
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap::create(Pattern("/type/#"))); \
-  scheduler()->spawn(Type::singleton()); \
-  mmadt::mmADT::load();
+  router()->write(id_p("/type/"),Type::singleton()); \
+  mmadt::mmADT::singleton();
 //Exts::load_extension("/model/mmadt/");
 #else
 #define FOS_DEPLOY_TYPE_2 ;

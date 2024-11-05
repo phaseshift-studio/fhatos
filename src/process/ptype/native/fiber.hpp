@@ -29,8 +29,8 @@ namespace fhatos {
     std::thread *xthread;
     atomic_int *FIBER_COUNT;
 
-    explicit Fiber(const ID &id, const Rec_p &setup_loop_stop) :
-      Process(id, PType::FIBER, setup_loop_stop), xthread(nullptr) {
+    explicit Fiber(const Rec_p &setup_loop_stop) :
+      Process(setup_loop_stop), xthread(nullptr) {
     }
 
     void stop() override {

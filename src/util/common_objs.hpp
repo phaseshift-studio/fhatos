@@ -39,14 +39,14 @@ namespace fhatos {
                              {vri(":stdout"), Obj::to_bcode([](const Obj_p &obj) {
                                printer<>()->print(obj->str_value().c_str());
                                return noobj();
-                             }, "cxx:printf")},
+                             }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
                              {vri(":stdin"), Obj::to_bcode([](const NoObj_p &) {
 #ifdef NATIVE
                                return jnt(getchar());
 #else
           return jnt((Serial.available() > 0) ? Serial.read() : EOF);
 #endif
-                             }, "cxx:getchar")}}, REC_FURI, id_p(id));
+                             }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}}, REC_FURI, id_p(id));
     }
   };
 } // namespace fhatos

@@ -58,7 +58,7 @@ namespace fhatos {
         return pairs;
       }});
       ///////////// SCHEDULER BARRIER /////////////
-      this->read_functions_->insert(
+   /*   this->read_functions_->insert(
       {furi_p(pattern.resolve("./scheduler/barrier/#")), [this](const fURI_p &) {
         return make_id_objs({scheduler()->barrier_});
       }});
@@ -73,7 +73,7 @@ namespace fhatos {
               })),
               message_p(*scheduler()->id(), noobj(), true)));
         return *make_id_objs();
-      }});
+      }});*/
       ////////////////////////////////////////////////////////////////////////
       //////////////////////////////// ROUTER ////////////////////////////////
       ////////////////////////////////////////////////////////////////////////

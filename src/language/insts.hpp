@@ -26,8 +26,6 @@
 #include <util/options.hpp>
 #include <utility>
 
-#include "type.hpp"
-
 namespace fhatos {
   struct Insts {
     explicit Insts() = delete;
@@ -562,7 +560,7 @@ namespace fhatos {
               return lhs;
             };
           },
-          to_print->is_bcode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p flip(const Obj_p &rhs) {
@@ -967,7 +965,7 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
       const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
-      Obj_p base_inst = Type::singleton()->rec_get(type_id_resolved); // router()->read(type_id_resolved);
+      Obj_p base_inst = router()->read(type_id_resolved);
       if (base_inst->is_noobj()) {
         base_inst = router()->read(id_p(type_id));
         if (!base_inst->is_bcode())
@@ -982,13 +980,20 @@ namespace fhatos {
           return ObjHelper::replace_from_inst(args, base_inst->bcode_value()->at(0));
         return Obj::to_inst(
             type_id.name(), args,
-            [base_inst](const InstArgs &args2) {
-              const Obj_p new_bcode = ObjHelper::replace_from_bcode(args2, base_inst);
-              return [new_bcode](const Obj_p &lhs) { return new_bcode->apply(lhs); };
+            [base_inst,args](const InstArgs &) {
+              return [base_inst,args](const Obj_p &lhs) {
+                InstArgs args3;
+                for (const Obj_p arg: args) {
+                  args3.push_back(arg->apply(lhs));
+                }
+                const Obj_p new_bcode = ObjHelper::replace_from_bcode(args3, base_inst);
+                //LOG(INFO, "final bcode: %s\n", new_bcode->toString().c_str());
+                return new_bcode->apply(lhs);
+              };
             },
             base_inst->itype(),
             base_inst->is_inst() ? base_inst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
-            id_p(type_id));
+            id_p(INST_FURI->resolve(type_id)));
       }
       // return replace_from_obj(args, base_inst);
       throw fError("!b%s!! does not resolve to inst or bcode", type_id_resolved->toString().c_str());

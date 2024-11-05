@@ -242,43 +242,35 @@ namespace fhatos {
     return false;
   };
   static BiFunction<const Obj_p, const ID_p, Obj_p> TYPE_MAKER = [](const Obj_p &, const ID_p &) {
-    LOG(DEBUG, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
   static Function<const string &, Obj_p> OBJ_PARSER = [](const string &) {
-    LOG(DEBUG, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
   static BiFunction<const Objs_p, BCode_p, Objs_p> BCODE_PROCESSOR = [](const Objs_p &, const BCode_p &) {
-    LOG(DEBUG, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static BiConsumer<const ID, const ID> PROCESS_SPAWNER = [](const ID &, const ID &) {
-    LOG(DEBUG, "!PROCESS_SPAWNER!! undefined at this point in bootstrap.\n");
-  };
   static BiConsumer<const Pattern, const Rec_p> STRUCTURE_ATTACHER = [](const ID &, const Rec_p &) {
-    LOG(DEBUG, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
-  };
-  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> SCHEDULER_WRITE_INTERCEPT =
-      [](const fURI &, const Obj_p &, const bool) -> bool {
-    LOG(DEBUG, "!ySCHEDULER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
-    return false;
+    LOG(TRACE, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
   };
   static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_WRITE_INTERCEPT =
       [](const fURI &, const Obj_p &, const bool) -> bool {
-    LOG(DEBUG, "!yROUTER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yROUTER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
     return false;
   };
   static Function<const fURI &, const Objs_p> ROUTER_READ_INTERCEPT = [](const fURI &) -> Objs_p {
-    LOG(DEBUG, "!yROUTER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yROUTER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static TriConsumer<const ID_p &, const Obj_p &, const bool> ROUTER_WRITE_AT = [
+  static TriConsumer<const ID_p &, const Obj_p &, const bool> ROUTER_WRITE = [
       ](const ID_p &, const Obj_p &, const bool) -> void {
-    LOG(DEBUG, "!yROUTER_WRITE_AT!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
   static Function<const ID_p &, const Obj_p> ROUTER_READ = [](const ID_p &) -> Obj_p {
-    LOG(DEBUG, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
+    LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
 
@@ -321,7 +313,7 @@ namespace fhatos {
       if (value_id) {
         const Obj_p strip = this->clone();
         strip->id_ = nullptr;
-        ROUTER_WRITE_AT(value_id, strip, true);
+        ROUTER_WRITE(value_id, strip, true);
       }
     }
 
@@ -536,7 +528,7 @@ namespace fhatos {
         this->rec_set(k, v);
       }
       if (this->id_)
-        ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
+        ROUTER_WRITE(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
     }
 
     void rec_delete(const Obj &key) const { Obj::rec_set(make_shared<Obj>(key), Obj::to_noobj()); }
@@ -1364,15 +1356,15 @@ namespace fhatos {
       return to_rec(map, type, id);
     }
 
-    static Inst_p to_inst(const InstValue &value, const ID_p &furi = INST_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INST));
-      return make_shared<Inst>(value, furi);
+    static Inst_p to_inst(const InstValue &value, const ID_p &type = INST_FURI) {
+      fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INST));
+      return make_shared<Inst>(value, type);
     }
 
     static Inst_p to_inst(
         const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function, const IType itype,
-        const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &furi = nullptr) {
-      const ID_p fix = furi ? furi : id_p(INST_FURI->resolve(opcode));
+        const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &type = nullptr) {
+      const ID_p fix = type ? type : id_p(INST_FURI->resolve(opcode));
       return to_inst({args, function, itype, seed}, fix);
     }
 

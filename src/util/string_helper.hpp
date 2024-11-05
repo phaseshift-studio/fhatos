@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 
+
 namespace fhatos {
   enum class WILDCARD { NO = 0, PLUS = 1, HASH = 2 };
 
@@ -38,6 +39,11 @@ namespace fhatos {
         s[2 * i + 1] = hexmap[data[i] & 0x0F];
       }
       return s;
+    }
+
+    static string cxx_f_metadata(const string &file, const uint16_t line_number) {
+      const size_t index = file.find_last_of("/") + 1;
+      return file.substr(index) + ":" + to_string(line_number);
     }
 
     static void trim(const std::string &s) {

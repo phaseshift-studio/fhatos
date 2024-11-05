@@ -177,7 +177,7 @@ namespace fhatos {
         LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",
                    furi->toString().c_str(), obj->type()->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
-        SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain);
+        //SCHEDULER_WRITE_INTERCEPT(*furi, obj, retain);
       }
     }
 
@@ -219,7 +219,7 @@ namespace fhatos {
       ROUTER_READ = [this](const ID_p &id) -> Obj_p {
         return this->read(id);
       };
-      ROUTER_WRITE_AT = [this](const ID_p &id, const Obj_p &obj, const bool retain) -> const Obj_p {
+      ROUTER_WRITE = [this](const ID_p &id, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(id, obj, retain);
         return obj;
       };
