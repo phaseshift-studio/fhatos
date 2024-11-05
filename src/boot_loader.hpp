@@ -24,30 +24,30 @@
 #include <structure/router.hpp>
 #include <util/argv_parser.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/type.hpp>
 #include <language/mmadt/type.hpp>
+#include <language/type.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
 #include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
-#include <util/common_objs.hpp>
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
+#include <util/common_objs.hpp>
 ///////////// COMMON MODELS /////////////
+#include <model/driver/fdriver.hpp>
 #include <model/sys.hpp>
-
-//#include <model/driver/gpio/arduino_gpio_driver.hpp>
-//#include <model/driver/i2c/arduino_i2c_driver.hpp>
-//#include <model/pin/gpio.hpp>
-//#include <model/pin/interrupt.hpp>
-//#include <model/pin/pwm.hpp>
+// #include <model/driver/gpio/arduino_gpio_driver.hpp>
+// #include <model/driver/i2c/arduino_i2c_driver.hpp>
+// #include <model/pin/gpio.hpp>
+// #include <model/pin/interrupt.hpp>
+// #include <model/pin/pwm.hpp>
 //////////// ESP SOC MODELS /////////////
 #ifdef ESP_ARCH
 // #include FOS_BLE(ble.hpp)
 #include <model/soc/esp/wifi.hpp>
 #include <model/soc/memory/esp32/memory.hpp>
-//#include FOS_TIMER(timer.hpp)
-//#include <structure/stype/redirect.hpp>
+// #include FOS_TIMER(timer.hpp)
+// #include <structure/stype/redirect.hpp>
 #endif
 
 #ifdef NATIVE
@@ -73,9 +73,9 @@ namespace fhatos {
         // load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-            ->using_printer(Ansi<>::singleton())
-            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+                                   ->using_printer(Ansi<>::singleton())
+                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -83,8 +83,7 @@ namespace fhatos {
               ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
         }
         ////////////////////////////////////////////////////////////
-        return kp
-            ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+        return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router/#"))
             ////////////////////////////////////////////////////////////
             ->mount(Heap::create("/sys/#"))
@@ -97,8 +96,8 @@ namespace fhatos {
             ->install(CommonObjs::parser("/dev/parser"))
             ->install(mmadt::mmADT::singleton())
             ->model("/model/sys/")
-            //->mount(Sys::singleton("/sys/#"))
-            //
+        //->mount(Sys::singleton("/sys/#"))
+        //
 #ifdef ESP_ARCH
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
@@ -106,19 +105,22 @@ namespace fhatos {
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-            // ->mount(
-            //     Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-            //                                         args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+        // ->mount(
+        //     Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+        //                                         args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
 #ifdef NATIVE
-            //   ->structure(GPIO<fURIDigitalPinDriver>::create(
-            //       "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
+        //   ->structure(GPIO<fURIDigitalPinDriver>::create(
+        //       "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
 #elif defined(ESP_ARCH)
-            //       ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#", ArduinoDigitalPinDriver::singleton()))
-             ->mount(Memory::singleton("/soc/memory/#"))
-            //->structure(BLE::create("/io/bt/#"))
-            //  ->process(Redirect::create("/redirect/",
-            //                            Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
-            //                            Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
+            //       ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#",
+            //       ArduinoDigitalPinDriver::singleton()))
+            ->mount(Heap::create("/driver/#"))
+            ->install(fDriver::gpio("/driver/gpio"))
+            ->mount(Memory::singleton("/soc/memory/#"))
+        //->structure(BLE::create("/io/bt/#"))
+        //  ->process(Redirect::create("/redirect/",
+        //                            Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
+        //                            Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
 #endif
 
             //  ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
@@ -130,9 +132,7 @@ namespace fhatos {
                                                         args_parser->option("--ansi", "true") == "true",
                                                         args_parser->option("--console:strict", "false") == "true",
                                                         LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
-            ->eval([args_parser] {
-              delete args_parser;
-            });
+            ->eval([args_parser] { delete args_parser; });
       } catch (const std::exception &e) {
         LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());

@@ -52,7 +52,7 @@ namespace fhatos {
           if (this->data_->count(id))
             this->data_->erase(id);
           if (!obj->is_noobj()) {
-            this->data_->insert({id_p(*id), obj->clone()});
+            this->data_->insert({id_p(*id), obj});
           }
           return id;
         });

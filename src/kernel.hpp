@@ -145,10 +145,10 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> driver(const fDriver_p &driver) {
+    /*static ptr<Kernel> driver(const fDriver_p &driver) {
       driver->setup();
       return Kernel::build();
-    }
+    }*/
 
     static ptr<Kernel> program(const Structure_p &structure, const Process_p &process) {
       LOG(INFO, "!c[START]!!: !yloading program!!\n");

@@ -996,7 +996,7 @@ namespace fhatos {
             id_p(INST_FURI->resolve(type_id)));
       }
       // return replace_from_obj(args, base_inst);
-      throw fError("!b%s!! does not resolve to inst or bcode", type_id_resolved->toString().c_str());
+      throw fError("!b%s!! does not resolve to inst or bcode", type_id.toString().c_str());
     }
 
   };
