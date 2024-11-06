@@ -248,7 +248,7 @@ namespace fhatos {
     BCODE_PROCESSOR = [](const Objs_p &starts, const BCode_p &bcode) {
       return Processor(bcode, starts).to_objs();
     };
-    Options::singleton()->processor<Obj, BCode, Objs>(
+    Options::singleton()->processor<Obj>(
         [](const Obj_p &st, const BCode_p &bc) { return Processor(bc, st).to_objs(); });
   }
 } // namespace fhatos

@@ -22,91 +22,114 @@ FhatOS: A Distributed Operating System
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include <language/parser.hpp>
 #include <structure/router.hpp>
 
-#include <model/driver/fdriver.hpp>
+#include <model/driver/driver.hpp>
 
 namespace fhatos {
   class ArduinoGPIODriver {
-  protected:
-    static fDriver_p load_furi_driver(const ID_p &request_id, const ID_p &response_id) {
-      const auto driver = make_shared<fDriver>(
-        request_id, response_id, ptr<List<Inst_p>>(new List<Inst_p>({
-          Obj::to_inst(
-            "gpio:digital_write", {x(0), x(1)},
-            [request_id](const InstArgs &args) {
-              return [request_id, args](const Obj_p &lhs) {
-                router()->write(request_id,
-                                parse("gpio:digital_write(%i,%i)", args.at(0)->apply(lhs)->int_value(),
-                                      args.at(1)->apply(lhs)->int_value()));
-                return noobj();
-              };
-            },
-            IType::ONE_TO_ZERO),
-          Obj::to_inst(
-            "gpio:digital_read", {x(0)},
-            [response_id, request_id](const InstArgs &args) {
-              return [response_id, request_id, args](const Obj_p &lhs) {
-                router()->write(request_id, parse("gpio:digital_read(%i)", args.at(0)->apply(lhs)->int_value()));
-                return router()->read(response_id);
-              };
-            },
-            IType::ONE_TO_ONE),
-        })),
-        id_p(DRIVER_FURI->resolve("./gpio/arduino/furi")));
-      return driver;
+  public:
+    static Obj_p load_remote(const ID &driver_value_id, const ID_p &driver_remote_id) {
+      const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
+          ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":digital_write"))
+          ->type_args(x(0, "pin"), x(1, "value"), x(2, "driver_remote_id", vri(driver_remote_id)))
+          ->instance_f([](const InstArgs &args, const Obj_p &lhs) {
+            router()->write(id_p(args.at(2)->apply(lhs)->uri_value().extend(":digital_write")),
+                            lst({lhs, lst({args.at(0)->apply(lhs), args.at(1)->apply(lhs)})}), TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":digital_read"))
+          ->type_args(x(0, "pin"), x(1, "driver_remote_id", vri(driver_remote_id)))
+          ->instance_f([](const InstArgs &args, const Obj_p &lhs) {
+            router()->write(id_p(args.at(1)->apply(lhs)->uri_value().extend(":digital_read")),
+                            lst({lhs, lst({args.at(0)->apply(lhs)})}), TRANSIENT);
+            return router()->read(id_p(args.at(1)->apply(lhs)->uri_value().extend(":digital_read")));
+          })
+          ->create()});
+      //////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////// FURI DRIVER INSTALLATION //////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////
+      Type::singleton()->save_type(
+          GPIO_ARDUINO_FURI_TYPE,
+          rec({{vri(":install"),
+                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
+                ->type_args(x(0, "install_location", vri(driver_value_id)),
+                            x(1, "driver_remote_id", vri(driver_remote_id)))
+                ->instance_f([inst_types](const InstArgs &args, const Obj_p &lhs) {
+                  const Rec_p record = rec();
+                  for (const auto &i: *inst_types) {
+                    record->rec_set(vri(i->inst_op()), i);
+                  }
+                  return record->at(id_p(args.at(0)->apply(lhs)->uri_value()));
+                })
+                ->create()}}));
+      return noobj();
     }
 
 #ifdef ESP_ARCH
-    static fDriver_p load_hardware_driver(const ID_p &request_id, const ID_p &response_id) {
-      const auto driver = make_shared<fDriver>(request_id, response_id,
-                                               ptr<List<Inst_p>>(new List<Inst_p>({
-                                                 Obj::to_inst(
-                                                   "gpio:digital_write", {x(0), x(1)},
-                                                   [response_id](const InstArgs &args) {
-                                                     return [response_id,args](const Obj_p &lhs) {
-                                                       const uint8_t pin = args.at(0)->apply(lhs)->int_value();
-                                                       const Int_p value = args.at(1)->apply(lhs);
-                                                       pinMode(pin, OUTPUT);
-                                                       digitalWrite(pin, value->int_value());
-                                                       router()->write(response_id, value);
-                                                       return noobj();
-                                                     };
-                                                   },
-                                                   IType::ONE_TO_ZERO),
-                                                 Obj::to_inst(
-                                                   "gpio:digital_read", {x(0)},
-                                                   [response_id](const InstArgs &args) {
-                                                     return [response_id, args](const Obj_p &lhs) {
-                                                       const Int_p result = jnt(
-                                                         digitalRead(args.at(0)->apply(lhs)->int_value()));
-                                                       router()->write(response_id, result);
-                                                       return result;
-                                                     };
-                                                   },
-                                                   IType::ONE_TO_ONE),
-                                               })),
-                                               id_p(DRIVER_FURI->resolve("./gpio/arduino/hardware")));
-      router()->route_subscription(subscription_p(*driver->type(),
-                                                  *request_id, Subscription::to_bcode(
-                                                    [response_id](const Message_p &message) {
-                                                      const Obj_p result = message->payload->apply(noobj());
-                                                      if (!result->is_noobj())
-                                                        router()->write(response_id, result);
-                                                    })));
-      return driver;
+    static Obj_p load_local(const ID &driver_value_id, const ID_p &driver_remote_id) {
+      const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
+          ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":digital_write"))
+              ->type_args(x(0, "pin"), x(1, "value"), x(2, "driver_remote_id", vri(driver_remote_id)))
+              ->instance_f([](const InstArgs &args, const Obj_p &lhs) {
+                const uint8_t pin = args.at(0)->apply(lhs)->int_value();
+                const uint8_t value = args.at(1)->apply(lhs)->int_value();
+                pinMode(pin, OUTPUT);
+                digitalWrite(pin, value);
+                // router()->write(id_p(driver_remote_id->extend(":digital_write")),
+                //                 lst({lhs, lst({args.at(0)->apply(lhs), args.at(1)->apply(lhs)})}), TRANSIENT);
+                return noobj();
+              })
+              ->create(),
+          ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":digital_read"))
+              ->type_args(x(0, "pin"), x(1, "driver_remote_id", vri(driver_remote_id)))
+              ->instance_f([](const InstArgs &args, const Obj_p &lhs) {
+                return jnt(digitalRead(args.at(0)->apply(lhs)->int_value()));
+                // router()->write(id_p(driver_remote_id->extend(":digital_read")),
+                //                 lst({lhs, lst({args.at(0)->apply(lhs)})}), TRANSIENT);
+                return noobj();
+              })
+              ->create()});
+      //////////////////////////////////////////////////////////////////////////////////////
+      ////////////////////////////// ARDUINO DRIVER INSTALLATION ///////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////
+      Type::singleton()->save_type(
+          GPIO_ARDUINO_PIN_TYPE,
+          rec({{vri(":install"),
+                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
+                    ->type_args(x(0, "install_location", vri(driver_value_id)),
+                                x(1, "driver_remote_id", vri(driver_remote_id)))
+                    ->instance_f([inst_types](const InstArgs &args, const Obj_p &lhs) {
+                      const Rec_p record = rec();
+                      for (const auto &i: *inst_types) {
+                        record->rec_set(vri(i->inst_op()), i);
+                      }
+                      router()->route_subscription(
+                          subscription_p(args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_write"),
+                                         Subscription::to_bcode([args](const Message_p &message) {
+                                           const uint8_t pin = message->payload->lst_get(1)->lst_get(0)->int_value();
+                                           const uint8_t value = message->payload->lst_get(1)->lst_get(1)->int_value();
+                                           pinMode(pin, OUTPUT);
+                                           digitalWrite(pin, value);
+                                         })));
+                      router()->route_subscription(subscription_p(
+                          args.at(0)->uri_value(), args.at(1)->apply(lhs)->uri_value().extend(":digital_read"),
+                          Subscription::to_bcode([lhs, args](const Message_p &message) {
+                            if (!message->retain) {
+                              const uint8_t pin = message->payload->lst_get(1)->lst_get(0)->int_value();
+                              pinMode(pin, OUTPUT);
+                              const int value = digitalRead(pin);
+                              router()->write(id_p(args.at(1)->apply(lhs)->uri_value().extend(":digital_read")),
+                                              jnt(value), RETAIN);
+                            }
+                          })));
+                      return record->at(id_p(args.at(0)->apply(lhs)->uri_value()));
+                    })
+                    ->create()}}));
+      return noobj();
     }
 #endif
-
-  public:
-    static fDriver_p create(const ID &request_id, const ID &response_id) {
-#ifdef NATIVE
-      return load_furi_driver(id_p(request_id), id_p(response_id));
-#elif defined(ESP_ARCH)
-     return load_hardware_driver(id_p(request_id),id_p(response_id));
-#endif
-    }
   };
 } // namespace fhatos
 #endif

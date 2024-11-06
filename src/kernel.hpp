@@ -26,7 +26,6 @@
 #include <model/terminal.hpp>
 #include <process/process.hpp>
 #include <language/type.hpp>
-#include "model/driver/fdriver.hpp"
 
 namespace fhatos {
   class Kernel {

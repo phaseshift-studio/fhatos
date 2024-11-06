@@ -781,21 +781,21 @@ namespace fhatos {
   public:
     virtual ~BaseTyped() = default;
 
-    [[nodiscard]] virtual fURI_p type() const = 0;
+    [[nodiscard]] virtual ID_p type() const = 0;
 
     [[nodiscard]] virtual bool equals(const BaseTyped &) const { return false; }
   };
 
   class Typed : public BaseTyped {
   protected:
-    fURI_p type_;
+    ID_p type_;
 
   public:
-    explicit Typed(const fURI_p &type) :
+    explicit Typed(const ID_p &type) :
       type_(type) {
     }
 
-    [[nodiscard]] fURI_p type() const override { return this->type_; }
+    [[nodiscard]] ID_p type() const override { return this->type_; }
 
     [[nodiscard]] bool equals(const BaseTyped &other) const override {
       return this->type_->equals(*other.type());

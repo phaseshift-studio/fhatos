@@ -166,7 +166,7 @@ namespace fhatos {
           "repeat", {code, until, emit},
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
-              Objs_p r = Options::singleton()->processor<Obj, BCode, Obj>(lhs, args.at(0));
+              Objs_p r = Options::singleton()->processor<Obj>(lhs, args.at(0));
               return r;
             };
           },
@@ -750,7 +750,7 @@ namespace fhatos {
               // LST BY ELEMENTS
               if (lhs->is_lst()) {
                 return Obj::to_lst(Options::singleton()
-                    ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
+                    ->processor<Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
                     ->objs_value());
               }
               // REC BY PAIRS
@@ -759,7 +759,7 @@ namespace fhatos {
                 for (const auto &pair: *lhs->rec_value()) {
                   pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
                 }
-                const Objs_p results = Options::singleton()->processor<Obj, BCode, Obj>(pairs, args.at(0));
+                const Objs_p results = Options::singleton()->processor<Obj>(pairs, args.at(0));
                 const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
                 for (const auto &result: *results->objs_value()) {
                   rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});
@@ -773,7 +773,7 @@ namespace fhatos {
                 for (uint8_t i = 0; i < xstr.length(); i++) {
                   chars->push_back(str(xstr.substr(i, 1)));
                 }
-                const Objs_p strs = Options::singleton()->processor<Objs, BCode, Objs>(Obj::to_objs(chars), args.at(0));
+                const Objs_p strs = Options::singleton()->processor<Obj>(Obj::to_objs(chars), args.at(0));
                 string ret;
                 for (const Str_p &s: *strs->objs_value()) {
                   ret += s->str_value();

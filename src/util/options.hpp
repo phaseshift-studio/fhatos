@@ -146,18 +146,18 @@ namespace fhatos {
 
     //////////////////////////
     /////// PROCESSOR ///////
-    template<typename S, typename BCODE, typename E>
-    shared_ptr<E> processor(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode) {
+    template<typename OBJ>
+    shared_ptr<OBJ> processor(const shared_ptr<OBJ> &starts, const shared_ptr<OBJ> &bcode) {
       if (!processor_.has_value())
         throw fError("No processor specified in global options\n");
-      return std::any_cast<function<shared_ptr<E>(const shared_ptr<S> &starts, const shared_ptr<BCODE> &bcode)>>(
+      return std::any_cast<function<shared_ptr<OBJ>(const shared_ptr<OBJ> &starts, const shared_ptr<OBJ> &bcode)>>(
         this->processor_)(starts, bcode);
     }
 
-    template<typename S, typename BCODE, typename E>
+    template<typename OBJ>
     Options *processor(
-      const std::function<shared_ptr<E>(const shared_ptr<S> &starts,
-                                        const shared_ptr<BCODE> &bcode)> &processor) {
+      const std::function<shared_ptr<OBJ>(const shared_ptr<OBJ> &starts,
+                                        const shared_ptr<OBJ> &bcode)> &processor) {
       this->processor_ = any(processor);
       return this;
     }

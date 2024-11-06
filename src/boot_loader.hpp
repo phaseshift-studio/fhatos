@@ -34,9 +34,9 @@
 #include <structure/stype/heap.hpp>
 #include <util/common_objs.hpp>
 ///////////// COMMON MODELS /////////////
-#include <model/driver/fdriver.hpp>
+#include <model/driver/driver.hpp>
+#include <model/driver/gpio/arduino_gpio_driver.hpp>
 #include <model/sys.hpp>
-// #include <model/driver/gpio/arduino_gpio_driver.hpp>
 // #include <model/driver/i2c/arduino_i2c_driver.hpp>
 // #include <model/pin/gpio.hpp>
 // #include <model/pin/interrupt.hpp>
@@ -47,7 +47,7 @@
 #include <model/soc/esp/wifi.hpp>
 #include <model/soc/memory/esp32/memory.hpp>
 // #include FOS_TIMER(timer.hpp)
-//#include <structure/stype/redirect.hpp>
+// #include <structure/stype/redirect.hpp>
 #endif
 
 #ifdef NATIVE
@@ -59,8 +59,8 @@
 namespace fhatos {
   class BootLoader {
     /////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
   public:
     static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
       std::srand(std::time(nullptr));
@@ -89,11 +89,11 @@ namespace fhatos {
             ->mount(Heap::create("/sys/#"))
             ->mount(Heap::create("+/#"))
             ->mount(Heap::create("/type/#"))
-            ->mount(Heap::create("/dev/#"))
+            ->mount(Heap::create("/io/#"))
 
-            ->install(CommonObjs::type("/type/"))
-            ->install(CommonObjs::terminal("/dev/terminal"))
-            ->install(CommonObjs::parser("/dev/parser"))
+            ->install(Type::singleton("/type/"))
+            ->install(CommonObjs::terminal("/io/terminal"))
+            ->install(Parser::singleton("/io/parser"))
             ->install(mmadt::mmADT::singleton())
             ->model("/model/sys/")
 #ifdef ESP_ARCH
@@ -103,34 +103,20 @@ namespace fhatos {
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-            //   ->mount(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-            //                                              args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
-
-#ifdef NATIVE
             ->mount(
                 Mqtt::create("//driver/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                         args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
-             ->mount(Heap::create("/driver/#"))
-            ->install(fDriver::gpio_furi("/driver/gpio/furi", id_p("//driver/gpio")))
+                                                          args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+            ->mount(Heap::create("/driver/#"))
+#ifdef NATIVE
+            ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
 #elif defined(ESP_ARCH)
-            ->mount(
-               Mqtt::create("//driver/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                        args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
-        ->mount(Heap::create("/driver/#"))
-            ->install(fDriver::gpio_pin("/driver/gpio/pin",id_p("//driver/gpio")))
+            ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
             ->mount(Memory::singleton("/soc/memory/#"))
-        //->structure(BLE::create("/io/bt/#"))
-        /* ->install(Redirect::create(
-             "/redirect/",
-             Pair<Pattern_p, Pattern_p>{p_p("/driver/gpio/:digital_read"), p_p("//driver/gpio/:digital_read")},
-             Pair<Pattern_p, Pattern_p>{p_p("//driver/gpio/:digital_write"), p_p("/driver/gpio/:digital_write")}))*/
+            //->structure(BLE::create("/io/bt/#"))
 #endif
-
-            //  ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
-            //->driver(ArduinoI2CDriver::create("//i2c/arduino/request", "//i2c/arduino/response"))
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap::create("/console/#"))
-            ->process(Console::create("/console", "/dev/terminal/",
+            ->process(Console::create("/console", "/io/terminal",
                                       Console::Settings(args_parser->option("--console:nest", "false") == "true",
                                                         args_parser->option("--ansi", "true") == "true",
                                                         args_parser->option("--console:strict", "false") == "true",

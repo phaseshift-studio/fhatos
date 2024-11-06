@@ -25,7 +25,7 @@ FhatOS: A Distributed Operating System
 #include <language/parser.hpp>
 #include <structure/router.hpp>
 
-#include <model/driver/fdriver.hpp>
+#include <model/driver/driver.hpp>
 #ifdef ESP_ARCH
 #include <Wire.h>
 #endif

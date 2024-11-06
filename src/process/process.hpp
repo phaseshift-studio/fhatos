@@ -98,7 +98,7 @@ namespace fhatos {
       this_process = this;
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->id()->extend(":setup")));
       if (setup_bcode->is_bcode())
-        Options::singleton()->processor<Obj, BCode, Obj>(noobj(), setup_bcode);
+        Options::singleton()->processor<Obj>(noobj(), setup_bcode);
       else
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
       ////
@@ -121,7 +121,7 @@ namespace fhatos {
       }
       const BCode_p loop_bcode = ROUTER_READ(id_p(this->id()->extend(":loop")));
       if (!loop_bcode->is_noobj()) {
-        Obj_p result = Options::singleton()->processor<Obj, BCode, Obj>(noobj(), loop_bcode);
+        Obj_p result = Options::singleton()->processor<Obj>(noobj(), loop_bcode);
       } else
         throw fError("!b%s!! loop !ybcode!! undefined", this->id()->toString().c_str());
     };
@@ -130,7 +130,7 @@ namespace fhatos {
       this_process = this;
       const BCode_p stop_bcode = ROUTER_READ(id_p(this->id()->extend(":stop")));
       if (stop_bcode->is_bcode())
-        Options::singleton()->processor<Obj, BCode, Obj>(noobj(), stop_bcode);
+        Options::singleton()->processor<Obj>(noobj(), stop_bcode);
       else
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
       if (!this->running) {

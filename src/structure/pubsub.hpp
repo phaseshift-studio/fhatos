@@ -98,7 +98,7 @@ namespace fhatos {
     const Obj_p payload;
     const bool retain;
 
-    fURI_p type() const override {
+    ID_p type() const override {
       return MESSAGE_FURI;
     }
 
@@ -156,7 +156,7 @@ namespace fhatos {
     const Pattern pattern;
     const BCode_p on_recv;
 
-    fURI_p type() const override {
+    ID_p type() const override {
       return SUBSCRIPTION_FURI;
     }
 

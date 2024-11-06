@@ -141,7 +141,7 @@ namespace fhatos {
         const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(line);
         if (!obj.has_value())
           throw fError("unable to parse input: %s", line.c_str());
-        this->print_result(Options::singleton()->processor<Obj, BCode, Obj>(
+        this->print_result(Options::singleton()->processor<Obj>(
             obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
       } catch (const std::exception &e) {
         this->print_exception(e);
@@ -193,8 +193,8 @@ namespace fhatos {
                                        {vri("ansi"), dool(settings.ansi_)},
                                        {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
                    })}}, THREAD_FURI, id_p(id))),
-      stdin_id(id_p(terminal.resolve("./:stdin"))),
-      stdout_id(id_p(terminal.resolve("./:stdout"))) {
+      stdin_id(id_p(terminal.extend(":stdin"))),
+      stdout_id(id_p(terminal.extend(":stdout"))) {
     }
 
   public:

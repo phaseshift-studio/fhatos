@@ -307,7 +307,7 @@ namespace fhatos {
     template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = objp_equal_to>
     using RecMap_p = ptr<RecMap<K, V, H, Q>>;
 
-    explicit Obj(const Any &value, const fURI_p &type_id, const ID_p &value_id = nullptr) :
+    explicit Obj(const Any &value, const ID_p &type_id, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(OTypes.to_enum(type_id->path(FOS_BASE_TYPE_INDEX)))), IDed(value_id), _value(value) {
       TYPE_CHECKER(this, type_id, true);
       this->type_ = type_id;
@@ -1523,7 +1523,7 @@ namespace fhatos {
       this->internal_->rec_set(Obj::to_uri(*furi), obj);
     }
 
-    fURI_p type() const override {
+    ID_p type() const override {
       return this->internal_->type();
     }
 

@@ -22,7 +22,7 @@
 
 #include <fhatos.hpp>
 #include <model/pin/pin.hpp>
-#include <model/driver/fdriver.hpp>
+#include <model/driver/driver.hpp>
 
 namespace fhatos {
   template<typename DIGITAL_PIN_DRIVER>
