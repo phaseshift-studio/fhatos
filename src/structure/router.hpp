@@ -171,7 +171,7 @@ namespace fhatos {
         return obj;
     }
 
-    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
+    void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(*furi);
         LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",

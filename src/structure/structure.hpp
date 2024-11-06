@@ -153,7 +153,7 @@ namespace fhatos {
       for (const auto &[id, obj]: *list) {
         if (!obj->is_noobj()) {
           if (id->matches(subscription->pattern)) {
-            subscription->on_recv->apply(Message(*id, obj,RETAIN_MESSAGE).to_rec());
+            subscription->on_recv->apply(Message(*id, obj,RETAIN).to_rec());
           }
         }
       }
@@ -211,7 +211,7 @@ namespace fhatos {
       return noobj();
     }
 
-    virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN_MESSAGE) {
+    virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if (!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
         return;
@@ -299,19 +299,14 @@ namespace fhatos {
         // x --> y -< subscribers
         // non-retained writes 'pass through' (via application) any existing obj at that write furi location
         const Obj_p applicable_obj = this->read(furi); // get the obj that current exists at that furi
-        if (applicable_obj->is_noobj())
+        if (applicable_obj->is_noobj()) {
           // no obj, pass the written obj through to subscribers (optimization assuming noobj is _ ?? bad??)
           this->write_raw_pairs(id_p(*furi), obj, retain);
-        else if (applicable_obj->is_bcode()) {
+        } else if (applicable_obj->is_bcode()) {
           // bcode, pass the output of applying the written obj to bcode to subscribers
-          InstArgs args;
-          if (obj->is_lst())
-            args = *obj->lst_value();
-          else
-            args = List<Obj_p>({obj});
-          const BCode_p rewritten_bcode = ObjHelper::replace_from_bcode(args, applicable_obj);
+          //const BCode_p rewritten_bcode = ;
           // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
-          const Obj_p result = Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
+          const Obj_p result = ObjHelper::apply_lhs_args(applicable_obj,obj); // Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
           this->write_raw_pairs(id_p(*furi), result, retain);
         } else
         // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)

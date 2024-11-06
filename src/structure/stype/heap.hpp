@@ -31,7 +31,8 @@ namespace fhatos {
     Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
-    explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) : Structure(pattern, stype) {
+    explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) :
+      Structure(pattern, stype) {
     }
 
   public:
@@ -52,7 +53,7 @@ namespace fhatos {
           if (this->data_->count(id))
             this->data_->erase(id);
           if (!obj->is_noobj()) {
-            this->data_->insert({id_p(*id), obj});
+            this->data_->insert({id_p(*id), obj->clone()});
           }
           return id;
         });
@@ -65,7 +66,7 @@ namespace fhatos {
         auto list = make_shared<IdObjPairs>();
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
-            list->push_back({id, obj});
+            list->push_back({id, PtrHelper::no_delete<Obj>(obj.get())});
           }
         }
         return list;

@@ -983,7 +983,7 @@ namespace fhatos {
             [base_inst,args](const InstArgs &) {
               return [base_inst,args](const Obj_p &lhs) {
                 InstArgs args3;
-                for (const Obj_p arg: args) {
+                for (const Obj_p &arg: args) {
                   args3.push_back(arg->apply(lhs));
                 }
                 const Obj_p new_bcode = ObjHelper::replace_from_bcode(args3, base_inst);
@@ -996,13 +996,18 @@ namespace fhatos {
             id_p(INST_FURI->resolve(type_id)));
       }
       // return replace_from_obj(args, base_inst);
-      throw fError("!b%s!! does not resolve to inst or bcode", type_id.toString().c_str());
+      throw fError("!b%s!! does not resolve to !yinst!! or !ybcode!!: %s", type_id.toString().c_str(),
+                   base_inst->toString().c_str());
     }
 
   };
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
     return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
+  }
+
+  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char* arg_name, const Obj_p &default_arg = noobj()) {
+    return Insts::from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
   }
 } // namespace fhatos
 

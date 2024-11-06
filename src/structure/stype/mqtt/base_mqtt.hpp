@@ -57,6 +57,8 @@ namespace fhatos {
                                                                           settings_(settings) {
     }
 
+    virtual bool exists() const = 0;
+
     virtual void native_mqtt_subscribe(const Subscription_p &subscription) = 0;
 
     virtual void native_mqtt_unsubscribe(const fURI_p &pattern) = 0;

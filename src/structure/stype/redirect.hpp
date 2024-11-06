@@ -22,50 +22,29 @@
 
 #include "fhatos.hpp"
 #include "language/obj.hpp"
-#include FOS_PROCESS(coroutine.hpp)
+#include "structure/pubsub.hpp"
+#include "structure/router.hpp"
 
 namespace fhatos {
-  class Redirect : public Coroutine {
-  public:
-    Pair<Pattern_p, Pattern_p> read_mapping_;
-    Pair<Pattern_p, Pattern_p> write_mapping_;
+  class Redirect {
 
-    explicit Redirect(const ID &id,
-                      const Pair<Pattern_p, Pattern_p> &read_mapping,
-                      const Pair<Pattern_p, Pattern_p> &write_mapping) : Coroutine(id), read_mapping_(read_mapping),
-                                                                         write_mapping_(write_mapping) {
-    }
 
   public:
-    static ptr<Redirect> create(const ID &id, const Pair<Pattern_p, Pattern_p> &read_mapping,
-                                const Pair<Pattern_p, Pattern_p> &write_mapping) {
-      auto redirect_p = ptr<Redirect>(new Redirect(id, read_mapping, write_mapping));
-      return redirect_p;
-    }
-
-    void setup() override {
-      Coroutine::setup();
-      //   //remote/soc/gpio/#    /
-     // this->write(id_p(this->pattern()->resolve("./0")),
-     //             Obj::to_lst({vri(this->read_mapping_.first), vri(this->read_mapping_.second)}),RETAIN_MESSAGE);
-     // this->write(id_p(this->pattern()->resolve("./1")),
-     //           Obj::to_lst({vri(this->write_mapping_.first), vri(this->write_mapping_.second)}),RETAIN_MESSAGE);
-      router()->route_subscription(subscription_p(*this->id(),
-                                                  *this->read_mapping_.first,
-                                                  Insts::to_bcode([this](const Message_p &message) {
-                                                    const fURI_p rewrite = furi_p(
-                                                      this->read_mapping_.second->path(message->target.path()));
-                                                    const Obj_p payload = message->payload;
-                                                    router()->write(rewrite, payload, message->retain);
-                                                  })));
-       router()->route_subscription(subscription_p(*this->id(),
-                                                   *this->write_mapping_.first,
-                                                   Insts::to_bcode([this](const Message_p &message) {
-                                                     const fURI_p rewrite = furi_p(
-                                                       this->write_mapping_.second->path(message->target.path()));
-                                                     const Obj_p payload = message->payload;
-                                                     router()->write(rewrite, payload, message->retain);
-                                                   })));
+    static ptr<Obj> create(const ID &id, const Pair<Pattern_p, Pattern_p> &read_mapping,
+                           const Pair<Pattern_p, Pattern_p> &write_mapping) {
+      router()->route_subscription(
+          subscription_p(id, *read_mapping.first, Subscription::to_bcode([read_mapping](const Message_p &message) {
+                           const fURI_p rewrite = furi_p(read_mapping.second->path(message->target.path()));
+                           const Obj_p payload = message->payload;
+                           router()->pull_exec(id_p(*rewrite), payload);
+                         })));
+      router()->route_subscription(
+          subscription_p(id, *write_mapping.first, Subscription::to_bcode([write_mapping](const Message_p &message) {
+                           const fURI_p rewrite = furi_p(write_mapping.second->path(message->target.path()));
+                           const Obj_p payload = message->payload;
+                           router()->pull_exec(id_p(*rewrite), payload);
+                         })));
+      return noobj();
     }
   };
 } // namespace fhatos

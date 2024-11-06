@@ -99,7 +99,7 @@ namespace fhatos {
           LOG(DEBUG, "Telnet publishing: %s::%s\n",
               OTypes.toChars(conversion.pattern()).c_str(),
               conversion.toString().c_str());
-          tthis->publish(*tthis->currentTopic, &conversion, TRANSIENT_MESSAGE);
+          tthis->publish(*tthis->currentTopic, &conversion, TRANSIENT);
         } else if (line.startsWith("?")) {
           tthis->query(tthis->currentTopic->query(line.c_str()),
                        [](const Message &message) {

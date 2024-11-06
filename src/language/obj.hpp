@@ -201,6 +201,7 @@ namespace fhatos {
 
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
+  using InstF = BiFunction<InstArgs,Obj_p,Obj_p>;
   using InstFunction = Function<Obj_p, Obj_p>;
   using InstFunctionSupplier = Function<InstArgs, InstFunction>;
   using InstSeedSupplier = Function<Obj_p, Obj_p>;
@@ -466,6 +467,14 @@ namespace fhatos {
       if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       this->lst_value()->push_back(obj);
+    }
+
+    [[nodiscard]] Int_p lst_size() const {
+      return Obj::to_int(this->lst_value()->size());
+    }
+
+    [[nodiscard]] Obj_p lst_get(const uint16_t &index) const {
+      return this->lst_get(Obj::to_int(index));
     }
 
     [[nodiscard]] Obj_p lst_get(const Int_p &index) const {
@@ -743,7 +752,7 @@ namespace fhatos {
         default:
           throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
-      if (this->is_error() || (include_type && (this->type_->path_length() > 2))) {
+      if (this->is_error() || (strict && this->is_uri()) || (include_type && (this->type_->path_length() > 2))) {
         obj_string = string("!b")
             .append(this->type_->name())
             .append(this->is_inst() ? "!g(!!" : "!g[!!")
@@ -1356,6 +1365,14 @@ namespace fhatos {
       return to_rec(map, type, id);
     }
 
+    static InstSeedSupplier objs_seed() {
+      return [](const Obj_p &) { return to_objs(); };
+    }
+
+    static InstSeedSupplier noobj_seed() {
+      return [](const Obj_p &) { return to_noobj(); };
+    }
+
     static Inst_p to_inst(const InstValue &value, const ID_p &type = INST_FURI) {
       fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INST));
       return make_shared<Inst>(value, type);
@@ -1363,7 +1380,7 @@ namespace fhatos {
 
     static Inst_p to_inst(
         const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function, const IType itype,
-        const InstSeedSupplier &seed = [](const Obj_p &) { return Obj::to_noobj(); }, const ID_p &type = nullptr) {
+        const InstSeedSupplier &seed = noobj_seed(), const ID_p &type = nullptr) {
       const ID_p fix = type ? type : id_p(INST_FURI->resolve(opcode));
       return to_inst({args, function, itype, seed}, fix);
     }
@@ -1393,14 +1410,6 @@ namespace fhatos {
     static Objs_p to_objs(const ID_p &furi = OBJS_FURI) {
       fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
       return to_objs(make_shared<List<Obj_p>>(), furi);
-    }
-
-    static InstSeedSupplier objs_seed() {
-      return [](const Obj_p &) { return to_objs(); };
-    }
-
-    static InstSeedSupplier noobj_seed() {
-      return [](const Obj_p &) { return to_noobj(); };
     }
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &furi = OBJS_FURI) {

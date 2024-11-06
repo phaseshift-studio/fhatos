@@ -883,6 +883,11 @@ namespace fhatos {
   [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return make_shared<Pattern>(pattern); }
 
   [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return make_shared<Pattern>(pattern); }
+
+  using ValueO = ID;
+  using ValueO_p = ID_p;
+  using TypeO = ID;
+  using TypeO_p = ID_p;
 } // namespace fhatos
 
 #endif

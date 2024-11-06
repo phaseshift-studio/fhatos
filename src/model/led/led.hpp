@@ -36,7 +36,7 @@ namespace fhatos {
         });
       }});
       this->write_functions_->insert({p_p("/ui/led/+"), [this](const fURI_p &furi, const Obj_p &obj) -> ReadRawResult {
-        router()->write(furi_p(this->pwm_pattern_->resolve(string("./") + furi->name())), obj,RETAIN_MESSAGE);
+        router()->write(furi_p(this->pwm_pattern_->resolve(string("./") + furi->name())), obj,RETAIN);
         return {};
       }});
     }

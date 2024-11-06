@@ -27,11 +27,28 @@ namespace fhatos {
   public:
     ObjHelper() = delete;
 
+    static Obj_p apply_lhs_args(const Obj_p &old_obj, const Lst_p &lhs_args) {
+      if (old_obj->is_noobj())
+        throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b%s!!", old_obj->toString().c_str());
+      LOG(DEBUG, "apply_lhs_args: %s => %s\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
+      if (!lhs_args->is_lst())
+        return old_obj->apply(lhs_args);
+      if (lhs_args->is_lst() && lhs_args->lst_size()->int_value() == 1)
+        return old_obj->apply(lhs_args->lst_get(0));
+      if (lhs_args->is_lst() && lhs_args->lst_size()->int_value() > 1) {
+        const Obj_p new_obj = ObjHelper::replace_from_obj(*lhs_args->lst_get(1)->lst_value(), old_obj);
+        LOG(DEBUG, "structure read() transformed bcode: %s => %s\n", old_obj->toString().c_str(),
+            new_obj->toString().c_str());
+        return new_obj->apply(lhs_args->lst_get(0));
+      }
+      return old_obj;
+    }
+
     static Inst_p replace_from_inst(const InstArgs &args, const Inst_p &old_inst) {
       if (old_inst->inst_op() == "from" && old_inst->inst_arg(0)->is_uri() &&
           old_inst->inst_arg(0)->uri_value().toString()[0] == '_' &&
-          StringHelper::is_integer(old_inst->inst_arg(0)->uri_value().toString().substr(1))) {
-        const uint8_t index = stoi(old_inst->inst_arg(0)->uri_value().toString().substr(1));
+          StringHelper::is_integer(old_inst->inst_arg(0)->uri_value().name().substr(1))) {
+        const uint8_t index = stoi(old_inst->inst_arg(0)->uri_value().name().substr(1));
         if (index < args.size())
           return args.at(index);
         if (old_inst->inst_args().size() == 2)
@@ -113,6 +130,51 @@ namespace fhatos {
       }
       return rec;
     }
+
+    class InstTypeBuilder {
+      explicit InstTypeBuilder(const TypeO_p &type) : type_(type) {}
+
+    protected:
+      TypeO_p type_;
+      InstArgs args_{};
+      InstFunctionSupplier function_supplier_{};
+      IType itype_{IType::ONE_TO_ONE};
+
+    public:
+      static InstTypeBuilder *build(const TypeO &type) { return new InstTypeBuilder(id_p(type)); }
+
+      InstTypeBuilder *type_args(const Obj_p &arg0) {
+        this->args_.push_back(arg0);
+        return this;
+      }
+
+      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1) {
+        this->args_.push_back(arg0);
+        this->args_.push_back(arg1);
+        return this;
+      }
+      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1, const Obj_p &arg2) {
+        this->args_.push_back(arg0);
+        this->args_.push_back(arg1);
+        this->args_.push_back(arg2);
+        return this;
+      }
+
+      InstTypeBuilder *instance_f(const InstF &inst_f) {
+        this->function_supplier_ = [inst_f](const InstArgs &args) {
+          return [args, inst_f](const Obj_p &obj) { return inst_f(args, obj); };
+        };
+        return this;
+      }
+
+      Inst_p create(const ValueO_p &value_id = nullptr) const {
+        const Inst_p p = Obj::to_inst(this->type_->name(), this->args_, this->function_supplier_, itype_,
+                                      Obj::noobj_seed(), this->type_);
+
+        delete this;
+        return value_id ? p->at(value_id) : p;
+      }
+    };
   };
 } // namespace fhatos
 #endif

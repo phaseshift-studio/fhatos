@@ -62,7 +62,7 @@ namespace fhatos {
                 "Request timeout for %s [unknown] icmp_seq %i failure_rate=%.2f%%",
                 this->id().path().c_str(), this->counter, this->failureRate());
       }
-      this->publish(this->id(), new BinaryObj(message), TRANSIENT_MESSAGE);
+      this->publish(this->id(), new BinaryObj(message), TRANSIENT);
     }
 
     float failureRate() const {
@@ -116,7 +116,7 @@ namespace fhatos {
       Actor<PROCESS, ROUTER>::loop();
       List<Process *> *results = Scheduler::singleton()->find(this->id().extend("+"));
       for (Process *child: *results) {
-        this->publish(child->id().query("?loop"), "", TRANSIENT_MESSAGE);
+        this->publish(child->id().query("?loop"), "", TRANSIENT);
       }
       delete results;
       delay(1000);
@@ -145,7 +145,7 @@ namespace fhatos {
         message = message + line;
       }
       delete results;
-      this->publish(queryId, message, RETAIN_MESSAGE);
+      this->publish(queryId, message, RETAIN);
     }
   };
 } // namespace fhatos

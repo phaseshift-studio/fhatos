@@ -24,8 +24,8 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
-#define RETAIN_MESSAGE true
-#define TRANSIENT_MESSAGE false
+#define RETAIN true
+#define TRANSIENT false
 
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",            \

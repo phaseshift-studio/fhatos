@@ -47,7 +47,7 @@
 #include <model/soc/esp/wifi.hpp>
 #include <model/soc/memory/esp32/memory.hpp>
 // #include FOS_TIMER(timer.hpp)
-// #include <structure/stype/redirect.hpp>
+//#include <structure/stype/redirect.hpp>
 #endif
 
 #ifdef NATIVE
@@ -73,9 +73,9 @@ namespace fhatos {
         // load_process_spawner(); // TODO: remove
         load_structure_attacher(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-                                   ->using_printer(Ansi<>::singleton())
-                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+            ->using_printer(Ansi<>::singleton())
+            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -96,8 +96,6 @@ namespace fhatos {
             ->install(CommonObjs::parser("/dev/parser"))
             ->install(mmadt::mmADT::singleton())
             ->model("/model/sys/")
-        //->mount(Sys::singleton("/sys/#"))
-        //
 #ifdef ESP_ARCH
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
@@ -105,22 +103,27 @@ namespace fhatos {
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-        // ->mount(
-        //     Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-        //                                         args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+            //   ->mount(Mqtt::create("//+/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+            //                                              args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+
 #ifdef NATIVE
-        //   ->structure(GPIO<fURIDigitalPinDriver>::create(
-        //       "/soc/gpio/#", fURIDigitalPinDriver::create("//read/soc/gpio/#", "//write/soc/gpio/#")))
+            ->mount(
+                Mqtt::create("//driver/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                                         args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+             ->mount(Heap::create("/driver/#"))
+            ->install(fDriver::gpio_furi("/driver/gpio/furi", id_p("//driver/gpio")))
 #elif defined(ESP_ARCH)
-            //       ->structure(GPIO<ArduinoDigitalPinDriver>::create("/soc/gpio/#",
-            //       ArduinoDigitalPinDriver::singleton()))
-            ->mount(Heap::create("/driver/#"))
-            ->install(fDriver::gpio("/driver/gpio"))
+            ->mount(
+               Mqtt::create("//driver/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                                        args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+        ->mount(Heap::create("/driver/#"))
+            ->install(fDriver::gpio_pin("/driver/gpio/pin",id_p("//driver/gpio")))
             ->mount(Memory::singleton("/soc/memory/#"))
         //->structure(BLE::create("/io/bt/#"))
-        //  ->process(Redirect::create("/redirect/",
-        //                            Pair<Pattern_p, Pattern_p>{p_p("/soc/gpio/#"), p_p("//read/soc/gpio/#")},
-        //                            Pair<Pattern_p, Pattern_p>{p_p("//write/soc/gpio/#"), p_p("/soc/gpio/#")}))
+        /* ->install(Redirect::create(
+             "/redirect/",
+             Pair<Pattern_p, Pattern_p>{p_p("/driver/gpio/:digital_read"), p_p("//driver/gpio/:digital_read")},
+             Pair<Pattern_p, Pattern_p>{p_p("//driver/gpio/:digital_write"), p_p("/driver/gpio/:digital_write")}))*/
 #endif
 
             //  ->driver(ArduinoGPIODriver::create("//gpio/arduino/request", "//gpio/arduino/response"))
