@@ -100,7 +100,7 @@ namespace fhatos {
         LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->id()->toString().c_str(),
                       stack_size);
         this->rec_get(vri("process"))->lst_add(vri(process->id()));
-        //router()->write(this->id(), PtrHelper::no_delete(this));
+        router()->write(this->id(), PtrHelper::no_delete(this));
       } else {
         const char *reason = threadResult == -1 ? "COULD_NOT_ALLOCATE_REQUIRED_MEMORY" : "UNKNOWN_REASON";
         LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->id()->toString().c_str(),

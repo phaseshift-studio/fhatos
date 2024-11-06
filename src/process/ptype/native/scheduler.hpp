@@ -93,7 +93,7 @@ namespace fhatos {
       LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned\n", process->id()->toString().c_str());
 
       this->rec_get(vri("process"))->lst_add(vri(process->id()));
-     // router()->write(this->id(), PtrHelper::no_delete(this));
+      router()->write(this->id(), PtrHelper::no_delete(this));
       return true;
     }
 
