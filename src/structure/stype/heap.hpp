@@ -22,18 +22,22 @@
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <structure/structure.hpp>
 #include <process/util/mutex_rw.hpp>
+#include <structure/structure.hpp>
+
+#ifdef ESP_ARCH
+#include <util/esp/psram_allocator.hpp>
+#endif
 
 namespace fhatos {
+  template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
   class Heap : public Structure {
   protected:
-    Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
+    Map_p<const ID_p, Obj_p, furi_p_less, ALLOCATOR> data_ =
+        make_shared<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
-    explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) :
-      Structure(pattern, stype) {
-    }
+    explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) : Structure(pattern, stype) {}
 
   public:
     static ptr<Heap> create(const Pattern &pattern) {
@@ -49,7 +53,7 @@ namespace fhatos {
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
       if (retain) {
-        this->mutex_data_.write<ID>([this,id,obj]() {
+         this->mutex_data_.template write<ID>([this, id, obj]() {
           if (this->data_->count(id))
             this->data_->erase(id);
           if (!obj->is_noobj()) {
@@ -62,7 +66,7 @@ namespace fhatos {
     }
 
     IdObjPairs_p read_raw_pairs(const fURI_p &match) override {
-      return this->mutex_data_.read<IdObjPairs_p>([this,match] {
+      return  this->mutex_data_.template read<IdObjPairs_p>([this, match] {
         auto list = make_shared<IdObjPairs>();
         LOG(TRACE, "Reading raw pairs for %s\n", match->toString().c_str());
         for (const auto &[id, obj]: *this->data_) {
@@ -75,6 +79,9 @@ namespace fhatos {
       });
     }
   };
-} // namespace fhatos
 
+#ifdef ESP_ARCH
+  using HeapPSRAM = Heap<PSRAMAllocator<std::pair<const ID_p, Obj_p>>>;
+#endif
+} // namespace fhatos
 #endif
