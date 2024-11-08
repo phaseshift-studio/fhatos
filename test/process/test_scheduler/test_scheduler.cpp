@@ -32,7 +32,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/abc/thread-1"));
     ////////////////////////////////////////////////////////////////////////////
-    const auto a = std::make_shared<Thread>(rec({{vri(":loop"),_}}));
+    const auto a = std::make_shared<Thread>(rec({{Obj::to_uri(":loop"),Obj::to_bcode()}}));
     Scheduler::singleton()->spawn(a);
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));

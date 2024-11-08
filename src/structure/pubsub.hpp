@@ -27,11 +27,14 @@ namespace fhatos {
 #define RETAIN true
 #define TRANSIENT false
 
+  using LHSArgs = Pair<Obj_p, List_p<Obj_p>>;
+  using LHSArgs_p = ptr<LHSArgs>;
+
 #define LOG_SUBSCRIBE(rc, subscription)                                                                                \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gsubscribe!m=>[!b%s!m]!! | !m[onRecv:!!%s!m]!!\n",            \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(),                                  \
-      (subscription)->source.toString().c_str(),                                                                       \
-      (subscription)->pattern.toString().c_str(), (subscription)->on_recv->toString().c_str())
+      (subscription)->source.toString().c_str(), (subscription)->pattern.toString().c_str(),                           \
+      (subscription)->on_recv->toString().c_str())
 #define LOG_UNSUBSCRIBE(rc, source, pattern)                                                                           \
   LOG(((rc) == OK ? DEBUG : ERROR), "!m[!!%s!m][!b%s!m]=!gunsubscribe!m=>[!b%s!m]!!\n",                                \
       (string((rc) == OK ? "!g" : "!r") + ResponseCodes.to_chars(rc) + "!!").c_str(), ((source).toString().c_str()),   \
@@ -85,22 +88,35 @@ namespace fhatos {
   static const ID_p MESSAGE_FURI = id_p(REC_FURI->resolve("./msg"));
 
   struct Message final : ObjWrap {
-    Message(const ID &target,
-            const Obj_p &payload,
-            const bool retain) :
-      ObjWrap(MESSAGE_FURI),
-      target(ID(target)),
-      payload(payload),
-      retain(retain) {
-    }
+    Message(const ID &target, const Obj_p &payload, const bool retain) :
+        ObjWrap(MESSAGE_FURI), target(ID(target)), payload(payload), retain(retain) {}
 
     const ID target;
     const Obj_p payload;
     const bool retain;
 
-    ID_p type() const override {
-      return MESSAGE_FURI;
+    ID_p type() const override { return MESSAGE_FURI; }
+
+    static Lst_p make_lhs_args(const Obj_p &lhs, const List<Obj_p> &args) {
+      return lst({lhs, lst(make_shared<List<Obj_p>>(args))});
     }
+
+    static LHSArgs_p parse_lhs_args(const Obj_p &maybe_lhs_pairs) {
+      if (maybe_lhs_pairs->is_noobj())
+        return make_shared<LHSArgs>(make_pair<Obj_p, List_p<Obj_p>>(noobj(), make_shared<List<Obj_p>>()));
+      if (!maybe_lhs_pairs->is_lst())
+        return make_shared<LHSArgs>(Pair<Obj_p, List_p<Obj_p>>(maybe_lhs_pairs, make_shared<List<Obj_p>>()));
+      return make_shared<LHSArgs>(
+          make_pair<Obj_p, List_p<Obj_p>>(maybe_lhs_pairs->lst_get(0), maybe_lhs_pairs->lst_get(1)->lst_value()));
+    }
+
+    LHSArgs_p lhs_args() const { return parse_lhs_args(this->payload); }
+
+    Obj_p lhs() const { return this->lhs_args()->first; }
+
+    ptr<InstArgs> args() const { return this->lhs_args()->second; }
+
+    Obj_p arg(const uint8_t index) const { return this->lhs_args()->second->at(index); }
 
 
     [[nodiscard]] string toString() const override {
@@ -143,22 +159,14 @@ namespace fhatos {
   static const ID_p SUBSCRIPTION_FURI = id_p(REC_FURI->resolve("./sub"));
 
   struct Subscription final : ObjWrap {
-    Subscription(const ID &source,
-                 const Pattern &pattern,
-                 const BCode_p &on_recv):
-      ObjWrap(SUBSCRIPTION_FURI),
-      source(ID(source)),
-      pattern(Pattern(pattern)),
-      on_recv(on_recv) {
-    }
+    Subscription(const ID &source, const Pattern &pattern, const BCode_p &on_recv) :
+        ObjWrap(SUBSCRIPTION_FURI), source(ID(source)), pattern(Pattern(pattern)), on_recv(on_recv) {}
 
     const ID source;
     const Pattern pattern;
     const BCode_p on_recv;
 
-    ID_p type() const override {
-      return SUBSCRIPTION_FURI;
-    }
+    ID_p type() const override { return SUBSCRIPTION_FURI; }
 
     [[nodiscard]] Rec_p to_rec() const override {
       return rec({{vri(":source"), vri(this->source)},
@@ -189,7 +197,6 @@ namespace fhatos {
   [[nodiscard]] inline Subscription_p subscription_p(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {
     return make_shared<Subscription>(source, pattern, on_recv);
   }
-
 } // namespace fhatos
 
 #endif

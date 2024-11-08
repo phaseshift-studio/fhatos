@@ -49,7 +49,7 @@ namespace mmadt {
           {vri(":on_recv"), Obj::to_bcode()}}));
       Type::singleton()->save_type(THREAD_FURI, Obj::to_bcode({Insts::get(vri(":loop"))}));
       Type::singleton()->save_type(inst_id("a"), Insts::a(x(0)));
-      Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)), false);
+      Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)));
       // this->save_type(inst_id("*"), Insts::from(vri(inst_id("from"))));
       // this->save_type(inst_id("V"), Insts::from(vri(inst_id("drop"))));
       // this->save_type(inst_id("^"), Insts::from(vri(inst_id("lift"))));

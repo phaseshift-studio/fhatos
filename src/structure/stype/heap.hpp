@@ -27,7 +27,7 @@
 
 namespace fhatos {
   class Heap : public Structure {
- protected:
+  protected:
     Map_p<ID_p, const Obj_p, furi_p_less> data_ = make_shared<Map<ID_p, const Obj_p, furi_p_less>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
@@ -64,8 +64,10 @@ namespace fhatos {
     IdObjPairs_p read_raw_pairs(const fURI_p &match) override {
       return this->mutex_data_.read<IdObjPairs_p>([this,match] {
         auto list = make_shared<IdObjPairs>();
+        LOG(TRACE, "Reading raw pairs for %s\n", match->toString().c_str());
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
+            LOG(TRACE, "\tmatched: %s\n", id->toString().c_str(), obj->toString().c_str());
             list->push_back({id, PtrHelper::no_delete<Obj>(obj.get())});
           }
         }

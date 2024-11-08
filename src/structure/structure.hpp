@@ -96,6 +96,7 @@ namespace fhatos {
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
       while (mail.has_value()) {
+        FEED_WATCDOG();
         LOG_STRUCTURE(TRACE, this, "processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
         const Message_p message = mail.value()->second;
@@ -153,6 +154,7 @@ namespace fhatos {
       for (const auto &[id, obj]: *list) {
         if (!obj->is_noobj()) {
           if (id->matches(subscription->pattern)) {
+            FEED_WATCDOG();
             subscription->on_recv->apply(Message(*id, obj,RETAIN).to_rec());
           }
         }
@@ -164,7 +166,7 @@ namespace fhatos {
         LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
         return noobj();
       }
-      if (furi->has_query() && string(furi->query()) == "sub") {
+      if (furi->has_query()) {
         if (string(furi->query()) == "sub") {
           const Objs_p subs = this->get_subscription_objs(p_p(furi->query("")));
           return subs;
@@ -172,40 +174,39 @@ namespace fhatos {
           return noobj();
           // const Str_p doc = this->getd
         }
+      }
+      const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
+      const IdObjPairs_p matches = this->read_raw_pairs(temp);
+      if (furi->is_branch()) {
+        const Rec_p rec = Obj::to_rec();
+        // BRANCH ID AND PATTERN
+        for (const auto &[key, value]: *matches) {
+          rec->rec_set(vri(key), value);
+        }
+        return rec;
       } else {
-        const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
-        const IdObjPairs_p matches = this->read_raw_pairs(temp);
-        if (furi->is_branch()) {
-          const Rec_p rec = Obj::to_rec();
-          // BRANCH ID AND PATTERN
+        // NODE PATTERN
+        if (furi->is_pattern()) {
+          const Objs_p objs = Obj::to_objs();
           for (const auto &[key, value]: *matches) {
-            rec->rec_set(vri(key), value);
+            objs->add_obj(value);
           }
-          return rec;
-        } else {
-          // NODE PATTERN
-          if (furi->is_pattern()) {
-            const Objs_p objs = Obj::to_objs();
-            for (const auto &[key, value]: *matches) {
-              objs->add_obj(value);
+          return objs;
+        }
+        // NODE ID
+        else {
+          if (matches->empty()) {
+            if (furi->path_length() > 0) {
+              // recurse backwards to find a root poly that has respective furi path
+              const Obj_p maybe_poly = this->read(furi_p(furi->retract()));
+              if (maybe_poly->is_rec())
+                return maybe_poly->rec_get(vri(furi->name()));
+              if (maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
+                return maybe_poly->lst_get(jnt(stoi(furi->name())));
             }
-            return objs;
+            return noobj();
           }
-          // NODE ID
-          else {
-            if (matches->empty()) {
-              if (furi->path_length() > 0) {
-                // recurse backwards to find a root poly that has respective furi path
-                const Obj_p maybe_poly = this->read(furi_p(furi->retract()));
-                if (maybe_poly->is_rec())
-                  return maybe_poly->rec_get(vri(furi->name()));
-                if (maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
-                  return maybe_poly->lst_get(jnt(stoi(furi->name())));
-              }
-              return noobj();
-            }
-            return matches->begin()->second;
-          }
+          return matches->begin()->second;
         }
       }
       return noobj();
@@ -306,7 +307,8 @@ namespace fhatos {
           // bcode, pass the output of applying the written obj to bcode to subscribers
           //const BCode_p rewritten_bcode = ;
           // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
-          const Obj_p result = ObjHelper::apply_lhs_args(applicable_obj,obj); // Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
+          const Obj_p result = ObjHelper::apply_lhs_args(applicable_obj, obj);
+          // Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
           this->write_raw_pairs(id_p(*furi), result, retain);
         } else
         // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)

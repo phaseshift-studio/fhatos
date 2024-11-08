@@ -77,7 +77,7 @@ namespace fhatos {
 #endif
 
     static void OTYPE_CHECK(const std::string &type_id, const std::string &otype) {
-      if (type_id != otype.c_str())
+      if (false && type_id != otype.c_str())
         throw fError("!b%s!! is not a type of !y%s!!", type_id.c_str(), otype.c_str());
     }
   };

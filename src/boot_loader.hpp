@@ -32,7 +32,6 @@
 #include FOS_MQTT(mqtt.hpp)
 #include <structure/obj_structure.hpp>
 #include <structure/stype/heap.hpp>
-#include <util/common_objs.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/driver/driver.hpp>
 #include <model/driver/gpio/arduino_gpio_driver.hpp>
@@ -57,45 +56,44 @@
 #endif
 
 namespace fhatos {
-  class BootLoader {
-    /////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////
-  public:
-    static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
-      std::srand(std::time(nullptr));
-      try {
+    class BootLoader {
+        /////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+    public:
+        static ptr<Kernel> primary_boot(const ArgvParser *args_parser) {
+            std::srand(std::time(nullptr));
+            try {
 #ifdef BOARD_HAS_PSRAM
         heap_caps_malloc_extmem_enable(FOS_EXTERNAL_MEMORY_LIMIT);
         // LOG(psramInit() ? INFO : ERROR, "PSRAM initialization\n");
 #endif
-        load_processor(); // TODO: remove
-        // load_process_spawner(); // TODO: remove
-        load_structure_attacher(); // TODO: remove
-        const ptr<Kernel> kp = Kernel::build()
-            ->using_printer(Ansi<>::singleton())
-            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
-        if (args_parser->option("--headers", "true") == "true") {
-          kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
-              ->displaying_architecture()
-              ->displaying_history()
-              ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
-        }
-        ////////////////////////////////////////////////////////////
-        return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
-            ->using_router(Router::singleton("/sys/router/#"))
-            ////////////////////////////////////////////////////////////
-            ->mount(Heap::create("/sys/#"))
-            ->mount(Heap::create("+/#"))
-            ->mount(Heap::create("/type/#"))
-            ->mount(Heap::create("/io/#"))
-
-            ->install(Type::singleton("/type/"))
-            ->install(CommonObjs::terminal("/io/terminal"))
-            ->install(Parser::singleton("/io/parser"))
-            ->install(mmadt::mmADT::singleton())
-            ->model("/model/sys/")
+                load_processor(); // TODO: remove
+                // load_process_spawner(); // TODO: remove
+                load_structure_attacher(); // TODO: remove
+                const ptr<Kernel> kp = Kernel::build()
+                        ->using_printer(Ansi<>::singleton())
+                        ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+                        ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+                if (args_parser->option("--headers", "true") == "true") {
+                    kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
+                            ->displaying_architecture()
+                            ->displaying_history()
+                            ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
+                }
+                ////////////////////////////////////////////////////////////
+                return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+                        ->using_router(Router::singleton("/sys/router/#"))
+                        ////////////////////////////////////////////////////////////
+                        ->mount(Heap::create("/sys/#"))
+                        ->mount(Heap::create("+/#"))
+                        ->mount(Heap::create("/type/#"))
+                        ->mount(Heap::create("/io/#"))
+                        ->install(Type::singleton("/type/"))
+                        ->install(Terminal::singleton("/io/terminal"))
+                        ->install(Parser::singleton("/io/parser"))
+                        ->install(mmadt::mmADT::singleton())
+                        ->model("/model/sys/")
 #ifdef ESP_ARCH
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
@@ -103,31 +101,34 @@ namespace fhatos {
                                                               args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
 #endif
-            ->mount(
-                Mqtt::create("//driver/#", Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                          args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
-            ->mount(Heap::create("/driver/#"))
+                        ->mount(
+                            Mqtt::create("//driver/#", Mqtt::Settings(
+                                             args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                             args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
+                        ->mount(Heap::create("/driver/#"))
 #ifdef NATIVE
-            ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
+                        ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
 #elif defined(ESP_ARCH)
             ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
             ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-            //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
-            ->mount(Heap::create("/console/#"))
-            ->process(Console::create("/console", "/io/terminal",
-                                      Console::Settings(args_parser->option("--console:nest", "false") == "true",
-                                                        args_parser->option("--ansi", "true") == "true",
-                                                        args_parser->option("--console:strict", "false") == "true",
-                                                        LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
-            ->eval([args_parser] { delete args_parser; });
-      } catch (const std::exception &e) {
-        LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
-            e.what());
-        throw;
-      }
-    }
-  };
+                        //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
+                        ->mount(Heap::create("/console/#"))
+                        ->process(Console::create("/console", "/io/terminal",
+                                                  Console::Settings(
+                                                      args_parser->option("--console:nest", "false") == "true",
+                                                      args_parser->option("--ansi", "true") == "true",
+                                                      args_parser->option("--console:strict", "false") == "true",
+                                                      LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
+                        ->eval([args_parser] { delete args_parser; });
+            } catch (const std::exception &e) {
+                LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n",
+                    Ansi<>::silly_print("shutting down").c_str(),
+                    e.what());
+                throw;
+            }
+        }
+    };
 } // namespace fhatos
 #endif

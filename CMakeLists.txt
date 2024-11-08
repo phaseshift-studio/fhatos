@@ -368,9 +368,13 @@ ENDIF()
 ####################################
 ############# TESTING ##############
 ####################################
-ADD_SUBDIRECTORY(test)
+IF(BUILD_TESTS)
+    ADD_SUBDIRECTORY(test)
+ENDIF()
 
 ####################################
 ########## DOCUMENTATION ###########
 ####################################
-ADD_SUBDIRECTORY(docs)
+IF(BUILD_DOCS)
+    ADD_SUBDIRECTORY(docs)
+ENDIF()

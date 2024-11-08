@@ -602,6 +602,15 @@ namespace fhatos {
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("+/#"), ID("x/"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("x/"), Pattern("+/+"));
     FOS_TEST_ASSERT_NOT_MATCH_FURI(Pattern("+/+"), ID("x/"));
+    ///////////////////////////////////
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/a/b/c?k"), ID("/a/b/c?k"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/a/b/c?k"), ID("/a/b/c?v"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/a/b/c"), ID("/a/b/c?k"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/a/b/c?k"), ID("/a/b/c"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/a/b/c?k"), Pattern("/a/b/c?+"));
+    FOS_TEST_ASSERT_NOT_MATCH_FURI(ID("/a/b/c?k"), Pattern("/a/b/c?+/d"));
+    FOS_TEST_ASSERT_MATCH_FURI(ID("/a/b/c?k/d"), Pattern("/a/b/c?+/d"));
+    //FOS_TEST_ASSERT_MATCH_FURI(ID("/a/b/c?k"), ID("a/b/#"));
   }
 
   void test_fhat_idioms() {

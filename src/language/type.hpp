@@ -32,26 +32,27 @@ namespace fhatos {
     ptr<ProgressBar> progress_bar_ = nullptr;
 
   protected:
-    explicit Type(const ID &id = FOS_TYPE_PREFIX) : Obj(share(RecMap<>(
-                                                          {{vri(":check"),
-                                                              Obj::to_bcode([this](const Obj_p &obj) {
-                                                                return dool(this->check_type(
-                                                                  obj->lst_value()->at(0).get(),
-                                                                  furi_p(obj->lst_value()->at(1)->uri_value())));
-                                                              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-                                                            {vri(":start_progress_bar"),
-                                                              Obj::to_bcode([this](const Int_p &obj) {
-                                                                this->start_progress_bar(obj->int_value());
-                                                                return noobj();
-                                                              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-                                                            {vri(":end_progress_bar"),
-                                                              Obj::to_bcode([this](const Str_p &obj) {
-                                                                this->end_progress_bar(obj->str_value());
-                                                                return noobj();
-                                                              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-                                                          })),
-                                                        REC_FURI,
-                                                        id_p(id)) {
+    explicit Type(const ID &id = FOS_TYPE_PREFIX) :
+      Obj(share(RecMap<>(
+          {{vri(":check"),
+            Obj::to_bcode([this](const Obj_p &obj) {
+              return dool(this->check_type(
+                  obj->lst_value()->at(0).get(),
+                  furi_p(obj->lst_value()->at(1)->uri_value())));
+            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+           {vri(":start_progress_bar"),
+            Obj::to_bcode([this](const Int_p &obj) {
+              this->start_progress_bar(obj->int_value());
+              return noobj();
+            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+           {vri(":end_progress_bar"),
+            Obj::to_bcode([this](const Str_p &obj) {
+              this->end_progress_bar(obj->str_value());
+              return noobj();
+            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+          })),
+          REC_FURI,
+          id_p(id)) {
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const fURI_p &type_id, const bool throw_on_fail) -> bool {
         //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
@@ -106,27 +107,26 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
-    void save_type(const ID_p &type_id, const Obj_p &type_def, const bool via_pub = false) const {
+    void save_type(const ID_p &type_id, const Obj_p &type_def) const {
       try {
-        if (!via_pub) {
-          const Obj_p current = this->rec_get(type_id); // router()->read(type_id);
-          if (current != type_def) {
-            if (!current->is_noobj() && !this->progress_bar_)
-              LOG_PROCESS(WARN, this, "!b%s!g[!!%s!g] !ytype!! overwritten\n", type_id->toString().c_str(),
-                        current->toString().c_str());
-            this->rec_set(type_id, type_def);
-          }
-        } else {
-          this->rec_set(type_id, type_def);
-        }
-        if (!this->progress_bar_) {
-          LOG_PROCESS(INFO, this, "!b%s!g[!!%s!g] !ytype!! defined\n", type_id->toString().c_str(),
-                      type_def->toString().c_str());
+        const Obj_p current = router()->read(type_id);
+        router()->write(type_id, type_def);
+        if (this->progress_bar_) {
+          this->progress_bar_->incr_count(type_id->toString());
+          if (this->progress_bar_->done());
           router()->write(this->id(), PtrHelper::no_delete<Obj>((Obj *) this));
         } else {
-          this->progress_bar_->incr_count(type_id->toString());
-          if (this->progress_bar_->done())
-            router()->write(this->id(), share<Type>(*this));
+          if (current == type_def) {
+            LOG_PROCESS(WARN, this, FURI_WRAP " !ytype!! already defined equivalently\n", type_id->toString().c_str());
+          } else {
+            if (current->is_noobj()) {
+              LOG_PROCESS(INFO, this, FURI_WRAP " !ytype!! defined\n", type_id->toString().c_str(),
+                          type_def->toString().c_str());
+            } else {
+              LOG_PROCESS(WARN, this, FURI_WRAP " !ytype!! overwritten\n", type_id->toString().c_str(),
+                          current->toString().c_str());
+            }
+          }
         }
       } catch (const fError &e) {
         LOG_PROCESS(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
@@ -134,7 +134,7 @@ namespace fhatos {
     }
 
     bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
-      const Obj_p existing_type_def = this->rec_get(type_id); //router()->read(type_id);
+      const Obj_p existing_type_def = router()->read(type_id);
       return !existing_type_def->is_noobj() && (*existing_type_def == *type_def);
     }
 
@@ -165,7 +165,7 @@ namespace fhatos {
         // base type (otype)
         return true;
       }
-      const Obj_p type = this->rec_get(type_id);
+      const Obj_p type = router()->read(type_id); // this->rec_get(type_id);
       if (!type->is_noobj()) {
         if (obj->match(type, false)) {
           return true;

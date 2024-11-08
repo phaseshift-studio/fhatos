@@ -96,7 +96,7 @@ namespace fhatos {
         LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
                       MQTT_STATE_CODES.at(MQTT_CONNECTION->state()).c_str());
         if (!MQTT_CONNECTION->connect(this->settings_.client_.c_str())) {
-          Process::current_process()->delay(FOS_MQTT_RETRY_WAIT / 1000);
+          usleep(FOS_MQTT_RETRY_WAIT * 10);
         }
       }
       if (!MQTT_CONNECTION->loop()) {

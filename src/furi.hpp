@@ -475,7 +475,7 @@ namespace fhatos {
             (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
           return false;
       }
-      return this->path_length_ == pattern.path_length();
+      return this->query() == pattern.query() && this->path_length_ == pattern.path_length();
     }
 
     bool operator=(const fURI &other) const { return this->equals(other); }
@@ -505,7 +505,7 @@ namespace fhatos {
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       this->path_length_ = other.path_length_;
-      this->query_ = other.query_ && strcmp("", other.query_) != 0 ? strdup(other.query_) : nullptr;
+      this->query_ = other.query_ ? strdup(other.query_) : nullptr;
       // this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
       for (uint8_t i = 0; i < other.path_length_; i++) {

@@ -27,12 +27,16 @@
 #include <string.h>
 #include <thread>
 #include <time.h>
+#include <mutex>
 #include <util/options.hpp>
 #include <util/string_printer.hpp>
+
 
 using namespace std;
 
 namespace fhatos {
+  inline auto stdout_mutex = std::mutex();
+
   class CPrinter {
   public:
     static CPrinter *singleton() {
@@ -40,16 +44,32 @@ namespace fhatos {
       return &printer;
     }
 #ifdef NATIVE
-    static int print(const char *c_str) { return printf("%s", c_str); }
-    static void flush() { fflush(stdout); }
+    static int print(const char *c_str) {
+      std::lock_guard<std::mutex> lock(stdout_mutex);
+      return printf("%s", c_str);
+    }
+
+    static void flush() {
+      std::lock_guard<std::mutex> lock(stdout_mutex);
+      fflush(stdout);
+    }
 #else
-    static int print(const char *c_str) { return Serial.printf("%s", c_str); }
-    static void flush() { Serial.flush(); }
+    static int print(const char *c_str) {
+      std::lock_guard<std::mutex> lock(stdout_mutex);
+      return Serial.printf("%s", c_str);
+    }
+    static void flush() {
+      std::lock_guard<std::mutex> lock(stdout_mutex);
+      Serial.flush();
+    }
 #endif
   };
 
+
   template<typename PRINTER = CPrinter>
   class Ansi {
+
+
   public:
     static shared_ptr<Ansi<PRINTER>> singleton() {
       static Ansi<PRINTER> ansi = Ansi<PRINTER>();
@@ -140,25 +160,27 @@ namespace fhatos {
           this->printer_.print(buffer[i]);
         }
       }
+
       this->printer.print(this->buffer_.c_str());
       this->flush();
     }
 
   public:
-    Ansi() : printer(*CPrinter::singleton()) {
+    Ansi() :
+      printer(*CPrinter::singleton()) {
     }
 
-    explicit Ansi(string *str) : printer(StringPrinter(str)) {
+    explicit Ansi(string *str) :
+      printer(StringPrinter(str)) {
     }
 
-    explicit Ansi(PRINTER printer) : printer(printer) {
+    explicit Ansi(PRINTER printer) :
+      printer(printer) {
     }
 
     void on(bool turn_on = true) { this->on_ = turn_on; }
 
-    bool is_on() const {
-      return this->on_;
-    }
+    bool is_on() const { return this->on_; }
 
     void print(const char c) { this->parse(&c, 1); }
 
@@ -173,9 +195,8 @@ namespace fhatos {
     PRINTER get_printer() { return this->printer; }
 
     void flush() {
-      //if (this->buffer_)
-      this->buffer_.clear();
       this->printer.flush();
+      this->buffer_.clear();
     }
 
     static string strip(const string &s) {
@@ -308,10 +329,9 @@ namespace fhatos {
       for (size_t i = 0; i < strlen(text); i++) {
         if (rainbow)
           ret = ret.append("!").append(string("") + colors[rand() % colors.length()]);
-        ret = ret.append(string("") +
-                         static_cast<char>(rollercoaster
-                                             ? (rand() % 2 ? tolower(text[i]) : toupper(text[i]))
-                                             : text[i]));
+        ret =
+            ret.append(string("") +
+                       static_cast<char>(rollercoaster ? (rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
       }
       if (rainbow)
         ret = ret.append("!!");
@@ -330,8 +350,8 @@ namespace fhatos {
     uint8_t current_counts_;
     const char *meter_icon_;
 
-    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") : ansi_(ansi),
-      total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") :
+      ansi_(ansi), total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
     }
 
   public:

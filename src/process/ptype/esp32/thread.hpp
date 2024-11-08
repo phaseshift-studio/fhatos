@@ -30,9 +30,15 @@ namespace fhatos {
 
     explicit Thread(const Rec_p &setup_loop_stop) : Process(setup_loop_stop) {}
 
-    void delay(const uint64_t milliseconds) override { vTaskDelay(milliseconds / portTICK_PERIOD_MS); }
+    void delay(const uint64_t milliseconds) override {
+      Process::delay(milliseconds);
+      vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+    }
 
-    void yield() override { taskYIELD(); }
+    void yield() override {
+      Process::yield();
+      taskYIELD();
+    }
   };
 } // namespace fhatos
 

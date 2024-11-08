@@ -183,7 +183,7 @@ namespace fhatos {
     current_structure->recv_unsubscribe(id_p("test_data_types"), id_p(*make_test_pattern("abc")));
     if (auto_loop)
       current_structure->loop();
-    current_structure->write(id_p(*make_test_pattern("abc")),noobj(),RETAIN_MESSAGE);
+    current_structure->write(id_p(*make_test_pattern("abc")),noobj(),RETAIN);
   }
 
   void test_subscribe() {
@@ -205,7 +205,7 @@ namespace fhatos {
     router()->route_subscription(subscription_p("a/test/case", *make_test_pattern("test"), on_recv));
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
-    router()->write(id_p(*make_test_pattern("test")), Obj::to_bool(true), TRANSIENT_MESSAGE);
+    router()->write(id_p(*make_test_pattern("test")), Obj::to_bool(true), TRANSIENT);
     scheduler()->barrier("waiting_for_messages", [pings]() {
       if (auto_loop)
         current_structure->loop();
@@ -216,7 +216,7 @@ namespace fhatos {
     // UNSUBSCRIBE HERE (THUS, NO MORE pings MUTATIONS)
     if (auto_loop)
       current_structure->loop();
-    router()->write(id_p(*make_test_pattern("test")), Obj::to_bool(true), TRANSIENT_MESSAGE);
+    router()->write(id_p(*make_test_pattern("test")), Obj::to_bool(true), TRANSIENT);
     if (auto_loop)
       current_structure->loop(); // TODO: automatic for particular SType?
     TEST_ASSERT_EQUAL_INT(1, pings->load()); // shouldn't change as subscribe has unsubscribed by now
