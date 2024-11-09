@@ -51,11 +51,11 @@ namespace fhatos {
               return noobj();
             }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
           })),
-            OType::REC,
+          OType::REC,
           REC_FURI,
           id_p(id)) {
       ////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_CHECKER = [this](const Obj *obj, const fURI_p &type_id, const bool throw_on_fail) -> bool {
+      TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
         //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
         if (type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))
           return true;
@@ -65,15 +65,17 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
         const ID_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
-        if (OTypes.to_enum(resolved_type_id->path(FOS_BASE_TYPE_INDEX)) != obj->o_type())
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
-                       resolved_type_id->toString().c_str());
-        const Obj_p type_def = this->rec_get(type_id); // router()->read(resolved_type_id);
-        // TODO: require all type_defs be bytecode to avoid issue with type constant mapping
-        const Obj_p proto_obj = is_base_type(resolved_type_id) || (!type_def->is_bcode() && !type_def->is_inst())
+        const Obj_p type_def = router()->read(resolved_type_id);
+        if (type_def->is_noobj()) {
+          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+                       type_id->toString().c_str());
+        }
+        // TODO: require all type_defs be bytecode to avoid issue with type constant mapping ??
+        const Obj_p proto_obj = type_id->equals(*OTYPE_FURI.at(obj->o_type())) || (
+                                  !type_def->is_bcode() && !type_def->is_inst())
                                   ? obj
                                   : type_def->apply(obj);
-        if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
+        if (proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
         return make_shared<Obj>(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
@@ -99,12 +101,6 @@ namespace fhatos {
       }
     }
 
-    /*void rec_set(const fURI_p &key, const Obj_p &value) const override {
-      if (this->check_type(value.get(), key)) {
-        this->save_type(id_p(*key), value);
-      }
-    }*/
-
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
@@ -115,60 +111,47 @@ namespace fhatos {
           router()->write(type_id, type_def);
           this->progress_bar_->incr_count(type_id->toString());
           if (this->progress_bar_->done())
-          router()->write(this->vid(), PtrHelper::no_delete<Obj>((Obj *) this));
+            router()->write(this->vid(), PtrHelper::no_delete<Obj>((Obj *) this));
         } else {
-            if (current->is_noobj()) {
-              router()->write(type_id, type_def);
-              LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! defined\n", this->vid()->toString().c_str(), type_id->toString().c_str(),
-                          type_def->toString().c_str());
-            } else {
-              router()->write(type_id, type_def);
-              LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! overwritten\n", this->vid()->toString().c_str(), type_id->toString().c_str());
-            }
+          if (current->is_noobj()) {
+            router()->write(type_id, type_def);
+            LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! defined\n", this->vid()->toString().c_str(),
+                type_id->toString().c_str(),
+                type_def->toString().c_str());
+          } else {
+            router()->write(type_id, type_def);
+            LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! overwritten\n", this->vid()->toString().c_str(),
+                type_id->toString().c_str());
+          }
         }
       } catch (const fError &e) {
         LOG_PROCESS(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 
-    bool type_exists(const ID_p &type_id, const Obj_p &type_def) const {
-      const Obj_p existing_type_def = router()->read(type_id);
-      return !existing_type_def->is_noobj() && (*existing_type_def == *type_def);
-    }
-
+    // syntax sugar hack to allow users to type 'int' instead of '/type/int/'
     static ID_p resolve_shortened_base_type(const fURI_p &type, const fURI_p &furi) {
       return OTypes.has_enum(furi->toString())
-               ? id_p(ID(string(FOS_TYPE_PREFIX) + furi->name()))
+               ? OTYPE_FURI.at(OTypes.to_enum(furi->toString()))
                : id_p(type->resolve(*furi));
     }
 
-    static bool is_base_type(const ID_p &type_id) { return type_id->path_length() == FOS_BASE_TYPE_INDEX + 1; }
-
     bool check_type(const Obj *obj, const fURI_p &type_id, const bool do_throw = true) const
       noexcept(false) {
-       if (obj->tid()->equals(*type_id)) {
       // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-         return true;
-}
-      const OType type_otype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-      if (obj->o_type() == OType::INST || obj->o_type() == OType::BCODE || type_otype == OType::INST || type_otype ==
-          OType::BCODE)
+      if (obj->tid()->equals(*type_id))
         return true;
-      if (obj->o_type() != type_otype) {
-        if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString(false).c_str(),
-                       type_id->toString().c_str());
-        return false;
-      }
-      if (type_id->path_length() == (FOS_BASE_TYPE_INDEX + 1)) {
-        // base type (otype)
+      // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
+      if (obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
         return true;
-      }
-      const Obj_p type = router()->read(type_id); // this->rec_get(type_id);
+      // if the type is a base type and the base types match, then type check passes
+      if (type_id->equals(*OTYPE_FURI.at(obj->o_type())))
+        return true;
+      // get the type defintion and match it to the obj
+      const Obj_p type = router()->read(type_id);
       if (!type->is_noobj()) {
-        if (obj->match(type, false)) {
+        if (obj->match(type, false))
           return true;
-        }
         if (do_throw)
           throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!", this->vid()->toString().c_str(),
                        obj->toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());

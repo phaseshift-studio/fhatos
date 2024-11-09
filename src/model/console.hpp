@@ -195,6 +195,7 @@ namespace fhatos {
                    })}}, THREAD_FURI, id_p(id))),
       stdin_id(id_p(terminal.extend(":stdin"))),
       stdout_id(id_p(terminal.extend(":stdout"))) {
+      LOG(INFO, "CONSOLE: %s\n", this->toString().c_str());
     }
 
   public:

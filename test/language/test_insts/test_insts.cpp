@@ -64,10 +64,10 @@ namespace fhatos {
   }
 
   void test_apply() {
-    test_obj(obj(6), obj(5), obj(5));
-    test_obj(obj(3), obj("a"), obj("a"));
-    test_obj(obj("a"), obj("b"), obj("b"));
-    test_obj(vri("http://fhatos.org"), obj({1, 2, 3}), obj({1, 2, 3}));
+    test_obj(jnt(6), jnt(5), jnt(5));
+    test_obj(jnt(3), str("a"), str("a"));
+    test_obj(str("a"), str("b"), str("b"));
+    test_obj(vri("http://fhatos.org"), lst({jnt(1), jnt(2), jnt(3)}), lst({jnt(1), jnt(2), jnt(3)}));
     /// _bcode => mult[int]
    // test_inst(Obj::to_bcode({Insts::plus(obj(5))}), //
     //          Insts::mult(obj(10)), //
@@ -91,9 +91,9 @@ namespace fhatos {
 
   void test_barrier() {
     // <1,2,'a',['x',abc]> =| barrier(count()) => <3>
-    test_inst(objs({obj(1), obj(2), obj("a"), lst({obj("x"), vri("abc")})}), //
+    test_inst(objs({jnt(1), jnt(2), str("a"), lst({str("x"), vri("abc")})}), //
               Insts::barrier(bcode({Insts::count()})), //
-              objs({obj(4)}));
+              objs({jnt(4)}));
   }
 
   void test_within() { test_inst(lst({jnt(1), jnt(2), jnt(3)}), Insts::within(bcode({Insts::sum()})), lst({jnt(6)})); }

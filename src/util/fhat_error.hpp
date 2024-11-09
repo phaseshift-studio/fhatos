@@ -80,6 +80,7 @@ namespace fhatos {
       if (false && type_id != otype.c_str())
         throw fError("!b%s!! is not a type of !y%s!!", type_id.c_str(), otype.c_str());
     }
+
   };
 } // namespace fhatos
 #undef FOS_ERROR_MESSAGE_SIZE

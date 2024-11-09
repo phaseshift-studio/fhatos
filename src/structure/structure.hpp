@@ -242,66 +242,64 @@ namespace fhatos {
               this->recv_subscription(from_subscription_obj(obj));
             }
           }
-          return;
-        } else {
-          //// WRITES
-          if (furi->is_branch()) {
-            // BRANCH (POLYS)
-            if (obj->is_noobj()) {
-              // nobj
-              const IdObjPairs_p ids = this->read_raw_pairs(furi_p(furi->extend("+")));
-              for (const auto &[key, value]: *ids) {
-                this->write_raw_pairs(key, obj, retain);
-              }
-            } else if (obj->is_rec()) {
-              // rec
-              const auto remaining = share(Obj::RecMap<>());
-              for (const auto &[key, value]: *obj->rec_value()) {
-                if (key->is_uri()) {
-                  // uri key
-                  this->write(id_p(key->uri_value()), value, retain);
-                  distribute_to_subscribers(message_p(ID(key->uri_value()), value, retain));
-                } else // non-uri key
-                  remaining->insert({key, value});
-              }
-              if (!remaining->empty()) {
-                // non-uri keyed pairs written to /0
-                this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
-              }
-            } else if (obj->is_lst()) {
-              // lst /0,/1,/2 indexing
-              const List_p<Obj_p> list = obj->lst_value();
-              for (size_t i = 0; i < list->size(); i++) {
-                this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
-              }
-            } else {
-              // BRANCH (MONOS)
-              // monos written to /0
-              this->write_raw_pairs(id_p(*furi), obj, retain);
+        }
+        //// WRITES
+        if (furi->is_branch()) {
+          // BRANCH (POLYS)
+          if (obj->is_noobj()) {
+            // nobj
+            const IdObjPairs_p ids = this->read_raw_pairs(furi_p(furi->extend("+")));
+            for (const auto &[key, value]: *ids) {
+              this->write_raw_pairs(key, obj, retain);
+            }
+          } else if (obj->is_rec()) {
+            // rec
+            const auto remaining = share(Obj::RecMap<>());
+            for (const auto &[key, value]: *obj->rec_value()) {
+              if (key->is_uri()) {
+                // uri key
+                this->write(id_p(key->uri_value()), value, retain);
+                distribute_to_subscribers(message_p(ID(key->uri_value()), value, retain));
+              } else // non-uri key
+                remaining->insert({key, value});
+            }
+            if (!remaining->empty()) {
+              // non-uri keyed pairs written to /0
+              this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
+            }
+          } else if (obj->is_lst()) {
+            // lst /0,/1,/2 indexing
+            const List_p<Obj_p> list = obj->lst_value();
+            for (size_t i = 0; i < list->size(); i++) {
+              this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
             }
           } else {
-            // NODE PATTERN
-            if (furi->is_pattern()) {
-              const IdObjPairs_p matches = this->read_raw_pairs(furi_p(*furi));
-              for (const auto &[key, value]: *matches) {
-                this->write_raw_pairs(key, obj, retain);
+            // BRANCH (MONOS)
+            // monos written to /0
+            this->write_raw_pairs(id_p(*furi), obj, retain);
+          }
+        } else {
+          // NODE PATTERN
+          if (furi->is_pattern()) {
+            const IdObjPairs_p matches = this->read_raw_pairs(furi_p(*furi));
+            for (const auto &[key, value]: *matches) {
+              this->write_raw_pairs(key, obj, retain);
+            }
+          }
+          // NODE ID
+          else {
+            /*const IdObjPairs_p matches = this->read_raw_pairs(furi);
+            if (matches->empty()) {
+              if (furi->path_length() > 1) {
+                const Rec_p rec = this->read(furi_p(furi->retract()));
+                if (rec->is_rec()) {
+                  rec->rec_set(furi_p(furi->name()), obj);
+                  write_raw_pairs(id_p(*furi), rec, retain);
+                  return;
+                }
               }
-            }
-            // NODE ID
-            else {
-              /* const IdObjPairs_p matches = this->read_raw_pairs(furi);
-               if (matches->empty()) {
-                 if (furi->path_length() > 0) {
-                   // recurse backwards to find a root map that has respective furi path
-                   const Obj_p maybe_rec = this->read(furi_p(furi->retract()));
-                   if (maybe_rec->is_rec()) {
-                     maybe_rec->rec_set(furi_p(furi->name()), obj);
-                     return;
-                   }
-                 }
-               }*/
-              this->write_raw_pairs(id_p(*furi), obj, retain);
-            }
+            }*/
+            this->write_raw_pairs(id_p(*furi), obj, retain);
           }
         }
       } else {

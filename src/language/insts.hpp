@@ -178,10 +178,8 @@ namespace fhatos {
           "rand", {type},
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
-              const fURI temp = args.at(0)->apply(lhs)->uri_value();
-              const OType otype =
-                  OTypes.to_enum(temp.path_length() < 2 ? temp.toString() : string(temp.path(FOS_BASE_TYPE_INDEX)));
-              switch (otype) {
+              const Obj_p applied_arg = args.at(0)->apply(lhs);
+              switch (applied_arg->o_type()) {
                 case OType::BOOL:
                   return dool(::rand() & 1);
                   break;
@@ -192,7 +190,7 @@ namespace fhatos {
                   return real(static_cast<float>(::rand()) / (FL_REAL_TYPE) (RAND_MAX / 1.0f));
                   break;
                 default:
-                  throw fError("%s can not be randomly generated", OTypes.to_chars(otype).c_str());
+                  throw fError("%s can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
               }
               return noobj();
             };
@@ -1006,7 +1004,7 @@ namespace fhatos {
     return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
   }
 
-  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char* arg_name, const Obj_p &default_arg = noobj()) {
+  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
     return Insts::from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
   }
 } // namespace fhatos

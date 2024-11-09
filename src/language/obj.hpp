@@ -42,8 +42,7 @@
 
 #define FOS_TYPE_PREFIX "/type/"
 #define FOS_DRIVER_PREFIX "/driver/"
-#define FOS_BASE_TYPE_INDEX 1
-#define FOS_DRIVER_PROTOCOL_INDEX 1
+// #define FOS_BASE_TYPE_INDEX 1
 
 #include <fhatos.hpp>
 #include <util/ptr_helper.hpp>
@@ -223,6 +222,19 @@ namespace fhatos {
   static const auto BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
   static const auto ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error/");
   static const auto OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
+  /*static const auto OBJ_FURI = make_shared<ID>("mmadt:obj");
+  static const auto NOOBJ_FURI = make_shared<ID>("mmadt:noobj");
+  static const auto BOOL_FURI = make_shared<ID>("mmadt:bool");
+  static const auto INT_FURI = make_shared<ID>("mmadt:int");
+  static const auto REAL_FURI = make_shared<ID>("mmadt:real");
+  static const auto URI_FURI = make_shared<ID>("mmadt:uri");
+  static const auto STR_FURI = make_shared<ID>("mmadt:str");
+  static const auto LST_FURI = make_shared<ID>("mmadt:lst");
+  static const auto REC_FURI = make_shared<ID>("mmadt:rec");
+  static const auto INST_FURI = make_shared<ID>("mmadt:inst");
+  static const auto BCODE_FURI = make_shared<ID>("mmadt:bcode");
+  static const auto ERROR_FURI = make_shared<ID>("mmadt:error");
+  static const auto OBJS_FURI = make_shared<ID>("mmadt:objs");*/
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
                                                {OType::OBJ, OBJ_FURI},
                                                {OType::OBJS, OBJS_FURI},
@@ -237,8 +249,8 @@ namespace fhatos {
                                                {OType::BCODE, BCODE_FURI},
                                                {OType::ERROR, ERROR_FURI}}};
 
-  static TriFunction<const Obj *, const fURI_p &, const bool, const bool> TYPE_CHECKER = [
-      ](const Obj *, const fURI_p &type_id, const bool = true) -> bool {
+  static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER = [
+      ](const Obj *, const ID_p &type_id, const bool = true) -> bool {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     return false;
   };
@@ -253,9 +265,6 @@ namespace fhatos {
   static BiFunction<const Objs_p, BCode_p, Objs_p> BCODE_PROCESSOR = [](const Objs_p &, const BCode_p &) {
     LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
-  };
-  static BiConsumer<const Pattern, const Rec_p> STRUCTURE_ATTACHER = [](const ID &, const Rec_p &) {
-    LOG(TRACE, "!ySTRUCTURE_ATTACHER!! undefined at this point in bootstrap.\n");
   };
   static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_WRITE_INTERCEPT =
       [](const fURI &, const Obj_p &, const bool) -> bool {
@@ -281,8 +290,8 @@ namespace fhatos {
   /// An mm-ADT abstract object from which all other types derive
   class Obj : public Typed, public Valued, public Function<Obj_p, Obj_p> {
   public:
+    const OType otype_;
     Any value_;
-    OType otype_;
 
     struct objp_hash {
       size_t operator()(const Obj_p &obj) const { return obj->hash(); }
@@ -310,6 +319,7 @@ namespace fhatos {
 
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id = nullptr, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(otype)), Valued(value_id), otype_(otype), value_(value) {
+      //ID_p resolved = type_id->toString()[0] == ':' ? id_p((string("mmadt") + type_id->toString()).c_str()) : type_id;
       TYPE_CHECKER(this, type_id, true);
       this->tid_ = type_id;
       if (value_id) {
@@ -499,11 +509,28 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key) const {
-      for (const auto &[k, v]: *this->rec_value()) {
-        if (k->match(key))
-          return v;
+      if (key->is_uri() && key->uri_value().path_length() > 1) {
+        const Uri_p segment = to_uri(key->uri_value().path(0));
+        Obj_p segment_value = nullptr;
+        for (const auto &[k, v]: *this->rec_value()) {
+          if (k->match(segment)) {
+            segment_value = v;
+            break;
+          }
+        }
+        if (!segment_value)
+          return Obj::to_noobj();
+        if (!segment_value->is_rec())
+          throw fError("path %s of %s is not a rec", segment->toString().c_str(), key->toString().c_str(),
+                       segment_value->toString().c_str());
+        return segment_value->rec_get(to_uri(key->uri_value().path(1, 1000)));
+      } else {
+        for (const auto &[k, v]: *this->rec_value()) {
+          if (k->match(key))
+            return v;
+        }
+        return Obj::to_noobj();
       }
-      return Obj::to_noobj();
       // return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
@@ -511,12 +538,42 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p rec_get(const fURI_p &key) const { return rec_get(to_uri(*key)); }
 
-    virtual void rec_set(const Obj_p &key, const Obj_p &val) const {
-      this->rec_value()->erase(key);
-      if (!val->is_noobj())
-        this->rec_value()->insert({key, val});
-      //if (this->id_)
-      //  ROUTER_WRITE_AT(this->id_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->type_)), true);
+    virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
+      if (nest && key->is_uri() && key->uri_value().path_length() > 1) {
+        const Rec *current_rec = const_cast<Rec *>(this);
+        for (int i = 0; i < key->uri_value().path_length(); i++) {
+          const auto p = string(key->uri_value().path(i));
+          if (!current_rec->rec_value()->count(to_uri(p)))
+            break;
+          if (i == key->uri_value().path_length() - 1)
+            current_rec->rec_value()->erase(to_uri(p));
+          else {
+            const Rec *next_rec = current_rec->rec_value()->at(to_uri(p)).get();
+            if (!next_rec->is_rec())
+              throw fError("path %s of %s is not a rec", p.c_str(), key->toString().c_str(),
+                           next_rec->toString().c_str());
+            current_rec = next_rec;
+          }
+        }
+        if (!val->is_noobj()) {
+          for (int i = 0; i < key->uri_value().path_length(); i++) {
+            const auto p = string(key->uri_value().path(i));
+            if (i == key->uri_value().path_length() - 1)
+              current_rec->rec_value()->insert({to_uri(p), val});
+            else {
+              if (!current_rec->rec_value()->count(to_uri(p)))
+                current_rec->rec_value()->insert({to_uri(p), Obj::to_rec()});
+              current_rec = current_rec->rec_value()->at(to_uri(p)).get();
+            }
+          }
+        }
+      } else {
+        this->rec_value()->erase(key);
+        if (!val->is_noobj())
+          this->rec_value()->insert({key, val});
+        if (this->vid_)
+          ROUTER_WRITE(this->vid_, Obj::to_rec(make_shared<RecMap<>>(*this->rec_value()), id_p(*this->tid_)), true);
+      }
     }
 
     virtual void rec_set(const Obj &key, const Obj &value) const {
@@ -1168,6 +1225,10 @@ namespace fhatos {
       }
     }
 
+    [[nodiscard]] bool is_base_type() const {
+      return this->tid_->equals(*OTYPE_FURI.at(this->otype_));
+    }
+
     // const fURI type() const { return this->_id->authority(""); }
 
     [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
@@ -1251,8 +1312,8 @@ namespace fhatos {
       return false;
     }
 
-    [[nodiscard]] Obj_p as(const ID_p &furi) const {
-      const Obj_p obj = TYPE_MAKER(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)), furi);
+    [[nodiscard]] Obj_p as(const ID_p &type_id) const {
+      const Obj_p obj = TYPE_MAKER(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)), type_id);
       return obj;
     }
 
@@ -1284,47 +1345,47 @@ namespace fhatos {
     }
 
     static Bool_p to_bool(const bool value, const ID_p &furi = BOOL_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BOOL));
+      // // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BOOL));
       return make_shared<Bool>(value, OType::BOOL, furi);
     }
 
     static Int_p to_int(const FL_INT_TYPE value, const ID_p &furi = INT_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INT));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INT));
       return make_shared<Int>(value, OType::INT, furi);
     }
 
     static Real_p to_real(const FL_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REAL));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REAL));
       return make_shared<Real>(value, OType::REAL, furi);
     }
 
     static Str_p to_str(const string &value, const ID_p &furi = STR_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::STR));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::STR));
       return make_shared<Str>(value, OType::STR, furi);
     }
 
     static Str_p to_str(const char *value, const ID_p &furi = STR_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::STR));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::STR));
       return make_shared<Str>(string(value), OType::STR, furi);
     }
 
     static Uri_p to_uri(const fURI &value, const ID_p &furi = URI_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::URI));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::URI));
       return make_shared<Uri>(value, OType::URI, furi);
     }
 
     static Uri_p to_uri(const char *value, const ID_p &furi = URI_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::URI));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::URI));
       return make_shared<Uri>(fURI(value), OType::URI, furi);
     }
 
     static Lst_p to_lst(const ID_p &furi = LST_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::LST));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::LST));
       return make_shared<Lst>(make_shared<LstList<>>(), OType::LST, furi);
     }
 
     static Lst_p to_lst(const LstList_p<> &xlst, const ID_p &furi = LST_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::LST));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::LST));
       return make_shared<Lst>(xlst, OType::LST, furi);
     }
 
@@ -1341,12 +1402,12 @@ namespace fhatos {
     }
 
     static Rec_p to_rec(const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
-      fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
+      // fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
       return make_shared<Rec>(make_shared<RecMap<>>(), OType::REC, type, id);
     }
 
     static Rec_p to_rec(const RecMap_p<> &map, const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
-      fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
+      // fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REC));
       return make_shared<Rec>(map, OType::REC, type, id);
     }
 
@@ -1377,7 +1438,7 @@ namespace fhatos {
     }
 
     static Inst_p to_inst(const InstValue &value, const ID_p &type = INST_FURI) {
-      fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INST));
+      // fError::OTYPE_CHECK(type->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INST));
       return make_shared<Inst>(value, OType::INST, type);
     }
 
@@ -1389,7 +1450,7 @@ namespace fhatos {
     }
 
     static BCode_p to_bcode(const InstList_p &insts, const ID_p &furi = BCODE_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BCODE));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::BCODE));
       return make_shared<BCode>(insts, OType::BCODE, furi);
     }
 
@@ -1412,12 +1473,12 @@ namespace fhatos {
     }
 
     static Objs_p to_objs(const ID_p &furi = OBJS_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
       return to_objs(make_shared<List<Obj_p>>(), furi);
     }
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &furi = OBJS_FURI) {
-      fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
+      // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
       auto os = make_shared<Objs>(objs, OType::OBJS, furi);
       return os;
     }

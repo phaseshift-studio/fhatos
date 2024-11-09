@@ -21,7 +21,6 @@
 #define fhatos_furi_hpp
 
 #define FOS_MAX_PATH_SEGMENTS 15
-#define FOS_BASE_TYPE_INDEX 1
 
 #include "fhatos.hpp"
 //
@@ -147,21 +146,22 @@ namespace fhatos {
       if (start > this->path_length_ || start > end)
         return "";
       string path_str;
+      const uint8_t clip_end = end > this->path_length_ ? this->path_length_ : end;
       if (this->path_) {
         if (this->sprefix_ && start == 0)
           path_str += '/';
-        for (uint8_t i = start; (i < this->path_length_) && (i < end); i++) {
+        for (uint8_t i = start; i < clip_end; i++) {
           path_str = path_str.append(this->path_[i]);
-          if (i != end - 1)
+          if (i != (clip_end - 1))
             path_str += '/';
         }
-        if (this->spostfix_ && end >= this->path_length_)
+        if (this->spostfix_ && clip_end >= this->path_length_)
           path_str += '/';
       }
       return path_str;
     }
 
-    [[nodiscard]] bool has_path(const char *segment, const uint8_t start_index = FOS_BASE_TYPE_INDEX + 1) const {
+    [[nodiscard]] bool has_path(const char *segment, const uint8_t start_index = 0) const {
       for (int i = start_index; i < path_length_; i++) {
         if (strcmp(path_[i], segment) == 0)
           return true;
@@ -430,6 +430,8 @@ namespace fhatos {
       if (this->equals(pattern))
         return true;
       const string pattern_str = pattern.toString();
+      // if (pattern_str[0] == ':' && this->toString()[0] == ':')
+      //   return fURI(this->toString().substr(1)).matches(fURI(pattern_str.substr(1)));
       if (pattern_str[0] == ':')
         return this->name() == pattern_str; // ./blah/:setup ~ :setup
       if (pattern.toString() == "#")
@@ -475,7 +477,8 @@ namespace fhatos {
             (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
           return false;
       }
-      return (0 == strlen(pattern.query())  || this->query() == pattern.query()) && this->path_length_ == pattern.path_length();
+      return (0 == strlen(pattern.query()) || this->query() == pattern.query()) && this->path_length_ == pattern.
+             path_length();
     }
 
     bool operator=(const fURI &other) const { return this->equals(other); }

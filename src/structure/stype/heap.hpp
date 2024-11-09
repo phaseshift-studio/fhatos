@@ -37,10 +37,12 @@ namespace fhatos {
         make_shared<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
-    explicit Heap(const ID& vid, const Pattern &pattern, const SType stype = SType::HEAP) : Structure(vid, pattern, stype) {}
+    explicit Heap(const ID &vid, const Pattern &pattern, const SType stype = SType::HEAP) :
+      Structure(vid, pattern, stype) {
+    }
 
   public:
-    static ptr<Heap> create(const ID& id, const Pattern &pattern) {
+    static ptr<Heap> create(const ID &id, const Pattern &pattern) {
       auto heap_p = ptr<Heap>(new Heap(id, pattern));
       return heap_p;
     }
@@ -53,7 +55,7 @@ namespace fhatos {
   protected:
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
       if (retain) {
-         this->mutex_data_.template write<ID>([this, id, obj]() {
+        this->mutex_data_.template write<ID>([this, id, obj]() {
           if (this->data_->count(id))
             this->data_->erase(id);
           if (!obj->is_noobj()) {
@@ -66,13 +68,13 @@ namespace fhatos {
     }
 
     IdObjPairs_p read_raw_pairs(const fURI_p &match) override {
-      return  this->mutex_data_.template read<IdObjPairs_p>([this, match] {
+      return this->mutex_data_.template read<IdObjPairs_p>([this, match] {
         auto list = make_shared<IdObjPairs>();
         LOG(TRACE, "Reading raw pairs for %s\n", match->toString().c_str());
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
             LOG(TRACE, "\tmatched: %s\n", id->toString().c_str(), obj->toString().c_str());
-            list->push_back({id, PtrHelper::no_delete<Obj>(obj.get())});
+            list->push_back({id, obj->clone()});
           }
         }
         return list;

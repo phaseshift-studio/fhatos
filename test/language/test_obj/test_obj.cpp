@@ -240,14 +240,14 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(4, lstA.lst_value()->size());
     TEST_ASSERT_EQUAL_INT(4, lstB.lst_value()->size());
     TEST_ASSERT_EQUAL_INT(3, lstC.lst_value()->size());
-    lstC.lst_set(obj(0), obj(1));
+    lstC.lst_set(jnt(0), jnt(1));
     FOS_TEST_OBJ_EQUAL(&lstC, &lstA);
-    lstC.lst_set(obj(4), obj(5));
+    lstC.lst_set(jnt(4), jnt(5));
     FOS_TEST_OBJ_NOT_EQUAL(&lstC, &lstA);
     for (int i = 0; i < 4; i++) {
-      FOS_TEST_OBJ_EQUAL(obj(i + 1), lstA.lst_get(obj(i)));
-      FOS_TEST_OBJ_EQUAL(obj(i + 1), lstB.lst_get(obj(i)));
-      FOS_TEST_OBJ_EQUAL(obj(i + 1), lstC.lst_get(obj(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstA.lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstB.lst_get(jnt(i)));
+      FOS_TEST_OBJ_EQUAL(jnt(i + 1), lstC.lst_get(jnt(i)));
     }
     const Lst_p lstD = Obj::to_lst({1, 1, 1});
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "lst/ones",
@@ -278,7 +278,7 @@ namespace fhatos {
                                               share(Int(1))),
                 make_pair<const Obj_p, Obj_p>(Obj::to_str("b", id_p(FOS_TYPE_PREFIX "str/letter")),
                                               share(Int(2)))})),
-            id_p(FOS_TYPE_PREFIX "rec/mail"));
+            OType::REC, id_p(FOS_TYPE_PREFIX "rec/mail"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recC).c_str());
     TEST_ASSERT_TRUE(recA == recB);
     TEST_ASSERT_FALSE(recA != recB);

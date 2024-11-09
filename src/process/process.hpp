@@ -89,7 +89,7 @@ namespace fhatos {
                                                              }),
                                                              OType::REC, REC_FURI, setup_loop_stop->vid()) {
             this_process.store(this);
-            this->rec_add(setup_loop_stop);
+            this->rec_value()->insert(setup_loop_stop->rec_value()->begin(),setup_loop_stop->rec_value()->end());
             this->vid_ = setup_loop_stop->vid();
             this->tid_ = setup_loop_stop->tid();
         }
