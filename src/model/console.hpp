@@ -58,11 +58,11 @@ namespace fhatos {
 
     void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
       ///// read configuration
-      const bool nest = router()->read(id_p(this->id()->extend("config/nest")))->bool_value();
-      const bool ansi = router()->read(id_p(this->id()->extend("config/ansi")))->bool_value();
-      const bool strict = router()->read(id_p(this->id()->extend("config/strict")))->bool_value();
+      const bool nest = router()->read(id_p(this->vid()->extend("config/nest")))->bool_value();
+      const bool ansi = router()->read(id_p(this->vid()->extend("config/ansi")))->bool_value();
+      const bool strict = router()->read(id_p(this->vid()->extend("config/strict")))->bool_value();
       const LOG_TYPE log = LOG_TYPES.to_enum(
-          router()->read(id_p(this->id()->extend("config/log")))->uri_value().toString());
+          router()->read(id_p(this->vid()->extend("config/log")))->uri_value().toString());
       Options::singleton()->log_level(log);
 
       /////
@@ -74,7 +74,7 @@ namespace fhatos {
       else if (nest && (obj->is_lst() || obj->is_objs())) {
         router()->write(this->stdout_id,
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m" +
+                            (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
                             (obj->is_lst() ? "[" : "{") + "!!\n"),
                         false);
         for (const auto &e: *obj->lst_value()) {
@@ -89,15 +89,15 @@ namespace fhatos {
         }
         router()->write(this->stdout_id,
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->type()->path_length() > 2
-                               ? StringHelper::repeat(obj->type()->name().length(), " ").c_str()
+                            (obj->tid()->path_length() > 2
+                               ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
                                : "") +
                             "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"),
                         false);
       } else if (nest && obj->is_rec()) {
         router()->write(this->stdout_id,
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->type()->path_length() > 2 ? obj->type()->name().c_str() : "") + "!m[!!\n"),
+                            (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n"),
                         false);
         for (const auto &[key, value]: *obj->rec_value()) {
           Process::current_process()->feed_watchdog_via_counter();
@@ -112,11 +112,11 @@ namespace fhatos {
         }
         string obj_string =
             string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-            (obj->type()->path_length() > 2 ? StringHelper::repeat(obj->type()->name().length(), " ").c_str() : "") +
+            (obj->tid()->path_length() > 2 ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str() : "") +
             "!m]";
-        if (obj->id()) {
+        if (obj->vid()) {
           obj_string += "!m@!b";
-          obj_string += obj->id()->toString();
+          obj_string += obj->vid()->toString();
         }
         obj_string += "!!\n";
         router()->write(this->stdout_id, str(obj_string), false);

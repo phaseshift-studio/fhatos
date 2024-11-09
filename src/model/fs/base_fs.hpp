@@ -45,8 +45,8 @@ namespace fhatos {
 
   public:
     // Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>
-    explicit BaseFileSystem(const Pattern &root, const ID &mount_root) :
-      Computed(root),
+    explicit BaseFileSystem(const ID& vid, const Pattern &root, const ID &mount_root) :
+      Computed(vid, root),
       mount_root_(id_p(mount_root.extend("/"))),
       clean_root_(root.retract_pattern()) {
     }

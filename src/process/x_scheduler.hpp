@@ -57,7 +57,7 @@ namespace fhatos {
         return 0;
       auto *counter = new atomic_int(0);
       this->processes_->forEach([counter, process_pattern](const Process_p &proc) {
-        if (proc->id()->matches(process_pattern) && proc->running)
+        if (proc->vid()->matches(process_pattern) && proc->running)
           counter->fetch_add(1);
       });
       const int c = counter->load();
@@ -70,9 +70,9 @@ namespace fhatos {
       auto *fiber_count = new atomic_int(0);
       auto list = new List<Process_p>();
       this->processes_->forEach([list, thread_count, fiber_count](const Process_p &proc) {
-        if (proc->type()->has_path("threaad"))
+        if (proc->tid()->has_path("thread"))
           thread_count->fetch_add(1);
-        else if (proc->type()->has_path("fiber"))
+        else if (proc->tid()->has_path("fiber"))
           fiber_count->fetch_add(1);
         list->push_back(proc);
       });
@@ -93,7 +93,7 @@ namespace fhatos {
       this->running_ = false;
       this->barrier_.first = nullptr;
       this->barrier_.second = nullptr;
-      LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->id()->toString().c_str());
+      LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
     virtual void feed_local_watchdog() = 0;
@@ -104,13 +104,12 @@ namespace fhatos {
 
     void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
-      this->barrier_ = {id_p(this->id()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
+      this->barrier_ = {id_p(this->vid()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
       LOG_SCHEDULER(INFO, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
       if (message)
         LOG_SCHEDULER(INFO, message);
       while (((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
-             &&
-             (this->barrier_.first && this->barrier_.second)) {
+             && (this->barrier_.first && this->barrier_.second)) {
         router()->loop();
         this->feed_local_watchdog();
       }

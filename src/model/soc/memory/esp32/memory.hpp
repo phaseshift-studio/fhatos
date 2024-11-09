@@ -33,7 +33,7 @@ namespace fhatos {
   class Memory : public Computed {
 
   protected:
-    explicit Memory(const Pattern &pattern) : Computed(pattern) {
+    explicit Memory(const ID& id, const Pattern &pattern) : Computed(id, pattern) {
       const Obj_p percent_type_def = bcode({Insts::is(
           Insts::x_and(Insts::gte(real(0.0)), Insts::lte(real(100.0))))}); // parse("is(and(gte(0.0),lte(100.0)))"); //
       Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
@@ -98,8 +98,8 @@ namespace fhatos {
 
 
   public:
-    static ptr<Memory> singleton(const Pattern &pattern) {
-      static ptr<Memory> mem_p = ptr<Memory>(new Memory(pattern));
+    static ptr<Memory> singleton(const ID& id, const Pattern &pattern) {
+      static ptr<Memory> mem_p = ptr<Memory>(new Memory(id, pattern));
       return mem_p;
     }
   };

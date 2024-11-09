@@ -37,11 +37,11 @@ namespace fhatos {
         make_shared<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
-    explicit Heap(const Pattern &pattern, const SType stype = SType::HEAP) : Structure(pattern, stype) {}
+    explicit Heap(const ID& vid, const Pattern &pattern, const SType stype = SType::HEAP) : Structure(vid, pattern, stype) {}
 
   public:
-    static ptr<Heap> create(const Pattern &pattern) {
-      auto heap_p = ptr<Heap>(new Heap(pattern));
+    static ptr<Heap> create(const ID& id, const Pattern &pattern) {
+      auto heap_p = ptr<Heap>(new Heap(id, pattern));
       return heap_p;
     }
 

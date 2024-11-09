@@ -40,7 +40,7 @@ namespace fhatos {
     explicit Scheduler(const ID &id = ID("/scheduler/")):
       XScheduler(id) {
       rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
-        if (!obj->id())
+        if (!obj->vid())
           throw fError("value id required to spawn %s", obj->toString().c_str());
         return dool(this->spawn(make_shared<Thread>(obj)));
       }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
@@ -72,13 +72,13 @@ namespace fhatos {
     bool spawn(const Process_p &process) override {
       process->setup();
       if (!process->running) {
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->id()->toString().c_str());
+        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       ////////////////////////////////
-      if (process->type()->has_path("thread"))
+      if (process->tid()->has_path("thread"))
         static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-      else if (process->type()->has_path("fiber")) {
+      else if (process->tid()->has_path("fiber")) {
         if (!FIBER_THREAD_HANDLE) {
           FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
         }
@@ -86,14 +86,14 @@ namespace fhatos {
         static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
       } else {
         process->running = false;
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->id()->toString().c_str());
+        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       this->processes_->push_back(process);
-      LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned\n", process->id()->toString().c_str());
+      LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned\n", process->vid()->toString().c_str());
 
-      this->rec_get(vri("process"))->lst_add(vri(process->id()));
-      router()->write(this->id(), PtrHelper::no_delete(this));
+      this->rec_get(vri("process"))->lst_add(vri(process->vid()));
+      router()->write(this->vid(), PtrHelper::no_delete(this));
       return true;
     }
 
@@ -107,7 +107,7 @@ namespace fhatos {
       while (FIBER_COUNT > 0) {
         auto *fibers = new List<Process_p>();
         singleton()->processes_->forEach([fibers](const Process_p &process) {
-          if (process->type()->has_path("fiber") && process->running)
+          if (process->tid()->has_path("fiber") && process->running)
             fibers->push_back(process);
         });
         FIBER_COUNT = 0;
@@ -118,10 +118,10 @@ namespace fhatos {
           }
         }
         singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
-          const bool remove = fiber->type()->has_path("fiber") && !fiber->running;
+          const bool remove = fiber->tid()->has_path("fiber") && !fiber->running;
           if (remove) {
             LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n",
-                                 fiber->id()->toString().c_str());
+                                 fiber->vid()->toString().c_str());
           }
           return remove;
         });
@@ -138,9 +138,9 @@ namespace fhatos {
         thread->loop();
       }
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->id()->equals(*thread->id()) || !proc->running;
+        const bool remove = proc->vid()->equals(*thread->vid()) || !proc->running;
         if (remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destoyed\n", proc->id()->toString().c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destoyed\n", proc->vid()->toString().c_str());
         }
         return remove;
       });

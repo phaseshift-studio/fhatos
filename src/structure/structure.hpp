@@ -68,7 +68,7 @@ namespace fhatos {
     }
   }*/
 
-  class Structure : public Patterned {
+  class Structure : public Valued {
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
@@ -76,9 +76,14 @@ namespace fhatos {
 
   public:
     const SType stype;
+    const Pattern_p pattern_;
 
-    explicit Structure(const Pattern &pattern, const SType stype) :
-      Patterned(p_p(pattern)), stype(stype) {
+    explicit Structure(const ID &vid, const Pattern &pattern, const SType stype) :
+      Valued(id_p(vid)), stype(stype), pattern_(p_p(pattern)) {
+    }
+
+    [[nodiscard]] Pattern_p pattern() const {
+      return this->pattern_;
     }
 
     [[nodiscard]] bool available() const { return this->available_.load(); }
@@ -219,22 +224,23 @@ namespace fhatos {
       }
       if (retain) {
         // x -> y
-        if (furi->has_query() && furi->query_value("sub").has_value()) {
+        if (furi->has_query()) {
           // x -> ?meta (writing to meta furis)
           //// SUBSCRIBE
           if (furi->query_value("sub").has_value()) {
             const Pattern_p pattern = p_p(furi->query(""));
             if (obj->is_noobj()) {
               // unsubscribe
-              this->recv_unsubscribe(Process::current_process()->id(), pattern);
+              this->recv_unsubscribe((Process::current_process() ?  Process::current_process()->vid() : id_p("scheduler")), pattern);
             } else if (obj->is_bcode()) {
               // bcode for on_recv
-              this->recv_subscription(subscription_p(*Process::current_process()->id(), *pattern, obj));
+              this->recv_subscription(subscription_p(Process::current_process() ?  *Process::current_process()->vid() : ID("scheduler"), *pattern, obj));
             } else if (obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
               // complete sub[=>] record
               this->recv_subscription(from_subscription_obj(obj));
             }
           }
+          return;
         } else {
           //// WRITES
           if (furi->is_branch()) {
@@ -324,7 +330,7 @@ namespace fhatos {
 
   protected:
     static Obj_p strip_value_id(const Obj_p &obj) {
-      return nullptr == obj->id() ? obj : make_shared<Obj>(obj->_value, obj->type(), nullptr);
+      return nullptr == obj->vid() ? obj : make_shared<Obj>(obj->_value, obj->tid(), nullptr);
     }
 
     void check_availability(const string &function) const {

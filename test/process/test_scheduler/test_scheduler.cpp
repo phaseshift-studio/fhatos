@@ -19,6 +19,7 @@
 #ifndef fhatos_test_scheduler_hpp
 #define fhatos_test_scheduler_hpp
 
+#define FOS_DEPLOY_PROCESSOR
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_TYPE
@@ -32,7 +33,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/abc/thread-1"));
     ////////////////////////////////////////////////////////////////////////////
-    const auto a = std::make_shared<Thread>(rec({{Obj::to_uri(":loop"),Obj::to_bcode()}}));
+    const auto a = std::make_shared<Thread>(rec(*rmap({{ID(":loop"),Obj::to_bcode({Insts::start(jnt(1))})}}),THREAD_FURI,id_p("/test/abc/thread-1")));
     Scheduler::singleton()->spawn(a);
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
@@ -41,7 +42,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/abc/#"));
     TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/#"));
     ////////////////////////////////////////////////////////////////////////////
-    const auto b = std::make_shared<Thread>("/test/abc/thread-2");
+    const auto b = std::make_shared<Thread>(rec(*rmap({{ID(":loop"),Obj::to_bcode({Insts::start(jnt(2))})}}),THREAD_FURI,id_p("/test/abc/thread-2")));
     Scheduler::singleton()->spawn(b);
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/#"));
     TEST_ASSERT_EQUAL_INT(2, Scheduler::singleton()->count("/test/abc/#"));

@@ -27,7 +27,6 @@
 #include <string.h>
 #include <thread>
 #include <time.h>
-#include <mutex>
 #include <util/options.hpp>
 #include <util/string_printer.hpp>
 
@@ -35,8 +34,6 @@
 using namespace std;
 
 namespace fhatos {
-  inline auto stdout_mutex = std::mutex();
-
   class CPrinter {
   public:
     static CPrinter *singleton() {
@@ -45,21 +42,17 @@ namespace fhatos {
     }
 #ifdef NATIVE
     static int print(const char *c_str) {
-      std::lock_guard<std::mutex> lock(stdout_mutex);
       return printf("%s", c_str);
     }
 
     static void flush() {
-      std::lock_guard<std::mutex> lock(stdout_mutex);
       fflush(stdout);
     }
 #else
     static int print(const char *c_str) {
-      std::lock_guard<std::mutex> lock(stdout_mutex);
       return Serial.printf("%s", c_str);
     }
     static void flush() {
-      std::lock_guard<std::mutex> lock(stdout_mutex);
       Serial.flush();
     }
 #endif

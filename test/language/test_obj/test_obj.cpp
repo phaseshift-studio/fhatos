@@ -37,8 +37,8 @@ namespace fhatos {
     const Bool_p bool_a = share(Bool(true, FOS_TYPE_PREFIX "bool/truth"));
     const Bool_p bool_b = share(Bool(false, "truth"));
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*bool_a).c_str());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_a->type());
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_b->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_a->tid());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "bool/truth"), *bool_b->tid());
     FOS_TEST_OBJ_NOT_EQUAL(bool_a, bool_b);
     FOS_TEST_OBJ_NOT_EQUAL(bool_b, bool_a);
     FOS_TEST_OBJ_EQUAL(bool_a, bool_a);
@@ -73,16 +73,16 @@ namespace fhatos {
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*int5).c_str());
 
     TEST_ASSERT_FALSE(intA->is_bcode());
-    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "int/", intA->type()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("int", intA->type()->name().c_str());
-    TEST_ASSERT_EQUAL_STRING("/type", intA->type()->path(0, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("int/", intA->type()->path(1, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "int/", intA->tid()->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("int", intA->tid()->name().c_str());
+    TEST_ASSERT_EQUAL_STRING("/type", intA->tid()->path(0, 1).c_str());
+    TEST_ASSERT_EQUAL_STRING("int/", intA->tid()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::INT, intA->o_type());
     TEST_ASSERT_FALSE(intA->is_noobj());
     TEST_ASSERT_TRUE(intA->match(intB));
     TEST_ASSERT_FALSE(intA->match(jnt(987)));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*intC->type(), *intA->as(id_p("age"))->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(*intC->tid(), *intA->as(id_p("age"))->tid());
     FOS_TEST_OBJ_EQUAL(intA, intB);
     FOS_TEST_OBJ_EQUAL(intB, intA);
     FOS_TEST_OBJ_NOT_EQUAL(intB, intB->as(FOS_TYPE_PREFIX "int/age"));
@@ -111,8 +111,8 @@ namespace fhatos {
     /* const Int_p intBCode = share(Int(__().plus(Int(0, "/int/age"))._bcode->bcode_value(), "/_bcode/age"));
      FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(intBCode).c_str());
      // TEST_ASSERT_TRUE(intBCode->is_bcode());
-     TEST_ASSERT_EQUAL_STRING("/_bcode/age", intBCode->type()->toString().c_str());
-     TEST_ASSERT_EQUAL_STRING("age", intBCode->type()->lastSegment().c_str());
+     TEST_ASSERT_EQUAL_STRING("/_bcode/age", intBCode->tid()->toString().c_str());
+     TEST_ASSERT_EQUAL_STRING("age", intBCode->tid()->lastSegment().c_str());
      /// apply
      FOS_TEST_OBJ_EQUAL(intC, intBCode->apply(intC));
      FOS_TEST_ASSERT_EXCEPTION(intBCode->apply(share<Int>(Int(2, "/nat"))))*/
@@ -130,16 +130,16 @@ namespace fhatos {
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*real5).c_str());
 
     TEST_ASSERT_FALSE(realA->is_bcode());
-    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "real/", realA->type()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("real", realA->type()->name().c_str());
-    TEST_ASSERT_EQUAL_STRING("/type", realA->type()->path(0, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("real/", realA->type()->path(1, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "real/", realA->tid()->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("real", realA->tid()->name().c_str());
+    TEST_ASSERT_EQUAL_STRING("/type", realA->tid()->path(0, 1).c_str());
+    TEST_ASSERT_EQUAL_STRING("real/", realA->tid()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::REAL, realA->o_type());
     TEST_ASSERT_FALSE(realA->is_noobj());
     TEST_ASSERT_TRUE(realA->match(realB));
     TEST_ASSERT_FALSE(realA->match(real(987.12)));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*realC->type(), *realA->as(id_p("money"))->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(*realC->tid(), *realA->as(id_p("money"))->tid());
     FOS_TEST_OBJ_EQUAL(realA, realB);
     FOS_TEST_OBJ_EQUAL(realB, realA);
     FOS_TEST_OBJ_NOT_EQUAL(realB, realB->as(FOS_TYPE_PREFIX "real/money"));
@@ -191,16 +191,16 @@ namespace fhatos {
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(*uriE).c_str());
 
     TEST_ASSERT_FALSE(uriA->is_bcode());
-    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "uri/", uriA->type()->toString().c_str());
-    TEST_ASSERT_EQUAL_STRING("uri", uriA->type()->name().c_str());
-    TEST_ASSERT_EQUAL_STRING("/type", uriA->type()->path(0, 1).c_str());
-    TEST_ASSERT_EQUAL_STRING("uri/", uriA->type()->path(1, 2).c_str());
+    TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "uri/", uriA->tid()->toString().c_str());
+    TEST_ASSERT_EQUAL_STRING("uri", uriA->tid()->name().c_str());
+    TEST_ASSERT_EQUAL_STRING("/type", uriA->tid()->path(0, 1).c_str());
+    TEST_ASSERT_EQUAL_STRING("uri/", uriA->tid()->path(1, 2).c_str());
     TEST_ASSERT_EQUAL(OType::URI, uriA->o_type());
     TEST_ASSERT_FALSE(uriA->is_noobj());
     TEST_ASSERT_TRUE(uriA->match(uriB));
     TEST_ASSERT_FALSE(uriA->match(vri("http://nothing.org")));
     ///
-    FOS_TEST_ASSERT_EQUAL_FURI(*uriC->type(), *uriA->as(id_p("webpage"))->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(*uriC->tid(), *uriA->as(id_p("webpage"))->tid());
     FOS_TEST_OBJ_EQUAL(uriA, uriB);
     FOS_TEST_OBJ_EQUAL(uriB, uriA);
     FOS_TEST_OBJ_NOT_EQUAL(uriB, uriB->as(FOS_TYPE_PREFIX "uri/webpage"));
@@ -251,7 +251,7 @@ namespace fhatos {
     }
     const Lst_p lstD = Obj::to_lst({1, 1, 1});
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "lst/ones",
-                             lstD->as(FOS_TYPE_PREFIX "lst/ones")->type()->toString().c_str());
+                             lstD->as(FOS_TYPE_PREFIX "lst/ones")->tid()->toString().c_str());
     try {
       const Obj_p x = lstA.as(FOS_TYPE_PREFIX "lst/ones");
       LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());

@@ -351,7 +351,7 @@ namespace fhatos {
     }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
-      Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->type())}});
+      Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->tid())}});
       if (lhs->is_bcode()) {
         const Lst_p l = lst();
         for (const Inst_p &i: *lhs->bcode_value()) {
@@ -480,7 +480,7 @@ namespace fhatos {
 
     static Uri_p type() {
       return Obj::to_inst(
-          "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->type()); }; },
+          "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->tid()); }; },
           IType::ONE_TO_ONE);
     }
 
@@ -972,7 +972,7 @@ namespace fhatos {
           throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
       }
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
-          base_inst->toString().c_str(), base_inst->type()->toString().c_str());
+          base_inst->toString().c_str(), base_inst->tid()->toString().c_str());
       if (base_inst->is_inst())
         return ObjHelper::replace_from_inst(args, base_inst);
       if (base_inst->is_bcode()) {

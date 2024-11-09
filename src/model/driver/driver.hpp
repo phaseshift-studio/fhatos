@@ -24,7 +24,7 @@ FhatOS: A Distributed Operating System
 #include <language/parser.hpp>
 
 #define LOG_DRIVER(logtype, driver, format, ...)                                                                       \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), (driver)->id()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), (driver)->vid()->toString().c_str(), ##__VA_ARGS__)
 
 namespace fhatos {
   enum class PROTOCOL { PWM, GPIO, I2C, SPI, MQTT };

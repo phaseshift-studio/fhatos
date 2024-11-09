@@ -26,8 +26,8 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   class Sys : public Computed {
-    explicit Sys(const Pattern &pattern = "/sys/#") :
-      Computed(pattern) {
+    explicit Sys(const ID& vid, const Pattern &pattern = "/sys/#") :
+      Computed(vid, pattern) {
       ////////////////////////////////////////////////////////////////////////
       /////////////////////////////// SCHEDULER //////////////////////////////
       ////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ namespace fhatos {
         scheduler()->processes_->forEach([this,pairs,c,furi](const Process_p &process) {
           const ID_p pid = id_p(this->pattern()->resolve(string("./scheduler/process/") + to_string((*c)++)));
           if (pid->bimatches(*furi))
-            pairs->push_back({pid, vri(process->id())});
+            pairs->push_back({pid, vri(process->vid())});
         });
         delete c;
         return pairs;
@@ -66,12 +66,12 @@ namespace fhatos {
       {furi_p(pattern.resolve("./scheduler/barrier/#")), [this](const fURI_p &furi, const Obj_p &obj) -> IdObjPairs {
         if (obj->is_noobj() && scheduler()->barrier_.first->bimatches(*furi))
           scheduler()->recv_mail(mail_p(
-              subscription_p(*scheduler()->id(), *furi, Obj::to_bcode([](const Obj_p &obj) {
+              subscription_p(*scheduler()->vid(), *furi, Obj::to_bcode([](const Obj_p &obj) {
                 scheduler()->stop();
                 printer<Ansi<>>()->flush();
                 return noobj();
               })),
-              message_p(*scheduler()->id(), noobj(), true)));
+              message_p(*scheduler()->vid(), noobj(), true)));
         return *make_id_objs();
       }});*/
       ////////////////////////////////////////////////////////////////////////

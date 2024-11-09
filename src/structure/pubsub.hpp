@@ -95,7 +95,7 @@ namespace fhatos {
     const Obj_p payload;
     const bool retain;
 
-    ID_p type() const override { return MESSAGE_FURI; }
+    ID_p tid() const override { return MESSAGE_FURI; }
 
     static Lst_p make_lhs_args(const Obj_p &lhs, const List<Obj_p> &args) {
       return lst({lhs, lst(make_shared<List<Obj_p>>(args))});
@@ -166,7 +166,7 @@ namespace fhatos {
     const Pattern pattern;
     const BCode_p on_recv;
 
-    ID_p type() const override { return SUBSCRIPTION_FURI; }
+    ID_p tid() const override { return SUBSCRIPTION_FURI; }
 
     [[nodiscard]] Rec_p to_rec() const override {
       return rec({{vri(":source"), vri(this->source)},

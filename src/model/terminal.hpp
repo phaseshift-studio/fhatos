@@ -26,43 +26,41 @@
 namespace fhatos {
   class Terminal final : public Rec {
   private:
-    Mutex<> print_mutex = Mutex<>("<serial_print_mutex>");
+    std::mutex stdout_mutex = std::mutex();
 
   protected:
     explicit Terminal(const ID &id) :
-      Rec(rmap({{":stdout", Obj::to_bcode(
-                     [this](const Str_p &obj) {
-                       return this->print_mutex.lockUnlock<NoObj_p>([obj] {
-                         FEED_WATCDOG();
-                         printer<>()->print(obj->str_value().c_str());
-                         return noobj();
-                       });
-                     },
-                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
-                {":stdin", Obj::to_bcode(
-                     [](const NoObj_p &) {
+        Rec(rmap({{":stdout", Obj::to_bcode(
+                                  [this](const Str_p &obj) {
+                                    FEED_WATCDOG();
+                                    std::lock_guard<std::mutex> lock(stdout_mutex);
+                                    printer<>()->print(obj->str_value().c_str());
+                                    return noobj();
+                                  },
+                                  StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
+                  {":stdin", Obj::to_bcode(
+                                 [](const NoObj_p &) {
 #ifdef NATIVE
-                       return jnt(getchar());
+                                   return jnt(getchar());
 #else
-                                      while (Serial.available() <= 0) {
-                                        Process::current_process()->yield();
-                                      }
-                                      return jnt(Serial.read());
+                                   while (Serial.available() <= 0) {
+                                     Process::current_process()->yield();
+                                   }
+                                   return jnt(Serial.read());
       // return jnt((Serial.available() > 0) ? Serial.read() : EOF); (need a MACRO for multi-core checking)
 #endif
-                     },
-                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
-          id_p(REC_FURI->extend("terminal")), id_p(id)) {
+                                 },
+                                 StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
+            id_p(REC_FURI->extend("terminal")), id_p(id)) {
     }
 
-  public :
+  public:
     static ptr<Terminal> singleton(const ID &id) {
       static bool setup = false;
       if (!setup) {
         setup = true;
-        Type::singleton()->save_type(
-            id_p(REC_FURI->extend("terminal")),
-            rec({{vri(":stdout"), Obj::to_bcode()}, {vri(":stdin"), Obj::to_bcode()}}));
+        Type::singleton()->save_type(id_p(REC_FURI->extend("terminal")),
+                                     rec({{vri(":stdout"), Obj::to_bcode()}, {vri(":stdin"), Obj::to_bcode()}}));
       }
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;

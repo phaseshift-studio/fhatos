@@ -29,6 +29,7 @@
 #include <util/options.hpp>
 #include <language/obj.hpp>
 #include <language/fluent.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
   Options::singleton()->log_level(FOS_LOGGING);
@@ -41,7 +42,9 @@
 
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
-#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
+#define FOS_DEPLOY_SCHEDULER_2  \
+  router()->attach(Heap<>::create("/sys/", Pattern("/scheduler/#"))); \
+  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
@@ -54,8 +57,9 @@
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_PARSER_2  \
-  router()->attach(Heap::create(Pattern("/parser/#"))); \
+  router()->attach(Heap<>::create("/parser/", Pattern("/parser/#"))); \
   router()->write(id_p("/parser/"), Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
@@ -64,8 +68,9 @@
 #include <language/type.hpp>
 #include <language/mmadt/type.hpp>
 #include <language/exts.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_TYPE_2 \
-  router()->attach(Heap::create(Pattern("/type/#"))); \
+  router()->attach(Heap<>::create(ID("/type/"), Pattern("/type/#"))); \
   router()->write(id_p("/type/"),Type::singleton()); \
   mmadt::mmADT::singleton();
 //Exts::load_extension("/model/mmadt/");
@@ -75,7 +80,7 @@
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
-  router()->attach(Heap::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  router()->attach(Heap<>::create("/heap",Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
   "+" : \
   STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
@@ -84,7 +89,7 @@
 #ifdef FOS_DEPLOY_FILE_SYSTEM
 #include FOS_FILE_SYSTEM(fs.hpp)
 #define FOS_DEPLOY_FILE_SYSTEM_2 \
-  ptr<FileSystem> fs = FileSystem::create("/fs/", string(base_directory.c_str()) + "/tmp"); \
+  ptr<FileSystem> fs = FileSystem::create("/fs/", "/fs/#", string(base_directory.c_str()) + "/tmp"); \
   router()->attach(fs); \
   fs->setup();
 #else
@@ -329,7 +334,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
                        Subscription::to_bcode([temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
                                                   (string("Router retain message payload equality: ") +
-                                                    router()->pattern()->toString() + " " + temp.toString() +
+                                                    router()->vid()->toString() + " " + temp.toString() +
                                                     " != " + message->payload->toString())
                                                   .c_str());
                        })

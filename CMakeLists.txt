@@ -102,7 +102,6 @@ OPTION(BUILD_TESTS "build fhatos tests" ON)
 OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
 OPTION(SANITIZER "use address sanitizer" OFF)
 OPTION(USE_CCACHE "use ccache" ON)
-OPTION(USE_CONAN "conan package manager" OFF)
 OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" OFF)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 ####################################################################
@@ -118,7 +117,6 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.g}CHECK_INTERNET${..}     : ${CHECK_INTERNET}
 \t  ${.g}BUILD_TESTS${..}        : ${BUILD_TESTS}
 \t  ${.g}BUILD_DOCS${..}         : ${BUILD_DOCS}
-\t  ${.g}USE_CONAN${..}          : ${USE_CONAN}
 \t  ${.g}SANITIZER${..}          : ${SANITIZER}
 \t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
 \t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
@@ -177,13 +175,6 @@ IF(CHECK_INTERNET)
 ELSE()
     SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
 ENDIF()
-##################################
-IF(USE_CONAN AND EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup()
-ELSE()
-    MESSAGE(WARNING "\n${.w}The file ${.y}conanbuildinfo.cmake${..} ${.w}doesn't exist${..}.\n\t\tRun ${.b}conan install${..}.")
-ENDIF()
 ################################
 SET(ENV{no-dev})
 SET(CMAKE_CXX_STANDARD 20)
@@ -234,136 +225,136 @@ ENDIF()
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################
-IF(USE_CONAN)
-    TARGET_LINK_LIBRARIES($executable_name ${CONAN_LIBS})
+
+####################################
+####################################
+### FTXUI: ANSI C++ TERMINAL UI
+IF(DO_NOT)
+    MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
+    SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+    FETCHCONTENT_DECLARE(
+            ftxui
+            GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+            GIT_TAG v5.0.0
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+    )
+    FETCHCONTENT_MAKEAVAILABLE(ftxui)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
+    TARGET_LINK_LIBRARIES(fhatos
+            PRIVATE ftxui::screen
+            PRIVATE ftxui::dom
+            PRIVATE ftxui::component # Not needed for this example.
+    )
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+ENDIF()
+####################################
+####################################
+### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
+MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+FETCHCONTENT_DECLARE(
+        ordered_map
+        GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
+        GIT_TAG v1.1.0
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+)
+FETCHCONTENT_MAKEAVAILABLE(ordered_map)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+#FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+####################################
+####################################
+### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
+#################################### C
+MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
+FETCHCONTENT_DECLARE(
+        paho-mqtt3c
+        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
+        GIT_TAG v1.3.13
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+)
+FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+#################################### C++
+MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
+FETCHCONTENT_DECLARE(
+        paho-mqttpp3
+        GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
+        GIT_TAG v1.4.1
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+)
+SET(PAHO_ENABLE_TESTING OFF)
+SET(PAHO_BUILD_TESTS OFF)
+SET(PAHO_BUILD_DOCUMENTATION OFF)
+##################################################################
+##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
+##################################################################
+IF(USE_PAHO_MQTT_HACK)
+    MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART 1${.g}]${..}")
+    MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}Paho${..}-${.b}MQTT${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
+    SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
+    FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
+    FILE(RENAME ${PAHO_MQTTPP3_DIR}/CMakeLists-paho-mqtt-fix.txt ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
+    FILE(REMOVE ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-src-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR}/src)
+    FILE(RENAME ${PAHO_MQTTPP3_DIR}/src/CMakeLists-paho-mqtt-src-fix.txt ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+ENDIF()
+##################################################################
+##################################################################
+##################################################################
+FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-c/src)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-cpp)
+IF(USE_PAHO_MQTT_HACK)
+    MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART DEUX${.g}]${..}")
+    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
+    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
+    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
+    SET(PAHO_MQTT_C_LIB ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13)
+    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c)
+    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
+    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-cpp)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
+            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
+            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
+            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
+            paho-mqttpp3)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ELSE()
-    ####################################
-    ####################################
-    ### FTXUI: ANSI C++ TERMINAL UI
-    IF(DO_NOT)
-        MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
-        SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-        FETCHCONTENT_DECLARE(
-                ftxui
-                GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-                GIT_TAG v5.0.0
-                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-        )
-        FETCHCONTENT_MAKEAVAILABLE(ftxui)
-        TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
-        TARGET_LINK_LIBRARIES(fhatos
-                PRIVATE ftxui::screen
-                PRIVATE ftxui::dom
-                PRIVATE ftxui::component # Not needed for this example.
-        )
-        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ENDIF()
-    ####################################
-    ####################################
-    ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-    MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3c paho-mqttpp3)
+ENDIF()
+TARGET_LINK_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
+SET(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+####################################
+####################################
+### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
+IF(RPI)
+    FIND_LIBRARY(wiringPi_LIB wiringPi)
+    TARGET_LINK_LIBRARIES(Object ${wiringPi_LIB})
+ENDIF()
+####################################
+####################################
+### MPC: MICRO PARSER COMBINATORS
+IF(DO_NOT)
+    MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
     FETCHCONTENT_DECLARE(
-            ordered_map
-            GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
-            GIT_TAG v1.1.0
+            mpc
+            GIT_REPOSITORY https://github.com/orangeduck/mpc.git
+            GIT_TAG 0.9.0
             GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
     )
-    FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-    #FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+    FETCHCONTENT_MAKEAVAILABLE(mpc)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ####################################
-    ####################################
-    ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
-    #################################### C
-    MESSAGE(CHECK_START "${.y}Making Paho MQTT C Library${..}")
-    FETCHCONTENT_DECLARE(
-            paho-mqtt3c
-            GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.c.git
-            GIT_TAG v1.3.13
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
-    FETCHCONTENT_MAKEAVAILABLE(paho-mqtt3c)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    #################################### C++
-    MESSAGE(CHECK_START "${.y}Making Paho MQTT C++ Library${..}")
-    FETCHCONTENT_DECLARE(
-            paho-mqttpp3
-            GIT_REPOSITORY https://github.com/eclipse/paho.mqtt.cpp.git
-            GIT_TAG v1.4.1
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
-    ##################################################################
-    ##### HACK TO FIX LIBRARY NAMING ERRORS IN PAHO MQTT RELEASE #####
-    ##################################################################
-    IF(USE_PAHO_MQTT_HACK)
-        MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART 1${.g}]${..}")
-        MESSAGE(NOTICE "\t${.y}IMPORTANT${..}: ${.g}Paho${..}-${.b}MQTT${..} build hack ${.r}requires${..} build be ${.r}run twice${..}.")
-        SET(PAHO_MQTTPP3_DIR ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/)
-        FILE(REMOVE ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
-        FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR})
-        FILE(RENAME ${PAHO_MQTTPP3_DIR}/CMakeLists-paho-mqtt-fix.txt ${PAHO_MQTTPP3_DIR}/CMakeLists.txt)
-        FILE(REMOVE ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
-        FILE(COPY ${CMAKE_SOURCE_DIR}/CMakeLists-paho-mqtt-src-fix.txt DESTINATION ${PAHO_MQTTPP3_DIR}/src)
-        FILE(RENAME ${PAHO_MQTTPP3_DIR}/src/CMakeLists-paho-mqtt-src-fix.txt ${PAHO_MQTTPP3_DIR}/src/CMakeLists.txt)
-        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ENDIF()
-    ##################################################################
-    ##################################################################
-    ##################################################################
-    FETCHCONTENT_MAKEAVAILABLE(paho-mqttpp3)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-c/src)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-src/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mqtt-cpp)
-    IF(USE_PAHO_MQTT_HACK)
-        MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}PART DEUX${.g}]${..}")
-        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqttpp3-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
-        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
-        FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-        SET(PAHO_MQTT_C_LIB ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13)
-        INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c)
-        INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
-        INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-cpp)
-        TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
-                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
-                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
-                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                paho-mqttpp3)
-        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ELSE()
-        TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC paho-mqtt3c paho-mqttpp3)
-    ENDIF()
-    TARGET_LINK_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-    SET(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ####################################
-    ####################################
-    ### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
-    IF(RPI)
-        FIND_LIBRARY(wiringPi_LIB wiringPi)
-        TARGET_LINK_LIBRARIES(Object ${wiringPi_LIB})
-    ENDIF()
-    ####################################
-    ####################################
-    ### MPC: MICRO PARSER COMBINATORS
-    IF(DO_NOT)
-        MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
-        FETCHCONTENT_DECLARE(
-                mpc
-                GIT_REPOSITORY https://github.com/orangeduck/mpc.git
-                GIT_TAG 0.9.0
-                GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-        )
-        FETCHCONTENT_MAKEAVAILABLE(mpc)
-        TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC mpc)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_INSTALL_PREFIX}/include/mpc)
-        INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/mpc-src DESTINATION ${CMAKE_SOURCE_DIR}/include/mpc)
-        TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/_deps/mpc-src)
-        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-    ENDIF()
 ENDIF()
 ####################################
 ############# TESTING ##############

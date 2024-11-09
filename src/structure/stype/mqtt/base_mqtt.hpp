@@ -53,7 +53,7 @@ namespace fhatos {
     Settings settings_;
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern, const Settings &settings) : Structure(pattern, SType::MQTT),
+    explicit BaseMqtt(const ID& id, const Pattern &pattern, const Settings &settings) : Structure(id, pattern, SType::MQTT),
                                                                           settings_(settings) {
     }
 

@@ -32,7 +32,7 @@ namespace fhatos {
   static IdObjPairs_p make_id_objs(const List<ptr<IDED>> &init) {
     const auto list = new IdObjPairs();
     for (const ptr<IDED> &ided: init) {
-      list->push_back(make_pair<ID_p, Obj_p>(ided->id(), ided->to_rec()));
+      list->push_back(make_pair<ID_p, Obj_p>(ided->vid(), ided->to_rec()));
     }
     const auto list_p = ptr<IdObjPairs>(list);
     return list_p;
@@ -44,7 +44,7 @@ namespace fhatos {
     int counter = 0;
     for (const ptr<IDED> &ided: init) {
       list->push_back(
-          make_pair<ID_p, Obj_p>(id_p(base_furi->resolve(string("./") + to_string(counter++))), vri(ided->id())));
+          make_pair<ID_p, Obj_p>(id_p(base_furi->resolve(string("./") + to_string(counter++))), vri(ided->vid())));
     }
     const auto list_p = ptr<IdObjPairs>(list);
     return list_p;
@@ -55,7 +55,7 @@ namespace fhatos {
 
   class Sys;
 
-  class Router final : public Patterned {
+  class Router final : public Valued {
   protected:
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
 
@@ -92,7 +92,7 @@ namespace fhatos {
       delete heap_count;
       delete mqtt_count;
       this->detach(p_p("#"));
-      LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->pattern()->toString().c_str());
+      LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
     void attach(const ptr<Structure> &structure) {
@@ -105,7 +105,7 @@ namespace fhatos {
             // symmetric check necessary as A can't be a subpattern of B and B can't be a subpattern of A
             throw fError(ROUTER_FURI_WRAP
                          " Only !ydisjoint structures!! can coexist: !g[!b%s!g]!! overlaps !g[!b%s!g]!!",
-                         this->pattern_->toString().c_str(), s->pattern()->toString().c_str(),
+                         this->vid_->toString().c_str(), s->pattern()->toString().c_str(),
                          structure->pattern()->toString().c_str());
           }
         });
@@ -160,7 +160,7 @@ namespace fhatos {
       if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(*furi);
         LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",
-                   furi->toString().c_str(), obj->type()->toString().c_str(), structure->pattern()->toString().c_str());
+                   furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
       }
     }
@@ -192,17 +192,17 @@ namespace fhatos {
       if (list.size() > 1)
         throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures", pattern.toString().c_str());
       if (list.empty())
-        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->pattern()->toString().c_str(),
+        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid()->toString().c_str(),
                      pattern.toString().c_str());
       const Structure_p s = list.front();
       return s;
     }
 
   protected:
-    explicit Router(const Pattern &pattern) : Patterned(p_p(pattern)) {
-      ROUTER_READ = [this](const ID_p &id) -> Obj_p { return this->read(id); };
-      ROUTER_WRITE = [this](const ID_p &id, const Obj_p &obj, const bool retain) -> const Obj_p {
-        this->write(id, obj, retain);
+    explicit Router(const ID &id) : Valued(id) {
+      ROUTER_READ = [this](const ID_p &idx) -> Obj_p { return this->read(idx); };
+      ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
+        this->write(idx, obj, retain);
         return obj;
       };
       ROUTER_WRITE_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
@@ -218,8 +218,8 @@ namespace fhatos {
           return true;
         }
         if (payload->is_rec() &&
-            (payload->type()->matches(HEAP_FURI->extend("#")) || payload->type()->matches(MQTT_FURI->extend("#")) ||
-             payload->type()->matches(COMPUTED_FURI->extend("#")))) {
+            (payload->tid()->matches(HEAP_FURI->extend("#")) || payload->tid()->matches(MQTT_FURI->extend("#")) ||
+             payload->tid()->matches(COMPUTED_FURI->extend("#")))) {
           LOG_ROUTER(DEBUG, "intercepting retained %s\n", payload->toString().c_str());
           // STRUCTURE_ATTACHER(furi, payload);
           return true;
@@ -227,14 +227,14 @@ namespace fhatos {
         return false;
       };
       ROUTER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
-        if (this->pattern()->resolve("./structure/").bimatches(furi)) {
+        if (this->vid()->resolve("./structure/").bimatches(furi)) {
           auto uris = make_shared<List<Uri_p>>();
           this->structures_.forEach(
               [uris](const Structure_p &structure) { uris->push_back(vri(structure->pattern())); });
-          const Rec_p rec = ObjHelper::encode_lst(this->pattern()->resolve("./structure/"), *uris);
+          const Rec_p rec = ObjHelper::encode_lst(this->vid()->resolve("./structure/"), *uris);
           return rec;
         }
-        if (this->pattern()->resolve("./structure/+").bimatches(furi)) {
+        if (this->vid()->resolve("./structure/+").bimatches(furi)) {
           if (StringHelper::is_integer(furi.name())) {
             const Option<Structure_p> option = this->structures_.get(stoi(furi.name()));
             if (!option.has_value())

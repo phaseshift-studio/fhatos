@@ -202,15 +202,15 @@ namespace fhatos {
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
 #define LOG_ROUTER(logtype, format, ...)                                                                               \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->pattern()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_ROUTER_STATIC(logtype, format, ...)                                                                               \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),Options::singleton()->router<Router>()->pattern()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),Options::singleton()->router<Router>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER(logtype, format, ...)                                                                            \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->id()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->id()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)

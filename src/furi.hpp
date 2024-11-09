@@ -475,7 +475,7 @@ namespace fhatos {
             (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
           return false;
       }
-      return this->query() == pattern.query() && this->path_length_ == pattern.path_length();
+      return (0 == strlen(pattern.query())  || this->query() == pattern.query()) && this->path_length_ == pattern.path_length();
     }
 
     bool operator=(const fURI &other) const { return this->equals(other); }
@@ -718,6 +718,10 @@ namespace fhatos {
       return uri;
     }
 
+    /*[[nodiscard]] const char *c_str() const {
+      return this->toString().c_str();
+    }*/
+
   private:
     void check_path_length(const char *self) const {
       if (this->path_length_ >= FOS_MAX_PATH_SEGMENTS)
@@ -776,91 +780,69 @@ namespace fhatos {
   using SourceID = ID;
   using TargetID = ID;
 
-  /////////////////
+  ///////////////////////////////////////////////////
+  ///////////////// TYPED FURI OBJ /////////////////
+  //////////////////////////////////////////////////
   class BaseTyped {
   public:
     virtual ~BaseTyped() = default;
 
-    [[nodiscard]] virtual ID_p type() const = 0;
+    [[nodiscard]] virtual ID_p tid() const = 0;
 
     [[nodiscard]] virtual bool equals(const BaseTyped &) const { return false; }
   };
 
   class Typed : public BaseTyped {
   protected:
-    ID_p type_;
+    ID_p tid_;
 
   public:
     explicit Typed(const ID_p &type) :
-      type_(type) {
+      tid_(type) {
     }
 
-    [[nodiscard]] ID_p type() const override { return this->type_; }
+    explicit Typed(const ID &id) :
+      Typed(make_shared<ID>(id)) {
+    }
+
+    [[nodiscard]] ID_p tid() const override { return this->tid_; }
 
     [[nodiscard]] bool equals(const BaseTyped &other) const override {
-      return this->type_->equals(*other.type());
+      return this->tid_->equals(*other.tid());
     }
   };
 
-  ///////////////////
+  ////////////////////////////////////////////////////
+  ///////////////// VALUED FURI OBJ /////////////////
+  ///////////////////////////////////////////////////
 
-  class BaseIDed {
+  class BaseValued {
   public:
-    virtual ~BaseIDed() = default;
+    virtual ~BaseValued() = default;
 
-    [[nodiscard]] virtual ID_p id() const = 0;
+    [[nodiscard]] virtual ID_p vid() const = 0;
 
-    [[nodiscard]] virtual bool equals(const BaseIDed &) const { return false; }
+    [[nodiscard]] virtual bool equals(const BaseValued &) const { return false; }
   };
 
-  class IDed : public BaseIDed {
+  class Valued : public BaseValued {
   protected:
-    ID_p id_;
+    ID_p vid_;
 
   public:
-    explicit IDed(const fURI_p &uri) :
-      id_(make_shared<ID>(uri->toString())) {
+    explicit Valued(const ID_p &id) :
+      vid_(id) {
     }
 
-    explicit IDed(const ID_p &id) :
-      id_(id) {
+    explicit Valued(const ID &id) :
+      Valued(make_shared<ID>(id)) {
     }
 
   public:
-    [[nodiscard]] ID_p id() const override { return this->id_; }
+    [[nodiscard]] ID_p vid() const override { return this->vid_; }
 
-    [[nodiscard]] virtual bool equals(const BaseIDed &other) const override { return this->id_->equals(*other.id()); }
-  };
-
-  //////////////////////////////////////////////
-  ///////////////// TYPED FURI /////////////////
-  //////////////////////////////////////////////
-  class BasePatterned {
-  public:
-    virtual ~BasePatterned() = default;
-
-    [[nodiscard]] virtual Pattern_p pattern() const = 0;
-
-    [[nodiscard]] virtual bool equals(const BasePatterned &) const = 0;
-  };
-
-  class Patterned : public BasePatterned {
-  protected:
-    Pattern_p pattern_;
-
-  public:
-    explicit Patterned(const fURI_p &uri) :
-      pattern_(make_shared<Pattern>(uri->toString())) {
-    }
-
-    explicit Patterned(const Pattern_p &type) :
-      pattern_(make_shared<Pattern>(*type)) {
-    }
-
-    [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }
-
-    [[nodiscard]] virtual bool equals(const BasePatterned &other) const override {
-      return this->pattern_->equals(*other.pattern());
+    [[nodiscard]] bool equals(const BaseValued &other) const override {
+      return this->vid_->equals(*other.vid());
     }
   };
 

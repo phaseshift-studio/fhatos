@@ -58,7 +58,7 @@ namespace fhatos {
 
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
 
-    explicit Mqtt(const Pattern &pattern, const Settings &settings) : BaseMqtt(pattern, settings) {
+    explicit Mqtt(const ID& id, const Pattern &pattern, const Settings &settings) : BaseMqtt(id, pattern, settings) {
 
       if (this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", settings.broker_.c_str());
@@ -133,10 +133,10 @@ namespace fhatos {
 
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings) {
+    static ptr<Mqtt> create(const ID& id, const Pattern &pattern, const Settings &settings) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings));
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(id, pattern, settings));
       return mqtt_p;
     }
 

@@ -63,15 +63,15 @@ namespace fhatos {
 
   protected:
     Settings settings_;
-    explicit Wifi(const Pattern &pattern, const Settings &settings) : Computed(pattern), settings_(settings) {
+    explicit Wifi(const ID& id, const Pattern &pattern, const Settings &settings) : Computed(id, pattern), settings_(settings) {
       if (settings.connect_)
         this->connect_to_wifi_station();
       // TODO: flash/partition/0x44343
     }
 
   public:
-    static ptr<Wifi> singleton(const Pattern &pattern, const Settings &settings) {
-      static ptr<Wifi> wifi = ptr<Wifi>(new Wifi(pattern, settings));
+    static ptr<Wifi> singleton(const ID& id, const Pattern &pattern, const Settings &settings) {
+      static ptr<Wifi> wifi = ptr<Wifi>(new Wifi(id, pattern, settings));
       return wifi;
     }
 
@@ -211,7 +211,7 @@ namespace fhatos {
        "\t!yBroadcast:       !m%s\n"
        "\t!yChannel:         !m%i\n"
        "\t!yMax connections: !m%i!!\n",
-       this->id()->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
+       this->vid()->toString().c_str(), ssid, WiFi.softAPIP().toString().c_str(),
        WiFi.softAPmacAddress().c_str(), hideSSID ? "false" : "true",
        WiFi.channel(), maxConnections);
  }

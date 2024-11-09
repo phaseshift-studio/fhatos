@@ -65,7 +65,7 @@ namespace fhatos {
         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
         FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->target);
         TEST_ASSERT_TRUE_MESSAGE(message->payload->is_rec(),
-                                 (string("Expected rec but received ") + message->payload->type()->toString()).c_str());
+                                 (string("Expected rec but received ") + message->payload->tid()->toString()).c_str());
         FL_INT_TYPE payload_int = message->payload->rec_value()->at(str("hello_fhatty"))->int_value();
         TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
         // TEST_ASSERT_TRUE(message->retain);
@@ -243,7 +243,7 @@ namespace fhatos {
     for (const Str_p &furi: {str("a"), str("b"), str("c"), str("d")}) {
       TEST_ASSERT_EQUAL_INT(
         1, std::count_if(objs->objs_value()->begin(), objs->objs_value()->end(), [furi](const Obj_p &obj) {
-          FOS_TEST_ASSERT_MATCH_FURI(*obj->type(), *STR_FURI);
+          FOS_TEST_ASSERT_MATCH_FURI(*obj->tid(), *STR_FURI);
           TEST_ASSERT_TRUE(obj->is_str());
           return obj->str_value() == furi->str_value();
           }));
@@ -355,17 +355,17 @@ namespace fhatos {
     process("%s -> 42", idA1->toString().c_str());
     Int_p i = process("*%s", idA1->toString().c_str())->objs_value()->front();
     TEST_ASSERT_EQUAL_INT(42, i->int_value());
-    TEST_ASSERT_NULL(i->id());
+    TEST_ASSERT_NULL(i->vid());
     /////
     Int_p j = process("@%s", idA1->toString().c_str())->objs_value()->front();
     TEST_ASSERT_EQUAL_INT(42, j->int_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(*idA1, *j->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(*idA1, *j->vid());
     const Int k = *j + (Int(2));
     TEST_ASSERT_EQUAL_INT(44, k.int_value());
     TEST_ASSERT_EQUAL_INT(42, i->int_value());
     const Int_p l = process("@%s", idA1->toString().c_str())->objs_value()->front();
     TEST_ASSERT_EQUAL_INT(44, l->int_value());
-    FOS_TEST_ASSERT_EQUAL_FURI(*idA1, *l->id());
+    FOS_TEST_ASSERT_EQUAL_FURI(*idA1, *l->vid());
   }
 } // namespace fhatos
 

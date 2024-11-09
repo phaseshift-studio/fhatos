@@ -32,10 +32,11 @@ namespace fhatos {
     Map_p<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> write_functions_;
 
     explicit Computed(
+      const ID& vid,
       const Pattern &pattern,
       const Map<fURI_p, Function<fURI_p, IdObjPairs_p>, furi_p_less> &read_map = {},
       const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map =
-          {}) : Structure(pattern, SType::COMPUTED),
+          {}) : Structure(vid, pattern, SType::COMPUTED),
                 read_functions_(
                   make_shared<Map<fURI_p, Function<fURI_p, List_p<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
                 write_functions_(
