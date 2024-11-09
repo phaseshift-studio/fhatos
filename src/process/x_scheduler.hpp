@@ -39,7 +39,7 @@ namespace fhatos {
 
   public:
     explicit XScheduler(const ID &id = ID("/scheduler")) :
-      Rec(rmap({{"barrier", noobj()}, {"process", lst()}}), REC_FURI, id_p(id)) {
+      Rec(rmap({{"barrier", noobj()}, {"process", lst()}}), OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };

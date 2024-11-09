@@ -51,6 +51,7 @@ namespace fhatos {
               return noobj();
             }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
           })),
+            OType::REC,
           REC_FURI,
           id_p(id)) {
       ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +76,7 @@ namespace fhatos {
         if ((proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI)))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
-        return make_shared<Obj>(proto_obj->_value, resolved_type_id, obj->vid());
+        return make_shared<Obj>(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
     }
 

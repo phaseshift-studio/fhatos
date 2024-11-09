@@ -125,7 +125,7 @@ namespace fhatos {
 
   class Parser : public Obj {
     explicit Parser(const ID &id = ID("/parser/")) :
-      Obj(share(RecMap<>{}), REC_FURI, id_p(id)) {
+      Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
       OBJ_PARSER = [](const string &obj_string) {
         try {
           const Obj_p obj = Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());

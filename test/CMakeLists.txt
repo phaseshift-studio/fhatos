@@ -75,7 +75,9 @@
                     MATH(EXPR COUNTER "${COUNTER}+1")
                     MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
                     ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-                    ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE")
+                    ADD_DEFINITIONS(
+                            -DNATIVE
+                            -DFOS_LOGGING=DEBUG)
                     IF(APPLE)
                         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
                     ENDIF()

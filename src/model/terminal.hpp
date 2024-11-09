@@ -51,7 +51,7 @@ namespace fhatos {
 #endif
                                  },
                                  StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
-            id_p(REC_FURI->extend("terminal")), id_p(id)) {
+            OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
     }
 
   public:

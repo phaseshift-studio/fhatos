@@ -11,7 +11,7 @@ __FhatOS__
     )-)_/-(>  \/_/    \/_/\/_/\/_/\/_/  \/_/  \/_____/\/_____/
                                     A Dogturd Stynx Production
 
-A Distributed Operating System for Embedded Systems
+A Distributed Operating System for Embedded Microprocessors
 ```
 
 The following processors and platforms have been tested:

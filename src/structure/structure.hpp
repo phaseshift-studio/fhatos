@@ -231,10 +231,12 @@ namespace fhatos {
             const Pattern_p pattern = p_p(furi->query(""));
             if (obj->is_noobj()) {
               // unsubscribe
-              this->recv_unsubscribe((Process::current_process() ?  Process::current_process()->vid() : id_p("scheduler")), pattern);
+              this->recv_unsubscribe(
+                  (Process::current_process() ? Process::current_process()->vid() : id_p("scheduler")), pattern);
             } else if (obj->is_bcode()) {
               // bcode for on_recv
-              this->recv_subscription(subscription_p(Process::current_process() ?  *Process::current_process()->vid() : ID("scheduler"), *pattern, obj));
+              this->recv_subscription(subscription_p(
+                  Process::current_process() ? *Process::current_process()->vid() : ID("scheduler"), *pattern, obj));
             } else if (obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
               // complete sub[=>] record
               this->recv_subscription(from_subscription_obj(obj));
@@ -330,7 +332,7 @@ namespace fhatos {
 
   protected:
     static Obj_p strip_value_id(const Obj_p &obj) {
-      return nullptr == obj->vid() ? obj : make_shared<Obj>(obj->_value, obj->tid(), nullptr);
+      return nullptr == obj->vid() ? obj : make_shared<Obj>(obj->value_, obj->o_type(), obj->tid(), nullptr);
     }
 
     void check_availability(const string &function) const {

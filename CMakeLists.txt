@@ -181,6 +181,9 @@ SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 ######## PROJECT LIBRARY (NATIVE)
 OPTION(BUILD_NATIVE "Build Native" ON) # ON/OFF
 IF(BUILD_NATIVE)
@@ -194,8 +197,11 @@ IF(BUILD_NATIVE)
         SET(CMAKE_CXX_COMPILER_LAUNCHER ccache)
     ENDIF()
     INCLUDE_DIRECTORIES(src)
-    file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "src/*.hpp")
-    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp)
+    FILE(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "src/*.hpp")
+    IF(VERBOSE)
+        MESSAGE(NOTICE "${.g}Adding source files${..}: ${SOURCE_FILES}")
+    ENDIF()
+    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -214,14 +220,19 @@ IF(BUILD_NATIVE)
     IF(APPLE)
         ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
     ENDIF()
-    ADD_DEFINITIONS("-DNATIVE")
-    ADD_DEFINITIONS("-DCMAKE_SYSTEM=${CMAKE_SYSTEM}")
-    ADD_DEFINITIONS("-DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}")
-    ADD_DEFINITIONS("-DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}")
+    ADD_DEFINITIONS(
+            -DNATIVE
+            -DCMAKE_SYSTEM=${CMAKE_SYSTEM}
+            -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+            -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR})
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF()
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################

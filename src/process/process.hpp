@@ -87,7 +87,7 @@ namespace fhatos {
                                                                              __FILE__,__LINE__))
                                                                  }
                                                              }),
-                                                             REC_FURI, setup_loop_stop->vid()) {
+                                                             OType::REC, REC_FURI, setup_loop_stop->vid()) {
             this_process.store(this);
             this->rec_add(setup_loop_stop);
             this->vid_ = setup_loop_stop->vid();
