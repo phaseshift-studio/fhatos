@@ -24,7 +24,7 @@
 #include <kernel.hpp>
 #include <language/insts.hpp>
 #include <language/parser.hpp>
-#include <language/types.hpp>
+#include <language/type.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
 #include <process/ptype/native/scheduler.hpp>

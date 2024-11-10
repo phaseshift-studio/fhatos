@@ -177,7 +177,7 @@ build_docs() {
     local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON;
+    cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON ${extra_args};
     make -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
 }

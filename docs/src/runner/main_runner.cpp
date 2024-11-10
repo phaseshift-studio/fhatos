@@ -24,7 +24,7 @@
 #include <kernel.hpp>
 #include <language/insts.hpp>
 #include <language/parser.hpp>
-#include <language/types.hpp>
+#include <language/type.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
 #include <process/ptype/native/scheduler.hpp>
@@ -49,37 +49,32 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 
 int main(int arg, char **argsv) {
   try {
-    char** args = new char*();
-    args[0] = (char*) "main_runner";
-    args[1] = (char*) "--headers=false";
-    args[2] = (char*) "--log=ERROR";
-    args[3] = (char*) "--ansi=false";
-    ArgvParser* argv_parser = new ArgvParser();
-    argv_parser->init(4,args);
+    char **args = new char *();
+    args[0] = (char *) "main_runner";
+    args[1] = (char *) "--headers=false";
+    args[2] = (char *) "--log=ERROR";
+    args[3] = (char *) "--ansi=false";
+    ArgvParser *argv_parser = new ArgvParser();
+    argv_parser->init(4, args);
     BootLoader::primary_boot(argv_parser);
     Options::singleton()->printer<Ansi<>>()->on(false);
   } catch (const std::exception &e) {
     throw;
   }
   LOG(INFO, "Processing %s\n", argsv[1]);
-  printer<>()->println("++++\n[source,mmadt]\n----");
+  printer<>()->println("++++\n[source,mmadt]\n----\n");
+  router()->write(id_p("/console/:prompt"), str(""), false);
+  router()->loop();
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];
       StringHelper::trim(x);
-      if(x == "/console/config/nest -> true") {
-         router()->write(id_p("/console/config/nest"),dool(true));
+      if (x == "/console/config/nest -> true") {
+        router()->write(id_p("/console/config/nest"), dool(true));
       } else {
-      //printer<>()->printf("%s\n", x.c_str());
-      router()->write(id_p("/console/prompt"),str(x),false);
-      router()->loop();
+        router()->write(id_p("/console/:prompt"), str(x), false);
       }
-      /*printer<>()->printf("fhatos> %s\n", x.c_str());
-      const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(argsv[i]);
-      if (obj.has_value()) {
-        //printResult(Options::singleton()->processor<Obj,BCode,Obj>(noobj(),obj.value()));
-        printResult(Fluent(obj.value()).toObjs());
-      }*/
+      router()->loop();
     } catch (std::exception &e) {
       LOG_EXCEPTION(e);
     }

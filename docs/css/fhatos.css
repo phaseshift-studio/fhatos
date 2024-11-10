@@ -107,14 +107,16 @@ video {
     color: darkgoldenrod;
     font-style: italic;
 }
-
+.hljs-mmadt-reference {
+    color: darkmagenta;
+    font-weight: bolder;
+}
 .hljs-mmadt-rec-key {
     color: #1e54a0;
 }
 .hljs-mmadt-rec {
     color: darkmagenta;
 }
-
 .hljs-prompt-begin {
     color: #430043;
 }
