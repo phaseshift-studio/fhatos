@@ -121,8 +121,8 @@ The following subsections will provide a short overview of the aforementioned re
 ----
 
 
-
-fhatos> fhatos> */sys/scheduler
+fhatos> 
+fhatos> */sys/scheduler
 =>[
 ===>barrier=>noobj
 ===>process=>
@@ -268,8 +268,8 @@ mm-ADT is a structurally typed language, whereby if an `obj` *A* __matches__ `ob
 ----
 
 
-
-fhatos> fhatos> /type/int/nat -> |is(gt(0))
+fhatos> 
+fhatos> /type/int/nat -> |is(gt(0))
 ===>is(gt(0))
 fhatos> nat[6]
 ===>nat[6]
@@ -331,8 +331,8 @@ a|
 ----
 
 
-
-fhatos> fhatos> y -> 12
+fhatos> 
+fhatos> y -> 12
 ===>12
 fhatos> x -> y
 ===>y
@@ -576,8 +576,8 @@ fhatos>
 ----
 
 
-fhatos> 
-fhatos> true.plus(false)
+
+fhatos> fhatos> true.plus(false)
 ===>true
 fhatos> 1.plus(2)
 ===>3
