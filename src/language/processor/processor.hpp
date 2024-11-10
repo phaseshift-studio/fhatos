@@ -48,7 +48,7 @@ namespace fhatos {
       try {
         next_obj = this->inst_->apply(this->obj_);
       } catch (const fError &error) {
-        throw fError("%s !rthrown by!! %s => %s", error.what(),
+        throw fError("%s\n\t\t!rthrown when applying!! %s => %s", error.what(),
                      this->obj_->toString().c_str(),
                      this->inst_->toString().c_str());
       }

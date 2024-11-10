@@ -38,16 +38,17 @@ namespace mmadt {
       Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(MESSAGE_FURI,
                                    Obj::to_rec({
-                                     {vri(":target"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                                     {vri(":payload"), Obj::to_bcode()},
-                                     {vri(":retain"), Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}
+                                       {vri(":target"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {vri(":payload"), Obj::to_bcode()},
+                                       {vri(":retain"), Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}
                                    }));
       Type::singleton()->save_type(
-        SUBSCRIPTION_FURI, Obj::to_rec({
-          {vri(":source"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-          {vri(":pattern"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-          {vri(":on_recv"), Obj::to_bcode()}}));
-      Type::singleton()->save_type(THREAD_FURI, Obj::to_bcode({Insts::get(vri(":loop"))}));
+          SUBSCRIPTION_FURI, Obj::to_rec({
+              {vri(":source"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+              {vri(":pattern"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+              {vri(":on_recv"), Obj::to_bcode()}}));
+      Type::singleton()->save_type(THREAD_FURI,
+                                   Obj::to_rec({{vri(":loop"), Obj::to_bcode()}}));
       Type::singleton()->save_type(inst_id("a"), Insts::a(x(0)));
       Type::singleton()->save_type(inst_id("optional"), Insts::optional(x(0)));
       // this->save_type(inst_id("*"), Insts::from(vri(inst_id("from"))));
@@ -206,7 +207,7 @@ namespace mmadt {
    }*/
 
     //static void setup() {
-   // }
+    // }
 
     static Uri_p inst_uri(const string &opcode) { return vri(INST_FURI->resolve(opcode)); }
     static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }

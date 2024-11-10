@@ -1270,7 +1270,15 @@ namespace fhatos {
         case OType::REC: {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
-          if (pairs_a->size() != pairs_b->size())
+          for (const auto &it_b: *pairs_b) {
+            if (pairs_a->count(it_b.first)) {
+              if (!pairs_a->at(it_b.first)->match(it_b.second))
+                return false;
+            } else
+              return false;
+          }
+          return true;
+          /*if (pairs_a->size() != pairs_b->size())
             return false;
           auto it_b = pairs_b->begin();
           for (const auto &it_a: *pairs_a) {
@@ -1278,7 +1286,7 @@ namespace fhatos {
               return false;
             ++it_b;
           }
-          return true;
+          return true;*/
         }
         case OType::INST: {
           const auto args_a = this->inst_args();
@@ -1472,23 +1480,23 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
-    static Objs_p to_objs(const ID_p &furi = OBJS_FURI) {
+    static Objs_p to_objs(const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
-      return to_objs(make_shared<List<Obj_p>>(), furi);
+      return to_objs(make_shared<List<Obj_p>>(), type_id);
     }
 
-    static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &furi = OBJS_FURI) {
+    static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
-      auto os = make_shared<Objs>(objs, OType::OBJS, furi);
+      auto os = make_shared<Objs>(objs, OType::OBJS, type_id);
       return os;
     }
 
-    static Objs_p to_objs(const List<Obj> &objs, const ID_p &furi = OBJS_FURI) {
-      return Obj::to_objs(make_shared<List<Obj_p>>(PtrHelper::clone(objs)), furi);
+    static Objs_p to_objs(const List<Obj> &objs, const ID_p &type_id = OBJS_FURI) {
+      return Obj::to_objs(make_shared<List<Obj_p>>(PtrHelper::clone(objs)), type_id);
     }
 
-    static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &furi = ERROR_FURI) {
-      return make_shared<Error>(Pair<Obj_p, Inst_p>(obj, inst), OType::ERROR, furi);
+    static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &type_id = ERROR_FURI) {
+      return make_shared<Error>(Pair<Obj_p, Inst_p>(obj, inst), OType::ERROR, type_id);
     }
 
     /*std::__allocator_base<Obj> allocator = std::allocator<Obj>()*/

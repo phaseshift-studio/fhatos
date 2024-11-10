@@ -70,9 +70,9 @@ namespace fhatos {
 #endif
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
-                                   ->using_printer(Ansi<>::singleton())
-                                   ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-                                   ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
+            ->using_printer(Ansi<>::singleton())
+            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
         if (args_parser->option("--headers", "true") == "true") {
           kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
@@ -81,7 +81,7 @@ namespace fhatos {
         }
         ////////////////////////////////////////////////////////////
         return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
-            ->using_router(Router::singleton("/sys/router/#"))
+            ->using_router(Router::singleton("/sys/router"))
             ////////////////////////////////////////////////////////////
             ->mount(Heap<>::create("/sys/", "/sys/#"))
             ->mount(Heap<>::create("_cache", "+/#"))

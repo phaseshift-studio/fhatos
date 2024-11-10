@@ -195,11 +195,16 @@ namespace fhatos {
                    })}}, THREAD_FURI, id_p(id))),
       stdin_id(id_p(terminal.extend(":stdin"))),
       stdout_id(id_p(terminal.extend(":stdout"))) {
-      LOG(INFO, "CONSOLE: %s\n", this->toString().c_str());
     }
 
   public:
     static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
+      /*router()->write(id_p(REC_FURI->extend("console")),
+        rec({{vri("config"),
+          rec({{vri("nest"),as(BOOL_FURI)},
+          {vri("nest"),as(BOOL_FURI)},
+          {vri("nest"),as(BOOL_FURI)},
+          {vri("nest"),as(BOOL_FURI)}})}}));*/
       const auto console = ptr<Console>(new Console(id, terminal, settings));
       return console;
     }
