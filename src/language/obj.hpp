@@ -537,9 +537,9 @@ namespace fhatos {
       // return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
-    /*[[nodiscard]] Obj_p rec_get(const Obj &key, const Runnable &on_error = nullptr) const {
+    [[nodiscard]] Obj_p rec_get(const Obj &key, const Runnable &on_error = nullptr) const {
       return rec_get(make_shared<Obj>(key), on_error);
-    }*/
+    }
 
     [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Runnable &on_error = nullptr) const {
       return rec_get(to_uri(*key), on_error);

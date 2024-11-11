@@ -62,11 +62,12 @@ namespace fhatos {
 
   void test_subscriptions() {
     auto counter = new uint8_t(0);
-    router()->route_subscription(subscription_p(ID("a_source"), Pattern("/abc/"), Subscription::to_bcode(
-                                                    [counter](const Message_p &message) {
+    router()->route_subscription(  Subscription::create(ID("a_source"), Pattern("/abc/"), Obj::to_bcode(
+                                                    [counter](const Rec_p &message) {
                                                       LOG(INFO, "Message received: %s\n", message->toString().c_str());
                                                       (*counter)++;
-                                                      TEST_ASSERT_EQUAL_INT(134, message->payload->int_value());
+                                                      TEST_ASSERT_EQUAL_INT(134,  message->rec_get(":payload")->int_value());
+                                                      return noobj();
                                                     })));
 
     router()->write(id_p("/abc/"), jnt(134));

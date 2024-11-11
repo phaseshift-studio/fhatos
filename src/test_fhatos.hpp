@@ -115,7 +115,7 @@ scheduler()->stop();
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
-namespace fhatos {
+namespace fhatos{
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -331,12 +331,13 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
       router()->route_subscription(
         Subscription::create(ID("fhatty"),
                        key.uri_value(),
-                       Subscription::to_bcode([temp](const ptr<Message> &message) {
-                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
+                       Obj::to_bcode([temp](const ptr<Rec> &message) {
+                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->rec_get(":payload"),
                                                   (string("Router retain message payload equality: ") +
                                                     router()->vid()->toString() + " " + temp.toString() +
-                                                    " != " + message->payload->toString())
+                                                    " != " + message->rec_get(":payload")->toString())
                                                   .c_str());
+                         return noobj();
                        })
         ));
     }
