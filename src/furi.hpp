@@ -161,6 +161,13 @@ namespace fhatos {
       return path_str;
     }
 
+    /*    [[nodiscard]] Pair<string, const string> path_prefixed(const uint8_t index = -1) const {
+          const string p = -1 == index ? this->name() : this->path(index);
+          const size_t split = p.find(':');
+          return make_pair<string, const string>(split == string::npos ? EMPTY_CHARS : string(p.substr(0, split)),
+                                                 split == string::npos ? p : string(p.substr(split)));
+        }*/
+
     [[nodiscard]] bool has_path(const char *segment, const uint8_t start_index = 0) const {
       for (int i = start_index; i < path_length_; i++) {
         if (strcmp(path_[i], segment) == 0)

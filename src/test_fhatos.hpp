@@ -329,7 +329,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       router()->route_subscription(
-        subscription_p(ID("fhatty"),
+        Subscription::create(ID("fhatty"),
                        key.uri_value(),
                        Subscription::to_bcode([temp](const ptr<Message> &message) {
                          TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,

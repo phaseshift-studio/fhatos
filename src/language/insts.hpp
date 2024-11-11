@@ -962,20 +962,20 @@ namespace fhatos {
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
-      const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
+      const ID_p type_id_resolved = type_id.has_scheme() ? id_p(type_id) : id_p(INST_FURI->resolve(type_id));
       Obj_p base_inst = router()->read(type_id_resolved);
       if (base_inst->is_noobj()) {
         base_inst = router()->read(id_p(type_id));
-        if (!base_inst->is_bcode())
-          throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
+        if (!base_inst->is_code())
+          throw fError("unknown instruction: %s", type_id.toString().c_str());
       }
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
           base_inst->toString().c_str(), base_inst->tid()->toString().c_str());
       if (base_inst->is_inst())
-        return ObjHelper::replace_from_inst(args, base_inst);
+        return ObjHelper::replace_from_inst(base_inst, args);
       if (base_inst->is_bcode()) {
         if (base_inst->bcode_value()->size() == 1)
-          return ObjHelper::replace_from_inst(args, base_inst->bcode_value()->at(0));
+          return ObjHelper::replace_from_inst(base_inst->bcode_value()->at(0), args);
         return Obj::to_inst(
             type_id.name(), args,
             [base_inst,args](const InstArgs &) {
@@ -984,7 +984,7 @@ namespace fhatos {
                 for (const Obj_p &arg: args) {
                   args3.push_back(arg->apply(lhs));
                 }
-                const Obj_p new_bcode = ObjHelper::replace_from_bcode(args3, base_inst);
+                const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args3);
                 //LOG(INFO, "final bcode: %s\n", new_bcode->toString().c_str());
                 return new_bcode->apply(lhs);
               };

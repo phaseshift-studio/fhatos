@@ -117,7 +117,7 @@ namespace fhatos {
             router()->write(type_id, type_def);
             LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! defined\n", this->vid()->toString().c_str(),
                 type_id->toString().c_str(),
-                type_def->toString().c_str());
+                type_id->toString().c_str());
           } else {
             router()->write(type_id, type_def);
             LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! overwritten\n", this->vid()->toString().c_str(),

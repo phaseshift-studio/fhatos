@@ -44,8 +44,9 @@ namespace fhatos {
 
       explicit Settings(const string &client = STR(FOS_MACHINE_NAME), const string &broker = STR(FOS_MQTT_BROKER),
                         const Message_p &will = nullptr, const uint16_t read_ms_wait = 500,
-                        const bool connected = true) : client_(client), broker_(broker), will_(will),
-                                                       read_ms_wait_(read_ms_wait), connected_(connected) {
+                        const bool connected = true) :
+        client_(client), broker_(broker), will_(will),
+        read_ms_wait_(read_ms_wait), connected_(connected) {
       }
     };
 
@@ -53,8 +54,9 @@ namespace fhatos {
     Settings settings_;
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const ID& id, const Pattern &pattern, const Settings &settings) : Structure(id, pattern, SType::MQTT),
-                                                                          settings_(settings) {
+    explicit BaseMqtt(const ID &id, const Pattern &pattern, const Settings &settings) :
+      Structure(id, pattern, SType::MQTT),
+      settings_(settings) {
     }
 
     virtual bool exists() const = 0;
@@ -73,10 +75,10 @@ namespace fhatos {
                     "!ywill topic!!    : !m%s!!\n" FOS_TAB_4 "!ywill message!!  : !m%s!!\n" FOS_TAB_4
                     "!ywill qos!!      : !m%s!!\n" FOS_TAB_4 "!ywill retain!!   : !m%s!!\n",
                     this->settings_.broker_.c_str(), this->settings_.client_.c_str(),
-                    this->settings_.will_.get() ? this->settings_.will_->target.toString().c_str() : "<none>",
-                    this->settings_.will_.get() ? this->settings_.will_->payload->toString().c_str() : "<none>",
+                    this->settings_.will_.get() ? this->settings_.will_->target().toString().c_str() : "<none>",
+                    this->settings_.will_.get() ? this->settings_.will_->payload()->toString().c_str() : "<none>",
                     this->settings_.will_.get() ? "1" : "<none>",
-                    this->settings_.will_.get() ? FOS_BOOL_STR(this->settings_.will_->retain) : "<none>");
+                    this->settings_.will_.get() ? FOS_BOOL_STR(this->settings_.will_->retain()) : "<none>");
     }
 
   public:
@@ -89,7 +91,7 @@ namespace fhatos {
 
     void recv_subscription(const Subscription_p &subscription) override {
       check_availability("subscription");
-      const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern));
+      const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern()));
       Structure::recv_subscription(subscription);
       if (mqtt_sub) {
         LOG_STRUCTURE(DEBUG, this, "subscribing as no existing subscription found: %s\n",
@@ -111,7 +113,7 @@ namespace fhatos {
 
     void loop() override {
       Structure::loop();
-    ///  Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+      ///  Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
     }
 
     IdObjPairs_p read_raw_pairs(const fURI_p &furi) override {
@@ -122,12 +124,14 @@ namespace fhatos {
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = ID(this->settings_.client_.c_str());
       this->recv_subscription(
-        subscription_p(source_id, temp, Subscription::to_bcode([this, furi, thing](const Message_p &message) {
-          LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
-                        message->toString().c_str());
-          ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
-          thing->load()->push_back({id_p(message->target), message->payload});
-        })));
+          Subscription::create(source_id, temp, Obj::to_bcode([this, furi, thing](const Rec_p &message) {
+            LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
+                          message->toString().c_str());
+            ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+            thing->load()->push_back({id_p(message->rec_get(vri(":target"))->uri_value()),
+                                      message->rec_get(vri(":payload"))});
+            return noobj();
+          })));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
@@ -148,7 +152,7 @@ namespace fhatos {
       /*if(id == this->pattern()->retract_pattern()->extend("config/connected")) {
         this->
       }*/
-      native_mqtt_publish(message_p(*id, obj, retain));
+      native_mqtt_publish(Message::create(*id, obj, retain));
     }
 
     void publish_retained(const Subscription_p &) override {

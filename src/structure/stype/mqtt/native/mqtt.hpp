@@ -62,9 +62,9 @@ namespace fhatos {
             .keep_alive_interval(std::chrono::seconds(20))
             .automatic_reconnect();
         if (this->settings_.will_.get()) {
-          const BObj_p source_payload = this->settings_.will_->payload->serialize();
+          const BObj_p source_payload = this->settings_.will_->payload()->serialize();
           pre_connection_options = pre_connection_options.will(
-              message(this->settings_.will_->target.toString(), source_payload->second, this->settings_.will_->retain));
+              message(this->settings_.will_->target().toString(), source_payload->second, this->settings_.will_->retain()));
         }
         this->connection_options_ = pre_connection_options.finalize();
         //// MQTT MESSAGE CALLBACK
@@ -74,10 +74,10 @@ namespace fhatos {
               std::make_shared<BObj>(ref.length(), reinterpret_cast<fbyte *>(const_cast<char *>(ref.data())));
           const auto [payload, retained] = make_payload(bobj);
           // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
-          const Message_p message = message_p(ID(mqtt_message->get_topic()), payload, retained);
+          const Message_p message = Message::create(ID(mqtt_message->get_topic()), payload, retained);
           LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
-            const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target));
+            const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
             for (const Subscription_p &sub: *matches) {
               client->outbox_->push_back(share(Mail{sub, message}));
             }
@@ -90,7 +90,7 @@ namespace fhatos {
     }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
-      MQTT_CONNECTION->subscribe(subscription->pattern.toString(), 1)->wait();
+      MQTT_CONNECTION->subscribe(subscription->pattern().toString(), 1)->wait();
     }
 
     void native_mqtt_unsubscribe(const fURI_p &pattern) override {
@@ -98,14 +98,14 @@ namespace fhatos {
     }
 
     void native_mqtt_publish(const Message_p &message) override {
-      if (message->payload->is_noobj()) {
-        MQTT_CONNECTION->publish(message->target.toString().c_str(), const_cast<char *>(""), 0, 2, true)->wait();
+      if (message->payload()->is_noobj()) {
+        MQTT_CONNECTION->publish(message->target().toString().c_str(), const_cast<char *>(""), 0, 2, true)->wait();
       } else {
-        const BObj_p source_payload = make_bobj(message->payload, message->retain);
+        const BObj_p source_payload = make_bobj(message->payload(), message->retain());
         MQTT_CONNECTION
-            ->publish(message->target.toString(), source_payload->second, source_payload->first,
+            ->publish(message->target().toString(), source_payload->second, source_payload->first,
                       1, // qos
-                      message->retain)
+                      message->retain())
             ->wait();
       }
     }

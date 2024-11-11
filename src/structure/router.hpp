@@ -57,11 +57,13 @@ namespace fhatos {
 
   class Router final : public Valued {
   protected:
+    const ID_p namespace_prefix_;
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
 
   public:
-    static ptr<Router> singleton(const Pattern &pattern = "/sys/router/") {
-      static auto router_p = ptr<Router>(new Router(pattern));
+    static ptr<Router> singleton(const Pattern &pattern = "/sys/router/",
+                                 const ID &namespace_prefix = ID(URI_FURI->extend("ns/prefix/"))) {
+      static auto router_p = ptr<Router>(new Router(pattern, namespace_prefix));
       return router_p;
     }
 
@@ -136,19 +138,20 @@ namespace fhatos {
     [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
+      const fURI_p resolved_furi = resolve_namespace_prefix(furi);
       ///////////////////////////////////////////////
       //////////// ROUTER READ INTERCEPTS ///////////
       ///////////////////////////////////////////////
       const Objs_p objs = Obj::to_objs();
-      objs->add_obj(ROUTER_READ_INTERCEPT(*furi));
+      objs->add_obj(ROUTER_READ_INTERCEPT(*resolved_furi));
       // if (!objs->objs_value()->empty())
       //  return objs;
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////
-      const Structure_p &struc = this->get_structure(*furi);
-      const Obj_p obj = struc->read(furi);
-      LOG_ROUTER(DEBUG, "!g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n", furi->toString().c_str(),
+      const Structure_p &struc = this->get_structure(*resolved_furi);
+      const Obj_p obj = struc->read(resolved_furi);
+      LOG_ROUTER(DEBUG, "!g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n", resolved_furi->toString().c_str(),
                  obj->toString().c_str(), struc->pattern()->toString().c_str());
       if (obj->is_noobj())
         return objs;
@@ -176,7 +179,7 @@ namespace fhatos {
     }
 
     void route_subscription(const Subscription_p &subscription) {
-      const Structure_p &struc = this->get_structure(subscription->pattern);
+      const Structure_p &struc = this->get_structure(subscription->pattern());
       LOG_ROUTER(DEBUG, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
       struc->recv_subscription(subscription);
     }
@@ -198,8 +201,26 @@ namespace fhatos {
       return s;
     }
 
+    [[nodiscard]] fURI_p resolve_namespace_prefix(const fURI_p &type_id) {
+      fURI_p type_id_resolved;
+      if (strlen(type_id->scheme()) > 0) {
+        LOG(DEBUG, "resolving namespace prefix for %s: <%s>:<%s>\n", type_id->toString().c_str(), type_id->scheme(),
+            type_id->path().c_str());
+        const Obj_p temp = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
+        if (!temp->is_noobj()) {
+          if (temp->is_uri()) {
+            return id_p(temp->uri_value().extend((string(":").append(type_id->path())).c_str()));
+          } else
+            throw fError("namespace prefixes must be uris: %s:%s", temp->toString().c_str());
+        }
+      } else {
+        return type_id;
+      }
+    }
+
   protected:
-    explicit Router(const ID &id) : Valued(id) {
+    explicit Router(const ID &id, const ID &namespace_prefix = URI_FURI->extend("ns/prefix/")) :
+      Valued(id), namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_READ = [this](const ID_p &idx) -> Obj_p { return this->read(idx); };
       ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(idx, obj, retain);

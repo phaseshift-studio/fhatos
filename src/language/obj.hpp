@@ -508,7 +508,7 @@ namespace fhatos {
       return this->value<RecMap_p<>>();
     }
 
-    [[nodiscard]] Obj_p rec_get(const Obj_p &key) const {
+    [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Runnable &on_error = nullptr) const {
       if (key->is_uri() && key->uri_value().path_length() > 1) {
         const Uri_p segment = to_uri(key->uri_value().path(0));
         Obj_p segment_value = nullptr;
@@ -518,8 +518,11 @@ namespace fhatos {
             break;
           }
         }
-        if (!segment_value)
+        if (!segment_value) {
+          if (on_error)
+            on_error();
           return Obj::to_noobj();
+        }
         if (!segment_value->is_rec())
           throw fError("path %s of %s is not a rec", segment->toString().c_str(), key->toString().c_str(),
                        segment_value->toString().c_str());
@@ -534,9 +537,17 @@ namespace fhatos {
       // return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
-    [[nodiscard]] Obj_p rec_get(const Obj &key) const { return rec_get(make_shared<Obj>(key)); }
+    /*[[nodiscard]] Obj_p rec_get(const Obj &key, const Runnable &on_error = nullptr) const {
+      return rec_get(make_shared<Obj>(key), on_error);
+    }*/
 
-    [[nodiscard]] Obj_p rec_get(const fURI_p &key) const { return rec_get(to_uri(*key)); }
+    [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Runnable &on_error = nullptr) const {
+      return rec_get(to_uri(*key), on_error);
+    }
+
+    [[nodiscard]] Obj_p rec_get(const char *uri_key, const Runnable &on_error = nullptr) const {
+      return rec_get(to_uri(fURI(uri_key)), on_error);
+    }
 
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       if (nest && key->is_uri() && key->uri_value().path_length() > 1) {
@@ -1153,6 +1164,8 @@ namespace fhatos {
     [[nodiscard]] bool is_objs() const { return this->o_type() == OType::OBJS; }
 
     [[nodiscard]] bool is_bcode() const { return this->o_type() == OType::BCODE; }
+
+    [[nodiscard]] bool is_code() const { return this->is_bcode() || this->is_inst(); }
 
     [[nodiscard]] bool is_error() const { return this->o_type() == OType::ERROR; }
 

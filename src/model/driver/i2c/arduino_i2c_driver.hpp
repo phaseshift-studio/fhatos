@@ -244,7 +244,7 @@ namespace fhatos {
                                                         },
                                                         IType::ONE_TO_ZERO)
                                                 })),  id_p(DRIVER_FURI->resolve("i2c/arduino/furi")));
-         router()->route_subscription(subscription_p(*driver->type(),
+         router()->route_subscription(Subscription::create(*driver->type(),
                                                   *request_id, Insts::to_bcode(
                                                     [response_id](const Message_p &message) {
                                                       const Obj_p result = message->payload->apply(noobj());
