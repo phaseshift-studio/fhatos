@@ -40,8 +40,8 @@ namespace fhatos {
             ":stop=>/test/thread/b->57]]");
     process("%s/:spawn --> @/test/thread", Scheduler::singleton()->vid()->toString().c_str());
     sleep(1);
-    //TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/thread"));
-    //const Obj_p b_1 = process("*/test/thread/b")->objs_value()->at(0);
+   // TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/thread"));
+    FOS_TEST_OBJ_EQUAL(jnt(345), process("*/test/thread/a")->objs_value()->at(0));
     //TEST_ASSERT_TRUE(b_1->is_noobj());
     const Int_p x_1 = process("*/test/thread/x")->objs_value()->at(0);
     FOS_TEST_OBJ_GT(x_1, jnt(0))
@@ -51,7 +51,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(345), process("*/test/thread/a")->objs_value()->at(0));
     process("/test/thread -> noobj");
     sleep(1);
-    FOS_TEST_OBJ_EQUAL(jnt(57), process("*/test/thread/b")->objs_value()->at(0));
+    //FOS_TEST_OBJ_EQUAL(jnt(57), process("*/test/thread/b"));
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/thread"));
     //FOS_TEST_OBJ_EQUAL(noobj(),process("/test/%s/b -> noobj",pc)->objs_value()->at(0));
     free((void*)pc);

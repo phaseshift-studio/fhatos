@@ -183,7 +183,7 @@ namespace fhatos {
                                   return noobj();
                                 }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
                                {":prompt", Obj::to_bcode([this](const Obj_p &obj) {
-                                 //printer<>()->printf("%s\n", obj->str_value().c_str());
+                                 printer<>()->printf("%s\n", obj->str_value().c_str());
                                  this->process_line(obj->str_value());
                                  this->print_prompt();
                                  return noobj();

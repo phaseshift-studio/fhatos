@@ -1291,12 +1291,18 @@ namespace fhatos {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
 
-          for (const auto &it_a: *pairs_a) {
+          for (const auto &it_b: *pairs_b) {
             bool found = false;
-            for (const auto &it_b: *pairs_b) {
-              if (it_a.first->match(it_b.first) && it_a.second->match(it_b.second)) {
+            /*if (it_b.first->is_uri()) {
+              if (pairs_a->count(it_b.first))
                 found = true;
-                break;
+            }*/
+            if (!found) {
+              for (const auto &it_a: *pairs_a) {
+                if (it_a.first->match(it_b.first) && it_a.second->match(it_b.second)) {
+                  found = true;
+                  break;
+                }
               }
             }
             if (!found)
