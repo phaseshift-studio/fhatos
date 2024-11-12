@@ -32,11 +32,12 @@ namespace fhatos {
     struct Settings {
       const uint8_t nest_;
       const bool ansi_;
+      const string prompt_;
       const bool strict_;
       const LOG_TYPE log_;
 
-      Settings(const uint8_t nest, const bool ansi, const bool strict, const LOG_TYPE log) :
-        nest_(nest), ansi_(ansi),
+      Settings(const uint8_t nest, const bool ansi, const string &prompt, const bool strict, const LOG_TYPE log) :
+        nest_(nest), ansi_(ansi), prompt_(prompt),
         strict_(strict), log_(log) {
       }
     };
@@ -53,7 +54,9 @@ namespace fhatos {
     }
 
     void print_prompt(const bool blank = false) const {
-      router()->write(this->stdout_id, str(blank ? "        " : "!mfhatos!g>!! "), false);
+      const string prompt = router()->read(id_p(this->vid()->extend("config/prompt")))->apply(noobj())->str_value();
+      router()->write(this->stdout_id,
+                      str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt), false);
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
@@ -191,6 +194,7 @@ namespace fhatos {
                                {"config", rec({{vri("nest"), jnt(settings.nest_)},
                                                {vri("strict"), dool(settings.strict_)},
                                                {vri("ansi"), dool(settings.ansi_)},
+                                               {vri("prompt"), str(settings.prompt_)},
                                                {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
                                 })}}), THREAD_FURI)),
       stdin_id(id_p(terminal.extend(":stdin"))),

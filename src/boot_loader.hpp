@@ -117,6 +117,7 @@ namespace fhatos {
             ->process(Console::create("/console", "/io/terminal",
                                       Console::Settings(args_parser->option_int("--console:nest", 2),
                                                         args_parser->option_bool("--ansi", true),
+                                                        args_parser->option_string("--console:prompt", "!mfhatos!g>!! "),
                                                         args_parser->option_bool("--console:strict", false),
                                                         LOG_TYPES.to_enum(
                                                             args_parser->option_string("--log", "INFO")))))

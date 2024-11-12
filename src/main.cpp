@@ -50,6 +50,7 @@ int main(const int argc, char **argv) {
     ansi->printf(HELP, "mqtt:broker", "{!gserver uri!!}");
     ansi->printf(HELP, "mqtt:client", "{!gclient_name!!}");
     ansi->printf(HELP, "console:nest", "{!gtrue!!|!gfalse!!}");
+    ansi->printf(HELP, "console:prompt", "{!gprompt_string!!}");
     delete ansi;
   } else {
     setup();
