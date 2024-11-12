@@ -24,7 +24,7 @@
 
 namespace fhatos {
   FOS_RUN_TESTS( //
-    begin_test_structure(Mqtt::create("/mqtt", "//test/#",Mqtt::Settings())); //
+    begin_test_structure(Mqtt::create("//test/#",Mqtt::Settings(),"/mqtt")); //
     FOS_RUN_TEST(test_subscribe); //
     //FOS_RUN_TEST(test_data_types); //
     FOS_RUN_TEST(test_write); //

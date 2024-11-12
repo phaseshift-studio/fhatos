@@ -179,19 +179,13 @@ namespace fhatos {
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
               const Obj_p applied_arg = args.at(0)->apply(lhs);
-              switch (applied_arg->o_type()) {
-                case OType::BOOL:
-                  return dool(::rand() & 1);
-                  break;
-                case OType::INT:
-                  return jnt((FL_INT_TYPE) ::rand());
-                  break;
-                case OType::REAL:
-                  return real(static_cast<float>(::rand()) / (FL_REAL_TYPE) (RAND_MAX / 1.0f));
-                  break;
-                default:
-                  throw fError("%s can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
-              }
+              if (applied_arg->uri_value().has_path("bool"))
+                return dool(::rand() & 1);
+              if (applied_arg->uri_value().has_path("int"))
+                return jnt((FL_INT_TYPE) ::rand());
+              if (applied_arg->uri_value().has_path("real"))
+                return real(static_cast<float>(::rand()) / (FL_REAL_TYPE) (RAND_MAX / 1.0f));
+              throw fError("%s can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
               return noobj();
             };
           },

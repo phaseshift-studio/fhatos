@@ -78,8 +78,8 @@ namespace fhatos {
     const SType stype;
     const Pattern_p pattern_;
 
-    explicit Structure(const ID &vid, const Pattern &pattern, const SType stype) :
-      Valued(id_p(vid)), stype(stype), pattern_(p_p(pattern)) {
+    explicit Structure(const Pattern &pattern, const ID &value_id, const SType stype) :
+      Valued(id_p(value_id)), stype(stype), pattern_(p_p(pattern)) {
     }
 
     [[nodiscard]] Pattern_p pattern() const {

@@ -39,10 +39,14 @@ namespace fhatos {
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")):
       XScheduler(id) {
-      rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
+      this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
         if (!obj->vid())
           throw fError("value id required to spawn %s", obj->toString().c_str());
-        return dool(this->spawn(make_shared<Thread>(obj)));
+        if (obj->tid()->has_path("thread"))
+          return dool(this->spawn(make_shared<Thread>(obj)));
+        if (obj->tid()->has_path("fiber"))
+          return dool(this->spawn(make_shared<Fiber>(obj)));
+        throw fError("unknown process type: %s\n", obj->tid()->toString().c_str());
       }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
     }
 
@@ -133,14 +137,19 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     static void THREAD_FUNCTION(void *vptr_thread) {
-      auto *thread = static_cast<Thread *>(vptr_thread);
-      while (thread->running) {
-        thread->loop();
+      Thread *thread = static_cast<Thread *>(vptr_thread);
+      try {
+        while (thread->running) {
+          thread->loop();
+        }
+      } catch (fError error) {
+        thread->stop();
+        LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
       }
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid()->equals(*thread->vid()) || !proc->running;
         if (remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destoyed\n", proc->vid()->toString().c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", proc->vid()->toString().c_str());
         }
         return remove;
       });

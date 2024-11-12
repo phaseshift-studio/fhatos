@@ -42,8 +42,20 @@ namespace fhatos {
       }
     }
 
-    string option(const string &option, const char *or_else) const {
+    string option_string(const string &option, const char *or_else) const {
       return this->map_.count(option) ? this->map_.at(option) : or_else;
+    }
+
+    bool option_bool(const string &option, const bool or_else) const {
+      return this->map_.count(option) ? this->map_.at(option) == "true" : or_else;
+    }
+
+    int option_int(const string &option, const int or_else) const {
+      return this->map_.count(option) ? stoi(this->map_.at(option)) : or_else;
+    }
+
+    fURI option_furi(const string &option, const fURI &or_else) const {
+      return this->map_.count(option) ? fURI(this->map_.at(option)) : or_else;
     }
   };
 } // namespace fhatos

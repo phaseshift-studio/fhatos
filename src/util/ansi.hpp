@@ -110,6 +110,8 @@ namespace fhatos {
             //   this->background();
           else if ('_' == j)
             this->underline();
+          else if ('-' == j)
+            this->strike_through();
           else if ('~' == j)
             this->italic();
           else if ('*' == j)
@@ -235,6 +237,16 @@ namespace fhatos {
     void underline() {
       if (this->on_)
         this->print("\033[4m");
+    }
+
+    void strike_through() {
+      if (this->on_)
+        this->print("\033[9m");
+    }
+
+    void reverse() {
+      if (this->on_)
+        this->print("\033[7m");
     }
 
     void bold() {

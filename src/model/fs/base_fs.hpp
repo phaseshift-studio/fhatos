@@ -45,8 +45,8 @@ namespace fhatos {
 
   public:
     // Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>
-    explicit BaseFileSystem(const ID& vid, const Pattern &root, const ID &mount_root) :
-      Computed(vid, root),
+    explicit BaseFileSystem(const Pattern &root, const ID &mount_root, const ID &value_id) :
+      Computed(root, value_id),
       mount_root_(id_p(mount_root.extend("/"))),
       clean_root_(root.retract_pattern()) {
     }
@@ -119,7 +119,8 @@ namespace fhatos {
                                          };
                                        },
                                        IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));
-      Type::singleton()->end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", pattern()->toString().c_str()));
+      Type::singleton()->
+          end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", pattern()->toString().c_str()));
       to_dir(this->clean_root_); // test to ensure mount root is a valid local directory
       LOG_STRUCTURE(INFO, this, "!b%s!! !ydirectory!! mounted\n", this->mount_root_->toString().c_str());
       Computed::setup();

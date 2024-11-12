@@ -30,15 +30,15 @@ namespace fhatos {
   class Console final : public Thread {
   public:
     struct Settings {
-      bool nest_;
-      bool ansi_;
-      bool strict_;
-      LOG_TYPE log_;
+      const uint8_t nest_;
+      const bool ansi_;
+      const bool strict_;
+      const LOG_TYPE log_;
 
-      Settings(const bool nest, const bool ansi, const bool strict, const LOG_TYPE log) :
+      Settings(const uint8_t nest, const bool ansi, const bool strict, const LOG_TYPE log) :
         nest_(nest), ansi_(ansi),
         strict_(strict), log_(log) {
-      };
+      }
     };
 
   protected:
@@ -58,7 +58,7 @@ namespace fhatos {
 
     void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
       ///// read configuration
-      const bool nest = router()->read(id_p(this->vid()->extend("config/nest")))->bool_value();
+      const uint8_t nest = router()->read(id_p(this->vid()->extend("config/nest")))->int_value();
       const bool ansi = router()->read(id_p(this->vid()->extend("config/ansi")))->bool_value();
       const bool strict = router()->read(id_p(this->vid()->extend("config/strict")))->bool_value();
       const LOG_TYPE log = LOG_TYPES.to_enum(
@@ -71,7 +71,7 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth + 1);
         }
-      else if (nest && (obj->is_lst() || obj->is_objs())) {
+      else if (nest > depth && obj->is_lst()) {
         router()->write(this->stdout_id,
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                             (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
@@ -94,7 +94,7 @@ namespace fhatos {
                                : "") +
                             "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"),
                         false);
-      } else if (nest && obj->is_rec()) {
+      } else if (nest > depth && obj->is_rec()) {
         router()->write(this->stdout_id,
                         str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
                             (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n"),
@@ -112,7 +112,7 @@ namespace fhatos {
         }
         string obj_string =
             string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-            (obj->tid()->path_length() > 2 ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str() : "") +
+            //(obj->tid()->path_length() > 2 ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str() : "") +
             "!m]";
         if (obj->vid()) {
           obj_string += "!m@!b";
@@ -149,52 +149,55 @@ namespace fhatos {
     }
 
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
-      Thread(rec({{vri(":loop"),
-                   Obj::to_bcode([this](const Obj_p &) -> Obj_p {
-                     if (this->new_input_)
-                       this->print_prompt(!this->line_.empty());
-                     this->new_input_ = false;
-                     //// READ CHAR INPUT ONE-BY-ONE
-                     int x;
-                     if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
-                       return noobj();
-                     if ('\n' == static_cast<char>(x)) {
-                       this->new_input_ = true;
-                       this->line_ += static_cast<char>(x);
-                     } else {
-                       this->line_ += static_cast<char>(x);
-                       return noobj();
-                     }
-                     StringHelper::trim(this->line_);
-                     if (this->line_.empty()) {
-                       ///////// DO NOTHING ON EMPTY LINE
-                       return noobj();
-                     }
-                     if (!Parser::closed_expression(this->line_))
-                       return noobj();
-                     ///////// PARSE MULTI-LINE MONOIDS
-                     size_t pos = this->line_.find("###");
-                     while (pos != string::npos) {
-                       this->line_.replace(pos, 3, "");
-                       pos = this->line_.find("###", pos);
-                     }
-                     this->process_line(this->line_);
-                     this->line_.clear();
-                     return noobj();
-                   }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-                  {vri(":prompt"), Obj::to_bcode([this](const Obj_p &obj) {
-                    printer<>()->printf("%s\n", obj->str_value().c_str());
-                    this->process_line(obj->str_value());
-                    this->print_prompt();
-                    return noobj();
-                  }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-                  {vri("config"), rec({{vri("nest"), dool(settings.nest_)},
-                                       {vri("strict"), dool(settings.strict_)},
-                                       {vri("ansi"), dool(settings.ansi_)},
-                                       {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
-                   })}}, THREAD_FURI, id_p(id))),
+      Thread(Obj::to_rec(rmap({{":loop",
+                                Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+                                  if (this->new_input_)
+                                    this->print_prompt(!this->line_.empty());
+                                  this->new_input_ = false;
+                                  //// READ CHAR INPUT ONE-BY-ONE
+                                  int x;
+                                  if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
+                                    return noobj();
+                                  if ('\n' == static_cast<char>(x)) {
+                                    this->new_input_ = true;
+                                    this->line_ += static_cast<char>(x);
+                                  } else {
+                                    this->line_ += static_cast<char>(x);
+                                    return noobj();
+                                  }
+                                  StringHelper::trim(this->line_);
+                                  if (this->line_.empty()) {
+                                    ///////// DO NOTHING ON EMPTY LINE
+                                    return noobj();
+                                  }
+                                  if (!Parser::closed_expression(this->line_))
+                                    return noobj();
+                                  ///////// PARSE MULTI-LINE MONOIDS
+                                  size_t pos = this->line_.find("###");
+                                  while (pos != string::npos) {
+                                    this->line_.replace(pos, 3, "");
+                                    pos = this->line_.find("###", pos);
+                                  }
+                                  this->process_line(this->line_);
+                                  this->line_.clear();
+                                  return noobj();
+                                }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+                               {":prompt", Obj::to_bcode([this](const Obj_p &obj) {
+                                 //printer<>()->printf("%s\n", obj->str_value().c_str());
+                                 this->process_line(obj->str_value());
+                                 this->print_prompt();
+                                 return noobj();
+                               }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+                               {"config", rec({{vri("nest"), jnt(settings.nest_)},
+                                               {vri("strict"), dool(settings.strict_)},
+                                               {vri("ansi"), dool(settings.ansi_)},
+                                               {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
+                                })}}), THREAD_FURI)),
       stdin_id(id_p(terminal.extend(":stdin"))),
       stdout_id(id_p(terminal.extend(":stdout"))) {
+      this->vid_ = id_p(id);
+      ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Console>((Console *) this), RETAIN);
+      //this->tid_ = THREAD_FURI;
     }
 
   public:

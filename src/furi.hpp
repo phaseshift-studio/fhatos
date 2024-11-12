@@ -330,9 +330,13 @@ namespace fhatos {
     }
 
     [[nodiscard]] fURI retract_pattern() const {
-      const char *end = this->path_[this->path_length_ - 1];
-      if (end[0] == '+' || end[0] == '#')
-        return this->retract().retract_pattern();
+      for (uint8_t i = 0; i < this->path_length_; i++) {
+        if (strcmp(this->path(i), "+") == 0 || 0 == strcmp(this->path(i), "#")) {
+          auto retracted = fURI(*this);
+          retracted.path_length_ = i;
+          return retracted;
+        }
+      }
       return *this;
     }
 

@@ -265,12 +265,12 @@ namespace fhatos {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/mail"), Obj::to_bcode()); //
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/cost"), Obj::to_bcode()); //
     const Rec recA = *Obj::to_rec({
-        {"a", 1},
-        {"b", 2}
+        {str("a"), jnt(1)},
+        {str("b"), jnt(2)}
     });
     const Rec recB = *Obj::to_rec({
-        {"a", 1},
-        {"b", 2}
+        {str("a"), jnt(1)},
+        {str("b"), jnt(2)}
     });
     const Rec recC =
         Obj(share(Obj::RecMap<>({
@@ -285,45 +285,45 @@ namespace fhatos {
     TEST_ASSERT_FALSE(recA == recC);
     TEST_ASSERT_TRUE(recA != recC);
     ////
-    TEST_ASSERT_EQUAL_INT(1, recA.rec_get("a")->int_value());
-    TEST_ASSERT_EQUAL_INT(2, recA.rec_get("b")->int_value());
-    TEST_ASSERT_TRUE(recA.rec_get("c")->is_noobj());
-    recA.rec_set("b", 12);
-    TEST_ASSERT_EQUAL_INT(12, recA.rec_get("b")->int_value());
-    recA.rec_set("b", Real(202.5f, "cost"));
-    TEST_ASSERT_FLOAT_WITHIN(0.1f, 202.5f, recA.rec_get("b")->real_value());
-    recA.rec_delete("b");
-    TEST_ASSERT_TRUE(recA.rec_get("b")->is_noobj());
+    TEST_ASSERT_EQUAL_INT(1, recA.rec_get(str("a"))->int_value());
+    TEST_ASSERT_EQUAL_INT(2, recA.rec_get(str("b"))->int_value());
+    TEST_ASSERT_TRUE(recA.rec_get(str("c"))->is_noobj());
+    recA.rec_set(str("b"), jnt(12));
+    TEST_ASSERT_EQUAL_INT(12, recA.rec_get(str("b"))->int_value());
+    recA.rec_set(str("b"), real(202.5f, id_p("cost")));
+    TEST_ASSERT_FLOAT_WITHIN(0.1f, 202.5f, recA.rec_get(str("b"))->real_value());
+    recA.rec_delete(*str("b"));
+    TEST_ASSERT_TRUE(recA.rec_get(str("b"))->is_noobj());
     FOS_TEST_MESSAGE("\n%s\n", ObjHelper::objAnalysis(recA).c_str());
     // match
     TEST_ASSERT_TRUE(Obj::to_rec({
-      {"a", 1},
-      {"b", 2}})->match(Obj::to_rec({
-      {"a", 1},
-      {"b", 2}})));
-    TEST_ASSERT_FALSE(Obj::to_rec({
-      {"a", 1},
-      {"b", 2}
-      })->match(Obj::to_rec({{"a", 1},{"b", 2},{"c", 3}})));
+      {str("a"), jnt(1)},
+      {str("b"), jnt(2)}})->match(Obj::to_rec({
+      {str("a"), jnt(1)},
+      {str("b"), jnt(2)}})));
+    TEST_ASSERT_TRUE(Obj::to_rec({
+      {str("a"), jnt(1)},
+      {str("b"), jnt(2)}
+      })->match(Obj::to_rec({{str("a"),  jnt(1)},{str("b"),  jnt(2)},{str("c"), jnt(3)}})));
     TEST_ASSERT_TRUE(
         Obj::to_rec({
-          {"a", 1},
-          {"b", 2}})->match(Obj::to_rec({
-          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})},
-          {"b", 2}})));
+          {str("a"),  jnt(1)},
+          {str("b"), jnt(2)}})->match(Obj::to_rec({
+          {str("a"), Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(0))}))})},
+          {str("b"), jnt(2)}})));
     TEST_ASSERT_FALSE(
-        Obj::to_rec({{"a", 1},{"b", 2}})->match(Obj::to_rec({
-          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(3))}))})},
-          {"b", 2}})));
+        Obj::to_rec({{str("a"), jnt(1)},{str("b"), jnt(2)}})->match(Obj::to_rec({
+          {str("a"), Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(3))}))})},
+          {str("b"), jnt(2)}})));
     TEST_ASSERT_TRUE(
-        Obj::to_rec({{"a", 1},{"b", 2}})->match(Obj::to_rec({
-          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})},
-          { *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("b"))}))}), 2}})));
+        Obj::to_rec({{str("a"), jnt(1)},{str("b"),jnt(2)}})->match(Obj::to_rec({
+          {str("a"), Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(Obj::to_int(-10))}))})},
+          { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("b"))}))}), jnt(2)}})));
     TEST_ASSERT_FALSE(
-        Obj::to_rec({{"a", 1},{"b", 2}})->match(Obj::to_rec({
-          {"a", *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(
+        Obj::to_rec({{str("a"), jnt(1)},{str("b"), jnt(2)}})->match(Obj::to_rec({
+          {str("a"), Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::gt(
             Obj::to_int(-10))}))})},
-          { *Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), 2}})));
+          { Obj::to_bcode({Insts::is(Obj::to_bcode({Insts::eq(Obj::to_str("c"))}))}), jnt(2)}})));
   }
 
   void test_serialization() {

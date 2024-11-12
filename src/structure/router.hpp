@@ -153,10 +153,8 @@ namespace fhatos {
       const Obj_p obj = struc->read(resolved_furi);
       LOG_ROUTER(DEBUG, "!g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n", resolved_furi->toString().c_str(),
                  obj->toString().c_str(), struc->pattern()->toString().c_str());
-      if (obj->is_noobj())
-        return objs;
-      else
-        return obj;
+      objs->add_obj(obj);
+      return objs->none_one_all();
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {

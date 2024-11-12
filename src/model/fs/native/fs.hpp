@@ -29,13 +29,15 @@ namespace fs = std::filesystem;
 namespace fhatos {
   class FileSystem : public BaseFileSystem {
   protected:
-    explicit FileSystem(const ID& vid, const Pattern &pattern, const ID &mount_root) : BaseFileSystem(vid, pattern, mount_root) {
+    explicit FileSystem(const Pattern &pattern, const ID &mount_root, const ID &value_id) :
+      BaseFileSystem(pattern, mount_root, value_id) {
     }
 
   public:
-    static ptr<FileSystem> create(const ID& vid, const Pattern &pattern = Pattern("/io/fs/#"),
-                                  const ID &root = ID(fs::current_path())) {
-      static ptr<FileSystem> fs_p = ptr<FileSystem>(new FileSystem(vid, pattern, root));
+    static ptr<FileSystem> create(const Pattern &pattern = Pattern("/io/fs/#"),
+                                  const ID &root = ID(fs::current_path()), const ID &value_id = ID("")) {
+      static ptr<FileSystem> fs_p = ptr<FileSystem>(
+          new FileSystem(pattern, root, value_id.empty() ?ID(pattern.retract_pattern()) : value_id));
       return fs_p;
     }
 
@@ -62,8 +64,8 @@ namespace fhatos {
       for (const auto &p: fs::directory_iterator(this->make_native_path(dir->uri_value()).toString())) {
         if ((fs::is_directory(p) || fs::is_regular_file(p))) {
           listing->push_back(
-            this->to_fs(ID(p.path().string().substr(
-              this->mount_root_->toString().length())))); // clip off local mount location
+              this->to_fs(ID(p.path().string().substr(
+                  this->mount_root_->toString().length())))); // clip off local mount location
         }
       }
       return Obj::to_objs(listing);

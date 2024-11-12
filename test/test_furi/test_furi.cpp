@@ -409,6 +409,22 @@ namespace fhatos {
   FOS_TEST_ASSERT_EQUAL_FURI(fURI("abc/:loop"), fURI("abc").extend(":loop"));
   }
 
+  void test_uri_retract_pattern() {
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c/"), fURI("a/b/c/").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c").retract_pattern());
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c"), fURI("a/b/c/#").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/c/"), fURI("a/b/c/#/").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b"), fURI("a/b/+/#").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/b/"), fURI("a/b/+/#/").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a"), fURI("a/+/c/#").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("a/"), fURI("a/+/c/#/").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI(""), fURI("").retract_pattern());
+  //////
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a/b/c"), fURI("mqtt://a/b/c/+").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a:8080/b/c/"), fURI("mqtt://a:8080/b/c/+/").retract_pattern());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("mqtt://a:8080/b/c"), fURI("mqtt://a:8080/b/c/+").retract_pattern());
+  }
+
   void test_is_relative() {
     TEST_ASSERT_TRUE(fURI("./").is_relative());
     TEST_ASSERT_TRUE(fURI("./abc/cd").is_relative());
@@ -713,7 +729,7 @@ namespace fhatos {
       //
       FOS_RUN_TEST(test_uri_extend); //
       // TODO: FOS_RUN_TEST(test_uri_retract);
-      // TODO: FOS_RUN_TEST(test_uri_retract_pattern);
+      FOS_RUN_TEST(test_uri_retract_pattern);
       FOS_RUN_TEST(test_is_relative); //
       FOS_RUN_TEST(test_uri_branch_node);
       FOS_RUN_TEST(test_uri_resolve); //

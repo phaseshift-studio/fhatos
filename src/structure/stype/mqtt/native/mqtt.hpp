@@ -43,8 +43,8 @@ namespace fhatos {
              MQTT_CONNECTION->get_server_uri() == this->settings_.broker_;
     }
 
-    explicit Mqtt(const ID &id, const Pattern &pattern, const Settings &settings) :
-      BaseMqtt(id, pattern, settings) {
+    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) :
+      BaseMqtt(pattern, settings, value_id) {
       this->settings_.broker_ = string(string(ID(this->settings_.broker_).scheme()) == "mqtt"
                                          ? this->settings_.broker_
                                          : (string("mqtt://") + this->settings_.broker_));
@@ -64,7 +64,8 @@ namespace fhatos {
         if (this->settings_.will_.get()) {
           const BObj_p source_payload = this->settings_.will_->payload()->serialize();
           pre_connection_options = pre_connection_options.will(
-              message(this->settings_.will_->target().toString(), source_payload->second, this->settings_.will_->retain()));
+              message(this->settings_.will_->target().toString(), source_payload->second,
+                      this->settings_.will_->retain()));
         }
         this->connection_options_ = pre_connection_options.finalize();
         //// MQTT MESSAGE CALLBACK
@@ -120,10 +121,11 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static ptr<Mqtt> create(const ID& id, const Pattern &pattern, const Settings &settings) {
+    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings,
+                            const ID &value_id = ID("")) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(id, pattern, settings));
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings, value_id.empty() ? ID(pattern.retract_pattern()) : value_id));
       return mqtt_p;
     }
 

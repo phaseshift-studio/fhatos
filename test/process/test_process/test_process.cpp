@@ -30,14 +30,14 @@
 
 namespace fhatos {
 
-  void test_process(const PType ptype) {
-    const char *pc = strdup(ProcessTypes.to_chars(ptype).c_str());
+  void test_process(const string process_type) {
+    const char *pc = process_type.c_str();
     TEST_ASSERT_EQUAL_INT(0, Scheduler::singleton()->count("/test/thread"));
     process("/test/thread -> "
-            "block(thread[["
-            ":setup=>map(/test/thread/a->345),"
-            ":loop=>map(from(/test/thread/x,0).plus(1).to(/test/thread/x)),"
-            ":stop=>map(/test/thread/b->57)]])");
+            "|thread[["
+            ":setup=>/test/thread/a->345,"
+            ":loop=>from(/test/thread/x,0).plus(1).to(/test/thread/x),"
+            ":stop=>/test/thread/b->57]]");
     process("%s/:spawn --> @/test/thread", Scheduler::singleton()->vid()->toString().c_str());
     sleep(1);
     //TEST_ASSERT_EQUAL_INT(1, Scheduler::singleton()->count("/test/thread"));
@@ -59,21 +59,17 @@ namespace fhatos {
   }
 
   void test_thread() {
-    test_process(PType::THREAD);
+    test_process("thread");
   }
 
   void test_fiber() {
-    test_process(PType::FIBER);
+    test_process("fiber");
   }
 
-  void test_coroutine() {
-    test_process(PType::COROUTINE);
-  }
 
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_thread); //
       //FOS_RUN_TEST(test_fiber); //
-      //FOS_RUN_TEST(test_coroutine); //
       );
 
 } // namespace fhatos

@@ -71,10 +71,10 @@ namespace fhatos {
         load_processor(); // TODO: remove
         const ptr<Kernel> kp = Kernel::build()
             ->using_printer(Ansi<>::singleton())
-            ->with_ansi_color(args_parser->option("--ansi", "true") == "true")
-            ->with_log_level(LOG_TYPES.to_enum(args_parser->option("--log", "INFO")));
-        if (args_parser->option("--headers", "true") == "true") {
-          kp->displaying_splash(args_parser->option("--splash", ANSI_ART).c_str())
+            ->with_ansi_color(args_parser->option_bool("--ansi", true))
+            ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
+        if (args_parser->option_bool("--headers", true)) {
+          kp->displaying_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
               ->displaying_history()
               ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
@@ -83,10 +83,10 @@ namespace fhatos {
         return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"))
             ////////////////////////////////////////////////////////////
-            ->mount(Heap<>::create("/sys/", "/sys/#"))
-            ->mount(Heap<>::create("_cache", "+/#"))
-            ->mount(Heap<>::create("/type/", "/type/#"))
-            ->mount(Heap<>::create("/io/", "/io/#"))
+            ->mount(Heap<>::create("/sys/#"))
+            ->mount(Heap<>::create("+/#", "_cache"))
+            ->mount(Heap<>::create("/type/#"))
+            ->mount(Heap<>::create("/io/#"))
             ->install(Type::singleton("/type/"))
             ->install(Terminal::singleton("/io/terminal"))
             ->install(Parser::singleton("/io/parser"))
@@ -100,10 +100,11 @@ namespace fhatos {
                                                               args_parser->option("--wifi:password", STR(WIFI_PASS)))))
             ->mount(HeapPSRAM::create("/psram", "/psram/#"))
 #endif
-            ->mount(Mqtt::create("/driver", "//driver/#",
-                                 Mqtt::Settings(args_parser->option("--mqtt:client", STR(FOS_MACHINE_NAME)),
-                                                args_parser->option("--mqtt:broker", STR(FOS_MQTT_BROKER)))))
-            ->mount(Heap<>::create("/local_drivers", "/driver/#"))
+            ->mount(Mqtt::create("//driver/#",
+                                 Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
+                                                args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
+                                 "/driver/mqtt"))
+            ->mount(Heap<>::create("/driver/#"))
 #ifdef NATIVE
             ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
 #elif defined(ESP_ARCH)
@@ -112,12 +113,13 @@ namespace fhatos {
         //->structure(BLE::create("/io/bt/#"))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
-            ->mount(Heap<>::create("/console/", "/console/#"))
+            ->mount(Heap<>::create("/console/#"))
             ->process(Console::create("/console", "/io/terminal",
-                                      Console::Settings(args_parser->option("--console:nest", "false") == "true",
-                                                        args_parser->option("--ansi", "true") == "true",
-                                                        args_parser->option("--console:strict", "false") == "true",
-                                                        LOG_TYPES.to_enum(args_parser->option("--log", "INFO")))))
+                                      Console::Settings(args_parser->option_int("--console:nest", 2),
+                                                        args_parser->option_bool("--ansi", true),
+                                                        args_parser->option_bool("--console:strict", false),
+                                                        LOG_TYPES.to_enum(
+                                                            args_parser->option_string("--log", "INFO")))))
             ->eval([args_parser] { delete args_parser; });
       } catch (const std::exception &e) {
         LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),

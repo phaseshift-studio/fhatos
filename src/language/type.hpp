@@ -120,8 +120,8 @@ namespace fhatos {
                 type_id->toString().c_str());
           } else {
             router()->write(type_id, type_def);
-            LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! overwritten\n", this->vid()->toString().c_str(),
-                type_id->toString().c_str());
+            LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! !b!-%s!! overwritten\n", this->vid()->toString().c_str(),
+                type_id->toString().c_str(), current->toString().c_str());
           }
         }
       } catch (const fError &e) {

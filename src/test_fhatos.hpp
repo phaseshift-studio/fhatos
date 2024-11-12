@@ -43,8 +43,8 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
 #define FOS_DEPLOY_SCHEDULER_2  \
-  router()->attach(Heap<>::create("/sys/", Pattern("/scheduler/#"))); \
-  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton());
+  router()->attach(Heap<>::create(Pattern("/scheduler/#"))); \
+  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/scheduler/"));
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
@@ -59,7 +59,7 @@
 #include <language/parser.hpp>
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_PARSER_2  \
-  router()->attach(Heap<>::create("/parser/", Pattern("/parser/#"))); \
+  router()->attach(Heap<>::create(Pattern("/parser/#"))); \
   router()->write(id_p("/parser/"), Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
@@ -70,8 +70,8 @@
 #include <language/exts.hpp>
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_TYPE_2 \
-  router()->attach(Heap<>::create(ID("/type/"), Pattern("/type/#"))); \
-  router()->write(id_p("/type/"),Type::singleton()); \
+  router()->attach(Heap<>::create(Pattern("/type/#"))); \
+  router()->write(id_p("/type/"),Type::singleton("/type/")); \
   mmadt::mmADT::singleton();
 //Exts::load_extension("/model/mmadt/");
 #else
@@ -80,7 +80,7 @@
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
-  router()->attach(Heap<>::create("/heap",Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  router()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
   "+" : \
   STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
@@ -89,7 +89,7 @@
 #ifdef FOS_DEPLOY_FILE_SYSTEM
 #include FOS_FILE_SYSTEM(fs.hpp)
 #define FOS_DEPLOY_FILE_SYSTEM_2 \
-  ptr<FileSystem> fs = FileSystem::create("/fs/", "/fs/#", string(base_directory.c_str()) + "/tmp"); \
+  ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp"); \
   router()->attach(fs); \
   fs->setup();
 #else

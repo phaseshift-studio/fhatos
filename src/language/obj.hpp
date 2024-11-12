@@ -333,14 +333,6 @@ namespace fhatos {
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
       return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!", OTypes.to_chars(obj->o_type()).c_str(),
                     obj->toString().c_str(), string(function).replace(string(function).find("_value"), 6, "").c_str());
-      /*
-            const size_t index = string(function).find("_value");
-                  const string fstring = index != string::npos
-                                           ? string(function).replace(index, 6, "")
-                                           : string(function);
-                  return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!\n", OTypes.to_chars(obj->o_type()).c_str(),
-                                obj->toString().c_str(), fstring.c_str());
-       */
     }
 
     //////////////////////////////////////////////////////////////
@@ -549,6 +541,11 @@ namespace fhatos {
       return rec_get(to_uri(fURI(uri_key)), on_error);
     }
 
+    [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
+      this->rec_value()->insert(rmap->begin(), rmap->end());
+      return PtrHelper::no_delete<Rec>((Rec *) this);
+    }
+
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
       if (nest && key->is_uri() && key->uri_value().path_length() > 1) {
         const Rec *current_rec = const_cast<Rec *>(this);
@@ -688,6 +685,16 @@ namespace fhatos {
         insts->push_back(inst);
       }
       return Obj::to_bcode(insts);
+    }
+
+    Obj_p none_one_all() const {
+      if (this->is_objs()) {
+        if (this->objs_value()->empty())
+          return Obj::to_noobj();
+        if (this->objs_value()->size() == 1)
+          return this->objs_value()->front();
+      }
+      return ptr<Obj>((Obj *) this);
     }
 
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
@@ -1154,7 +1161,7 @@ namespace fhatos {
     [[nodiscard]] bool is_lst() const { return this->o_type() == OType::LST; }
 
     [[nodiscard]] bool is_poly() const {
-      return this->is_lst() || this->is_rec() || this->is_objs() /*|| this->is_bcode() || this->is_inst()*/;
+      return this->is_lst() || this->is_rec() /*|| this->is_objs() /*|| this->is_bcode() || this->is_inst()*/;
     }
 
     [[nodiscard]] bool is_rec() const { return this->o_type() == OType::REC; }
@@ -1283,11 +1290,16 @@ namespace fhatos {
         case OType::REC: {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
-          for (const auto &it_b: *pairs_b) {
-            if (pairs_a->count(it_b.first)) {
-              if (!pairs_a->at(it_b.first)->match(it_b.second))
-                return false;
-            } else
+
+          for (const auto &it_a: *pairs_a) {
+            bool found = false;
+            for (const auto &it_b: *pairs_b) {
+              if (it_a.first->match(it_b.first) && it_a.second->match(it_b.second)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found)
               return false;
           }
           return true;
@@ -1709,5 +1721,14 @@ namespace fhatos {
     }
     return m;
   }
+
+  /*  static Obj::RecMap_p<> rmap_merge(const Obj::RecMap_p<> &a, const Obj::RecMap_p<> &b) {
+      const Obj::RecMap_p<> c = make_shared<Obj::RecMap<>>();
+      c->insert(a->begin(), a->end());
+      c->insert(b->begin(), b->end());
+      return c;
+
+    }*/
+
 } // namespace fhatos
 #endif

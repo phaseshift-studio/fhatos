@@ -37,12 +37,12 @@ namespace fhatos {
     int counter = 0;
 
     Worker(const int index, MutexDeque<int> *mutex) :
-        Thread(Obj::to_rec(rmap({{ID(":setup"), Obj::to_bcode([this](const Obj_p &obj) {
+        Thread(Obj::to_rec(rmap({{":setup", Obj::to_bcode([this](const Obj_p &obj) {
                                     TEST_ASSERT_FALSE(this->running);
                                     FOS_TEST_MESSAGE("%s up and running", this->vid()->toString().c_str());
                                     return noobj();
                                   })},
-                                 {ID(":loop"), Obj::to_bcode([this](const Obj_p &obj) {
+                                 {":loop", Obj::to_bcode([this](const Obj_p &obj) {
                                     TEST_ASSERT_TRUE(this->running);
                                     if (counter++ < 10) {
                                       this->mutex->push_back(counter);
@@ -53,8 +53,10 @@ namespace fhatos {
                                       return noobj();
                                     }
                                   })}}),
-                           REC_FURI, id_p(ID(string("worker/").append(std::to_string(index)))))) {
+                           THREAD_FURI)) {
       this->mutex = mutex;
+      this->vid_ = id_p(ID(string("worker/").append(std::to_string(index))));
+      ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Worker>((Worker *) this), RETAIN);
     }
   };
 
