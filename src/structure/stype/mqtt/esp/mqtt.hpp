@@ -58,7 +58,7 @@ namespace fhatos {
 
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
 
-    explicit Mqtt(const ID& id, const Pattern &pattern, const Settings &settings) : BaseMqtt(id, pattern, settings) {
+    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &id) : BaseMqtt(pattern, settings, id) {
 
       if (this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", settings.broker_.c_str());
@@ -77,7 +77,7 @@ namespace fhatos {
           const BObj_p bobj = make_shared<BObj>(length, (fbyte *) data);
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
-          const Message_p message = message_p(ID(topic), payload, retained);
+          const Message_p message = Message::create(ID(topic), payload, retained);
           LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(topic));
@@ -106,7 +106,7 @@ namespace fhatos {
     }
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
-      MQTT_CONNECTION->subscribe(subscription->pattern.toString().c_str(), 1);
+      MQTT_CONNECTION->subscribe(subscription->pattern().toString().c_str(), 1);
     }
 
     void native_mqtt_unsubscribe(const fURI_p &pattern) override {
@@ -114,12 +114,13 @@ namespace fhatos {
     }
 
     void native_mqtt_publish(const Message_p &message) override {
-      if (message->payload->is_noobj()) {
-        MQTT_CONNECTION->publish(message->target.toString().c_str(), nullptr, 0, true);
+      if (message->payload()->is_noobj()) {
+        MQTT_CONNECTION->publish(message->target().toString().c_str(), nullptr, 0, true);
       } else {
-        const Lst_p lst = Obj::to_lst({message->payload, dool(message->retain)});
-        const BObj_p payload = make_bobj(message->payload, message->retain);
-        MQTT_CONNECTION->publish(message->target.toString().c_str(), payload->second, payload->first, message->retain);
+        const Lst_p lst = Obj::to_lst({message->payload(), dool(message->retain())});
+        const BObj_p payload = make_bobj(message->payload(), message->retain());
+        MQTT_CONNECTION->publish(message->target().toString().c_str(), payload->second, payload->first,
+                                 message->retain());
       }
       MQTT_CONNECTION->loop();
     }
@@ -133,10 +134,10 @@ namespace fhatos {
 
 
   public:
-    static ptr<Mqtt> create(const ID& id, const Pattern &pattern, const Settings &settings) {
+    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings, const ID &value_id = ID("")) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(id, pattern, settings));
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings, value_id));
       return mqtt_p;
     }
 

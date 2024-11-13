@@ -20,38 +20,18 @@
 #ifndef fhatos_router_hpp
 #define fhatos_router_hpp
 
+#ifndef FOS_NAMESPACE_PREFIX_ID
+#define FOS_NAMESPACE_PREFIX_ID FOS_TYPE_PREFIX "uri/ns/prefix/"
+#endif
+
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
 #include <util/obj_helper.hpp>
 
-
 namespace fhatos {
-  static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init) { return make_shared<IdObjPairs>(init); }
-
-  template<class IDED>
-  static IdObjPairs_p make_id_objs(const List<ptr<IDED>> &init) {
-    const auto list = new IdObjPairs();
-    for (const ptr<IDED> &ided: init) {
-      list->push_back(make_pair<ID_p, Obj_p>(ided->vid(), ided->to_rec()));
-    }
-    const auto list_p = ptr<IdObjPairs>(list);
-    return list_p;
+  static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {
+    return make_shared<IdObjPairs>(init);
   }
-
-  template<class IDED>
-  static IdObjPairs_p make_id_objs(const fURI_p &base_furi, const List<ptr<IDED>> &init) {
-    const auto list = new IdObjPairs();
-    int counter = 0;
-    for (const ptr<IDED> &ided: init) {
-      list->push_back(
-          make_pair<ID_p, Obj_p>(id_p(base_furi->resolve(string("./") + to_string(counter++))), vri(ided->vid())));
-    }
-    const auto list_p = ptr<IdObjPairs>(list);
-    return list_p;
-  }
-
-  static IdObjPairs_p make_id_objs() { return make_shared<IdObjPairs>(); }
-
 
   class Sys;
 
@@ -62,7 +42,7 @@ namespace fhatos {
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/",
-                                 const ID &namespace_prefix = ID(URI_FURI->extend("ns/prefix/"))) {
+                                 const ID &namespace_prefix = ID(FOS_NAMESPACE_PREFIX_ID)) {
       static auto router_p = ptr<Router>(new Router(pattern, namespace_prefix));
       return router_p;
     }
@@ -202,22 +182,23 @@ namespace fhatos {
     [[nodiscard]] fURI_p resolve_namespace_prefix(const fURI_p &type_id) {
       fURI_p type_id_resolved;
       if (strlen(type_id->scheme()) > 0) {
-        LOG(DEBUG, "resolving namespace prefix for %s: <%s>:<%s>\n", type_id->toString().c_str(), type_id->scheme(),
-            type_id->path().c_str());
-        const Obj_p temp = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
-        if (!temp->is_noobj()) {
-          if (temp->is_uri()) {
-            return id_p(temp->uri_value().extend((string(":").append(type_id->path())).c_str()));
+        const Obj_p resolved_uri = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
+        LOG_ROUTER(DEBUG, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n",
+                   type_id->scheme(),
+                   type_id->path().c_str(),
+                   resolved_uri->toString().c_str());
+        if (!resolved_uri->is_noobj()) {
+          if (resolved_uri->is_uri()) {
+            return id_p(resolved_uri->uri_value().extend((string(":").append(type_id->path())).c_str()));
           } else
-            throw fError("namespace prefixes must be uris: %s:%s", temp->toString().c_str());
+            throw fError("namespace prefixes must be uris: !y%s!!:!b%s!!", resolved_uri->toString().c_str());
         }
-      } else {
-        return type_id;
       }
+      return type_id; // no resolution available
     }
 
   protected:
-    explicit Router(const ID &id, const ID &namespace_prefix = URI_FURI->extend("ns/prefix/")) :
+    explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) :
       Valued(id), namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_READ = [this](const ID_p &idx) -> Obj_p { return this->read(idx); };
       ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {

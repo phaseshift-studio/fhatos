@@ -103,10 +103,10 @@ namespace fhatos {
     virtual void setup() {
       this_process = this;
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid()->extend(":setup")));
-      if (setup_bcode->is_bcode())
-        Options::singleton()->processor<Obj>(noobj(), setup_bcode);
-      else
+      if (setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
+      else
+        Options::singleton()->processor<Obj>(noobj(), setup_bcode);
       ////
       if (this->running) {
         LOG(WARN, FOS_ALREADY_SETUP, this->vid()->toString().c_str());
@@ -126,19 +126,18 @@ namespace fhatos {
         this->yield_ = false;
       }
       const BCode_p loop_bcode = ROUTER_READ(id_p(this->vid()->extend(":loop")));
-      if (!loop_bcode->is_noobj()) {
-        Obj_p result = Options::singleton()->processor<Obj>(noobj(), loop_bcode);
-      } else
+      if (loop_bcode->is_noobj())
         throw fError("!b%s!! loop !ybcode!! undefined", this->vid()->toString().c_str());
+      Obj_p result = Options::singleton()->processor<Obj>(noobj(), loop_bcode);
     };
 
     virtual void stop() {
       this_process = this;
       const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid()->extend(":stop")));
-      if (stop_bcode->is_bcode())
-        Options::singleton()->processor<Obj>(noobj(), stop_bcode);
-      else
+      if (stop_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
+      else
+        Options::singleton()->processor<Obj>(noobj(), stop_bcode);
       if (!this->running) {
         LOG(WARN, FOS_ALREADY_STOPPED, this->vid()->toString().c_str());
         return;

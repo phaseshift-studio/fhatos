@@ -44,10 +44,9 @@ namespace fhatos {
 
   protected:
     string line_;
+    bool new_input_ = true;
     ID_p stdin_id;
     ID_p stdout_id;
-    bool new_input_ = true;
-
     ///// printers
     void print_exception(const std::exception &ex) const {
       router()->write(this->stdout_id, str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())), false);
@@ -154,6 +153,8 @@ namespace fhatos {
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
       Thread(Obj::to_rec(rmap({{":loop",
                                 Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+                                  if (0 == strcmp(STR(BUILD_DOCS), "ON"))
+                                    return noobj();
                                   if (this->new_input_)
                                     this->print_prompt(!this->line_.empty());
                                   this->new_input_ = false;
@@ -186,9 +187,9 @@ namespace fhatos {
                                   return noobj();
                                 }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
                                {":prompt", Obj::to_bcode([this](const Obj_p &obj) {
+                                 this->print_prompt();
                                  printer<>()->printf("%s\n", obj->str_value().c_str());
                                  this->process_line(obj->str_value());
-                                 this->print_prompt();
                                  return noobj();
                                }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
                                {"config", rec({{vri("nest"), jnt(settings.nest_)},
@@ -196,24 +197,43 @@ namespace fhatos {
                                                {vri("ansi"), dool(settings.ansi_)},
                                                {vri("prompt"), str(settings.prompt_)},
                                                {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
-                                })}}), THREAD_FURI)),
+                                })},
+                               {"terminal", rec({
+                                    {vri("stdin"), vri(terminal.extend(":stdin"))},
+                                    {vri("stdout"), vri(terminal.extend(":stdout"))}})}}), THREAD_FURI, id_p(id))),
       stdin_id(id_p(terminal.extend(":stdin"))),
       stdout_id(id_p(terminal.extend(":stdout"))) {
-      this->vid_ = id_p(id);
-      ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Console>((Console *) this), RETAIN);
-      //this->tid_ = THREAD_FURI;
+      //this->stdin_id = this->rec_get("terminal")->rec_get("stdin")->id_p_value();
+      //this->stdout_id = this->rec_get("terminal")->rec_get("stdout")->id_p_value();
     }
 
   public:
     static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
-      /*router()->write(id_p(REC_FURI->extend("console")),
-        rec({{vri("config"),
-          rec({{vri("nest"),as(BOOL_FURI)},
-          {vri("nest"),as(BOOL_FURI)},
-          {vri("nest"),as(BOOL_FURI)},
-          {vri("nest"),as(BOOL_FURI)}})}}));*/
       const auto console = ptr<Console>(new Console(id, terminal, settings));
       return console;
+    }
+
+    static ID import(const ID &id = "/io/console") {
+      static const auto IMPORT_ID = id_p(ID("/import/").extend(id));
+      Type::singleton()->save_type(
+          IMPORT_ID,
+          rec({{vri(":create"),
+                ObjHelper::InstTypeBuilder::build(ID(IMPORT_ID->extend(":create")))
+                ->type_args(
+                    x(0, "install_location", vri(id)),
+                    x(1, "terminal_id", vri(Terminal::singleton()->vid())),
+                    x(2, "config", Obj::to_rec({{vri("nest"), jnt(2)}, {vri("strict"), dool(false)},
+                                                {vri("ansi"), dool(true)}, {vri("prompt"), str(">")},
+                                                {vri("log"), vri("INFO")}})))
+                ->instance_f([](const Obj_p &, const InstArgs &args) {
+                  ptr<Console> console = Console::create(
+                      ID(args.at(0)->uri_value()),
+                      ID(args.at(1)->uri_value()),
+                      Settings(2, true, "!mfhatos!g>!! ", false, INFO));
+                  return console;
+                })
+                ->create()}}));
+      return id;
     }
   };
 } // namespace fhatos

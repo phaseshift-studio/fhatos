@@ -156,9 +156,14 @@ namespace fhatos {
     static void THREAD_FUNCTION(void *vptr_thread) {
       auto *thread = static_cast<Thread *>(vptr_thread);
       // ESP_ERROR_CHECK(heap_trace_start(HEAP_TRACE_LEAKS));
-      while (thread->running) {
-        thread->loop();
-        vTaskDelay(1); // feeds the watchdog for the task
+      try {
+        while (thread->running) {
+          thread->loop();
+         FEED_WATCDOG(); // feeds the watchdog for the task
+        }
+      } catch (fError error) {
+        thread->stop();
+        LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
       }
       // ESP_ERROR_CHECK(heap_trace_stop());
       // heap_trace_dump();

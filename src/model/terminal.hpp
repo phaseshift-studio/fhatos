@@ -30,18 +30,18 @@ namespace fhatos {
 
   protected:
     explicit Terminal(const ID &id) :
-        Rec(rmap({{":stdout", Obj::to_bcode(
-                                  [this](const Str_p &obj) {
-                                    FEED_WATCDOG();
-                                    std::lock_guard<std::mutex> lock(stdout_mutex);
-                                    printer<>()->print(obj->str_value().c_str());
-                                    return noobj();
-                                  },
-                                  StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
-                  {":stdin", Obj::to_bcode(
-                                 [](const NoObj_p &) {
+      Rec(rmap({{":stdout", Obj::to_bcode(
+                     [this](const Str_p &obj) {
+                       FEED_WATCDOG();
+                       std::lock_guard<std::mutex> lock(stdout_mutex);
+                       printer<>()->print(obj->str_value().c_str());
+                       return noobj();
+                     },
+                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
+                {":stdin", Obj::to_bcode(
+                     [](const NoObj_p &) {
 #ifdef NATIVE
-                                   return jnt(getchar());
+                       return jnt(getchar());
 #else
                                    while (Serial.available() <= 0) {
                                      Process::current_process()->yield();
@@ -49,13 +49,13 @@ namespace fhatos {
                                    return jnt(Serial.read());
       // return jnt((Serial.available() > 0) ? Serial.read() : EOF); (need a MACRO for multi-core checking)
 #endif
-                                 },
-                                 StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
-            OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
+                     },
+                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
+          OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
     }
 
   public:
-    static ptr<Terminal> singleton(const ID &id) {
+    static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
       static bool setup = false;
       if (!setup) {
         setup = true;

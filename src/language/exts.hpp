@@ -26,7 +26,7 @@
 #include <language/type.hpp>
 
 namespace fhatos {
-  static ID inst_id(const string &opcode) { return INST_FURI->resolve(opcode); }
+ // static ID inst_id(const string &opcode) { return INST_FURI->resolve(opcode); }
   const Str_p ARG_ERROR = str("wrong number of arguments");
   static auto MODELS =
       std::make_shared<Map<ID, List<Pair<ID, Obj_p>>>>(Map<ID, List<Pair<ID, Obj_p>>>{

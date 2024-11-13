@@ -165,34 +165,36 @@ namespace fhatos {
     public:
       static InstTypeBuilder *build(const TypeO &type) { return new InstTypeBuilder(id_p(type)); }
 
-      InstTypeBuilder *type_args(const Obj_p &arg0) {
+      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr) {
         this->args_.push_back(arg0);
+        if (arg1)
+          this->args_.push_back(arg1);
+        if (arg2)
+          this->args_.push_back(arg2);
         return this;
       }
 
-      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1) {
-        this->args_.push_back(arg0);
-        this->args_.push_back(arg1);
-        return this;
-      }
-
-      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1, const Obj_p &arg2) {
-        this->args_.push_back(arg0);
-        this->args_.push_back(arg1);
-        this->args_.push_back(arg2);
-        return this;
-      }
-
-      InstTypeBuilder *instance_f(const InstF &inst_f) {
+      InstTypeBuilder *instance_f(const BiFunction<Obj_p,InstArgs,Obj_p> &inst_f) {
         this->function_supplier_ = [inst_f](const InstArgs &args) {
-          return [args, inst_f](const Obj_p &obj) { return inst_f(args, obj); };
+          return [args, inst_f](const Obj_p &lhs) {
+            InstArgs args_applied;
+            for (const Obj_p &arg: args) {
+              args_applied.push_back(arg->apply(lhs));
+            }
+            return inst_f(lhs,args_applied);
+          };
         };
         return this;
       }
 
       Inst_p create(const ValueO_p &value_id = nullptr) const {
-        const Inst_p p = Obj::to_inst(this->type_->name(), this->args_, this->function_supplier_, itype_,
-                                      Obj::noobj_seed(), this->type_);
+        const Inst_p p = Obj::to_inst(
+            this->type_->name(), // opcode
+            this->args_, // args
+            this->function_supplier_,
+            itype_,
+            Obj::noobj_seed(),
+            this->type_);
 
         delete this;
         return value_id ? p->at(value_id) : p;

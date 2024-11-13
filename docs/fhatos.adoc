@@ -120,15 +120,13 @@ The following subsections will provide a short overview of the aforementioned re
 [source,mmadt]
 ----
 
-
-fhatos> 
 fhatos> */sys/scheduler
 [ERROR] bool[true] accessed as int
 fhatos> */sys/scheduler/process/0
 [ERROR] bool[true] accessed as int
 fhatos> **/sys/scheduler/process/0
 [ERROR] bool[true] accessed as int
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -171,15 +169,13 @@ TIP: Given the frequency of use of base types, specifying the type is not necess
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> /type/int/[6]
+fhatos> /type/int/[6]
 ===>6
 fhatos> int[6]
 ===>6
 fhatos> 6
 ===>6
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -199,9 +195,7 @@ Examples of the aforementioned types are provided below.
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> true
+fhatos> true
 ===>true
 fhatos> 42
 ===>42
@@ -224,7 +218,7 @@ fhatos> [a=>1,b=>'2',c=>3.0]
 ===>b=>'2'
 ===>c=>3.000000
 =>]
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -256,8 +250,6 @@ mm-ADT is a structurally typed language, whereby if an `obj` *A* __matches__ `ob
 [source,mmadt]
 ----
 
-
-fhatos> 
 fhatos> /type/int/nat -> |is(gt(0))
 ===>is(gt(0))
 fhatos> nat[6]
@@ -269,7 +261,7 @@ fhatos> nat[3].plus(2)
 fhatos> nat[3].mult(-2)
 [ERROR] [/type/] -6 is not a /type/int/nat[is(gt(0))]
 		thrown when applying nat[3] => mult(-2)
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -319,9 +311,7 @@ a|
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> y -> 12
+fhatos> y -> 12
 ===>12
 fhatos> x -> y
 ===>y
@@ -329,7 +319,7 @@ fhatos> *x
 ===>y
 fhatos> **x
 ===>12
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -356,9 +346,7 @@ a|
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> x -> 12
+fhatos> x -> 12
 ===>12
 fhatos> *x.plus(10)
 ===>22
@@ -370,7 +358,7 @@ fhatos> @x.plus(10)
 ===>22@x
 fhatos> *x
 ===>22
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -397,16 +385,14 @@ a|
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> x?sub ->block(to(y))
+fhatos> x?sub ->block(to(y))
 ===>to(y,true)
 fhatos> *y
 fhatos> x->12
 ===>12
 fhatos> *y
 ===>12
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -488,9 +474,7 @@ M = aM
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> {1,2,3}
+fhatos> {1,2,3}
 ===>1
 ===>2
 ===>3
@@ -506,7 +490,7 @@ fhatos> {1,2,3}.plus(plus(_))
 ===>3
 ===>6
 ===>9
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -564,15 +548,13 @@ fhatos>
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> true.plus(false)
+fhatos> true.plus(false)
 ===>true
 fhatos> 1.plus(2)
 ===>3
 fhatos> 'a'.plus('b')
 ===>'ab'
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->
@@ -613,13 +595,11 @@ fhatos>
 [source,mmadt]
 ----
 
-
-
-fhatos> fhatos> [a=>2].match([a=>3])
+fhatos> [a=>2].match([a=>3])
 ===>false
 fhatos> [a=>2].match([a=>_])
 ===>true
-fhatos> 
+
 ----
 ++++
 <!-- OUTPUT:END -->

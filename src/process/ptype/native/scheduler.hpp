@@ -74,9 +74,13 @@ namespace fhatos {
     }
 
     bool spawn(const Process_p &process) override {
+      if (this->count(*process->vid())) {
+        LOG_SCHEDULER(ERROR, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
+        return false;
+      }
       process->setup();
       if (!process->running) {
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_SCHEDULER(ERROR, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       ////////////////////////////////
@@ -90,14 +94,13 @@ namespace fhatos {
         static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
       } else {
         process->running = false;
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_SCHEDULER(ERROR, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       this->processes_->push_back(process);
-      LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned\n", process->vid()->toString().c_str());
-
-      this->rec_get(vri("process"))->lst_add(vri(process->vid()));
-      router()->write(this->vid(), PtrHelper::no_delete(this));
+      process->save();
+      LOG_SCHEDULER(INFO, FURI_WRAP " !yprocess!! spawned\n", process->vid()->toString().c_str());
+      this->save();
       return true;
     }
 
@@ -129,6 +132,7 @@ namespace fhatos {
           }
           return remove;
         });
+        singleton()->save();
         delete fibers;
       }
     }
@@ -137,7 +141,7 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     static void THREAD_FUNCTION(void *vptr_thread) {
-      Thread *thread = static_cast<Thread *>(vptr_thread);
+      auto thread = static_cast<Thread *>(vptr_thread);
       try {
         while (thread->running) {
           thread->loop();
@@ -153,6 +157,7 @@ namespace fhatos {
         }
         return remove;
       });
+      singleton()->save();
     }
   };
 

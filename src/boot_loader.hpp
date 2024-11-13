@@ -84,21 +84,25 @@ namespace fhatos {
             ->using_router(Router::singleton("/sys/router"))
             ////////////////////////////////////////////////////////////
             ->mount(Heap<>::create("/sys/#"))
-            ->mount(Heap<>::create("+/#", "_cache"))
+            ->mount(Heap<>::create("/import/#"))
             ->mount(Heap<>::create("/type/#"))
-            ->mount(Heap<>::create("/io/#"))
             ->install(Type::singleton("/type/"))
+            ->mount(Heap<>::create("/io/#"))
             ->install(Terminal::singleton("/io/terminal"))
+            ->import(Console::import("/io/console"))
+            ->mount(Heap<>::create("+/#", "_cache"))
+
+
             ->install(Parser::singleton("/io/parser"))
             ->install(mmadt::mmADT::singleton())
             ->model("/model/sys/")
 #ifdef ESP_ARCH
             ->mount(
-                Wifi::singleton("soc/wifi/","/soc/wifi/+", Wifi::Settings(args_parser->option("--wifi:connect", "true") == "true",
-                                                              args_parser->option("--wifi:mdns", STR(FOS_MACHINE_NAME)),
-                                                              args_parser->option("--wifi:ssid", STR(WIFI_SSID)),
-                                                              args_parser->option("--wifi:password", STR(WIFI_PASS)))))
-            ->mount(HeapPSRAM::create("/psram", "/psram/#"))
+                Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
+                                                             args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
+                                                             args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
+                                                             args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
+            ->mount(HeapPSRAM::create("/psram/#"))
 #endif
             ->mount(Mqtt::create("//driver/#",
                                  Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
@@ -109,7 +113,7 @@ namespace fhatos {
             ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
 #elif defined(ESP_ARCH)
             ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
-            ->mount(Memory::singleton("/soc/memory/", "/soc/memory/#"))
+            ->mount(Memory::singleton("/soc/memory/#"))
         //->structure(BLE::create("/io/bt/#"))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
@@ -117,7 +121,8 @@ namespace fhatos {
             ->process(Console::create("/console", "/io/terminal",
                                       Console::Settings(args_parser->option_int("--console:nest", 2),
                                                         args_parser->option_bool("--ansi", true),
-                                                        args_parser->option_string("--console:prompt", "!mfhatos!g>!! "),
+                                                        args_parser->
+                                                        option_string("--console:prompt", "!mfhatos!g>!! "),
                                                         args_parser->option_bool("--console:strict", false),
                                                         LOG_TYPES.to_enum(
                                                             args_parser->option_string("--log", "INFO")))))

@@ -120,6 +120,10 @@ namespace fhatos {
       return Kernel::build();
     }
 
+    static ptr<Kernel> import(const fURI &id) {
+      return Kernel::build();
+    }
+
     static ptr<Kernel> mount(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
@@ -142,23 +146,6 @@ namespace fhatos {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->write(process->vid(), process);
       scheduler()->spawn(process);
-      return Kernel::build();
-    }
-
-    /*static ptr<Kernel> driver(const fDriver_p &driver) {
-      driver->setup();
-      return Kernel::build();
-    }*/
-
-    static ptr<Kernel> program(const Structure_p &structure, const Process_p &process) {
-      LOG(INFO, "!c[START]!!: !yloading program!!\n");
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      router()->attach(structure);
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      //router()->write(process->vid(), load_process(process));
-      router()->write(process->vid(), process);
-      //scheduler()->spawn(process);
-      LOG(INFO, "!c[ END ]!!: !yloading program!!\n");
       return Kernel::build();
     }
 

@@ -200,9 +200,8 @@ namespace fhatos {
 
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
-  using InstF = BiFunction<InstArgs, Obj_p, Obj_p>;
-  using InstFunction = Function<Obj_p, Obj_p>;
-  using InstFunctionSupplier = Function<InstArgs, InstFunction>;
+  using InstF = BiFunction<Obj_p, InstArgs, Obj_p>;
+  using InstFunctionSupplier = Function<InstArgs, Function<Obj_p, Obj_p>>;
   using InstSeedSupplier = Function<Obj_p, Obj_p>;
   using InstSeed = Obj_p;
   using InstValue = Quad<InstArgs, InstFunctionSupplier, IType, InstSeedSupplier>;
@@ -396,6 +395,13 @@ namespace fhatos {
     }
 
     //////////////////////////////////////////////////////////////
+    [[nodiscard]] virtual Obj_p save() {
+      if (this->vid_)
+        ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Obj>(this), true);
+      return PtrHelper::no_delete<Obj>(this);
+    }
+
+
     [[nodiscard]] OType o_type() const { return this->otype_; }
 
     template<typename VALUE>
@@ -437,6 +443,12 @@ namespace fhatos {
       if (!this->is_uri())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<fURI>();
+    }
+
+    [[nodiscard]] ID_p id_p_value() const {
+      if (!this->is_uri())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return id_p(this->value<fURI>());
     }
 
     template<typename FURI>
@@ -518,7 +530,7 @@ namespace fhatos {
         if (!segment_value->is_rec())
           throw fError("path %s of %s is not a rec", segment->toString().c_str(), key->toString().c_str(),
                        segment_value->toString().c_str());
-        return segment_value->rec_get(to_uri(key->uri_value().path(1, 1000)));
+        return segment_value->rec_get(to_uri(key->uri_value().path(1, 255)));
       } else {
         for (const auto &[k, v]: *this->rec_value()) {
           if (k->match(key))
@@ -1133,7 +1145,7 @@ namespace fhatos {
       }
     }
 
-    Obj operator[](const Obj &key) const {
+    [[nodiscard]] Obj operator[](const Obj &key) const {
       switch (this->o_type()) {
         case OType::STR:
           return *this->str_get(share(key));
@@ -1144,6 +1156,10 @@ namespace fhatos {
         default:
           throw fError("Unknown obj type in []: %s", OTypes.to_chars(this->o_type()).c_str());
       }
+    }
+
+    [[nodiscard]] Obj_p operator[](const char *id) const {
+      return this->rec_get(id_p(id));
     }
 
     [[nodiscard]] bool is_noobj() const { return this->o_type() == OType::NOOBJ; }
@@ -1503,6 +1519,21 @@ namespace fhatos {
     static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cxx:func")) {
       return Obj::to_bcode({Obj::lambda([function](const Obj_p &obj) { return function(obj); }, to_uri(label))});
     }
+
+    /*static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const ID &label = ID("cxx:func")) {
+      return Obj::to_bcode(
+          {Obj::lambda([function](const Obj_p &obj, const InstArgs &args) { return function(obj, args); }, to_uri(label))});
+    }
+
+    static Obj_p lambda(const BiFunction<Obj_p, InstArgs, Obj_p> &function,
+                        const Uri_p &location = to_uri("cpp-impl")) {
+      return Obj::to_inst(
+          "lambda", {location},
+          [function](const InstArgs &args) {
+            return [function,args](const Obj_p &input) { return function(input, args); };
+          },
+          IType::ONE_TO_ONE);
+    }*/
 
     static Obj_p lambda(const Function<Obj_p, Obj_p> &function, const Uri_p &location = to_uri("cpp-impl")) {
       return Obj::to_inst(

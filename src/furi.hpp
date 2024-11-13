@@ -239,8 +239,11 @@ namespace fhatos {
       for (int i = this->path_length_ - 1; i >= 0; i--) {
         if (strlen(this->path_[i]) > 0) {
           //const size_t index = string(this->path_[i]).find_last_of(':'); // make find_last_of (indexing is goofy)
-          const size_t index = string::npos;
-          return index == string::npos ? string(this->path_[i]) : string(this->path_[i]).substr(index);
+          //const size_t index = string::npos;
+          //return index == string::npos
+          //         ? string(this->scheme()).append(this->path_[i])
+          //          : string(this->path_[i]).substr(index);
+          return string(this->path_[i]);
         }
       }
       return "";
@@ -887,6 +890,8 @@ namespace fhatos {
   [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return make_shared<Pattern>(pattern); }
 
   [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return make_shared<Pattern>(pattern); }
+
+
 
   using ValueO = ID;
   using ValueO_p = ID_p;

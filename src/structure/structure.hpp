@@ -260,7 +260,7 @@ namespace fhatos {
               if (key->is_uri()) {
                 // uri key
                 this->write(id_p(key->uri_value()), value, retain);
-                distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain));
+                distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain)); // may be wrong, should be outside recurssion
               } else // non-uri key
                 remaining->insert({key, value});
             }

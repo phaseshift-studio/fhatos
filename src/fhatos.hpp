@@ -237,6 +237,9 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
 #else
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
 #endif
+#ifndef BUILD_DOCS
+#define BUILD_DOCS OFF
+#endif
 
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //

@@ -63,8 +63,8 @@ int main(int arg, char **argsv) {
   }
   LOG(INFO, "Processing %s\n", argsv[1]);
   printer<>()->println("++++\n[source,mmadt]\n----\n");
-  router()->write(id_p("/console/:prompt"), str(""), false);
-  router()->loop();
+  //router()->write(id_p("/console/:prompt"), str(""), false);
+  //router()->loop();
   for (int i = 1; i < arg; i++) {
     try {
       string x = argsv[i];

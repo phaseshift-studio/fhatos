@@ -39,7 +39,14 @@ namespace fhatos {
 
   public:
     explicit XScheduler(const ID &id = ID("/scheduler")) :
-      Rec(rmap({{"barrier", noobj()}, {"process", lst()}}), OType::REC, REC_FURI, id_p(id)) {
+      Rec(rmap({
+              {"barrier", noobj()},
+              {"process", lst()},
+              {":stop", to_bcode([this](const Obj_p &) {
+                this->stop();
+                return noobj();
+              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}}),
+          OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
@@ -120,7 +127,19 @@ namespace fhatos {
 
     virtual bool spawn(const Process_p &) = 0;
 
+    virtual Obj_p save() override {
+      const Lst_p procs = Obj::to_lst();
+      this->processes_->forEach([procs](const Process_p &proc) {
+        procs->lst_add(vri(proc->vid()));
+      });
+      this->rec_set(vri("process"), procs);
+      router()->write(this->vid(), PtrHelper::no_delete<Obj>(this));
+      return PtrHelper::no_delete<Obj>(this);
+    }
+
     friend Sys;
   };
-} // namespace fhatos
+}
+
+// namespace fhatos
 #endif

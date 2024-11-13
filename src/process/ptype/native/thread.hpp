@@ -25,41 +25,42 @@
 #include <process/process.hpp>
 
 namespace fhatos {
-    class Thread : public Process {
-    public:
-        std::thread *xthread;
+  class Thread : public Process {
+  public:
+    std::thread *xthread;
 
-        explicit Thread(const Rec_p &setup_loop_stop) : Process(setup_loop_stop), xthread(nullptr) {
+    explicit Thread(const Rec_p &setup_loop_stop) :
+      Process(setup_loop_stop), xthread(nullptr) {
+    }
+
+    ~Thread() override { delete this->xthread; }
+
+    void setup() override { Process::setup(); }
+
+    void stop() override {
+      Process::stop();
+      if (this->xthread && this->xthread->joinable()) {
+        try {
+          if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *
+              scheduler_thread)
+            this->xthread->join();
+          else
+            this->xthread->detach();
+        } catch (const std::runtime_error &e) {
+          LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
+                      this->xthread->get_id(), std::this_thread::get_id());
         }
+      }
+    }
 
-        ~Thread() override { delete this->xthread; }
+    void delay(const uint64_t milliseconds) override {
+      std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
 
-        void setup() override { Process::setup(); }
-
-        void stop() override {
-            Process::stop();
-            if (this->xthread && this->xthread->joinable()) {
-                try {
-                    if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *
-                        scheduler_thread)
-                        this->xthread->join();
-                    else
-                        this->xthread->detach();
-                } catch (const std::runtime_error &e) {
-                    LOG_PROCESS(ERROR, this, "%s [process thread id: %i][current thread id: %i]\n", e.what(),
-                                this->xthread->get_id(), std::this_thread::get_id());
-                }
-            }
-        }
-
-        void delay(const uint64_t milliseconds) override {
-            std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-        }
-
-        void yield() override {
-            std::this_thread::yield();
-        }
-    };
+    void yield() override {
+      std::this_thread::yield();
+    }
+  };
 } // namespace fhatos
 
 #endif
