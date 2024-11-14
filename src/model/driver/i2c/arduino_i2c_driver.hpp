@@ -115,12 +115,12 @@ namespace fhatos {
           ->create()
       });
       Type::singleton()->save_type(
-          id_p(DRIVER_REC_FURI->resolve("./i2c/arduino/furi")),
-          rec({{vri(":install"),
-                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
+          id_p("/lib/driver/i2c/arduino/furi"),
+          rec({{vri(":create"),
+                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
                 ->type_args(
-                    x(0, "install_location", vri(driver_value_id)),
-                    x(1, "driver_remote_id", vri(driver_remote_id)),
+                    x(0, "local_id", vri(driver_value_id)),
+                    x(1, "remote_id", vri(driver_remote_id)),
                     x(2, "ns_prefix", vri(define_ns_prefix)))
                 ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
                   const Rec_p record = rec();
@@ -207,11 +207,11 @@ namespace fhatos {
       ////////////////////////////// ARDUINO DRIVER INSTALLATION ///////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->save_type(
-          GPIO_ARDUINO_PIN_TYPE,
-          rec({{vri(":install"),
-                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
-                ->type_args(x(0, "install_location", vri(driver_value_id)),
-                            x(1, "driver_remote_id", vri(driver_remote_id)),
+      id_p("/lib/driver/i2c/arduino/pin"),
+          rec({{vri(":create"),
+                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
+                ->type_args(x(0, "local_in", vri(driver_value_id)),
+                            x(1, "remote_id", vri(driver_remote_id)),
                             x(2, "ns_prefix", vri(define_ns_prefix)))
                 ->instance_f([inst_types](const Obj_p &lhs, const InstArgs &args) {
                   const Rec_p record = rec();

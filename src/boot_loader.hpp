@@ -51,8 +51,10 @@
 
 #ifdef NATIVE
 #define FOS_FS_MOUNT string(getenv("FHATOS_HOME")).append("/data").c_str()
+#define ALLOC
 #else
 #define FOS_FS_MOUNT "/"
+#define ALLOC PSRAMAllocator<Pair<const ID_p, Obj_p>>
 #endif
 
 namespace fhatos {
@@ -83,8 +85,8 @@ namespace fhatos {
         return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"))
             ////////////////////////////////////////////////////////////
-            ->mount(Heap<>::create("/sys/#"))
-            ->mount(Heap<>::create("/import/#"))
+            ->mount(Heap<ALLOC>::create("/sys/#"))
+            ->mount(Heap<ALLOC>::create("/lib/#"))
             ->mount(Heap<>::create("/type/#"))
             ->install(Type::singleton("/type/"))
             ->mount(Heap<>::create("/io/#"))
@@ -108,7 +110,7 @@ namespace fhatos {
                                  Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
                                                 args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
                                  "/driver/mqtt"))
-            ->mount(Heap<>::create("/driver/#"))
+            ->mount(Heap<ALLOC>::create("/driver/#"))
 #ifdef NATIVE
             ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             ->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
