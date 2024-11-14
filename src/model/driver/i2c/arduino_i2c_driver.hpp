@@ -138,7 +138,7 @@ namespace fhatos {
       return noobj();
     }
   };
-}
+
   ///////////////////////////////////////////////////////
 /////////////// ARDUINO HARDWARE DRIVER ///////////////
 ///////////////////////////////////////////////////////
@@ -160,16 +160,16 @@ namespace fhatos {
         })
         ->create(),
         ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":request_from"))
-        ->type_args(x(0, "address"))
+        ->type_args(x(0, "address"), x(1, "quantity"))
         ->instance_f([](const Obj_p &, const InstArgs &args) {
-          Wire.requestFrom(args.at(0)->str_value());
+          Wire.requestFrom(args.at(0)->int_value(),args.at(1)->int_value());
           return noobj();
         })
         ->create(),
         ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin_transmission"))
         ->type_args(x(0, "address"))
         ->instance_f([](const Obj_p &, const InstArgs &args) {
-          Wire.beginTransmission(args.at(0)->str_value());
+          Wire.beginTransmission(args.at(0)->int_value());
           return noobj();
         })
         ->create(),
@@ -183,7 +183,7 @@ namespace fhatos {
         ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
         ->type_args(x(0, "data", str("")))
         ->instance_f([](const Obj_p &, const InstArgs &args) {
-          Wire.write(args.at(0)->str_value());
+          Wire.write(args.at(0)->str_value().c_str());
           return noobj();
         })
         ->create(),
@@ -204,121 +204,89 @@ namespace fhatos {
         })
         ->create()
     });
-
+    //////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////// ARDUINO DRIVER INSTALLATION ///////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
+    Type::singleton()->save_type(
+        GPIO_ARDUINO_PIN_TYPE,
+        rec({{vri(":install"),
+              ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
+              ->type_args(x(0, "install_location", vri(driver_value_id)),
+                          x(1, "driver_remote_id", vri(driver_remote_id)),
+                          x(2, "ns_prefix", vri(define_ns_prefix)))
+              ->instance_f([inst_types](const Obj_p &lhs, const InstArgs &args) {
+                const Rec_p record = rec();
+                for (const auto &i: *inst_types) {
+                  record->rec_set(vri(i->inst_op()), i);
+                }
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":begin"),
+                    Obj::to_bcode([args](const Obj_p &) {
+                      Wire.begin();
+                      return noobj();
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":end"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      Wire.end();
+                      return noobj();
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":request_from"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      const Int_p result = jnt(
+                          Wire.requestFrom(args.at(0)->int_value(), args.at(1)->int_value()));
+                      router()->write(id_p(args.at(1)->uri_value().extend(":request_from")), result);
+                      return result;
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":begin_transmission"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      Wire.beginTransmission(args.at(0)->int_value());
+                      return noobj();
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":end_transmission"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      Wire.endTransmission(args.at(0)->bool_value());
+                      return noobj();
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":write"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      Wire.write(args.at(0)->str_value().c_str());
+                      return noobj();
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":available"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      const Int_p result = jnt(Wire.available());
+                      router()->write(id_p(args.at(1)->uri_value().extend(":available")), result);
+                      return result;
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":read"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      const Int_p result = jnt(Wire.read());
+                      router()->write(id_p(args.at(1)->uri_value().extend(":write")), result);
+                      return result;
+                    })));
+                router()->route_subscription(Subscription::create(
+                    args.at(0)->uri_value(), args.at(1)->uri_value().extend(":set_clock"),
+                    Obj::to_bcode([lhs, args](const Obj_p &) {
+                      Wire.setClock(args.at(0)->int_value());
+                      return noobj();
+                    })));
+                const Uri_p driver_id = args.at(0);
+                const Uri_p ns_prefix = args.at(2);
+                if (!ns_prefix->is_noobj())
+                  Type::singleton()->save_type(id_p(ID(FOS_NAMESPACE_PREFIX_ID).extend(ns_prefix->uri_value())),
+                                               driver_id);
+                return record->at(id_p(driver_id->uri_value()));
+              })
+              ->create()}}));
+    return noobj();
   };
-}
-
-
-
-      static fDriver_p load_hardware_driver(const ID_p &request_id, const ID_p &response_id) {
-        const auto driver = make_shared<fDriver>(request_id, response_id, ptr<List<Inst_p>>(new List<Inst_p>({
-                                                    Obj::to_inst(
-                                                        "i2c:begin", {},
-                                                        [](const InstArgs &) {
-                                                          return [](const Obj_p &) {
-                                                            Wire.begin();
-                                                            return noobj();
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ZERO),
-                                                    Obj::to_inst(
-                                                        "i2c:end", {},
-                                                        [](const InstArgs &) {
-                                                          return [](const Obj_p &) {
-                                                            Wire.end();
-                                                            return noobj();
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ZERO),
-
-                                                    Obj::to_inst(
-                                                        "i2c:request_from", {x(0), x(1)},
-                                                        [response_id](const InstArgs &args) {
-                                                          return [response_id,args](const Obj_p &lhs) {
-                                                            const Int_p result = jnt(
-                                                                Wire.requestFrom(
-                                                                    args.at(0)->apply(lhs)->int_value(),
-                                                                    args.at(1)->apply(lhs)->int_value()));
-                                                            router()->write(response_id, result);
-                                                            return result;
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ONE),
-
-                                                    Obj::to_inst(
-                                                        "i2c:begin_transmission", {x(0)},
-                                                        [](const InstArgs &args) {
-                                                          return [args](const Obj_p &lhs) {
-                                                            Wire.beginTransmission(args.at(0)->apply(lhs)->int_value());
-                                                            return noobj();
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ZERO),
-
-                                                    Obj::to_inst(
-                                                        "i2c:end_transmission", {x(0,dool(true))},
-                                                        [response_id](const InstArgs &args) {
-                                                          return [response_id,args](const Obj_p &lhs) {
-                                                            const Int_p result = jnt(
-                                                                Wire.endTransmission(
-                                                                    args.at(0)->apply(lhs)->bool_value()));
-                                                            router()->write(response_id, result);
-                                                            return result;
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ONE),
-                                                    Obj::to_inst(
-                                                        "i2c:write", {x(0)},
-                                                        [response_id](const InstArgs &args) {
-                                                          return [response_id,args](const Obj_p &lhs) {
-                                                            const Int_p result = jnt(
-                                                                Wire.write(args.at(0)->apply(lhs)->int_value()));
-                                                            router()->write(response_id, result);
-                                                            return result;
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ONE),
-
-                                                    Obj::to_inst(
-                                                        "i2c:available", {},
-                                                        [response_id](const InstArgs &args) {
-                                                          return [response_id,args](const Obj_p &) {
-                                                            const Int_p result = jnt(
-                                                                Wire.available());
-                                                            router()->write(response_id, result);
-                                                            return result;
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ONE),
-
-                                                    Obj::to_inst(
-                                                        "i2c:read", {},
-                                                        [response_id](const InstArgs &args) {
-                                                          return [response_id,args](const Obj_p &) {
-                                                            const Int_p result = jnt(Wire.read());
-                                                            router()->write(response_id, result);
-                                                            return result;
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ONE),
-                                                    Obj::to_inst(
-                                                        "i2c:set_clock", {x(0)},
-                                                        [](const InstArgs &args) {
-                                                          return [args](const Obj_p &lhs) {
-                                                            Wire.setClock(args.at(0)->apply(lhs)->int_value());
-                                                            return noobj();
-                                                          };
-                                                        },
-                                                        IType::ONE_TO_ZERO)
-                                                })),  id_p(DRIVER_FURI->resolve("i2c/arduino/furi")));
-         router()->route_subscription(Subscription::create(*driver->type(),
-                                                  *request_id, Insts::to_bcode(
-                                                    [response_id](const Message_p &message) {
-                                                      const Obj_p result = message->payload->apply(noobj());
-                                                      if (!result->is_noobj())
-                                                        router()->write(response_id, result);
-                                                    })));
-      return driver;
-      }
 #endif
+}
 #endif
