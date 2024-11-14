@@ -69,7 +69,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/type/] [/import/io/console] type defined
 [INFO]  [/sys/router] +/# heap attached
 [INFO]  [/sys/router] /io/parser obj loaded
-[INFO]  [//driver/#]
+[INFO]  [//driver/#] 
     broker address: mqtt://localhost
     client name   : fhatos_native
     will topic    : <none>

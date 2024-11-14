@@ -170,12 +170,8 @@ video {
 
 .hljs-mmadt-reference {
     color: darkmagenta;
-    font-weight: bolder;
 }
-.hljs-mmadt-reference {
-    color: darkmagenta;
-    font-weight: bolder;
-}
+
 .hljs-mmadt-rec-key {
     color: #1e54a0;
 }
@@ -183,6 +179,7 @@ video {
 .hljs-mmadt-rec {
     color: darkmagenta;
 }
+
 .hljs-prompt-begin {
     color: #430043;
 }
