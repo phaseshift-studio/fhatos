@@ -115,37 +115,101 @@ namespace fhatos {
           ->create()
       });
       Type::singleton()->save_type(
-        id_p(DRIVER_REC_FURI->resolve("./i2c/arduino/furi")),
-        rec({{vri(":install"),
-              ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
-              ->type_args(
-                  x(0, "install_location", vri(driver_value_id)),
-                  x(1, "driver_remote_id", vri(driver_remote_id)),
-                  x(2, "ns_prefix", vri(define_ns_prefix)))
-              ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
-                const Rec_p record = rec();
-                for (const auto &i: *inst_types) {
-                  record->rec_set(vri(i->inst_op()), i);
-                }
-                const Uri_p driver_id = args.at(0);
-                const Uri_p ns_prefix = args.at(2);
-                if (!ns_prefix->is_noobj())
-                  Type::singleton()->save_type(id_p(ID(FOS_NAMESPACE_PREFIX_ID).extend(ns_prefix->uri_value())),
-                                               driver_id);
-                return record->at(id_p(args.at(0)->uri_value()));
-              })
-              ->create()}}));
+          id_p(DRIVER_REC_FURI->resolve("./i2c/arduino/furi")),
+          rec({{vri(":install"),
+                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
+                ->type_args(
+                    x(0, "install_location", vri(driver_value_id)),
+                    x(1, "driver_remote_id", vri(driver_remote_id)),
+                    x(2, "ns_prefix", vri(define_ns_prefix)))
+                ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
+                  const Rec_p record = rec();
+                  for (const auto &i: *inst_types) {
+                    record->rec_set(vri(i->inst_op()), i);
+                  }
+                  const Uri_p driver_id = args.at(0);
+                  const Uri_p ns_prefix = args.at(2);
+                  if (!ns_prefix->is_noobj())
+                    Type::singleton()->save_type(id_p(ID(FOS_NAMESPACE_PREFIX_ID).extend(ns_prefix->uri_value())),
+                                                 driver_id);
+                  return record->at(id_p(args.at(0)->uri_value()));
+                })
+                ->create()}}));
       return noobj();
     }
+  };
+}
+  ///////////////////////////////////////////////////////
+/////////////// ARDUINO HARDWARE DRIVER ///////////////
+///////////////////////////////////////////////////////
+#ifdef ESP_ARCH
+
+  static Obj_p load_local(const ID &driver_value_id, const ID_p &driver_remote_id,
+                          const ID &define_ns_prefix = ID("i2c")) {
+    const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin"))
+        ->instance_f([](const Obj_p &, const InstArgs &) {
+          Wire.begin();
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end"))
+        ->instance_f([](const Obj_p &, const InstArgs &) {
+          Wire.end();
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":request_from"))
+        ->type_args(x(0, "address"))
+        ->instance_f([](const Obj_p &, const InstArgs &args) {
+          Wire.requestFrom(args.at(0)->str_value());
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin_transmission"))
+        ->type_args(x(0, "address"))
+        ->instance_f([](const Obj_p &, const InstArgs &args) {
+          Wire.beginTransmission(args.at(0)->str_value());
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end_transmission"))
+        ->type_args(x(0, "stop", dool(true)))
+        ->instance_f([](const Obj_p &, const InstArgs &args) {
+          Wire.endTransmission(args.at(0)->bool_value());
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
+        ->type_args(x(0, "data", str("")))
+        ->instance_f([](const Obj_p &, const InstArgs &args) {
+          Wire.write(args.at(0)->str_value());
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":available"))
+        ->instance_f([](const Obj_p &, const InstArgs &) {
+          return jnt(Wire.available());
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
+        ->instance_f([](const Obj_p &, const InstArgs &) {
+          return jnt(Wire.read());
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":set_clock"))
+        ->instance_f([](const Obj_p &, const InstArgs &args) {
+          Wire.setClock(args.at(0)->int_value());
+          return noobj();
+        })
+        ->create()
+    });
+
   };
 }
 
 
 
-///////////////////////////////////////////////////////
-/////////////// ARDUINO HARDWARE DRIVER ///////////////
-///////////////////////////////////////////////////////
-#ifdef ESP_ARCH
       static fDriver_p load_hardware_driver(const ID_p &request_id, const ID_p &response_id) {
         const auto driver = make_shared<fDriver>(request_id, response_id, ptr<List<Inst_p>>(new List<Inst_p>({
                                                     Obj::to_inst(
