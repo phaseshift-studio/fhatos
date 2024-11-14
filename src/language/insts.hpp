@@ -182,9 +182,9 @@ namespace fhatos {
               if (applied_arg->uri_value().has_path("bool"))
                 return dool(::rand() & 1);
               if (applied_arg->uri_value().has_path("int"))
-                return jnt((FL_INT_TYPE) ::rand());
+                return jnt((FOS_INT_TYPE) ::rand());
               if (applied_arg->uri_value().has_path("real"))
-                return real(static_cast<float>(::rand()) / (FL_REAL_TYPE) (RAND_MAX / 1.0f));
+                return real(static_cast<float>(::rand()) / (FOS_REAL_TYPE) (RAND_MAX / 1.0f));
               throw fError("%s can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
               return noobj();
             };
@@ -343,7 +343,11 @@ namespace fhatos {
     }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
-      Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->tid())}});
+      Rec_p rec = Obj::to_rec({
+          {vri("type_id"), vri(lhs->tid())},
+          {vri("type"), router()->read(lhs->tid())}});
+      if (lhs->vid())
+        rec->rec_set(vri("value_id"), vri(lhs->vid()));
       if (lhs->is_bcode()) {
         const Lst_p l = lst();
         for (const Inst_p &i: *lhs->bcode_value()) {
@@ -353,7 +357,7 @@ namespace fhatos {
       } else if (lhs->is_int()) {
         /// INT
         rec->rec_set(vri("value"), jnt(lhs->int_value()));
-        rec->rec_set(vri("encoding"), vri(STR(FL_INT_TYPE)));
+        rec->rec_set(vri("encoding"), vri(STR(FOS_INT_TYPE)));
       } else if (lhs->is_inst()) {
         // INST
         rec->rec_set(vri("op"), str(lhs->inst_op()));
@@ -367,7 +371,7 @@ namespace fhatos {
         /// REAL
         rec->rec_set(vri("value"), real(lhs->real_value()));
         rec->rec_set(vri("value"), real(lhs->real_value()));
-        rec->rec_set(vri("encoding"), vri(STR(FL_REAL_TYPE)));
+        rec->rec_set(vri("encoding"), vri(STR(FOS_REAL_TYPE)));
       } else if (lhs->is_str()) {
         /// STR
         rec->rec_set(vri("value"), str(lhs->str_value()));
@@ -902,6 +906,21 @@ namespace fhatos {
           (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
+    static Obj_p from_get(const Obj_p &key) {
+      return Obj::to_inst(
+          "from_get", {key},
+          [](const InstArgs &args) {
+            return [args](const Obj_p &lhs) {
+              if (lhs->is_rec())
+                return lhs->rec_get(args.at(0)->apply(lhs));
+              if (lhs->is_lst())
+                return lhs->lst_get(args.at(0)->apply(lhs));
+              throw fError("from_get doesn't support %s", lhs->tid()->toString().c_str());
+            };
+          },
+          IType::ONE_TO_ONE);
+    }
+
     static Poly_p each(const Poly_p &poly) {
       return Obj::to_inst(
           "each", {poly},
@@ -948,7 +967,7 @@ namespace fhatos {
       static List<Pair<string, string>> map = {{"-->", "via_inv"}, {"@", "at"}, {"??", "optional"}, {"-<", "split"},
                                                {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"},
                                                {"|", "block"}, {"^", "lift"}, {"V", "drop"}, {"*", "from"},
-                                               {"=", "each"}, {";", "end"}};
+                                               {"=", "each"}, {";", "end"}, {"\\", "from_get"}};
       return map;
     }
 

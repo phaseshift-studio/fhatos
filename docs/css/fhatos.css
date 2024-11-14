@@ -21,55 +21,109 @@
 @import url(//fonts.googleapis.com/css?family=Noto+Sans);
 @import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
 
-:root{
-    --maincolor:#8F9779;
-    --primarycolor:#000000;
+:root {
+    --maincolor: #8F9779;
+    --primarycolor: #000000;
     --secondarycolor: #701313;
     --tertiarycolor: #bdbdbd;
     --sidebarbackground: #9e9595;
     --linkcolor: #493053;
-    --linkcoloralternate:#B71C1C;
+    --linkcoloralternate: #B71C1C;
     --white: #706565;
-    --black:#000000;
+    --black: #000000;
 }
+
 /* Text styles */
-body{
-    font-family: "Noto Sans",sans-serif;
+body {
+    font-family: "Noto Sans", sans-serif;
     background-color: var(--maincolor);
-    color:var(--black);
+    color: var(--black);
 }
 
-h1{color:var(--primarycolor) !important;font-family:"Noto Sans",sans-serif;}
-h2,h3,h4,h5,h6{color:var(--secondarycolor) !important;font-family:"Noto Sans",sans-serif;}
-.title{color:var(--black) !important;font-family:"Noto Sans",sans-serif;font-style: normal; font-weight: normal;}
-a{text-decoration: none;}
-p{font-family: "Noto Sans",sans-serif ! important}
-#toc.toc2 a:link{color:var(--linkcolor);}
+h1 {
+    color: var(--primarycolor) !important;
+    font-family: "Noto Sans", sans-serif;
+}
 
-blockquote{color:var(--secondarycolor) !important}
-.quoteblock{color:var(--black)}
-.quoteblock blockquote:before{color:var(--black)}
+h2, h3, h4, h5, h6 {
+    color: var(--secondarycolor) !important;
+    font-family: "Noto Sans", sans-serif;
+}
 
-code{
+.title {
+    color: var(--black) !important;
+    font-family: "Noto Sans", sans-serif;
+    font-style: normal;
+    font-weight: normal;
+}
+
+a {
+    text-decoration: none;
+}
+
+p {
+    font-family: "Noto Sans", sans-serif ! important
+}
+
+#toc.toc2 a:link {
+    color: var(--linkcolor);
+}
+
+blockquote {
+    color: var(--secondarycolor) !important
+}
+
+.quoteblock {
+    color: var(--black)
+}
+
+.quoteblock blockquote:before {
+    color: var(--black)
+}
+
+code {
     color: var(--white);
     background-color: #e3e3e3;
     border-color: #0b1c2c;
     border-width: thin;
     border-radius: 1em;
     border-style: groove;
-!important}
+!important
+}
 
-mark{background-color: var(--tertiarycolor)} /* Text highlighting color */
+mark {
+    background-color: var(--tertiarycolor)
+}
+
+/* Text highlighting color */
 
 /* Table styles */
-th{background-color: var(--maincolor);color:var(--black) !important;}
-td{background-color: var(--maincolor);color: var(--black) !important}
+th {
+    background-color: var(--maincolor);
+    color: var(--black) !important;
+}
+
+td {
+    background-color: var(--maincolor);
+    color: var(--black) !important
+}
 
 
-#toc.toc2{background-color:var(--sidebarbackground);}
-#toctitle{color:var(--secondarycolor);}
-.ulist ul{line-height:1.0em;}
-.ulist li{line-height:1.0em;}
+#toc.toc2 {
+    background-color: var(--sidebarbackground);
+}
+
+#toctitle {
+    color: var(--secondarycolor);
+}
+
+.ulist ul {
+    line-height: 1.0em;
+}
+
+.ulist li {
+    line-height: 1.0em;
+}
 
 /* Responsiveness fixes */
 video {
@@ -78,9 +132,10 @@ video {
 
 @media all and (max-width: 600px) {
     table {
-        width: 55vw!important;
+        width: 55vw !important;
         font-size: 3vw;
-    }}
+    }
+}
 
 /******************************************************************/
 
@@ -98,28 +153,38 @@ video {
     color: darkgreen;
 }
 
+.hljs-mmadt-noobj {
+    color: red;
+}
+
 .hljs-mmadt-bool,
 .hljs-mmadt-real,
 .hljs-mmadt-int {
     color: darkgoldenrod;
 }
+
 .hljs-string {
     color: darkgoldenrod;
-    font-style: italic;
+    /*font-style: italic;*/
 }
+
 .hljs-mmadt-reference {
     color: darkmagenta;
     font-weight: bolder;
 }
+
 .hljs-mmadt-rec-key {
     color: #1e54a0;
 }
+
 .hljs-mmadt-rec {
     color: darkmagenta;
 }
+
 .hljs-prompt-begin {
     color: #430043;
 }
+
 .hljs-prompt-end {
     color: darkgreen;
 }

@@ -177,6 +177,8 @@ namespace fhatos {
     if (p)                                                                                                             \
       delete (p);                                                                                                      \
   }
+
+#define FOS_IS_DOC_BUILD 0 == strcmp(STR(BUILD_DOCS), "ON")
 #define FOS_MMADT_URL_PREFIX "https://fhatos.org/mmadt/"
 #define FOS_NOOBJ_TOKEN noobj
 #define FOS_MAX_FURI_SEGMENTS 10

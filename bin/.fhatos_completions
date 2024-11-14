@@ -62,6 +62,7 @@ until
 dedup
 insert
 delay
+from_get
 and
 or
 rand

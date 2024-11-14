@@ -66,7 +66,7 @@ namespace fhatos {
         //FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->rec_get(":target")->uri_value());
         TEST_ASSERT_TRUE_MESSAGE( message->is_rec(),
                                  (string("Expected rec but received ") +  message->tid()->toString()).c_str());
-        FL_INT_TYPE payload_int =  message->rec_value()->at(str("hello_fhatty"))->int_value();
+        FOS_INT_TYPE payload_int =  message->rec_value()->at(str("hello_fhatty"))->int_value();
         TEST_ASSERT_EQUAL_INT(payload_int, ping_HIT->load());
         // TEST_ASSERT_TRUE(message->retain);
         ping_HIT->store(ping_HIT->load() + 1);

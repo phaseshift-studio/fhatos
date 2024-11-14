@@ -108,6 +108,7 @@ namespace fhatos {
       this->structures_.remove_if([this, pattern](const Structure_p &structure) -> bool {
         const bool to_erase = structure->pattern()->matches(*pattern);
         if (to_erase) {
+          structure->stop();
           LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
                      StructureTypes.to_chars(structure->stype).c_str());
         }

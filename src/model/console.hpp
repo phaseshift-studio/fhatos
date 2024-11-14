@@ -153,7 +153,7 @@ namespace fhatos {
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
       Thread(Obj::to_rec(rmap({{":loop",
                                 Obj::to_bcode([this](const Obj_p &) -> Obj_p {
-                                  if (0 == strcmp(STR(BUILD_DOCS), "ON"))
+                                  if (FOS_IS_DOC_BUILD)
                                     return noobj();
                                   if (this->new_input_)
                                     this->print_prompt(!this->line_.empty());
@@ -189,7 +189,10 @@ namespace fhatos {
                                {":prompt", Obj::to_bcode([this](const Obj_p &obj) {
                                  this->print_prompt();
                                  printer<>()->printf("%s\n", obj->str_value().c_str());
-                                 this->process_line(obj->str_value());
+                                 string code = obj->str_value();
+                                 if (FOS_IS_DOC_BUILD)
+                                   StringHelper::replace(code, "\\|", "|");
+                                 this->process_line(code);
                                  return noobj();
                                }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
                                {"config", rec({{vri("nest"), jnt(settings.nest_)},
@@ -197,14 +200,13 @@ namespace fhatos {
                                                {vri("ansi"), dool(settings.ansi_)},
                                                {vri("prompt"), str(settings.prompt_)},
                                                {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
-                                })},
-                               {"terminal", rec({
+                                })}
+                               /*{"terminal", rec({
                                     {vri("stdin"), vri(terminal.extend(":stdin"))},
-                                    {vri("stdout"), vri(terminal.extend(":stdout"))}})}}), THREAD_FURI, id_p(id))),
+                                    {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(id))),
       stdin_id(id_p(terminal.extend(":stdin"))),
       stdout_id(id_p(terminal.extend(":stdout"))) {
-      //this->stdin_id = this->rec_get("terminal")->rec_get("stdin")->id_p_value();
-      //this->stdout_id = this->rec_get("terminal")->rec_get("stdout")->id_p_value();
+      //this->save(id_p(id));
     }
 
   public:

@@ -87,19 +87,16 @@ namespace fhatos {
                     fiber_count->load());
       delete thread_count;
       delete fiber_count;
-      router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       while (!list->empty()) {
         const Process_p p = list->back();
         list->pop_back();
         if (p->running)
           p->stop();
       }
+      router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
       list->clear();
       delete list;
-      this->processes_->clear();
       this->running_ = false;
-      this->barrier_.first = nullptr;
-      this->barrier_.second = nullptr;
       LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
@@ -127,7 +124,7 @@ namespace fhatos {
 
     virtual bool spawn(const Process_p &) = 0;
 
-    virtual Obj_p save() override {
+    virtual Obj_p save(const ID_p &id = nullptr) override {
       const Lst_p procs = Obj::to_lst();
       this->processes_->forEach([procs](const Process_p &proc) {
         procs->lst_add(vri(proc->vid()));

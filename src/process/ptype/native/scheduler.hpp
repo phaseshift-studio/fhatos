@@ -148,7 +148,7 @@ namespace fhatos {
         }
       } catch (fError error) {
         thread->stop();
-        LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
+        LOG_PROCESS(ERROR, thread, "processor loop error: %s\n", error.what());
       }
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
         const bool remove = proc->vid()->equals(*thread->vid()) || !proc->running;

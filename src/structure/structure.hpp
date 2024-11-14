@@ -116,7 +116,7 @@ namespace fhatos {
         LOG_STRUCTURE(WARN, this, "!ystructure!! already unavailable\n");
       this->subscriptions_->clear();
       this->outbox_->clear(false);
-      this->available_.store(false);
+      this->available_ = false;
     }
 
     /////////////////////////////////////////////////
@@ -187,7 +187,7 @@ namespace fhatos {
         const Rec_p rec = Obj::to_rec();
         // BRANCH ID AND PATTERN
         for (const auto &[key, value]: *matches) {
-          rec->rec_set(vri(key), value);
+          rec->rec_set(vri(key), value, false);
         }
         return rec;
       } else {
@@ -215,7 +215,6 @@ namespace fhatos {
           return matches->begin()->second;
         }
       }
-      return noobj();
     }
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
@@ -260,7 +259,8 @@ namespace fhatos {
               if (key->is_uri()) {
                 // uri key
                 this->write(id_p(key->uri_value()), value, retain);
-                distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain)); // may be wrong, should be outside recurssion
+                distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain));
+                // may be wrong, should be outside recurssion
               } else // non-uri key
                 remaining->insert({key, value});
             }

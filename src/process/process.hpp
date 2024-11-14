@@ -83,7 +83,6 @@ namespace fhatos {
                       __FILE__,__LINE__))
           }
       }))) {
-      this_process.store(this);
     }
 
     ~Process() override = default;
@@ -133,15 +132,16 @@ namespace fhatos {
 
     virtual void stop() {
       this_process = this;
+      if (!this->running) {
+        LOG(WARN, FOS_ALREADY_STOPPED, this->vid()->toString().c_str());
+        return;
+      }
       const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid()->extend(":stop")));
       if (stop_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
       else
         Options::singleton()->processor<Obj>(noobj(), stop_bcode);
-      if (!this->running) {
-        LOG(WARN, FOS_ALREADY_STOPPED, this->vid()->toString().c_str());
-        return;
-      }
+
       this->running = false;
     };
 

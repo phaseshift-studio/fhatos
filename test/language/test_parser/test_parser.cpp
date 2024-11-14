@@ -68,7 +68,7 @@ namespace fhatos {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/zero"), Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
     const auto ints =
-        List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
+        List<Trip<string, FOS_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
                                                {"0", 0, *INT_FURI},
                                                {"-12", -12, *INT_FURI},
                                                {"nat[100]", 100, INT_FURI->resolve("nat")},
@@ -90,7 +90,7 @@ namespace fhatos {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/zero"), Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/nat"), Obj::to_bcode());
     // REAL
-    const auto reals = List<Trip<string, FL_REAL_TYPE, fURI>>(
+    const auto reals = List<Trip<string, FOS_REAL_TYPE, fURI>>(
     {{"45.1", 45.1f, *REAL_FURI},
      {"0.0000", 0.0f, *REAL_FURI},
      {"-12.1", -12.1f, *REAL_FURI},

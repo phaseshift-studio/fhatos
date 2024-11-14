@@ -113,6 +113,7 @@ namespace mmadt {
       Type::singleton()->save_type(inst_id("dedup"), Insts::dedup(x(0, bcode())));
       Type::singleton()->save_type(inst_id("insert"), Insts::insert(x(0)));
       Type::singleton()->save_type(inst_id("delay"), Insts::delay(x(0)));
+      Type::singleton()->save_type(inst_id("from_get"), Insts::from_get(x(0)));
       Type::singleton()->save_type(inst_id("and"), Insts::x_and(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       Type::singleton()->save_type(inst_id("or"), Insts::x_or(x(0, Insts::error(ARG_ERROR)), x(1), x(2), x(3)));
       Type::singleton()->save_type(inst_id("rand"), Insts::rand(x(0, vri(BOOL_FURI))));

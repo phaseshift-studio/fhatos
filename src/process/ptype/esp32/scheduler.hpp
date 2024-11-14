@@ -59,6 +59,10 @@ namespace fhatos {
     }
 
     virtual bool spawn(const Process_p &process) override {
+      if (this->count(*process->vid())) {
+        LOG_SCHEDULER(ERROR, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
+        return false;
+      }
       process->setup();
       if (!process->running) {
         LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to setup\n", process->vid()->toString().c_str());
@@ -99,8 +103,7 @@ namespace fhatos {
         this->processes_->push_back(process);
         LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid()->toString().c_str(),
                       stack_size);
-        this->rec_get(vri("process"))->lst_add(vri(process->vid()));
-        router()->write(this->vid(), PtrHelper::no_delete(this));
+        this->save();
       } else {
         const char *reason = threadResult == -1 ? "COULD_NOT_ALLOCATE_REQUIRED_MEMORY" : "UNKNOWN_REASON";
         LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->vid()->toString().c_str(),

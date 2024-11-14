@@ -26,18 +26,18 @@
 #ifndef fhatos_obj_hpp
 #define fhatos_obj_hpp
 
-#ifndef FL_REAL_TYPE
-#define FL_REAL_TYPE float
+#ifndef FOS_REAL_TYPE
+#define FOS_REAL_TYPE float_t
 
 #include <any>
 
 #endif
-#ifndef FL_INT_TYPE
-#define FL_INT_TYPE int
+#ifndef FOS_INT_TYPE
+#define FOS_INT_TYPE int32_t
 #endif
 
-#ifndef FL_STR_ENCODING
-#define FL_STR_ENCODING sizeof(std::string::value_type)
+#ifndef FOS_STR_ENCODING
+#define FOS_STR_ENCODING sizeof(std::string::value_type)
 #endif
 
 #define FOS_TYPE_PREFIX "/type/"
@@ -343,11 +343,11 @@ namespace fhatos {
       Obj(Any(xbool), OType::BOOL, id_p(BOOL_FURI->resolve(type_id))) {
     }
 
-    Obj(const FL_INT_TYPE xint, const char *type_id = EMPTY_CHARS) :
+    Obj(const FOS_INT_TYPE xint, const char *type_id = EMPTY_CHARS) :
       Obj(Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {
     }
 
-    Obj(const FL_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) :
+    Obj(const FOS_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) :
       Obj(
           Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {
     }
@@ -395,9 +395,11 @@ namespace fhatos {
     }
 
     //////////////////////////////////////////////////////////////
-    [[nodiscard]] virtual Obj_p save() {
+    [[nodiscard]] virtual Obj_p save(const ID_p &id = nullptr) {
+      if (id)
+        return make_shared<Obj>(this->value_, this->otype_, this->tid_, id);
       if (this->vid_)
-        ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Obj>(this), true);
+        return make_shared<Obj>(this->value_, this->otype_, this->tid_, this->vid_);
       return PtrHelper::no_delete<Obj>(this);
     }
 
@@ -427,16 +429,16 @@ namespace fhatos {
       return this->value<bool>();
     }
 
-    [[nodiscard]] FL_INT_TYPE int_value() const {
+    [[nodiscard]] FOS_INT_TYPE int_value() const {
       if (!this->is_int())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->value<FL_INT_TYPE>();
+      return this->value<FOS_INT_TYPE>();
     }
 
-    [[nodiscard]] FL_REAL_TYPE real_value() const {
+    [[nodiscard]] FOS_REAL_TYPE real_value() const {
       if (!this->is_real())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->value<FL_REAL_TYPE>();
+      return this->value<FOS_REAL_TYPE>();
     }
 
     [[nodiscard]] fURI uri_value() const {
@@ -555,7 +557,11 @@ namespace fhatos {
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
       this->rec_value()->insert(rmap->begin(), rmap->end());
-      return PtrHelper::no_delete<Rec>((Rec *) this);
+      return PtrHelper::no_delete<Rec>(this);
+    }
+
+    virtual void rec_set(const char *uri_key, const Obj_p &val, const bool nest = true) const {
+      this->rec_set(Obj::to_uri(uri_key), val, nest);
     }
 
     virtual void rec_set(const Obj_p &key, const Obj_p &val, const bool nest = true) const {
@@ -1404,12 +1410,12 @@ namespace fhatos {
       return make_shared<Bool>(value, OType::BOOL, furi);
     }
 
-    static Int_p to_int(const FL_INT_TYPE value, const ID_p &furi = INT_FURI) {
+    static Int_p to_int(const FOS_INT_TYPE value, const ID_p &furi = INT_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::INT));
       return make_shared<Int>(value, OType::INT, furi);
     }
 
-    static Real_p to_real(const FL_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
+    static Real_p to_real(const FOS_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::REAL));
       return make_shared<Real>(value, OType::REAL, furi);
     }
@@ -1693,7 +1699,7 @@ namespace fhatos {
     return Obj::to_bool(xbool, type);
   }
 
-  [[maybe_unused]] static Int_p jnt(const FL_INT_TYPE xint, const ID_p &type = INT_FURI) {
+  [[maybe_unused]] static Int_p jnt(const FOS_INT_TYPE xint, const ID_p &type = INT_FURI) {
     return Obj::to_int(xint, type);
   }
 
@@ -1701,7 +1707,7 @@ namespace fhatos {
 
   [[maybe_unused]] static Str_p str(const string &xstr) { return Obj::to_str(xstr); }
 
-  [[maybe_unused]] static Real_p real(const FL_REAL_TYPE &xreal, const ID_p &type = REAL_FURI) {
+  [[maybe_unused]] static Real_p real(const FOS_REAL_TYPE &xreal, const ID_p &type = REAL_FURI) {
     return Obj::to_real(xreal, type);
   }
 
