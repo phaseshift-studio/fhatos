@@ -50,7 +50,7 @@ namespace fhatos {
     }
 #else
     static int print(const char *c_str) {
-      return Serial.printf("%s", c_str);
+      return Serial.print(c_str);
     }
     static void flush() {
       Serial.flush();

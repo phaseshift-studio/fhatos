@@ -114,6 +114,7 @@ namespace fhatos {
             ->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
 #elif defined(ESP_ARCH)
             ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
+            ->install(ArduinoI2CDriver::load_local("/driver/i2c/pin", id_p("//driver/i2c")))
             ->mount(Memory::singleton("/soc/memory/#"))
         //->structure(BLE::create("/io/bt/#"))
 #endif
