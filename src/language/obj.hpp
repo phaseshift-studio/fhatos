@@ -1490,6 +1490,15 @@ namespace fhatos {
       return to_rec(map, type, id);
     }
 
+    static Rec_p to_rec(const std::initializer_list<Pair<const string, Obj_p>> &xrec, const ID_p &type = REC_FURI,
+                        const ID_p &id = nullptr) {
+      const auto map = make_shared<Obj::RecMap<>>();
+      for (const auto &[key, value]: xrec) {
+        map->insert(make_pair(Obj::to_uri(key), value));
+      }
+      return to_rec(map, type, id);
+    }
+
     static InstSeedSupplier objs_seed() {
       return [](const Obj_p &) { return to_objs(); };
     }
@@ -1723,11 +1732,6 @@ namespace fhatos {
 
   [[maybe_unused]] static Rec_p rec(const Obj::RecMap<> &map, const ID_p &tid = REC_FURI, const ID_p &vid = nullptr) {
     return Obj::to_rec(make_shared<Obj::RecMap<>>(map), tid, vid);
-  }
-
-  [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const Obj, Obj>> &map,
-                                    const ID_p &furi = REC_FURI) {
-    return Obj::to_rec(map, furi);
   }
 
   [[maybe_unused]] static Rec_p rec(const std::initializer_list<Pair<const Obj_p, Obj_p>> &map,

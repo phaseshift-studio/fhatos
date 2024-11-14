@@ -32,116 +32,119 @@ FhatOS: A Distributed Operating System
 
 namespace fhatos {
   class ArduinoI2CDriver {
-  protected:
-    static fDriver_p load_furi_driver(const ID_p &request_id, const ID_p &response_id) {
-      const fDriver_p driver = make_shared<fDriver>(request_id, response_id, ptr<List<Inst_p>>(new List<Inst_p>({
-                                                        Obj::to_inst(
-                                                            "i2c:begin", {},
-                                                            [request_id](const InstArgs &args) {
-                                                              return [request_id,args](const Obj_p &) {
-                                                                router()->write(request_id, parse("i2c:begin()"));
-                                                                return noobj();
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ZERO),
-                                                        Obj::to_inst(
-                                                            "i2c:end", {},
-                                                            [request_id](const InstArgs &args) {
-                                                              return [request_id,args](const Obj_p &) {
-                                                                router()->write(request_id, parse("i2c:end()"));
-                                                                return noobj();
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ZERO),
-
-                                                        Obj::to_inst(
-                                                            "i2c:request_from", {x(0), x(1)},
-                                                            [response_id,request_id](const InstArgs &args) {
-                                                              return [response_id,request_id,args](const Obj_p &lhs) {
-                                                                router()->write(
-                                                                    request_id, parse("i2c:request_from(%i,%i)",
-                                                                      args.at(0)->apply(lhs)->int_value(),
-                                                                      args.at(1)->apply(lhs)->int_value()));
-                                                                return router()->read(response_id);
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ONE),
-
-                                                        Obj::to_inst(
-                                                            "i2c:begin_transmission", {x(0)},
-                                                            [request_id](const InstArgs &args) {
-                                                              return [request_id, args](const Obj_p &lhs) {
-                                                                router()->write(
-                                                                    request_id, parse("i2c:begin_transmission(%i)",
-                                                                      args.at(0)->apply(lhs)->int_value()));
-                                                                return noobj();
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ZERO),
-
-                                                        Obj::to_inst(
-                                                            "i2c:end_transmission", {x(0, dool(true))},
-                                                            [response_id,request_id](const InstArgs &args) {
-                                                              return [response_id,request_id,args](const Obj_p &lhs) {
-                                                                router()->write(
-                                                                    request_id, parse("i2c:end_transmission(%s)",
-                                                                      args.at(0)->apply(lhs)->bool_value()
-                                                                        ? "true"
-                                                                        : "false"));
-                                                                return router()->read(response_id);
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ONE),
-                                                        Obj::to_inst(
-                                                            "i2c:write", {x(0)},
-                                                            [response_id,request_id](const InstArgs &args) {
-                                                              return [response_id,request_id,args](const Obj_p &lhs) {
-                                                                router()->write(
-                                                                    request_id, parse("i2c:write(%i)",
-                                                                      args.at(0)->apply(lhs)->int_value()));
-                                                                return router()->read(response_id);
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ONE),
-
-                                                        Obj::to_inst(
-                                                            "i2c:available", {},
-                                                            [response_id,request_id](const InstArgs &args) {
-                                                              return [response_id,request_id,args](const Obj_p &) {
-                                                                router()->write(request_id, parse("i2c:available()"));
-                                                                return router()->read(response_id);
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ONE),
-
-                                                        Obj::to_inst(
-                                                            "i2c:read", {},
-                                                            [response_id,request_id](const InstArgs &args) {
-                                                              return [response_id,request_id,args](const Obj_p &) {
-                                                                router()->write(request_id, parse("i2c:read()"));
-                                                                return router()->read(response_id);
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ONE),
-
-                                                        Obj::to_inst(
-                                                            "i2c:set_clock", {x(0)},
-                                                            [response_id,request_id](const InstArgs &args) {
-                                                              return [response_id,request_id,args](const Obj_p &lhs) {
-                                                                router()->write(
-                                                                    request_id, parse("i2c:set_clock(%i)",
-                                                                      args.at(0)->apply(lhs)->int_value()));
-                                                                return noobj();
-                                                              };
-                                                            },
-                                                            IType::ONE_TO_ZERO)
-                                                    })), id_p(DRIVER_FURI->resolve("i2c/arduino/furi")));
-      return driver;
+  public:
+    static Obj_p load_remote(const ID &driver_value_id, const ID_p &driver_remote_id,
+                             const ID &define_ns_prefix = ID("i2c")) {
+      const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin"))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":begin")),
+                            ObjHelper::make_lhs_args(lhs, {}),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end"))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":end")),
+                            ObjHelper::make_lhs_args(lhs, {}),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":request_from"))
+          ->type_args(x(0, "address"))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":request_from")),
+                            ObjHelper::make_lhs_args(lhs, args),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin_transmission"))
+          ->type_args(x(0, "address"))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":request_from")),
+                            ObjHelper::make_lhs_args(lhs, args),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end_transmission"))
+          ->type_args(x(0, "stop", dool(true)))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":end_transmission")),
+                            ObjHelper::make_lhs_args(lhs, args),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
+          ->type_args(x(0, "data array", str("")))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":write")),
+                            ObjHelper::make_lhs_args(lhs, args),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":available"))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
+            router()->write(id_p(driver_remote_id->extend(":available")),
+                            ObjHelper::make_lhs_args(lhs, {}),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
+            router()->write(id_p(driver_remote_id->extend(":read")),
+                            ObjHelper::make_lhs_args(lhs, {}),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":set_clock"))
+          ->type_args(x(0, "frequency", jnt(80)))
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+            router()->write(id_p(driver_remote_id->extend(":set_clock")),
+                            ObjHelper::make_lhs_args(lhs, args),
+                            TRANSIENT);
+            return noobj();
+          })
+          ->create()
+      });
+      Type::singleton()->save_type(
+        id_p(DRIVER_REC_FURI->resolve("./i2c/arduino/furi")),
+        rec({{vri(":install"),
+              ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":install"))
+              ->type_args(
+                  x(0, "install_location", vri(driver_value_id)),
+                  x(1, "driver_remote_id", vri(driver_remote_id)),
+                  x(2, "ns_prefix", vri(define_ns_prefix)))
+              ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
+                const Rec_p record = rec();
+                for (const auto &i: *inst_types) {
+                  record->rec_set(vri(i->inst_op()), i);
+                }
+                const Uri_p driver_id = args.at(0);
+                const Uri_p ns_prefix = args.at(2);
+                if (!ns_prefix->is_noobj())
+                  Type::singleton()->save_type(id_p(ID(FOS_NAMESPACE_PREFIX_ID).extend(ns_prefix->uri_value())),
+                                               driver_id);
+                return record->at(id_p(args.at(0)->uri_value()));
+              })
+              ->create()}}));
+      return noobj();
     }
+  };
+}
 
-    ///////////////////////////////////////////////////////
-    /////////////// ARDUINO HARDWARE DRIVER ///////////////
-    ///////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////
+/////////////// ARDUINO HARDWARE DRIVER ///////////////
+///////////////////////////////////////////////////////
 #ifdef ESP_ARCH
       static fDriver_p load_hardware_driver(const ID_p &request_id, const ID_p &response_id) {
         const auto driver = make_shared<fDriver>(request_id, response_id, ptr<List<Inst_p>>(new List<Inst_p>({
@@ -254,15 +257,4 @@ namespace fhatos {
       return driver;
       }
 #endif
-
-  public:
-    static fDriver_p create(const ID &request_id, const ID &response_id) {
-#ifdef NATIVE
-      return load_furi_driver(id_p(request_id), id_p(response_id));
-#elif defined(ESP_ARCH)
-        return load_hardware_driver(id_p(request_id),id_p(response_id));
-#endif
-    }
-  };
-} // namespace fhatos
 #endif

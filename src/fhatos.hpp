@@ -80,7 +80,7 @@
 
 
 namespace fhatos {
-  [[maybe_unused]] static const char *ANSI_ART =
+  [[maybe_unused]] static auto ANSI_ART =
       "!r            !_PhaseShift Studio Presents!! \n"
       "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"
       "!m /. .  `'  \\!g/\\  ___/\\ \\_\\ \\/\\  __ \\/\\__  _\\!b/\\  __ \\/\\  "

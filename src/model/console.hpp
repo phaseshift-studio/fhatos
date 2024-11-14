@@ -217,6 +217,7 @@ namespace fhatos {
 
     static ID import(const ID &id = "/io/console") {
       static const auto IMPORT_ID = id_p(ID("/import/").extend(id));
+     // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       Type::singleton()->save_type(
           IMPORT_ID,
           rec({{vri(":create"),

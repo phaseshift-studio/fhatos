@@ -35,7 +35,7 @@
 #include <model/driver/driver.hpp>
 #include <model/driver/gpio/arduino_gpio_driver.hpp>
 #include <model/sys.hpp>
-// #include <model/driver/i2c/arduino_i2c_driver.hpp>
+#include <model/driver/i2c/arduino_i2c_driver.hpp>
 // #include <model/pin/gpio.hpp>
 // #include <model/pin/interrupt.hpp>
 // #include <model/pin/pwm.hpp>
@@ -111,6 +111,7 @@ namespace fhatos {
             ->mount(Heap<>::create("/driver/#"))
 #ifdef NATIVE
             ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
+            ->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
 #elif defined(ESP_ARCH)
             ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
             ->mount(Memory::singleton("/soc/memory/#"))

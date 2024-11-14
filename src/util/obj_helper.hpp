@@ -98,13 +98,19 @@ namespace fhatos {
         return old_obj;
     }
 
+    /*static Function<InstArgs, BCode_p> proto_bcode(const Obj_p &old_bcode) {
+      return [old_bcode](const InstArgs &args) {
+        return ObjHelper::replace_from_bcode(old_bcode, args);
+      };
+    }*/
+
     static BCode_p replace_from_bcode(const Obj_p &old_bcode, const InstArgs &args, const Obj_p &lhs = noobj()) {
       BCode_p new_bcode = bcode();
       LOG(TRACE, "old bcode: %s\n", old_bcode->toString().c_str());
       for (const Inst_p &old_inst: *old_bcode->bcode_value()) {
         LOG(TRACE, "replacing old bcode inst: %s\n", old_inst->toString().c_str());
         const Inst_p new_inst = replace_from_inst(old_inst, args, lhs);
-        new_bcode->add_inst(new_inst);
+        new_bcode = new_bcode->add_inst(new_inst);
       }
       LOG(TRACE, "new bcode: %s\n", new_bcode->toString().c_str());
       return new_bcode;
@@ -174,14 +180,14 @@ namespace fhatos {
         return this;
       }
 
-      InstTypeBuilder *instance_f(const BiFunction<Obj_p,InstArgs,Obj_p> &inst_f) {
+      InstTypeBuilder *instance_f(const BiFunction<Obj_p, InstArgs, Obj_p> &inst_f) {
         this->function_supplier_ = [inst_f](const InstArgs &args) {
           return [args, inst_f](const Obj_p &lhs) {
             InstArgs args_applied;
             for (const Obj_p &arg: args) {
               args_applied.push_back(arg->apply(lhs));
             }
-            return inst_f(lhs,args_applied);
+            return inst_f(lhs, args_applied);
           };
         };
         return this;
