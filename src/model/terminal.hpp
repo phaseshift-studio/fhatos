@@ -24,52 +24,46 @@
 #include <structure/stype/heap.hpp>
 
 namespace fhatos {
-  class Terminal final : public Heap {
+  class Terminal final : public Rec {
+  private:
+    std::mutex stdout_mutex = std::mutex();
+
   protected:
-    explicit Terminal(const Pattern &id) : Heap(id) {
+    explicit Terminal(const ID &id) :
+      Rec(rmap({{":stdout", Obj::to_bcode(
+                     [this](const Str_p &obj) {
+                       FEED_WATCDOG();
+                       std::lock_guard<std::mutex> lock(stdout_mutex);
+                       printer<>()->print(obj->str_value().c_str());
+                       return noobj();
+                     },
+                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
+                {":stdin", Obj::to_bcode(
+                     [](const NoObj_p &) {
+#ifdef NATIVE
+                       return jnt(getchar());
+#else
+                                   while (Serial.available() <= 0) {
+                                     Process::current_process()->yield();
+                                   }
+                                   return jnt(Serial.read());
+      // return jnt((Serial.available() > 0) ? Serial.read() : EOF); (need a MACRO for multi-core checking)
+#endif
+                     },
+                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
+          OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
     }
 
   public:
-    static ptr<Terminal> singleton(const Pattern &id) {
+    static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
+      static bool setup = false;
+      if (!setup) {
+        setup = true;
+        Type::singleton()->save_type(id_p(REC_FURI->extend("terminal")),
+                                     rec({{vri(":stdout"), Obj::to_bcode()}, {vri(":stdin"), Obj::to_bcode()}}));
+      }
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
-    }
-
-    void setup() override {
-      Heap::setup();
-      Heap::write(p_p(this->pattern()->resolve("./:owner")), vri("none"), true);
-    }
-
-    void write(const fURI_p &furi, const Obj_p &obj, const bool retain) override {
-      if (furi->equals(this->pattern()->resolve("./:owner"))) {
-        this->subscriptions_->forEach([this](const Subscription_p& subscrption) {
-          this->recv_unsubscribe(id_p(subscrption->source), p_p(subscrption->pattern));
-        });
-        router()->route_subscription(subscription_p(ID(this->pattern_->retract_pattern()), Pattern(obj->uri_value()),
-                                                    Insts::to_bcode([](const Message_p &message) {
-                                                      printer<>()->print(message->payload->str_value().c_str());
-                                                    })));
-      }
-      Heap::write(furi, obj, retain);
-    }
-
-    /* ReadRawResult read_raw_pairs(const fURI_p &furi) override {
-       if (furi->matches(*this->pattern())) {
-         return {
-           {
-             id_p(this->pattern()->retract_pattern()),
-             str(to_string(Terminal::readChar()))
-           }};
-       }
-       return {};
-     } */
-
-    static int readChar() {
-#ifdef NATIVE
-      return getchar();
-#else
-      return (Serial.available() > 0) ? Serial.read() : EOF;
-#endif
     }
   };
 } // namespace fhatos

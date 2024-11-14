@@ -34,23 +34,6 @@ namespace fhatos {
       return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
     }
 
-    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cpp-impl")) {
-      return bcode({Insts::lambda([function](const Obj_p &obj) { return function(obj); }, vri(label))});
-    }
-
-    static BCode_p to_bcode(const Consumer<Message_p> &consumer, const ID &label = ID("cpp-impl")) {
-      return bcode({Insts::lambda(
-          [consumer](const Rec_p &message) {
-            const Message_p mess =
-                message_p(message->rec_get(vri(":target"))->uri_value(), message->rec_get(vri(":payload")),
-                          message->rec_get(vri(":retain"))->bool_value());
-            consumer(mess);
-            return noobj();
-          },
-          vri(label))});
-    }
-
-
     static Obj_p start(const Obj_p &starts) {
       return Obj::to_inst(
           "start", {starts}, [](const InstArgs &) { return [](const Obj_p &seed) { return seed; }; },
@@ -183,7 +166,7 @@ namespace fhatos {
           "repeat", {code, until, emit},
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
-              Objs_p r = Options::singleton()->processor<Obj, BCode, Obj>(lhs, args.at(0));
+              Objs_p r = Options::singleton()->processor<Obj>(lhs, args.at(0));
               return r;
             };
           },
@@ -195,22 +178,14 @@ namespace fhatos {
           "rand", {type},
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
-              const fURI temp = args.at(0)->apply(lhs)->uri_value();
-              const OType otype =
-                  OTypes.to_enum(temp.path_length() < 2 ? temp.toString() : string(temp.path(FOS_BASE_TYPE_INDEX)));
-              switch (otype) {
-                case OType::BOOL:
-                  return dool(::rand() & 1);
-                  break;
-                case OType::INT:
-                  return jnt((FL_INT_TYPE) ::rand());
-                  break;
-                case OType::REAL:
-                  return real(static_cast<float>(::rand()) / (FL_REAL_TYPE) (RAND_MAX / 1.0f));
-                  break;
-                default:
-                  throw fError("%s can not be randomly generated", OTypes.to_chars(otype).c_str());
-              }
+              const Obj_p applied_arg = args.at(0)->apply(lhs);
+              if (applied_arg->uri_value().has_path("bool"))
+                return dool(::rand() & 1);
+              if (applied_arg->uri_value().has_path("int"))
+                return jnt((FOS_INT_TYPE) ::rand());
+              if (applied_arg->uri_value().has_path("real"))
+                return real(static_cast<float>(::rand()) / (FOS_REAL_TYPE) (RAND_MAX / 1.0f));
+              throw fError("%s can not be randomly generated", OTypes.to_chars(applied_arg->o_type()).c_str());
               return noobj();
             };
           },
@@ -368,7 +343,11 @@ namespace fhatos {
     }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
-      Rec_p rec = Obj::to_rec({{vri("type"), vri(lhs->type())}});
+      Rec_p rec = Obj::to_rec({
+          {vri("type_id"), vri(lhs->tid())},
+          {vri("type"), router()->read(lhs->tid())}});
+      if (lhs->vid())
+        rec->rec_set(vri("value_id"), vri(lhs->vid()));
       if (lhs->is_bcode()) {
         const Lst_p l = lst();
         for (const Inst_p &i: *lhs->bcode_value()) {
@@ -378,7 +357,7 @@ namespace fhatos {
       } else if (lhs->is_int()) {
         /// INT
         rec->rec_set(vri("value"), jnt(lhs->int_value()));
-        rec->rec_set(vri("encoding"), vri(STR(FL_INT_TYPE)));
+        rec->rec_set(vri("encoding"), vri(STR(FOS_INT_TYPE)));
       } else if (lhs->is_inst()) {
         // INST
         rec->rec_set(vri("op"), str(lhs->inst_op()));
@@ -392,7 +371,7 @@ namespace fhatos {
         /// REAL
         rec->rec_set(vri("value"), real(lhs->real_value()));
         rec->rec_set(vri("value"), real(lhs->real_value()));
-        rec->rec_set(vri("encoding"), vri(STR(FL_REAL_TYPE)));
+        rec->rec_set(vri("encoding"), vri(STR(FOS_REAL_TYPE)));
       } else if (lhs->is_str()) {
         /// STR
         rec->rec_set(vri("value"), str(lhs->str_value()));
@@ -497,7 +476,7 @@ namespace fhatos {
 
     static Uri_p type() {
       return Obj::to_inst(
-          "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->type()); }; },
+          "type", {}, [](const InstArgs &) { return [](const Obj_p &lhs) { return Obj::to_uri(*lhs->tid()); }; },
           IType::ONE_TO_ONE);
     }
 
@@ -577,7 +556,7 @@ namespace fhatos {
               return lhs;
             };
           },
-          to_print->is_bcode() ? IType::ONE_TO_ONE : IType::ZERO_TO_ONE);
+          IType::ONE_TO_ONE);
     }
 
     static Obj_p flip(const Obj_p &rhs) {
@@ -767,7 +746,7 @@ namespace fhatos {
               // LST BY ELEMENTS
               if (lhs->is_lst()) {
                 return Obj::to_lst(Options::singleton()
-                    ->processor<Obj, BCode, Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
+                    ->processor<Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
                     ->objs_value());
               }
               // REC BY PAIRS
@@ -776,7 +755,7 @@ namespace fhatos {
                 for (const auto &pair: *lhs->rec_value()) {
                   pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
                 }
-                const Objs_p results = Options::singleton()->processor<Obj, BCode, Obj>(pairs, args.at(0));
+                const Objs_p results = Options::singleton()->processor<Obj>(pairs, args.at(0));
                 const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
                 for (const auto &result: *results->objs_value()) {
                   rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});
@@ -790,7 +769,7 @@ namespace fhatos {
                 for (uint8_t i = 0; i < xstr.length(); i++) {
                   chars->push_back(str(xstr.substr(i, 1)));
                 }
-                const Objs_p strs = Options::singleton()->processor<Objs, BCode, Objs>(Obj::to_objs(chars), args.at(0));
+                const Objs_p strs = Options::singleton()->processor<Obj>(Obj::to_objs(chars), args.at(0));
                 string ret;
                 for (const Str_p &s: *strs->objs_value()) {
                   ret += s->str_value();
@@ -927,6 +906,21 @@ namespace fhatos {
           (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
     }
 
+    static Obj_p from_get(const Obj_p &key) {
+      return Obj::to_inst(
+          "from_get", {key},
+          [](const InstArgs &args) {
+            return [args](const Obj_p &lhs) {
+              if (lhs->is_rec())
+                return lhs->rec_get(args.at(0)->apply(lhs));
+              if (lhs->is_lst())
+                return lhs->lst_get(args.at(0)->apply(lhs));
+              throw fError("from_get doesn't support %s", lhs->tid()->toString().c_str());
+            };
+          },
+          IType::ONE_TO_ONE);
+    }
+
     static Poly_p each(const Poly_p &poly) {
       return Obj::to_inst(
           "each", {poly},
@@ -973,7 +967,7 @@ namespace fhatos {
       static List<Pair<string, string>> map = {{"-->", "via_inv"}, {"@", "at"}, {"??", "optional"}, {"-<", "split"},
                                                {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"},
                                                {"|", "block"}, {"^", "lift"}, {"V", "drop"}, {"*", "from"},
-                                               {"=", "each"}, {";", "end"}};
+                                               {"=", "each"}, {";", "end"}, {"\\", "from_get"}};
       return map;
     }
 
@@ -981,35 +975,50 @@ namespace fhatos {
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
-      const ID_p type_id_resolved = id_p(INST_FURI->resolve(type_id));
-      const Obj_p base_inst = router()->read(type_id_resolved);
-      if (base_inst->is_noobj())
-        throw fError("unknown instruction: %s", type_id_resolved->toString().c_str());
+      const ID_p type_id_resolved = type_id.has_scheme() ? id_p(type_id) : id_p(INST_FURI->resolve(type_id));
+      Obj_p base_inst = router()->read(type_id_resolved);
+      if (base_inst->is_noobj()) {
+        base_inst = router()->read(id_p(type_id));
+        if (!base_inst->is_code())
+          throw fError("unknown instruction: %s", type_id.toString().c_str());
+      }
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
-          base_inst->toString().c_str(), base_inst->type()->toString().c_str());
+          base_inst->toString().c_str(), base_inst->tid()->toString().c_str());
       if (base_inst->is_inst())
-        return ObjHelper::replace_from_inst(args, base_inst);
+        return ObjHelper::replace_from_inst(base_inst, args);
       if (base_inst->is_bcode()) {
         if (base_inst->bcode_value()->size() == 1)
-          return ObjHelper::replace_from_inst(args, base_inst->bcode_value()->at(0));
+          return ObjHelper::replace_from_inst(base_inst->bcode_value()->at(0), args);
         return Obj::to_inst(
             type_id.name(), args,
-            [base_inst](const InstArgs &args2) {
-              const Obj_p new_bcode = ObjHelper::replace_from_bcode(args2, base_inst);
-              return [new_bcode](const Obj_p &lhs) { return new_bcode->apply(lhs); };
+            [base_inst,args](const InstArgs &) {
+              return [base_inst,args](const Obj_p &lhs) {
+                InstArgs args3;
+                for (const Obj_p &arg: args) {
+                  args3.push_back(arg->apply(lhs));
+                }
+                const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args3);
+                //LOG(INFO, "final bcode: %s\n", new_bcode->toString().c_str());
+                return new_bcode->apply(lhs);
+              };
             },
             base_inst->itype(),
             base_inst->is_inst() ? base_inst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
-            id_p(type_id));
+            id_p(INST_FURI->resolve(type_id)));
       }
       // return replace_from_obj(args, base_inst);
-      throw fError("!b%s!! does not resolve to inst or bcode", type_id_resolved->toString().c_str());
+      throw fError("!b%s!! does not resolve to !yinst!! or !ybcode!!: %s", type_id.toString().c_str(),
+                   base_inst->toString().c_str());
     }
 
   };
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
     return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
+  }
+
+  [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
+    return Insts::from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);
   }
 } // namespace fhatos
 

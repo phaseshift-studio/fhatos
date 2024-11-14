@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 
+
 namespace fhatos {
   enum class WILDCARD { NO = 0, PLUS = 1, HASH = 2 };
 
@@ -38,6 +39,11 @@ namespace fhatos {
         s[2 * i + 1] = hexmap[data[i] & 0x0F];
       }
       return s;
+    }
+
+    static string cxx_f_metadata(const string &file, const uint16_t line_number) {
+      const size_t index = file.find_last_of("/") + 1;
+      return file.substr(index) + ":" + to_string(line_number);
     }
 
     static void trim(const std::string &s) {
@@ -155,6 +161,18 @@ namespace fhatos {
           return false;
       }
       return true;
+    }
+
+    static void replace(string &s, const string &search, const string &replace) {
+      for (size_t pos = 0; ; pos += replace.length()) {
+        // Locate the substring to replace
+        pos = s.find(search, pos);
+        if (pos == string::npos)
+          break;
+        // Replace by erasing and inserting
+        s.erase(pos, search.length());
+        s.insert(pos, replace);
+      }
     }
 
     static std::stringstream *eat_space(std::stringstream *ss) {

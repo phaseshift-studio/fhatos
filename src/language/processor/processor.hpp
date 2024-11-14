@@ -48,8 +48,9 @@ namespace fhatos {
       try {
         next_obj = this->inst_->apply(this->obj_);
       } catch (const fError &error) {
-        throw fError("%s !rthrown by!! %s(%s)", error.what(), this->inst_->toString().c_str(),
-                     this->obj_->toString().c_str());
+        throw fError("%s\n\t\t!rthrown when applying!! %s => %s", error.what(),
+                     this->obj_->toString().c_str(),
+                     this->inst_->toString().c_str());
       }
       const Inst_p next_inst = bcode->next_inst(this->inst_);
       if (!next_obj->is_noobj()) {
@@ -247,7 +248,7 @@ namespace fhatos {
     BCODE_PROCESSOR = [](const Objs_p &starts, const BCode_p &bcode) {
       return Processor(bcode, starts).to_objs();
     };
-    Options::singleton()->processor<Obj, BCode, Objs>(
+    Options::singleton()->processor<Obj>(
         [](const Obj_p &st, const BCode_p &bc) { return Processor(bc, st).to_objs(); });
   }
 } // namespace fhatos

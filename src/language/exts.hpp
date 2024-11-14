@@ -26,7 +26,7 @@
 #include <language/type.hpp>
 
 namespace fhatos {
-  static ID inst_id(const string &opcode) { return INST_FURI->resolve(opcode); }
+ // static ID inst_id(const string &opcode) { return INST_FURI->resolve(opcode); }
   const Str_p ARG_ERROR = str("wrong number of arguments");
   static auto MODELS =
       std::make_shared<Map<ID, List<Pair<ID, Obj_p>>>>(Map<ID, List<Pair<ID, Obj_p>>>{
@@ -104,18 +104,6 @@ namespace fhatos {
             }},*/
           {
               "/model/sys/", {
-                  {"/type/rec/thread", Obj::to_rec({
-                       {vri(":setup"), Obj::to_bcode()},
-                       {vri(":loop"), Obj::to_bcode()},
-                       {vri(":stop"), Obj::to_bcode()}})},
-                  {"/type/rec/fiber", Obj::to_rec({
-                       {vri(":setup"), Obj::to_bcode()},
-                       {vri(":loop"), Obj::to_bcode()},
-                       {vri(":stop"), Obj::to_bcode()}})},
-                  {"/type/rec/coroutine", Obj::to_rec({
-                       {vri(":setup"), Obj::to_bcode()},
-                       {vri(":loop"), Obj::to_bcode()},
-                       {vri(":stop"), Obj::to_bcode()}})},
                   {"/type/rec/heap", Obj::to_rec({
                        {vri(":setup"), Obj::to_bcode()},
                        {vri(":loop"), Obj::to_bcode()},
@@ -146,13 +134,13 @@ namespace fhatos {
 
     static void load_extension(const ID &ext_id) {
       const List<Pair<ID, Obj_p>> &pairs = MODELS->at(ext_id);
-      Type::start_progress_bar(pairs.size());
+      Type::singleton()->start_progress_bar(pairs.size());
       for (const auto &[key, value]: pairs) {
         const auto type_id = id_p(key);
         const auto value_clone = value->clone();
         Type::singleton()->save_type(type_id, value_clone);
       }
-      Type::end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", ext_id.toString().c_str()));
+      Type::singleton()->end_progress_bar(StringHelper::format("!b%s !yobjs!! loaded\n", ext_id.toString().c_str()));
     }
   };
 } // namespace fhatos

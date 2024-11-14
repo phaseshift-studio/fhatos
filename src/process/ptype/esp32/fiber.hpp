@@ -28,8 +28,10 @@ namespace fhatos {
   public:
     TaskHandle_t handle{};
 
-    explicit Fiber(const ID &id) : Process(id, PType::FIBER) {
+    explicit Fiber(const Rec_p &setup_loop_stop) :
+      Process(setup_loop_stop) {
     }
+
 
     void delay(const uint64_t milliseconds) override {
       // delay to next fiber

@@ -23,10 +23,9 @@
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 ///
-//#include <esp_heap_trace.h>
+// #include <esp_heap_trace.h>
 #include <process/x_scheduler.hpp>
 #include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(coroutine.hpp)
 #include FOS_PROCESS(fiber.hpp)
 
 #ifndef FOS_ESP_THREAD_STACK_SIZE
@@ -37,22 +36,22 @@
 #endif
 
 
-//#ifdef CONFIG_HEAP_TRACING_DEST
-//#define NUM_RECORDS 100
-// static heap_trace_record_t* trace_record = new heap_trace_record_t[NUM_RECORDS]; // This buffer must be in internal
-// RAM #endif
+// #ifdef CONFIG_HEAP_TRACING_DEST
+// #define NUM_RECORDS 100
+//  static heap_trace_record_t* trace_record = new heap_trace_record_t[NUM_RECORDS]; // This buffer must be in internal
+//  RAM #endif
 
 namespace fhatos {
   class Scheduler final : public XScheduler {
   public:
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
-      static bool _setup = false;
+      static bool setup_ = false;
       static ptr<Scheduler> scheduler = ptr<Scheduler>(new Scheduler(id));
-      if (!_setup) {
-        scheduler->setup();
-        _setup = true;
+      if (!setup_) {
+        //scheduler_thread = make_shared<thread::id>(this_thread::get_id());
+        setup_ = true;
       }
-      return scheduler;
+     return scheduler;
     }
 
     void feed_local_watchdog() override {
@@ -60,69 +59,68 @@ namespace fhatos {
     }
 
     virtual bool spawn(const Process_p &process) override {
-      process->setup();
-      if (!process->running()) {
-        LOG_SCHEDULER(ERROR, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
-                      process->id()->toString().c_str());
+      if (this->count(*process->vid())) {
+        LOG_SCHEDULER(ERROR, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
         return false;
       }
-      // scheduler subscription listening for noobj "kill process" messages
-      /* router()->route_subscription(subscription_p(*this->id(),*process->id(), QoS::_1,
-         Insts::to_bcode([process](const Message_p &message) { if (message->payload->is_noobj()) { process->stop();
-             }
-           })));*/
+      process->setup();
+      if (!process->running) {
+        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to setup\n", process->vid()->toString().c_str());
+        return false;
+      }
       ////////////////////////////////
       bool success = false;
-      const uint16_t stack_size = process->ptype == PType::FIBER
-                                      ? FOS_ESP_FIBER_STACK_SIZE
-                                      : (process->ptype == PType::THREAD ? FOS_ESP_THREAD_STACK_SIZE : 0);
-      switch (process->ptype) {
-        case PType::THREAD: {
-          const BaseType_t threadResult =
-              xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
-                                      process->id()->toString().c_str(), // Name of the task (for debugging)
-                                      stack_size, // Stack size (bytes)
-                                      process.get(), // Parameter to pass
-                                      CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                      &static_cast<Thread *>(process.get())->handle, // Task handle
-                                      tskNO_AFFINITY); // Processor core
-          success = pdPASS == threadResult;
-          break;
+      const uint16_t stack_size =
+          process->tid()->has_path("fiber")
+              ? FOS_ESP_FIBER_STACK_SIZE
+              : (process->tid()->has_path("thread") && process->running ? FOS_ESP_THREAD_STACK_SIZE : 0);
+      BaseType_t threadResult;
+      if (process->tid()->has_path("thread")) {
+        threadResult = xTaskCreatePinnedToCore(THREAD_FUNCTION, // Function that should be called
+                                               process->vid()->toString().c_str(), // Name of the task (for debugging)
+                                               stack_size, // Stack size (bytes)
+                                               process.get(), // Parameter to pass
+                                               CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+                                               &static_cast<Thread *>(process.get())->handle, // Task handle
+                                               tskNO_AFFINITY); // Processor core
+      } else if (process->tid()->has_path("fiber")) {
+        if (!FIBER_THREAD_HANDLE) {
+          threadResult = xTaskCreatePinnedToCore(FIBER_FUNCTION, // Function that should be called
+                                                 "fiber_bundle", // Name of the task (for debugging)
+                                                 stack_size, // Stack size (bytes)
+                                                 nullptr, // Parameter to pass
+                                                 CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
+                                                 &FIBER_THREAD_HANDLE, // Task handle
+                                                 tskNO_AFFINITY); // Processor core
         }
-        case PType::FIBER: {
-          success = true;
-          if (!FIBER_THREAD_HANDLE) {
-            success &= pdPASS == xTaskCreatePinnedToCore(FIBER_FUNCTION, // Function that should be called
-                                                         "fiber_bundle", // Name of the task (for debugging)
-                                                         stack_size, // Stack size (bytes)
-                                                         nullptr, // Parameter to pass
-                                                         CONFIG_ESP32_PTHREAD_TASK_PRIO_DEFAULT, // Task priority
-                                                         &FIBER_THREAD_HANDLE, // Task handle
-                                                         tskNO_AFFINITY); // Processor core
-          }
-          break;
-        }
-        case PType::COROUTINE: {
-          success = true;
-          break;
-        }
-        default: {
-          throw fError("unknown process type: %i", (int) process->ptype);
-          break;
-        }
+      } else {
+        process->running = false;
+        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        return false;
       }
+      success = pdPASS == threadResult;
       if (success) {
         this->processes_->push_back(process);
-        LOG_SCHEDULER(success ? INFO : ERROR, "!b%s!! !y%s!! spawned (w/ %i bytes stack)\n",
-                      process->id()->toString().c_str(), ProcessTypes.to_chars(process->ptype).c_str(), stack_size);
-      } else
-        router()->route_unsubscribe(this->id(), p_p(*process->id()));
+        LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid()->toString().c_str(),
+                      stack_size);
+        this->save();
+      } else {
+        const char *reason = threadResult == -1 ? "COULD_NOT_ALLOCATE_REQUIRED_MEMORY" : "UNKNOWN_REASON";
+        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->vid()->toString().c_str(),
+                      threadResult, reason);
+      }
       return success;
     }
+
 
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
+      rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
+             if (!obj->vid())
+               throw fError("value id required to spawn %s", obj->toString().c_str());
+             return dool(this->spawn(make_shared<Thread>(obj)));
+           }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
@@ -136,20 +134,18 @@ namespace fhatos {
         counter = 0;
         auto *fibers = new List<Process_p>();
         Scheduler::singleton()->processes_->forEach([fibers](const Process_p &proc) {
-          if (proc->ptype == PType::FIBER)
+          if (proc->tid()->has_path("fiber") && proc->running)
             fibers->push_back(proc);
         });
         for (const Process_p &fiber: *fibers) {
-          if (fiber->running())
+          if (fiber->running)
             fiber->loop();
           counter++;
         }
         Scheduler::singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
-          const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
+          const bool remove = fiber->tid()->has_path("fiber") && !fiber->running;
           if (remove) {
-            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
-                           fiber->id()->toString().c_str(),
-                           ProcessTypes.to_chars(fiber->ptype).c_str());
+            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", fiber->vid()->toString().c_str());
           }
           return remove;
         });
@@ -157,44 +153,28 @@ namespace fhatos {
       }
     }
 
-
-    /* static void FIBER_FUNCTION(void *voidptr) {
-       int counter = 1;
-       while (counter > 0) {
-         counter = 0;
-         for (const auto &[id, proc]: *Scheduler::singleton()->processes_) {
-           if (proc->ptype == PType::FIBER) {
-             if (!proc->running())
-               Scheduler::singleton()->stop(*proc->id());
-             else {
-               proc->loop();
-               ++counter;
-             }
-           }
-           vTaskDelay(1); // feeds the watchdog for the task
-         }
-       }
-     }*/
-
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     static void THREAD_FUNCTION(void *vptr_thread) {
       auto *thread = static_cast<Thread *>(vptr_thread);
       // ESP_ERROR_CHECK(heap_trace_start(HEAP_TRACE_LEAKS));
-      while (thread->running()) {
-        thread->loop();
-        vTaskDelay(1); // feeds the watchdog for the task
+      try {
+        while (thread->running) {
+          thread->loop();
+         FEED_WATCDOG(); // feeds the watchdog for the task
+        }
+      } catch (fError error) {
+        thread->stop();
+        LOG_PROCESS(ERROR, thread, "pre-processor error: %s\n", error.what());
       }
       // ESP_ERROR_CHECK(heap_trace_stop());
       // heap_trace_dump();
 
       Scheduler::singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->id()->equals(*thread->id());
+        const bool remove = proc->vid()->equals(*thread->vid());
         if (remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
-                          proc->id()->toString().c_str(),
-                          ProcessTypes.to_chars(proc->ptype).c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%process!! destoyed\n", proc->vid()->toString().c_str());
         }
         return remove;
       });

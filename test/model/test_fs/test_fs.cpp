@@ -59,7 +59,7 @@ namespace fhatos {
 
   void test_files() {
     stage();
-    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *file_system->to_dir("/")->type());
+    FOS_TEST_ASSERT_EQUAL_FURI(ID(FOS_TYPE_PREFIX "uri/fs:dir"), *file_system->to_dir("/")->tid());
     TEST_ASSERT_EQUAL_INT(0, file_system->ls(file_system->to_dir("/"))->objs_value()->size());
     for (int i = 0; i < 10; i++) {
       const ID id = file_system->pattern()->extend(("a_" + to_string(i) + ".txt").c_str());

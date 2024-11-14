@@ -60,7 +60,7 @@ namespace fhatos {
       const Bool_p b = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::BOOL, b->o_type());
       TEST_ASSERT_EQUAL(get<1>(trip), b->bool_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *b->type());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *b->tid());
     }
   }
 
@@ -68,7 +68,7 @@ namespace fhatos {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/zero"), Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
     const auto ints =
-        List<Trip<string, FL_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
+        List<Trip<string, FOS_INT_TYPE, fURI>>({{"45", 45, *INT_FURI},
                                                {"0", 0, *INT_FURI},
                                                {"-12", -12, *INT_FURI},
                                                {"nat[100]", 100, INT_FURI->resolve("nat")},
@@ -82,7 +82,7 @@ namespace fhatos {
       const ptr<Int> i = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::INT, i->o_type());
       TEST_ASSERT_EQUAL_INT(get<1>(trip), i->int_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *i->type());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *i->tid());
     }
   }
 
@@ -90,7 +90,7 @@ namespace fhatos {
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/zero"), Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/nat"), Obj::to_bcode());
     // REAL
-    const auto reals = List<Trip<string, FL_REAL_TYPE, fURI>>(
+    const auto reals = List<Trip<string, FOS_REAL_TYPE, fURI>>(
     {{"45.1", 45.1f, *REAL_FURI},
      {"0.0000", 0.0f, *REAL_FURI},
      {"-12.1", -12.1f, *REAL_FURI},
@@ -104,7 +104,7 @@ namespace fhatos {
       const Real_p r = Parser::singleton()->try_parse_obj(get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::REAL, r->o_type());
       TEST_ASSERT_EQUAL_INT(get<1>(trip), r->real_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *r->type());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *r->tid());
     }
   }
 
@@ -121,7 +121,7 @@ namespace fhatos {
       const Uri_p u = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::URI, u->o_type());
       FOS_TEST_ASSERT_EQUAL_FURI(get<1>(trip), u->uri_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *u->type());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *u->tid());
     }
   }
 
@@ -139,7 +139,7 @@ namespace fhatos {
       const Str_p s = Parser::singleton()->try_parse_obj(std::get<0>(trip)).value();
       TEST_ASSERT_EQUAL(OType::STR, s->o_type());
       TEST_ASSERT_EQUAL_STRING(get<1>(trip).c_str(), s->str_value().c_str());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *s->type());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *s->tid());
     }
   }
 
@@ -194,7 +194,7 @@ namespace fhatos {
       TEST_ASSERT_EQUAL_INT(13, l->lst_get(share(Int(1)))->int_value());
       FOS_TEST_ASSERT_EQUAL_FURI(ID("actor"), l->lst_get(share(Int(2)))->uri_value());
       TEST_ASSERT_FALSE(l->lst_get(share(Int(3)))->bool_value());
-      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *l->type());
+      FOS_TEST_ASSERT_EQUAL_FURI(get<2>(trip), *l->tid());
     }
     ////////// SPLIT
     FOS_SHOULD_RETURN({"1"}, "1");
@@ -207,12 +207,12 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"), Obj::to_bcode());
+   Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"),Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"), Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/atype"), Obj::to_bcode());
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/btype"), Obj::to_bcode());
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/ctype"), Obj::to_bcode());
-    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"), Obj::to_bcode());
+  Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/btype"), Obj::to_bcode());
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/ctype"),Obj::to_bcode());
+    Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "bool/abool"),Obj::to_bcode());
     List<string> recs = {"['a'=>13,actor=>false]",
                          "['a' => 13,actor => false ]",
                          "['a'=> 13 , actor=>false]",
@@ -238,7 +238,7 @@ namespace fhatos {
       FOS_TEST_MESSAGE("!yTesting!! !brec!! structure %s", form.c_str());
       const Rec_p rc2 = Parser::singleton()->try_parse_obj(form).value();
       TEST_ASSERT_EQUAL(OType::REC, rc2->o_type());
-      TEST_ASSERT_EQUAL_STRING("person", rc2->type()->name().c_str());
+      TEST_ASSERT_EQUAL_STRING("person", rc2->tid()->name().c_str());
       TEST_ASSERT_EQUAL_INT(29, rc2->rec_get(vri(":age"))->int_value());
       TEST_ASSERT_EQUAL_STRING("dogturd", rc2->rec_get(vri(":name"))->str_value().c_str());
       TEST_ASSERT_EQUAL(OType::NOOBJ, rc2->rec_get(13)->o_type()); // TODO
@@ -306,7 +306,7 @@ namespace fhatos {
         .value();
     FOS_PRINT_OBJ(bcode);
     Fluent(bcode).iterate();
-    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->pattern()->toString() + "_wait").c_str(),
+    Scheduler::singleton()->barrier((Options::singleton()->router<Router>()->vid()->toString() + "_wait").c_str(),
                                     [] { return Scheduler::singleton()->count("/abc/") == 0; });
   }
 

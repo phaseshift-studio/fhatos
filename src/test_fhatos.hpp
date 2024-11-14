@@ -29,6 +29,7 @@
 #include <util/options.hpp>
 #include <language/obj.hpp>
 #include <language/fluent.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
   Options::singleton()->log_level(FOS_LOGGING);
@@ -41,8 +42,9 @@
 
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
-#include <process/obj_process.hpp>
-#define FOS_DEPLOY_SCHEDULER_2  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton()); load_process_spawner();
+#define FOS_DEPLOY_SCHEDULER_2  \
+  router()->attach(Heap<>::create(Pattern("/scheduler/#"))); \
+  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/scheduler/"));
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
@@ -55,9 +57,10 @@
 #endif
 #ifdef FOS_DEPLOY_PARSER
 #include <language/parser.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_PARSER_2  \
-  router()->attach(Heap::create(Pattern("/parser/#"))); \
-  scheduler()->spawn(Parser::singleton("/parser/"));
+  router()->attach(Heap<>::create(Pattern("/parser/#"))); \
+  router()->write(id_p("/parser/"), Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -65,10 +68,11 @@
 #include <language/type.hpp>
 #include <language/mmadt/type.hpp>
 #include <language/exts.hpp>
+#include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_TYPE_2 \
-  router()->attach(Heap::create(Pattern("/type/#"))); \
-  scheduler()->spawn(Type::singleton()); \
-  mmadt::mmADT::load();
+  router()->attach(Heap<>::create(Pattern("/type/#"))); \
+  router()->write(id_p("/type/"),Type::singleton("/type/")); \
+  mmadt::mmADT::singleton();
 //Exts::load_extension("/model/mmadt/");
 #else
 #define FOS_DEPLOY_TYPE_2 ;
@@ -76,7 +80,7 @@
 #ifdef FOS_DEPLOY_SHARED_MEMORY
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
-  router()->attach(Heap::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
+  router()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
   "+" : \
   STR(FOS_DEPLOY_SHARED_MEMORY))));
 #else
@@ -85,7 +89,7 @@
 #ifdef FOS_DEPLOY_FILE_SYSTEM
 #include FOS_FILE_SYSTEM(fs.hpp)
 #define FOS_DEPLOY_FILE_SYSTEM_2 \
-  ptr<FileSystem> fs = FileSystem::create("/fs/", string(base_directory.c_str()) + "/tmp"); \
+  ptr<FileSystem> fs = FileSystem::create("/fs/#", string(base_directory.c_str()) + "/tmp"); \
   router()->attach(fs); \
   fs->setup();
 #else
@@ -111,7 +115,7 @@ scheduler()->stop();
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
-namespace fhatos {
+namespace fhatos{
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -325,14 +329,15 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       router()->route_subscription(
-        subscription_p(ID("fhatty"),
+        Subscription::create(ID("fhatty"),
                        key.uri_value(),
-                       Insts::to_bcode([temp](const ptr<Message> &message) {
-                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->payload,
+                       Obj::to_bcode([temp](const ptr<Rec> &message) {
+                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->rec_get(":payload"),
                                                   (string("Router retain message payload equality: ") +
-                                                    router()->pattern()->toString() + " " + temp.toString() +
-                                                    " != " + message->payload->toString())
+                                                    router()->vid()->toString() + " " + temp.toString() +
+                                                    " != " + message->rec_get(":payload")->toString())
                                                   .c_str());
+                         return noobj();
                        })
         ));
     }

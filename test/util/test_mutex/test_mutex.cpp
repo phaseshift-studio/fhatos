@@ -21,7 +21,8 @@
 
 #define FOS_DEPLOY_SCHEDULER
 #define FOS_DEPLOY_ROUTER
-#define FOS_DEPLOY_SHARED_MEMORY worker/+
+#define FOS_DEPLOY_PROCESSOR
+#define FOS_DEPLOY_SHARED_MEMORY worker / +/ #
 #include <test_fhatos.hpp>
 #include <util/mutex_deque.hpp>
 #include FOS_PROCESS(thread.hpp)
@@ -36,26 +37,26 @@ namespace fhatos {
     int counter = 0;
 
     Worker(const int index, MutexDeque<int> *mutex) :
-      Thread(ID(string("worker/").append(std::to_string(index)))) {
+        Thread(Obj::to_rec(rmap({{":setup", Obj::to_bcode([this](const Obj_p &obj) {
+                                    TEST_ASSERT_FALSE(this->running);
+                                    FOS_TEST_MESSAGE("%s up and running", this->vid()->toString().c_str());
+                                    return noobj();
+                                  })},
+                                 {":loop", Obj::to_bcode([this](const Obj_p &obj) {
+                                    TEST_ASSERT_TRUE(this->running);
+                                    if (counter++ < 10) {
+                                      this->mutex->push_back(counter);
+                                    } else {
+                                      this->stop();
+                                      TEST_ASSERT_FALSE(this->running);
+                                      FOS_TEST_MESSAGE("%s done and stopping", this->vid()->toString().c_str());
+                                      return noobj();
+                                    }
+                                  })}}),
+                           THREAD_FURI)) {
       this->mutex = mutex;
-    }
-
-    void setup() override {
-      FOS_TEST_MESSAGE("%s up and running", this->id()->toString().c_str());
-      TEST_ASSERT_FALSE(this->running());
-      Thread::setup();
-      TEST_ASSERT_TRUE(this->running());
-    }
-
-    void loop() override {
-      TEST_ASSERT_TRUE(this->running());
-      if (counter++ < 10) {
-        this->mutex->push_back(counter);
-      } else {
-        this->stop();
-        TEST_ASSERT_FALSE(this->running());
-        FOS_TEST_MESSAGE("%s done and stopping", this->id()->toString().c_str());
-      }
+      this->vid_ = id_p(ID(string("worker/").append(std::to_string(index))));
+      ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Worker>((Worker *) this), RETAIN);
     }
   };
 
@@ -117,7 +118,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(0, m.size());
     TEST_ASSERT_TRUE(m.empty());
     for (int i = 0; i < WORKER_COUNT; i++) {
-      TEST_ASSERT_TRUE(s->spawn((std::make_shared<Worker> (i, &m))));
+      TEST_ASSERT_TRUE(s->spawn((std::make_shared<Worker>(i, &m))));
     }
     scheduler()->barrier("no_workers", [s] { return s->count("worker/+") == 0; });
     TEST_ASSERT_EQUAL(0, s->count("worker/+"));
@@ -140,7 +141,7 @@ namespace fhatos {
   FOS_RUN_TESTS( //
       FOS_RUN_TEST(test_mutex_deque_methods); //
       FOS_RUN_TEST(test_mutex_deque_concurrently); //
-      );
+  );
 } // namespace fhatos
 
 SETUP_AND_LOOP()

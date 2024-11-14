@@ -25,7 +25,7 @@ FhatOS: A Distributed Operating System
 #include <language/parser.hpp>
 #include <structure/router.hpp>
 
-#include <model/driver/fdriver.hpp>
+#include <model/driver/driver.hpp>
 #ifdef ESP_ARCH
 #include <Wire.h>
 #endif
@@ -244,7 +244,7 @@ namespace fhatos {
                                                         },
                                                         IType::ONE_TO_ZERO)
                                                 })),  id_p(DRIVER_FURI->resolve("i2c/arduino/furi")));
-         router()->route_subscription(subscription_p(*driver->type(),
+         router()->route_subscription(Subscription::create(*driver->type(),
                                                   *request_id, Insts::to_bcode(
                                                     [response_id](const Message_p &message) {
                                                       const Obj_p result = message->payload->apply(noobj());

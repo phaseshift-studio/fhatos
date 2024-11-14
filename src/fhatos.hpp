@@ -177,6 +177,8 @@ namespace fhatos {
     if (p)                                                                                                             \
       delete (p);                                                                                                      \
   }
+
+#define FOS_IS_DOC_BUILD 0 == strcmp(STR(BUILD_DOCS), "ON")
 #define FOS_MMADT_URL_PREFIX "https://fhatos.org/mmadt/"
 #define FOS_NOOBJ_TOKEN noobj
 #define FOS_MAX_FURI_SEGMENTS 10
@@ -202,13 +204,15 @@ namespace fhatos {
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
 #define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
 #define LOG_ROUTER(logtype, format, ...)                                                                               \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->pattern()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
+#define LOG_ROUTER_STATIC(logtype, format, ...)                                                                               \
+LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),Options::singleton()->router<Router>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER(logtype, format, ...)                                                                            \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->id()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->id()->toString().c_str(), ##__VA_ARGS__)
+LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
-  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->id()->toString().c_str(), ##__VA_ARGS__)
+  LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
@@ -234,6 +238,9 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
 #else
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
+#endif
+#ifndef BUILD_DOCS
+#define BUILD_DOCS OFF
 #endif
 
   ////////////////////////////

@@ -118,7 +118,7 @@ make_esp32() {
     local extra_args=${@:1}
     platformio run ${environ} ${extra_args}
     platformio run ${environ} --target buildfs
-    printf '%b\n' "$(cat partition/large_code.csv)"
+    printf '%b\n' "$(cat board/partition/large_code.csv)"
   fi
 }
 
@@ -129,7 +129,7 @@ make_rpi() {
     local extra_args=${@:1}
     platformio run ${environ} ${extra_args}
     platformio run ${environ} --target buildfs
-    printf '%b\n' "$(cat partition/large_code.csv)"
+    printf '%b\n' "$(cat board/partition/large_code.csv)"
   fi
 }
 
@@ -146,10 +146,10 @@ ctest_native() {
 
 test_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
+    make_native "${@}"
     shift
     shift
     local extra_args=${@:1}
-    make_native
     cd build/test || exit 1;
     ctest ${extra_args}
     cd ../..
@@ -202,7 +202,7 @@ elif [[ $1 == "build" ]]; then
 elif [[ $1 == "upload" ]]; then
   # clean_esp32
   echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}Flash Memory Partition${NC}\n"
-  printf '%b\n' "$(cat partition/large_code.csv)\n"
+  printf '%b\n' "$(cat board/partition/large_code.csv)\n"
   platformio run ${environ} --target buildfs
   platformio run ${environ} --target uploadfs
   platformio run ${environ} --target upload

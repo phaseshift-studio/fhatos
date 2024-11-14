@@ -20,16 +20,12 @@
 #define fhatos_kernel_hpp
 
 #include <model/program.hpp>
-
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/exts.hpp>
 #include <model/terminal.hpp>
 #include <process/process.hpp>
-
 #include <language/type.hpp>
-
-#include "model/driver/fdriver.hpp"
 
 namespace fhatos {
   class Kernel {
@@ -124,37 +120,32 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> structure(const Structure_p &structure) {
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      router()->attach(structure);
+    static ptr<Kernel> import(const fURI &id) {
       return Kernel::build();
     }
 
-    static ptr<Kernel> obj(const ID &id, const Obj_p& obj) {
-      router()->write(id_p(id), obj);
+    static ptr<Kernel> mount(const Structure_p &structure) {
+      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
+      router()->attach(structure);
+      if (structure->pattern()->equals("/sys/#")) {
+        install(scheduler());
+        //install(router());
+      }
+      return Kernel::build();
+    }
+
+    static ptr<Kernel> install(const Obj_p &obj) {
+      if (obj->vid()) {
+        router()->write(obj->vid(), obj);
+        LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
+      }
       return Kernel::build();
     }
 
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      //router()->write(process->id(), load_process(process));
+      router()->write(process->vid(), process);
       scheduler()->spawn(process);
-      return Kernel::build();
-    }
-
-    static ptr<Kernel> driver(const fDriver_p &driver) {
-      driver->setup();
-      return Kernel::build();
-    }
-
-    static ptr<Kernel> program(const Structure_p &structure, const Process_p &process) {
-      LOG(INFO, "!c[START]!!: !yloading program!!\n");
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      router()->attach(structure);
-      scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      //router()->write(process->id(), load_process(process));
-      scheduler()->spawn(process);
-      LOG(INFO, "!c[ END ]!!: !yloading program!!\n");
       return Kernel::build();
     }
 

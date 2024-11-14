@@ -51,25 +51,25 @@ namespace fhatos {
 
     void subscribe(const Pattern &pattern, const Consumer<Message_p> &on_recv) {
       this->should_be_active();
-      router()->route_subscription(subscription_p(*this->id(), pattern, Insts::to_bcode(on_recv)));
+      router()->route_subscription(subscription_p(*this->vid(), pattern, Insts::to_bcode(on_recv)));
       .executeAtSource(this)));
     }
 
 
     void unsubscribe(const Pattern_p &pattern = p_p("#")) {
       this->should_be_active();
-      router()->route_unsubscribe(this->id(), pattern);
+      router()->route_unsubscribe(this->vid(), pattern);
     }*/
 
     bool active() const {
-      return this->structure_->available() && this->process_->running();
+      return this->structure_->available() && this->process_->running;
     }
 
     //////////////////////////////////////////////////// SETUP
     void setup() const {
       //this->process_->setup();
       LOG(INFO, FURI_WRAP FURI_WRAP " !mactor!! activated\n", this->structure_->pattern()->toString().c_str(),
-          this->process_->id()->toString().c_str());
+          this->process_->vid()->toString().c_str());
     }
 
     //////////////////////////////////////////////////// STOP
@@ -87,7 +87,7 @@ namespace fhatos {
     string toString() const {
       return string("!mprogram!!!g[!cid!m=>!g<!y") + this->structure_->pattern()->toString() +
              "!g>!m,!cpattern!m=>!g<!y" + this->
-             process_->id()->toString() +
+             process_->vid()->toString() +
              "!g>]!!";
     }
 

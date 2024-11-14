@@ -20,9 +20,10 @@
 #define fhatos_logger_hpp
 #include <util/enums.hpp>
 #include <util/options.hpp>
-
+#include <mutex>
 
 namespace fhatos {
+  inline auto stdout_mutex = std::mutex();
   enum LOG_TYPE { ALL = 0, TRACE = 1, DEBUG = 2, INFO = 3, WARN = 4, ERROR = 5, NONE = 6 };
   static const auto LOG_TYPES = Enums<LOG_TYPE>({{ALL, "ALL"},
                                                             {TRACE, "TRACE"},
@@ -35,6 +36,7 @@ namespace fhatos {
   class Logger {
   public:
     static void MAIN_LOG(const LOG_TYPE type, const char *format, ...) {
+
       if (static_cast<uint8_t>(type) < static_cast<uint8_t>(Options::singleton()->log_level<LOG_TYPE>()))
         return;
       char buffer[FOS_DEFAULT_BUFFER_SIZE];
@@ -45,6 +47,8 @@ namespace fhatos {
         buffer[length - 1] = '\n';
       buffer[length] = '\0';
       va_end(arg);
+      // control garbled concurrent writes (destructor releases lock)
+      std::lock_guard<std::mutex> lock(stdout_mutex);
       if (type == NONE)
         printer<>()->print("");
       else if (type == ERROR)

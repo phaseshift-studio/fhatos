@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 #pragma once
+#include "language/processor/processor.hpp"
 #if defined(NATIVE)
 #ifndef fhatos_scheduler_hpp
 #define fhatos_scheduler_hpp
@@ -27,8 +28,6 @@
 #include <process/process.hpp>
 #include FOS_PROCESS(fiber.hpp)
 #include FOS_PROCESS(thread.hpp)
-#include FOS_PROCESS(coroutine.hpp)
-
 
 namespace fhatos {
   class Sys;
@@ -38,7 +37,17 @@ namespace fhatos {
     friend Sys;
 
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {
+    explicit Scheduler(const ID &id = ID("/scheduler/")):
+      XScheduler(id) {
+      this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
+        if (!obj->vid())
+          throw fError("value id required to spawn %s", obj->toString().c_str());
+        if (obj->tid()->has_path("thread"))
+          return dool(this->spawn(make_shared<Thread>(obj)));
+        if (obj->tid()->has_path("fiber"))
+          return dool(this->spawn(make_shared<Fiber>(obj)));
+        throw fError("unknown process type: %s\n", obj->tid()->toString().c_str());
+      }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
     }
 
   public:
@@ -56,7 +65,6 @@ namespace fhatos {
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
       if (!setup) {
         scheduler_thread = make_shared<thread::id>(this_thread::get_id());
-        scheduler_p->setup();
         setup = true;
       }
       return scheduler_p;
@@ -66,33 +74,33 @@ namespace fhatos {
     }
 
     bool spawn(const Process_p &process) override {
+      if (this->count(*process->vid())) {
+        LOG_SCHEDULER(ERROR, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
+        return false;
+      }
       process->setup();
-      if (!process->running()) {
-        LOG_SCHEDULER(ERROR, "!RUnable to spawn running %s: %s!!\n", ProcessTypes.to_chars(process->ptype).c_str(),
-                      process->id()->toString().c_str());
+      if (!process->running) {
+        LOG_SCHEDULER(ERROR, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       ////////////////////////////////
-      switch (process->ptype) {
-        case PType::THREAD: {
-          static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
-          break;
+      if (process->tid()->has_path("thread"))
+        static_cast<Thread *>(process.get())->xthread = new std::thread(&Scheduler::THREAD_FUNCTION, process.get());
+      else if (process->tid()->has_path("fiber")) {
+        if (!FIBER_THREAD_HANDLE) {
+          FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
         }
-        case PType::FIBER: {
-          if (!FIBER_THREAD_HANDLE) {
-            FIBER_THREAD_HANDLE = new std::thread(&Scheduler::FIBER_FUNCTION, nullptr);
-          }
-          static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
-          static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
-          break;
-        }
-        case PType::COROUTINE: {
-          break;
-        }
+        static_cast<Fiber *>(process.get())->xthread = FIBER_THREAD_HANDLE;
+        static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
+      } else {
+        process->running = false;
+        LOG_SCHEDULER(ERROR, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        return false;
       }
       this->processes_->push_back(process);
-      LOG_SCHEDULER(INFO, "!b%s!! !y%s!! spawned\n", process->id()->toString().c_str(),
-                    ProcessTypes.to_chars(process->ptype).c_str());
+      process->save();
+      LOG_SCHEDULER(INFO, FURI_WRAP " !yprocess!! spawned\n", process->vid()->toString().c_str());
+      this->save();
       return true;
     }
 
@@ -106,25 +114,25 @@ namespace fhatos {
       while (FIBER_COUNT > 0) {
         auto *fibers = new List<Process_p>();
         singleton()->processes_->forEach([fibers](const Process_p &process) {
-          if (process->ptype == PType::FIBER && process->running())
+          if (process->tid()->has_path("fiber") && process->running)
             fibers->push_back(process);
         });
         FIBER_COUNT = 0;
         for (const Process_p &fiber: *fibers) {
-          if (fiber->running()) {
+          if (fiber->running) {
             fiber->loop();
             ++FIBER_COUNT;
           }
         }
         singleton()->processes_->remove_if([](const Process_p &fiber) -> bool {
-          const bool remove = fiber->ptype == PType::FIBER && !fiber->running();
+          const bool remove = fiber->tid()->has_path("fiber") && !fiber->running;
           if (remove) {
-            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
-                          fiber->id()->toString().c_str(),
-                          ProcessTypes.to_chars(fiber->ptype).c_str());
+            LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n",
+                                 fiber->vid()->toString().c_str());
           }
           return remove;
         });
+        singleton()->save();
         delete fibers;
       }
     }
@@ -133,20 +141,23 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     static void THREAD_FUNCTION(void *vptr_thread) {
-      auto *thread = static_cast<Thread *>(vptr_thread);
-      while (thread->running()) {
-        thread->loop();
+      auto thread = static_cast<Thread *>(vptr_thread);
+      try {
+        while (thread->running) {
+          thread->loop();
+        }
+      } catch (fError error) {
+        thread->stop();
+        LOG_PROCESS(ERROR, thread, "processor loop error: %s\n", error.what());
       }
       singleton()->processes_->remove_if([thread](const Process_p &proc) {
-        const bool remove = proc->id()->equals(*thread->id()) || !proc->running();
-
+        const bool remove = proc->vid()->equals(*thread->vid()) || !proc->running;
         if (remove) {
-          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !y%s!! destoyed\n",
-                        proc->id()->toString().c_str(),
-                        ProcessTypes.to_chars(proc->ptype).c_str());
+          LOG_SCHEDULER_STATIC(INFO, FURI_WRAP " !yprocess!! destoyed\n", proc->vid()->toString().c_str());
         }
         return remove;
       });
+      singleton()->save();
     }
   };
 

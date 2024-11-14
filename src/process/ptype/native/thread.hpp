@@ -21,15 +21,16 @@
 
 #include <chrono>
 #include <thread>
-#include "fhatos.hpp"
-#include "process/process.hpp"
+#include <fhatos.hpp>
+#include <process/process.hpp>
 
 namespace fhatos {
   class Thread : public Process {
   public:
     std::thread *xthread;
 
-    explicit Thread(const ID &id) : Process(id, PType::THREAD), xthread(nullptr) {
+    explicit Thread(const Rec_p &setup_loop_stop) :
+      Process(setup_loop_stop), xthread(nullptr) {
     }
 
     ~Thread() override { delete this->xthread; }
@@ -40,7 +41,8 @@ namespace fhatos {
       Process::stop();
       if (this->xthread && this->xthread->joinable()) {
         try {
-          if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *scheduler_thread)
+          if (this->xthread->get_id() != std::this_thread::get_id() && std::this_thread::get_id() == *
+              scheduler_thread)
             this->xthread->join();
           else
             this->xthread->detach();
@@ -55,7 +57,9 @@ namespace fhatos {
       std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
-    void yield() override { std::this_thread::yield(); }
+    void yield() override {
+      std::this_thread::yield();
+    }
   };
 } // namespace fhatos
 

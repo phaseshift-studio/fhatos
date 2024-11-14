@@ -146,18 +146,34 @@ namespace fhatos {
       if (start > this->path_length_ || start > end)
         return "";
       string path_str;
+      const uint8_t clip_end = end > this->path_length_ ? this->path_length_ : end;
       if (this->path_) {
         if (this->sprefix_ && start == 0)
           path_str += '/';
-        for (uint8_t i = start; (i < this->path_length_) && (i < end); i++) {
+        for (uint8_t i = start; i < clip_end; i++) {
           path_str = path_str.append(this->path_[i]);
-          if (i != end - 1)
+          if (i != (clip_end - 1))
             path_str += '/';
         }
-        if (this->spostfix_ && end >= this->path_length_)
+        if (this->spostfix_ && clip_end >= this->path_length_)
           path_str += '/';
       }
       return path_str;
+    }
+
+    /*    [[nodiscard]] Pair<string, const string> path_prefixed(const uint8_t index = -1) const {
+          const string p = -1 == index ? this->name() : this->path(index);
+          const size_t split = p.find(':');
+          return make_pair<string, const string>(split == string::npos ? EMPTY_CHARS : string(p.substr(0, split)),
+                                                 split == string::npos ? p : string(p.substr(split)));
+        }*/
+
+    [[nodiscard]] bool has_path(const char *segment, const uint8_t start_index = 0) const {
+      for (int i = start_index; i < path_length_; i++) {
+        if (strcmp(path_[i], segment) == 0)
+          return true;
+      }
+      return false;
     }
 
     [[nodiscard]] bool has_path() const { return this->path_length_ > 0; }
@@ -223,8 +239,11 @@ namespace fhatos {
       for (int i = this->path_length_ - 1; i >= 0; i--) {
         if (strlen(this->path_[i]) > 0) {
           //const size_t index = string(this->path_[i]).find_last_of(':'); // make find_last_of (indexing is goofy)
-          const size_t index = string::npos;
-          return index == string::npos ? string(this->path_[i]) : string(this->path_[i]).substr(index);
+          //const size_t index = string::npos;
+          //return index == string::npos
+          //         ? string(this->scheme()).append(this->path_[i])
+          //          : string(this->path_[i]).substr(index);
+          return string(this->path_[i]);
         }
       }
       return "";
@@ -314,9 +333,13 @@ namespace fhatos {
     }
 
     [[nodiscard]] fURI retract_pattern() const {
-      const char *end = this->path_[this->path_length_ - 1];
-      if (end[0] == '+' || end[0] == '#')
-        return this->retract().retract_pattern();
+      for (uint8_t i = 0; i < this->path_length_; i++) {
+        if (strcmp(this->path(i), "+") == 0 || 0 == strcmp(this->path(i), "#")) {
+          auto retracted = fURI(*this);
+          retracted.path_length_ = i;
+          return retracted;
+        }
+      }
       return *this;
     }
 
@@ -333,6 +356,14 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool is_branch() const { return this->spostfix_ || (this->path_length_ == 0 && this->sprefix_); }
+
+    [[nodiscard]] fURI to_node() const {
+      if (!this->spostfix_)
+        return *this;
+      auto f = fURI(*this);
+      f.spostfix_ = false;
+      return f;
+    }
 
     [[nodiscard]] fURI to_branch() const {
       if (this->spostfix_)
@@ -421,6 +452,8 @@ namespace fhatos {
       if (this->equals(pattern))
         return true;
       const string pattern_str = pattern.toString();
+      // if (pattern_str[0] == ':' && this->toString()[0] == ':')
+      //   return fURI(this->toString().substr(1)).matches(fURI(pattern_str.substr(1)));
       if (pattern_str[0] == ':')
         return this->name() == pattern_str; // ./blah/:setup ~ :setup
       if (pattern.toString() == "#")
@@ -466,7 +499,8 @@ namespace fhatos {
             (strcmp(pattern.path(i), "+") != 0 && strcmp(this->path(i), pattern.path(i)) != 0))
           return false;
       }
-      return this->path_length_ == pattern.path_length();
+      return (0 == strlen(pattern.query()) || this->query() == pattern.query()) && this->path_length_ == pattern.
+             path_length();
     }
 
     bool operator=(const fURI &other) const { return this->equals(other); }
@@ -496,7 +530,7 @@ namespace fhatos {
       this->sprefix_ = other.sprefix_;
       this->spostfix_ = other.spostfix_;
       this->path_length_ = other.path_length_;
-      this->query_ = other.query_ && strcmp("", other.query_) != 0 ? strdup(other.query_) : nullptr;
+      this->query_ = other.query_ ? strdup(other.query_) : nullptr;
       // this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
       for (uint8_t i = 0; i < other.path_length_; i++) {
@@ -709,6 +743,10 @@ namespace fhatos {
       return uri;
     }
 
+    /*[[nodiscard]] const char *c_str() const {
+      return this->toString().c_str();
+    }*/
+
   private:
     void check_path_length(const char *self) const {
       if (this->path_length_ >= FOS_MAX_PATH_SEGMENTS)
@@ -767,91 +805,69 @@ namespace fhatos {
   using SourceID = ID;
   using TargetID = ID;
 
-  /////////////////
+  ///////////////////////////////////////////////////
+  ///////////////// TYPED FURI OBJ /////////////////
+  //////////////////////////////////////////////////
   class BaseTyped {
   public:
     virtual ~BaseTyped() = default;
 
-    [[nodiscard]] virtual fURI_p type() const = 0;
+    [[nodiscard]] virtual ID_p tid() const = 0;
 
     [[nodiscard]] virtual bool equals(const BaseTyped &) const { return false; }
   };
 
   class Typed : public BaseTyped {
   protected:
-    fURI_p type_;
+    ID_p tid_;
 
   public:
-    explicit Typed(const fURI_p &type) :
-      type_(type) {
+    explicit Typed(const ID_p &type) :
+      tid_(type) {
     }
 
-    [[nodiscard]] fURI_p type() const override { return this->type_; }
+    explicit Typed(const ID &id) :
+      Typed(make_shared<ID>(id)) {
+    }
+
+    [[nodiscard]] ID_p tid() const override { return this->tid_; }
 
     [[nodiscard]] bool equals(const BaseTyped &other) const override {
-      return this->type_->equals(*other.type());
+      return this->tid_->equals(*other.tid());
     }
   };
 
-  ///////////////////
+  ////////////////////////////////////////////////////
+  ///////////////// VALUED FURI OBJ /////////////////
+  ///////////////////////////////////////////////////
 
-  class BaseIDed {
+  class BaseValued {
   public:
-    virtual ~BaseIDed() = default;
+    virtual ~BaseValued() = default;
 
-    [[nodiscard]] virtual ID_p id() const = 0;
+    [[nodiscard]] virtual ID_p vid() const = 0;
 
-    [[nodiscard]] virtual bool equals(const BaseIDed &) const { return false; }
+    [[nodiscard]] virtual bool equals(const BaseValued &) const { return false; }
   };
 
-  class IDed : public BaseIDed {
+  class Valued : public BaseValued {
   protected:
-    ID_p id_;
+    ID_p vid_;
 
   public:
-    explicit IDed(const fURI_p &uri) :
-      id_(make_shared<ID>(uri->toString())) {
+    explicit Valued(const ID_p &id) :
+      vid_(id) {
     }
 
-    explicit IDed(const ID_p &id) :
-      id_(id) {
+    explicit Valued(const ID &id) :
+      Valued(make_shared<ID>(id)) {
     }
 
   public:
-    [[nodiscard]] ID_p id() const override { return this->id_; }
+    [[nodiscard]] ID_p vid() const override { return this->vid_; }
 
-    [[nodiscard]] virtual bool equals(const BaseIDed &other) const override { return this->id_->equals(*other.id()); }
-  };
-
-  //////////////////////////////////////////////
-  ///////////////// TYPED FURI /////////////////
-  //////////////////////////////////////////////
-  class BasePatterned {
-  public:
-    virtual ~BasePatterned() = default;
-
-    [[nodiscard]] virtual Pattern_p pattern() const = 0;
-
-    [[nodiscard]] virtual bool equals(const BasePatterned &) const = 0;
-  };
-
-  class Patterned : public BasePatterned {
-  protected:
-    Pattern_p pattern_;
-
-  public:
-    explicit Patterned(const fURI_p &uri) :
-      pattern_(make_shared<Pattern>(uri->toString())) {
-    }
-
-    explicit Patterned(const Pattern_p &type) :
-      pattern_(make_shared<Pattern>(*type)) {
-    }
-
-    [[nodiscard]] Pattern_p pattern() const override { return this->pattern_; }
-
-    [[nodiscard]] virtual bool equals(const BasePatterned &other) const override {
-      return this->pattern_->equals(*other.pattern());
+    [[nodiscard]] bool equals(const BaseValued &other) const override {
+      return this->vid_->equals(*other.vid());
     }
   };
 
@@ -874,6 +890,13 @@ namespace fhatos {
   [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return make_shared<Pattern>(pattern); }
 
   [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return make_shared<Pattern>(pattern); }
+
+
+
+  using ValueO = ID;
+  using ValueO_p = ID_p;
+  using TypeO = ID;
+  using TypeO_p = ID_p;
 } // namespace fhatos
 
 #endif

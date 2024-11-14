@@ -44,12 +44,12 @@ int main(int, char **) {
     args[3] = (char*) "--ansi=false";
     ArgvParser* argv_parser = new ArgvParser();
     argv_parser->init(4,args);
-    cout << "++++\n[source,mmadt]\n----\n";
+    cout << "++++\n[source,mmadt,subs=\"verbatim\"]\n----\n";
     BootLoader::primary_boot(argv_parser)
         ->displaying_splash("----\n")
         ->displaying_splash("++++");
     Options::singleton()->printer<Ansi<>>()->on(false);
-    cout << "----\n++++";
+    cout << "\n----\n++++";
     return 0;
   } catch (const std::exception &e) {
     throw;

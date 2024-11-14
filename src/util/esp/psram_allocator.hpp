@@ -1,5 +1,5 @@
 /*******************************************************************************
-  FhatOS: A Distributed Operating System
+FhatOS: A Distributed Operating System
   Copyright (c) 2024 PhaseShift Studio, LLC
 
   This program is free software: you can redistribute it and/or modify
@@ -15,26 +15,33 @@
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-#pragma once
-#ifndef fhatos_coroutine_hpp
-#define fhatos_coroutine_hpp
 
-#include "process/process.hpp"
-//
+#ifndef fhatos_psram_allocator_hpp
+#define fhatos_psram_allocator_hpp
+
+#include <fhatos.hpp>
+
+using namespace std;
 
 namespace fhatos {
-  class Coroutine : public Process {
-  public:
-    explicit Coroutine(const ID &id) : Process(id, PType::COROUTINE) {}
 
-    void delay(const uint64_t) override {
-      // do nothing
-    }
+  template<class T>
+  struct PSRAMAllocator {
+    typedef T value_type;
 
-    void yield() override {
-      // do nothing
+    PSRAMAllocator() = default;
+
+    template<class U>
+    constexpr PSRAMAllocator(const PSRAMAllocator<U> &) noexcept {}
+
+    [[nodiscard]] T *allocate(std::size_t n) {
+      if (n > std::size_t(-1) / sizeof(T))
+        throw std::bad_alloc();
+      if (auto p = static_cast<T *>(ps_malloc(n * sizeof(T))))
+        return p;
+      throw std::bad_alloc();
     }
+    void deallocate(T *p, std::size_t) noexcept { std::free(p); }
   };
 } // namespace fhatos
-
 #endif

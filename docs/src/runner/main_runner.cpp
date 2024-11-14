@@ -48,39 +48,46 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 }
 
 int main(int arg, char **argsv) {
-  try {
+  try{
     char **args = new char *();
-    args[0] = (char *) "main_runner";
-    args[1] = (char *) "--headers=false";
-    args[2] = (char *) "--log=ERROR";
-    args[3] = (char *) "--ansi=false";
-    ArgvParser *argv_parser = new ArgvParser();
-    argv_parser->init(4, args);
-    BootLoader::primary_boot(argv_parser);
-    Options::singleton()->printer<Ansi<>>()->on(false);
-  } catch (const std::exception &e) {
+      args[0] = (char *) "main_runner";
+      args[1] = (char *) "--headers=false";
+      args[2] = (char *) "--log=ERROR";
+      args[3] = (char *) "--ansi=false";
+      ArgvParser * argv_parser = new ArgvParser();
+      argv_parser->init(4, args);
+      BootLoader::primary_boot(argv_parser);
+      Options::singleton()->printer<Ansi<>>()->on(false);
+  }
+  catch(const std::exception & e) {
     throw;
   }
   LOG(INFO, "Processing %s\n", argsv[1]);
-  printer<>()->println("++++\n[source,mmadt]\n----\n");
-  router()->write(id_p("/console/:prompt"), str(""), false);
-  router()->loop();
+  printer<>()->println("++++\n[source,mmadt]\n----");
+  //router()->write(id_p("/console/:prompt"), str(""), false);
+  //router()->loop();
   for (int i = 1; i < arg; i++) {
-    try {
+    try{
       string x = argsv[i];
-      StringHelper::trim(x);
-      if (x == "/console/config/nest -> true") {
-        router()->write(id_p("/console/config/nest"), dool(true));
-      } else {
-        router()->write(id_p("/console/:prompt"), str(x), false);
-      }
-      router()->loop();
-    } catch (std::exception &e) {
+        StringHelper::trim(x);
+        /* if(x.find("!NO!") != std::string::npos) {
+               printer<Ansi<>>()->on(false);
+               router()->write(id_p("/console/:prompt"), str(x.substr(5)), false);
+               printer<Ansi<>>()->on(true);
+           }
+   */if (x == "/console/config/nest -> true") {
+            router()->write(id_p("/console/config/nest"), dool(true));
+        }else {
+            router()->write(id_p("/console/:prompt"), str(x), false);
+        }
+        router()->loop();
+    }
+    catch(std::exception & e) {
       LOG_EXCEPTION(e);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
-  printer<>()->print("\n----\n++++");
+  printer<>()->print("----\n++++");
   return 0;
 }
 #endif

@@ -67,49 +67,55 @@
         SET(TOTAL 0)
         FUNCTION(MAKE_TESTS PACKAGE PACKAGE_TESTS USE_PRECOMPILED_HEADERS)
             SET(COUNTER 0)
-            MESSAGE(STATUS "${.m}Processing " ${PACKAGE} " with " ${PACKAGE_TESTS}${..})
+            MESSAGE(STATUS "${.m}Processing ${.g}${PACKAGE}${.m} with ${PACKAGE_TESTS}${..}")
             FOREACH(PACKAGE_TEST ${PACKAGE_TESTS})
-                MATH(EXPR COUNTER "${COUNTER}+1")
-                MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
-                ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
-                ADD_DEFINITIONS("-DFOS_LOGGING=DEBUG" "-DNATIVE")
-                IF(APPLE)
-                    ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
-                ENDIF()
-                IF(USE_PRECOMPILED_HEADERS)
-                    MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
-                    TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
-                ENDIF()
-                IF(USE_PAHO_MQTT_HACK)
-                    MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
-                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC
-                            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
-                            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
-                            ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                            unity ordered_map paho-mqttpp3)
+                IF(NOT PACKAGE_TEST IN_LIST BUILD_TESTS AND NOT ON IN_LIST BUILD_TESTS)
+                    MESSAGE(STATUS "\t${.r}Ignoring ${.y}${PACKAGE_TEST} ${.r}as${..} ${.g}BUILD_TESTS${..}=${BUILD_TESTS}")
+                ELSE()
+                    MATH(EXPR COUNTER "${COUNTER}+1")
+                    MESSAGE(CHECK_START "${.y}CMaking ${PACKAGE_TEST}${..}")
+                    ADD_EXECUTABLE(${PACKAGE_TEST} ${CMAKE_SOURCE_DIR}/test/${PACKAGE}/${PACKAGE_TEST}/${PACKAGE_TEST}.cpp)
+                    ADD_DEFINITIONS(
+                            -DNATIVE
+                            -DFOS_LOGGING=DEBUG)
+                    IF(APPLE)
+                        ADD_COMPILE_OPTIONS("-Wno-ambiguous-reversed-operator") # a=b potentially not equivalent to b=a (operator overloading of =)
+                    ENDIF()
+                    IF(USE_PRECOMPILED_HEADERS)
+                        MESSAGE("-- ${.m}${PACKAGE_TEST}${.y} using precompiled headers:${.g}${HEADER_FILES}")
+                        TARGET_PRECOMPILE_HEADERS(${PACKAGE_TEST} REUSE_FROM ${PROJECT_NAME})
+                    ENDIF()
+                    IF(USE_PAHO_MQTT_HACK)
+                        MESSAGE(CHECK_START "${.r}Performing Paho-MQTT Build Hack ${.g}[${.y}TEST SUITE${.g}]${..}")
+                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} PUBLIC
+                                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
+                                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
+                                ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
+                                unity ordered_map paho-mqttpp3)
+                        MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+                    ELSE()
+                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqtt3c paho-mqttpp3)
+                    ENDIF()
+                    SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
+                            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
+                            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
+                            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
+                            OUTPUT_NAME ${PACKAGE_TEST}
+                            SUFFIX ".out"
+                            # UNITY_BUILD ON
+                            UNITY_BUILD_MODE BATCH
+                            UNITY_BUILD_BATCH_SIZE 16)
+                    STRING(TOLOWER CMAKE_BUILD_TYPE cmake_build_type_lower)
+                    IF(SANITIZER AND cmake_build_type_lower STREQUAL "debug")
+                        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
+                        MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer${.c} =${.r}-${.m}.${..}\n")
+                    ELSE()
+                        MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer${.y} =${.g}-${.m}.${..}\n")
+                    ENDIF()
+                    ADD_TEST(${PACKAGE_TEST} ${CMAKE_BINARY_DIR}/test/build/${PACKAGE_TEST}.out)
+                    SET_TESTS_PROPERTIES(${PACKAGE_TEST} PROPERTIES TIMEOUT 20)
                     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-                ELSE()
-                    TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqtt3c paho-mqttpp3)
                 ENDIF()
-                SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
-                        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
-                        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
-                        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"
-                        OUTPUT_NAME ${PACKAGE_TEST}
-                        SUFFIX ".out"
-                        # UNITY_BUILD ON
-                        UNITY_BUILD_MODE BATCH
-                        UNITY_BUILD_BATCH_SIZE 16)
-                STRING(TOLOWER CMAKE_BUILD_TYPE cmake_build_type_lower)
-                IF(SANITIZER AND cmake_build_type_lower STREQUAL "debug")
-                    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
-                    MESSAGE(NOTICE "  ${.m}.${.r}-${.y}= ${.g}Using Address Sanitizer${.c} =${.r}-${.m}.${..}\n")
-                ELSE()
-                    MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer${.y} =${.g}-${.m}.${..}\n")
-                ENDIF()
-                ADD_TEST(${PACKAGE_TEST} ${CMAKE_BINARY_DIR}/test/build/${PACKAGE_TEST}.out)
-                SET_TESTS_PROPERTIES(${PACKAGE_TEST} PROPERTIES TIMEOUT 20)
-                MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
             ENDFOREACH()
             MATH(EXPR COUNTER "${COUNTER}+${TOTAL}")
             SET(TOTAL ${COUNTER} PARENT_SCOPE)
@@ -127,5 +133,5 @@
         MAKE_TESTS(. "test_main;test_furi" false)
         MAKE_TESTS(model "test_fs" true)
         MAKE_TESTS(util "test_mutex" true)
-        MESSAGE(STATUS "Total tests produced: ${.g}${TOTAL}${..}")
+        MESSAGE(STATUS "${.g}Total tests produced${..}: ${.y}${TOTAL}${..}")
     ENDIF()

@@ -32,15 +32,16 @@ namespace fhatos {
     Map_p<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> write_functions_;
 
     explicit Computed(
-      const Pattern &pattern,
-      const Map<fURI_p, Function<fURI_p, IdObjPairs_p>, furi_p_less> &read_map = {},
-      const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map =
-          {}) : Structure(pattern, SType::COMPUTED),
-                read_functions_(
-                  make_shared<Map<fURI_p, Function<fURI_p, List_p<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
-                write_functions_(
-                  make_shared<Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(
-                    write_map)) {
+        const Pattern &pattern,
+        const ID &vid,
+        const Map<fURI_p, Function<fURI_p, IdObjPairs_p>, furi_p_less> &read_map = {},
+        const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map = {}) :
+      Structure(pattern, vid, SType::COMPUTED),
+      read_functions_(
+          make_shared<Map<fURI_p, Function<fURI_p, List_p<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
+      write_functions_(
+          make_shared<Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(
+              write_map)) {
     }
 
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
@@ -54,7 +55,7 @@ namespace fhatos {
           }
         }
       }
-      this->distribute_to_subscribers(message_p(*id, obj, retain));
+      this->distribute_to_subscribers(Message::create(*id, obj, retain));
     }
 
     IdObjPairs_p read_raw_pairs(const fURI_p &furi) override {
