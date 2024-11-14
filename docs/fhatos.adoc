@@ -96,7 +96,7 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 
 == FhatOS Architecture
 
-FhatOS is organized along a design principle that undersands computing as being composed of 3 fundamental phenomena: **process** (time), **structure** (repeat), and **language** (perspective). The core FhatOS kernel (typically denoted `/sys/`) can be divided along these lines as exemplified by the following resources:
+image:cooties.png[width=140,float=left] FhatOS is organized along a design principle that undersands computing as being composed of 3 fundamental phenomena: **process** (time), **structure** (repeat), and **language** (perspective). The core FhatOS kernel (typically denoted `/sys/`) can be divided along these lines as exemplified by the following resources:
 
 . `/sys/scheduler/` (**process**): provides all thread, fiber, and coroutine processes compute time on the underlying hardware processor.
 . `/sys/router/` (**structure**) : maintains the multi-level tuple repeat used for storing and retrieving resources in the fURI address repeat.
