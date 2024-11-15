@@ -421,6 +421,8 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 [INFO]  [/sys/router] /type/ obj loaded
 [INFO]  [/sys/router] /io/# heap attached
 [INFO]  [/type/] [/type/rec/terminal] type defined
+[INFO]  [/type/] [/type/inst/terminal/terminal_38] type defined
+[INFO]  [/type/] [/type/inst/terminal/terminal_43] type defined
 [INFO]  [/sys/router] /io/terminal obj loaded
 [INFO]  [/type/] [/lib/io/console] type defined
 [INFO]  [/sys/router] +/# heap attached
@@ -437,6 +439,13 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 [INFO]  [/type/] [/lib/driver/gpio/arduino/furi] type defined
 [INFO]  [/type/] [/lib/driver/i2c/arduino/furi] type defined
 [INFO]  [/sys/router] /console/# heap attached
+[INFO]  [/type/] [/type/inst/console/console_185] type defined
+[INFO]  [/type/] [/type/inst/console/console_194] type defined
+[INFO]  [/type/] [/type/inst/process/process_68] type defined
+[INFO]  [/type/] [/type/inst/process/process_76] type defined
+[INFO]  [/type/] [/type/inst/process/process_84] type defined
+[INFO]  [/type/] [/type/inst/bifunc] type defined
+[INFO]  [/type/] [/type/inst/process/process_116] type defined
 [INFO]  [/sys/scheduler] [/console] process spawned</code></pre>
 </div>
 </div>
@@ -516,8 +525,8 @@ Processes communicate via a publish-subscribe message passing protocol that ride
 <pre class="highlightjs highlight"><code class="language-mmadt hljs" data-lang="mmadt">fhatos&gt; */sys/scheduler
 =&gt;[
 ===&gt;barrier=&gt;noobj
-===&gt;:stop=&gt;lambda(x_scheduler.hpp:48)
-===&gt;:spawn=&gt;lambda(scheduler.hpp:50)
+===&gt;:stop=&gt;x_scheduler_48()
+===&gt;:spawn=&gt;scheduler_50()
 ===&gt;process=&gt;
 ====&gt;[/console]
 =&gt;]
@@ -525,13 +534,13 @@ fhatos&gt; */sys/scheduler/process/0
 ===&gt;/console
 fhatos&gt; **/sys/scheduler/process/0
 =&gt;thread[
-===&gt;:loop=&gt;lambda(console.hpp:185)
-===&gt;:prompt=&gt;lambda(console.hpp:194)
+===&gt;:loop=&gt;console_185()
+===&gt;:prompt=&gt;console_194()
 ===&gt;config=&gt;
 ====&gt;[nest=&gt;2,strict=&gt;false,ansi=&gt;false,prompt=&gt;'fhatos&gt; ',log=&gt;ERROR]
-===&gt;:delay=&gt;lambda(process.hpp:68)
-===&gt;:yield=&gt;lambda(process.hpp:76)
-===&gt;:halt=&gt;lambda(process.hpp:84)
+===&gt;:delay=&gt;process_68()
+===&gt;:yield=&gt;process_76()
+===&gt;:halt=&gt;process_84()
 =&gt;]</code></pre>
 </div>
 </div>
@@ -1302,7 +1311,7 @@ fhatos&gt; [a=&gt;2].match([a=&gt;_])
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br>
-Last updated 2024-11-15 10:58:39 -0700
+Last updated 2024-11-15 15:07:39 -0700
 </div>
 </div>
 <script src="./highlight/highlight.min.js"></script>
