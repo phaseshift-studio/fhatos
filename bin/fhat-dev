@@ -174,7 +174,6 @@ build_rlwrap_completions() {
     echo -e "[101%] ${BOLDGREEN}Analyzing CXX source to create rlwrap .fhatos_completions${NC}") ||
   (echo -e "${RED}[ERROR]${NC} Regular expression failed while building ${BLUE}${FHATOS_HOME}/bin/.fhatos_completions${NC}" &&
     exit 1;)
-
 }
 
 build_docs() {
@@ -220,10 +219,11 @@ else
     fhat-dev test native test_scheduler
     fhat-dev build esp32 fhatos
     fhat-dev upload esp32
+    fhat-dev build docs
     fhat-dev test"
 fi
 if [[ $? == 0 ]]; then
-    echo -e "${GREEN}SUCCESS"
+    echo -e "${GREEN}SUCCESS${NC}"
 else
-    echo -e "${RED}FAILURE"
+    echo -e "${RED}FAILURE${NC}"
 fi
