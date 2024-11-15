@@ -168,7 +168,8 @@ test_esp32() {
 
 build_rlwrap_completions() {
   echo -e "[101%] ${BOLDGREEN}Analyzing CXX source to create rlwrap .fhatos_completions${NC}"
-  cat "${FHATOS_HOME}"/src/language/mmadt/type.hpp | grep inst_id | grep -o -P '(?<=inst_id\(").*(?="\),?(\s)Insts)' > "${FHATOS_HOME}"/bin/.fhatos_completions
+  #   Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "from_get"), Insts::from_get(x(0)));
+  cat "${FHATOS_HOME}"/src/language/mmadt/type.hpp | grep FOS_TYPE_INST_URI | grep -o -P '(?<=FOS_TYPE_INST_URI\s").*(?="\),?(\s)Insts)' > "${FHATOS_HOME}"/bin/.fhatos_completions
 }
 
 build_docs() {
