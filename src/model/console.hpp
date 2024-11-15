@@ -219,8 +219,7 @@ namespace fhatos {
                                                                 Options::singleton()->log_level(this->settings_.log_);
                                                               }
                                                               return lhs;
-                                                            })));
-      //this->save(id_p(id));
+                                                            }, {x(0)})));
     }
 
   public:

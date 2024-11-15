@@ -120,7 +120,7 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> import(const fURI &id) {
+    static ptr<Kernel> import(const fURI &) {
       return Kernel::build();
     }
 

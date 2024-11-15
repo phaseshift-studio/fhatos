@@ -131,7 +131,7 @@ namespace fhatos {
             thing->load()->push_back({id_p(message->rec_get(vri(":target"))->uri_value()),
                                       message->rec_get(vri(":payload"))});
             return noobj();
-          })));
+          }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <

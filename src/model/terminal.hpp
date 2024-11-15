@@ -30,7 +30,7 @@ namespace fhatos {
   protected:
     explicit Terminal(const ID &id) :
       Rec(rmap({{":stdout", Obj::to_bcode(
-                     [this](const Str_p &obj) {
+                     [](const Str_p &obj) {
                        FEED_WATCDOG();
                        STD_OUT_DIRECT(obj);
                        return noobj();

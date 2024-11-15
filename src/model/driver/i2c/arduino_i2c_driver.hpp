@@ -37,7 +37,7 @@ namespace fhatos {
                              const ID &define_ns_prefix = ID("i2c")) {
       const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin"))
-          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             router()->write(id_p(driver_remote_id->extend(":begin")),
                             ObjHelper::make_lhs_args(lhs, {}),
                             TRANSIENT);
@@ -45,7 +45,7 @@ namespace fhatos {
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end"))
-          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
+          ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             router()->write(id_p(driver_remote_id->extend(":end")),
                             ObjHelper::make_lhs_args(lhs, {}),
                             TRANSIENT);

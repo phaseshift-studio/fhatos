@@ -135,7 +135,7 @@ namespace fhatos {
                         LOG(DEBUG,"digital write %i on pin %i\n",value,pin);
                         digitalWrite(pin, value);
                         return noobj();
-                      })));
+                      },StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
                   router()->route_subscription(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_read/0"),
                       Obj::to_bcode([lhs, args](const Obj_p &message) {
@@ -151,7 +151,7 @@ namespace fhatos {
                         return jnt(value);
                         //}
                         // return noobj();
-                      })));
+                      },StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
                   const Uri_p driver_id = args.at(0);
                   const Uri_p ns_prefix = args.at(2);
                   if (!ns_prefix->is_noobj())

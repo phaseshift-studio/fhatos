@@ -42,8 +42,11 @@ namespace fhatos {
     }
 
     static string cxx_f_metadata(const string &file, const uint16_t line_number) {
-      const size_t index = file.find_last_of("/") + 1;
-      return file.substr(index) + ":" + to_string(line_number);
+      const size_t slash_index = file.find_last_of("/");
+      const string dir = file.substr(slash_index, file.length() - slash_index - 4);
+      string temp = dir + "/" + dir + "_" + to_string(line_number);
+      // StringHelper::replace(temp, ".", "_");
+      return temp;
     }
 
     static void trim(const std::string &s) {

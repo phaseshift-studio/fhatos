@@ -350,64 +350,65 @@ namespace fhatos {
              ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid())))
              : router()->read(lhs->tid())}});
       if (lhs->vid()) {
-        rec->rec_set(vri("value_id"), vri(lhs->vid()));
+        rec->rec_set("value_id", vri(lhs->vid()));
         const Obj_p subs = router()->read(id_p(lhs->vid()->query("sub")));
         if (!subs->is_noobj())
-          rec->rec_set(vri("subscription"), subs);
+          rec->rec_set("subscription", subs);
       }
+      // BCODE
       if (lhs->is_bcode()) {
         const Lst_p l = lst();
         for (const Inst_p &i: *lhs->bcode_value()) {
           l->lst_add(i);
         }
-        rec->rec_set(vri("insts"), l);
+        rec->rec_set("value", l);
       } else if (lhs->is_int()) {
         /// INT
-        rec->rec_set(vri("value"), jnt(lhs->int_value()));
-        rec->rec_set(vri("encoding"), vri(STR(FOS_INT_TYPE)));
+        rec->rec_set("value", jnt(lhs->int_value()));
+        rec->rec_set("encoding", vri(STR(FOS_INT_TYPE)));
       } else if (lhs->is_inst()) {
         // INST
-        rec->rec_set(vri("op"), str(lhs->inst_op()));
+        rec->rec_set("op", str(lhs->inst_op()));
         const Lst_p &args_list = lst();
         for (const Obj_p &o: lhs->inst_args()) {
           args_list->lst_add(o);
         }
-        rec->rec_set(vri("args"), args_list);
-        // rec->rec_set(vri("f"), Insts::to_bcode(lhs->inst_f()));
+        rec->rec_set("args", args_list);
+        //rec->rec_set("f",lhs->inst_f());
       } else if (lhs->is_real()) {
         /// REAL
-        rec->rec_set(vri("value"), real(lhs->real_value()));
-        rec->rec_set(vri("value"), real(lhs->real_value()));
-        rec->rec_set(vri("encoding"), vri(STR(FOS_REAL_TYPE)));
+        rec->rec_set("value", real(lhs->real_value()));
+        rec->rec_set("value", real(lhs->real_value()));
+        rec->rec_set("encoding", vri(STR(FOS_REAL_TYPE)));
       } else if (lhs->is_str()) {
         /// STR
-        rec->rec_set(vri("value"), str(lhs->str_value()));
-        rec->rec_set(vri("encoding"), vri(string("UTF") + to_string(8 * sizeof(char))));
+        rec->rec_set("value", str(lhs->str_value()));
+        rec->rec_set("encoding", vri(string("UTF") + to_string(8 * sizeof(char))));
       } else if (lhs->is_uri()) {
         /// URI
         const fURI furi = lhs->uri_value();
         if (furi.has_scheme())
-          rec->rec_set(vri("scheme"), vri(furi.scheme()));
+          rec->rec_set("scheme", vri(furi.scheme()));
         if (furi.has_user())
-          rec->rec_set(vri("user"), vri(furi.user()));
+          rec->rec_set("user", vri(furi.user()));
         if (furi.has_password())
-          rec->rec_set(vri("password"), vri(furi.password()));
+          rec->rec_set("password", vri(furi.password()));
         if (furi.has_host())
-          rec->rec_set(vri("host"), vri(furi.host()));
+          rec->rec_set("host", vri(furi.host()));
         if (furi.has_port())
-          rec->rec_set(vri("port"), jnt(lhs->uri_value().port()));
-        rec->rec_set(vri("relative"), dool(furi.is_relative()));
-        rec->rec_set(vri("branch"), dool(furi.is_branch()));
-        rec->rec_set(vri("pattern"), dool(furi.is_pattern()));
+          rec->rec_set("port", jnt(lhs->uri_value().port()));
+        rec->rec_set("relative", dool(furi.is_relative()));
+        rec->rec_set("branch", dool(furi.is_branch()));
+        rec->rec_set("pattern", dool(furi.is_pattern()));
         if (furi.has_path()) {
           const Lst_p path = Obj::to_lst();
           for (int i = 0; i < furi.path_length(); i++) {
             path->lst_add(vri(furi.path(i)));
           }
-          rec->rec_set(vri("path"), path);
+          rec->rec_set("path", path);
         }
         if (furi.has_query()) {
-          rec->rec_set(vri("query"), str(furi.query()));
+          rec->rec_set("query", str(furi.query()));
         }
       }
       return rec;

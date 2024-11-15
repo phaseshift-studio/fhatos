@@ -113,7 +113,7 @@ namespace fhatos {
                                                 [this](const Obj_p &lhs) {
                                                   this->rec_set(":loop", lhs);
                                                   return noobj();
-                                                })));
+                                                }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid()->extend(":setup")));
       if (setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
@@ -158,7 +158,7 @@ namespace fhatos {
       this->running = false;
     };
 
-    virtual void delay(const uint64_t milliseconds) {
+    virtual void delay(const uint64_t) {
       FEED_WATCDOG();
     }; // milliseconds
 

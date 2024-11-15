@@ -29,11 +29,9 @@
 #include <util/obj_helper.hpp>
 
 namespace fhatos {
-  static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {
+  /*static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {
     return make_shared<IdObjPairs>(init);
-  }
-
-  class Sys;
+  }*/
 
   class Router final : public Valued {
   protected:
@@ -169,7 +167,7 @@ namespace fhatos {
     [[nodiscard]] Structure_p get_structure(const Pattern &pattern) {
       const Pattern temp = pattern.is_branch() ? Pattern(pattern.extend("+")) : pattern;
       const List<Structure_p> list = this->structures_.find_all(
-          [this, pattern, temp](const Structure_p &structure) {
+          [pattern, temp](const Structure_p &structure) {
             return pattern.matches(*structure->pattern()) || temp.matches(*structure->pattern());
           },
           false); // TODO: NO MUTEX!
@@ -258,8 +256,6 @@ namespace fhatos {
       };
       LOG_ROUTER(INFO, "!yrouter!! started\n");
     }
-
-    friend Sys;
   };
 
   inline ptr<Router> router() { return Router::singleton(); }

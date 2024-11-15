@@ -261,6 +261,9 @@ namespace fhatos {
                                              {*BCODE_FURI, OType::BCODE},
                                              {*ERROR_FURI, OType::ERROR}}};
 
+  static BiConsumer<const ID_p, const Obj_p> TYPE_SAVER = [](const ID_p &type_id, const Obj_p &) {
+    LOG(DEBUG, "!yTYPE_SAVER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
+  };
   static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER = [
       ](const Obj *, const ID_p &type_id, const bool = true) -> bool {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
@@ -295,8 +298,8 @@ namespace fhatos {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  class Subscription;
-  static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &sub) {
+  struct Subscription;
+  static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &) {
     LOG(TRACE, "!yROUTER_SUBSCRIBE!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -658,9 +661,9 @@ namespace fhatos {
 
     [[nodiscard]] InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
 
-    [[nodisard]] static Obj_p inst_arg(const uint8_t index, const InstArgs &args, const Obj_p &lhs) {
-      return 0 == index && args.size() == 0 || args.at(0)->equals(*Obj::to_bcode()) ? lhs : args.at(index)->apply(lhs);
-    }
+/*    [[nodiscard]] static Obj_p inst_arg(const uint8_t index, const InstArgs &args, const Obj_p &lhs) {
+      return (0 == index && args.size() == 0) || args.at(0)->equals(*Obj::to_bcode()) ? lhs : args.at(index)->apply(lhs);
+    }*/
 
     [[nodiscard]] Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
@@ -1206,7 +1209,7 @@ namespace fhatos {
     [[nodiscard]] bool is_lst() const { return this->o_type() == OType::LST; }
 
     [[nodiscard]] bool is_poly() const {
-      return this->is_lst() || this->is_rec() /*|| this->is_objs() /*|| this->is_bcode() || this->is_inst()*/;
+      return this->is_lst() || this->is_rec(); // || this->is_objs() /*|| this->is_bcode() || this->is_inst()
     }
 
     [[nodiscard]] bool is_rec() const { return this->o_type() == OType::REC; }
@@ -1278,12 +1281,6 @@ namespace fhatos {
       else
         return old_obj;
     }
-
-    /*static Function<InstArgs, BCode_p> proto_bcode(const Obj_p &old_bcode) {
-      return [old_bcode](const InstArgs &args) {
-        return ObjHelper::replace_from_bcode(old_bcode, args);
-      };
-    }*/
 
     static BCode_p replace_from_bcode(const Obj_p &old_bcode, const InstArgs &args,
                                       const Obj_p &lhs = Obj::to_noobj()) {
@@ -1648,39 +1645,28 @@ namespace fhatos {
 
     static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
 
-    static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const ID &label = ID("cxx:bifunc")) {
+    static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const InstArgs &args,
+                            const ID &opcode = ID("cxx:bifunc")) {
       return Obj::to_bcode(
-          {Obj::lambda([function](const Obj_p &obj, const InstArgs &args) { return function(obj, args); }, to_uri(label))});
+          {Obj::lambda([function](const Obj_p &obj, const InstArgs &args2) { return function(obj, args2); }, args, opcode)});
     }
 
-    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cxx:func")) {
+    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &opcode = ID("cxx:func")) {
       return Obj::to_bcode(
-          {Obj::lambda([function](const Obj_p &obj, const InstArgs &) { return function(obj); }, to_uri(label))});
+          {Obj::lambda([function](const Obj_p &obj, const InstArgs &) { return function(obj); }, {}, opcode)});
     }
 
-    /*static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const ID &label = ID("cxx:func")) {
-      return Obj::to_bcode(
-          {Obj::lambda([function](const Obj_p &obj, const InstArgs &args) { return function(obj, args); }, to_uri(label))});
-    }
-
-    static Obj_p lambda(const BiFunction<Obj_p, InstArgs, Obj_p> &function,
-                        const Uri_p &location = to_uri("cpp-impl")) {
-      return Obj::to_inst(
-          "lambda", {location},
-          [function](const InstArgs &args) {
-            return [function,args](const Obj_p &input) { return function(input, args); };
+    static Obj_p lambda(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const InstArgs &args,
+                        const ID &opcode) {
+      const ID_p inst_id = id_p(INST_FURI->extend(opcode));
+      const Inst_p inst = Obj::to_inst(
+          inst_id->name(), args,
+          [function](const InstArgs &args2) {
+            return [function,args2](const Obj_p &input) { return function(input, args2); };
           },
-          IType::ONE_TO_ONE);
-    }*/
-
-    static Obj_p lambda(const BiFunction<Obj_p, InstArgs, Obj_p> &function,
-                        const Uri_p &location = to_uri("cpp-impl")) {
-      return Obj::to_inst(
-          "lambda", {location},
-          [function](const InstArgs &args) {
-            return [function,args](const Obj_p &input) { return function(input, args); };
-          },
-          IType::ONE_TO_ONE);
+          IType::ONE_TO_ONE, noobj_seed(), inst_id);
+      TYPE_SAVER(inst_id, inst);
+      return inst;
     }
 
     static Objs_p to_objs(const ID_p &type_id = OBJS_FURI) {

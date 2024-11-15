@@ -55,6 +55,10 @@ namespace fhatos {
           REC_FURI,
           id_p(id)) {
       ////////////////////////////////////////////////////////////////////////////////////////////////
+      TYPE_SAVER = [this](const ID_p &type_id, const Obj_p &type_def) {
+        this->save_type(type_id, type_def);
+      };
+      ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
         //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
         if (type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))

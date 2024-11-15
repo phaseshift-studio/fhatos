@@ -65,6 +65,8 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/sys/router] /type/ obj loaded
 [INFO]  [/sys/router] /io/# heap attached
 [INFO]  [/type/] [/type/rec/terminal] type defined
+[INFO]  [/type/] [/type/inst/terminal/terminal_38] type defined
+[INFO]  [/type/] [/type/inst/terminal/terminal_43] type defined
 [INFO]  [/sys/router] /io/terminal obj loaded
 [INFO]  [/type/] [/lib/io/console] type defined
 [INFO]  [/sys/router] +/# heap attached
@@ -81,6 +83,13 @@ image:github-icon.png[width=25,float=left,link=https://github.com/phaseshift-stu
 [INFO]  [/type/] [/lib/driver/gpio/arduino/furi] type defined
 [INFO]  [/type/] [/lib/driver/i2c/arduino/furi] type defined
 [INFO]  [/sys/router] /console/# heap attached
+[INFO]  [/type/] [/type/inst/console/console_185] type defined
+[INFO]  [/type/] [/type/inst/console/console_194] type defined
+[INFO]  [/type/] [/type/inst/process/process_68] type defined
+[INFO]  [/type/] [/type/inst/process/process_76] type defined
+[INFO]  [/type/] [/type/inst/process/process_84] type defined
+[INFO]  [/type/] [/type/inst/bifunc] type defined
+[INFO]  [/type/] [/type/inst/process/process_116] type defined
 [INFO]  [/sys/scheduler] [/console] process spawned
 ----
 ++++
@@ -127,8 +136,8 @@ The following subsections will provide a short overview of the aforementioned re
 fhatos> */sys/scheduler
 =>[
 ===>barrier=>noobj
-===>:stop=>lambda(x_scheduler.hpp:48)
-===>:spawn=>lambda(scheduler.hpp:50)
+===>:stop=>x_scheduler_48()
+===>:spawn=>scheduler_50()
 ===>process=>
 ====>[/console]
 =>]
@@ -136,13 +145,13 @@ fhatos> */sys/scheduler/process/0
 ===>/console
 fhatos> **/sys/scheduler/process/0
 =>thread[
-===>:loop=>lambda(console.hpp:185)
-===>:prompt=>lambda(console.hpp:194)
+===>:loop=>console_185()
+===>:prompt=>console_194()
 ===>config=>
 ====>[nest=>2,strict=>false,ansi=>false,prompt=>'fhatos> ',log=>ERROR]
-===>:delay=>lambda(process.hpp:68)
-===>:yield=>lambda(process.hpp:76)
-===>:halt=>lambda(process.hpp:84)
+===>:delay=>process_68()
+===>:yield=>process_76()
+===>:halt=>process_84()
 =>]
 ----
 ++++

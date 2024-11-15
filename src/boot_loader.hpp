@@ -34,7 +34,6 @@
 ///////////// COMMON MODELS /////////////
 #include <model/driver/driver.hpp>
 #include <model/driver/gpio/arduino_gpio_driver.hpp>
-#include <model/sys.hpp>
 #include <model/driver/i2c/arduino_i2c_driver.hpp>
 // #include <model/pin/gpio.hpp>
 // #include <model/pin/interrupt.hpp>

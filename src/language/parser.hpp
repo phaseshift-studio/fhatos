@@ -507,8 +507,7 @@ namespace fhatos {
       return Option<Objs_p>{Objs::to_objs(list, id_p(base_type->resolve(type)))};
     }
 
-    static Option<Inst_p> try_parse_inst(const string &value_token, const string &type_token,
-                                         const fURI_p &base_type = INST_FURI) {
+    static Option<Inst_p> try_parse_inst(const string &value_token, const string &type_token) {
       auto args = List<ptr<Obj>>();
       auto ss = stringstream(value_token);
       while (!ss.eof()) {
@@ -635,7 +634,7 @@ namespace fhatos {
           } else {
             // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
             LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", key.c_str(), value.c_str());
-            const Option<Inst_p> inst = try_parse_inst(value, key, INST_FURI);
+            const Option<Inst_p> inst = try_parse_inst(value, key);
             if (inst.has_value()) {
               insts.push_back(inst.value());
             } else {
