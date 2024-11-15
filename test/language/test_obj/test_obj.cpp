@@ -303,8 +303,9 @@ namespace fhatos {
       {str("b"), jnt(2)}})));
     TEST_ASSERT_TRUE(Obj::to_rec({
       {str("a"), jnt(1)},
-      {str("b"), jnt(2)}
-      })->match(Obj::to_rec({{str("a"),  jnt(1)},{str("b"),  jnt(2)},{str("c"), jnt(3)}})));
+      {str("b"), jnt(2)},
+{str("c"), jnt(3)}
+      })->match(Obj::to_rec({{str("a"),  jnt(1)},{str("b"),  jnt(2)}})));
     TEST_ASSERT_TRUE(
         Obj::to_rec({
           {str("a"),  jnt(1)},

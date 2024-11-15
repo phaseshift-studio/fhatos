@@ -25,30 +25,20 @@
 
 namespace fhatos {
   class Terminal final : public Rec {
-  private:
-    std::mutex stdout_mutex = std::mutex();
+
 
   protected:
     explicit Terminal(const ID &id) :
       Rec(rmap({{":stdout", Obj::to_bcode(
                      [this](const Str_p &obj) {
                        FEED_WATCDOG();
-                       std::lock_guard<std::mutex> lock(stdout_mutex);
-                       printer<>()->print(obj->str_value().c_str());
+                       STD_OUT_DIRECT(obj);
                        return noobj();
                      },
                      StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
                 {":stdin", Obj::to_bcode(
                      [](const NoObj_p &) {
-#ifdef NATIVE
-                       return jnt(getchar());
-#else
-                                   while (Serial.available() <= 0) {
-                                     Process::current_process()->yield();
-                                   }
-                                   return jnt(Serial.read());
-      // return jnt((Serial.available() > 0) ? Serial.read() : EOF); (need a MACRO for multi-core checking)
-#endif
+                       return STD_IN_DIRECT();
                      },
                      StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
           OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
@@ -64,6 +54,20 @@ namespace fhatos {
       }
       static auto terminal_p = ptr<Terminal>(new Terminal(id));
       return terminal_p;
+    }
+
+    static void STD_OUT_DIRECT(const Str_p &str) {
+      static auto STDOUT_MUTEX = std::mutex();
+      std::lock_guard<std::mutex> lock(STDOUT_MUTEX);
+      printer<>()->print(str->str_value().c_str());
+    }
+
+    static Int_p STD_IN_DIRECT() {
+      int c = -1;
+      while (-1 == (c = printer<>()->read())) {
+        Process::current_process()->yield();
+      }
+      return jnt(c);
     }
   };
 } // namespace fhatos

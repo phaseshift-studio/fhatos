@@ -175,8 +175,7 @@ namespace fhatos {
     }
 
     Obj_p process_message(const Message_p &message) const {
-      const BCode_p bcode = ObjHelper::replace_from_obj(this->on_recv(), {message}, message->payload());
-      return bcode->apply(message->payload());
+      return this->on_recv()->apply(message->payload(), {message});
     }
 
     static Subscription_p create(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {

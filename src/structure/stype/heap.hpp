@@ -70,10 +70,12 @@ namespace fhatos {
     IdObjPairs_p read_raw_pairs(const fURI_p &match) override {
       return this->mutex_data_.template read<IdObjPairs_p>([this, match] {
         auto list = make_shared<IdObjPairs>();
-        LOG(TRACE, "Reading raw pairs for %s\n", match->toString().c_str());
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
-            LOG(TRACE, "\tmatched: %s\n", id->toString().c_str(), obj->toString().c_str());
+            LOG(TRACE, "\tmatched: %s ~ %s => %s\n",
+                id->toString().c_str(),
+                match->toString().c_str(),
+                obj->toString().c_str());
             list->push_back({id, obj->clone()});
           }
         }

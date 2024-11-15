@@ -21,6 +21,7 @@
 
 
 #include <cstdarg>
+#include <iostream>
 #include <memory>
 #include <random>
 #include <stdio.h>
@@ -42,7 +43,13 @@ namespace fhatos {
     }
 #ifdef NATIVE
     static int print(const char *c_str) {
-      return printf("%s", c_str);
+      const size_t length = strlen(c_str);
+      std::cout.write(c_str, length);
+      return length;
+    }
+
+    static int read() {
+      return getchar();
     }
 
     static void flush() {
@@ -54,6 +61,10 @@ namespace fhatos {
     }
     static void flush() {
       Serial.flush();
+    }
+
+    static int read() {
+      return Serial.available() <= 0 ? -1 : Serial.read();
     }
 #endif
   };
@@ -188,6 +199,10 @@ namespace fhatos {
     }
 
     PRINTER get_printer() { return this->printer; }
+
+    int read() const {
+      return this->printer.read();
+    }
 
     void flush() {
       this->printer.flush();

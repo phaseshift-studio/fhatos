@@ -30,11 +30,11 @@ namespace fhatos {
   class Console final : public Thread {
   public:
     struct Settings {
-      const uint8_t nest_;
-      const bool ansi_;
-      const string prompt_;
-      const bool strict_;
-      const LOG_TYPE log_;
+      uint8_t nest_;
+      bool ansi_;
+      string prompt_;
+      bool strict_;
+      LOG_TYPE log_;
 
       Settings(const uint8_t nest, const bool ansi, const string &prompt, const bool strict, const LOG_TYPE log) :
         nest_(nest), ansi_(ansi), prompt_(prompt),
@@ -47,68 +47,63 @@ namespace fhatos {
     bool new_input_ = true;
     ID_p stdin_id;
     ID_p stdout_id;
+    bool direct_stdin_out = true;
+    Settings settings_;
     ///// printers
+    void write_stdout(const Str_p &s) const {
+      if (this->direct_stdin_out)
+        Terminal::STD_OUT_DIRECT(s);
+      else
+        router()->write(this->stdout_id, s, false);
+    }
+
+    Int_p read_stdin() const {
+      return this->direct_stdin_out ? Terminal::STD_IN_DIRECT() : router()->exec(this->stdin_id, noobj());
+    }
+
     void print_exception(const std::exception &ex) const {
-      router()->write(this->stdout_id, str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())), false);
+      this->write_stdout(str(StringHelper::format("!r[ERROR]!! %s\n", ex.what())));
     }
 
     void print_prompt(const bool blank = false) const {
-      const string prompt = router()->read(id_p(this->vid()->extend("config/prompt")))->apply(noobj())->str_value();
-      router()->write(this->stdout_id,
-                      str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt), false);
+      const string prompt = this->settings_.prompt_;
+      this->write_stdout(str(blank ? StringHelper::repeat(Ansi<>::singleton()->strip(prompt).length()) : prompt));
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
-      ///// read configuration
-      const uint8_t nest = router()->read(id_p(this->vid()->extend("config/nest")))->int_value();
-      const bool ansi = router()->read(id_p(this->vid()->extend("config/ansi")))->bool_value();
-      const bool strict = router()->read(id_p(this->vid()->extend("config/strict")))->bool_value();
-      const LOG_TYPE log = LOG_TYPES.to_enum(
-          router()->read(id_p(this->vid()->extend("config/log")))->uri_value().toString());
-      Options::singleton()->log_level(log);
-
-      /////
       if (obj->is_objs())
         for (Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
           this->print_result(o, depth + 1);
         }
-      else if (nest > depth && obj->is_lst()) {
-        router()->write(this->stdout_id,
-                        str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
-                            (obj->is_lst() ? "[" : "{") + "!!\n"),
-                        false);
+      else if (this->settings_.nest_ > depth && obj->is_lst()) {
+        this->write_stdout(str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+                               (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m" +
+                               (obj->is_lst() ? "[" : "{") + "!!\n"));
         for (const auto &e: *obj->lst_value()) {
           Process::current_process()->feed_watchdog_via_counter();
-          router()->write(this->stdout_id,
-                          str(StringHelper::format(
-                              "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                              e->is_poly() ? "" : e->toString(true, true, ansi, strict).c_str())),
-                          false);
+          this->write_stdout(str(StringHelper::format(
+              "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+              e->is_poly() ? "" : e->toString(true, true, this->settings_.ansi_, this->settings_.strict_).c_str())));
           if (e->is_poly())
             this->print_result(e, depth + 1);
         }
-        router()->write(this->stdout_id,
-                        str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->tid()->path_length() > 2
-                               ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
-                               : "") +
-                            "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"),
-                        false);
-      } else if (nest > depth && obj->is_rec()) {
-        router()->write(this->stdout_id,
-                        str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
-                            (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n"),
-                        false);
+        this->write_stdout(str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+                               (obj->tid()->path_length() > 2
+                                  ? StringHelper::repeat(obj->tid()->name().length(), " ").c_str()
+                                  : "") +
+                               "!m" + (obj->is_lst() ? "]" : "}") + "!!\n"));
+      } else if (this->settings_.nest_ > depth && obj->is_rec()) {
+        this->write_stdout(str(string("!g") + StringHelper::repeat(depth, "=") + ">!b" +
+                               (obj->tid()->path_length() > 2 ? obj->tid()->name().c_str() : "") + "!m[!!\n"));
         for (const auto &[key, value]: *obj->rec_value()) {
           Process::current_process()->feed_watchdog_via_counter();
-          router()->write(this->stdout_id,
-                          str(StringHelper::format(
-                              "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-                              key->toString(true, false, false, strict).c_str(),
-                              value->is_poly() ? "" : value->toString(true, true, ansi, strict).c_str())),
-                          false);
+          this->write_stdout(str(StringHelper::format(
+              "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
+              key->toString(true, false, false, this->settings_.strict_).c_str(),
+              value->is_poly()
+                ? ""
+                : value->toString(true, true, this->settings_.ansi_, this->settings_.strict_).c_str())));
           if (value->is_poly())
             this->print_result(value, depth + 1);
         }
@@ -121,11 +116,12 @@ namespace fhatos {
           obj_string += obj->vid()->toString();
         }
         obj_string += "!!\n";
-        router()->write(this->stdout_id, str(obj_string), false);
+        this->write_stdout(str(obj_string));
       } else {
-        router()->write(this->stdout_id, str(string("!g") + StringHelper::repeat(depth, "=")), false);
-        router()->write(this->stdout_id,
-                        str(StringHelper::format("==>!!%s\n", obj->toString(true, true, ansi, strict).c_str())), false);
+        this->write_stdout(str(string("!g") + StringHelper::repeat(depth, "=")));
+        this->write_stdout(str(StringHelper::format("==>!!%s\n",
+                                                    obj->toString(true, true, this->settings_.ansi_,
+                                                                  this->settings_.strict_).c_str())));
       }
     }
 
@@ -137,12 +133,13 @@ namespace fhatos {
         if (line[0] == '\n')
           line = line.substr(1);
         if (line.empty()) {
-          router()->write(this->stdout_id, str("\n"), false);
+          this->write_stdout(str("\n"));
           return;
         }
         const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(line);
         if (!obj.has_value())
           throw fError("unable to parse input: %s", line.c_str());
+        LOG_PROCESS(TRACE, this, "processing: %s\n", obj.value()->toString().c_str());
         this->print_result(Options::singleton()->processor<Obj>(
             obj.value()->is_bcode() ? noobj() : obj.value(), obj.value()->is_bcode() ? obj.value() : bcode()));
       } catch (const std::exception &e) {
@@ -160,7 +157,7 @@ namespace fhatos {
                                   this->new_input_ = false;
                                   //// READ CHAR INPUT ONE-BY-ONE
                                   int x;
-                                  if ((x = router()->exec(this->stdin_id, noobj())->int_value()) == EOF)
+                                  if ((x = this->read_stdin()->int_value()) == EOF)
                                     return noobj();
                                   if ('\n' == static_cast<char>(x)) {
                                     this->new_input_ = true;
@@ -188,7 +185,7 @@ namespace fhatos {
                                 }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
                                {":prompt", Obj::to_bcode([this](const Obj_p &obj) {
                                  this->print_prompt();
-                                 printer<>()->printf("%s\n", obj->str_value().c_str());
+                                 Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", obj->str_value().c_str())));
                                  string code = obj->str_value();
                                  if (FOS_IS_DOC_BUILD)
                                    StringHelper::replace(code, "\\|", "|");
@@ -204,8 +201,25 @@ namespace fhatos {
                                /*{"terminal", rec({
                                     {vri("stdin"), vri(terminal.extend(":stdin"))},
                                     {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(id))),
-      stdin_id(id_p(terminal.extend(":stdin"))),
-      stdout_id(id_p(terminal.extend(":stdout"))) {
+      stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))), settings_(settings) {
+      router()->route_subscription(Subscription::create(*this->vid_, this->vid_->extend("config/#"), Obj::to_bcode(
+                                                            [this](const Obj_p &lhs, const InstArgs &args) {
+                                                              const string name = Message(args.at(0)).target().name();
+                                                              if (name == "ansi")
+                                                                this->settings_.ansi_ = lhs->bool_value();
+                                                              else if (name == "nest")
+                                                                this->settings_.nest_ = lhs->int_value();
+                                                              else if (name == "strict")
+                                                                this->settings_.strict_ = lhs->bool_value();
+                                                              else if (name == "prompt")
+                                                                this->settings_.prompt_ = lhs->str_value();
+                                                              else if (name == "log") {
+                                                                this->settings_.log_ = LOG_TYPES.to_enum(
+                                                                    lhs->uri_value().toString());
+                                                                Options::singleton()->log_level(this->settings_.log_);
+                                                              }
+                                                              return lhs;
+                                                            })));
       //this->save(id_p(id));
     }
 
@@ -217,7 +231,7 @@ namespace fhatos {
 
     static ID import(const ID &id = "/io/console") {
       static const auto IMPORT_ID = id_p(ID("/lib/").extend(id));
-     // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
+      // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       Type::singleton()->save_type(
           IMPORT_ID,
           rec({{vri(":create"),

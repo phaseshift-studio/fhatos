@@ -132,7 +132,8 @@ namespace fhatos {
       //////////////////////////////////////////////////////////
       const Structure_p &struc = this->get_structure(*resolved_furi);
       const Obj_p obj = struc->read(resolved_furi);
-      LOG_ROUTER(DEBUG, "!g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n", resolved_furi->toString().c_str(),
+      LOG_ROUTER(DEBUG, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
+                 Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
                  obj->toString().c_str(), struc->pattern()->toString().c_str());
       objs->add_obj(obj);
       return objs->none_one_all();
@@ -141,7 +142,8 @@ namespace fhatos {
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
         const Structure_p &structure = this->get_structure(*furi);
-        LOG_ROUTER(DEBUG, "!g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n", retain ? "retained" : "transient",
+        LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
+                   Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
                    furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
       }
@@ -205,6 +207,9 @@ namespace fhatos {
       ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(idx, obj, retain);
         return obj;
+      };
+      ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) {
+        this->route_subscription(subscription);
       };
       ROUTER_WRITE_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
         if (!retain)

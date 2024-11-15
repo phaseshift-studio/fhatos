@@ -24,7 +24,7 @@
 #include <language/rewrite/rewriter.hpp>
 
 namespace fhatos {
-  class Monad;
+ class Monad;
 
   using Monad_p = ptr<Monad>;
 
@@ -99,11 +99,11 @@ namespace fhatos {
     [[nodiscard]] string toString() const {
       return string("!MM!y[!!") + this->obj_->toString() + "!g@!!" + this->inst_->toString() + "!y]!!";
     }
-  };
 
-  static Monad_p monad_p(const Obj_p &obj, const Inst_p &inst) {
-    return make_shared<Monad>(obj, inst);
-  }
+    static Monad_p create(const Obj_p &obj, const Inst_p &inst) {
+      return make_shared<Monad>(obj, inst);
+    }
+  };
 
   class Processor {
   protected:
@@ -130,11 +130,11 @@ namespace fhatos {
       for (const Inst_p &inst: *this->bcode_->bcode_value()) {
         const Obj_p seed_copy = inst->inst_seed(inst);
         if (is_barrier_out(inst->itype())) {
-          const Monad_p m = monad_p(seed_copy, inst);
+          const Monad_p m = Monad::create(seed_copy, inst);
           this->barriers_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", m->toString().c_str());
         } else if (is_initial(inst->itype())) {
-          const Monad_p m = monad_p(seed_copy, inst);
+          const Monad_p m = Monad::create(seed_copy, inst);
           this->running_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", m->toString().c_str());
         }
@@ -143,7 +143,7 @@ namespace fhatos {
       if (this->running_->empty()) {
         const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
         this->running_->push_back(
-            monad_p(seed_copy, this->bcode_->bcode_value()->front()));
+            Monad::create(seed_copy, this->bcode_->bcode_value()->front()));
       }
     }
 
@@ -172,7 +172,7 @@ namespace fhatos {
       return objs;
     }
 
-    int execute(const int steps = -1) {
+    int execute(const int steps = -1) const {
       uint16_t counter = 0;
       while ((!this->running_->empty() || !this->barriers_->empty()) && (counter++ < steps || steps == -1)) {
         if (this->running_->empty() && !this->barriers_->empty()) {

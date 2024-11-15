@@ -282,6 +282,11 @@ namespace fhatos {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
+  class Subscription;
+  static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &sub) {
+    LOG(TRACE, "!yROUTER_SUBSCRIBE!! undefined at this point in bootstrap.\n");
+    return nullptr;
+  };
 
   //////////////////////////////////////////////////
   ////////////////////// OBJ //////////////////////
@@ -656,6 +661,7 @@ namespace fhatos {
 
 
     Obj_p operator()(const Obj_p &input) { return this->apply(input); }
+
 
     IType itype() const {
       if (this->is_inst())
@@ -1200,6 +1206,100 @@ namespace fhatos {
 
     [[nodiscard]] bool is_noop_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
+
+    Obj_p apply(const Obj_p &lhs, const InstArgs &args) {
+      if (this->is_inst() && !args.empty()) {
+        return this->inst_f()(args)(lhs);
+      } else if (this->is_bcode() && !args.empty()) {
+        return replace_from_bcode(PtrHelper::no_delete((Obj *) this), args)->apply(lhs);
+      } else {
+        return this->apply(lhs);
+      }
+    }
+
+    /////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////
+
+
+    static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
+      if (old_inst->inst_op() == "lambda") {
+        return Obj::to_inst(old_inst->inst_op(), args, old_inst->inst_f(), old_inst->itype(),
+                            old_inst->inst_seed_supplier());
+      }
+      const bool is_from = old_inst->inst_op() == "from";
+      if (is_from && old_inst->inst_arg(0)->is_uri() &&
+          old_inst->inst_arg(0)->uri_value().toString()[0] == '_') {
+        const uint8_t index = stoi(old_inst->inst_arg(0)->uri_value().name().substr(1));
+        if (index < args.size())
+          return args.at(index);
+        if (old_inst->inst_args().size() == 2)
+          return old_inst->inst_args().at(1); // default argument
+        throw fError("%s requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
+                     old_inst->inst_args().size(), args.size());
+
+      } else if (is_from && old_inst->inst_arg(0)->toString() == "_") {
+        return lhs;
+      } else {
+        InstArgs new_args;
+        for (const Obj_p &old_arg: old_inst->inst_args()) {
+          new_args.push_back(replace_from_obj(old_arg, args, lhs));
+        }
+        return Obj::to_inst(old_inst->inst_op(), new_args, old_inst->inst_f(), old_inst->itype(),
+                            old_inst->inst_seed_supplier());
+      }
+    }
+
+    static Obj_p replace_from_obj(const Obj_p &old_obj, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
+      if (old_obj->is_inst())
+        return replace_from_inst(old_obj, args, lhs);
+      else if (old_obj->is_bcode())
+        return replace_from_bcode(old_obj, args, lhs);
+      else if (old_obj->is_rec())
+        return replace_from_rec(old_obj, args, lhs);
+      else if (old_obj->is_lst())
+        return replace_from_lst(old_obj, args, lhs);
+      else
+        return old_obj;
+    }
+
+    /*static Function<InstArgs, BCode_p> proto_bcode(const Obj_p &old_bcode) {
+      return [old_bcode](const InstArgs &args) {
+        return ObjHelper::replace_from_bcode(old_bcode, args);
+      };
+    }*/
+
+    static BCode_p replace_from_bcode(const Obj_p &old_bcode, const InstArgs &args,
+                                      const Obj_p &lhs = Obj::to_noobj()) {
+      BCode_p new_bcode = Obj::to_bcode();
+      LOG(TRACE, "old bcode: %s\n", old_bcode->toString().c_str());
+      for (const Inst_p &old_inst: *old_bcode->bcode_value()) {
+        LOG(TRACE, "replacing old bcode inst: %s\n", old_inst->toString().c_str());
+        const Inst_p new_inst = replace_from_inst(old_inst, args, lhs);
+        new_bcode = new_bcode->add_inst(new_inst);
+      }
+      LOG(TRACE, "new bcode: %s\n", new_bcode->toString().c_str());
+      return new_bcode;
+    }
+
+    static Rec_p replace_from_rec(const Obj_p &old_rec, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
+      Rec_p new_rec = Obj::to_rec();
+      for (const auto &[key, value]: *old_rec->rec_value()) {
+        new_rec->rec_set(replace_from_obj(key, args, lhs), replace_from_obj(value, args, lhs));
+      }
+      return new_rec;
+    }
+
+    static Lst_p replace_from_lst(const Obj_p &old_lst, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
+      Lst_p new_lst = Obj::to_lst();
+      for (const auto &element: *old_lst->lst_value()) {
+        new_lst->lst_add(replace_from_obj(element, args, lhs));
+      }
+      return new_lst;
+    }
+
+    /////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////
+
     Obj_p apply(const Obj_p &lhs) {
       if (lhs->is_error())
         return lhs;
@@ -1248,7 +1348,7 @@ namespace fhatos {
           }
           // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
           //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
-          return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj;
+          return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
           // objs unrolled (front popped)
         }
         case OType::OBJS: {
@@ -1531,8 +1631,14 @@ namespace fhatos {
 
     static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
 
+    static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const ID &label = ID("cxx:bifunc")) {
+      return Obj::to_bcode(
+          {Obj::lambda([function](const Obj_p &obj, const InstArgs &args) { return function(obj, args); }, to_uri(label))});
+    }
+
     static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &label = ID("cxx:func")) {
-      return Obj::to_bcode({Obj::lambda([function](const Obj_p &obj) { return function(obj); }, to_uri(label))});
+      return Obj::to_bcode(
+          {Obj::lambda([function](const Obj_p &obj, const InstArgs &) { return function(obj); }, to_uri(label))});
     }
 
     /*static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const ID &label = ID("cxx:func")) {
@@ -1550,10 +1656,13 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }*/
 
-    static Obj_p lambda(const Function<Obj_p, Obj_p> &function, const Uri_p &location = to_uri("cpp-impl")) {
+    static Obj_p lambda(const BiFunction<Obj_p, InstArgs, Obj_p> &function,
+                        const Uri_p &location = to_uri("cpp-impl")) {
       return Obj::to_inst(
           "lambda", {location},
-          [function](const InstArgs &) { return [function](const Obj_p &input) { return function(input); }; },
+          [function](const InstArgs &args) {
+            return [function,args](const Obj_p &input) { return function(input, args); };
+          },
           IType::ONE_TO_ONE);
     }
 
@@ -1753,7 +1862,7 @@ namespace fhatos {
     return [](const InstArgs &) { return [](const Obj_p &) { return noobj(); }; };
   }
 
-  static Obj::RecMap_p<> rmap(const initializer_list<Pair<ID, Obj_p>> &pairs) {
+  static Obj::RecMap_p<> rmap(const initializer_list<Pair<fURI, Obj_p>> &pairs) {
     auto m = make_shared<Obj::RecMap<>>();
     for (const auto &[id, obj]: pairs) {
       m->insert({vri(id), obj});

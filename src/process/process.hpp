@@ -25,6 +25,7 @@
 #include <language/obj.hpp>
 #include <thread>
 #include <util/enums.hpp>
+#include <structure/pubsub.hpp>
 
 #define FOS_ALREADY_STOPPED "!g[!b%s!g] !yprocess!! already stopped\n"
 #define FOS_ALREADY_SETUP "!g[!b%s!g] !yprocess!! already setup\n"
@@ -96,11 +97,23 @@ namespace fhatos {
     }
 
     static Process *current_process() {
-      return this_process.load();
+      if (this_process)
+        return this_process.load();
+      else {
+        //LOG(TRACE, "loop_task process\n");
+        static auto proc = new Process(to_rec(REC_FURI));
+        proc->vid_ = id_p("sys/scheduler");
+        return proc;
+      }
     }
 
     virtual void setup() {
       this_process = this;
+      ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"), Obj::to_bcode(
+                                                [this](const Obj_p &lhs) {
+                                                  this->rec_set(":loop", lhs);
+                                                  return noobj();
+                                                })));
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid()->extend(":setup")));
       if (setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
@@ -124,7 +137,7 @@ namespace fhatos {
         this->yield();
         this->yield_ = false;
       }
-      const BCode_p loop_bcode = ROUTER_READ(id_p(this->vid()->extend(":loop")));
+      const BCode_p loop_bcode = this->rec_get(":loop");
       if (loop_bcode->is_noobj())
         throw fError("!b%s!! loop !ybcode!! undefined", this->vid()->toString().c_str());
       Obj_p result = Options::singleton()->processor<Obj>(noobj(), loop_bcode);

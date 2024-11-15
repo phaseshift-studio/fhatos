@@ -41,7 +41,7 @@ namespace fhatos {
               x(1, "value"),
               x(2, "driver_remote_id", vri(driver_remote_id)))
           ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
-            router()->write(id_p(args.at(2)->uri_value().extend(":digital_write")),
+            router()->write(id_p(args.at(2)->uri_value().extend(":digital_write/0")),
                             ObjHelper::make_lhs_args(lhs, {args.at(0), args.at(1)}),
                             TRANSIENT);
             return noobj();
@@ -52,9 +52,10 @@ namespace fhatos {
               x(0, "pin"),
               x(1, "driver_remote_id", vri(driver_remote_id)))
           ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
-            const ID_p &inst_id = id_p(args.at(1)->uri_value().extend(":digital_read"));
-            router()->write(inst_id, ObjHelper::make_lhs_args(lhs, {args.at(0)}), TRANSIENT);
-            return router()->read(inst_id);
+            const ID_p &inst_id_0 = id_p(args.at(1)->uri_value().extend(":digital_read/0"));
+            const ID_p &inst_id_1 = id_p(args.at(1)->uri_value().extend(":digital_read/1"));
+            router()->write(inst_id_0, ObjHelper::make_lhs_args(lhs, {args.at(0)}), TRANSIENT);
+            return router()->read(inst_id_1);
           })
           ->create()});
       //////////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +114,7 @@ namespace fhatos {
       ////////////////////////////// ARDUINO DRIVER INSTALLATION ///////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->save_type(
-          id_p("/lib/driver/gpio/arduino/furi"),
+          id_p("/lib/driver/gpio/arduino/pin"),
           rec({{vri(":create"),
             ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
                 ->type_args(x(0, "local_id", vri(driver_value_id)),
@@ -125,28 +126,27 @@ namespace fhatos {
                     record->rec_set(vri(i->inst_op()), i);
                   }
                   router()->route_subscription(Subscription::create(
-                      args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_write"),
+                      args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_write/0"),
                       Obj::to_bcode([args](const Obj_p &message) {
                         LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
                         const uint8_t pin = lhs_args->second->at(0)->int_value();
                         const uint8_t value = lhs_args->second->at(1)->int_value();
                         pinMode(pin, OUTPUT);
+                        LOG(DEBUG,"digital write %i on pin %i\n",value,pin);
                         digitalWrite(pin, value);
                         return noobj();
                       })));
                   router()->route_subscription(Subscription::create(
-                      args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_read"),
+                      args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_read/0"),
                       Obj::to_bcode([lhs, args](const Obj_p &message) {
                         LOG(ERROR, "processing input %s\n", message->toString().c_str());
                         //LOG(ERROR, "processing message %i\n", );
                         const LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
                         //if (!lhs_args->second->at(0)->rec_get(":retain")->bool_value()) {
                         const uint8_t pin = lhs_args->second->at(0)->int_value();
-                        LOG(ERROR,"reading pin %i\n",pin);
-                        //pinMode(pin, INPUT);
                         const int value = digitalRead(pin);
-                        LOG(ERROR,"writting pin value %i\n",value);
-                        router()->write(id_p(args.at(1)->uri_value().extend(":digital_read")),
+                        LOG(DEBUG,"digital read %i on pin %i\n",value,pin);
+                        router()->write(id_p(args.at(1)->uri_value().extend(":digital_read/1")),
                                         jnt(value), RETAIN);
                         return jnt(value);
                         //}
