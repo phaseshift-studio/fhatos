@@ -113,7 +113,8 @@
                         MESSAGE(NOTICE "  ${.m}.${.g}-${.y}= ${.r}NOT Using Address Sanitizer${.y} =${.g}-${.m}.${..}\n")
                     ENDIF()
                     ADD_TEST(${PACKAGE_TEST} ${CMAKE_BINARY_DIR}/test/build/${PACKAGE_TEST}.out)
-                    SET_TESTS_PROPERTIES(${PACKAGE_TEST} PROPERTIES TIMEOUT 20)
+                    SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY TIMEOUT 20)
+                    SET_PROPERTY(TEST ${PACKAGE_TEST} PROPERTY FAIL_REGULAR_EXPRESSION "${PACKAGE_TEST}(.cpp|.hpp):[0-9]+:[_a-z]+:FAIL") # test_process.cpp:73:test_thread:FAIL
                     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
                 ENDIF()
             ENDFOREACH()

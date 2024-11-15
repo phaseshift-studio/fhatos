@@ -147,7 +147,7 @@ namespace fhatos {
       }
     }
 
-    Obj_p next(const int steps = -1) {
+    Obj_p next(const int steps = -1) const {
       while (true) {
         // Process::current_process()->feed_watchdog_via_counter();
         if (this->halted_->empty()) {
@@ -163,7 +163,7 @@ namespace fhatos {
       }
     }
 
-    Objs_p to_objs() {
+    Objs_p to_objs() const {
       Objs_p objs = Obj::to_objs();
       Obj_p end;
       while (nullptr != (end = this->next())) {
