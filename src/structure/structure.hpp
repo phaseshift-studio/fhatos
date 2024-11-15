@@ -241,6 +241,7 @@ namespace fhatos {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
             }
+            return;
           }
         }
         //// WRITES

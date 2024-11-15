@@ -75,8 +75,8 @@ int main(int arg, char **argsv) {
                router()->write(id_p("/console/:prompt"), str(x.substr(5)), false);
                printer<Ansi<>>()->on(true);
            }
-   */if (x == "/console/config/nest -> true") {
-            router()->write(id_p("/console/config/nest"), dool(true));
+   */if (x.find("/console/config/nest ->") != string::npos) {
+            router()->write(id_p("/console/config/nest"), jnt(stoi(x.substr(x.find("->")+2))));
         }else {
             router()->write(id_p("/console/:prompt"), str(x), false);
         }

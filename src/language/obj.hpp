@@ -247,6 +247,19 @@ namespace fhatos {
                                                {OType::INST, INST_FURI},
                                                {OType::BCODE, BCODE_FURI},
                                                {OType::ERROR, ERROR_FURI}}};
+  static const Map<ID, OType> FURI_OTYPE = {{{*NOOBJ_FURI, OType::NOOBJ},
+                                             {*OBJ_FURI, OType::OBJ},
+                                             {*OBJS_FURI, OType::OBJS},
+                                             {*URI_FURI, OType::URI},
+                                             {*BOOL_FURI, OType::BOOL},
+                                             {*INT_FURI, OType::INT},
+                                             {*REAL_FURI, OType::REAL},
+                                             {*STR_FURI, OType::STR},
+                                             {*LST_FURI, OType::LST},
+                                             {*REC_FURI, OType::REC},
+                                             {*INST_FURI, OType::INST},
+                                             {*BCODE_FURI, OType::BCODE},
+                                             {*ERROR_FURI, OType::ERROR}}};
 
   static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER = [
       ](const Obj *, const ID_p &type_id, const bool = true) -> bool {
@@ -644,6 +657,10 @@ namespace fhatos {
     }
 
     [[nodiscard]] InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
+
+    [[nodisard]] static Obj_p inst_arg(const uint8_t index, const InstArgs &args, const Obj_p &lhs) {
+      return 0 == index && args.size() == 0 || args.at(0)->equals(*Obj::to_bcode()) ? lhs : args.at(index)->apply(lhs);
+    }
 
     [[nodiscard]] Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 

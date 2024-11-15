@@ -345,9 +345,16 @@ namespace fhatos {
     static Rec_p build_inspect_rec(const Obj_p &lhs) {
       Rec_p rec = Obj::to_rec({
           {vri("type_id"), vri(lhs->tid())},
-          {vri("type"), router()->read(lhs->tid())}});
-      if (lhs->vid())
+          {vri("type"),
+           FURI_OTYPE.count(*lhs->tid())
+             ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid())))
+             : router()->read(lhs->tid())}});
+      if (lhs->vid()) {
         rec->rec_set(vri("value_id"), vri(lhs->vid()));
+        const Obj_p subs = router()->read(id_p(lhs->vid()->query("sub")));
+        if (!subs->is_noobj())
+          rec->rec_set(vri("subscription"), subs);
+      }
       if (lhs->is_bcode()) {
         const Lst_p l = lst();
         for (const Inst_p &i: *lhs->bcode_value()) {
@@ -375,7 +382,7 @@ namespace fhatos {
       } else if (lhs->is_str()) {
         /// STR
         rec->rec_set(vri("value"), str(lhs->str_value()));
-        rec->rec_set(vri("encoding"), vri(string("UTF") + to_string(sizeof(char))));
+        rec->rec_set(vri("encoding"), vri(string("UTF") + to_string(8 * sizeof(char))));
       } else if (lhs->is_uri()) {
         /// URI
         const fURI furi = lhs->uri_value();
@@ -417,6 +424,18 @@ namespace fhatos {
           IType::ONE_TO_ONE);
     }
 
+    /*
+        static Rec_p inspect(const Obj_p &obj) {
+              return Obj::to_inst(
+                  "inspect", {obj},
+                  [](const InstArgs &args) {
+                    return [args](const Obj_p &lhs) {
+                      return Insts::build_inspect_rec(Obj::inst_arg(0, args, lhs));
+                    };
+                  },
+                  IType::ONE_TO_ONE);
+            }
+     */
     static Bool_p a(const Uri_p &type_id) {
       return Obj::to_inst(
           "a", {type_id},
@@ -1012,6 +1031,10 @@ namespace fhatos {
     }
 
   };
+
+  [[maybe_unused]] static Inst_p x() {
+    return Insts::from(Obj::to_uri(string("_") + to_string(0)), Obj::to_bcode());
+  }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
     return Insts::from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
