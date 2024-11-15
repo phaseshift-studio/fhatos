@@ -33,8 +33,6 @@ using namespace fhatos;
 namespace mmadt {
   class mmADT {
   public:
-    static BCode_p __() { return Obj::to_bcode(); }
-
     static Rec_p singleton() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
@@ -47,10 +45,6 @@ namespace mmadt {
                                        {":source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                                        {":pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                                        {":on_recv", Obj::to_bcode()}}));
-      Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));
-      Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));
-      Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));
-
       Type::singleton()->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "optional"), Insts::optional(x(0)));
