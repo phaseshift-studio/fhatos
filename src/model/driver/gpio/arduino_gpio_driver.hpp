@@ -111,30 +111,32 @@ namespace fhatos {
                       for (const auto &i: *inst_types) {
                         record->rec_set(vri(i->inst_op()), i);
                       }
+                      fURI t = args.at(1)->uri_value();
+                      router()->route_subscription(
+                          Subscription::create(args.at(0)->uri_value(), t.extend(":digital_write/0"),
+                                               Obj::to_bcode(
+                                                   [args](const Obj_p &message) {
+                                                     LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
+                                                     const uint8_t pin = lhs_args->second->at(0)->int_value();
+                                                     const uint8_t value = lhs_args->second->at(1)->int_value();
+                                                     pinMode(pin, OUTPUT);
+                                                     LOG(DEBUG, "digital write %i on pin %i\n", value, pin);
+                                                     digitalWrite(pin, value);
+                                                     return noobj();
+                                                   },
+                                                   StringHelper::cxx_f_metadata(__FILE__, __LINE__))));
                       router()->route_subscription(Subscription::create(
-                          args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_write/0"),
+                          args.at(0)->uri_value(), t.extend(":digital_read/0"),
                           Obj::to_bcode(
-                              [args](const Obj_p &message) {
-                                LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
-                                const uint8_t pin = lhs_args->second->at(0)->int_value();
-                                const uint8_t value = lhs_args->second->at(1)->int_value();
-                                pinMode(pin, OUTPUT);
-                                LOG(DEBUG, "digital write %i on pin %i\n", value, pin);
-                                digitalWrite(pin, value);
-                                return noobj();
-                              },
-                              StringHelper::cxx_f_metadata(__FILE__, __LINE__))));
-                      router()->route_subscription(Subscription::create(
-                          args.at(0)->uri_value(), args.at(1)->uri_value().extend(":digital_read/0"),
-                          Obj::to_bcode(
-                              [lhs, args](const Obj_p &message) {
+                              [lhs, t](const Obj_p &message) {
                                 LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
                                 LOG(DEBUG, "processing input %s\n", message->toString().c_str());
                                 const uint8_t pin = lhs_args->second->at(0)->int_value();
                                 const int value = digitalRead(pin);
                                 LOG(DEBUG, "digital read %i on pin %i\n", value, pin);
                                 LOG(DEBUG, "writing to %s\n", "//driver/gpio/:digital_read/1");
-                                router()->write(id_p("//driver/gpio/:digital_read/1"), jnt(value), RETAIN);
+                                // router()->write(id_p("//driver/gpio/:digital_read/1"), jnt(value), RETAIN);
+                                router()->write(id_p(t.extend(":digital_read/1")), jnt(value), RETAIN);
                                 return noobj();
                               },
                               StringHelper::cxx_f_metadata(__FILE__, __LINE__))));

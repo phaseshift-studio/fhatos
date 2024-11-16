@@ -83,7 +83,7 @@ namespace fhatos {
 
   public:
     void stop() override {
-      LOG_STRUCTURE(INFO, this, "disconnecting from mqtt broker !g[!y%s!g]!!\n",
+      LOG_STRUCTURE(INFO, this, "!ydisconnecting!! from !g[!y%s!g]!!\n",
                     this->settings_.broker_.c_str());
       native_mqtt_disconnect();
       Structure::stop();
@@ -94,7 +94,7 @@ namespace fhatos {
       const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern()));
       Structure::recv_subscription(subscription);
       if (mqtt_sub) {
-        LOG_STRUCTURE(DEBUG, this, "subscribing as no existing subscription found: %s\n",
+        LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: %s\n",
                       subscription->toString().c_str());
         native_mqtt_subscribe(subscription);
       }
@@ -105,7 +105,7 @@ namespace fhatos {
       const bool mqtt_sub = this->has_equal_subscription_pattern(target);
       Structure::recv_unsubscribe(source, target);
       if (mqtt_sub && !this->has_equal_subscription_pattern(target)) {
-        LOG_STRUCTURE(DEBUG, this, "unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
+        LOG_STRUCTURE(TRACE, this, "unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
                       target->toString().c_str());
         native_mqtt_unsubscribe(target);
       }

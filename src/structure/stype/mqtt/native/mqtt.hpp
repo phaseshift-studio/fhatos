@@ -34,7 +34,7 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  class Mqtt : public BaseMqtt {
+  class Mqtt final : public BaseMqtt {
   protected:
     connect_options connection_options_{};
 
@@ -76,7 +76,7 @@ namespace fhatos {
           const auto [payload, retained] = make_payload(bobj);
           // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
           const Message_p message = Message::create(ID(mqtt_message->get_topic()), payload, retained);
-          LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
+          LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
             for (const Subscription_p &sub: *matches) {

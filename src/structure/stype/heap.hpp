@@ -31,15 +31,14 @@
 
 namespace fhatos {
   template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
-  class Heap : public Structure {
+  class Heap final : public Structure {
   protected:
-    Map_p<const ID_p, Obj_p, furi_p_less, ALLOCATOR> data_ =
+    const Map_p<const ID_p, Obj_p, furi_p_less, ALLOCATOR> data_ =
         make_shared<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
     explicit Heap(const Pattern &pattern, const ID &value_id, const SType stype = SType::HEAP) :
-      Structure(pattern, value_id, stype) {
-    }
+        Structure(pattern, value_id, stype) {}
 
   public:
     static ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
@@ -72,10 +71,8 @@ namespace fhatos {
         auto list = make_shared<IdObjPairs>();
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
-            LOG(TRACE, "\tmatched: %s ~ %s => %s\n",
-                id->toString().c_str(),
-                match->toString().c_str(),
-                obj->toString().c_str());
+            LOG_STRUCTURE(TRACE, this, "\tmatched: %s ~ %s => %s\n", id->toString().c_str(), match->toString().c_str(),
+                          obj->toString().c_str());
             list->push_back({id, obj->clone()});
           }
         }

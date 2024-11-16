@@ -59,7 +59,6 @@ namespace fhatos {
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
 
     explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &id) : BaseMqtt(pattern, settings, id) {
-
       if (this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", settings.broker_.c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
@@ -78,7 +77,7 @@ namespace fhatos {
           const auto [payload, retained] = make_payload(bobj);
           // [payload,retain]
           const Message_p message = Message::create(ID(topic), payload, retained);
-          LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
+          LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
             for (const Subscription_p &sub: *matches) {
