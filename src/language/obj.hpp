@@ -328,26 +328,29 @@ namespace fhatos {
       }
     };
 
-    struct obj_comp_p : std::less<> {
+    struct objp_comp : std::less<> {
       template<class K1 = Obj_p, class K2 = Obj_p>
       auto operator()(K1 &k1, K2 &k2) const {
         return k1->hash() < k2->hash();
       }
     };
 
-    template<typename V = Obj_p>
-    using LstList = List<V>;
-    template<typename V = Obj_p>
-    using LstList_p = List_p<V>;
-    template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = obj_comp_p>
-    using RecMap = Map<K, V, Q>;
-    template<typename K = Obj_p, typename V = Obj_p, typename H = objp_hash, typename Q = obj_comp_p>
-    using RecMap_p = ptr<RecMap<K, V, Q>>;
+    //////////////////////////////////////////////////////
+    using LstList = List<Obj_p>;
+    //////////////////////////////////////////////////////
+    using LstList_p = ptr<LstList>;
+    //////////////////////////////////////////////////////
+    template<typename COMPARATOR = objp_comp,
+             typename ALLOCATOR=std::allocator<std::pair<const Obj_p, Obj_p>>>
+    using RecMap = Map<Obj_p, Obj_p, COMPARATOR, ALLOCATOR>;
+    //////////////////////////////////////////////////////
+    template<typename COMPARATOR = objp_comp,
+             typename ALLOCATOR=std::allocator<std::pair<const Obj_p, Obj_p>>>
+    using RecMap_p = ptr<RecMap<COMPARATOR, ALLOCATOR>>;
+    //////////////////////////////////////////////////////
 
-    explicit Obj(const Any &value, const OType otype, const ID_p &type_id = nullptr, const ID_p &value_id = nullptr) :
+    explicit Obj(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(otype)), Valued(value_id), otype_(otype), value_(value) {
-      // ID_p resolved = type_id->toString()[0] == ':' ? id_p((string("mmadt") + type_id->toString()).c_str()) :
-      // type_id;
       TYPE_CHECKER(this, type_id, true);
       this->tid_ = type_id;
       if (value_id) {
@@ -402,8 +405,8 @@ namespace fhatos {
 
     ///////////////////
     Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) :
-      Obj(Any(make_shared<LstList<>>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
-      const auto list = this->value<LstList_p<>>();
+      Obj(Any(make_shared<LstList>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
+      const auto list = this->value<LstList_p>();
       for (const auto &obj: xlst) {
         list->push_back(make_shared<Obj>(obj));
       }
@@ -497,10 +500,10 @@ namespace fhatos {
                : Obj::to_str(string() + (this->str_value()[index->int_value()]));
     }
 
-    [[nodiscard]] LstList_p<> lst_value() const {
+    [[nodiscard]] LstList_p lst_value() const {
       if (!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->value<LstList_p<>>();
+      return this->value<LstList_p>();
     }
 
     void lst_add(const Obj_p &obj) const {
@@ -951,7 +954,7 @@ namespace fhatos {
         //   case OType::STR:
         //   return Obj(this->str_value() + rhs.str_value(), this->vid());
         case OType::LST: {
-          auto list = std::make_shared<LstList<>>();
+          auto list = std::make_shared<LstList>();
           auto itB = rhs.lst_value()->begin();
           for (auto itA = this->lst_value()->begin(); itA != this->lst_value()->end(); ++itA) {
             list->push_back(make_shared<Obj>(**itA * **itB, itA->get()->o_type(), itA->get()->tid_, itA->get()->vid_));
@@ -1011,7 +1014,7 @@ namespace fhatos {
         case OType::STR:
           return Obj(string(this->str_value()) + string(rhs.str_value()), OType::STR, this->tid_, this->vid_);
         case OType::LST: {
-          auto list = std::make_shared<LstList<>>();
+          auto list = std::make_shared<LstList>();
           for (const auto &obj: *this->lst_value()) {
             list->push_back(obj);
           }
@@ -1050,7 +1053,7 @@ namespace fhatos {
         // case OType::STR:
         //  return Obj(string(this->str_value()).replace(string(rhs.str_value()), this->vid());
         case OType::LST: {
-          auto list = std::make_shared<LstList<>>();
+          auto list = std::make_shared<LstList>();
           for (const auto &obj: *this->lst_value()) {
             if (std::find(rhs.lst_value()->begin(), rhs.lst_value()->end(), obj) != std::end(*rhs.lst_value()))
               list->push_back(obj);
@@ -1324,7 +1327,7 @@ namespace fhatos {
         case OType::STR:
           return PtrHelper::no_delete<Str>(this);
         case OType::LST: {
-          const auto new_values = make_shared<LstList<Obj_p>>();
+          const auto new_values = make_shared<LstList>();
           for (const auto &obj: *this->lst_value()) {
             new_values->push_back(obj->apply(lhs));
           }
@@ -1536,15 +1539,15 @@ namespace fhatos {
     }
 
     static Lst_p to_lst(const ID_p &furi = LST_FURI) {
-      return make_shared<Lst>(make_shared<LstList<>>(), OType::LST, furi);
+      return make_shared<Lst>(make_shared<LstList>(), OType::LST, furi);
     }
 
-    static Lst_p to_lst(const LstList_p<> &xlst, const ID_p &furi = LST_FURI) {
+    static Lst_p to_lst(const LstList_p &xlst, const ID_p &furi = LST_FURI) {
       return make_shared<Lst>(xlst, OType::LST, furi);
     }
 
     static Lst_p to_lst(const std::initializer_list<Obj> &xlst, const ID_p &furi = LST_FURI) {
-      const auto list = make_shared<LstList<>>();
+      const auto list = make_shared<LstList>();
       for (const auto &obj: xlst) {
         list->push_back(share(obj));
       }
@@ -1552,7 +1555,7 @@ namespace fhatos {
     }
 
     static Lst_p to_lst(const std::initializer_list<Obj_p> &xlst, const ID_p &furi = LST_FURI) {
-      return to_lst(make_shared<LstList<>>(xlst), furi);
+      return to_lst(make_shared<LstList>(xlst), furi);
     }
 
     static Rec_p to_rec(const ID_p &type = REC_FURI, const ID_p &id = nullptr) {
@@ -1676,7 +1679,7 @@ namespace fhatos {
       }
       if (this->is_lst()) {
         // LST
-        const auto new_list = make_shared<LstList<>>();
+        const auto new_list = make_shared<LstList>();
         for (const auto &e: *this->lst_value()) {
           new_list->push_back(e->clone());
         }
@@ -1763,7 +1766,7 @@ namespace fhatos {
 
   [[maybe_unused]] static NoObj_p noobj() { return Obj::to_noobj(); }
 
-  [[maybe_unused]] static Lst_p lst() { return Obj::to_lst(make_shared<Obj::LstList<>>()); }
+  [[maybe_unused]] static Lst_p lst() { return Obj::to_lst(make_shared<Obj::LstList>()); }
 
   [[maybe_unused]] static Lst_p lst(const List<Obj_p> &list) { return Obj::to_lst(share(list)); }
 

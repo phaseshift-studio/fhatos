@@ -389,7 +389,7 @@ namespace fhatos {
         return {};
       auto ss = stringstream(token.substr(1, token.length() - 2));
       string value;
-      const auto list = make_shared<Obj::LstList<>>();
+      const auto list = make_shared<Obj::LstList>();
       Tracker tracker;
       while (!ss.eof()) {
         if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
