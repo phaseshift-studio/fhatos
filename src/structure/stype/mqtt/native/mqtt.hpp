@@ -100,13 +100,11 @@ namespace fhatos {
 
     void native_mqtt_publish(const Message_p &message) override {
       if (message->payload()->is_noobj()) {
-        MQTT_CONNECTION->publish(message->target().toString().c_str(), const_cast<char *>(""), 0, 2, true)->wait();
+        MQTT_CONNECTION->publish(message->target().toString().c_str(), const_cast<char *>(""), 0, 0, true)->wait();
       } else {
         const BObj_p source_payload = make_bobj(message->payload(), message->retain());
         MQTT_CONNECTION
-            ->publish(message->target().toString(), source_payload->second, source_payload->first,
-                      1, // qos
-                      message->retain())
+            ->publish(message->target().toString(), source_payload->second, source_payload->first, 0, message->retain())
             ->wait();
       }
     }
@@ -125,7 +123,8 @@ namespace fhatos {
                             const ID &value_id = ID("")) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings, value_id.empty() ? ID(pattern.retract_pattern()) : value_id));
+      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings,
+                                             value_id.empty() ? ID(pattern.retract_pattern()) : value_id));
       return mqtt_p;
     }
 

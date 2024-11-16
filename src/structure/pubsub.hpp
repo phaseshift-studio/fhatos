@@ -93,25 +93,25 @@ namespace fhatos {
 
     explicit Message(const ID &target, const Obj_p &payload, const bool retain) :
       Rec(rmap({
-              {":target", vri(target)},
-              {":payload", payload},
-              {":retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
+              {"target", vri(target)},
+              {"payload", payload},
+              {"retain", dool(retain)}}), OType::REC, MESSAGE_FURI) {
     }
 
     ID target() const {
-      return ID(this->rec_get(vri(":target"), [this]() {
+      return ID(this->rec_get(vri("target"), [this]() {
         throw fError("message has no !ytarget!!: %s", this->toString().c_str());
       })->uri_value());
     }
 
     Obj_p payload() const {
-      return this->rec_get(vri(":payload"), [this]() {
+      return this->rec_get(vri("payload"), [this]() {
         throw fError("message has no !ypayload!!: %s", this->toString().c_str());
       });
     }
 
     bool retain() const {
-      return this->rec_get(vri(":retain"), [this]() {
+      return this->rec_get(vri("retain"), [this]() {
         throw fError("message has no !yretain!!: %s", this->toString().c_str());
       })->value<bool>();
     }
@@ -150,20 +150,20 @@ namespace fhatos {
 
     explicit Subscription(const ID &source, const Pattern &pattern, const BCode_p &on_recv) :
       Rec(rmap({
-              {":source", vri(source)},
-              {":pattern", vri(pattern)},
+              {"source", vri(source)},
+              {"pattern", vri(pattern)},
               {":on_recv", on_recv}
           }), OType::REC, SUBSCRIPTION_FURI) {
     }
 
     ID source() const {
-      return ID(this->rec_get(":source", [this]() {
+      return ID(this->rec_get("source", [this]() {
         throw fError("subscription has no !ysource!!: %s", this->toString().c_str());
       })->uri_value());
     }
 
     Pattern pattern() const {
-      return Pattern(this->rec_get(":pattern", [this]() {
+      return Pattern(this->rec_get("pattern", [this]() {
         throw fError("subscription has no !ypattern!!: %s", this->toString().c_str());
       })->uri_value());
     }

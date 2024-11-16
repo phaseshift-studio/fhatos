@@ -332,10 +332,10 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
         Subscription::create(ID("fhatty"),
                        key.uri_value(),
                        Obj::to_bcode([temp](const ptr<Rec> &message) {
-                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->rec_get(":payload"),
+                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->rec_get("payload"),
                                                   (string("Router retain message payload equality: ") +
                                                     router()->vid()->toString() + " " + temp.toString() +
-                                                    " != " + message->rec_get(":payload")->toString())
+                                                    " != " + message->rec_get("payload")->toString())
                                                   .c_str());
                          return noobj();
                        })

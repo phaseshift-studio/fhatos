@@ -63,7 +63,7 @@ namespace fhatos {
       *make_test_pattern("+"),
       Obj::to_bcode([ping_HIT](const Rec_p &message) {
         LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
-        //FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->rec_get(":target")->uri_value());
+        //FOS_TEST_ASSERT_EQUAL_FURI(*make_test_pattern("b"), message->rec_get("target")->uri_value());
         TEST_ASSERT_TRUE_MESSAGE( message->is_rec(),
                                  (string("Expected rec but received ") +  message->tid()->toString()).c_str());
         FOS_INT_TYPE payload_int =  message->rec_value()->at(str("hello_fhatty"))->int_value();
@@ -79,7 +79,7 @@ namespace fhatos {
                          ping_MISS->store(ping_MISS->load() + 1);
                          LOG(INFO, "Received message from subscriber: %s\n", message->toString().c_str());
                      //    TEST_FAIL_MESSAGE((string("Subscription ") + make_test_pattern("c")->toString() +
-                     //        " does not match payload target:" + message->rec_get(":target")->uri_value().toString())
+                     //        " does not match payload target:" + message->rec_get("target")->uri_value().toString())
                      //      .c_str());
                          return noobj();
                        }));
@@ -192,7 +192,7 @@ namespace fhatos {
     // Options::singleton()->log_level(TRACE);
     auto *pings = new atomic_int(0);
     const BCode_p on_recv = Obj::to_bcode([pings](const Rec_p &message) {
-   //   FOS_TEST_ASSERT_EQUAL_FURI(Pattern(*make_test_pattern("test")), message->rec_get(":target")->uri_value());
+   //   FOS_TEST_ASSERT_EQUAL_FURI(Pattern(*make_test_pattern("test")), message->rec_get("target")->uri_value());
       TEST_ASSERT_TRUE(message->bool_value());
       if (message->is_bool()) {
         TEST_ASSERT_TRUE(message->bool_value());

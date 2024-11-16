@@ -118,14 +118,14 @@ namespace fhatos {
                        {vri(":stop"), Obj::to_bcode()}})},
                   {"/type/rec/sub",
                    Obj::to_rec({
-                       {vri(":source"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                       {vri(":pattern"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                       {vri("source"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                       {vri("pattern"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                        {vri(":on_recv"), Obj::to_bcode()}})},
                   {"/type/rec/msg",
                    Obj::to_rec({
-                       {vri(":target"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                       {vri(":payload"), Obj::to_bcode()},
-                       {vri(":retain"), Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}})}
+                       {vri("target"), Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                       {vri("payload"), Obj::to_bcode()},
+                       {vri("retain"), Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}})}
               }}});
 
   class Exts {

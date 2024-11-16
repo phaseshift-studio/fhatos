@@ -112,15 +112,15 @@ namespace fhatos {
             ->mount(Heap<ALLOC>::create("/driver/#"))
 #ifdef NATIVE
             ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
-            ->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
+            //->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
 #elif defined(ESP_ARCH)
             ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
-            ->install(ArduinoI2CDriver::load_local("/driver/i2c/pin", id_p("//driver/i2c")))
+            //->install(ArduinoI2CDriver::load_local("/driver/i2c/pin", id_p("//driver/i2c")))
             ->mount(Memory::singleton("/soc/memory/#"))
         //->structure(BLE::create("/io/bt/#"))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
-            ->mount(Heap<>::create("/console/#"))
+            ->mount(Heap<ALLOC>::create("/console/#"))
             ->process(Console::create("/console", "/io/terminal",
                                       Console::Settings(args_parser->option_int("--console:nest", 2),
                                                         args_parser->option_bool("--ansi", true),

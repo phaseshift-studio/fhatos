@@ -80,9 +80,9 @@ namespace fhatos {
           const Message_p message = Message::create(ID(topic), payload, retained);
           LOG_STRUCTURE(TRACE, this, "mqtt broker providing message %s\n", message->toString().c_str());
           for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
-            const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(topic));
+            const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
             for (const Subscription_p &sub: *matches) {
-              client->outbox_->push_back(share(Mail{sub, message}));
+              client->outbox_->push_back(make_shared<Mail>(sub, message));
             }
           }
         });
@@ -96,7 +96,7 @@ namespace fhatos {
         LOG_STRUCTURE(WARN, this, "reconnecting to mqtt broker: !r%s!!\n",
                       MQTT_STATE_CODES.at(MQTT_CONNECTION->state()).c_str());
         if (!MQTT_CONNECTION->connect(this->settings_.client_.c_str())) {
-          usleep(FOS_MQTT_RETRY_WAIT * 10);
+          Process::current_process()->delay(5000);
         }
       }
       if (!MQTT_CONNECTION->loop()) {
@@ -107,21 +107,25 @@ namespace fhatos {
 
     void native_mqtt_subscribe(const Subscription_p &subscription) override {
       MQTT_CONNECTION->subscribe(subscription->pattern().toString().c_str(), 1);
+      FEED_WATCDOG();
+      MQTT_CONNECTION->loop();
     }
 
     void native_mqtt_unsubscribe(const fURI_p &pattern) override {
       MQTT_CONNECTION->unsubscribe(pattern->toString().c_str());
+      FEED_WATCDOG();
+      MQTT_CONNECTION->loop();
     }
 
     void native_mqtt_publish(const Message_p &message) override {
       if (message->payload()->is_noobj()) {
-        MQTT_CONNECTION->publish(message->target().toString().c_str(), nullptr, 0, true);
+        MQTT_CONNECTION->publish(message->target().toString().c_str(), nullptr, 0, message->retain());
       } else {
-        const Lst_p lst = Obj::to_lst({message->payload(), dool(message->retain())});
-        const BObj_p payload = make_bobj(message->payload(), message->retain());
-        MQTT_CONNECTION->publish(message->target().toString().c_str(), payload->second, payload->first,
+        const BObj_p source_payload = make_bobj(message->payload(), message->retain());
+        MQTT_CONNECTION->publish(message->target().toString().c_str(), source_payload->second, source_payload->first,
                                  message->retain());
       }
+      FEED_WATCDOG();
       MQTT_CONNECTION->loop();
     }
 
@@ -153,7 +157,7 @@ namespace fhatos {
             if (++counter > FOS_MQTT_MAX_RETRIES)
               throw fError("__wrapped below__");
             LOG_STRUCTURE(WARN, this, "!b%s !yconnection!! retry\n", this->settings_.broker_.c_str());
-            usleep(FOS_MQTT_RETRY_WAIT * 1000);
+            Process::current_process()->delay(5000);
           }
           if (MQTT_CONNECTION->connected()) {
             connection_logging();

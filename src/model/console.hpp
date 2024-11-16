@@ -219,7 +219,7 @@ namespace fhatos {
                                                                 Options::singleton()->log_level(this->settings_.log_);
                                                               }
                                                               return lhs;
-                                                            }, {x(0)})));
+                                                            }, {x(0)},StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
     }
 
   public:

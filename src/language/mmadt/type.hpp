@@ -38,12 +38,12 @@ namespace mmadt {
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(MESSAGE_FURI, Obj::to_rec({
-                                       {":target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                                       {":payload", Obj::to_bcode()},
-                                       {":retain", Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}}));
+                                       {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {"payload", Obj::to_bcode()},
+                                       {"retain", Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}}));
       Type::singleton()->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
-                                       {":source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                                       {":pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {"source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                                       {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                                        {":on_recv", Obj::to_bcode()}}));
       Type::singleton()->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));

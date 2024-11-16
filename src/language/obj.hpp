@@ -1665,7 +1665,7 @@ namespace fhatos {
             return [function,args2](const Obj_p &input) { return function(input, args2); };
           },
           IType::ONE_TO_ONE, noobj_seed(), inst_id);
-      TYPE_SAVER(inst_id, inst);
+      //TYPE_SAVER(inst_id, inst);
       return inst;
     }
 
@@ -1755,50 +1755,6 @@ namespace fhatos {
     static Obj_p deserialize(const BObj_p &bobj) {
       LOG(DEBUG, "Deserializing bytes %s (length %i)\n", bobj->second, bobj->first);
       return OBJ_PARSER(string(reinterpret_cast<char *>(bobj->second), bobj->first));
-    }
-  };
-
-  class ObjWrap : public BaseTyped, BaseValued {
-  protected:
-    const Rec_p internal_;
-
-  public:
-    explicit ObjWrap(const ID_p &type, const ID_p &id = nullptr):
-      internal_(make_shared<Rec>(make_shared<Obj::RecMap<>>(), OType::REC, type, id)) {
-    };
-
-    explicit ObjWrap(const Rec_p &internal_rec):
-      internal_(internal_rec) {
-    }
-
-    ~ObjWrap() override = default;
-
-    virtual Rec_p to_rec() const {
-      return this->internal_;
-    }
-
-    Obj_p get(const fURI_p &furi) const {
-      return this->internal_->rec_get(Obj::to_uri(*furi));
-    }
-
-    void set(const fURI_p &furi, const Obj_p &obj) const {
-      this->internal_->rec_set(Obj::to_uri(*furi), obj);
-    }
-
-    ID_p tid() const override {
-      return this->internal_->tid();
-    }
-
-    ID_p vid() const override {
-      return this->internal_->vid();
-    }
-
-    virtual Obj::RecMap_p<> rec_value() const {
-      return this->internal_->rec_value();
-    }
-
-    virtual string toString() const {
-      return this->internal_->toString();
     }
   };
 

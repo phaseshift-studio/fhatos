@@ -3,8 +3,15 @@ INCLUDE(CMakePrintHelpers)
 INCLUDE(FetchContent)
 INCLUDE(ExternalProject)
 PROJECT(fhatos)
-ADD_DEFINITIONS("-DFOS_NAME=FhatOS")
-ADD_DEFINITIONS("-DFOS_VERSION=0.1-alpha")
+
+##############################################
+############ RELEASE DEFINITIONS #############
+##############################################
+ADD_DEFINITIONS("-DFOS_NAME=FhatOS")       ###
+ADD_DEFINITIONS("-DFOS_VERSION=0.1-alpha") ###
+##############################################
+##############################################
+
 ##################################
 ## DEFINE MM-ADT ANSI COLOR DSL ##
 ##################################

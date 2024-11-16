@@ -124,14 +124,17 @@ namespace fhatos {
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = ID(this->settings_.client_.c_str());
       this->recv_subscription(
-          Subscription::create(source_id, temp, Obj::to_bcode([this, furi, thing](const Rec_p &message) {
-            LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n", furi->toString().c_str(),
-                          message->toString().c_str());
-            ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
-            thing->load()->push_back({id_p(message->rec_get(vri(":target"))->uri_value()),
-                                      message->rec_get(vri(":payload"))});
-            return noobj();
-          }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+          Subscription::create(source_id, temp, Obj::to_bcode(
+                                   [this, furi, thing](const Obj_p &, const InstArgs &args) {
+                                     const Message_p message = make_shared<Message>(args.at(0));
+                                     LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
+                                                   furi->toString().c_str(),
+                                                   message->toString().c_str());
+                                     ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+                                     thing->load()->push_back({id_p(message->rec_get(vri("target"))->uri_value()),
+                                                               message->rec_get(vri("payload"))});
+                                     return noobj();
+                                   }, {x(0)}, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
