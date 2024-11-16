@@ -208,7 +208,7 @@ IF(BUILD_NATIVE)
     IF(VERBOSE)
         MESSAGE(NOTICE "${.g}Adding source files${..}: ${SOURCE_FILES}")
     ENDIF()
-    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
+    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp)
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -220,7 +220,7 @@ IF(BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>")
+    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;")
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
@@ -245,45 +245,6 @@ ENDIF()
 ######## EXTERNAL LIBRARIES ########
 ####################################
 
-####################################
-####################################
-### FTXUI: ANSI C++ TERMINAL UI
-IF(DO_NOT)
-    MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
-    SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-    FETCHCONTENT_DECLARE(
-            ftxui
-            GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-            GIT_TAG v5.0.0
-            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-    )
-    FETCHCONTENT_MAKEAVAILABLE(ftxui)
-    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
-    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
-    TARGET_LINK_LIBRARIES(fhatos
-            PRIVATE ftxui::screen
-            PRIVATE ftxui::dom
-            PRIVATE ftxui::component # Not needed for this example.
-    )
-    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
-ENDIF()
-####################################
-####################################
-### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
-MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
-FETCHCONTENT_DECLARE(
-        ordered_map
-        GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
-        GIT_TAG v1.1.0
-        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
-)
-FETCHCONTENT_MAKEAVAILABLE(ordered_map)
-INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-#FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
-MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### MQTT: MQTT NETWORK PROTOCOL IMPLEMENTATION
@@ -357,10 +318,54 @@ IF(RPI)
     FIND_LIBRARY(wiringPi_LIB wiringPi)
     TARGET_LINK_LIBRARIES(Object ${wiringPi_LIB})
 ENDIF()
-####################################
-####################################
-### MPC: MICRO PARSER COMBINATORS
+
+############################################################################################################
+######################################## UNUSED LIBRARIES ##################################################
+############################################################################################################
+
 IF(DO_NOT)
+    ####################################
+    ####################################
+    ### FTXUI: ANSI C++ TERMINAL UI
+    MESSAGE(CHECK_START "${.y}Making FXTUI Library${..}")
+    SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+    FETCHCONTENT_DECLARE(
+            ftxui
+            GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+            GIT_TAG v5.0.0
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+    )
+    FETCHCONTENT_MAKEAVAILABLE(ftxui)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ftxui)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ftxui)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ftxui-src/include/ftxui/ DESTINATION ${CMAKE_SOURCE_DIR}/include/ftxui)
+    TARGET_LINK_LIBRARIES(fhatos
+            PRIVATE ftxui::screen
+            PRIVATE ftxui::dom
+            PRIVATE ftxui::component # Not needed for this example.
+    )
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+
+    ####################################
+    ####################################
+    ### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
+    MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+    FETCHCONTENT_DECLARE(
+            ordered_map
+            GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
+            GIT_TAG v1.1.0
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+    )
+    FETCHCONTENT_MAKEAVAILABLE(ordered_map)
+    INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+    #FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
+
+    ####################################
+    ####################################
+    ### MPC: MICRO PARSER COMBINATORS
     MESSAGE(CHECK_START "${.y}Making Micro Parser Combinators Library${..}")
     FETCHCONTENT_DECLARE(
             mpc

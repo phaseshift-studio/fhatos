@@ -20,6 +20,7 @@
 #include <boot_loader.hpp>
 #include <kernel.hpp>
 #include <util/argv_parser.hpp>
+#include <model/tool.hpp>
 
 #define HELP "  --!b%-15s!!= %5s\n"
 

@@ -40,7 +40,7 @@
                 INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
                 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBoost_NO_BOOST_CMAKE=TRUE)
                 ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
-                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} ordered_map paho-mqttpp3)
+                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3)
                 ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
             ELSE()
                 MESSAGE("${.r}Unable to locate Boost unit_test_framework${..}. Proceeding without respective depending tests.")
@@ -91,10 +91,10 @@
                                 ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
                                 ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
                                 ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                                unity ordered_map paho-mqttpp3)
+                                unity paho-mqttpp3)
                         MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
                     ELSE()
-                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity ordered_map paho-mqtt3c paho-mqttpp3)
+                        TARGET_LINK_LIBRARIES(${PACKAGE_TEST} unity paho-mqttpp3)
                     ENDIF()
                     SET_TARGET_PROPERTIES(${PACKAGE_TEST} PROPERTIES
                             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/build"

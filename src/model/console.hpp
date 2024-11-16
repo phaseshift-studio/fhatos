@@ -147,9 +147,15 @@ namespace fhatos {
       }
     }
 
+    bool first = true;
+
     explicit Console(const ID &id, const ID &terminal, const Settings &settings) :
       Thread(Obj::to_rec(rmap({{":loop",
                                 Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+                                  if (this->first) {
+                                    this->first = false;
+                                    this->delay(500);
+                                  }
                                   if (FOS_IS_DOC_BUILD)
                                     return noobj();
                                   if (this->new_input_)
@@ -219,7 +225,8 @@ namespace fhatos {
                                                                 Options::singleton()->log_level(this->settings_.log_);
                                                               }
                                                               return lhs;
-                                                            }, {x(0)},StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+                                                            }, {x(0)},
+                                                            StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
     }
 
   public:

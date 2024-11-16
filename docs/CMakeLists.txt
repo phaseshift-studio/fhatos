@@ -21,10 +21,10 @@ IF(BUILD_DOCS)
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
                         ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1
-                         ordered_map paho-mqttpp3)
+                        paho-mqttpp3)
                 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
             ELSE()
-                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} ordered_map paho-mqtt3c paho-mqttpp3)
+                TARGET_LINK_LIBRARIES(${PACKAGE_RUNNER} paho-mqttpp3)
             ENDIF()
             TARGET_PRECOMPILE_HEADERS(${PACKAGE_RUNNER} REUSE_FROM ${PROJECT_NAME})
             SET_TARGET_PROPERTIES(${PACKAGE_RUNNER} PROPERTIES
