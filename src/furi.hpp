@@ -269,6 +269,20 @@ namespace fhatos {
       return new_uri;
     }
 
+    [[nodiscard]] List<string> query_values(const char *key) const {
+      const Option<string> v = this->query_value(key);
+      if (!v.has_value())
+        return {};
+      std::stringstream *ss = new std::stringstream(v.value());
+      string token;
+      List<string> list;
+      while (!(token = StringHelper::next_token(',', ss)).empty()) {
+        list.push_back(token);
+      }
+      delete ss;
+      return list;
+    }
+
     [[nodiscard]] Option<string> query_value(const char *key) const {
       if (!this->query_)
         return {};
@@ -890,7 +904,6 @@ namespace fhatos {
   [[maybe_unused]] static Pattern_p p_p(const Pattern &pattern) { return make_shared<Pattern>(pattern); }
 
   [[maybe_unused]] static Pattern_p p_p(const fURI &pattern) { return make_shared<Pattern>(pattern); }
-
 
 
   using ValueO = ID;
