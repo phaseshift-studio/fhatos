@@ -731,14 +731,14 @@ namespace fhatos {
       return Obj::to_bcode(insts);
     }
 
-    Obj_p none_one_all() const {
+    Obj_p none_one_all() {
       if (this->is_objs()) {
         if (this->objs_value()->empty())
           return Obj::to_noobj();
         if (this->objs_value()->size() == 1)
           return this->objs_value()->front();
       }
-      return ptr<Obj>((Obj *) this);
+      return PtrHelper::no_delete<Obj>(this);
     }
 
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
@@ -1652,12 +1652,11 @@ namespace fhatos {
 
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
-      auto os = make_shared<Objs>(objs, OType::OBJS, type_id);
-      return os;
+      return make_shared<Objs>(objs, OType::OBJS, type_id);
     }
 
     static Objs_p to_objs(const List<Obj> &objs, const ID_p &type_id = OBJS_FURI) {
-      return Obj::to_objs(make_shared<List<Obj_p>>(PtrHelper::clone(objs)), type_id);
+      return Obj::to_objs(make_shared<List<Obj_p>>(PtrHelper::clone<Obj>(objs)), type_id);
     }
 
     static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &type_id = ERROR_FURI) {

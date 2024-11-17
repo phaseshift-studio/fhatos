@@ -76,7 +76,7 @@ namespace fhatos {
     static List<ptr<T>> clone(const List<T> &list) {
       List<ptr<T>> new_list = List<ptr<T>>();
       for (const auto &t: list) {
-        new_list.push_back(share(T(t)));
+        new_list.push_back(make_shared<T>(t));
       }
       return new_list;
     }
