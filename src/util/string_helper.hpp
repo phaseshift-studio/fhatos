@@ -158,6 +158,18 @@ namespace fhatos {
       return true;
     }
 
+    static string next_token(const char &split, std::stringstream *ss) {
+      const std::stringstream::pos_type start = ss->tellg();
+      string token;
+      char c;
+      while ((c = ss->get()) != EOF) {
+        if (c == split && !token.empty())
+          break;
+        token += c;
+      }
+      return token;
+    }
+
     static bool is_integer(const string &xstring) {
       for (uint8_t i = 0; i < xstring.length(); i++) {
         if (!isdigit(xstring[i]))
@@ -189,6 +201,7 @@ namespace fhatos {
       return ss;
     }
   };
+
 } // namespace fhatos
 
 #endif
