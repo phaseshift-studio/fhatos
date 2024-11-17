@@ -105,11 +105,11 @@ ENDIF()
 ##########################################
 OPTION(FOS_SKIP_CMAKE "abort the cnake build process" OFF)
 OPTION(CHECK_INTERNET "check internet" ON)
-OPTION(BUILD_TESTS "build fhatos tests" ON)
+OPTION(BUILD_TESTS "build fhatos tests" OFF)
 OPTION(BUILD_DOCS "build fhatos website/docs" OFF)
 OPTION(SANITIZER "use address sanitizer" OFF)
 OPTION(USE_CCACHE "use ccache" ON)
-OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" OFF)
+OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" ON)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 ####################################################################
 ####################################################################
