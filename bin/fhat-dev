@@ -23,6 +23,7 @@
 #############################
 NC='\033[0m'
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 #BOLDRED='\033[1;31m'
 #IRED='\033[0;91m'
 GREEN='\033[0;32m'
@@ -30,46 +31,58 @@ BOLDGREEN='\033[1;32m'
 MAGENTA='\033[0;35m'
 BLUE='\033[0;34m'
 FHATOS="${MAGENTA}F${GREEN}h${BLUE}a${RED}t${MAGENTA}O${BLUE}S${NC}"
-LB="${MAGENTA}[${NC}"
+LB="${MAGENTA}[${YELLOW}"
 RB="${MAGENTA}]${NC}"
 #############################
 
 echo -e "${FHATOS} ${MAGENTA}Development Tool${NC}"
 if [ -z "$FHATOS_HOME" ]; then
-  echo -e " ${RED}FHATOS_HOME${NC} must be set to proceed";
+  echo -e " ${LB}fhatos ${RED}FHATOS_HOME=<not set>${NC}${RB}"
   exit 1
 else
-  echo -e " ${GREEN}FHATOS_HOME${NC} set to ${BLUE}${FHATOS_HOME}${NC}";
+  echo -e " ${LB}fhatos ${GREEN}FHATOS_HOME=${FHATOS_HOME}${NC}${RB}";
   cd "${FHATOS_HOME}" || exit 1
 fi
 
+echo -e " ${LB}current location ${GREEN}$(pwd)${NC}${RB}"
+
 if [[ -z $1  ]]; then
   filter=" "
-  echo -e " ${LB}no operation to perform${RB}"
+  echo -e " ${LB}no target${RB}"
   exit 1
 else
-  echo -e " ${LB}performing ${GREEN}$1${NC}${RB}"
+  echo -e " ${LB}target ${GREEN}$1${NC}${RB}"
 fi
 
 if [[ -z $2 ]]; then
   environ=" "
   platform=" "
-  echo -e " ${LB}processing ${GREEN}all environments${NC}${RB}"
+  echo -e " ${LB}platform ${GREEN}all environments${NC}${RB}"
 else
   environ="--environment $2"
   platform="$2"
-  echo -e " ${LB}processing ${GREEN}$environ${NC}${RB}"
+  echo -e " ${LB}platform ${GREEN}$environ${NC}${RB}"
 fi
 
 if [[ -z $3  ]]; then
   filter=" "
-  echo -e " ${LB}no configurations${RB}"
+  echo -e " ${LB}configuration ${GREEN}<none>${NC}${RB}"
 else
   filter="${@:3}"
-  echo -e " ${LB}configurations: ${GREEN}$filter${NC}${RB}"
+  echo -e " ${LB}configuration ${GREEN}$filter${NC}${RB}"
 fi
-echo -e " ${LB}current location: ${BLUE}$(pwd)${NC}${RB}"
 
+echo -e " ${LB}dependency ${GREEN}libpaho-mqtt-dev${NC}${RB}"
+found=$(ldconfig -p | grep -q libpaho-mqtt-dev)
+if [ ! "${found}" ]; then
+  echo -e "   libpaho-mqtt-dev ${GREEN}FOUND${NC}"
+else
+  echo -e " ${LB}libpaho-mqtt-dev${RB} ${RED}NOT FOUND${NC}"
+  sudo apt-get install -y libpaho-mqtt-dev rlwrap
+fi
+########################################################################
+########################################################################
+########################################################################
 clean_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
      mv build/_deps .
@@ -104,7 +117,7 @@ make_native() {
     local extra_args=${@:1}
     mkdir -p build
     cd build || exit 1;
-    echo -e " ${LB}evaluating: ${GREEN}cmake .. -DBUILD_DOCS=OFF ${extra_args}; make -j6 -o1${RB}"
+    echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF ${extra_args}; make -j6 -o1${RB}"
     cmake .. -DBUILD_DOCS=OFF ${extra_args};
     make -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
@@ -186,6 +199,10 @@ build_docs() {
     make -j6 -o1; # j6 parallel and o1 low optimization level
     cd ..;
 }
+
+########################################################################
+########################################################################
+########################################################################
 
 if [[ $1 == "clean" ]]; then
   clean_native
