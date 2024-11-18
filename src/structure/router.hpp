@@ -33,7 +33,7 @@ namespace fhatos {
     return make_shared<IdObjPairs>(init);
   }*/
 
-  class Router final : public Valued {
+  class Router final : public Rec {
   protected:
     const ID_p namespace_prefix_;
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
@@ -100,6 +100,7 @@ namespace fhatos {
           this->structures_.pop_back();
         }
       }
+      this->save();
     }
 
     void detach(const Pattern_p &pattern) {
@@ -114,6 +115,16 @@ namespace fhatos {
       });
     }
 
+    virtual Obj_p save(const ID_p & = nullptr) override {
+      const Lst_p strcs = Obj::to_lst();
+      this->structures_.forEach([strcs](const Structure_p &proc) {
+        strcs->lst_add(vri(proc->pattern()));
+      });
+      this->rec_set("structure", strcs);
+      this->write(this->vid(), shared_from_this());
+      return shared_from_this();
+    }
+
     [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
@@ -122,7 +133,7 @@ namespace fhatos {
       //////////// ROUTER READ INTERCEPTS ///////////
       ///////////////////////////////////////////////
       const Objs_p objs = Obj::to_objs();
-      objs->add_obj(ROUTER_READ_INTERCEPT(*resolved_furi));
+      //objs->add_obj(ROUTER_READ_INTERCEPT(*resolved_furi));
       // if (!objs->objs_value()->empty())
       //  return objs;
       //////////////////////////////////////////////////////////
@@ -138,13 +149,13 @@ namespace fhatos {
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
-     // if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
-        const Structure_p &structure = this->get_structure(*furi);
-        LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
-                   Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
-                   furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
-        structure->write(furi, obj, retain);
-     // }
+      // if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
+      const Structure_p &structure = this->get_structure(*furi);
+      LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
+                 Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
+                 furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
+      structure->write(furi, obj, retain);
+      // }
     }
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) {
@@ -200,7 +211,18 @@ namespace fhatos {
 
   protected:
     explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) :
-      Valued(id), namespace_prefix_(id_p(namespace_prefix)) {
+      Rec(rmap({
+              {"structure", to_lst()},
+              {":stop", to_bcode([this](const Obj_p &) {
+                this->stop();
+                return noobj();
+              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+              {":attach", to_bcode([this](const Obj_p &) {
+                //this->attach();
+                return noobj();
+              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}
+          }), OType::REC, REC_FURI, id_p(id)),
+      namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
       ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(idx, obj, retain);
