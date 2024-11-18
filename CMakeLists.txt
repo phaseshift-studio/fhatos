@@ -7,8 +7,10 @@ PROJECT(fhatos)
 ##############################################
 ############ RELEASE DEFINITIONS #############
 ##############################################
-ADD_DEFINITIONS("-DFOS_NAME=FhatOS")       ###
-ADD_DEFINITIONS("-DFOS_VERSION=0.1-alpha") ###
+SET(FOS_NAME FhatOS)
+SET(FOS_VERSION 0.1-alpha)
+ADD_DEFINITIONS("-DFOS_NAME=${FOS_NAME}")
+ADD_DEFINITIONS("-DFOS_VERSION=${FOS_VERSION}")
 ##############################################
 ##############################################
 
@@ -128,6 +130,9 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
 \t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
 \t  \t${.m}--------------${..}
+\t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}
+\t  ${.y}CMAKE_SYSTEM${..}               : ${CMAKE_SYSTEM}
+\t  ${.y}CMAKE_SYSTEM_PROCESSOR${..}     : ${CMAKE_SYSTEM_PROCESSOR}
 \t  ${.y}PLATFORM${..}                   : ${PLATFORM}
 \t  ${.y}CMAKE_C_COMPILER${..}           : ${CMAKE_C_COMPILER} (${.c}${CMAKE_C_COMPILER_ID}${..})
 \t  ${.y}CMAKE_CXX_COMPILER${..}         : ${CMAKE_CXX_COMPILER} (${.c}${CMAKE_CXX_COMPILER_ID}${..})
