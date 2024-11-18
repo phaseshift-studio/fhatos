@@ -95,9 +95,11 @@ ELSEIF(LINUX)
     IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l")
         SET(MACHINE "RPI")
         ADD_DEFINITIONS("-DRPI")
-        MESSAGE(NOTICE "Building for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
-            \t MACHINE: ${MACHINE}
-            \t RPI    : ${RPI}")
+        SET(MACHINE_MODEL "<unknown>")
+        FILE(READ "/sys/firmware/devicetree/base/model" MACHINE_MODEL)
+        MESSAGE(NOTICE "\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
+            \t  ${.y}MACHINE${..}       : ${MACHINE}
+            \t  ${.y}MACHINE_MODEL${..} : ${MACHINE_MODEL}")
     ENDIF()
 ENDIF()
 #########################################
