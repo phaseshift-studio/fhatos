@@ -294,7 +294,7 @@ namespace fhatos {
     const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
   };
-  static Function<const ID_p &, const Obj_p> ROUTER_READ = [](const ID_p &) -> Obj_p {
+  static Function<const fURI_p &, const Obj_p> ROUTER_READ = [](const fURI_p &) -> Obj_p {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -1449,7 +1449,7 @@ namespace fhatos {
           return true;
         }
         case OType::BCODE: {
-          const auto insts_a = this->bcode_value();
+          /*const auto insts_a = this->bcode_value();
           const auto insts_b = type_obj->bcode_value();
           if (insts_a->size() != insts_b->size())
             return false;
@@ -1457,7 +1457,7 @@ namespace fhatos {
           for (const auto &a: *insts_a) {
             if (!a->match(*b))
               return false;
-          }
+          }*/
           return true;
         }
         default:

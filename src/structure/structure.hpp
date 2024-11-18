@@ -173,13 +173,39 @@ namespace fhatos {
         return noobj();
       }
       if (furi->has_query()) {
-        if (string(furi->query()) == "sub") {
-          const Objs_p subs = this->get_subscription_objs(p_p(furi->query("")));
-          return subs;
-        } else if (furi->query_value("doc").has_value()) {
+        const fURI_p query_less_furi = furi_p(furi->query(""));
+        Objs_p ret = Obj::to_objs();
+        if (furi->has_query("sub")) {
+          ret->add_obj(this->get_subscription_objs(query_less_furi));
+        } else if (furi->has_query("doc")) {
           return noobj();
           // const Str_p doc = this->getd
+        } else if (furi->query_value("type")) {
+          const Objs_p objs = Obj::to_objs();
+          objs->add_obj(this->read(query_less_furi));
+          for (const Obj_p &obj: *objs->objs_value()) {
+            const Obj_p type = ROUTER_READ(obj->tid());
+            ret->add_obj(type);
+          }
+        } else if (furi->has_query("inst")) {
+          const List<string> opcodes = furi->query_values("inst");
+          Rec_p insts = Obj::to_rec();
+          const Objs_p objs = Obj::to_objs();
+          objs->add_obj(ROUTER_READ(furi_p(query_less_furi->extend(":inst"))));
+          for (const Obj_p &o: *objs->objs_value()) {
+            if (!o->is_rec())
+              throw fError("obj instructs must be records: %s", o->toString().c_str());
+            insts->rec_merge(o->rec_value());
+          }
+          objs->objs_value()->clear();
+          objs->add_obj(ROUTER_READ(query_less_furi));
+          for (const Obj_p o: *objs->objs_value()) {
+            if (!FURI_OTYPE.count(*o->tid()))
+              insts->rec_merge(ROUTER_READ(furi_p(o->tid()->query("inst")))->rec_value());
+          }
+          ret->add_obj(insts);
         }
+        return ret;
       }
       const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
       const IdObjPairs_p matches = this->read_raw_pairs(temp);
@@ -368,7 +394,7 @@ namespace fhatos {
       return matches;
     }
 
-    Objs_p get_subscription_objs(const Pattern_p &pattern = p_p("#")) const {
+    Objs_p get_subscription_objs(const fURI_p &pattern = p_p("#")) const {
       const Objs_p objs = Obj::to_objs();
       this->subscriptions_->forEach([pattern,objs](const Subscription_p &subscription) {
         if (subscription->pattern().bimatches(*pattern)) {

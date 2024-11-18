@@ -260,7 +260,13 @@ namespace fhatos {
     /// QUERY
     [[nodiscard]] const char *query() const { return this->query_ ? this->query_ : ""; }
 
-    [[nodiscard]] bool has_query() const { return this->query_ != nullptr && 0 != strlen(this->query_); }
+    [[nodiscard]] bool has_query(const char *key = nullptr) const {
+      if (!this->query_ || 0 == strlen(this->query_))
+        return false;
+      if (!key)
+        return true;
+      return this->query_value(key).has_value();
+    }
 
     [[nodiscard]] fURI query(const char *query) const {
       auto new_uri = fURI(*this);
