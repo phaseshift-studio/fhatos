@@ -53,10 +53,8 @@ namespace fhatos {
                                       return noobj();
                                     }
                                   })}}),
-                           THREAD_FURI)) {
+                           THREAD_FURI,id_p(ID(string("worker/").append(std::to_string(index)))))) {
       this->mutex = mutex;
-      this->vid_ = id_p(ID(string("worker/").append(std::to_string(index))));
-      ROUTER_WRITE(this->vid_, PtrHelper::no_delete<Worker>((Worker *) this), RETAIN);
     }
   };
 

@@ -115,7 +115,7 @@ namespace fhatos {
           router()->write(type_id, type_def);
           this->progress_bar_->incr_count(type_id->toString());
           if (this->progress_bar_->done())
-            router()->write(this->vid(), PtrHelper::no_delete<Obj>((Obj *) this));
+            router()->write(this->vid(), const_pointer_cast<Obj>(shared_from_this()));
         } else {
           if (current->is_noobj()) {
             router()->write(type_id, type_def);

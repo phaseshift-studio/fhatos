@@ -269,7 +269,7 @@ namespace fhatos {
     LOG(DEBUG, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     return false;
   };
-  static BiFunction<const Obj_p, const ID_p, Obj_p> TYPE_MAKER = [](const Obj_p &, const ID_p &) {
+  static BiFunction<Obj_p, ID_p, Obj_p> TYPE_MAKER = [](Obj_p, ID_p) {
     LOG(TRACE, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -308,7 +308,7 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Obj : public Typed, public Valued, public Function<Obj_p, Obj_p> {
+  class Obj : public Typed, public Valued, public Function<Obj_p, Obj_p>, public enable_shared_from_this<Obj> {
   public:
     const OType otype_;
     Any value_;
@@ -426,7 +426,7 @@ namespace fhatos {
         return make_shared<Obj>(this->value_, this->otype_, this->tid_, id);
       if (this->vid_)
         return make_shared<Obj>(this->value_, this->otype_, this->tid_, this->vid_);
-      return PtrHelper::no_delete<Obj>(this);
+      return shared_from_this();
     }
 
 
@@ -579,7 +579,7 @@ namespace fhatos {
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
       this->rec_value()->insert(rmap->begin(), rmap->end());
-      return PtrHelper::no_delete<Rec>(this);
+      return shared_from_this();
     }
 
     virtual void rec_set(const char *uri_key, const Obj_p &val, const bool nest = true) const {
@@ -738,7 +738,7 @@ namespace fhatos {
         if (this->objs_value()->size() == 1)
           return this->objs_value()->front();
       }
-      return PtrHelper::no_delete<Obj>(this);
+      return shared_from_this();
     }
 
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
@@ -1226,7 +1226,7 @@ namespace fhatos {
       if (this->is_inst() && !args.empty()) {
         return this->inst_f()(args)(lhs);
       } else if (this->is_bcode() && !args.empty()) {
-        return replace_from_bcode(PtrHelper::no_delete((Obj *) this), args)->apply(lhs);
+        return replace_from_bcode(shared_from_this(), args)->apply(lhs);
       } else {
         return this->apply(lhs);
       }
@@ -1314,18 +1314,18 @@ namespace fhatos {
         return lhs;
       switch (this->o_type()) {
         case OType::BOOL:
-          return PtrHelper::no_delete<Bool>(this);
+          return shared_from_this(); //PtrHelper::no_delete(this);
         case OType::INT:
-          return PtrHelper::no_delete<Int>(this);
+          return shared_from_this(); //PtrHelper::no_delete(this);
         case OType::REAL:
-          return PtrHelper::no_delete<Real>(this);
+          return shared_from_this(); //PtrHelper::no_delete(this);
         case OType::URI: {
           return (lhs->is_uri() && this->uri_value().is_relative())
                    ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
-                   : PtrHelper::no_delete<Uri>(this);
+                   : shared_from_this(); //PtrHelper::no_delete(this);
         }
         case OType::STR:
-          return PtrHelper::no_delete<Str>(this);
+          return shared_from_this(); //PtrHelper::no_delete<Obj>(this);
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for (const auto &obj: *this->lst_value()) {
@@ -1370,7 +1370,7 @@ namespace fhatos {
         case OType::NOOBJ:
           return Obj::to_noobj();
         case OType::ERROR:
-          return PtrHelper::no_delete(this);
+          return shared_from_this();
         default:
           throw fError("Unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
@@ -1385,7 +1385,7 @@ namespace fhatos {
       if (type_obj->is_noop_bcode())
         return true;
       if (type_obj->is_bcode() && !this->is_bcode())
-        return !type_obj->apply(PtrHelper::no_delete<Obj>((Obj *) this))->is_noobj();
+        return !type_obj->apply(this->clone())->is_noobj();
       if (this->o_type() != type_obj->o_type())
         return false;
       if (require_same_type_id && (*this->tid_ != *type_obj->tid_))
@@ -1408,27 +1408,22 @@ namespace fhatos {
           const auto objs_b = type_obj->lst_value();
           if (objs_a->size() != objs_b->size())
             return false;
-          auto it_b = objs_b->begin();
-          for (const auto &it_a: *objs_a) {
-            if (!it_a->match(*it_b))
+          auto b = objs_b->begin();
+          for (const auto &a: *objs_a) {
+            if (!a->match(*b))
               return false;
-            ++it_b;
+            ++b;
           }
           return true;
         }
         case OType::REC: {
           const auto pairs_a = this->rec_value();
           const auto pairs_b = type_obj->rec_value();
-
-          for (const auto &it_b: *pairs_b) {
+          for (const auto &[b_id, b_obj]: *pairs_b) {
             bool found = false;
-            /*if (it_b.first->is_uri()) {
-              if (pairs_a->count(it_b.first))
-                found = true;
-            }*/
             if (!found) {
-              for (const auto &it_a: *pairs_a) {
-                if (it_a.first->match(it_b.first) && it_a.second->match(it_b.second)) {
+              for (const auto &[a_id, a_obj]: *pairs_a) {
+                if (a_id->match(b_id) && a_obj->match(b_obj)) {
                   found = true;
                   break;
                 }
@@ -1438,15 +1433,6 @@ namespace fhatos {
               return false;
           }
           return true;
-          /*if (pairs_a->size() != pairs_b->size())
-            return false;
-          auto it_b = pairs_b->begin();
-          for (const auto &it_a: *pairs_a) {
-            if (!it_a.first->match(it_b->first) || !it_a.second->match(it_b->second))
-              return false;
-            ++it_b;
-          }
-          return true;*/
         }
         case OType::INST: {
           const auto args_a = this->inst_args();
@@ -1455,9 +1441,9 @@ namespace fhatos {
             return false;
           if (this->itype() != type_obj->itype())
             return false;
-          const auto it_b = args_b.begin();
-          for (const auto &it_a: args_a) {
-            if (!it_a->match(*it_b))
+          const auto b = args_b.begin();
+          for (const auto &a: args_a) {
+            if (!a->match(*b))
               return false;
           }
           return true;
@@ -1467,9 +1453,9 @@ namespace fhatos {
           const auto insts_b = type_obj->bcode_value();
           if (insts_a->size() != insts_b->size())
             return false;
-          const auto it_b = insts_b->begin();
-          for (const auto &it_a: *insts_a) {
-            if (!it_a->match(*it_b))
+          const auto b = insts_b->begin();
+          for (const auto &a: *insts_a) {
+            if (!a->match(*b))
               return false;
           }
           return true;
@@ -1481,7 +1467,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p as(const ID_p &type_id) const {
-      const Obj_p obj = TYPE_MAKER(PtrHelper::no_delete<Obj>(const_cast<Obj *>(this)), type_id);
+      Obj_p obj = TYPE_MAKER(make_shared<Obj>(*this), type_id); // TODO: expensive.
       return obj;
     }
 

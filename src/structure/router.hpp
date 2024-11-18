@@ -134,11 +134,7 @@ namespace fhatos {
                  Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
                  obj->toString().c_str(), struc->pattern()->toString().c_str());
       objs->add_obj(obj);
-      return objs->objs_value()->empty()
-               ? noobj()
-               : (objs->objs_value()->size() == 1
-                    ? objs->objs_value()->front()
-                    : objs);
+      return objs->none_one_all();
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {

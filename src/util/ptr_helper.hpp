@@ -22,6 +22,7 @@
 #include <memory>
 
 using namespace std;
+
 namespace fhatos {
 
   class Obj;
@@ -33,7 +34,9 @@ namespace fhatos {
   private:
     template<typename T = Obj>
     struct NonDeleter {
-      void operator()(const T *) { /*LOG(INFO, "Deleting...not!\n");*/ }
+      void operator()(const T *) {
+        /*LOG(INFO, "Deleting...not!\n");*/
+      }
     };
 
   public:
@@ -58,7 +61,7 @@ namespace fhatos {
     }
 
     template<typename T = Obj>
-    static ptr<T> no_delete(T *t) {
+    static ptr<T> no_delete(const T *t) {
       return ptr<T>(t, NON_DELETER_SINGLETON<T>());
     }
 

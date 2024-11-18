@@ -130,8 +130,8 @@ namespace fhatos {
         procs->lst_add(vri(proc->vid()));
       });
       this->rec_set(vri("process"), procs);
-      router()->write(this->vid(), PtrHelper::no_delete<Obj>(this));
-      return PtrHelper::no_delete<Obj>(this);
+      router()->write(this->vid(), shared_from_this());
+      return shared_from_this();
     }
 
     friend Sys;

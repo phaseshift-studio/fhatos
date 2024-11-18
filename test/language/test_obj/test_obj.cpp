@@ -253,7 +253,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING(FOS_TYPE_PREFIX "lst/ones",
                              lstD->as(FOS_TYPE_PREFIX "lst/ones")->tid()->toString().c_str());
     try {
-      const Obj_p x = lstA.as(FOS_TYPE_PREFIX "lst/ones");
+      Obj_p x = lstA.as(FOS_TYPE_PREFIX "lst/ones");
       LOG(ERROR, "%s should have not been castable\n", x->toString().c_str());
       TEST_FAIL_MESSAGE("Should throw exception");
     } catch (const fError &) {
