@@ -93,13 +93,14 @@ ELSEIF(LINUX)
     SET(PLATFORM "LINUX")
     ADD_DEFINITIONS("-DLINUX")
     IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l")
-        SET(MACHINE "RPI")
-        ADD_DEFINITIONS("-DRPI")
-        SET(MACHINE_MODEL "<unknown>")
-        FILE(READ "/sys/firmware/devicetree/base/model" MACHINE_MODEL)
-        MESSAGE(NOTICE "\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
-            \t  ${.y}MACHINE${..}       : ${MACHINE}
-            \t  ${.y}MACHINE_MODEL${..} : ${MACHINE_MODEL}")
+        SET(FOS_MACHINE "RPI")
+        SET(FOS_MACHINE_MODEL "<unknown>")
+        FILE(READ "/sys/firmware/devicetree/base/model" FOS_MACHINE_MODEL)
+        ADD_DEFINITIONS(-DRPI -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
+        MESSAGE(NOTICE
+"\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
+\t  ${.y}FOS_MACHINE${..}       : ${FOS_MACHINE}
+\t  ${.y}FOS_MACHINE_MODEL${..} : ${FOS_MACHINE_MODEL}")
     ENDIF()
 ENDIF()
 #########################################
@@ -238,8 +239,9 @@ IF(BUILD_NATIVE)
             -DNATIVE
             -DBUILD_DOCS=${BUILD_DOCS}
             -DCMAKE_SYSTEM=${CMAKE_SYSTEM}
-            -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
-            -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR})
+            -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}            # machine platform
+            -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}  # machine make
+            -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})           # machine model
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
