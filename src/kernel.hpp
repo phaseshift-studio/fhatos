@@ -68,8 +68,11 @@ namespace fhatos {
       StringHelper::lower_case(fhatos);
       StringHelper::lower_case(subos);
       StringHelper::lower_case(hardware);
-      printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!! (!b%s!!)\n",
-                          fhatos.c_str(), subos.c_str(), hardware.c_str(), machine_model.c_str());
+      StringHelper::lower_case(machine_model);
+      printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!!\n",
+                          fhatos.c_str(), subos.c_str(), hardware.c_str());
+      if (!machine_model.empty())
+        printer<>()->printf(FOS_TAB_6 " !y[!b%s!y]!!\n", machine_model.c_str());
       return Kernel::build();
     }
 

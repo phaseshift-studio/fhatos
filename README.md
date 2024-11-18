@@ -33,5 +33,6 @@ The following processors and platforms have been tested:
   - Zero 2w
   - Zero RP2040
   - RP2040 USB
+  - NanoPi NEO Air
 
 [![CMake FhatOS using Ubuntu](https://github.com/phaseshift-studio/fhatos/actions/workflows/cmake-single-platform.yml/badge.svg)](https://github.com/phaseshift-studio/fhatos/actions/workflows/cmake-single-platform.yml)

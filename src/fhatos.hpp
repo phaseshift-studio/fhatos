@@ -236,18 +236,33 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
 #else
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)
 #endif
-#ifndef BUILD_DOCS
-#define BUILD_DOCS OFF
-#endif
-
   ////////////////////////////
   // ARCHITECTURE LIBRARIES //
   ////////////////////////////
-
 #if defined(ESP32)
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_esp32
 #endif
+#ifndef FOS_MACHINE_MODEL
+#if CONFIG_IDF_TARGET_ESP32
+  #define FOS_MACHINE_MODEL ESP32
+#elif CONFIG_IDF_TARGET_ESP32S2
+#define FOS_MACHINE_MODEL ESP32S2
+#elif CONFIG_IDF_TARGET_ESP32C3
+#define FOS_MACHINE_MODEL ESP32C3
+#elif CONFIG_IDF_TARGET_ESP32S3
+#define FOS_MACHINE_MODEL ESP32S3
+#elif CONFIG_IDF_TARGET_ESP32H4
+#define FOS_MACHINE_MODEL ESP32H4
+#elif CONFIG_IDF_TARGET_ESP32C2
+#define FOS_MACHINE_MODEL ESP32C2
+#elif CONFIG_IDF_TARGET_ESP32C6
+#define FOS_MACHINE_MODEL ESP32C6
+#elif CONFIG_IDF_TARGET_ESP32H2
+#define FOS_MACHINE_MODEL ESPH2
+#endif
+#endif
+
 #define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
@@ -266,6 +281,9 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
 #elif defined(NATIVE)
 #ifndef FOS_MACHINE_NAME
 #define FOS_MACHINE_NAME fhatos_native
+#endif
+#ifndef FOS_MACHINE_MODEL
+#define FOS_MACHINE_MODEL
 #endif
 #define FOS_PROCESS(__process__) <process/ptype/native/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/native/__mqtt__>
