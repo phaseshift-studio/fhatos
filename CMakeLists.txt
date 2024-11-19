@@ -97,7 +97,7 @@ ELSEIF(LINUX)
         ADD_DEFINITIONS(-DRPI)
         FILE(READ "/sys/firmware/devicetree/base/model" FOS_MACHINE_MODEL)
         MESSAGE(NOTICE
-"\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
+                "\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
 \t  ${.y}FOS_MACHINE_MODEL${..} : ${FOS_MACHINE_MODEL}")
     ENDIF()
 ENDIF()
@@ -118,10 +118,8 @@ OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 ####################################################################
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
-ADD_DEFINITIONS(
-        -DFOS_MACHINE_SUBOS=${CMAKE_SYSTEM}
-        -DFOS_MACHINE_ARCH=${CMAKE_SYSTEM_PROCESSOR}
-        -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
+SET(FOS_MACHINE_SUBOS ${CMAKE_SYSTEM})
+SET(FOS_MACHINE_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
 \t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
 \t  ${.g}CMAKE_BUILD_TYPE${..}   : ${CMAKE_BUILD_TYPE}
@@ -241,7 +239,10 @@ IF(BUILD_NATIVE)
     ENDIF()
     ADD_DEFINITIONS(
             -DNATIVE
-            -DBUILD_DOCS=${BUILD_DOCS})
+            -DBUILD_DOCS=${BUILD_DOCS}
+            -DFOS_MACHINE_SUBOS=${FOS_MACHINE_SUBOS}
+            -DFOS_MACHINE_ARCH=${FOS_MACHINE_ARCH}
+            -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
