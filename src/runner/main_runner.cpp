@@ -20,6 +20,8 @@
 #define fhatos_main_runner_cpp
 
 #include <chrono>
+#include <util/options.hpp>
+#include <util/ansi.hpp>
 #include <fhatos.hpp>
 #include <kernel.hpp>
 #include <language/insts.hpp>
@@ -29,12 +31,9 @@
 #include <model/terminal.hpp>
 #include <process/ptype/native/scheduler.hpp>
 #include <thread>
-#include <util/ansi.hpp>
-#include <util/options.hpp>
 #include <boot_loader.hpp>
 
 using namespace fhatos;
-using namespace std;
 
 void printResult(const Obj_p &obj, const uint8_t depth = 0) {
   if (obj->is_noobj())
@@ -49,6 +48,7 @@ void printResult(const Obj_p &obj, const uint8_t depth = 0) {
 }
 
 int main(int arg, char **argsv) {
+  Options::singleton()->printer<Ansi<>>(Ansi<>::singleton());
   try{
     char **args = new char *();
       args[0] = (char *) "main_runner";
@@ -57,8 +57,8 @@ int main(int arg, char **argsv) {
       args[3] = (char *) "--ansi=false";
       ArgvParser * argv_parser = new ArgvParser();
       argv_parser->init(4, args);
-      BootLoader::primary_boot(argv_parser);
       Options::singleton()->printer<Ansi<>>()->on(false);
+      BootLoader::primary_boot(argv_parser);
   }
   catch(const std::exception & e) {
     throw;
@@ -69,7 +69,7 @@ int main(int arg, char **argsv) {
   //router()->loop();
   for (int i = 1; i < arg; i++) {
     try{
-      string x = argsv[i];
+      std::string x = argsv[i];
         StringHelper::trim(x);
         /* if(x.find("!NO!") != std::string::npos) {
                printer<Ansi<>>()->on(false);
