@@ -34,6 +34,7 @@
 #include <boot_loader.hpp>
 
 using namespace fhatos;
+using namespace std;
 
 void printResult(const Obj_p &obj, const uint8_t depth = 0) {
   if (obj->is_noobj())
