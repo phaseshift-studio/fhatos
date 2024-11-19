@@ -31,9 +31,6 @@
 #include <util/options.hpp>
 #include <util/string_printer.hpp>
 
-
-using namespace std;
-
 namespace fhatos {
   class CPrinter {
   public:

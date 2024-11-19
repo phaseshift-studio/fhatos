@@ -45,7 +45,7 @@ else
   cd "${FHATOS_HOME}" || exit 1
 fi
 
-echo -e " ${LB}working directory ${GREEN}$working_directory{NC}${RB}"
+echo -e " ${LB}working directory ${GREEN}$working_directory${NC}${RB}"
 
 if [[ -z $1  ]]; then
   filter=" "

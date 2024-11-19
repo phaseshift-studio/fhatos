@@ -28,9 +28,8 @@
 #define TOTAL_INSTRUCTIONS 75
 #define FOS_TYPE_INST_URI "/type/inst/"
 
-using namespace fhatos;
-
 namespace mmadt {
+  using namespace fhatos;
   class mmADT {
   public:
     static Rec_p singleton() {

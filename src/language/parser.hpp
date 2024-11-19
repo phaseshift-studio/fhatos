@@ -27,7 +27,6 @@
 #include <util/string_helper.hpp>
 
 namespace fhatos {
-  using namespace std;
 
   struct Tracker {
     int8_t parens = 0;

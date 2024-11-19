@@ -79,6 +79,20 @@
 
 
 namespace fhatos {
+  using std::string;
+  using std::shared_ptr;
+  using std::to_string;
+  using std::make_shared;
+  using std::atomic_int;
+  using std::atomic;
+  using std::thread;
+  using std::initializer_list;
+  using std::stringstream;
+  using std::fstream;
+  using std::ios;
+  using std::enable_shared_from_this;
+
+
   [[maybe_unused]] static auto ANSI_ART =
       "!r            !_PhaseShift Studio Presents!! \n"
       "!m <`--'>____!g  ______ __  __  ______  ______  !b______  ______!! \n"

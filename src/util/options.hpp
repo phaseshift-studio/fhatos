@@ -34,9 +34,11 @@
 #endif
 
 
-using namespace std;
-
 namespace fhatos {
+  using std::function;
+  using std::any;
+  using std::shared_ptr;
+  using std::string;
   // TODO: singleton methods in global fhatos namespace for terser syntax
 
   inline function<void()> FEED_WATCDOG = []() {

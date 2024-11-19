@@ -19,11 +19,13 @@
 #ifndef string_helper_hpp
 #define string_helper_hpp
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 
-
 namespace fhatos {
+  using std::to_string;
+
   enum class WILDCARD { NO = 0, PLUS = 1, HASH = 2 };
 
   class StringHelper final {

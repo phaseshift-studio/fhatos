@@ -81,19 +81,19 @@ namespace fhatos {
     ERROR
   };
 
-  static const Enums<OType> OTypes = Enums<OType>({{OType::OBJ, "obj"},
-                                                   {OType::NOOBJ, "noobj"},
-                                                   {OType::OBJS, "objs"},
-                                                   {OType::BOOL, "bool"},
-                                                   {OType::INT, "int"},
-                                                   {OType::REAL, "real"},
-                                                   {OType::URI, "uri"},
-                                                   {OType::STR, "str"},
-                                                   {OType::LST, "lst"},
-                                                   {OType::REC, "rec"},
-                                                   {OType::INST, "inst"},
-                                                   {OType::BCODE, "bcode"},
-                                                   {OType::ERROR, "error"}});
+  static const auto OTypes = Enums<OType>({{OType::OBJ, "obj"},
+                                           {OType::NOOBJ, "noobj"},
+                                           {OType::OBJS, "objs"},
+                                           {OType::BOOL, "bool"},
+                                           {OType::INT, "int"},
+                                           {OType::REAL, "real"},
+                                           {OType::URI, "uri"},
+                                           {OType::STR, "str"},
+                                           {OType::LST, "lst"},
+                                           {OType::REC, "rec"},
+                                           {OType::INST, "inst"},
+                                           {OType::BCODE, "bcode"},
+                                           {OType::ERROR, "error"}});
 
   class Obj;
 
@@ -158,34 +158,34 @@ namespace fhatos {
     free(bobj->second);
     delete bobj;
   };
-  static const Enums<IType> ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
-                                                         {IType::ZERO_TO_ONE, "."},
-                                                         {IType::ZERO_TO_MANY, "."},
-                                                         {IType::ONE_TO_ZERO, "o"},
-                                                         {IType::MANY_TO_ZERO, "O"},
-                                                         {IType::ONE_TO_ONE, "o"},
-                                                         {IType::ONE_TO_MANY, "o"},
-                                                         {IType::MANY_TO_ONE, "O"},
-                                                         {IType::MANY_TO_MANY, "O"}});
-  static const Enums<IType> ITypeRanges = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
-                                                        {IType::ZERO_TO_ONE, "o"},
-                                                        {IType::ZERO_TO_MANY, "O"},
-                                                        {IType::ONE_TO_ZERO, "."},
-                                                        {IType::MANY_TO_ZERO, "."},
-                                                        {IType::ONE_TO_ONE, "o"},
-                                                        {IType::ONE_TO_MANY, "O"},
-                                                        {IType::MANY_TO_ONE, "o"},
-                                                        {IType::MANY_TO_MANY, "O"}});
-  static const Enums<IType> ITypeSignatures = Enums<IType>({{IType::ZERO_TO_ZERO, ".->."},
-                                                            {IType::ZERO_TO_ONE, ".->o"},
-                                                            {IType::ZERO_TO_MANY, ".->O"},
-                                                            {IType::ONE_TO_ZERO, "o->."},
-                                                            {IType::MANY_TO_ZERO, "O->."},
-                                                            {IType::ONE_TO_ONE, "o->o"},
-                                                            {IType::ONE_TO_MANY, "o->O"},
-                                                            {IType::MANY_TO_ONE, "O->o"},
-                                                            {IType::MANY_TO_MANY, "O->O"}});
-  static const Enums<IType> ITypeDescriptions = Enums<IType>({
+  static const auto ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
+                                                 {IType::ZERO_TO_ONE, "."},
+                                                 {IType::ZERO_TO_MANY, "."},
+                                                 {IType::ONE_TO_ZERO, "o"},
+                                                 {IType::MANY_TO_ZERO, "O"},
+                                                 {IType::ONE_TO_ONE, "o"},
+                                                 {IType::ONE_TO_MANY, "o"},
+                                                 {IType::MANY_TO_ONE, "O"},
+                                                 {IType::MANY_TO_MANY, "O"}});
+  static const auto ITypeRanges = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
+                                                {IType::ZERO_TO_ONE, "o"},
+                                                {IType::ZERO_TO_MANY, "O"},
+                                                {IType::ONE_TO_ZERO, "."},
+                                                {IType::MANY_TO_ZERO, "."},
+                                                {IType::ONE_TO_ONE, "o"},
+                                                {IType::ONE_TO_MANY, "O"},
+                                                {IType::MANY_TO_ONE, "o"},
+                                                {IType::MANY_TO_MANY, "O"}});
+  static const auto ITypeSignatures = Enums<IType>({{IType::ZERO_TO_ZERO, ".->."},
+                                                    {IType::ZERO_TO_ONE, ".->o"},
+                                                    {IType::ZERO_TO_MANY, ".->O"},
+                                                    {IType::ONE_TO_ZERO, "o->."},
+                                                    {IType::MANY_TO_ZERO, "O->."},
+                                                    {IType::ONE_TO_ONE, "o->o"},
+                                                    {IType::ONE_TO_MANY, "o->O"},
+                                                    {IType::MANY_TO_ONE, "O->o"},
+                                                    {IType::MANY_TO_MANY, "O->O"}});
+  static const auto ITypeDescriptions = Enums<IType>({
       {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
       {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
       {IType::ZERO_TO_MANY, "Ø->Œ (source)"},

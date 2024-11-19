@@ -21,8 +21,6 @@ FhatOS: A Distributed Operating System
 
 #include <fhatos.hpp>
 
-using namespace std;
-
 namespace fhatos {
 
   template<class T>

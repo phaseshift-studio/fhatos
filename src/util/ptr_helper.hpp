@@ -21,8 +21,6 @@
 
 #include <memory>
 
-using namespace std;
-
 namespace fhatos {
 
   class Obj;

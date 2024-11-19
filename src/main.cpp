@@ -24,7 +24,9 @@
 
 #define HELP "  --!b%-15s!!= %5s\n"
 
-using namespace fhatos;
+using fhatos::ArgvParser;
+using fhatos::BootLoader;
+using fhatos::Ansi;
 auto *args_parser = new ArgvParser();
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////

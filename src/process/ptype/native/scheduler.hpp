@@ -64,7 +64,7 @@ namespace fhatos {
       static bool setup = false;
       static auto scheduler_p = ptr<Scheduler>(new Scheduler(id));
       if (!setup) {
-        scheduler_thread = make_shared<thread::id>(this_thread::get_id());
+        scheduler_thread = make_shared<thread::id>(std::this_thread::get_id());
         setup = true;
       }
       return scheduler_p;

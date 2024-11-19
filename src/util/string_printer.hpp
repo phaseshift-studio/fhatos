@@ -29,7 +29,6 @@
 
 #include <string>
 
-using namespace std;
 namespace fhatos {
 
   // TODO: Move to ansi

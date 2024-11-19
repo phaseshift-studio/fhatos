@@ -24,9 +24,10 @@
 
 #include "string_helper.hpp"
 
-using namespace std;
-
 namespace fhatos {
+  using std::list;
+  using std::initializer_list;
+  using std::pair;
   template<typename ENUM>
   struct Enums {
     const list<pair<ENUM, string>> ENUM_TO_STR{};

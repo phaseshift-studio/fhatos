@@ -31,7 +31,9 @@
 #define FOS_MQTT_RETRY_WAIT 5000
 
 namespace fhatos {
-  using namespace chrono;
+  using std::chrono::milliseconds;
+  using std::chrono::duration_cast;
+  using std::chrono::system_clock;
 
   class BaseMqtt : public Structure {
   public:
