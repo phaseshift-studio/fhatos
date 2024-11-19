@@ -27,6 +27,7 @@ The following processors and platforms have been tested:
   - LOLIN S2 Mini
   - LOLIN S3 Mini
   - LOLIN S3 Pro
+  - LOLIN S3 AI
   - LILYGO T7-S3
   - N16R8 S3
 - **RASPBERRY PI** (gcc/wiringpi)

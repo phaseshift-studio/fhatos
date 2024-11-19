@@ -62,15 +62,15 @@ namespace fhatos {
 
     static ptr<Kernel> displaying_architecture() {
       string fhatos = STR(FOS_NAME) "-" STR(FOS_VERSION);
-      string subos = STR(CMAKE_SYSTEM);
-      string hardware = STR(CMAKE_SYSTEM_PROCESSOR);
+      string machine_subos = STR(FOS_MACHINE_SUBOS);
+      string machine_arch = STR(FOS_MACHINE_ARCH);
       string machine_model = STR(FOS_MACHINE_MODEL);
       StringHelper::lower_case(fhatos);
-      StringHelper::lower_case(subos);
-      StringHelper::lower_case(hardware);
+      StringHelper::lower_case(machine_subos);
+      StringHelper::lower_case(machine_arch);
       StringHelper::lower_case(machine_model);
       printer<>()->printf(FOS_TAB_4 "!b%s !y> !b%s !y> !b%s!!\n",
-                          fhatos.c_str(), subos.c_str(), hardware.c_str());
+                          fhatos.c_str(), machine_subos.c_str(), machine_arch.c_str());
       if (!machine_model.empty())
         printer<>()->printf(FOS_TAB_6 " !y[!b%s!y]!!\n", machine_model.c_str());
       return Kernel::build();

@@ -83,6 +83,7 @@ IF(NOT EXISTS FOS_SHOW_GIT_PROGRESS)
     SET(FOS_SHOW_GIT_PROGRESS ON)
 ENDIF()
 #########################################
+SET(FOS_MACHINE_MODEL ${CMAKE_HOST_SYSTEM_PROCESSOR})
 IF(WIN32)
     SET(PLATFORM "WIN32")
     ADD_DEFINITIONS("-DWIN32")
@@ -93,13 +94,10 @@ ELSEIF(LINUX)
     SET(PLATFORM "LINUX")
     ADD_DEFINITIONS("-DLINUX")
     IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l")
-        SET(FOS_MACHINE "RPI")
-        SET(FOS_MACHINE_MODEL "<unknown>")
+        ADD_DEFINITIONS(-DRPI)
         FILE(READ "/sys/firmware/devicetree/base/model" FOS_MACHINE_MODEL)
-        ADD_DEFINITIONS(-DRPI -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
         MESSAGE(NOTICE
 "\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
-\t  ${.y}FOS_MACHINE${..}       : ${FOS_MACHINE}
 \t  ${.y}FOS_MACHINE_MODEL${..} : ${FOS_MACHINE_MODEL}")
     ENDIF()
 ENDIF()
@@ -120,6 +118,10 @@ OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 ####################################################################
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
+ADD_DEFINITIONS(
+        -DFOS_MACHINE_SUBOS=${CMAKE_SYSTEM}
+        -DFOS_MACHINE_ARCH=${CMAKE_SYSTEM_PROCESSOR}
+        -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})
 MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
 \t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
 \t  ${.g}CMAKE_BUILD_TYPE${..}   : ${CMAKE_BUILD_TYPE}
@@ -134,9 +136,11 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
 \t  \t${.m}--------------${..}
 \t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}
-\t  ${.y}CMAKE_SYSTEM${..}               : ${CMAKE_SYSTEM}
-\t  ${.y}CMAKE_SYSTEM_PROCESSOR${..}     : ${CMAKE_SYSTEM_PROCESSOR}
+\t  ${.y}FOS_MACHINE_SUBOS${..}          : ${FOS_MACHINE_SUBOS}
+\t  ${.y}FOS_MACHINE_ARCH${..}           : ${FOS_MACHINE_ARCH}
+\t  ${.y}FOS_MACHINE_MODEL${..}          : ${FOS_MACHINE_MODEL}
 \t  ${.y}PLATFORM${..}                   : ${PLATFORM}
+\t  ${.y}CMAKE_SYSTEM_NAME${..}          : ${CMAKE_SYSTEM_NAME}
 \t  ${.y}CMAKE_C_COMPILER${..}           : ${CMAKE_C_COMPILER} (${.c}${CMAKE_C_COMPILER_ID}${..})
 \t  ${.y}CMAKE_CXX_COMPILER${..}         : ${CMAKE_CXX_COMPILER} (${.c}${CMAKE_CXX_COMPILER_ID}${..})
 \t  ${.y}CMAKE_C_COMPILER_VERSION${..}   : ${CMAKE_C_COMPILER_VERSION}
@@ -237,11 +241,7 @@ IF(BUILD_NATIVE)
     ENDIF()
     ADD_DEFINITIONS(
             -DNATIVE
-            -DBUILD_DOCS=${BUILD_DOCS}
-            -DCMAKE_SYSTEM=${CMAKE_SYSTEM}
-            -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}            # machine platform
-            -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}  # machine make
-            -DFOS_MACHINE_MODEL=${FOS_MACHINE_MODEL})           # machine model
+            -DBUILD_DOCS=${BUILD_DOCS})
     FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
     INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
