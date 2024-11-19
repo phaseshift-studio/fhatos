@@ -146,7 +146,7 @@ namespace fhatos {
         while (thread->running) {
           thread->loop();
         }
-      } catch (fError error) {
+      } catch (const fError &error) {
         thread->stop();
         LOG_PROCESS(ERROR, thread, "processor loop error: %s\n", error.what());
       }

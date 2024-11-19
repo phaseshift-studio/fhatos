@@ -281,15 +281,6 @@ namespace fhatos {
     LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static TriFunction<const fURI &, const Obj_p &, const bool, const bool> ROUTER_WRITE_INTERCEPT =
-      [](const fURI &, const Obj_p &, const bool) -> bool {
-    LOG(TRACE, "!yROUTER_WRITE_INTERCEPT!! undefined at this point in bootstrap.\n");
-    return false;
-  };
-  static Function<const fURI &, const Objs_p> ROUTER_READ_INTERCEPT = [](const fURI &) -> Objs_p {
-    LOG(TRACE, "!yROUTER_READ_INTERCEPT!! undefined at this point in bootstrap.\n");
-    return nullptr;
-  };
   static TriConsumer<const ID_p &, const Obj_p &, const bool> ROUTER_WRITE = [](const ID_p &, const Obj_p &,
     const bool) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");

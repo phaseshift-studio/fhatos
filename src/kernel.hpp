@@ -133,7 +133,7 @@ namespace fhatos {
       router()->attach(structure);
       if (structure->pattern()->equals("/sys/#")) {
         install(scheduler());
-        //install(router());
+        install(router());
       }
       return Kernel::build();
     }

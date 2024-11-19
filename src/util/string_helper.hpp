@@ -159,10 +159,9 @@ namespace fhatos {
     }
 
     static string next_token(const char &split, std::stringstream *ss) {
-      const std::stringstream::pos_type start = ss->tellg();
       string token;
-      char c;
-      while ((c = ss->get()) != EOF) {
+      while (!ss->eof()) {
+        const char c = ss->get();
         if (c == split && !token.empty())
           break;
         token += c;

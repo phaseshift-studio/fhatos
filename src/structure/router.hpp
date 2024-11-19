@@ -129,33 +129,20 @@ namespace fhatos {
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       const fURI_p resolved_furi = resolve_namespace_prefix(furi);
-      ///////////////////////////////////////////////
-      //////////// ROUTER READ INTERCEPTS ///////////
-      ///////////////////////////////////////////////
-      const Objs_p objs = Obj::to_objs();
-      //objs->add_obj(ROUTER_READ_INTERCEPT(*resolved_furi));
-      // if (!objs->objs_value()->empty())
-      //  return objs;
-      //////////////////////////////////////////////////////////
-      //////////////////////////////////////////////////////////
-      //////////////////////////////////////////////////////////
       const Structure_p &struc = this->get_structure(*resolved_furi);
-      const Obj_p obj = struc->read(resolved_furi);
+      const Objs_p objs = struc->read(resolved_furi);
       LOG_ROUTER(DEBUG, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                  Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
-                 obj->toString().c_str(), struc->pattern()->toString().c_str());
-      objs->add_obj(obj);
+                 objs->toString().c_str(), struc->pattern()->toString().c_str());
       return objs->none_one_all();
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
-      // if (!ROUTER_WRITE_INTERCEPT(*furi, obj, retain)) {
       const Structure_p &structure = this->get_structure(*furi);
       LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
                  Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
                  furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
       structure->write(furi, obj, retain);
-      // }
     }
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) {
@@ -230,51 +217,6 @@ namespace fhatos {
       };
       ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) {
         this->route_subscription(subscription);
-      };
-      ROUTER_WRITE_INTERCEPT = [this](const fURI &furi, const Obj_p &payload, const bool retain) -> bool {
-        if (!retain)
-          return false;
-        if (payload->is_noobj()) {
-          const Option<Structure_p> found = this->structures_.find(
-              [furi](const Structure_p &structure) { return structure->pattern()->equals(furi); });
-          if (!found.has_value())
-            return false;
-          found.value()->stop();
-          this->detach(found.value()->pattern());
-          return true;
-        }
-        if (payload->is_rec() &&
-            (payload->tid()->matches(HEAP_FURI->extend("#")) || payload->tid()->matches(MQTT_FURI->extend("#")) ||
-             payload->tid()->matches(COMPUTED_FURI->extend("#")))) {
-          LOG_ROUTER(DEBUG, "intercepting retained %s\n", payload->toString().c_str());
-          // STRUCTURE_ATTACHER(furi, payload);
-          return true;
-        }
-        return false;
-      };
-      ROUTER_READ_INTERCEPT = [this](const fURI &furi) -> Objs_p {
-        if (this->vid()->resolve("./structure/").bimatches(furi)) {
-          auto uris = make_shared<List<Uri_p>>();
-          this->structures_.forEach(
-              [uris](const Structure_p &structure) { uris->push_back(vri(structure->pattern())); });
-          const Rec_p rec = ObjHelper::encode_lst(this->vid()->resolve("./structure/"), *uris);
-          return rec;
-        }
-        if (this->vid()->resolve("./structure/+").bimatches(furi)) {
-          if (StringHelper::is_integer(furi.name())) {
-            const Option<Structure_p> option = this->structures_.get(stoi(furi.name()));
-            if (!option.has_value())
-              throw fError("no structure at provided index %i", stoi(furi.name()));
-            return vri(option.value()->pattern());
-          }
-          if (furi.name() == "+" || furi.name() == "#") {
-            const Objs_p objs = Obj::to_objs();
-            this->structures_.forEach(
-                [objs](const Structure_p &structure) { objs->add_obj(vri(structure->pattern())); });
-            return objs;
-          }
-        }
-        return noobj();
       };
       LOG_ROUTER(INFO, "!yrouter!! started\n");
     }

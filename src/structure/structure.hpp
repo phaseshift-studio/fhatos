@@ -199,7 +199,7 @@ namespace fhatos {
           }
           objs->objs_value()->clear();
           objs->add_obj(ROUTER_READ(query_less_furi));
-          for (const Obj_p o: *objs->objs_value()) {
+          for (const Obj_p &o: *objs->objs_value()) {
             if (!FURI_OTYPE.count(*o->tid()))
               insts->rec_merge(ROUTER_READ(furi_p(o->tid()->query("inst")))->rec_value());
           }
