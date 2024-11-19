@@ -34,6 +34,7 @@
 #include <boot_loader.hpp>
 
 using namespace fhatos;
+using namespace std;
 
 int main(int, char **) {
   try {
