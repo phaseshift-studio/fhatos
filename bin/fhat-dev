@@ -36,6 +36,7 @@ RB="${MAGENTA}]${NC}"
 #############################
 
 echo -e "${FHATOS} ${MAGENTA}Development Tool${NC}"
+working_directory=$(pwd)
 if [ -z "$FHATOS_HOME" ]; then
   echo -e " ${LB}fhatos ${RED}FHATOS_HOME=<not set>${NC}${RB}"
   exit 1
@@ -44,7 +45,7 @@ else
   cd "${FHATOS_HOME}" || exit 1
 fi
 
-echo -e " ${LB}current location ${GREEN}$(pwd)${NC}${RB}"
+echo -e " ${LB}working directory ${GREEN}$working_directory{NC}${RB}"
 
 if [[ -z $1  ]]; then
   filter=" "
@@ -79,10 +80,23 @@ if [ ! "${found}" ]; then
 else
   echo -e " ${LB}libpaho-mqtt-dev${RB} ${RED}NOT FOUND${NC}"
   sudo apt-get install -y libpaho-mqtt-dev rlwrap
+  [ $? -eq 0 ]  || exit 1
 fi
 ########################################################################
 ########################################################################
 ########################################################################
+status_check() {
+   exit_code=$1
+   message=$2
+   if [[ $exit_code == 0 ]]; then
+     echo -e " ${GREEN}[OK]${NC} ${YELLOW}$message${NC}"
+   else
+    echo -e " ${RED}[ERROR]${NC} ${YELLOW}$message${NC}"
+    cd "${working_directory}"
+    exit 1
+   fi
+}
+
 clean_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
      mv build/_deps .
@@ -92,21 +106,24 @@ clean_native() {
      rm -rf docs/build/
      rm -rf test/build/
      rm -rf cmake-*/
-     platformio run --target clean
   fi
 }
 
 clean_esp32() {
   if [[ $platform == esp32* || -z "${platform}"  ]]; then
     platformio run --environment ${platform} --target clean
+    status_check $? "pio clean"
     platformio run --environment ${platform} --target erase
+    status_check $? "pio erase"
   fi
 }
 
 clean_rpi() {
   if [[ $platform == "rpi" || -z "${platform}"  ]]; then
     platformio run --environment ${platform} --target clean
+    status_check $? "pio clean"
     platformio run --environment ${platform} --target erase
+    status_check $? "pio erase"
   fi
 }
 
@@ -116,10 +133,13 @@ make_native() {
     shift
     local extra_args=${@:1}
     mkdir -p build
-    cd build || exit 1;
+    cd build
+    status_check $? "mkdir and cd build"
     echo -e " ${LB}evaluating ${GREEN}cmake .. -DBUILD_DOCS=OFF ${extra_args}; make -j6 -o1${RB}"
     cmake .. -DBUILD_DOCS=OFF ${extra_args};
+    status_check $? "cmake"
     make -j6 -o1; # j6 parallel and o1 low optimization level
+    status_check $? "make"
     cd ..;
   fi
 }
@@ -130,7 +150,9 @@ make_esp32() {
     shift
     local extra_args=${@:1}
     platformio run ${environ} ${extra_args}
+    status_check $? "pio run"
     platformio run ${environ} --target buildfs
+    status_check $? "pio buildfs"
     printf '%b\n' "$(cat board/partition/large_code.csv)"
   fi
 }
@@ -140,8 +162,10 @@ make_rpi() {
     shift
     shift
     local extra_args=${@:1}
-    platformio run ${environ} ${extra_args}
+    status_check $? "pio run"
+    [ $? -eq 0 ]  || exit 1
     platformio run ${environ} --target buildfs
+    status_check $? "pio buildfs"
     printf '%b\n' "$(cat board/partition/large_code.csv)"
   fi
 }
@@ -151,8 +175,10 @@ ctest_native() {
     shift
     shift
     local extra_args=${@:1}
-    cd build/test || exit 1;
+    cd build/test
+    status_check $? "cd build/test"
     ctest ${extra_args}
+    status_check $? "ctest"
     cd ../..
   fi
 }
@@ -163,8 +189,8 @@ test_native() {
     shift
     shift
     local extra_args=${@:1}
-    cd build/test || exit 1;
     ctest ${extra_args}
+    status_check $? "ctest"
     cd ../..
   fi
 }
@@ -176,6 +202,7 @@ test_esp32() {
     local extra_args=${@:1}
     # platformio run --target clean
     platformio test ${environ} -v "--filter=${filter}"
+    status_check $? "pio test"
   fi
 }
 
@@ -196,7 +223,9 @@ build_docs() {
     mkdir -p build
     cd build || exit 1;
     cmake .. -DBUILD_TESTS=OFF -DBUILD_DOCS=ON ${extra_args};
+    status_check $? "cmake docs"
     make -j6 -o1; # j6 parallel and o1 low optimization level
+    status_check $? "male docs"
     cd ..;
 }
 
@@ -210,6 +239,7 @@ if [[ $1 == "clean" ]]; then
   clean_rpi
 elif [[ $1 == "build" &&  $2 == "docs" ]]; then
   build_docs "${@}"
+  status_check $? "doc build"
 elif [[ $1 == "ctest" ]]; then
   ctest_native "${@}"
   # test_esp32
@@ -226,8 +256,11 @@ elif [[ $1 == "upload" ]]; then
   echo -e "\n${BLUE}ESP32${NC} ${FHATOS} ${BLUE}Flash Memory Partition${NC}\n"
   printf '%b\n' "$(cat board/partition/large_code.csv)\n"
   platformio run ${environ} --target buildfs
+  status_check $? "pio buildfs"
   platformio run ${environ} --target uploadfs
+  status_check $? "pio uploadfs"
   platformio run ${environ} --target upload
+  status_check $? "pio upload"
   build_rlwrap_completions
 else
    echo -e "usage: 
@@ -239,8 +272,5 @@ else
     fhat-dev build docs
     fhat-dev test"
 fi
-if [[ $? == 0 ]]; then
-    echo -e "${GREEN}SUCCESS${NC}"
-else
-    echo -e "${RED}FAILURE${NC}"
-fi
+###### DONE
+echo -e "${GREEN}SUCCESS${NC}"

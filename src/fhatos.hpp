@@ -174,7 +174,6 @@ namespace fhatos {
     if (p)                                                                                                             \
       delete (p);                                                                                                      \
   }
-
 #define FOS_IS_DOC_BUILD 0 == strcmp(STR(BUILD_DOCS), "ON")
 #define FOS_MMADT_URL_PREFIX "https://fhatos.org/mmadt/"
 #define FOS_NOOBJ_TOKEN noobj
@@ -262,7 +261,6 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
 #define FOS_MACHINE_MODEL ESPH2
 #endif
 #endif
-
 #define FOS_PROCESS(__process__) <process/ptype/esp32/__process__>
 #define FOS_MQTT(__mqtt__) <structure/stype/mqtt/esp/__mqtt__>
 #define FOS_UTIL(__util__) <util/esp/__util__>
