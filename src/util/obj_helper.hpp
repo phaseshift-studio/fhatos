@@ -23,7 +23,7 @@
 #include <language/obj.hpp>
 
 namespace fhatos {
-
+  using std::make_pair;
   using LHSArgs = Pair<Obj_p, List_p<Obj_p>>;
   using LHSArgs_p = ptr<LHSArgs>;
 

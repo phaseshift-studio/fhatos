@@ -27,6 +27,7 @@
 #define TOTAL_INSTRUCTIONS 75
 
 namespace fhatos {
+  using std::const_pointer_cast;
   class Type final : public Obj {
   public:
     ptr<ProgressBar> progress_bar_ = nullptr;
