@@ -28,6 +28,7 @@
 
 namespace fhatos {
   using std::const_pointer_cast;
+
   class Type final : public Obj {
   public:
     ptr<ProgressBar> progress_bar_ = nullptr;
@@ -85,6 +86,30 @@ namespace fhatos {
                        resolved_type_id->toString().c_str());
         return make_shared<Obj>(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
+      ///////////////////////////////////////////////////////////////
+      this->load_core_inst();
+    }
+
+    void load_core_inst() {
+      INST_ARG = [](const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
+        return x(arg_num, arg_name, default_arg);
+      };
+      this->start_progress_bar(5);
+      this->save_type(MESSAGE_FURI, Obj::to_rec({
+                          {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                          {"payload", Obj::to_bcode()},
+                          {"retain", Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}}));
+      this->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
+                          {"source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                          {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                          {":on_recv", Obj::to_bcode()}}));
+      this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
+      this->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));
+      this->save_type(MQTT_FURI, Obj::to_rec({
+                          {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                          {"broker", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
+                          {"client", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));
+      this->end_progress_bar("!bfhatos !yobjs!! loaded\n");
     }
 
     static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }

@@ -27,8 +27,6 @@
 #include <util/enums.hpp>
 #include <util/mutex_deque.hpp>
 
-#include "util/obj_helper.hpp"
-
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \
   if (meta.has_value())                                                                                                \
@@ -39,47 +37,39 @@ namespace fhatos {
   using IdObjPairs = List<Pair<ID_p, Obj_p>>;
   using IdObjPairs_p = List_p<Pair<ID_p, Obj_p>>;
 
-  const Pattern_p HEAP_FURI = p_p(REC_FURI->resolve("heap"));
+  const ID_p HEAP_FURI = id_p(REC_FURI->resolve("heap"));
   const Pattern_p COMPUTED_FURI = p_p(REC_FURI->resolve("computed"));
-  const Pattern_p MQTT_FURI = p_p(REC_FURI->resolve("mqtt"));
+  const ID_p MQTT_FURI = id_p(REC_FURI->resolve("mqtt"));
   const Pattern_p DISK_FURI = p_p(REC_FURI->resolve("disk"));
   const Pattern_p BLE_FURI = p_p(REC_FURI->resolve("ble"));
 
   class Router;
 
-  enum class SType { COMPUTED, HEAP, MQTT, DISK, BLE };
-
-  static const Enums<SType> StructureTypes =
-      Enums<SType>({{SType::COMPUTED, "computed"}, {SType::HEAP, "heap"}, {SType::MQTT, "mqtt"}, {SType::DISK, "disk"},
-                    {SType::BLE, "ble"}});
-
-  //////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
 
-  /*enum Store { TRANSIENT = 0, OVERWRITE = 1, APPEND = 2 };
-
-  static string StoreChars(const Store &store) {
-    switch (store) {
-      case TRANSIENT: return "-->";
-      case OVERWRITE: return "->";
-      case APPEND: return "-+>";
-      default: throw fError("unknown storage type: %i", store);
-    }
-  }*/
-
-  class Structure : public Valued {
+  class Structure : public Rec {
   protected:
     ptr<MutexDeque<Mail_p>> outbox_ = std::make_shared<MutexDeque<Mail_p>>();
     ptr<MutexDeque<Subscription_p>> subscriptions_ = std::make_shared<MutexDeque<Subscription_p>>();
     std::atomic_bool available_ = std::atomic_bool(false);
 
   public:
-    const SType stype;
     const Pattern_p pattern_;
 
-    explicit Structure(const Pattern &pattern, const ID &value_id, const SType stype) :
-      Valued(id_p(value_id)), stype(stype), pattern_(p_p(pattern)) {
+    explicit Structure(const Pattern &pattern, const ID &value_id) :
+      Rec(Obj::RecMap<>(), OType::REC, REC_FURI, nullptr), pattern_(p_p(pattern)) {
+    }
+
+    explicit Structure(const Rec_p &structure_rec) :
+      Obj(*structure_rec->rec_merge(rmap({{
+          id_p(":detach"), Obj::to_bcode(
+              [this](const Obj_p &) {
+                this->stop();
+                return noobj();
+              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))
+      }}))), pattern_(p_p(structure_rec->rec_get(vri("pattern"))->uri_value())) {
     }
 
     [[nodiscard]] Pattern_p pattern() const {

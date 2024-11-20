@@ -21,11 +21,10 @@
 #define fhatos_terminal_hpp
 
 #include <fhatos.hpp>
-#include <structure/stype/heap.hpp>
+#include <language/type.hpp>
 
 namespace fhatos {
   class Terminal final : public Rec {
-
 
   protected:
     explicit Terminal(const ID &id) :

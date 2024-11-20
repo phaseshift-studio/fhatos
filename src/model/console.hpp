@@ -126,6 +126,15 @@ namespace fhatos {
     }
 
     void process_line(string line) const {
+      /////////////////////////////////////////////////////////////
+      ////////////// EXPERIMENTING WITH ANSI MOVEMENT /////////////
+      if (line == "TEST") {
+        this->write_stdout(str("\n\n\n!^u2"));
+        this->write_stdout(str("!^S1!y1 3 5 7 9!^L1!^d1!g2 4 6 8!!\n"));
+        return;
+      }
+      /////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////
       LOG_PROCESS(DEBUG, this, "line to parse: %s\n", line.c_str());
       StringHelper::trim(line);
       ///////// PARSE OBJ AND IF BYTECODE, EXECUTE IT

@@ -43,6 +43,11 @@ namespace fhatos {
              MQTT_CONNECTION->get_server_uri() == this->settings_.broker_;
     }
 
+  public:
+    explicit Mqtt(const Rec_p &rec) :
+      BaseMqtt(rec) {
+    }
+
     explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) :
       BaseMqtt(pattern, settings, value_id) {
       this->settings_.broker_ = string(string(ID(this->settings_.broker_).scheme()) == "mqtt"

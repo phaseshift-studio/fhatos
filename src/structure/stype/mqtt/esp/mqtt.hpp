@@ -58,6 +58,10 @@ namespace fhatos {
 
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
 
+    explicit Mqtt(const Rec_p &rec) :
+      BaseMqtt(rec) {
+    }
+
     explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &id) : BaseMqtt(pattern, settings, id) {
       if (this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", settings.broker_.c_str());

@@ -22,7 +22,6 @@
 #include <model/program.hpp>
 #include <fhatos.hpp>
 #include FOS_PROCESS(scheduler.hpp)
-#include <language/exts.hpp>
 #include <model/terminal.hpp>
 #include <process/process.hpp>
 #include <language/type.hpp>
@@ -150,11 +149,6 @@ namespace fhatos {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->write(process->vid(), process);
       scheduler()->spawn(process);
-      return Kernel::build();
-    }
-
-    static ptr<Kernel> model(const ID &model) {
-      Exts::load_extension(model);
       return Kernel::build();
     }
 

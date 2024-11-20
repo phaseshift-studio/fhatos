@@ -289,6 +289,11 @@ namespace fhatos {
     LOG(TRACE, "!yROUTER_READ!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
+  static TriFunction<const uint8_t, const char *, const Obj_p &, const Inst_p> INST_ARG = [
+      ](const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg) -> Obj_p {
+    LOG(TRACE, "!yINST_ARG!! undefined at this point in bootstrap.\n");
+    return nullptr;
+  };
   struct Subscription;
   static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &) {
     LOG(TRACE, "!yROUTER_SUBSCRIBE!! undefined at this point in bootstrap.\n");

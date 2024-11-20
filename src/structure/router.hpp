@@ -26,7 +26,8 @@
 
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
-#include <util/obj_helper.hpp>
+#include FOS_MQTT(mqtt.hpp)
+#include "stype/heap.hpp"
 
 namespace fhatos {
   /*static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {
@@ -37,6 +38,34 @@ namespace fhatos {
   protected:
     const ID_p namespace_prefix_;
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
+
+  protected:
+    explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) :
+      Rec(rmap({
+              {"structure", to_lst()},
+              {":stop", to_bcode([this](const Obj_p &) {
+                this->stop();
+                return noobj();
+              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+              {":attach", to_bcode([this](const Obj_p &obj) {
+                if (obj->tid()->name() == "heap")
+                  this->attach(make_shared<Heap<>>(obj));
+                else if (obj->tid()->name() == "mqtt")
+                  this->attach(make_shared<Mqtt>(obj));
+                return noobj();
+              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}
+          }), OType::REC, REC_FURI, id_p(id)),
+      namespace_prefix_(id_p(namespace_prefix)) {
+      ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
+      ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
+        this->write(idx, obj, retain);
+        return obj;
+      };
+      ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) {
+        this->route_subscription(subscription);
+      };
+      LOG_ROUTER(INFO, "!yrouter!! started\n");
+    }
 
   public:
     static ptr<Router> singleton(const Pattern &pattern = "/sys/router/",
@@ -50,27 +79,18 @@ namespace fhatos {
     }
 
     void stop() {
-      auto *computed_count = new atomic_int(0);
-      auto *heap_count = new atomic_int(0);
-      auto *mqtt_count = new atomic_int(0);
-      this->structures_.forEach([computed_count, heap_count, mqtt_count](const Structure_p &structure) {
-        switch (structure->stype) {
-          case SType::COMPUTED:
-            computed_count->fetch_add(1);
-            break;
-          case SType::HEAP:
-            heap_count->fetch_add(1);
-            break;
-          case SType::MQTT:
-            mqtt_count->fetch_add(1);
-            break;
-        }
+      auto map = make_shared<Map<string, int>>();
+      this->structures_.forEach([map](const Structure_p &structure) {
+        const string name = structure->tid()->name();
+        int count = map->count(name) ? map->at(name) : 0;
+        count++;
+        if (map->count(name))
+          map->erase(name);
+        map->insert({name, count});
       });
-      LOG_ROUTER(INFO, "!yStopping!g %i !ycomputed!! | !g%i !yheap!! | !g%i !ymqtt!!\n", computed_count->load(),
-                 heap_count->load(), mqtt_count->load());
-      delete computed_count;
-      delete heap_count;
-      delete mqtt_count;
+      for (const auto &[name,count]: *map) {
+        LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
+      }
       this->detach(p_p("#"));
       LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
@@ -78,7 +98,7 @@ namespace fhatos {
     void attach(const ptr<Structure> &structure) {
       if (structure->pattern()->equals(Pattern(""))) {
         LOG_ROUTER(INFO, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
-                   StructureTypes.to_chars(structure->stype).c_str());
+                   structure->tid()->name().c_str());
       } else {
         this->structures_.forEach([structure, this](const Structure_p &s) {
           if (structure->pattern()->bimatches(*s->pattern())) {
@@ -92,11 +112,13 @@ namespace fhatos {
         this->structures_.push_back(structure);
         structure->setup();
         if (structure->available()) {
-          LOG_ROUTER(INFO, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
-                     StructureTypes.to_chars(structure->stype).c_str());
+          LOG_ROUTER(INFO, "!b%s!! !y%s!! attached\n",
+                     structure->pattern()->toString().c_str(),
+                     structure->tid()->name().c_str());
         } else {
-          LOG_ROUTER(ERROR, "!runable to attach %s: %s!!\n", StructureTypes.to_chars(structure->stype).c_str(),
-                     structure->pattern()->toString().c_str());
+          LOG_ROUTER(ERROR, "!runable to attach %s: %s!!\n",
+                     structure->pattern()->toString().c_str(),
+                     structure->tid()->name().c_str());
           this->structures_.pop_back();
         }
       }
@@ -109,7 +131,7 @@ namespace fhatos {
         if (to_erase) {
           structure->stop();
           LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
-                     StructureTypes.to_chars(structure->stype).c_str());
+                     structure->tid()->name().c_str());
         }
         return to_erase;
       });
@@ -194,31 +216,6 @@ namespace fhatos {
         }
       }
       return type_id; // no resolution available
-    }
-
-  protected:
-    explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) :
-      Rec(rmap({
-              {"structure", to_lst()},
-              {":stop", to_bcode([this](const Obj_p &) {
-                this->stop();
-                return noobj();
-              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-              {":attach", to_bcode([this](const Obj_p &) {
-                //this->attach();
-                return noobj();
-              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}
-          }), OType::REC, REC_FURI, id_p(id)),
-      namespace_prefix_(id_p(namespace_prefix)) {
-      ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
-      ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
-        this->write(idx, obj, retain);
-        return obj;
-      };
-      ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) {
-        this->route_subscription(subscription);
-      };
-      LOG_ROUTER(INFO, "!yrouter!! started\n");
     }
   };
 

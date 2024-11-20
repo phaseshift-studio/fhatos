@@ -91,6 +91,7 @@ namespace fhatos {
     PRINTER printer;
     std::string buffer_ = std::string();
     StringPrinter printer_ = StringPrinter(&buffer_);
+    uint16_t *slots[10] = {};
     bool on_ = true;
 
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
@@ -114,8 +115,34 @@ namespace fhatos {
           const char j = buffer[i + 1];
           if ('!' == j)
             this->normal();
-            // else if('*' == j)
-            //   this->background();
+            ////////////////////////////////// POSITION
+          else if ('^' == j) {
+            const char dir = buffer[i + 2];
+            const char b[1] = {buffer[i + 3]};
+            uint8_t steps = atoi(b);
+            if (dir == 'S')
+              this->save_cursor(steps);
+            else if (dir == 'L')
+              this->load_cursor(steps);
+            else if (dir == 'u')
+              this->up(steps);
+            else if (dir == 'l')
+              this->left(steps);
+            else if (dir == 'd')
+              this->down(steps);
+            else if (dir == 'r')
+              this->right(steps);
+            else if (dir == 't') {
+              const char c[1] = {buffer[i + 4]};
+              this->teleport(steps, atoi(c));
+              i++;
+            }
+            i++;
+            i++;
+          }
+          ////////////////////////////// FONT
+          // else if('*' == j)
+          //   this->background();
           else if ('_' == j)
             this->underline();
           else if ('-' == j)
@@ -130,10 +157,13 @@ namespace fhatos {
             this->top_left();
           else if ('Z' == j)
             this->bottom_left();
+          else if('H' == j)
+            this->home();
           else if (!isalpha(j)) {
             this->printer_.print(buffer[i]);
             this->printer_.print(j);
           } else {
+            ////////////////////////////// COLOR
             if (isupper(j))
               this->bold();
             const char jj = tolower(j);
@@ -170,15 +200,19 @@ namespace fhatos {
 
   public:
     Ansi() :
-      printer(*CPrinter::singleton()) {
+      Ansi(*CPrinter::singleton()) {
     }
 
     explicit Ansi(string *str) :
-      printer(StringPrinter(str)) {
+      Ansi(StringPrinter(str)) {
     }
 
-    explicit Ansi(PRINTER printer) :
+    explicit Ansi(const PRINTER printer) :
       printer(printer) {
+      for (int i = 0; i < 10; i++) {
+        uint16_t t[2] = {0, 0};
+        this->slots[i] = t;
+      }
     }
 
     void on(bool turn_on = true) { this->on_ = turn_on; }
@@ -313,24 +347,53 @@ namespace fhatos {
     void cyan(const bool bright = false) { color(6 + (bright ? 8 : 0), 0); }
     void white(const bool bright = false) { color(7 + (bright ? 8 : 0), 0); }
 
-    void up() {
-      if (this->on_)
-        this->print("\033[1A");
+    /////////////// CURSOR MOVEMENT ///////////////
+
+    void left(const uint16_t columns = 1) {
+      this->move('D', columns);
     }
 
-    void down() {
-      if (this->on_)
-        this->print("\033[1B");
+    void right(const uint16_t columns = 1) {
+      this->move('C', columns);
     }
 
-    void left() {
-      if (this->on_)
-        this->print("\033[1D");
+    void down(const uint16_t rows = 1) {
+      /*for (int i = 0; i < rows; i++) {
+        this->print('\n');
+      }*/
+      this->move('B', rows);
     }
 
-    void right() {
-      if (this->on_)
-        this->print("\033[1C");
+    void up(const uint16_t rows = 1) {
+      this->move('A', rows);
+    }
+
+    void teleport(const uint16_t row, const uint16_t column) {
+      if (this->on_) {
+        this->print("\033[");
+        this->print(std::to_string(row).c_str());
+        this->print(';');
+        this->print(std::to_string(column).c_str());
+        this->print('H');
+      }
+    }
+
+    void home() {
+      if (this->on_) {
+        this->print("\033[H");
+      }
+    }
+
+    void to_column(const uint16_t column) {
+      this->move('G', column);
+    }
+
+    void move(const char direction, const uint16_t columns_or_rows) {
+      if (this->on_) {
+        this->print("\033[");
+        this->print(std::to_string(columns_or_rows).c_str());
+        this->print(direction);
+      }
     }
 
     void cursor(const bool visible) {
@@ -338,6 +401,59 @@ namespace fhatos {
         this->print(visible ? "\x1b[?25h" : "\x1b[?25l");
       }
     }
+
+    void save_cursor(const uint8_t slot = 0) {
+      if (this->on_) {
+        if (0 == slot) {
+          this->print("\033[s");
+        } else {
+          this->location(this->slots[slot]);
+        }
+      }
+    }
+
+    void load_cursor(const uint8_t slot = 0) {
+      if (this->on_) {
+        if (0 == slot) {
+          this->print("\033[u");
+        } else {
+          this->teleport(this->slots[slot][0], this->slots[slot][1]);
+        }
+      }
+    }
+
+    void location(uint16_t *pos) {
+      if (this->on_) {
+        this->print("\033[6n");
+        this->read(); // esc
+        this->read(); // [
+        const char a[] = {(char)this->read()};
+        pos[0] = atoi(a);
+        this->read(); // ;
+        const char b[] = {(char)this->read()};
+        pos[1] = atoi(b);
+        this->read(); // R
+      }
+    }
+
+    /*
+    ESC[H	moves cursor to home position (0, 0)
+    ESC[{line};{column}H
+    ESC[{line};{column}f	moves cursor to line #, column #
+    ESC[#A	moves cursor up # lines
+    ESC[#B	moves cursor down # lines
+    ESC[#C	moves cursor right # columns
+    ESC[#D	moves cursor left # columns
+    ESC[#E	moves cursor to beginning of next line, # lines down
+    ESC[#F	moves cursor to beginning of previous line, # lines up
+    ESC[#G	moves cursor to column #
+    ESC[6n	request cursor position (reports as ESC[#;#R)
+    ESC M	moves cursor one line up, scrolling if needed
+    ESC 7	save cursor position (DEC)
+    ESC 8	restores the cursor to the last saved position (DEC)
+    ESC[s	save cursor position (SCO)
+    ESC[u	restores the cursor to the last saved position (SCO)
+    */
 
     static string silly_print(const char *text, const bool rainbow = true, const bool rollercoaster = true) {
       srand(time(nullptr));
@@ -393,6 +509,8 @@ namespace fhatos {
       ++this->current_counts_;
       if (this->ansi_->is_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
+        if(this->current_counts_ >= meter_icon_size)
+          this->current_counts_ = meter_icon_size;
         this->ansi_->print("!g[INFO]  [!b");
         for (int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
           // + 2 to make bar half as long

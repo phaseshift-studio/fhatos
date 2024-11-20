@@ -21,7 +21,7 @@
 #include <chrono>
 #include <fhatos.hpp>
 #include <structure/structure.hpp>
-#include FOS_PROCESS(scheduler.hpp)
+#include <language/insts.hpp>
 
 #ifndef FOS_MQTT_BROKER
 #define FOS_MQTT_BROKER localhost
@@ -55,9 +55,13 @@ namespace fhatos {
   protected:
     Settings settings_;
 
+    explicit BaseMqtt(const Rec_p &rec) :
+      Structure(rec) {
+    }
+
     // +[scheme]//+[authority]/#[path]
     explicit BaseMqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) :
-      Structure(pattern, value_id, SType::MQTT),
+      Structure(pattern, value_id),
       settings_(settings) {
     }
 
@@ -136,7 +140,8 @@ namespace fhatos {
                                      thing->load()->push_back({id_p(message->rec_get(vri("target"))->uri_value()),
                                                                message->rec_get(vri("payload"))});
                                      return noobj();
-                                   }, {x(0)}, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+                                   }, {INST_ARG(0, "msg", noobj())},
+                                   StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
       while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <

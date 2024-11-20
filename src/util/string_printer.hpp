@@ -34,7 +34,9 @@ namespace fhatos {
   // TODO: Move to ansi
   class StringPrinter final EXTENDS {
   public:
-    explicit StringPrinter(std::string *xstring) : xstring(xstring) {}
+    explicit StringPrinter(std::string *xstring) :
+      xstring(xstring) {
+    }
 
     string get() const { return *this->xstring; }
 
@@ -48,8 +50,12 @@ namespace fhatos {
 
     VIRTUAL uint8_t print(char c) { return this->write(c); }
 
+    VIRTUAL int read() const {
+      return this->xstring->at(this->xstring->length() - 1);
+    }
 
-    VIRTUAL void flush() {};
+    VIRTUAL void flush() {
+    };
 
     VIRTUAL size_t write(const uint8_t c) {
       *xstring += static_cast<char>(c);

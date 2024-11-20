@@ -73,20 +73,20 @@ namespace fhatos {
     }
 
     void stop() {
-      auto *thread_count = new atomic_int(0);
-      auto *fiber_count = new atomic_int(0);
+      auto map = make_shared<Map<string, int>>();
       auto list = new List<Process_p>();
-      this->processes_->forEach([list, thread_count, fiber_count](const Process_p &proc) {
-        if (proc->tid()->has_path("thread"))
-          thread_count->fetch_add(1);
-        else if (proc->tid()->has_path("fiber"))
-          fiber_count->fetch_add(1);
-        list->push_back(proc);
+      this->processes_->forEach([map,list](const Process_p &process) {
+        const string name = process->tid()->name();
+        int count = map->count(name) ? map->at(name) : 0;
+        count++;
+        if (map->count(name))
+          map->erase(name);
+        map->insert({name, count});
+        list->push_back(process);
       });
-      LOG_SCHEDULER(INFO, "!yStopping!g %i !ythreads!! | !g%i !yfibers!!\n", thread_count->load(),
-                    fiber_count->load());
-      delete thread_count;
-      delete fiber_count;
+      for (const auto &[name,count]: *map) {
+        LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
+      }
       while (!list->empty()) {
         const Process_p p = list->back();
         list->pop_back();

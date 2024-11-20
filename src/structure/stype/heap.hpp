@@ -37,12 +37,14 @@ namespace fhatos {
         make_shared<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
-    explicit Heap(const Pattern &pattern, const ID &value_id, const SType stype = SType::HEAP) :
-        Structure(pattern, value_id, stype) {}
-
   public:
+    explicit Heap(const Rec_p &structure_rec) :
+      Structure(structure_rec) {
+    }
+
     static ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
-      auto heap_p = ptr<Heap>(new Heap(pattern, value_id.empty() ? ID(pattern.retract_pattern()) : value_id));
+      auto heap_p = ptr<Heap>(new Heap(Obj::to_rec({{vri("pattern"), vri(pattern)}}, HEAP_FURI)));
+      heap_p->vid_ = id_p(value_id);
       return heap_p;
     }
 

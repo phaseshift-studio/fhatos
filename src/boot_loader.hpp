@@ -94,7 +94,6 @@ namespace fhatos {
             ->mount(Heap<>::create("+/#", "_cache"))
             ->install(Parser::singleton("/io/parser"))
             ->install(mmadt::mmADT::singleton())
-            ->model("/model/sys/")
 #if defined(ESP_ARCH)
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
