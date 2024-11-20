@@ -93,7 +93,7 @@ ELSEIF(APPLE)
 ELSEIF(LINUX)
     SET(PLATFORM LINUX)
     ADD_DEFINITIONS(-DLINUX)
-    IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l")
+    IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
         OPTION(RASPBERRYPI "build to raspberrypi" ON)
         ADD_DEFINITIONS(-DRASPBERRYPI)
         FILE(READ "/sys/firmware/devicetree/base/model" FOS_MACHINE_MODEL)
@@ -106,7 +106,7 @@ ELSEIF(LINUX)
             OPTION(NANOPI "nanopi architecture" ON)
             ADD_DEFINITIONS(-DNANOPI)
         ENDIF()
-           STRING(FIND ${FOS_MACHINE_MODEL} "orange" X)
+        STRING(FIND ${FOS_MACHINE_MODEL} "orange" X)
         IF(${X} GREATER -1)
             OPTION(ORANGEPI "orangepi architecture" ON)
             ADD_DEFINITIONS(-DORANGEPI)
@@ -117,7 +117,23 @@ ENDIF()
 IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
 ENDIF()
-##########################################
+FIND_PROGRAM(CCACHE_FOUND ccache)
+IF(CCACHE_FOUND)
+    MESSAGE(NOTICE "${.y}ccache${..} found at ${CCACHE_FOUND}")
+    OPTION(USE_CCACHE "use ccache" ON)
+ELSE()
+    MESSAGE(WARNING "${.y}ccache${..} not found")
+    SET(USE_CCACHE OFF)
+ENDIF()
+################################
+SET(ENV{no-dev})
+SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+####################################################################
+####################################################################
+####################################################################
 OPTION(FOS_SKIP_CMAKE "abort the cnake build process" OFF)
 OPTION(CHECK_INTERNET "check internet" ON)
 OPTION(BUILD_TESTS "build fhatos tests" OFF)
@@ -128,11 +144,13 @@ OPTION(USE_PAHO_MQTT_HACK "fix paho mqtt build process" ON)
 OPTION(FOS_SHOW_GIT_PROGRESS "verbose git output on fetch content" ON)
 ####################################################################
 ####################################################################
+####################################################################
 MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################################################
 SET(FOS_MACHINE_SUBOS ${CMAKE_SYSTEM})
 SET(FOS_MACHINE_ARCH ${CMAKE_SYSTEM_PROCESSOR})
-MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa${.m}rA${.y}mE${.g}Te${.r}rS${..}
+MESSAGE(NOTICE "
+\t  \t${.m}-----${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pr${.m}op${.y}eR${.g}Ti${.r}Es${.m}-----${..}
 \t  ${.g}PROJECT_NAME${..}       : ${PROJECT_NAME}
 \t  ${.g}CMAKE_BUILD_TYPE${..}   : ${CMAKE_BUILD_TYPE}
 \t  ${.g}CMAKE_SOURCE_DIR${..}   : ${CMAKE_SOURCE_DIR}
@@ -144,7 +162,7 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.g}SANITIZER${..}          : ${SANITIZER}
 \t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
 \t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
-\t  \t${.m}--------------${..}
+\t  \t${.m}-----${.c}S${.y}T${.r}A${.c}T${.m}I${.b}C ${.r}pR${.m}OP${.y}Er${.g}tI${.r}eS${.m}-----${..}
 \t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}
 \t  ${.y}FOS_MACHINE_SUBOS${..}          : ${FOS_MACHINE_SUBOS}
 \t  ${.y}FOS_MACHINE_ARCH${..}           : ${FOS_MACHINE_ARCH}
@@ -156,6 +174,7 @@ MESSAGE(NOTICE "\n\t${.y}Co${.r}M${.b}m${.c}on ${.r}b${.m}U${.c}il${.b}D ${.r}Pa
 \t  ${.y}CMAKE_C_COMPILER_VERSION${..}   : ${CMAKE_C_COMPILER_VERSION}
 \t  ${.y}CMAKE_CXX_COMPILER_VERSION${..} : ${CMAKE_CXX_COMPILER_VERSION}
 \t  ${.y}CMAKE_BUILD_PARALLEL_LEVEL${..} : ${CMAKE_BUILD_PARALLEL_LEVEL}
+\t  ${.y}CMAKE_CXX_FLAGS${..}            : ${CMAKE_CXX_FLAGS}
 ")
 # CMAKE_PRINT_VARIABLES(CMAKE_INSTALL_PREFIX CMAKE_PREFIX_PATH CMAKE_MODULE_PATH CMAKE_CXX_COMPILER_LAUNCHER CMAKE_BUILD_PARALLEL_LEVEL no-dev)
 ##################
@@ -204,12 +223,6 @@ IF(CHECK_INTERNET)
 ELSE()
     SET(FETCHCONTENT_FULLY_DISCONNECTED OFF)
 ENDIF()
-################################
-SET(ENV{no-dev})
-SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra")
-SET(CMAKE_CXX_FLAGS_DEBUG "-g")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
@@ -336,8 +349,8 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
-MESSAGE(CHECK_START "${.y}Making Raspberry PI Wiring Library${..}")
 IF(RASPBERRYPI)
+    MESSAGE(CHECK_START "${.y}Making Raspberry PI Wiring Library${..}")
     IF(NANOPI)
         SET(WIRINGXX_GIT_REPO https://github.com/friendlyarm/WiringNP)
         SET(WIRINGXX_TAG master)
