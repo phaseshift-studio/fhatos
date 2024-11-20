@@ -292,7 +292,15 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
 #define FOS_UTIL(__util__) <util/esp/__util__>
 #elif defined(NATIVE)
 #ifndef FOS_MACHINE_NAME
+#if defined(NANOPI)
+#define FOS_MACHINE_NAME fhatos_nanopi
+#elif defined(ORANGEPI)
+#define FOS_MACHINE_NAME fhatos_orangepi
+#elif defined (RASPBERRYPI)
+#define FOS_MACHINE_NAME fhatos_raspberrypi
+#else
 #define FOS_MACHINE_NAME fhatos_native
+#endif
 #endif
 #ifndef FOS_MACHINE_MODEL
 #define FOS_MACHINE_MODEL

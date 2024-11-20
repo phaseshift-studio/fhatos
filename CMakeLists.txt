@@ -162,6 +162,7 @@ MESSAGE(NOTICE "
 \t  ${.g}SANITIZER${..}          : ${SANITIZER}
 \t  ${.g}USE_CCACHE${..}         : ${USE_CCACHE}
 \t  ${.g}USE_PAHO_MQTT_HACK${..} : ${USE_PAHO_MQTT_HACK}
+
 \t  \t${.m}-----${.c}S${.y}T${.r}A${.c}T${.m}I${.b}C ${.r}pR${.m}OP${.y}Er${.g}tI${.r}eS${.m}-----${..}
 \t  ${.y}FOS_NAME FOS_VERSION${..}       : ${FOS_NAME} ${FOS_VERSION}
 \t  ${.y}FOS_MACHINE_SUBOS${..}          : ${FOS_MACHINE_SUBOS}
