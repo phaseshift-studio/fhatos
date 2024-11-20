@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo -e "initializing ${1}.local"
+
+echo -e "uploading ssh key for password-less login"
+ssh-copy-id root@$1.local

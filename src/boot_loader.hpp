@@ -92,32 +92,31 @@ namespace fhatos {
             ->install(Terminal::singleton("/io/terminal"))
             ->import(Console::import("/io/console"))
             ->mount(Heap<>::create("+/#", "_cache"))
-
-
             ->install(Parser::singleton("/io/parser"))
             ->install(mmadt::mmADT::singleton())
             ->model("/model/sys/")
-#ifdef ESP_ARCH
+#if defined(ESP_ARCH)
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
             ->mount(HeapPSRAM::create("/psram/#"))
+            ->mount(Memory::singleton("/soc/memory/#"))
+            //->structure(BLE::create("/io/bt/#"))
 #endif
             ->mount(Mqtt::create("//driver/#",
                                  Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
                                                 args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
                                  "/driver/mqtt"))
             ->mount(Heap<ALLOC>::create("/driver/#"))
-#ifdef NATIVE
+#if defined(NATIVE)
             ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
             //->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
-#elif defined(ESP_ARCH)
+#endif
+#if defined(ARDUINO) || defined(RASPBERRYPI)
             ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
             //->install(ArduinoI2CDriver::load_local("/driver/i2c/pin", id_p("//driver/i2c")))
-            ->mount(Memory::singleton("/soc/memory/#"))
-        //->structure(BLE::create("/io/bt/#"))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap<ALLOC>::create("/console/#"))

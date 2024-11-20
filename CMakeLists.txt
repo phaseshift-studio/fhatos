@@ -94,11 +94,23 @@ ELSEIF(LINUX)
     SET(PLATFORM LINUX)
     ADD_DEFINITIONS(-DLINUX)
     IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv[67]l")
-        ADD_DEFINITIONS(-DRPI)
+        OPTION(RASPBERRYPI "build to raspberrypi" ON)
+        ADD_DEFINITIONS(-DRASPBERRYPI)
         FILE(READ "/sys/firmware/devicetree/base/model" FOS_MACHINE_MODEL)
+        STRING(TOLOWER ${FOS_MACHINE_MODEL} FOS_MACHINE_MODEL)
         MESSAGE(NOTICE
                 "\tBuilding for ${.r}R${.y}a${.b}s${.r}p${.m}b${.c}r${.y}r${.b}y ${.r}P${.y}i${..}
 \t  ${.y}FOS_MACHINE_MODEL${..} : ${FOS_MACHINE_MODEL}")
+        STRING(FIND ${FOS_MACHINE_MODEL} "nano" X)
+        IF(${X} GREATER -1)
+            OPTION(NANOPI "nanopi architecture" ON)
+            ADD_DEFINITIONS(-DNANOPI)
+        ENDIF()
+           STRING(FIND ${FOS_MACHINE_MODEL} "orange" X)
+        IF(${X} GREATER -1)
+            OPTION(ORANGEPI "orangepi architecture" ON)
+            ADD_DEFINITIONS(-DORANGEPI)
+        ENDIF()
     ENDIF()
 ENDIF()
 #########################################
@@ -218,7 +230,7 @@ IF(BUILD_NATIVE)
     IF(VERBOSE)
         MESSAGE(NOTICE "${.g}Adding source files${..}: ${SOURCE_FILES}")
     ENDIF()
-    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES} src/main.cpp)
+    ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -306,9 +318,9 @@ IF(USE_PAHO_MQTT_HACK)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-build/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c)
     FILE(COPY ${CMAKE_BINARY_DIR}/_deps/paho-mqtt3c-src/src/ DESTINATION ${CMAKE_BINARY_DIR}/include/mqtt-c/src)
     SET(PAHO_MQTT_C_LIB ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13)
-    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c)
-    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
-    INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/mqtt-cpp)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-c/src/)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/mqtt-cpp)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC
             ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3c.so.1.3.13
             ${CMAKE_BINARY_DIR}/include/mqtt-c/libpaho-mqtt3a.so.1.3.13
@@ -324,10 +336,43 @@ MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ####################################
 ####################################
 ### WIRING PI: GPIO ACCESS FOR RASPBERRY PI
-IF(RPI)
-    FIND_LIBRARY(wiringPi_LIB wiringPi)
-    TARGET_LINK_LIBRARIES(Object ${wiringPi_LIB})
+MESSAGE(CHECK_START "${.y}Making Raspberry PI Wiring Library${..}")
+IF(RASPBERRYPI)
+    IF(NANOPI)
+        SET(WIRINGXX_GIT_REPO https://github.com/friendlyarm/WiringNP)
+        SET(WIRINGXX_TAG master)
+        SET(XX NP)
+    ELSEIF(ORANGEPI)
+        SET(WIRINGXX_GIT_REPO https://github.com/orangepi-xunlong/wiringOP.git)
+        SET(WIRINGXX_TAG v0.2)
+        SET(XX OP)
+    ELSE()
+        SET(WIRINGXX_GIT_REPO https://github.com/WiringPi/WiringPi.git)
+        SET(WIRINGXX_TAG 3.10)
+        SET(XX PI)
+    ENDIF()
+    MESSAGE(NOTICE "${.y}Building ${.g}Wiring${XX} ${.y}at ${.b}${WIRINGXX_GIT_REPO}${..}")
+    FETCHCONTENT_DECLARE(
+            wiringxx
+            GIT_REPOSITORY ${WIRINGXX_GIT_REPO}
+            GIT_TAG ${WIRINGXX_TAG}
+            GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+    )
+    FETCHCONTENT_MAKEAVAILABLE(wiringxx)
+    FILE(COPY ${CMAKE_BINARY_DIR}/_deps/wiringxx-src/ DESTINATION ${CMAKE_BINARY_DIR}/include/wiringxx)
+    SET(WIRINGXX_LOCATION ${CMAKE_BINARY_DIR}/include/wiringxx)
+    EXECUTE_PROCESS(
+            WORKING_DIRECTORY ${WIRINGXX_LOCATION}
+            COMMAND ./build
+            OUTPUT_VARIABLE WIRINGXX_BUILD_RESULT
+    )
+    MESSAGE(NOTICE ${WIRINGXX_BUILD_RESULT})
+    FIND_LIBRARY(WIRINGXX_LIBRARIES NAMES wiringPi)
+    TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${WIRINGXX_LOCATION}/wiring${XX})
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC ${WIRINGXX_LIBRARIES})
+    MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF()
+
 
 ############################################################################################################
 ######################################## UNUSED LIBRARIES ##################################################
