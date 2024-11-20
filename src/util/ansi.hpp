@@ -157,7 +157,7 @@ namespace fhatos {
             this->top_left();
           else if ('Z' == j)
             this->bottom_left();
-          else if('H' == j)
+          else if ('H' == j)
             this->home();
           else if (!isalpha(j)) {
             this->printer_.print(buffer[i]);
@@ -427,10 +427,10 @@ namespace fhatos {
         this->print("\033[6n");
         this->read(); // esc
         this->read(); // [
-        const char a[] = {(char)this->read()};
+        const char a[] = {(char) this->read()};
         pos[0] = atoi(a);
         this->read(); // ;
-        const char b[] = {(char)this->read()};
+        const char b[] = {(char) this->read()};
         pos[1] = atoi(b);
         this->read(); // R
       }
@@ -502,15 +502,15 @@ namespace fhatos {
     }
 
     void incr_count(const string &message = "") {
-      const uint8_t percentage =
+      uint8_t percentage =
           0 == this->current_counts_
             ? 0
             : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
       ++this->current_counts_;
+      if (percentage > 100)
+        percentage = 100;
       if (this->ansi_->is_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
-        if(this->current_counts_ >= meter_icon_size)
-          this->current_counts_ = meter_icon_size;
         this->ansi_->print("!g[INFO]  [!b");
         for (int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
           // + 2 to make bar half as long

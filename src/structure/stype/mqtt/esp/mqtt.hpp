@@ -42,6 +42,10 @@ namespace fhatos {
   /////////////////////////////////////////////////////////////////////////////////////////////////
   class Mqtt : public BaseMqtt {
 
+  public:
+    explicit Mqtt(const Rec_p &rec) :
+  BaseMqtt(rec) {
+    }
 
   protected:
     // TODO: mutiple pubsubs by broker w/ connection counter for connect/disconnect
@@ -57,10 +61,6 @@ namespace fhatos {
                                                    {5, "MQTT_CONNECT_UNAUTHORIZED"}}};
 
     bool exists() const override { return MQTT_CONNECTION && MQTT_CONNECTION->connected(); }
-
-    explicit Mqtt(const Rec_p &rec) :
-      BaseMqtt(rec) {
-    }
 
     explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &id) : BaseMqtt(pattern, settings, id) {
       if (this->exists()) {

@@ -94,7 +94,7 @@ namespace fhatos {
       INST_ARG = [](const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
         return x(arg_num, arg_name, default_arg);
       };
-      this->start_progress_bar(5);
+      this->start_progress_bar(6);
       this->save_type(MESSAGE_FURI, Obj::to_rec({
                           {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                           {"payload", Obj::to_bcode()},
