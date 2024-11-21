@@ -106,6 +106,50 @@ namespace fhatos {
       bool restart(uint8_t address, int32_t readcount);
       void stop(void);
      */
+
+    /*
+    endTransmission error codes:
+    0: success.
+1: data too long to fit in transmit buffer.
+2: received NACK on transmit of address.
+3: received NACK on transmit of data.
+4: other error.
+5: timeout
+    */
+
+  private:
+    static uint8_t i2c_write(const uint8_t address, const string hex) {
+      const string data = StringHelper::from_hex_string(hex.substr(2)); // chop off 0x
+      Wire.beginTransmission(address);
+      Wire.write((const uint8_t *) data.c_str(), (size_t) roundf((float) hex.length() / 2.0f));
+      uint8_t result = Wire.endTransmission(true);
+      if (result == 1)
+        LOG(ERROR, "%i with 0x%s: data too for transit buffer\n", address, hex);
+      else if (result == 2)
+        LOG(ERROR, "%i with 0x%s: NACK on transmit of address\n", address, hex);
+      else if (result == 3)
+        LOG(ERROR, "%i with 0x%s: NACK on transmit of data\n", address, hex);
+      else if (result == 4)
+        LOG(ERROR, "%i with 0x%s: unknown error\n", address, hex);
+      else if (result == 5)
+        LOG(ERROR, "%i with 0x%s: timeout\n", address, hex);
+      return result;
+    }
+
+    static string i2c_read(const uint8_t address, const uint8_t size) {
+      const uint8_t result_size = Wire.requestFrom(address, size);
+      if (Wire.available() < size) {
+        LOG(WARN, "only %i bytes of the requested %i received\n", result_size, size);
+      }
+      unsigned char data[result_size];
+      for (int i = 0; i < result_size; i++) {
+        data[i] = Wire.read();
+      }
+      const string hex_string = StringHelper::hex_string(data, size);
+      return hex_string;
+    }
+
+  public:
     static uint8_t i2c_scan(uint8_t scl, uint8_t sda, uint8_t low_addr = 8, uint8_t high_addr = 120) {
       uint8_t count = 0;
       Wire.begin(sda, scl);
@@ -132,69 +176,66 @@ namespace fhatos {
     }
     static Obj_p load_local(const ID &driver_value_id, const ID_p &driver_remote_id,
                             const ID &define_ns_prefix = ID("i2c")) {
-      const auto inst_types = make_shared<List<Inst_p>>(
-          List<Inst_p>{ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":setup"))
-                           ->type_args(x(0, "scl"), x(1, "sda"))
-                           ->instance_f([](const Obj_p &, const InstArgs &args) {
-                             const uint8_t scl = args.at(0)->int_value();
-                             const uint8_t sda = args.at(1)->int_value();
-                             Wire.begin(sda, scl);
-                             return noobj();
-                           })
-                           ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":stop"))
-                           ->instance_f([](const Obj_p &, const InstArgs &) {
-                             Wire.end();
-                             return noobj();
-                           })
-                           ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":tx"))
-                           ->type_args(x(0, "address"), x(1, "quantity"))
-                           ->instance_f([](const Obj_p &, const InstArgs &args) {
-                             const uint8_t address = args.at(0)->int_value();
-                             Wire.beginTransmission(address);
-                             const Int_p size = jnt(Wire.requestFrom(address, args.at(1)->int_value()));
-                             return size;
-                           })
-                           ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
-                           ->type_args(x(0, "data", str("")))
-                           ->instance_f([](const Obj_p &, const InstArgs &args) {
-                             Wire.write(args.at(0)->str_value().c_str());
-                             return noobj();
-                           })
-                           ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
-                           ->instance_f([](const Obj_p &, const InstArgs &) { return jnt(Wire.read()); })
-                           ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":scan"))
-                           ->type_args(x(0, "scl", noobj()), x(1, "sda", noobj()), x(2, "low_addr", jnt(8)),
-                                       x(3, "high_addr", jnt(120)))
-                           ->instance_f([](const Obj_p &, const InstArgs &args) {
-                             LOG(INFO, "!g[!bi2c Configuration!g]!!\n");
-                             const uint8_t low_addr = args.at(2)->int_value();
-                             const uint8_t high_addr = args.at(3)->int_value();
-                             if (args.at(0)->is_noobj() || args.at(1)->is_noobj()) {
-                               uint8_t lowPin = 0;
-                               uint8_t highPin = 40;
-                               for (uint8_t i = lowPin; i <= highPin; i++) {
-                                 for (uint8_t j = lowPin; j <= highPin; j++) {
-                                   FEED_WATCDOG();
-                                   if (i != j && i != 1 && j != 1 && i != 3 && j != 3) {
-                                     LOG(INFO, "  !yscanning all addrs on pins !bscl:!y%i!!:!bsda!y%i!!\n", i, j);
-                                     if (i2c_scan(i, j, low_addr, high_addr) > 0) {
-                                       LOG(INFO, "  !yi2c pins at !bscl:!y%i!!:!bsda:!y%i!!\n", i, j);
-                                     }
-                                   }
-                                 }
-                               }
-                               return jnt(0);
-                             } else {
-                               return jnt(i2c_scan(args.at(0)->int_value(), args.at(1)->int_value(),
-                                                   args.at(2)->int_value(), args.at(3)->int_value()));
-                             }
-                           })
-                           ->create()});
+      const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":setup"))
+              ->type_args(x(0, "scl"), x(1, "sda"))
+              ->instance_f([](const Obj_p &, const InstArgs &args) {
+                const uint8_t scl = args.at(0)->int_value();
+                const uint8_t sda = args.at(1)->int_value();
+                Wire.begin(sda, scl);
+                return noobj();
+              })
+              ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":stop"))
+              ->instance_f([](const Obj_p &, const InstArgs &) {
+                Wire.end();
+                return noobj();
+              })
+              ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
+              ->type_args(x(0, "address"), x(1, "data"))
+              ->instance_f([](const Obj_p &, const InstArgs &args) {
+                const uint8_t result = i2c_write(args.at(0)->int_value(), args.at(1)->uri_value().toString());
+                return jnt(result);
+              })
+              ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
+              ->type_args(x(0, "address"), x(1, "amount"))
+              ->instance_f([](const Obj_p &, const InstArgs &args) {
+                const uint8_t address = args.at(0)->int_value();
+                const uint8_t size = args.at(1)->int_value();
+                const string hex = i2c_read(address, size);
+                return vri(string("0x").append(hex));
+              })
+              ->create(),
+          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":scan"))
+              ->type_args(x(0, "scl", noobj()), x(1, "sda", noobj()), x(2, "low_addr", jnt(8)),
+                          x(3, "high_addr", jnt(120)))
+              ->instance_f([](const Obj_p &, const InstArgs &args) {
+                LOG(INFO, "!g[!bi2c Configuration!g]!!\n");
+                const uint8_t low_addr = args.at(2)->int_value();
+                const uint8_t high_addr = args.at(3)->int_value();
+                if (args.at(0)->is_noobj() || args.at(1)->is_noobj()) {
+                  uint8_t lowPin = 0;
+                  uint8_t highPin = 40;
+                  for (uint8_t i = lowPin; i <= highPin; i++) {
+                    for (uint8_t j = lowPin; j <= highPin; j++) {
+                      FEED_WATCDOG();
+                      if (i != j && i != 1 && j != 1 && i != 3 && j != 3) {
+                        LOG(INFO, "  !yscanning all addrs on pins !bscl:!y%i!!:!bsda!y%i!!\n", i, j);
+                        if (i2c_scan(i, j, low_addr, high_addr) > 0) {
+                          LOG(INFO, "  !yi2c pins at !bscl:!y%i!!:!bsda:!y%i!!\n", i, j);
+                        }
+                      }
+                    }
+                  }
+                  return jnt(0);
+                } else {
+                  return jnt(i2c_scan(args.at(0)->int_value(), args.at(1)->int_value(), args.at(2)->int_value(),
+                                      args.at(3)->int_value()));
+                }
+              })
+              ->create()});
 
 
       //////////////////////////////////////////////////////////////////////////////////////
@@ -211,46 +252,42 @@ namespace fhatos {
                       for (const auto &i: *inst_types) {
                         record->rec_set(vri(i->inst_op()), i);
                       }
-                      ROUTER_SUBSCRIBE(
-                          Subscription::create(args.at(0)->uri_value(), args.at(1)->uri_value().extend(":setup"),
-                                               Obj::to_bcode(
-                                                   [args](const Obj_p &, const InstArgs &args2) {
-                                                     Wire.begin(args2.at(0)->int_value(), args2.at(1)->int_value());
-                                                     return noobj();
-                                                   },
-                                                   {x(0), x(1)})));
                       ROUTER_SUBSCRIBE(Subscription::create(args.at(0)->uri_value(),
-                                                            args.at(1)->uri_value().extend(":stop"),
+                                                            args.at(1)->uri_value().extend(":setup/0"),
+                                                            Obj::to_bcode(
+                                                                [args](const Obj_p &, const InstArgs &args2) {
+                                                                  const uint8_t scl = args2.at(0)->int_value();
+                                                                  const uint8_t sda = args2.at(1)->int_value();
+                                                                  Wire.begin(sda, scl);
+                                                                  return noobj();
+                                                                },
+                                                                {x(0), x(1)})));
+                      ROUTER_SUBSCRIBE(Subscription::create(args.at(0)->uri_value(),
+                                                            args.at(1)->uri_value().extend(":stop/0"),
                                                             Obj::to_bcode([lhs, args](const Obj_p &) {
                                                               Wire.end();
                                                               return noobj();
                                                             })));
                       ROUTER_SUBSCRIBE(Subscription::create(
-                          args.at(0)->uri_value(), args.at(1)->uri_value().extend(":tx"),
+                          args.at(0)->uri_value(), args.at(1)->uri_value().extend(":write/0"),
                           Obj::to_bcode(
                               [lhs, args](const Obj_p &, const InstArgs &args2) {
-                                Wire.beginTransmission(args2.at(0)->int_value());
-                                const Int_p result =
-                                    jnt(Wire.requestFrom(args2.at(0)->int_value(), args2.at(1)->int_value()));
-                                ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":tx")), result, RETAIN);
-                                return result;
+                                const uint8_t result =
+                                    i2c_write(args.at(0)->int_value(), args.at(1)->uri_value().toString());
+                                return jnt(result);
                               },
                               {x(0), x(1)})));
-                      ROUTER_SUBSCRIBE(Subscription::create(args.at(0)->uri_value(),
-                                                            args.at(1)->uri_value().extend(":write"),
-                                                            Obj::to_bcode(
-                                                                [lhs, args](const Obj_p &, const InstArgs &args2) {
-                                                                  Wire.write(args2.at(0)->str_value().c_str());
-                                                                  return noobj();
-                                                                },
-                                                                {x(0)})));
                       ROUTER_SUBSCRIBE(Subscription::create(
-                          args.at(0)->uri_value(), args.at(1)->uri_value().extend(":read"),
-                          Obj::to_bcode([lhs, args](const Obj_p &) {
-                            const Int_p result = jnt(Wire.read());
-                            ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":read")), result, RETAIN);
-                            return result;
-                          })));
+                          args.at(0)->uri_value(), args.at(1)->uri_value().extend(":read/0"),
+                          Obj::to_bcode(
+                              [lhs, args](const Obj_p &, const InstArgs &args2) {
+                                const uint8_t address = args2.at(0)->int_value();
+                                const uint8_t size = args2.at(1)->int_value();
+                                const Uri_p hex = vri(string("0x").append(i2c_read(address, size)));
+                                ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":read/1")), hex, RETAIN);
+                                return hex;
+                              },
+                              {x(0), x(1)})));
                       const Uri_p driver_id = args.at(0);
                       const Uri_p ns_prefix = args.at(2);
                       if (!ns_prefix->is_noobj())

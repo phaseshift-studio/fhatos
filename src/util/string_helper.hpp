@@ -43,6 +43,12 @@ namespace fhatos {
       return s;
     }
 
+    static string from_hex_string(const string hex) {
+      char charArray[hex.length()]; // assume max length of 16 bytes (32 hex digits) + null terminator
+      sscanf(hex.c_str(), "%16hhx", charArray);
+      return string(charArray);
+    }
+
     static string cxx_f_metadata(const string &file, const uint16_t line_number) {
       const size_t slash_index = file.find_last_of("/");
       const string dir = file.substr(slash_index, file.length() - slash_index - 4);
@@ -77,15 +83,12 @@ namespace fhatos {
     }
 
     static void ltrim(std::string &s) {
-      s.erase(s.begin(),
-              std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c < 127; }));
+      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](const char c) { return !std::isspace(c) && c < 127; }));
     }
 
     static void rtrim(std::string &s) {
-      s.erase(
-          std::find_if(s.rbegin(), s.rend(),
-                       [](const char c) { return !std::isspace(c) && c < 127; }).base(),
-          s.end());
+      s.erase(std::find_if(s.rbegin(), s.rend(), [](const char c) { return !std::isspace(c) && c < 127; }).base(),
+              s.end());
     }
 
     static bool has_wildcards(const std::string &s) {
@@ -93,8 +96,7 @@ namespace fhatos {
     }
 
     static void lower_case(string &s) {
-      std::transform(s.begin(), s.end(), s.begin(),
-                     [](unsigned char c) { return std::tolower(c); });
+      std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
     }
 
     static WILDCARD has_wildcard(const char *s) {
@@ -180,7 +182,7 @@ namespace fhatos {
     }
 
     static void replace(string &s, const string &search, const string &replace) {
-      for (size_t pos = 0; ; pos += replace.length()) {
+      for (size_t pos = 0;; pos += replace.length()) {
         // Locate the substring to replace
         pos = s.find(search, pos);
         if (pos == string::npos)
