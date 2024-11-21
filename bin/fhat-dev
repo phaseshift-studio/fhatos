@@ -185,7 +185,7 @@ ctest_native() {
 
 test_native() {
   if [[ $platform == "native" || -z "${platform}"  ]]; then
-    make_native "${@}"
+    make_native ${@} -DBUILD_TESTS=ON
     shift
     shift
     local extra_args=${@:1}

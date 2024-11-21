@@ -25,10 +25,8 @@
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
-#define FOS_DEPLOY_EXT
 
 #include <test_fhatos.hpp>
-#include <language/exts.hpp>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
@@ -299,7 +297,6 @@ namespace fhatos {
   }
 
   void test_process_thread_parsing() {
-    Exts::load_extension("/mod/proc/");
     const ptr<BCode> bcode = Parser::singleton()
         ->try_parse_obj("thread[[setup => |print('.setup complete.'),"
             "        loop  => |stop(/abc/)]].to(/abc/)")

@@ -43,8 +43,10 @@
 #ifdef FOS_DEPLOY_SCHEDULER
 #include FOS_PROCESS(scheduler.hpp)
 #define FOS_DEPLOY_SCHEDULER_2  \
-  router()->attach(Heap<>::create(Pattern("/scheduler/#"))); \
-  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/scheduler/"));
+  router()->attach(Heap<>::create(Pattern("/sys/#"))); \
+  Options::singleton()->scheduler<Scheduler>(Scheduler::singleton("/sys/scheduler/")); \
+router()->write(id_p("/sys/router"), router());
+
 #else
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
@@ -67,13 +69,11 @@
 #ifdef FOS_DEPLOY_TYPE
 #include <language/type.hpp>
 #include <language/mmadt/type.hpp>
-#include <language/exts.hpp>
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap<>::create(Pattern("/type/#"))); \
   router()->write(id_p("/type/"),Type::singleton("/type/")); \
   mmadt::mmADT::singleton();
-//Exts::load_extension("/model/mmadt/");
 #else
 #define FOS_DEPLOY_TYPE_2 ;
 #endif
@@ -95,14 +95,6 @@
 #else
 #define FOS_DEPLOY_FILE_SYSTEM_2 ;
 #endif
-#ifdef FOS_DEPLOY_EXT
-#include <language/exts.hpp>
-#define FOS_DEPLOY_EXT_2 Exts::load_extension("/model/sys/");
-#else
-#define FOS_DEPLOY_EXT_2 ;
-#endif
-
-
 #ifdef FOS_DEPLOY_SCHEDULER
 #define FOS_STOP_ON_BOOT  \
 router()->stop(); \
@@ -134,10 +126,9 @@ namespace fhatos{
       FOS_DEPLOY_SCHEDULER_2                                                                                           \
       FOS_DEPLOY_ROUTER_2                                                                                              \
       FOS_DEPLOY_PARSER_2                                                                                              \
-      FOS_DEPLOY_TYPE_2                                                                                               \
+      FOS_DEPLOY_TYPE_2                                                                                                \
       FOS_DEPLOY_SHARED_MEMORY_2                                                                                       \
-      FOS_DEPLOY_FILE_SYSTEM_2                                                                                         \
-      FOS_DEPLOY_EXT_2                                                                                                 \
+      FOS_DEPLOY_FILE_SYSTEM_2                                                                                                                                                                                   \
       UNITY_BEGIN();                                                                                                   \
       /*uint32_t __test_freeSketch;                                                                                    \
       uint32_t __test_freeHeap;  */                                                                                    \
