@@ -120,13 +120,14 @@ namespace fhatos {
                       ROUTER_SUBSCRIBE(
                           Subscription::create(args.at(0)->uri_value(), t.extend(":write/0"),
                                                Obj::to_bcode(
-                                                   [args](const Obj_p &message) {
+                                                   [args,t](const Obj_p &message) {
                                                      LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
                                                      const uint8_t pin = lhs_args->second->at(0)->int_value();
                                                      const uint8_t value = lhs_args->second->at(1)->int_value();
                                                      pinMode(pin, OUTPUT);
                                                      LOG(DEBUG, "digital write %i on pin %i\n", value, pin);
                                                      digitalWrite(pin, value);
+                                                     ROUTER_WRITE(id_p(t.extend(":read/1")), jnt(value), RETAIN);
                                                      return noobj();
                                                    },
                                                    StringHelper::cxx_f_metadata(__FILE__, __LINE__))));

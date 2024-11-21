@@ -63,8 +63,7 @@ namespace fhatos {
 
     static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = noobj()) {
       const bool is_from = old_inst->inst_op() == "from";
-      if (is_from && old_inst->inst_arg(0)->is_uri() &&
-          old_inst->inst_arg(0)->uri_value().toString()[0] == '_') {
+      if (is_from && old_inst->inst_arg(0)->is_uri() && old_inst->inst_arg(0)->uri_value().toString()[0] == '_') {
         const uint8_t index = stoi(old_inst->inst_arg(0)->uri_value().name().substr(1));
         if (index < args.size())
           return args.at(index);
@@ -158,9 +157,7 @@ namespace fhatos {
     }
 
     class InstTypeBuilder {
-      explicit InstTypeBuilder(const TypeO_p &type) :
-        type_(type) {
-      }
+      explicit InstTypeBuilder(const TypeO_p &type) : type_(type) {}
 
     protected:
       TypeO_p type_;
@@ -171,12 +168,15 @@ namespace fhatos {
     public:
       static InstTypeBuilder *build(const TypeO &type) { return new InstTypeBuilder(id_p(type)); }
 
-      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr) {
+      InstTypeBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
+                                 const Obj_p &arg3 = nullptr) {
         this->args_.push_back(arg0);
         if (arg1)
           this->args_.push_back(arg1);
         if (arg2)
           this->args_.push_back(arg2);
+        if (arg3)
+          this->args_.push_back(arg3);
         return this;
       }
 
@@ -194,13 +194,9 @@ namespace fhatos {
       }
 
       Inst_p create(const ValueO_p &value_id = nullptr) const {
-        const Inst_p p = Obj::to_inst(
-            this->type_->name(), // opcode
-            this->args_, // args
-            this->function_supplier_,
-            itype_,
-            Obj::noobj_seed(),
-            this->type_);
+        const Inst_p p = Obj::to_inst(this->type_->name(), // opcode
+                                      this->args_, // args
+                                      this->function_supplier_, itype_, Obj::noobj_seed(), this->type_);
 
         delete this;
         return value_id ? p->at(value_id) : p;

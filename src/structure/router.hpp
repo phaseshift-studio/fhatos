@@ -41,29 +41,31 @@ namespace fhatos {
 
   protected:
     explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) :
-      Rec(rmap({
-              {"structure", to_lst()},
-              {":stop", to_bcode([this](const Obj_p &) {
-                this->stop();
-                return noobj();
-              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-              {":attach", to_bcode([this](const Obj_p &obj) {
-                if (obj->tid()->name() == "heap")
-                  this->attach(make_shared<Heap<>>(obj));
-                else if (obj->tid()->name() == "mqtt")
-                  this->attach(make_shared<Mqtt>(obj));
-                return noobj();
-              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}
-          }), OType::REC, REC_FURI, id_p(id)),
-      namespace_prefix_(id_p(namespace_prefix)) {
+        Rec(rmap({{"structure", to_lst()},
+                  {"nm_resolver", vri(namespace_prefix)},
+                  {":stop", to_bcode(
+                                [this](const Obj_p &) {
+                                  this->stop();
+                                  return noobj();
+                                },
+                                StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
+                  {":attach", to_bcode(
+                                  [this](const Obj_p &obj) {
+                                    if (obj->tid()->name() == "heap")
+                                      this->attach(make_shared<Heap<>>(obj));
+                                    else if (obj->tid()->name() == "mqtt")
+                                      this->attach(make_shared<Mqtt>(obj));
+                                    return noobj();
+                                  },
+                                  StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
+            OType::REC, REC_FURI, id_p(id)),
+        namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(furix, obj, retain);
         return obj;
       };
-      ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) {
-        this->route_subscription(subscription);
-      };
+      ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) { this->route_subscription(subscription); };
       LOG_ROUTER(INFO, "!yrouter!! started\n");
     }
 
@@ -75,16 +77,18 @@ namespace fhatos {
     }
 
     void loop() {
-      if (!this->structures_.remove_if([this](const Structure_p &structure) {
-        const bool online = structure->available();
-        if (online)
-          structure->loop();
-        else {
-          LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
-                     structure->tid()->name().c_str());
-        }
-        return !online;
-      })->empty())
+      if (!this->structures_
+               .remove_if([this](const Structure_p &structure) {
+                 const bool online = structure->available();
+                 if (online)
+                   structure->loop();
+                 else {
+                   LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
+                              structure->tid()->name().c_str());
+                 }
+                 return !online;
+               })
+               ->empty())
         this->save();
     }
 
@@ -98,12 +102,10 @@ namespace fhatos {
           map->erase(name);
         map->insert({name, count});
       });
-      for (const auto &[name,count]: *map) {
+      for (const auto &[name, count]: *map) {
         LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
       }
-      this->structures_.forEach([map](const Structure_p &structure) {
-        structure->stop();
-      });
+      this->structures_.forEach([map](const Structure_p &structure) { structure->stop(); });
       LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
@@ -124,12 +126,10 @@ namespace fhatos {
         this->structures_.push_back(structure);
         structure->setup();
         if (structure->available()) {
-          LOG_ROUTER(INFO, "!b%s!! !y%s!! attached\n",
-                     structure->pattern()->toString().c_str(),
+          LOG_ROUTER(INFO, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
                      structure->tid()->name().c_str());
         } else {
-          LOG_ROUTER(ERROR, "!runable to attach %s: %s!!\n",
-                     structure->pattern()->toString().c_str(),
+          LOG_ROUTER(ERROR, "!runable to attach %s: %s!!\n", structure->pattern()->toString().c_str(),
                      structure->tid()->name().c_str());
           this->structures_.pop_back();
         }
@@ -140,9 +140,7 @@ namespace fhatos {
 
     virtual Obj_p save(const ID_p & = nullptr) override {
       const Lst_p strcs = Obj::to_lst();
-      this->structures_.forEach([strcs](const Structure_p &proc) {
-        strcs->lst_add(vri(proc->pattern()));
-      });
+      this->structures_.forEach([strcs](const Structure_p &proc) { strcs->lst_add(vri(proc->pattern())); });
       this->rec_set("structure", strcs);
       this->write(this->vid(), shared_from_this());
       return shared_from_this();
@@ -164,6 +162,7 @@ namespace fhatos {
         return objs->none_one_all();
       } catch (const fError &e) {
         LOG_EXCEPTION(this->shared_from_this(), e);
+        return noobj();
       }
     }
 
@@ -224,9 +223,7 @@ namespace fhatos {
       fURI_p type_id_resolved;
       if (strlen(type_id->scheme()) > 0) {
         const Obj_p resolved_uri = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
-        LOG_ROUTER(DEBUG, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n",
-                   type_id->scheme(),
-                   type_id->path().c_str(),
+        LOG_ROUTER(DEBUG, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n", type_id->scheme(), type_id->path().c_str(),
                    resolved_uri->toString().c_str());
         if (!resolved_uri->is_noobj()) {
           if (resolved_uri->is_uri()) {

@@ -33,8 +33,8 @@
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/driver/driver.hpp>
-#include <model/driver/gpio/arduino_gpio_driver.hpp>
-#include <model/driver/i2c/arduino_i2c_driver.hpp>
+//#include <model/driver/gpio/arduino_gpio_driver.hpp>
+#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
 // #include <model/pin/gpio.hpp>
 // #include <model/pin/interrupt.hpp>
 // #include <model/pin/pwm.hpp>
@@ -100,7 +100,7 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:mdns", STR(FOS_MACHINE_NAME)),
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
-            ->mount(HeapPSRAM::create("/psram/#"))
+           // ->mount(HeapPSRAM::create("/psram/#"))
             ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
@@ -110,12 +110,12 @@ namespace fhatos {
                                  "/driver/mqtt"))
             ->mount(Heap<ALLOC>::create("/driver/#"))
 #if defined(NATIVE)
-            ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
-            //->install(ArduinoI2CDriver::load_remote("/driver/i2c/furi", id_p("//driver/i2c")))
+          //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
+            ->install(ArduinoI2CDriver::load_remote("/driver/i2c/master/furi", id_p("//driver/master/i2c")))
 #endif
 #if defined(ARDUINO) || defined(RASPBERRYPI)
-            ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
-            //->install(ArduinoI2CDriver::load_local("/driver/i2c/pin", id_p("//driver/i2c")))
+           // ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
+            ->install(ArduinoI2CDriver::load_local("/driver/i2c/master/pin", id_p("//driver/i2c/master")))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap<ALLOC>::create("/console/#"))
