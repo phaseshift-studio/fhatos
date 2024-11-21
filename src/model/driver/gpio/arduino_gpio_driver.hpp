@@ -37,19 +37,19 @@ namespace fhatos {
     static Obj_p load_remote(const ID &driver_value_id, const ID_p &driver_remote_id,
                              const ID &define_ns_prefix = ID("gpio")) {
       const auto inst_types = make_shared<List<Inst_p>>(
-          List<Inst_p>{ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":digital_write"))
+          List<Inst_p>{ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
                        ->type_args(x(0, "pin"), x(1, "value"), x(2, "driver_remote_id", vri(driver_remote_id)))
                        ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
-                         ROUTER_WRITE(id_p(args.at(2)->uri_value().extend(":digital_write/0")),
+                         ROUTER_WRITE(id_p(args.at(2)->uri_value().extend(":write/0")),
                                       ObjHelper::make_lhs_args(lhs, {args.at(0), args.at(1)}), TRANSIENT);
                          return noobj();
                        })
                        ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":digital_read"))
+                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
                        ->type_args(x(0, "pin"), x(1, "driver_remote_id", vri(driver_remote_id)))
                        ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
-                         const ID_p &inst_id_0 = id_p(args.at(1)->uri_value().extend(":digital_read/0"));
-                         const ID_p &inst_id_1 = id_p(args.at(1)->uri_value().extend(":digital_read/1"));
+                         const ID_p &inst_id_0 = id_p(args.at(1)->uri_value().extend(":read/0"));
+                         const ID_p &inst_id_1 = id_p(args.at(1)->uri_value().extend(":read/1"));
                          ROUTER_WRITE(inst_id_0, ObjHelper::make_lhs_args(lhs, {args.at(0)}), TRANSIENT);
                          return ROUTER_READ(inst_id_1);
                        })
@@ -86,7 +86,7 @@ namespace fhatos {
       wiringPiSetupGpio();
 #endif
       const auto inst_types = make_shared<List<Inst_p>>(
-          List<Inst_p>{ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":digital_write"))
+          List<Inst_p>{ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
                            ->type_args(x(0, "pin"), x(1, "value"), x(2, "driver_remote_id", vri(driver_remote_id)))
                            ->instance_f([](const Obj_p &, const InstArgs &args) {
                              const uint8_t pin = args.at(0)->int_value();
@@ -96,7 +96,7 @@ namespace fhatos {
                              return noobj();
                            })
                            ->create(),
-                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":digital_read"))
+                       ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
                            ->type_args(x(0, "pin"), x(1, "driver_remote_id", vri(driver_remote_id)))
                            ->instance_f([](const Obj_p &, const InstArgs &args) {
                              return jnt(digitalRead(args.at(0)->int_value()));
@@ -118,7 +118,7 @@ namespace fhatos {
                       }
                       fURI t = args.at(1)->uri_value();
                       ROUTER_SUBSCRIBE(
-                          Subscription::create(args.at(0)->uri_value(), t.extend(":digital_write/0"),
+                          Subscription::create(args.at(0)->uri_value(), t.extend(":write/0"),
                                                Obj::to_bcode(
                                                    [args](const Obj_p &message) {
                                                      LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
@@ -131,7 +131,7 @@ namespace fhatos {
                                                    },
                                                    StringHelper::cxx_f_metadata(__FILE__, __LINE__))));
                       ROUTER_SUBSCRIBE(Subscription::create(
-                          args.at(0)->uri_value(), t.extend(":digital_read/0"),
+                          args.at(0)->uri_value(), t.extend(":read/0"),
                           Obj::to_bcode(
                               [lhs, t](const Obj_p &message) {
                                 LHSArgs_p lhs_args = ObjHelper::parse_lhs_args(message);
@@ -139,9 +139,9 @@ namespace fhatos {
                                 const uint8_t pin = lhs_args->second->at(0)->int_value();
                                 const int value = digitalRead(pin);
                                 LOG(DEBUG, "digital read %i on pin %i\n", value, pin);
-                                LOG(DEBUG, "writing to %s\n", "//driver/gpio/:digital_read/1");
-                                // router()->write(id_p("//driver/gpio/:digital_read/1"), jnt(value), RETAIN);
-                                ROUTER_WRITE(id_p(t.extend(":digital_read/1")), jnt(value), RETAIN);
+                                LOG(DEBUG, "writing to %s\n", "//driver/gpio/:read/1");
+                                // router()->write(id_p("//driver/gpio/:read/1"), jnt(value), RETAIN);
+                                ROUTER_WRITE(id_p(t.extend(":read/1")), jnt(value), RETAIN);
                                 return noobj();
                               },
                               StringHelper::cxx_f_metadata(__FILE__, __LINE__))));
