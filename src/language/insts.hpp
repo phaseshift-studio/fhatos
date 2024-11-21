@@ -347,10 +347,10 @@ namespace fhatos {
           {vri("type"),
            FURI_OTYPE.count(*lhs->tid())
              ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid())))
-             : router()->read(lhs->tid())}});
+             : ROUTER_READ(lhs->tid())}});
       if (lhs->vid()) {
         rec->rec_set("value_id", vri(lhs->vid()));
-        const Obj_p subs = router()->read(id_p(lhs->vid()->query("sub")));
+        const Obj_p subs = ROUTER_READ(id_p(lhs->vid()->query("sub")));
         if (!subs->is_noobj())
           rec->rec_set("subscription", subs);
       }
@@ -461,7 +461,7 @@ namespace fhatos {
           "to", {uri, retain},
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
-              router()->write(furi_p(args.at(0)->apply(lhs)->uri_value()), lhs, args.at(1)->apply(lhs)->bool_value());
+              ROUTER_WRITE(furi_p(args.at(0)->apply(lhs)->uri_value()), lhs, args.at(1)->apply(lhs)->bool_value());
               return lhs;
             };
           },
@@ -474,7 +474,7 @@ namespace fhatos {
           [](const InstArgs &args) {
             return [args](const Obj_p &lhs) {
               const Obj_p ret = args.at(0)->apply(lhs);
-              router()->write(furi_p(lhs->uri_value()), ret, args.at(1)->apply(lhs)->bool_value());
+              ROUTER_WRITE(furi_p(lhs->uri_value()), ret, args.at(1)->apply(lhs)->bool_value());
               return ret;
             };
           },
@@ -486,7 +486,7 @@ namespace fhatos {
           "from", {uri, default_arg},
           [](const InstArgs &args) {
             return [args](const Uri_p &lhs) {
-              Obj_p result = router()->read(furi_p(args.at(0)->apply(lhs)->uri_value()))->at(nullptr);
+              Obj_p result = ROUTER_READ(furi_p(args.at(0)->apply(lhs)->uri_value()))->at(nullptr);
               return result->is_noobj() ? args.at(1)->apply(lhs) : result;
             };
           },
@@ -918,7 +918,7 @@ namespace fhatos {
           [](const InstArgs &args) {
             return [args](const Uri_p &lhs) {
               const ID_p at_id = id_p(args.at(0)->apply(lhs)->uri_value());
-              Obj_p result = router()->read(at_id)->at(at_id);
+              Obj_p result = ROUTER_READ(at_id)->at(at_id);
               return result->is_noobj() ? args.at(1)->apply(lhs) : result;
             };
           },
@@ -995,9 +995,9 @@ namespace fhatos {
       LOG(TRACE, "Searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
       const ID_p type_id_resolved = type_id.has_scheme() ? id_p(type_id) : id_p(INST_FURI->resolve(type_id));
-      Obj_p base_inst = router()->read(type_id_resolved);
+      Obj_p base_inst = ROUTER_READ(type_id_resolved);
       if (base_inst->is_noobj()) {
-        base_inst = router()->read(id_p(type_id));
+        base_inst = ROUTER_READ(id_p(type_id));
         if (!base_inst->is_code())
           throw fError("unknown instruction: %s", type_id.toString().c_str());
       }

@@ -54,7 +54,7 @@ namespace fhatos {
       if (this->direct_stdin_out)
         Terminal::STD_OUT_DIRECT(s);
       else
-        router()->write(this->stdout_id, s, false);
+        ROUTER_WRITE(this->stdout_id, s, TRANSIENT);
     }
 
     Int_p read_stdin() const {
@@ -217,25 +217,25 @@ namespace fhatos {
                                     {vri("stdin"), vri(terminal.extend(":stdin"))},
                                     {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(id))),
       stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))), settings_(settings) {
-      router()->route_subscription(Subscription::create(*this->vid_, this->vid_->extend("config/#"), Obj::to_bcode(
-                                                            [this](const Obj_p &lhs, const InstArgs &args) {
-                                                              const string name = Message(args.at(0)).target().name();
-                                                              if (name == "ansi")
-                                                                this->settings_.ansi_ = lhs->bool_value();
-                                                              else if (name == "nest")
-                                                                this->settings_.nest_ = lhs->int_value();
-                                                              else if (name == "strict")
-                                                                this->settings_.strict_ = lhs->bool_value();
-                                                              else if (name == "prompt")
-                                                                this->settings_.prompt_ = lhs->str_value();
-                                                              else if (name == "log") {
-                                                                this->settings_.log_ = LOG_TYPES.to_enum(
-                                                                    lhs->uri_value().toString());
-                                                                Options::singleton()->log_level(this->settings_.log_);
-                                                              }
-                                                              return lhs;
-                                                            }, {x(0)},
-                                                            StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+      ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend("config/#"), Obj::to_bcode(
+                                                [this](const Obj_p &lhs, const InstArgs &args) {
+                                                  const string name = Message(args.at(0)).target().name();
+                                                  if (name == "ansi")
+                                                    this->settings_.ansi_ = lhs->bool_value();
+                                                  else if (name == "nest")
+                                                    this->settings_.nest_ = lhs->int_value();
+                                                  else if (name == "strict")
+                                                    this->settings_.strict_ = lhs->bool_value();
+                                                  else if (name == "prompt")
+                                                    this->settings_.prompt_ = lhs->str_value();
+                                                  else if (name == "log") {
+                                                    this->settings_.log_ = LOG_TYPES.to_enum(
+                                                        lhs->uri_value().toString());
+                                                    Options::singleton()->log_level(this->settings_.log_);
+                                                  }
+                                                  return lhs;
+                                                }, {x(0)},
+                                                StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
     }
 
   public:

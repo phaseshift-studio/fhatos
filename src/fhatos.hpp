@@ -209,10 +209,12 @@ namespace fhatos {
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
 #define FSTR(a) STR(a)
+#define FURI_WRAP "!g[!b%s!g]!!"
+#define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(ex) LOG(ERROR, "%s", (ex).what())
+#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s", (obj)->vid()->toString().c_str(), (ex).what())
 #define LOG_ROUTER(logtype, format, ...)                                                                               \
   LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_ROUTER_STATIC(logtype, format, ...)                                                                               \
@@ -241,8 +243,7 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton(
   LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
       OTypes.to_chars((obj)->otype()).c_str(), (obj)->pattern()->toString().c_str());
 #define NOTE(message) LOG(INFO, "%s\n", (message))
-#define FURI_WRAP "!g[!b%s!g]!!"
-#define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
+
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE
 #define CONST_CHAR(__var_name__, __chars__) const char *__var_name__ = (__chars__)

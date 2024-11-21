@@ -43,9 +43,7 @@ namespace fhatos {
     }
 
     static ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
-      auto heap_p = ptr<Heap>(new Heap(Obj::to_rec({{vri("pattern"), vri(pattern)}}, HEAP_FURI)));
-      heap_p->vid_ = id_p(value_id);
-      return heap_p;
+      return std::make_shared<Heap>(Obj::to_rec({{"pattern", vri(pattern)}}, HEAP_FURI));
     }
 
     void stop() override {

@@ -38,78 +38,78 @@ namespace fhatos {
       const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-            router()->write(id_p(driver_remote_id->extend(":begin")),
-                            ObjHelper::make_lhs_args(lhs, {}),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":begin")),
+                         ObjHelper::make_lhs_args(lhs, {}),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-            router()->write(id_p(driver_remote_id->extend(":end")),
-                            ObjHelper::make_lhs_args(lhs, {}),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":end")),
+                         ObjHelper::make_lhs_args(lhs, {}),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":request_from"))
           ->type_args(x(0, "address"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-            router()->write(id_p(driver_remote_id->extend(":request_from")),
-                            ObjHelper::make_lhs_args(lhs, args),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":request_from")),
+                         ObjHelper::make_lhs_args(lhs, args),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":begin_transmission"))
           ->type_args(x(0, "address"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-            router()->write(id_p(driver_remote_id->extend(":request_from")),
-                            ObjHelper::make_lhs_args(lhs, args),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":request_from")),
+                         ObjHelper::make_lhs_args(lhs, args),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":end_transmission"))
           ->type_args(x(0, "stop", dool(true)))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-            router()->write(id_p(driver_remote_id->extend(":end_transmission")),
-                            ObjHelper::make_lhs_args(lhs, args),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":end_transmission")),
+                         ObjHelper::make_lhs_args(lhs, args),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
           ->type_args(x(0, "data array", str("")))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-            router()->write(id_p(driver_remote_id->extend(":write")),
-                            ObjHelper::make_lhs_args(lhs, args),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":write")),
+                         ObjHelper::make_lhs_args(lhs, args),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":available"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-            router()->write(id_p(driver_remote_id->extend(":available")),
-                            ObjHelper::make_lhs_args(lhs, {}),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":available")),
+                         ObjHelper::make_lhs_args(lhs, {}),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-            router()->write(id_p(driver_remote_id->extend(":read")),
-                            ObjHelper::make_lhs_args(lhs, {}),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":read")),
+                         ObjHelper::make_lhs_args(lhs, {}),
+                         TRANSIENT);
             return noobj();
           })
           ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":set_clock"))
           ->type_args(x(0, "frequency", jnt(80)))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-            router()->write(id_p(driver_remote_id->extend(":set_clock")),
-                            ObjHelper::make_lhs_args(lhs, args),
-                            TRANSIENT);
+            ROUTER_WRITE(id_p(driver_remote_id->extend(":set_clock")),
+                         ObjHelper::make_lhs_args(lhs, args),
+                         TRANSIENT);
             return noobj();
           })
           ->create()
@@ -218,59 +218,59 @@ namespace fhatos {
                   for (const auto &i: *inst_types) {
                     record->rec_set(vri(i->inst_op()), i);
                   }
-                  router()->route_subscription(Subscription::create(
+                  ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":begin"),
                       Obj::to_bcode([args](const Obj_p &) {
                         Wire.begin();
                         return noobj();
                       })));
-                  router()->route_subscription(Subscription::create(
+                  ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":end"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         Wire.end();
                         return noobj();
                       })));
-                  router()->route_subscription(Subscription::create(
+                 ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":request_from"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         const Int_p result = jnt(
                             Wire.requestFrom(args.at(0)->int_value(), args.at(1)->int_value()));
-                        router()->write(id_p(args.at(1)->uri_value().extend(":request_from")), result);
+                        ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":request_from")), result,RETAIN);
                         return result;
                       })));
-                  router()->route_subscription(Subscription::create(
+                 ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":begin_transmission"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         Wire.beginTransmission(args.at(0)->int_value());
                         return noobj();
                       })));
-                  router()->route_subscription(Subscription::create(
+                  ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":end_transmission"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         Wire.endTransmission(args.at(0)->bool_value());
                         return noobj();
                       })));
-                  router()->route_subscription(Subscription::create(
+                  ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":write"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         Wire.write(args.at(0)->str_value().c_str());
                         return noobj();
                       })));
-                  router()->route_subscription(Subscription::create(
+                  ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":available"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         const Int_p result = jnt(Wire.available());
-                        router()->write(id_p(args.at(1)->uri_value().extend(":available")), result);
+                        ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":available")), result,RETAIN);
                         return result;
                       })));
-                  router()->route_subscription(Subscription::create(
+                 ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":read"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         const Int_p result = jnt(Wire.read());
-                        router()->write(id_p(args.at(1)->uri_value().extend(":write")), result);
+                        ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":write")), result,RETAIN);
                         return result;
                       })));
-                  router()->route_subscription(Subscription::create(
+                  ROUTER_SUBSCRIBE(Subscription::create(
                       args.at(0)->uri_value(), args.at(1)->uri_value().extend(":set_clock"),
                       Obj::to_bcode([lhs, args](const Obj_p &) {
                         Wire.setClock(args.at(0)->int_value());

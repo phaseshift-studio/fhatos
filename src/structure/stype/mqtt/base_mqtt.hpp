@@ -61,9 +61,11 @@ namespace fhatos {
 
     // +[scheme]//+[authority]/#[path]
     explicit BaseMqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) :
-      Structure(pattern, value_id),
-      settings_(settings) {
+      BaseMqtt(Obj::to_rec({{"pattern", vri(pattern)}, {"broker", vri(settings.broker_)},
+                            {"client", vri(settings.client_)}}, MQTT_FURI)) {
+      this->vid_ = id_p(value_id);
     }
+
 
     virtual bool exists() const = 0;
 

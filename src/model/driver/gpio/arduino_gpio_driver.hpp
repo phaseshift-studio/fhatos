@@ -40,8 +40,8 @@ namespace fhatos {
           List<Inst_p>{ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":digital_write"))
                        ->type_args(x(0, "pin"), x(1, "value"), x(2, "driver_remote_id", vri(driver_remote_id)))
                        ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
-                         router()->write(id_p(args.at(2)->uri_value().extend(":digital_write/0")),
-                                         ObjHelper::make_lhs_args(lhs, {args.at(0), args.at(1)}), TRANSIENT);
+                         ROUTER_WRITE(id_p(args.at(2)->uri_value().extend(":digital_write/0")),
+                                      ObjHelper::make_lhs_args(lhs, {args.at(0), args.at(1)}), TRANSIENT);
                          return noobj();
                        })
                        ->create(),
@@ -50,8 +50,8 @@ namespace fhatos {
                        ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
                          const ID_p &inst_id_0 = id_p(args.at(1)->uri_value().extend(":digital_read/0"));
                          const ID_p &inst_id_1 = id_p(args.at(1)->uri_value().extend(":digital_read/1"));
-                         router()->write(inst_id_0, ObjHelper::make_lhs_args(lhs, {args.at(0)}), TRANSIENT);
-                         return router()->read(inst_id_1);
+                         ROUTER_WRITE(inst_id_0, ObjHelper::make_lhs_args(lhs, {args.at(0)}), TRANSIENT);
+                         return ROUTER_READ(inst_id_1);
                        })
                        ->create()});
       //////////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ namespace fhatos {
                         record->rec_set(vri(i->inst_op()), i);
                       }
                       fURI t = args.at(1)->uri_value();
-                      router()->route_subscription(
+                      ROUTER_SUBSCRIBE(
                           Subscription::create(args.at(0)->uri_value(), t.extend(":digital_write/0"),
                                                Obj::to_bcode(
                                                    [args](const Obj_p &message) {
@@ -130,7 +130,7 @@ namespace fhatos {
                                                      return noobj();
                                                    },
                                                    StringHelper::cxx_f_metadata(__FILE__, __LINE__))));
-                      router()->route_subscription(Subscription::create(
+                      ROUTER_SUBSCRIBE(Subscription::create(
                           args.at(0)->uri_value(), t.extend(":digital_read/0"),
                           Obj::to_bcode(
                               [lhs, t](const Obj_p &message) {
@@ -141,7 +141,7 @@ namespace fhatos {
                                 LOG(DEBUG, "digital read %i on pin %i\n", value, pin);
                                 LOG(DEBUG, "writing to %s\n", "//driver/gpio/:digital_read/1");
                                 // router()->write(id_p("//driver/gpio/:digital_read/1"), jnt(value), RETAIN);
-                                router()->write(id_p(t.extend(":digital_read/1")), jnt(value), RETAIN);
+                                ROUTER_WRITE(id_p(t.extend(":digital_read/1")), jnt(value), RETAIN);
                                 return noobj();
                               },
                               StringHelper::cxx_f_metadata(__FILE__, __LINE__))));

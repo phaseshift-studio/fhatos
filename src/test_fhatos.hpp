@@ -319,7 +319,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
          (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
     for (const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
-      router()->route_subscription(
+      ROUTER_SUBSCRIBE(
         Subscription::create(ID("fhatty"),
                        key.uri_value(),
                        Obj::to_bcode([temp](const ptr<Rec> &message) {

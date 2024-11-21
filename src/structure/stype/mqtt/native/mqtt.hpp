@@ -48,7 +48,7 @@ namespace fhatos {
       BaseMqtt(rec) {
     }
 
-    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) :
+    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id = ID("")) :
       BaseMqtt(pattern, settings, value_id) {
       this->settings_.broker_ = string(string(ID(this->settings_.broker_).scheme()) == "mqtt"
                                          ? this->settings_.broker_

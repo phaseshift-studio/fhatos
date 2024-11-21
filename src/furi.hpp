@@ -283,6 +283,7 @@ namespace fhatos {
       string token;
       List<string> list;
       while (!(token = StringHelper::next_token(',', ss)).empty()) {
+        StringHelper::trim(token);
         list.push_back(token);
       }
       delete ss;
@@ -307,6 +308,7 @@ namespace fhatos {
         counter++;
         c = index[strlen(key) + counter];
       }
+      StringHelper::trim(value);
       return {value};
     }
 

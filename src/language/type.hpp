@@ -71,7 +71,7 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
         const ID_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
-        const Obj_p type_def = router()->read(resolved_type_id);
+        const Obj_p type_def = ROUTER_READ(resolved_type_id);
         if (type_def->is_noobj()) {
           throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
                        type_id->toString().c_str());
@@ -136,20 +136,20 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     void save_type(const ID_p &type_id, const Obj_p &type_def) const {
       try {
-        const Obj_p current = router()->read(type_id);
+        const Obj_p current = ROUTER_READ(type_id);
         if (this->progress_bar_) {
-          router()->write(type_id, type_def);
+          ROUTER_WRITE(type_id, type_def,RETAIN);
           this->progress_bar_->incr_count(type_id->toString());
           if (this->progress_bar_->done())
-            router()->write(this->vid(), const_pointer_cast<Obj>(shared_from_this()));
+            ROUTER_WRITE(this->vid(), const_pointer_cast<Obj>(shared_from_this()),RETAIN);
         } else {
           if (current->is_noobj()) {
-            router()->write(type_id, type_def);
+            ROUTER_WRITE(type_id, type_def,RETAIN);
             LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! defined\n", this->vid()->toString().c_str(),
                 type_id->toString().c_str(),
                 type_id->toString().c_str());
           } else {
-            router()->write(type_id, type_def);
+            ROUTER_WRITE(type_id, type_def,RETAIN);
             LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! !b!-%s!! overwritten\n", this->vid()->toString().c_str(),
                 type_id->toString().c_str(), current->toString().c_str());
           }
@@ -178,7 +178,7 @@ namespace fhatos {
       if (type_id->equals(*OTYPE_FURI.at(obj->o_type())))
         return true;
       // get the type defintion and match it to the obj
-      const Obj_p type = router()->read(type_id);
+      const Obj_p type = ROUTER_READ(type_id);
       if (!type->is_noobj()) {
         if (obj->match(type, false))
           return true;

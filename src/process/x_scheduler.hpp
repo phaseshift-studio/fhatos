@@ -130,7 +130,7 @@ namespace fhatos {
         procs->lst_add(vri(proc->vid()));
       });
       this->rec_set(vri("process"), procs);
-      router()->write(this->vid(), shared_from_this());
+      ROUTER_WRITE(this->vid(), shared_from_this(),RETAIN);
       return shared_from_this();
     }
 

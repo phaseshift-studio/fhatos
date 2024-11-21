@@ -139,7 +139,7 @@ namespace fhatos {
 
     static ptr<Kernel> install(const Obj_p &obj) {
       if (obj->vid()) {
-        router()->write(obj->vid(), obj);
+        ROUTER_WRITE(obj->vid(), obj,RETAIN);
         LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
       }
       return Kernel::build();
@@ -147,7 +147,7 @@ namespace fhatos {
 
     static ptr<Kernel> process(const Process_p &process) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
-      router()->write(process->vid(), process);
+      ROUTER_WRITE(process->vid(), process,RETAIN);
       scheduler()->spawn(process);
       return Kernel::build();
     }

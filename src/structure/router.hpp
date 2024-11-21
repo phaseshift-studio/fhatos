@@ -57,8 +57,8 @@ namespace fhatos {
           }), OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
-      ROUTER_WRITE = [this](const ID_p &idx, const Obj_p &obj, const bool retain) -> const Obj_p {
-        this->write(idx, obj, retain);
+      ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
+        this->write(furix, obj, retain);
         return obj;
       };
       ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) {
@@ -75,7 +75,17 @@ namespace fhatos {
     }
 
     void loop() {
-      this->structures_.forEach([](const Structure_p &structure) { structure->loop(); });
+      if (!this->structures_.remove_if([this](const Structure_p &structure) {
+        const bool online = structure->available();
+        if (online)
+          structure->loop();
+        else {
+          LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
+                     structure->tid()->name().c_str());
+        }
+        return !online;
+      })->empty())
+        this->save();
     }
 
     void stop() {
@@ -91,7 +101,9 @@ namespace fhatos {
       for (const auto &[name,count]: *map) {
         LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
       }
-      this->detach(p_p("#"));
+      this->structures_.forEach([map](const Structure_p &structure) {
+        structure->stop();
+      });
       LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
@@ -125,17 +137,6 @@ namespace fhatos {
       this->save();
     }
 
-    void detach(const Pattern_p &pattern) {
-      this->structures_.remove_if([this, pattern](const Structure_p &structure) -> bool {
-        const bool to_erase = structure->pattern()->matches(*pattern);
-        if (to_erase) {
-          structure->stop();
-          LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
-                     structure->tid()->name().c_str());
-        }
-        return to_erase;
-      });
-    }
 
     virtual Obj_p save(const ID_p & = nullptr) override {
       const Lst_p strcs = Obj::to_lst();
@@ -150,37 +151,56 @@ namespace fhatos {
     [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
-      const fURI_p resolved_furi = resolve_namespace_prefix(furi);
-      const Structure_p &struc = this->get_structure(*resolved_furi);
-      const Objs_p objs = struc->read(resolved_furi);
-      LOG_ROUTER(DEBUG, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
-                 Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
-                 objs->toString().c_str(), struc->pattern()->toString().c_str());
-      return objs->none_one_all();
+      try {
+        const fURI_p resolved_furi = resolve_namespace_prefix(furi);
+        const bool query = furi->has_query("structure");
+        const Structure_p &struc = this->get_structure(*resolved_furi);
+        if (query)
+          return struc;
+        const Objs_p objs = struc->read(resolved_furi);
+        LOG_ROUTER(DEBUG, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
+                   Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
+                   objs->toString().c_str(), struc->pattern()->toString().c_str());
+        return objs->none_one_all();
+      } catch (const fError &e) {
+        LOG_EXCEPTION(this->shared_from_this(), e);
+      }
     }
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
-      const Structure_p &structure = this->get_structure(*furi);
-      LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
-                 Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
-                 furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
-      structure->write(furi, obj, retain);
+      try {
+        const Structure_p &structure = this->get_structure(*furi);
+        LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
+                   Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
+                   furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
+        structure->write(furi, obj, retain);
+      } catch (const fError &e) {
+        LOG_EXCEPTION(this->shared_from_this(), e);
+      }
     }
 
     void route_unsubscribe(const ID_p &subscriber, const Pattern_p &pattern = p_p("#")) {
-      this->structures_.forEach([this, subscriber, pattern](const Structure_p &structure) {
-        if (structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
-          LOG_ROUTER(DEBUG, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
-                     subscriber->toString().c_str());
-          structure->recv_unsubscribe(subscriber, pattern);
-        }
-      });
+      try {
+        this->structures_.forEach([this, subscriber, pattern](const Structure_p &structure) {
+          if (structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
+            LOG_ROUTER(DEBUG, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
+                       subscriber->toString().c_str());
+            structure->recv_unsubscribe(subscriber, pattern);
+          }
+        });
+      } catch (const fError &e) {
+        LOG_EXCEPTION(this->shared_from_this(), e);
+      }
     }
 
     void route_subscription(const Subscription_p &subscription) {
-      const Structure_p &struc = this->get_structure(subscription->pattern());
-      LOG_ROUTER(DEBUG, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
-      struc->recv_subscription(subscription);
+      try {
+        const Structure_p &struc = this->get_structure(subscription->pattern());
+        LOG_ROUTER(DEBUG, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
+        struc->recv_subscription(subscription);
+      } catch (const fError &e) {
+        LOG_EXCEPTION(this->shared_from_this(), e);
+      }
     }
 
   private:
