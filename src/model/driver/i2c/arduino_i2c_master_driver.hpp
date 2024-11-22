@@ -118,34 +118,45 @@ namespace fhatos {
     */
 
   private:
-    static uint8_t i2c_write(const uint8_t address, const string hex) {
-      const string data = StringHelper::from_hex_string(hex.substr(2)); // chop off 0x
+    static uint8_t i2c_write(const string hex_address, const string hex_data, const bool end_tx = true) {
+      const int address = StringHelper::hex_to_int(hex_address.substr(2)); // remove 0x
+      const List<fbyte> data = StringHelper::hex_to_bytes(hex_data.substr(2)); // remove 0x
       Wire.beginTransmission(address);
-      Wire.write((const uint8_t *) data.c_str(), (size_t) roundf((float) hex.length() / 2.0f));
-      uint8_t result = Wire.endTransmission(true);
-      if (result == 1)
-        LOG(ERROR, "%i with 0x%s: data too for transit buffer\n", address, hex);
-      else if (result == 2)
-        LOG(ERROR, "%i with 0x%s: NACK on transmit of address\n", address, hex);
-      else if (result == 3)
-        LOG(ERROR, "%i with 0x%s: NACK on transmit of data\n", address, hex);
-      else if (result == 4)
-        LOG(ERROR, "%i with 0x%s: unknown error\n", address, hex);
-      else if (result == 5)
-        LOG(ERROR, "%i with 0x%s: timeout\n", address, hex);
-      return result;
+      uint8_t size = Wire.write(data.data(), data.size());
+      if (end_tx) {
+        uint8_t result = Wire.endTransmission(true);
+        if (result == 1)
+          LOG(ERROR, "%i with 0x%s: !yoverflow transit buffer!!\n", hex_address, hex_data);
+        else if (result == 2)
+          LOG(ERROR, "%i with 0x%s: !rnack !ytransit!! address\n", hex_address, hex_data);
+        else if (result == 3)
+          LOG(ERROR, "%i with 0x%s: !rnack !ytransit!! data\n", hex_address, hex_data);
+        else if (result == 4)
+          LOG(ERROR, "%i with 0x%s: unknown error\n", hex_address, hex_data);
+        else if (result == 5)
+          LOG(ERROR, "%i with 0x%s: !ytimeout!!\n", hex_address, hex_data);
+        if (result != 0)
+          Wire.clearWriteError();
+        return result;
+      }
+      return size == 0 ? 4 : 0;
     }
 
-    static string i2c_read(const uint8_t address, const uint8_t size) {
+    static string i2c_read(const string hex_address, const uint8_t size) {
+      const int address = StringHelper::hex_to_int(hex_address.substr(2)); // remove 0x
       const uint8_t result_size = Wire.requestFrom(address, size);
-      if (Wire.available() < size) {
+      throw fError("device is not available\n");
+      if (result_size < size) {
         LOG(WARN, "only %i bytes of the requested %i received\n", result_size, size);
       }
-      unsigned char data[result_size];
-      for (int i = 0; i < result_size; i++) {
-        data[i] = Wire.read();
-      }
-      const string hex_string = StringHelper::hex_string(data, size);
+      List<fbyte> data;
+      if (Wire.available()) {
+        for (size_t i = 0; i < result_size; i++) {
+          data[i] = Wire.read();
+        }
+      } else
+        throw fError("device at %x/%i is not available\n", address, address);
+      const string hex_string = string("0x").append(StringHelper::bytes_to_hex(data));
       return hex_string;
     }
 
@@ -159,11 +170,11 @@ namespace fhatos {
         Wire.beginTransmission(i);
         const uint8_t result = Wire.endTransmission();
         if (0 == result) {
-          LOG(INFO, "  !ydevice at addr !b%i!!\n", i);
+          LOG(INFO, "  !ydevice at addr !b%i/0x%x!!\n", i, i);
           count++;
           // delay(1); // maybe unneeded?
         } else if (4 == result) {
-          LOG(ERROR, "  !ydevice error at addr !b%i!!\n", i);
+          LOG(ERROR, "  !ydevice error at addr !b%i/0x%x!!\n", i, i);
         }
         pb->incr_count(to_string(i) + "addr");
       }
@@ -182,6 +193,10 @@ namespace fhatos {
               ->instance_f([](const Obj_p &, const InstArgs &args) {
                 const uint8_t scl = args.at(0)->int_value();
                 const uint8_t sda = args.at(1)->int_value();
+                pinMode(scl, PULLUP);
+                pinMode(sda, PULLUP);
+                if (0 == i2c_scan(scl, sda))
+                  LOG(WARN, "no i2c devices found on scl:%i/sda:%i\n", scl, sda);
                 Wire.begin(sda, scl);
                 return noobj();
               })
@@ -193,19 +208,18 @@ namespace fhatos {
               })
               ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
-              ->type_args(x(0, "address"), x(1, "data"))
+              ->type_args(x(0, "address"), x(1, "data"), x(2, "end_tx", dool(true)))
               ->instance_f([](const Obj_p &, const InstArgs &args) {
-                const uint8_t result = i2c_write(args.at(0)->int_value(), args.at(1)->uri_value().toString());
+                const uint8_t result = i2c_write(args.at(0)->uri_value().toString(), args.at(1)->uri_value().toString(),
+                                                 args.at(2)->bool_value());
                 return jnt(result);
               })
               ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
-              ->type_args(x(0, "address"), x(1, "amount"))
+              ->type_args(x(0, "address"), x(1, "size"))
               ->instance_f([](const Obj_p &, const InstArgs &args) {
-                const uint8_t address = args.at(0)->int_value();
-                const uint8_t size = args.at(1)->int_value();
-                const string hex = i2c_read(address, size);
-                return vri(string("0x").append(hex));
+                const string result = i2c_read(args.at(0)->uri_value().toString(), args.at(1)->int_value());
+                return vri(result);
               })
               ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":scan"))
@@ -273,19 +287,20 @@ namespace fhatos {
                           Obj::to_bcode(
                               [lhs, args](const Obj_p &, const InstArgs &args2) {
                                 const uint8_t result =
-                                    i2c_write(args.at(0)->int_value(), args.at(1)->uri_value().toString());
+                                    i2c_write(args.at(0)->uri_value().toString(), args.at(1)->uri_value().toString(),
+                                              args.at(2)->bool_value());
                                 return jnt(result);
                               },
-                              {x(0), x(1)})));
+                              {x(0), x(1), x(2, dool(true))})));
                       ROUTER_SUBSCRIBE(Subscription::create(
                           args.at(0)->uri_value(), args.at(1)->uri_value().extend(":read/0"),
                           Obj::to_bcode(
                               [lhs, args](const Obj_p &, const InstArgs &args2) {
-                                const uint8_t address = args2.at(0)->int_value();
-                                const uint8_t size = args2.at(1)->int_value();
-                                const Uri_p hex = vri(string("0x").append(i2c_read(address, size)));
-                                ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":read/1")), hex, RETAIN);
-                                return hex;
+                                const string result =
+                                    i2c_read(args.at(0)->uri_value().toString(), args.at(1)->int_value());
+                                const Uri_p r = vri(result);
+                                ROUTER_WRITE(id_p(args.at(1)->uri_value().extend(":read/1")), r, RETAIN);
+                                return r;
                               },
                               {x(0), x(1)})));
                       const Uri_p driver_id = args.at(0);

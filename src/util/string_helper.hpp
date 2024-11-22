@@ -23,8 +23,11 @@
 #include <sstream>
 #include <string>
 
+#define FOS_HEX_STRING_MAX_LENGTH 8
+
 namespace fhatos {
   using std::to_string;
+  using fbyte = uint8_t;
 
   enum class WILDCARD { NO = 0, PLUS = 1, HASH = 2 };
 
@@ -32,21 +35,38 @@ namespace fhatos {
   public:
     StringHelper() = delete;
 
-    static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-    static string hex_string(const unsigned char *data, const int len) {
-      string s(len * 2, ' ');
-      for (uint8_t i = 0; i < len; ++i) {
-        s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
-        s[2 * i + 1] = hexmap[data[i] & 0x0F];
+    static string bytes_to_hex(const std::vector<fbyte> &bytes) {
+      const size_t size = bytes.size();
+      auto hex_string = string(size * 2, ' ');
+      for (size_t i = 0; i < size; i++) {
+        hex_string[i * 2] = hexmap[(bytes[i] & 0xF0) >> 4];
+        hex_string[i * 2 + 1] = hexmap[bytes[i] & 0x0F];
       }
-      return s;
+      return hex_string;
     }
 
-    static string from_hex_string(const string hex) {
-      char charArray[hex.length()]; // assume max length of 16 bytes (32 hex digits) + null terminator
-      sscanf(hex.c_str(), "%16hhx", charArray);
-      return string(charArray);
+    static int hex_to_int(const string &hex) {
+      int result = 0;
+      sscanf(hex.c_str(), "%X", &result);
+      return result;
+    }
+
+    static string int_to_hex(const int integer) {
+      char buffer[FOS_HEX_STRING_MAX_LENGTH];
+      const int s = sprintf(buffer, "%X", integer);
+      return s % 2 == 0 ? string(buffer) : string("0").append(buffer);
+    }
+
+    static std::vector<fbyte> hex_to_bytes(const std::string &hex) {
+      std::vector<fbyte> bytes;
+      for (unsigned int i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        const char byte = static_cast<fbyte>(strtol(byteString.c_str(), nullptr, 16));
+        bytes.push_back(byte);
+      }
+      return bytes;
     }
 
     static string cxx_f_metadata(const string &file, const uint16_t line_number) {
