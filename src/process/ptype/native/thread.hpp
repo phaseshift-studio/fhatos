@@ -30,7 +30,8 @@ namespace fhatos {
     std::thread *xthread;
 
     explicit Thread(const Rec_p &setup_loop_stop) :
-      Process(setup_loop_stop), xthread(nullptr) {
+      Process(setup_loop_stop),
+      xthread(nullptr) {
     }
 
     ~Thread() override { delete this->xthread; }

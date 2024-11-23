@@ -133,6 +133,8 @@ namespace fhatos {
       if (structure->pattern()->equals("/sys/#")) {
         install(scheduler());
         install(router());
+        ROUTER_WRITE(id_p("/sys/scheduler/lib/process"), make_shared<Process>(Obj::to_rec()),RETAIN);
+        ROUTER_WRITE(id_p("/sys/scheduler/lib/thread"), make_shared<Thread>(Obj::to_rec()),RETAIN);
       }
       return Kernel::build();
     }

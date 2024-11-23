@@ -41,25 +41,25 @@ namespace fhatos {
 
   protected:
     explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) :
-        Rec(rmap({{"structure", to_lst()},
-                  {"nm_resolver", vri(namespace_prefix)},
-                  {":stop", to_bcode(
-                                [this](const Obj_p &) {
-                                  this->stop();
-                                  return noobj();
-                                },
-                                StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
-                  {":attach", to_bcode(
-                                  [this](const Obj_p &obj) {
-                                    if (obj->tid()->name() == "heap")
-                                      this->attach(make_shared<Heap<>>(obj));
-                                    else if (obj->tid()->name() == "mqtt")
-                                      this->attach(make_shared<Mqtt>(obj));
-                                    return noobj();
-                                  },
-                                  StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
-            OType::REC, REC_FURI, id_p(id)),
-        namespace_prefix_(id_p(namespace_prefix)) {
+      Rec(rmap({{"structure", to_lst()},
+                {"nm_resolver", vri(namespace_prefix)},
+                {":stop", to_inst(
+                     [this](const Obj_p &) {
+                       this->stop();
+                       return noobj();
+                     },INST_FURI,
+                     make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
+                {":attach", to_inst(
+                     [this](const Obj_p &obj) {
+                       if (obj->tid()->name() == "heap")
+                         this->attach(make_shared<Heap<>>(obj));
+                       else if (obj->tid()->name() == "mqtt")
+                         this->attach(make_shared<Mqtt>(obj));
+                       return noobj();
+                     },INST_FURI,
+                     make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}),
+          OType::REC, REC_FURI, id_p(id)),
+      namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(furix, obj, retain);
@@ -78,17 +78,17 @@ namespace fhatos {
 
     void loop() {
       if (!this->structures_
-               .remove_if([this](const Structure_p &structure) {
-                 const bool online = structure->available();
-                 if (online)
-                   structure->loop();
-                 else {
-                   LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
-                              structure->tid()->name().c_str());
-                 }
-                 return !online;
-               })
-               ->empty())
+        .remove_if([this](const Structure_p &structure) {
+          const bool online = structure->available();
+          if (online)
+            structure->loop();
+          else {
+            LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
+                       structure->tid()->name().c_str());
+          }
+          return !online;
+        })
+        ->empty())
         this->save();
     }
 
@@ -138,12 +138,11 @@ namespace fhatos {
     }
 
 
-    virtual Obj_p save(const ID_p & = nullptr) override {
+    virtual void save(const ID_p & = nullptr) override {
       const Lst_p strcs = Obj::to_lst();
-      this->structures_.forEach([strcs](const Structure_p &proc) { strcs->lst_add(vri(proc->pattern())); });
+      this->structures_.forEach([strcs](const Structure_p &struc) { strcs->lst_add(vri(struc->pattern())); });
       this->rec_set("structure", strcs);
-      this->write(this->vid(), shared_from_this());
-      return shared_from_this();
+      Obj::save();
     }
 
     [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }

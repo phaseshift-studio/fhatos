@@ -59,7 +59,7 @@ namespace fhatos {
     }
 
     template<typename T = Obj>
-    static ptr<T> no_delete(const T *t) {
+    static ptr<T> no_delete(T *t) {
       return ptr<T>(t, NON_DELETER_SINGLETON<T>());
     }
 

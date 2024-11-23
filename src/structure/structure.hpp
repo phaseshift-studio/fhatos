@@ -350,7 +350,7 @@ namespace fhatos {
 
   protected:
     static Obj_p strip_value_id(const Obj_p &obj) {
-      return nullptr == obj->vid() ? obj : make_shared<Obj>(obj->value_, obj->o_type(), obj->tid(), nullptr);
+      return nullptr == obj->vid() ? obj : Obj::create(obj->value_, obj->o_type(), obj->tid(), nullptr);
     }
 
     void check_availability(const string &function) const {

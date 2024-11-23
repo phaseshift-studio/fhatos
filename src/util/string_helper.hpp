@@ -37,6 +37,14 @@ namespace fhatos {
 
     static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
+    static string clip_0x(const string hex) {
+      return hex.length() > 1 && hex[0] == '0' && hex[1] == 'x' ? hex.substr(2) : hex;
+    }
+
+    static string prefix_0x(const string hex) {
+      return hex.length() > 1 && hex[0] == '0' && hex[1] == 'x' ? hex : string("0x").append(hex);
+    }
+
     static string bytes_to_hex(const std::vector<fbyte> &bytes) {
       const size_t size = bytes.size();
       auto hex_string = string(size * 2, ' ');
@@ -67,6 +75,10 @@ namespace fhatos {
         bytes.push_back(byte);
       }
       return bytes;
+    }
+
+    static string cxx_f_metadata(const string &location, const string &name, const uint16_t line_number) {
+      return location + "/" + name + "/" + name + "_" + to_string(line_number);
     }
 
     static string cxx_f_metadata(const string &file, const uint16_t line_number) {

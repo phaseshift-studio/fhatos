@@ -119,10 +119,11 @@ namespace fhatos {
 
   private:
     static uint8_t i2c_write(const string hex_address, const string hex_data, const bool end_tx = true) {
-      const int address = StringHelper::hex_to_int(hex_address.substr(2)); // remove 0x
-      const List<fbyte> data = StringHelper::hex_to_bytes(hex_data.substr(2)); // remove 0x
+      const int address = StringHelper::hex_to_int(StringHelper::clip_0x(hex_address));
+      const List<fbyte> data = StringHelper::hex_to_bytes(StringHelper::clip_0x(hex_data));
       Wire.beginTransmission(address);
       uint8_t size = Wire.write(data.data(), data.size());
+      LOG(TRACE, "writing %s to %x/%i\n", StringHelper::bytes_to_hex(data), address, address);
       if (end_tx) {
         uint8_t result = Wire.endTransmission(true);
         if (result == 1)
@@ -142,21 +143,17 @@ namespace fhatos {
       return size == 0 ? 4 : 0;
     }
 
-    static string i2c_read(const string hex_address, const uint8_t size) {
-      const int address = StringHelper::hex_to_int(hex_address.substr(2)); // remove 0x
-      const uint8_t result_size = Wire.requestFrom(address, size);
-      throw fError("device is not available\n");
-      if (result_size < size) {
-        LOG(WARN, "only %i bytes of the requested %i received\n", result_size, size);
-      }
+    static string i2c_read(const string hex_address, const uint8_t size, const bool end = true) {
+      const int address = StringHelper::hex_to_int(StringHelper::clip_0x(hex_address));
+      const uint8_t result_size = Wire.requestFrom(address, size, end);
       List<fbyte> data;
-      if (Wire.available()) {
-        for (size_t i = 0; i < result_size; i++) {
-          data[i] = Wire.read();
-        }
-      } else
-        throw fError("device at %x/%i is not available\n", address, address);
-      const string hex_string = string("0x").append(StringHelper::bytes_to_hex(data));
+      while (Wire.available()) {
+        data.push_back(Wire.read()); // Receive a byte & push it into the RxBuffer
+      }
+      if (data.size() < size) {
+        LOG(ERROR, "only %i bytes of the requested %i received\n", result_size, size);
+      }
+      const string hex_string = StringHelper::prefix_0x(StringHelper::bytes_to_hex(data));
       return hex_string;
     }
 
@@ -164,8 +161,7 @@ namespace fhatos {
     static uint8_t i2c_scan(uint8_t scl, uint8_t sda, uint8_t low_addr = 8, uint8_t high_addr = 120) {
       uint8_t count = 0;
       Wire.begin(sda, scl);
-      const ptr<ProgressBar> pb =
-          ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), high_addr - low_addr);
+      const ptr<ProgressBar> pb = ProgressBar::start(printer().get(), high_addr - low_addr);
       for (byte i = low_addr; i < high_addr; i++) {
         Wire.beginTransmission(i);
         const uint8_t result = Wire.endTransmission();
@@ -216,9 +212,10 @@ namespace fhatos {
               })
               ->create(),
           ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
-              ->type_args(x(0, "address"), x(1, "size"))
+              ->type_args(x(0, "address"), x(1, "size"), x(2, "end_tx", dool(true)))
               ->instance_f([](const Obj_p &, const InstArgs &args) {
-                const string result = i2c_read(args.at(0)->uri_value().toString(), args.at(1)->int_value());
+                const string result =
+                    i2c_read(args.at(0)->uri_value().toString(), args.at(1)->int_value(), args.at(2)->bool_value());
                 return vri(result);
               })
               ->create(),

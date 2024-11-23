@@ -34,28 +34,29 @@ namespace fhatos {
     ptr<ProgressBar> progress_bar_ = nullptr;
 
   protected:
-    explicit Type(const ID &id = FOS_TYPE_PREFIX) :
+    explicit Type(const ID &value_id = FOS_TYPE_PREFIX, const ID &type_id = "/type/type") :
       Obj(share(RecMap<>(
           {{vri(":check"),
-            Obj::to_bcode([this](const Obj_p &obj) {
-              return dool(this->check_type(
-                  obj->lst_value()->at(0).get(),
-                  furi_p(obj->lst_value()->at(1)->uri_value())));
-            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+            Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
+                           return dool(this->check_type(
+                               args.at(0).get(),
+                               furi_p(lhs->lst_value()->at(1)->uri_value())));
+                         }, {x(0, ___)}, INST_FURI,
+                         id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
            {vri(":start_progress_bar"),
-            Obj::to_bcode([this](const Int_p &obj) {
+            Obj::to_inst([this](const Int_p &obj) {
               this->start_progress_bar(obj->int_value());
-              return noobj();
-            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+              return _noobj_;
+            }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
            {vri(":end_progress_bar"),
-            Obj::to_bcode([this](const Str_p &obj) {
+            Obj::to_inst([this](const Str_p &obj) {
               this->end_progress_bar(obj->str_value());
-              return noobj();
-            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+              return _noobj_;
+            }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
           })),
           OType::REC,
-          REC_FURI,
-          id_p(id)) {
+          id_p(type_id),
+          id_p(value_id)) {
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID_p &type_id, const Obj_p &type_def) {
         this->save_type(type_id, type_def);
@@ -84,7 +85,7 @@ namespace fhatos {
         if (proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
-        return make_shared<Obj>(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
+        return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
       ///////////////////////////////////////////////////////////////
       this->load_core_inst();
@@ -103,7 +104,7 @@ namespace fhatos {
                           {"source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                           {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                           {":on_recv", Obj::to_bcode()}}));
-      this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}));
+      //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
       this->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));
       this->save_type(MQTT_FURI, Obj::to_rec({
                           {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
@@ -112,7 +113,7 @@ namespace fhatos {
       this->end_progress_bar("!bfhatos !yobjs!! loaded\n");
     }
 
-    static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
+    // static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
 
   public:
     static ptr<Type> singleton(const ID &id = FOS_TYPE_PREFIX) {
@@ -143,13 +144,12 @@ namespace fhatos {
           if (this->progress_bar_->done())
             ROUTER_WRITE(this->vid(), const_pointer_cast<Obj>(shared_from_this()),RETAIN);
         } else {
+          ROUTER_WRITE(type_id, type_def,RETAIN);
           if (current->is_noobj()) {
-            ROUTER_WRITE(type_id, type_def,RETAIN);
             LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! defined\n", this->vid()->toString().c_str(),
                 type_id->toString().c_str(),
                 type_id->toString().c_str());
           } else {
-            ROUTER_WRITE(type_id, type_def,RETAIN);
             LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! !b!-%s!! overwritten\n", this->vid()->toString().c_str(),
                 type_id->toString().c_str(), current->toString().c_str());
           }

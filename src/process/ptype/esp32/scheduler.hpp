@@ -48,10 +48,10 @@ namespace fhatos {
       static bool setup_ = false;
       static ptr<Scheduler> scheduler = ptr<Scheduler>(new Scheduler(id));
       if (!setup_) {
-        //scheduler_thread = make_shared<thread::id>(this_thread::get_id());
+        // scheduler_thread = make_shared<thread::id>(this_thread::get_id());
         setup_ = true;
       }
-     return scheduler;
+      return scheduler;
     }
 
     void feed_local_watchdog() override {
@@ -70,8 +70,10 @@ namespace fhatos {
       }
       ////////////////////////////////
       bool success = false;
+      const Int_p ss = process->rec_get("stack_size");
       const uint16_t stack_size =
-          process->tid()->has_path("fiber")
+          !ss->is_noobj() ? ss->int_value()
+          : process->tid()->has_path("fiber")
               ? FOS_ESP_FIBER_STACK_SIZE
               : (process->tid()->has_path("thread") && process->running ? FOS_ESP_THREAD_STACK_SIZE : 0);
       BaseType_t threadResult;
@@ -116,11 +118,13 @@ namespace fhatos {
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
-      rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
-             if (!obj->vid())
-               throw fError("value id required to spawn %s", obj->toString().c_str());
-             return dool(this->spawn(make_shared<Thread>(obj)));
-           }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
+      rec_set(vri(":spawn"), to_bcode(
+                                 [this](const Obj_p &obj) {
+                                   if (!obj->vid())
+                                     throw fError("value id required to spawn %s", obj->toString().c_str());
+                                   return dool(this->spawn(make_shared<Thread>(obj)));
+                                 },
+                                 StringHelper::cxx_f_metadata(__FILE__, __LINE__)));
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;
@@ -162,7 +166,7 @@ namespace fhatos {
       try {
         while (thread->running) {
           thread->loop();
-         FEED_WATCDOG(); // feeds the watchdog for the task
+          FEED_WATCDOG(); // feeds the watchdog for the task
         }
       } catch (fError error) {
         thread->stop();

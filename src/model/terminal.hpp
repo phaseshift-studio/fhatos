@@ -62,7 +62,7 @@ namespace fhatos {
     }
 
     static Int_p STD_IN_DIRECT() {
-      int c = -1;
+      int c;
       while (-1 == (c = printer<>()->read())) {
         Process::current_process()->yield();
       }

@@ -34,8 +34,9 @@
 #endif
 
 namespace fhatos {
-  const ID_p THREAD_FURI = share<ID>(ID(REC_FURI->resolve("thread")));
-  const ID_p FIBER_FURI = share<ID>(ID(REC_FURI->resolve("fiber")));
+  const ID_p PROCESS_FURI = make_shared<ID>("/sys/scheduler/lib/process");
+  const ID_p THREAD_FURI = make_shared<ID>("/sys/scheduler/lib/thread");
+  const ID_p FIBER_FURI = make_shared<ID>("/sys/scheduler/lib/fiber");
 
   class Process;
   using Process_p = ptr<Process>;
@@ -57,31 +58,36 @@ namespace fhatos {
     bool yield_ = false;
 
   public:
-    explicit Process(const Rec_p &setup_loop_stop) :
+    explicit Process() :
+      Obj({}, OType::REC, id_p("/sys/scheduler/type")) {
+      this->vid_ = id_p("/sys/scheduler");
+    }
+
+    explicit Process(const Rec_p &setup_loop_stop, const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) :
       Obj(*setup_loop_stop->rec_merge(rmap({
           {
-              id_p(":delay"), Obj::to_bcode(
-                  [this](const Obj_p &milliseconds) {
-                    this->sleep_ = milliseconds->int_value();
-                    return noobj();
-                  }, StringHelper::cxx_f_metadata(
-                      __FILE__,__LINE__))
+              id_p(":delay"), Obj::to_inst(
+                  [this](const Obj_p &lhs, const InstArgs &args) {
+                    this->sleep_ = args.at(0)->int_value();
+                    return _noobj_;
+                  }, {x(0, ___)}, INST_FURI, make_shared<ID>(string(StringHelper::cxx_f_metadata(
+                      "/sys/scheduler/lib", "process",__LINE__))))
           },
           {
-              id_p(":yield"), Obj::to_bcode(
+              id_p(":yield"), Obj::to_inst(
                   [this](const Obj_p &) {
                     this->yield_ = true;
                     return noobj();
-                  }, StringHelper::cxx_f_metadata(
-                      __FILE__,__LINE__))
+                  }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
+                      "/sys/scheduler/lib", "process",__LINE__)))
           },
           {
-              id_p(":halt"), Obj::to_bcode(
+              id_p(":halt"), Obj::to_inst(
                   [this](const Obj_p &) {
                     this->stop();
                     return noobj();
-                  }, StringHelper::cxx_f_metadata(
-                      __FILE__,__LINE__))
+                  }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
+                      "/sys/scheduler/lib", "process",__LINE__)))
           }
       }))) {
     }
@@ -101,7 +107,7 @@ namespace fhatos {
         return this_process.load();
       else {
         //LOG(TRACE, "loop_task process\n");
-        static auto proc = new Process(to_rec(REC_FURI));
+        static auto proc = new Process();
         proc->vid_ = id_p("sys/scheduler");
         return proc;
       }

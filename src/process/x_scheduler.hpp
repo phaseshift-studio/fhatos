@@ -42,10 +42,10 @@ namespace fhatos {
       Rec(rmap({
               {"barrier", noobj()},
               {"process", lst()},
-              {":stop", to_bcode([this](const Obj_p &) {
+              {":stop", to_inst([this](const Obj_p &) {
                 this->stop();
                 return noobj();
-              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))}}),
+              }, INST_FURI, id_p(id.extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))}}),
           OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
@@ -124,17 +124,12 @@ namespace fhatos {
 
     virtual bool spawn(const Process_p &) = 0;
 
-    virtual Obj_p save(const ID_p & = nullptr) override {
+    virtual void save(const ID_p & = nullptr) override {
       const Lst_p procs = Obj::to_lst();
-      this->processes_->forEach([procs](const Process_p &proc) {
-        procs->lst_add(vri(proc->vid()));
-      });
+      this->processes_->forEach([procs](const Process_p &proc) { procs->lst_add(vri(proc->vid())); });
       this->rec_set(vri("process"), procs);
-      ROUTER_WRITE(this->vid(), shared_from_this(),RETAIN);
-      return shared_from_this();
+      Obj::save();
     }
-
-    friend Sys;
   };
 }
 
