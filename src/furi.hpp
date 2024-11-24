@@ -823,6 +823,7 @@ namespace fhatos {
 
   using fURI_p = ptr<fURI>;
   using ID_p = ptr<ID>;
+  using ID_wp = weak_ptr<ID>;
   using Pattern_p = ptr<Pattern>;
   using SourceID = ID;
   using TargetID = ID;
@@ -894,7 +895,9 @@ namespace fhatos {
   };
 
   struct furi_p_less : std::less<fURI_p> {
-    auto operator()(const fURI_p &a, const fURI_p &b) const { return a->toString() < b->toString(); }
+    auto operator()(const fURI_p &a, const fURI_p &b) const {
+      return std::greater<string>()(a->toString(), b->toString());
+    }
   };
 
   [[maybe_unused]] static fURI_p furi_p(const char *id_chars) { return make_shared<fURI>(id_chars); }

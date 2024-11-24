@@ -27,14 +27,89 @@
 
 #define TOTAL_INSTRUCTIONS 75
 #define FOS_TYPE_INST_URI "/type/inst/"
+#define MMADT_FURI "/lang/mmadt/"
 
 namespace mmadt {
   using namespace fhatos;
 
   class mmADT {
   public:
+    static Obj_p resolve_and_evaluate(const Obj_p &lhs, const ID_p &inst_id, const InstArgs &args,
+                                      const BiFunction<const Obj_p &, const InstArgs &, Obj_p> &base_f) {
+      const Inst_p resolve = RESOLVE_INST(lhs, inst_id);
+      return resolve->is_noobj() ? base_f(lhs, args) : resolve->apply(lhs, args);
+    }
+
     static Rec_p singleton() {
       const Str_p ARG_ERROR = str("wrong number of arguments");
+      TYPE_SAVER(id_p(MMADT_FURI "obj"), Obj::create(Any(), OType::OBJ, id_p(MMADT_FURI "obj")));
+      TYPE_SAVER(id_p(MMADT_FURI "bool"), Obj::create(false, OType::BOOL, id_p(MMADT_FURI "obj")));
+      TYPE_SAVER(id_p(MMADT_FURI "int"), Obj::create(0, OType::INT, id_p(MMADT_FURI "obj")));
+      TYPE_SAVER(id_p(MMADT_FURI "real"), Obj::create(0.0f, OType::REAL, id_p(MMADT_FURI "obj")));
+      TYPE_SAVER(id_p(MMADT_FURI "str"), Obj::create(string("0"), OType::STR, id_p(MMADT_FURI "obj")));
+      TYPE_SAVER(id_p(MMADT_FURI "uri"), Obj::create(fURI("mmadt://0"), OType::URI, id_p(MMADT_FURI "obj")));
+      ///////////////////////////
+      TYPE_SAVER(id_p(MMADT_FURI "inst/is"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "is")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return resolve_and_evaluate(
+                           lhs, id_p(MMADT_FURI "is"), args,
+                           [](const Obj_p &xlhs, const InstArgs &xargs) {
+                             return xargs.at(0)->bool_value() ? xlhs : _noobj_;
+                           });
+                     })
+                 ->create());
+      ///////////////////////////
+      TYPE_SAVER(id_p(MMADT_FURI "inst/plus"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return RESOLVE_INST(lhs, id_p(MMADT_FURI "plus"))->apply(lhs, args);
+                     })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "int/inst/plus"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return jnt(lhs->int_value() + args.at(0)->int_value());
+                     })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "real/inst/plus"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return real(lhs->real_value() + args.at(0)->real_value());
+                     })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "str/inst/plus"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return str(lhs->str_value().append(args.at(0)->str_value()));
+                     })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "bool/inst/plus"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return dool(lhs->bool_value() || args.at(0)->bool_value());
+                     })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "uri/inst/plus"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
+                 ->type_args(x(0, "rhs"))
+                 ->instance_f(
+                     [](const Obj_p &lhs, const InstArgs &args) {
+                       return vri(lhs->uri_value().extend(args.at(0)->uri_value()));
+                     })
+                 ->create());
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
       Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));

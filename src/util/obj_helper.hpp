@@ -49,14 +49,14 @@ namespace fhatos {
         throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b%s!!", old_obj->toString().c_str());
       LOG(DEBUG, "apply_lhs_args: %s => %s\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
       if (!lhs_args->is_lst())
-        return old_obj->apply(lhs_args);
+        return old_obj->apply(lhs_args, {});
       if (lhs_args->is_lst() && lhs_args->lst_size()->int_value() == 1)
-        return old_obj->apply(lhs_args->lst_get(0));
+        return old_obj->apply(lhs_args->lst_get(0), {});
       if (lhs_args->is_lst() && lhs_args->lst_size()->int_value() > 1) {
         const Obj_p new_obj = ObjHelper::replace_from_obj(old_obj, *lhs_args->lst_get(1)->lst_value(), lhs);
         LOG(DEBUG, "structure read() transformed bcode: %s => %s\n", old_obj->toString().c_str(),
             new_obj->toString().c_str());
-        return new_obj->apply(lhs_args->lst_get(0));
+        return new_obj->apply(lhs_args->lst_get(0), {});
       }
       return old_obj;
     }
@@ -157,7 +157,9 @@ namespace fhatos {
     }
 
     class InstTypeBuilder {
-      explicit InstTypeBuilder(const TypeO_p &type) : type_(type) {}
+      explicit InstTypeBuilder(const TypeO_p &type) :
+        type_(type) {
+      }
 
     protected:
       TypeO_p type_;
@@ -185,7 +187,7 @@ namespace fhatos {
           return [args, inst_f](const Obj_p &lhs) {
             InstArgs args_applied;
             for (const Obj_p &arg: args) {
-              args_applied.push_back(arg->apply(lhs));
+              args_applied.push_back(arg->apply(lhs, {}));
             }
             return inst_f(lhs, args_applied);
           };
@@ -193,13 +195,26 @@ namespace fhatos {
         return this;
       }
 
+      void save() const {
+        this->create();
+      }
+
       Inst_p create(const ValueO_p &value_id = nullptr) const {
+        if (value_id) {
+          const Inst_p maybe = ROUTER_READ(value_id);
+          if (!maybe->is_noobj())
+            return maybe;
+        }
         const Inst_p p = Obj::to_inst(this->type_->name(), // opcode
                                       this->args_, // args
-                                      this->function_supplier_, itype_, Obj::noobj_seed(), this->type_);
+                                      this->function_supplier_,
+                                      itype_,
+                                      Obj::noobj_seed(),
+                                      this->type_,
+                                      value_id);
 
         delete this;
-        return value_id ? p->at(value_id) : p;
+        return p;
       }
     };
   };

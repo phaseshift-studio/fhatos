@@ -42,14 +42,15 @@ namespace fhatos {
       Rec(rmap({
               {"barrier", noobj()},
               {"process", lst()},
-              {":stop", to_inst([this](const Obj_p &) {
+              {":stop", to_inst([this](const Obj_p &, const InstArgs &) {
                 this->stop();
                 return noobj();
-              }, INST_FURI, id_p(id.extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))}}),
+              }, NO_ARGS, INST_FURI, id_p(id.extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))}}),
           OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
+      SCHEDULER_ID = this->vid_;
       LOG_SCHEDULER(INFO, "!yscheduler!! started\n");
     }
 

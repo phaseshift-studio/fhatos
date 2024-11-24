@@ -80,9 +80,12 @@
 
 namespace fhatos {
   using std::string;
-  using std::shared_ptr;
   using std::to_string;
+  using std::shared_ptr;
+  using std::weak_ptr;
+  using std::unique_ptr;
   using std::make_shared;
+  using std::make_unique;
   using std::atomic_int;
   using std::atomic;
   using std::thread;
@@ -138,6 +141,10 @@ namespace fhatos {
   ///////////////////////
   template<typename A>
   using ptr = std::shared_ptr<A>;
+  template<typename A>
+  using up = std::unique_ptr<A>;
+  template<typename A>
+  using wp = std::weak_ptr<A>;
 
   template<typename A>
   ptr<A> share(const A a) {
@@ -191,6 +198,7 @@ namespace fhatos {
 #define FOS_IS_DOC_BUILD 0 == strcmp(STR(BUILD_DOCS), "ON")
 #define FOS_MMADT_URL_PREFIX "https://fhatos.org/mmadt/"
 #define FOS_NOOBJ_TOKEN noobj
+#define FOS_OBJ_TOKEN obj
 #define FOS_MAX_FURI_SEGMENTS 10
 #define FOS_TAB_1 " "
 #define FOS_TAB_2 "  "
@@ -225,7 +233,9 @@ LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),Options::singleton()
 LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->vid()->toString().c_str(), ##__VA_ARGS__)
-#define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
+#define LOG_OBJ(logtype, obj, format, ...)                                                                     \
+LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
+  #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
 #define LOG_ACTOR(logtype, actor, format, ...)                                                                         \

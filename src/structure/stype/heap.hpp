@@ -33,8 +33,8 @@ namespace fhatos {
   template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
   class Heap final : public Structure {
   protected:
-    const Map_p<const ID_p, Obj_p, furi_p_less, ALLOCATOR> data_ =
-        make_shared<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
+    const unique_ptr<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>> data_ =
+        make_unique<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
     MutexRW<> mutex_data_ = MutexRW<>("<heap_data>");
 
   public:
@@ -42,8 +42,9 @@ namespace fhatos {
       Structure(structure_rec) {
     }
 
-    static ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
-      return std::make_shared<Heap>(Obj::to_rec({{"pattern", vri(pattern)}}, HEAP_FURI));
+    static unique_ptr<Heap> create(const Pattern &pattern, const ID &value_id = ID("")) {
+      unique_ptr<Heap> heap = make_unique<Heap>(Obj::to_rec({{"pattern", vri(pattern)}}, HEAP_FURI));
+      return heap;
     }
 
     void stop() override {
@@ -66,14 +67,14 @@ namespace fhatos {
       this->distribute_to_subscribers(Message::create(*id, obj->clone(), retain));
     }
 
-    IdObjPairs_p read_raw_pairs(const fURI_p &match) override {
-      return this->mutex_data_.template read<IdObjPairs_p>([this, match] {
-        auto list = make_shared<IdObjPairs>();
+    IdObjPairs read_raw_pairs(const fURI_p &match) override {
+      return this->mutex_data_.template read<IdObjPairs>([this, match] {
+        auto list = IdObjPairs();
         for (const auto &[id, obj]: *this->data_) {
           if (id->matches(*match)) {
-            LOG_STRUCTURE(TRACE, this, "\tmatched: %s ~ %s => %s\n", id->toString().c_str(), match->toString().c_str(),
-                          obj->toString().c_str());
-            list->push_back({id, obj->clone()});
+         //   LOG_STRUCTURE(TRACE, this, "\tmatched: %s ~ %s => %s\n", id->toString().c_str(), match->toString().c_str(),
+         //                 obj->toString().c_str());
+            list.push_back({id, obj->clone()});
           }
         }
         return list;

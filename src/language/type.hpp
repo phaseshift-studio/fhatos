@@ -44,15 +44,15 @@ namespace fhatos {
                          }, {x(0, ___)}, INST_FURI,
                          id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
            {vri(":start_progress_bar"),
-            Obj::to_inst([this](const Int_p &obj) {
-              this->start_progress_bar(obj->int_value());
+            Obj::to_inst([this](const Int_p &, const InstArgs &args) {
+              this->start_progress_bar(args.at(0)->int_value());
               return _noobj_;
-            }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
+            }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
            {vri(":end_progress_bar"),
-            Obj::to_inst([this](const Str_p &obj) {
-              this->end_progress_bar(obj->str_value());
+            Obj::to_inst([this](const Str_p &, const InstArgs &args) {
+              this->end_progress_bar(args.at(0)->str_value());
               return _noobj_;
-            }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
+            }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
           })),
           OType::REC,
           id_p(type_id),
@@ -64,7 +64,8 @@ namespace fhatos {
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
         //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-        if (type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))
+
+        if (type_id->equals("/lang/mmadt/obj") || type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))
           return true;
         const fURI_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
         return this->check_type(obj, resolved_type_id, throw_on_fail);
@@ -81,20 +82,42 @@ namespace fhatos {
         const Obj_p proto_obj = type_id->equals(*OTYPE_FURI.at(obj->o_type())) || (
                                   !type_def->is_bcode() && !type_def->is_inst())
                                   ? obj
-                                  : type_def->apply(obj);
+                                  : type_def->apply(obj, {});
         if (proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
         return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
       ///////////////////////////////////////////////////////////////
+      RESOLVE_INST = [this](const Obj_p &this_obj, const ID_p &inst_type_id) {
+        Obj_p current_obj = this_obj;
+        while (true) {
+          if (current_obj->is_noobj())
+            return noobj();
+          LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
+                  current_obj->vid_or_tid()->extend("inst").toString().c_str(),
+                  inst_type_id->toString().c_str());
+          Inst_p maybe = ROUTER_READ(id_p(current_obj->vid_or_tid()->extend("inst").extend(inst_type_id->name())));
+          if (!maybe->is_noobj())
+            return maybe;
+          LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
+                  current_obj->tid()->extend("inst").toString().c_str(),
+                  inst_type_id->toString().c_str());
+
+          maybe = ROUTER_READ(id_p(current_obj->tid()->extend("inst").extend(inst_type_id->name())));
+          if (!maybe->is_noobj())
+            return maybe;
+          if (current_obj->tid()->equals(*OBJ_FURI))
+            return noobj();
+          current_obj = ROUTER_READ(current_obj->tid());
+        }
+        return noobj();
+      };
+
       this->load_core_inst();
     }
 
     void load_core_inst() {
-      INST_ARG = [](const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
-        return x(arg_num, arg_name, default_arg);
-      };
       this->start_progress_bar(6);
       this->save_type(MESSAGE_FURI, Obj::to_rec({
                           {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
@@ -146,16 +169,16 @@ namespace fhatos {
         } else {
           ROUTER_WRITE(type_id, type_def,RETAIN);
           if (current->is_noobj()) {
-            LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! defined\n", this->vid()->toString().c_str(),
-                type_id->toString().c_str(),
-                type_id->toString().c_str());
+            LOG_OBJ(INFO, this, FURI_WRAP " !ytype!! defined\n",
+                    type_id->toString().c_str(),
+                    type_id->toString().c_str());
           } else {
-            LOG(INFO, FURI_WRAP " " FURI_WRAP " !ytype!! !b!-%s!! overwritten\n", this->vid()->toString().c_str(),
-                type_id->toString().c_str(), current->toString().c_str());
+            LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
+                    type_id->toString().c_str(), current->toString().c_str());
           }
         }
       } catch (const fError &e) {
-        LOG_PROCESS(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
+        LOG_OBJ(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
       }
     }
 

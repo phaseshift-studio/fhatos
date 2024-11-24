@@ -241,30 +241,31 @@ namespace fhatos {
   public:
     static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
       const auto console = ptr<Console>(new Console(id, terminal, settings));
+      //LOG(INFO, "RESOLVING INST: %s -> %s\n", "delay", console->toString().c_str());
+      //LOG(INFO, "FOUND!: %s\n", RESOLVE_INST(console,id_p("delay"))->toString().c_str());
       return console;
     }
 
-    static ID import(const ID &id = "/io/console") {
-      static const auto IMPORT_ID = id_p(ID("/lib/").extend(id));
+    static ID import(const ID &id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
-      Type::singleton()->save_type(
-          IMPORT_ID,
-          rec({{vri(":create"),
-                ObjHelper::InstTypeBuilder::build(ID(IMPORT_ID->extend(":create")))
-                ->type_args(
-                    x(0, "install_location", vri(id)),
-                    x(1, "terminal_id", vri(Terminal::singleton()->vid())),
-                    x(2, "config", Obj::to_rec({{vri("nest"), jnt(2)}, {vri("strict"), dool(false)},
-                                                {vri("ansi"), dool(true)}, {vri("prompt"), str(">")},
-                                                {vri("log"), vri("INFO")}})))
-                ->instance_f([](const Obj_p &, const InstArgs &args) {
-                  ptr<Console> console = Console::create(
-                      ID(args.at(0)->uri_value()),
-                      ID(args.at(1)->uri_value()),
-                      Settings(2, true, "!mfhatos!g>!! ", false, INFO));
-                  return console;
-                })
-                ->create()}}));
+      TYPE_SAVER(id_p(id), rec({{vri(":create"),
+                                 ObjHelper::InstTypeBuilder::build(ID(id.extend(":create")))
+                                 ->type_args(
+                                     x(0, "install_location", vri(id)),
+                                     x(1, "terminal_id", vri(Terminal::singleton()->vid())),
+                                     x(2, "config", Obj::to_rec({{vri("nest"), jnt(2)},
+                                                                 {vri("strict"), dool(false)},
+                                                                 {vri("ansi"), dool(true)},
+                                                                 {vri("prompt"), str(">")},
+                                                                 {vri("log"), vri("INFO")}})))
+                                 ->instance_f([](const Obj_p &, const InstArgs &args) {
+                                   ptr<Console> console = Console::create(
+                                       ID(args.at(0)->uri_value()),
+                                       ID(args.at(1)->uri_value()),
+                                       Settings(2, true, "!mfhatos!g>!! ", false, INFO));
+                                   return console;
+                                 })
+                                 ->create()}}, THREAD_FURI));
       return id;
     }
   };

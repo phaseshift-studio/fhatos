@@ -146,8 +146,8 @@ namespace fhatos {
     }
 
     virtual void publish_retained(const Subscription_p &subscription) {
-      const IdObjPairs_p list = this->read_raw_pairs(furi_p(subscription->pattern()));
-      for (const auto &[id, obj]: *list) {
+      const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern()));
+      for (const auto &[id, obj]: list) {
         if (!obj->is_noobj()) {
           if (id->matches(subscription->pattern())) {
             FEED_WATCDOG();
@@ -198,11 +198,11 @@ namespace fhatos {
         return ret;
       }
       const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
-      const IdObjPairs_p matches = this->read_raw_pairs(temp);
+      const IdObjPairs matches = this->read_raw_pairs(temp);
       if (furi->is_branch()) {
         const Rec_p rec = Obj::to_rec();
         // BRANCH ID AND PATTERN
-        for (const auto &[key, value]: *matches) {
+        for (const auto &[key, value]: matches) {
           rec->rec_set(vri(key), value, false);
         }
         return rec;
@@ -210,14 +210,14 @@ namespace fhatos {
         // NODE PATTERN
         if (furi->is_pattern()) {
           const Objs_p objs = Obj::to_objs();
-          for (const auto &[key, value]: *matches) {
+          for (const auto &[key, value]: matches) {
             objs->add_obj(value);
           }
           return objs;
         }
         // NODE ID
         else {
-          if (matches->empty()) {
+          if (matches.empty()) {
             if (furi->path_length() > 0) {
               // recurse backwards to find a root poly that has respective furi path
               const Obj_p maybe_poly = this->read(furi_p(furi->retract()));
@@ -228,7 +228,7 @@ namespace fhatos {
             }
             return noobj();
           }
-          return matches->begin()->second;
+          return matches.at(0).second;
         }
       }
     }
@@ -265,8 +265,8 @@ namespace fhatos {
           // BRANCH (POLYS)
           if (obj->is_noobj()) {
             // nobj
-            const IdObjPairs_p ids = this->read_raw_pairs(furi_p(furi->extend("+")));
-            for (const auto &[key, value]: *ids) {
+            const IdObjPairs ids = this->read_raw_pairs(furi_p(furi->extend("+")));
+            for (const auto &[key, value]: ids) {
               this->write_raw_pairs(key, obj, retain);
             }
           } else if (obj->is_rec()) {
@@ -299,8 +299,8 @@ namespace fhatos {
         } else {
           // NODE PATTERN
           if (furi->is_pattern()) {
-            const IdObjPairs_p matches = this->read_raw_pairs(furi_p(*furi));
-            for (const auto &[key, value]: *matches) {
+            const IdObjPairs matches = this->read_raw_pairs(furi_p(*furi));
+            for (const auto &[key, value]: matches) {
               this->write_raw_pairs(key, obj, retain);
             }
           }
@@ -331,14 +331,14 @@ namespace fhatos {
           // bcode, pass the output of applying the written obj to bcode to subscribers
           //const BCode_p rewritten_bcode = ;
           // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
-          const Obj_p result = applicable_obj->apply(obj);
+          const Obj_p result = applicable_obj->apply(obj, {});
           //ObjHelper::replace_from_obj({obj}, applicable_obj)->apply(obj);
           //ObjHelper::apply_lhs_args(applicable_obj, obj);
           // Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
           this->write_raw_pairs(id_p(*furi), result, retain);
         } else
         // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)
-          this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj), retain);
+          this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj, {}), retain);
       }
     }
 
@@ -346,7 +346,7 @@ namespace fhatos {
   public:
     virtual void write_raw_pairs(const ID_p &id, const Obj_p &obj, bool retain) = 0;
 
-    virtual IdObjPairs_p read_raw_pairs(const fURI_p &match) = 0;
+    virtual IdObjPairs read_raw_pairs(const fURI_p &match) = 0;
 
   protected:
     static Obj_p strip_value_id(const Obj_p &obj) {
@@ -396,6 +396,7 @@ namespace fhatos {
   };
 
   using Structure_p = ptr<Structure>;
+  using Structure_up = unique_ptr<Structure>;
 } // namespace fhatos
 
 #endif

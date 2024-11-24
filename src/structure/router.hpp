@@ -44,22 +44,23 @@ namespace fhatos {
       Rec(rmap({{"structure", to_lst()},
                 {"nm_resolver", vri(namespace_prefix)},
                 {":stop", to_inst(
-                     [this](const Obj_p &) {
+                     [this](const Obj_p &, const InstArgs &) {
                        this->stop();
                        return noobj();
-                     },INST_FURI,
+                     }, NO_ARGS, INST_FURI,
                      make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
                 {":attach", to_inst(
-                     [this](const Obj_p &obj) {
-                       if (obj->tid()->name() == "heap")
+                     [this](const Obj_p &obj, const InstArgs &args) {
+                       if (args.at(0)->tid()->name() == "heap")
                          this->attach(make_shared<Heap<>>(obj));
-                       else if (obj->tid()->name() == "mqtt")
+                       else if (args.at(0)->tid()->name() == "mqtt")
                          this->attach(make_shared<Mqtt>(obj));
                        return noobj();
-                     },INST_FURI,
+                     }, {x(0, ___)}, INST_FURI,
                      make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}),
           OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
+      ROUTER_ID = this->vid_;
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(furix, obj, retain);
@@ -105,11 +106,11 @@ namespace fhatos {
       for (const auto &[name, count]: *map) {
         LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
       }
-      this->structures_.forEach([map](const Structure_p &structure) { structure->stop(); });
+      this->structures_.forEach([](const Structure_p &structure) { structure->stop(); });
       LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
-    void attach(const ptr<Structure> &structure) {
+    void attach(const Structure_p &structure) {
       if (structure->pattern()->equals(Pattern(""))) {
         LOG_ROUTER(INFO, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
                    structure->tid()->name().c_str());
@@ -145,7 +146,7 @@ namespace fhatos {
       Obj::save();
     }
 
-    [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
+    [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg, {}); }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       try {
@@ -153,7 +154,7 @@ namespace fhatos {
         const bool query = furi->has_query("structure");
         const Structure_p &struc = this->get_structure(*resolved_furi);
         if (query)
-          return struc;
+          return struc->shared_from_this();
         const Objs_p objs = struc->read(resolved_furi);
         LOG_ROUTER(DEBUG, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                    Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),

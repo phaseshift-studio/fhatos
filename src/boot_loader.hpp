@@ -28,7 +28,7 @@
 #include <language/type.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
-#include FOS_FILE_SYSTEM(fs.hpp)
+//#include FOS_FILE_SYSTEM(fs.hpp)
 #include FOS_MQTT(mqtt.hpp)
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
@@ -81,16 +81,20 @@ namespace fhatos {
               ->displaying_notes("Use !b" STR(FOS_NOOBJ_TOKEN) "!! for !rnoobj!!");
         }
         ////////////////////////////////////////////////////////////
-        return kp->using_scheduler(Scheduler::singleton("/sys/scheduler"))
+        return kp
+            ->using_scheduler(Scheduler::singleton("/sys/scheduler"))
             ->using_router(Router::singleton("/sys/router"))
-            ////////////////////////////////////////////////////////////
+            ////////////////// SYS STRUCTURE
             ->mount(Heap<ALLOC>::create("/sys/#"))
-            ->mount(Heap<ALLOC>::create("/lib/#"))
+            //->import(Scheduler::import("/sys/lib/scheduler"))
+            //->import(Router::import("/sys/lib/router"))
+            ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create("/type/#"))
             ->install(Type::singleton("/type/"))
+            ->mount(Heap<>::create("/lang/#"))
             ->mount(Heap<>::create("/io/#"))
             ->install(Terminal::singleton("/io/terminal"))
-            ->import(Console::import("/io/console"))
+            ->import(Console::import("/io/lib/console"))
             ->mount(Heap<>::create("+/#", "_cache"))
             ->install(Parser::singleton("/io/parser"))
             ->install(mmadt::mmADT::singleton())
@@ -104,14 +108,13 @@ namespace fhatos {
             ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
-            ->mount(Mqtt::create("//driver/#",
+            ->mount(Mqtt::create("//io/#",
                                  Mqtt::Settings(args_parser->option_string("--mqtt:client", STR(FOS_MACHINE_NAME)),
                                                 args_parser->option_string("--mqtt:broker", STR(FOS_MQTT_BROKER))),
-                                 "/driver/mqtt"))
-            ->mount(Heap<ALLOC>::create("/driver/#"))
+                                 "/io/mqtt"))
 #if defined(NATIVE)
-          //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
-            ->install(ArduinoI2CDriver::load_remote("/driver/i2c/master/furi", id_p("//driver/master/i2c")))
+            //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
+            ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif
 #if defined(ARDUINO) || defined(RASPBERRYPI)
            // ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))

@@ -124,12 +124,12 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public:
-    static ptr<Mqtt> create(const Pattern &pattern, const Settings &settings,
-                            const ID &value_id = ID("")) {
+    static unique_ptr<Mqtt> create(const Pattern &pattern, const Settings &settings,
+                                   const ID &value_id = ID("")) {
       if (!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
-      const auto mqtt_p = ptr<Mqtt>(new Mqtt(pattern, settings,
-                                             value_id.empty() ? ID(pattern.retract_pattern()) : value_id));
+      auto mqtt_p = make_unique<Mqtt>(pattern, settings,
+                                      value_id.empty() ? ID(pattern.retract_pattern()) : value_id);
       return mqtt_p;
     }
 

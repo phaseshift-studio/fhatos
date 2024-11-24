@@ -56,6 +56,7 @@ namespace fhatos {
     int16_t wdt_timer_counter = 0;
     int32_t sleep_ = 0;
     bool yield_ = false;
+    bool stop_ = false;
 
   public:
     explicit Process() :
@@ -63,33 +64,50 @@ namespace fhatos {
       this->vid_ = id_p("/sys/scheduler");
     }
 
-    explicit Process(const Rec_p &setup_loop_stop, const ID_p &type_id = REC_FURI, const ID_p &value_id = nullptr) :
+    explicit Process(const Rec_p &setup_loop_stop) :
       Obj(*setup_loop_stop->rec_merge(rmap({
           {
               id_p(":delay"), Obj::to_inst(
                   [this](const Obj_p &lhs, const InstArgs &args) {
-                    this->sleep_ = args.at(0)->int_value();
-                    return _noobj_;
+                  //  ((Process*)lhs.get())->delay(args.at(0)->int_value());
+                    Process::current_process()->sleep_ = args.at(0)->int_value();
+                    return lhs;
                   }, {x(0, ___)}, INST_FURI, make_shared<ID>(string(StringHelper::cxx_f_metadata(
                       "/sys/scheduler/lib", "process",__LINE__))))
           },
           {
               id_p(":yield"), Obj::to_inst(
-                  [this](const Obj_p &) {
-                    this->yield_ = true;
+                  [this](const Obj_p &, const InstArgs &) {
+                    Process::current_process()->yield_ = true;
                     return noobj();
-                  }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
+                  }, NO_ARGS, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
                       "/sys/scheduler/lib", "process",__LINE__)))
           },
           {
-              id_p(":halt"), Obj::to_inst(
-                  [this](const Obj_p &) {
-                    this->stop();
+              id_p(":stop"), Obj::to_inst(
+                  [this](const Obj_p &, const InstArgs &) {
+                    Process::current_process()->stop_ = true;
                     return noobj();
-                  }, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
+                  }, NO_ARGS, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(
                       "/sys/scheduler/lib", "process",__LINE__)))
           }
       }))) {
+      ObjHelper::InstTypeBuilder::build("/type/process/inst/delay")
+          ->type_args(x(0, "milliseconds", ___))
+          ->instance_f([this](const Obj_p &, const InstArgs &args) {
+            this->sleep_ = args.at(0)->int_value();
+            return _noobj_;
+          })->create(id_p(SCHEDULER_ID->extend("lib/process/inst/delay")));
+      ObjHelper::InstTypeBuilder::build(*INST_FURI)
+          ->instance_f([this](const Obj_p &, const InstArgs &) {
+            this->yield_ = true;
+            return _noobj_;
+          })->create(id_p("/sys/lib/scheduler/process/:yield"));
+      ObjHelper::InstTypeBuilder::build(*INST_FURI)
+          ->instance_f([this](const Obj_p &, const InstArgs &) {
+            this->stop();
+            return _noobj_;
+          })->create(id_p("/sys/lib/scheduler/process/:stop"));
     }
 
     ~Process() override = default;
@@ -135,6 +153,10 @@ namespace fhatos {
 
     virtual void loop() {
       this_process = this;
+      if (this->stop_) {
+        this->stop();
+        return;
+      }
       if (this->sleep_ > 0) {
         this->delay(sleep_);
         this->sleep_ = 0;

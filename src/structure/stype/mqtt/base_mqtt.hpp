@@ -124,7 +124,7 @@ namespace fhatos {
       ///  Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
     }
 
-    IdObjPairs_p read_raw_pairs(const fURI_p &furi) override {
+    IdObjPairs read_raw_pairs(const fURI_p &furi) override {
       // FOS_TRY_META
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       const bool pattern_or_branch = furi->is_pattern() || furi->is_branch();
@@ -142,7 +142,7 @@ namespace fhatos {
                                      thing->load()->push_back({id_p(message->rec_get(vri("target"))->uri_value()),
                                                                message->rec_get(vri("payload"))});
                                      return noobj();
-                                   }, {INST_ARG(0, "msg", noobj())},
+                                   }, {x(0, "msg", noobj())},
                                    StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
@@ -154,7 +154,7 @@ namespace fhatos {
       }
       ///////////////////////////////////////////////
       this->recv_unsubscribe(id_p(source_id), furi_p(temp));
-      const IdObjPairs_p list = ptr<IdObjPairs>(thing->load());
+      const IdObjPairs list = IdObjPairs(*thing->load());
       delete thing;
       return list;
     }

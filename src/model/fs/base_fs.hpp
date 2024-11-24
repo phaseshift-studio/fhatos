@@ -66,7 +66,7 @@ namespace fhatos {
                                        "ls", {x(0, bcode())},
                                        [this](const InstArgs &args) {
                                          return [this, args](const Obj_p &lhs) {
-                                           return args.empty() ? this->ls(lhs) : this->ls(args.at(0)->apply(lhs));
+                                           return args.empty() ? this->ls(lhs) : this->ls(args.at(0));
                                          };
                                        },
                                        IType::ONE_TO_MANY, Obj::objs_seed(), id_p(INST_FS_FURI->resolve("ls"))));
@@ -75,7 +75,7 @@ namespace fhatos {
                                        "fs:mkdir", {x(0, bcode())},
                                        [this](const InstArgs &args) {
                                          return [this, args](const Obj_p &lhs) {
-                                           return this->mkdir(args.at(0)->apply(lhs)->uri_value());
+                                           return this->mkdir(args.at(0)->uri_value());
                                          };
                                        },
                                        IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("mkdir"))));
@@ -87,14 +87,14 @@ namespace fhatos {
                                            if (args.empty())
                                              return this->more(lhs, FOS_DEFAULT_MORE_LINES);
                                            if (args.size() == 1) {
-                                             const Obj_p ap_arg0 = args.at(0)->apply(lhs);
+                                             const Obj_p ap_arg0 = args.at(0);
                                              if (ap_arg0->is_int())
                                                return this->more(lhs, ap_arg0->int_value());
                                              else
                                                return this->more(ap_arg0, FOS_DEFAULT_MORE_LINES);
                                            } else {
-                                             const Obj_p ap_arg0 = args.at(0)->apply(lhs);
-                                             const Obj_p ap_arg1 = args.at(1)->apply(lhs);
+                                             const Obj_p ap_arg0 = args.at(0);
+                                             const Obj_p ap_arg1 = args.at(1);
                                              return this->more(ap_arg0, ap_arg1->int_value());
                                            }
                                          };
@@ -106,7 +106,7 @@ namespace fhatos {
                                        [this](const InstArgs &args) {
                                          Insts::arg_check(id_p(INST_FS_FURI->resolve("append")), args, 1);
                                          return [this, args](const Obj_p &lhs) {
-                                           return this->cat(lhs, args.at(0)->apply(lhs));
+                                           return this->cat(lhs, args.at(0));
                                          };
                                        },
                                        IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("append"))));
@@ -115,7 +115,7 @@ namespace fhatos {
                                        "fs:touch", {x(0, bcode())},
                                        [this](const InstArgs &args) {
                                          return [this, args](const Obj_p &lhs) {
-                                           return this->touch(args.at(0)->apply(lhs)->uri_value());
+                                           return this->touch(args.at(0)->uri_value());
                                          };
                                        },
                                        IType::ONE_TO_ONE, Obj::noobj_seed(), id_p(INST_FS_FURI->resolve("touch"))));

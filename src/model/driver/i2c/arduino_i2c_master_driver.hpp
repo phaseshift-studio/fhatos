@@ -33,61 +33,54 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   class ArduinoI2CDriver {
   public:
-    static Obj_p load_remote(const ID &driver_value_id, const ID_p &driver_remote_id,
-                             const ID &define_ns_prefix = ID("i2c")) {
+    static Obj_p load_remote(const ID &lib_id, const ID &i2c_local_id, const ID &i2c_remote_id,
+                             const ID &define_ns_prefix = "i2c") {
       const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
-          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":setup"))
-              ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-                ROUTER_WRITE(id_p(driver_remote_id->extend(":setup")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
-                return noobj();
-              })
-              ->create(),
-          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":stop"))
-              ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-                ROUTER_WRITE(id_p(driver_remote_id->extend(":stop")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
-                return noobj();
-              })
-              ->create(),
-          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":tx"))
-              ->type_args(x(0, "address"), x(1, "data size"))
-              ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-                ROUTER_WRITE(id_p(driver_remote_id->extend(":read")), ObjHelper::make_lhs_args(lhs, args), TRANSIENT);
-                return noobj();
-              })
-              ->create(),
-          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":write"))
-              ->type_args(x(0, "data array", str("")))
-              ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
-                ROUTER_WRITE(id_p(driver_remote_id->extend(":write")), ObjHelper::make_lhs_args(lhs, args), TRANSIENT);
-                return noobj();
-              })
-              ->create(),
-          ObjHelper::InstTypeBuilder::build(driver_value_id.extend(":read"))
-              ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
-                ROUTER_WRITE(id_p(driver_remote_id->extend(":read")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
-                return noobj();
-              })
-              ->create(),
+        ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":setup"))
+        ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":setup")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":stop"))
+        ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":stop")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":write"))
+        ->type_args(x(0, "data array", str("")))
+        ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &args) {
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":write")), ObjHelper::make_lhs_args(lhs, args), TRANSIENT);
+          return noobj();
+        })
+        ->create(),
+        ObjHelper::InstTypeBuilder::build(*INST_FURI)
+        ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
+          ROUTER_WRITE(id_p(i2c_remote_id.extend(":read")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
+          return noobj();
+        })
+        ->create(id_p(lib_id.resolve(i2c_local_id).extend(":read"))),
       });
       Type::singleton()->save_type(
-          id_p("/lib/driver/i2c/arduino/master/furi"),
-          rec({{vri(":create"),
-                ObjHelper::InstTypeBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
-                    ->type_args(x(0, "local_id", vri(driver_value_id)), x(1, "remote_id", vri(driver_remote_id)),
-                                x(2, "ns_prefix", vri(define_ns_prefix)))
-                    ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
-                      const Rec_p record = rec();
-                      for (const auto &i: *inst_types) {
-                        record->rec_set(vri(i->inst_op()), i);
-                      }
-                      const Uri_p driver_id = args.at(0);
-                      const Uri_p ns_prefix = args.at(2);
-                      if (!ns_prefix->is_noobj())
-                        Type::singleton()->save_type(id_p(ID(FOS_NAMESPACE_PREFIX_ID).extend(ns_prefix->uri_value())),
-                                                     driver_id);
-                      return record->at(id_p(args.at(0)->uri_value()));
-                    })
-                    ->create()}}));
+        id_p(lib_id.resolve(i2c_local_id)),
+        rec({{vri(":create"),
+          ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":create"))
+          ->type_args(x(0, "local_id", vri(lib_id.retract().resolve(i2c_local_id))), x(1, "remote_id", vri(i2c_remote_id)),
+                      x(2, "ns_prefix", vri(define_ns_prefix)))
+          ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
+            const Rec_p record = rec();
+            for (const auto &i: *inst_types) {
+              record->rec_set(vri(i->inst_op()), i);
+            }
+            const Uri_p driver_id = args.at(0);
+            const Uri_p ns_prefix = args.at(2);
+            if (!ns_prefix->is_noobj())
+              Type::singleton()->save_type(id_p(ID(FOS_NAMESPACE_PREFIX_ID).extend(ns_prefix->uri_value())),
+                                           driver_id);
+            return record->at(id_p(args.at(0)->uri_value()));
+          })
+          ->create()}}));
       return noobj();
     }
 
