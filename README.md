@@ -29,7 +29,7 @@ The following processors and platforms have been tested:
   - LOLIN S3 Pro
   - LOLIN S3 AI
   - LILYGO T7-S3
-  - N16R8 S3
+  - WAVESHARE S3 N16R8
 - **RASPBERRY PI** (gcc/wiringpi)
   - Zero 2w
   - Zero RP2040
