@@ -204,12 +204,15 @@ namespace fhatos {
 
   using InstOpcode = string;
   using InstArgs = List<Obj_p>;
-  constexpr InstArgs NO_ARGS = {};
+  static const InstArgs NO_ARGS = {};
+  class Args;
   using InstF = BiFunction<Obj_p, InstArgs, Obj_p>;
+  using InstGenerator = Function<Inst_p, BiFunction<Obj_p, Args, Obj_p>>;
+
   using InstFunctionSupplier = Function<InstArgs, Function<Obj_p, Obj_p>>;
   using InstSeedSupplier = Function<Obj_p, Obj_p>;
   using InstSeed = Obj_p;
-  using InstValue = Quad<InstArgs, InstFunctionSupplier, IType, InstSeedSupplier>;
+  using InstValue = Quad<InstArgs, InstFunctionSupplier, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
   static const auto OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj/");
@@ -352,6 +355,40 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<COMPARATOR, ALLOCATOR>>;
     //////////////////////////////////////////////////////
 
+    class Args final {
+      unique_ptr<Map<ID, Obj_p>> args_;
+
+    public:
+      explicit Args(const Map<ID, Obj_p> &map_of_args) :
+        args_(make_unique<Map<ID, Obj_p>>(map_of_args)) {
+      }
+
+      void apply_lhs(const Obj_p &lhs) {
+        unique_ptr<Map<ID, Obj_p>> applied_args;
+        for (const auto &[arg_name, arg_obj]: *this->args_) {
+          applied_args->insert({arg_name, arg_obj->apply(lhs, {})}); // TODO: allow cross reference to other args?!
+        }
+        this->args_ = std::move(applied_args);
+      }
+
+      void check_size(const uint8_t expected) const {
+        if (args_->size() != expected)
+          throw fError("bad argument length");
+      }
+
+      void add_arg(const ID &name, const Obj_p &obj) const {
+        this->args_->insert({name, obj});
+      }
+
+      Obj_p arg(const ID &name) const {
+        return this->args_->at(name);
+      }
+
+      bool bool_value(const ID &name) const {
+        return this->args_->at(name)->bool_value();
+      }
+    };
+
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(otype)), Valued(value_id), otype_(otype), value_(value) {
       TYPE_CHECKER(this, type_id, true);
@@ -467,6 +504,8 @@ namespace fhatos {
     [[nodiscard]] bool bool_value() const {
       if (!this->is_bool())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if (!this->value_.has_value())
+        throw fError("obj is a bool type, not a bool value");
       return this->value<bool>();
     }
 
@@ -679,9 +718,9 @@ namespace fhatos {
 
     [[nodiscard]] InstFunctionSupplier inst_f() const { return std::get<1>(this->inst_value()); }
 
-    [[nodiscard]] InstSeedSupplier inst_seed_supplier() const { return std::get<3>(this->inst_value()); }
+    [[nodiscard]] Obj_p inst_seed_supplier() const { return std::get<3>(this->inst_value()); }
 
-    [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()(arg); }
+    [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()->apply(arg, {}); }
 
     [[nodiscard]] Pair<Obj_p, Inst_p> error_value() const {
       if (!this->is_error())
@@ -1590,20 +1629,12 @@ namespace fhatos {
       return to_rec(map, type, id);
     }
 
-    static InstSeedSupplier objs_seed() {
-      return [](const Obj_p &) { return to_objs(); };
-    }
-
-    static InstSeedSupplier noobj_seed() {
-      return [](const Obj_p &) { return to_noobj(); };
-    }
-
     static Inst_p to_inst(const InstValue &value, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
       return Obj::create(value, OType::INST, type_id, value_id);
     }
 
     static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function,
-                          const IType itype, const InstSeedSupplier &seed = noobj_seed(), const ID_p &type_id = nullptr,
+                          const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
       const ID_p fix = type_id != nullptr ? type_id : id_p(INST_FURI->resolve(opcode));
       return to_inst({args, function, itype, seed}, fix, value_id);
@@ -1616,7 +1647,6 @@ namespace fhatos {
     static BCode_p to_bcode(const InstList &insts, const ID_p &furi = BCODE_FURI) {
       return Obj::to_bcode(make_shared<InstList>(insts), furi);
     }
-
 
     static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
 
@@ -1647,7 +1677,7 @@ namespace fhatos {
               return function(lhs, aargs);
             };
           },
-          IType::ONE_TO_ONE, noobj_seed(), type_id, value_id);
+          IType::ONE_TO_ONE, Obj::to_noobj(), type_id, value_id);
       TYPE_SAVER(value_id, inst);
       return inst;
     }
@@ -1659,7 +1689,7 @@ namespace fhatos {
           [function](const InstArgs &args2) {
             return [function, args2](const Obj_p &input) { return function(input, args2); };
           },
-          IType::ONE_TO_ONE, noobj_seed(), inst_id);
+          IType::ONE_TO_ONE, Obj::to_noobj(), inst_id);
       // TYPE_SAVER(inst_id, inst);
       return inst;
     }

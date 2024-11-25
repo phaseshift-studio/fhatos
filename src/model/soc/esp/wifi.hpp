@@ -81,24 +81,24 @@ namespace fhatos {
       Computed::setup();
       this->read_functions_->insert(
           {this->pattern(), [this](const fURI_p furi) {
-             IdObjPairs_p map = make_shared<IdObjPairs>();
+             IdObjPairs map = IdObjPairs();
              ID_p current;
              if (FOS_WIFI_CONNECT->matches(*furi))
-               map->push_back({FOS_WIFI_CONNECT, dool(WiFi.isConnected())});
+               map.push_back({FOS_WIFI_CONNECT, dool(WiFi.isConnected())});
              if (FOS_WIFI_SSID->matches(*furi))
-               map->push_back({FOS_WIFI_SSID, str(this->settings_.ssid_)});
+               map.push_back({FOS_WIFI_SSID, str(this->settings_.ssid_)});
              if (FOS_WIFI_PASSWORD->matches(*furi))
-               map->push_back({FOS_WIFI_PASSWORD, str(this->settings_.password_)});
+               map.push_back({FOS_WIFI_PASSWORD, str(this->settings_.password_)});
              if (FOS_WIFI_MDNS->matches(*furi))
-               map->push_back({FOS_WIFI_MDNS, vri(WiFi.getHostname())});
+               map.push_back({FOS_WIFI_MDNS, vri(WiFi.getHostname())});
              if (FOS_WIFI_ID_ADDR->matches(*furi))
-               map->push_back({FOS_WIFI_ID_ADDR, vri(WiFi.localIP().toString().c_str())});
+               map.push_back({FOS_WIFI_ID_ADDR, vri(WiFi.localIP().toString().c_str())});
              if (FOS_WIFI_GATEWAY_ADDR->matches(*furi))
-               map->push_back({FOS_WIFI_GATEWAY_ADDR, vri(WiFi.gatewayIP().toString().c_str())});
+               map.push_back({FOS_WIFI_GATEWAY_ADDR, vri(WiFi.gatewayIP().toString().c_str())});
              if (FOS_WIFI_SUBNET_MASK->matches(*furi))
-               map->push_back({FOS_WIFI_SUBNET_MASK, vri(WiFi.subnetMask().toString().c_str())});
+               map.push_back({FOS_WIFI_SUBNET_MASK, vri(WiFi.subnetMask().toString().c_str())});
              if (FOS_WIFI_DNS_ADDR->matches(*furi))
-               map->push_back({FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
+               map.push_back({FOS_WIFI_DNS_ADDR, vri(WiFi.dnsIP().toString().c_str())});
              return map;
            }});
       LOG_STRUCTURE(INFO, this, "!b%s !yread functions!! loaded\n", this->pattern()->toString().c_str());

@@ -54,7 +54,7 @@ namespace fhatos {
                                 : (100.0f * (1.0f - (((float) ESP.getFreeSketchSpace()) /
                                                      ((float) (ESP.getSketchSize() + ESP.getFreeSketchSpace()))))),
                             percent)}});
-             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, r}}));
+             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{inst, r}}));
            }});
       this->read_functions_->insert(
           {heap, [this, heap, percent](const fURI_p &) {
@@ -66,7 +66,7 @@ namespace fhatos {
                                 ? 0.0f
                                 : (100.0f * (1.0f - (((float) ESP.getFreeHeap()) / ((float) ESP.getHeapSize())))),
                             percent)}});
-             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
+             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{heap, r}}));
            }});
       this->read_functions_->insert(
           {psram, [this, psram, percent](const fURI_p &) {
@@ -78,7 +78,7 @@ namespace fhatos {
                                 ? 0.0f
                                 : (100.0f * (1.0f - (((float) ESP.getFreePsram()) / ((float) ESP.getPsramSize())))),
                             percent)}});
-             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
+             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{psram, r}}));
            }});
 
       this->read_functions_->insert(
@@ -91,7 +91,7 @@ namespace fhatos {
                                              ? 0.0f
                                              : (100.0f * (1.0f - ((float) free) / ((float) FOS_ESP_THREAD_STACK_SIZE))),
                                          percent)}});
-             return make_shared<List<Pair<ID_p, Obj_p>>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, r}}));
+             return List<Pair<ID_p, Obj_p>>(initializer_list<Pair<ID_p, Obj_p>>({{hwm, r}}));
            }});
     }
     // TODO: flash/partition/0x4434

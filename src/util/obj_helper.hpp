@@ -158,14 +158,30 @@ namespace fhatos {
 
     class InstTypeBuilder {
       explicit InstTypeBuilder(const TypeO_p &type) :
-        type_(type) {
+        type_(type), seed_(nullptr) {
+      }
+
+      InstFunctionSupplier NO_OBJ_INST() const {
+        return [this](const InstArgs &args) {
+          return [this,args](const Obj_p &lhs) {
+            InstArgs args_applied;
+            for (const Obj_p &arg: args) {
+              args_applied.push_back(arg->apply(lhs, {}));
+            }
+            const Inst_p resolve = RESOLVE_INST(lhs, this->type_);
+            if (resolve->is_noobj())
+              throw fError("inst has no obj implementation and wasn't resolved");
+            return resolve->apply(lhs, args);
+          };
+        };
       }
 
     protected:
       TypeO_p type_;
       InstArgs args_{};
-      InstFunctionSupplier function_supplier_{};
+      InstFunctionSupplier function_supplier_ = nullptr;
       IType itype_{IType::ONE_TO_ONE};
+      Obj_p seed_;
 
     public:
       static InstTypeBuilder *build(const TypeO &type) { return new InstTypeBuilder(id_p(type)); }
@@ -182,9 +198,104 @@ namespace fhatos {
         return this;
       }
 
+      InstTypeBuilder *itype_and_seed(const IType itype,
+                                      const Obj_p &seed = nullptr) {
+        this->itype_ = itype;
+        if (seed)
+          this->seed_ = seed;
+        return this;
+      }
+
       InstTypeBuilder *instance_f(const BiFunction<Obj_p, InstArgs, Obj_p> &inst_f) {
-        this->function_supplier_ = [inst_f](const InstArgs &args) {
+        this->function_supplier_ = [this,inst_f](const InstArgs &args) {
+          return [this,args, inst_f](const Obj_p &lhs) {
+            InstArgs args_applied;
+            for (const Obj_p &arg: args) {
+              args_applied.push_back(arg->apply(lhs, {}));
+            }
+            const Inst_p resolve = RESOLVE_INST(lhs, this->type_);
+            return resolve->is_noobj() ? inst_f(lhs, args) : resolve->apply(lhs, args);
+          };
+        };
+        return this;
+      }
+
+      void save() const {
+        this->create();
+      }
+
+      Inst_p create(const ValueO_p &value_id = nullptr) const {
+        if (value_id) {
+          const Inst_p maybe = ROUTER_READ(value_id);
+          if (!maybe->is_noobj())
+            return maybe;
+        }
+        const Inst_p p = Obj::to_inst(this->type_->name(), // opcode
+                                      this->args_, // args
+                                      this->function_supplier_
+                                        ? this->function_supplier_
+                                        : InstTypeBuilder::NO_OBJ_INST(),
+                                      this->itype_,
+                                      this->seed_
+                                        ? this->seed_
+                                        : (is_barrier_out(this->itype_)
+                                             ? Obj::to_objs()
+                                             : _noobj_),
+                                      this->type_,
+                                      value_id);
+
+        delete this;
+        return p;
+      }
+    };
+
+    //////////
+
+    /*class InstFactory {
+      explicit InstFactory(const ID_p &type_id) :
+        type_id_(type_id), args_({}) {
+      }
+
+    protected:
+      ID_p type_id_;
+      Obj::Args args_;
+      InstGenerator function_supplier_{};
+      IType itype_{IType::ONE_TO_ONE};
+
+    public:
+      static InstFactory *build(const TypeO &type) { return new InstFactory(id_p(type)); }
+
+      InstFactory *type_args(const ID &name0, const Obj_p &arg0,
+                             const ID &name1 = "", const Obj_p &arg1 = nullptr,
+                             const ID &name2 = "", const Obj_p &arg2 = nullptr,
+                             const ID &name3 = "", const Obj_p &arg3 = nullptr) {
+        this->args_.add_arg(name0, arg0);
+        if (arg1)
+          this->args_.add_arg(name1, arg1);
+        if (arg2)
+          this->args_.add_arg(name2, arg2);
+        if (arg3)
+          this->args_.add_arg(name3, arg3);
+        return this;
+      }
+
+      InstTypeBuilder *instance_f(const Function<Inst_p, BiFunction<Obj_p, Args, Obj_p>> & inst_f) {
+        this->function_supplier_ = [inst_f](const Inst_p &inst) {
+         return [inst](const Obj_p &lhs, const Args &args) {
+            const Inst_p resolve = RESOLVE_INST(lhs,inst->vid_or_tid() );
+            return resolve->is_noobj() ? inst->apply(lhs, args) : resolve->apply(lhs, args);
+
+            return resolve_and_evaluate(
+                lhs, id_p( "is"), args,
+                [](const Obj_p &xlhs, const InstArgs &xargs) {
+                  return xargs.at(0)->bool_value() ? xlhs : _noobj_;
+                });
+          })
+
           return [args, inst_f](const Obj_p &lhs) {
+            const Inst_p resolve = RESOLVE_INST(lhs, inst_id);
+            return resolve->is_noobj() ? base_f(lhs, args) : resolve->apply(lhs, args);
+
             InstArgs args_applied;
             for (const Obj_p &arg: args) {
               args_applied.push_back(arg->apply(lhs, {}));
@@ -216,7 +327,9 @@ namespace fhatos {
         delete this;
         return p;
       }
-    };
+    };*/
+
+
   };
 } // namespace fhatos
 #endif

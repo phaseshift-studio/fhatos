@@ -31,8 +31,8 @@ namespace fhatos {
 
     static Obj_p start(const Obj_p &starts) {
       return Obj::to_inst(
-          "start", {starts}, [](const InstArgs &) { return [](const Obj_p &seed) { return seed; }; },
-          IType::ZERO_TO_MANY, [starts](const Obj_p &) { return starts; });
+          "start", {starts}, [starts](const InstArgs &) { return [starts](const Obj_p &seed) { return starts; }; },
+          IType::ZERO_TO_MANY, starts);
     }
 
     static Obj_p optional(const Obj_p &option) {
@@ -70,7 +70,7 @@ namespace fhatos {
               return objs(filtered);
             };
           },
-          IType::MANY_TO_MANY, Obj::objs_seed());
+          IType::MANY_TO_MANY, Insts::map(Obj::to_objs()));
     }
 
     static Objs_p insert(const Objs_p &objs) {
@@ -89,7 +89,7 @@ namespace fhatos {
               return barrier;
             };
           },
-          IType::MANY_TO_MANY, Objs::objs_seed());
+          IType::MANY_TO_MANY, Insts::map(Obj::to_objs()));
     }
 
 
@@ -542,8 +542,8 @@ namespace fhatos {
             return [args](const Objs_p &barrier) {
               const Obj::RecMap_p<> map = make_shared<Obj::RecMap<>>();
               for (const Obj_p &obj: *barrier->objs_value()) {
-                const Obj_p key = args.at(0)->apply(obj,args);
-                const Obj_p value = args.at(1)->apply(obj,args);
+                const Obj_p key = args.at(0)->apply(obj, args);
+                const Obj_p value = args.at(1)->apply(obj, args);
                 if (map->count(key)) {
                   const Lst_p &list = map->at(key);
                   list->lst_value()->push_back(value);
@@ -558,7 +558,7 @@ namespace fhatos {
               return Obj::to_rec(map);
             };
           },
-          IType::MANY_TO_ONE, Obj::objs_seed());
+          IType::MANY_TO_ONE, Insts::map(Obj::to_objs()));
     }
 
     static Obj_p print(const Obj_p &to_print) {
@@ -576,7 +576,7 @@ namespace fhatos {
     static Obj_p flip(const Obj_p &rhs) {
       return Obj::to_inst(
           "flip", {rhs},
-          [](const InstArgs &args) { return [args](const Obj_p &lhs) { return lhs->apply(args.at(0),args); }; },
+          [](const InstArgs &args) { return [args](const Obj_p &lhs) { return lhs->apply(args.at(0), args); }; },
           IType::ONE_TO_ONE);
     }
 
@@ -627,18 +627,20 @@ namespace fhatos {
   public:
     static Int_p sum() {
       return Obj::to_inst("sum", {}, reduce_([](const Obj_p &a, const Obj_p &b) { return make_shared<Obj>(*b + *a); }),
-                          IType::MANY_TO_ONE, Obj::objs_seed());
+                          IType::MANY_TO_ONE, Insts::map(Obj::to_objs()));
     }
 
     static Int_p prod() {
       return Obj::to_inst("prod", {}, reduce_([](const Obj_p &a, const Obj_p &b) { return make_shared<Obj>(*b * *a); }),
-                          IType::MANY_TO_ONE, Obj::objs_seed());
+                          IType::MANY_TO_ONE, Insts::map(Obj::to_objs()));
     }
 
     static Obj_p foldr(const BCode_p &bcode) {
       return Obj::to_inst("foldr", {bcode},
-                          reduce_([bcode](const Obj_p &a, const Obj_p &b) { return (bcode->apply(b,{})->apply(a,{})); }),
-                          IType::MANY_TO_ONE, Obj::objs_seed());
+                          reduce_([bcode](const Obj_p &a, const Obj_p &b) {
+                            return (bcode->apply(b, {})->apply(a, {}));
+                          }),
+                          IType::MANY_TO_ONE, Insts::map(Obj::to_objs()));
     }
 
     static Obj_p window(const Obj_p &obj) {
@@ -653,7 +655,7 @@ namespace fhatos {
                   bool match = true;
                   List_p<Obj_p> m = make_shared<List<Obj_p>>();
                   for (size_t j = 0; j < obj->lst_value()->size(); j++) {
-                    const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j),{});
+                    const Obj_p x = obj->lst_value()->at(j)->apply(lhs->lst_value()->at(i + j), {});
                     match = !x->is_noobj() && match;
                     if (!match)
                       break;
@@ -668,7 +670,8 @@ namespace fhatos {
                   bool match = true;
                   string m;
                   for (size_t j = 0; j < obj->lst_value()->size(); j++) {
-                    const Obj_p x = obj->lst_value()->at(j)->apply(Obj::to_str(string() + lhs->str_value().at(i + j)),{});
+                    const Obj_p x = obj->lst_value()->at(j)->apply(Obj::to_str(string() + lhs->str_value().at(i + j)),
+                                                                   {});
                     match = !x->is_noobj() && match;
                     if (!match)
                       break;
@@ -693,7 +696,7 @@ namespace fhatos {
               Objs_p ret = objs();
               auto mini_ret = List<Obj_p>();
               for (const auto &obj: *lhs->objs_value()) {
-                const Obj_p mini_obj = args.at(0)->apply(obj,{});
+                const Obj_p mini_obj = args.at(0)->apply(obj, {});
                 mini_ret.push_back(obj);
                 if (mini_obj->bool_value()) {
                   ret->add_obj(lst(List<Obj_p>(mini_ret)));
@@ -704,7 +707,7 @@ namespace fhatos {
               return ret;
             };
           },
-          IType::MANY_TO_MANY, Obj::objs_seed());
+          IType::MANY_TO_MANY, Insts::map(Obj::to_objs()));
     }
 
     static Bool_p x_or(const Bool_p &a, const Bool_p &b, const Bool_p &c = noobj(), const Bool_p &d = noobj()) {
@@ -802,7 +805,7 @@ namespace fhatos {
           [](const InstArgs &) {
             return [](const Objs_p &lhs) { return !lhs->is_objs() ? jnt(0) : Obj::to_int(lhs->objs_value()->size()); };
           },
-          IType::MANY_TO_ONE, Obj::objs_seed());
+          IType::MANY_TO_ONE, Insts::map(Obj::to_objs()));
     }
 
     static Obj_p delay(const Int_p &milliseconds) {
@@ -826,7 +829,7 @@ namespace fhatos {
               return obj->is_objs() ? obj : objs({obj});
             };
           },
-          IType::MANY_TO_MANY, Obj::objs_seed());
+          IType::MANY_TO_MANY, Insts::map(Obj::to_objs()));
     }
 
     static Objs_p block(const Obj_p &rhs) {
@@ -946,9 +949,9 @@ namespace fhatos {
                 Lst_p ret = Obj::to_lst();
                 for (uint8_t i = 0; i < lhs->lst_value()->size(); i++) {
                   if (poly2->lst_value()->size() >= i) {
-                    ret->lst_add(poly2->lst_value()->at(i)->apply(lhs->lst_value()->at(i),{}));
+                    ret->lst_add(poly2->lst_value()->at(i)->apply(lhs->lst_value()->at(i), {}));
                   } else {
-                    ret->lst_add(Obj::to_noobj()->apply(lhs->lst_value()->at(i),{}));
+                    ret->lst_add(Obj::to_noobj()->apply(lhs->lst_value()->at(i), {}));
                   }
                 }
                 return ret;
@@ -1019,7 +1022,7 @@ namespace fhatos {
               };
             },
             base_inst->itype(),
-            base_inst->is_inst() ? base_inst->inst_seed_supplier() : Obj::noobj_seed(), // TODO
+            base_inst->is_inst() ? base_inst->inst_seed_supplier() : _noobj_, // TODO
             type_id_resolved);
       }
       // return replace_from_obj(args, base_inst);

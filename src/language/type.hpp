@@ -65,7 +65,8 @@ namespace fhatos {
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
         //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
 
-        if (type_id->equals("/lang/mmadt/obj") || type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))
+        if (type_id->equals("/lang/mmadt/obj") || type_id->equals("/lang/mmadt/noobj") ||
+            type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))
           return true;
         const fURI_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
         return this->check_type(obj, resolved_type_id, throw_on_fail);
