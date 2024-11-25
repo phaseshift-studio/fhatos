@@ -1,0 +1,48 @@
+{
+  "name": "Waveshare ESP32-S3R8",
+  "id": "waveshare_esp32s3r8",
+  "url": "https://www.waveshare.com/",
+  "vendor": "Waveshare",
+  "family": "ESP32-S3",
+  "build": {
+    "arduino": {
+      "partitions": "default_16MB.csv",
+      "memory_type": "qio_opi"
+    },
+    "core": "esp32",
+    "extra_flags": [
+      "-DARDUINO_WAVESHARE_S3R8",
+      "-DBOARD_HAS_PSRAM",
+      "-DARDUINO_USB_MODE=1",
+      "-DARDUINO_RUNNING_CORE=1",
+      "-DARDUINO_EVENT_RUNNING_CORE=1"
+    ],
+    "f_cpu": "240000000L",
+    "f_flash": "80000000L",
+    "flash_mode": "qio",
+    "hwids": [
+      [
+        "0x303A",
+        "0x8161"
+      ]
+    ],
+    "mcu": "esp32s3",
+    "variant": "waveshare_esps3nr8"
+  },
+  "cpu_freq": 240000000,
+  "flash_size": 16777216,
+  "frameworks": [
+    "arduino",
+    "espidf"
+  ],
+  "connectivity": [
+    "wifi"
+  ],
+  "upload": {
+    "flash_size": "16MB",
+    "maximum_ram_size": 327680,
+    "maximum_size": 16777216,
+    "require_upload_port": true,
+    "speed": 921600
+  }
+}
