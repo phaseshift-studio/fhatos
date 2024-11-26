@@ -24,6 +24,8 @@
 #include <util/string_printer.hpp>
 #include <language/insts.hpp>
 
+#include "language/mmadt/type.hpp"
+
 namespace fhatos {
   using PriorPost = Pair<List<ID>, List<ID>>;
   using Rewrite = Trip<ID, Function<BCode_p, BCode_p>, PriorPost>;
@@ -49,7 +51,7 @@ namespace fhatos {
           original->toString().c_str(), rewrite->toString().c_str());
     }
 
-    static Rewrite explain() {
+    /*static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
                       [](const BCode_p &bcode) {
                         if (bcode->bcode_value()->back()->tid()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
@@ -80,16 +82,16 @@ namespace fhatos {
                         return bcode;
                       },
                       {{}, {}}});
-    }
+    }*/
 
     static Rewrite by() {
-      return Rewrite({ID("/lang/rewrite/by"),
+      return Rewrite({"/mmadt/rewrite/by",
                       [](const BCode_p &bcode) {
                         Inst_p prev = Obj::to_noobj();
                         bool found = false;
                         List<Inst_p> newInsts;
                         for (const Inst_p &inst: *bcode->bcode_value()) {
-                          if (inst->tid()->equals(ID(FOS_TYPE_PREFIX "inst/by")) && !prev->is_noobj()) {
+                          if (inst->tid()->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
                             found = true;
                             // rewrite args
                             bool done = false;
@@ -115,7 +117,7 @@ namespace fhatos {
                         }
                         if (found) {
                           const BCode_p rewrite = Obj::to_bcode(newInsts);
-                          LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
+                          LOG_REWRITE("/mmadt/rewrite/by", bcode, rewrite);
                           return rewrite;
                         }
                         return bcode;
@@ -129,7 +131,7 @@ namespace fhatos {
                       [starts](const BCode_p &bcode) {
                         if (starts->is_noobj())
                           return bcode;
-                        List<Inst_p> new_insts = {Insts::start(starts->is_objs() ? starts : objs({starts}))};
+                        List<Inst_p> new_insts = List<Inst_p>{mmadt::mmADT::map(starts)};
                         for (const Inst_p &inst: *bcode->bcode_value()) {
                           new_insts.push_back(inst);
                         }

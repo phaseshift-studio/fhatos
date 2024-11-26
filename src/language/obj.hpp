@@ -40,7 +40,7 @@
 #define FOS_STR_ENCODING sizeof(std::string::value_type)
 #endif
 
-#define FOS_TYPE_PREFIX "/type/"
+#define FOS_TYPE_PREFIX "/mmadt/"
 #define FOS_DRIVER_PREFIX "/driver/"
 // #define FOS_BASE_TYPE_INDEX 1
 
@@ -212,7 +212,7 @@ namespace fhatos {
   using InstFunctionSupplier = Function<InstArgs, Function<Obj_p, Obj_p>>;
   using InstSeedSupplier = Function<Obj_p, Obj_p>;
   using InstSeed = Obj_p;
-  using InstValue = Quad<InstArgs, InstFunctionSupplier, IType, Obj_p>;
+  using InstValue = Quad<InstArgs, InstF, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
   static const auto OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj/");
@@ -226,7 +226,6 @@ namespace fhatos {
   static const auto LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst/");
   static const auto REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec/");
   static const auto INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst/");
-  static const auto CTX_FURI = make_shared<ID>(FOS_TYPE_PREFIX "ctx/");
   static const auto BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
   static const auto ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error/");
   static const auto OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
@@ -306,7 +305,8 @@ namespace fhatos {
   static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &) {
     LOG(TRACE, "!yROUTER_SUBSCRIBE!! undefined at this point in bootstrap.\n");
   };
-  static BiFunction<const Obj_p &, const ID_p &, Inst_p> RESOLVE_INST = [](const Obj_p &, const ID_p &) {
+  static TriFunction<const Obj_p &, const ID_p &, List<ID> *, Inst_p> RESOLVE_INST = [
+      ](const Obj_p &, const ID_p &, const List<ID> *derivation = nullptr) {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -391,12 +391,14 @@ namespace fhatos {
 
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(otype)), Valued(value_id), otype_(otype), value_(value) {
-      TYPE_CHECKER(this, type_id, true);
-      this->tid_ = type_id;
-      if (value_id) {
-        const Obj_p strip = this->clone();
-        strip->vid_ = nullptr;
-        ROUTER_WRITE(value_id, this->clone(), true);
+      if (value.has_value()) {
+        TYPE_CHECKER(this, type_id, true);
+        this->tid_ = type_id;
+        if (value_id) {
+          const Obj_p strip = this->clone();
+          strip->vid_ = nullptr;
+          ROUTER_WRITE(value_id, this->clone(), true);
+        }
       }
     }
 
@@ -716,7 +718,7 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
-    [[nodiscard]] InstFunctionSupplier inst_f() const { return std::get<1>(this->inst_value()); }
+    [[nodiscard]] InstF inst_f() const { return std::get<1>(this->inst_value()); }
 
     [[nodiscard]] Obj_p inst_seed_supplier() const { return std::get<3>(this->inst_value()); }
 
@@ -811,118 +813,122 @@ namespace fhatos {
     string toString(const bool include_type = true, const bool include_id = true, const bool ansi = true,
                     const bool strict = false) const {
       string obj_string;
-      switch (this->o_type()) {
-        case OType::BOOL:
-          obj_string = this->bool_value() ? "!ytrue!!" : "!yfalse!!";
-          break;
-        case OType::INT:
-          obj_string = std::to_string(this->int_value());
-          break;
-        case OType::REAL:
-          obj_string = std::to_string(this->real_value());
-          break;
-        case OType::URI:
-          obj_string = "!_" + (strict ? "<" + this->uri_value().toString() + ">" : this->uri_value().toString()) + "!!";
-          break;
-        case OType::STR:
-          obj_string = "!m'!!!~" + this->str_value() + "!m'!!";
-          break;
-        case OType::LST: {
-          obj_string = "!m[!!";
-          bool first = true;
-          for (const auto &obj: *this->lst_value()) {
-            if (first) {
-              first = false;
-            } else {
-              obj_string += "!m,!!";
-            }
-            obj_string += obj->toString(include_type, include_id, ansi, strict);
-          }
-          obj_string += "!m]!!";
-          break;
-        }
-        case OType::REC: {
-          obj_string = "!m[!!";
-          bool first = true;
-          for (const auto &[k, v]: *this->rec_value()) {
-            if (first) {
-              first = false;
-            } else {
-              obj_string += "!m,";
-            }
-            obj_string += "!c";
-            obj_string += k->toString(include_type, include_id, false, strict);
-            obj_string += "!m=>!!";
-            obj_string += v->toString();
-          }
-          obj_string += "!m]!!";
-          break;
-        }
-        case OType::INST: {
-          bool first = true;
-          for (const auto &arg: this->inst_args()) {
-            if (first) {
-              first = false;
-            } else {
-              obj_string += "!m,!!";
-            }
-            obj_string += arg->toString(true, include_id, ansi, strict);
-          }
-          break;
-        }
-        case OType::BCODE: {
-          if (this->bcode_value()->empty())
-            obj_string = "_";
-          else {
-            // objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
+      if (this->value_.has_value()) {
+        switch (this->o_type()) {
+          case OType::BOOL:
+            obj_string = this->bool_value() ? "!ytrue!!" : "!yfalse!!";
+            break;
+          case OType::INT:
+            obj_string = std::to_string(this->int_value());
+            break;
+          case OType::REAL:
+            obj_string = std::to_string(this->real_value());
+            break;
+          case OType::URI:
+            obj_string = "!_" + (strict ? "<" + this->uri_value().toString() + ">" : this->uri_value().toString()) +
+                         "!!";
+            break;
+          case OType::STR:
+            obj_string = "!m'!!!~" + this->str_value() + "!m'!!";
+            break;
+          case OType::LST: {
+            obj_string = "!m[!!";
             bool first = true;
-            for (const auto &inst: *this->bcode_value()) {
+            for (const auto &obj: *this->lst_value()) {
               if (first) {
                 first = false;
               } else {
-                obj_string += "!g.!!";
+                obj_string += "!m,!!";
               }
-              obj_string += inst->toString(include_type, include_id, ansi, strict);
+              obj_string += obj->toString(include_type, include_id, ansi, strict);
             }
-            // objString += "!g]!!";
+            obj_string += "!m]!!";
+            break;
           }
-          break;
-        }
-        case OType::NOOBJ: {
-          obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
-          break;
-        }
-        case OType::OBJS: {
-          obj_string += "!m{!!";
-          bool first = true;
-          for (const auto &obj: *this->objs_value()) {
-            if (first) {
-              first = false;
-            } else {
-              obj_string += "!m,!!";
+          case OType::REC: {
+            obj_string = "!m[!!";
+            bool first = true;
+            for (const auto &[k, v]: *this->rec_value()) {
+              if (first) {
+                first = false;
+              } else {
+                obj_string += "!m,";
+              }
+              obj_string += "!c";
+              obj_string += k->toString(include_type, include_id, false, strict);
+              obj_string += "!m=>!!";
+              obj_string += v->toString();
             }
-            obj_string += obj->toString(include_type, include_id, ansi, strict);
-          };
-          obj_string += "!m}!!";
-          break;
+            obj_string += "!m]!!";
+            break;
+          }
+          case OType::INST: {
+            bool first = true;
+            for (const auto &arg: this->inst_args()) {
+              if (first) {
+                first = false;
+              } else {
+                obj_string += "!m,!!";
+              }
+              obj_string += arg->toString(true, include_id, ansi, strict);
+            }
+            break;
+          }
+          case OType::BCODE: {
+            if (this->bcode_value()->empty())
+              obj_string = "_";
+            else {
+              // objString += "!b" + this->bcode_range()->name() + "!g<=!b" + this->bcode_domain()->name() + "!g[!!";
+              bool first = true;
+              for (const auto &inst: *this->bcode_value()) {
+                if (first) {
+                  first = false;
+                } else {
+                  obj_string += "!g.!!";
+                }
+                obj_string += inst->toString(include_type, include_id, ansi, strict);
+              }
+              // objString += "!g]!!";
+            }
+            break;
+          }
+          case OType::NOOBJ: {
+            obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!";
+            break;
+          }
+          case OType::OBJS: {
+            obj_string += "!m{!!";
+            bool first = true;
+            for (const auto &obj: *this->objs_value()) {
+              if (first) {
+                first = false;
+              } else {
+                obj_string += "!m,!!";
+              }
+              obj_string += obj->toString(include_type, include_id, ansi, strict);
+            };
+            obj_string += "!m}!!";
+            break;
+          }
+          case OType::ERROR: {
+            obj_string = "!r<<!!";
+            obj_string += this->error_value().first->toString(include_type, include_id, ansi, strict);
+            obj_string += "!r@!!";
+            obj_string += this->error_value().second->toString(include_type, include_id, ansi, strict);
+            obj_string += "!r>>!!";
+            break;
+          }
+          case OType::OBJ: {
+            obj_string = "!g" STR(FOS_NOOBJ_TOKEN) "!!";
+            break;
+          }
+          default:
+            throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
         }
-        case OType::ERROR: {
-          obj_string = "!r<<!!";
-          obj_string += this->error_value().first->toString(include_type, include_id, ansi, strict);
-          obj_string += "!r@!!";
-          obj_string += this->error_value().second->toString(include_type, include_id, ansi, strict);
-          obj_string += "!r>>!!";
-          break;
-        }
-        case OType::OBJ: {
-          obj_string = "!g" STR(FOS_NOOBJ_TOKEN) "!!";
-          break;
-        }
-        default:
-          throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
-      if (!this->is_noobj() && (this->is_inst() || this->is_error() || (strict && this->is_uri()) || (
-                                  include_type && (this->tid_->path_length() > 2)))) {
+      if (!this->is_noobj() && (!this->value_.has_value() || (
+                                  this->is_inst() || this->is_error() || (strict && this->is_uri()) || (
+                                    include_type && (this->tid_->path_length() > 2))))) {
         obj_string = string("!b")
             .append(this->tid_->name())
             .append(this->is_inst() ? "!g(!!" : "!g[!!")
@@ -934,6 +940,7 @@ namespace fhatos {
         obj_string += this->vid_->toString();
         obj_string += "!!";
       }
+
       return ansi ? obj_string : Ansi<>::strip(obj_string);
     }
 
@@ -1353,18 +1360,18 @@ namespace fhatos {
         return lhs;
       switch (this->o_type()) {
         case OType::BOOL:
-          return shared_from_this(); // PtrHelper::no_delete(this);
+          return shared_from_this();
         case OType::INT:
-          return shared_from_this(); // PtrHelper::no_delete(this);
+          return shared_from_this();
         case OType::REAL:
-          return shared_from_this(); // PtrHelper::no_delete(this);
+          return shared_from_this();
         case OType::URI: {
           return (lhs->is_uri() && this->uri_value().is_relative())
                    ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
                    : shared_from_this();
         }
         case OType::STR:
-          return shared_from_this(); // PtrHelper::no_delete<Obj>(this);
+          return shared_from_this();
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for (const auto &obj: *this->lst_value()) {
@@ -1383,26 +1390,32 @@ namespace fhatos {
         }
         case OType::INST: {
           InstArgs remake;
-          if (is_initial(this->itype()))
-            return this->inst_f()(args)(Obj::to_noobj());
+          //if (is_initial(this->itype()))
+          // return this->inst_f()(Obj::to_noobj(), args);
+          const bool is_block = this->inst_op() == "block";
           for (const Obj_p &arg: this->inst_args()) {
-            remake.push_back(arg->apply(lhs, args));
+            remake.push_back(is_block ? arg : arg->apply(lhs, {}));
           }
-          return this->inst_f()(remake)(lhs);
+          //const Inst_p resolve = RESOLVE_INST(lhs, this->vid_or_tid());
+          //return resolve->is_noobj() ? this->inst_f()(lhs, remake) : resolve->apply(lhs, args);
+          return this->inst_f()(lhs, remake);
         }
         case OType::BCODE: {
           //const BCode_p update = replace_from_bcode(shared_from_this(), args,lhs);
-          ptr<Obj> current_obj = lhs;
-          for (const Inst_p &current_inst: *this->bcode_value()) {
-            LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
-            if (current_inst->is_noobj())
-              break;
-            current_obj = current_inst->apply(current_obj, args);
-          }
-          // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
-          //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
-          return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
-          // objs unrolled (front popped)
+          const Obj_p result = BCODE_PROCESSOR(lhs, shared_from_this());
+          return result->is_objs() ? result->objs_value()->front() : result->clone();
+
+          /*  ptr<Obj> current_obj = lhs;
+            for (const Inst_p &current_inst: *this->bcode_value()) {
+              LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
+              if (current_inst->is_noobj())
+                break;
+              current_obj = current_inst->apply(current_obj, current_inst->inst_args());
+            }
+            // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
+            //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
+            return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
+            // objs unrolled (front popped)*/
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
@@ -1421,8 +1434,6 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool is_base_type() const { return this->tid_->equals(*OTYPE_FURI.at(this->otype_)); }
-
-    // const fURI type() const { return this->_id->authority(""); }
 
     [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
@@ -1465,13 +1476,11 @@ namespace fhatos {
           const auto pairs_b = type_obj->rec_value();
           for (const auto &[b_id, b_obj]: *pairs_b) {
             bool found = false;
-            if (!found) {
-              for (const auto &[a_id, a_obj]: *pairs_a) {
-                if ((b_id->is_uri() && b_id->uri_value().toString().find(':') != string::npos) || (
-                      a_id->match(b_id) && a_obj->match(b_obj))) {
-                  found = true;
-                  break;
-                }
+            for (const auto &[a_id, a_obj]: *pairs_a) {
+              if ((b_id->is_uri() && b_id->uri_value().toString().find(':') != string::npos) || (
+                    a_id->match(b_id) && a_obj->match(b_obj))) {
+                found = true;
+                break;
               }
             }
             if (!found)
@@ -1633,7 +1642,7 @@ namespace fhatos {
       return Obj::create(value, OType::INST, type_id, value_id);
     }
 
-    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstFunctionSupplier &function,
+    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstF &function,
                           const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
       const ID_p fix = type_id != nullptr ? type_id : id_p(INST_FURI->resolve(opcode));
@@ -1668,14 +1677,12 @@ namespace fhatos {
         return type;
       const Inst_p inst = Obj::to_inst(
           value_id->name(), args,
-          [function](const InstArgs &args2) {
-            return [function, args2](const Obj_p &lhs) {
-              List<Obj_p> aargs;
-              for (const Obj_p &arg: args2) {
-                aargs.push_back(arg->apply(lhs, args2));
-              }
-              return function(lhs, aargs);
-            };
+          [function](const Obj_p &lhs, const InstArgs &args2) {
+            List<Obj_p> aargs;
+            for (const Obj_p &arg: args2) {
+              aargs.push_back(arg->apply(lhs, args2));
+            }
+            return function(lhs, aargs);
           },
           IType::ONE_TO_ONE, Obj::to_noobj(), type_id, value_id);
       TYPE_SAVER(value_id, inst);
@@ -1686,8 +1693,8 @@ namespace fhatos {
       const ID_p inst_id = id_p(INST_FURI->extend(opcode));
       const Inst_p inst = Obj::to_inst(
           inst_id->name(), args,
-          [function](const InstArgs &args2) {
-            return [function, args2](const Obj_p &input) { return function(input, args2); };
+          [function](const Obj_p &lhs, const InstArgs &args2) {
+            return function(lhs, args2);
           },
           IType::ONE_TO_ONE, Obj::to_noobj(), inst_id);
       // TYPE_SAVER(inst_id, inst);
@@ -1867,11 +1874,9 @@ namespace fhatos {
   static Obj_p from(const Uri_p &uri, const Obj_p &default_arg = noobj()) {
     return Obj::to_inst(
         "from", {uri, default_arg},
-        [](const InstArgs &args) {
-          return [args](const Uri_p &lhs) {
-            Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()))->at(nullptr);
-            return result->is_noobj() ? args.at(1) : result;
-          };
+        [](const Uri_p &lhs, const InstArgs &args) {
+          Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()))->at(nullptr);
+          return result->is_noobj() ? args.at(1) : result;
         },
         (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
   }

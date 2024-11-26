@@ -104,6 +104,13 @@ namespace fhatos {
       return true;
     }
 
+    static ID import() {
+      ROUTER_WRITE(SCHEDULER_ID, Scheduler::singleton(),RETAIN);
+      ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/process")), make_shared<Process>(Obj::to_rec()),RETAIN);
+      ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/thread")), make_shared<Thread>(Obj::to_rec()),RETAIN);
+      return *SCHEDULER_ID;
+    }
+
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
@@ -162,6 +169,7 @@ namespace fhatos {
   };
 
   inline ptr<Scheduler> scheduler() { return Scheduler::singleton(); }
+
 } // namespace fhatos
 #endif
 #endif

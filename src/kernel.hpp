@@ -130,20 +130,6 @@ namespace fhatos {
     static ptr<Kernel> mount(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot
       router()->attach(structure);
-      if (structure->pattern()->equals("/sys/#")) {
-        install(scheduler());
-        install(router());
-        ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/process")), make_shared<Process>(Obj::to_rec()),RETAIN);
-        ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/thread")), make_shared<Thread>(Obj::to_rec()),RETAIN);
-        ROUTER_WRITE(id_p(ROUTER_ID->extend("lib/heap")), make_shared<Heap<>>(Obj::to_rec({{"pattern", vri("#")}})),
-                     RETAIN);
-        ROUTER_WRITE(id_p("/sys/router/lib/mqtt"),
-                     make_shared<Mqtt>(Obj::to_rec({
-                         {"pattern", vri("#")},
-                         {"broker", vri("#")},
-                         {"client", vri("#")}})),
-                     RETAIN);
-      }
       return Kernel::build();
     }
 

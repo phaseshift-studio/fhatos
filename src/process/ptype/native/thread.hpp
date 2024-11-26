@@ -32,12 +32,12 @@ namespace fhatos {
     explicit Thread(const Rec_p &setup_loop_stop) :
       Process(setup_loop_stop),
       xthread(nullptr) {
-      ObjHelper::InstTypeBuilder::build(SCHEDULER_ID->extend("lib/thread/inst/delay"))
+    /*  ObjHelper::InstTypeBuilder::build(SCHEDULER_ID->extend("lib/thread/inst/delay"))
           ->type_args(x(0, ___))
-          ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             ((Thread*)lhs.get())->delay(args.at(0)->int_value());
             return lhs;
-          })->create(id_p(SCHEDULER_ID->extend("lib/thread/inst/delay")));
+          })->create(id_p(SCHEDULER_ID->extend("lib/thread/inst/delay")));*/
       //this->tid_ = PROCESS_FURI;
     }
 

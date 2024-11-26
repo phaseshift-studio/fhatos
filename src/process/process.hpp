@@ -65,7 +65,7 @@ namespace fhatos {
     }
 
     explicit Process(const Rec_p &setup_loop_stop) :
-      Obj(*setup_loop_stop->rec_merge(rmap({
+      Obj(*setup_loop_stop){}; /*->rec_merge(rmap({
           {
               id_p(":delay"), Obj::to_inst(
                   [this](const Obj_p &lhs, const InstArgs &args) {
@@ -94,21 +94,21 @@ namespace fhatos {
       }))) {
       ObjHelper::InstTypeBuilder::build("/type/process/inst/delay")
           ->type_args(x(0, "milliseconds", ___))
-          ->instance_f([this](const Obj_p &, const InstArgs &args) {
+          ->inst_f([this](const Obj_p &, const InstArgs &args) {
             this->sleep_ = args.at(0)->int_value();
             return _noobj_;
           })->create(id_p(SCHEDULER_ID->extend("lib/process/inst/delay")));
       ObjHelper::InstTypeBuilder::build(*INST_FURI)
-          ->instance_f([this](const Obj_p &, const InstArgs &) {
+          ->inst_f([this](const Obj_p &, const InstArgs &) {
             this->yield_ = true;
             return _noobj_;
           })->create(id_p("/sys/lib/scheduler/process/:yield"));
       ObjHelper::InstTypeBuilder::build(*INST_FURI)
-          ->instance_f([this](const Obj_p &, const InstArgs &) {
+          ->inst_f([this](const Obj_p &, const InstArgs &) {
             this->stop();
             return _noobj_;
           })->create(id_p("/sys/lib/scheduler/process/:stop"));
-    }
+    }*/
 
     ~Process() override = default;
 

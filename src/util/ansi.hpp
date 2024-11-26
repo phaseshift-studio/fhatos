@@ -305,6 +305,11 @@ namespace fhatos {
         this->print("\033[5m");
     }
 
+    void clear_line() {
+      if (this->on_)
+        this->print("\033[2K");
+    }
+
     // void background() {
     //   if (this->_on)
     //     this->print("\033[40m");
@@ -507,8 +512,10 @@ namespace fhatos {
             ? 0
             : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
       ++this->current_counts_;
-      if (percentage > 100)
+      if (percentage >= 100) {
         percentage = 100;
+        this->ansi_->clear_line();
+      }
       if (this->ansi_->is_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
         this->ansi_->print("!g[INFO]  [!b");
@@ -520,6 +527,7 @@ namespace fhatos {
         for (int j = percentage; j < 99; j = j + 2) {
           this->ansi_->print(' ');
         }
+
         this->ansi_->printf("!g] !y%i%%!! %-25s\r", percentage, message.c_str());
       }
     }

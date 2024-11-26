@@ -63,10 +63,7 @@ namespace fhatos {
       };
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
-        //const OType ztype = OTypes.to_enum(string(type_id->path(FOS_BASE_TYPE_INDEX)));
-
-        if (type_id->equals("/lang/mmadt/obj") || type_id->equals("/lang/mmadt/noobj") ||
-            type_id->equals(*MESSAGE_FURI) || type_id->equals(*SUBSCRIPTION_FURI))
+        if (type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI))
           return true;
         const fURI_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
         return this->check_type(obj, resolved_type_id, throw_on_fail);
@@ -90,25 +87,28 @@ namespace fhatos {
         return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
       ///////////////////////////////////////////////////////////////
-      RESOLVE_INST = [this](const Obj_p &this_obj, const ID_p &inst_type_id) {
+      RESOLVE_INST = [this](const Obj_p &this_obj, const ID_p &inst_type_id, List<ID> *derivation_tree) {
         Obj_p current_obj = this_obj;
         while (true) {
           if (current_obj->is_noobj())
             return noobj();
-          LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
+          /*LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
                   current_obj->vid_or_tid()->extend("inst").toString().c_str(),
-                  inst_type_id->toString().c_str());
+                  inst_type_id->toString().c_str());*/
+          if (derivation_tree)
+            derivation_tree->push_back(current_obj->vid_or_tid()->extend("inst").extend(inst_type_id->name()));
           Inst_p maybe = ROUTER_READ(id_p(current_obj->vid_or_tid()->extend("inst").extend(inst_type_id->name())));
           if (!maybe->is_noobj())
             return maybe;
           LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
                   current_obj->tid()->extend("inst").toString().c_str(),
                   inst_type_id->toString().c_str());
-
+          if (derivation_tree)
+            derivation_tree->push_back(current_obj->tid()->extend("inst").extend(inst_type_id->name()));
           maybe = ROUTER_READ(id_p(current_obj->tid()->extend("inst").extend(inst_type_id->name())));
           if (!maybe->is_noobj())
             return maybe;
-          if (current_obj->tid()->equals(*OBJ_FURI))
+          if (current_obj->tid()->path_length() == 3) // at base type
             return noobj();
           current_obj = ROUTER_READ(current_obj->tid());
         }
@@ -120,7 +120,7 @@ namespace fhatos {
 
     void load_core_inst() {
       this->start_progress_bar(6);
-      this->save_type(MESSAGE_FURI, Obj::to_rec({
+      /*this->save_type(MESSAGE_FURI, Obj::to_rec({
                           {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                           {"payload", Obj::to_bcode()},
                           {"retain", Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}}));
@@ -133,7 +133,21 @@ namespace fhatos {
       this->save_type(MQTT_FURI, Obj::to_rec({
                           {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                           {"broker", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"client", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));
+                          {"client", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));*/
+      this->save_type(MESSAGE_FURI, Obj::to_rec({
+                          {"target", Obj::to_bcode()},
+                          {"payload", Obj::to_bcode()},
+                          {"retain", Obj::to_bcode()}}));
+      this->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
+                          {"source", Obj::to_bcode()},
+                          {"pattern", Obj::to_bcode()},
+                          {":on_recv", Obj::to_bcode()}}));
+      //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
+      this->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode()}}));
+      this->save_type(MQTT_FURI, Obj::to_rec({
+                          {"pattern", Obj::to_bcode()},
+                          {"broker", Obj::to_bcode()},
+                          {"client", Obj::to_bcode()}}));
       this->end_progress_bar("!bfhatos !yobjs!! loaded\n");
     }
 
@@ -196,7 +210,9 @@ namespace fhatos {
       if (obj->tid()->equals(*type_id))
         return true;
       // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-      if (obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
+      if (obj->o_type() == OType::OBJ || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
+        return true;
+      if (type_id->equals(*NOOBJ_FURI) && obj->o_type() == OType::NOOBJ)
         return true;
       // if the type is a base type and the base types match, then type check passes
       if (type_id->equals(*OTYPE_FURI.at(obj->o_type())))

@@ -37,11 +37,11 @@ namespace fhatos {
   using IdObjPairs = List<Pair<ID_p, Obj_p>>;
   using IdObjPairs_p = List_p<Pair<ID_p, Obj_p>>;
 
-  const ID_p HEAP_FURI = id_p(REC_FURI->resolve("heap"));
-  const Pattern_p COMPUTED_FURI = p_p(REC_FURI->resolve("computed"));
-  const ID_p MQTT_FURI = id_p(REC_FURI->resolve("mqtt"));
-  const Pattern_p DISK_FURI = p_p(REC_FURI->resolve("disk"));
-  const Pattern_p BLE_FURI = p_p(REC_FURI->resolve("ble"));
+  const ID_p HEAP_FURI = id_p(REC_FURI->extend("heap"));
+  const Pattern_p COMPUTED_FURI = p_p(REC_FURI->extend("computed"));
+  const ID_p MQTT_FURI = id_p(REC_FURI->extend("mqtt"));
+  const Pattern_p DISK_FURI = p_p(REC_FURI->extend("disk"));
+  const Pattern_p BLE_FURI = p_p(REC_FURI->extend("ble"));
 
   class Router;
 

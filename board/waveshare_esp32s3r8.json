@@ -27,7 +27,7 @@
       ]
     ],
     "mcu": "esp32s3",
-    "variant": "waveshare_esps3nr8"
+    "variant": "esp32s3"
   },
   "cpu_freq": 240000000,
   "flash_size": 16777216,

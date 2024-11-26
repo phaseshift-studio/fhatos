@@ -34,7 +34,7 @@
 ///////////// COMMON MODELS /////////////
 #include <model/driver/driver.hpp>
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>
-#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
+//#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
 // #include <model/pin/gpio.hpp>
 // #include <model/pin/interrupt.hpp>
 // #include <model/pin/pwm.hpp>
@@ -43,7 +43,7 @@
 #include <util/esp/psram_allocator.hpp>
 // #include FOS_BLE(ble.hpp)
 #include <model/soc/esp/wifi.hpp>
-#include <model/soc/memory/esp32/memory.hpp>
+//#include <model/soc/memory/esp32/memory.hpp>
 // #include FOS_TIMER(timer.hpp)
 // #include <structure/stype/redirect.hpp>
 #endif
@@ -86,18 +86,18 @@ namespace fhatos {
             ->using_router(Router::singleton("/sys/router"))
             ////////////////// SYS STRUCTURE
             ->mount(Heap<ALLOC>::create("/sys/#"))
-            //->import(Scheduler::import("/sys/lib/scheduler"))
-            //->import(Router::import("/sys/lib/router"))
+            ->import(Scheduler::import())
+            ->import(Router::import())
             ////////////////// USER STRUCTURE(S)
             ->mount(Heap<>::create("/type/#"))
+            ->mount(Heap<>::create("/mmadt/#"))
             ->install(Type::singleton("/type/"))
-            ->mount(Heap<>::create("/lang/#"))
             ->mount(Heap<>::create("/io/#"))
             ->install(Terminal::singleton("/io/terminal"))
             ->import(Console::import("/io/lib/console"))
             ->mount(Heap<>::create("+/#", "_cache"))
             ->install(Parser::singleton("/io/parser"))
-            ->install(mmadt::mmADT::singleton())
+            ->import(mmadt::mmADT::import())
 #if defined(ESP_ARCH)
             ->mount(
                 Wifi::singleton("/soc/wifi/+", Wifi::Settings(args_parser->option_bool("--wifi:connect",true),
@@ -105,7 +105,7 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
            // ->mount(HeapPSRAM::create("/psram/#"))
-            ->mount(Memory::singleton("/soc/memory/#"))
+            //->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
             ->mount(Mqtt::create("//io/#",
@@ -114,11 +114,11 @@ namespace fhatos {
                                  "/io/mqtt"))
 #if defined(NATIVE)
             //  ->install(ArduinoGPIODriver::load_remote("/driver/gpio/furi", id_p("//driver/gpio")))
-            ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
+            //   ->install(ArduinoI2CDriver::load_remote("/io/lib/", "i2c/master/furi", "//io/i2c"))
 #endif
 #if defined(ARDUINO) || defined(RASPBERRYPI)
-           // ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
-            ->install(ArduinoI2CDriver::load_local("/driver/i2c/master/pin", id_p("//driver/i2c/master")))
+            // ->install(ArduinoGPIODriver::load_local("/driver/gpio/pin", id_p("//driver/gpio")))
+            // ->install(ArduinoI2CDriver::load_local("/driver/i2c/master/pin", id_p("//driver/i2c/master")))
 #endif
             //->structure(FileSystem::create("/io/fs/#", args_parser->option("--fs:mount", FOS_FS_MOUNT)))
             ->mount(Heap<ALLOC>::create("/console/#"))

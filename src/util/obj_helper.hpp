@@ -161,25 +161,31 @@ namespace fhatos {
         type_(type), seed_(nullptr) {
       }
 
-      InstFunctionSupplier NO_OBJ_INST() const {
-        return [this](const InstArgs &args) {
-          return [this,args](const Obj_p &lhs) {
-            InstArgs args_applied;
-            for (const Obj_p &arg: args) {
-              args_applied.push_back(arg->apply(lhs, {}));
+      InstF NO_OBJ_INST() const {
+        return [this](const Obj_p &lhs, const InstArgs &args) {
+          LOG(TRACE, "base-type instruction requiring resolution for %s\n", lhs->toString().c_str());
+          InstArgs args_applied;
+          for (const Obj_p &arg: args) {
+            args_applied.push_back(arg->apply(lhs, {}));
+          }
+          const Inst_p resolve = RESOLVE_INST(lhs, this->type_, nullptr);
+          if (resolve->is_noobj()) {
+            List<ID> deriviation = {*this->type_};
+            RESOLVE_INST(lhs, this->type_, &deriviation);
+            string result;
+            for (const auto &id: deriviation) {
+              result.append(StringHelper::format("\t!b%s!!", id.toString().c_str()).c_str());
             }
-            const Inst_p resolve = RESOLVE_INST(lhs, this->type_);
-            if (resolve->is_noobj())
-              throw fError("inst has no obj implementation and wasn't resolved");
-            return resolve->apply(lhs, args);
-          };
+            throw fError("inst has no obj implementation and wasn't resolved\n%s", result.c_str());
+          }
+          return resolve->inst_f()(lhs, args);
         };
       }
 
     protected:
       TypeO_p type_;
       InstArgs args_{};
-      InstFunctionSupplier function_supplier_ = nullptr;
+      InstF function_supplier_ = InstTypeBuilder::NO_OBJ_INST();
       IType itype_{IType::ONE_TO_ONE};
       Obj_p seed_;
 
@@ -203,25 +209,18 @@ namespace fhatos {
         this->itype_ = itype;
         if (seed)
           this->seed_ = seed;
+        else {
+          this->seed_ = is_barrier_out(this->itype_)
+                          ? Obj::to_objs()
+                          : _noobj_;
+        }
+
         return this;
       }
 
-      InstTypeBuilder *instance_f(const BiFunction<Obj_p, InstArgs, Obj_p> &inst_f) {
-        this->function_supplier_ = [this,inst_f](const InstArgs &args) {
-          return [this,args, inst_f](const Obj_p &lhs) {
-            InstArgs args_applied;
-            for (const Obj_p &arg: args) {
-              args_applied.push_back(arg->apply(lhs, {}));
-            }
-            const Inst_p resolve = RESOLVE_INST(lhs, this->type_);
-            return resolve->is_noobj() ? inst_f(lhs, args) : resolve->apply(lhs, args);
-          };
-        };
+      InstTypeBuilder *inst_f(const InstF &inst_f) {
+        this->function_supplier_ = inst_f;
         return this;
-      }
-
-      void save() const {
-        this->create();
       }
 
       Inst_p create(const ValueO_p &value_id = nullptr) const {
@@ -230,21 +229,21 @@ namespace fhatos {
           if (!maybe->is_noobj())
             return maybe;
         }
-        const Inst_p p = Obj::to_inst(this->type_->name(), // opcode
-                                      this->args_, // args
-                                      this->function_supplier_
-                                        ? this->function_supplier_
-                                        : InstTypeBuilder::NO_OBJ_INST(),
-                                      this->itype_,
+        const Inst_p p = Obj::to_inst(string(this->type_->name()), // opcode
+                                      std::move(this->args_), // args
+                                      std::move(this->function_supplier_),
+                                      std::move(this->itype_),
                                       this->seed_
-                                        ? this->seed_
+                                        ? std::move(this->seed_)
                                         : (is_barrier_out(this->itype_)
                                              ? Obj::to_objs()
                                              : _noobj_),
-                                      this->type_,
-                                      value_id);
+                                      std::move(this->type_),
+                                      std::move(value_id));
+        //if (!value_id)
+        // p->at(id_p(ID(StringHelper::int_to_hex((long) p.get()))));
 
-        delete this;
+        //unique_ptr<InstTypeBuilder> up = unique_ptr<InstTypeBuilder>((InstTypeBuilder *) this);
         return p;
       }
     };

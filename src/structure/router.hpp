@@ -202,6 +202,19 @@ namespace fhatos {
       }
     }
 
+    static ID import() {
+      ROUTER_WRITE(ROUTER_ID, Router::singleton(),RETAIN);
+      ROUTER_WRITE(id_p(ROUTER_ID->extend("lib/heap")), make_shared<Heap<>>(Obj::to_rec({{"pattern", vri("#")}})),
+                   RETAIN);
+      ROUTER_WRITE(id_p("/sys/router/lib/mqtt"),
+                   make_shared<Mqtt>(Obj::to_rec({
+                       {"pattern", vri("#")},
+                       {"broker", vri("#")},
+                       {"client", vri("#")}})),
+                   RETAIN);
+      return *ROUTER_ID;
+    }
+
   private:
     [[nodiscard]] Structure_p get_structure(const Pattern &pattern) {
       const Pattern temp = pattern.is_branch() ? Pattern(pattern.extend("+")) : pattern;

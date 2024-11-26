@@ -71,6 +71,7 @@ namespace fhatos {
     }
 
     void print_result(const Obj_p &obj, const uint8_t depth = 0) const {
+      LOG_PROCESS(TRACE, this, "printing processor result: %s\n", obj->toString().c_str());
       if (obj->is_objs())
         for (Obj_p &o: *obj->objs_value()) {
           Process::current_process()->feed_watchdog_via_counter();
@@ -241,8 +242,6 @@ namespace fhatos {
   public:
     static ptr<Console> create(const ID &id, const ID &terminal, const Console::Settings &settings) {
       const auto console = ptr<Console>(new Console(id, terminal, settings));
-      //LOG(INFO, "RESOLVING INST: %s -> %s\n", "delay", console->toString().c_str());
-      //LOG(INFO, "FOUND!: %s\n", RESOLVE_INST(console,id_p("delay"))->toString().c_str());
       return console;
     }
 
@@ -258,7 +257,7 @@ namespace fhatos {
                                                                  {vri("ansi"), dool(true)},
                                                                  {vri("prompt"), str(">")},
                                                                  {vri("log"), vri("INFO")}})))
-                                 ->instance_f([](const Obj_p &, const InstArgs &args) {
+                                 ->inst_f([](const Obj_p &, const InstArgs &args) {
                                    ptr<Console> console = Console::create(
                                        ID(args.at(0)->uri_value()),
                                        ID(args.at(1)->uri_value()),

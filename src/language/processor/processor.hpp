@@ -24,7 +24,7 @@
 #include <language/rewrite/rewriter.hpp>
 
 namespace fhatos {
- class Monad;
+  class Monad;
 
   using Monad_p = ptr<Monad>;
 
@@ -46,7 +46,7 @@ namespace fhatos {
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
       Obj_p next_obj;
       try {
-        next_obj = this->inst_->apply(this->obj_,{});
+        next_obj = this->inst_->apply(this->obj_, this->inst_->inst_args());
       } catch (const fError &error) {
         throw fError("%s\n\t\t!rthrown when applying!! %s => %s", error.what(),
                      this->obj_->toString().c_str(),
@@ -61,13 +61,13 @@ namespace fhatos {
             if (this->inst_->inst_op() == "repeat") {
               const Obj_p until = this->inst_->inst_arg(1);
               const Obj_p emit = this->inst_->inst_arg(2);
-              if (!emit->is_noobj() && !emit->apply(obj,{})->is_noobj()) {
+              if (!emit->is_noobj() && !emit->apply(obj, {})->is_noobj()) {
                 // repeat.emit
                 const auto monad = make_shared<Monad>(obj, next_inst);
                 running->push_back(monad);
                 LOG(DEBUG, FOS_TAB_4 "!mEmitting!! monad: %s\n", monad->toString().c_str());
               }
-              if (!until->is_noobj() && until->apply(obj,{})->is_noobj()) {
+              if (!until->is_noobj() && until->apply(obj, {})->is_noobj()) {
                 // repeat.until
                 const auto monad = make_shared<Monad>(obj, this->inst_);
                 monad->loops_ = this->loops_ + 1;
@@ -126,17 +126,18 @@ namespace fhatos {
       halted_(new Deque<Obj_p>()) {
       if (!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
-      this->bcode_ = Rewriter({Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+      this->bcode_ = Rewriter({
+          Rewriter::starts(starts), /*Rewriter::by(), Rewriter::explain()*/}).apply(this->bcode_);
       for (const Inst_p &inst: *this->bcode_->bcode_value()) {
         const Obj_p seed_copy = inst->inst_seed(inst);
         if (is_barrier_out(inst->itype())) {
           const Monad_p m = Monad::create(seed_copy, inst);
           this->barriers_->push_back(m);
-          LOG(DEBUG, FOS_TAB_2 "!yBarrier!! monad: %s\n", m->toString().c_str());
+          LOG(DEBUG, FOS_TAB_2 "!ybarrier!! monad: %s\n", m->toString().c_str());
         } else if (is_initial(inst->itype())) {
           const Monad_p m = Monad::create(seed_copy, inst);
           this->running_->push_back(m);
-          LOG(DEBUG, FOS_TAB_2 "!mStarting!!   monad: %s\n", m->toString().c_str());
+          LOG(DEBUG, FOS_TAB_2 "!mstarting!! monad: %s\n", m->toString().c_str());
         }
       }
       // start inst forced initial
@@ -199,8 +200,8 @@ namespace fhatos {
         }
       }
 
-      LOG(DEBUG, FOS_TAB_2 "Exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]\n", this->running_->size(),
-          this->halted_->size());
+      LOG(TRACE, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n", this->running_->size(),
+          this->halted_->size(), this->bcode_->toString().c_str());
       return this->halted_->size();
     }
 
