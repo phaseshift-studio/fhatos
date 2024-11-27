@@ -1246,6 +1246,8 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p operator[](const char *id) const { return this->rec_get(id_p(id)); }
 
+    [[nodiscard]] bool is_type() const { return !this->value_.has_value() && !this->is_noobj(); }
+
     [[nodiscard]] bool is_noobj() const { return this->o_type() == OType::NOOBJ; }
 
     [[nodiscard]] bool is_bool() const { return this->o_type() == OType::BOOL; }
@@ -1358,6 +1360,10 @@ namespace fhatos {
     Obj_p apply(const Obj_p &lhs, const InstArgs &args) {
       if (lhs->is_error())
         return lhs;
+      if (this->is_type())
+        return lhs->tid()->equals(*this->vid_or_tid()) ? lhs : Obj::to_noobj();
+      if (lhs->is_type())
+        return lhs->tid()->equals(*this->vid_or_tid()) ? shared_from_this() : Obj::to_noobj();
       switch (this->o_type()) {
         case OType::BOOL:
           return shared_from_this();

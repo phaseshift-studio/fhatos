@@ -132,6 +132,14 @@ namespace fhatos {
       this->rec_set(vri("process"), procs);
       Obj::save();
     }
+
+  protected:
+    static ID base_import(const Rec_p &scheduler) {
+      ROUTER_WRITE(SCHEDULER_ID, scheduler,RETAIN);
+      ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/process")), make_shared<Process>(Obj::to_rec()),RETAIN);
+      ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/thread")), make_shared<Thread>(Obj::to_rec()),RETAIN);
+      return *SCHEDULER_ID;
+    }
   };
 }
 

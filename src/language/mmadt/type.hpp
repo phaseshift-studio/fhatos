@@ -59,7 +59,7 @@ namespace mmadt {
       TYPE_SAVER(REC_FURI, Obj::create(make_shared<Obj::RecMap<>>(), OType::REC, OBJ_FURI));
       //TYPE_SAVER(ERROR_FURI, Obj::create(Pair<Obj_p, Inst_p>(nullptr, nullptr), OType::REC, OBJ_FURI));
       Type::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t" FURI_WRAP " !ybase types!! loaded\n",MMADT_FURI "+"));
+          StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !ybase types!! loaded \n",MMADT_FURI "+"));
       //////////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->start_progress_bar(6);
       /* TYPE_SAVER(id_p(MMADT_FURI "inst/start"),
@@ -115,8 +115,105 @@ namespace mmadt {
                    return ret;
                  })
                  ->create());
+      /////////////////////////// INSPECT INST ///////////////////////////
+      TYPE_SAVER(id_p(MMADT_FURI "inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "bool/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   rec->rec_set("value", dool(lhs->bool_value()));
+                   return rec;
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "int/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   rec->rec_set("value", jnt(lhs->int_value()));
+                   rec->rec_set("encoding", vri(STR(FOS_INT_TYPE)));
+                   return rec;
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "real/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   rec->rec_set("value", real(lhs->real_value()));
+                   rec->rec_set("encoding", vri(STR(FOS_REAL_TYPE)));
+                   return rec;
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "str/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   rec->rec_set("value", str(lhs->str_value()));
+                   rec->rec_set("encoding", vri(string("UTF") + to_string(8 * sizeof(char))));
+                   return rec;
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "uri/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   const fURI furi = lhs->uri_value();
+                   if (furi.has_scheme())
+                     rec->rec_set("scheme", vri(furi.scheme()));
+                   if (furi.has_user())
+                     rec->rec_set("user", vri(furi.user()));
+                   if (furi.has_password())
+                     rec->rec_set("password", vri(furi.password()));
+                   if (furi.has_host())
+                     rec->rec_set("host", vri(furi.host()));
+                   if (furi.has_port())
+                     rec->rec_set("port", jnt(lhs->uri_value().port()));
+                   rec->rec_set("relative", dool(furi.is_relative()));
+                   rec->rec_set("branch", dool(furi.is_branch()));
+                   rec->rec_set("pattern", dool(furi.is_pattern()));
+                   if (furi.has_path()) {
+                     const Lst_p path = Obj::to_lst();
+                     for (int i = 0; i < furi.path_length(); i++) {
+                       path->lst_add(vri(furi.path(i)));
+                     }
+                     rec->rec_set("path", path);
+                   }
+                   if (furi.has_query()) {
+                     rec->rec_set("query", str(furi.query()));
+                   }
+                   return rec;
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "inst/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   rec->rec_set("op", str(lhs->inst_op()));
+                   const Lst_p &args_list = lst();
+                   for (const Obj_p &o: lhs->inst_args()) {
+                     args_list->lst_add(o);
+                   }
+                   rec->rec_set("args", args_list);
+                   //rec->rec_set("f",lhs->inst_f());
+                   return rec;
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "bcode/inst/inspect"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
+                 ->type_args(x(0, "inspected", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Rec_p rec = build_inspect_rec(lhs);
+                   const Lst_p l = lst();
+                   for (const Inst_p &i: *lhs->bcode_value()) {
+                     l->lst_add(i);
+                   }
+                   rec->rec_set("value", l);
+                   return rec;
+                 })->create());
       Type::singleton()->end_progress_bar(
-          StringHelper::format("\n\t\t" FURI_WRAP " !yobj insts!! loaded\n",MMADT_FURI "inst/+"));
+          StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yobj insts!! loaded \n",MMADT_FURI "inst/+"));
       /////////////////////////// PLUS INST ///////////////////////////
       TYPE_SAVER(id_p(MMADT_FURI "inst/plus"),
                  ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
@@ -173,7 +270,6 @@ namespace mmadt {
       /////////////////////////// PLUS INST ///////////////////////////
 
       // this->saveType(id_p(fURI(FOS_TYPE_PREFIX).extend("uri/url")), bcode());
-      Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
       /*Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "a"), Insts::a(x(0)));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "optional"), Insts::optional(x(0)));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "inspect"), Insts::inspect());
@@ -237,8 +333,23 @@ namespace mmadt {
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "error"), Insts::error(x(0, str("an error occurred"))));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "side"), Insts::side(x(0)));*/
-      Type::singleton()->end_progress_bar("!bmm-adt !yobjs!! loaded\n");
       return ID(MMADT_FURI);
+    }
+
+    static Rec_p build_inspect_rec(const Obj_p &lhs) {
+      Rec_p rec = Obj::to_rec({
+          {vri("type_id"), vri(lhs->tid())},
+          {vri("type"),
+           FURI_OTYPE.count(*lhs->tid())
+             ? vri(OTypes.to_chars(FURI_OTYPE.at(*lhs->tid())))
+             : ROUTER_READ(lhs->tid())}});
+      if (lhs->vid()) {
+        rec->rec_set("value_id", vri(lhs->vid()));
+        const Obj_p subs = ROUTER_READ(id_p(lhs->vid()->query("sub")));
+        if (!subs->is_noobj())
+          rec->rec_set("subscription", subs);
+      }
+      return rec;
     }
   };
 } // namespace mmadt

@@ -54,6 +54,12 @@ namespace fhatos {
       return scheduler;
     }
 
+
+    static ID import() {
+      XScheduler::base_import(Scheduler::singleton());
+      return *Scheduler::singleton()->vid();
+    }
+
     void feed_local_watchdog() override {
       vTaskDelay(1); // feeds the watchdog for the task
     }
@@ -185,6 +191,7 @@ namespace fhatos {
       vTaskDelete(nullptr);
     }
   };
+
   ptr<Scheduler> scheduler() { return Options::singleton()->scheduler<Scheduler>(); }
 } // namespace fhatos
 

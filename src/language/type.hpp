@@ -148,6 +148,9 @@ namespace fhatos {
                           {"pattern", Obj::to_bcode()},
                           {"broker", Obj::to_bcode()},
                           {"client", Obj::to_bcode()}}));
+      this->end_progress_bar(
+          StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yfhatos objs!! loaded \n",
+                               OBJ_FURI->extend("+").toString().c_str()));
       this->end_progress_bar("!bfhatos !yobjs!! loaded\n");
     }
 
