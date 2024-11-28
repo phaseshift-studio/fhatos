@@ -220,7 +220,7 @@ namespace fhatos {
           if (matches.empty()) {
             if (furi->path_length() > 0) {
               // recurse backwards to find a root poly that has respective furi path
-              const Obj_p maybe_poly = this->read(furi_p(furi->retract()));
+              const Obj_p maybe_poly = this->read(furi_p(furi->retract().as_node()));
               if (maybe_poly->is_rec())
                 return maybe_poly->rec_get(vri(furi->name()));
               if (maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
@@ -269,6 +269,8 @@ namespace fhatos {
             for (const auto &[key, value]: ids) {
               this->write_raw_pairs(key, obj, retain);
             }
+          } else if (obj->is_type() && obj->is_poly()) {
+            this->write_raw_pairs(id_p(*furi), obj, retain);
           } else if (obj->is_rec()) {
             // rec
             const auto remaining = share(Obj::RecMap<>());
@@ -331,14 +333,14 @@ namespace fhatos {
           // bcode, pass the output of applying the written obj to bcode to subscribers
           //const BCode_p rewritten_bcode = ;
           // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
-          const Obj_p result = applicable_obj->apply(obj, {});
+          const Obj_p result = applicable_obj->apply(obj);
           //ObjHelper::replace_from_obj({obj}, applicable_obj)->apply(obj);
           //ObjHelper::apply_lhs_args(applicable_obj, obj);
           // Options::singleton()->processor<Obj, BCode, Obj>(obj, rewritten_bcode);
           this->write_raw_pairs(id_p(*furi), result, retain);
         } else
         // any other obj, apply it (which for monos, will typically result in providing subscribers with the already existing obj)
-          this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj, {}), retain);
+          this->write_raw_pairs(id_p(*furi), applicable_obj->apply(obj), retain);
       }
     }
 

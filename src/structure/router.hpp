@@ -146,7 +146,7 @@ namespace fhatos {
       Obj::save();
     }
 
-    [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg, {}); }
+    [[nodiscard]] Obj_p exec(const ID_p &bcode_id, const Obj_p &arg) { return this->read(bcode_id)->apply(arg); }
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       try {
@@ -202,7 +202,7 @@ namespace fhatos {
       }
     }
 
-    static ID import() {
+    static void* import() {
       ROUTER_WRITE(ROUTER_ID, Router::singleton(),RETAIN);
       ROUTER_WRITE(id_p(ROUTER_ID->extend("lib/heap")), make_shared<Heap<>>(Obj::to_rec({{"pattern", vri("#")}})),
                    RETAIN);
@@ -212,7 +212,7 @@ namespace fhatos {
                        {"broker", vri("#")},
                        {"client", vri("#")}})),
                    RETAIN);
-      return *ROUTER_ID;
+      return nullptr;
     }
 
   private:

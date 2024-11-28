@@ -123,9 +123,13 @@ namespace fhatos {
       return Kernel::build();
     }
 
-    static ptr<Kernel> import(const fURI &) {
+    static ptr<Kernel> import(const void *) {
       return Kernel::build();
     }
+
+    /*static ptr<Kernel> import(const fURI &) {
+      return Kernel::build();
+    }*/
 
     static ptr<Kernel> mount(const Structure_p &structure) {
       scheduler()->feed_local_watchdog(); // ensure watchdog doesn't fail during boot

@@ -365,6 +365,26 @@ namespace fhatos {
       return *this;
     }
 
+    [[nodiscard]] fURI as_node() const {
+      if (!this->spostfix_)
+        return *this;
+      else {
+        auto f = fURI(*this);
+        f.spostfix_ = false;
+        return f;
+      }
+    }
+
+    [[nodiscard]] fURI as_branch() const {
+      if (this->spostfix_)
+        return *this;
+      else {
+        auto f = fURI(*this);
+        f.spostfix_ = true;
+        return f;
+      }
+    }
+
     [[nodiscard]] bool is_subfuri_of(const fURI &other) const {
       const string this_string = this->toString();
       const string other_string = other.toString();

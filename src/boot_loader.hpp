@@ -33,6 +33,7 @@
 #include <structure/stype/heap.hpp>
 ///////////// COMMON MODELS /////////////
 #include <model/driver/driver.hpp>
+#include <model/driver/fhatos/core_driver.hpp>
 //#include <model/driver/gpio/arduino_gpio_driver.hpp>
 //#include <model/driver/i2c/arduino_i2c_master_driver.hpp>
 // #include <model/pin/gpio.hpp>
@@ -92,6 +93,7 @@ namespace fhatos {
             ->mount(Heap<>::create("/type/#"))
             ->mount(Heap<>::create("/mmadt/#"))
             ->install(Type::singleton("/type/"))
+            ->import(FhatOSCoreDriver::import())
             ->mount(Heap<>::create("/io/#"))
             ->install(Terminal::singleton("/io/terminal"))
             ->import(Console::import("/io/lib/console"))

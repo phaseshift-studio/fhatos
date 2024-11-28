@@ -44,23 +44,23 @@ namespace mmadt {
           ->create();
     }
 
-    static ID import() {
-      const Str_p ARG_ERROR = str("wrong number of arguments");
-      ///////////////////////////////////////// OBJ TYPES ///////////////////////////////////////////////////
+    static void import_base_types() {
       Type::singleton()->start_progress_bar(10);
       TYPE_SAVER(OBJ_FURI, Obj::create(Any(), OType::OBJ, OBJ_FURI));
       TYPE_SAVER(NOOBJ_FURI, Obj::create(Any(), OType::NOOBJ, NOOBJ_FURI));
-      TYPE_SAVER(BOOL_FURI, Obj::create(false, OType::BOOL, OBJ_FURI));
-      TYPE_SAVER(INT_FURI, Obj::create(0, OType::INT, OBJ_FURI));
-      TYPE_SAVER(REAL_FURI, Obj::create(0.0f, OType::REAL, OBJ_FURI));
-      TYPE_SAVER(STR_FURI, Obj::create(string("0"), OType::STR, OBJ_FURI));
-      TYPE_SAVER(URI_FURI, Obj::create(fURI("mmadt://0"), OType::URI, OBJ_FURI));
-      TYPE_SAVER(LST_FURI, Obj::create(make_shared<Obj::LstList>(), OType::LST, OBJ_FURI));
-      TYPE_SAVER(REC_FURI, Obj::create(make_shared<Obj::RecMap<>>(), OType::REC, OBJ_FURI));
+      TYPE_SAVER(BOOL_FURI, Obj::create(Any(), OType::BOOL, OBJ_FURI));
+      TYPE_SAVER(INT_FURI, Obj::create(Any(), OType::INT, OBJ_FURI));
+      TYPE_SAVER(REAL_FURI, Obj::create(Any(), OType::REAL, OBJ_FURI));
+      TYPE_SAVER(STR_FURI, Obj::create(Any(), OType::STR, OBJ_FURI));
+      TYPE_SAVER(URI_FURI, Obj::create(Any(), OType::URI, OBJ_FURI));
+      TYPE_SAVER(LST_FURI, Obj::create(Any(), OType::LST, OBJ_FURI));
+      TYPE_SAVER(REC_FURI, Obj::create(Any(), OType::REC, OBJ_FURI));
       //TYPE_SAVER(ERROR_FURI, Obj::create(Pair<Obj_p, Inst_p>(nullptr, nullptr), OType::REC, OBJ_FURI));
       Type::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !ybase types!! loaded \n",MMADT_FURI "+"));
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    }
+
+    static void import_base_inst() {
       Type::singleton()->start_progress_bar(6);
       /* TYPE_SAVER(id_p(MMADT_FURI "inst/start"),
                   ObjHelper::InstTypeBuilder::build(MMADT_FURI "start")
@@ -95,7 +95,7 @@ namespace mmadt {
                  ObjHelper::InstTypeBuilder::build(MMADT_FURI "from")
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()))->at(nullptr);
+                   const Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value())); //->at(nullptr)
                    return result->is_noobj() ? args.at(1) : result;
                  })
                  ->create());
@@ -106,6 +106,40 @@ namespace mmadt {
                    return args.at(0);
                  })
                  ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "inst/merge"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "merge")
+                 ->type_args(x(0, "count",jnt(INT32_MAX)))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const int amnt = args.at(0)->int_value();
+                   Objs_p objs = Obj::to_objs();
+                   if (lhs->is_lst()) {
+                     int counter = 0;
+                     for (const auto &element: *lhs->lst_value()) {
+                       if (counter >= amnt)
+                         break;
+                       if (!element->is_noobj()) {
+                         objs->add_obj(element);
+                         ++counter;
+                       }
+                     }
+                   } else if (lhs->is_rec()) {
+                     int counter = 0;
+                     for (const auto &[key, value]: *lhs->rec_value()) {
+                       if (counter >= amnt)
+                         break;
+                       if (!value->is_noobj()) {
+                         objs->add_obj(value);
+                         ++counter;
+                       }
+                     }
+                   } else {
+                     if (amnt > 0)
+                       objs->add_obj(lhs);
+                   }
+                   return objs;
+                 })
+                 ->itype_and_seed(IType::ONE_TO_MANY)
+                 ->create());
       TYPE_SAVER(id_p(MMADT_FURI "inst/to_inv"),
                  ObjHelper::InstTypeBuilder::build(MMADT_FURI "to_inv")
                  ->type_args(x(0, "value_id"), x(1, "retain", dool(true)))
@@ -115,6 +149,55 @@ namespace mmadt {
                    return ret;
                  })
                  ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "inst/type"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "type")
+                 ->type_args(x(0, "obj", ___))
+                 ->inst_f([](const Obj_p &, const InstArgs &args) {
+                   return Obj::to_uri(*args.at(0)->tid());
+                 })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_FURI "inst/eq"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "eq")
+                 ->type_args(x(0, "rhs"))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   return Obj::to_bool(lhs->equals(*args.at(0)));
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_FURI "inst/neq"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_FURI "neq")
+                 ->type_args(x(0, "rhs"))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   return Obj::to_bool(!lhs->equals(*args.at(0)));
+                 })->create());
+      /////////////////////////// RELATIONAL PREDICATE INSTS ///////////////////////////
+      for (const auto &i: {"gt", "gte", "lt", "lte"}) {
+        TYPE_SAVER(id_p(ID(MMADT_FURI "inst").extend(i)),
+                   ObjHelper::InstTypeBuilder::build(string(MMADT_FURI).append(i))
+                   ->type_args(x(0, "rhs"))
+                   ->create());
+        for (const auto &t: {INT_FURI, REAL_FURI, STR_FURI, URI_FURI}) {
+          ObjHelper::InstTypeBuilder *builder =
+              ObjHelper::InstTypeBuilder::build(string(MMADT_FURI).append(i))
+              ->type_args(x(0, "rhs"));
+          if (i == "gt") {
+            builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+              return Obj::to_bool(*lhs > *args.at(0));
+            });
+          } else if (i == "gte") {
+            builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+              return Obj::to_bool(*lhs >= *args.at(0));
+            });
+          } else if (i == "lt") {
+            builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+              return Obj::to_bool(*lhs < *args.at(0));
+            });
+          } else if (i == "lte") {
+            builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+              return Obj::to_bool(*lhs <= *args.at(0));
+            });
+          }
+          TYPE_SAVER(id_p(t->extend("inst").extend(i)), builder->create());
+        }
+      }
       /////////////////////////// INSPECT INST ///////////////////////////
       TYPE_SAVER(id_p(MMADT_FURI "inst/inspect"),
                  ObjHelper::InstTypeBuilder::build(MMADT_FURI "inspect")
@@ -259,6 +342,16 @@ namespace mmadt {
                        return vri(lhs->uri_value().extend(args.at(0)->uri_value()));
                      })
                  ->create());
+    }
+
+    static void *import() {
+      const Str_p ARG_ERROR = str("wrong number of arguments");
+      ///////////////////////////////////////// OBJ TYPES ///////////////////////////////////////////////////
+      mmADT::import_base_types();
+      mmADT::import_base_inst();
+      return nullptr;
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
       /*TYPE_SAVER(id_p(MMADT_FURI "rec/inst/plus"),
                  ObjHelper::InstTypeBuilder::build(MMADT_FURI "plus")
                  ->type_args(x(0, "rhs"))
@@ -333,7 +426,7 @@ namespace mmadt {
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "error"), Insts::error(x(0, str("an error occurred"))));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "repeat"), Insts::repeat(x(0), x(1, bcode()), x(2)));
       Type::singleton()->save_type(id_p(FOS_TYPE_INST_URI "side"), Insts::side(x(0)));*/
-      return ID(MMADT_FURI);
+      //  return ID(MMADT_FURI);
     }
 
     static Rec_p build_inspect_rec(const Obj_p &lhs) {

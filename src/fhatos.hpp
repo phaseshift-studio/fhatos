@@ -218,6 +218,7 @@ namespace fhatos {
 #define XSTR(a) #a
 #define FSTR(a) STR(a)
 #define FURI_WRAP "!g[!b%s!g]!!"
+#define FURI_WRAP_C(color) STR(!g[!color%s!g]!!)
 #define SCHEDULER_FURI_WRAP "!G[!Y%s!G]!!"
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))

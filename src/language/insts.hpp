@@ -991,12 +991,11 @@ namespace fhatos {
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
-      const ID_p type_id_resolved = type_id.path_length() > 1 || type_id.has_scheme()
-                                      ? id_p(type_id)
-                                      : id_p(INST_FURI->resolve(type_id));
-      Obj_p base_inst = ROUTER_READ(type_id_resolved);
+      ID_p resolved_id = id_p(INST_FURI->resolve(type_id));
+      Obj_p base_inst = ROUTER_READ(resolved_id);
       if (base_inst->is_noobj()) {
-        base_inst = ROUTER_READ(id_p(type_id));
+        resolved_id = id_p(type_id);
+        base_inst = ROUTER_READ(resolved_id);
         if (!base_inst->is_code()) {
           throw fError("!yinst !rnot found!!: " FURI_WRAP "!g-!mresolved_to!g->" FURI_WRAP,
                        type_id.toString().c_str(),
@@ -1012,18 +1011,14 @@ namespace fhatos {
           return ObjHelper::replace_from_inst(base_inst->bcode_value()->at(0), args);
         return Obj::to_inst(
             type_id.name(), args,
-            [base_inst](const Obj_p &lhs, const InstArgs &args) {
-              InstArgs args3;
-              for (const Obj_p &arg: args) {
-                args3.push_back(arg);
-              }
-              const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args3);
+            [base_inst](const Obj_p &lhs, const InstArgs &args2) {
+              const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args2, lhs);
               //LOG(INFO, "final bcode: %s\n", new_bcode->toString().c_str());
               return new_bcode;
             },
             base_inst->itype(),
             base_inst->is_inst() ? base_inst->inst_seed_supplier() : _noobj_, // TODO
-            type_id_resolved);
+            resolved_id);
       }
       // return replace_from_obj(args, base_inst);
       throw fError("!b%s!! does not resolve to !yinst!! or !ybcode!!: %s", type_id.toString().c_str(),

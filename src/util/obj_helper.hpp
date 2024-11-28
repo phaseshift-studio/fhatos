@@ -49,14 +49,14 @@ namespace fhatos {
         throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b%s!!", old_obj->toString().c_str());
       LOG(DEBUG, "apply_lhs_args: %s => %s\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
       if (!lhs_args->is_lst())
-        return old_obj->apply(lhs_args, {});
+        return old_obj->apply(lhs_args);
       if (lhs_args->is_lst() && lhs_args->lst_size()->int_value() == 1)
-        return old_obj->apply(lhs_args->lst_get(0), {});
+        return old_obj->apply(lhs_args->lst_get(0));
       if (lhs_args->is_lst() && lhs_args->lst_size()->int_value() > 1) {
         const Obj_p new_obj = ObjHelper::replace_from_obj(old_obj, *lhs_args->lst_get(1)->lst_value(), lhs);
         LOG(DEBUG, "structure read() transformed bcode: %s => %s\n", old_obj->toString().c_str(),
             new_obj->toString().c_str());
-        return new_obj->apply(lhs_args->lst_get(0), {});
+        return new_obj->apply(lhs_args->lst_get(0));
       }
       return old_obj;
     }
@@ -71,7 +71,6 @@ namespace fhatos {
           return old_inst->inst_args().at(1); // default argument
         throw fError("%s requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
                      old_inst->inst_args().size(), args.size());
-
       } else if (is_from && old_inst->inst_arg(0)->toString() == "_") {
         return lhs;
       } else {
@@ -166,17 +165,23 @@ namespace fhatos {
           LOG(TRACE, "base-type instruction requiring resolution for %s\n", lhs->toString().c_str());
           InstArgs args_applied;
           for (const Obj_p &arg: args) {
-            args_applied.push_back(arg->apply(lhs, {}));
+            args_applied.push_back(arg->apply(lhs));
           }
           const Inst_p resolve = RESOLVE_INST(lhs, this->type_, nullptr);
           if (resolve->is_noobj()) {
-            List<ID> deriviation = {*this->type_};
-            RESOLVE_INST(lhs, this->type_, &deriviation);
+            //if (lhs->is_noobj())
+            //return _noobj_;
+            List<ID> derivation = {*this->type_};
+            RESOLVE_INST(lhs, this->type_, &derivation);
             string result;
-            for (const auto &id: deriviation) {
-              result.append(StringHelper::format("\t!b%s!!", id.toString().c_str()).c_str());
+            for (int i = derivation.size() - 1; i >= 0; i--) {
+              result.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
+                                                 StringHelper::repeat(derivation.size() - i, "--").c_str(),
+                                                 derivation.at(i).toString().c_str()).c_str());
             }
-            throw fError("inst has no obj implementation and wasn't resolved\n%s", result.c_str());
+            result = result.empty() ? "" : result.substr(0, result.size() - 1); // remove trailing \n
+            throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n%s", lhs->tid()->toString().c_str(),
+                         this->type_->toString().c_str(), result.c_str());
           }
           return resolve->inst_f()(lhs, args);
         };

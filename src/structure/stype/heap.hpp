@@ -74,7 +74,7 @@ namespace fhatos {
           if (id->matches(*match)) {
          //   LOG_STRUCTURE(TRACE, this, "\tmatched: %s ~ %s => %s\n", id->toString().c_str(), match->toString().c_str(),
          //                 obj->toString().c_str());
-            list.push_back({id, obj->clone()});
+            list.push_back({id, obj}); // clone()?
           }
         }
         return list;

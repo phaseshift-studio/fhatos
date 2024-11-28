@@ -80,7 +80,7 @@ namespace fhatos {
         const Obj_p proto_obj = type_id->equals(*OTYPE_FURI.at(obj->o_type())) || (
                                   !type_def->is_bcode() && !type_def->is_inst())
                                   ? obj
-                                  : type_def->apply(obj, {});
+                                  : type_def->apply(obj);
         if (proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
@@ -92,27 +92,31 @@ namespace fhatos {
         while (true) {
           if (current_obj->is_noobj())
             return noobj();
-          /*LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
-                  current_obj->vid_or_tid()->extend("inst").toString().c_str(),
-                  inst_type_id->toString().c_str());*/
-          if (derivation_tree)
-            derivation_tree->push_back(current_obj->vid_or_tid()->extend("inst").extend(inst_type_id->name()));
-          Inst_p maybe = ROUTER_READ(id_p(current_obj->vid_or_tid()->extend("inst").extend(inst_type_id->name())));
-          if (!maybe->is_noobj())
-            return maybe;
+          const ID_p current_tid = current_obj->tid();
+          ID_p current_vid = current_obj->vid();
+          Inst_p maybe;
+          if (current_vid) {
+            LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
+                    current_vid->extend("inst").toString().c_str(),
+                    inst_type_id->toString().c_str());
+            if (derivation_tree)
+              derivation_tree->push_back(current_vid->extend("inst").extend(inst_type_id->name()));
+            maybe = ROUTER_READ(id_p(current_vid->extend("inst").extend(inst_type_id->name())));
+            if (!maybe->is_noobj())
+              return maybe;
+          }
           LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
-                  current_obj->tid()->extend("inst").toString().c_str(),
+                  current_tid->extend("inst").toString().c_str(),
                   inst_type_id->toString().c_str());
           if (derivation_tree)
-            derivation_tree->push_back(current_obj->tid()->extend("inst").extend(inst_type_id->name()));
-          maybe = ROUTER_READ(id_p(current_obj->tid()->extend("inst").extend(inst_type_id->name())));
+            derivation_tree->push_back(current_tid->extend("inst").extend(inst_type_id->name()));
+          maybe = ROUTER_READ(id_p(current_tid->extend("inst").extend(inst_type_id->name())));
           if (!maybe->is_noobj())
             return maybe;
-          if (current_obj->tid()->path_length() == 3) // at base type
-            return noobj();
           current_obj = ROUTER_READ(current_obj->tid());
+          if (current_tid->equals(*current_obj->tid())) // infinite loop (i.e. base type)
+            return noobj();
         }
-        return noobj();
       };
 
       this->load_core_inst();

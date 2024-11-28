@@ -245,7 +245,7 @@ namespace fhatos {
       return console;
     }
 
-    static ID import(const ID &id = "/io/lib/console") {
+    static void* import(const ID &id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       TYPE_SAVER(id_p(id), rec({{vri(":create"),
                                  ObjHelper::InstTypeBuilder::build(ID(id.extend(":create")))
@@ -265,7 +265,7 @@ namespace fhatos {
                                    return console;
                                  })
                                  ->create()}}, THREAD_FURI));
-      return id;
+      return nullptr;
     }
   };
 } // namespace fhatos
