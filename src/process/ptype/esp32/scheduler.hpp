@@ -54,10 +54,9 @@ namespace fhatos {
       return scheduler;
     }
 
-
-    static ID import() {
+    static void *import() {
       XScheduler::base_import(Scheduler::singleton());
-      return *Scheduler::singleton()->vid();
+      return nullptr;
     }
 
     void feed_local_watchdog() override {
@@ -66,12 +65,12 @@ namespace fhatos {
 
     virtual bool spawn(const Process_p &process) override {
       if (this->count(*process->vid())) {
-        LOG_SCHEDULER(ERROR, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
         return false;
       }
       process->setup();
       if (!process->running) {
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to setup\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to setup\n", process->vid()->toString().c_str());
         return false;
       }
       ////////////////////////////////
@@ -103,18 +102,18 @@ namespace fhatos {
         }
       } else {
         process->running = false;
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       success = pdPASS == threadResult;
       if (success) {
         this->processes_->push_back(process);
-        LOG_SCHEDULER(INFO, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid()->toString().c_str(),
+        LOG_KERNEL_OBJ(INFO, this, "!b%s!! !yprocess!! spawned (w/ %i bytes stack)\n", process->vid()->toString().c_str(),
                       stack_size);
         this->save();
       } else {
         const char *reason = threadResult == -1 ? "COULD_NOT_ALLOCATE_REQUIRED_MEMORY" : "UNKNOWN_REASON";
-        LOG_SCHEDULER(ERROR, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->vid()->toString().c_str(),
+        LOG_KERNEL_OBJ(ERROR, this, "!b%s!! !yprocess!! failed to spawn [error:%i %s]\n", process->vid()->toString().c_str(),
                       threadResult, reason);
       }
       return success;
@@ -124,13 +123,23 @@ namespace fhatos {
   private:
     explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
-      rec_set(vri(":spawn"), to_bcode(
+      this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
+              if (!obj->vid())
+                throw fError("value id required to spawn %s", obj->toString().c_str());
+              if (obj->tid()->has_path("thread"))
+                return dool(this->spawn(make_shared<Thread>(obj)));
+              if (obj->tid()->has_path("fiber"))
+                return dool(this->spawn(make_shared<Fiber>(obj)));
+              throw fError("unknown process type: %s\n", obj->tid()->toString().c_str());
+            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
+
+      /*rec_set(vri(":spawn"), to_bcode(
                                  [this](const Obj_p &obj) {
                                    if (!obj->vid())
                                      throw fError("value id required to spawn %s", obj->toString().c_str());
                                    return dool(this->spawn(make_shared<Thread>(obj)));
                                  },
-                                 StringHelper::cxx_f_metadata(__FILE__, __LINE__)));
+                                 StringHelper::cxx_f_metadata(__FILE__, __LINE__)));*/
     }
 
     TaskHandle_t FIBER_THREAD_HANDLE = nullptr;

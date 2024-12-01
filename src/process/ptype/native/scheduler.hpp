@@ -106,7 +106,6 @@ namespace fhatos {
 
     static void *import() {
       XScheduler::base_import(Scheduler::singleton());
-      //return *Scheduler::singleton()->vid();
       return nullptr;
     }
 
