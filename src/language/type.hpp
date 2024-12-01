@@ -96,21 +96,21 @@ namespace fhatos {
           ID_p current_vid = current_obj->vid();
           Inst_p maybe;
           if (current_vid) {
-            LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
-                    current_vid->extend("inst").toString().c_str(),
+            LOG_OBJ(INFO, current_obj, "!b%s!m%s !yinst!! search\n",
+                    current_vid->extend(":inst:").toString().c_str(),
                     inst_type_id->toString().c_str());
             if (derivation_tree)
-              derivation_tree->push_back(current_vid->extend("inst").extend(inst_type_id->name()));
-            maybe = ROUTER_READ(id_p(current_vid->extend("inst").extend(inst_type_id->name())));
+              derivation_tree->push_back(current_vid->extend(":inst:").extend(*inst_type_id));
+            maybe = ROUTER_READ(id_p(current_vid->extend(":inst:").extend(*inst_type_id)));
             if (!maybe->is_noobj())
               return maybe;
           }
-          LOG_OBJ(INFO, current_obj, "!b%s/#/!m%s !yinst!! search\n",
-                  current_tid->extend("inst").toString().c_str(),
+          LOG_OBJ(INFO, current_obj, "!b%s!m%s !yinst!! search\n",
+                  current_tid->extend(":inst:").toString().c_str(),
                   inst_type_id->toString().c_str());
           if (derivation_tree)
-            derivation_tree->push_back(current_tid->extend("inst").extend(inst_type_id->name()));
-          maybe = ROUTER_READ(id_p(current_tid->extend("inst").extend(inst_type_id->name())));
+            derivation_tree->push_back(current_tid->extend(":inst:").extend(*inst_type_id));
+          maybe = ROUTER_READ(id_p(current_tid->extend(":inst:").extend(*inst_type_id)));
           if (!maybe->is_noobj())
             return maybe;
           current_obj = ROUTER_READ(current_obj->tid());

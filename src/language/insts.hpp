@@ -991,7 +991,7 @@ namespace fhatos {
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
-      ID_p resolved_id = id_p(INST_FURI->resolve(type_id));
+      ID_p resolved_id = id_p(ID(MMADT_FURI).extend(type_id));
       Obj_p base_inst = ROUTER_READ(resolved_id);
       if (base_inst->is_noobj()) {
         resolved_id = id_p(type_id);
@@ -999,7 +999,7 @@ namespace fhatos {
         if (!base_inst->is_code()) {
           throw fError("!yinst !rnot found!!: " FURI_WRAP "!g-!mresolved_to!g->" FURI_WRAP,
                        type_id.toString().c_str(),
-                       INST_FURI->resolve(type_id).toString().c_str());
+                       INST_FURI->extend(type_id).toString().c_str());
         }
       }
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),

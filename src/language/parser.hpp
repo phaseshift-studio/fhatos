@@ -548,7 +548,7 @@ namespace fhatos {
 
         return type_token.empty()
                  ? Option<BCode_p>(Obj::to_bcode())
-                 : Option<BCode_p>(Obj::to_bcode()); //Option<BCode_p>(Obj::to_bcode({Insts::as(vri(type_token))}));
+                 : Option<BCode_p>(Obj::to_bcode({from(vri(type_token))}));
       } // special character for 'no instructions' (no general common parse pattern)
       ///////////////////////////////////////////////////////////////////////////////////////
       //////////////// lookahead to determine if token is potentially _bcode ////////////////
@@ -649,6 +649,7 @@ namespace fhatos {
         }
         inst_token.clear();
       }
+     // LOG(INFO,"type of bcode: %s ==> %s -> %s\n",type_token.c_str(), base_type->resolve(type_token).toString().c_str(),BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))->toString().c_str());
       return Option<BCode_p>{BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))};
     }
 

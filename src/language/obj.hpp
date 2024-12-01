@@ -215,20 +215,20 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstF, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const auto OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj/");
-  static const auto NOOBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "noobj/");
-  static const auto TYPE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "type/");
-  static const auto BOOL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bool/");
-  static const auto INT_FURI = make_shared<ID>(FOS_TYPE_PREFIX "int/");
-  static const auto REAL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "real/");
-  static const auto URI_FURI = make_shared<ID>(FOS_TYPE_PREFIX "uri/");
-  static const auto STR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "str/");
-  static const auto LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst/");
-  static const auto REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec/");
-  static const auto INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst/");
-  static const auto BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode/");
-  static const auto ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error/");
-  static const auto OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs/");
+  static const auto OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj");
+  static const auto NOOBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "noobj");
+  static const auto TYPE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "type");
+  static const auto BOOL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bool");
+  static const auto INT_FURI = make_shared<ID>(FOS_TYPE_PREFIX "int");
+  static const auto REAL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "real");
+  static const auto URI_FURI = make_shared<ID>(FOS_TYPE_PREFIX "uri");
+  static const auto STR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "str");
+  static const auto LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst");
+  static const auto REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec");
+  static const auto INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst");
+  static const auto BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode");
+  static const auto ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error");
+  static const auto OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs");
   /*static const auto OBJ_FURI = make_shared<ID>("mmadt:obj");
   static const auto NOOBJ_FURI = make_shared<ID>("mmadt:noobj");
   static const auto BOOL_FURI = make_shared<ID>("mmadt:bool");
@@ -355,31 +355,31 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<COMPARATOR, ALLOCATOR>>;
     //////////////////////////////////////////////////////
 
-   /*class Args final {
-      unique_ptr<Map<ID, Obj_p>> args_;
+    /*class Args final {
+       unique_ptr<Map<ID, Obj_p>> args_;
 
-    public:
-      explicit Args(const Map<ID, Obj_p> &map_of_args) :
-        args_(make_unique<Map<ID, Obj_p>>(map_of_args)) {
-      }
+     public:
+       explicit Args(const Map<ID, Obj_p> &map_of_args) :
+         args_(make_unique<Map<ID, Obj_p>>(map_of_args)) {
+       }
 
-      void check_size(const uint8_t expected) const {
-        if (args_->size() != expected)
-          throw fError("bad argument length");
-      }
+       void check_size(const uint8_t expected) const {
+         if (args_->size() != expected)
+           throw fError("bad argument length");
+       }
 
-      void add_arg(const ID &name, const Obj_p &obj) const {
-        this->args_->insert({name, obj});
-      }
+       void add_arg(const ID &name, const Obj_p &obj) const {
+         this->args_->insert({name, obj});
+       }
 
-      Obj_p arg(const ID &name) const {
-        return this->args_->at(name);
-      }
+       Obj_p arg(const ID &name) const {
+         return this->args_->at(name);
+       }
 
-      bool bool_value(const ID &name) const {
-        return this->args_->at(name)->bool_value();
-      }
-    };*/
+       bool bool_value(const ID &name) const {
+         return this->args_->at(name)->bool_value();
+       }
+     };*/
 
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id, const ID_p &value_id = nullptr) :
       Typed(OTYPE_FURI.at(otype)), Valued(value_id), otype_(otype), value_(value) {
@@ -918,7 +918,7 @@ namespace fhatos {
       }
       if (this->is_type() || this->is_inst() || this->is_error() ||
           (strict && this->is_uri()) ||
-          (include_type && (this->tid_->path_length() > 2))) {
+          (include_type && !this->is_base_type())) {
         obj_string = string("!b")
             .append(this->tid_->name())
             .append(this->is_inst() ? "!g(!!" : "!g[!!")
@@ -1046,7 +1046,7 @@ namespace fhatos {
       }
     }
 
-    Obj operator+(const Obj &rhs) const {
+    /*Obj operator+(const Obj &rhs) const {
       switch (this->o_type()) {
         case OType::NOOBJ:
           return *to_noobj();
@@ -1083,7 +1083,7 @@ namespace fhatos {
         default:
           throw fError("%s can not be added (+)", OTypes.to_chars(this->o_type()).c_str());
       }
-    }
+    }*/
 
     Obj operator-(const Obj &rhs) const {
       switch (this->o_type()) {
@@ -1274,7 +1274,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
-    /*static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
+    static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
       if (old_inst->inst_op() == "lambda") {
         return Obj::to_inst(old_inst->inst_op(), args, old_inst->inst_f(), old_inst->itype(),
                             old_inst->inst_seed_supplier());
@@ -1341,7 +1341,7 @@ namespace fhatos {
         new_lst->lst_add(replace_from_obj(element, args, lhs));
       }
       return new_lst;
-    }*/
+    }
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
@@ -1398,20 +1398,20 @@ namespace fhatos {
         }
         case OType::BCODE: {
           //const BCode_p update = replace_from_bcode(shared_from_this(), args,lhs);
-         // const Obj_p result = BCODE_PROCESSOR(lhs, shared_from_this());
+          // const Obj_p result = BCODE_PROCESSOR(lhs, shared_from_this());
           //return result->is_objs() ? result->objs_value()->front() : result->clone();
 
-            ptr<Obj> current_obj = lhs;
-            for (const Inst_p &current_inst: *this->bcode_value()) {
-              LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
-              if (current_inst->is_noobj())
-                break;
-              current_obj = current_inst->apply(current_obj);
-            }
-            // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
-            //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
-            return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
-            // objs unrolled (front popped)*/
+          ptr<Obj> current_obj = lhs;
+          for (const Inst_p &current_inst: *this->bcode_value()) {
+            LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
+            if (current_inst->is_noobj())
+              break;
+            current_obj = current_inst->apply(current_obj);
+          }
+          // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
+          //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
+          return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
+          // objs unrolled (front popped)*/
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();
@@ -1555,8 +1555,8 @@ namespace fhatos {
       return Obj::create(value, OType::BOOL, furi);
     }
 
-    static Int_p to_int(const FOS_INT_TYPE value, const ID_p &furi = INT_FURI) {
-      return Obj::create(value, OType::INT, furi);
+    static Int_p to_int(const FOS_INT_TYPE value, const ID_p &type_id = INT_FURI, const ID_p &value_id = nullptr) {
+      return Obj::create(value, OType::INT, type_id, value_id);
     }
 
     static Real_p to_real(const FOS_REAL_TYPE value, const ID_p &furi = REAL_FURI) {
@@ -1747,7 +1747,7 @@ namespace fhatos {
         for (const auto &inst: *this->bcode_value()) {
           new_insts.push_back(inst->clone());
         }
-        return to_bcode(new_insts);
+        return to_bcode(new_insts, type_id_clone);
       }
       if (this->is_objs()) {
         // OBJS
@@ -1778,32 +1778,37 @@ namespace fhatos {
 
   [[maybe_unused]] static Uri_p vri(const fURI &xuri, const ID_p &type = URI_FURI) { return Obj::to_uri(xuri, type); }
 
-  [[maybe_unused]] static Uri_p vri(const fURI_p &xuri, const ID_p &type = URI_FURI) {
-    return Obj::to_uri(*xuri, type);
+  [[maybe_unused]] static Uri_p vri(const fURI_p &xuri, const ID_p &type_id = URI_FURI) {
+    return Obj::to_uri(*xuri, type_id);
   }
 
-  [[maybe_unused]] static Uri_p vri(const char *xuri, const ID_p &type = URI_FURI) {
-    return Obj::to_uri(fURI(xuri), type);
+  [[maybe_unused]] static Uri_p vri(const char *xuri, const ID_p &type_id = URI_FURI) {
+    return Obj::to_uri(fURI(xuri), type_id);
   }
 
-  [[maybe_unused]] static Uri_p vri(const string &xuri, const ID_p &type = URI_FURI) {
-    return Obj::to_uri(fURI(xuri), type);
+  [[maybe_unused]] static Uri_p vri(const string &xuri, const ID_p &type_id = URI_FURI) {
+    return Obj::to_uri(fURI(xuri), type_id);
   }
 
-  [[maybe_unused]] static Bool_p dool(const bool xbool, const ID_p &type = BOOL_FURI) {
-    return Obj::to_bool(xbool, type);
+  [[maybe_unused]] static Bool_p dool(const bool xbool, const ID_p &type_id = BOOL_FURI) {
+    return Obj::to_bool(xbool, type_id);
   }
 
-  [[maybe_unused]] static Int_p jnt(const FOS_INT_TYPE xint, const ID_p &type = INT_FURI) {
-    return Obj::to_int(xint, type);
+  [[maybe_unused]] static Int_p jnt(const FOS_INT_TYPE xint, const ID_p &type_id = INT_FURI,
+                                    const ID_p &value_id = nullptr) {
+    return Obj::to_int(xint, type_id, value_id);
   }
 
-  [[maybe_unused]] static Str_p str(const char *xstr) { return Obj::to_str(xstr); }
+  [[maybe_unused]] static Str_p str(const char *xstr, const ID_p &type_id = STR_FURI) {
+    return Obj::to_str(xstr, type_id);
+  }
 
-  [[maybe_unused]] static Str_p str(const string &xstr) { return Obj::to_str(xstr); }
+  [[maybe_unused]] static Str_p str(const string &xstr, const ID_p &type_id = STR_FURI) {
+    return Obj::to_str(xstr, type_id);
+  }
 
-  [[maybe_unused]] static Real_p real(const FOS_REAL_TYPE &xreal, const ID_p &type = REAL_FURI) {
-    return Obj::to_real(xreal, type);
+  [[maybe_unused]] static Real_p real(const FOS_REAL_TYPE &xreal, const ID_p &type_id = REAL_FURI) {
+    return Obj::to_real(xreal, type_id);
   }
 
   [[maybe_unused]] static NoObj_p noobj() { return Obj::to_noobj(); }

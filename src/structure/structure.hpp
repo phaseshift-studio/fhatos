@@ -197,6 +197,7 @@ namespace fhatos {
         }
         return ret;
       }
+      //////////////////////////////////////////////////////////////////////////
       const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
       const IdObjPairs matches = this->read_raw_pairs(temp);
       if (furi->is_branch()) {
@@ -228,7 +229,7 @@ namespace fhatos {
             }
             return noobj();
           }
-          return matches.at(0).second;
+          return matches.front().second;
         }
       }
     }

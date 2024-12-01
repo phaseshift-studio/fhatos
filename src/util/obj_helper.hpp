@@ -183,7 +183,9 @@ namespace fhatos {
             throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n%s", lhs->tid()->toString().c_str(),
                          this->type_->toString().c_str(), result.c_str());
           }
-          return resolve->inst_f()(lhs, args);
+
+          return Obj::replace_from_obj(resolve,args,lhs)->apply(lhs);
+         // return resolve->is_inst() ? resolve->inst_f()(lhs, args) : resolve->apply(lhs);
         };
       }
 
