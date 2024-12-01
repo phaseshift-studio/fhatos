@@ -991,7 +991,7 @@ namespace fhatos {
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
-      ID_p resolved_id = id_p(ID(MMADT_FURI).extend(type_id));
+      ID_p resolved_id = id_p(ID(MMADT_SCHEME).extend(type_id));
       Obj_p base_inst = ROUTER_READ(resolved_id);
       if (base_inst->is_noobj()) {
         resolved_id = id_p(type_id);

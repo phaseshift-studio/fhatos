@@ -40,8 +40,9 @@
 #define FOS_STR_ENCODING sizeof(std::string::value_type)
 #endif
 
-#define FOS_TYPE_PREFIX "/mmadt/"
-#define FOS_DRIVER_PREFIX "/driver/"
+#define MMADT_INST_SCHEME ":inst:/" MMADT_SCHEME
+#define MMADT_SCHEME "/mmadt"
+#define FOS_SCHEME "/fos"
 // #define FOS_BASE_TYPE_INDEX 1
 
 #include <fhatos.hpp>
@@ -215,33 +216,21 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstF, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
-  static const auto OBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "obj");
-  static const auto NOOBJ_FURI = make_shared<ID>(FOS_TYPE_PREFIX "noobj");
-  static const auto TYPE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "type");
-  static const auto BOOL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bool");
-  static const auto INT_FURI = make_shared<ID>(FOS_TYPE_PREFIX "int");
-  static const auto REAL_FURI = make_shared<ID>(FOS_TYPE_PREFIX "real");
-  static const auto URI_FURI = make_shared<ID>(FOS_TYPE_PREFIX "uri");
-  static const auto STR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "str");
-  static const auto LST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "lst");
-  static const auto REC_FURI = make_shared<ID>(FOS_TYPE_PREFIX "rec");
-  static const auto INST_FURI = make_shared<ID>(FOS_TYPE_PREFIX "inst");
-  static const auto BCODE_FURI = make_shared<ID>(FOS_TYPE_PREFIX "bcode");
-  static const auto ERROR_FURI = make_shared<ID>(FOS_TYPE_PREFIX "error");
-  static const auto OBJS_FURI = make_shared<ID>(FOS_TYPE_PREFIX "objs");
-  /*static const auto OBJ_FURI = make_shared<ID>("mmadt:obj");
-  static const auto NOOBJ_FURI = make_shared<ID>("mmadt:noobj");
-  static const auto BOOL_FURI = make_shared<ID>("mmadt:bool");
-  static const auto INT_FURI = make_shared<ID>("mmadt:int");
-  static const auto REAL_FURI = make_shared<ID>("mmadt:real");
-  static const auto URI_FURI = make_shared<ID>("mmadt:uri");
-  static const auto STR_FURI = make_shared<ID>("mmadt:str");
-  static const auto LST_FURI = make_shared<ID>("mmadt:lst");
-  static const auto REC_FURI = make_shared<ID>("mmadt:rec");
-  static const auto INST_FURI = make_shared<ID>("mmadt:inst");
-  static const auto BCODE_FURI = make_shared<ID>("mmadt:bcode");
-  static const auto ERROR_FURI = make_shared<ID>("mmadt:error");
-  static const auto OBJS_FURI = make_shared<ID>("mmadt:objs");*/
+  static const auto OBJ_FURI = make_shared<ID>(MMADT_SCHEME "/obj");
+  static const auto NOOBJ_FURI = make_shared<ID>(MMADT_SCHEME "/noobj");
+  static const auto TYPE_FURI = make_shared<ID>(MMADT_SCHEME "/type");
+  static const auto BOOL_FURI = make_shared<ID>(MMADT_SCHEME "/bool");
+  static const auto INT_FURI = make_shared<ID>(MMADT_SCHEME "/int");
+  static const auto REAL_FURI = make_shared<ID>(MMADT_SCHEME "/real");
+  static const auto URI_FURI = make_shared<ID>(MMADT_SCHEME "/uri");
+  static const auto STR_FURI = make_shared<ID>(MMADT_SCHEME "/str");
+  static const auto LST_FURI = make_shared<ID>(MMADT_SCHEME "/lst");
+  static const auto REC_FURI = make_shared<ID>(MMADT_SCHEME "/rec");
+  static const auto INST_FURI = make_shared<ID>(MMADT_SCHEME "/inst");
+  static const auto BCODE_FURI = make_shared<ID>(MMADT_SCHEME "/bcode");
+  static const auto ERROR_FURI = make_shared<ID>(MMADT_SCHEME "/error");
+  static const auto OBJS_FURI = make_shared<ID>(MMADT_SCHEME "/objs");
+
   static const Map<OType, ID_p> OTYPE_FURI = {{{OType::NOOBJ, NOOBJ_FURI},
                                                {OType::OBJ, OBJ_FURI},
                                                {OType::OBJS, OBJS_FURI},
@@ -389,7 +378,7 @@ namespace fhatos {
         if (value_id) {
           const Obj_p strip = this->clone();
           strip->vid_ = nullptr;
-          ROUTER_WRITE(value_id, this->clone(), true);
+          ROUTER_WRITE(value_id, strip, true);
         }
       }
     }
@@ -400,8 +389,8 @@ namespace fhatos {
 
     /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
-      return fError("!b%s!g[!!%s!g]!! !yaccessed!! as !b%s!!", OTypes.to_chars(obj->o_type()).c_str(),
-                    obj->toString().c_str(), string(function).replace(string(function).find("_value"), 6, "").c_str());
+      return fError("%s !yaccessed!! as !b%s!!", obj->toString().c_str(),
+                    string(function).replace(string(function).find("_value"), 6, "").c_str());
     }
 
     //////////////////////////////////////////////////////////////
@@ -916,9 +905,10 @@ namespace fhatos {
             throw fError("unknown obj type in toString(): %s", OTypes.to_chars(this->o_type()).c_str());
         }
       }
-      if (this->is_type() || this->is_inst() || this->is_error() ||
-          (strict && this->is_uri()) ||
-          (include_type && !this->is_base_type())) {
+      if (!this->is_noobj() &&
+          (this->is_type() || this->is_inst() || this->is_error() ||
+           (strict && this->is_uri()) ||
+           (include_type && !this->is_base_type()))) {
         obj_string = string("!b")
             .append(this->tid_->name())
             .append(this->is_inst() ? "!g(!!" : "!g[!!")
@@ -1386,21 +1376,13 @@ namespace fhatos {
         }
         case OType::INST: {
           InstArgs remake;
-          //if (is_initial(this->itype()))
-          // return this->inst_f()(Obj::to_noobj(), args);
           const bool is_block = this->inst_op() == "block";
           for (const Obj_p &arg: this->inst_args()) {
             remake.push_back(is_block ? arg : arg->apply(lhs));
           }
-          //const Inst_p resolve = RESOLVE_INST(lhs, this->vid_or_tid());
-          //return resolve->is_noobj() ? this->inst_f()(lhs, remake) : resolve->apply(lhs, args);
           return this->inst_f()(lhs, remake);
         }
         case OType::BCODE: {
-          //const BCode_p update = replace_from_bcode(shared_from_this(), args,lhs);
-          // const Obj_p result = BCODE_PROCESSOR(lhs, shared_from_this());
-          //return result->is_objs() ? result->objs_value()->front() : result->clone();
-
           ptr<Obj> current_obj = lhs;
           for (const Inst_p &current_inst: *this->bcode_value()) {
             LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
@@ -1408,10 +1390,7 @@ namespace fhatos {
               break;
             current_obj = current_inst->apply(current_obj);
           }
-          // const Objs_p objs = Options::singleton()->processor<Obj, BCode, Obj>(lhs, PtrHelper::no_delete(this));
-          //  return objs->objs_value()->empty() ? Obj::to_noobj() : objs->objs_value()->front();
-          return current_obj->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
-          // objs unrolled (front popped)*/
+          return current_obj; //->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();

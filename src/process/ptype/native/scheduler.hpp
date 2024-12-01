@@ -75,12 +75,12 @@ namespace fhatos {
 
     bool spawn(const Process_p &process) override {
       if (this->count(*process->vid())) {
-        LOG_SCHEDULER(ERROR, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP "  !yprocess!! already running\n", process->vid()->toString().c_str());
         return false;
       }
       process->setup();
       if (!process->running) {
-        LOG_SCHEDULER(ERROR, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       ////////////////////////////////
@@ -94,12 +94,12 @@ namespace fhatos {
         static_cast<Fiber *>(process.get())->FIBER_COUNT = &FIBER_COUNT;
       } else {
         process->running = false;
-        LOG_SCHEDULER(ERROR, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(ERROR, this, FURI_WRAP " !yprocess!! failed to spawn\n", process->vid()->toString().c_str());
         return false;
       }
       this->processes_->push_back(process);
       process->save();
-      LOG_SCHEDULER(INFO, FURI_WRAP " !yprocess!! spawned\n", process->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !yprocess!! spawned\n", process->vid()->toString().c_str());
       this->save();
       return true;
     }

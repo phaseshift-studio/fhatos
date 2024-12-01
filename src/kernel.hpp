@@ -140,7 +140,7 @@ namespace fhatos {
     static ptr<Kernel> install(const Obj_p &obj) {
       if (obj->vid()) {
         ROUTER_WRITE(obj->vid(), obj,RETAIN);
-        LOG_ROUTER_STATIC(INFO, "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
+        LOG_KERNEL_OBJ(INFO, router(), "!b%s!! !yobj!! loaded\n", obj->vid()->toString().c_str());
       }
       return Kernel::build();
     }

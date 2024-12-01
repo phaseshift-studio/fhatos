@@ -37,13 +37,7 @@ namespace fhatos {
                                                      {PROTOCOL::I2C, "i2c"},
                                                      {PROTOCOL::SPI, "spi"},
                                                      {PROTOCOL::MQTT, "mqtt"}});
-
-  // static const ID_p DRIVER_TYPE = id_p(FOS_TYPE_PREFIX "/rec/driver/");
-  static const ID_p PROTOCOL_TYPE_PREFIX = id_p(FOS_TYPE_PREFIX "/uri/protocol/");
-  static const auto DRIVER_REC_FURI = id_p(FOS_TYPE_PREFIX "/rec/driver/");
-  static const auto DRIVER_INST_FURI = id_p(FOS_TYPE_PREFIX "/inst/driver/");
-  static const auto GPIO_ARDUINO_PIN_TYPE = id_p(DRIVER_REC_FURI->resolve("./gpio/arduino/pin"));
-  static const auto GPIO_ARDUINO_FURI_TYPE = id_p(DRIVER_REC_FURI->resolve("./gpio/arduino/furi"));
+  static const auto DRIVER_INST_FURI = id_p(FOS_SCHEME "/inst/driver/");
 
   class fDriver {
     explicit fDriver() = default;

@@ -52,7 +52,7 @@ namespace fhatos {
         this->feed_local_watchdog();
       };
       SCHEDULER_ID = this->vid_;
-      LOG_SCHEDULER(INFO, "!yscheduler!! started\n");
+      LOG_KERNEL_OBJ(INFO, this, "!yscheduler!! started\n");
     }
 
     ~XScheduler() override {
@@ -87,7 +87,7 @@ namespace fhatos {
         list->push_back(process);
       });
       for (const auto &[name,count]: *map) {
-        LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!b%i !y%s!!(s) closing\n", count, name.c_str());
       }
       while (!list->empty()) {
         const Process_p p = list->back();
@@ -99,7 +99,7 @@ namespace fhatos {
       list->clear();
       delete list;
       this->running_ = false;
-      LOG_SCHEDULER(INFO, "!yscheduler !b%s!! stopped\n", this->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!yscheduler !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
     virtual void feed_local_watchdog() = 0;
@@ -111,15 +111,15 @@ namespace fhatos {
     void barrier(const string &name = "unlabeled", const Supplier<bool> &passPredicate = nullptr,
                  const char *message = nullptr) {
       this->barrier_ = {id_p(this->vid()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
-      LOG_SCHEDULER(INFO, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
       if (message)
-        LOG_SCHEDULER(INFO, message);
+        LOG_KERNEL_OBJ(INFO, this, message);
       while (((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
              && (this->barrier_.first && this->barrier_.second)) {
         router()->loop();
         this->feed_local_watchdog();
       }
-      LOG_SCHEDULER(INFO, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!mbarrier end: <!g%s!m>!!\n", name.c_str());
       this->barrier_.first = nullptr;
       this->barrier_.second = nullptr;
     }

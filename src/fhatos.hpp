@@ -196,7 +196,6 @@ namespace fhatos {
       delete (p);                                                                                                      \
   }
 #define FOS_IS_DOC_BUILD 0 == strcmp(STR(BUILD_DOCS), "ON")
-#define FOS_MMADT_URL_PREFIX "https://fhatos.org/mmadt/"
 #define FOS_NOOBJ_TOKEN noobj
 #define FOS_OBJ_TOKEN obj
 #define FOS_MAX_FURI_SEGMENTS 10
@@ -223,37 +222,18 @@ namespace fhatos {
 #define FOS_BYTES_MB_STR "%i (%.2f MB)"
 #define FOS_BYTES_MB(a) a, (((float) a) / (1024.0f * 1024.0f))
 #define LOG(logtype, format, ...) Logger::MAIN_LOG((logtype), (format), ##__VA_ARGS__)
-#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s", (obj)->vid()->toString().c_str(), (ex).what())
-#define LOG_ROUTER(logtype, format, ...)                                                                               \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
-#define LOG_ROUTER_STATIC(logtype, format, ...)                                                                               \
-LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),Options::singleton()->router<Router>()->vid()->toString().c_str(), ##__VA_ARGS__)
-#define LOG_SCHEDULER(logtype, format, ...)                                                                            \
-  LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), this->vid()->toString().c_str(), ##__VA_ARGS__)
+#define LOG_EXCEPTION(obj,ex) LOG(ERROR, FURI_WRAP " %s\n", (obj)->vid()->toString().c_str(), (ex).what())
+#define LOG_KERNEL_OBJ(logtype, obj, format, ...)                                                                               \
+LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(),(obj)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_SCHEDULER_STATIC(logtype, format, ...)                                                                      \
 LOG((logtype), (string("!G[!Y%s!G]!! ") + (format)).c_str(), Options::singleton()->scheduler<Scheduler>()->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_PROCESS(logtype, process, format, ...)                                                                     \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (process)->vid()->toString().c_str(), ##__VA_ARGS__)
 #define LOG_OBJ(logtype, obj, format, ...)                                                                     \
 LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()->toString().c_str(), ##__VA_ARGS__)
-  #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
+#define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
-#define LOG_ACTOR(logtype, actor, format, ...)                                                                         \
-  LOG((logtype), (string("%s ") + (format)).c_str(), (actor)->toString().c_str(), ##__VA_ARGS__)
-#define FOS_LOG_INST(inst)                                                                                             \
-  LOG(DEBUG, "[!rINST!!] [!gop!!:%s] !minst added!!: [!garg!!:[!gtype!!:%s,!gotype!!:%s,!gbcode!!:%s]!m=>!!%s]\n",     \
-      (inst)->opcode().c_str(),                                                                                        \
-      (inst)->v_args().empty() ? NOOBJ_FURI->toString().c_str()                                                        \
-                               : (inst)->v_args().at(0)->pattern()->v_furi()->toString().c_str(),                      \
-      (inst)->v_args().empty() ? OTypes.to_chars(OType::NOOBJ).c_str()                                                 \
-                               : OTypes.to_chars((inst)->v_args().at(0)->otype()).c_str(),                             \
-      (inst)->v_args().empty() ? "false" : FOS_BOOL_STR((inst)->v_args().at(0)->is_bcode()),                           \
-      (inst)->v_args().empty() ? NoObj::self_ptr()->toString().c_str() : (inst)->v_args().at(0)->toString().c_str());
-#define FOS_LOG_OBJ(obj)                                                                                               \
-  LOG(DEBUG, "[!rOBJ!!] %s [id:!yN/A!!][stype:!y%s!!][utype:!y%s!!]\n", (obj)->toString().c_str(),                     \
-      OTypes.to_chars((obj)->otype()).c_str(), (obj)->pattern()->toString().c_str());
-#define NOTE(message) LOG(INFO, "%s\n", (message))
 
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE

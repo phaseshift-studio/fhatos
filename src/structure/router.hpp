@@ -21,7 +21,7 @@
 #define fhatos_router_hpp
 
 #ifndef FOS_NAMESPACE_PREFIX_ID
-#define FOS_NAMESPACE_PREFIX_ID FOS_TYPE_PREFIX "uri/ns/prefix/"
+#define FOS_NAMESPACE_PREFIX_ID MMADT_SCHEME "/uri/ns/prefix/"
 #endif
 
 #include <fhatos.hpp>
@@ -67,7 +67,7 @@ namespace fhatos {
         return obj;
       };
       ROUTER_SUBSCRIBE = [this](const Subscription_p &subscription) { this->route_subscription(subscription); };
-      LOG_ROUTER(INFO, "!yrouter!! started\n");
+      LOG_KERNEL_OBJ(INFO, this, "!yrouter!! started\n");
     }
 
   public:
@@ -84,8 +84,8 @@ namespace fhatos {
           if (online)
             structure->loop();
           else {
-            LOG_ROUTER(INFO, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
-                       structure->tid()->name().c_str());
+            LOG_KERNEL_OBJ(INFO, this, FURI_WRAP " !y%s!! detached\n", structure->pattern()->toString().c_str(),
+                           structure->tid()->name().c_str());
           }
           return !online;
         })
@@ -104,16 +104,16 @@ namespace fhatos {
         map->insert({name, count});
       });
       for (const auto &[name, count]: *map) {
-        LOG_ROUTER(INFO, "!b%i !y%s!!(s) closing\n", count, name.c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!b%i !y%s!!(s) closing\n", count, name.c_str());
       }
       this->structures_.forEach([](const Structure_p &structure) { structure->stop(); });
-      LOG_ROUTER(INFO, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
+      LOG_KERNEL_OBJ(INFO, this, "!yrouter !b%s!! stopped\n", this->vid()->toString().c_str());
     }
 
     void attach(const Structure_p &structure) {
       if (structure->pattern()->equals(Pattern(""))) {
-        LOG_ROUTER(INFO, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
-                   structure->tid()->name().c_str());
+        LOG_KERNEL_OBJ(INFO, this, "!b%s!! !yempty structure!! ignored\n", structure->pattern()->toString().c_str(),
+                       structure->tid()->name().c_str());
       } else {
         this->structures_.forEach([structure, this](const Structure_p &s) {
           if (structure->pattern()->bimatches(*s->pattern())) {
@@ -127,11 +127,11 @@ namespace fhatos {
         this->structures_.push_back(structure);
         structure->setup();
         if (structure->available()) {
-          LOG_ROUTER(INFO, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
-                     structure->tid()->name().c_str());
+          LOG_KERNEL_OBJ(INFO, this, "!b%s!! !y%s!! attached\n", structure->pattern()->toString().c_str(),
+                         structure->tid()->name().c_str());
         } else {
-          LOG_ROUTER(ERROR, "!runable to attach %s: %s!!\n", structure->pattern()->toString().c_str(),
-                     structure->tid()->name().c_str());
+          LOG_KERNEL_OBJ(ERROR, this, "!runable to attach %s: %s!!\n", structure->pattern()->toString().c_str(),
+                         structure->tid()->name().c_str());
           this->structures_.pop_back();
         }
       }
@@ -156,9 +156,9 @@ namespace fhatos {
         if (query)
           return struc->shared_from_this();
         const Objs_p objs = struc->read(resolved_furi);
-        LOG_ROUTER(DEBUG, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
-                   Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
-                   objs->toString().c_str(), struc->pattern()->toString().c_str());
+        LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
+                       Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
+                       objs->toString().c_str(), struc->pattern()->toString().c_str());
         return objs->none_one_all();
       } catch (const fError &e) {
         LOG_EXCEPTION(this->shared_from_this(), e);
@@ -169,9 +169,10 @@ namespace fhatos {
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       try {
         const Structure_p &structure = this->get_structure(*furi);
-        LOG_ROUTER(DEBUG, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
-                   Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
-                   furi->toString().c_str(), obj->tid()->toString().c_str(), structure->pattern()->toString().c_str());
+        LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
+                       Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
+                       furi->toString().c_str(), obj->tid()->toString().c_str(),
+                       structure->pattern()->toString().c_str());
         structure->write(furi, obj, retain);
       } catch (const fError &e) {
         LOG_EXCEPTION(this->shared_from_this(), e);
@@ -182,8 +183,8 @@ namespace fhatos {
       try {
         this->structures_.forEach([this, subscriber, pattern](const Structure_p &structure) {
           if (structure->pattern()->matches(*pattern) || pattern->matches(*structure->pattern())) {
-            LOG_ROUTER(DEBUG, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
-                       subscriber->toString().c_str());
+            LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing unsubscribe!! !b%s!! for %s\n", pattern->toString().c_str(),
+                           subscriber->toString().c_str());
             structure->recv_unsubscribe(subscriber, pattern);
           }
         });
@@ -195,14 +196,14 @@ namespace fhatos {
     void route_subscription(const Subscription_p &subscription) {
       try {
         const Structure_p &struc = this->get_structure(subscription->pattern());
-        LOG_ROUTER(DEBUG, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
+        LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
         struc->recv_subscription(subscription);
       } catch (const fError &e) {
         LOG_EXCEPTION(this->shared_from_this(), e);
       }
     }
 
-    static void* import() {
+    static void *import() {
       ROUTER_WRITE(ROUTER_ID, Router::singleton(),RETAIN);
       ROUTER_WRITE(id_p(ROUTER_ID->extend("lib/heap")), make_shared<Heap<>>(Obj::to_rec({{"pattern", vri("#")}})),
                    RETAIN);
@@ -236,8 +237,9 @@ namespace fhatos {
       fURI_p type_id_resolved;
       if (strlen(type_id->scheme()) > 0) {
         const Obj_p resolved_uri = this->read(id_p(namespace_prefix_->extend(type_id->scheme())));
-        LOG_ROUTER(DEBUG, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n", type_id->scheme(), type_id->path().c_str(),
-                   resolved_uri->toString().c_str());
+        LOG_KERNEL_OBJ(DEBUG, this, "!g!_resolving !y%s!!:!b%s!! to !b%s!!\n", type_id->scheme(),
+                       type_id->path().c_str(),
+                       resolved_uri->toString().c_str());
         if (!resolved_uri->is_noobj()) {
           if (resolved_uri->is_uri()) {
             return id_p(resolved_uri->uri_value().extend((string(":").append(type_id->path())).c_str()));

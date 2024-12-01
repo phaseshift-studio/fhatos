@@ -85,7 +85,7 @@ namespace fhatos {
     }*/
 
     static Rewrite by() {
-      return Rewrite({"/mmadt/rewrite/by",
+      return Rewrite({MMADT_SCHEME "/rewrite/by",
                       [](const BCode_p &bcode) {
                         Inst_p prev = Obj::to_noobj();
                         bool found = false;
@@ -127,7 +127,7 @@ namespace fhatos {
 
 
     static Rewrite starts(const Objs_p &starts) {
-      return Rewrite({ID("/lang/rewrite/starts"),
+      return Rewrite(MMADT_SCHEME "/rewrite/starts",
                       [starts](const BCode_p &bcode) {
                         if (starts->is_noobj())
                           return bcode;
@@ -137,7 +137,7 @@ namespace fhatos {
                         }
                         return Obj::to_bcode(new_insts);
                       },
-                      {{}, {}}});
+                      {{}, {}});
     }
   };
 } // namespace fhatos

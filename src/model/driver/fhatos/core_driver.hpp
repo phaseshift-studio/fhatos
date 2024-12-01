@@ -32,7 +32,7 @@ namespace fhatos {
 
   public:
     static void* import() {
-      Type::singleton()->start_progress_bar(6);
+     // Type::singleton()->start_progress_bar(6);
       /*this->save_type(MESSAGE_FURI, Obj::to_rec({
                           {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
                           {"payload", Obj::to_bcode()},
@@ -64,7 +64,7 @@ namespace fhatos {
       Type::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yfhatos objs!! loaded \n",
                              OBJ_FURI->extend("+").toString().c_str()));
-      Type::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
+      //Type::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
       return nullptr;
     }
   };

@@ -34,9 +34,9 @@ namespace fhatos {
     ptr<ProgressBar> progress_bar_ = nullptr;
 
   protected:
-    explicit Type(const ID &value_id = FOS_TYPE_PREFIX, const ID &type_id = "/type/type") :
+    explicit Type(const ID &value_id, const ID &type_id) :
       Obj(share(RecMap<>(
-          {{vri(":check"),
+          {/*{vri(":check"),
             Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
                            return dool(this->check_type(
                                args.at(0).get(),
@@ -52,7 +52,7 @@ namespace fhatos {
             Obj::to_inst([this](const Str_p &, const InstArgs &args) {
               this->end_progress_bar(args.at(0)->str_value());
               return _noobj_;
-            }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
+            }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
           })),
           OType::REC,
           id_p(type_id),
@@ -96,7 +96,7 @@ namespace fhatos {
           ID_p current_vid = current_obj->vid();
           Inst_p maybe;
           if (current_vid) {
-            LOG_OBJ(INFO, current_obj, "!b%s!m%s !yinst!! search\n",
+            LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
                     current_vid->extend(":inst:").toString().c_str(),
                     inst_type_id->toString().c_str());
             if (derivation_tree)
@@ -105,7 +105,7 @@ namespace fhatos {
             if (!maybe->is_noobj())
               return maybe;
           }
-          LOG_OBJ(INFO, current_obj, "!b%s!m%s !yinst!! search\n",
+          LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
                   current_tid->extend(":inst:").toString().c_str(),
                   inst_type_id->toString().c_str());
           if (derivation_tree)
@@ -118,51 +118,11 @@ namespace fhatos {
             return noobj();
         }
       };
-
-      this->load_core_inst();
     }
-
-    void load_core_inst() {
-      this->start_progress_bar(6);
-      /*this->save_type(MESSAGE_FURI, Obj::to_rec({
-                          {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"payload", Obj::to_bcode()},
-                          {"retain", Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}}));
-      this->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
-                          {"source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {":on_recv", Obj::to_bcode()}}));
-      //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
-      this->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));
-      this->save_type(MQTT_FURI, Obj::to_rec({
-                          {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"broker", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"client", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));*/
-      this->save_type(MESSAGE_FURI, Obj::to_rec({
-                          {"target", Obj::to_bcode()},
-                          {"payload", Obj::to_bcode()},
-                          {"retain", Obj::to_bcode()}}));
-      this->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
-                          {"source", Obj::to_bcode()},
-                          {"pattern", Obj::to_bcode()},
-                          {":on_recv", Obj::to_bcode()}}));
-      //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
-      this->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode()}}));
-      this->save_type(MQTT_FURI, Obj::to_rec({
-                          {"pattern", Obj::to_bcode()},
-                          {"broker", Obj::to_bcode()},
-                          {"client", Obj::to_bcode()}}));
-      this->end_progress_bar(
-          StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yfhatos objs!! loaded \n",
-                               OBJ_FURI->extend("+").toString().c_str()));
-      this->end_progress_bar("!bfhatos !yobjs!! loaded\n");
-    }
-
-    // static ID_p inst_id(const string &opcode) { return id_p(INST_FURI->resolve(opcode)); }
 
   public:
-    static ptr<Type> singleton(const ID &id = FOS_TYPE_PREFIX) {
-      static auto types_p = ptr<Type>(new Type(id));
+    static ptr<Type> singleton(const ID &id = FOS_SCHEME "/type") {
+      static auto types_p = ptr<Type>(new Type(id, *REC_FURI));
       return types_p;
     }
 
@@ -200,7 +160,7 @@ namespace fhatos {
           }
         }
       } catch (const fError &e) {
-        LOG_OBJ(ERROR, this, "unable to save type !b%s!!: %s\n", type_id->toString().c_str(), e.what());
+        LOG_EXCEPTION(this, e);
       }
     }
 

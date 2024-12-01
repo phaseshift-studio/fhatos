@@ -122,7 +122,7 @@ namespace fhatos {
   const static Enums<GROUPING> parse_token =
       Enums<GROUPING>({{GROUPING::BRACKET, "[]"}, {GROUPING::PAREN, "()"}, {GROUPING::BRACE, "{}"}});
 
-  class Parser : public Obj {
+  class Parser final : public Obj {
     explicit Parser(const ID &id = ID("/parser/")) :
       Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
       OBJ_PARSER = [this](const string &obj_string) {
@@ -130,7 +130,7 @@ namespace fhatos {
           const Obj_p obj = Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());
           return obj;
         } catch (std::exception &e) {
-          LOG_EXCEPTION(this->shared_from_this(), e);
+          LOG_EXCEPTION(this, e);
           return Obj::to_noobj();
         }
       };
@@ -649,7 +649,7 @@ namespace fhatos {
         }
         inst_token.clear();
       }
-     // LOG(INFO,"type of bcode: %s ==> %s -> %s\n",type_token.c_str(), base_type->resolve(type_token).toString().c_str(),BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))->toString().c_str());
+      // LOG(INFO,"type of bcode: %s ==> %s -> %s\n",type_token.c_str(), base_type->resolve(type_token).toString().c_str(),BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))->toString().c_str());
       return Option<BCode_p>{BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))};
     }
 
