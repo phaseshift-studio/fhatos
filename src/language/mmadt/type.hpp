@@ -314,50 +314,84 @@ namespace mmadt {
                    return rec;
                  })->create());
       /////////////////////////// PLUS INST ///////////////////////////
-      TYPE_SAVER(id_p(MMADT_SCHEME "/plus"),
-                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/plus")
-                 ->type_args(x(0, "rhs"))
-                 ->create());
-      TYPE_SAVER(id_p(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/plus"),
-                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/plus")
-                 ->type_args(x(0, "rhs"))
-                 ->inst_f(
-                     [](const Obj_p &lhs, const InstArgs &args) {
-                       return jnt(lhs->int_value() + args.at(0)->int_value(), lhs->tid(), lhs->vid());
-                     })
-                 ->create());
-      TYPE_SAVER(id_p(MMADT_SCHEME "/real/" MMADT_INST_SCHEME "/plus"),
-                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/real")
-                 ->type_args(x(0, "rhs"))
-                 ->inst_f(
-                     [](const Obj_p &lhs, const InstArgs &args) {
-                       return real(lhs->real_value() + args.at(0)->real_value(), lhs->tid()); // , lhs->vid()
-                     })
-                 ->create());
-      TYPE_SAVER(id_p(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/plus"),
-                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/plus")
-                 ->type_args(x(0, "rhs"))
-                 ->inst_f(
-                     [](const Obj_p &lhs, const InstArgs &args) {
-                       return str(lhs->str_value().append(args.at(0)->str_value()), lhs->tid()); // , lhs->vid()
-                     })
-                 ->create());
-      TYPE_SAVER(id_p(MMADT_SCHEME "/bool/" MMADT_INST_SCHEME "/plus"),
-                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/plus")
-                 ->type_args(x(0, "rhs"))
-                 ->inst_f(
-                     [](const Obj_p &lhs, const InstArgs &args) {
-                       return dool(lhs->bool_value() || args.at(0)->bool_value(), lhs->tid()); // , lhs->vid()
-                     })
-                 ->create());
-      TYPE_SAVER(id_p(MMADT_SCHEME "/uri/" MMADT_INST_SCHEME "/plus"),
-                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/plus")
-                 ->type_args(x(0, "rhs"))
-                 ->inst_f(
-                     [](const Obj_p &lhs, const InstArgs &args) {
-                       return vri(lhs->uri_value().extend(args.at(0)->uri_value()), lhs->tid()); // , lhs->vid()
-                     })
-                 ->create());
+      for (const auto &op: {"plus", "mult"}) {
+        const ID MMADT_INST = MMADT_ID->extend(op);
+        TYPE_SAVER(id_p(MMADT_INST),
+                   ObjHelper::InstTypeBuilder::build(MMADT_INST)
+                   ->type_args(x(0, "rhs"))
+                   ->create());
+        TYPE_SAVER(id_p(ID(MMADT_SCHEME "/int/:inst:").extend(MMADT_INST)),
+                   ObjHelper::InstTypeBuilder::build(MMADT_INST)
+                   ->type_args(x(0, "rhs"))
+                   ->inst_f(
+                       [op](const Obj_p &lhs, const InstArgs &args) {
+                         if (strcmp(op, "plus") == 0)
+                           return jnt(lhs->int_value() + args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         else if (strcmp(op, "mult") == 0)
+                           return jnt(lhs->int_value() * args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         else
+                           throw fError("unknown op %s\n", op);
+                       })
+                   ->create());
+        TYPE_SAVER(id_p(ID(MMADT_SCHEME "/real/:inst:").extend(MMADT_INST)),
+                   ObjHelper::InstTypeBuilder::build(MMADT_INST)
+                   ->type_args(x(0, "rhs"))
+                   ->inst_f(
+                       [op](const Obj_p &lhs, const InstArgs &args) {
+                         if (strcmp(op, "plus") == 0)
+                           return jnt(lhs->real_value() + args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         else if (strcmp(op, "mult") == 0)
+                           return jnt(lhs->real_value() * args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         else
+                           throw fError("unknown op %s\n", op);
+                       })
+                   ->create());
+        TYPE_SAVER(id_p(ID(MMADT_SCHEME "/str/:inst:").extend(MMADT_INST)),
+                   ObjHelper::InstTypeBuilder::build(MMADT_INST)
+                   ->type_args(x(0, "rhs"))
+                   ->inst_f(
+                       [op](const Obj_p &lhs, const InstArgs &args) {
+                         if (strcmp(op, "plus") == 0)
+                           return str(lhs->str_value().append(args.at(0)->str_value()), lhs->tid()); // , lhs->vid()
+                         else if (strcmp(op, "mult") == 0) {
+                           string temp;
+                           for (const char c: lhs->str_value()) {
+                             temp += c;
+                             temp.append(args.at(0)->str_value());
+                           }
+                           return str(temp, lhs->tid()); // , lhs->vid()
+                         } else
+                           throw fError("unknown op %s\n", op);
+
+                       })
+                   ->create());
+        TYPE_SAVER(id_p(ID(MMADT_SCHEME "/bool/:inst:").extend(MMADT_INST)),
+                   ObjHelper::InstTypeBuilder::build(MMADT_INST)
+                   ->type_args(x(0, "rhs"))
+                   ->inst_f(
+                       [op](const Obj_p &lhs, const InstArgs &args) {
+                         if (strcmp(op, "plus") == 0)
+                           return jnt(lhs->bool_value() || args.at(0)->bool_value(), lhs->tid(), lhs->vid());
+                         else if (strcmp(op, "mult") == 0)
+                           return jnt(lhs->bool_value() && args.at(0)->bool_value(), lhs->tid(), lhs->vid());
+                         else
+                           throw fError("unknown op %s\n", op);
+                       })
+                   ->create());
+        TYPE_SAVER(id_p(ID(MMADT_SCHEME "/uri/:inst:").extend(MMADT_INST)),
+                   ObjHelper::InstTypeBuilder::build(MMADT_INST)
+                   ->type_args(x(0, "rhs"))
+                   ->inst_f(
+                       [op](const Obj_p &lhs, const InstArgs &args) {
+                         if (strcmp(op, "plus") == 0)
+                           return vri(lhs->uri_value().extend(args.at(0)->uri_value()), lhs->tid()); // , lhs->vid()
+                         else if (strcmp(op, "mult") == 0)
+                           return vri(lhs->uri_value().resolve(args.at(0)->uri_value()), lhs->tid()); // , lhs->vid()
+                         else
+                           throw fError("unknown op %s\n", op);
+                       })
+                   ->create());
+      }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->end_progress_bar(
           StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yobj insts!! loaded \n",

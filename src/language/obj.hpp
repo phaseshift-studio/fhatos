@@ -216,6 +216,7 @@ namespace fhatos {
   using InstValue = Quad<InstArgs, InstF, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
+  static const auto MMADT_ID = make_shared<ID>(MMADT_SCHEME);
   static const auto OBJ_FURI = make_shared<ID>(MMADT_SCHEME "/obj");
   static const auto NOOBJ_FURI = make_shared<ID>(MMADT_SCHEME "/noobj");
   static const auto TYPE_FURI = make_shared<ID>(MMADT_SCHEME "/type");
@@ -782,10 +783,6 @@ namespace fhatos {
         this->objs_value()->push_back(obj);
       }
     }
-
-    [[nodiscard]] fURI_p bcode_domain() { return OBJ_FURI; }
-
-    [[nodiscard]] fURI_p bcode_range() const { return OBJ_FURI; }
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
