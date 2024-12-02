@@ -27,7 +27,6 @@
 #include <util/string_helper.hpp>
 
 namespace fhatos {
-
   struct Tracker {
     int8_t parens = 0;
     int8_t brackets = 0;
@@ -123,8 +122,7 @@ namespace fhatos {
       Enums<GROUPING>({{GROUPING::BRACKET, "[]"}, {GROUPING::PAREN, "()"}, {GROUPING::BRACE, "{}"}});
 
   class Parser final : public Obj {
-    explicit Parser(const ID &id = ID("/parser/")) :
-      Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
+    explicit Parser(const ID &id = ID("/parser/")) : Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
       OBJ_PARSER = [this](const string &obj_string) {
         try {
           const Obj_p obj = Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());
@@ -222,6 +220,26 @@ namespace fhatos {
       return {};
     }
 
+    static Trip<string, string, string> try_parse_domain_range(const string &token) {
+      const size_t index = token.find("::");
+      if (index == string::npos) {
+        return std::make_tuple<string, string, string>(string(token), "obj", "obj");
+      }
+      const string type_token = token.substr(0, index);
+      const size_t index2 = token.find("<=");
+      if (index2 == string::npos) {
+        const string dr_token = token.substr(index + 2, token.length() - index);
+        return std::make_tuple<string, string, string>(
+          string(type_token),
+          string(dr_token),
+          string(dr_token));
+      }
+      return std::make_tuple<string, string, string>(
+        string(type_token),
+        string(token.substr(index + 2, index2 - index - 2)),
+        string(token.substr(index2 + 2, token.length() + index2 - 2)));
+    }
+
     static Pair<string, string> try_parse_obj_type(const string &token, const GROUPING grouping) {
       string type_token;
       string value_token;
@@ -246,6 +264,8 @@ namespace fhatos {
             }
             if (unaryFound)
               break;
+            if (StringHelper::look_ahead("<=", &ss, true))
+              type_token.append("<=");
             char c = tracker.track(static_cast<char>(ss.get()));
             if (c == parse_token.to_chars(grouping)[0]) {
               onType = false;
@@ -276,43 +296,26 @@ namespace fhatos {
       }
       StringHelper::trim(value_token);
       StringHelper::trim(type_token);
+      Trip<string, string, string> domain_range = try_parse_domain_range(type_token);
+      type_token = get<0>(domain_range);
+      string range_token = get<1>(domain_range);
+      string domain_token = get<2>(domain_range);
       // <type_furi>
       if (!type_token.empty() && type_token[0] == '<' && type_token[type_token.length() - 1] == '>')
         type_token = type_token.substr(1, type_token.length() - 2);
       // base types resolve outside of standard algorithm due to their common usage
-      if (type_token == "obj")
-        type_token = OBJ_FURI->toString();
-      else if (type_token == "noobj")
-        type_token = NOOBJ_FURI->toString();
-      else if (type_token == "bool")
-        type_token = BOOL_FURI->toString();
-      else if (type_token == "int")
-        type_token = INT_FURI->toString();
-      else if (type_token == "real")
-        type_token = REAL_FURI->toString();
-      else if (type_token == "str")
-        type_token = STR_FURI->toString();
-      else if (type_token == "uri")
-        type_token = URI_FURI->toString();
-      else if (type_token == "lst")
-        type_token = LST_FURI->toString();
-      else if (type_token == "rec")
-        type_token = REC_FURI->toString();
-      else if (type_token == "inst")
-        type_token = INST_FURI->toString();
-      else if (type_token == "bcode")
-        type_token = BCODE_FURI->toString();
-      else if (type_token == "error")
-        type_token = ERROR_FURI->toString();
-      else if (type_token == "objs")
-        type_token = OBJS_FURI->toString();
+      if (OTypes.has_enum(type_token))
+        type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
+      if (OTypes.has_enum(range_token))
+        range_token = OTYPE_FURI.at(OTypes.to_enum(range_token))->toString();
+      if (OTypes.has_enum(domain_token))
+        domain_token = OTYPE_FURI.at(OTypes.to_enum(domain_token))->toString();
       if (Options::singleton()->log_level<LOG_TYPE>() <= TRACE) {
-        LOG(TRACE, "!ytype token!!: !g%s!!" FOS_TAB_3 "!yvalue token!!: !g%s!!\n", type_token.c_str(),
+        LOG(TRACE, "!ytype token!!:!g%s!!.!yrange!!:!g%s!!.!ydomain!!:!g%s!!." FOS_TAB_3 "!yvalue token!!: !g%s!!\n",
+            type_token.c_str(),
+            range_token.c_str(),
+            domain_token.c_str(),
             value_token.c_str());
-        //char t = type_token[type_token.length() - 1];
-        //char v = value_token[value_token.length() - 1];
-        //LOG(TRACE, FOS_TAB_2 "!ytypeToken!! [!glast char!!]: (!rdec!!) %i (!rhex!!) 0x%x (!rchar!!) %c\n", t, t, t);
-        //LOG(TRACE, FOS_TAB_2 "!yvalueToken!! [!glast char!!]: (!rdec!!) %i (!rhex!!) 0x%x (!rchar!!) %c\n", v, v, v);
       }
       return {type_token, value_token};
     }
@@ -372,7 +375,7 @@ namespace fhatos {
                                        const fURI_p &base_type = URI_FURI) {
       if (value_token[0] == '<' && value_token[value_token.length() - 1] == '>')
         return Option<Uri_p>{
-            Uri::to_uri(value_token.substr(1, value_token.length() - 2).c_str(), id_p(base_type->resolve(type_token)))};
+          Uri::to_uri(value_token.substr(1, value_token.length() - 2).c_str(), id_p(base_type->resolve(type_token)))};
       if ((value_token[0] == '.' && value_token[1] == '/') ||
           (value_token[0] == '.' && value_token[1] == '.' && value_token[2] == '/'))
         return Option<Uri_p>{Uri::to_uri(value_token, id_p(base_type->resolve(type_token)))};
@@ -545,7 +548,6 @@ namespace fhatos {
     static Option<BCode_p> try_parse_bcode(const string &value_token, const string &type_token,
                                            const fURI_p &base_type = BCODE_FURI) {
       if (value_token == "_") {
-
         return type_token.empty()
                  ? Option<BCode_p>(Obj::to_bcode())
                  : Option<BCode_p>(Obj::to_bcode({from(vri(type_token))}));
