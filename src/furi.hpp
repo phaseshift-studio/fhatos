@@ -32,9 +32,9 @@ namespace fhatos {
 
   // scheme://user:password@host:port/path...
   const static Enums<URI_PART> URI_PARTS = Enums<URI_PART>{
-      {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
-      {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
-      /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
+    {URI_PART::SCHEME, "scheme"}, {URI_PART::USER, "user"}, {URI_PART::PASSWORD, "password"},
+    {URI_PART::HOST, "host"}, {URI_PART::PORT, "port"}, {URI_PART::PATH, "path"},
+    /* {URI_PART::FRAGMENT, "fragment"},*/ {URI_PART::QUERY, "query"},
   };
 
   class fURI {
@@ -359,6 +359,9 @@ namespace fhatos {
         if (strcmp(this->path(i), "+") == 0 || 0 == strcmp(this->path(i), "#")) {
           auto retracted = fURI(*this);
           retracted.path_length_ = i;
+          for (uint8_t j = i; j < this->path_length_; j++) {
+            free(retracted.path_[j]);
+          }
           return retracted;
         }
       }
@@ -575,13 +578,14 @@ namespace fhatos {
       this->query_ = other.query_ ? strdup(other.query_) : nullptr;
       // this->fragment_ = other.fragment_ ? strdup(other.fragment_) : nullptr;
       this->path_ = new char *[other.path_length_]();
-      for (uint8_t i = 0; i < other.path_length_; i++) {
-        this->path_[i] = strdup(other.path_[i]);
+      if (other.path_) {
+        for (uint8_t i = 0; i < other.path_length_; i++) {
+          this->path_[i] = strdup(other.path_[i]);
+        }
       }
     }
 
-    fURI(const string &uriString) :
-      fURI(uriString.c_str()) {
+    fURI(const string &uriString) : fURI(uriString.c_str()) {
     }
 
     fURI(const char *uriChars) {
@@ -611,6 +615,21 @@ namespace fhatos {
               part = URI_PART::USER;
               ss.get();
             }
+          } else if (c == ':' && ss.peek() == ':') {
+            ss.get(); //drop :
+            if (!this->path_)
+              this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
+            if (!token.empty()) {
+              this->path_[this->path_length_] = strdup(token.c_str());
+              this->path_length_ = this->path_length_ + 1;
+              token.clear();
+            }
+            this->path_[this->path_length_] = strdup("::");
+            this->path_length_ = this->path_length_ + 1;
+            if (ss.peek() == '/') {
+              ss.get(); // drop /
+            }
+            part = URI_PART::PATH;
           } else if (c == ':') {
             if (part == URI_PART::SCHEME) {
               this->scheme_ = strdup(token.c_str());
@@ -680,6 +699,13 @@ namespace fhatos {
               token.clear();
             } else {
               token += c;
+            }
+          } else if (part == URI_PART::PATH && c == '.' && ss.peek() == '.' && this->path_length_ > 0) { // TODO: fix
+            ss.get(); // drop .
+            if (this->path_) {
+              free(this->path_[this->path_length_ - 1]);
+              this->path_[this->path_length_ - 1] = nullptr;
+              this->path_length_ = this->path_length_ - 1;
             }
           } else if (c == '?') {
             if (part == URI_PART::PATH || part == URI_PART::SCHEME) {
@@ -798,20 +824,16 @@ namespace fhatos {
 
   class ID final : public fURI {
   public:
-    ID(const ID &id) :
-      fURI(id.toString()) {
+    ID(const ID &id) : fURI(id.toString()) {
     }
 
-    ID(const fURI &id) :
-      fURI(id.toString()) {
+    ID(const fURI &id) : fURI(id.toString()) {
     }
 
-    ID(const string &furi_string) :
-      ID(furi_string.c_str()) {
+    ID(const string &furi_string) : ID(furi_string.c_str()) {
     }
 
-    ID(const char *furi_characters) :
-      fURI(furi_characters) {
+    ID(const char *furi_characters) : fURI(furi_characters) {
       if (strchr(furi_characters, '#')) {
         throw fError("IDs can not contain pattern symbols: !b#!!: %s", furi_characters);
       } else if (strchr(furi_characters, '+')) {
@@ -824,20 +846,16 @@ namespace fhatos {
 
   class Pattern : public fURI {
   public:
-    Pattern(const Pattern &uri) :
-      fURI(uri) {
+    Pattern(const Pattern &uri) : fURI(uri) {
     }
 
-    Pattern(const fURI &uri) :
-      fURI(uri) {
+    Pattern(const fURI &uri) : fURI(uri) {
     }
 
-    Pattern(const string &uri_string) :
-      fURI(uri_string) {
+    Pattern(const string &uri_string) : fURI(uri_string) {
     };
 
-    Pattern(const char *uri_chars) :
-      fURI(uri_chars) {
+    Pattern(const char *uri_chars) : fURI(uri_chars) {
     };
   };
 
@@ -865,12 +883,10 @@ namespace fhatos {
     ID_p tid_;
 
   public:
-    explicit Typed(const ID_p &type) :
-      tid_(type) {
+    explicit Typed(const ID_p &type) : tid_(type) {
     }
 
-    explicit Typed(const ID &id) :
-      Typed(make_shared<ID>(id)) {
+    explicit Typed(const ID &id) : Typed(make_shared<ID>(id)) {
     }
 
     [[nodiscard]] ID_p tid() const override { return this->tid_; }
@@ -898,12 +914,10 @@ namespace fhatos {
     ID_p vid_;
 
   public:
-    explicit Valued(const ID_p &id) :
-      vid_(id) {
+    explicit Valued(const ID_p &id) : vid_(id) {
     }
 
-    explicit Valued(const ID &id) :
-      Valued(make_shared<ID>(id)) {
+    explicit Valued(const ID &id) : Valued(make_shared<ID>(id)) {
     }
 
   public:

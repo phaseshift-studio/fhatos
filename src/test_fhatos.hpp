@@ -73,7 +73,7 @@ router()->write(id_p("/sys/router"), router());
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap<>::create(Pattern("/type/#"))); \
   router()->write(id_p("/type/"),Type::singleton("/type/")); \
-  mmadt::mmADT::singleton();
+  mmadt::mmADT::import();
 #else
 #define FOS_DEPLOY_TYPE_2 ;
 #endif

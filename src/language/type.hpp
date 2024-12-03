@@ -34,29 +34,29 @@ namespace fhatos {
     ptr<ProgressBar> progress_bar_ = nullptr;
 
   protected:
-    explicit Type(const ID &value_id, const ID &type_id) :
-      Obj(share(RecMap<>(
-          {/*{vri(":check"),
-            Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
-                           return dool(this->check_type(
-                               args.at(0).get(),
-                               furi_p(lhs->lst_value()->at(1)->uri_value())));
-                         }, {x(0, ___)}, INST_FURI,
-                         id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
-           {vri(":start_progress_bar"),
-            Obj::to_inst([this](const Int_p &, const InstArgs &args) {
-              this->start_progress_bar(args.at(0)->int_value());
-              return _noobj_;
-            }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
-           {vri(":end_progress_bar"),
-            Obj::to_inst([this](const Str_p &, const InstArgs &args) {
-              this->end_progress_bar(args.at(0)->str_value());
-              return _noobj_;
-            }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
-          })),
-          OType::REC,
-          id_p(type_id),
-          id_p(value_id)) {
+    explicit Type(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
+                                                                 {
+                                                                   /*{vri(":check"),
+                                                                               Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
+                                                                                              return dool(this->check_type(
+                                                                                                  args.at(0).get(),
+                                                                                                  furi_p(lhs->lst_value()->at(1)->uri_value())));
+                                                                                            }, {x(0, ___)}, INST_FURI,
+                                                                                            id_p(type_id.extend("inst/").extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))},
+                                                                              {vri(":start_progress_bar"),
+                                                                               Obj::to_inst([this](const Int_p &, const InstArgs &args) {
+                                                                                 this->start_progress_bar(args.at(0)->int_value());
+                                                                                 return _noobj_;
+                                                                               }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},
+                                                                              {vri(":end_progress_bar"),
+                                                                               Obj::to_inst([this](const Str_p &, const InstArgs &args) {
+                                                                                 this->end_progress_bar(args.at(0)->str_value());
+                                                                                 return _noobj_;
+                                                                               }, {x(0, ___)}, INST_FURI, make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__,__LINE__)))},*/
+                                                                 })),
+                                                               OType::REC,
+                                                               id_p(type_id),
+                                                               id_p(value_id)) {
       ////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID_p &type_id, const Obj_p &type_def) {
         this->save_type(type_id, type_def);
@@ -97,20 +97,20 @@ namespace fhatos {
           Inst_p maybe;
           if (current_vid) {
             LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
-                    current_vid->extend(":inst:").toString().c_str(),
+                    current_vid->extend(C_INST_C).toString().c_str(),
                     inst_type_id->toString().c_str());
             if (derivation_tree)
-              derivation_tree->push_back(current_vid->extend(":inst:").extend(*inst_type_id));
-            maybe = ROUTER_READ(id_p(current_vid->extend(":inst:").extend(*inst_type_id)));
+              derivation_tree->emplace_back(current_vid->extend(C_INST_C).extend(*inst_type_id));
+            maybe = ROUTER_READ(id_p(current_vid->extend(C_INST_C).extend(*inst_type_id)));
             if (!maybe->is_noobj())
               return maybe;
           }
           LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
-                  current_tid->extend(":inst:").toString().c_str(),
+                  current_tid->extend(C_INST_C).toString().c_str(),
                   inst_type_id->toString().c_str());
           if (derivation_tree)
-            derivation_tree->push_back(current_tid->extend(":inst:").extend(*inst_type_id));
-          maybe = ROUTER_READ(id_p(current_tid->extend(":inst:").extend(*inst_type_id)));
+            derivation_tree->emplace_back(current_tid->extend(C_INST_C).extend(*inst_type_id));
+          maybe = ROUTER_READ(id_p(current_tid->extend(C_INST_C).extend(*inst_type_id)));
           if (!maybe->is_noobj())
             return maybe;
           current_obj = ROUTER_READ(current_obj->tid());

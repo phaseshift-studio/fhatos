@@ -174,9 +174,9 @@ namespace fhatos {
             List<ID> derivation = {*this->type_};
             RESOLVE_INST(lhs, this->type_, &derivation);
             string result;
-            for (int i = derivation.size() - 1; i >= 0; i--) {
+            for (int i = 0; i < derivation.size(); i++) {
               result.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
-                                                 StringHelper::repeat(derivation.size() - i, "--").c_str(),
+                                                 StringHelper::repeat(i+1, "--").c_str(),
                                                  derivation.at(i).toString().c_str()).c_str());
             }
             result = result.empty() ? "" : result.substr(0, result.size() - 1); // remove trailing \n

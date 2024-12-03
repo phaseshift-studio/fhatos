@@ -981,9 +981,9 @@ namespace fhatos {
 
     static List<Pair<string, string>> unary_sugars() {
       static List<Pair<string, string>> map = {{"-->", "via_inv"}, {"@", "at"}, {"??", "optional"}, {"-<", "split"},
-                                               {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"},
-                                               {"|", "block"}, {"^", "lift"}, {"V", "drop"}, {"*", "from"},
-                                               {"=", "each"}, {";", "end"}, {"\\", "from_get"}};
+        {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"},
+        {"|", "block"}, {"^", "lift"}, {"V", "drop"}, {"*", "from"},
+        {"=", "each"}, {";", "end"}, {"\\", "from_get"}};
       return map;
     }
 
@@ -991,7 +991,7 @@ namespace fhatos {
     static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
       LOG(TRACE, "searching for inst: %s\n", type_id.toString().c_str());
       /// try user defined inst
-      ID_p resolved_id = id_p(ID(MMADT_SCHEME).extend(type_id));
+      ID_p resolved_id = id_p(MMADT_ID->extend(type_id));
       Obj_p base_inst = ROUTER_READ(resolved_id);
       if (base_inst->is_noobj()) {
         resolved_id = id_p(type_id);
@@ -999,7 +999,7 @@ namespace fhatos {
         if (!base_inst->is_code()) {
           throw fError("!yinst !rnot found!!: " FURI_WRAP "!g-!mresolved_to!g->" FURI_WRAP,
                        type_id.toString().c_str(),
-                       INST_FURI->extend(type_id).toString().c_str());
+                       MMADT_ID->extend(type_id).toString().c_str());
         }
       }
       LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
@@ -1010,21 +1010,19 @@ namespace fhatos {
         if (base_inst->bcode_value()->size() == 1)
           return ObjHelper::replace_from_inst(base_inst->bcode_value()->at(0), args);
         return Obj::to_inst(
-            type_id.name(), args,
-            [base_inst](const Obj_p &lhs, const InstArgs &args2) {
-              const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args2, lhs);
-              //LOG(INFO, "final bcode: %s\n", new_bcode->toString().c_str());
-              return new_bcode;
-            },
-            base_inst->itype(),
-            base_inst->is_inst() ? base_inst->inst_seed_supplier() : _noobj_, // TODO
-            resolved_id);
+          type_id.name(), args,
+          [base_inst](const Obj_p &lhs, const InstArgs &args2) {
+            const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args2, lhs);
+            return new_bcode->apply(lhs);
+          },
+          base_inst->itype(),
+          base_inst->is_inst() ? base_inst->inst_seed_supplier() : _noobj_, // TODO
+          resolved_id);
       }
       // return replace_from_obj(args, base_inst);
       throw fError("!b%s!! does not resolve to !yinst!! or !ybcode!!: %s", type_id.toString().c_str(),
                    base_inst->toString().c_str());
     }
-
   };
 } // namespace fhatos
 

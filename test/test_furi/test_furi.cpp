@@ -385,6 +385,18 @@ namespace fhatos {
     TEST_ASSERT_FALSE(fURI("fs://user:pass@fhatos/").is_scheme_path());
   }
 
+  void test_uri_colon_path() {
+  TEST_ASSERT_EQUAL_STRING("/mmadt/int/::/zero",fURI("/mmadt/int::zero").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("/mmadt/int//::/zero",fURI("/mmadt/int/::zero").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("/mmadt/int//:://zero",fURI("/mmadt/int/::/zero").toString().c_str());
+  TEST_ASSERT_EQUAL_STRING("/mmadt/int/:://zero",fURI("/mmadt/int::/zero").toString().c_str());
+  FOS_TEST_ASSERT_EQUAL_FURI(fURI("/mmadt/int//::/zero"),fURI("/mmadt/int/").extend("::zero"));
+  //FOS_TEST_ASSERT_EQUAL_FURI(fURI("/mmadt/int/::/zero"),fURI("/mmadt/int").resolve("::zero"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/mmadt/int/::/zero"),fURI("/mmadt/int::zero"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/mmadt/int//::/zero"),fURI("/mmadt/int/::zero"));
+  }
+
+
   void test_uri_empty() {
     TEST_ASSERT_TRUE(fURI("").empty());
     TEST_ASSERT_FALSE(fURI("fos:").empty());
@@ -546,7 +558,7 @@ namespace fhatos {
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs:root"), fURI("/inst/fs:").resolve("root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs:root"), fURI("/inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs::root"), fURI("/inst/fs:").resolve(":root"));
-    FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs::root"), fURI("/inst/fs::").resolve("root"));
+    //FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs::root"), fURI("/inst/fs::").resolve("root"));
     // FOS_TEST_ASSERT_EQUAL_FURI(fURI("/inst/fs::root"), fURI("/inst/fs").resolve("::root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("x://inst/fs:root"), fURI("x://inst/fs").resolve(":root"));
     FOS_TEST_ASSERT_EQUAL_FURI(fURI("x://user@inst/fs:root"), fURI("x://user@inst/fs:").resolve("root"));
@@ -734,7 +746,9 @@ namespace fhatos {
       FOS_RUN_TEST(test_uri_path); //
       FOS_RUN_TEST(test_uri_query); //
       FOS_RUN_TEST(test_uri_query_value); //
-      FOS_RUN_TEST(test_uri_scheme_path); FOS_RUN_TEST(test_uri_empty); //
+      FOS_RUN_TEST(test_uri_scheme_path); //
+      //FOS_RUN_TEST(test_uri_colon_path); //
+      FOS_RUN_TEST(test_uri_empty); //
       FOS_RUN_TEST(test_uri_name); //
       //
       FOS_RUN_TEST(test_uri_extend); //

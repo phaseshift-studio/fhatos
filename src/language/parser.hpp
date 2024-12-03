@@ -221,7 +221,7 @@ namespace fhatos {
     }
 
     static Trip<string, string, string> try_parse_domain_range(const string &token) {
-      const size_t index = token.find("::");
+      const size_t index = token.find("$$");
       if (index == string::npos) {
         return std::make_tuple<string, string, string>(string(token), "obj", "obj");
       }

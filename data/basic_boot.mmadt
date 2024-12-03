@@ -1,0 +1,15 @@
+fos:heap[[pattern => /sys/#,
+           import  => [/sys/scheduler => fos:scheduler/::/v/0_1,
+                       /sys/router    => fos:router/::/v/0_1]   ]]
+fos:heap[[pattern => +/#, id=>_cache]].sys/router/::/mount(_)
+fos:heap[[pattern => /fos/#
+           import => /fos/lib ]]./sys/router/::/mount(_)
+fos:heap[[pattern => /mmadt/#
+           import => /mmadt/lib ]]./sys/router/::/mount(_)
+fos:heap[[pattern => /io/# ]]./sys/router/::/mount(_)
+/mmadt/::/parser  -> /mmadt/lib/parser/v/0_1
+/io/lib/terminal  -> fos:/io/terminal/v/0_1
+/io/lib/console   -> fos:/io/console/v/0_1
+/io/console       -> /io/lib/console[[:nest => 2, :ansi => true, :log => INFO]
+/sys/scheduler/barrier/main -> thread[[loop => */sys/scheduler/process/.count().is(gt(0))]]
+/sys/scheduler/::/spawn() --> @/sys/scheduler/barrier/main
