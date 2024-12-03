@@ -49,8 +49,8 @@ namespace mmadt {
       TYPE_SAVER(NOOBJ_FURI, OBJ_TYPE);
       TYPE_SAVER(BOOL_FURI, OBJ_TYPE);
       TYPE_SAVER(INT_FURI, OBJ_TYPE);
-      TYPE_SAVER(id_p(INT_FURI->extend("::one")),jnt(1));
-      TYPE_SAVER(id_p(INT_FURI->extend("::zero")),jnt(0));
+      TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
+      TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
       TYPE_SAVER(REAL_FURI, OBJ_TYPE);
       TYPE_SAVER(STR_FURI, OBJ_TYPE);
       TYPE_SAVER(URI_FURI, OBJ_TYPE);
@@ -104,6 +104,13 @@ namespace mmadt {
                  })
                  ->itype_and_seed(IType::MANY_TO_ONE, objs())
                  ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/delay"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/delay")
+                 ->type_args(x(0, "millis", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   Process::current_process()->delay(args.at(0)->int_value());
+                   return lhs;
+                 })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/eq"),
                  ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/eq")
                  ->type_args(x(0, "rhs"))
@@ -136,12 +143,12 @@ namespace mmadt {
                  ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/merge")
                  ->type_args(x(0, "count", jnt(INT32_MAX)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const int amnt = args.at(0)->int_value();
+                   const int max = args.at(0)->int_value();
                    const Objs_p objs = Obj::to_objs();
                    if (lhs->is_lst()) {
                      int counter = 0;
                      for (const auto &element: *lhs->lst_value()) {
-                       if (counter >= amnt)
+                       if (counter >= max)
                          break;
                        if (!element->is_noobj()) {
                          objs->add_obj(element);
@@ -151,7 +158,7 @@ namespace mmadt {
                    } else if (lhs->is_rec()) {
                      int counter = 0;
                      for (const auto &[key, value]: *lhs->rec_value()) {
-                       if (counter >= amnt)
+                       if (counter >= max)
                          break;
                        if (!value->is_noobj()) {
                          objs->add_obj(value);
@@ -159,7 +166,7 @@ namespace mmadt {
                        }
                      }
                    } else {
-                     if (amnt > 0)
+                     if (max > 0)
                        objs->add_obj(lhs);
                    }
                    return objs;
@@ -171,6 +178,13 @@ namespace mmadt {
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return Obj::to_bool(!lhs->equals(*args.at(0)));
+                 })->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/to"),
+                 ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/to")
+                 ->type_args(x(0, "uri"), x(1, "retain", dool(true)))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   ROUTER_WRITE(furi_p(args.at(0)->uri_value()), lhs, args.at(1)->bool_value());
+                   return lhs;
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/to_inv"),
                  ObjHelper::InstTypeBuilder::build(MMADT_SCHEME "/to_inv")

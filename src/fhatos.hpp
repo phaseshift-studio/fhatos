@@ -166,6 +166,8 @@ namespace fhatos {
   using Deque_p = ptr<std::deque<A>>;
   template<typename K, typename V>
   using Pair = std::pair<K, V>;
+  template<typename K, typename V>
+  using Pair_p = ptr<std::pair<K, V>>;
   template<typename A, typename B, typename C>
   using Trip = std::tuple<A, B, C>;
   template<typename A, typename B, typename C, typename D>

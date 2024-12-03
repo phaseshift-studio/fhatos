@@ -166,7 +166,7 @@ namespace fhatos {
       StringHelper::trim(token);
       if (token.empty() || try_parse_comment(token).has_value())
         return {};
-      const auto [type_token, value_token] = try_parse_obj_type(token, GROUPING::BRACKET);
+      const auto [type_token, value_token, domain_range] = try_parse_obj_type(token, GROUPING::BRACKET);
       if (value_token.empty() && !type_token.empty()) {
         const ID_p type_id = id_p(ID(type_token));
         return make_shared<Obj>(Any(), FURI_OTYPE.at(*type_id), type_id);
@@ -212,8 +212,12 @@ namespace fhatos {
           return b.value();
       }
       b = dot_type ? try_parse_bcode(token, "", BCODE_FURI) : try_parse_bcode(value_token, type_token, BCODE_FURI);
-      if (b.has_value())
-        return b.value();
+      if (b.has_value()) {
+        const BCode_p &code = b.value();
+        const auto dr = make_shared<Pair<ID_p, ID_p>>(id_p(domain_range.first.c_str()),
+                                                      id_p(domain_range.second.c_str()));
+        return make_shared<Obj>(code->bcode_value(), code->o_type(), code->tid(), code->vid(), dr);
+      }
       b = try_parse_default(value_token, type_token);
       if (b.has_value())
         return b.value();
@@ -221,7 +225,7 @@ namespace fhatos {
     }
 
     static Trip<string, string, string> try_parse_domain_range(const string &token) {
-      const size_t index = token.find("$$");
+      const size_t index = token.find("::");
       if (index == string::npos) {
         return std::make_tuple<string, string, string>(string(token), "obj", "obj");
       }
@@ -240,7 +244,7 @@ namespace fhatos {
         string(token.substr(index2 + 2, token.length() + index2 - 2)));
     }
 
-    static Pair<string, string> try_parse_obj_type(const string &token, const GROUPING grouping) {
+    static Trip<string, string, Pair<string, string>> try_parse_obj_type(const string &token, const GROUPING grouping) {
       string type_token;
       string value_token;
       const bool grouped = !token.empty() && token[token.length() - 1] == parse_token.to_chars(grouping)[1];
@@ -252,6 +256,8 @@ namespace fhatos {
         ////////////////////////////////////////////////////
         while (!ss.eof()) {
           if (onType) {
+            if (StringHelper::look_ahead("<=", &ss, true))
+              type_token.append("<=");
             for (const auto &[k, v]: Insts::unary_sugars()) {
               if (StringHelper::look_ahead(k, &ss)) {
                 onType = false;
@@ -264,8 +270,6 @@ namespace fhatos {
             }
             if (unaryFound)
               break;
-            if (StringHelper::look_ahead("<=", &ss, true))
-              type_token.append("<=");
             char c = tracker.track(static_cast<char>(ss.get()));
             if (c == parse_token.to_chars(grouping)[0]) {
               onType = false;
@@ -298,8 +302,8 @@ namespace fhatos {
       StringHelper::trim(type_token);
       Trip<string, string, string> domain_range = try_parse_domain_range(type_token);
       type_token = get<0>(domain_range);
-      string range_token = get<1>(domain_range);
-      string domain_token = get<2>(domain_range);
+      string &domain_token = get<1>(domain_range);
+      string &range_token = get<2>(domain_range);
       // <type_furi>
       if (!type_token.empty() && type_token[0] == '<' && type_token[type_token.length() - 1] == '>')
         type_token = type_token.substr(1, type_token.length() - 2);
@@ -317,7 +321,7 @@ namespace fhatos {
             domain_token.c_str(),
             value_token.c_str());
       }
-      return {type_token, value_token};
+      return Trip{type_token, value_token, Pair<string, string>(domain_token, range_token)};
     }
 
     static Option<NoObj_p> try_parse_comment(const string &value_token) {
@@ -484,7 +488,7 @@ namespace fhatos {
       const size_t split = token.find("@");
       const string obj_token = token.substr(2, split - 2);
       const string inst_token = token.substr(split + 1, token.length() - split - 3);
-      const auto [v, t] = try_parse_obj_type(inst_token, GROUPING::PAREN);
+      const auto [v, t, dr] = try_parse_obj_type(inst_token, GROUPING::PAREN);
       return Option<Error_p>{Obj::to_error(try_parse_obj(obj_token).value(), try_parse_inst(t, v).value(),
                                            id_p(base_type->resolve(type)))};
     }
@@ -630,7 +634,7 @@ namespace fhatos {
         if (!unary && within.has_value()) {
           insts.push_back(within.value());
         } else {
-          auto [key, value] = try_parse_obj_type(inst_token, GROUPING::PAREN);
+          auto [key, value, domain_range] = try_parse_obj_type(inst_token, GROUPING::PAREN);
           if (!unary && inst_token[key.length()] != '(') {
             // OBJ AS ARGUMENT (START OR MAP)
             LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", inst_token.c_str());
@@ -641,9 +645,12 @@ namespace fhatos {
           } else {
             // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
             LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", key.c_str(), value.c_str());
-            const Option<Inst_p> inst = try_parse_inst(value, key);
-            if (inst.has_value()) {
-              insts.push_back(inst.value());
+            if (const Option<Inst_p> inst = try_parse_inst(value, key); inst.has_value()) {
+              const Inst_p i = inst.value();
+              insts.push_back(make_shared<Inst>(i->inst_value(), i->o_type(), i->tid(), i->vid(),
+                                                make_shared<Pair<ID_p, ID_p>>(
+                                                  id_p(domain_range.first.c_str()),
+                                                  id_p(domain_range.second.c_str()))));
             } else {
               return {};
             }

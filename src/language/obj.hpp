@@ -310,6 +310,7 @@ namespace fhatos {
   public:
     const OType otype_;
     Any value_;
+    Pair_p<ID_p, ID_p> domain_range_;
 
     struct objp_hash {
       size_t operator()(const Obj_p &obj) const { return obj->hash(); }
@@ -372,8 +373,10 @@ namespace fhatos {
      };*/
 
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
-                 const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)), Valued(value_id), otype_(otype),
-                                                   value_(value) {
+                 const ID_p &value_id = nullptr,
+                 const Pair_p<ID_p, ID_p> &domain_range = nullptr) : Typed(OTYPE_FURI.at(otype)),
+                                                                     Valued(value_id), otype_(otype),
+                                                                     value_(value), domain_range_(domain_range) {
       if (value.has_value()) {
         TYPE_CHECKER(this, type_id, true);
         this->tid_ = type_id;
@@ -715,6 +718,12 @@ namespace fhatos {
       return this->value<Pair<Obj_p, Inst_p>>();
     }
 
+    Pair_p<ID_p, ID_p> domain_range() const {
+      return (this->is_code() && this->domain_range_)
+               ? this->domain_range_
+               : std::make_shared<Pair<ID_p, ID_p>>(OBJ_FURI, this->tid_);
+    }
+
     IType itype() const {
       if (this->is_inst())
         return std::get<2>(this->inst_value());
@@ -908,12 +917,24 @@ namespace fhatos {
       if (!this->is_noobj() &&
           (this->is_type() || this->is_inst() || this->is_error() ||
            (strict && this->is_uri()) ||
+           (this->is_bcode() && this->domain_range_ &&
+            (!this->domain_range_->first->equals(ID("obj")) ||
+             !this->domain_range_->second->equals(ID("obj")))) ||
            (include_type && !this->is_base_type()))) {
-        obj_string = string("!b")
-            .append(this->tid_->name())
-            .append(this->is_inst() ? "!g(!!" : "!g[!!")
-            .append(obj_string)
-            .append(this->is_inst() ? "!g)!!" : "!g]!!");
+        string typing = this->is_base_type() ? "" : string("!b").append(this->tid_->name());
+        if (this->is_code() &&
+            this->domain_range_ &&
+            (!this->domain_range_->first->equals(*OBJ_FURI) ||
+             !this->domain_range_->second->equals(*OBJ_FURI))) {
+          typing = typing.append("::").append(this->domain_range_->second->name());
+          if (!this->domain_range_->first->equals(*this->domain_range_->second))
+            typing = typing.append("<=").append(this->domain_range_->first->name());
+        }
+        obj_string = this->is_base_type() && !this->is_inst()
+                       ? typing.append(obj_string)
+                       : typing.append(this->is_inst() ? "!g(!!" : "!g[!!")
+                       .append(obj_string)
+                       .append(this->is_inst() ? "!g)!!" : "!g]!!");
       }
       if (include_id && this->vid_) {
         obj_string += "!m@!b";
@@ -1695,6 +1716,7 @@ namespace fhatos {
           new_map->insert({k->clone(), v->clone()});
         }
         auto r = Rec::create(new_map, OType::REC, type_id_clone);
+        r->domain_range_ = this->domain_range_;
         r->vid_ = this->vid_;
         return r;
       }
@@ -1705,6 +1727,7 @@ namespace fhatos {
           new_list->push_back(e->clone());
         }
         auto r = Lst::create(new_list, OType::LST, type_id_clone);
+        r->domain_range_ = this->domain_range_;
         r->vid_ = this->vid_;
         return r;
       }
@@ -1716,6 +1739,7 @@ namespace fhatos {
         }
         Inst_p r = to_inst(string(this->inst_op()), new_args, this->inst_f(), this->itype(), this->inst_seed_supplier(),
                            this->tid());
+        r->domain_range_ = this->domain_range_;
         //r->vid_ = this->vid_;
         return r;
       }
@@ -1725,7 +1749,9 @@ namespace fhatos {
         for (const auto &inst: *this->bcode_value()) {
           new_insts.push_back(inst->clone());
         }
-        return to_bcode(new_insts, type_id_clone);
+        BCode_p r = to_bcode(new_insts, type_id_clone);
+        r->domain_range_ = this->domain_range_;
+        return r;
       }
       if (this->is_objs()) {
         // OBJS
@@ -1735,10 +1761,12 @@ namespace fhatos {
         }
         auto r = Objs::create(new_list, OType::OBJS, type_id_clone);
         r->vid_ = this->vid_;
+        r->domain_range_ = this->domain_range_;
         return r;
       }
       auto r = Obj::create(any(this->value_), this->otype_, type_id_clone);
       r->vid_ = this->vid_;
+      r->domain_range_ = this->domain_range_;
       return r;
     }
 
