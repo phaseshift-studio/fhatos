@@ -39,15 +39,10 @@ namespace fhatos {
     Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler")) :
-      Rec(rmap({
-              {"barrier", noobj()},
-              {"process", lst()},
-              {":stop", to_inst([this](const Obj_p &, const InstArgs &) {
-                this->stop();
-                return noobj();
-              }, NO_ARGS, INST_FURI, id_p(id.extend(StringHelper::cxx_f_metadata(__FILE__,__LINE__))))}}),
-          OType::REC, REC_FURI, id_p(id)) {
+    explicit XScheduler(const ID &id = ID("/scheduler")) : Rec(rmap({
+                                                                 {"barrier", noobj()},
+                                                                 {"process", lst()}}),
+                                                               OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
@@ -134,10 +129,35 @@ namespace fhatos {
     }
 
   protected:
-    static ID base_import(const Rec_p &scheduler) {
-      ROUTER_WRITE(SCHEDULER_ID, scheduler,RETAIN);
-      ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/process")), make_shared<Process>(Obj::to_rec()),RETAIN);
-      ROUTER_WRITE(id_p(SCHEDULER_ID->extend("lib/thread")), make_shared<Thread>(Obj::to_rec()),RETAIN);
+    static ID base_import(const ptr<XScheduler> &scheduler) {
+      ROUTER_WRITE(SCHEDULER_ID, scheduler, RETAIN);
+      ///// INSTRUCTIONS
+      scheduler->this_add(
+            ObjHelper::InstBuilder::build(*INST_FURI)
+            ->type_args(x(0, "thread", ___))
+            ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
+              const Obj_p& proc = args.at(0);
+              if (!proc->vid())
+                throw fError("value id required to spawn %s", proc->toString().c_str());
+              if (proc->tid()->has_path("thread"))
+                return dool(scheduler->spawn(make_shared<Thread>(proc)));
+              // if (proc->tid()->has_path("fiber"))
+              //  return dool(proc->spawn(make_shared<Fiber>(obj)));
+              throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
+              return dool(false);
+            })
+            ->doc("spawn a parallel thread of execution")
+            ->create(id_p(scheduler->vid_->extend("::spawn"))), scheduler.get())
+          ->this_add(ObjHelper::InstBuilder::build(*INST_FURI)
+            ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
+              scheduler->stop();
+              return noobj();
+            })
+            ->itype_and_seed(IType::MANY_TO_ZERO)
+            ->create(id_p(scheduler->vid_->extend("::stop"))))
+          ///// OBJECTS
+          ->this_add(Obj::to_rec(REC_FURI, id_p(scheduler->vid_->extend("lib/process"))), scheduler.get())
+          ->this_add(Obj::to_rec(REC_FURI, id_p(scheduler->vid_->extend("lib/thread"))), scheduler.get());
       return *SCHEDULER_ID;
     }
   };

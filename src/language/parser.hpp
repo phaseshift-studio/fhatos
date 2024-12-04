@@ -37,36 +37,36 @@ namespace fhatos {
     char last = '\0';
 
     char track(const char c) {
-      if (c != '\'' && quotes) {
+      if(c != '\'' && quotes) {
         // do nothing
-      } else if (c == '\'') {
+      } else if(c == '\'') {
         quotes = !quotes;
-      } else if ((c == '=' || c == '-')) {
-        if (last == '<') // <- <=
+      } else if((c == '=' || c == '-')) {
+        if(last == '<') // <- <=
           angles--;
-        else if (last == '>') // >- >=
+        else if(last == '>') // >- >=
           angles++;
-      } else if (c == '(')
+      } else if(c == '(')
         parens++;
-      else if (c == ')')
+      else if(c == ')')
         parens--;
-      else if (c == '[')
+      else if(c == '[')
         brackets++;
-      else if (c == ']')
+      else if(c == ']')
         brackets--;
-      else if (c == '<') {
-        if (last != '-' && last != '=') // -< =<
+      else if(c == '<') {
+        if(last != '-' && last != '=') // -< =<
           angles++;
-      } else if (c == '>') {
-        if (last != '-' && last != '=') // -> =>
+      } else if(c == '>') {
+        if(last != '-' && last != '=') // -> =>
           angles--;
-      } else if (c == '{')
+      } else if(c == '{')
         braces++;
-      else if (c == '}')
+      else if(c == '}')
         braces--;
-      else if (c == '/' && last == '_') // _/
+      else if(c == '/' && last == '_') // _/
         within++;
-      else if (c == '_' && last == '\\') // \_
+      else if(c == '_' && last == '\\') // \_
         within--;
       //////////////////////////
       last = c;
@@ -80,37 +80,37 @@ namespace fhatos {
     }
 
     [[nodiscard]] bool grouping(const char grouping) const {
-      if (grouping == '[')
+      if(grouping == '[')
         return parens == 0 && brackets > 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
-      if (grouping == '(')
+      if(grouping == '(')
         return parens > 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
-      if (grouping == '{')
+      if(grouping == '{')
         return parens == 0 && brackets == 0 && angles == 0 && braces > 0 && within == 0 && !quotes;
-      if (grouping == ']')
+      if(grouping == ']')
         return parens == 0 && brackets < 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
-      if (grouping == ')')
+      if(grouping == ')')
         return parens > 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
-      if (grouping == '}')
+      if(grouping == '}')
         return parens == 0 && brackets == 0 && angles == 0 && braces < 0 && within == 0 && !quotes;
       throw fError("unknown grouping symbol: %c", grouping);
     }
 
     [[nodiscard]] bool closed(const char grouping) const {
-      if (grouping == ']')
+      if(grouping == ']')
         return brackets == 0 && !quotes;
-      if (grouping == ')')
+      if(grouping == ')')
         return parens == 0 && !quotes;
-      if (grouping == '}')
+      if(grouping == '}')
         return braces == 0 && !quotes;
       throw fError("unknown closed-grouping symbol: %c", grouping);
     }
 
     [[nodiscard]] bool open(const char grouping) const {
-      if (grouping == '[')
+      if(grouping == '[')
         return brackets > 0 && !quotes;
-      if (grouping == '(')
+      if(grouping == '(')
         return parens > 0 && !quotes;
-      if (grouping == '{')
+      if(grouping == '{')
         return braces > 0 && !quotes;
       throw fError("unknown open-grouping symbol: %c", grouping);
     }
@@ -127,7 +127,7 @@ namespace fhatos {
         try {
           const Obj_p obj = Parser::try_parse_obj(obj_string).value_or(Obj::to_noobj());
           return obj;
-        } catch (std::exception &e) {
+        } catch(std::exception &e) {
           LOG_EXCEPTION(this, e);
           return Obj::to_noobj();
         }
@@ -144,7 +144,7 @@ namespace fhatos {
     static bool closed_expression(const string &line) {
       auto ss = stringstream(line);
       Tracker tracker;
-      while (!ss.eof()) {
+      while(!ss.eof()) {
         tracker.track(static_cast<char>(ss.get()));
       }
       return tracker.closed() && StringHelper::count_substring(line, "===") % 2 == 0;
@@ -156,7 +156,7 @@ namespace fhatos {
 
     static Option<Obj_p> try_parse_source(const Lst_p &lst_src) {
       Option<Obj_p> last = {};
-      for (const Obj_p &obj: *lst_src->lst_value()) {
+      for(const Obj_p &obj: *lst_src->lst_value()) {
         last = try_parse_obj(obj->is_str() ? obj->str_value() : obj->toString(true, true, false));
       }
       return last;
@@ -164,102 +164,109 @@ namespace fhatos {
 
     static Option<Obj_p> try_parse_obj(const string &token) {
       StringHelper::trim(token);
-      if (token.empty() || try_parse_comment(token).has_value())
+      if(token.empty() || try_parse_comment(token).has_value())
         return {};
-      const auto [type_token, value_token, domain_range] = try_parse_obj_type(token, GROUPING::BRACKET);
-      if (value_token.empty() && !type_token.empty()) {
-        const ID_p type_id = id_p(ID(type_token));
-        return make_shared<Obj>(Any(), FURI_OTYPE.at(*type_id), type_id);
+      const auto [type_id, value_token] = try_parse_obj_type(token, GROUPING::BRACKET);
+      if(value_token.empty() && !type_id.empty()) {
+        return Obj::create(Any(), FURI_OTYPE.at(type_id), id_p(type_id));
       }
-      const bool dot_type = dotType(type_token); // .obj. in _bcode (apply)
+      const bool dot_type = dotType(type_id.toString()); // .obj. in _bcode (apply)
       Option<Obj_p> b = {};
       ////////////////
       b = try_parse_poly_within(value_token);
-      if (b.has_value())
+      if(b.has_value())
         return b.value();
       ////////////////
-      if (!dot_type) {
+      if(!dot_type) {
         // dot type
-        b = try_parse_no_obj(value_token, type_token, NOOBJ_FURI);
-        if (b.has_value())
+        b = try_parse_no_obj(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_bool(value_token, type_token, BOOL_FURI);
-        if (b.has_value())
+        b = try_parse_bool(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_int(value_token, type_token, INT_FURI);
-        if (b.has_value())
+        b = try_parse_int(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_real(value_token, type_token, REAL_FURI);
-        if (b.has_value())
+        b = try_parse_real(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        // b = try_parse_error(valueToken, typeToken, ERROR_FURI);
+        // b = try_parse_error(type_id,value_token);
         // if (b.has_value())
         //   return b.value();
-        b = try_parse_uri(value_token, type_token, URI_FURI);
-        if (b.has_value())
+        b = try_parse_uri(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_str(value_token, type_token, STR_FURI);
-        if (b.has_value())
+        b = try_parse_str(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_lst(value_token, type_token, LST_FURI);
-        if (b.has_value())
+        b = try_parse_lst(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_rec(value_token, type_token, REC_FURI);
-        if (b.has_value())
+        b = try_parse_rec(type_id, value_token);
+        if(b.has_value())
           return b.value();
-        b = try_parse_objs(value_token, type_token, OBJS_FURI);
-        if (b.has_value())
+        b = try_parse_objs(type_id, value_token);
+        if(b.has_value())
           return b.value();
       }
-      b = dot_type ? try_parse_bcode(token, "", BCODE_FURI) : try_parse_bcode(value_token, type_token, BCODE_FURI);
-      if (b.has_value()) {
-        const BCode_p &code = b.value();
-        const auto dr = make_shared<Pair<ID_p, ID_p>>(id_p(domain_range.first.c_str()),
-                                                      id_p(domain_range.second.c_str()));
-        return make_shared<Obj>(code->bcode_value(), code->o_type(), code->tid(), code->vid(), dr);
-      }
-      b = try_parse_default(value_token, type_token);
-      if (b.has_value())
+      b = dot_type ? try_parse_bcode(ID(""), token) : try_parse_bcode(type_id, value_token);
+      if(b.has_value())
+        return b.value();
+      b = try_parse_default(type_id, value_token);
+      if(b.has_value())
         return b.value();
       return {};
     }
 
-    static Trip<string, string, string> try_parse_domain_range(const string &token) {
-      const size_t index = token.find("::");
-      if (index == string::npos) {
-        return std::make_tuple<string, string, string>(string(token), "obj", "obj");
+    static ID try_parse_domain_range(string &token) {
+      if(token.length() > 1 && token[0] == '<' && token[token.length() - 1] == '>')
+        token = token.substr(1, token.length() - 2);
+      StringHelper::trim(token);
+      if(token.empty()) return {""};
+      string type_token;
+      string domain_token;
+      string range_token;
+      if(const size_t index = token.find('?'); index == string::npos) {
+        type_token = token;
+        if(OTypes.has_enum(type_token))
+          type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
+        return ID(type_token);
+      } else {
+        type_token = token.substr(0, index);
+        if(const size_t index2 = token.find("<="); index2 == string::npos) {
+          range_token = token.substr(index + 1, token.length() - index - 1);
+          domain_token = string(range_token);
+        } else {
+          range_token = token.substr(index + 1, index2 - index - 1);
+          domain_token = token.substr(index2 + 2, token.length() + index2 - 2);
+        }
       }
-      const string type_token = token.substr(0, index);
-      const size_t index2 = token.find("<=");
-      if (index2 == string::npos) {
-        const string dr_token = token.substr(index + 2, token.length() - index);
-        return std::make_tuple<string, string, string>(
-          string(type_token),
-          string(dr_token),
-          string(dr_token));
-      }
-      return std::make_tuple<string, string, string>(
-        string(type_token),
-        string(token.substr(index + 2, index2 - index - 2)),
-        string(token.substr(index2 + 2, token.length() + index2 - 2)));
+      if(OTypes.has_enum(type_token))
+        type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
+      if(OTypes.has_enum(domain_token))
+        domain_token = OTYPE_FURI.at(OTypes.to_enum(domain_token))->toString();
+      if(OTypes.has_enum(range_token))
+        range_token = OTYPE_FURI.at(OTypes.to_enum(range_token))->toString();
+      return ID(type_token).query({{"domain", domain_token}, {"range", range_token}});
     }
 
-    static Trip<string, string, Pair<string, string>> try_parse_obj_type(const string &token, const GROUPING grouping) {
+    static Pair<ID, string> try_parse_obj_type(const string &token, const GROUPING grouping) {
       string type_token;
       string value_token;
       const bool grouped = !token.empty() && token[token.length() - 1] == parse_token.to_chars(grouping)[1];
       auto ss = stringstream(token);
       Tracker tracker;
-      if (grouped) {
+      if(grouped) {
         bool onType = true;
         bool unaryFound = false;
         ////////////////////////////////////////////////////
-        while (!ss.eof()) {
-          if (onType) {
-            if (StringHelper::look_ahead("<=", &ss, true))
+        while(!ss.eof()) {
+          if(onType) {
+            if(StringHelper::look_ahead("<=", &ss, true))
               type_token.append("<=");
-            for (const auto &[k, v]: Insts::unary_sugars()) {
-              if (StringHelper::look_ahead(k, &ss)) {
+            for(const auto &[k, v]: Insts::unary_sugars()) {
+              if(StringHelper::look_ahead(k, &ss)) {
                 onType = false;
                 value_token.append(type_token);
                 type_token.clear();
@@ -268,16 +275,16 @@ namespace fhatos {
                 break;
               }
             }
-            if (unaryFound)
+            if(unaryFound)
               break;
             char c = tracker.track(static_cast<char>(ss.get()));
-            if (c == parse_token.to_chars(grouping)[0]) {
+            if(c == parse_token.to_chars(grouping)[0]) {
               onType = false;
-            } else if ((!type_token.empty() && tracker.grouping(parse_token.to_chars(grouping)[0]) &&
-                        (
-                          // inside value definition (must be bcode)
-                          c == '.' || isspace(c))) ||
-                       (tracker.open('{') && tracker.closed(parse_token.to_chars(grouping)[1]))) {
+            } else if((!type_token.empty() && tracker.grouping(parse_token.to_chars(grouping)[0]) &&
+                       (
+                         // inside value definition (must be bcode)
+                         c == '.' || isspace(c))) ||
+                      (tracker.open('{') && tracker.closed(parse_token.to_chars(grouping)[1]))) {
               // inside an objs definition (must be sugar bcode)
               value_token.append(type_token);
               value_token += c;
@@ -290,9 +297,9 @@ namespace fhatos {
             value_token += tracker.track(static_cast<char>(ss.get()));
           }
         }
-        if (type_token.empty())
+        if(type_token.empty())
           value_token = token;
-        else if (!unaryFound)
+        else if(!unaryFound)
           value_token = value_token.substr(0, value_token.length() - 2);
       } else {
         type_token = "";
@@ -300,28 +307,12 @@ namespace fhatos {
       }
       StringHelper::trim(value_token);
       StringHelper::trim(type_token);
-      Trip<string, string, string> domain_range = try_parse_domain_range(type_token);
-      type_token = get<0>(domain_range);
-      string &domain_token = get<1>(domain_range);
-      string &range_token = get<2>(domain_range);
-      // <type_furi>
-      if (!type_token.empty() && type_token[0] == '<' && type_token[type_token.length() - 1] == '>')
-        type_token = type_token.substr(1, type_token.length() - 2);
-      // base types resolve outside of standard algorithm due to their common usage
-      if (OTypes.has_enum(type_token))
-        type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
-      if (OTypes.has_enum(range_token))
-        range_token = OTYPE_FURI.at(OTypes.to_enum(range_token))->toString();
-      if (OTypes.has_enum(domain_token))
-        domain_token = OTYPE_FURI.at(OTypes.to_enum(domain_token))->toString();
-      if (Options::singleton()->log_level<LOG_TYPE>() <= TRACE) {
-        LOG(TRACE, "!ytype token!!:!g%s!!.!yrange!!:!g%s!!.!ydomain!!:!g%s!!." FOS_TAB_3 "!yvalue token!!: !g%s!!\n",
-            type_token.c_str(),
-            range_token.c_str(),
-            domain_token.c_str(),
-            value_token.c_str());
-      }
-      return Trip{type_token, value_token, Pair<string, string>(domain_token, range_token)};
+      //////////////////////////////////////////////////////////////////////////////
+      ID type_id = try_parse_domain_range(type_token);
+      LOG(DEBUG, "!gtype id and value!!:!y%s!g[!y%s!g]!!\n",
+          type_id.toString().c_str(),
+          value_token.c_str());
+      return {type_id, value_token};
     }
 
     static Option<NoObj_p> try_parse_comment(const string &value_token) {
@@ -330,137 +321,131 @@ namespace fhatos {
                : Option<NoObj_p>();
     }
 
-    static Option<NoObj_p> try_parse_no_obj(const string &value_token, const string &type_token,
-                                            const fURI_p & = NOOBJ_FURI) {
-      return (type_token == NOOBJ_FURI->toString() || (type_token.empty() && value_token == STR(FOS_NOOBJ_TOKEN)))
-               ? Option<NoObj_p>{Obj::to_noobj()}
+    static Option<NoObj_p> try_parse_no_obj(const ID &type_id, const string &value_token) {
+      return (NOOBJ_FURI->equals(type_id) || (type_id.empty() && value_token == STR(FOS_NOOBJ_TOKEN)))
+               ? Option<NoObj_p>{_noobj_}
                : Option<NoObj_p>{};
     }
 
-    static Option<Bool_p> try_parse_bool(const string &value_token, const string &type_token,
-                                         const fURI_p &base_type = BOOL_FURI) {
+    static Option<Bool_p> try_parse_bool(const ID &type_id, const string &value_token) {
       return ((strcmp("true", value_token.c_str()) == 0) || (strcmp("false", value_token.c_str()) == 0))
                ? Option<Bool_p>{Bool::to_bool(strcmp("true", value_token.c_str()) == 0,
-                                              id_p(base_type->resolve(type_token.c_str())))}
+                                              id_p(BOOL_FURI->resolve(type_id)))}
                : Option<Bool_p>{};
     }
 
-    static Option<Int_p> try_parse_int(const string &value_token, const string &type_token,
-                                       const fURI_p &base_type = INT_FURI) {
-      if ((value_token[0] != '-' && !isdigit(value_token[0])) || value_token.find_first_of('.') != string::npos)
+    static Option<Int_p> try_parse_int(const ID &type_id, const string &value_token) {
+      if((value_token[0] != '-' && !isdigit(value_token[0])) || value_token.find_first_of('.') != string::npos)
         return {};
-      for (size_t i = 1; i < value_token.length(); i++) {
-        if (!isdigit(value_token[i]))
+      for(size_t i = 1; i < value_token.length(); i++) {
+        if(!isdigit(value_token[i]))
           return {};
       }
-      return Option<Int_p>{Int::to_int(stoi(value_token), id_p(base_type->resolve(type_token.c_str())))};
+      return Option<Int_p>{Int::to_int(stoi(value_token), id_p(INT_FURI->resolve(type_id)))};
     }
 
-    static Option<Real_p> try_parse_real(const string &value_token, const string &type_token,
-                                         const fURI_p &base_type = REAL_FURI) {
-      if (value_token[0] != '-' && !isdigit(value_token[0]))
+    static Option<Real_p> try_parse_real(const ID &type_id, const string &value_token) {
+      if(value_token[0] != '-' && !isdigit(value_token[0]))
         return {};
       bool dotFound = false;
-      for (size_t i = 1; i < value_token.length(); i++) {
-        if (value_token[i] == '.') {
-          if (dotFound)
+      for(size_t i = 1; i < value_token.length(); i++) {
+        if(value_token[i] == '.') {
+          if(dotFound)
             return {};
           dotFound = true;
         }
-        if (value_token[i] != '.' && !isdigit(value_token[i]))
+        if(value_token[i] != '.' && !isdigit(value_token[i]))
           return {};
       }
       return dotFound
-               ? Option<Real_p>{Real::to_real(stof(value_token), id_p(base_type->resolve(type_token.c_str())))}
+               ? Option<Real_p>{Real::to_real(stof(value_token), id_p(REAL_FURI->resolve(type_id)))}
                : Option<Real_p>{};
     }
 
-    static Option<Uri_p> try_parse_uri(const string &value_token, const string &type_token,
-                                       const fURI_p &base_type = URI_FURI) {
-      if (value_token[0] == '<' && value_token[value_token.length() - 1] == '>')
+    static Option<Uri_p> try_parse_uri(const ID &type_id, const string &value_token) {
+      if(value_token[0] == '<' && value_token[value_token.length() - 1] == '>')
         return Option<Uri_p>{
-          Uri::to_uri(value_token.substr(1, value_token.length() - 2).c_str(), id_p(base_type->resolve(type_token)))};
-      if ((value_token[0] == '.' && value_token[1] == '/') ||
-          (value_token[0] == '.' && value_token[1] == '.' && value_token[2] == '/'))
-        return Option<Uri_p>{Uri::to_uri(value_token, id_p(base_type->resolve(type_token)))};
+          Uri::to_uri(value_token.substr(1, value_token.length() - 2).c_str(), id_p(URI_FURI->resolve(type_id)))};
+      if((value_token[0] == '.' && value_token[1] == '/') ||
+         (value_token[0] == '.' && value_token[1] == '.' && value_token[2] == '/'))
+        return Option<Uri_p>{Uri::to_uri(value_token, id_p(URI_FURI->resolve(type_id)))};
       return Option<Uri_p>{};
     }
 
-    static Option<Str_p> try_parse_str(const string &value_token, const string &type_token,
-                                       const fURI_p &base_type = STR_FURI) {
+    static Option<Str_p> try_parse_str(const ID &type_id, const string &value_token) {
       return (value_token[0] == '\'' && value_token[value_token.length() - 1] == '\'')
                ? Option<Str_p>{Str::to_str(value_token.substr(1, value_token.length() - 2).c_str(),
-                                           id_p(base_type->resolve(type_token)))}
+                                           id_p(STR_FURI->resolve(type_id)))}
                : Option<Str_p>{};
     }
 
-    static Option<Lst_p> try_parse_lst(const string &token, const string &type, const fURI_p &base_type = LST_FURI) {
-      if (token[0] != '[' || token[token.length() - 1] != ']')
+    static Option<Lst_p> try_parse_lst(const ID &type_id, const string &value_token) {
+      if(value_token[0] != '[' || value_token[value_token.length() - 1] != ']')
         return {};
-      auto ss = stringstream(token.substr(1, token.length() - 2));
+      auto ss = stringstream(value_token.substr(1, value_token.length() - 2));
       string value;
       const auto list = make_shared<Obj::LstList>();
       Tracker tracker;
-      while (!ss.eof()) {
-        if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
-          Option<Obj_p> element = try_parse_obj(value);
-          if (element.has_value())
+      while(!ss.eof()) {
+        if(tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
+          if(Option<Obj_p> element = try_parse_obj(value); element.has_value())
             list->push_back(element.value());
-          if (ss.peek() == ',')
+          if(ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
-        } else if (tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
+        } else if(tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
           return {};
         } else {
           const char c = tracker.track(static_cast<char>(ss.get()));
-          if (tracker.printable())
+          if(tracker.printable())
             value += c;
         }
       }
-      return Option<Lst_p>{Lst::to_lst(list, id_p(base_type->resolve(type)))};
+      return Option<Lst_p>{Lst::to_lst(list, id_p(LST_FURI->resolve(type_id)))};
     }
 
     static Option<Inst_p> try_parse_poly_within(const string &token) {
-      if (!(token[0] == '_' && token[1] == '/' && token[token.length() - 2] == '\\' &&
-            token[token.length() - 1] == '_'))
+      if(!(token[0] == '_' && token[1] == '/' && token[token.length() - 2] == '\\' &&
+           token[token.length() - 1] == '_'))
         return {};
       LOG(TRACE, "Parsing poly within: %s\n", token.substr(2, token.length() - 4).c_str());
-      const Option<BCode_p> bcode = try_parse_bcode(token.substr(2, token.length() - 4), "", BCODE_FURI);
-      if (!bcode.has_value())
+      if(const Option<BCode_p> bcode = try_parse_bcode(*BCODE_FURI, token.substr(2, token.length() - 4)); !bcode.
+        has_value())
         return {};
       return {};
       //return Option<Inst_p>{Insts::within(bcode.value())};
     }
 
-    static Option<Rec_p> try_parse_rec(const string &token, const string &type, const fURI_p &base_type = REC_FURI) {
-      if (token[0] != '[' || token[token.length() - 1] != ']' || token.find("=>") == string::npos)
+    static Option<Rec_p> try_parse_rec(const ID &type_id, const string &value_token) {
+      if(value_token[0] != '[' || value_token[value_token.length() - 1] != ']' || value_token.find("=>") ==
+         string::npos)
         return {};
-      auto ss = stringstream(token.substr(1, token.length() - 2));
+      auto ss = stringstream(value_token.substr(1, value_token.length() - 2));
       auto map = Obj::RecMap<>();
       string key;
       string value;
       bool on_key = true;
       Tracker tracker;
-      while (!ss.eof() || (!on_key && !value.empty())) {
+      while(!ss.eof() || (!on_key && !value.empty())) {
         //// KEY PARSE
-        if (on_key) {
-          if (tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
+        if(on_key) {
+          if(tracker.closed() && StringHelper::look_ahead("=>", &ss)) {
             on_key = false;
-          } else if (!ss.eof()) {
+          } else if(!ss.eof()) {
             char c = tracker.track(static_cast<char>(ss.get()));
-            if (tracker.printable())
+            if(tracker.printable())
               key += c;
           }
         } else {
           //// VALUE PARSE
-          if (tracker.closed() && (ss.eof() || ss.peek() == ',' || ss.peek() == EOF)) {
-            if (ss.peek() == ',')
+          if(tracker.closed() && (ss.eof() || ss.peek() == ',' || ss.peek() == EOF)) {
+            if(ss.peek() == ',')
               ss.get(); // drop k/v separating comma
             StringHelper::trim(key);
             StringHelper::trim(value);
             const Option<Obj_p> k = try_parse_obj(key);
             const Option<Obj_p> v = try_parse_obj(value);
-            if (!k.has_value() || !v.has_value())
+            if(!k.has_value() || !v.has_value())
               return {};
             map.insert({k.value(), v.value()});
             key.clear();
@@ -468,7 +453,7 @@ namespace fhatos {
             on_key = true;
           } else {
             char c = tracker.track(static_cast<char>(ss.get()));
-            if (tracker.printable())
+            if(tracker.printable())
               value += c;
           }
         }
@@ -477,122 +462,119 @@ namespace fhatos {
       auto map2 = make_shared<Obj::RecMap<>>(); // necessary to reverse entries
       map2->insert(map.begin(), map.end());
       ////
-      return Option<Rec_p>{Rec::to_rec(map2, id_p(base_type->resolve(type.c_str())))};
+      return Option<Rec_p>{Rec::to_rec(map2, id_p(REC_FURI->resolve(type_id)))};
     }
 
-    static Option<Objs_p> try_parse_error(const string &token, const string &type,
-                                          const fURI_p &base_type = ERROR_FURI) {
-      if (token[0] != '<' || token[1] != '<' || token[token.length() - 2] != '>' || token[token.length() - 1] != '>' ||
-          token.find("@") == string::npos)
+    static Option<Objs_p> try_parse_error(const ID &type_id, const string &value_token) {
+      if(value_token[0] != '<' || value_token[1] != '<' || value_token[value_token.length() - 2] != '>' || value_token[
+           value_token.length() - 1] != '>' ||
+         value_token.find("@") == string::npos)
         return {};
-      const size_t split = token.find("@");
-      const string obj_token = token.substr(2, split - 2);
-      const string inst_token = token.substr(split + 1, token.length() - split - 3);
-      const auto [v, t, dr] = try_parse_obj_type(inst_token, GROUPING::PAREN);
+      const size_t split = value_token.find("@");
+      const string obj_token = value_token.substr(2, split - 2);
+      const string inst_token = value_token.substr(split + 1, value_token.length() - split - 3);
+      const auto [t,v] = try_parse_obj_type(inst_token, GROUPING::PAREN);
       return Option<Error_p>{Obj::to_error(try_parse_obj(obj_token).value(), try_parse_inst(t, v).value(),
-                                           id_p(base_type->resolve(type)))};
+                                           id_p(ERROR_FURI->resolve(type_id)))};
     }
 
-    static Option<Objs_p> try_parse_objs(const string &token, const string &type, const fURI_p &base_type = OBJS_FURI) {
-      if (token[0] != '{' || token[token.length() - 1] != '}')
+    static Option<Objs_p> try_parse_objs(const ID &type_id, const string &value_token) {
+      if(value_token[0] != '{' || value_token[value_token.length() - 1] != '}')
         return {};
-      auto ss = stringstream(token.substr(1, token.length() - 2));
+      auto ss = stringstream(value_token.substr(1, value_token.length() - 2));
       string value;
       const auto list = make_shared<List<Obj_p>>();
       Tracker tracker;
-      while (!ss.eof()) {
-        if (tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
+      while(!ss.eof()) {
+        if(tracker.closed() && (ss.peek() == ',' || ss.peek() == EOF)) {
           Option<Obj_p> element = try_parse_obj(value);
-          if (element.has_value())
+          if(element.has_value())
             list->push_back(element.value());
-          if (ss.peek() == ',')
+          if(ss.peek() == ',')
             ss.get(); // consume comma
           value.clear();
         } else {
           const char c = tracker.track(static_cast<char>(ss.get()));
-          if (tracker.printable())
+          if(tracker.printable())
             value += c;
         }
       }
-      // LOG(TRACE, "parsed as objs: %s\n", Objs::to_objs(list)->toString().c_str());
-      return Option<Objs_p>{Objs::to_objs(list, id_p(base_type->resolve(type)))};
+      return Option<Objs_p>{Objs::to_objs(list, id_p(OBJ_FURI->resolve(type_id)))};
     }
 
-    static Option<Inst_p> try_parse_inst(const string &value_token, const string &type_token) {
+    static Option<Inst_p> try_parse_inst(const ID &type_id, const string &value_token) {
       auto args = List<ptr<Obj>>();
       auto ss = stringstream(value_token);
-      while (!ss.eof()) {
+      while(!ss.eof()) {
         string arg_token;
         Tracker tracker;
-        while (!ss.eof()) {
+        while(!ss.eof()) {
           const char c = tracker.track(static_cast<char>(ss.get()));
-          if (tracker.printable()) {
+          if(tracker.printable()) {
             arg_token += c;
-            if (ss.peek() == ',' && tracker.closed()) {
+            if(ss.peek() == ',' && tracker.closed()) {
               ss.get(); // drop arg separating comma
               break;
             }
           }
         }
         StringHelper::trim(arg_token);
-        if (!arg_token.empty()) {
-          const Option<Obj_p> arg_p = try_parse_obj(arg_token);
-          if (arg_p.has_value())
+        if(!arg_token.empty()) {
+          if(const Option<Obj_p> arg_p = try_parse_obj(arg_token); arg_p.has_value())
             args.push_back(arg_p.value());
           else {
-            LOG(WARN, "Unable to parse potential argument to !b%s!g[!!%s!g]!!: %s\n", type_token.c_str(),
+            LOG(WARN, "Unable to parse potential argument to !b%s!g[!!%s!g]!!: %s\n", type_id.toString().c_str(),
                 value_token.c_str(), arg_token.c_str());
           }
         }
       }
-      const Inst_p inst = Insts::to_inst(type_token.c_str(), args); // don't resolve to inst as it might be bcode
+      const Inst_p inst = Insts::to_inst(type_id, args); // don't resolve to inst as it might be bcode
       return inst->is_noobj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 
-    static Option<BCode_p> try_parse_bcode(const string &value_token, const string &type_token,
-                                           const fURI_p &base_type = BCODE_FURI) {
-      if (value_token == "_") {
-        return type_token.empty()
+    static Option<BCode_p> try_parse_bcode(const ID &type_id, const string &value_token) {
+      if(value_token == "_") {
+        return type_id.empty()
                  ? Option<BCode_p>(Obj::to_bcode())
-                 : Option<BCode_p>(Obj::to_bcode({from(vri(type_token))}));
+                 : Option<BCode_p>(Obj::to_bcode({from(vri(type_id))}));
       } // special character for 'no instructions' (no general common parse pattern)
       ///////////////////////////////////////////////////////////////////////////////////////
       //////////////// lookahead to determine if token is potentially _bcode ////////////////
       ///////////////////////////////////////////////////////////////////////////////////////
       bool may_b_code = value_token.find('.') != string::npos || //
                         (value_token.find('(') != string::npos && value_token.find(')') != string::npos);
-      if (!may_b_code) {
-        for (const auto &[k, v]: Insts::unary_sugars()) {
-          if (value_token.find(k) != string::npos || value_token.find(v + "(") != string::npos) {
+      if(!may_b_code) {
+        for(const auto &[k, v]: Insts::unary_sugars()) {
+          if(value_token.find(k) != string::npos || value_token.find(v + "(") != string::npos) {
             may_b_code = true;
             break;
           }
         }
-        if (!may_b_code)
+        if(!may_b_code)
           return {};
       }
       //////////////////////////////////////////////////////////////////////////////////////
       List<Inst_p> insts;
       auto ss = std::stringstream(value_token);
-      while (!ss.eof()) {
+      while(!ss.eof()) {
         // _bcode-level (tokens are insts)
         Tracker tracker;
         bool unary = false;
         bool fullbreak = false;
         string inst_token;
-        while (!ss.eof()) {
+        while(!ss.eof()) {
           // inst-level (tokens are chars)
-          if (tracker.closed()) {
-            for (const auto &[k, v]: Insts::unary_sugars()) {
-              if (StringHelper::look_ahead(k, &ss, inst_token.empty())) {
-                if (!inst_token.empty()) {
+          if(tracker.closed()) {
+            for(const auto &[k, v]: Insts::unary_sugars()) {
+              if(StringHelper::look_ahead(k, &ss, inst_token.empty())) {
+                if(!inst_token.empty()) {
                   LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), inst_token.c_str());
                   fullbreak = true;
                   break;
                 }
                 inst_token += v;
                 StringHelper::eat_space(&ss);
-                if (ss.peek() != '(') {
+                if(ss.peek() != '(') {
                   // enable paren-use of unary operators
                   inst_token += '(';
                   tracker.parens++;
@@ -602,77 +584,64 @@ namespace fhatos {
               }
             }
           }
-          if (fullbreak || ss.eof())
+          if(fullbreak || ss.eof())
             break;
-          ///////////////////////////////////////////////////////////////
-          /*if (unary && tracker.grouping('(') && (ss.peek() == '.' || sugar_next(&ss))) {
-            if (ss.peek() == '.') {
-              ss.get();
-            }
-            break;
-          }*/
-          ///////////////////////////////////////////////////////////////
-          char c = tracker.track(static_cast<char>(ss.get()));
-          if ((tracker.quotes || !isspace(c)) && tracker.printable())
+          if(char c = tracker.track(static_cast<char>(ss.get()));
+            (tracker.quotes || !isspace(c)) && tracker.printable())
             inst_token += c;
           ///////////////////////////////////////////////////////////////
-          if (((unary && tracker.parens == 1) || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 &&
-              tracker.braces == 0 && tracker.within == 0 && !tracker.quotes && (ss.peek() == '.' || sugar_next(&ss))) {
-            if (ss.peek() == '.') {
+          if(((unary && tracker.parens == 1) || tracker.parens == 0) && tracker.brackets == 0 && tracker.angles == 0 &&
+             tracker.braces == 0 && tracker.within == 0 && !tracker.quotes && (ss.peek() == '.' || sugar_next(&ss))) {
+            if(ss.peek() == '.') {
               ss.get();
             }
             break;
           }
         }
-        if (unary)
+        if(unary)
           inst_token += ')';
-        if (inst_token.empty())
+        if(inst_token.empty())
           continue;
-        LOG(TRACE, "Parsing !ginst token!!: !y%s!!\n", inst_token.c_str());
+        LOG(TRACE, "Parsing !ginst token!!: !y%s!! with type !y%s!!\n", inst_token.c_str(), type_id.toString().c_str());
         // TODO: end inst with ; sugar
-        Option<Inst_p> within = try_parse_poly_within(inst_token);
-        if (!unary && within.has_value()) {
-          insts.push_back(within.value());
+        // Option<Inst_p> within = try_parse_poly_within(inst_token);
+        // if(!unary && within.has_value()) {
+        //   insts.push_back(within.value());
+        // } else {
+        auto [inst_op_id, inst_args] = try_parse_obj_type(inst_token, GROUPING::PAREN);
+        if(!unary && inst_token.find('(') == string::npos) { //[inst_op_id.toString().length()] != '(') { TODO
+          // OBJ AS ARGUMENT (START OR MAP)
+          LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", inst_token.c_str());
+          const Option<Obj_p> obj = try_parse_obj(inst_args);
+          if(!obj.has_value())
+            return {};
+          insts.push_back(mmadt::mmADT::map(obj.value())); // Insts::map(obj.value()));
         } else {
-          auto [key, value, domain_range] = try_parse_obj_type(inst_token, GROUPING::PAREN);
-          if (!unary && inst_token[key.length()] != '(') {
-            // OBJ AS ARGUMENT (START OR MAP)
-            LOG(TRACE, "Parsing !gobj as apply!! (!ysugar!!): %s\n", inst_token.c_str());
-            const Option<Obj_p> obj = try_parse_obj(inst_token);
-            if (!obj.has_value())
-              return {};
-            insts.push_back(mmadt::mmADT::map(obj.value())); // Insts::map(obj.value()));
+          // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
+          LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", inst_op_id.toString().c_str(), inst_args.c_str());
+          if(const Option<Inst_p> inst = try_parse_inst(inst_op_id, inst_args); inst.has_value()) {
+            const Inst_p i = inst.value();
+            insts.push_back(Obj::create(i->inst_value(), i->o_type(), i->tid(), i->vid()));
           } else {
-            // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
-            LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", key.c_str(), value.c_str());
-            if (const Option<Inst_p> inst = try_parse_inst(value, key); inst.has_value()) {
-              const Inst_p i = inst.value();
-              insts.push_back(make_shared<Inst>(i->inst_value(), i->o_type(), i->tid(), i->vid(),
-                                                make_shared<Pair<ID_p, ID_p>>(
-                                                  id_p(domain_range.first.c_str()),
-                                                  id_p(domain_range.second.c_str()))));
-            } else {
-              return {};
-            }
+            return {};
           }
+          // }
         }
         inst_token.clear();
       }
-      // LOG(INFO,"type of bcode: %s ==> %s -> %s\n",type_token.c_str(), base_type->resolve(type_token).toString().c_str(),BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))->toString().c_str());
-      return Option<BCode_p>{BCode::to_bcode(insts, id_p(base_type->resolve(type_token)))};
+      return Option<BCode_p>{BCode::to_bcode(insts, id_p(BCODE_FURI->resolve(type_id)))};
     }
 
-    static Option<Uri_p> try_parse_default(const string &value_token, const string &type_token,
-                                           const fURI_p &base_type = URI_FURI) {
-      return Option<Uri_p>{Uri::to_uri(value_token, id_p(base_type->resolve(type_token)))};
+    static Option<Uri_p> try_parse_default(const ID &type_id, const string &value_token) {
+      return Option<Uri_p>{Uri::to_uri(value_token, id_p(URI_FURI->resolve(type_id)))};
     }
 
   private:
     static bool sugar_next(stringstream *ss) {
-      if (ss->eof())
+      if(ss->eof())
         return false;
-      for (const auto &[k, v]: Insts::unary_sugars()) {
-        if (StringHelper::look_ahead(k, ss, false)) {
+      for(const auto &[k, v]: Insts::unary_sugars()) {
+        if(StringHelper::look_ahead(k, ss, false)) {
           return true;
         }
       }
@@ -691,7 +660,7 @@ namespace fhatos {
     va_list arg;
     va_start(arg, format);
     const size_t length = vsnprintf(source, FOS_DEFAULT_BUFFER_SIZE, format, arg);
-    if (format[strlen(format) - 1] == '\n')
+    if(format[strlen(format) - 1] == '\n')
       source[length - 1] = '\n';
     source[length] = '\0';
     va_end(arg);

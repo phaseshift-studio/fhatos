@@ -36,26 +36,26 @@ namespace fhatos {
     static Obj_p load_remote(const ID &lib_id, const ID &i2c_local_id, const ID &i2c_remote_id,
                              const ID &define_ns_prefix = "i2c") {
       const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
-        ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":setup"))
+        ObjHelper::InstBuilder::build(lib_id.resolve(i2c_local_id).extend(":setup"))
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
           ROUTER_WRITE(id_p(i2c_remote_id.extend(":setup")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
           return noobj();
         })
         ->create(),
-        ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":stop"))
+        ObjHelper::InstBuilder::build(lib_id.resolve(i2c_local_id).extend(":stop"))
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
           ROUTER_WRITE(id_p(i2c_remote_id.extend(":stop")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
           return noobj();
         })
         ->create(),
-        ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":write"))
+        ObjHelper::InstBuilder::build(lib_id.resolve(i2c_local_id).extend(":write"))
         ->type_args(x(0, "data array", str("")))
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &args) {
           ROUTER_WRITE(id_p(i2c_remote_id.extend(":write")), ObjHelper::make_lhs_args(lhs, args), TRANSIENT);
           return noobj();
         })
         ->create(),
-        ObjHelper::InstTypeBuilder::build(*INST_FURI)
+        ObjHelper::InstBuilder::build(*INST_FURI)
         ->instance_f([i2c_remote_id](const Obj_p &lhs, const InstArgs &) {
           ROUTER_WRITE(id_p(i2c_remote_id.extend(":read")), ObjHelper::make_lhs_args(lhs, {}), TRANSIENT);
           return noobj();
@@ -65,7 +65,7 @@ namespace fhatos {
       Type::singleton()->save_type(
         id_p(lib_id.resolve(i2c_local_id)),
         rec({{vri(":create"),
-          ObjHelper::InstTypeBuilder::build(lib_id.resolve(i2c_local_id).extend(":create"))
+          ObjHelper::InstBuilder::build(lib_id.resolve(i2c_local_id).extend(":create"))
           ->type_args(x(0, "local_id", vri(lib_id.retract().resolve(i2c_local_id))), x(1, "remote_id", vri(i2c_remote_id)),
                       x(2, "ns_prefix", vri(define_ns_prefix)))
           ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {

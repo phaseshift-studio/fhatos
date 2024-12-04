@@ -58,18 +58,19 @@ namespace fhatos {
   public:
     const Pattern_p pattern_;
 
-    explicit Structure(const Pattern &pattern, const ID &value_id) :
-      Rec(Obj::RecMap<>(), OType::REC, REC_FURI, nullptr), pattern_(p_p(pattern)) {
+    explicit Structure(const Pattern &pattern, const ID &value_id) : Rec(Obj::RecMap<>(), OType::REC, REC_FURI,
+                                                                         nullptr), pattern_(p_p(pattern)) {
     }
 
-    explicit Structure(const Rec_p &structure_rec) :
-      Obj(*structure_rec->rec_merge(rmap({{
-          id_p(":detach"), Obj::to_bcode(
-              [this](const Obj_p &) {
-                this->stop();
-                return noobj();
-              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))
-      }}))), pattern_(p_p(structure_rec->rec_get(vri("pattern"))->uri_value())) {
+    explicit Structure(const Rec_p &structure_rec) : Obj(*structure_rec->rec_merge(rmap({{
+                                                       id_p(":detach"), Obj::to_bcode(
+                                                         [this](const Obj_p &) {
+                                                           this->stop();
+                                                           return noobj();
+                                                         }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))
+                                                     }}))),
+                                                     pattern_(p_p(
+                                                       structure_rec->rec_get(vri("pattern"))->uri_value())) {
     }
 
     [[nodiscard]] Pattern_p pattern() const {
@@ -79,7 +80,7 @@ namespace fhatos {
     [[nodiscard]] bool available() const { return this->available_.load(); }
 
     virtual void setup() {
-      if (this->available_.load()) {
+      if(this->available_.load()) {
         LOG_STRUCTURE(WARN, this, "!ystructure!! already available\n");
         return;
       }
@@ -87,10 +88,10 @@ namespace fhatos {
     }
 
     virtual void loop() {
-      if (!this->available_.load())
+      if(!this->available_.load())
         throw fError(FURI_WRAP " !ystructure!! is closed", this->pattern()->toString().c_str());
       Option<Mail_p> mail = this->outbox_->pop_front();
-      while (mail.has_value()) {
+      while(mail.has_value()) {
         FEED_WATCDOG();
         LOG_STRUCTURE(TRACE, this, "processing message %s for subscription %s\n",
                       mail.value()->second->toString().c_str(), mail.value()->first->toString().c_str());
@@ -102,7 +103,7 @@ namespace fhatos {
     }
 
     virtual void stop() {
-      if (!this->available_.load())
+      if(!this->available_.load())
         LOG_STRUCTURE(WARN, this, "!ystructure!! already unavailable\n");
       this->subscriptions_->clear();
       this->outbox_->clear(false);
@@ -112,31 +113,30 @@ namespace fhatos {
     /////////////////////////////////////////////////
 
     virtual void recv_unsubscribe(const ID_p &source, const fURI_p &target) {
-      if (!this->available_.load())
+      if(!this->available_.load())
         LOG_STRUCTURE(ERROR, this, "!yunable to unsubscribe!! %s from %s\n", source->toString().c_str(),
                     target->toString().c_str());
       else {
-
         this->subscriptions_->remove_if(
-            [source, target](const Subscription_p &sub) {
-              const bool removing =
-                  sub->source().equals(*source) && (sub->pattern().matches(*target));
-              if (removing)
-                LOG_UNSUBSCRIBE(OK, source, target);
-              return removing;
-            });
+          [source, target](const Subscription_p &sub) {
+            const bool removing =
+                sub->source().equals(*source) && (sub->pattern().matches(*target));
+            if(removing)
+              LOG_UNSUBSCRIBE(OK, source, target);
+            return removing;
+          });
       }
     }
 
     virtual void recv_subscription(const Subscription_p &subscription) {
-      if (!this->available_.load()) {
+      if(!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to receive!! %s\n", subscription->toString().c_str());
         return;
       }
       LOG_STRUCTURE(DEBUG, this, "!yreceived!! %s\n", subscription->toString().c_str());
       /////////////// DELETE EXISTING SUBSCRIPTION (IF EXISTS)
       this->recv_unsubscribe(id_p(subscription->source()), p_p(subscription->pattern()));
-      if (!subscription->on_recv()->is_noobj()) {
+      if(!subscription->on_recv()->is_noobj()) {
         /////////////// ADD NEW SUBSCRIPTION
         this->subscriptions_->push_back(subscription);
         LOG_SUBSCRIBE(OK, subscription);
@@ -147,9 +147,9 @@ namespace fhatos {
 
     virtual void publish_retained(const Subscription_p &subscription) {
       const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern()));
-      for (const auto &[id, obj]: list) {
-        if (!obj->is_noobj()) {
-          if (id->matches(subscription->pattern())) {
+      for(const auto &[id, obj]: list) {
+        if(!obj->is_noobj()) {
+          if(id->matches(subscription->pattern())) {
             FEED_WATCDOG();
             subscription->process_message(make_shared<Message>(*id, obj,RETAIN));
           }
@@ -158,39 +158,42 @@ namespace fhatos {
     }
 
     virtual Obj_p read(const fURI_p &furi) {
-      if (!this->available_.load()) {
+      if(!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
         return noobj();
       }
-      if (furi->has_query()) {
+      if(furi->has_query()) {
         const fURI_p query_less_furi = furi_p(furi->query(""));
         Objs_p ret = Obj::to_objs();
-        if (furi->has_query("sub")) {
+        if(furi->has_query("sub")) {
           ret->add_obj(this->get_subscription_objs(query_less_furi));
-        } else if (furi->has_query("doc")) {
-          return noobj();
-          // const Str_p doc = this->getd
-        } else if (furi->query_value("type")) {
+        } else if(furi->has_query("doc")) {
+          if(const IdObjPairs doc = this->read_raw_pairs(furi); !doc.empty()) {
+            for(const auto &pair: doc) {
+              ret->add_obj(pair.second);
+            }
+          }
+        } else if(furi->query_value("type")) {
           const Objs_p objs = Obj::to_objs();
           objs->add_obj(this->read(query_less_furi));
-          for (const Obj_p &obj: *objs->objs_value()) {
+          for(const Obj_p &obj: *objs->objs_value()) {
             const Obj_p type = ROUTER_READ(obj->tid());
             ret->add_obj(type);
           }
-        } else if (furi->has_query("inst")) {
+        } else if(furi->has_query("inst")) {
           const List<string> opcodes = furi->query_values("inst");
           Rec_p insts = Obj::to_rec();
           const Objs_p objs = Obj::to_objs();
           objs->add_obj(ROUTER_READ(furi_p(query_less_furi->extend(":inst"))));
-          for (const Obj_p &o: *objs->objs_value()) {
-            if (!o->is_rec())
+          for(const Obj_p &o: *objs->objs_value()) {
+            if(!o->is_rec())
               throw fError("obj instructs must be records: %s", o->toString().c_str());
             insts->rec_merge(o->rec_value());
           }
           objs->objs_value()->clear();
           objs->add_obj(ROUTER_READ(query_less_furi));
-          for (const Obj_p &o: *objs->objs_value()) {
-            if (!FURI_OTYPE.count(*o->tid()))
+          for(const Obj_p &o: *objs->objs_value()) {
+            if(!FURI_OTYPE.count(*o->tid()))
               insts->rec_merge(ROUTER_READ(furi_p(o->tid()->query("inst")))->rec_value());
           }
           ret->add_obj(insts);
@@ -200,31 +203,31 @@ namespace fhatos {
       //////////////////////////////////////////////////////////////////////////
       const fURI_p temp = furi->is_branch() ? furi_p(furi->extend("+")) : furi;
       const IdObjPairs matches = this->read_raw_pairs(temp);
-      if (furi->is_branch()) {
+      if(furi->is_branch()) {
         const Rec_p rec = Obj::to_rec();
         // BRANCH ID AND PATTERN
-        for (const auto &[key, value]: matches) {
+        for(const auto &[key, value]: matches) {
           rec->rec_set(vri(key), value, false);
         }
         return rec;
       } else {
         // NODE PATTERN
-        if (furi->is_pattern()) {
+        if(furi->is_pattern()) {
           const Objs_p objs = Obj::to_objs();
-          for (const auto &[key, value]: matches) {
+          for(const auto &[key, value]: matches) {
             objs->add_obj(value);
           }
           return objs;
         }
         // NODE ID
         else {
-          if (matches.empty()) {
-            if (furi->path_length() > 0) {
+          if(matches.empty()) {
+            if(furi->path_length() > 0) {
               // recurse backwards to find a root poly that has respective furi path
               const Obj_p maybe_poly = this->read(furi_p(furi->retract().as_node()));
-              if (maybe_poly->is_rec())
+              if(maybe_poly->is_rec())
                 return maybe_poly->rec_get(vri(furi->name()));
-              if (maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
+              if(maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
                 return maybe_poly->lst_get(jnt(stoi(furi->name())));
             }
             return noobj();
@@ -235,26 +238,26 @@ namespace fhatos {
     }
 
     virtual void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
-      if (!this->available_.load()) {
+      if(!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to write!! %s\n", obj->toString().c_str());
         return;
       }
-      if (retain) {
+      if(retain) {
         // x -> y
-        if (furi->has_query()) {
+        if(furi->has_query()) {
           // x -> ?meta (writing to meta furis)
           //// SUBSCRIBE
-          if (furi->query_value("sub").has_value()) {
+          if(furi->query_value("sub").has_value()) {
             const Pattern_p pattern = p_p(furi->query(""));
-            if (obj->is_noobj()) {
+            if(obj->is_noobj()) {
               // unsubscribe
               this->recv_unsubscribe(
-                  (Process::current_process() ? Process::current_process()->vid() : id_p("scheduler")), pattern);
-            } else if (obj->is_bcode()) {
+                (Process::current_process() ? Process::current_process()->vid() : id_p("scheduler")), pattern);
+            } else if(obj->is_bcode()) {
               // bcode for on_recv
               this->recv_subscription(Subscription::create(
-                  Process::current_process() ? *Process::current_process()->vid() : ID("scheduler"), *pattern, obj));
-            } else if (obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
+                Process::current_process() ? *Process::current_process()->vid() : ID("scheduler"), *pattern, obj));
+            } else if(obj->is_rec() && TYPE_CHECKER(obj.get(), SUBSCRIPTION_FURI, false)) {
               // complete sub[=>] record
               this->recv_subscription(make_shared<Subscription>(obj));
             }
@@ -262,21 +265,21 @@ namespace fhatos {
           }
         }
         //// WRITES
-        if (furi->is_branch()) {
+        if(furi->is_branch()) {
           // BRANCH (POLYS)
-          if (obj->is_noobj()) {
+          if(obj->is_noobj()) {
             // nobj
             const IdObjPairs ids = this->read_raw_pairs(furi_p(furi->extend("+")));
-            for (const auto &[key, value]: ids) {
+            for(const auto &[key, value]: ids) {
               this->write_raw_pairs(key, obj, retain);
             }
-          } else if (obj->is_type() && obj->is_poly()) {
+          } else if(obj->is_type() && obj->is_poly()) {
             this->write_raw_pairs(id_p(*furi), obj, retain);
-          } else if (obj->is_rec()) {
+          } else if(obj->is_rec()) {
             // rec
             const auto remaining = share(Obj::RecMap<>());
-            for (const auto &[key, value]: *obj->rec_value()) {
-              if (key->is_uri()) {
+            for(const auto &[key, value]: *obj->rec_value()) {
+              if(key->is_uri()) {
                 // uri key
                 this->write(id_p(key->uri_value()), value, retain);
                 distribute_to_subscribers(Message::create(ID(key->uri_value()), value, retain));
@@ -284,14 +287,14 @@ namespace fhatos {
               } else // non-uri key
                 remaining->insert({key, value});
             }
-            if (!remaining->empty()) {
+            if(!remaining->empty()) {
               // non-uri keyed pairs written to /0
               this->write_raw_pairs(id_p(furi->extend("0")), Obj::to_rec(remaining), retain);
             }
-          } else if (obj->is_lst()) {
+          } else if(obj->is_lst()) {
             // lst /0,/1,/2 indexing
             const List_p<Obj_p> list = obj->lst_value();
-            for (size_t i = 0; i < list->size(); i++) {
+            for(size_t i = 0; i < list->size(); i++) {
               this->write_raw_pairs(id_p(furi->extend(to_string(i))), list->at(i), retain);
             }
           } else {
@@ -301,9 +304,9 @@ namespace fhatos {
           }
         } else {
           // NODE PATTERN
-          if (furi->is_pattern()) {
+          if(furi->is_pattern()) {
             const IdObjPairs matches = this->read_raw_pairs(furi_p(*furi));
-            for (const auto &[key, value]: matches) {
+            for(const auto &[key, value]: matches) {
               this->write_raw_pairs(key, obj, retain);
             }
           }
@@ -327,10 +330,10 @@ namespace fhatos {
         // x --> y -< subscribers
         // non-retained writes 'pass through' (via application) any existing obj at that write furi location
         const Obj_p applicable_obj = this->read(furi); // get the obj that current exists at that furi
-        if (applicable_obj->is_noobj()) {
+        if(applicable_obj->is_noobj()) {
           // no obj, pass the written obj through to subscribers (optimization assuming noobj is _ ?? bad??)
           this->write_raw_pairs(id_p(*furi), obj, retain);
-        } else if (applicable_obj->is_bcode()) {
+        } else if(applicable_obj->is_bcode()) {
           // bcode, pass the output of applying the written obj to bcode to subscribers
           //const BCode_p rewritten_bcode = ;
           // TODO: InstArgs should be Rec_p (with _0 being index to simulate Lst)
@@ -357,22 +360,22 @@ namespace fhatos {
     }
 
     void check_availability(const string &function) const {
-      if (!this->available())
+      if(!this->available())
         throw fError("structure " FURI_WRAP " not available for %s", function.c_str());
     }
 
     virtual void distribute_to_subscribers(const Message_p &message) {
       this->subscriptions_->forEach([this,message](const Subscription_p &subscription) {
-        if (message->target().matches(subscription->pattern()))
+        if(message->target().matches(subscription->pattern()))
           this->outbox_->push_back(mail_p(subscription, message));
       });
     }
 
     bool has_equal_subscription_pattern(const fURI_p &topic, const ID_p &source = nullptr) const {
       return this->subscriptions_->exists([source,topic](const Subscription_p &sub) {
-        if (source && !source->equals(sub->source()))
+        if(source && !source->equals(sub->source()))
           return false;
-        if (topic->equals(sub->pattern()))
+        if(topic->equals(sub->pattern()))
           return true;
         return false;
       });
@@ -381,7 +384,7 @@ namespace fhatos {
     List_p<Subscription_p> get_matching_subscriptions(const fURI_p &topic, const ID_p &source = nullptr) const {
       const List_p<Subscription_p> matches = share(List<Subscription_p>());
       this->subscriptions_->forEach([topic,source,matches](const Subscription_p &subscription) {
-        if (!(source && !source->equals(subscription->source())) && topic->bimatches(subscription->pattern()))
+        if(!(source && !source->equals(subscription->source())) && topic->bimatches(subscription->pattern()))
           matches->push_back(subscription);
       });
       return matches;
@@ -390,7 +393,7 @@ namespace fhatos {
     Objs_p get_subscription_objs(const fURI_p &pattern = p_p("#")) const {
       const Objs_p objs = Obj::to_objs();
       this->subscriptions_->forEach([pattern,objs](const Subscription_p &subscription) {
-        if (subscription->pattern().bimatches(*pattern)) {
+        if(subscription->pattern().bimatches(*pattern)) {
           objs->add_obj(subscription);
         }
       });

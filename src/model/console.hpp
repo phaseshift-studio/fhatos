@@ -248,7 +248,7 @@ namespace fhatos {
     static void* import(const ID &id = "/io/lib/console") {
       // Type::singleton()->save_type(id_p("/io/console/"),rec({{}}));
       TYPE_SAVER(id_p(id), rec({{vri(":create"),
-                                 ObjHelper::InstTypeBuilder::build(ID(id.extend(":create")))
+                                 ObjHelper::InstBuilder::build(ID(id.extend(":create")))
                                  ->type_args(
                                      x(0, "install_location", vri(id)),
                                      x(1, "terminal_id", vri(Terminal::singleton()->vid())),

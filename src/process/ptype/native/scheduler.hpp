@@ -37,17 +37,7 @@ namespace fhatos {
     friend Sys;
 
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")):
-      XScheduler(id) {
-      this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
-        if (!obj->vid())
-          throw fError("value id required to spawn %s", obj->toString().c_str());
-        if (obj->tid()->has_path("thread"))
-          return dool(this->spawn(make_shared<Thread>(obj)));
-        if (obj->tid()->has_path("fiber"))
-          return dool(this->spawn(make_shared<Fiber>(obj)));
-        throw fError("unknown process type: %s\n", obj->tid()->toString().c_str());
-      }, StringHelper::cxx_f_metadata(__FILE__,__LINE__)));
+    explicit Scheduler(const ID &id = ID("/scheduler/")): XScheduler(id) {
     }
 
   public:
@@ -167,7 +157,6 @@ namespace fhatos {
   };
 
   inline ptr<Scheduler> scheduler() { return Scheduler::singleton(); }
-
 } // namespace fhatos
 #endif
 #endif
