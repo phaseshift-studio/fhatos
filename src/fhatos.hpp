@@ -84,6 +84,8 @@ namespace fhatos {
   using std::shared_ptr;
   using std::weak_ptr;
   using std::unique_ptr;
+  using std::make_pair;
+  using std::make_tuple;
   using std::make_shared;
   using std::make_unique;
   using std::atomic_int;
