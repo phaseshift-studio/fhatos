@@ -132,21 +132,6 @@ namespace fhatos {
 
     ////////////////////////////////////////////////
 
-    static string objAnalysis(const Obj &obj) {
-      char a[250];
-      sprintf(a,
-              "!b%s!! structure:\n"
-              "\t!gtype!!            : %s\n"
-              "\t!grange<=domain!! : %s<=%s\n"
-              "\t!gsize!!  (bytes) : %i\n"
-              "\t!gbcode!!         : %s\n"
-              "\t!gvalue!!         : %s",
-              obj.tid()->name().c_str(), obj.tid()->toString().c_str(), OTypes.to_chars(obj.o_type()).c_str(),
-              OTypes.to_chars(obj.o_type()).c_str(), obj.serialize()->first, FOS_BOOL_STR(obj.is_bcode()),
-              obj.is_bcode() ? obj.toString().c_str() : obj.toString(false).c_str());
-      return string(a);
-    }
-
     static Rec_p encode_lst(const fURI &base_furi, const List<Obj_p> &list) {
       const Rec_p rec = Obj::to_rec();
       for(size_t i = 0; i < list.size(); i++) {
@@ -201,7 +186,9 @@ namespace fhatos {
       string doc_{};
 
     public:
-      static InstBuilder *build(const ID &type_id = *INST_FURI) { return new InstBuilder(id_p(*ROUTER_RESOLVE(fURI(type_id)))); }
+      static InstBuilder *build(const ID &type_id = *INST_FURI) {
+        return new InstBuilder(id_p(*ROUTER_RESOLVE(fURI(type_id))));
+      }
 
       InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                              const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
@@ -214,6 +201,11 @@ namespace fhatos {
           this->args_.push_back(arg3);
         if(arg4)
           this->args_.push_back(arg4);
+        return this;
+      }
+
+      InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr) {
+        this->type_ = id_p(this->type_->query({{"domain", domain->toString()}, {"range", nullptr == range ? domain->toString() : range->toString()}}));
         return this;
       }
 

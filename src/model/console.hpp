@@ -85,7 +85,7 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           this->write_stdout(str(StringHelper::format(
             "%s%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-            e->is_poly() ? "" : e->toString(true, true, this->settings_.ansi_, this->settings_.strict_).c_str())));
+            e->is_poly() ? "" : e->toString().c_str())));
           if(e->is_poly())
             this->print_result(e, depth + 1);
         }
@@ -101,10 +101,10 @@ namespace fhatos {
           Process::current_process()->feed_watchdog_via_counter();
           this->write_stdout(str(StringHelper::format(
             "%s!c%s!m=>!!%s!!\n", (string("!g") + StringHelper::repeat(depth, "=") + "==>!!").c_str(),
-            key->toString(true, false, false, this->settings_.strict_).c_str(),
+            key->toString().c_str(),
             value->is_poly()
               ? ""
-              : value->toString(true, true, this->settings_.ansi_, this->settings_.strict_).c_str())));
+              : value->toString().c_str())));
           if(value->is_poly())
             this->print_result(value, depth + 1);
         }
@@ -121,8 +121,7 @@ namespace fhatos {
       } else {
         this->write_stdout(str(string("!g") + StringHelper::repeat(depth, "=")));
         this->write_stdout(str(StringHelper::format("==>!!%s\n",
-                                                    obj->toString(true, true, this->settings_.ansi_,
-                                                                  this->settings_.strict_).c_str())));
+                                                    obj->toString().c_str())));
       }
     }
 

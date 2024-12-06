@@ -28,12 +28,12 @@
 
 namespace fhatos {
   using std::const_pointer_cast;
-    //TODO: MAKE THIS THREAD_LOCAL
+  //TODO: MAKE THIS THREAD_LOCAL
   thread_local ptr<ProgressBar> type_progress_bar_;
 
   class Type final : public Obj {
-    protected:
-      explicit Type(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
+  protected:
+    explicit Type(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
                                                                  {
                                                                    /*{vri(":check"),
                                                                                Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
@@ -63,7 +63,7 @@ namespace fhatos {
           const Obj_p current = ROUTER_READ(type_id);
           if(type_progress_bar_) {
             ROUTER_WRITE(type_id, type_def,RETAIN);
-           type_progress_bar_->incr_count(type_id->toString());
+            type_progress_bar_->incr_count(type_id->toString());
             if(type_progress_bar_->done())
               ROUTER_WRITE(this->vid(), const_pointer_cast<Obj>(shared_from_this()),RETAIN);
           } else {
@@ -102,9 +102,12 @@ namespace fhatos {
         if(!type->is_noobj()) {
           if(obj->match(type, false))
             return true;
-          if(throw_on_fail)
+          if(throw_on_fail) {
+            const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
+            p->show_type = false;
             throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
-                         obj->toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());
+                         obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
+          }
           return false;
         }
         if(throw_on_fail)

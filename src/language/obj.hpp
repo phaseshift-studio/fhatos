@@ -262,6 +262,73 @@ namespace fhatos {
 
   static ID_p SCHEDULER_ID = nullptr;
   static ID_p ROUTER_ID = nullptr;
+
+  struct ObjPrinter {
+    bool show_id;
+    bool show_type;
+    bool show_domain_range;
+    bool strict;
+    bool ansi;
+    bool propagate;
+
+    const ObjPrinter *next() const {
+      return this->propagate ? this : nullptr;
+    }
+
+    unique_ptr<ObjPrinter> clone() const {
+      return std::move(make_unique<ObjPrinter>(new ObjPrinter(this)));
+    }
+  };
+
+  static auto DEFAULT_OBJ_PRINTER = new ObjPrinter{
+    .show_id = true,
+    .show_type = true,
+    .show_domain_range = false,
+    .strict = false,
+    .ansi = true,
+    .propagate = false
+  };
+  static auto DEFAULT_INST_PRINTER = new ObjPrinter{
+    .show_id = true,
+    .show_type = true,
+    .show_domain_range = true,
+    .strict = false,
+    .ansi = true,
+    .propagate = false
+  };
+  static auto DEFAULT_BCODE_PRINTER = new ObjPrinter{
+    .show_id = true,
+    .show_type = true,
+    .show_domain_range = true,
+    .strict = false,
+    .ansi = true,
+    .propagate = false
+  };
+  static auto DEFAULT_NOOBJ_PRINTER = new ObjPrinter{
+    .show_id = false,
+    .show_type = false,
+    .show_domain_range = false,
+    .strict = false,
+    .ansi = true,
+    .propagate = false
+  };
+  static Map<OType, ObjPrinter *> GLOBAL_PRINTERS = {
+    {OType::NOOBJ, DEFAULT_NOOBJ_PRINTER},
+    {OType::OBJ, DEFAULT_OBJ_PRINTER},
+    {OType::BOOL, DEFAULT_OBJ_PRINTER},
+    {OType::INT, DEFAULT_OBJ_PRINTER},
+    {OType::REAL, DEFAULT_OBJ_PRINTER},
+    {OType::STR, DEFAULT_OBJ_PRINTER},
+    {OType::URI, DEFAULT_OBJ_PRINTER},
+    {OType::LST, DEFAULT_OBJ_PRINTER},
+    {OType::REC, DEFAULT_OBJ_PRINTER},
+    {OType::INST, DEFAULT_INST_PRINTER},
+    {OType::BCODE, DEFAULT_BCODE_PRINTER},
+    {OType::OBJS, DEFAULT_OBJ_PRINTER},
+    {OType::ERROR, DEFAULT_OBJ_PRINTER},
+  };
+
+
   static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER =
       [](const Obj *, const ID_p &type_id, const bool = true) -> bool {
     LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
@@ -826,8 +893,10 @@ namespace fhatos {
 
     bool equals(const BaseTyped &other) const override { return *this == (Obj &) other; }
 
-    string toString(const bool include_type = true, const bool include_id = true, const bool ansi = true,
-                    const bool strict = false) const {
+
+    string toString(const ObjPrinter *obj_printer = nullptr) const {
+      if(!obj_printer)
+        obj_printer = GLOBAL_PRINTERS.at(this->o_type());
       string obj_string;
       if(this->is_noobj())
         return "!r" STR(FOS_NOOBJ_TOKEN) "!!";
@@ -843,7 +912,9 @@ namespace fhatos {
             obj_string = std::to_string(this->real_value());
             break;
           case OType::URI:
-            obj_string = "!_" + (strict ? "<" + this->uri_value().toString() + ">" : this->uri_value().toString()) +
+            obj_string = "!_" + (obj_printer->strict
+                                   ? "<" + this->uri_value().toString() + ">"
+                                   : this->uri_value().toString()) +
                          "!!";
             break;
           case OType::STR:
@@ -858,7 +929,7 @@ namespace fhatos {
               } else {
                 obj_string += "!m,!!";
               }
-              obj_string += obj->toString(include_type, include_id, ansi, strict);
+              obj_string += obj->toString(obj_printer);
             }
             obj_string += "!m]!!";
             break;
@@ -873,7 +944,7 @@ namespace fhatos {
                 obj_string += "!m,";
               }
               obj_string += "!c";
-              obj_string += k->toString(include_type, include_id, false, strict);
+              obj_string += k->toString(obj_printer->next()); // {ansi=false});
               obj_string += "!m=>!!";
               obj_string += v->toString();
             }
@@ -888,7 +959,7 @@ namespace fhatos {
               } else {
                 obj_string += "!m,!!";
               }
-              obj_string += arg->toString(true, include_id, ansi, strict);
+              obj_string += arg->toString(obj_printer->next());
             }
             break;
           }
@@ -904,7 +975,7 @@ namespace fhatos {
                 } else {
                   obj_string += "!g.!!";
                 }
-                obj_string += inst->toString(include_type, include_id, ansi, strict);
+                obj_string += inst->toString(GLOBAL_PRINTERS.at(OType::OBJ));
               }
               // objString += "!g]!!";
             }
@@ -919,16 +990,16 @@ namespace fhatos {
               } else {
                 obj_string += "!m,!!";
               }
-              obj_string += obj->toString(include_type, include_id, ansi, strict);
+              obj_string += obj->toString(obj_printer->next());
             };
             obj_string += "!m}!!";
             break;
           }
           case OType::ERROR: {
             obj_string = "!r<<!!";
-            obj_string += this->error_value().first->toString(include_type, include_id, ansi, strict);
+            obj_string += this->error_value().first->toString(obj_printer->next());
             obj_string += "!r@!!";
-            obj_string += this->error_value().second->toString(include_type, include_id, ansi, strict);
+            obj_string += this->error_value().second->toString(obj_printer->next());
             obj_string += "!r>>!!";
             break;
           }
@@ -941,14 +1012,14 @@ namespace fhatos {
         }
       }
       if(!this->is_noobj() &&
-         (this->is_type() || this->is_inst() || this->is_error() ||
-          (strict && this->is_uri()) ||
-          (this->is_bcode() &&
-           (!this->domain()->equals(*OBJ_FURI) ||
-            !this->range()->equals(*OBJ_FURI))) ||
-          (include_type && !this->is_base_type()))) {
+         (this->is_type() ||
+          this->is_inst() ||
+          (obj_printer->show_type && !this->is_base_type()) ||
+          (obj_printer->strict && this->is_uri()) ||
+          (this->is_bcode() && (!this->domain()->equals(*OBJ_FURI) || !this->range()->equals(*OBJ_FURI))))) {
         string typing = this->is_base_type() && !this->is_code() ? "" : string("!b").append(this->tid_->name());
-        if(this->is_bcode() &&
+        // TODO: remove base_type check
+        if(obj_printer->show_domain_range &&
            (!this->domain()->equals(*OBJ_FURI) ||
             !this->range()->equals(*OBJ_FURI))) {
           typing = typing.append("?").append(this->range()->name());
@@ -961,13 +1032,13 @@ namespace fhatos {
                        .append(obj_string)
                        .append(this->is_inst() ? "!g)!!" : "!g]!!");
       }
-      if(include_id && this->vid_) {
+      if(obj_printer->show_id && this->vid_) {
         obj_string += "!m@!b";
         obj_string += this->vid_->toString();
         obj_string += "!!";
       }
 
-      return ansi ? obj_string : Ansi<>::strip(obj_string);
+      return obj_printer->ansi ? obj_string : Ansi<>::strip(obj_string);
     }
 
     [[nodiscard]] int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
@@ -1794,8 +1865,10 @@ namespace fhatos {
     }
 
     BObj_p serialize() const {
+      static ObjPrinter *DEFAULT_SERIALIZATION_PRINTER = new ObjPrinter{.show_id = true, .show_type = true,
+        .show_domain_range = true, .strict = true, .ansi = false, .propagate = true};
       LOG(DEBUG, "Serializing obj %s\n", this->toString().c_str());
-      const string serial = this->toString(true, true, false, true);
+      const string serial = this->toString(DEFAULT_SERIALIZATION_PRINTER);
       return ptr<BObj>(new BObj{serial.length(), reinterpret_cast<fbyte *>(strdup(serial.c_str()))}, bobj_deleter);
     }
 
