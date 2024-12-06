@@ -279,6 +279,10 @@ namespace fhatos {
     LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
+  static Function<const fURI, const fURI_p> ROUTER_RESOLVE = [](const fURI &furi) {
+    LOG(TRACE, "!yROUTER_RESOLVE!! undefined at this point in bootstrap.\n");
+    return id_p(furi);
+  };
   static TriConsumer<const fURI_p &, const Obj_p &, const bool> ROUTER_WRITE =
       [](const fURI_p &, const Obj_p &, const bool retain) -> void {
     LOG(TRACE, "!yROUTER_WRITE!! undefined at this point in bootstrap.\n");
@@ -401,32 +405,32 @@ namespace fhatos {
     //////////////////////////////////////////////////////////////
     // Obj(const Obj &other) : Obj(other._value, other.id()) {}
     template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *type_id = EMPTY_CHARS) : Obj(Any(xbool), OType::BOOL,
-                                                                id_p(BOOL_FURI->resolve(type_id))) {
+    Obj(const T xbool, const char *type_id = BOOL_FURI->toString().c_str()) : Obj(
+      Any(xbool), OType::BOOL, id_p(type_id)) {
     }
 
     Obj(const FOS_INT_TYPE xint, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xint), OType::INT, id_p(INT_FURI->resolve(type_id))) {
+      Any(xint), OType::INT, id_p(type_id)) {
     }
 
     Obj(const FOS_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xreal), OType::REAL, id_p(REAL_FURI->resolve(type_id))) {
+      Any(xreal), OType::REAL, id_p(type_id)) {
     }
 
     Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) : Obj(Any(xuri), OType::URI,
-                                                                   id_p(URI_FURI->resolve(type_id))) {
+                                                                   id_p(type_id)) {
     }
 
     Obj(const char *xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(string(xstr)), OType::STR,
-                                                                   id_p(STR_FURI->resolve(type_id))) {
+                                                                   id_p(type_id)) {
     }
 
     Obj(const string &xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(xstr), OType::STR,
-                                                                     id_p(STR_FURI->resolve(type_id))) {
+                                                                     id_p(type_id)) {
     }
 
     Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<RecMap<>>()), OType::REC, id_p(REC_FURI->resolve(type_id))) {
+      Any(make_shared<RecMap<>>()), OType::REC, id_p(type_id)) {
       auto map = this->value<RecMap<>>();
       for(const auto &[key, val]: xrec) {
         map.insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(val)));
@@ -435,7 +439,7 @@ namespace fhatos {
 
     ///////////////////
     Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<LstList>()), OType::LST, id_p(LST_FURI->resolve(type_id))) {
+      Any(make_shared<LstList>()), OType::LST, id_p(type_id)) {
       const auto list = this->value<LstList_p>();
       for(const auto &obj: xlst) {
         list->push_back(make_shared<Obj>(obj));
@@ -443,11 +447,11 @@ namespace fhatos {
     }
 
     Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
+      Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(type_id)) {
     }
 
     Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(bcode), OType::BCODE, id_p(BCODE_FURI->resolve(type_id))) {
+      Any(bcode), OType::BCODE, id_p(type_id)) {
     }
 
     //////////////////////////////////////////////////////////////
@@ -754,11 +758,11 @@ namespace fhatos {
       return this->value<InstList_p>();
     }
 
-    Obj_p this_add(const Obj_p &inst, const bool at_type = true) {
+    Obj_p this_add(const ID &relative_id, const Obj_p &inst, const bool at_type = true) {
       if(!at_type && !this->vid_)
         throw fError("only objs with a value id can have properties and insts");
-      if(inst->is_code())
-        ROUTER_WRITE(inst->vid_, inst, true);
+      //if(inst->is_code())
+      ROUTER_WRITE(id_p(this->vid_->extend(relative_id)), inst, true);
       return this->shared_from_this();
     }
 
@@ -1416,10 +1420,11 @@ namespace fhatos {
           return Obj::to_rec(new_pairs, this->tid_);
         }
         case OType::INST: {
+          if(this->inst_op() == "block")
+            return this->inst_f()(lhs, InstArgs(inst_args()));
           InstArgs remake;
-          const bool is_block = this->inst_op() == "block";
           for(const Obj_p &arg: this->inst_args()) {
-            remake.push_back(is_block ? arg : arg->apply(lhs));
+            remake.push_back(arg->apply(lhs));
           }
           return this->inst_f()(lhs, remake);
         }
@@ -1661,7 +1666,7 @@ namespace fhatos {
     static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstF &function,
                           const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
-      const ID_p fix = type_id != nullptr ? type_id : id_p(INST_FURI->resolve(opcode));
+      const ID_p fix = type_id != nullptr ? type_id : id_p(*ROUTER_RESOLVE(fURI(opcode)));
       return to_inst({args, function, itype, seed}, fix, value_id);
     }
 

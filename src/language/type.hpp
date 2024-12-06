@@ -28,13 +28,12 @@
 
 namespace fhatos {
   using std::const_pointer_cast;
+    //TODO: MAKE THIS THREAD_LOCAL
+  thread_local ptr<ProgressBar> type_progress_bar_;
 
   class Type final : public Obj {
-  public:
-    ptr<ProgressBar> progress_bar_ = nullptr;
-
-  protected:
-    explicit Type(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
+    protected:
+      explicit Type(const ID &value_id, const ID &type_id) : Obj(share(RecMap<>(
                                                                  {
                                                                    /*{vri(":check"),
                                                                                Obj::to_inst([this](const Obj_p &lhs, const InstArgs &args) {
@@ -57,22 +56,68 @@ namespace fhatos {
                                                                OType::REC,
                                                                id_p(type_id),
                                                                id_p(value_id)) {
-      ////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_SAVER = [this](const ID_p &type_id, const Obj_p &type_def) {
-        this->save_type(type_id, type_def);
+        try {
+          const Obj_p current = ROUTER_READ(type_id);
+          if(type_progress_bar_) {
+            ROUTER_WRITE(type_id, type_def,RETAIN);
+           type_progress_bar_->incr_count(type_id->toString());
+            if(type_progress_bar_->done())
+              ROUTER_WRITE(this->vid(), const_pointer_cast<Obj>(shared_from_this()),RETAIN);
+          } else {
+            ROUTER_WRITE(type_id, type_def,RETAIN);
+            if(current->is_noobj()) {
+              LOG_OBJ(INFO, this, FURI_WRAP " !ytype!! defined\n",
+                      type_id->toString().c_str(),
+                      type_id->toString().c_str());
+            } else {
+              LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
+                      type_id->toString().c_str(), current->toString().c_str());
+            }
+          }
+        } catch(const fError &e) {
+          LOG_EXCEPTION(this, e);
+        }
       };
-      ////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
-        if (type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI))
+        if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI))
           return true;
-        const fURI_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
-        return this->check_type(obj, resolved_type_id, throw_on_fail);
+        // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
+        if(obj->tid()->equals(*type_id))
+          return true;
+        // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
+        if(obj->o_type() == OType::OBJ || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
+          return true;
+        if(type_id->equals(*NOOBJ_FURI) && obj->o_type() == OType::NOOBJ)
+          return true;
+        // if the type is a base type and the base types match, then type check passes
+        if(type_id->equals(*OTYPE_FURI.at(obj->o_type())))
+          return true;
+        // get the type definition and match it to the obj
+        const Obj_p type = ROUTER_READ(type_id);
+        if(!type->is_noobj()) {
+          if(obj->match(type, false))
+            return true;
+          if(throw_on_fail)
+            throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
+                         obj->toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());
+          return false;
+        }
+        if(throw_on_fail)
+          throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
+                       type_id->toString().c_str());
+        return false;
       };
-      ////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_MAKER = [this](const Obj_p &obj, const ID_p &type_id) -> Obj_p {
-        const ID_p resolved_type_id = resolve_shortened_base_type(obj->tid(), type_id);
-        const Obj_p type_def = ROUTER_READ(resolved_type_id);
-        if (type_def->is_noobj()) {
+        const ID_p resolved_type_id = id_p(*ROUTER_RESOLVE(fURI(*type_id)));
+        const Obj_p type_def = ROUTER_READ(type_id);
+        if(type_def->is_noobj()) {
           throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
                        type_id->toString().c_str());
         }
@@ -81,40 +126,43 @@ namespace fhatos {
                                   !type_def->is_bcode() && !type_def->is_inst())
                                   ? obj
                                   : type_def->apply(obj);
-        if (proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
+        if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
         return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
-      ///////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       RESOLVE_INST = [this](const Obj_p &this_obj, const ID_p &inst_type_id, List<ID> *derivation_tree) {
         Obj_p current_obj = this_obj;
-        while (true) {
-          if (current_obj->is_noobj())
+        while(true) {
+          if(current_obj->is_noobj())
             return noobj();
           const ID_p current_tid = current_obj->tid();
           ID_p current_vid = current_obj->vid();
           Inst_p maybe;
-          if (current_vid) {
+          if(current_vid) {
             LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
                     current_vid->extend(C_INST_C).toString().c_str(),
                     inst_type_id->toString().c_str());
-            if (derivation_tree)
+            if(derivation_tree)
               derivation_tree->emplace_back(current_vid->extend(C_INST_C).extend(*inst_type_id));
+            //fURI_p i_resolve = ROUTER_RESOLVE(fURI(*inst_type_id));
             maybe = ROUTER_READ(id_p(current_vid->extend(C_INST_C).extend(*inst_type_id)));
-            if (!maybe->is_noobj())
+            if(!maybe->is_noobj())
               return maybe;
           }
           LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
                   current_tid->extend(C_INST_C).toString().c_str(),
                   inst_type_id->toString().c_str());
-          if (derivation_tree)
+          if(derivation_tree)
             derivation_tree->emplace_back(current_tid->extend(C_INST_C).extend(*inst_type_id));
+          //    fURI_p i_resolve = ROUTER_RESOLVE(fURI(*inst_type_id));
           maybe = ROUTER_READ(id_p(current_tid->extend(C_INST_C).extend(*inst_type_id)));
-          if (!maybe->is_noobj())
+          if(!maybe->is_noobj())
             return maybe;
           current_obj = ROUTER_READ(current_obj->tid());
-          if (current_tid->equals(*current_obj->tid())) // infinite loop (i.e. base type)
+          if(current_tid->equals(*current_obj->tid())) // infinite loop (i.e. base type)
             return noobj();
         }
       };
@@ -127,13 +175,13 @@ namespace fhatos {
     }
 
     void start_progress_bar(const uint16_t size) {
-      this->progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), size);
+      type_progress_bar_ = ProgressBar::start(Options::singleton()->printer<Ansi<>>().get(), size);
     }
 
     void end_progress_bar(const string &message) {
-      if (this->progress_bar_) {
-        this->progress_bar_->end(message);
-        this->progress_bar_ = nullptr;
+      if(type_progress_bar_) {
+        type_progress_bar_->end(message);
+        type_progress_bar_ = nullptr;
       }
     }
 
@@ -141,63 +189,7 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////
     void save_type(const ID_p &type_id, const Obj_p &type_def) const {
-      try {
-        const Obj_p current = ROUTER_READ(type_id);
-        if (this->progress_bar_) {
-          ROUTER_WRITE(type_id, type_def,RETAIN);
-          this->progress_bar_->incr_count(type_id->toString());
-          if (this->progress_bar_->done())
-            ROUTER_WRITE(this->vid(), const_pointer_cast<Obj>(shared_from_this()),RETAIN);
-        } else {
-          ROUTER_WRITE(type_id, type_def,RETAIN);
-          if (current->is_noobj()) {
-            LOG_OBJ(INFO, this, FURI_WRAP " !ytype!! defined\n",
-                    type_id->toString().c_str(),
-                    type_id->toString().c_str());
-          } else {
-            LOG_OBJ(INFO, this, "!b%s !ytype!! !b!-%s!! overwritten\n",
-                    type_id->toString().c_str(), current->toString().c_str());
-          }
-        }
-      } catch (const fError &e) {
-        LOG_EXCEPTION(this, e);
-      }
-    }
-
-    // syntax sugar hack to allow users to type 'int' instead of '/type/int/'
-    static ID_p resolve_shortened_base_type(const fURI_p &type, const fURI_p &furi) {
-      return OTypes.has_enum(furi->toString())
-               ? OTYPE_FURI.at(OTypes.to_enum(furi->toString()))
-               : id_p(type->resolve(*furi));
-    }
-
-    bool check_type(const Obj *obj, const fURI_p &type_id, const bool do_throw = true) const
-      noexcept(false) {
-      // if the type has already been associated with the object, then it's already been type checked TODO: is this true?
-      if (obj->tid()->equals(*type_id))
-        return true;
-      // don't type check code yet -- this needs to be thought through more carefully as to the definition of code equivalence
-      if (obj->o_type() == OType::OBJ || obj->o_type() == OType::INST || obj->o_type() == OType::BCODE)
-        return true;
-      if (type_id->equals(*NOOBJ_FURI) && obj->o_type() == OType::NOOBJ)
-        return true;
-      // if the type is a base type and the base types match, then type check passes
-      if (type_id->equals(*OTYPE_FURI.at(obj->o_type())))
-        return true;
-      // get the type defintion and match it to the obj
-      const Obj_p type = ROUTER_READ(type_id);
-      if (!type->is_noobj()) {
-        if (obj->match(type, false))
-          return true;
-        if (do_throw)
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!g[!!%s!g]!!", this->vid()->toString().c_str(),
-                       obj->toString(false).c_str(), type_id->toString().c_str(), type->toString().c_str());
-        return false;
-      }
-      if (do_throw)
-        throw fError("!g[!b%s!g] !b%s!! is an undefined !ytype!!", this->vid()->toString().c_str(),
-                     type_id->toString().c_str());
-      return false;
+      TYPE_SAVER(type_id, type_def);
     }
   };
 } // namespace fhatos

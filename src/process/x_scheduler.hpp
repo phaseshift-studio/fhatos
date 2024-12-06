@@ -32,17 +32,17 @@ namespace fhatos {
   class Sys;
   using Process_p = ptr<Process>;
 
-  class XScheduler : public Rec {
+  class BaseScheduler : public Rec {
   protected:
-    MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<xscheduler_processes>");
+    MutexDeque<Process_p> *processes_ = new MutexDeque<Process_p>("<scheduler_processes>");
     bool running_ = true;
     Pair<ID_p, BCode_p> barrier_ = {nullptr, nullptr};
 
   public:
-    explicit XScheduler(const ID &id = ID("/scheduler")) : Rec(rmap({
-                                                                 {"barrier", noobj()},
-                                                                 {"process", lst()}}),
-                                                               OType::REC, REC_FURI, id_p(id)) {
+    explicit BaseScheduler(const ID &id = ID("/scheduler")) : Rec(rmap({
+                                                                    {"barrier", noobj()},
+                                                                    {"process", lst()}}),
+                                                                  OType::REC, REC_FURI, id_p(id)) {
       FEED_WATCDOG = [this] {
         this->feed_local_watchdog();
       };
@@ -50,18 +50,18 @@ namespace fhatos {
       LOG_KERNEL_OBJ(INFO, this, "!yscheduler!! started\n");
     }
 
-    ~XScheduler() override {
+    ~BaseScheduler() override {
       delete processes_;
       FEED_WATCDOG = []() {
       };
     }
 
     [[nodiscard]] int count(const Pattern &process_pattern = Pattern("#")) const {
-      if (this->processes_->empty())
+      if(this->processes_->empty())
         return 0;
       auto *counter = new atomic_int(0);
       this->processes_->forEach([counter, process_pattern](const Process_p &proc) {
-        if (proc->vid()->matches(process_pattern) && proc->running)
+        if(proc->vid()->matches(process_pattern) && proc->running)
           counter->fetch_add(1);
       });
       const int c = counter->load();
@@ -76,18 +76,18 @@ namespace fhatos {
         const string name = process->tid()->name();
         int count = map->count(name) ? map->at(name) : 0;
         count++;
-        if (map->count(name))
+        if(map->count(name))
           map->erase(name);
         map->insert({name, count});
         list->push_back(process);
       });
-      for (const auto &[name,count]: *map) {
+      for(const auto &[name,count]: *map) {
         LOG_KERNEL_OBJ(INFO, this, "!b%i !y%s!!(s) closing\n", count, name.c_str());
       }
-      while (!list->empty()) {
+      while(!list->empty()) {
         const Process_p p = list->back();
         list->pop_back();
-        if (p->running)
+        if(p->running)
           p->stop();
       }
       router()->stop(); // ROUTER SHUTDOWN (DETACHMENT ONLY)
@@ -107,10 +107,10 @@ namespace fhatos {
                  const char *message = nullptr) {
       this->barrier_ = {id_p(this->vid()->resolve("./barrier/").extend(name)), Obj::to_bcode()};
       LOG_KERNEL_OBJ(INFO, this, "!mbarrier start: <!y%s!m>!!\n", this->barrier_.first->toString().c_str());
-      if (message)
+      if(message)
         LOG_KERNEL_OBJ(INFO, this, message);
-      while (((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
-             && (this->barrier_.first && this->barrier_.second)) {
+      while(((passPredicate && !passPredicate()) || (!passPredicate && this->running_ && !this->processes_->empty()))
+            && (this->barrier_.first && this->barrier_.second)) {
         router()->loop();
         this->feed_local_watchdog();
       }
@@ -129,36 +129,45 @@ namespace fhatos {
     }
 
   protected:
-    static ID base_import(const ptr<XScheduler> &scheduler) {
-      ROUTER_WRITE(SCHEDULER_ID, scheduler, RETAIN);
-      ///// INSTRUCTIONS
-      scheduler->this_add(
-            ObjHelper::InstBuilder::build(*INST_FURI)
-            ->type_args(x(0, "thread", ___))
-            ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
-              const Obj_p& proc = args.at(0);
-              if (!proc->vid())
-                throw fError("value id required to spawn %s", proc->toString().c_str());
-              if (proc->tid()->has_path("thread"))
-                return dool(scheduler->spawn(make_shared<Thread>(proc)));
-              // if (proc->tid()->has_path("fiber"))
-              //  return dool(proc->spawn(make_shared<Fiber>(obj)));
-              throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
-              return dool(false);
-            })
-            ->doc("spawn a parallel thread of execution")
-            ->create(id_p(scheduler->vid_->extend("::spawn"))), scheduler.get())
-          ->this_add(ObjHelper::InstBuilder::build(*INST_FURI)
-            ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
-              scheduler->stop();
-              return noobj();
-            })
-            ->itype_and_seed(IType::MANY_TO_ZERO)
-            ->create(id_p(scheduler->vid_->extend("::stop"))))
+    static void *base_import(const ptr<BaseScheduler> &scheduler) {
+      // ROUTER_WRITE(SCHEDULER_ID, scheduler, RETAIN);
+      scheduler
+          ///// INSTRUCTIONS
+          ->this_add("::spawn",
+                     ObjHelper::InstBuilder::build(*INST_FURI)
+                     ->type_args(x(0, "thread", ___))
+                     ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
+                       const Obj_p &proc = args.at(0);
+                       if(!proc->vid())
+                         throw fError("value id required to spawn %s", proc->toString().c_str());
+                       if(proc->tid()->has_path("thread"))
+                         return dool(scheduler->spawn(make_shared<Thread>(proc)));
+                       throw fError("unknown process type: %s\n", proc->tid()->toString().c_str());
+                     })
+                     // ->doc("spawn a parallel thread of execution")
+                     ->create())
+          ->this_add("::stop",
+                     ObjHelper::InstBuilder::build(*INST_FURI)
+                     ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
+                       scheduler->stop();
+                       return noobj();
+                     })
+                     ->itype_and_seed(IType::MANY_TO_ZERO)
+                     ->create())
           ///// OBJECTS
-          ->this_add(Obj::to_rec(REC_FURI, id_p(scheduler->vid_->extend("lib/process"))), scheduler.get())
-          ->this_add(Obj::to_rec(REC_FURI, id_p(scheduler->vid_->extend("lib/thread"))), scheduler.get());
-      return *SCHEDULER_ID;
+          ->this_add("lib/process", Obj::to_rec())
+          ->this_add("lib/thread",
+                     Obj::to_rec()
+                     /*->this_add("::stop",
+                                ObjHelper::InstBuilder::build(*INST_FURI)
+                                ->inst_f([](const Obj_p &, const InstArgs &args) {
+                                  static_cast<Thread *>(args.at(0).get())->stop();
+                                  return _noobj_;
+                                })
+                                ->itype_and_seed(IType::ONE_TO_ZERO)
+                                ->create())*/)
+          ->save();
+      return nullptr;
     }
   };
 }

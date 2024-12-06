@@ -146,8 +146,7 @@ namespace fhatos {
     }
 
     virtual void publish_retained(const Subscription_p &subscription) {
-      const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern()));
-      for(const auto &[id, obj]: list) {
+      for(const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern())); const auto &[id, obj]: list) {
         if(!obj->is_noobj()) {
           if(id->matches(subscription->pattern())) {
             FEED_WATCDOG();
@@ -157,6 +156,13 @@ namespace fhatos {
       }
     }
 
+    bool has(const fURI_p &furi) {
+      //LOG(ERROR, "testing for has: %s\n", furi->toString().c_str());
+      //return !this->read_raw_pairs(furi).empty();
+      // //return !result->is_noobj();
+      return furi->is_node() ? !this->read(furi)->is_noobj() : !this->read_raw_pairs(furi_p(furi->extend("+"))).empty();
+    }
+
     virtual Obj_p read(const fURI_p &furi) {
       if(!this->available_.load()) {
         LOG_STRUCTURE(ERROR, this, "!yunable to read!! %s\n", furi->toString().c_str());
@@ -164,7 +170,7 @@ namespace fhatos {
       }
       if(furi->has_query()) {
         const fURI_p query_less_furi = furi_p(furi->query(""));
-        Objs_p ret = Obj::to_objs();
+        const Objs_p ret = Obj::to_objs();
         if(furi->has_query("sub")) {
           ret->add_obj(this->get_subscription_objs(query_less_furi));
         } else if(furi->has_query("doc")) {
@@ -182,7 +188,7 @@ namespace fhatos {
           }
         } else if(furi->has_query("inst")) {
           const List<string> opcodes = furi->query_values("inst");
-          Rec_p insts = Obj::to_rec();
+          const Rec_p insts = Obj::to_rec();
           const Objs_p objs = Obj::to_objs();
           objs->add_obj(ROUTER_READ(furi_p(query_less_furi->extend(":inst"))));
           for(const Obj_p &o: *objs->objs_value()) {

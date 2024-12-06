@@ -433,6 +433,37 @@ namespace fhatos {
       return this->scheme_ && this->path_length_ > 0 && !this->host_ && !this->user_ && !this->password_;
     }
 
+    [[nodiscard]] bool has_components() const {
+      if(0 == this->path_length_)
+        return false;
+      for(uint8_t i = 0; i < this->path_length_; i++) {
+        if(0 == strcmp("::", this->path_[i]))
+          return true;
+      }
+      return false;
+    }
+
+    [[nodiscard]] List<string> components() const {
+      List<string> comps = {""};
+      for(uint8_t i = 0; i < this->path_length_; i++) {
+        if(0 == strcmp("::", this->path_[i])) {
+          comps.emplace_back("");
+        } else {
+          string x = comps.back();
+          x = x.empty() ? this->path_[i] : x.append("/").append(this->path_[i]);
+          comps.pop_back();
+          comps.push_back(x);
+        }
+      }
+      if(comps.back().empty())
+        comps.pop_back();
+      return comps;
+    }
+
+    [[nodiscard]] fURI append(const fURI &other) const {
+      return fURI(this->toString().append(other.toString()));
+    }
+
     [[nodiscard]] virtual fURI resolve(const fURI &other) const {
       if(this->is_pattern() && other.matches(*this))
         return other;
@@ -461,11 +492,13 @@ namespace fhatos {
         const auto other_path_chars = std::unique_ptr<char, void (*)(void *)>(strdup(other.path().c_str()), free);
         const bool other_start_slash = other_path_chars.get()[0] == '/';
         if(path_end_slash || this->path_length_ == 0)
-          return (other_start_slash ? this->path(other_path_chars.get()) : this->extend(other_path_chars.get())).query(other.query());
+          return (other_start_slash ? this->path(other_path_chars.get()) : this->extend(other_path_chars.get())).query(
+            other.query());
         if(other_start_slash)
           return this->path(other_path_chars.get()).query(other.query());
         if(this->path_length_ == 1)
-          return (this->path((path_start_slash) ? (string("/") + other_path_chars.get()) : other_path_chars.get())).query(other.query());
+          return (this->path((path_start_slash) ? (string("/") + other_path_chars.get()) : other_path_chars.get())).
+              query(other.query());
         return this->retract().extend(other_path_chars.get()).query(other.query());
       }
       fURI *temp = path_end_slash || this->path_length_ == 0 ? new fURI(*this) : new fURI(this->retract());
@@ -558,6 +591,11 @@ namespace fhatos {
     }
 
     bool operator=(const fURI &other) const { return this->equals(other); }
+
+    [[nodiscard]] bool headless() const {
+      const char first = this->toString()[0];
+      return first == '.' || first == ':' || (first != '/' && !this->scheme_ && !this->host_);
+    }
 
     ////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////

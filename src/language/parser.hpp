@@ -229,9 +229,9 @@ namespace fhatos {
       string range_token;
       if(const size_t index = token.find('?'); index == string::npos) {
         type_token = token;
-        if(OTypes.has_enum(type_token))
-          type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
-        return ID(type_token);
+        // if(OTypes.has_enum(type_token))
+        //  type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
+        return ID(*ROUTER_RESOLVE(type_token));
       } else {
         type_token = token.substr(0, index);
         if(const size_t index2 = token.find("<="); index2 == string::npos) {
@@ -242,13 +242,15 @@ namespace fhatos {
           domain_token = token.substr(index2 + 2, token.length() + index2 - 2);
         }
       }
-      if(OTypes.has_enum(type_token))
-        type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
-      if(OTypes.has_enum(domain_token))
-        domain_token = OTYPE_FURI.at(OTypes.to_enum(domain_token))->toString();
-      if(OTypes.has_enum(range_token))
-        range_token = OTYPE_FURI.at(OTypes.to_enum(range_token))->toString();
-      return ID(type_token).query({{"domain", domain_token}, {"range", range_token}});
+      /* if(OTypes.has_enum(type_token))
+         type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
+       if(OTypes.has_enum(domain_token))
+         domain_token = OTYPE_FURI.at(OTypes.to_enum(domain_token))->toString();
+       if(OTypes.has_enum(range_token))
+         range_token = OTYPE_FURI.at(OTypes.to_enum(range_token))->toString();*/
+      return ROUTER_RESOLVE(type_token)->query({
+        {"domain", ROUTER_RESOLVE(domain_token)->toString()},
+        {"range", ROUTER_RESOLVE(range_token)->toString()}});
     }
 
     static Pair<ID, string> try_parse_obj_type(const string &token, const GROUPING grouping) {
@@ -330,7 +332,7 @@ namespace fhatos {
     static Option<Bool_p> try_parse_bool(const ID &type_id, const string &value_token) {
       return ((strcmp("true", value_token.c_str()) == 0) || (strcmp("false", value_token.c_str()) == 0))
                ? Option<Bool_p>{Bool::to_bool(strcmp("true", value_token.c_str()) == 0,
-                                              id_p(BOOL_FURI->resolve(type_id)))}
+                                              or_type(type_id, BOOL_FURI))}
                : Option<Bool_p>{};
     }
 
@@ -341,7 +343,7 @@ namespace fhatos {
         if(!isdigit(value_token[i]))
           return {};
       }
-      return Option<Int_p>{Int::to_int(stoi(value_token), id_p(INT_FURI->resolve(type_id)))};
+      return Option<Int_p>{Int::to_int(stoi(value_token), or_type(type_id, INT_FURI))};
     }
 
     static Option<Real_p> try_parse_real(const ID &type_id, const string &value_token) {
@@ -358,24 +360,24 @@ namespace fhatos {
           return {};
       }
       return dotFound
-               ? Option<Real_p>{Real::to_real(stof(value_token), id_p(REAL_FURI->resolve(type_id)))}
+               ? Option<Real_p>{Real::to_real(stof(value_token), or_type(type_id, REAL_FURI))}
                : Option<Real_p>{};
     }
 
     static Option<Uri_p> try_parse_uri(const ID &type_id, const string &value_token) {
       if(value_token[0] == '<' && value_token[value_token.length() - 1] == '>')
         return Option<Uri_p>{
-          Uri::to_uri(value_token.substr(1, value_token.length() - 2).c_str(), id_p(URI_FURI->resolve(type_id)))};
+          Uri::to_uri(value_token.substr(1, value_token.length() - 2).c_str(), or_type(type_id, URI_FURI))};
       if((value_token[0] == '.' && value_token[1] == '/') ||
          (value_token[0] == '.' && value_token[1] == '.' && value_token[2] == '/'))
-        return Option<Uri_p>{Uri::to_uri(value_token, id_p(URI_FURI->resolve(type_id)))};
+        return Option<Uri_p>{Uri::to_uri(value_token, or_type(type_id, URI_FURI))};
       return Option<Uri_p>{};
     }
 
     static Option<Str_p> try_parse_str(const ID &type_id, const string &value_token) {
       return (value_token[0] == '\'' && value_token[value_token.length() - 1] == '\'')
                ? Option<Str_p>{Str::to_str(value_token.substr(1, value_token.length() - 2).c_str(),
-                                           id_p(STR_FURI->resolve(type_id)))}
+                                           or_type(type_id, STR_FURI))}
                : Option<Str_p>{};
     }
 
@@ -401,7 +403,7 @@ namespace fhatos {
             value += c;
         }
       }
-      return Option<Lst_p>{Lst::to_lst(list, id_p(LST_FURI->resolve(type_id)))};
+      return Option<Lst_p>{Lst::to_lst(list, or_type(type_id, LST_FURI))};
     }
 
     static Option<Inst_p> try_parse_poly_within(const string &token) {
@@ -462,7 +464,7 @@ namespace fhatos {
       auto map2 = make_shared<Obj::RecMap<>>(); // necessary to reverse entries
       map2->insert(map.begin(), map.end());
       ////
-      return Option<Rec_p>{Rec::to_rec(map2, id_p(REC_FURI->resolve(type_id)))};
+      return Option<Rec_p>{Rec::to_rec(map2, or_type(type_id, REC_FURI))};
     }
 
     static Option<Objs_p> try_parse_error(const ID &type_id, const string &value_token) {
@@ -475,7 +477,7 @@ namespace fhatos {
       const string inst_token = value_token.substr(split + 1, value_token.length() - split - 3);
       const auto [t,v] = try_parse_obj_type(inst_token, GROUPING::PAREN);
       return Option<Error_p>{Obj::to_error(try_parse_obj(obj_token).value(), try_parse_inst(t, v).value(),
-                                           id_p(ERROR_FURI->resolve(type_id)))};
+                                           or_type(type_id, ERROR_FURI))};
     }
 
     static Option<Objs_p> try_parse_objs(const ID &type_id, const string &value_token) {
@@ -499,7 +501,7 @@ namespace fhatos {
             value += c;
         }
       }
-      return Option<Objs_p>{Objs::to_objs(list, id_p(OBJ_FURI->resolve(type_id)))};
+      return Option<Objs_p>{Objs::to_objs(list, or_type(type_id, OBJS_FURI))};
     }
 
     static Option<Inst_p> try_parse_inst(const ID &type_id, const string &value_token) {
@@ -629,14 +631,18 @@ namespace fhatos {
         }
         inst_token.clear();
       }
-      return Option<BCode_p>{BCode::to_bcode(insts, id_p(BCODE_FURI->resolve(type_id)))};
+      return Option<BCode_p>{BCode::to_bcode(insts, or_type(type_id, BCODE_FURI))};
     }
 
     static Option<Uri_p> try_parse_default(const ID &type_id, const string &value_token) {
-      return Option<Uri_p>{Uri::to_uri(value_token, id_p(URI_FURI->resolve(type_id)))};
+      return Option<Uri_p>{Uri::to_uri(value_token, or_type(type_id, URI_FURI))};
     }
 
   private:
+    static ID_p or_type(const ID &type_id, const ID_p &default_type) {
+      return type_id.empty() ? default_type : id_p(type_id);
+    }
+
     static bool sugar_next(stringstream *ss) {
       if(ss->eof())
         return false;

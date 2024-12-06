@@ -193,7 +193,7 @@ namespace fhatos {
       }
 
     protected:
-      TypeO_p type_;
+      ID_p type_;
       InstArgs args_{};
       InstF function_supplier_ = InstBuilder::NO_OBJ_INST();
       IType itype_{IType::ONE_TO_ONE};
@@ -201,7 +201,7 @@ namespace fhatos {
       string doc_{};
 
     public:
-      static InstBuilder *build(const ID &type_id = *INST_FURI) { return new InstBuilder(id_p(type_id)); }
+      static InstBuilder *build(const ID &type_id = *INST_FURI) { return new InstBuilder(id_p(*ROUTER_RESOLVE(fURI(type_id)))); }
 
       InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                              const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
@@ -241,7 +241,7 @@ namespace fhatos {
         return this;
       }
 
-      Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {
+      [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {
         if(value_id) {
           if(const Inst_p maybe = ROUTER_READ(value_id); !maybe->is_noobj())
             return maybe;
@@ -256,9 +256,9 @@ namespace fhatos {
                                               ? Obj::to_objs()
                                               : _noobj_),
                                        std::move(this->type_));*/
-        const Inst_p inst = Inst::create(make_tuple<InstArgs, InstF, IType, Obj_p>(
+        const Inst_p inst = Inst::create(make_tuple(
                                            InstArgs(this->args_), InstF(this->function_supplier_),
-                                           static_cast<IType>(this->itype_), Obj::to_noobj()),
+                                           static_cast<IType>(this->itype_), this->seed_ ? this->seed_ : _noobj_),
                                          OType::INST, this->type_,
                                          root ? id_p(root->vid()->extend(*value_id)) : value_id);
         if(!this->doc_.empty())

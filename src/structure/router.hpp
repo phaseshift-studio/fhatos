@@ -61,6 +61,45 @@ namespace fhatos {
         OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_ID = this->vid_;
+      ////////////////////////////////////////////////////////////////////////////////////
+      ROUTER_RESOLVE = [this](const fURI &furi) -> fURI_p {
+        if(!furi.headless() && !furi.has_components())
+          return furi_p(furi);
+        List<fURI> components = furi.has_components() ? List<fURI>() : List<fURI>{furi};
+        if(furi.has_components()) {
+          for(const auto &c: furi.components()) {
+            components.emplace_back(fURI(c));
+          }
+        }
+        bool first = true;
+        fURI_p test = nullptr;
+        for(const auto &c: components) {
+          const static List<fURI> ID_PREFIXES = {"", "/mmadt/", "/fos/", "/sys/", "/sys/+/lib"};
+          // TODO: make this an exposed property of /sys/router
+          fURI_p found = nullptr;
+          for(const auto &prefix: ID_PREFIXES) {
+            const fURI_p x = furi_p(prefix.extend(c));
+            if(const Structure_p structure = this->get_structure(*x, false); structure && structure->has(x)) {
+              LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
+                             furi.toString().c_str(),
+                             structure->toString().c_str(),
+                             x->toString().c_str());
+              found = x;
+              break;
+            }
+          }
+          if(!found) {
+            LOG_KERNEL_OBJ(TRACE, this, "unable to locate !b%s!!\n", c.toString().c_str());
+          }
+          if(first) {
+            first = false;
+            test = furi_p(fURI(found ? *found : c));
+          } else {
+            test = furi_p(test->extend("::").extend(found ? *found : fURI(c)));
+          }
+        }
+        return test;
+      };
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(furix, obj, retain);
@@ -141,7 +180,7 @@ namespace fhatos {
 
     virtual void save(const ID_p & = nullptr) override {
       const Lst_p strcs = Obj::to_lst();
-      this->structures_.forEach([strcs](const Structure_p &struc) { strcs->lst_add(vri(struc->pattern())); });
+      this->structures_.forEach([strcs](const Structure_p &structure) { strcs->lst_add(vri(structure->pattern())); });
       this->rec_set("structure", strcs);
       Obj::save();
     }
@@ -150,15 +189,15 @@ namespace fhatos {
 
     [[nodiscard]] Objs_p read(const fURI_p &furi) {
       try {
-        const fURI_p resolved_furi = resolve_namespace_prefix(furi);
-        const bool query = furi->has_query("structure");
-        const Structure_p &struc = this->get_structure(*resolved_furi);
+        const fURI_p resolved_furi = ROUTER_RESOLVE(*furi);
+        const bool query = resolved_furi->has_query("structure");
+        const Structure_p structure = this->get_structure(*resolved_furi);
         if(query)
-          return struc->shared_from_this();
-        const Objs_p objs = struc->read(resolved_furi);
+          return structure->shared_from_this();
+        const Objs_p objs = structure->read(resolved_furi);
         LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_reading!! !g[!b%s!m=>!y%s!g]!! from " FURI_WRAP "\n",
                        Process::current_process()->vid()->toString().c_str(), resolved_furi->toString().c_str(),
-                       objs->toString().c_str(), struc->pattern()->toString().c_str());
+                       objs->toString().c_str(), structure->pattern()->toString().c_str());
         return objs->none_one_all();
       } catch(const fError &e) {
         LOG_EXCEPTION(this->shared_from_this(), e);
@@ -168,7 +207,7 @@ namespace fhatos {
 
     void write(const fURI_p &furi, const Obj_p &obj, const bool retain = RETAIN) {
       try {
-        const Structure_p &structure = this->get_structure(*furi);
+        const Structure_p structure = this->get_structure(*furi);
         LOG_KERNEL_OBJ(DEBUG, this, FURI_WRAP " !g!_writing!! %s !g[!b%s!m=>!y%s!g]!! to " FURI_WRAP "\n",
                        Process::current_process()->vid()->toString().c_str(), retain ? "retained" : "transient",
                        furi->toString().c_str(), obj->tid()->toString().c_str(),
@@ -195,7 +234,7 @@ namespace fhatos {
 
     void route_subscription(const Subscription_p &subscription) {
       try {
-        const Structure_p &struc = this->get_structure(subscription->pattern());
+        const Structure_p struc = this->get_structure(subscription->pattern());
         LOG_KERNEL_OBJ(DEBUG, this, "!y!_routing subscribe!! %s\n", subscription->toString().c_str());
         struc->recv_subscription(subscription);
       } catch(const fError &e) {
@@ -217,19 +256,23 @@ namespace fhatos {
     }
 
   private:
-    [[nodiscard]] Structure_p get_structure(const Pattern &pattern) {
+    [[nodiscard]] Structure_p get_structure(const Pattern &pattern, const bool throw_exception = true) {
       const Pattern temp = pattern.is_branch() ? Pattern(pattern.extend("+")) : pattern;
       const List<Structure_p> list = this->structures_.find_all(
         [pattern, temp](const Structure_p &structure) {
           return pattern.matches(*structure->pattern()) || temp.matches(*structure->pattern());
         },
         false); // TODO: NO MUTEX!
-      if(list.size() > 1)
-        throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures", pattern.toString().c_str());
-      if(list.empty())
-        throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid()->toString().c_str(),
-                     pattern.toString().c_str());
-      const Structure_p s = list.front();
+      if(throw_exception) {
+        if(list.size() > 1)
+          throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures", pattern.toString().c_str());
+        if(list.empty())
+          throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid()->toString().c_str(),
+                       pattern.toString().c_str());
+        const Structure_p s = list.at(0);
+        return s;
+      }
+      const Structure_p s = list.size() == 1 ? list.at(0) : nullptr;
       return s;
     }
 

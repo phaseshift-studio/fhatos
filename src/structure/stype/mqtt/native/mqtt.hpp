@@ -44,16 +44,15 @@ namespace fhatos {
     }
 
   public:
-    explicit Mqtt(const Rec_p &rec) :
-      BaseMqtt(rec) {
+    explicit Mqtt(const Rec_p &rec) : BaseMqtt(rec) {
     }
 
-    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id = ID("")) :
-      BaseMqtt(pattern, settings, value_id) {
+    explicit Mqtt(const Pattern &pattern, const Settings &settings, const ID &value_id = ID("")) : BaseMqtt(
+      pattern, settings, value_id) {
       this->settings_.broker_ = string(string(ID(this->settings_.broker_).scheme()) == "mqtt"
                                          ? this->settings_.broker_
                                          : (string("mqtt://") + this->settings_.broker_));
-      if (this->exists()) {
+      if(this->exists()) {
         LOG_STRUCTURE(INFO, this, "reusing existing connection to %s\n", this->settings_.broker_.c_str());
         MQTT_VIRTUAL_CLIENTS->push_back(this);
       } else {
@@ -66,11 +65,11 @@ namespace fhatos {
             .user_name(this->settings_.client_)
             .keep_alive_interval(std::chrono::seconds(20))
             .automatic_reconnect();
-        if (this->settings_.will_.get()) {
+        if(this->settings_.will_.get()) {
           const BObj_p source_payload = this->settings_.will_->payload()->serialize();
           pre_connection_options = pre_connection_options.will(
-              message(this->settings_.will_->target().toString(), source_payload->second,
-                      this->settings_.will_->retain()));
+            message(this->settings_.will_->target().toString(), source_payload->second,
+                    this->settings_.will_->retain()));
         }
         this->connection_options_ = pre_connection_options.finalize();
         //// MQTT MESSAGE CALLBACK
@@ -82,9 +81,9 @@ namespace fhatos {
           // assert(mqtt_message->is_retained() == retained); // TODO why does this sometimes not match?
           const Message_p message = Message::create(ID(mqtt_message->get_topic()), payload, retained);
           LOG_STRUCTURE(TRACE, this, "recieved message %s\n", message->toString().c_str());
-          for (const auto *client: *MQTT_VIRTUAL_CLIENTS) {
+          for(const auto *client: *MQTT_VIRTUAL_CLIENTS) {
             const List_p<Subscription_p> matches = client->get_matching_subscriptions(furi_p(message->target()));
-            for (const Subscription_p &sub: *matches) {
+            for(const Subscription_p &sub: *matches) {
               client->outbox_->push_back(share(Mail{sub, message}));
             }
           }
@@ -104,7 +103,7 @@ namespace fhatos {
     }
 
     void native_mqtt_publish(const Message_p &message) override {
-      if (message->payload()->is_noobj()) {
+      if(message->payload()->is_noobj()) {
         MQTT_CONNECTION->publish(message->target().toString().c_str(), const_cast<char *>(""), 0, 0, true)->wait();
       } else {
         const BObj_p source_payload = make_bobj(message->payload(), message->retain());
@@ -116,7 +115,7 @@ namespace fhatos {
 
     void native_mqtt_disconnect() override {
       std::erase_if(*MQTT_VIRTUAL_CLIENTS, [this](const Mqtt *m) { return m == this; });
-      if (MQTT_VIRTUAL_CLIENTS->empty())
+      if(MQTT_VIRTUAL_CLIENTS->empty() && MQTT_CONNECTION->is_connected())
         MQTT_CONNECTION->disconnect();
     }
 
@@ -126,7 +125,7 @@ namespace fhatos {
   public:
     static unique_ptr<Mqtt> create(const Pattern &pattern, const Settings &settings,
                                    const ID &value_id = ID("")) {
-      if (!MQTT_VIRTUAL_CLIENTS)
+      if(!MQTT_VIRTUAL_CLIENTS)
         MQTT_VIRTUAL_CLIENTS = make_shared<List<Mqtt *>>();
       auto mqtt_p = make_unique<Mqtt>(pattern, settings,
                                       value_id.empty() ? ID(pattern.retract_pattern()) : value_id);
@@ -135,21 +134,21 @@ namespace fhatos {
 
     void setup() override {
       BaseMqtt::setup();
-      if (this->exists())
+      if(this->exists())
         return;
       try {
         int counter = 0;
-        while (counter < FOS_MQTT_MAX_RETRIES) {
-          if (!MQTT_CONNECTION->connect(this->connection_options_)->wait_for(1000)) {
-            if (++counter > FOS_MQTT_MAX_RETRIES)
+        while(counter < FOS_MQTT_MAX_RETRIES) {
+          if(!MQTT_CONNECTION->connect(this->connection_options_)->wait_for(1000)) {
+            if(++counter > FOS_MQTT_MAX_RETRIES)
               throw mqtt::exception(1);
             LOG_STRUCTURE(WARN, this, "!bmqtt://%s !yconnection!! retry\n", this->settings_.broker_.c_str());
             usleep(FOS_MQTT_RETRY_WAIT * 1000);
           }
-          if (MQTT_CONNECTION->is_connected())
+          if(MQTT_CONNECTION->is_connected())
             break;
         }
-      } catch (const mqtt::exception &e) {
+      } catch(const mqtt::exception &e) {
         LOG_STRUCTURE(ERROR, this, "Unable to connect to !b%s!!: %s\n", this->settings_.broker_.c_str(), e.what());
       }
     }
