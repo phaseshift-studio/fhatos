@@ -37,14 +37,18 @@ namespace fhatos {
   class Router final : public Rec {
   protected:
     const ID_p namespace_prefix_;
+    // List<fURI> prefixes = List<fURI>();
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
 
   protected:
     explicit Router(const ID &id, const ID &namespace_prefix = FOS_NAMESPACE_PREFIX_ID) : Rec(rmap({
           {"structure", to_lst()},
-          {"nm_resolver", vri(namespace_prefix)},
+          {"resolve", to_rec({
+            {"namespace", to_rec({{":", vri("/mmadt/")}, {"fos:", vri("/fos/")}, {"math:", vri("/mmadt/ext/math")}})},
+            {"auto_prefix", to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})},
           {":stop", to_inst(
             [this](const Obj_p &, const InstArgs &) {
+              this->write(this->vid_,_noobj_);
               this->stop();
               return noobj();
             }, NO_ARGS, INST_FURI,
@@ -74,11 +78,11 @@ namespace fhatos {
         bool first = true;
         fURI_p test = nullptr;
         for(const auto &c: components) {
-          const static List<fURI> ID_PREFIXES = {"", "/mmadt/", "/fos/", "/sys/", "/sys/+/lib"};
+          List_p<Uri_p> prefixes = this->rec_get("resolve")->rec_get("auto_prefix")->lst_value();
           // TODO: make this an exposed property of /sys/router
           fURI_p found = nullptr;
-          for(const auto &prefix: ID_PREFIXES) {
-            const fURI_p x = furi_p(prefix.extend(c));
+          for(const auto &prefix: *prefixes) {
+            const fURI_p x = furi_p(prefix->uri_value().extend(c));
             if(const Structure_p structure = this->get_structure(*x, false); structure && structure->has(x)) {
               LOG_KERNEL_OBJ(TRACE, this, "located !b%s!! in %s and resolved to !b%s!!\n",
                              furi.toString().c_str(),
