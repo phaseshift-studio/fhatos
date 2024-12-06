@@ -34,14 +34,13 @@ namespace fhatos {
 
   protected:
     explicit Memory(const Pattern &pattern, const ID &id) : Computed(pattern, id) {
-      const Obj_p percent_type_def = bcode({Insts::is(
-          Insts::x_and(Insts::gte(real(0.0)), Insts::lte(real(100.0))))}); // parse("is(and(gte(0.0),lte(100.0)))"); //
-      Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "real/%"), percent_type_def);
+      const Obj_p percent_type_def = OBJ_PARSER("is(and(gte(0.0),lte(100.0)))");// parse("is(and(gte(0.0),lte(100.0)))"); //
+      Type::singleton()->save_type(id_p(MMADT_SCHEME "real/%"), percent_type_def);
       const ID_p inst = id_p(this->pattern_->resolve("./inst"));
       const ID_p heap = id_p(this->pattern_->resolve("./heap"));
       const ID_p psram = id_p(this->pattern_->resolve("./psram"));
       const ID_p hwm = id_p(this->pattern_->resolve("./hwm"));
-      const ID_p percent = id_p(FOS_TYPE_PREFIX "real/%");
+      const ID_p percent = id_p(MMADT_SCHEME "real/%");
       ///////
       this->read_functions_->insert(
           {inst, [this, inst, percent](const fURI_p &) {

@@ -19,10 +19,10 @@ The following processors and platforms have been tested:
 - **DESKTOP** (gcc)
   - Linux Ubuntu
   - MacOSX
-- **ESP8266** (espressif/arduino-esp8266)
+- **ESP8266** (arduino/espressif8266)
   - WEMOS D1 Mini
   - NodeMCU
-- **ESP32** (espressif/arduino-esp32)
+- **ESP32** (ardunion/espressif32)
   - WEMOS D1 Mini
   - LOLIN S2 Mini
   - LOLIN S3 Mini

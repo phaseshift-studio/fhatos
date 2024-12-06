@@ -24,7 +24,7 @@
 #include <language/insts.hpp>
 ///
 // #include <esp_heap_trace.h>
-#include <process/x_scheduler.hpp>
+#include <process/base_scheduler.hpp>
 #include FOS_PROCESS(thread.hpp)
 #include FOS_PROCESS(fiber.hpp)
 
@@ -42,7 +42,7 @@
 //  RAM #endif
 
 namespace fhatos {
-  class Scheduler final : public XScheduler {
+  class Scheduler final : public BaseScheduler {
   public:
     static ptr<Scheduler> singleton(const ID &id = ID("/scheduler/")) {
       static bool setup_ = false;
@@ -55,7 +55,7 @@ namespace fhatos {
     }
 
     static void *import() {
-      XScheduler::base_import(Scheduler::singleton());
+      BaseScheduler::base_import(Scheduler::singleton());
       return nullptr;
     }
 
@@ -121,7 +121,7 @@ namespace fhatos {
 
 
   private:
-    explicit Scheduler(const ID &id = ID("/scheduler/")) : XScheduler(id) {
+    explicit Scheduler(const ID &id = ID("/scheduler/")) : BaseScheduler(id) {
       // ESP_ERROR_CHECK(heap_trace_init_standalone(trace_record, NUM_RECORDS));
       this->Obj::rec_set(vri(":spawn"), to_bcode([this](const Obj_p &obj) {
               if (!obj->vid())

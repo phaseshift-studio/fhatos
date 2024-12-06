@@ -44,7 +44,7 @@
 #include <util/esp/psram_allocator.hpp>
 // #include FOS_BLE(ble.hpp)
 #include <model/soc/esp/wifi.hpp>
-//#include <model/soc/memory/esp32/memory.hpp>
+#include <model/soc/memory/esp32/memory.hpp>
 // #include FOS_TIMER(timer.hpp)
 // #include <structure/stype/redirect.hpp>
 #endif
@@ -108,7 +108,7 @@ namespace fhatos {
                                                              args_parser->option_string("--wifi:ssid", STR(WIFI_SSID)),
                                                              args_parser->option_string("--wifi:password", STR(WIFI_PASS)))))
            // ->mount(HeapPSRAM::create("/psram/#"))
-            //->mount(Memory::singleton("/soc/memory/#"))
+            ->mount(Memory::singleton("/soc/memory/#"))
             //->structure(BLE::create("/io/bt/#"))
 #endif
             ->mount(Mqtt::create("//io/#",

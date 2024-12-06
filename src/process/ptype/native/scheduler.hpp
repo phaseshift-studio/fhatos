@@ -23,7 +23,7 @@
 
 #include <fhatos.hpp>
 ///
-#include <process/x_scheduler.hpp>
+#include <process/base_scheduler.hpp>
 #include <util/ptr_helper.hpp>
 #include <process/process.hpp>
 #include FOS_PROCESS(fiber.hpp)

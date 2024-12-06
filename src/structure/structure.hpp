@@ -146,7 +146,8 @@ namespace fhatos {
     }
 
     virtual void publish_retained(const Subscription_p &subscription) {
-      for(const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern())); const auto &[id, obj]: list) {
+      const IdObjPairs list = this->read_raw_pairs(furi_p(subscription->pattern()));
+      for(const auto &[id, obj]: list) {
         if(!obj->is_noobj()) {
           if(id->matches(subscription->pattern())) {
             FEED_WATCDOG();
@@ -157,9 +158,6 @@ namespace fhatos {
     }
 
     bool has(const fURI_p &furi) {
-      //LOG(ERROR, "testing for has: %s\n", furi->toString().c_str());
-      //return !this->read_raw_pairs(furi).empty();
-      // //return !result->is_noobj();
       return furi->is_node() ? !this->read(furi)->is_noobj() : !this->read_raw_pairs(furi_p(furi->extend("+"))).empty();
     }
 
