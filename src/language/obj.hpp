@@ -762,7 +762,7 @@ namespace fhatos {
       if(!at_type && !this->vid_)
         throw fError("only objs with a value id can have properties and insts");
       //if(inst->is_code())
-      ROUTER_WRITE(id_p(this->vid_->extend(relative_id)), inst, true);
+      ROUTER_WRITE(id_p(this->vid_->append(relative_id)), inst, true);
       return this->shared_from_this();
     }
 

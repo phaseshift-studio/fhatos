@@ -133,7 +133,7 @@ namespace fhatos {
       // ROUTER_WRITE(SCHEDULER_ID, scheduler, RETAIN);
       scheduler
           ///// INSTRUCTIONS
-          ->this_add("::spawn",
+          ->this_add("/:spawn",
                      ObjHelper::InstBuilder::build(*INST_FURI)
                      ->type_args(x(0, "thread", ___))
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
@@ -146,7 +146,7 @@ namespace fhatos {
                      })
                      // ->doc("spawn a parallel thread of execution")
                      ->create())
-          ->this_add("::stop",
+          ->this_add("/:stop",
                      ObjHelper::InstBuilder::build(*INST_FURI)
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
                        scheduler->stop();
@@ -155,8 +155,8 @@ namespace fhatos {
                      ->itype_and_seed(IType::MANY_TO_ZERO)
                      ->create())
           ///// OBJECTS
-          ->this_add("lib/process", Obj::to_rec())
-          ->this_add("lib/thread",
+          ->this_add("/lib/process", Obj::to_rec())
+          ->this_add("/lib/thread",
                      Obj::to_rec()
                      /*->this_add("::stop",
                                 ObjHelper::InstBuilder::build(*INST_FURI)
