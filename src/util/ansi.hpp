@@ -35,7 +35,7 @@ namespace fhatos {
   class CPrinter {
   public:
     static CPrinter *singleton() {
-      static CPrinter printer = CPrinter();
+      static auto printer = CPrinter();
       return &printer;
     }
 #ifdef NATIVE
@@ -69,8 +69,6 @@ namespace fhatos {
 
   template<typename PRINTER = CPrinter>
   class Ansi {
-
-
   public:
     static shared_ptr<Ansi<PRINTER>> singleton() {
       static Ansi<PRINTER> ansi = Ansi<PRINTER>();
@@ -97,7 +95,7 @@ namespace fhatos {
     enum { fg_normal = 30, bg_normal = 40, bright_color = 52 };
 
     void color(const uint8_t fgcolor, const uint8_t) {
-      if (this->on_)
+      if(this->on_)
         this->printf("\033[0;%dm", fg_normal + fgcolor);
     }
 
@@ -108,31 +106,32 @@ namespace fhatos {
     //  * RGB color:                      ANSI::rgb2color(r, g, b)
 
     void parse(const char *buffer, const int buffer_length) {
-      for (uint16_t i = 0; i < buffer_length; i++) {
-        if (buffer[i] > 126)
+      for(uint16_t i = 0; i < buffer_length; i++) {
+        if(buffer[i] > 126)
           continue;
-        if (buffer[i] == '!') {
+        if(buffer[i] == '!') {
           const char j = buffer[i + 1];
-          if ('!' == j)
+          if('!' == j)
             this->normal();
             ////////////////////////////////// POSITION
-          else if ('^' == j) {
+          else if('^' == j) {
             const char dir = buffer[i + 2];
             const char b[1] = {buffer[i + 3]};
-            uint8_t steps = atoi(b);
-            if (dir == 'S')
+            char *end;
+            uint8_t steps = strtol(b, &end, 10);
+            if(dir == 'S')
               this->save_cursor(steps);
-            else if (dir == 'L')
+            else if(dir == 'L')
               this->load_cursor(steps);
-            else if (dir == 'u')
+            else if(dir == 'u')
               this->up(steps);
-            else if (dir == 'l')
+            else if(dir == 'l')
               this->left(steps);
-            else if (dir == 'd')
+            else if(dir == 'd')
               this->down(steps);
-            else if (dir == 'r')
+            else if(dir == 'r')
               this->right(steps);
-            else if (dir == 't') {
+            else if(dir == 't') {
               const char c[1] = {buffer[i + 4]};
               this->teleport(steps, atoi(c));
               i++;
@@ -143,45 +142,45 @@ namespace fhatos {
           ////////////////////////////// FONT
           // else if('*' == j)
           //   this->background();
-          else if ('_' == j)
+          else if('_' == j)
             this->underline();
-          else if ('-' == j)
+          else if('-' == j)
             this->strike_through();
-          else if ('~' == j)
+          else if('~' == j)
             this->italic();
-          else if ('*' == j)
+          else if('*' == j)
             this->blink();
-          else if ('X' == j)
+          else if('X' == j)
             this->clear();
-          else if ('Q' == j)
+          else if('Q' == j)
             this->top_left();
-          else if ('Z' == j)
+          else if('Z' == j)
             this->bottom_left();
-          else if ('H' == j)
+          else if('H' == j)
             this->home();
-          else if (!isalpha(j)) {
+          else if(!isalpha(j)) {
             this->printer_.print(buffer[i]);
             this->printer_.print(j);
           } else {
             ////////////////////////////// COLOR
-            if (isupper(j))
+            if(isupper(j))
               this->bold();
             const char jj = tolower(j);
-            if ('r' == jj)
+            if('r' == jj)
               this->red();
-            else if ('g' == jj)
+            else if('g' == jj)
               this->green();
-            else if ('b' == jj)
+            else if('b' == jj)
               this->blue();
-            else if ('m' == jj)
+            else if('m' == jj)
               this->magenta();
-            else if ('c' == jj)
+            else if('c' == jj)
               this->cyan();
-            else if ('w' == jj)
+            else if('w' == jj)
               this->white();
-            else if ('y' == jj)
+            else if('y' == jj)
               this->yellow();
-            else if ('d' == jj)
+            else if('d' == jj)
               this->black();
             else {
               this->printer_.print(buffer[i]);
@@ -199,17 +198,14 @@ namespace fhatos {
     }
 
   public:
-    Ansi() :
-      Ansi(*CPrinter::singleton()) {
+    Ansi() : Ansi(*CPrinter::singleton()) {
     }
 
-    explicit Ansi(string *str) :
-      Ansi(StringPrinter(str)) {
+    explicit Ansi(string *str) : Ansi(StringPrinter(str)) {
     }
 
-    explicit Ansi(const PRINTER printer) :
-      printer(printer) {
-      for (int i = 0; i < 10; i++) {
+    explicit Ansi(const PRINTER printer) : printer(printer) {
+      for(int i = 0; i < 10; i++) {
         uint16_t t[2] = {0, 0};
         this->slots[i] = t;
       }
@@ -224,7 +220,7 @@ namespace fhatos {
     void print(const char *c) { this->parse(c, strlen(c)); }
 
     void println(const char *c = "") {
-      if (strlen(c) > 0)
+      if(strlen(c) > 0)
         this->print(c);
       this->print('\n');
     }
@@ -257,7 +253,7 @@ namespace fhatos {
       va_start(arg, format);
       const size_t length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
       va_end(arg);
-      if (format[strlen(format) - 1] == '\n')
+      if(format[strlen(format) - 1] == '\n')
         message[length - 1] = '\n';
       message[length] = '\0';
       this->parse(message, length);
@@ -266,47 +262,47 @@ namespace fhatos {
     //////////////////////////
 
     void normal() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[0m");
     }
 
     void clear() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[2J");
     }
 
     void italic() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[3m");
     }
 
     void underline() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[4m");
     }
 
     void strike_through() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[9m");
     }
 
     void reverse() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[7m");
     }
 
     void bold() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[1m");
     }
 
     void blink() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[5m");
     }
 
     void clear_line() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[2K");
     }
 
@@ -318,12 +314,12 @@ namespace fhatos {
     ////////// POSITIONING
 
     void top_left() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[H");
     }
 
     void bottom_left() {
-      if (this->on_)
+      if(this->on_)
         this->print("\033[F");
     }
 
@@ -374,7 +370,7 @@ namespace fhatos {
     }
 
     void teleport(const uint16_t row, const uint16_t column) {
-      if (this->on_) {
+      if(this->on_) {
         this->print("\033[");
         this->print(std::to_string(row).c_str());
         this->print(';');
@@ -384,7 +380,7 @@ namespace fhatos {
     }
 
     void home() {
-      if (this->on_) {
+      if(this->on_) {
         this->print("\033[H");
       }
     }
@@ -394,7 +390,7 @@ namespace fhatos {
     }
 
     void move(const char direction, const uint16_t columns_or_rows) {
-      if (this->on_) {
+      if(this->on_) {
         this->print("\033[");
         this->print(std::to_string(columns_or_rows).c_str());
         this->print(direction);
@@ -402,14 +398,14 @@ namespace fhatos {
     }
 
     void cursor(const bool visible) {
-      if (this->on_) {
+      if(this->on_) {
         this->print(visible ? "\x1b[?25h" : "\x1b[?25l");
       }
     }
 
     void save_cursor(const uint8_t slot = 0) {
-      if (this->on_) {
-        if (0 == slot) {
+      if(this->on_) {
+        if(0 == slot) {
           this->print("\033[s");
         } else {
           this->location(this->slots[slot]);
@@ -418,8 +414,8 @@ namespace fhatos {
     }
 
     void load_cursor(const uint8_t slot = 0) {
-      if (this->on_) {
-        if (0 == slot) {
+      if(this->on_) {
+        if(0 == slot) {
           this->print("\033[u");
         } else {
           this->teleport(this->slots[slot][0], this->slots[slot][1]);
@@ -428,7 +424,7 @@ namespace fhatos {
     }
 
     void location(uint16_t *pos) {
-      if (this->on_) {
+      if(this->on_) {
         this->print("\033[6n");
         this->read(); // esc
         this->read(); // [
@@ -464,14 +460,14 @@ namespace fhatos {
       srand(time(nullptr));
       const string colors = "rgbmcy";
       string ret;
-      for (size_t i = 0; i < strlen(text); i++) {
-        if (rainbow)
+      for(size_t i = 0; i < strlen(text); i++) {
+        if(rainbow)
           ret = ret.append("!").append(string("") + colors[rand() % colors.length()]);
         ret =
             ret.append(string("") +
                        static_cast<char>(rollercoaster ? (rand() % 2 ? tolower(text[i]) : toupper(text[i])) : text[i]));
       }
-      if (rainbow)
+      if(rainbow)
         ret = ret.append("!!");
       return ret;
     }
@@ -488,8 +484,8 @@ namespace fhatos {
     uint8_t current_counts_;
     const char *meter_icon_;
 
-    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") :
-      ansi_(ansi), total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
+    ProgressBar(Ansi<> *ansi, const uint8_t total_counts, const char *meter_icon = "#") : ansi_(ansi),
+      total_counts_(total_counts), current_counts_(0), meter_icon_(meter_icon) {
     }
 
   public:
@@ -512,19 +508,19 @@ namespace fhatos {
             ? 0
             : ((static_cast<float>(this->current_counts_) / static_cast<float>(this->total_counts_)) * 100.f);
       ++this->current_counts_;
-      if (percentage >= 100) {
+      if(percentage >= 100) {
         percentage = 100;
         this->ansi_->clear_line();
       }
-      if (this->ansi_->is_on()) {
+      if(this->ansi_->is_on()) {
         const size_t meter_icon_size = Ansi<>::strip(this->meter_icon_).length();
         this->ansi_->print("!g[INFO]  [!b");
-        for (int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
+        for(int j = 0; j < percentage; j = j + 2 + (meter_icon_size - 1)) {
           // + 2 to make bar half as long
           this->ansi_->print(this->meter_icon_);
         }
         this->ansi_->print("!!");
-        for (int j = percentage; j < 99; j = j + 2) {
+        for(int j = percentage; j < 99; j = j + 2) {
           this->ansi_->print(' ');
         }
 

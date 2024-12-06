@@ -43,7 +43,7 @@ namespace mmadt {
     }
 
     static void import_base_types() {
-      Type::singleton()->start_progress_bar(13);
+      Type::singleton()->start_progress_bar(16);
       const Obj_p OBJ_TYPE = Obj::create(Any(), OType::OBJ, OBJ_FURI);
       TYPE_SAVER(OBJ_FURI, OBJ_TYPE);
       TYPE_SAVER(NOOBJ_FURI, OBJ_TYPE);

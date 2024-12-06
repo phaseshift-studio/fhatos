@@ -271,12 +271,18 @@ namespace fhatos {
     bool ansi;
     bool propagate;
 
-    const ObjPrinter *next() const {
+    [[nodiscard]] const ObjPrinter *next() const {
       return this->propagate ? this : nullptr;
     }
 
-    unique_ptr<ObjPrinter> clone() const {
-      return std::move(make_unique<ObjPrinter>(new ObjPrinter(this)));
+    [[nodiscard]] unique_ptr<ObjPrinter> clone() const {
+      return std::move(make_unique<ObjPrinter>(ObjPrinter{
+        this->show_id,
+        this->show_type,
+        this->show_domain_range,
+        this->strict,
+        this->ansi,
+        this->propagate}));
     }
   };
 
@@ -893,7 +899,6 @@ namespace fhatos {
 
     bool equals(const BaseTyped &other) const override { return *this == (Obj &) other; }
 
-
     string toString(const ObjPrinter *obj_printer = nullptr) const {
       if(!obj_printer)
         obj_printer = GLOBAL_PRINTERS.at(this->o_type());
@@ -914,8 +919,7 @@ namespace fhatos {
           case OType::URI:
             obj_string = "!_" + (obj_printer->strict
                                    ? "<" + this->uri_value().toString() + ">"
-                                   : this->uri_value().toString()) +
-                         "!!";
+                                   : this->uri_value().toString()) + "!!";
             break;
           case OType::STR:
             obj_string = "!m'!!!~" + this->str_value() + "!m'!!";
@@ -1003,8 +1007,12 @@ namespace fhatos {
             obj_string += "!r>>!!";
             break;
           }
+          case OType::NOOBJ: {
+            obj_string = "!r" STR(FOS_NOOBJ_TOKEN) "!!"; // TODO: repeated above (is_noobj()) to skip the typing checks
+            break;
+          }
           case OType::OBJ: {
-            obj_string = "!g" STR(FOS_NOOBJ_TOKEN) "!!";
+            obj_string = "!g" STR(FOS_OBJ_TOKEN) "!!";
             break;
           }
           default:
