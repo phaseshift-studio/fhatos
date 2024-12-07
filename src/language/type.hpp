@@ -136,10 +136,10 @@ namespace fhatos {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) {
+      TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
           Obj_p current_obj = lhs;
-          const ID_p inst_type_id = inst->tid();
+          const ID_p inst_type_id = id_p(ID(*ROUTER_RESOLVE(fURI(*inst->tid()))));
           while(true) {
             if(current_obj->is_noobj())
               return noobj();
@@ -179,7 +179,8 @@ namespace fhatos {
         if(inst->inst_f() == nullptr) {
           // inst is a token placeholder from a parse or dynamic generation
           List<ID> derivation_tree;
-          final_inst = TEMP(lhs, inst, &derivation_tree);
+          // TODO: this is gimpy
+          final_inst = TEMP(lhs->is_noobj() ? ROUTER_READ(OBJ_FURI) : lhs, inst, &derivation_tree);
           if(final_inst->is_noobj()) {
             const Obj_p type_obj = ROUTER_READ(lhs->tid());
             derivation_tree.push_back(*final_inst->tid());
@@ -201,12 +202,27 @@ namespace fhatos {
               ////////////////////////////////////////////////////////////////////////////////
             }
           }
+          InstArgs merge = InstArgs();
+          for(int i = 0; i < final_inst->inst_args().size(); i++) {
+            if(i < inst->inst_args().size()) {
+              merge.push_back(inst->inst_args().at(i));
+            } else {
+              merge.push_back(final_inst->inst_args().at(i));
+            }
+          }
+          final_inst = Obj::to_inst(
+            final_inst->inst_op(),
+            merge,
+            final_inst->inst_f(),
+            final_inst->itype(),
+            final_inst->inst_seed_supplier(),
+            final_inst->tid(), inst->vid());
         } else {
           final_inst = inst;
         }
         //if(inst->vid())
         // final_inst = final_inst->at(inst->vid());
-        final_inst = Obj::replace_from_obj(final_inst, inst->inst_args(), lhs);
+
         return final_inst;
       };
     }

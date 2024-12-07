@@ -1518,6 +1518,7 @@ namespace fhatos {
           //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           //// evaluate inst
+          //final_inst = Obj::replace_from_obj(final_inst, remake, lhs);
           const Obj_p result = final_inst->inst_f()(lhs, remake);
           // TODO: delete args in frame
           return result;

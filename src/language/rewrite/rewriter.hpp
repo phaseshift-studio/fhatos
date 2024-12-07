@@ -50,38 +50,39 @@ namespace fhatos {
           original->toString().c_str(), rewrite->toString().c_str());
     }
 
-    /*static Rewrite explain() {
+    static Rewrite explain() {
       return Rewrite({ID("/lang/rewrite/explain"),
-                      [](const BCode_p &bcode) {
-                        if (bcode->bcode_value()->back()->tid()->equals(ID(FOS_TYPE_PREFIX "inst/explain"))) {
-                          auto ex = string();
-                          auto p = Ansi<StringPrinter>(StringPrinter(&ex));
-                          // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
-                          p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
-                          const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
-                              [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
-                            string pad = StringHelper::repeat(depth, " ");
-                            string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
-                            for (const Inst_p &inst: *bcode->bcode_value()) {
-                              p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  %s\n", inst->inst_op().c_str(),
-                                       (string(pad2) + inst->toString()).c_str(),
-                                       (string(pad) + ITypeSignatures.to_chars(inst->itype())).c_str());
-                              for (const auto &arg: inst->inst_args()) {
-                                if (arg->is_bcode()) {
-                                  fun(arg, p, depth + 1);
-                                }
-                              }
-                            }
-                          };
-                          fun(bcode, p, 0);
-                          BCode_p rewrite = Obj::to_bcode({Insts::start(objs({Obj::to_str(ex)}))});
-                          LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
-                          return rewrite;
-                        }
-                        return bcode;
-                      },
-                      {{}, {}}});
-    }*/
+        [](const BCode_p &bcode) {
+          if(bcode->bcode_value()->back()->inst_op() == "explain") {
+            auto ex = string();
+            auto p = Ansi<StringPrinter>(StringPrinter(&ex));
+            // bcode->bcode_value()->back()->inst_seed()->add_obj(bcode);
+            p.printf("\n!r!_%s\t\t    %s\t\t\t\t\t\t  %s!!\n", "op", "inst", "domain/range");
+            const TriConsumer<BCode_p, Ansi<StringPrinter> &, int> fun =
+                [&fun](const BCode_p &bcode, Ansi<StringPrinter> &p, int depth) {
+              string pad = StringHelper::repeat(depth, " ");
+              string pad2 = (depth > 0) ? string(pad) + "\\_" : pad;
+              for(const Inst_p &inst: *bcode->bcode_value()) {
+                p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  !b%s!!\n", inst->inst_op().c_str(),
+                         (string(pad2) + inst->toString()).c_str(),
+                         (string(pad) + inst->range()->toString() + "!m<=!b" + inst->domain()->toString()).c_str());
+                for(const auto &arg: inst->inst_args()) {
+                  if(arg->is_bcode()) {
+                    fun(arg, p, depth + 1);
+                  }
+                }
+              }
+            };
+            fun(bcode, p, 0);
+            BCode_p rewrite = Obj::to_bcode([ex](const Obj_p &, const InstArgs &) { return Obj::to_str(ex); },
+                                            InstArgs());
+            LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
+            return rewrite;
+          }
+          return bcode;
+        },
+        {{}, {}}});
+    }
 
     static Rewrite by() {
       return Rewrite({MMADT_SCHEME "/rewrite/by",
