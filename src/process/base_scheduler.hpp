@@ -134,7 +134,7 @@ namespace fhatos {
       scheduler
           ///// INSTRUCTIONS
           ->this_add("/:spawn",
-                     ObjHelper::InstBuilder::build(*INST_FURI)
+                     InstBuilder::build(*INST_FURI)
                      ->type_args(x(0, "thread", ___))
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
                        const Obj_p &proc = args.at(0);
@@ -147,7 +147,7 @@ namespace fhatos {
                      // ->doc("spawn a parallel thread of execution")
                      ->create())
           ->this_add("/:stop",
-                     ObjHelper::InstBuilder::build(*INST_FURI)
+                     InstBuilder::build(*INST_FURI)
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &) {
                        scheduler->stop();
                        return noobj();
@@ -159,7 +159,7 @@ namespace fhatos {
           ->this_add("/lib/thread",
                      Obj::to_rec()
                      /*->this_add("::stop",
-                                ObjHelper::InstBuilder::build(*INST_FURI)
+                                InstBuilder::build(*INST_FURI)
                                 ->inst_f([](const Obj_p &, const InstArgs &args) {
                                   static_cast<Thread *>(args.at(0).get())->stop();
                                   return _noobj_;

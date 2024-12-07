@@ -103,15 +103,18 @@ namespace fhatos {
     }
 
     static string format(const char *format, ...) {
-      char message[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      const size_t length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      char *message;
+      const size_t length = vasprintf(&message, format, arg);
+      va_end(arg);
       if (format[strlen(format) - 1] == '\n')
         message[length - 1] = '\n';
       message[length] = '\0';
       va_end(arg);
-      return string(message);
+      const auto ret = string(message);
+      free(message);
+      return ret;
     }
 
     static void ltrim(std::string &s) {
@@ -129,16 +132,6 @@ namespace fhatos {
 
     static void lower_case(string &s) {
       std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
-    }
-
-    static WILDCARD has_wildcard(const char *s) {
-      for (size_t i = 0; i < strlen(s); i++) {
-        if (s[i] == '+')
-          return WILDCARD::PLUS;
-        if (s[i] == '#')
-          return WILDCARD::HASH;
-      }
-      return WILDCARD::NO;
     }
 
     static uint8_t count_substring(const string &str, const string &sub) {
@@ -227,8 +220,7 @@ namespace fhatos {
 
     static std::stringstream *eat_space(std::stringstream *ss) {
       while (!ss->eof()) {
-        char c = (char) ss->peek();
-        if (!isspace(c))
+        if (char c = (char) ss->peek(); !isspace(c))
           return ss;
         else
           ss->get();

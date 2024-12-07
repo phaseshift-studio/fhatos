@@ -39,14 +39,14 @@ namespace fhatos {
 
       if (static_cast<uint8_t>(type) < static_cast<uint8_t>(Options::singleton()->log_level<LOG_TYPE>()))
         return;
-      char buffer[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      const size_t length = vsnprintf(buffer, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      char *buffer;
+      const size_t length = vasprintf(&buffer, format, arg);
+      va_end(arg);
       if (format[strlen(format) - 1] == '\n')
         buffer[length - 1] = '\n';
       buffer[length] = '\0';
-      va_end(arg);
       // control garbled concurrent writes (destructor releases lock)
       std::lock_guard<std::mutex> lock(stdout_mutex);
       if (type == NONE)
@@ -62,6 +62,7 @@ namespace fhatos {
       else if (type == TRACE)
         printer<>()->print("!r[TRACE]!! ");
       printer<>()->print(buffer);
+      free(buffer);
     }
   };
 } // namespace fhatos

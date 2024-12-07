@@ -105,7 +105,7 @@ namespace fhatos {
     //  * gray color:                     ANSI::gray2color(gray)
     //  * RGB color:                      ANSI::rgb2color(r, g, b)
 
-    void parse(const char *buffer, const int buffer_length) {
+    void parse(const char *buffer, const uint16_t buffer_length) {
       for(uint16_t i = 0; i < buffer_length; i++) {
         if(buffer[i] > 126)
           continue;
@@ -133,7 +133,7 @@ namespace fhatos {
               this->right(steps);
             else if(dir == 't') {
               const char c[1] = {buffer[i + 4]};
-              this->teleport(steps, atoi(c));
+              this->teleport(steps, strtol(c, &end, 10));
               i++;
             }
             i++;
@@ -248,15 +248,16 @@ namespace fhatos {
     }
 
     void printf(const char *format, ...) {
-      char message[FOS_DEFAULT_BUFFER_SIZE];
       va_list arg;
       va_start(arg, format);
-      const size_t length = vsnprintf(message, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+      char *message;
+      const size_t length = vasprintf(&message, format, arg);
       va_end(arg);
       if(format[strlen(format) - 1] == '\n')
         message[length - 1] = '\n';
       message[length] = '\0';
       this->parse(message, length);
+      free(message);
     }
 
     //////////////////////////

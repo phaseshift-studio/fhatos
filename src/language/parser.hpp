@@ -530,7 +530,7 @@ namespace fhatos {
           }
         }
       }
-      const Inst_p inst = Insts::to_inst(type_id, args); // don't resolve to inst as it might be bcode
+      const Inst_p inst = Obj::to_inst(args, id_p(type_id));
       return inst->is_noobj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 
@@ -662,15 +662,16 @@ namespace fhatos {
   }
 
   [[maybe_unused]] static Obj_p parse(const char *format, ...) {
-    char source[FOS_DEFAULT_BUFFER_SIZE];
     va_list arg;
     va_start(arg, format);
-    const size_t length = vsnprintf(source, FOS_DEFAULT_BUFFER_SIZE, format, arg);
+    char *source;
+    const size_t length = vasprintf(&source, format, arg);
+    va_end(arg);
     if(format[strlen(format) - 1] == '\n')
       source[length - 1] = '\n';
     source[length] = '\0';
-    va_end(arg);
     const Obj_p obj = Parser::singleton()->try_parse_obj(string(source)).value_or(noobj());
+    free(source);
     return obj;
   }
 } // namespace fhatos

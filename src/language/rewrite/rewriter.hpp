@@ -33,13 +33,12 @@ namespace fhatos {
   struct Rewriter {
     List<Rewrite> _rewrites;
 
-    explicit Rewriter(const List<Rewrite> &rewrites) :
-      _rewrites(rewrites) {
+    explicit Rewriter(const List<Rewrite> &rewrites) : _rewrites(rewrites) {
     }
 
     BCode_p apply(const BCode_p &bcode) const {
       BCode_p running = bcode;
-      for (const Rewrite &rw: this->_rewrites) {
+      for(const Rewrite &rw: this->_rewrites) {
         LOG(TRACE, "applying !yrewrite !b%s!!\n", std::get<0>(rw).toString().c_str());
         running = std::get<1>(rw)(running);
       }
@@ -86,58 +85,58 @@ namespace fhatos {
 
     static Rewrite by() {
       return Rewrite({MMADT_SCHEME "/rewrite/by",
-                      [](const BCode_p &bcode) {
-                        Inst_p prev = Obj::to_noobj();
-                        bool found = false;
-                        List<Inst_p> newInsts;
-                        for (const Inst_p &inst: *bcode->bcode_value()) {
-                          if (inst->tid()->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
-                            found = true;
-                            // rewrite args
-                            bool done = false;
-                            List<Obj_p> newArgs;
-                            for (const Obj_p &arg: prev->inst_args()) {
-                              if (!done && arg->is_noobj()) {
-                                newArgs.push_back(inst->inst_arg(0));
-                                done = true;
-                              } else {
-                                newArgs.push_back(arg);
-                              }
-                            }
-                            if (!done)
-                              throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
-                                           prev->toString().c_str(), inst->toString().c_str());
-                            // rewrite inst
-                            newInsts.pop_back();
-                            newInsts.push_back(Insts::to_inst(*prev->tid(), newArgs));
-                          } else {
-                            newInsts.push_back(inst);
-                          }
-                          prev = newInsts.back();
-                        }
-                        if (found) {
-                          const BCode_p rewrite = Obj::to_bcode(newInsts);
-                          LOG_REWRITE("/mmadt/rewrite/by", bcode, rewrite);
-                          return rewrite;
-                        }
-                        return bcode;
-                      },
-                      {{}, {}}});
+        [](const BCode_p &bcode) {
+          Inst_p prev = Obj::to_noobj();
+          bool found = false;
+          List<Inst_p> newInsts;
+          for(const Inst_p &inst: *bcode->bcode_value()) {
+            if(inst->tid()->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
+              found = true;
+              // rewrite args
+              bool done = false;
+              List<Obj_p> newArgs;
+              for(const Obj_p &arg: prev->inst_args()) {
+                if(!done && arg->is_noobj()) {
+                  newArgs.push_back(inst->inst_arg(0));
+                  done = true;
+                } else {
+                  newArgs.push_back(arg);
+                }
+              }
+              if(!done)
+                throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
+                             prev->toString().c_str(), inst->toString().c_str());
+              // rewrite inst
+              newInsts.pop_back();
+              newInsts.push_back(Obj::to_inst(newArgs, prev->tid()));
+            } else {
+              newInsts.push_back(inst);
+            }
+            prev = newInsts.back();
+          }
+          if(found) {
+            const BCode_p rewrite = Obj::to_bcode(newInsts);
+            LOG_REWRITE("/mmadt/rewrite/by", bcode, rewrite);
+            return rewrite;
+          }
+          return bcode;
+        },
+        {{}, {}}});
     }
 
 
     static Rewrite starts(const Objs_p &starts) {
       return Rewrite(MMADT_SCHEME "/rewrite/starts",
-                      [starts](const BCode_p &bcode) {
-                        if (starts->is_noobj())
-                          return bcode;
-                        List<Inst_p> new_insts = List<Inst_p>{mmadt::mmADT::map(starts)};
-                        for (const Inst_p &inst: *bcode->bcode_value()) {
-                          new_insts.push_back(inst);
-                        }
-                        return Obj::to_bcode(new_insts);
-                      },
-                      {{}, {}});
+                     [starts](const BCode_p &bcode) {
+                       if(starts->is_noobj())
+                         return bcode;
+                       List<Inst_p> new_insts = List<Inst_p>{mmadt::mmADT::map(starts)};
+                       for(const Inst_p &inst: *bcode->bcode_value()) {
+                         new_insts.push_back(inst);
+                       }
+                       return Obj::to_bcode(new_insts);
+                     },
+                     {{}, {}});
     }
   };
 } // namespace fhatos

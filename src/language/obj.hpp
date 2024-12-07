@@ -372,8 +372,8 @@ namespace fhatos {
   static Consumer<const ptr<Subscription> &> ROUTER_SUBSCRIBE = [](const ptr<Subscription> &) {
     LOG(TRACE, "!yROUTER_SUBSCRIBE!! undefined at this point in bootstrap.\n");
   };
-  static TriFunction<const Obj_p &, const ID_p &, List<ID> *, Inst_p> RESOLVE_INST = [
-      ](const Obj_p &, const ID_p &, const List<ID> *derivation = nullptr) {
+  static BiFunction<const Obj_p &, const Inst_p &, Inst_p> TYPE_INST_RESOLVER = [
+      ](const Obj_p &lhs, const Inst_p &old_inst) {
     LOG(TRACE, "!RESOLVE_INST!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -1502,13 +1502,25 @@ namespace fhatos {
           return Obj::to_rec(new_pairs, this->tid_);
         }
         case OType::INST: {
-          if(this->inst_op() == "block")
-            return this->inst_f()(lhs, InstArgs(inst_args()));
+          //// dynamically fetch inst implementation if no function body exists (stub inst)
+          const Inst_p final_inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          // compute args
           InstArgs remake;
-          for(const Obj_p &arg: this->inst_args()) {
-            remake.push_back(arg->apply(lhs));
+          if(this->inst_op() == "block") {
+            //// don't evaluate args for block()-inst -- TODO: don't have this be a 'special inst'
+            remake = this->inst_args();
+          } else {
+            //// apply lhs to args
+            for(const Obj_p &arg: final_inst->inst_args()) {
+              remake.push_back(arg->apply(lhs));
+            }
           }
-          return this->inst_f()(lhs, remake);
+          //// TODO: type check lhs-based on inst type_id domain
+          //// TODO: don't evaluate inst for type objs for purpose of compilation
+          //// evaluate inst
+          const Obj_p result = final_inst->inst_f()(lhs, remake);
+          // TODO: delete args in frame
+          return result;
         }
         case OType::BCODE: {
           ptr<Obj> current_obj = lhs;
@@ -1743,6 +1755,10 @@ namespace fhatos {
 
     static Inst_p to_inst(const InstValue &value, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
       return Obj::create(value, OType::INST, type_id, value_id);
+    }
+
+    static Inst_p to_inst(const InstArgs &args, const ID_p &type_id) {
+      return to_inst(type_id->name(), args, nullptr, IType::ONE_TO_ONE, to_noobj(), type_id, nullptr);
     }
 
     static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstF &function,
@@ -1989,6 +2005,12 @@ namespace fhatos {
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
     return from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);
   }
+
+  // TODO: MAKE THIS THE NEW WAY OF DOING INST ARGS
+  // [[maybe_unused]] static Inst_p x(const char *arg_name, const ID& type_id = *OBJ_FURI,
+  //                                  const Obj_p &default_arg = noobj()) {
+  //   return from(Obj::to_uri(ID(string(arg_name).append("?").append(type_id.toString()))), default_arg);
+  // }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const char *arg_name, const Obj_p &default_arg = noobj()) {
     return from(Obj::to_uri(ID(string("_") + to_string(arg_num)).query(arg_name)), default_arg);

@@ -139,205 +139,118 @@ namespace fhatos {
       }
       return rec;
     }
+  };
 
-    class InstBuilder {
-      explicit InstBuilder(const TypeO_p &type) : type_(type), seed_(nullptr) {
+  class InstBuilder {
+    explicit InstBuilder(const TypeO_p &type) : type_(type), seed_(nullptr) {
+    }
+
+    /* InstF NO_OBJ_INST() const {
+       return [this](const Obj_p &lhs, const InstArgs &args) {
+         LOG(TRACE, "base-type instruction requiring resolution for %s\n", lhs->toString().c_str());
+
+         List<ID> derivation = {*this->type_};
+         Inst_p resolve = RESOLVE_INST(lhs, this->type_, &derivation);
+         if(resolve->is_noobj()) {
+           const Obj_p type_obj = ROUTER_READ(lhs->tid());
+           derivation.push_back(*this->type_);
+           resolve = RESOLVE_INST(lhs->as(lhs->type()->domain()), this->type_, &derivation);
+         }
+         if(resolve->is_noobj()) {
+           string result;
+           int counter = 0;
+           for(int i = 0; i < derivation.size(); i++) {
+             counter = derivation.at(i).equals(*this->type_) ? 1 : counter + 1;
+             result.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
+                                                StringHelper::repeat(counter, "--").c_str(),
+                                                derivation.at(i).toString().c_str()).c_str());
+           }
+           result = result.empty() ? "" : result.substr(0, result.size() - 1); // remove trailing \n
+           throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n%s", lhs->tid()->toString().c_str(),
+                        this->type_->toString().c_str(), result.c_str());
+         }
+         /* InstArgs args_applied;
+                   for(const Obj_p &arg: args) {
+                     args_applied.push_back(arg->apply(lhs));
+                   }*/
+    // return Obj::replace_from_obj(resolve, args, lhs)->apply(lhs);
+    // return resolve->is_inst() ? resolve->inst_f()(lhs, args) : resolve->apply(lhs);
+    // };*/
+    //}
+
+  protected:
+    ID_p type_;
+    InstArgs args_{};
+    InstF function_supplier_ = nullptr;
+    IType itype_{IType::ONE_TO_ONE};
+    Obj_p seed_;
+    string doc_{};
+
+  public:
+    static InstBuilder *build(const ID &type_id = *INST_FURI) {
+      return new InstBuilder(id_p(*ROUTER_RESOLVE(fURI(type_id))));
+    }
+
+    InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
+                           const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
+      this->args_.push_back(arg0);
+      if(arg1)
+        this->args_.push_back(arg1);
+      if(arg2)
+        this->args_.push_back(arg2);
+      if(arg3)
+        this->args_.push_back(arg3);
+      if(arg4)
+        this->args_.push_back(arg4);
+      return this;
+    }
+
+    InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr) {
+      this->type_ = id_p(this->type_->query({
+        {"domain", domain->toString()},
+        {"range", nullptr == range ? domain->toString() : range->toString()}}));
+      return this;
+    }
+
+    InstBuilder *itype_and_seed(const IType itype,
+                                const Obj_p &seed = nullptr) {
+      this->itype_ = itype;
+      if(seed)
+        this->seed_ = seed;
+      else {
+        this->seed_ = is_barrier_out(this->itype_)
+                        ? Obj::to_objs()
+                        : _noobj_;
       }
 
-      InstF NO_OBJ_INST() const {
-        return [this](const Obj_p &lhs, const InstArgs &args) {
-          LOG(TRACE, "base-type instruction requiring resolution for %s\n", lhs->toString().c_str());
+      return this;
+    }
 
-          List<ID> derivation = {*this->type_};
-          Inst_p resolve = RESOLVE_INST(lhs, this->type_, &derivation);
-          if(resolve->is_noobj()) {
-            const Obj_p type_obj = ROUTER_READ(lhs->tid());
-            derivation.push_back(*this->type_);
-            resolve = RESOLVE_INST(lhs->as(lhs->type()->domain()), this->type_, &derivation);
-          }
-          if(resolve->is_noobj()) {
-            string result;
-            int counter = 0;
-            for(int i = 0; i < derivation.size(); i++) {
-              counter = derivation.at(i).equals(*this->type_) ? 1 : counter + 1;
-              result.append(StringHelper::format("\t!m%s>" FURI_WRAP "\n",
-                                                 StringHelper::repeat(counter, "--").c_str(),
-                                                 derivation.at(i).toString().c_str()).c_str());
-            }
-            result = result.empty() ? "" : result.substr(0, result.size() - 1); // remove trailing \n
-            throw fError(FURI_WRAP_C(m) " " FURI_WRAP " !yno inst!! resolution\n%s", lhs->tid()->toString().c_str(),
-                         this->type_->toString().c_str(), result.c_str());
-          }
-          /* InstArgs args_applied;
-                    for(const Obj_p &arg: args) {
-                      args_applied.push_back(arg->apply(lhs));
-                    }*/
-          return Obj::replace_from_obj(resolve, args, lhs)->apply(lhs);
-          // return resolve->is_inst() ? resolve->inst_f()(lhs, args) : resolve->apply(lhs);
-        };
+    InstBuilder *doc(const string &documentation) {
+      this->doc_ = documentation;
+      return this;
+    }
+
+    InstBuilder *inst_f(const InstF &inst_f) {
+      this->function_supplier_ = inst_f;
+      return this;
+    }
+
+    [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {
+      if(value_id) {
+        if(const Inst_p maybe = ROUTER_READ(value_id); !maybe->is_noobj())
+          return maybe;
       }
-
-    protected:
-      ID_p type_;
-      InstArgs args_{};
-      InstF function_supplier_ = InstBuilder::NO_OBJ_INST();
-      IType itype_{IType::ONE_TO_ONE};
-      Obj_p seed_;
-      string doc_{};
-
-    public:
-      static InstBuilder *build(const ID &type_id = *INST_FURI) {
-        return new InstBuilder(id_p(*ROUTER_RESOLVE(fURI(type_id))));
-      }
-
-      InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
-                             const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
-        this->args_.push_back(arg0);
-        if(arg1)
-          this->args_.push_back(arg1);
-        if(arg2)
-          this->args_.push_back(arg2);
-        if(arg3)
-          this->args_.push_back(arg3);
-        if(arg4)
-          this->args_.push_back(arg4);
-        return this;
-      }
-
-      InstBuilder *domain_range(const ID_p &domain, const ID_p &range = nullptr) {
-        this->type_ = id_p(this->type_->query({{"domain", domain->toString()}, {"range", nullptr == range ? domain->toString() : range->toString()}}));
-        return this;
-      }
-
-      InstBuilder *itype_and_seed(const IType itype,
-                                  const Obj_p &seed = nullptr) {
-        this->itype_ = itype;
-        if(seed)
-          this->seed_ = seed;
-        else {
-          this->seed_ = is_barrier_out(this->itype_)
-                          ? Obj::to_objs()
-                          : _noobj_;
-        }
-
-        return this;
-      }
-
-      InstBuilder *doc(const string &documentation) {
-        this->doc_ = documentation;
-        return this;
-      }
-
-      InstBuilder *inst_f(const InstF &inst_f) {
-        this->function_supplier_ = inst_f;
-        return this;
-      }
-
-      [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {
-        if(value_id) {
-          if(const Inst_p maybe = ROUTER_READ(value_id); !maybe->is_noobj())
-            return maybe;
-        }
-        /* const Inst_p p = Obj::to_inst(string(this->type_->name()), // opcode
-                                       std::move(this->args_), // args
-                                       std::move(this->function_supplier_),
-                                       std::move(this->itype_),
-                                       this->seed_
-                                         ? std::move(this->seed_)
-                                         : (is_barrier_out(this->itype_)
-                                              ? Obj::to_objs()
-                                              : _noobj_),
-                                       std::move(this->type_));*/
-        const Inst_p inst = Inst::create(make_tuple(
-                                           InstArgs(this->args_), InstF(this->function_supplier_),
-                                           static_cast<IType>(this->itype_), this->seed_ ? this->seed_ : _noobj_),
-                                         OType::INST, this->type_,
-                                         root ? id_p(root->vid()->extend(*value_id)) : value_id);
-        if(!this->doc_.empty())
-          inst->doc_write(this->doc_);
-        return inst;
-      }
-    };
-
-    //////////
-
-    /*class InstFactory {
-      explicit InstFactory(const ID_p &type_id) :
-        type_id_(type_id), args_({}) {
-      }
-
-    protected:
-      ID_p type_id_;
-      Obj::Args args_;
-      InstGenerator function_supplier_{};
-      IType itype_{IType::ONE_TO_ONE};
-
-    public:
-      static InstFactory *build(const TypeO &type) { return new InstFactory(id_p(type)); }
-
-      InstFactory *type_args(const ID &name0, const Obj_p &arg0,
-                             const ID &name1 = "", const Obj_p &arg1 = nullptr,
-                             const ID &name2 = "", const Obj_p &arg2 = nullptr,
-                             const ID &name3 = "", const Obj_p &arg3 = nullptr) {
-        this->args_.add_arg(name0, arg0);
-        if (arg1)
-          this->args_.add_arg(name1, arg1);
-        if (arg2)
-          this->args_.add_arg(name2, arg2);
-        if (arg3)
-          this->args_.add_arg(name3, arg3);
-        return this;
-      }
-
-      InstTypeBuilder *instance_f(const Function<Inst_p, BiFunction<Obj_p, Args, Obj_p>> & inst_f) {
-        this->function_supplier_ = [inst_f](const Inst_p &inst) {
-         return [inst](const Obj_p &lhs, const Args &args) {
-            const Inst_p resolve = RESOLVE_INST(lhs,inst->vid_or_tid() );
-            return resolve->is_noobj() ? inst->apply(lhs, args) : resolve->apply(lhs, args);
-
-            return resolve_and_evaluate(
-                lhs, id_p( "is"), args,
-                [](const Obj_p &xlhs, const InstArgs &xargs) {
-                  return xargs.at(0)->bool_value() ? xlhs : _noobj_;
-                });
-          })
-
-          return [args, inst_f](const Obj_p &lhs) {
-            const Inst_p resolve = RESOLVE_INST(lhs, inst_id);
-            return resolve->is_noobj() ? base_f(lhs, args) : resolve->apply(lhs, args);
-
-            InstArgs args_applied;
-            for (const Obj_p &arg: args) {
-              args_applied.push_back(arg->apply(lhs, {}));
-            }
-            return inst_f(lhs, args_applied);
-          };
-        };
-        return this;
-      }
-
-      void save() const {
-        this->create();
-      }
-
-      Inst_p create(const ValueO_p &value_id = nullptr) const {
-        if (value_id) {
-          const Inst_p maybe = ROUTER_READ(value_id);
-          if (!maybe->is_noobj())
-            return maybe;
-        }
-        const Inst_p p = Obj::to_inst(this->type_->name(), // opcode
-                                      this->args_, // args
-                                      this->function_supplier_,
-                                      itype_,
-                                      Obj::noobj_seed(),
-                                      this->type_,
-                                      value_id);
-
-        delete this;
-        return p;
-      }
-    };*/
+      const Inst_p inst = Inst::create(make_tuple(
+                                         InstArgs(this->args_), InstF(this->function_supplier_),
+                                         static_cast<IType>(this->itype_), this->seed_ ? this->seed_ : _noobj_),
+                                       OType::INST, this->type_,
+                                       root ? id_p(root->vid()->extend(*value_id)) : value_id);
+      if(!this->doc_.empty())
+        inst->doc_write(this->doc_);
+      delete this;
+      return inst;
+    }
   };
 } // namespace fhatos
 #endif

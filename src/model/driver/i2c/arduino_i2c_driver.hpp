@@ -37,7 +37,7 @@ namespace fhatos {
     static Obj_p load_remote(const ID &driver_value_id, const ID_p &driver_remote_id,
                              const ID &define_ns_prefix = ID("i2c")) {
       const auto inst_types = make_shared<List<Inst_p>>(List<Inst_p>{
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":begin"))
+          InstBuilder::build(driver_value_id.extend(":begin"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":begin")),
                          ObjHelper::make_lhs_args(lhs, {}),
@@ -45,7 +45,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":end"))
+          InstBuilder::build(driver_value_id.extend(":end"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":end")),
                          ObjHelper::make_lhs_args(lhs, {}),
@@ -53,7 +53,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":request_from"))
+          InstBuilder::build(driver_value_id.extend(":request_from"))
           ->type_args(x(0, "address"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":request_from")),
@@ -62,7 +62,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":begin_transmission"))
+          InstBuilder::build(driver_value_id.extend(":begin_transmission"))
           ->type_args(x(0, "address"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":request_from")),
@@ -71,7 +71,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":end_transmission"))
+          InstBuilder::build(driver_value_id.extend(":end_transmission"))
           ->type_args(x(0, "stop", dool(true)))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":end_transmission")),
@@ -80,7 +80,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":write"))
+          InstBuilder::build(driver_value_id.extend(":write"))
           ->type_args(x(0, "data array", str("")))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":write")),
@@ -89,7 +89,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":available"))
+          InstBuilder::build(driver_value_id.extend(":available"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":available")),
                          ObjHelper::make_lhs_args(lhs, {}),
@@ -97,7 +97,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":read"))
+          InstBuilder::build(driver_value_id.extend(":read"))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":read")),
                          ObjHelper::make_lhs_args(lhs, {}),
@@ -105,7 +105,7 @@ namespace fhatos {
             return noobj();
           })
           ->create(),
-          ObjHelper::InstBuilder::build(driver_value_id.extend(":set_clock"))
+          InstBuilder::build(driver_value_id.extend(":set_clock"))
           ->type_args(x(0, "frequency", jnt(80)))
           ->instance_f([driver_remote_id](const Obj_p &lhs, const InstArgs &args) {
             ROUTER_WRITE(id_p(driver_remote_id->extend(":set_clock")),
@@ -118,7 +118,7 @@ namespace fhatos {
       Type::singleton()->save_type(
           id_p("/lib/driver/i2c/arduino/furi"),
           rec({{vri(":create"),
-                ObjHelper::InstBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
+                InstBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
                 ->type_args(
                     x(0, "local_id", vri(driver_value_id)),
                     x(1, "remote_id", vri(driver_remote_id)),

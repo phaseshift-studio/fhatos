@@ -24,10 +24,6 @@
 #include <memory>
 #include <util/fhat_error.hpp>
 
-#ifndef FOS_DEFAULT_BUFFER_SIZE
-#define FOS_DEFAULT_BUFFER_SIZE 2048
-#endif
-
 namespace fhatos {
   using std::function;
   using std::any;

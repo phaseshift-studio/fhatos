@@ -987,39 +987,6 @@ namespace fhatos {
 
       return map;
     }
-
-
-    static Inst_p to_inst(const ID &type_id, const List<Obj_p> &args) {
-      LOG(TRACE, "searching for inst: %s\n", type_id.toString().c_str());
-      /// try user defined inst
-      ID_p resolved_id = id_p(*ROUTER_RESOLVE(fURI(type_id)));
-      Obj_p base_inst = ROUTER_READ(resolved_id);
-      if(base_inst->is_noobj() || !base_inst->is_code()) {
-        throw fError("!yinst !rnot found!!: " FURI_WRAP "!g-!mresolved_to!g->" FURI_WRAP,
-                     type_id.toString().c_str(),
-                     resolved_id->toString().c_str());
-      }
-      LOG(TRACE, "located !y%s!! %s: !b%s!!\n", OTypes.to_chars(base_inst->o_type()).c_str(),
-          base_inst->toString().c_str(), base_inst->tid()->toString().c_str());
-      if(base_inst->is_inst())
-        return ObjHelper::replace_from_inst(base_inst, args);
-      if(base_inst->is_bcode()) {
-        if(base_inst->bcode_value()->size() == 1)
-          return ObjHelper::replace_from_inst(base_inst->bcode_value()->at(0), args);
-        return Obj::to_inst(
-          type_id.name(), args,
-          [base_inst](const Obj_p &lhs, const InstArgs &args2) {
-            const Obj_p new_bcode = ObjHelper::replace_from_bcode(base_inst, args2, lhs);
-            return new_bcode->apply(lhs);
-          },
-          base_inst->itype(),
-          base_inst->is_inst() ? base_inst->inst_seed_supplier() : _noobj_, // TODO
-          base_inst->tid());
-      }
-      // return replace_from_obj(args, base_inst);
-      throw fError("!b%s!! does not resolve to !yinst!! or !ybcode!!: %s", type_id.toString().c_str(),
-                   base_inst->toString().c_str());
-    }
   };
 } // namespace fhatos
 

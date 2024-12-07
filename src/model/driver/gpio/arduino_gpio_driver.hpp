@@ -37,7 +37,7 @@ namespace fhatos {
     static Obj_p load_remote(const ID &driver_value_id, const ID_p &driver_remote_id,
                              const ID &define_ns_prefix = ID("gpio")) {
       const auto inst_types = make_shared<List<Inst_p>>(
-          List<Inst_p>{ObjHelper::InstBuilder::build(driver_value_id.extend(":write"))
+          List<Inst_p>{InstBuilder::build(driver_value_id.extend(":write"))
                        ->type_args(x(0, "pin"), x(1, "value"), x(2, "driver_remote_id", vri(driver_remote_id)))
                        ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
                          ROUTER_WRITE(id_p(args.at(2)->uri_value().extend(":write/0")),
@@ -45,7 +45,7 @@ namespace fhatos {
                          return noobj();
                        })
                        ->create(),
-                       ObjHelper::InstBuilder::build(driver_value_id.extend(":read"))
+                       InstBuilder::build(driver_value_id.extend(":read"))
                        ->type_args(x(0, "pin"), x(1, "driver_remote_id", vri(driver_remote_id)))
                        ->instance_f([](const Obj_p &lhs, const InstArgs &args) {
                          const ID_p &inst_id_0 = id_p(args.at(1)->uri_value().extend(":read/0"));
@@ -60,7 +60,7 @@ namespace fhatos {
       Type::singleton()->save_type(
           id_p("/lib/driver/gpio/arduino/furi"),
           rec({{vri(":create"),
-                ObjHelper::InstBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
+                InstBuilder::build(DRIVER_INST_FURI->extend(driver_value_id).extend(":create"))
                 ->type_args(x(0, "local_id", vri(driver_value_id)), x(1, "remote_id", vri(driver_remote_id)),
                             x(2, "ns_prefix", vri(define_ns_prefix)))
                 ->instance_f([inst_types](const Obj_p &, const InstArgs &args) {
