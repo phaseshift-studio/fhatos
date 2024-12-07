@@ -452,7 +452,7 @@ namespace fhatos {
                  const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)),
                                                    Valued(value_id), otype_(otype),
                                                    value_(value) {
-      if(value.has_value()) {
+      if(value.has_value()) { // value token
         TYPE_CHECKER(this, type_id, true);
         this->tid_ = type_id;
         if(value_id) {
@@ -460,6 +460,8 @@ namespace fhatos {
           strip->vid_ = nullptr;
           ROUTER_WRITE(value_id, strip, true);
         }
+      } else {
+        this->tid_ = type_id; // type token
       }
     }
 
@@ -620,7 +622,7 @@ namespace fhatos {
     [[nodiscard]] LstList_p lst_value() const {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->is_type() ? make_shared<LstList>() : this->value<LstList_p>();
+      return this->value<LstList_p>();
     }
 
     void lst_add(const Obj_p &obj) const {
@@ -652,7 +654,7 @@ namespace fhatos {
     [[nodiscard]] RecMap_p<> rec_value() const {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
-      return this->is_type() ? make_shared<RecMap<>>() : this->value<RecMap_p<>>();
+      return this->value<RecMap_p<>>();
     }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Runnable &on_error = nullptr) const {
@@ -1025,7 +1027,9 @@ namespace fhatos {
           (obj_printer->show_type && !this->is_base_type()) ||
           (obj_printer->strict && this->is_uri()) ||
           (this->is_bcode() && (!this->domain()->equals(*OBJ_FURI) || !this->range()->equals(*OBJ_FURI))))) {
-        string typing = this->is_base_type() && !this->is_code() ? "" : string("!b").append(this->tid_->name());
+        string typing = this->is_base_type() && !this->is_code() && !this->is_type()
+                          ? ""
+                          : string("!b").append(this->tid_->name());
         // TODO: remove base_type check
         if(obj_printer->show_domain_range &&
            (!this->domain()->equals(*OBJ_FURI) ||
@@ -1351,7 +1355,7 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p operator[](const char *id) const { return this->rec_get(id_p(id)); }
 
-    [[nodiscard]] bool is_type() const { return !this->value_.has_value() && !this->is_noobj(); }
+    [[nodiscard]] bool is_type() const { return !this->value_.has_value() && this->otype_ == OType::OBJ; }
 
     [[nodiscard]] bool is_noobj() const { return this->o_type() == OType::NOOBJ; }
 
@@ -1467,10 +1471,10 @@ namespace fhatos {
     Obj_p apply(const Obj_p &lhs) {
       if(lhs->is_error())
         return lhs;
-      if(this->is_type() || lhs->is_type())
+      /*if(this->is_type() || lhs->is_type())
         return lhs->tid()->equals(*this->tid()) ? lhs : Obj::to_noobj();
       if(lhs->is_type())
-        return lhs->tid()->equals(*this->vid_or_tid()) ? shared_from_this() : Obj::to_noobj();
+        return lhs->tid()->equals(*this->vid_or_tid()) ? shared_from_this() : Obj::to_noobj();*/
       switch(this->o_type()) {
         case OType::BOOL:
           return shared_from_this();
@@ -1543,6 +1547,8 @@ namespace fhatos {
         case OType::NOOBJ:
           return Obj::to_noobj();
         case OType::ERROR:
+          return shared_from_this();
+        case OType::OBJ:
           return shared_from_this();
         default:
           throw fError("Unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());

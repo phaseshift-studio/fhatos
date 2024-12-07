@@ -168,7 +168,7 @@ namespace fhatos {
         return {};
       const auto [type_id, value_token] = try_parse_obj_type(token, GROUPING::BRACKET);
       if(value_token.empty() && !type_id.empty()) {
-        return Obj::create(Any(), FURI_OTYPE.at(type_id), id_p(type_id));
+        return Obj::create(Any(), OType::OBJ, id_p(ID(*ROUTER_RESOLVE(fURI(type_id)))));
       }
       const bool dot_type = dotType(type_id.toString()); // .obj. in _bcode (apply)
       Option<Obj_p> b = {};

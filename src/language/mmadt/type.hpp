@@ -45,21 +45,21 @@ namespace mmadt {
     static void import_base_types() {
       Type::singleton()->start_progress_bar(16);
       const Obj_p OBJ_TYPE = Obj::create(Any(), OType::OBJ, OBJ_FURI);
-      TYPE_SAVER(OBJ_FURI, OBJ_TYPE);
-      TYPE_SAVER(NOOBJ_FURI, OBJ_TYPE);
-      TYPE_SAVER(BOOL_FURI, OBJ_TYPE);
-      TYPE_SAVER(INT_FURI, OBJ_TYPE);
+      TYPE_SAVER(OBJ_FURI, Obj::create(Any(), OType::OBJ, OBJ_FURI));
+      TYPE_SAVER(NOOBJ_FURI, Obj::create(Any(), OType::NOOBJ, NOOBJ_FURI));
+      TYPE_SAVER(BOOL_FURI, Obj::create(Any(), OType::OBJ, BOOL_FURI));
+      TYPE_SAVER(INT_FURI, Obj::create(Any(), OType::OBJ, INT_FURI));
       TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
       TYPE_SAVER(id_p(INT_FURI->extend("::zero")), jnt(0));
-      TYPE_SAVER(REAL_FURI, OBJ_TYPE);
-      TYPE_SAVER(STR_FURI, OBJ_TYPE);
-      TYPE_SAVER(URI_FURI, OBJ_TYPE);
-      TYPE_SAVER(LST_FURI, OBJ_TYPE);
-      TYPE_SAVER(REC_FURI, OBJ_TYPE);
-      TYPE_SAVER(OBJS_FURI, OBJ_TYPE);
-      TYPE_SAVER(BCODE_FURI, OBJ_TYPE);
-      TYPE_SAVER(INST_FURI, OBJ_TYPE);
-      TYPE_SAVER(ERROR_FURI, OBJ_TYPE);
+      TYPE_SAVER(REAL_FURI, Obj::create(Any(), OType::OBJ, REAL_FURI));
+      TYPE_SAVER(STR_FURI, Obj::create(Any(), OType::OBJ, STR_FURI));
+      TYPE_SAVER(URI_FURI, Obj::create(Any(), OType::OBJ, URI_FURI));
+      TYPE_SAVER(LST_FURI, Obj::create(Any(), OType::OBJ, LST_FURI));
+      TYPE_SAVER(REC_FURI, Obj::create(Any(), OType::OBJ, REC_FURI));
+      TYPE_SAVER(OBJS_FURI, Obj::create(Any(), OType::OBJ, OBJS_FURI));
+      TYPE_SAVER(BCODE_FURI, Obj::create(Any(), OType::OBJ, BCODE_FURI));
+      TYPE_SAVER(INST_FURI, Obj::create(Any(), OType::OBJ, INST_FURI));
+      TYPE_SAVER(ERROR_FURI, Obj::create(Any(), OType::OBJ, ERROR_FURI));
       Type::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
     }
