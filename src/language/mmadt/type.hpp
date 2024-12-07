@@ -99,7 +99,7 @@ namespace mmadt {
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/count"),
                  InstBuilder::build(MMADT_SCHEME "/count")
-                 ->domain_range(OBJ_FURI, INT_FURI)
+                 ->domain_range(OBJS_FURI, INT_FURI)
                  ->type_args(x(0, "obj", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
                    return !args.at(0)->is_objs() ? jnt(1) : Obj::to_int(args.at(0)->objs_value()->size());
@@ -125,14 +125,16 @@ namespace mmadt {
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/from"),
                  InstBuilder::build(MMADT_SCHEME "/from")
+                 ->domain_range(URI_FURI, OBJ_FURI)
                  ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
-                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                 ->inst_f([](const Obj_p &, const InstArgs &args) {
                    const Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()));
                    return result->is_noobj() ? args.at(1) : result;
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/is"),
                  InstBuilder::build(MMADT_SCHEME "/is") // TODO: figure out how to get the opcode in obj insts
+                 //->domain_range(OBJ_FURI, OBJ_FURI)
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return args.at(0)->bool_value() ? lhs : _noobj_;
@@ -147,6 +149,7 @@ namespace mmadt {
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/merge"),
                  InstBuilder::build(MMADT_SCHEME "/merge")
+                 ->domain_range(LST_FURI, OBJS_FURI)
                  ->type_args(x(0, "count", jnt(INT32_MAX)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    const int max = args.at(0)->int_value();
@@ -204,6 +207,7 @@ namespace mmadt {
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/type"),
                  InstBuilder::build(MMADT_SCHEME "/type")
+                 ->domain_range(OBJ_FURI, URI_FURI)
                  ->type_args(x(0, "obj", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
                    return Obj::to_uri(*args.at(0)->tid());
@@ -375,7 +379,7 @@ namespace mmadt {
       /////////////////////////// PLUS,MUT INST ///////////////////////////
       for(const auto &op: {"plus", "mult"}) {
         const ID MMADT_INST = MMADT_ID->extend(op);
-       TYPE_SAVER(id_p(MMADT_INST),
+        TYPE_SAVER(id_p(MMADT_INST),
                    InstBuilder::build(MMADT_INST)
                    ->type_args(x(0, "rhs"))
                    ->create());

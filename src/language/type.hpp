@@ -141,8 +141,6 @@ namespace fhatos {
           Obj_p current_obj = lhs;
           const ID_p inst_type_id = id_p(ID(*ROUTER_RESOLVE(fURI(*inst->tid()))));
           while(true) {
-            if(current_obj->is_noobj())
-              return noobj();
             // check for inst on obj value
             ID_p current_vid = current_obj->vid();
             Inst_p maybe;
@@ -157,7 +155,7 @@ namespace fhatos {
                 return maybe;
             }
             // check for inst on obj type (if not, walk up the obj type tree till root)
-            const ID_p current_tid = current_obj->tid();
+            const ID_p current_tid = current_obj->is_noobj() ? OBJ_FURI : current_obj->tid();
             LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
                     current_tid->extend(C_INST_C).toString().c_str(),
                     inst_type_id->toString().c_str());
@@ -166,7 +164,7 @@ namespace fhatos {
                                               ? fURI(*inst_type_id)
                                               : current_tid->extend(C_INST_C).extend(*inst_type_id));
             maybe = ROUTER_READ(id_p(current_tid->equals(*OBJ_FURI)
-                                       ? fURI(*inst_type_id)
+                                       ? fURI(*inst_type_id) // drop back to flat namespace
                                        : current_tid->extend(C_INST_C).extend(*inst_type_id)));
             if(!maybe->is_noobj())
               return maybe;
@@ -177,10 +175,9 @@ namespace fhatos {
         };
         Inst_p final_inst;
         if(inst->inst_f() == nullptr) {
-          // inst is a token placeholder from a parse or dynamic generation
+          // inst is a token placeholder from a parse or dynamic generation (dynamic dispatch required)
           List<ID> derivation_tree;
-          // TODO: this is gimpy
-          final_inst = TEMP(lhs->is_noobj() ? ROUTER_READ(OBJ_FURI) : lhs, inst, &derivation_tree);
+          final_inst = TEMP(lhs, inst, &derivation_tree);
           if(final_inst->is_noobj()) {
             const Obj_p type_obj = ROUTER_READ(lhs->tid());
             derivation_tree.push_back(*final_inst->tid());
@@ -202,17 +199,17 @@ namespace fhatos {
               ////////////////////////////////////////////////////////////////////////////////
             }
           }
-          InstArgs merge = InstArgs();
+          auto merged_args = InstArgs();
           for(int i = 0; i < final_inst->inst_args().size(); i++) {
             if(i < inst->inst_args().size()) {
-              merge.push_back(inst->inst_args().at(i));
+              merged_args.push_back(inst->inst_args().at(i));
             } else {
-              merge.push_back(final_inst->inst_args().at(i)->inst_args().at(1)); // default arg
+              merged_args.push_back(final_inst->inst_args().at(i)->inst_args().at(1)); // default arg
             }
           }
           final_inst = Obj::to_inst(
             final_inst->inst_op(),
-            merge,
+            merged_args,
             final_inst->inst_f(),
             final_inst->itype(),
             final_inst->inst_seed_supplier(),
@@ -220,9 +217,6 @@ namespace fhatos {
         } else {
           final_inst = inst;
         }
-        //if(inst->vid())
-        // final_inst = final_inst->at(inst->vid());
-
         return final_inst;
       };
     }
@@ -231,9 +225,6 @@ namespace fhatos {
     static ptr<Type> singleton(const ID &id = FOS_SCHEME "/type") {
       static auto types_p = ptr<Type>(new Type(id, *REC_FURI));
       return types_p;
-    }
-
-    static Inst_p OUTER_INST_RESOLVE() {
     }
 
     void start_progress_bar(const uint16_t size) {

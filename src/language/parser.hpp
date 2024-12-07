@@ -530,7 +530,9 @@ namespace fhatos {
           }
         }
       }
-      const Inst_p inst = Obj::to_inst(args, id_p(type_id));
+      // resolve relative to obj given no other contextual information
+      // at runtime, if not compiled, dynamic dispatch to determine most specific inst implementation
+      const Inst_p inst = TYPE_INST_RESOLVER(Obj::to_obj(), Obj::to_inst(args, id_p(type_id)));
       return inst->is_noobj() ? Option<Inst_p>() : Option<Inst_p>(inst);
     }
 
