@@ -207,7 +207,7 @@ namespace fhatos {
             if(i < inst->inst_args().size()) {
               merge.push_back(inst->inst_args().at(i));
             } else {
-              merge.push_back(final_inst->inst_args().at(i));
+              merge.push_back(final_inst->inst_args().at(i)->inst_args().at(1)); // default arg
             }
           }
           final_inst = Obj::to_inst(
