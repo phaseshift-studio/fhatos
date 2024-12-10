@@ -31,22 +31,8 @@ namespace fhatos {
     explicit FhatOSCoreDriver() = delete;
 
   public:
-    static void* import() {
-     // Type::singleton()->start_progress_bar(6);
-      /*this->save_type(MESSAGE_FURI, Obj::to_rec({
-                          {"target", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"payload", Obj::to_bcode()},
-                          {"retain", Obj::to_bcode({Insts::as(vri(BOOL_FURI))})}}));
-      this->save_type(SUBSCRIPTION_FURI, Obj::to_rec({
-                          {"source", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {":on_recv", Obj::to_bcode()}}));
-      //this->save_type(THREAD_FURI, Obj::to_rec({{":loop", Obj::to_bcode()}}, id_p("/sys/scheduler/lib/process")));
-      this->save_type(HEAP_FURI, Obj::to_rec({{"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));
-      this->save_type(MQTT_FURI, Obj::to_rec({
-                          {"pattern", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"broker", Obj::to_bcode({Insts::as(vri(URI_FURI))})},
-                          {"client", Obj::to_bcode({Insts::as(vri(URI_FURI))})}}));*/
+    static void *import() {
+      Type::singleton()->start_progress_bar(6);
       Type::singleton()->save_type(MESSAGE_FURI, Obj::to_rec({
                                      {"target", Obj::to_bcode()},
                                      {"payload", Obj::to_bcode()},
@@ -64,7 +50,7 @@ namespace fhatos {
       Type::singleton()->end_progress_bar(
         StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yfhatos objs!! loaded \n",
                              OBJ_FURI->extend("+").toString().c_str()));
-      //Type::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
+      Type::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
       return nullptr;
     }
   };

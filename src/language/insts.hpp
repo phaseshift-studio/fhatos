@@ -983,7 +983,7 @@ namespace fhatos {
       static List<Pair<string, string>> map = {{"-->", "via_inv"}, {"@", "at"}, {"??", "optional"}, {"-<", "split"},
         {">-", "merge"}, {"~", "match"}, {"<-", "to"}, {"->", "to_inv"},
         {"|", "block"}, {"^", "lift"}, {"V", "drop"}, {"*", "from"},
-        {"=", "each"}, {";", "end"}, {"\\", "from_get"}};
+        {"==", "each"}, {";", "end"}, {"\\", "from_get"}};
 
       return map;
     }

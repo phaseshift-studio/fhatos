@@ -161,8 +161,10 @@ namespace fhatos {
 
     bool first = true;
 
-    explicit Console(const ID &id, const ID &terminal, const Settings &settings) : Thread(Obj::to_rec(rmap({{":loop",
-            Obj::to_bcode([this](const Obj_p &) -> Obj_p {
+    explicit Console(const ID &value_id, const ID &terminal, const Settings &settings) : Thread(Obj::to_rec(rmap({
+          {
+            ":loop", InstBuilder::build(value_id.extend(":").extend("loop"))
+            ->inst_f([this](const Obj_p &, const InstArgs &) -> Obj_p {
               if(this->first) {
                 this->first = false;
                 this->delay(500);
@@ -199,16 +201,22 @@ namespace fhatos {
               this->process_line(this->line_);
               this->line_.clear();
               return noobj();
-            }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
-          {":prompt", Obj::to_bcode([this](const Obj_p &obj) {
-            this->print_prompt();
-            Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", obj->str_value().c_str())));
-            string code = obj->str_value();
-            if(FOS_IS_DOC_BUILD)
-              StringHelper::replace(code, "\\|", "|");
-            this->process_line(code);
-            return noobj();
-          }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))},
+            })
+            ->create()},
+          {":prompt", InstBuilder::build(value_id.extend(":prompt"))
+            ->domain_range(STR_FURI, NOOBJ_FURI)
+            ->itype_and_seed(IType::ONE_TO_ZERO)
+            ->type_args(x(0, "code", Obj::to_type(STR_FURI)))
+            ->inst_f([this](const Obj_p &, const InstArgs &args) {
+              this->print_prompt();
+              Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", args.at(0)->str_value().c_str())));
+              string code = args.at(0)->str_value();
+              if(FOS_IS_DOC_BUILD)
+                StringHelper::replace(code, "\\|", "|");
+              this->process_line(code);
+              return noobj();
+            })
+            ->create()},
           {"config", rec({{vri("nest"), jnt(settings.nest_)},
             {vri("strict"), dool(settings.strict_)},
             {vri("ansi"), dool(settings.ansi_)},
@@ -217,7 +225,7 @@ namespace fhatos {
           })}
           /*{"terminal", rec({
                {vri("stdin"), vri(terminal.extend(":stdin"))},
-               {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(id))),
+               {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(value_id))),
       stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))), settings_(settings) {
       ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend("config/#"), Obj::to_bcode(
                                               [this](const Obj_p &lhs, const InstArgs &args) {

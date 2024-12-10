@@ -335,6 +335,11 @@ namespace fhatos {
   };
 
 
+  static TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
+      [](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
+    LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
+    return false;
+  };
   static TriFunction<const Obj *, const ID_p &, const bool, const bool> TYPE_CHECKER =
       [](const Obj *, const ID_p &type_id, const bool = true) -> bool {
     LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
@@ -783,9 +788,17 @@ namespace fhatos {
 
     [[nodiscard]] Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
 
-    [[nodiscard]] InstF inst_f() const { return std::get<1>(this->inst_value()); }
+    [[nodiscard]] InstF inst_f() const {
+      if(!this->is_inst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return std::get<1>(this->inst_value());
+    }
 
-    [[nodiscard]] Obj_p inst_seed_supplier() const { return std::get<3>(this->inst_value()); }
+    [[nodiscard]] Obj_p inst_seed_supplier() const {
+      if(!this->is_inst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return std::get<3>(this->inst_value());
+    }
 
     [[nodiscard]] Obj_p inst_seed(const Obj_p &arg) const { return this->inst_seed_supplier()->apply(arg); }
 
@@ -794,7 +807,6 @@ namespace fhatos {
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<Pair<Obj_p, Inst_p>>();
     }
-
 
     ID_p domain() const {
       return this->tid_->has_query("domain") ? id_p(this->tid_->query_value("domain")->c_str()) : OBJ_FURI;
@@ -1471,24 +1483,19 @@ namespace fhatos {
     Obj_p apply(const Obj_p &lhs) {
       if(lhs->is_error())
         return lhs;
-      /*if(this->is_type() || lhs->is_type())
-        return lhs->tid()->equals(*this->tid()) ? lhs : Obj::to_noobj();
-      if(lhs->is_type())
-        return lhs->tid()->equals(*this->vid_or_tid()) ? shared_from_this() : Obj::to_noobj();*/
       switch(this->o_type()) {
+        case OType::OBJ: // type token
+          return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
         case OType::BOOL:
-          return shared_from_this();
         case OType::INT:
-          return shared_from_this();
         case OType::REAL:
+        case OType::STR:
           return shared_from_this();
         case OType::URI: {
           return (lhs->is_uri() && this->uri_value().is_relative())
                    ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
                    : shared_from_this();
         }
-        case OType::STR:
-          return shared_from_this();
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {
@@ -1507,15 +1514,17 @@ namespace fhatos {
         }
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
-          const Inst_p final_inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
+          if(!is_initial(inst->itype()))
+            TYPE_CHECKER(lhs.get(), inst->domain(), true);
           // compute args
           InstArgs remake;
-          if(this->inst_op() == "block") {
+          if(this->inst_op() == "block" || this->inst_op() == "each") {
             //// don't evaluate args for block()-inst -- TODO: don't have this be a 'special inst'
             remake = this->inst_args();
           } else {
             //// apply lhs to args
-            for(const Obj_p &arg: final_inst->inst_args()) {
+            for(const Obj_p &arg: inst->inst_args()) {
               remake.push_back(arg->apply(lhs));
             }
           }
@@ -1523,7 +1532,9 @@ namespace fhatos {
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           //// evaluate inst
           //final_inst = Obj::replace_from_obj(final_inst, remake, lhs);
-          const Obj_p result = final_inst->inst_f()(lhs, remake);
+          const Obj_p result = inst->inst_f()(lhs, remake);
+          // if(!result->is_code())
+          //  TYPE_CHECKER(result.get(), inst->range(), true);
           // TODO: delete args in frame
           return result;
         }
@@ -1548,14 +1559,13 @@ namespace fhatos {
           return Obj::to_noobj();
         case OType::ERROR:
           return shared_from_this();
-        case OType::OBJ:
-          return shared_from_this();
         default:
           throw fError("Unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
       }
     }
 
-    [[nodiscard]] bool is_base_type() const { return this->tid_->equals(*OTYPE_FURI.at(this->otype_)); }
+    [[nodiscard]]
+    bool is_base_type() const { return this->tid_->equals(*OTYPE_FURI.at(this->otype_)); }
 
     [[nodiscard]] bool match(const Obj_p &type_obj, const bool require_same_type_id = true) const {
       // LOG(TRACE, "!ymatching!!: %s ~ %s\n", this->toString().c_str(), type->toString().c_str());
@@ -1664,6 +1674,10 @@ namespace fhatos {
           found = true;
       }
       return Obj::to_noobj();
+    }
+
+    static Obj_p to_type(const ID_p &type_id) {
+      return Obj::create(Any(), OType::OBJ, type_id);
     }
 
     /// STATIC TYPE CONSTRAINED CONSTRUCTORS
@@ -1998,7 +2012,7 @@ namespace fhatos {
     return Obj::to_inst(
       "from", {uri, default_arg},
       [](const Uri_p &lhs, const InstArgs &args) {
-        Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()))->at(nullptr);
+        Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()));
         return result->is_noobj() ? args.at(1) : result;
       },
       (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
@@ -2024,6 +2038,11 @@ namespace fhatos {
   }
 
   static BCode_p ___ = Obj::to_bcode();
+
+  static BCode_p __(const ID_p &type_id) {
+    return Obj::to_bcode(type_id);
+  }
+
   static NoObj_p _noobj_ = Obj::to_noobj();
 
   //////////////////////////////////////////////////////////////

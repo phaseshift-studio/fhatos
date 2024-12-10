@@ -83,6 +83,11 @@ namespace fhatos {
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      IS_TYPE_OF = [this](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
+        return this->is_type_of(is_type_id, type_of_id, derivations);
+      };
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_CHECKER = [this](const Obj *obj, const ID_p &type_id, const bool throw_on_fail) -> bool {
         if(type_id->equals(*OBJ_FURI) || type_id->equals(*NOOBJ_FURI))
           return true;
@@ -103,7 +108,7 @@ namespace fhatos {
           if(obj->match(type, false))
             return true;
           if(throw_on_fail) {
-            const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
+            static const auto p = GLOBAL_PRINTERS.at(obj->o_type())->clone();
             p->show_type = false;
             throw fError("!g[!b%s!g]!! %s is !rnot!! a !b%s!! as defined by %s", this->vid()->toString().c_str(),
                          obj->toString(p.get()).c_str(), type_id->toString().c_str(), type->toString().c_str());
@@ -130,46 +135,46 @@ namespace fhatos {
                                   ? obj
                                   : type_def->apply(obj);
         if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
-          throw fError("!g[!b%s!g]!! %s is not a !b%s!!", this->vid()->toString().c_str(), obj->toString().c_str(),
+          throw fError("!g[!b%s!g]!! %s is not a !b%s!!",
+                       Type::singleton()->vid()->toString().c_str(),
+                       obj->toString().c_str(),
                        resolved_type_id->toString().c_str());
         return Obj::create(proto_obj->value_, obj->o_type(), resolved_type_id, obj->vid());
       };
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
+        LOG_OBJ(DEBUG, lhs, " !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString().c_str());
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
           Obj_p current_obj = lhs;
           const ID_p inst_type_id = id_p(ID(*ROUTER_RESOLVE(fURI(*inst->tid()))));
           while(true) {
             // check for inst on obj value
-            ID_p current_vid = current_obj->vid();
             Inst_p maybe;
-            if(current_vid) {
-              LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
-                      current_vid->extend(C_INST_C).toString().c_str(),
-                      inst_type_id->toString().c_str());
+            /////////////////////////////// INST VIA VALUE ///////////////////////////////
+            if(current_obj->vid()) {
+              LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
               if(derivation_tree)
-                derivation_tree->emplace_back(current_vid->extend(C_INST_C).extend(*inst_type_id));
-              maybe = ROUTER_READ(id_p(current_vid->extend(C_INST_C).extend(*inst_type_id)));
+                derivation_tree->emplace_back(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id));
+              maybe = ROUTER_READ(id_p(current_obj->vid()->extend(C_INST_C).extend(*inst_type_id)));
               if(!maybe->is_noobj())
                 return maybe;
             }
+            /////////////////////////////// INST VIA TYPE ///////////////////////////////
             // check for inst on obj type (if not, walk up the obj type tree till root)
-            const ID_p current_tid = current_obj->is_noobj() ? OBJ_FURI : current_obj->tid();
-            LOG_OBJ(DEBUG, current_obj, "!b%s!m%s !yinst!! search\n",
-                    current_tid->extend(C_INST_C).toString().c_str(),
-                    inst_type_id->toString().c_str());
+            LOG_OBJ(DEBUG, current_obj, "!m==>!!searching for !yinst!! !b%s!!\n", inst_type_id->toString().c_str());
             if(derivation_tree)
-              derivation_tree->emplace_back(current_tid->equals(*OBJ_FURI)
+              derivation_tree->emplace_back(current_obj->tid()->equals(*OBJ_FURI)
                                               ? fURI(*inst_type_id)
-                                              : current_tid->extend(C_INST_C).extend(*inst_type_id));
-            maybe = ROUTER_READ(id_p(current_tid->equals(*OBJ_FURI)
+                                              : current_obj->tid()->extend(C_INST_C).extend(*inst_type_id));
+            maybe = ROUTER_READ(id_p(current_obj->tid()->equals(*OBJ_FURI)
                                        ? fURI(*inst_type_id) // drop back to flat namespace
-                                       : current_tid->extend(C_INST_C).extend(*inst_type_id)));
+                                       : current_obj->tid()->extend(C_INST_C).extend(*inst_type_id)));
             if(!maybe->is_noobj())
               return maybe;
-            current_obj = ROUTER_READ(current_obj->tid());
-            if(current_tid->equals(*current_obj->tid())) // infinite loop (i.e. base type)
+            /////////////////////////////////////////////////////////////////////////////
+            if(current_obj->tid()->equals(*(current_obj = ROUTER_READ(current_obj->tid()))->tid()))
+              // infinite loop (i.e. base type)
               return noobj();
           }
         };
@@ -199,24 +204,37 @@ namespace fhatos {
               ////////////////////////////////////////////////////////////////////////////////
             }
           }
-          auto merged_args = InstArgs();
-          for(int i = 0; i < final_inst->inst_args().size(); i++) {
-            if(i < inst->inst_args().size()) {
-              merged_args.push_back(inst->inst_args().at(i));
-            } else {
-              merged_args.push_back(final_inst->inst_args().at(i)->inst_args().at(1)); // default arg
+          if(final_inst->is_inst()) {
+            auto merged_args = InstArgs();
+            for(int i = 0; i < final_inst->inst_args().size(); i++) {
+              if(i < inst->inst_args().size()) {
+                merged_args.push_back(inst->inst_args().at(i));
+              } else {
+                merged_args.push_back(final_inst->inst_args().at(i)->inst_args().at(1)); // default arg
+              }
             }
+            final_inst = Obj::to_inst(
+              final_inst->inst_op(),
+              merged_args,
+              final_inst->inst_f(),
+              final_inst->itype(),
+              final_inst->inst_seed_supplier(),
+              final_inst->tid(), inst->vid());
+          } else {
+            final_inst = Obj::to_inst(
+              inst->inst_op(),
+              inst->inst_args(),
+              [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) {
+                return replace_from_bcode(x, args, lhs)->apply(lhs);
+              },
+              inst->itype(),
+              inst->inst_seed_supplier(),
+              inst->tid(), inst->vid());
           }
-          final_inst = Obj::to_inst(
-            final_inst->inst_op(),
-            merged_args,
-            final_inst->inst_f(),
-            final_inst->itype(),
-            final_inst->inst_seed_supplier(),
-            final_inst->tid(), inst->vid());
         } else {
           final_inst = inst;
         }
+        LOG_OBJ(DEBUG, lhs, " !gresolved!! !yinst!! %s [!gEND!!]\n", final_inst->toString().c_str());
         return final_inst;
       };
     }
@@ -243,6 +261,23 @@ namespace fhatos {
     /////////////////////////////////////////////////////////////////////
     void save_type(const ID_p &type_id, const Obj_p &type_def) const {
       TYPE_SAVER(type_id, type_def);
+    }
+
+    bool is_type_of(const ID_p &is_type_id, const ID_p &of_type_id, List<ID_p> *derivation_tree = nullptr) const {
+      ID_p current_type_id = is_type_id;
+      while(true) {
+        if(derivation_tree)
+          derivation_tree->emplace_back(current_type_id);
+        if(current_type_id->equals(*of_type_id))
+          return true;
+        if(current_type_id->equals(*OBJ_FURI))
+          return false;
+        if(const Option<fURI> &domain = current_type_id->query_value(FOS_DOMAIN); domain.has_value()) {
+          current_type_id = id_p(domain.value());
+        } else {
+          return false;
+        }
+      }
     }
   };
 } // namespace fhatos

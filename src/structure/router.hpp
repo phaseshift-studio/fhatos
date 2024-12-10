@@ -48,7 +48,7 @@ namespace fhatos {
             {"auto_prefix", to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})},
           {":stop", to_inst(
             [this](const Obj_p &, const InstArgs &) {
-              this->write(this->vid_,_noobj_);
+              this->write(this->vid_, _noobj_);
               this->stop();
               return noobj();
             }, NO_ARGS, INST_FURI,
@@ -269,7 +269,7 @@ namespace fhatos {
         false); // TODO: NO MUTEX!
       if(throw_exception) {
         if(list.size() > 1)
-          throw fError(ROUTER_FURI_WRAP " too general as it crosses multiple structures", pattern.toString().c_str());
+          throw fError(ROUTER_FURI_WRAP " crosses multiple structures", pattern.toString().c_str());
         if(list.empty())
           throw fError(ROUTER_FURI_WRAP " has no structure for !b%s!!", this->vid()->toString().c_str(),
                        pattern.toString().c_str());

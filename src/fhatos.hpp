@@ -238,6 +238,8 @@ LOG((logtype), (string("!g[!m%s!g]!! ") + (format)).c_str(), (obj)->vid_or_tid()
 #define LOG_STRUCTURE(logtype, structure, format, ...)                                                                 \
   LOG((logtype), (string("!g[!b%s!g]!! ") + (format)).c_str(), (structure)->pattern()->toString().c_str(),             \
       ##__VA_ARGS__)
+#define FOS_DOMAIN "domain"
+#define FOS_RANGE "range"
 
 #define ROUTER_FURI_WRAP SCHEDULER_FURI_WRAP
 #ifdef NATIVE

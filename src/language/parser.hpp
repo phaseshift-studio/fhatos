@@ -219,7 +219,8 @@ namespace fhatos {
       return {};
     }
 
-    static ID try_parse_domain_range(string &token) {
+    // type_id?range_id<=domain_id
+    static ID parse_type_range_domain(string &token) {
       if(token.length() > 1 && token[0] == '<' && token[token.length() - 1] == '>')
         token = token.substr(1, token.length() - 2);
       StringHelper::trim(token);
@@ -229,8 +230,6 @@ namespace fhatos {
       string range_token;
       if(const size_t index = token.find('?'); index == string::npos) {
         type_token = token;
-        // if(OTypes.has_enum(type_token))
-        //  type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
         return ID(*ROUTER_RESOLVE(type_token));
       } else {
         type_token = token.substr(0, index);
@@ -242,17 +241,26 @@ namespace fhatos {
           domain_token = token.substr(index2 + 2, token.length() + index2 - 2);
         }
       }
-      /* if(OTypes.has_enum(type_token))
-         type_token = OTYPE_FURI.at(OTypes.to_enum(type_token))->toString();
-       if(OTypes.has_enum(domain_token))
-         domain_token = OTYPE_FURI.at(OTypes.to_enum(domain_token))->toString();
-       if(OTypes.has_enum(range_token))
-         range_token = OTYPE_FURI.at(OTypes.to_enum(range_token))->toString();*/
       return ROUTER_RESOLVE(type_token)->query({
         {"domain", ROUTER_RESOLVE(domain_token)->toString()},
         {"range", ROUTER_RESOLVE(range_token)->toString()}});
     }
 
+    static List<Pair<string, string>> unary_sugars() {
+      static List<Pair<string, string>> map = {
+        {"-->", "via_inv"}, {"@", "at"},
+        {"??", "optional"}, {"-<", "split"},
+        {">-", "merge"}, {"~", "match"},
+        {"<-", "to"}, {"->", "to_inv"},
+        {"|", "block"}, {"^", "lift"},
+        {"V", "drop"}, {"*", "from"},
+        {"==", "each"}, {";", "end"},
+        {"\\", "from_get"}/*, {" +", "plus"},
+        {" *", "mult"}*/};
+      return map;
+    }
+
+    // type_id?range_id<=domain_id[value]
     static Pair<ID, string> try_parse_obj_type(const string &token, const GROUPING grouping) {
       string type_token;
       string value_token;
@@ -260,28 +268,29 @@ namespace fhatos {
       auto ss = stringstream(token);
       Tracker tracker;
       if(grouped) {
-        bool onType = true;
-        bool unaryFound = false;
+        bool on_type = true;
+        bool unary_found = false;
         ////////////////////////////////////////////////////
         while(!ss.eof()) {
-          if(onType) {
-            if(StringHelper::look_ahead("<=", &ss, true))
+          if(on_type) {
+            if(StringHelper::look_ahead("<=", &ss, true)) // range<=domain token found
               type_token.append("<=");
-            for(const auto &[k, v]: Insts::unary_sugars()) {
-              if(StringHelper::look_ahead(k, &ss)) {
-                onType = false;
+            for(const auto &[k, v]: Parser::unary_sugars()) {
+              if(StringHelper::look_ahead(k, &ss) || ss.peek() == '.') {
+                if(ss.peek()) ss.get(); // drop .
+                on_type = false;
                 value_token.append(type_token);
                 type_token.clear();
                 value_token.append(k);
-                unaryFound = true;
+                unary_found = true;
                 break;
               }
             }
-            if(unaryFound)
+            if(unary_found)
               break;
-            char c = tracker.track(static_cast<char>(ss.get()));
+            const char c = tracker.track(static_cast<char>(ss.get()));
             if(c == parse_token.to_chars(grouping)[0]) {
-              onType = false;
+              on_type = false;
             } else if((!type_token.empty() && tracker.grouping(parse_token.to_chars(grouping)[0]) &&
                        (
                          // inside value definition (must be bcode)
@@ -291,7 +300,7 @@ namespace fhatos {
               value_token.append(type_token);
               value_token += c;
               type_token.clear();
-              onType = false;
+              on_type = false;
             } else {
               type_token += c;
             }
@@ -301,7 +310,7 @@ namespace fhatos {
         }
         if(type_token.empty())
           value_token = token;
-        else if(!unaryFound)
+        else if(!unary_found)
           value_token = value_token.substr(0, value_token.length() - 2);
       } else {
         type_token = "";
@@ -310,9 +319,11 @@ namespace fhatos {
       StringHelper::trim(value_token);
       StringHelper::trim(type_token);
       //////////////////////////////////////////////////////////////////////////////
-      ID type_id = try_parse_domain_range(type_token);
-      LOG(DEBUG, "!gtype id and value!!:!y%s!g[!y%s!g]!!\n",
-          type_id.toString().c_str(),
+      ID type_id = parse_type_range_domain(type_token);
+      LOG(DEBUG, "!gtype id and value!!:!b%s!g?!b%s!g<=!b%s!g[!y%s!g]!!\n",
+          type_id.query("").toString().c_str(),
+          type_id.query_value("range").value_or("").c_str(),
+          type_id.query_value("domain").value_or("").c_str(),
           value_token.c_str());
       return {type_id, value_token};
     }
@@ -548,7 +559,7 @@ namespace fhatos {
       bool may_b_code = value_token.find('.') != string::npos || //
                         (value_token.find('(') != string::npos && value_token.find(')') != string::npos);
       if(!may_b_code) {
-        for(const auto &[k, v]: Insts::unary_sugars()) {
+        for(const auto &[k, v]: Parser::unary_sugars()) {
           if(value_token.find(k) != string::npos || value_token.find(v + "(") != string::npos) {
             may_b_code = true;
             break;
@@ -569,7 +580,7 @@ namespace fhatos {
         while(!ss.eof()) {
           // inst-level (tokens are chars)
           if(tracker.closed()) {
-            for(const auto &[k, v]: Insts::unary_sugars()) {
+            for(const auto &[k, v]: Parser::unary_sugars()) {
               if(StringHelper::look_ahead(k, &ss, inst_token.empty())) {
                 if(!inst_token.empty()) {
                   LOG(TRACE, "Found beginning of unary %s after parsing %s\n", k.c_str(), inst_token.c_str());
@@ -648,7 +659,7 @@ namespace fhatos {
     static bool sugar_next(stringstream *ss) {
       if(ss->eof())
         return false;
-      for(const auto &[k, v]: Insts::unary_sugars()) {
+      for(const auto &[k, v]: Parser::unary_sugars()) {
         if(StringHelper::look_ahead(k, ss, false)) {
           return true;
         }
