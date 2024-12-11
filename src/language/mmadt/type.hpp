@@ -248,7 +248,7 @@ namespace mmadt {
                    for(uint8_t i = 0; i < xstr.length(); i++) {
                      chars->push_back(str(xstr.substr(i, 1)));
                    }
-                   const Objs_p strs = Options::singleton()->processor<Obj>(Obj::to_objs(chars), args.at(0));
+                   const Objs_p strs = BCODE_PROCESSOR(/*Obj::to_objs(chars), */args.at(0));
                    string ret;
                    for(const Str_p &s: *strs->objs_value()) {
                      ret += s->str_value();
@@ -260,8 +260,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/within")
                  ->type_args(x(0, "code"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return Obj::to_lst(Options::singleton()
-                     ->processor<Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
+                   return Obj::to_lst(BCODE_PROCESSOR(/*Obj::to_objs(chars), */args.at(0))
                      ->objs_value());
                  })
                  ->create());
@@ -273,7 +272,7 @@ namespace mmadt {
                    for(const auto &pair: *lhs->rec_value()) {
                      pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
                    }
-                   const Objs_p results = Options::singleton()->processor<Obj>(pairs, args.at(0));
+                   const Objs_p results =BCODE_PROCESSOR(/*pairs, */args.at(0));
                    const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
                    for(const auto &result: *results->objs_value()) {
                      rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});

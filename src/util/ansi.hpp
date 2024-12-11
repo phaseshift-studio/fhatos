@@ -116,9 +116,15 @@ namespace fhatos {
             ////////////////////////////////// POSITION
           else if('^' == j) {
             const char dir = buffer[i + 2];
-            const char b[1] = {buffer[i + 3]};
+            string s;
+            for(int m = i + 3; m < buffer_length; m++) {
+              if(buffer[m] == '^')
+                break;
+              s += buffer[m];
+              i = m;
+            }
             char *end;
-            uint8_t steps = strtol(b, &end, 10);
+            uint8_t steps = strtol(s.c_str(), &end, 10);
             if(dir == 'S')
               this->save_cursor(steps);
             else if(dir == 'L')
@@ -132,12 +138,15 @@ namespace fhatos {
             else if(dir == 'r')
               this->right(steps);
             else if(dir == 't') {
-              const char c[1] = {buffer[i + 4]};
-              this->teleport(steps, strtol(c, &end, 10));
-              i++;
+              string t;
+              for(int m = i + 3; m < buffer_length; m++) {
+                if(buffer[m] == '^')
+                  break;
+                t += buffer[m];
+                i = m;
+              }
+              this->teleport(steps, strtol(t.c_str(), &end, 10));
             }
-            i++;
-            i++;
           }
           ////////////////////////////// FONT
           // else if('*' == j)

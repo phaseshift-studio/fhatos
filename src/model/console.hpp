@@ -147,9 +147,7 @@ namespace fhatos {
         const Obj_p obj = OBJ_PARSER(line);
         LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
         string to_out;
-        this->print_result(Options::singleton()->processor<Obj>(
-                             obj->is_bcode() ? noobj() : obj,
-                             obj->is_bcode() ? obj : bcode()), 0, &to_out);
+        this->print_result(obj->is_bcode() ? BCODE_PROCESSOR(obj) : obj, 0, &to_out);
         this->write_stdout(str(to_out));
       } catch(const std::exception &e) {
         this->print_exception(e);

@@ -59,13 +59,12 @@ namespace fhatos {
     bool stop_ = false;
 
   public:
-    explicit Process() :
-      Obj({}, OType::REC, id_p("/sys/scheduler/type")) {
+    explicit Process() : Obj({}, OType::REC, id_p("/sys/scheduler/type")) {
       this->vid_ = id_p("/sys/scheduler");
     }
 
-    explicit Process(const Rec_p &setup_loop_stop) :
-      Obj(*setup_loop_stop){}; /*->rec_merge(rmap({
+    explicit Process(const Rec_p &setup_loop_stop) : Obj(*setup_loop_stop) {
+    }; /*->rec_merge(rmap({
           {
               id_p(":delay"), Obj::to_inst(
                   [this](const Obj_p &lhs, const InstArgs &args) {
@@ -113,7 +112,7 @@ namespace fhatos {
     ~Process() override = default;
 
     void feed_watchdog_via_counter() {
-      if (++this->wdt_timer_counter >= FOS_PROCESS_WDT_COUNTER) {
+      if(++this->wdt_timer_counter >= FOS_PROCESS_WDT_COUNTER) {
         // LOG(INFO, "reset watchdog timer: %i >= %i\n", this->wdt_timer_counter.load(), FOS_PROCESS_WDT_COUNTER);
         FEED_WATCDOG();
         this->wdt_timer_counter = 0;
@@ -121,7 +120,7 @@ namespace fhatos {
     }
 
     static Process *current_process() {
-      if (this_process)
+      if(this_process)
         return this_process.load();
       else {
         //LOG(TRACE, "loop_task process\n");
@@ -134,17 +133,17 @@ namespace fhatos {
     virtual void setup() {
       this_process = this;
       ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"), Obj::to_bcode(
-                                                [this](const Obj_p &lhs) {
-                                                  this->rec_set(":loop", lhs);
-                                                  return noobj();
-                                                }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+                                              [this](const Obj_p &lhs) {
+                                                this->rec_set(":loop", lhs);
+                                                return noobj();
+                                              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid()->extend(":setup")));
-      if (setup_bcode->is_noobj())
+      if(setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");
       else
-        Options::singleton()->processor<Obj>(noobj(), setup_bcode);
+        BCODE_PROCESSOR(setup_bcode);
       ////
-      if (this->running) {
+      if(this->running) {
         LOG(WARN, FOS_ALREADY_SETUP, this->vid()->toString().c_str());
         return;
       }
@@ -153,35 +152,35 @@ namespace fhatos {
 
     virtual void loop() {
       this_process = this;
-      if (this->stop_) {
+      if(this->stop_) {
         this->stop();
         return;
       }
-      if (this->sleep_ > 0) {
+      if(this->sleep_ > 0) {
         this->delay(sleep_);
         this->sleep_ = 0;
       }
-      if (this->yield_) {
+      if(this->yield_) {
         this->yield();
         this->yield_ = false;
       }
       const BCode_p loop_bcode = this->rec_get(":loop");
-      if (loop_bcode->is_noobj())
+      if(loop_bcode->is_noobj())
         throw fError("!b%s!! loop !ybcode!! undefined", this->vid()->toString().c_str());
-      Obj_p result = Options::singleton()->processor<Obj>(noobj(), loop_bcode);
+      Obj_p result = BCODE_PROCESSOR(loop_bcode);
     };
 
     virtual void stop() {
       this_process = this;
-      if (!this->running) {
+      if(!this->running) {
         LOG(WARN, FOS_ALREADY_STOPPED, this->vid()->toString().c_str());
         return;
       }
       const BCode_p stop_bcode = ROUTER_READ(id_p(this->vid()->extend(":stop")));
-      if (stop_bcode->is_noobj())
+      if(stop_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "stop !ybcode!! undefined\n");
       else
-        Options::singleton()->processor<Obj>(noobj(), stop_bcode);
+        BCODE_PROCESSOR(stop_bcode);
 
       this->running = false;
     };

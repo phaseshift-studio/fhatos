@@ -135,24 +135,6 @@ namespace fhatos {
       this->parser_ = any(parser);
       return this;
     }
-
-    //////////////////////////
-    /////// PROCESSOR ///////
-    template<typename OBJ>
-    shared_ptr<OBJ> processor(const shared_ptr<OBJ> &starts, const shared_ptr<OBJ> &bcode) {
-      if (!processor_.has_value())
-        throw fError("No processor specified in global options\n");
-      return std::any_cast<function<shared_ptr<OBJ>(const shared_ptr<OBJ> &starts, const shared_ptr<OBJ> &bcode)>>(
-        this->processor_)(starts, bcode);
-    }
-
-    template<typename OBJ>
-    Options *processor(
-      const std::function<shared_ptr<OBJ>(const shared_ptr<OBJ> &starts,
-                                        const shared_ptr<OBJ> &bcode)> &processor) {
-      this->processor_ = any(processor);
-      return this;
-    }
   };
 } // namespace fhatos
 #endif

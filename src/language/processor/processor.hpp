@@ -118,7 +118,7 @@ namespace fhatos {
       delete this->halted_;
     }
 
-    explicit Processor(const BCode_p &bcode, const Obj_p &starts = noobj()) : bcode_(bcode),
+    explicit Processor(const BCode_p &bcode) : bcode_(bcode),
                                                                               running_(new Deque<Monad_p>()),
                                                                               barriers_(new Deque<Monad_p>()),
                                                                               halted_(new Deque<Obj_p>()) {
@@ -128,7 +128,7 @@ namespace fhatos {
       if(!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
       this->bcode_ = Rewriter({
-        Rewriter::starts(starts), Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+        /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for(const Inst_p &inst: *this->bcode_->bcode_value()) {
         const Obj_p seed_copy = inst->inst_seed(inst);
         if(is_barrier_out(inst->itype())) {
@@ -217,41 +217,10 @@ namespace fhatos {
     }
   };
 
-  [[maybe_unused]] static Objs_p process(const BCode_p &bcode, const Obj_p &starts = noobj()) {
-    return Processor(bcode, starts).to_objs();
-  }
-
-  [[maybe_unused]] static Objs_p process(const char *monoid_format, ...) {
-    bool has_format = false;
-    for(size_t i = 0; i < strlen(monoid_format); i++) {
-      if(monoid_format[i] == '%') {
-        has_format = true;
-        break;
-      }
-    }
-    if(has_format) {
-      const size_t max_length = strlen(monoid_format) * 5;
-      char monoid_format_formatted[max_length];
-      va_list arg;
-      va_start(arg, monoid_format);
-      const size_t length = vsnprintf(monoid_format_formatted, max_length, monoid_format, arg);
-      va_end(arg);
-      if(length >= max_length) {
-        throw fError("Monoid string longer than expected. Increase max_length");
-      }
-      return Processor(Options::singleton()->parser<Obj>(monoid_format_formatted), noobj()).to_objs();
-    } else {
-      return Processor(Options::singleton()->parser<Obj>(monoid_format), noobj()).to_objs();
-    }
-  }
-
-
   [[maybe_unused]] static void load_processor() {
-    BCODE_PROCESSOR = [](const Objs_p &starts, const BCode_p &bcode) {
-      return Processor(bcode, starts).to_objs();
+    BCODE_PROCESSOR = [](const BCode_p &bcode) {
+      return Processor(bcode).to_objs();
     };
-    Options::singleton()->processor<Obj>(
-      [](const Obj_p &st, const BCode_p &bc) { return Processor(bc, st).to_objs(); });
   }
 } // namespace fhatos
 

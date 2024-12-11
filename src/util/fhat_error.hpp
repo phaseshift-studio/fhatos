@@ -24,6 +24,7 @@
 #define FOS_ERROR_MESSAGE_SIZE 500
 
 namespace fhatos {
+  using std::string;
 #ifndef NATIVE
   ///////////////////////
   /// EXCEPTION TYPES ///
@@ -66,11 +67,27 @@ namespace fhatos {
       const size_t length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
       va_end(arg);
       //_message[length] = '\0';
-      if (length >= FOS_ERROR_MESSAGE_SIZE) {
+      if(length >= FOS_ERROR_MESSAGE_SIZE) {
         _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
         _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
         _message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
       }
+    }
+
+    static fError create(const std::string &type_id, const char *format, ...) noexcept {
+      string format2 = string("!g[!m").append(type_id).append("!g] ").append(format);
+      char _message[FOS_ERROR_MESSAGE_SIZE];
+      va_list arg;
+      va_start(arg, format2);
+      const size_t length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format2.c_str(), arg);
+      va_end(arg);
+      //_message[length] = '\0';
+      if(length >= FOS_ERROR_MESSAGE_SIZE) {
+        _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
+        _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
+        _message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
+      }
+      return fError(_message);
     }
 
     const char *what() const noexcept override { return this->_message; };

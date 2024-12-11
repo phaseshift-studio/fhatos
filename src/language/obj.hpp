@@ -353,7 +353,7 @@ namespace fhatos {
     LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
-  static BiFunction<const Objs_p, BCode_p, Objs_p> BCODE_PROCESSOR = [](const Objs_p &, const BCode_p &) {
+  static Function<BCode_p, Objs_p> BCODE_PROCESSOR = [](const BCode_p &) {
     LOG(TRACE, "!yBCODE_PROCESSOR!! undefined at this point in bootstrap.\n");
     return nullptr;
   };

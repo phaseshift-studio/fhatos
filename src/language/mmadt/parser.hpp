@@ -29,34 +29,38 @@ using namespace std;
 namespace mmadt {
   class Parser final : public Obj {
     constexpr static auto MMADT_GRAMMAR = R"(
-    ROOT        <- OBJ / COMMENT
-    COMMENT     <- '---' (!'\n' .)*
-    BOOL        <- < 'true' | 'false' >
-    INT         <- < [-]?[0-9]+ >
-    REAL        <- < [-]?[0-9]+ '.' [0-9]+ >
-    STR         <- '\'' < (('\\\'') / (!'\'' .))* > '\''
-    FURI        <- < [a-zA-Z:/?]+([a-zA-Z0-9:/?=&@])* >
-    FURI_NO_Q   <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@])* >
-    URI         <-  '<' FURI '>' / FURI
-    REC         <- '[' OBJ '=>' OBJ (',' OBJ '=>' OBJ)* ']'
-    LST         <- '[' OBJ (',' OBJ)* ']'
-    OBJS        <- '{' OBJ (',' OBJ)* '}'
-    INST        <- (FURI '(' OBJ (',' OBJ)* ')')
-    INST_P      <- INST_SUGAR / INST
-    INST_SUGAR  <- WITHIN / FROM / REF
-    EMPTY_BCODE <- '\\_'
-    BCODE       <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
-    DOM_RNG     <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
-    TYPE_ID     <- DOM_RNG / FURI
-    PROTO_OBJ   <- _ BCODE / BOOL / INT / REAL / STR / LST / REC / OBJS / URI _
-    OBJ         <- (TYPE_ID '[' PROTO_OBJ ']' ('@' FURI)?) / (PROTO_OBJ ('@' FURI)?)
-    ~_          <- [ \t]*
+    ROOT           <- OBJ / COMMENT
+    COMMENT        <- '---' (!'\n' .)*
+    BOOL           <- < 'true' | 'false' >
+    INT            <- < [-]?[0-9]+ >
+    REAL           <- < [-]?[0-9]+ '.' [0-9]+ >
+    STR            <- '\'' < (('\\\'') / (!'\'' .))* > '\''
+    FURI           <- < [a-zA-Z:/?]+([a-zA-Z0-9:/?=&@])* >
+    FURI_NO_Q      <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@])* >
+    URI            <-  '<' FURI '>' / FURI
+    REC            <- '[' OBJ '=>' OBJ (',' OBJ '=>' OBJ)* ']'
+    LST            <- '[' OBJ (',' OBJ)* ']'
+    OBJS           <- '{' OBJ (',' OBJ)* '}'
+    INST           <- (FURI '(' INST_ARG_OBJ (',' INST_ARG_OBJ )* ')')
+    INST_P         <- INST_SUGAR / INST / NO_CODE_OBJ
+    INST_SUGAR     <- WITHIN / FROM / REF
+    EMPTY_BCODE    <- '\\_'
+    BCODE          <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
+    DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
+    TYPE_ID        <- DOM_RNG / FURI
+    NO_CODE_PROTO  <- _ BOOL / INT / REAL / STR / LST / REC / OBJS / URI _
+    INST_ARG_PROTO <- _ BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI _
+    PROTO          <- _ BCODE / NO_CODE_PROTO
+    NO_CODE_OBJ    <- (TYPE_ID '[' NO_CODE_PROTO ']' ('@' FURI)?) / (NO_CODE_PROTO ('@' FURI)?)
+    INST_ARG_OBJ   <- (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?)
+    OBJ            <- (TYPE_ID '[' PROTO ']' ('@' FURI)?) / (PROTO ('@' FURI)?)
+    ~_             <- [ \t]*
     # ############# INST SUGARS ############## #
-    FROM        <- '*' (URI / BCODE)
-    REF         <- '->' OBJ
-    # PASS      <- '-->' OBJ
-    # PAIR      <- '==' OBJ
-    WITHIN      <- '_/' OBJ '\\_'
+    FROM           <- '*' (URI / BCODE)
+    REF            <- '->' OBJ
+    # PASS         <- '-->' OBJ
+    # PAIR         <- '==' OBJ
+    WITHIN         <- '_/' OBJ '\\_'
   )";
 
   public:
@@ -70,15 +74,17 @@ namespace mmadt {
 
     explicit Parser(const ID &id = ID("/parser/")) : Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
       this->parser_ = peg::parser();
-      this->parser_.set_logger([](const size_t line, const size_t column, const string &message, const string &rule) {
-        throw fError("!r%s!! at line !y%i!!:!y%i!! !g[!r%s!g]!!", message.c_str(), line, column, rule.c_str());
-      });
+      this->parser_.set_logger(
+        [this](const size_t line, const size_t column, const string &message, const string &rule) {
+          throw fError("!^r%i^!y^--!r%s!! at line !y%i!!:!y%i!! !g[!r%s!g]!!",
+                       column - 1, message.c_str(), line, column, rule.c_str());
+        });
       this->parser_.enable_packrat_parsing();
       this->parser_.load_grammar(MMADT_GRAMMAR);
       LOG_OBJ(INFO, this, "!ymmADT grammar!! loaded\n");
       /////////////////////////////////////////////////////////////////////////////////
-      this->parser_["OBJ"] = [this](const SemanticValues &vs) -> Obj_p {
-        LOG_OBJ(TRACE, this, "rule obj with choice %i\n", vs.choice());
+      auto y = [this](const SemanticValues &vs) -> Obj_p {
+        LOG_OBJ(TRACE, this, "rule obj with choice %i [%s]\n", vs.choice(), vs.choice() == 0 ? "a[b]@c" : "b@c");
         switch(vs.choice()) {
           case 0: { // x[a]@xyz
             LOG_OBJ(TRACE, this, "rule obj with choice 0 has value for v[0]: %i \n", vs[0].has_value());
@@ -97,13 +103,18 @@ namespace mmadt {
           }
         }
       };
+      this->parser_["OBJ"] = y;
       this->parser_["OBJ"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
         LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bobj!! with token !y%s!!\n", s);
       };
+      this->parser_["NO_CODE_OBJ"] = y;
+      this->parser_["INST_ARG_OBJ"] = y;
 
-      this->parser_["PROTO_OBJ"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
+      auto x = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return any_cast<Pair_p<Any, OType>>(vs[0]);
       };
+      this->parser_["PROTO"] = x;
+      this->parser_["NO_CODE_PROTO"] = x;
 
       this->parser_["FURI"] = [](const SemanticValues &vs) -> fURI_p {
         return furi_p(vs.token_to_string());
@@ -148,7 +159,7 @@ namespace mmadt {
       };
 
       this->parser_["URI"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(any_cast<fURI_p>(vs[0]), OType::URI);
+        return make_shared<Pair<Any, OType>>(*any_cast<fURI_p>(vs[0]), OType::URI);
       };
 
       this->parser_["LST"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
@@ -208,7 +219,8 @@ namespace mmadt {
         }
       };
       this->parser_["BCODE"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
-        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bbcode!! with token !y%s!!\n", s);
+        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bbcode!! with token !y%s!! and choice %i\n", s,
+                c.value_stack.back()->choice());
       };
       /////////////////////////////////////////////////////////////////////////////////////
       this->parser_["FROM"] = [](const SemanticValues &vs) -> Inst_p {
@@ -223,15 +235,9 @@ namespace mmadt {
       };
       /////////////////////////////////////////////////////////////////////////////////////
       OBJ_PARSER = [](const string &obj_string) {
-        try {
-          Obj_p obj;
-          if(!Parser::singleton()->parser_.parse(std::string_view(obj_string), obj))
-            throw fError("parsing exception");
-          return obj;
-        } catch(std::exception &e) {
-          LOG_EXCEPTION(Parser::singleton(), e);
-          return Obj::to_noobj();
-        }
+        Obj_p obj;
+        Parser::singleton()->parser_.parse(std::string_view(obj_string), obj);
+        return obj;
       };
       Options::singleton()->parser<Obj>(OBJ_PARSER);
     }
