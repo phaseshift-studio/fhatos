@@ -387,6 +387,23 @@ IF(RASPBERRYPI)
     MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 ENDIF()
 
+####################################
+####################################
+### PEGLIB: A C++ PEG PARSER
+MESSAGE(CHECK_START "${.y}Making cpp-peblib Library${..}")
+SET(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+FETCHCONTENT_DECLARE(
+        peglib
+        GIT_REPOSITORY https://github.com/yhirose/cpp-peglib
+        GIT_TAG v1.9.1
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+)
+FETCHCONTENT_MAKEAVAILABLE(peglib)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC peglib)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/include/peglib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/peglib)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/peglib-src/include/peglib/ DESTINATION ${CMAKE_SOURCE_DIR}/include/peglib)
+TARGET_LINK_LIBRARIES(fhatos PRIVATE peglib)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 
 ############################################################################################################
 ######################################## UNUSED LIBRARIES ##################################################

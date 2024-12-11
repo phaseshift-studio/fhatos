@@ -46,7 +46,7 @@ namespace mmadt {
       Type::singleton()->start_progress_bar(16);
       const Obj_p OBJ_TYPE = Obj::create(Any(), OType::OBJ, OBJ_FURI);
       TYPE_SAVER(OBJ_FURI, Obj::create(Any(), OType::OBJ, OBJ_FURI));
-      TYPE_SAVER(NOOBJ_FURI, Obj::create(Any(), OType::NOOBJ, NOOBJ_FURI));
+      TYPE_SAVER(NOOBJ_FURI, Obj::create(Any(), OType::OBJ, NOOBJ_FURI));
       TYPE_SAVER(BOOL_FURI, Obj::create(Any(), OType::OBJ, BOOL_FURI));
       TYPE_SAVER(INT_FURI, Obj::create(Any(), OType::OBJ, INT_FURI));
       TYPE_SAVER(id_p(INT_FURI->extend("::one")), jnt(1));
@@ -233,6 +233,52 @@ namespace mmadt {
                  ->type_args(x(0, "obj", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
                    return Obj::to_uri(*args.at(0)->tid());
+                 })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/within"),
+                 InstBuilder::build(MMADT_SCHEME "/within")
+                 ->type_args(x(0, "code"))
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/str/" MMADT_INST_SCHEME "/within"),
+                 InstBuilder::build(MMADT_SCHEME "/within")
+                 ->type_args(x(0, "code"))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   ptr<List<Str_p>> chars = make_shared<List<Str_p>>();
+                   const string xstr = lhs->str_value();
+                   for(uint8_t i = 0; i < xstr.length(); i++) {
+                     chars->push_back(str(xstr.substr(i, 1)));
+                   }
+                   const Objs_p strs = Options::singleton()->processor<Obj>(Obj::to_objs(chars), args.at(0));
+                   string ret;
+                   for(const Str_p &s: *strs->objs_value()) {
+                     ret += s->str_value();
+                   }
+                   return str(ret);
+                 })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/within"),
+                 InstBuilder::build(MMADT_SCHEME "/within")
+                 ->type_args(x(0, "code"))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   return Obj::to_lst(Options::singleton()
+                     ->processor<Obj>(Obj::to_objs(lhs->lst_value()), args.at(0))
+                     ->objs_value());
+                 })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/within"),
+                 InstBuilder::build(MMADT_SCHEME "/within")
+                 ->type_args(x(0, "code"))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const Objs_p pairs = Obj::to_objs();
+                   for(const auto &pair: *lhs->rec_value()) {
+                     pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
+                   }
+                   const Objs_p results = Options::singleton()->processor<Obj>(pairs, args.at(0));
+                   const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
+                   for(const auto &result: *results->objs_value()) {
+                     rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});
+                   }
+                   return Obj::to_rec(rec);
                  })
                  ->create());
       /////////////////////////// RELATIONAL PREDICATE INSTS ///////////////////////////

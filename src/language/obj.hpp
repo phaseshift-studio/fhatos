@@ -1515,12 +1515,14 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
-          if(!is_initial(inst->itype()))
-            TYPE_CHECKER(lhs.get(), inst->domain(), true);
+          //if(!is_initial(inst->itype()))
+          //TYPE_CHECKER(lhs.get(), inst->domain(), true);
           // compute args
           InstArgs remake;
-          if(this->inst_op() == "block" || this->inst_op() == "each") {
-            //// don't evaluate args for block()-inst -- TODO: don't have this be a 'special inst'
+          if(this->inst_op() == "block" ||
+             this->inst_op() == "each" ||
+             this->inst_op() == "within") {
+            //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
             remake = this->inst_args();
           } else {
             //// apply lhs to args
@@ -1556,7 +1558,7 @@ namespace fhatos {
           return objs;
         }
         case OType::NOOBJ:
-          return Obj::to_noobj();
+          return lhs;
         case OType::ERROR:
           return shared_from_this();
         default:

@@ -22,7 +22,6 @@
 #include <fhatos.hpp>
 #include <furi.hpp>
 #include <language/fluent.hpp>
-#include <language/parser.hpp>
 #include <util/string_helper.hpp>
 #include FOS_PROCESS(thread.hpp)
 
@@ -145,14 +144,12 @@ namespace fhatos {
           this->write_stdout(str("\n"));
           return;
         }
-        const Option<Obj_p> obj = Parser::singleton()->try_parse_obj(line);
-        if(!obj.has_value())
-          throw fError("unable to parse input: %s", line.c_str());
-        LOG_PROCESS(TRACE, this, "processing: %s\n", obj.value()->toString().c_str());
+        const Obj_p obj = OBJ_PARSER(line);
+        LOG_PROCESS(TRACE, this, "processing: %s\n", obj->toString().c_str());
         string to_out;
         this->print_result(Options::singleton()->processor<Obj>(
-                             obj.value()->is_bcode() ? noobj() : obj.value(),
-                             obj.value()->is_bcode() ? obj.value() : bcode()), 0, &to_out);
+                             obj->is_bcode() ? noobj() : obj,
+                             obj->is_bcode() ? obj : bcode()), 0, &to_out);
         this->write_stdout(str(to_out));
       } catch(const std::exception &e) {
         this->print_exception(e);
@@ -190,8 +187,8 @@ namespace fhatos {
                 ///////// DO NOTHING ON EMPTY LINE
                 return noobj();
               }
-              if(!Parser::closed_expression(this->line_))
-                return noobj();
+              // if(!Parser::closed_expression(this->line_))
+              //  return noobj();
               ///////// PARSE MULTI-LINE MONOIDS
               size_t pos = this->line_.find("###");
               while(pos != string::npos) {

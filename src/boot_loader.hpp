@@ -26,6 +26,7 @@
 #include FOS_PROCESS(scheduler.hpp)
 #include <language/mmadt/type.hpp>
 #include <language/type.hpp>
+#include <language/mmadt/parser.hpp>
 #include <model/console.hpp>
 #include <model/terminal.hpp>
 //#include FOS_FILE_SYSTEM(fs.hpp)
@@ -75,7 +76,7 @@ namespace fhatos {
             ->using_printer(Ansi<>::singleton())
             ->with_ansi_color(args_parser->option_bool("--ansi", true))
             ->with_log_level(LOG_TYPES.to_enum(args_parser->option_string("--log", "INFO")));
-        if (args_parser->option_bool("--headers", true)) {
+        if(args_parser->option_bool("--headers", true)) {
           kp->displaying_splash(args_parser->option_string("--splash", ANSI_ART).c_str())
               ->displaying_architecture()
               ->displaying_history()
@@ -99,7 +100,7 @@ namespace fhatos {
             ->mount(Heap<>::create("/io/#"))
             ->install(Terminal::singleton("/io/terminal"))
             ->import(Console::import("/io/lib/console"))
-            ->install(Parser::singleton("/io/parser"))
+            ->install(mmadt::Parser::singleton("/io/parser"))
             ->mount(Heap<>::create("+/#", "_cache"))
 #if defined(ESP_ARCH)
             ->mount(
@@ -132,9 +133,9 @@ namespace fhatos {
                                                         option_string("--console:prompt", "!mfhatos!g>!! "),
                                                         args_parser->option_bool("--console:strict", false),
                                                         LOG_TYPES.to_enum(
-                                                            args_parser->option_string("--log", "INFO")))))
+                                                          args_parser->option_string("--log", "INFO")))))
             ->eval([args_parser] { delete args_parser; });
-      } catch (const std::exception &e) {
+      } catch(const std::exception &e) {
         LOG(ERROR, "[%s] !rCritical!! !mFhat!gOS!! !rerror!!: %s\n", Ansi<>::silly_print("shutting down").c_str(),
             e.what());
         throw;
