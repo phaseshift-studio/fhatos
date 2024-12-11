@@ -45,11 +45,12 @@ namespace mmadt {
     OBJS           <- '{' (OBJ)? (',' OBJ)* '}'
     INST           <- (FURI '(' (INST_ARG_OBJ)? (',' INST_ARG_OBJ )* ')')
     INST_P         <- INST_SUGAR / INST / NO_CODE_OBJ
-    INST_SUGAR     <- WITHIN / FROM / REF / BLOCK / EACH / MERGE
-    EMPTY_BCODE    <- '\\_'
-    BCODE          <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
+    INST_SUGAR     <- WITHIN / FROM / REF / BLOCK / EACH / MERGE / SPLIT
+    EMPTY_BCODE    <- '_'
+    BCODE          <- EMPTY_BCODE / (INST_P ('.'? INST_P)*)
     DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
     TYPE_ID        <- DOM_RNG / FURI
+    # POLY           <- LST / REC
     NO_CODE_PROTO  <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / URI
     INST_ARG_PROTO <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI
     PROTO          <- BCODE / NO_CODE_PROTO
@@ -63,6 +64,7 @@ namespace mmadt {
     BLOCK          <- '|' OBJ
     # PASS         <- '-->' INST_ARG_OBJ
     MERGE          <- '>' < [0-9]* > '-'
+    SPLIT          <- '-<' INST_ARG_OBJ
     EACH           <- '==' INST_ARG_OBJ
     WITHIN         <- '_/' OBJ '\\_'
   )";
@@ -110,12 +112,18 @@ namespace mmadt {
           }
         }
       };
-      this->parser_["OBJ"] = y;
-      this->parser_["OBJ"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
-        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bobj!! with token !y%s!!\n", s);
+      auto enter_y = [](const string &rule) {
+        return [rule](const Context &c, const char *s, size_t n, any &dt) {
+          LOG_OBJ(TRACE, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
+        };
       };
+
+      this->parser_["OBJ"] = y;
       this->parser_["NO_CODE_OBJ"] = y;
       this->parser_["INST_ARG_OBJ"] = y;
+      this->parser_["OBJ"].enter = enter_y("obj");
+      this->parser_["NO_CODE_OBJ"].enter = enter_y("no_code_obj");
+      this->parser_["INST_ARG_OBJ"].enter = enter_y("inst_arg_obj");
 
       auto x = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return any_cast<Pair_p<Any, OType>>(vs[0]);
@@ -208,7 +216,7 @@ namespace mmadt {
         }
         return Obj::to_inst(list, id_p(*ROUTER_RESOLVE(fURI(*op))));
       };
-      this->parser_["INST"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
+      this->parser_["INST"].enter = [](const Context &, const char *s, size_t, any &) {
         LOG_OBJ(TRACE, Parser::singleton(), "entering rule !binst!! with token !y%s!!\n", s);
       };
 
@@ -220,6 +228,14 @@ namespace mmadt {
 
       this->parser_["FURI_NO_Q"] = [](const SemanticValues &vs) -> fURI_p {
         return furi_p(vs.token_to_string());
+      };
+
+      this->parser_["BCODE"].predicate = [](const SemanticValues &vs, const std::any &dt, std::string &msg) -> bool {
+        return vs.size() != 1 || any_cast<Obj_p>(vs[0])->is_code();
+      };
+
+      this->parser_["EMPTY_BCODE"] = [](const SemanticValues &) -> BCode_p {
+        return Obj::to_bcode();
       };
 
       this->parser_["BCODE"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
@@ -262,6 +278,9 @@ namespace mmadt {
       this->parser_["MERGE"] = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({jnt(!vs.token_to_string().empty() ? vs.token_to_number<FOS_INT_TYPE>() : INT32_MAX)},
                             id_p(*ROUTER_RESOLVE("merge")));
+      };
+      this->parser_["SPLIT"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("split")));
       };
       /////////////////////////////////////////////////////////////////////////////////////
       OBJ_PARSER = [](const string &obj_string) {

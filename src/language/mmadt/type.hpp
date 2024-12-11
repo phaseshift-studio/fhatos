@@ -211,6 +211,13 @@ namespace mmadt {
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return Obj::to_bool(!lhs->equals(*args.at(0)));
                  })->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/split"),
+                 InstBuilder::build(MMADT_SCHEME "/split")
+                 ->type_args(x(0, "poly"))
+                 ->inst_f([](const Obj_p &, const InstArgs &args) {
+                   return args.at(0);
+                 })
+                 ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/to"),
                  InstBuilder::build(MMADT_SCHEME "/to")
                  ->type_args(x(0, "uri"), x(1, "retain", dool(true)))
@@ -272,7 +279,7 @@ namespace mmadt {
                    for(const auto &pair: *lhs->rec_value()) {
                      pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
                    }
-                   const Objs_p results =BCODE_PROCESSOR(/*pairs, */args.at(0));
+                   const Objs_p results = BCODE_PROCESSOR(/*pairs, */args.at(0));
                    const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
                    for(const auto &result: *results->objs_value()) {
                      rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});

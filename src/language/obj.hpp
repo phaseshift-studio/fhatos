@@ -1515,8 +1515,8 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
-          //if(!is_initial(inst->itype()))
-          //TYPE_CHECKER(lhs.get(), inst->domain(), true);
+          if(!lhs->is_code() && !is_initial(inst->itype()))
+            TYPE_CHECKER(lhs.get(), inst->domain(), true);
           // compute args
           InstArgs remake;
           if(this->inst_op() == "block" ||
@@ -1535,8 +1535,8 @@ namespace fhatos {
           //// evaluate inst
           //final_inst = Obj::replace_from_obj(final_inst, remake, lhs);
           const Obj_p result = inst->inst_f()(lhs, remake);
-          // if(!result->is_code())
-          //  TYPE_CHECKER(result.get(), inst->range(), true);
+          if(!result->is_code())
+            TYPE_CHECKER(result.get(), inst->range(), true);
           // TODO: delete args in frame
           return result;
         }
