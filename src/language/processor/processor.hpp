@@ -119,9 +119,9 @@ namespace fhatos {
     }
 
     explicit Processor(const BCode_p &bcode) : bcode_(bcode),
-                                                                              running_(new Deque<Monad_p>()),
-                                                                              barriers_(new Deque<Monad_p>()),
-                                                                              halted_(new Deque<Obj_p>()) {
+                                               running_(new Deque<Monad_p>()),
+                                               barriers_(new Deque<Monad_p>()),
+                                               halted_(new Deque<Obj_p>()) {
       if(bcode->is_inst()) { // wrap inst in bcode
         this->bcode_ = Obj::to_bcode({bcode}, bcode->tid());
       }
@@ -143,7 +143,8 @@ namespace fhatos {
       }
       // start inst forced initial
       if(this->running_->empty()) {
-        const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
+        const Obj_p seed_copy = Objs::to_objs();
+        //this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
         this->running_->push_back(
           Monad::create(seed_copy, this->bcode_->bcode_value()->front()));
       }

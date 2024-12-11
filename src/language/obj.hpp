@@ -1558,7 +1558,7 @@ namespace fhatos {
           return objs;
         }
         case OType::NOOBJ:
-          return lhs;
+          return shared_from_this();
         case OType::ERROR:
           return shared_from_this();
         default:

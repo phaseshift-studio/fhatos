@@ -31,32 +31,34 @@ namespace mmadt {
     constexpr static auto MMADT_GRAMMAR = R"(
     ROOT           <- OBJ / COMMENT
     COMMENT        <- '---' (!'\n' .)*
+    TYPE           <- TYPE_ID '[]'
+    NOOBJ          <- < 'noobj' >
     BOOL           <- < 'true' | 'false' >
     INT            <- < [-]?[0-9]+ >
     REAL           <- < [-]?[0-9]+ '.' [0-9]+ >
     STR            <- '\'' < (('\\\'') / (!'\'' .))* > '\''
     FURI           <- < [a-zA-Z:/?#+]+([a-zA-Z0-9:/?=&@#+])* >
     FURI_NO_Q      <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@#+])* >
-    URI            <-  '<' FURI '>' / FURI
-    REC            <- '[' OBJ '=>' OBJ (',' OBJ '=>' OBJ)* ']'
-    LST            <- '[' OBJ (',' OBJ)* ']'
-    OBJS           <- '{' OBJ (',' OBJ)* '}'
-    INST           <- (FURI '(' INST_ARG_OBJ (',' INST_ARG_OBJ )* ')')
-    INST_P         <- _ INST_SUGAR / INST / NO_CODE_OBJ _
+    URI            <- '<' FURI '>' / FURI
+    REC            <- '[' (OBJ '=>' OBJ)? (',' OBJ '=>' OBJ)* ']'
+    LST            <- '[' (OBJ)? (',' OBJ)* ']'
+    OBJS           <- '{' (OBJ)? (',' OBJ)* '}'
+    INST           <- (FURI '(' (INST_ARG_OBJ)? (',' INST_ARG_OBJ )* ')')
+    INST_P         <- INST_SUGAR / INST / NO_CODE_OBJ
     INST_SUGAR     <- WITHIN / FROM / REF / BLOCK / EACH / MERGE
     EMPTY_BCODE    <- '\\_'
     BCODE          <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
     DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
     TYPE_ID        <- DOM_RNG / FURI
-    NO_CODE_PROTO  <- _ BOOL / INT / REAL / STR / LST / REC / OBJS / URI _
-    INST_ARG_PROTO <- _ BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI _
-    PROTO          <- _ BCODE / NO_CODE_PROTO _
-    NO_CODE_OBJ    <- _ (TYPE_ID '[' NO_CODE_PROTO ']' ('@' FURI)?) / (NO_CODE_PROTO ('@' FURI)?) _
-    INST_ARG_OBJ   <- _ (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?) _
-    OBJ            <- _ (TYPE_ID '[' PROTO ']' ('@' FURI)?) / (PROTO ('@' FURI)?) _
-    ~_             <- [ \t]*
+    NO_CODE_PROTO  <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / URI
+    INST_ARG_PROTO <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI
+    PROTO          <- BCODE / NO_CODE_PROTO
+    NO_CODE_OBJ    <- TYPE / (TYPE_ID '[' NO_CODE_PROTO  ']' ('@' FURI)?) / (NO_CODE_PROTO  ('@' FURI)?)
+    INST_ARG_OBJ   <- TYPE / (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?)
+    OBJ            <- TYPE / (TYPE_ID '[' PROTO          ']' ('@' FURI)?) / (PROTO          ('@' FURI)?)
+    %whitespace    <- [ \t]*
     # ############# INST SUGARS ############## #
-    FROM           <- '*' (URI / BCODE)
+    FROM           <- '*' (('(' (URI / BCODE) ')') / (URI / BCODE))
     REF            <- '->' INST_ARG_OBJ
     BLOCK          <- '|' OBJ
     # PASS         <- '-->' INST_ARG_OBJ
@@ -88,14 +90,17 @@ namespace mmadt {
       auto y = [this](const SemanticValues &vs) -> Obj_p {
         LOG_OBJ(TRACE, this, "rule obj with choice %i [%s]\n", vs.choice(), vs.choice() == 0 ? "a[b]@c" : "b@c");
         switch(vs.choice()) {
-          case 0: { // x[a]@xyz
+          case 0: {
+            return any_cast<Obj_p>(vs[0]);
+          }
+          case 1: { // x[a]@xyz
             LOG_OBJ(TRACE, this, "rule obj with choice 0 has value for v[0]: %i \n", vs[0].has_value());
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             LOG_OBJ(TRACE, this, "rule obj with type %s\n", type_id->toString().c_str());
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id, vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case 1: { // a@xyz
+          case 2: { // a@xyz
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o),
                                vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
@@ -131,6 +136,10 @@ namespace mmadt {
         return last != '.' && last != '_';
       };
 
+      this->parser_["COMMENT"] = [](const SemanticValues &) -> Obj_p {
+        return Obj::to_objs();
+      };
+
       ///////////////////////////////////////////////////
 
       this->parser_["OBJS"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
@@ -140,6 +149,15 @@ namespace mmadt {
         }
         return make_shared<Pair<Any, OType>>(list, OType::OBJS);
       };
+
+      this->parser_["NOOBJ"] = [](const SemanticValues &) -> Pair_p<Any, OType> {
+        return make_shared<Pair<Any, OType>>(nullptr, OType::NOOBJ);
+      };
+
+      this->parser_["TYPE"] = [](const SemanticValues &vs) -> Obj_p {
+        return Obj::create(Any(), OType::OBJ, id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0]))));
+      };
+
 
       this->parser_["BOOL"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(vs.token_to_string() == "true", OType::BOOL);
