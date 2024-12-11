@@ -21,9 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <language/type.hpp>
 #include <peglib.h>
-#include <iostream>
 
 using namespace peg;
 using namespace std;
@@ -37,7 +35,8 @@ namespace mmadt {
     INT         <- < [-]?[0-9]+ >
     REAL        <- < [-]?[0-9]+ '.' [0-9]+ >
     STR         <- '\'' < (('\\\'') / (!'\'' .))* > '\''
-    FURI        <- < [a-zA-Z:/?]+([a-zA-Z0-9:/?=&@_])* >
+    FURI        <- < [a-zA-Z:/?]+([a-zA-Z0-9:/?=&@])* >
+    FURI_NO_Q   <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@])* >
     URI         <-  '<' FURI '>' / FURI
     REC         <- '[' OBJ '=>' OBJ (',' OBJ '=>' OBJ)* ']'
     LST         <- '[' OBJ (',' OBJ)* ']'
@@ -45,11 +44,12 @@ namespace mmadt {
     INST        <- (FURI '(' OBJ (',' OBJ)* ')')
     INST_P      <- INST_SUGAR / INST
     INST_SUGAR  <- WITHIN / FROM / REF
-    # EMPTY_BCODE <- '\_'
-    BCODE       <- INST_P ('.' INST_P)*
-    PROTO_OBJ   <- BOOL / REAL / INT / STR / LST / REC / URI
-    # NO_CODE     <- (FURI '[' PROTO_OBJ ']' ('@' FURI)?) / (PROTO_OBJ ('@' FURI)?)
-    OBJ         <- BCODE / (FURI '[' PROTO_OBJ ']' ('@' FURI)?) / (PROTO_OBJ ('@' FURI)?)
+    EMPTY_BCODE <- '\\_'
+    BCODE       <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
+    DOM_RNG     <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
+    TYPE_ID     <- DOM_RNG / FURI
+    PROTO_OBJ   <- _ BCODE / BOOL / INT / REAL / STR / LST / REC / OBJS / URI _
+    OBJ         <- (TYPE_ID '[' PROTO_OBJ ']' ('@' FURI)?) / (PROTO_OBJ ('@' FURI)?)
     ~_          <- [ \t]*
     # ############# INST SUGARS ############## #
     FROM        <- '*' (URI / BCODE)
@@ -59,9 +59,6 @@ namespace mmadt {
     WITHIN      <- '_/' OBJ '\\_'
   )";
 
-  protected:
-    peg::parser parser_;
-
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
       static auto parser_p = ptr<Parser>(new Parser(id));
@@ -69,23 +66,31 @@ namespace mmadt {
     }
 
   protected:
-    explicit Parser(const ID &id = ID("/parser/")) : Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)),
-                                                     parser_(MMADT_GRAMMAR) {
-      this->parser_["OBJ"] = [](const SemanticValues &vs) -> Obj_p {
+    peg::parser parser_{};
+
+    explicit Parser(const ID &id = ID("/parser/")) : Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
+      this->parser_ = peg::parser();
+      this->parser_.set_logger([](const size_t line, const size_t column, const string &message, const string &rule) {
+        throw fError("!r%s!! at line !y%i!!:!y%i!! !g[!r%s!g]!!", message.c_str(), line, column, rule.c_str());
+      });
+      this->parser_.enable_packrat_parsing();
+      this->parser_.load_grammar(MMADT_GRAMMAR);
+      LOG_OBJ(INFO, this, "!ymmADT grammar!! loaded\n");
+      /////////////////////////////////////////////////////////////////////////////////
+      this->parser_["OBJ"] = [this](const SemanticValues &vs) -> Obj_p {
+        LOG_OBJ(TRACE, this, "rule obj with choice %i\n", vs.choice());
         switch(vs.choice()) {
-          case 0: { // inst(a).inst(b,c).inst(d)
-            const auto &[o,v] = *any_cast<Pair_p<ID_p, InstList_p>>(vs[0]);
-            return Obj::to_bcode(v, o);
-          }
-          case 1: { // x[a]@xyz
+          case 0: { // x[a]@xyz
+            LOG_OBJ(TRACE, this, "rule obj with choice 0 has value for v[0]: %i \n", vs[0].has_value());
+            const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
+            LOG_OBJ(TRACE, this, "rule obj with type %s\n", type_id->toString().c_str());
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
-            return Obj::create(v, o, id_p(std::any_cast<fURI>(vs[0])),
-                               vs[2].has_value() ? id_p(std::any_cast<fURI>(vs[2])) : nullptr);
+            return Obj::create(v, o, type_id, vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case 2: { // a@xyz
+          case 1: { // a@xyz
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o),
-                               vs[1].has_value() ? id_p(std::any_cast<fURI>(vs[1])) : nullptr);
+                               vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
           default: {
             throw fError("unknown state");
@@ -93,33 +98,18 @@ namespace mmadt {
         }
       };
       this->parser_["OBJ"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
-        LOG_OBJ(INFO, Parser::singleton(), "entering rule !bobj!! with token !y%s!!\n", s);
-      };
-
-      this->parser_["NOCODE"] = [](const SemanticValues &vs) -> Obj_p {
-        switch(vs.choice()) {
-          case 0: { // x[a]@xyz
-            const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
-            return Obj::create(v, o, id_p(std::any_cast<fURI>(vs[0])),
-                               vs[2].has_value() ? id_p(std::any_cast<fURI>(vs[2])) : nullptr);
-          }
-          case 1: { // a@xyz
-            const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
-            return Obj::create(v, o, OTYPE_FURI.at(o),
-                               vs[1].has_value() ? id_p(std::any_cast<fURI>(vs[1])) : nullptr);
-          }
-          default: {
-            throw fError("unknown state");
-          }
-        }
+        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bobj!! with token !y%s!!\n", s);
       };
 
       this->parser_["PROTO_OBJ"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return any_cast<Pair_p<Any, OType>>(vs[0]);
       };
 
-      this->parser_["FURI"] = [](const SemanticValues &vs) -> fURI {
-        return fURI(vs.token_to_string());
+      this->parser_["FURI"] = [](const SemanticValues &vs) -> fURI_p {
+        return furi_p(vs.token_to_string());
+      };
+      this->parser_["FURI"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
+        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bfuri!! with token !y%s!!\n", s);
       };
 
       this->parser_["FURI"].predicate = [](const SemanticValues &vs, const std::any &, std::string &msg) {
@@ -132,18 +122,21 @@ namespace mmadt {
 
       this->parser_["OBJS"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         const auto list = make_shared<List<Obj_p>>();
-        for(int i = 0; i < vs.size(); i++) {
-          list->push_back(any_cast<Obj_p>(vs[i]));
+        for(const auto &v: vs) {
+          list->push_back(any_cast<Obj_p>(v));
         }
         return make_shared<Pair<Any, OType>>(list, OType::OBJS);
       };
 
       this->parser_["BOOL"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(Any(vs.token_to_string() == "true"), OType::BOOL);
+        return make_shared<Pair<Any, OType>>(vs.token_to_string() == "true", OType::BOOL);
       };
 
       this->parser_["INT"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(vs.token_to_number<FOS_INT_TYPE>(), OType::INT);
+      };
+      this->parser_["INT"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
+        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bint!! with token !y%s!!\n", s);
       };
 
       this->parser_["REAL"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
@@ -155,13 +148,13 @@ namespace mmadt {
       };
 
       this->parser_["URI"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(any_cast<fURI>(vs[0]), OType::URI);
+        return make_shared<Pair<Any, OType>>(any_cast<fURI_p>(vs[0]), OType::URI);
       };
 
       this->parser_["LST"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         const auto list = make_shared<List<Obj_p>>();
-        for(uint16_t i = 0; i < vs.size(); i++) {
-          list->push_back(any_cast<Obj_p>(vs[i]));
+        for(const auto &v: vs) {
+          list->push_back(any_cast<Obj_p>(v));
         }
         return make_shared<Pair<Any, OType>>(list, OType::LST);
       };
@@ -178,22 +171,44 @@ namespace mmadt {
 
       this->parser_["INST"] = [](const SemanticValues &vs) -> Inst_p {
         InstArgs list;
-        const ID_p op = id_p(any_cast<fURI>(vs[0]));
-        for(uint16_t i = 1; i < vs.size(); i++) {
+        const ID_p op = id_p(*any_cast<fURI_p>(vs[0]));
+        for(int i = 1; i < vs.size(); i++) {
           list.push_back(any_cast<Obj_p>(vs[i]));
         }
         return Obj::to_inst(list, id_p(*ROUTER_RESOLVE(fURI(*op))));
       };
+      this->parser_["INST"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
+        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !binst!! with token !y%s!!\n", s);
+      };
 
-      this->parser_["BCODE"] = [](const SemanticValues &vs) -> Pair_p<ID_p, InstList_p> {
+      this->parser_["DOM_RNG"] = [](const SemanticValues &vs) -> fURI_p {
+        return furi_p(any_cast<fURI_p>(vs[0])->query({
+          {"domain", any_cast<fURI_p>(vs[2])->toString()},
+          {"range", any_cast<fURI_p>(vs[1])->toString()}}));
+      };
+
+      this->parser_["FURI_NO_Q"] = [](const SemanticValues &vs) -> fURI_p {
+        return furi_p(vs.token_to_string());
+      };
+
+      this->parser_["BCODE"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         const auto list = make_shared<InstList>();
-        for(uint16_t i = 0; i < vs.size(); i++) {
-          const Obj_p obj_or_inst = any_cast<Obj_p>(vs[i]);
-          list->push_back(obj_or_inst->otype_ == OType::INST
-                            ? obj_or_inst
-                            : Obj::to_inst({obj_or_inst}, id_p(*ROUTER_RESOLVE("map"))));
+        switch(vs.choice()) {
+          case 0: return make_shared<Pair<Any, OType>>(list, OType::BCODE);
+          case 1: {
+            for(uint16_t i = 0; i < vs.size(); i++) {
+              const Obj_p obj_or_inst = any_cast<Obj_p>(vs[i]);
+              list->push_back(obj_or_inst->otype_ == OType::INST
+                                ? obj_or_inst
+                                : Obj::to_inst({obj_or_inst}, id_p(*ROUTER_RESOLVE("map"))));
+            }
+            return make_shared<Pair<Any, OType>>(list, OType::BCODE);
+          }
+          default: throw fError("unknown choice");
         }
-        return make_shared<Pair<ID_p, InstList_p>>(BCODE_FURI, list);
+      };
+      this->parser_["BCODE"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
+        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bbcode!! with token !y%s!!\n", s);
       };
       /////////////////////////////////////////////////////////////////////////////////////
       this->parser_["FROM"] = [](const SemanticValues &vs) -> Inst_p {
@@ -207,10 +222,6 @@ namespace mmadt {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("within")));
       };
       /////////////////////////////////////////////////////////////////////////////////////
-      this->parser_.set_logger([](const size_t line, const size_t column, const string &message, const string &rule) {
-        throw fError("!r%s!! at line !y%i!!:!y%i!! !g[!r%s!g]!!", message.c_str(), line, column, rule.c_str());
-      });
-      this->parser_.enable_packrat_parsing(); // Enable packrat parsing.
       OBJ_PARSER = [](const string &obj_string) {
         try {
           Obj_p obj;
