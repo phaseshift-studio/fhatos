@@ -43,7 +43,7 @@ namespace mmadt {
     OBJS           <- '{' OBJ (',' OBJ)* '}'
     INST           <- (FURI '(' INST_ARG_OBJ (',' INST_ARG_OBJ )* ')')
     INST_P         <- _ INST_SUGAR / INST / NO_CODE_OBJ _
-    INST_SUGAR     <- WITHIN / FROM / REF / BLOCK
+    INST_SUGAR     <- WITHIN / FROM / REF / BLOCK / EACH / MERGE
     EMPTY_BCODE    <- '\\_'
     BCODE          <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
     DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
@@ -57,10 +57,11 @@ namespace mmadt {
     ~_             <- [ \t]*
     # ############# INST SUGARS ############## #
     FROM           <- '*' (URI / BCODE)
-    REF            <- '->' OBJ
+    REF            <- '->' INST_ARG_OBJ
     BLOCK          <- '|' OBJ
-    # PASS         <- '-->' OBJ
-    # PAIR         <- '==' OBJ
+    # PASS         <- '-->' INST_ARG_OBJ
+    MERGE          <- '>' < [0-9]* > '-'
+    EACH           <- '==' INST_ARG_OBJ
     WITHIN         <- '_/' OBJ '\\_'
   )";
 
@@ -236,6 +237,13 @@ namespace mmadt {
       };
       this->parser_["WITHIN"] = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("within")));
+      };
+      this->parser_["EACH"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("each")));
+      };
+      this->parser_["MERGE"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({jnt(!vs.token_to_string().empty() ? vs.token_to_number<FOS_INT_TYPE>() : INT32_MAX)},
+                            id_p(*ROUTER_RESOLVE("merge")));
       };
       /////////////////////////////////////////////////////////////////////////////////////
       OBJ_PARSER = [](const string &obj_string) {
