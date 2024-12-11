@@ -35,29 +35,30 @@ namespace mmadt {
     INT            <- < [-]?[0-9]+ >
     REAL           <- < [-]?[0-9]+ '.' [0-9]+ >
     STR            <- '\'' < (('\\\'') / (!'\'' .))* > '\''
-    FURI           <- < [a-zA-Z:/?]+([a-zA-Z0-9:/?=&@])* >
-    FURI_NO_Q      <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@])* >
+    FURI           <- < [a-zA-Z:/?#+]+([a-zA-Z0-9:/?=&@#+])* >
+    FURI_NO_Q      <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@#+])* >
     URI            <-  '<' FURI '>' / FURI
     REC            <- '[' OBJ '=>' OBJ (',' OBJ '=>' OBJ)* ']'
     LST            <- '[' OBJ (',' OBJ)* ']'
     OBJS           <- '{' OBJ (',' OBJ)* '}'
     INST           <- (FURI '(' INST_ARG_OBJ (',' INST_ARG_OBJ )* ')')
-    INST_P         <- INST_SUGAR / INST / NO_CODE_OBJ
-    INST_SUGAR     <- WITHIN / FROM / REF
+    INST_P         <- _ INST_SUGAR / INST / NO_CODE_OBJ _
+    INST_SUGAR     <- WITHIN / FROM / REF / BLOCK
     EMPTY_BCODE    <- '\\_'
     BCODE          <- EMPTY_BCODE / (INST_P ('.' INST_P)*)
     DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
     TYPE_ID        <- DOM_RNG / FURI
     NO_CODE_PROTO  <- _ BOOL / INT / REAL / STR / LST / REC / OBJS / URI _
     INST_ARG_PROTO <- _ BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI _
-    PROTO          <- _ BCODE / NO_CODE_PROTO
-    NO_CODE_OBJ    <- (TYPE_ID '[' NO_CODE_PROTO ']' ('@' FURI)?) / (NO_CODE_PROTO ('@' FURI)?)
-    INST_ARG_OBJ   <- (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?)
-    OBJ            <- (TYPE_ID '[' PROTO ']' ('@' FURI)?) / (PROTO ('@' FURI)?)
+    PROTO          <- _ BCODE / NO_CODE_PROTO _
+    NO_CODE_OBJ    <- _ (TYPE_ID '[' NO_CODE_PROTO ']' ('@' FURI)?) / (NO_CODE_PROTO ('@' FURI)?) _
+    INST_ARG_OBJ   <- _ (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?) _
+    OBJ            <- _ (TYPE_ID '[' PROTO ']' ('@' FURI)?) / (PROTO ('@' FURI)?) _
     ~_             <- [ \t]*
     # ############# INST SUGARS ############## #
     FROM           <- '*' (URI / BCODE)
     REF            <- '->' OBJ
+    BLOCK          <- '|' OBJ
     # PASS         <- '-->' OBJ
     # PAIR         <- '==' OBJ
     WITHIN         <- '_/' OBJ '\\_'
@@ -226,6 +227,9 @@ namespace mmadt {
       this->parser_["FROM"] = [](const SemanticValues &vs) -> Inst_p {
         const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
         return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("from")));
+      };
+      this->parser_["BLOCK"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("block")));
       };
       this->parser_["REF"] = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("to_inv")));
