@@ -21,7 +21,6 @@
 #define fhatos_base_memory_hpp
 
 #include <fhatos.hpp>
-#include <language/parser.hpp>
 #include <language/type.hpp>
 #include <structure/stype/computed.hpp>
 

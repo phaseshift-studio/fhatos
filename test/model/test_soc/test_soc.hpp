@@ -18,7 +18,7 @@
 
 #ifndef fhatos_test_soc_cpp
 #define fhatos_test_soc_cpp
-#include <test_fhatos.hpp>
+#include <../test/test_fhatos.hpp>
 
 namespace fhatos {
 

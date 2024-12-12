@@ -22,7 +22,6 @@ FhatOS: A Distributed Operating System
 #include <fhatos.hpp>
 #include <language/insts.hpp>
 #include <language/obj.hpp>
-#include <language/parser.hpp>
 #include <structure/router.hpp>
 #include <language/type.hpp>
 

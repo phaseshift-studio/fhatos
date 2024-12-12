@@ -922,7 +922,6 @@ namespace fhatos {
 
     [[nodiscard]] virtual ID_p tid() const = 0;
 
-    [[nodiscard]] virtual bool equals(const BaseTyped &) const { return false; }
   };
 
   class Typed : public BaseTyped {
@@ -937,10 +936,6 @@ namespace fhatos {
     }
 
     [[nodiscard]] ID_p tid() const override { return this->tid_; }
-
-    [[nodiscard]] bool equals(const BaseTyped &other) const override {
-      return this->tid_->equals(*other.tid());
-    }
   };
 
   ////////////////////////////////////////////////////

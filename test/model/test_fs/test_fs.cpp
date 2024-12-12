@@ -25,7 +25,8 @@
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_FILE_SYSTEM
-#include <test_fhatos.hpp>
+#include <../test/test_fhatos.hpp>
+
 
 
 namespace fhatos {

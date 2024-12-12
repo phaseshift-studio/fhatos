@@ -26,7 +26,7 @@
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY
 
-#include <test_fhatos.hpp>
+#include <../test/test_fhatos.hpp>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
@@ -205,7 +205,7 @@ namespace fhatos {
 
   void test_rec_parsing() {
     // REC
-   Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "int/nat"),Obj::to_bcode());
+   Type::singleton()->save_type(id_p("int/nat"),Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/person"), Obj::to_bcode());
     Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/atype"), Obj::to_bcode());
   Type::singleton()->save_type(id_p(FOS_TYPE_PREFIX "rec/btype"), Obj::to_bcode());
@@ -286,13 +286,13 @@ namespace fhatos {
     FOS_CHECK_RESULTS({10}, "**y");
     FOS_CHECK_RESULTS({10}, "*(**x)", {}, true); // TODO:: parse is off for *
     ///// VARIATIONS OF TYPE DEFINITIONS
-    process("/type/inst/testing.->(block(plus(10).mult(2)))");
+    BCODE_PROCESSOR(OBJ_PARSER("/type/inst/testing.->(block(plus(10).mult(2)))"));
     FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
-    process("/type/inst/testing.-> block(plus(10).mult(2))");
+    BCODE_PROCESSOR(OBJ_PARSER("/type/inst/testing.-> block(plus(10).mult(2))"));
     FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
-    process("/type/inst/testing -> block(plus(10).mult(2))");
+   BCODE_PROCESSOR(OBJ_PARSER("/type/inst/testing -> block(plus(10).mult(2))"));
     FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
-    process("/type/inst/testing -> |(plus(10).mult(2))");
+    BCODE_PROCESSOR(OBJ_PARSER("/type/inst/testing -> |(plus(10).mult(2))"));
     FOS_CHECK_RESULTS({22}, "{1}.testing(6)");
   }
 

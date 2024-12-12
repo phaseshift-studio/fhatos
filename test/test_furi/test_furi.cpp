@@ -25,7 +25,7 @@
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_SHARED_MEMORY*/
 #include <furi.hpp>
-#include <test_fhatos.hpp>
+#include <../test/test_fhatos.hpp>
 
 namespace fhatos {
   //////////////////////////////////////////////////////////

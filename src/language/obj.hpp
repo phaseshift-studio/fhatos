@@ -911,7 +911,23 @@ namespace fhatos {
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
-    bool equals(const BaseTyped &other) const override { return *this == (Obj &) other; }
+    [[nodiscard]] bool equals(const Obj &other) const {
+      if(this->otype_ != other.otype_ || !this->tid_->equals(*other.tid_))
+        return false;
+      switch(this->otype_) {
+        case OType::BOOL: return this->bool_value() == other.bool_value();
+        case OType::INT: return this->int_value() == other.int_value();
+        case OType::REAL: return this->real_value() == other.real_value();
+        case OType::STR: return this->str_value() == other.str_value();
+        case OType::URI: return this->uri_value() == other.uri_value();
+        case OType::LST: return *this->lst_value() == *other.lst_value();
+        case OType::REC: return *this->rec_value() == *other.rec_value();
+        case OType::OBJS: return *this->objs_value() == *other.objs_value();
+        case OType::INST: return this->toString() == other.toString(); // TODO: Tuple equality
+        case OType::BCODE: return *this->bcode_value() == *other.bcode_value();
+        default: return false;
+      }
+    }
 
     string toString(const ObjPrinter *obj_printer = nullptr) const {
       if(!obj_printer)

@@ -21,7 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include <fhatos.hpp>
 #include <language/obj.hpp>
-#include <peglib.h>
+#include <../../../_deps/peglib-src/peglib.h>
 
 using namespace peg;
 using namespace std;
@@ -32,8 +32,8 @@ namespace mmadt {
     ROOT           <- OBJ / COMMENT
     COMMENT        <- '---' (!'\n' .)*
     TYPE           <- TYPE_ID '[]'
-    NOOBJ          <- < 'noobj' >
-    BOOL           <- < 'true' | 'false' >
+    NOOBJ          <-  'noobj'
+    BOOL           <-  'true' / 'false'
     INT            <- < [-]?[0-9]+ >
     REAL           <- < [-]?[0-9]+ '.' [0-9]+ >
     STR            <- '\'' < (('\\\'') / (!'\'' .))* > '\''
@@ -53,15 +53,15 @@ namespace mmadt {
     # POLY           <- LST / REC
     NO_CODE_PROTO  <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / URI
     INST_ARG_PROTO <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI
-    PROTO          <- BCODE / NO_CODE_PROTO
+    PROTO          <- REAL / BCODE / NO_CODE_PROTO
     NO_CODE_OBJ    <- TYPE / (TYPE_ID '[' NO_CODE_PROTO  ']' ('@' FURI)?) / (NO_CODE_PROTO  ('@' FURI)?)
     INST_ARG_OBJ   <- TYPE / (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?)
     OBJ            <- TYPE / (TYPE_ID '[' PROTO          ']' ('@' FURI)?) / (PROTO          ('@' FURI)?)
     %whitespace    <- [ \t]*
     # ############# INST SUGARS ############## #
     FROM           <- '*' (('(' (URI / BCODE) ')') / (URI / BCODE))
-    REF            <- '->' INST_ARG_OBJ
-    BLOCK          <- '|' OBJ
+    REF            <- ('->' INST_ARG_OBJ) / ('->(' OBJ ')')
+    BLOCK          <- ('|' OBJ) / ('|(' OBJ ')')
     # PASS         <- '-->' INST_ARG_OBJ
     MERGE          <- '>' < [0-9]* > '-'
     SPLIT          <- '-<' INST_ARG_OBJ
@@ -166,9 +166,12 @@ namespace mmadt {
         return Obj::create(Any(), OType::OBJ, id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0]))));
       };
 
+      this->parser_["TYPE_ID"] = [](const SemanticValues &vs) -> fURI_p {
+        return furi_p(vs.token_to_string());
+      };
 
       this->parser_["BOOL"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(vs.token_to_string() == "true", OType::BOOL);
+        return make_shared<Pair<Any, OType>>(vs.choice() == 0, OType::BOOL);
       };
 
       this->parser_["INT"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {

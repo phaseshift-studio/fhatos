@@ -25,6 +25,7 @@
 
 #include <fhatos.hpp>
 #include <../build/_deps/unity-src/src/unity.h>
+#include <../build/_deps/peglib-src/peglib.h>
 #include <unity.h>
 #include <util/options.hpp>
 #include <language/obj.hpp>
@@ -58,11 +59,11 @@ router()->write(id_p("/sys/router"), router());
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
 #ifdef FOS_DEPLOY_PARSER
-#include <language/parser.hpp>
+#include <language/mmadt/parser.hpp>
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_PARSER_2  \
   router()->attach(Heap<>::create(Pattern("/parser/#"))); \
-  router()->write(id_p("/parser/"), Parser::singleton("/parser/"));
+  router()->write(id_p("/parser/"), mmadt::Parser::singleton("/parser/"));
 #else
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
@@ -71,8 +72,8 @@ router()->write(id_p("/sys/router"), router());
 #include <language/mmadt/type.hpp>
 #include <structure/stype/heap.hpp>
 #define FOS_DEPLOY_TYPE_2 \
-  router()->attach(Heap<>::create(Pattern("/type/#"))); \
-  router()->write(id_p("/type/"),Type::singleton("/type/")); \
+  router()->attach(Heap<>::create(Pattern("/mmadt/#"))); \
+  router()->write(id_p("/mmadt/"),Type::singleton("/mmadt/")); \
   mmadt::mmADT::import();
 #else
 #define FOS_DEPLOY_TYPE_2 ;
@@ -119,7 +120,7 @@ namespace fhatos{
   }
 
 #define FOS_RUN_TESTS(x)                                                                                               \
-  void RUN_UNITY_TESTS() {                                                                                             \
+  void RUN_UNITY_TESTS() {                                                                                     \
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \
@@ -153,7 +154,7 @@ namespace fhatos{
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
     SETUP_AND_LOOP_2                                                                                                   \
-    RUN_UNITY_TESTS();                                                                                                 \
+    RUN_UNITY_TESTS();                                                                                         \
     FOS_STOP_ON_BOOT;                                                                                                  \
 };
 
@@ -285,7 +286,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    Fluent(Parser::singleton()->try_parse_obj(monoid).value()).iterate();
+    Fluent(OBJ_PARSER(monoid)).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
   } catch (const fError &error) {
     LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
@@ -340,7 +341,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 
 #ifdef FOS_DEPLOY_PARSER
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-[[maybe_unused]] static void FOS_CHECK_RESULTS(
+/*[[maybe_unused]] static void FOS_CHECK_RESULTS(
   const List<Obj> &expected, const List<string> &monoids,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = true) {
@@ -352,21 +353,21 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   LOG(DEBUG, "!gEnd monoid!!: %s\n", finalString.c_str());
   return FOS_CHECK_RESULTS(expected, Parser::singleton()->try_parse_obj(finalString).value(),
                            expectedReferences, clearRouter);
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-[[maybe_unused]] static void FOS_CHECK_RESULTS(
+/*[[maybe_unused]] static void FOS_CHECK_RESULTS(
   const List<Obj> &expected, const string &monoid,
   const Map<Uri, Obj, Obj::obj_comp> &expectedReferences = {},
   const bool clearRouter = false) {
-  Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
+  Option<Obj_p> parse = {OBJ_PARSER(monoid)};
   if (!parse.has_value())
     throw fError("Unable to parse: %s\n", monoid.c_str());
   return FOS_CHECK_RESULTS(expected, parse.value(), expectedReferences, clearRouter);
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-[[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
+/*[[maybe_unused]] static void FOS_SHOULD_RETURN(const List<string> &expected, const string &monoid) {
   const Option<Obj_p> parse = Parser::singleton()->try_parse_obj(monoid);
   if (!parse.has_value())
     throw fError("Unable to parse monoid: %s\n", monoid.c_str());
@@ -378,6 +379,6 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
     expectedResults.push_back(*parse2.value());
   }
   return FOS_CHECK_RESULTS(expectedResults, parse.value());
-}
+}*/
 #endif
 #endif

@@ -25,7 +25,7 @@
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_SHARED_MEMORY
 #define FOS_DEPLOY_EXT
-#include <test_fhatos.hpp>
+#include <../test/test_fhatos.hpp>
 #include <model/program.hpp>
 #include <process/obj_process.hpp>
 #include <structure/obj_structure.hpp>

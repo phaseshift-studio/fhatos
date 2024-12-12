@@ -25,7 +25,7 @@
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_SHARED_MEMORY /test/#
 #define FOS_DEPLOY_EXT
-#include <test_fhatos.hpp>
+#include <../test/test_fhatos.hpp>
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
