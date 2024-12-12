@@ -23,14 +23,17 @@
 #define FOS_LOGGING DEBUG
 #endif
 
-#include <fhatos.hpp>
-#include <../build/_deps/unity-src/src/unity.h>
-#include <../build/_deps/peglib-src/peglib.h>
-#include <unity.h>
-#include <util/options.hpp>
-#include <language/obj.hpp>
-#include <language/fluent.hpp>
-#include <structure/stype/heap.hpp>
+#include "../src/fhatos.hpp"
+#include "../build/_deps/unity-src/src/unity.h"
+#include "../build/_deps/peglib-src/peglib.h"
+#include "../src/util/options.hpp"
+#include "../src/language/obj.hpp"
+#include "../src/furi.hpp"
+#include "../src/language/fluent.hpp"
+#include "../src/util/fhat_error.hpp"
+#include "../src/structure/stype/heap.hpp"
+#include "../src/util/logger.hpp"
+#include "../src/util/ansi.hpp"
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
   Options::singleton()->log_level(FOS_LOGGING);
@@ -52,15 +55,19 @@ router()->write(id_p("/sys/router"), router());
 #define FOS_DEPLOY_SCHEDULER_2 ;
 #endif
 #ifdef FOS_DEPLOY_ROUTER
-#include <structure/router.hpp>
-#include <language/fluent.hpp>
-#define FOS_DEPLOY_ROUTER_2 Options::singleton()->router<Router>(Router::singleton());
+#include "../src/structure/router.hpp"
+#include "../src/language/fluent.hpp"
+#include "../src/model/driver/fhatos/core_driver.hpp"
+#define FOS_DEPLOY_ROUTER_2 \
+  Options::singleton()->router<Router>(Router::singleton()); \
+  router()->attach(Heap<>::create(Pattern("/fos/#"))); \
+  void* x = fhatos::FhatOSCoreDriver::import();
 #else
 #define FOS_DEPLOY_ROUTER_2 ;
 #endif
 #ifdef FOS_DEPLOY_PARSER
-#include <language/mmadt/parser.hpp>
-#include <structure/stype/heap.hpp>
+#include "../src/language/mmadt/parser.hpp"
+#include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_PARSER_2  \
   router()->attach(Heap<>::create(Pattern("/parser/#"))); \
   router()->write(id_p("/parser/"), mmadt::Parser::singleton("/parser/"));
@@ -68,9 +75,9 @@ router()->write(id_p("/sys/router"), router());
 #define FOS_DEPLOY_PARSER_2 ;
 #endif
 #ifdef FOS_DEPLOY_TYPE
-#include <language/type.hpp>
-#include <language/mmadt/type.hpp>
-#include <structure/stype/heap.hpp>
+#include "../src/language/type.hpp"
+#include "../src/language/mmadt/type.hpp"
+#include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_TYPE_2 \
   router()->attach(Heap<>::create(Pattern("/mmadt/#"))); \
   router()->write(id_p("/mmadt/"),Type::singleton("/mmadt/")); \
@@ -104,11 +111,12 @@ scheduler()->stop();
 #define FOS_STOP_ON_BOOT ;
 #endif
 
+#define FOS_DEPLOY_PRINTER
 
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
-namespace fhatos{
+namespace fhatos {
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -148,7 +156,7 @@ namespace fhatos{
 #define SETUP_AND_LOOP_2                                                                                               \
   void setup() {                                                                                                       \
     Serial.begin(FOS_SERIAL_BAUDRATE);                                                                                 \
-    delay(2000);        
+    delay(2000);
 #endif
 
 #define SETUP_AND_LOOP()                                                                                               \
@@ -176,9 +184,9 @@ using namespace fhatos;
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
-    printer<>()->printf("  !rline %i!!\t", __LINE__);                                                                  \
-    printer<>()->printf((format), ##__VA_ARGS__);                                                                      \
-    printer<>()->println();                                                                                            \
+    Options::singleton()->printer<Ansi<>>()->printf("  !rline %i!!\t", __LINE__);                                                                  \
+    Options::singleton()->printer<Ansi<>>()->printf((format), ##__VA_ARGS__);                                                                      \
+    Options::singleton()->printer<Ansi<>>()->println();                                                                                            \
   }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
@@ -252,12 +260,12 @@ using namespace fhatos;
 //#ifdef FOS_DEPLOY_PARSER
 static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_result = true) {
   FOS_TEST_MESSAGE("!yTesting!!: %s", bcode->toString().c_str());
-  if (!bcode->is_bcode())
+  if(!bcode->is_bcode())
     return std::make_shared<List<Obj_p>>(List<Obj_p>{bcode});
-  List_p<Obj_p> result = Processor(bcode).to_objs()->objs_value();
-  if (print_result) {
+  List_p<Obj_p> result = BCODE_PROCESSOR(bcode)->objs_value();
+  if(print_result) {
     int index = 0;
-    for (const auto &obj: *result) {
+    for(const auto &obj: *result) {
       FOS_TEST_MESSAGE(FOS_TAB_2 "!g=%i!!=>%s [!y%s!!]", index++, obj->toString().c_str(),
                        OTypes.to_chars(obj->o_type()).c_str());
     }
@@ -288,7 +296,7 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   try {
     Fluent(OBJ_PARSER(monoid)).iterate();
     TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
-  } catch (const fError &error) {
+  } catch(const fError &error) {
     LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
     TEST_ASSERT_TRUE(true);
   }
@@ -303,34 +311,34 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
   [[maybe_unused]] const bool clearRouter = true) {
   const ptr<List<ptr<Obj>>> result = FOS_TEST_RESULT(bcode, true);
   TEST_ASSERT_EQUAL_INT_MESSAGE(expected.size(), result->size(), "Expected result size");
-  for (const Obj &obj: expected) {
+  for(const Obj &obj: expected) {
     auto x = std::find_if(result->begin(), result->end(), [obj](const Obj_p &element) {
-      if (obj.is_real()) {
+      if(obj.is_real()) {
         return obj.real_value() + 0.01f > element->real_value() && obj.real_value() - 0.01f < element->real_value();
       } else
         return obj == *element;
     });
-    if (result->end() == x) {
+    if(result->end() == x) {
       TEST_FAIL_MESSAGE(("Unable to find " + obj.toString()).c_str());
     }
   }
-  if (!expectedReferences.empty()) {
+  if(!expectedReferences.empty()) {
     /* TEST_ASSERT_EQUAL_INT_MESSAGE(
          expectedReferences.size(), router()->retainSize(),
          (string("Router retain message count: ") + router()->pattern()->toString()).c_str());*/
-    for (const auto &[key, value]: expectedReferences) {
+    for(const auto &[key, value]: expectedReferences) {
       const Obj temp = value;
       ROUTER_SUBSCRIBE(
         Subscription::create(ID("fhatty"),
-                       key.uri_value(),
-                       Obj::to_bcode([temp](const ptr<Rec> &message) {
-                         TEST_ASSERT_TRUE_MESSAGE(temp == *message->rec_get("payload"),
-                                                  (string("Router retain message payload equality: ") +
-                                                    router()->vid()->toString() + " " + temp.toString() +
-                                                    " != " + message->rec_get("payload")->toString())
-                                                  .c_str());
-                         return noobj();
-                       })
+                             key.uri_value(),
+                             Obj::to_bcode([temp](const ptr<Rec> &message) {
+                               TEST_ASSERT_TRUE_MESSAGE(temp == *message->rec_get("payload"),
+                                                        (string("Router retain message payload equality: ") +
+                                                          router()->vid()->toString() + " " + temp.toString() +
+                                                          " != " + message->rec_get("payload")->toString())
+                                                        .c_str());
+                               return noobj();
+                             })
         ));
     }
   }

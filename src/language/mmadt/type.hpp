@@ -24,7 +24,7 @@
 #include <language/type.hpp>
 #include FOS_MQTT(mqtt.hpp)
 
-#define TOTAL_INSTRUCTIONS 75
+#define TOTAL_INSTRUCTIONS 100
 
 namespace mmadt {
   using namespace fhatos;
@@ -61,7 +61,7 @@ namespace mmadt {
       TYPE_SAVER(INST_FURI, Obj::create(Any(), OType::OBJ, INST_FURI));
       TYPE_SAVER(ERROR_FURI, Obj::create(Any(), OType::OBJ, ERROR_FURI));
       Type::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
+        StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !ybase types!! loaded \n",MMADT_SCHEME "/+"));
     }
 
     static void import_base_inst() {
@@ -173,32 +173,42 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/merge")
                  ->domain_range(LST_FURI, OBJS_FURI)
                  ->type_args(x(0, "count", jnt(INT32_MAX)))
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/lst" MMADT_INST_SCHEME "/merge"),
+                 InstBuilder::build(MMADT_SCHEME "/merge")
+                 ->domain_range(LST_FURI, OBJS_FURI)
+                 ->type_args(x(0, "count", jnt(INT32_MAX)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    const int max = args.at(0)->int_value();
                    const Objs_p objs = Obj::to_objs();
-                   if(lhs->is_lst()) {
-                     int counter = 0;
-                     for(const auto &element: *lhs->lst_value()) {
-                       if(counter >= max)
-                         break;
-                       if(!element->is_noobj()) {
-                         objs->add_obj(element);
-                         ++counter;
-                       }
+                   int counter = 0;
+                   for(const auto &element: *lhs->lst_value()) {
+                     if(counter >= max)
+                       break;
+                     if(!element->is_noobj()) {
+                       objs->add_obj(element);
+                       ++counter;
                      }
-                   } else if(lhs->is_rec()) {
-                     int counter = 0;
-                     for(const auto &[key, value]: *lhs->rec_value()) {
-                       if(counter >= max)
-                         break;
-                       if(!value->is_noobj()) {
-                         objs->add_obj(value);
-                         ++counter;
-                       }
+                   }
+                   return objs;
+                 })
+                 ->itype_and_seed(IType::ONE_TO_MANY)
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/merge"),
+                 InstBuilder::build(MMADT_SCHEME "/merge")
+                 ->domain_range(REC_FURI, OBJS_FURI)
+                 ->type_args(x(0, "count", jnt(INT32_MAX)))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   const int max = args.at(0)->int_value();
+                   const Objs_p objs = Obj::to_objs();
+                   int counter = 0;
+                   for(const auto &[key, value]: *lhs->rec_value()) {
+                     if(counter >= max)
+                       break;
+                     if(!value->is_noobj()) {
+                       objs->add_obj(value);
+                       ++counter;
                      }
-                   } else {
-                     if(max > 0)
-                       objs->add_obj(lhs);
                    }
                    return objs;
                  })
@@ -535,7 +545,7 @@ namespace mmadt {
       }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yobj insts!! loaded \n",
+        StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yobj insts!! loaded \n",
                              MMADT_SCHEME "/+/" C_INST_C MMADT_SCHEME "/+"));
     }
 

@@ -37,15 +37,15 @@ namespace mmadt {
     INT            <- < [-]?[0-9]+ >
     REAL           <- < [-]?[0-9]+ '.' [0-9]+ >
     STR            <- '\'' < (('\\\'') / (!'\'' .))* > '\''
-    FURI           <- < [a-zA-Z:/?#+]+([a-zA-Z0-9:/?=&@#+])* >
-    FURI_NO_Q      <- < [a-zA-Z:/]+([a-zA-Z0-9:/=&@#+])* >
+    FURI           <- < [a-zA-Z:/?_.#+]+([a-zA-Z0-9:/?_=&@.#+])* >
+    FURI_NO_Q      <- < [a-zA-Z:/_.#+]+([a-zA-Z0-9:/_=&@.#+])* >
     URI            <- '<' FURI '>' / FURI
     REC            <- '[' (OBJ '=>' OBJ)? (',' OBJ '=>' OBJ)* ']'
     LST            <- '[' (OBJ)? (',' OBJ)* ']'
     OBJS           <- '{' (OBJ)? (',' OBJ)* '}'
     INST           <- (FURI '(' (INST_ARG_OBJ)? (',' INST_ARG_OBJ )* ')')
     INST_P         <- INST_SUGAR / INST / NO_CODE_OBJ
-    INST_SUGAR     <- WITHIN / FROM / REF / BLOCK / EACH / MERGE / SPLIT
+    INST_SUGAR     <- PLUS / MULT / WITHIN / FROM / PASS / REF / BLOCK / EACH / MERGE / SPLIT
     EMPTY_BCODE    <- '_'
     BCODE          <- EMPTY_BCODE / (INST_P ('.'? INST_P)*)
     DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
@@ -58,15 +58,19 @@ namespace mmadt {
     INST_ARG_OBJ   <- TYPE / (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?)
     OBJ            <- TYPE / (TYPE_ID '[' PROTO          ']' ('@' FURI)?) / (PROTO          ('@' FURI)?)
     %whitespace    <- [ \t]*
-    # ############# INST SUGARS ############## #
+    ###############################################################
+    ########################  INST SUGARS  ########################
+    ###############################################################
     FROM           <- '*' (('(' (URI / BCODE) ')') / (URI / BCODE))
     REF            <- ('->' INST_ARG_OBJ) / ('->(' OBJ ')')
     BLOCK          <- ('|' OBJ) / ('|(' OBJ ')')
-    # PASS         <- '-->' INST_ARG_OBJ
+    PASS           <- '-->' INST_ARG_OBJ
     MERGE          <- '>' < [0-9]* > '-'
     SPLIT          <- '-<' INST_ARG_OBJ
     EACH           <- '==' INST_ARG_OBJ
     WITHIN         <- '_/' OBJ '\\_'
+    PLUS           <- '+' OBJ
+    MULT           <- 'x' OBJ
   )";
 
   public:
@@ -165,10 +169,12 @@ namespace mmadt {
       this->parser_["TYPE"] = [](const SemanticValues &vs) -> Obj_p {
         return Obj::create(Any(), OType::OBJ, id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0]))));
       };
+      this->parser_["TYPE"].enter = enter_y("type");
 
       this->parser_["TYPE_ID"] = [](const SemanticValues &vs) -> fURI_p {
         return furi_p(vs.token_to_string());
       };
+      this->parser_["TYPE_ID"].enter = enter_y("type_id");
 
       this->parser_["BOOL"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(vs.choice() == 0, OType::BOOL);
@@ -177,9 +183,7 @@ namespace mmadt {
       this->parser_["INT"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(vs.token_to_number<FOS_INT_TYPE>(), OType::INT);
       };
-      this->parser_["INT"].enter = [](const Context &c, const char *s, size_t n, any &dt) {
-        LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bint!! with token !y%s!!\n", s);
-      };
+      this->parser_["INT"].enter = enter_y("int");
 
       this->parser_["REAL"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(vs.token_to_number<FOS_REAL_TYPE>(), OType::REAL);
@@ -192,6 +196,7 @@ namespace mmadt {
       this->parser_["URI"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(*any_cast<fURI_p>(vs[0]), OType::URI);
       };
+      this->parser_["URI"].enter = enter_y("uri");
 
       this->parser_["LST"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         const auto list = make_shared<List<Obj_p>>();
@@ -200,14 +205,16 @@ namespace mmadt {
         }
         return make_shared<Pair<Any, OType>>(list, OType::LST);
       };
+      this->parser_["LST"].enter = enter_y("lst");
 
       this->parser_["REC"] = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        const auto map = Obj::RecMap_p<>();
+        const auto map = make_shared<Obj::RecMap<>>();
         for(int i = 0; i < vs.size(); i = i + 2) {
-          map->emplace(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1]));
+          map->insert(make_pair<Obj_p, Obj_p>(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1])));
         }
         return make_shared<Pair<Any, OType>>(map, OType::REC);
       };
+      this->parser_["REC"].enter = enter_y("rec");
 
       ///////////////////////////////////////////////////
 
@@ -284,6 +291,18 @@ namespace mmadt {
       };
       this->parser_["SPLIT"] = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("split")));
+      };
+
+      this->parser_["PASS"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0]), dool(false)}, id_p(*ROUTER_RESOLVE("to_inv")));
+      };
+
+      this->parser_["PLUS"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("plus")));
+      };
+
+      this->parser_["MULT"] = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("mult")));
       };
       /////////////////////////////////////////////////////////////////////////////////////
       OBJ_PARSER = [](const string &obj_string) {

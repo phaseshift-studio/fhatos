@@ -60,8 +60,8 @@
 //#include <structure/stype/esp32/allocator.hpp>
 #endif
 
-#include <util/ansi.hpp>
-#include <util/fhat_error.hpp>
+#include "util/ansi.hpp"
+#include "util/fhat_error.hpp"
 
 // C++ standard template library common data structures
 #include <any>
@@ -73,9 +73,9 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <util/logger.hpp>
+#include "util/logger.hpp"
 #include <random>
-#include <util/options.hpp>
+#include "util/options.hpp"
 
 
 namespace fhatos {

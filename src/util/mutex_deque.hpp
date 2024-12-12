@@ -19,10 +19,10 @@
 #ifndef fhatos_mutex_deque_hpp
 #define fhatos_mutex_deque_hpp
 
-#include <fhatos.hpp>
+#include  "../../src/fhatos.hpp"
 ////
 #include FOS_MUTEX(mutex.hpp)
-#include <process/util/mutex_rw.hpp>
+#include "../../src/process/util/mutex_rw.hpp"
 
 namespace fhatos {
   template<typename T, typename SIZE_TYPE = uint8_t, uint16_t WAIT_TIME_MS = 250>

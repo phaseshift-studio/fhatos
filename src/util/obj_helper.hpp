@@ -19,8 +19,8 @@
 #ifndef fhatos_obj_helper_hpp
 #define fhatos_obj_helper_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
+#include  "../../src/fhatos.hpp"
+#include "../../src/language/obj.hpp"
 
 namespace fhatos {
   using std::make_pair;

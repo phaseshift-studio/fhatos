@@ -19,10 +19,10 @@
 #ifndef fhatos_instructions_hpp
 #define fhatos_instructions_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
-#include <structure/router.hpp>
-#include <util/options.hpp>
+#include "../fhatos.hpp"
+#include "../language/obj.hpp"
+#include "../structure/router.hpp"
+#include "../util/options.hpp"
 #include <utility>
 
 #include "mmadt/type.hpp"

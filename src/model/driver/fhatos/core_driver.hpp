@@ -48,7 +48,7 @@ namespace fhatos {
                                      {"broker", Obj::to_bcode()},
                                      {"client", Obj::to_bcode()}}));
       Type::singleton()->end_progress_bar(
-        StringHelper::format("\n\t\t!^u1 " FURI_WRAP " !yfhatos objs!! loaded \n",
+        StringHelper::format("\n\t\t!^u1^ " FURI_WRAP " !yfhatos objs!! loaded \n",
                              OBJ_FURI->extend("+").toString().c_str()));
       Type::singleton()->end_progress_bar("!bfhatos !yobjs!! loaded\n");
       return nullptr;

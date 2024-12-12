@@ -20,12 +20,12 @@
 #ifndef fhatos_structure_hpp
 #define fhatos_structure_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
-#include <process/process.hpp>
-#include <structure/pubsub.hpp>
-#include <util/enums.hpp>
-#include <util/mutex_deque.hpp>
+#include "../fhatos.hpp"
+#include "../language/obj.hpp"
+#include "../process/process.hpp"
+#include "pubsub.hpp"
+#include "../util/enums.hpp"
+#include "../util/mutex_deque.hpp"
 
 #define FOS_TRY_META                                                                                                   \
   const Option<Obj_p> meta = this->try_meta(furi);                                                                     \

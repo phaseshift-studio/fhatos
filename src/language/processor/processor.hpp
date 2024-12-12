@@ -19,9 +19,9 @@
 #ifndef fhatos_processor_hpp
 #define fhatos_processor_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
-#include <language/rewrite/rewriter.hpp>
+#include "../../fhatos.hpp"
+#include "../../language/obj.hpp"
+#include "../../language/rewrite/rewriter.hpp"
 
 namespace fhatos {
   class Monad;

@@ -24,10 +24,10 @@
 #define FOS_NAMESPACE_PREFIX_ID MMADT_SCHEME "/uri/ns/prefix/"
 #endif
 
-#include <fhatos.hpp>
-#include <structure/structure.hpp>
+#include "../fhatos.hpp"
+#include "../structure/structure.hpp"
 #include FOS_MQTT(mqtt.hpp)
-#include "stype/heap.hpp"
+#include "../structure/stype/heap.hpp"
 
 namespace fhatos {
   /*static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {

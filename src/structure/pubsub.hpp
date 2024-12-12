@@ -20,10 +20,10 @@
 #ifndef fhatos_structure_subscription_hpp
 #define fhatos_structure_subscription_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
+#include "../../src/fhatos.hpp"
+#include  "../../src/language/obj.hpp"
 
-#include "util/obj_helper.hpp"
+#include "../../src/util/obj_helper.hpp"
 
 namespace fhatos {
 #define RETAIN true

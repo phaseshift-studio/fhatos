@@ -46,11 +46,11 @@
 #define FOS_SCHEME "/fos"
 // #define FOS_BASE_TYPE_INDEX 1
 
-#include <fhatos.hpp>
-#include <util/ptr_helper.hpp>
+#include "../fhatos.hpp"
+#include "../util/ptr_helper.hpp"
 #include <utility>
 #include <variant>
-#include "furi.hpp"
+#include "../furi.hpp"
 
 namespace fhatos {
   /// @brief The base types of mm-ADT

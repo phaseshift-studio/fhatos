@@ -28,8 +28,8 @@
 #include <string.h>
 #include <thread>
 #include <time.h>
-#include <util/options.hpp>
-#include <util/string_printer.hpp>
+#include "options.hpp"
+#include "string_printer.hpp"
 
 namespace fhatos {
   class CPrinter {

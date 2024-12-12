@@ -22,7 +22,7 @@
 #include <any>
 #include <functional>
 #include <memory>
-#include <util/fhat_error.hpp>
+#include "fhat_error.hpp"
 
 namespace fhatos {
   using std::function;

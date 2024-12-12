@@ -19,11 +19,10 @@
 #ifndef fhatos_fluent_hpp
 #define fhatos_fluent_hpp
 
-#include <fhatos.hpp>
+#include "../fhatos.hpp"
 //
-#include <language/insts.hpp>
-#include <language/obj.hpp>
-#include "language/processor/processor.hpp"
+#include "../language/obj.hpp"
+#include "../language/processor/processor.hpp"
 
 namespace fhatos {
   class Fluent {

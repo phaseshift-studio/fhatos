@@ -18,8 +18,8 @@
 #pragma once
 #ifndef fhatos_logger_hpp
 #define fhatos_logger_hpp
-#include <util/enums.hpp>
-#include <util/options.hpp>
+#include "enums.hpp"
+#include "options.hpp"
 #include <mutex>
 
 namespace fhatos {
