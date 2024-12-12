@@ -542,6 +542,39 @@ namespace mmadt {
                          throw fError("unknown op %s\n", op);
                      })
                    ->create());
+        TYPE_SAVER(id_p(string(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/").append(op).c_str()),
+                   InstBuilder::build(MMADT_INST)
+                   ->domain_range(LST_FURI)
+                   ->type_args(x(0, "rhs"))
+                   ->inst_f(
+                     [op](const Obj_p &lhs, const InstArgs &args) -> Obj_p {
+                       if(strcmp(op, "plus") == 0) {
+                         const auto new_v = make_shared<Obj::LstList>();
+                         for(const auto &v: *lhs->lst_value()) {
+                           new_v->push_back(v);
+                         }
+                         for(const auto &v: *args.at(0)->lst_value()) {
+                           new_v->push_back(v);
+                         }
+                         return Obj::to_lst(new_v, LST_FURI);
+                       } else if(strcmp(op, "mult") == 0) {
+                         const Obj::LstList_p lhs_v = lhs->lst_value();
+                         const Obj::LstList_p rhs_v = args.at(0)->lst_value();
+                         const auto new_v = make_shared<Obj::LstList>();
+                         for(int i = 0; i < lhs_v->size(); i++) {
+                           for(int j = 0; j < rhs_v->size(); j++) {
+                             new_v->push_back(
+                               TYPE_INST_RESOLVER(
+                                 lhs_v->at(i),
+                                 Obj::to_inst({x(0, ___)}, id_p("mult")))
+                               ->apply(lhs_v->at(i), {rhs_v->at(j)}));
+                           }
+                         }
+                         return Obj::to_lst(new_v, LST_FURI);
+                       } else
+                         throw fError("unknown op %s\n", op);
+                     })
+                   ->create());
       }
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       Type::singleton()->end_progress_bar(

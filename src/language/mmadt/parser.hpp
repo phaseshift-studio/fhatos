@@ -50,7 +50,7 @@ namespace mmadt {
     BCODE          <- EMPTY_BCODE / (INST_P ('.'? INST_P)*)
     DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
     TYPE_ID        <- DOM_RNG / FURI
-    # POLY           <- LST / REC
+    # POLY         <- LST / REC
     NO_CODE_PROTO  <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / URI
     INST_ARG_PROTO <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI
     PROTO          <- REAL / BCODE / NO_CODE_PROTO
@@ -61,16 +61,16 @@ namespace mmadt {
     ###############################################################
     ########################  INST SUGARS  ########################
     ###############################################################
-    FROM           <- '*' (('(' (URI / BCODE) ')') / (URI / BCODE))
-    REF            <- ('->' INST_ARG_OBJ) / ('->(' OBJ ')')
+    FROM           <- ('*' (URI / BCODE)) / ('*(' (URI / BCODE) ')')
+    REF            <- ('->' INST_ARG_OBJ) / ('->(' INST_ARG_OBJ ')')
     BLOCK          <- ('|' OBJ) / ('|(' OBJ ')')
-    PASS           <- '-->' INST_ARG_OBJ
+    PASS           <- ('-->' INST_ARG_OBJ) / ('-->(' INST_ARG_OBJ ')')
     MERGE          <- '>' < [0-9]* > '-'
-    SPLIT          <- '-<' INST_ARG_OBJ
-    EACH           <- '==' INST_ARG_OBJ
+    SPLIT          <- ('-<' INST_ARG_OBJ) / ('-<(' INST_ARG_OBJ ')')
+    EACH           <- ('==' INST_ARG_OBJ) / ('==(' INST_ARG_OBJ ')')
     WITHIN         <- '_/' OBJ '\\_'
-    PLUS           <- '+' OBJ
-    MULT           <- 'x' OBJ
+    PLUS           <- ('+' OBJ) / ('+(' OBJ ')')
+    MULT           <- ('x' OBJ) / ('x(' OBJ ')')
   )";
 
   public:
@@ -142,7 +142,7 @@ namespace mmadt {
         LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bfuri!! with token !y%s!!\n", s);
       };
 
-      this->parser_["FURI"] = [](const SemanticValues &vs, const std::any &, std::string &msg) {
+      this->parser_["FURI"].predicate = [](const SemanticValues &vs, const std::any &, std::string &msg) {
         const char last = vs.token_to_string()[vs.token_to_string().length() - 1];
         msg = "furis can not end with . nor _ nor =";
         return last != '.' && last != '_' && last != '=';
