@@ -345,7 +345,7 @@ namespace fhatos {
     LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     return true;
   };
-  static BiFunction<Obj_p, ID_p, Obj_p> TYPE_MAKER = [](Obj_p, ID_p) {
+  static BiFunction<Obj_p, ID_p, Obj_p> TYPE_MAKER = [](Obj_p, const ID_p&) {
     LOG(TRACE, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };

@@ -142,10 +142,10 @@ namespace mmadt {
         LOG_OBJ(TRACE, Parser::singleton(), "entering rule !bfuri!! with token !y%s!!\n", s);
       };
 
-      this->parser_["FURI"].predicate = [](const SemanticValues &vs, const std::any &, std::string &msg) {
+      this->parser_["FURI"] = [](const SemanticValues &vs, const std::any &, std::string &msg) {
         const char last = vs.token_to_string()[vs.token_to_string().length() - 1];
-        msg = "furis can not end with . nor _";
-        return last != '.' && last != '_';
+        msg = "furis can not end with . nor _ nor =";
+        return last != '.' && last != '_' && last != '=';
       };
 
       this->parser_["COMMENT"] = [](const SemanticValues &) -> Obj_p {
