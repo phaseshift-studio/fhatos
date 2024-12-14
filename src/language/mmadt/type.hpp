@@ -277,8 +277,8 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/within")
                  ->type_args(x(0, "code"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return Obj::to_lst(BCODE_PROCESSOR(/*Obj::to_objs(chars), */args.at(0))
-                     ->objs_value());
+                   const BCode_p starts_bcode = args.at(0)->bcode_starts({lhs});
+                   return Obj::to_lst(BCODE_PROCESSOR(starts_bcode)->objs_value());
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/rec/" MMADT_INST_SCHEME "/within"),
@@ -289,7 +289,7 @@ namespace mmadt {
                    for(const auto &pair: *lhs->rec_value()) {
                      pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
                    }
-                   const Objs_p results = BCODE_PROCESSOR(/*pairs, */args.at(0));
+                   const Objs_p results = Obj::to_lst(BCODE_PROCESSOR(args.at(0)->bcode_starts({pairs}))->objs_value());
                    const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
                    for(const auto &result: *results->objs_value()) {
                      rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});

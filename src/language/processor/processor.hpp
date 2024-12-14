@@ -43,14 +43,7 @@ namespace fhatos {
     }
 
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
-      Obj_p next_obj;
-      try {
-        next_obj = this->inst_->apply(this->obj_);
-      } catch(const fError &error) {
-        throw fError("%s\n\t\t!rthrown at!! %s => %s", error.what(),
-                     this->obj_->toString().c_str(),
-                     this->inst_->toString().c_str());
-      }
+      Obj_p next_obj = this->inst_->apply(this->obj_);
       const Inst_p next_inst = bcode->next_inst(this->inst_);
       if(!next_obj->is_noobj()) {
         LOG(DEBUG, FOS_TAB_2 "!mProcessing!! monad(s): %s\n", next_obj->toString().c_str());

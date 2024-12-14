@@ -345,7 +345,7 @@ namespace fhatos {
     LOG(TRACE, "!yTYPE_CHECKER!! undefined at this point in bootstrap: %s\n", type_id->toString().c_str());
     return true;
   };
-  static BiFunction<Obj_p, ID_p, Obj_p> TYPE_MAKER = [](Obj_p, const ID_p&) {
+  static BiFunction<Obj_p, ID_p, Obj_p> TYPE_MAKER = [](Obj_p, const ID_p &) {
     LOG(TRACE, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
@@ -845,6 +845,18 @@ namespace fhatos {
       return this->value<InstList_p>();
     }
 
+    [[nodiscard]] BCode_p bcode_starts(const List<Obj_p> &starts) const {
+      if(!this->is_inst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      const auto new_code = make_shared<List<Inst_p>>();
+      new_code->push_back(Obj::to_inst(std::move(starts), id_p("map")));
+      for(const auto &inst: *this->bcode_value()) {
+        new_code->push_back(inst);
+      }
+      return Obj::to_bcode(new_code, this->tid_);
+      //return Obj::create(new_code, OType::BCODE, this->tid_, this->vid_);
+    }
+
     Obj_p this_add(const ID &relative_id, const Obj_p &inst, const bool at_type = true) {
       if(!at_type && !this->vid_)
         throw fError("only objs with a value id can have properties and insts");
@@ -979,7 +991,7 @@ namespace fhatos {
               }
               obj_string += "!c";
               obj_string += k->toString(obj_printer->next()); // {ansi=false});
-              obj_string += "!m=>!!";
+              obj_string += "!g=>!!";
               obj_string += v->toString();
             }
             obj_string += "!m]!!";
@@ -1550,19 +1562,35 @@ namespace fhatos {
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           //// evaluate inst
           //final_inst = Obj::replace_from_obj(final_inst, remake, lhs);
-          const Obj_p result = inst->inst_f()(lhs, remake);
-          if(!result->is_code())
-            TYPE_CHECKER(result.get(), inst->range(), true);
-          // TODO: delete args in frame
-          return result;
+          try {
+            if(nullptr == inst->inst_f())
+              throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
+                           lhs->tid_->name().c_str(),
+                           lhs->toString().c_str());
+            const Obj_p result = inst->inst_f()(lhs, remake);
+            if(!result->is_code())
+              TYPE_CHECKER(result.get(), inst->range(), true);
+            // TODO: delete args in frame
+            return result;
+          } catch(std::exception &e) {
+            throw fError("%s\n\t\t!rthrown at !yinst!!  %s !g=>!! %s", e.what(),
+                         lhs->toString().c_str(),
+                         this->toString().c_str());
+          }
         }
         case OType::BCODE: {
           ptr<Obj> current_obj = lhs;
           for(const Inst_p &current_inst: *this->bcode_value()) {
-            LOG(TRACE, "Applying %s => %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
+            LOG(TRACE, "applying %s !g=>!! %s\n", current_obj->toString().c_str(), current_inst->toString().c_str());
             if(current_inst->is_noobj())
               break;
-            current_obj = current_inst->apply(current_obj);
+            try {
+              current_obj = current_inst->apply(current_obj);
+            } catch(fError &e) {
+              throw fError("%s\n\t\t!rthrown at !ybcode!! %s !g=>!! %s", e.what(),
+                           current_obj->toString().c_str(),
+                           current_inst->toString().c_str());
+            }
           }
           return current_obj; //->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
         }
