@@ -51,15 +51,13 @@ namespace fhatos {
         for(const auto &obj: objs) {
           if(!obj->is_noobj()) {
             if(this->inst_->inst_op() == "repeat") {
-              const Obj_p until = this->inst_->inst_arg(1);
-              const Obj_p emit = this->inst_->inst_arg(2);
-              if(!emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
+              if(const Obj_p emit = this->inst_->inst_arg(2); !emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
                 // repeat.emit
                 const auto monad = make_shared<Monad>(obj, next_inst);
                 running->push_back(monad);
                 LOG(DEBUG, FOS_TAB_4 "!mEmitting!! monad: %s\n", monad->toString().c_str());
               }
-              if(!until->is_noobj() && until->apply(obj)->is_noobj()) {
+              if(const Obj_p until = this->inst_->inst_arg(1); !until->is_noobj() && until->apply(obj)->is_noobj()) {
                 // repeat.until
                 const auto monad = make_shared<Monad>(obj, this->inst_);
                 monad->loops_ = this->loops_ + 1;

@@ -36,10 +36,10 @@ namespace mmadt {
 
   private:
     Definition ROOT, COMMENT, FURI, FURI_NO_Q, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P, INST_SUGAR,
-        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, PROTO, EMPTY_BCODE,
+        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO, EMPTY_BCODE,
         DOM_RNG;
 #ifndef FOS_SUGARLESS_MMADT
-    Definition FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
+    Definition REPEAT, FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {
@@ -184,6 +184,10 @@ namespace mmadt {
         const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
         return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("from")));
       };
+      static auto repeat_action = [](const SemanticValues &vs) -> Inst_p {
+        const Obj_p bcode = any_cast<BCode_p>(vs);
+        return Obj::to_bcode({Obj::to_inst({bcode}, id_p("repeat"))});
+      };
       static auto block_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("block")));
       };
@@ -277,12 +281,13 @@ namespace mmadt {
       OBJS <= seq(chr('{'), opt(OBJ), zom(seq(chr(','), OBJ)), chr('}')), objs_action;
       INST <= seq(FURI, chr('('), opt(INST_ARG_OBJ), zom(seq(chr(','), INST_ARG_OBJ)), chr(')')), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
-      INST_SUGAR <= cho(PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, MERGE, SPLIT);
+      INST_SUGAR <= cho(REPEAT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, MERGE, SPLIT);
       EMPTY_BCODE <= chr('_'), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(seq(opt(chr('.')), INST_P)))), bcode_action;
+      BCODE_P <= cho(seq(chr('('),BCODE,chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
-      INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI);
-      PROTO <= cho(REAL, BCODE, NO_CODE_PROTO);
+      INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
+      PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
       DOM_RNG <= seq(FURI_NO_Q, chr('?'), FURI_NO_Q, lit("<="), FURI_NO_Q), dom_rng_action;
       TYPE_ID <= cho(DOM_RNG, FURI), furi_action;
       NO_CODE_OBJ <= cho(TYPE, seq(TYPE_ID, chr('['), NO_CODE_PROTO, chr(']'), opt(seq(chr('@'), FURI))),
@@ -295,7 +300,8 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      FROM <= cho(seq(chr('*'), cho(URI, BCODE)), seq(lit("*("), cho(URI, BCODE), chr(')'))), from_action;
+      REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
+      FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))), from_action;
       REF <= cho(seq(lit("->"), INST_ARG_OBJ), seq(lit("->("), INST_ARG_OBJ, chr(')'))), ref_action;
       BLOCK <= cho(seq(chr('|'), INST_ARG_OBJ), seq(lit("|("), INST_ARG_OBJ, chr(')'))), block_action;
       PASS <= cho(seq(lit("-->"), INST_ARG_OBJ), seq(lit("-->("), INST_ARG_OBJ, chr(')'))), pass_action;
@@ -305,6 +311,8 @@ namespace mmadt {
       WITHIN <= seq(lit("_/"), OBJ, lit("\\_")), within_action;
       PLUS <= cho(seq(chr('+'), INST_ARG_OBJ), seq(lit("+("), INST_ARG_OBJ, chr(')'))), plus_action;
       MULT <= cho(seq(chr('x'), INST_ARG_OBJ), seq(lit("x("), INST_ARG_OBJ, chr(')'))), mult_action;
+      ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
+      REPEAT.enter = enter_y("repeat");
 #endif
       ///////////////////////////////// PREDICATES ///////////////////////////////////////
       BCODE.predicate = [](const SemanticValues &vs, const std::any &dt, std::string &msg) -> bool {

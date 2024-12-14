@@ -84,7 +84,7 @@ int main(int arg, char **argsv) {
         router()->loop();
     }
     catch(std::exception & e) {
-      LOG_EXCEPTION(e);
+      LOG_EXCEPTION(Scheduler::singleton(),e);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }

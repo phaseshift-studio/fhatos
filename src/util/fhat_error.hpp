@@ -19,6 +19,7 @@
 #ifndef fhatos_fhat_error_hpp
 #define fhatos_fhat_error_hpp
 
+#include <stdarg.h>
 #include <exception>
 
 #define FOS_ERROR_MESSAGE_SIZE 500
@@ -61,9 +62,9 @@ namespace fhatos {
     char _message[FOS_ERROR_MESSAGE_SIZE];
 
   public:
-    explicit fError(const char *format, ...) noexcept {
+    explicit fError(const char *format, ...) noexcept: _message{{0}} {
       va_list arg;
-      va_start(arg, std::string(format));
+      va_start(arg, format);
       const size_t length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format, arg);
       va_end(arg);
       //_message[length] = '\0';
@@ -75,19 +76,19 @@ namespace fhatos {
     }
 
     static fError create(const std::string &type_id, const char *format, ...) noexcept {
-      string format2 = string("!g[!m").append(type_id).append("!g] ").append(format);
-      char _message[FOS_ERROR_MESSAGE_SIZE];
       va_list arg;
-      va_start(arg, format2);
-      const size_t length = vsnprintf(_message, FOS_ERROR_MESSAGE_SIZE, format2.c_str(), arg);
+      va_start(arg, format);
+      char message[FOS_ERROR_MESSAGE_SIZE];
+      const size_t length = vsnprintf(message, FOS_ERROR_MESSAGE_SIZE, format, arg);
       va_end(arg);
       //_message[length] = '\0';
       if(length >= FOS_ERROR_MESSAGE_SIZE) {
-        _message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
-        _message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
-        _message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
+        message[FOS_ERROR_MESSAGE_SIZE - 3] = '.';
+        message[FOS_ERROR_MESSAGE_SIZE - 2] = '.';
+        message[FOS_ERROR_MESSAGE_SIZE - 1] = '.';
       }
-      return fError(_message);
+      const string format2 = string("!g[!m").append(type_id).append("!g] ").append(message);
+      return fError(format2.c_str());
     }
 
     const char *what() const noexcept override { return this->_message; };

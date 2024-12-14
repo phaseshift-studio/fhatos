@@ -221,6 +221,15 @@ namespace mmadt {
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return Obj::to_bool(!lhs->equals(*args.at(0)));
                  })->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/repeat"),
+                 InstBuilder::build(MMADT_SCHEME "/repeat")
+                 ->type_args(x(0, "code"), x(1, "until", dool(true)), x(2, "emit", dool(false)))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   Objs_p r = BCODE_PROCESSOR(args.at(0)->bcode_starts({lhs}));
+                   return r;
+                 })
+                 ->itype_and_seed(IType::ONE_TO_MANY)
+                 ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/split"),
                  InstBuilder::build(MMADT_SCHEME "/split")
                  ->type_args(x(0, "poly"))
