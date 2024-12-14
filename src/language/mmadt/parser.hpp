@@ -21,7 +21,7 @@ FhatOS: A Distributed Operating System
 
 #include "../../fhatos.hpp"
 #include "../../language/obj.hpp"
-#include "../../../build/_deps/peglib-src/peglib.h"
+#include "../util/peglib.h"
 
 using namespace peg;
 using namespace std;
@@ -37,7 +37,10 @@ namespace mmadt {
   private:
     Definition ROOT, COMMENT, FURI, FURI_NO_Q, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P, INST_SUGAR,
         INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, PROTO, EMPTY_BCODE,
-        DOM_RNG, FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
+        DOM_RNG;
+#ifndef FOS_SUGARLESS_MMADT
+    Definition FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
+#endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {
       throw fError("!^r%i^!y^--!r%s!! at line !y%i!!:!y%i!! !g[!r%s!g]!!",
@@ -169,8 +172,14 @@ namespace mmadt {
         }
       };
 
-      //////////////////////////////////////////////////////////////////////////
+      static auto enter_y = [](const string &rule) {
+        return [rule](const Context &c, const char *s, size_t n, any &dt) {
+          LOG_OBJ(DEBUG, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
+        };
+      };
 
+      //////////////////////////////////////////////////////////////////////////
+#ifndef FOS_SUGARLESS_MMADT
       static auto from_action = [](const SemanticValues &vs) -> Inst_p {
         const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
         return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("from")));
@@ -206,13 +215,7 @@ namespace mmadt {
       static auto mult_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("mult")));
       };
-
-      static auto enter_y = [](const string &rule) {
-        return [rule](const Context &c, const char *s, size_t n, any &dt) {
-          LOG_OBJ(DEBUG, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
-        };
-      };
-
+#endif
       /*
         ROOT           <- OBJ / COMMENT
           COMMENT        <- '---' (!'\n' .)*
@@ -276,7 +279,7 @@ namespace mmadt {
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       INST_SUGAR <= cho(PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, MERGE, SPLIT);
       EMPTY_BCODE <= chr('_'), empty_bcode_action;
-      BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(seq(opt(chr('.')), INST_P)))) , bcode_action;
+      BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(seq(opt(chr('.')), INST_P)))), bcode_action;
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE, URI);
       PROTO <= cho(REAL, BCODE, NO_CODE_PROTO);
@@ -291,6 +294,7 @@ namespace mmadt {
       /////////////////////////////////////////////////////////////////
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
+#ifndef FOS_SUGARLESS_MMADT
       FROM <= cho(seq(chr('*'), cho(URI, BCODE)), seq(lit("*("), cho(URI, BCODE), chr(')'))), from_action;
       REF <= cho(seq(lit("->"), INST_ARG_OBJ), seq(lit("->("), INST_ARG_OBJ, chr(')'))), ref_action;
       BLOCK <= cho(seq(chr('|'), INST_ARG_OBJ), seq(lit("|("), INST_ARG_OBJ, chr(')'))), block_action;
@@ -301,6 +305,7 @@ namespace mmadt {
       WITHIN <= seq(lit("_/"), OBJ, lit("\\_")), within_action;
       PLUS <= cho(seq(chr('+'), INST_ARG_OBJ), seq(lit("+("), INST_ARG_OBJ, chr(')'))), plus_action;
       MULT <= cho(seq(chr('x'), INST_ARG_OBJ), seq(lit("x("), INST_ARG_OBJ, chr(')'))), mult_action;
+#endif
       ///////////////////////////////// PREDICATES ///////////////////////////////////////
       BCODE.predicate = [](const SemanticValues &vs, const std::any &dt, std::string &msg) -> bool {
         return vs.size() != 1 || any_cast<Obj_p>(vs[0])->is_code();

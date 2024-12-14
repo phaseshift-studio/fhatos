@@ -28,26 +28,25 @@ namespace fhatos {
   class Computed : public Structure {
   protected:
     //<query, function<query, <id,result>>
-    unique_ptr<Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less>> read_functions_;
-    unique_ptr<Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less>> write_functions_;
+    shared_ptr<Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less>> read_functions_;
+    shared_ptr<Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less>> write_functions_;
 
     explicit Computed(
-        const Pattern &pattern,
-        const ID &vid,
-        const Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less> &read_map = {},
-        const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map = {}) :
-      Structure(pattern, vid),
+      const Pattern &pattern,
+      const ID &vid,
+      const Map<fURI_p, Function<fURI_p, IdObjPairs>, furi_p_less> &read_map = {},
+      const Map<fURI_p, BiFunction<fURI_p, Obj_p, IdObjPairs>, furi_p_less> &write_map = {}) : Structure(pattern, vid),
       read_functions_(
-          make_unique<Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
+        make_unique<Map<fURI_p, Function<fURI_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(read_map)),
       write_functions_(
-          make_unique<Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(
-              write_map)) {
+        make_unique<Map<fURI_p, BiFunction<fURI_p, Obj_p, List<Pair<ID_p, Obj_p>>>, furi_p_less>>(
+          write_map)) {
     }
 
     void write_raw_pairs(const ID_p &id, const Obj_p &obj, const bool retain) override {
-      if (retain) {
-        for (const auto &[furi, func]: *this->write_functions_) {
-          if (id->matches(*furi)) {
+      if(retain) {
+        for(const auto &[furi, func]: *this->write_functions_) {
+          if(id->matches(*furi)) {
             scheduler()->feed_local_watchdog();
             func(id, obj);
             scheduler()->feed_local_watchdog();
@@ -60,8 +59,8 @@ namespace fhatos {
 
     IdObjPairs read_raw_pairs(const fURI_p &furi) override {
       auto list = IdObjPairs();
-      for (const auto &[furi2, func]: *this->read_functions_) {
-        if (furi->bimatches(*furi2)) {
+      for(const auto &[furi2, func]: *this->read_functions_) {
+        if(furi->bimatches(*furi2)) {
           scheduler()->feed_local_watchdog();
           const IdObjPairs list2 = func(furi);
           list.insert(list.end(), list2.begin(), list2.end());
