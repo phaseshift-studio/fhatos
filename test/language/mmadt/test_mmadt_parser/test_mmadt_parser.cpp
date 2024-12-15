@@ -39,7 +39,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(dool(true), OBJ_PARSER("bool[true]"));
     FOS_TEST_OBJ_EQUAL(dool(false), OBJ_PARSER("bool[false]"));
     FOS_TEST_OBJ_NOT_EQUAL(dool(false), OBJ_PARSER("bool[true]"));
-    // FOS_TEST_OBJ_NOT_EQUAL(dool(false), OBJ_PARSER("bool[map(false)]"));
+    TEST_ASSERT_NOT_EQUAL(dool(false)->toString(), OBJ_PARSER("bool[map(false)]")->toString());
   }
 
   void test_int_parsing() {
@@ -80,8 +80,9 @@ namespace fhatos {
 
   void test_inst_sugar_parsing() {
     FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x2")->apply());
-   // FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x 2")->apply());
-   // FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x 2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x 2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x 2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x2")->apply());
   }
 
   FOS_RUN_TESTS( //
