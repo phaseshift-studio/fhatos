@@ -19,9 +19,9 @@
 #ifndef mmadt_types_hpp
 #define mmadt_types_hpp
 
-#include <fhatos.hpp>
-#include <language/obj.hpp>
-#include <language/type.hpp>
+#include "../../fhatos.hpp"
+#include "../../language/obj.hpp"
+#include "../../language/type.hpp"
 #include FOS_MQTT(mqtt.hpp)
 
 #define TOTAL_INSTRUCTIONS 100
@@ -35,7 +35,7 @@ namespace mmadt {
       return
           InstBuilder::build(MMADT_SCHEME "/map")
           ->type_args(arg)
-          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+          ->inst_f([](const Obj_p &, const InstArgs &args) {
             return args.at(0);
           })
           ->itype_and_seed(IType::ZERO_TO_ONE)
@@ -470,6 +470,17 @@ namespace mmadt {
                    return rec;
                  })->create());
       /////////////////////////// PLUS,MUT INST ///////////////////////////
+      TYPE_SAVER(id_p(MMADT_SCHEME "/mod"),
+                 InstBuilder::build(MMADT_SCHEME "/mod")
+                 ->type_args(x(0, "rhs"))
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/mod"),
+                 InstBuilder::build(MMADT_SCHEME "/mod")
+                 ->type_args(x(0, "rhs"))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   return jnt(lhs->int_value() % args.at(0)->int_value());
+                 })
+                 ->create());
       for(const auto &op: {"plus", "mult"}) {
         const ID MMADT_INST = MMADT_ID->extend(op);
         TYPE_SAVER(id_p(MMADT_INST),

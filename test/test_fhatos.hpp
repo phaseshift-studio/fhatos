@@ -25,7 +25,6 @@
 
 #include "../src/fhatos.hpp"
 #include "../build/_deps/unity-src/src/unity.h"
-#include "../build/_deps/peglib-src/peglib.h"
 #include "../src/util/options.hpp"
 #include "../src/language/obj.hpp"
 #include "../src/furi.hpp"
@@ -228,7 +227,7 @@ using namespace fhatos;
 #define FOS_TEST_ASSERT_EXCEPTION(x, s)                                                                                \
   try {                                                                                                                \
     if ((s)) {                                                                                                         \
-      Fluent(Parser::tryParseObj((STR(x))).value()).iterate();                                                         \
+      BCODE_PROCESSOR(OBJ_PARSER((s)));                                                                                \
     } else {                                                                                                           \
       x;                                                                                                               \
     }                                                                                                                  \

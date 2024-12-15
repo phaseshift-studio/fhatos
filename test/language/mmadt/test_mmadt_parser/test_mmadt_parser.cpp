@@ -18,8 +18,6 @@ FhatOS: A Distributed Operating System
 
 #ifndef mmadt_test_mmadt_parser_cpp
 #define mmadt_test_mmadt_parser_cpp
-#define NATIVE
-// todo: remove hardcoded native
 #define FOS_DEPLOY_PRINTER
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPE
@@ -63,15 +61,27 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(str("negatIVE te  N"), OBJ_PARSER("'negatIVE te  N'"));
     FOS_TEST_OBJ_EQUAL(str(""), OBJ_PARSER("str['']"));
     FOS_TEST_OBJ_EQUAL(str("abc"), OBJ_PARSER("str['abc']"));
+    TEST_ASSERT_EQUAL_STRING("b\\'c", OBJ_PARSER("'a\\'''b\\'c'")->apply(Obj::to_objs())->str_value().c_str());
+    TEST_ASSERT_EQUAL_STRING("a\"b\"c", OBJ_PARSER("'a\"b\"c'")->str_value().c_str());
+    TEST_ASSERT_EQUAL_STRING("a\\'b\\'c", OBJ_PARSER("'a\\'b\\'c'")->str_value().c_str());
   }
 
   void test_uri_parsing() {
     FOS_TEST_OBJ_EQUAL(vri("http://www.fhatos.org"), OBJ_PARSER("<http://www.fhatos.org>"));
+    FOS_TEST_OBJ_EQUAL(vri(""), OBJ_PARSER("<>"));
+    FOS_TEST_OBJ_EQUAL(vri(":"), OBJ_PARSER("<:>"));
     FOS_TEST_OBJ_EQUAL(vri("a"), OBJ_PARSER("a"));
     FOS_TEST_OBJ_EQUAL(vri("../../a"), OBJ_PARSER("<../../a>"));
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), OBJ_PARSER("abc/cba"));
     FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), OBJ_PARSER("aBc_cBa"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/../ddd]"));
+    FOS_TEST_ASSERT_EXCEPTION(nullptr, "<12>");
+  }
+
+  void test_inst_sugar_parsing() {
+    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x2")->apply());
+   // FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x 2")->apply());
+   // FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x 2")->apply());
   }
 
   FOS_RUN_TESTS( //
@@ -81,6 +91,8 @@ namespace fhatos {
     FOS_RUN_TEST(test_real_parsing); //
     FOS_RUN_TEST(test_str_parsing); //
     FOS_RUN_TEST(test_uri_parsing); //
+    //////////////////////////////////
+    FOS_RUN_TEST(test_inst_sugar_parsing);
   )
 } // namespace fhatos
 

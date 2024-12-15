@@ -131,7 +131,7 @@ namespace fhatos {
                      [starts](const BCode_p &bcode) {
                        if(starts->is_noobj())
                          return bcode;
-                       List<Inst_p> new_insts = List<Inst_p>{mmadt::mmADT::map(starts)};
+                       List<Inst_p> new_insts = {Obj::to_inst({starts},id_p("map"))};
                        for(const Inst_p &inst: *bcode->bcode_value()) {
                          new_insts.push_back(inst);
                        }

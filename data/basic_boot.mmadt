@@ -1,6 +1,7 @@
-fos:heap[[pattern => /sys/#,
-           import  => [/sys/scheduler => fos:scheduler/::/v/0_1,
-                       /sys/router    => fos:router/::/v/0_1]   ]]
+--- /sys/# heap mounted at flash
+--- /sys/router spawned at flash
+--- /sys/scheduler spawned at flash
+/sys/router/resolve -> [namespace   => [<:>=>/mmadt/, fos: => /fos/],auto_prefix => [<>,/mmadt/,/fos/,/sys/]]
 fos:heap[[pattern => +/#, id=>_cache]].sys/router/::/mount(_)
 fos:heap[[pattern => /fos/#
            import => /fos/lib ]]./sys/router/::/mount(_)

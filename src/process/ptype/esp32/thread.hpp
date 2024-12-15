@@ -32,7 +32,7 @@ namespace fhatos {
 
 
     explicit Thread(const Rec_p &setup_loop_stop) : Process(setup_loop_stop) {
-      this->hwm = this->rec_get("stack_size")->is_noobj() ? -1 : 0;
+      //this->hwm = this->rec_get("stack_size")->is_noobj() ? -1 : 0;
     }
 
     void delay(const uint64_t milliseconds) override {
@@ -44,9 +44,9 @@ namespace fhatos {
       Process::loop();
       if (hwm != -1) {
         if (hwm++ > 100) {
-          int stack_size = this->rec_get("stack_size")->int_value();
-          int mark = uxTaskGetStackHighWaterMark(this->handle);
-          this->rec_set("hwm", jnt(mark));
+          //int stack_size = this->rec_get("stack_size")->int_value();
+          //int mark = uxTaskGetStackHighWaterMark(this->handle);
+          //this->rec_set("hwm", jnt(mark));
           this->save();
           hwm = 0;
         }

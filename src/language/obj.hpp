@@ -1508,6 +1508,10 @@ namespace fhatos {
       return replace_from_obj(this->shared_from_this(), args, lhs)->apply(lhs);
     }
 
+    Obj_p apply() {
+      return this->apply(Objs::to_objs());
+    }
+
     Obj_p apply(const Obj_p &lhs) {
       if(lhs->is_error())
         return lhs;

@@ -36,10 +36,11 @@ namespace mmadt {
 
   private:
     Definition ROOT, COMMENT, FURI, FURI_NO_Q, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P, INST_SUGAR,
-        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO, EMPTY_BCODE,
+        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
+        EMPTY_BCODE,
         DOM_RNG;
 #ifndef FOS_SUGARLESS_MMADT
-    Definition REPEAT, FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
+    Definition AT, REPEAT, FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {
@@ -50,10 +51,10 @@ namespace mmadt {
   protected:
     Obj_p parse(const string &mmadt) const {
       Obj_p result;
-      LOG(DEBUG, "parsing %s\n", mmadt.c_str());
+      LOG_OBJ(TRACE, this, "!yparsing!! %s\n", mmadt.c_str());
       if(Definition::Result ret = OBJ.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
         ret.ret) {
-        LOG(DEBUG, "successful parse of %s\n", mmadt.c_str());
+        LOG_OBJ(TRACE, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
       } else {
         ret.error_info.output_log(PARSER_LOGGER, mmadt.c_str(), mmadt.length());
       }
@@ -77,7 +78,7 @@ namespace mmadt {
         return make_shared<Pair<Any, OType>>(vs.token_to_string(), OType::STR);
       };
       static auto uri_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
-        return make_shared<Pair<Any, OType>>(*any_cast<fURI_p>(vs[0]), OType::URI);
+        return make_shared<Pair<Any, OType>>(vs.choice() == 0 ? fURI("") : *any_cast<fURI_p>(vs[0]), OType::URI);
       };
       static auto lst_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         const auto list = make_shared<List<Obj_p>>();
@@ -149,37 +150,36 @@ namespace mmadt {
       };
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
-        LOG(TRACE, "obj_action: %i\n", vs.choice());
-        switch(vs.choice()) {
-          case 0: {
+        LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
+        enum class OBJ_STATE { OBJ, TYPE_VALUE, VALUE };
+        switch(static_cast<OBJ_STATE>(vs.choice())) {
+          case OBJ_STATE::OBJ: {
             return any_cast<Obj_p>(vs[0]);
           }
-          case 1: { // x[a]@xyz
-            LOG_OBJ(TRACE, this, "rule obj with choice 0 has value for v[0]: %i \n", vs[0].has_value());
+          case OBJ_STATE::TYPE_VALUE: { // x[a]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
-            LOG_OBJ(TRACE, this, "rule obj with type %s\n", type_id->toString().c_str());
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id, vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case 2: { // a@xyz
+          case OBJ_STATE::VALUE: { // a@xyz
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o),
                                vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
-          default: {
-            throw fError("unknown state");
-          }
         }
       };
-
+      //////////////////////////////////////////////////////////////////////////
       static auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
-          LOG_OBJ(DEBUG, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
+          LOG_OBJ(TRACE, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
         };
       };
-
+      const ptr<Whitespace> WS = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
       //////////////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
+      static auto at_action = [](const SemanticValues &vs) -> Inst_p {
+        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("at")));
+      };
       static auto from_action = [](const SemanticValues &vs) -> Inst_p {
         const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
         return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("from")));
@@ -271,10 +271,10 @@ namespace mmadt {
       BOOL <= cho(lit("true"), lit("false")), bool_action;
       INT <= seq(opt(chr('-')), oom(cls("0-9"))), int_action;
       REAL <= seq(opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9"))), real_action;
-      STR <= seq(chr('\''), tok(zom(seq(npd(chr('\'')), dot()))), chr('\'')), str_action;
+      STR <= seq(chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\'')), str_action;
       FURI <= tok(seq(oom(cls("a-zA-Z:/?_.#+")), zom(cls("a-zA-Z0-9:/?_=&@.#+")))), furi_action;
       FURI_NO_Q <= tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(cls("a-zA-Z0-9:/_=&@.#+")))), furi_action;
-      URI <= cho(seq(chr('<'), FURI, chr('>')), FURI), uri_action;
+      URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI), uri_action;
       REC <= seq(chr('['), opt(seq(OBJ, lit("=>"), OBJ)), zom(seq(chr(','), OBJ, lit("=>"), OBJ)), chr(']')),
           rec_action;
       LST <= seq(chr('['), opt(OBJ), zom(seq(chr(','), OBJ)), chr(']')), lst_action;
@@ -284,7 +284,7 @@ namespace mmadt {
       INST_SUGAR <= cho(REPEAT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, MERGE, SPLIT);
       EMPTY_BCODE <= chr('_'), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(seq(opt(chr('.')), INST_P)))), bcode_action;
-      BCODE_P <= cho(seq(chr('('),BCODE,chr(')')), BCODE);
+      BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
       PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
@@ -300,6 +300,7 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
+      AT <= cho(seq(chr('@'), INST_ARG_OBJ), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
       REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
       FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))), from_action;
       REF <= cho(seq(lit("->"), INST_ARG_OBJ), seq(lit("->("), INST_ARG_OBJ, chr(')'))), ref_action;
@@ -328,13 +329,13 @@ namespace mmadt {
       TYPE.enter = enter_y("type");
       PROTO.enter = enter_y("proto");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
-      ptr<Whitespace> WS = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
       ROOT.whitespaceOpe = WS;
       OBJ.whitespaceOpe = WS;
       PROTO.whitespaceOpe = WS;
       NO_CODE_PROTO.whitespaceOpe = WS;
       INST_ARG_PROTO.whitespaceOpe = WS;
       INST_SUGAR.whitespaceOpe = WS;
+      INST_ARG_OBJ.whitespaceOpe = WS;
       ROOT.enablePackratParsing = true;
       ROOT.eoi_check = true;
       /////////////////////////////////////////////////////////////////////////////////////
