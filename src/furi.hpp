@@ -747,12 +747,20 @@ namespace fhatos {
             } else {
               token += c;
             }
-          } else if(part == URI_PART::PATH && c == '.' && ss.peek() == '.' && this->path_length_ > 0) { // TODO: fix
+          } else if(part == URI_PART::PATH && c == '.' && ss.peek() == '.') { // TODO: fix
             ss.get(); // drop .
+            if(ss.peek() == '/')
+              ss.get();
             if(this->path_) {
-              free(this->path_[this->path_length_ - 1]);
-              this->path_[this->path_length_ - 1] = nullptr;
-              this->path_length_ = this->path_length_ - 1;
+              if(this->path_[this->path_length_ - 1][0] == '.') {
+                this->path_[this->path_length_++] = strdup("..");
+              } else {
+                free(this->path_[--this->path_length_]);
+                this->path_[this->path_length_] = nullptr;
+              }
+            } else {
+              this->path_ = new char *[FOS_MAX_PATH_SEGMENTS];
+              this->path_[this->path_length_++] = strdup("..");
             }
           } else if(c == '?') {
             if(part == URI_PART::PATH || part == URI_PART::SCHEME) {
@@ -921,7 +929,6 @@ namespace fhatos {
     virtual ~BaseTyped() = default;
 
     [[nodiscard]] virtual ID_p tid() const = 0;
-
   };
 
   class Typed : public BaseTyped {

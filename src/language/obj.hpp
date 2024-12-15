@@ -349,6 +349,8 @@ namespace fhatos {
     LOG(TRACE, "!yTYPE_MAKER!! undefined at this point in bootstrap.\n");
     return nullptr;
   };
+  static ptr<Ansi<>> PRINTER = nullptr;
+
   static Function<const string &, Obj_p> OBJ_PARSER = [](const string &) {
     LOG(TRACE, "!yOBJ_PARSER!! undefined at this point in bootstrap.\n");
     return nullptr;

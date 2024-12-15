@@ -24,8 +24,8 @@
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPES
 #define FOS_DEPLOY_SHARED_MEMORY*/
-#include <furi.hpp>
-#include <../test/test_fhatos.hpp>
+#include "../../src/furi.hpp"
+#include "../test_fhatos.hpp"
 
 namespace fhatos {
   //////////////////////////////////////////////////////////
@@ -193,6 +193,9 @@ namespace fhatos {
     TEST_ASSERT_FALSE(fURI("127.0.0.1/a").equals(fURI("127.0.0.1/b")));
     FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("127.0.0.1/a"), fURI("127.0.0.1/a/b"));
     FOS_TEST_ASSERT_NOT_EQUAL_FURI(fURI("fhat@127.0.0.1/a"), fURI("pig@127.0.0.1/a"));
+    //
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("aaa_bbb/ddd"),  fURI("aaa_bbb/ccc/../ddd"));
+    FOS_TEST_ASSERT_EQUAL_FURI(fURI("aaa_bbb/ddd/"),  fURI("aaa_bbb/ccc/../ddd/"));
   }
 
   void test_uri_scheme() {
@@ -369,7 +372,7 @@ namespace fhatos {
     TEST_ASSERT_EQUAL_STRING("", fURI("").name().c_str());
     TEST_ASSERT_EQUAL_STRING("fhat", fURI("fos://a/fhat").name().c_str());
     TEST_ASSERT_EQUAL_STRING("fs:root", fURI("/type/inst/fs:root").name().c_str());
-    TEST_ASSERT_EQUAL_STRING("fs::root", fURI("/type/inst/fs::root").name().c_str());
+    TEST_ASSERT_EQUAL_STRING("root", fURI("/type/inst/fs::root").name().c_str());
     TEST_ASSERT_EQUAL_STRING("#", fURI("http://a.com:34/b/c/#").name().c_str());
     TEST_ASSERT_EQUAL_STRING("c:fhatty", fURI("http://a.com:34/b/c:fhatty").name().c_str());
     TEST_ASSERT_EQUAL_STRING(":fhatty", fURI("fos/:fhatty").name().c_str());

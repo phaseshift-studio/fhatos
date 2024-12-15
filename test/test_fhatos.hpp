@@ -35,7 +35,8 @@
 #include "../src/util/ansi.hpp"
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
-  Options::singleton()->log_level(FOS_LOGGING);
+  Options::singleton()->log_level(FOS_LOGGING);           \
+  PRINTER = Ansi<>::singleton();
 #ifdef FOS_DEPLOY_PROCESSOR
 #include <language/processor/processor.hpp>
 #define FOS_DEPLOY_PROCESSOR_2 load_processor();
@@ -183,9 +184,9 @@ using namespace fhatos;
 
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
-    Options::singleton()->printer<Ansi<>>()->printf("  !rline %i!!\t", __LINE__);                                                                  \
-    Options::singleton()->printer<Ansi<>>()->printf((format), ##__VA_ARGS__);                                                                      \
-    Options::singleton()->printer<Ansi<>>()->println();                                                                                            \
+    PRINTER->printf("  !rline %i!!\t", __LINE__);                                                                      \
+    PRINTER->printf((format), ##__VA_ARGS__);                                                                          \
+    PRINTER->println();                                                                                                \
   }
 
 #define FOS_TEST_ASSERT_EQUAL_FURI(x, y)                                                                               \
@@ -224,16 +225,12 @@ using namespace fhatos;
   }
 
 #ifdef FOS_DEPLOY_PARSER
-#define FOS_TEST_ASSERT_EXCEPTION(x, s)                                                                                \
+#define FOS_TEST_ASSERT_EXCEPTION(fn)                                                                                  \
   try {                                                                                                                \
-    if ((s)) {                                                                                                         \
-      BCODE_PROCESSOR(OBJ_PARSER((s)));                                                                                \
-    } else {                                                                                                           \
-      x;                                                                                                               \
-    }                                                                                                                  \
-    TEST_ASSERT(false);                                                                                                \
+    (fn)();                                                                                                            \
+    TEST_FAIL_MESSAGE("!rno exception occurred!!");                                                                    \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                  \
+    FOS_TEST_MESSAGE("!gexpected exception occurred!!: %s", e.what());                                                \
     TEST_ASSERT(true);                                                                                                 \
   }
 #endif
@@ -246,7 +243,7 @@ using namespace fhatos;
     if (!test)                                                                                                         \
       TEST_FAIL();                                                                                                     \
   }
-
+#define FOS_TEST_OBJ_NTEQL(objA, objB) FOS_TEST_OBJ_NOT_EQUAL((objA),(objB))
 #define FOS_TEST_OBJ_NOT_EQUAL(objA, objB)                                                                             \
   {                                                                                                                    \
     const bool test = *(objA) == *(objB);                                                                              \

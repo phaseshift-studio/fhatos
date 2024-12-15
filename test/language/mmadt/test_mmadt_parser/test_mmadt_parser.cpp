@@ -52,6 +52,7 @@ namespace fhatos {
   void test_real_parsing() {
     FOS_TEST_OBJ_EQUAL(real(1.0), OBJ_PARSER("1.0"));
     FOS_TEST_OBJ_EQUAL(real(-10.0), OBJ_PARSER("-10.0"));
+    FOS_TEST_OBJ_EQUAL(real(-10.01), OBJ_PARSER("-10.01"));
     FOS_TEST_OBJ_EQUAL(real(0), OBJ_PARSER("real[0.0]"));
     FOS_TEST_OBJ_NOT_EQUAL(real(0), OBJ_PARSER("int[0]"));
   }
@@ -75,7 +76,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), OBJ_PARSER("abc/cba"));
     FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), OBJ_PARSER("aBc_cBa"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/../ddd]"));
-    FOS_TEST_ASSERT_EXCEPTION(nullptr, "<12>");
+    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[<aaa_bbb/ccc/../ddd>]"));
+    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("<aaa_bbb/ccc/../ddd>"));
+    // TODO: FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/../ddd"));
   }
 
   void test_inst_sugar_parsing() {
@@ -83,6 +86,11 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x 2")->apply());
     FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x 2")->apply());
     FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x2")->apply());
+    ////
+    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3+2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3+ 2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3 + 2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3 +2")->apply());
   }
 
   FOS_RUN_TESTS( //

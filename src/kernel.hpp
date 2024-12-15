@@ -40,6 +40,7 @@ namespace fhatos {
     }
 
     static ptr<Kernel> using_printer(const ptr<Ansi<>> &ansi) {
+      PRINTER = ansi;
       Options::singleton()->printer<Ansi<>>(ansi);
       return Kernel::build();
     }
