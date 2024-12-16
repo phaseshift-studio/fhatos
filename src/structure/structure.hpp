@@ -228,7 +228,12 @@ namespace fhatos {
           if(matches.empty()) {
             if(furi->path_length() > 0) {
               // recurse backwards to find a root poly that has respective furi path
-              const Obj_p maybe_poly = this->read(furi_p(furi->retract().as_node()));
+              const fURI_p new_furi = furi_p(furi->retract().as_node());
+              const Obj_p maybe_poly = this->read(new_furi);
+              //return maybe_poly->deref(vri(new_furi->path(1, 255)));
+              /*//return furi->path_length() > 1 ? maybe_poly->deref(vri(furi->retract())) : maybe_poly;*/
+
+              // return maybe_poly->deref(vri(furi->name()));
               if(maybe_poly->is_rec())
                 return maybe_poly->rec_get(vri(furi->name()));
               if(maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))

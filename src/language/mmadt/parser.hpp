@@ -35,14 +35,17 @@ namespace mmadt {
     }
 
   private:
-    Definition WS, ROOT, COMMENT, FURI, FURI_INLINE, FURI_NO_Q, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P
-        , INST_SUGAR
-        ,
-        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
-        EMPTY_BCODE,
-        DOM_RNG;
+    Definition
+        WS, ROOT, COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
+        NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
+        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ,
+        NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
+        EMPTY_BCODE, DOM_RNG, INST_SUGAR;
 #ifndef FOS_SUGARLESS_MMADT
-    Definition AT, REPEAT, FROM, REF, PASS, MULT, PLUS, BLOCK, WITHIN, MERGE, SPLIT, EACH;
+    Definition
+        AT, REPEAT, END, FROM, REF, PASS,
+        MULT, PLUS, BLOCK, WITHIN, MERGE,
+        SPLIT, EACH;
 #endif
     QuadConsumer<const size_t, const size_t, const string, const string> PARSER_LOGGER =
         [](const size_t line, const size_t column, const string &message, const string &rule) {
@@ -204,6 +207,9 @@ namespace mmadt {
       static auto each_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("each")));
       };
+      static auto end_action = [](const SemanticValues &) -> Inst_p {
+        return Obj::to_inst({noobj()}, id_p(*ROUTER_RESOLVE("end")));
+      };
       static auto merge_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.empty() ? InstArgs() : InstArgs{any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("merge")));
       };
@@ -223,50 +229,6 @@ namespace mmadt {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("mult")));
       };
 #endif
-      /*
-        ROOT           <- OBJ / COMMENT
-          COMMENT        <- '---' (!'\n' .)*
-          TYPE           <- TYPE_ID '[]'
-          NOOBJ          <-  'noobj'
-          BOOL           <-  'true' / 'false'
-          INT            <- < [-]?[0-9]+ >
-          REAL           <- < [-]?[0-9]+ '.' [0-9]+ >
-          STR            <- '\'' < (('\\\'') / (!'\'' .))* > '\''
-          FURI           <- < [a-zA-Z:/?_.#+]+([a-zA-Z0-9:/?_=&@.#+])* >
-          FURI_NO_Q      <- < [a-zA-Z:/_.#+]+([a-zA-Z0-9:/_=&@.#+])* >
-          URI            <- '<' FURI '>' / FURI
-          REC            <- '[' (OBJ '=>' OBJ)? (',' OBJ '=>' OBJ)* ']'
-          LST            <- '[' (OBJ)? (',' OBJ)* ']'
-          OBJS           <- '{' (OBJ)? (',' OBJ)* '}'
-          INST           <- (FURI '(' (INST_ARG_OBJ)? (',' INST_ARG_OBJ )* ')')
-          INST_P         <- INST_SUGAR / INST / NO_CODE_OBJ
-          INST_SUGAR     <- PLUS / MULT / WITHIN / FROM / PASS / REF / BLOCK / EACH / MERGE / SPLIT
-          EMPTY_BCODE    <- '_'
-          BCODE          <- EMPTY_BCODE / (INST_P ('.'? INST_P)*)
-          DOM_RNG        <- FURI_NO_Q '?' FURI_NO_Q '<=' FURI_NO_Q
-          TYPE_ID        <- DOM_RNG / FURI
-          # POLY         <- LST / REC
-          NO_CODE_PROTO  <- NOOBJ / BOOL / REAL / INT / STR / LST / REC / OBJS / URI
-          INST_ARG_PROTO <- NOOBJ / BOOL / INT / REAL / STR / LST / REC / OBJS / BCODE / URI
-          PROTO          <- REAL / BCODE / NO_CODE_PROTO
-          NO_CODE_OBJ    <- TYPE / (TYPE_ID '[' NO_CODE_PROTO  ']' ('@' FURI)?) / (NO_CODE_PROTO  ('@' FURI)?)
-          INST_ARG_OBJ   <- TYPE / (TYPE_ID '[' INST_ARG_PROTO ']' ('@' FURI)?) / (INST_ARG_PROTO ('@' FURI)?)
-          OBJ            <- TYPE / (TYPE_ID '[' PROTO          ']' ('@' FURI)?) / (PROTO          ('@' FURI)?)
-          %whitespace    <- [ \t]*
-          ###############################################################
-          ########################  INST SUGARS  ########################
-          ###############################################################
-          FROM           <- ('*' (URI / BCODE)) / ('*(' (URI / BCODE) ')')
-          REF            <- ('->' INST_ARG_OBJ) / ('->(' INST_ARG_OBJ ')')
-          BLOCK          <- ('|' OBJ) / ('|(' OBJ ')')
-          PASS           <- ('-->' INST_ARG_OBJ) / ('-->(' INST_ARG_OBJ ')')
-          MERGE          <- '>' < [0-9]* > '-'
-          SPLIT          <- ('-<' INST_ARG_OBJ) / ('-<(' INST_ARG_OBJ ')')
-          EACH           <- ('==' INST_ARG_OBJ) / ('==(' INST_ARG_OBJ ')')
-          WITHIN         <- '_/' OBJ '\\_'
-          PLUS           <- ('+' OBJ) / ('+(' OBJ ')')
-          MULT           <- ('x' OBJ) / ('x(' OBJ ')')
-       */
       WS <= zom(cls(" \t"));
       ROOT <= cho(OBJ, COMMENT);
       COMMENT <= seq(lit("---"), zom(ncls("\n"))), comment_action;
@@ -286,10 +248,11 @@ namespace mmadt {
           rec_action;
       LST <= seq(chr('['), opt(OBJ), zom(seq(chr(','), OBJ)), chr(']')), lst_action;
       OBJS <= seq(chr('{'), opt(OBJ), zom(seq(chr(','), OBJ)), chr('}')), objs_action;
-      INST <= seq(FURI, chr('('), opt(INST_ARG_OBJ), zom(seq(chr(','), INST_ARG_OBJ)), chr(')')), inst_action;
+      INST <= seq(FURI_INLINE, chr('('), opt(INST_ARG_OBJ), zom(seq(chr(','), INST_ARG_OBJ)), chr(')')), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
-      BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(cho(INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
+      BCODE <= cho(EMPTY_BCODE,
+                   seq(INST_P, zom(cho(seq(END, opt(chr('.'))), INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
       BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
@@ -306,7 +269,7 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      INST_SUGAR <= cho(AT, REPEAT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, MERGE, SPLIT);
+      INST_SUGAR <= cho(AT, REPEAT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, END, MERGE, SPLIT);
       AT <= cho(seq(chr('@'), cho(URI, BCODE_P)), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
       REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
       FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))),
@@ -317,6 +280,7 @@ namespace mmadt {
       MERGE <= seq(~WS, chr('>'), opt(INST_ARG_OBJ), chr('-'), ~WS), merge_action;
       SPLIT <= seq(lit("-<"), INST_ARG_OBJ), split_action;
       EACH <= seq(lit("=="), INST_ARG_OBJ), each_action;
+      END <= lit(";"), end_action;
       WITHIN <= seq(lit("_/"), OBJ, lit("\\_")), within_action;
       PLUS <= seq(chr('+'), chr(' '), INST_ARG_OBJ), plus_action;
       MULT <= seq(chr('x'), chr(' '), INST_ARG_OBJ), mult_action;

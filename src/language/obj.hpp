@@ -620,15 +620,59 @@ namespace fhatos {
       this->lst_value()->push_back(obj);
     }
 
+    [[nodiscard]] Obj_p deref(const Obj_p &uri) {
+      if(this->is_rec())
+        return this->rec_get(uri);
+      else if(this->is_lst())
+        return this->lst_get(uri);
+      else if(this->is_uri())
+        return ROUTER_READ(furi_p(this->uri_value()))
+            ->deref(this->vid_ ? Obj::to_uri(this->vid_->extend(uri->uri_value())) : uri);
+      else if(this->is_objs()) {
+        Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
+        for(const auto &o: *this->objs_value()) {
+          transform->add_obj(o->deref(uri));
+        }
+        return transform->none_one_all();
+      } else
+        return uri;
+      //throw fError("poly-get currently not supported for %s", this->tid_->toString().c_str());
+    }
+
     [[nodiscard]] Int_p rec_size() const { return Obj::to_int(this->rec_value()->size()); }
 
     [[nodiscard]] Int_p lst_size() const { return Obj::to_int(this->lst_value()->size()); }
 
     [[nodiscard]] Obj_p lst_get(const uint16_t &index) const { return this->lst_get(Obj::to_int(index)); }
 
-    [[nodiscard]] Obj_p lst_get(const Int_p &index) const {
+    [[nodiscard]] Obj_p lst_get(const Obj_p &index) const {
       if(!this->is_lst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if(index->is_uri()) {
+        const auto segment = string(index->uri_value().path(0));
+        const int i = StringHelper::is_integer(segment)
+                        ? std::stoi(segment)
+                        : (StringHelper::has_wildcards(segment) ? -1 : -100);
+        if(i == -100)
+          throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
+                       index->uri_value().toString().c_str());
+        if(i >= this->lst_value()->size())
+          return to_noobj();
+        Obj_p segment_value = Obj::to_objs();
+        if(i == -1) {
+          for(const auto &e: *this->lst_value()) {
+            segment_value->add_obj(e);
+          }
+        } else {
+          segment_value->add_obj(this->lst_value()->at(i));
+        }
+        segment_value = segment_value->none_one_all();
+        if(segment_value->is_noobj())
+          return to_noobj();
+        return index->uri_value().path_length() <= 1
+                 ? segment_value
+                 : segment_value->deref(Obj::to_uri(index->uri_value().path(1, 255)));
+      }
       return (static_cast<size_t>(index->int_value()) >= this->lst_value()->size())
                ? Obj::to_noobj()
                : this->lst_value()->at(index->int_value());
@@ -647,36 +691,40 @@ namespace fhatos {
     }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Runnable &on_error = nullptr) const {
-      if(key->is_uri() && key->uri_value().path_length() > 1) {
-        const Uri_p segment = to_uri(key->uri_value().path(0));
-        Obj_p segment_value = nullptr;
-        for(const auto &[k, v]: *this->rec_value()) {
-          if(k->match(segment)) {
-            segment_value = v;
-            break;
-          }
+      if(!this->is_rec())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      if(key->is_uri()) {
+        const auto segment = 0 == key->uri_value().path_length()
+                               ? key->uri_value().toString()
+                               : string(key->uri_value().path(0));
+        Objs_p segment_value = Obj::to_objs();
+        const bool match_all = StringHelper::has_wildcards(segment);
+        const Uri_p segment_uri = Obj::to_uri(fURI(segment));
+        for(const auto &[k,v]: *this->rec_value()) {
+          //  LOG(INFO, "key %s to match %s from %s\n", k->toString().c_str(), segment_uri->toString().c_str(),
+          //       this->toString().c_str());
+          if(match_all || k->match(segment_uri))
+            segment_value->add_obj(v);
         }
-        if(!segment_value) {
+        segment_value = segment_value->none_one_all();
+        return key->uri_value().path_length() <= 1
+                 ? segment_value
+                 : segment_value->deref(to_uri(key->uri_value().path(1, 255)));
+      } else {
+        Objs_p segment_value = Obj::to_objs();
+        for(const auto &[k, v]: *this->rec_value()) {
+          if(k->match(key))
+            segment_value->add_obj(v);
+        }
+        return segment_value->none_one_all();
+      }
+      /*        if(!segment_value) {
           if(on_error)
             on_error();
           return Obj::to_noobj();
         }
-        if(!segment_value->is_rec())
-          throw fError("path %s of %s is not a rec", segment->toString().c_str(), key->toString().c_str(),
-                       segment_value->toString().c_str());
-        return segment_value->rec_get(to_uri(key->uri_value().path(1, 255)));
-      } else {
-        for(const auto &[k, v]: *this->rec_value()) {
-          if(k->match(key))
-            return v;
-        }
-        return Obj::to_noobj();
-      }
-      // return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
-    }
-
-    [[nodiscard]] Obj_p rec_get(const Obj &key, const Runnable &on_error = nullptr) const {
-      return rec_get(make_shared<Obj>(key), on_error);
+        */
+      //return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
     [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Runnable &on_error = nullptr) const {
@@ -885,14 +933,14 @@ namespace fhatos {
       return Obj::to_bcode(insts);
     }
 
-    Obj_p none_one_all() {
+    [[nodiscard]] Obj_p none_one_all() {
       if(this->is_objs()) {
         if(this->objs_value()->empty())
           return Obj::to_noobj();
         if(this->objs_value()->size() == 1)
           return this->objs_value()->front();
       }
-      return shared_from_this();
+      return this->shared_from_this();
     }
 
     void add_obj(const Obj_p &obj, [[maybe_unused]] const bool mutate = true) {
@@ -1529,11 +1577,8 @@ namespace fhatos {
         case OType::REAL:
         case OType::STR:
           return shared_from_this();
-        case OType::URI: {
-          return (lhs->is_uri() && this->uri_value().is_relative())
-                   ? Obj::to_uri(lhs->uri_value().resolve(this->uri_value()))
-                   : shared_from_this();
-        }
+        case OType::URI:
+          return lhs->deref(shared_from_this());
         case OType::LST: {
           const auto new_values = make_shared<LstList>();
           for(const auto &obj: *this->lst_value()) {

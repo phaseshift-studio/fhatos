@@ -34,6 +34,10 @@ namespace fhatos {
     TEST_ASSERT_EQUAL(OType::NOOBJ, OBJ_PARSER("noobj")->o_type());
   }
 
+  void test_noobj_parsing() {
+    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("noobj"));
+  }
+
   void test_bool_parsing() {
     FOS_TEST_OBJ_EQUAL(dool(true), OBJ_PARSER("true"));
     FOS_TEST_OBJ_EQUAL(dool(false), OBJ_PARSER("false"));
@@ -137,6 +141,7 @@ namespace fhatos {
   }
 
   FOS_RUN_TESTS( //
+    FOS_RUN_TEST(test_noobj_parsing); //
     FOS_RUN_TEST(test_type_parsing); //
     FOS_RUN_TEST(test_bool_parsing); //
     FOS_RUN_TEST(test_int_parsing); //

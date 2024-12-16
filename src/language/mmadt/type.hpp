@@ -87,8 +87,8 @@ namespace mmadt {
                  ->type_args(x(0, "var"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    const ID_p at_id = id_p(args.at(0)->uri_value());
-                   Obj_p result = lhs->is_noobj() ? ROUTER_READ(at_id)->at(at_id) : lhs->at(at_id);
-                   return result;
+                   const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
+                   return new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/block"),
                  InstBuilder::build(MMADT_SCHEME "/block")
@@ -117,6 +117,13 @@ namespace mmadt {
       TYPE_SAVER(id_p(MMADT_SCHEME "/each"),
                  InstBuilder::build(MMADT_SCHEME "/each")
                  ->type_args(x(0, "poly"))
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/end"),
+                 InstBuilder::build(MMADT_SCHEME "/end")
+                 ->inst_f([](const Obj_p &, const InstArgs &) {
+                   return Obj::to_objs();
+                 })
+                 ->itype_and_seed(IType::MANY_TO_ZERO, Obj::to_noobj())
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/each"),
                  InstBuilder::build("each")
