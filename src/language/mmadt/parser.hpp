@@ -91,8 +91,10 @@ namespace mmadt {
       };
       static auto rec_action = [](const SemanticValues &vs) -> Pair_p<Any, OType> {
         const auto map = make_shared<Obj::RecMap<>>();
-        for(int i = 0; i < vs.size(); i = i + 2) {
-          map->insert(make_pair<Obj_p, Obj_p>(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1])));
+        if(1 == vs.choice()) {
+          for(int i = 0; i < vs.size(); i = i + 2) {
+            map->insert(make_pair<Obj_p, Obj_p>(any_cast<Obj_p>(vs[i]), any_cast<Obj_p>(vs[i + 1])));
+          }
         }
         return make_shared<Pair<Any, OType>>(map, OType::REC);
       };
@@ -279,8 +281,8 @@ namespace mmadt {
           furi_action;
       FURI_NO_Q <= tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))), furi_action;
       URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI_INLINE, FURI), uri_action;
-      REC <= seq(chr('['), opt(seq(OBJ, lit("=>"), OBJ)),
-                 zom(seq(chr(','), OBJ, lit("=>"), OBJ)), chr(']')),
+      REC <= cho(lit("[=>]"), seq(chr('['), opt(seq(OBJ, lit("=>"), OBJ)),
+                                  zom(seq(chr(','), OBJ, lit("=>"), OBJ)), chr(']'))),
           rec_action;
       LST <= seq(chr('['), opt(OBJ), zom(seq(chr(','), OBJ)), chr(']')), lst_action;
       OBJS <= seq(chr('{'), opt(OBJ), zom(seq(chr(','), OBJ)), chr('}')), objs_action;

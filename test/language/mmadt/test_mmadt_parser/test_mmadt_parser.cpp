@@ -82,21 +82,58 @@ namespace fhatos {
     //FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/../ddd"));
   }
 
+  void test_lst_parsing() {
+    FOS_TEST_OBJ_EQUAL(lst(), OBJ_PARSER("[]"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), OBJ_PARSER("[1,2,3]"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),jnt(2),jnt(3)}), OBJ_PARSER("[1   , 2 , 3]"));
+    FOS_TEST_OBJ_EQUAL(lst({jnt(1),lst({jnt(2),jnt(4)}),jnt(3)}), OBJ_PARSER("[1,[2,4],3]"));
+    FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
+                       OBJ_PARSER("['a',['b',['e','c']],'d']"));
+    FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
+                       OBJ_PARSER("lst[['a',lst[['b',lst[['e','c']]]],'d']]"));
+    FOS_TEST_OBJ_EQUAL(lst({str("a"),lst({str("b"),lst({str("e"),str("c")})}),str("d")}),
+                       OBJ_PARSER("lst[['a',['b',lst[['e','c']]],'d']]"));
+  }
+
+  void test_rec_parsing() {
+    FOS_TEST_OBJ_EQUAL(rec(), OBJ_PARSER("[=>]"));
+    TEST_ASSERT_EQUAL_STRING("[=>]", rec()->toString(NO_ANSI_PRINTER).c_str());
+    FOS_TEST_OBJ_NTEQL(rec(), OBJ_PARSER("[]"));
+    FOS_TEST_OBJ_EQUAL(rec(), OBJ_PARSER("rec[[=>]]"));
+    FOS_TEST_OBJ_NTEQL(rec(), OBJ_PARSER("[a=>1]"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),str("b")},{jnt(3),str("c")}}),
+                       OBJ_PARSER("[1=>'a',2=>'b',3=>'c']"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),str("b")},{jnt(3),str("c")}}),
+                       OBJ_PARSER("[  1  => 'a', 2=>  'b',3  =>'c']"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec()},{jnt(3),str("c")}}),
+                       OBJ_PARSER("[1=>'a',2=>[=>],3=>'c']"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec({{str("b"),rec({{str("d"),jnt(4)}})}})},{jnt(3),str("c")}}),
+                       OBJ_PARSER("[1=>'a',2=>['b'=>['d'=>4]],3=>'c']"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec({{str("b"),rec({{str("d"),jnt(4)}})}})},{jnt(3),str("c")}}),
+                       OBJ_PARSER("rec[[1=>'a',2=>rec[['b'=>rec[['d'=>4]]]],3=>'c']]"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),str("a")},{jnt(2),rec({{str("b"),rec({{str("d"),jnt(4)}})}})},{jnt(3),str("c")}}),
+                       OBJ_PARSER("rec[[1=>'a',2=>['b'=>rec[['d'=>4]]],3=>'c']]"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
+                       OBJ_PARSER("rec[[1=>a,2=>[b=>[d=>4]],3=>c]]"));
+    FOS_TEST_OBJ_NTEQL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
+                       OBJ_PARSER("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
+  }
+
   void test_inst_sugar_parsing() {
-    FOS_TEST_OBJ_EQUAL(jnt(6), BCODE_PROCESSOR(OBJ_PARSER("3 x 2"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3x2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(6), BCODE_PROCESSOR(OBJ_PARSER("3 x 2"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3 x2")->apply());
     ////
-    FOS_TEST_OBJ_EQUAL(jnt(5), BCODE_PROCESSOR(OBJ_PARSER("3 + 2"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3 + 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3+2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(5), BCODE_PROCESSOR(OBJ_PARSER("3+ 2"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3+ 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3 +2")->apply());
     ////
-    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("9.plus(1)"))->objs_value()->front());
-    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("{9}.plus(1)"))->objs_value()->front());
-    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("start({9}).plus(1)"))->objs_value()->front());
-    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("map(9).plus(1)"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("{9}.plus(1)"));
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("start({9}).plus(1)"));
+    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("map(9).plus(1)"));
   }
 
   FOS_RUN_TESTS( //
@@ -106,6 +143,8 @@ namespace fhatos {
     FOS_RUN_TEST(test_real_parsing); //
     FOS_RUN_TEST(test_str_parsing); //
     FOS_RUN_TEST(test_uri_parsing); //
+    FOS_RUN_TEST(test_lst_parsing); //
+    FOS_RUN_TEST(test_rec_parsing); //
     //////////////////////////////////
     FOS_RUN_TEST(test_inst_sugar_parsing);
   )

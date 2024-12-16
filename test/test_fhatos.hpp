@@ -182,6 +182,9 @@ void tearDown() {
 
 using namespace fhatos;
 
+#define PROCESS(bcode_string) \
+  BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))->objs_value()->front()
+
 #define FOS_TEST_MESSAGE(format, ...)                                                                                  \
   if (FOS_LOGGING < fhatos::LOG_TYPE::ERROR) {                                                                         \
     PRINTER->printf("  !rline %i!!\t", __LINE__);                                                                      \

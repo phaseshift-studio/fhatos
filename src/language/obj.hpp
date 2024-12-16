@@ -286,6 +286,14 @@ namespace fhatos {
     }
   };
 
+  static auto NO_ANSI_PRINTER = new ObjPrinter{
+    .show_id = true,
+    .show_type = true,
+    .show_domain_range = false,
+    .strict = false,
+    .ansi = false,
+    .propagate = false
+  };
   static auto DEFAULT_OBJ_PRINTER = new ObjPrinter{
     .show_id = true,
     .show_type = true,
@@ -913,7 +921,21 @@ namespace fhatos {
         case OType::STR: return this->str_value() == other.str_value();
         case OType::URI: return this->uri_value() == other.uri_value();
         case OType::LST: return *this->lst_value() == *other.lst_value();
-        case OType::REC: return *this->rec_value() == *other.rec_value();
+        case OType::REC: {
+          const RecMap_p<> a = this->rec_value();
+          const RecMap_p<> b = other.rec_value();
+          if(a->size() != b->size())
+            return false;
+          if(!a->empty()) {
+            auto itty = a->cbegin();
+            for(const auto &[b1,b2]: *b) {
+              if(*itty->first != *b1 || *itty->second != *b2)
+                return false;
+              ++itty;
+            }
+          }
+          return true;
+        }
         case OType::OBJS: return *this->objs_value() == *other.objs_value();
         case OType::INST: return this->toString() == other.toString(); // TODO: Tuple equality
         case OType::BCODE: return *this->bcode_value() == *other.bcode_value();
@@ -961,20 +983,24 @@ namespace fhatos {
             break;
           }
           case OType::REC: {
-            obj_string = "!m[!!";
-            bool first = true;
-            for(const auto &[k, v]: *this->rec_value()) {
-              if(first) {
-                first = false;
-              } else {
-                obj_string += "!m,";
+            if(this->rec_value()->empty())
+              obj_string = "!m[!g=>!m]!!";
+            else {
+              obj_string = "!m[!!";
+              bool first = true;
+              for(const auto &[k, v]: *this->rec_value()) {
+                if(first) {
+                  first = false;
+                } else {
+                  obj_string += "!m,";
+                }
+                obj_string += "!c";
+                obj_string += k->toString(obj_printer->next()); // {ansi=false});
+                obj_string += "!g=>!!";
+                obj_string += v->toString();
               }
-              obj_string += "!c";
-              obj_string += k->toString(obj_printer->next()); // {ansi=false});
-              obj_string += "!g=>!!";
-              obj_string += v->toString();
+              obj_string += "!m]!!";
             }
-            obj_string += "!m]!!";
             break;
           }
           case OType::INST: {
