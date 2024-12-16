@@ -134,8 +134,8 @@ namespace fhatos {
       }
       // start inst forced initial
       if(this->running_->empty()) {
-        const Obj_p seed_copy = Objs::to_objs();
-        //this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
+        //const Obj_p seed_copy = Objs::to_objs();
+        const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
         this->running_->push_back(
           Monad::create(seed_copy, this->bcode_->bcode_value()->front()));
       }
@@ -179,12 +179,12 @@ namespace fhatos {
           this->running_->pop_front();
           if(m->halted()) {
             LOG(TRACE, FOS_TAB_5 "!gHalting!! monad: %s\n", m->toString().c_str());
-            this->halted_->push_back(m->obj()->clone());
+            this->halted_->push_back(m->obj());
           } else {
             if(is_barrier_out(m->inst()->itype())) {
               /// MANY-TO-? BARRIER PROCESSING
               LOG(TRACE, "Adding to barrier: %s => %s\n", m->toString().c_str(), m->inst()->toString().c_str());
-              this->barriers_->front()->obj()->objs_value()->push_back(m->obj()->clone());
+              this->barriers_->front()->obj()->objs_value()->push_back(m->obj());
             } else {
               LOG(TRACE, FOS_TAB_5 "!gSplitting!! monad: %s\n", m->toString().c_str());
               m->split(this->bcode_, this->running_);

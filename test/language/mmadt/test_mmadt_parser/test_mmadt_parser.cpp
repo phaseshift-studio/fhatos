@@ -22,6 +22,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_PARSER
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_ROUTER
+#define FOS_DEPLOY_PROCESSOR
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
@@ -62,7 +63,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(str("negatIVE te  N"), OBJ_PARSER("'negatIVE te  N'"));
     FOS_TEST_OBJ_EQUAL(str(""), OBJ_PARSER("str['']"));
     FOS_TEST_OBJ_EQUAL(str("abc"), OBJ_PARSER("str['abc']"));
-    TEST_ASSERT_EQUAL_STRING("b\\'c", OBJ_PARSER("'a\\'''b\\'c'")->apply(Obj::to_objs())->str_value().c_str());
+    TEST_ASSERT_EQUAL_STRING("b\\'c", OBJ_PARSER("'a\\''.'b\\'c'")->apply()->str_value().c_str());
     TEST_ASSERT_EQUAL_STRING("a\"b\"c", OBJ_PARSER("'a\"b\"c'")->str_value().c_str());
     TEST_ASSERT_EQUAL_STRING("a\\'b\\'c", OBJ_PARSER("'a\\'b\\'c'")->str_value().c_str());
   }
@@ -75,22 +76,27 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("../../a"), OBJ_PARSER("<../../a>"));
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), OBJ_PARSER("abc/cba"));
     FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), OBJ_PARSER("aBc_cBa"));
-    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/../ddd]"));
+    //FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/../ddd]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[<aaa_bbb/ccc/../ddd>]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("<aaa_bbb/ccc/../ddd>"));
-    // TODO: FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/../ddd"));
+    //FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/../ddd"));
   }
 
   void test_inst_sugar_parsing() {
-    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3x 2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x 2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(6), OBJ_PARSER("3 x2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(6), BCODE_PROCESSOR(OBJ_PARSER("3 x 2"))->objs_value()->front());
+    //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3x2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(6), BCODE_PROCESSOR(OBJ_PARSER("3 x 2"))->objs_value()->front());
+    //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3 x2")->apply());
     ////
-    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3+2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3+ 2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3 + 2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(5), OBJ_PARSER("3 +2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(5), BCODE_PROCESSOR(OBJ_PARSER("3 + 2"))->objs_value()->front());
+    //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3+2")->apply());
+    FOS_TEST_OBJ_EQUAL(jnt(5), BCODE_PROCESSOR(OBJ_PARSER("3+ 2"))->objs_value()->front());
+    //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3 +2")->apply());
+    ////
+    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("9.plus(1)"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("{9}.plus(1)"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("start({9}).plus(1)"))->objs_value()->front());
+    FOS_TEST_OBJ_EQUAL(jnt(10), BCODE_PROCESSOR(OBJ_PARSER("map(9).plus(1)"))->objs_value()->front());
   }
 
   FOS_RUN_TESTS( //

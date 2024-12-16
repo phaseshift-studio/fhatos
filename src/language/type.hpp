@@ -134,7 +134,7 @@ namespace fhatos {
                                   !type_def->is_bcode() && !type_def->is_inst())
                                   ? obj
                                   : type_def->apply(obj);
-        if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI))
+        if(proto_obj->is_noobj() && !resolved_type_id->equals(*NOOBJ_FURI) && !resolved_type_id->equals(*OBJ_FURI))
           throw fError("!g[!b%s!g]!! %s is not a !b%s!!",
                        Type::singleton()->vid()->toString().c_str(),
                        obj->toString().c_str(),

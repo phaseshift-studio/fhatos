@@ -66,14 +66,15 @@ namespace mmadt {
 
     static void import_base_inst() {
       Type::singleton()->start_progress_bar(TOTAL_INSTRUCTIONS);
-      /* TYPE_SAVER(id_p(MMADT_FURI "inst/start"),
-                  ObjHelper::InstTypeBuilder::build(MMADT_FURI "start")
-                  ->type_args(x(0, "starts"))
-                  ->itype_and_seed(IType::ZERO_TO_MANY, Obj::to_inst([](const Obj_p &obj, const InstArgs &args) {
-                    Objs_p objs = Obj::to_objs(make_shared<List<Obj_p>>(args));
-                    return objs;
-                  }, {x(0)}, id_p(ID(StringHelper::cxx_f_metadata(__FILE__,__LINE__))), nullptr))
-                  ->create());*/
+      TYPE_SAVER(id_p(MMADT_SCHEME "/start"),
+                 InstBuilder::build(MMADT_SCHEME "/start")
+                 ->domain_range(NOOBJ_FURI, OBJS_FURI)
+                 ->type_args(x(0, "starts"))
+                 ->inst_f([](const Obj_p &, const InstArgs &args) {
+                   return args.at(0)->is_objs() ? args.at(0) : Obj::to_objs(make_shared<List<Obj_p>>(args));
+                 })
+                 ->itype_and_seed(IType::ZERO_TO_MANY)
+                 ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/as"),
                  InstBuilder::build(MMADT_SCHEME "/as")
                  ->type_args(x(0, "type"))
@@ -100,14 +101,11 @@ namespace mmadt {
       TYPE_SAVER(id_p(MMADT_SCHEME "/count"),
                  InstBuilder::build(MMADT_SCHEME "/count")
                  ->domain_range(OBJS_FURI, INT_FURI)
-                 ->type_args(x(0, "obj", ___))
-                 ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   return !args.at(0)->is_objs() ? jnt(1) : Obj::to_int(args.at(0)->objs_value()->size());
+                 //->type_args(x(0, "obj", ___))
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                   return !lhs->is_objs() ? jnt(1) : Obj::to_int(lhs->objs_value()->size());
                  })
-                 ->itype_and_seed(IType::MANY_TO_ONE,
-                                  Obj::to_bcode([](const Obj_p &lhs, const InstArgs &args) { return objs(); },
-                                                InstArgs(),
-                                                StringHelper::cxx_f_metadata(__FILE__,__LINE__).c_str()))
+                 ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/delay"),
                  InstBuilder::build(MMADT_SCHEME "/delay")
@@ -286,7 +284,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/within")
                  ->type_args(x(0, "code"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const BCode_p starts_bcode = args.at(0)->bcode_starts({lhs});
+                   const BCode_p starts_bcode = args.at(0)->bcode_starts(Obj::to_objs(lhs->lst_value()));
                    return Obj::to_lst(BCODE_PROCESSOR(starts_bcode)->objs_value());
                  })
                  ->create());

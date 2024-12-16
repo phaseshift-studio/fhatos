@@ -35,7 +35,8 @@ namespace mmadt {
     }
 
   private:
-    Definition _S_, ROOT, COMMENT, FURI, FURI_NO_Q, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P, INST_SUGAR
+    Definition WS, ROOT, COMMENT, FURI, FURI_INLINE, FURI_NO_Q, NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P
+        , INST_SUGAR
         ,
         INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
         EMPTY_BCODE,
@@ -134,7 +135,7 @@ namespace mmadt {
               const Obj_p obj_or_inst = any_cast<Obj_p>(vs[i]);
               list->push_back(obj_or_inst->otype_ == OType::INST
                                 ? obj_or_inst
-                                : Obj::to_inst({obj_or_inst}, id_p(*ROUTER_RESOLVE("map"))));
+                                : Obj::to_inst({obj_or_inst}, id_p(*ROUTER_RESOLVE(0 == i ? "start" : "map"))));
             }
             return make_shared<Pair<Any, OType>>(list, OType::BCODE);
           }
@@ -175,11 +176,11 @@ namespace mmadt {
           LOG_OBJ(TRACE, Parser::singleton(), "entering rule !b%s!! with token !y%s!!\n", rule.c_str(), s);
         };
       };
-      const ptr<Whitespace> WS = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
       //////////////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
       static auto at_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("at")));
+        const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
+        return Obj::to_inst({Obj::create(v, o, OTYPE_FURI.at(o))}, id_p(*ROUTER_RESOLVE("at")));
       };
       static auto from_action = [](const SemanticValues &vs) -> Inst_p {
         const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
@@ -264,18 +265,20 @@ namespace mmadt {
           PLUS           <- ('+' OBJ) / ('+(' OBJ ')')
           MULT           <- ('x' OBJ) / ('x(' OBJ ')')
        */
-      _S_ <= zom(cls(" \t"));
+      WS <= zom(cls(" \t"));
       ROOT <= cho(OBJ, COMMENT);
       COMMENT <= seq(lit("---"), zom(ncls("\n"))), comment_action;
-      TYPE <= seq(~_S_, TYPE_ID, lit("[]"), ~_S_), type_action;
+      TYPE <= seq(~WS, TYPE_ID, lit("[]"), ~WS), type_action;
       NOOBJ <= lit("noobj"), noobj_action;
       BOOL <= cho(lit("true"), lit("false")), bool_action;
       INT <= seq(opt(chr('-')), oom(cls("0-9"))), int_action;
       REAL <= seq(opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9"))), real_action;
       STR <= seq(chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\'')), str_action;
       FURI <= tok(seq(oom(cls("a-zA-Z:/?_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+"))))), furi_action;
+      FURI_INLINE <= tok(seq(oom(cls("a-zA-Z:/?_#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&#+"))))),
+          furi_action;
       FURI_NO_Q <= tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))), furi_action;
-      URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI), uri_action;
+      URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI_INLINE, FURI), uri_action;
       REC <= seq(chr('['), opt(seq(OBJ, lit("=>"), OBJ)),
                  zom(seq(chr(','), OBJ, lit("=>"), OBJ)), chr(']')),
           rec_action;
@@ -284,36 +287,37 @@ namespace mmadt {
       INST <= seq(FURI, chr('('), opt(INST_ARG_OBJ), zom(seq(chr(','), INST_ARG_OBJ)), chr(')')), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
-      BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(seq(seq(~_S_, opt(chr('.')), ~_S_), INST_P)))), bcode_action;
+      BCODE <= cho(EMPTY_BCODE, seq(INST_P, zom(cho(INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
       BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
       PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
       DOM_RNG <= seq(FURI_NO_Q, chr('?'), FURI_NO_Q, lit("<="), FURI_NO_Q), dom_rng_action;
       TYPE_ID <= cho(DOM_RNG, FURI), furi_action;
-      NO_CODE_OBJ <= cho(TYPE, seq(~_S_, TYPE_ID, chr('['), NO_CODE_PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~_S_),
-                         seq(~_S_, NO_CODE_PROTO, opt(seq(chr('@'), FURI)), ~_S_)), obj_action;
-      INST_ARG_OBJ <= cho(TYPE, seq(~_S_, TYPE_ID, chr('['), INST_ARG_PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~_S_),
-                          seq(~_S_, INST_ARG_PROTO, opt(seq(chr('@'), FURI)), ~_S_)), obj_action;
-      OBJ <= cho(TYPE, seq(~_S_, TYPE_ID, chr('['), PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~_S_),
-                 seq(~_S_, PROTO, opt(seq(chr('@'), FURI)), ~_S_)), obj_action;
+      NO_CODE_OBJ <= cho(TYPE, seq(~WS, TYPE_ID, chr('['), NO_CODE_PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~WS),
+                         seq(~WS, NO_CODE_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
+      INST_ARG_OBJ <= cho(TYPE, seq(~WS, TYPE_ID, chr('['), INST_ARG_PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~WS),
+                          seq(~WS, INST_ARG_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
+      OBJ <= cho(TYPE, seq(~WS, TYPE_ID, chr('['), PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~WS),
+                 seq(~WS, PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
       /////////////////////////////////////////////////////////////////
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
       INST_SUGAR <= cho(AT, REPEAT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, MERGE, SPLIT);
-      AT <= cho(seq(chr('@'), INST_ARG_OBJ), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
+      AT <= cho(seq(chr('@'), cho(URI, BCODE_P)), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
       REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
-      FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))), from_action;
+      FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))),
+          from_action;
       REF <= cho(seq(lit("->"), INST_ARG_OBJ), seq(lit("->("), INST_ARG_OBJ, chr(')'))), ref_action;
-      BLOCK <= cho(seq(lit("|"), INST_ARG_OBJ), seq(lit("|("), INST_ARG_OBJ, chr(')'))), block_action;
-      PASS <= cho(seq(lit("-->"), INST_ARG_OBJ), seq(lit("-->("), INST_ARG_OBJ, chr(')'))), pass_action;
-      MERGE <= seq(~_S_, chr('>'), opt(INST_ARG_OBJ), chr('-'), ~_S_), merge_action;
-      SPLIT <= cho(seq(lit("-<"), INST_ARG_OBJ), seq(lit("-<("), INST_ARG_OBJ, chr(')'))), split_action;
-      EACH <= cho(seq(lit("=="), INST_ARG_OBJ), seq(lit("==("), INST_ARG_OBJ, chr(')'))), each_action;
+      BLOCK <= seq(lit("|"), INST_ARG_OBJ), block_action;
+      PASS <= seq(lit("-->"), INST_ARG_OBJ), pass_action;
+      MERGE <= seq(~WS, chr('>'), opt(INST_ARG_OBJ), chr('-'), ~WS), merge_action;
+      SPLIT <= seq(lit("-<"), INST_ARG_OBJ), split_action;
+      EACH <= seq(lit("=="), INST_ARG_OBJ), each_action;
       WITHIN <= seq(lit("_/"), OBJ, lit("\\_")), within_action;
-      PLUS <= cho(seq(lit("+"), INST_ARG_OBJ), seq(lit("+("), INST_ARG_OBJ, chr(')'))), plus_action;
-      MULT <= cho(seq(lit("x"), INST_ARG_OBJ), seq(lit("x("), INST_ARG_OBJ, chr(')'))), mult_action;
+      PLUS <= seq(chr('+'), chr(' '), INST_ARG_OBJ), plus_action;
+      MULT <= seq(chr('x'), chr(' '), INST_ARG_OBJ), mult_action;
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif
@@ -331,13 +335,7 @@ namespace mmadt {
       TYPE.enter = enter_y("type");
       PROTO.enter = enter_y("proto");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
-      ROOT.whitespaceOpe = WS;
-      OBJ.whitespaceOpe = WS;
-      PROTO.whitespaceOpe = WS;
-      NO_CODE_PROTO.whitespaceOpe = WS;
-      INST_ARG_PROTO.whitespaceOpe = WS;
-      INST_SUGAR.whitespaceOpe = WS;
-      INST_ARG_OBJ.whitespaceOpe = WS;
+      ROOT.whitespaceOpe = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
       ROOT.enablePackratParsing = true;
       ROOT.eoi_check = true;
       /////////////////////////////////////////////////////////////////////////////////////

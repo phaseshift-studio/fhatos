@@ -429,32 +429,6 @@ namespace fhatos {
     using RecMap_p = ptr<RecMap<COMPARATOR, ALLOCATOR>>;
     //////////////////////////////////////////////////////
 
-    /*class Args final {
-       unique_ptr<Map<ID, Obj_p>> args_;
-
-     public:
-       explicit Args(const Map<ID, Obj_p> &map_of_args) :
-         args_(make_unique<Map<ID, Obj_p>>(map_of_args)) {
-       }
-
-       void check_size(const uint8_t expected) const {
-         if (args_->size() != expected)
-           throw fError("bad argument length");
-       }
-
-       void add_arg(const ID &name, const Obj_p &obj) const {
-         this->args_->insert({name, obj});
-       }
-
-       Obj_p arg(const ID &name) const {
-         return this->args_->at(name);
-       }
-
-       bool bool_value(const ID &name) const {
-         return this->args_->at(name)->bool_value();
-       }
-     };*/
-
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
                  const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)),
                                                    Valued(value_id), otype_(otype),
@@ -811,14 +785,18 @@ namespace fhatos {
     }
 
     ID_p domain() const {
-      return this->tid_->has_query("domain") ? id_p(this->tid_->query_value("domain")->c_str()) : OBJ_FURI;
+      return this->tid_->has_query("domain")
+               ? id_p(this->tid_->query_value("domain")->c_str())
+               : (this->is_bcode() && !this->bcode_value()->empty() ? this->bcode_value()->at(0)->domain() : OBJ_FURI);
     }
 
     ID_p range() const {
       return this->tid_->has_query("range")
                ? id_p(this->tid_->query_value("range")->c_str())
                : this->is_code()
-                   ? OBJ_FURI
+                   ? (this->is_bcode() && !this->bcode_value()->empty()
+                        ? this->bcode_value()->at(this->bcode_value()->size() - 1)->range()
+                        : OBJ_FURI)
                    : this->tid_;
     }
 
@@ -847,11 +825,11 @@ namespace fhatos {
       return this->value<InstList_p>();
     }
 
-    [[nodiscard]] BCode_p bcode_starts(const List<Obj_p> &starts) const {
-      if(!this->is_inst())
+    [[nodiscard]] BCode_p bcode_starts(const Objs_p &starts) const {
+      if(!this->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const auto new_code = make_shared<List<Inst_p>>();
-      new_code->push_back(Obj::to_inst(std::move(starts), id_p("map")));
+      new_code->push_back(Obj::to_inst({starts}, id_p("start")));
       for(const auto &inst: *this->bcode_value()) {
         new_code->push_back(inst);
       }
@@ -1511,7 +1489,7 @@ namespace fhatos {
     }
 
     Obj_p apply() {
-      return this->apply(Objs::to_objs());
+      return this->apply(Obj::to_noobj());
     }
 
     Obj_p apply(const Obj_p &lhs) {
