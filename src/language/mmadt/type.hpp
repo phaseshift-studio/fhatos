@@ -118,13 +118,6 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/each")
                  ->type_args(x(0, "poly"))
                  ->create());
-      TYPE_SAVER(id_p(MMADT_SCHEME "/end"),
-                 InstBuilder::build(MMADT_SCHEME "/end")
-                 ->inst_f([](const Obj_p &, const InstArgs &) {
-                   return Obj::to_objs();
-                 })
-                 ->itype_and_seed(IType::MANY_TO_ZERO, Obj::to_noobj())
-                 ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/lst/" MMADT_INST_SCHEME "/each"),
                  InstBuilder::build("each")
                  ->type_args(x(0, "lst", ___))
@@ -140,6 +133,13 @@ namespace mmadt {
                    }
                    return ret;
                  })
+                 ->create());
+      TYPE_SAVER(id_p(MMADT_SCHEME "/end"),
+                 InstBuilder::build(MMADT_SCHEME "/end")
+                 ->inst_f([](const Obj_p &, const InstArgs &) {
+                   return Obj::to_objs();
+                 })
+                 ->itype_and_seed(IType::MANY_TO_ZERO, Obj::to_noobj())
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/eq"),
                  InstBuilder::build(MMADT_SCHEME "/eq")
@@ -211,7 +211,7 @@ namespace mmadt {
                      if(counter >= max)
                        break;
                      if(!value->is_noobj()) {
-                       objs->add_obj(value);
+                       objs->add_obj(value->apply(key));
                        ++counter;
                      }
                    }

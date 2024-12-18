@@ -40,7 +40,7 @@
                 INCLUDE_DIRECTORIES(${UNIT_TESTS_INCLUDES})
                 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK -DBoost_NO_BOOST_CMAKE=TRUE)
                 ADD_EXECUTABLE(${PROJECT_UNIT_TESTS_NAME} ${UNIT_TESTS_SRC_FILES})
-                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3 peglib)
+                TARGET_LINK_LIBRARIES(${PROJECT_UNIT_TESTS_NAME} ${Boost_LIBRARIES} paho-mqtt3c paho-mqttpp3 tsl::ordered_map)
                 ADD_TEST(test_furi_boost ${PROJECT_UNIT_TESTS_NAME})
             ELSE()
                 MESSAGE("${.r}Unable to locate Boost unit_test_framework${..}. Proceeding without respective depending tests.")

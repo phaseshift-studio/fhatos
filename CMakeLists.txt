@@ -116,7 +116,7 @@ ELSEIF(LINUX)
 ENDIF()
 #########################################
 IF(CMAKE_BUILD_TYPE MATCHES "DEBUG" AND SANITIZER)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O1 -fno-omit-frame-pointer -g")
+    SET(CMAKE_CXX_FLAGS "-fsanitize=address -O1 -fno-omit-frame-pointer -g ${CMAKE_CXX_FLAGS}")
 ENDIF()
 FIND_PROGRAM(CCACHE_FOUND ccache)
 IF(CCACHE_FOUND)
@@ -129,9 +129,9 @@ ENDIF()
 ################################
 SET(ENV{no-dev})
 SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra ${CMAKE_CXX_FLAGS}")
+SET(CMAKE_CXX_FLAGS_DEBUG "-g ${CMAKE_CXX_FLAGS_DEBUG}")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
 ####################################################################
 ####################################################################
 ####################################################################
@@ -257,7 +257,7 @@ IF(BUILD_NATIVE)
     TARGET_COMPILE_FEATURES(${PROJECT_NAME} PRIVATE cxx_std_20)
     ##### PRECOMPILED HEADERS #####
     SET(ROOT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;")
+    SET(HEADER_FILES "<any>;<atomic>;<deque>;<functional>;<vector>;<map>;<memory>;<optional>;<queue>;<map>;<set>;<string>;<tsl/ordered_map.h>")
     MESSAGE(STATUS "${.y}Processing precompiled headers: ${.g}${HEADER_FILES}${..}")
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PUBLIC ${HEADER_FILES})
     ###############################
@@ -281,6 +281,23 @@ ENDIF()
 ####################################
 ######## EXTERNAL LIBRARIES ########
 ####################################
+
+####################################
+####################################
+### ORDERED_MAP: INSERT ORDER MAP IMPLEMENTATION
+MESSAGE(CHECK_START "${.y}Making Ordered Map Library${..}")
+FETCHCONTENT_DECLARE(
+        ordered_map
+        GIT_REPOSITORY https://github.com/Tessil/ordered-map.git
+        GIT_TAG v1.1.0
+        GIT_PROGRESS ${FOS_SHOW_GIT_PROGRESS}
+)
+FETCHCONTENT_MAKEAVAILABLE(ordered_map)
+INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+FILE(COPY ${CMAKE_BINARY_DIR}/_deps/ordered_map-src/include/tsl/ DESTINATION ${CMAKE_BINARY_DIR}/include/tsl)
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include/tsl)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ordered_map)
+MESSAGE(CHECK_PASS "[${.g}COMPLETE${..}]")
 
 ####################################
 ####################################

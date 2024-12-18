@@ -51,6 +51,7 @@
 #include <utility>
 #include <variant>
 #include "../furi.hpp"
+#include <tsl/ordered_map.h>
 
 namespace fhatos {
   /// @brief The base types of mm-ADT
@@ -276,13 +277,13 @@ namespace fhatos {
     }
 
     [[nodiscard]] unique_ptr<ObjPrinter> clone() const {
-      return std::move(make_unique<ObjPrinter>(ObjPrinter{
+      return make_unique<ObjPrinter>(ObjPrinter{
         this->show_id,
         this->show_type,
         this->show_domain_range,
         this->strict,
         this->ansi,
-        this->propagate}));
+        this->propagate});
     }
   };
 
@@ -430,11 +431,11 @@ namespace fhatos {
     //////////////////////////////////////////////////////
     using LstList_p = ptr<LstList>;
     //////////////////////////////////////////////////////
-    template<typename COMPARATOR = objp_comp, typename ALLOCATOR = std::allocator<std::pair<const Obj_p, Obj_p>>>
-    using RecMap = Map<Obj_p, Obj_p, COMPARATOR, ALLOCATOR>;
+    template<typename HASH = objp_hash, typename EQ = objp_equal_to>
+    using RecMap = OrderedMap<Obj_p, Obj_p, HASH, EQ>;
     //////////////////////////////////////////////////////
-    template<typename COMPARATOR = objp_comp, typename ALLOCATOR = std::allocator<std::pair<const Obj_p, Obj_p>>>
-    using RecMap_p = ptr<RecMap<COMPARATOR, ALLOCATOR>>;
+    template<typename HASH = objp_hash, typename EQ = objp_equal_to>
+    using RecMap_p = ptr<RecMap<HASH, EQ>>;
     //////////////////////////////////////////////////////
 
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
@@ -625,9 +626,9 @@ namespace fhatos {
         return this->rec_get(uri);
       else if(this->is_lst())
         return this->lst_get(uri);
-      else if(this->is_uri())
-        return ROUTER_READ(furi_p(this->uri_value()))
-            ->deref(this->vid_ ? Obj::to_uri(this->vid_->extend(uri->uri_value())) : uri);
+        // else if(this->is_uri())
+        //   return ROUTER_READ(furi_p(this->uri_value()))
+        //       ->deref(this->vid_ ? Obj::to_uri(this->vid_->extend(uri->uri_value())) : uri);
       else if(this->is_objs()) {
         Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
         for(const auto &o: *this->objs_value()) {
@@ -736,7 +737,7 @@ namespace fhatos {
     }
 
     [[nodiscard]] Rec_p rec_merge(const RecMap_p<> &rmap) {
-      this->rec_value()->insert(rmap->begin(), rmap->end());
+      this->rec_value()->insert(rmap->cbegin(), rmap->cend());
       return shared_from_this();
     }
 
@@ -1569,6 +1570,9 @@ namespace fhatos {
     Obj_p apply(const Obj_p &lhs) {
       if(lhs->is_error())
         return lhs;
+      if(lhs->is_bcode() && !this->is_bcode()) {
+        return lhs->apply(shared_from_this());
+      }
       switch(this->o_type()) {
         case OType::OBJ: // type token
           return lhs->is_noobj() ? shared_from_this() : lhs->as(this->tid());
@@ -1576,6 +1580,8 @@ namespace fhatos {
         case OType::INT:
         case OType::REAL:
         case OType::STR:
+        case OType::NOOBJ:
+        case OType::ERROR:
           return shared_from_this();
         case OType::URI:
           return lhs->deref(shared_from_this());
@@ -1589,9 +1595,8 @@ namespace fhatos {
         case OType::REC: {
           const auto new_pairs = make_shared<RecMap<>>();
           for(const auto &[key, value]: *this->rec_value()) {
-            const Obj_p key_apply = key->apply(lhs);
-            if(!key_apply->is_noobj())
-              new_pairs->insert({key_apply, value->apply(key_apply)});
+            if(const Obj_p key_apply = key->apply(lhs); !key_apply->is_noobj())
+              new_pairs->insert({key_apply, value/*->apply(key_apply)*/});
           }
           return Obj::to_rec(new_pairs, this->tid_);
         }
@@ -1656,10 +1661,6 @@ namespace fhatos {
           }
           return objs;
         }
-        case OType::NOOBJ:
-          return shared_from_this();
-        case OType::ERROR:
-          return shared_from_this();
         default:
           throw fError("Unknown obj type in apply(): %s", OTypes.to_chars(this->o_type()).c_str());
       }

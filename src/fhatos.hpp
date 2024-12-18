@@ -75,7 +75,7 @@
 #include <string>
 #include "util/logger.hpp"
 #include <random>
-#include "util/options.hpp"
+#include <tsl/ordered_map.h>
 
 
 namespace fhatos {
@@ -178,6 +178,13 @@ namespace fhatos {
   using Map = std::map<K, V, C, A>;
   template<typename K, typename V, typename C = std::less<>, typename A = std::allocator<std::pair<const K, V>>>
   using Map_p = ptr<std::map<K, V, C, A>>;
+  template<
+    typename KEY,
+    typename VALUE,
+    typename HASH = std::hash<KEY>,
+    typename EQ = std::equal_to<KEY>>
+  //typename ALLOC = std::allocator<std::pair<const KEY, VALUE>>>
+  using OrderedMap = tsl::ordered_map<KEY, VALUE, HASH, EQ>;
 
   using string = std::string;
   using fbyte = uint8_t;
