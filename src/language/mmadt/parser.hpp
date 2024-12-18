@@ -208,7 +208,7 @@ namespace mmadt {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("each")));
       };
       static auto end_action = [](const SemanticValues &) -> Inst_p {
-        return Obj::to_inst({noobj()}, id_p(*ROUTER_RESOLVE("end")));
+        return Obj::to_inst(InstArgs(), id_p(*ROUTER_RESOLVE("end")));
       };
       static auto merge_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst(vs.empty() ? InstArgs() : InstArgs{any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("merge")));
@@ -238,9 +238,10 @@ namespace mmadt {
       INT <= seq(opt(chr('-')), oom(cls("0-9"))), int_action;
       REAL <= seq(opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9"))), real_action;
       STR <= seq(chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\'')), str_action;
-      FURI <= tok(seq(oom(cls("a-zA-Z:/?_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+"))))), furi_action;
+      FURI <= tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), furi_action;
       FURI_INLINE <= tok(seq(oom(cls("a-zA-Z:/?_#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&#+"))))),
           furi_action;
+      furi_action;
       FURI_NO_Q <= tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))), furi_action;
       URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI_INLINE, FURI), uri_action;
       REC <= cho(lit("[=>]"), seq(chr('['), opt(seq(OBJ, lit("=>"), OBJ)),
@@ -252,7 +253,7 @@ namespace mmadt {
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
-                   seq(INST_P, zom(cho(seq(END, opt(chr('.'))), INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
+                   seq(INST_P, zom(cho(END, INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
       BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);

@@ -137,9 +137,9 @@ namespace mmadt {
       TYPE_SAVER(id_p(MMADT_SCHEME "/end"),
                  InstBuilder::build(MMADT_SCHEME "/end")
                  ->inst_f([](const Obj_p &, const InstArgs &) {
-                   return Obj::to_objs();
+                   return noobj();
                  })
-                 ->itype_and_seed(IType::MANY_TO_ZERO, Obj::to_noobj())
+                 ->itype_and_seed(IType::MANY_TO_ZERO, Obj::to_objs())
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/eq"),
                  InstBuilder::build(MMADT_SCHEME "/eq")
@@ -148,9 +148,8 @@ namespace mmadt {
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return Obj::to_bool(lhs->equals(*args.at(0)));
                  })->create());
-      static Obj_p FROM_INST;
       TYPE_SAVER(id_p(MMADT_SCHEME "/from"),
-                 FROM_INST = InstBuilder::build(MMADT_SCHEME "/from")
+                 InstBuilder::build(MMADT_SCHEME "/from")
                  ->domain_range(URI_FURI, OBJ_FURI)
                  ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {

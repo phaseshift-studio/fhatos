@@ -23,6 +23,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
+#define FOS_DEPLOY_SHARED_MEMORY
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
@@ -140,12 +141,23 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("map(9).plus(1)"));
   }
 
-  void test_apply_parsing() {
+  void test_apply_mono_parsing() {
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("'abc'.6"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("'abc'.map(6)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(3)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(_)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(mult(1))"));
+  }
+
+  void test_apply_poly_parsing() {
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[a=>6,b=>7].a"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[a=>7,b=>[c=>6]].b/c"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[7,6,5].<1>"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,7,6].<2>"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a.b"));
+    // TODO: FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("z -> [8,[a=>[b=>6],c=>7]];.from(z/1/a/b)"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[  8  ,[   a=>[ b => 6],c   =>   7]   ].<1>.a/b"));
   }
 
   FOS_RUN_TESTS( //
@@ -160,7 +172,8 @@ namespace fhatos {
     FOS_RUN_TEST(test_rec_parsing); //
     //////////////////////////////////
     FOS_RUN_TEST(test_inst_sugar_parsing);
-    FOS_RUN_TEST(test_apply_parsing);
+    FOS_RUN_TEST(test_apply_mono_parsing);
+    FOS_RUN_TEST(test_apply_poly_parsing);
   )
 } // namespace fhatos
 
