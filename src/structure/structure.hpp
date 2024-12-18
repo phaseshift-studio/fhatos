@@ -235,7 +235,8 @@ namespace fhatos {
 
               // return maybe_poly->deref(vri(furi->name()));
               if(maybe_poly->is_rec())
-                return maybe_poly->rec_get(vri(furi->name()));
+                //return maybe_poly->rec_get(vri(furi->name()))->apply(vri(furi->name()));
+                return maybe_poly->rec_get(vri(furi->name()))->apply(vri(furi->name()));
               if(maybe_poly->is_lst() && StringHelper::is_integer(furi->name()))
                 return maybe_poly->lst_get(jnt(stoi(furi->name())));
             }

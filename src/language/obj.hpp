@@ -1571,7 +1571,7 @@ namespace fhatos {
       if(lhs->is_error())
         return lhs;
       if(lhs->is_bcode() && !this->is_bcode()) {
-        return lhs->apply(shared_from_this());
+        return shared_from_this()->apply(lhs->apply(shared_from_this()));
       }
       switch(this->o_type()) {
         case OType::OBJ: // type token
