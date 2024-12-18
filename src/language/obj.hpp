@@ -351,11 +351,10 @@ namespace fhatos {
     {OType::ERROR, DEFAULT_OBJ_PRINTER},
   };
 
-
   static Runnable ROUTER_POP_FRAME = []() {
     LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
   };
-  static Consumer<Pattern> ROUTER_PUSH_FRAME = [](const Pattern &pattern) {
+  static BiConsumer<Pattern, Rec_p> ROUTER_PUSH_FRAME = [](const Pattern &pattern, const Rec_p &frame_data) {
     LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
   };
   static TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
@@ -1401,7 +1400,6 @@ namespace fhatos {
           if(!lhs->is_code() && !is_initial(inst->itype()))
             TYPE_CHECKER(lhs.get(), inst->domain(), true);
           // compute args
-          ROUTER_PUSH_FRAME("+");
           InstArgs remake;
           if(this->inst_op() == "block" ||
              this->inst_op() == "each" ||
@@ -1414,6 +1412,11 @@ namespace fhatos {
               remake.push_back(arg->apply(lhs));
             }
           }
+          const Rec_p frame = Obj::to_rec();
+          for(int i = 0; i < remake.size(); i++) {
+            frame->rec_set(Obj::to_uri(StringHelper::format("_%i", i)), remake.at(i));
+          }
+          ROUTER_PUSH_FRAME("+", frame);
           //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
           //// evaluate inst
@@ -1443,14 +1446,21 @@ namespace fhatos {
             if(current_inst->is_noobj())
               break;
             try {
-              current_obj = current_inst->apply(current_obj);
+              current_obj = current_inst->apply(
+                current_obj->is_objs() &&
+                !current_obj->objs_value()->empty() &&
+                !is_barrier_in(current_inst->itype())
+                  ? current_obj->objs_value()->front()
+                  : current_obj);
             } catch(fError &e) {
               throw fError("%s\n\t\t!rthrown at !ybcode!! %s !g=>!! %s", e.what(),
                            current_obj->toString().c_str(),
                            current_inst->toString().c_str());
             }
           }
-          return current_obj; //->is_objs() ? current_obj->objs_value()->front() : current_obj->clone();
+          return current_obj->is_objs() && !current_obj->objs_value()->empty() && !is_barrier_out(this->itype())
+                   ? current_obj->objs_value()->front()
+                   : current_obj;
         }
         case OType::OBJS: {
           Objs_p objs = Obj::to_objs();

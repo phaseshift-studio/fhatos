@@ -33,10 +33,7 @@
 
 
 namespace fhatos {
-  /*static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {
-    return make_shared<IdObjPairs>(init);
-  }*/
-  thread_local static ptr<Frame<>> current_frame_ = nullptr;
+  thread_local static ptr<Frame<>> THREAD_FRAME_STACK = nullptr;
 
   class Router final : public Rec {
   protected:
@@ -70,30 +67,18 @@ namespace fhatos {
         OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_ID = this->vid_;
-      ROUTER_PUSH_FRAME = [this](const Pattern &pattern) {
-        current_frame_ = make_shared<Frame<>>(pattern, current_frame_);
-        int counter = 0;
-        ptr<Frame<>> temp = current_frame_;
-        while(temp != nullptr) {
-          counter++;
-          temp = temp->previous;
-        }
-        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: %s\n", counter,
-                current_frame_->pattern()->toString().c_str());
+      ROUTER_PUSH_FRAME = [this](const Pattern &pattern, const Rec_p &frame_data) {
+        THREAD_FRAME_STACK = make_shared<Frame<>>(pattern, THREAD_FRAME_STACK, frame_data);
+        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: %s\n", THREAD_FRAME_STACK->depth(),
+                THREAD_FRAME_STACK->full_frame()->toString().c_str());
       };
       ROUTER_POP_FRAME = [this] {
-        if(current_frame_) {
-          int counter = -1;
-          ptr<Frame<>> temp = current_frame_;
-          while(temp != nullptr) {
-            counter++;
-            temp = temp->previous;
-          }
-          LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: %i]: %s\n", counter,
-                  current_frame_->pattern()->toString().c_str());
-          current_frame_ = current_frame_->previous;
-        } else
+        if(nullptr == THREAD_FRAME_STACK)
           throw fError("there are no more frames on the stack");
+        LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: %i]: %s\n",
+                THREAD_FRAME_STACK->depth(),
+                THREAD_FRAME_STACK->pattern()->toString().c_str());
+        THREAD_FRAME_STACK = THREAD_FRAME_STACK->previous;
       };
 
       ////////////////////////////////////////////////////////////////////////////////////
@@ -136,8 +121,8 @@ namespace fhatos {
         return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
       };
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p {
-        if(current_frame_) {
-          Obj_p frame_obj = current_frame_->read(furix);
+        if(THREAD_FRAME_STACK) {
+          Obj_p frame_obj = THREAD_FRAME_STACK->read(furix);
           if(nullptr != frame_obj)
             return frame_obj;
         }

@@ -102,7 +102,6 @@ namespace fhatos {
     Deque<Monad_p> *barriers_;
     Deque<Obj_p> *halted_;
 
-  public:
     ~Processor() {
       delete this->running_;
       delete this->barriers_;
@@ -118,7 +117,6 @@ namespace fhatos {
       }
       if(!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
-      ROUTER_PUSH_FRAME("+");
       this->bcode_ = Rewriter({
         /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for(const Inst_p &inst: *this->bcode_->bcode_value()) {
@@ -164,11 +162,10 @@ namespace fhatos {
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
       }
-      ROUTER_POP_FRAME();
       return objs;
     }
 
-    int execute(const int steps = -1) const {
+    [[nodiscard]] int execute(const int steps = -1) const {
       uint16_t counter = 0;
       while((!this->running_->empty() || !this->barriers_->empty()) && (counter++ < steps || steps == -1)) {
         if(this->running_->empty() && !this->barriers_->empty()) {
@@ -209,11 +206,19 @@ namespace fhatos {
           consumer(end);
       }
     }
+
+  public:
+    static Objs_p compute(const BCode_p &bcode) {
+      ROUTER_PUSH_FRAME("+", Obj::to_rec());
+      const Objs_p results = Processor(bcode).to_objs();
+      ROUTER_POP_FRAME();
+      return results;
+    }
   };
 
   [[maybe_unused]] static void load_processor() {
     BCODE_PROCESSOR = [](const BCode_p &bcode) {
-      return Processor(bcode).to_objs();
+      return Processor::compute(bcode);
     };
   }
 } // namespace fhatos

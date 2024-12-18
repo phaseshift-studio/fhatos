@@ -26,18 +26,37 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   template<typename ALLOCATOR = std::allocator<std::pair<const ID_p, Obj_p>>>
   class Frame final : public Structure {
-  public:
-    ptr<Frame> previous;
-
+  protected:
     const unique_ptr<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>> data_ =
         make_unique<Map<const ID_p, Obj_p, furi_p_less, ALLOCATOR>>();
 
+  public:
+    ptr<Frame<>> previous;
+
     explicit Frame(const Pattern &pattern,
-                   const ptr<Frame> &previous = nullptr) : Structure(pattern, ID(pattern.retract())),
-                                                           previous{previous} {
+                   const ptr<Frame> &previous = nullptr,
+                   const Rec_p &frame_data = Obj::to_rec()) : Structure(pattern, ID(pattern.retract())),
+                                                              previous{previous} {
+      for(const auto &[key,value]: *frame_data->rec_value()) {
+        this->data_->insert({id_p(key->uri_value()), value});
+      }
     }
 
-  public:
+
+    size_t depth() const {
+      return this->previous ? this->previous->depth() + 1 : 1;
+    }
+
+    Rec_p full_frame() const {
+      const Rec_p all_frames = this->previous ? this->previous->full_frame() : Obj::to_rec();
+      for(const auto &[key,value]: *this->data_) {
+        all_frames->rec_value()->insert({vri(*key), value});
+      }
+      return all_frames;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
     Obj_p read(const fURI_p &furi) override {
       const ID_p id = id_p(*furi);
       return !furi->matches(*this->pattern_) || this->data_->count(id) == 0
@@ -59,9 +78,7 @@ namespace fhatos {
     }
 
     IdObjPairs read_raw_pairs(const fURI_p &match) override {
-      if(true)
-        throw fError("Frame::read_raw_pairs is unreachable code");
-      return IdObjPairs();
+      throw fError("Frame::read_raw_pairs is unreachable code");
     }
   };
 } // namespace fhatos

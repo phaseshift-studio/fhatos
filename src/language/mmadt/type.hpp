@@ -102,7 +102,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/count")
                  ->domain_range(OBJS_FURI, INT_FURI)
                  //->type_args(x(0, "obj", ___))
-                 ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &) {
                    return !lhs->is_objs() ? jnt(1) : Obj::to_int(lhs->objs_value()->size());
                  })
                  ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())

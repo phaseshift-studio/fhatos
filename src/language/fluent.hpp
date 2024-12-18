@@ -30,29 +30,21 @@ namespace fhatos {
     /////////////////////////    PUBLIC   ////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
   public:
-    explicit Fluent(Obj_p bcode) :
-      _bcode(std::move(bcode)) {
+    explicit Fluent(Obj_p bcode) : _bcode(std::move(bcode)) {
     }
 
-    explicit Fluent(const ID & = ID(/**UUID::singleton()->mint(7))*/ "fluent_id")) :
-      Fluent(Obj::to_bcode(List<Obj_p>({}))) {
+    explicit Fluent(const ID & = ID(/**UUID::singleton()->mint(7))*/ "fluent_id")) : Fluent(
+      Obj::to_bcode(List<Obj_p>({}))) {
     }
 
     //////////////////////////////////////////////////////////////////////////////
     Obj_p next() const {
-      if (!this->_bcode->is_bcode())
+      if(!this->_bcode->is_bcode())
         return this->_bcode;
-      static Processor proc = Processor(this->_bcode);
-      return proc.next();
+      return Processor::compute(this->_bcode);
     }
 
     void forEach(const Consumer<const Obj_p> &consumer) const {
-      if (!this->_bcode->is_bcode())
-        consumer(this->_bcode);
-      else {
-        Processor proc = Processor(this->_bcode);
-        proc.for_each(consumer);
-      }
     }
 
     ptr<List<Obj_p>> toList() const {
@@ -83,7 +75,7 @@ namespace fhatos {
   protected:
     [[nodiscard]] Fluent addInst(const Obj_p &inst) const {
       List<Obj_p> instList = List<Obj_p>();
-      for (const auto &oldInst: *this->_bcode->bcode_value()) {
+      for(const auto &oldInst: *this->_bcode->bcode_value()) {
         instList.push_back(share(Obj(*oldInst)));
       }
       instList.push_back(share(Obj(*inst)));
