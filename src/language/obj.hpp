@@ -437,7 +437,6 @@ namespace fhatos {
     template<typename HASH = objp_hash, typename EQ = objp_equal_to>
     using RecMap_p = ptr<RecMap<HASH, EQ>>;
     //////////////////////////////////////////////////////
-
     explicit Obj(const Any &value, const OType otype, const ID_p &type_id,
                  const ID_p &value_id = nullptr) : Typed(OTYPE_FURI.at(otype)),
                                                    Valued(value_id), otype_(otype),
@@ -459,70 +458,12 @@ namespace fhatos {
       return make_shared<Obj>(value, otype, type_id, value_id);
     }
 
-    /////
     static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
       return fError("%s !yaccessed!! as !b%s!!", obj->toString().c_str(),
                     string(function).replace(string(function).find("_value"), 6, "").c_str());
     }
-
-    //////////////////////////////////////////////////////////////
-    //// IMPLICIT CONVERSIONS (FOR NATIVE C++ CONSTRUCTIONS) ////
-    //////////////////////////////////////////////////////////////
-    // Obj(const Obj &other) : Obj(other._value, other.id()) {}
-    template<class T, class = std::enable_if_t<std::is_same_v<bool, T>>>
-    Obj(const T xbool, const char *type_id = BOOL_FURI->toString().c_str()) : Obj(
-      Any(xbool), OType::BOOL, id_p(type_id)) {
-    }
-
-    Obj(const FOS_INT_TYPE xint, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xint), OType::INT, id_p(type_id)) {
-    }
-
-    Obj(const FOS_REAL_TYPE xreal, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(xreal), OType::REAL, id_p(type_id)) {
-    }
-
-    Obj(const fURI &xuri, const char *type_id = EMPTY_CHARS) : Obj(Any(xuri), OType::URI,
-                                                                   id_p(type_id)) {
-    }
-
-    Obj(const char *xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(string(xstr)), OType::STR,
-                                                                   id_p(type_id)) {
-    }
-
-    Obj(const string &xstr, const char *type_id = EMPTY_CHARS) : Obj(Any(xstr), OType::STR,
-                                                                     id_p(type_id)) {
-    }
-
-    Obj(const std::initializer_list<Pair<const Obj, Obj>> &xrec, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<RecMap<>>()), OType::REC, id_p(type_id)) {
-      auto map = this->value<RecMap<>>();
-      for(const auto &[key, val]: xrec) {
-        map.insert(make_pair(make_shared<Obj>(key), make_shared<Obj>(val)));
-      }
-    }
-
-    ///////////////////
-    Obj(const std::initializer_list<Obj> &xlst, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<LstList>()), OType::LST, id_p(type_id)) {
-      const auto list = this->value<LstList_p>();
-      for(const auto &obj: xlst) {
-        list->push_back(make_shared<Obj>(obj));
-      }
-    }
-
-    Obj(const List<Inst> &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(make_shared<InstList>(PtrHelper::clone(bcode))), OType::BCODE, id_p(type_id)) {
-    }
-
-    Obj(const InstList_p &bcode, const char *type_id = EMPTY_CHARS) : Obj(
-      Any(bcode), OType::BCODE, id_p(type_id)) {
-    }
-
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
-
-
     [[nodiscard]] ID_p vid_or_tid() const {
       return this->vid_ ? this->vid_ : this->tid_;
     }
@@ -624,20 +565,16 @@ namespace fhatos {
     [[nodiscard]] Obj_p deref(const Obj_p &uri) {
       if(this->is_rec())
         return this->rec_get(uri);
-      else if(this->is_lst())
+      if(this->is_lst())
         return this->lst_get(uri);
-        // else if(this->is_uri())
-        //   return ROUTER_READ(furi_p(this->uri_value()))
-        //       ->deref(this->vid_ ? Obj::to_uri(this->vid_->extend(uri->uri_value())) : uri);
-      else if(this->is_objs()) {
-        Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
+      if(this->is_objs()) {
+        const Objs_p transform = Obj::to_objs(make_shared<List<Obj_p>>());
         for(const auto &o: *this->objs_value()) {
           transform->add_obj(o->deref(uri));
         }
         return transform->none_one_all();
-      } else
-        return uri;
-      //throw fError("poly-get currently not supported for %s", this->tid_->toString().c_str());
+      }
+      return uri;
     }
 
     [[nodiscard]] Int_p rec_size() const { return Obj::to_int(this->rec_value()->size()); }
@@ -699,11 +636,9 @@ namespace fhatos {
                                ? key->uri_value().toString()
                                : string(key->uri_value().path(0));
         Objs_p segment_value = Obj::to_objs();
-        const bool match_all = StringHelper::has_wildcards(segment);
         const Uri_p segment_uri = Obj::to_uri(fURI(segment));
+        const bool match_all = StringHelper::has_wildcards(segment);
         for(const auto &[k,v]: *this->rec_value()) {
-          //  LOG(INFO, "key %s to match %s from %s\n", k->toString().c_str(), segment_uri->toString().c_str(),
-          //       this->toString().c_str());
           if(match_all || k->match(segment_uri))
             segment_value->add_obj(v);
         }
@@ -711,21 +646,13 @@ namespace fhatos {
         return key->uri_value().path_length() <= 1
                  ? segment_value
                  : segment_value->deref(to_uri(key->uri_value().path(1, 255)));
-      } else {
-        Objs_p segment_value = Obj::to_objs();
-        for(const auto &[k, v]: *this->rec_value()) {
-          if(k->match(key))
-            segment_value->add_obj(v);
-        }
-        return segment_value->none_one_all();
       }
-      /*        if(!segment_value) {
-          if(on_error)
-            on_error();
-          return Obj::to_noobj();
-        }
-        */
-      //return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
+      const Objs_p segment_value = Obj::to_objs();
+      for(const auto &[k, v]: *this->rec_value()) {
+        if(k->match(key))
+          segment_value->add_obj(v);
+      }
+      return segment_value->none_one_all();
     }
 
     [[nodiscard]] Obj_p rec_get(const fURI_p &key, const Runnable &on_error = nullptr) const {
@@ -960,38 +887,6 @@ namespace fhatos {
 
     [[nodiscard]] size_t hash() const { return std::hash<std::string>{}(this->toString()); }
 
-    [[nodiscard]] bool equals(const Obj &other) const {
-      if(this->otype_ != other.otype_ || !this->tid_->equals(*other.tid_))
-        return false;
-      switch(this->otype_) {
-        case OType::BOOL: return this->bool_value() == other.bool_value();
-        case OType::INT: return this->int_value() == other.int_value();
-        case OType::REAL: return this->real_value() == other.real_value();
-        case OType::STR: return this->str_value() == other.str_value();
-        case OType::URI: return this->uri_value() == other.uri_value();
-        case OType::LST: return *this->lst_value() == *other.lst_value();
-        case OType::REC: {
-          const RecMap_p<> a = this->rec_value();
-          const RecMap_p<> b = other.rec_value();
-          if(a->size() != b->size())
-            return false;
-          if(!a->empty()) {
-            auto itty = a->cbegin();
-            for(const auto &[b1,b2]: *b) {
-              if(*itty->first != *b1 || *itty->second != *b2)
-                return false;
-              ++itty;
-            }
-          }
-          return true;
-        }
-        case OType::OBJS: return *this->objs_value() == *other.objs_value();
-        case OType::INST: return this->toString() == other.toString(); // TODO: Tuple equality
-        case OType::BCODE: return *this->bcode_value() == *other.bcode_value();
-        default: return false;
-      }
-    }
-
     string toString(const ObjPrinter *obj_printer = nullptr) const {
       if(!obj_printer)
         obj_printer = GLOBAL_PRINTERS.at(this->o_type());
@@ -1150,18 +1045,6 @@ namespace fhatos {
 
     [[nodiscard]] int compare(const Obj &rhs) const { return this->toString().compare(rhs.toString()); }
 
-    bool operator&&(const Obj &rhs) const {
-      if(this->is_bool() && rhs.is_bool())
-        return this->bool_value() && rhs.bool_value();
-      throw fError("%s is not conjunctive (&&)", OTypes.to_chars(this->o_type()).c_str());
-    }
-
-    bool operator||(const Obj &rhs) const {
-      if(this->is_bool() && rhs.is_bool())
-        return this->bool_value() || rhs.bool_value();
-      throw fError("%s is not disjunctive (||)", OTypes.to_chars(this->o_type()).c_str());
-    }
-
     bool operator>(const Obj &rhs) const {
       switch(this->o_type()) {
         case OType::NOOBJ:
@@ -1200,53 +1083,6 @@ namespace fhatos {
 
     bool operator>=(const Obj &rhs) const { return *this == rhs || *this > rhs; }
 
-    Obj operator*(const Obj &rhs) const {
-      switch(this->o_type()) {
-        case OType::NOOBJ:
-          return *Obj::to_noobj();
-        case OType::BOOL:
-          return Obj(this->bool_value() && rhs.bool_value(), OType::BOOL, this->tid_, this->vid_);
-        case OType::INT:
-          return Obj(this->int_value() * rhs.int_value(), OType::INT, this->tid_, this->vid_);
-        case OType::REAL:
-          return Obj(this->real_value() * rhs.real_value(), OType::REAL, this->tid_, this->vid_);
-        case OType::URI:
-          return Obj(this->uri_value().resolve(rhs.uri_value()), OType::URI, this->tid_, this->vid_);
-        //   case OType::STR:
-        //   return Obj(this->str_value() + rhs.str_value(), this->vid());
-        case OType::LST: {
-          auto list = std::make_shared<LstList>();
-          auto itB = rhs.lst_value()->begin();
-          for(auto itA = this->lst_value()->begin(); itA != this->lst_value()->end(); ++itA) {
-            list->push_back(Obj::create(**itA * **itB, itA->get()->o_type(), itA->get()->tid_, itA->get()->vid_));
-            ++itB;
-          }
-          return Lst(list, OType::LST, this->tid_, this->vid_);
-        }
-        case OType::REC: {
-          auto map = std::make_shared<RecMap<>>();
-          auto itB = rhs.rec_value()->begin();
-          for(auto itA = this->rec_value()->begin(); itA != this->rec_value()->end(); ++itA) {
-            map->insert(std::make_pair(
-              Obj::create(*itA->first * *itB->first, itA->first->otype_, itA->first->tid_, itA->first->vid_),
-              Obj::create(*itA->second * *itB->second, itA->second->otype_, itA->second->tid_,
-                          itA->second->vid_)));
-            ++itB;
-          }
-          return Rec(map, OType::REC, this->tid_, this->vid_);
-        }
-        /*case OType::BCODE: {
-          if (rhs.isInst()) {
-            return *PtrHelper::no_delete<Obj>((Obj *) this)->add_inst(share(rhs), true);
-          } else if (rhs.is_bcode()) {
-            return *PtrHelper::no_delete<Obj>((Obj*)this)->add_bcode(share(rhs),true);
-           }
-        }*/
-        default:
-          throw fError("%s can not be multiplied (*)", OTypes.to_chars(this->o_type()).c_str());
-      }
-    }
-
     Obj operator/(const Obj &rhs) const {
       switch(this->o_type()) {
         case OType::NOOBJ:
@@ -1259,45 +1095,6 @@ namespace fhatos {
           throw fError("%s can not be divided (/)", OTypes.to_chars(this->o_type()).c_str());
       }
     }
-
-    /*Obj operator+(const Obj &rhs) const {
-      switch (this->o_type()) {
-        case OType::NOOBJ:
-          return *to_noobj();
-        case OType::BOOL:
-          return Obj(this->bool_value() || rhs.bool_value(), OType::BOOL, this->tid_, this->vid_);
-        case OType::INT:
-          return Obj(this->int_value() + rhs.int_value(), OType::INT, this->tid_, this->vid_);
-        case OType::REAL:
-          return Obj(this->real_value() + rhs.real_value(), OType::REAL, this->tid_, this->vid_);
-        case OType::URI:
-          return Obj(this->uri_value().extend(rhs.uri_value()), OType::URI, this->tid_, this->vid_);
-        case OType::STR:
-          return Obj(string(this->str_value()) + string(rhs.str_value()), OType::STR, this->tid_, this->vid_);
-        case OType::LST: {
-          auto list = std::make_shared<LstList>();
-          for (const auto &obj: *this->lst_value()) {
-            list->push_back(obj);
-          }
-          for (const auto &obj: *rhs.lst_value()) {
-            list->push_back(obj);
-          }
-          return Lst(list, OType::LST, this->tid_, this->vid_);
-        }
-        case OType::REC: {
-          auto map = std::make_shared<RecMap<>>();
-          for (const auto &pair: *this->rec_value()) {
-            map->insert(pair);
-          }
-          for (const auto &pair: *rhs.rec_value()) {
-            map->insert(pair);
-          }
-          return Rec(map, OType::REC, this->tid_, this->vid_);
-        }
-        default:
-          throw fError("%s can not be added (+)", OTypes.to_chars(this->o_type()).c_str());
-      }
-    }*/
 
     Obj operator-(const Obj &rhs) const {
       switch(this->o_type()) {
@@ -1336,33 +1133,16 @@ namespace fhatos {
       }
     }
 
-    Obj operator%(const Obj &other) const {
-      switch(this->o_type()) {
-        case OType::INT:
-          return Obj(this->int_value() % other.int_value(), OType::INT, this->tid_, this->vid_);
-        default:
-          throw fError("%s can not be moduloed (%)", OTypes.to_chars(this->o_type()).c_str());
-      }
-    }
-
-    bool operator!=(const Obj &other) const { return !(*this == other); }
-
-    bool operator==(const Obj &other) const {
-      if(!this->tid_->equals(*other.tid_)) // type check
+    [[nodiscard]] bool equals(const Obj &other) const {
+      if(this->otype_ != other.otype_ || !this->tid_->equals(*other.tid_))
         return false;
-      switch(this->o_type()) {
-        case OType::NOOBJ:
-          return other.is_noobj();
-        case OType::BOOL:
-          return this->bool_value() == other.bool_value();
-        case OType::INT:
-          return this->int_value() == other.int_value();
-        case OType::REAL:
-          return this->real_value() == other.real_value();
-        case OType::URI:
-          return this->uri_value() == other.uri_value();
-        case OType::STR:
-          return this->str_value() == other.str_value();
+      switch(this->otype_) {
+        case OType::NOOBJ: return true;
+        case OType::BOOL: return this->bool_value() == other.bool_value();
+        case OType::INT: return this->int_value() == other.int_value();
+        case OType::REAL: return this->real_value() == other.real_value();
+        case OType::STR: return this->str_value() == other.str_value();
+        case OType::URI: return this->uri_value() == other.uri_value();
         case OType::LST: {
           const auto objs_a = this->lst_value();
           const auto objs_b = other.lst_value();
@@ -1377,27 +1157,27 @@ namespace fhatos {
           return true;
         }
         case OType::REC: {
-          const auto map_a = this->rec_value();
-          const auto map_b = other.rec_value();
-          if(map_a->size() != map_b->size())
+          const RecMap_p<> a = this->rec_value();
+          const RecMap_p<> b = other.rec_value();
+          if(a->size() != b->size())
             return false;
-          for(const auto &[first, second]: *map_a) {
-            if(!map_b->count(first) || !map_b->at(first)->equals(*second))
-              return false;
+          if(!a->empty()) {
+            auto itty = a->cbegin();
+            for(const auto &[b1,b2]: *b) {
+              if(*itty->first != *b1 || *itty->second != *b2)
+                return false;
+              ++itty;
+            }
           }
           return true;
         }
-        case OType::INST: {
-          if(other.inst_op() != this->inst_op())
+        case OType::OBJS: {
+          const auto objs_a = this->objs_value();
+          const auto objs_b = other.objs_value();
+          if(objs_a->size() != objs_b->size())
             return false;
-          const auto args_a = this->inst_args();
-          auto args_b = other.inst_args();
-          if(args_a.size() != args_b.size())
-            return false;
-          if(this->itype() != other.itype())
-            return false;
-          auto it_b = args_b.begin();
-          for(const auto &it_a: args_a) {
+          auto it_b = objs_b->begin();
+          for(const auto &it_a: *objs_a) {
             if(*it_a != **it_b)
               return false;
             ++it_b;
@@ -1417,22 +1197,16 @@ namespace fhatos {
           }
           return true;
         }
-        case OType::OBJS: {
-          const auto objs_a = this->objs_value();
-          const auto objs_b = other.objs_value();
-          if(objs_a->size() != objs_b->size())
-            return false;
-          auto it_b = objs_b->begin();
-          for(const auto &it_a: *objs_a) {
-            if(*it_a != **it_b)
-              return false;
-            ++it_b;
-          }
-          return true;
-        }
-        default:
-          throw fError("Unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
+        case OType::INST: return this->toString() == other.toString(); // TODO: Tuple equality
+        default: throw fError("Unknown obj type in ==: %s", OTypes.to_chars(this->o_type()).c_str());
       }
+    }
+
+
+    bool operator!=(const Obj &other) const { return !(*this == other); }
+
+    bool operator==(const Obj &other) const {
+      return this->equals(other);
     }
 
     [[nodiscard]] Obj operator[](const Obj &key) const {
