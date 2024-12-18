@@ -352,6 +352,12 @@ namespace fhatos {
   };
 
 
+  static Runnable ROUTER_POP_FRAME = []() {
+    LOG(TRACE, "!ROUTER_POP_FRAME!! undefined at this point in bootstrap\n");
+  };
+  static Consumer<Pattern> ROUTER_PUSH_FRAME = [](const Pattern &pattern) {
+    LOG(TRACE, "!ROUTER_PUSH_FRAME!! undefined at this point in bootstrap: %s\n", pattern.toString().c_str());
+  };
   static TriFunction<const ID_p &, const ID_p &, List<ID_p> *, const bool> IS_TYPE_OF =
       [](const ID_p &is_type_id, const ID_p &type_of_id, List<ID_p> *derivations) {
     LOG(TRACE, "!IS_TYPE_OF!! undefined at this point in bootstrap: %s\n", is_type_id->toString().c_str());
@@ -406,7 +412,10 @@ namespace fhatos {
   ////////////////////// OBJ //////////////////////
   /////////////////////////////////////////////////
   /// An mm-ADT abstract object from which all other types derive
-  class Obj : public Typed, public Valued, public Function<Obj_p, Obj_p>,
+  class Obj : public Typed,
+              public Valued,
+              public Function<Obj_p, Obj_p>,
+              public BiFunction<Obj_p, InstArgs, Obj_p>,
               public enable_shared_from_this<Obj> {
   public:
     const OType otype_;
@@ -1392,6 +1401,7 @@ namespace fhatos {
           if(!lhs->is_code() && !is_initial(inst->itype()))
             TYPE_CHECKER(lhs.get(), inst->domain(), true);
           // compute args
+          ROUTER_PUSH_FRAME("+");
           InstArgs remake;
           if(this->inst_op() == "block" ||
              this->inst_op() == "each" ||
@@ -1417,8 +1427,10 @@ namespace fhatos {
             if(!result->is_code())
               TYPE_CHECKER(result.get(), inst->range(), true);
             // TODO: delete args in frame
+            ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
+            ROUTER_POP_FRAME(); // TODO: does this clear all frames automatically through recurssion?
             throw fError("%s\n\t\t!rthrown at !yinst!!  %s !g=>!! %s", e.what(),
                          lhs->toString().c_str(),
                          this->toString().c_str());

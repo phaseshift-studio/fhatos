@@ -36,7 +36,7 @@ namespace mmadt {
 
   private:
     Definition
-        WS, ROOT, COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
+        WS, ROOT, ARGS, CODE, COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
         INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ,
         NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
@@ -108,6 +108,23 @@ namespace mmadt {
         }
         return make_shared<Pair<Any, OType>>(list, OType::OBJS);
       };
+
+      static auto code_action = [](const SemanticValues &vs) -> BCode_p {
+        //  CODE <= seq(DOM_RNG,chr('|'),opt(ARGS),chr('['),PROTO,chr(')')), code_action;
+        const ID_p type_id = id_p(*any_cast<fURI_p>(vs[0]));
+        const Rec_p args = Rec::to_rec(any_cast<Obj::RecMap_p<>>(any_cast<Pair_p<Any, OType>>(vs[1])->first));
+        InstArgs args_less;
+        for(const auto &arg: *args->rec_value()) {
+          args_less.push_back(arg.second);
+        }
+        const Pair_p<Any, OType> proto = any_cast<Pair_p<Any, OType>>(vs[2]);
+        // Quad<InstArgs, InstF, IType, Obj_p>;
+        const Obj_p body = Obj::create(proto->first, proto->second, BCODE_FURI);
+        Obj_p code = Inst::to_inst(InstValue(args_less, *body, IType::ONE_TO_ONE, noobj()), type_id, nullptr);
+        LOG(INFO, "parsed code: %s\n", code->toString().c_str());
+        return code;
+      };
+
       static auto inst_action = [](const SemanticValues &vs) -> Inst_p {
         InstArgs list;
         const ID_p op = id_p(*any_cast<fURI_p>(vs[0]));
@@ -158,21 +175,22 @@ namespace mmadt {
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
         LOG_OBJ(TRACE, Parser::singleton(), "obj_action: %i\n", vs.choice());
-        enum class OBJ_STATE { OBJ, TYPE_VALUE, VALUE };
-        switch(static_cast<OBJ_STATE>(vs.choice())) {
-          case OBJ_STATE::OBJ: {
+        switch(vs.choice()) {
+          case 0:
+          case 1: {
             return any_cast<Obj_p>(vs[0]);
           }
-          case OBJ_STATE::TYPE_VALUE: { // x[a]@xyz
+          case 2: { // x[a]@xyz
             const ID_p type_id = id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0])));
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[1]);
             return Obj::create(v, o, type_id, vs.size() == 3 ? id_p(*std::any_cast<fURI_p>(vs[2])) : nullptr);
           }
-          case OBJ_STATE::VALUE: { // a@xyz
+          case 3: { // a@xyz
             const auto &[v,o] = *any_cast<Pair_p<Any, OType>>(vs[0]);
             return Obj::create(v, o, OTYPE_FURI.at(o),
                                vs.size() == 2 ? id_p(*std::any_cast<fURI_p>(vs[1])) : nullptr);
           }
+          default: throw fError("unknown obj parse branch");
         }
       };
       //////////////////////////////////////////////////////////////////////////
@@ -245,12 +263,14 @@ namespace mmadt {
                        ~WS), furi_action;
       URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI_INLINE, FURI), uri_action;
       REC <= cho(lit("[=>]"), seq(lit("["), opt(seq(OBJ, lit("=>"), OBJ)),
-                                  zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit("]"))),
-          rec_action;
+                                  zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit("]"))), rec_action;
       LST <= seq(lit("["), opt(OBJ), zom(seq(lit(","), OBJ)), lit("]")), lst_action;
       OBJS <= seq(lit("{"), opt(OBJ), zom(seq(lit(","), OBJ)), lit("}")), objs_action;
+      ARGS <= cho(lit("(=>)"), seq(lit("("), opt(seq(OBJ, lit("=>"), OBJ)),
+                                   zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit(")"))), rec_action;
       INST <= seq(FURI_INLINE, lit("("), opt(OBJ), zom(seq(lit(","), OBJ)), lit(")")), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
+      CODE <= seq(DOM_RNG, lit("|"), opt(ARGS), lit("["), PROTO, lit("]")), code_action;
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
                    seq(INST_P, zom(cho(seq(END, opt(lit(".")), ~WS), INST_SUGAR, seq(lit("."), INST_P))))),
@@ -261,12 +281,13 @@ namespace mmadt {
       PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
       DOM_RNG <= seq(~WS, FURI_NO_Q, chr('?'), FURI_NO_Q, chr('<'), chr('='), FURI_NO_Q, ~WS), dom_rng_action;
       TYPE_ID <= cho(DOM_RNG, FURI), furi_action;
-      NO_CODE_OBJ <= cho(TYPE, seq(~WS, TYPE_ID, ~WS, lit("["), NO_CODE_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
-                         seq(~WS, NO_CODE_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
+      NO_CODE_OBJ <= cho(
+        TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), NO_CODE_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
+        seq(~WS, NO_CODE_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
       INST_ARG_OBJ <= cho(
-        TYPE, seq(~WS, TYPE_ID, ~WS, lit("["), INST_ARG_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
+        TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), INST_ARG_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
         seq(~WS, INST_ARG_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
-      OBJ <= cho(TYPE, seq(~WS, TYPE_ID, ~WS, lit("["), PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
+      OBJ <= cho(TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
                  seq(~WS, PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
       /////////////////////////////////////////////////////////////////
       ///////////////////////  INST SUGARS ////////////////////////////

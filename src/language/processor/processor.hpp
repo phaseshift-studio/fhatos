@@ -118,6 +118,7 @@ namespace fhatos {
       }
       if(!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
+      ROUTER_PUSH_FRAME("+");
       this->bcode_ = Rewriter({
         /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for(const Inst_p &inst: *this->bcode_->bcode_value()) {
@@ -163,6 +164,7 @@ namespace fhatos {
       while(nullptr != (end = this->next())) {
         objs->add_obj(end);
       }
+      ROUTER_POP_FRAME();
       return objs;
     }
 

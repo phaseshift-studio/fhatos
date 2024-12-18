@@ -27,17 +27,22 @@
 #include "../fhatos.hpp"
 #include "../structure/structure.hpp"
 #include FOS_MQTT(mqtt.hpp)
+#include "../language/obj.hpp"
 #include "../structure/stype/heap.hpp"
+#include "../structure/stype/frame.hpp"
+
 
 namespace fhatos {
   /*static IdObjPairs_p make_id_objs(initializer_list<Pair<ID_p, Obj_p>> init = {}) {
     return make_shared<IdObjPairs>(init);
   }*/
+  thread_local static ptr<Frame<>> current_frame_ = nullptr;
 
   class Router final : public Rec {
   protected:
     const ID_p namespace_prefix_;
     // List<fURI> prefixes = List<fURI>();
+
     MutexDeque<Structure_p> structures_ = MutexDeque<Structure_p>();
 
   protected:
@@ -65,6 +70,32 @@ namespace fhatos {
         OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_ID = this->vid_;
+      ROUTER_PUSH_FRAME = [this](const Pattern &pattern) {
+        current_frame_ = make_shared<Frame<>>(pattern, current_frame_);
+        int counter = 0;
+        ptr<Frame<>> temp = current_frame_;
+        while(temp != nullptr) {
+          counter++;
+          temp = temp->previous;
+        }
+        LOG_OBJ(TRACE, this, "framed !gpushed on!! frame stack [!mdepth!!: %i]: %s\n", counter,
+                current_frame_->pattern()->toString().c_str());
+      };
+      ROUTER_POP_FRAME = [this] {
+        if(current_frame_) {
+          int counter = -1;
+          ptr<Frame<>> temp = current_frame_;
+          while(temp != nullptr) {
+            counter++;
+            temp = temp->previous;
+          }
+          LOG_OBJ(TRACE, this, "framed !ypopped off!! frame stack [!mdepth!!: %i]: %s\n", counter,
+                  current_frame_->pattern()->toString().c_str());
+          current_frame_ = current_frame_->previous;
+        } else
+          throw fError("there are no more frames on the stack");
+      };
+
       ////////////////////////////////////////////////////////////////////////////////////
       ROUTER_RESOLVE = [this](const fURI &furi) -> fURI_p {
         if(!furi.headless() && !furi.has_components())
@@ -104,7 +135,14 @@ namespace fhatos {
         }
         return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
       };
-      ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
+      ROUTER_READ = [this](const fURI_p &furix) -> Obj_p {
+        if(current_frame_) {
+          Obj_p frame_obj = current_frame_->read(furix);
+          if(nullptr != frame_obj)
+            return frame_obj;
+        }
+        return this->read(furix);
+      };
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {
         this->write(furix, obj, retain);
         return obj;
@@ -121,8 +159,7 @@ namespace fhatos {
     }
 
     void loop() {
-      if(!this->structures_
-        .remove_if([this](const Structure_p &structure) {
+      if(!this->structures_.remove_if([this](const Structure_p &structure) {
           const bool online = structure->available();
           if(online)
             structure->loop();

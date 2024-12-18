@@ -133,6 +133,8 @@ namespace fhatos {
     // TODO: TEST_ASSERT_EQUAL_STRING("play?play<=int[plus(2)]",
     //                  PROCESS("|play?play<=int[plus(2)]")->toString(SERIALIZER_PRINTER).
     //                c_str());
+
+   // "<nat?nat<=int>|(x=>_,y=>2)[is(gt(0))]"
   }
 
   void test_inst_sugar_parsing() {
