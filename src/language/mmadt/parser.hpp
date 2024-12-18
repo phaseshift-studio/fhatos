@@ -235,36 +235,38 @@ namespace mmadt {
       TYPE <= seq(~WS, TYPE_ID, lit("[]"), ~WS), type_action;
       NOOBJ <= lit("noobj"), noobj_action;
       BOOL <= cho(lit("true"), lit("false")), bool_action;
-      INT <= seq(opt(chr('-')), oom(cls("0-9"))), int_action;
-      REAL <= seq(opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9"))), real_action;
-      STR <= seq(chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\'')), str_action;
-      FURI <= tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), furi_action;
-      FURI_INLINE <= tok(seq(oom(cls("a-zA-Z:/?_#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&#+"))))),
-          furi_action;
-      furi_action;
-      FURI_NO_Q <= tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))), furi_action;
+      INT <= seq(~WS, opt(chr('-')), oom(cls("0-9")), ~WS), int_action;
+      REAL <= seq(~WS, opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9")), ~WS), real_action;
+      STR <= seq(~WS, chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\''), ~WS), str_action;
+      FURI <= seq(~WS, tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), ~WS), furi_action;
+      FURI_INLINE <= seq(~WS, tok(seq(oom(cls("a-zA-Z:/?_#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&#+"))))),
+                         ~WS), furi_action;
+      FURI_NO_Q <= seq(~WS, tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
+                       ~WS), furi_action;
       URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI_INLINE, FURI), uri_action;
-      REC <= cho(lit("[=>]"), seq(chr('['), opt(seq(OBJ, lit("=>"), OBJ)),
-                                  zom(seq(chr(','), OBJ, lit("=>"), OBJ)), chr(']'))),
+      REC <= cho(lit("[=>]"), seq(lit("["), opt(seq(OBJ, lit("=>"), OBJ)),
+                                  zom(seq(lit(","), OBJ, lit("=>"), OBJ)), lit("]"))),
           rec_action;
-      LST <= seq(chr('['), opt(OBJ), zom(seq(chr(','), OBJ)), chr(']')), lst_action;
-      OBJS <= seq(chr('{'), opt(OBJ), zom(seq(chr(','), OBJ)), chr('}')), objs_action;
-      INST <= seq(FURI_INLINE, chr('('), opt(INST_ARG_OBJ), zom(seq(chr(','), INST_ARG_OBJ)), chr(')')), inst_action;
+      LST <= seq(lit("["), opt(OBJ), zom(seq(lit(","), OBJ)), lit("]")), lst_action;
+      OBJS <= seq(lit("{"), opt(OBJ), zom(seq(lit(","), OBJ)), lit("}")), objs_action;
+      INST <= seq(FURI_INLINE, lit("("), opt(INST_ARG_OBJ), zom(seq(lit(","), INST_ARG_OBJ)), lit(")")), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
-                   seq(INST_P, zom(cho(seq(END, opt(lit(".")), ~WS), INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
+                   seq(INST_P, zom(cho(seq(END, opt(lit(".")), ~WS), INST_SUGAR, seq(lit("."), INST_P))))),
+          bcode_action;
       BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
       PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
-      DOM_RNG <= seq(FURI_NO_Q, chr('?'), FURI_NO_Q, lit("<="), FURI_NO_Q), dom_rng_action;
+      DOM_RNG <= seq(~WS, FURI_NO_Q, chr('?'), FURI_NO_Q, chr('<'), chr('='), FURI_NO_Q, ~WS), dom_rng_action;
       TYPE_ID <= cho(DOM_RNG, FURI), furi_action;
-      NO_CODE_OBJ <= cho(TYPE, seq(~WS, TYPE_ID, chr('['), NO_CODE_PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~WS),
+      NO_CODE_OBJ <= cho(TYPE, seq(~WS, TYPE_ID, ~WS, lit("["), NO_CODE_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
                          seq(~WS, NO_CODE_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
-      INST_ARG_OBJ <= cho(TYPE, seq(~WS, TYPE_ID, chr('['), INST_ARG_PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~WS),
-                          seq(~WS, INST_ARG_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
-      OBJ <= cho(TYPE, seq(~WS, TYPE_ID, chr('['), PROTO, chr(']'), opt(seq(chr('@'), FURI)), ~WS),
+      INST_ARG_OBJ <= cho(
+        TYPE, seq(~WS, TYPE_ID, ~WS, lit("["), INST_ARG_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
+        seq(~WS, INST_ARG_PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
+      OBJ <= cho(TYPE, seq(~WS, TYPE_ID, ~WS, lit("["), PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
                  seq(~WS, PROTO, opt(seq(chr('@'), FURI)), ~WS)), obj_action;
       /////////////////////////////////////////////////////////////////
       ///////////////////////  INST SUGARS ////////////////////////////
@@ -303,6 +305,9 @@ namespace mmadt {
       PROTO.enter = enter_y("proto");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
       ROOT.whitespaceOpe = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
+      OBJ.whitespaceOpe = ROOT.whitespaceOpe;
+      NO_CODE_OBJ.whitespaceOpe = ROOT.whitespaceOpe;
+      INST_ARG_OBJ.whitespaceOpe = ROOT.whitespaceOpe;
       ROOT.enablePackratParsing = true;
       ROOT.eoi_check = true;
       /////////////////////////////////////////////////////////////////////////////////////

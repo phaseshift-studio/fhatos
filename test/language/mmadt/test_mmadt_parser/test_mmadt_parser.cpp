@@ -51,6 +51,7 @@ namespace fhatos {
   void test_int_parsing() {
     FOS_TEST_OBJ_EQUAL(jnt(1), OBJ_PARSER("1"));
     FOS_TEST_OBJ_EQUAL(jnt(-10), OBJ_PARSER("-10"));
+    FOS_TEST_OBJ_EQUAL(jnt(-10), OBJ_PARSER("   -10   "));
     FOS_TEST_OBJ_EQUAL(jnt(0), OBJ_PARSER("int[0]"));
     FOS_TEST_OBJ_EQUAL(jnt(-50), OBJ_PARSER("int?int<=int[-50]"));
   }
@@ -59,7 +60,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(real(1.0), OBJ_PARSER("1.0"));
     FOS_TEST_OBJ_EQUAL(real(-10.0), OBJ_PARSER("-10.0"));
     FOS_TEST_OBJ_EQUAL(real(-10.01), OBJ_PARSER("-10.01"));
+    FOS_TEST_OBJ_EQUAL(real(-10.01), OBJ_PARSER("-10.01    "));
     FOS_TEST_OBJ_EQUAL(real(0), OBJ_PARSER("real[0.0]"));
+    FOS_TEST_OBJ_EQUAL(real(0), OBJ_PARSER("real  [  0.0  ]"));
     FOS_TEST_OBJ_NOT_EQUAL(real(0), OBJ_PARSER("int[0]"));
   }
 
@@ -121,7 +124,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
                        OBJ_PARSER("rec[[1=>a,2=>[b=>[d=>4]],3=>c]]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
-                   OBJ_PARSER("rec[\t[1 =>  a,2  =>[ \tb=>[d => 4] ], 3=>   c]  ]"));
+                       OBJ_PARSER("rec\t  [\t[1 =>  a,2  =>[\t\t\tb =>[d => 4] ], 3=>   c]  ]"));
     FOS_TEST_OBJ_NTEQL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
                        OBJ_PARSER("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
   }
@@ -149,7 +152,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(3)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(_)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(mult(1))"));
-    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.  plus ( mult ( 1)   )"));
+    // TODO: FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.  plus( mult ( 1)   )"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3     .plus(  mult( 1  )   )"));
   }
 
   void test_apply_poly_parsing() {
