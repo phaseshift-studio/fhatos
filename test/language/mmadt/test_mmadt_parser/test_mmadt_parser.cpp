@@ -158,6 +158,8 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[  8  ,[   a=>[ b => 6],c   =>   7]   ].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];.*</abc/1/a/b>"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x"));
   }
 
   FOS_RUN_TESTS( //

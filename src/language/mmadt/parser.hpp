@@ -253,7 +253,7 @@ namespace mmadt {
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
-                   seq(INST_P, zom(cho(END, INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
+                   seq(INST_P, zom(cho(seq(END, opt(lit(".")), ~WS), INST_SUGAR, seq(lit("."), INST_P))))), bcode_action;
       BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
