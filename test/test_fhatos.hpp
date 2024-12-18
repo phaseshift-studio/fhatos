@@ -38,7 +38,7 @@
   Options::singleton()->log_level(FOS_LOGGING);           \
   PRINTER = Ansi<>::singleton();
 #ifdef FOS_DEPLOY_PROCESSOR
-#include <language/processor/processor.hpp>
+#include "../src/language/processor/processor.hpp"
 #define FOS_DEPLOY_PROCESSOR_2 load_processor();
 #else
 #define FOS_DEPLOY_PROCESSOR_2 ;

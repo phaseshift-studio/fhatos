@@ -140,6 +140,14 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("map(9).plus(1)"));
   }
 
+  void test_apply_parsing() {
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("'abc'.6"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("'abc'.map(6)"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(3)"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(_)"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(mult(1))"));
+  }
+
   FOS_RUN_TESTS( //
     FOS_RUN_TEST(test_noobj_parsing); //
     FOS_RUN_TEST(test_type_parsing); //
@@ -152,6 +160,7 @@ namespace fhatos {
     FOS_RUN_TEST(test_rec_parsing); //
     //////////////////////////////////
     FOS_RUN_TEST(test_inst_sugar_parsing);
+    FOS_RUN_TEST(test_apply_parsing);
   )
 } // namespace fhatos
 
