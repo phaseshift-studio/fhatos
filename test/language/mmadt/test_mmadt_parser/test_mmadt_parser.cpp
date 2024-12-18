@@ -120,6 +120,8 @@ namespace fhatos {
                        OBJ_PARSER("rec[[1=>'a',2=>['b'=>rec[['d'=>4]]],3=>'c']]"));
     FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
                        OBJ_PARSER("rec[[1=>a,2=>[b=>[d=>4]],3=>c]]"));
+    FOS_TEST_OBJ_EQUAL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
+                   OBJ_PARSER("rec[\t[1 =>  a,2  =>[ \tb=>[d => 4] ], 3=>   c]  ]"));
     FOS_TEST_OBJ_NTEQL(rec({{jnt(1),vri("a")},{jnt(2),rec({{vri("b"),rec({{vri("d"),jnt(4)}})}})},{jnt(3),vri("c")}}),
                        OBJ_PARSER("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
   }
@@ -147,6 +149,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(3)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(_)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.plus(mult(1))"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3.  plus ( mult ( 1)   )"));
   }
 
   void test_apply_poly_parsing() {
