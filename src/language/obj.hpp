@@ -295,6 +295,14 @@ namespace fhatos {
     .ansi = false,
     .propagate = false
   };
+  static auto SERIALIZER_PRINTER = new ObjPrinter{
+    .show_id = true,
+    .show_type = true,
+    .show_domain_range = true,
+    .strict = true,
+    .ansi = false,
+    .propagate = true
+  };
   static auto DEFAULT_OBJ_PRINTER = new ObjPrinter{
     .show_id = true,
     .show_type = true,
@@ -462,6 +470,7 @@ namespace fhatos {
       return fError("%s !yaccessed!! as !b%s!!", obj->toString().c_str(),
                     string(function).replace(string(function).find("_value"), 6, "").c_str());
     }
+
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
     [[nodiscard]] ID_p vid_or_tid() const {
@@ -771,7 +780,9 @@ namespace fhatos {
     ID_p domain() const {
       return this->tid_->has_query("domain")
                ? id_p(this->tid_->query_value("domain")->c_str())
-               : (this->is_bcode() && !this->bcode_value()->empty() ? this->bcode_value()->at(0)->domain() : OBJ_FURI);
+               : (this->is_bcode() && !this->bcode_value()->empty()
+                    ? this->bcode_value()->front()->domain()
+                    : OBJ_FURI);
     }
 
     ID_p range() const {
@@ -779,7 +790,7 @@ namespace fhatos {
                ? id_p(this->tid_->query_value("range")->c_str())
                : this->is_code()
                    ? (this->is_bcode() && !this->bcode_value()->empty()
-                        ? this->bcode_value()->at(this->bcode_value()->size() - 1)->range()
+                        ? this->bcode_value()->back()->range()
                         : OBJ_FURI)
                    : this->tid_;
     }
@@ -1014,16 +1025,17 @@ namespace fhatos {
       if(!this->is_noobj() &&
          (this->is_type() ||
           this->is_inst() ||
-          (obj_printer->show_type && !this->is_base_type()) ||
-          (obj_printer->strict && this->is_uri()) ||
-          (this->is_bcode() && (!this->domain()->equals(*OBJ_FURI) || !this->range()->equals(*OBJ_FURI))))) {
+          (obj_printer->show_type && this->is_code() &&
+           (!this->domain()->equals(*OBJ_FURI) || !this->range()->equals(*OBJ_FURI)))) ||
+         (obj_printer->show_type && !this->is_base_type()) ||
+         (obj_printer->strict && this->is_uri())) {
         string typing = this->is_base_type() && !this->is_code() && !this->is_type()
                           ? ""
                           : string("!b").append(this->tid_->name());
         // TODO: remove base_type check
-        if(obj_printer->show_domain_range &&
-           (!this->domain()->equals(*OBJ_FURI) ||
-            !this->range()->equals(*OBJ_FURI))) {
+        if(obj_printer->show_domain_range && true
+          /*(!this->domain()->equals(*OBJ_FURI) ||
+           !this->range()->equals(*OBJ_FURI))*/) {
           typing = typing.append("?").append(this->range()->name());
           //if(!this->domain()->equals(*this->range()))
           typing = typing.append("<=").append(this->domain()->name());

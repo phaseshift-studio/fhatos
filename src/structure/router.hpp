@@ -102,7 +102,7 @@ namespace fhatos {
             test = furi_p(test->extend("::").extend(found ? *found : fURI(c)));
           }
         }
-        return test;
+        return /*furi.has_query("domain") ? id_p(test->query(furi.query())) :*/ test;
       };
       ROUTER_READ = [this](const fURI_p &furix) -> Obj_p { return this->read(furix); };
       ROUTER_WRITE = [this](const fURI_p &furix, const Obj_p &obj, const bool retain) -> const Obj_p {

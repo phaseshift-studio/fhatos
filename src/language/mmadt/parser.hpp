@@ -249,13 +249,13 @@ namespace mmadt {
           rec_action;
       LST <= seq(lit("["), opt(OBJ), zom(seq(lit(","), OBJ)), lit("]")), lst_action;
       OBJS <= seq(lit("{"), opt(OBJ), zom(seq(lit(","), OBJ)), lit("}")), objs_action;
-      INST <= seq(FURI_INLINE, lit("("), opt(INST_ARG_OBJ), zom(seq(lit(","), INST_ARG_OBJ)), lit(")")), inst_action;
+      INST <= seq(FURI_INLINE, lit("("), opt(OBJ), zom(seq(lit(","), OBJ)), lit(")")), inst_action;
       INST_P <= cho(INST_SUGAR, INST, NO_CODE_OBJ);
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
                    seq(INST_P, zom(cho(seq(END, opt(lit(".")), ~WS), INST_SUGAR, seq(lit("."), INST_P))))),
           bcode_action;
-      BCODE_P <= cho(seq(chr('('), BCODE, chr(')')), BCODE);
+      BCODE_P <= cho(seq(lit("("), BCODE, lit(")")), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
       PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
@@ -272,21 +272,21 @@ namespace mmadt {
       ///////////////////////  INST SUGARS ////////////////////////////
       /////////////////////////////////////////////////////////////////
 #ifndef FOS_SUGARLESS_MMADT
-      INST_SUGAR <= cho(AT, REPEAT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, END, MERGE, SPLIT);
+      INST_SUGAR <= cho(AT, PLUS, MULT, WITHIN, FROM, PASS, REF, BLOCK, EACH, END, MERGE, SPLIT, REPEAT);
       AT <= cho(seq(chr('@'), cho(URI, BCODE_P)), seq(lit("@("), INST_ARG_OBJ, chr(')'))), at_action;
       REPEAT <= seq(chr('('), INST_ARG_OBJ, lit(")^*")), repeat_action; // )^*(until,emit)
       FROM <= cho(seq(chr('*'), cho(URI, BCODE_P)), seq(lit("*("), cho(URI, BCODE_P), chr(')'))),
           from_action;
-      REF <= cho(seq(lit("->"), INST_ARG_OBJ), seq(lit("->("), INST_ARG_OBJ, chr(')'))), ref_action;
+      REF <= seq(lit("->"), INST_ARG_OBJ), ref_action;
       BLOCK <= seq(lit("|"), INST_ARG_OBJ), block_action;
       PASS <= seq(lit("-->"), INST_ARG_OBJ), pass_action;
       MERGE <= seq(~WS, chr('>'), opt(INST_ARG_OBJ), chr('-'), ~WS), merge_action;
       SPLIT <= seq(lit("-<"), INST_ARG_OBJ), split_action;
       EACH <= seq(lit("=="), INST_ARG_OBJ), each_action;
       END <= lit(";"), end_action;
-      WITHIN <= seq(lit("_/"), OBJ, lit("\\_")), within_action;
-      PLUS <= seq(chr('+'), chr(' '), INST_ARG_OBJ), plus_action;
-      MULT <= seq(chr('x'), chr(' '), INST_ARG_OBJ), mult_action;
+      WITHIN <= seq(lit("_/"), INST_ARG_OBJ, lit("\\_")), within_action;
+      PLUS <= seq(~WS, chr('+'), chr(' '), ~WS, INST_ARG_OBJ), plus_action;
+      MULT <= seq(~WS, chr('x'), chr(' '), ~WS, INST_ARG_OBJ), mult_action;
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       REPEAT.enter = enter_y("repeat");
 #endif

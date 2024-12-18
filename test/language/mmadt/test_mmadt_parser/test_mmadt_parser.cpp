@@ -129,21 +129,37 @@ namespace fhatos {
                        OBJ_PARSER("rec[[2=>[b=>[d=>4]],3=>c]]")); // no 1=>a
   }
 
+  void test_inst_parsing() {
+    // TODO: TEST_ASSERT_EQUAL_STRING("play?play<=int[plus(2)]",
+    //                  PROCESS("|play?play<=int[plus(2)]")->toString(SERIALIZER_PRINTER).
+    //                c_str());
+  }
+
   void test_inst_sugar_parsing() {
+    ////////// x
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3x2")->apply());
-    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3x 2"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("  3x 2  "));
     //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3 x2")->apply());
-    ////
+    ////////// +
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3 + 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3+2")->apply());
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3+ 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3 +2")->apply());
-    ////
+    // TODO FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("  map(3) + 2 x 2 .plus(-5) ")->apply());
+    ////////// proto.map
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("{9}.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("start({9}).plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("map(9).plus(1)"));
+    ////////// -< >-
+    FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[+ b/]>-x c"))
+    // TODO:     FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[_ + b/]>-x c"))
+    FOS_TEST_OBJ_EQUAL(str("abc"), PROCESS("'a' + 'b' + 'c'"))
+    ////////// _/x\_
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("[1]_/ x 3\\__/+ 5\\_>-"))
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("1-<[+ 2]_/ + 5\\_>-"))
   }
 
   void test_apply_mono_parsing() {
@@ -179,10 +195,11 @@ namespace fhatos {
     FOS_RUN_TEST(test_uri_parsing); //
     FOS_RUN_TEST(test_lst_parsing); //
     FOS_RUN_TEST(test_rec_parsing); //
+    FOS_RUN_TEST(test_inst_parsing); //
     //////////////////////////////////
-    FOS_RUN_TEST(test_inst_sugar_parsing);
-    FOS_RUN_TEST(test_apply_mono_parsing);
-    FOS_RUN_TEST(test_apply_poly_parsing);
+    FOS_RUN_TEST(test_inst_sugar_parsing); //
+    FOS_RUN_TEST(test_apply_mono_parsing); //
+    FOS_RUN_TEST(test_apply_poly_parsing); //
   )
 } // namespace fhatos
 

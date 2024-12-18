@@ -33,9 +33,9 @@
 #include "../src/structure/stype/heap.hpp"
 #include "../src/util/logger.hpp"
 #include "../src/util/ansi.hpp"
+#include "../src/util/argv_parser.hpp"
 #define FOS_DEPLOY_PRINTER_2                              \
   Options::singleton()->printer<>(Ansi<>::singleton());   \
-  Options::singleton()->log_level(FOS_LOGGING);           \
   PRINTER = Ansi<>::singleton();
 #ifdef FOS_DEPLOY_PROCESSOR
 #include "../src/language/processor/processor.hpp"
@@ -86,7 +86,7 @@ router()->write(id_p("/sys/router"), router());
 #define FOS_DEPLOY_TYPE_2 ;
 #endif
 #ifdef FOS_DEPLOY_SHARED_MEMORY
-#include <structure/stype/heap.hpp>
+#include "../src/structure/stype/heap.hpp"
 #define FOS_DEPLOY_SHARED_MEMORY_2 \
   router()->attach(Heap<>::create(Pattern((0 ==strcmp("",STR(FOS_DEPLOY_SHARED_MEMORY))) ? \
   "+" : \
@@ -116,7 +116,7 @@ scheduler()->stop();
 ////////////////////////////////////////////////////////
 //////////////////////// NATIVE ////////////////////////
 ////////////////////////////////////////////////////////
-namespace fhatos {
+using namespace fhatos;
 #define FOS_RUN_TEST(x)                                                                                                \
   {                                                                                                                    \
     try {                                                                                                              \
@@ -128,7 +128,7 @@ namespace fhatos {
   }
 
 #define FOS_RUN_TESTS(x)                                                                                               \
-  void RUN_UNITY_TESTS() {                                                                                     \
+  void RUN_UNITY_TESTS() {                                                                                             \
     try {                                                                                                              \
       FOS_DEPLOY_PRINTER_2                                                                                             \
       FOS_DEPLOY_PROCESSOR_2                                                                                           \
@@ -148,10 +148,14 @@ namespace fhatos {
       TEST_FAIL();                                                                                                     \
     }                                                                                                                  \
   }
-} // namespace fhatos
 
 #ifdef NATIVE
-#define SETUP_AND_LOOP_2 int main(int, char **) {
+#define SETUP_AND_LOOP_2                                                                                               \
+int main(int argc, char ** argv) {                                                                                     \
+  auto *args_parser = new fhatos::ArgvParser();                                                                        \
+  args_parser->init(argc, argv);                                                                                       \
+  fhatos::Options::singleton()->log_level(                                                                             \
+    fhatos::LOG_TYPES.to_enum(args_parser->option_string("--log", STR(FOS_LOGGING))));
 #else
 #define SETUP_AND_LOOP_2                                                                                               \
   void setup() {                                                                                                       \
@@ -161,9 +165,9 @@ namespace fhatos {
 
 #define SETUP_AND_LOOP()                                                                                               \
   using namespace fhatos;                                                                                              \
-    SETUP_AND_LOOP_2                                                                                                   \
-    RUN_UNITY_TESTS();                                                                                         \
-    FOS_STOP_ON_BOOT;                                                                                                  \
+  SETUP_AND_LOOP_2                                                                                                     \
+  RUN_UNITY_TESTS();                                                                                                   \
+  FOS_STOP_ON_BOOT;                                                                                                    \
 };
 
 void loop() {
@@ -174,7 +178,6 @@ void setUp() {
 
 void tearDown() {
 }
-
 
 //////////////////////////////////////
 /////// TEST UTILITY FUNCTIONS /////// 
