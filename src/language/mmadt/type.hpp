@@ -136,10 +136,11 @@ namespace mmadt {
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/end"),
                  InstBuilder::build(MMADT_SCHEME "/end")
+                 ->domain_range(OBJ_FURI, NOOBJ_FURI)
                  ->inst_f([](const Obj_p &, const InstArgs &) {
-                   return noobj();
+                   return Obj::create(Any(), OType::OBJ, OBJ_FURI);
                  })
-                 ->itype_and_seed(IType::MANY_TO_ZERO, Obj::to_objs())
+                 ->itype_and_seed(IType::MANY_TO_ONE)
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/eq"),
                  InstBuilder::build(MMADT_SCHEME "/eq")
@@ -273,7 +274,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/within")
                  ->type_args(x(0, "code"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   ptr<List<Str_p>> chars = make_shared<List<Str_p>>();
+                   const auto chars = make_shared<List<Str_p>>();
                    const string xstr = lhs->str_value();
                    for(uint8_t i = 0; i < xstr.length(); i++) {
                      chars->push_back(str(xstr.substr(i, 1)));

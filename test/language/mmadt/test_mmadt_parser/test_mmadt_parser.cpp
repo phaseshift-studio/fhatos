@@ -23,7 +23,7 @@ FhatOS: A Distributed Operating System
 #define FOS_DEPLOY_TYPE
 #define FOS_DEPLOY_ROUTER
 #define FOS_DEPLOY_PROCESSOR
-#define FOS_DEPLOY_SHARED_MEMORY
+#define FOS_DEPLOY_SHARED_MEMORY /abc/#
 #include "../../../../src/fhatos.hpp"
 #include "../../../test_fhatos.hpp"
 
@@ -155,9 +155,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[7,6,5].<1>"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,7,6].<2>"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a.b"));
-    // TODO: FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("z -> [8,[a=>[b=>6],c=>7]];.from(z/1/a/b)"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[  8  ,[   a=>[ b => 6],c   =>   7]   ].<1>.a/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]];.*</abc/1/a/b>"));
   }
 
   FOS_RUN_TESTS( //
