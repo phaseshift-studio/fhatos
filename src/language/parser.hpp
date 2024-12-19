@@ -630,7 +630,7 @@ namespace fhatos {
           const Option<Obj_p> obj = try_parse_obj(inst_args);
           if(!obj.has_value())
             return {};
-          insts.push_back(mmadt::mmADT::map(obj.value())); // Insts::map(obj.value()));
+          insts.push_back(Obj::to_inst(Obj::to_rec(rmap{{"lhs", obj.value()}}), "map")); // Insts::map(obj.value()));
         } else {
           // CLASSIC INST WITH VARIABLE LENGTH ARGUMENTS WRAPPED IN ( )
           LOG(TRACE, "Parsing !gobj as inst!!: !b%s!g[!!%s!g]!!\n", inst_op_id.toString().c_str(), inst_args.c_str());

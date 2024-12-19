@@ -43,7 +43,7 @@ namespace fhatos {
     }
 
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
-      Obj_p next_obj = this->inst_->apply(this->obj_);
+      const Obj_p next_obj = this->inst_->apply(this->obj_);
       const Inst_p next_inst = bcode->next_inst(this->inst_);
       if(!next_obj->is_noobj()) {
         LOG(DEBUG, FOS_TAB_2 "!mProcessing!! monad(s): %s\n", next_obj->toString().c_str());
@@ -51,13 +51,13 @@ namespace fhatos {
         for(const auto &obj: objs) {
           if(!obj->is_noobj()) {
             if(this->inst_->inst_op() == "repeat") {
-              if(const Obj_p emit = this->inst_->inst_arg(2); !emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
+              if(const Obj_p emit = this->inst_->inst_args()->arg(2); !emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
                 // repeat.emit
                 const auto monad = make_shared<Monad>(obj, next_inst);
                 running->push_back(monad);
                 LOG(DEBUG, FOS_TAB_4 "!mEmitting!! monad: %s\n", monad->toString().c_str());
               }
-              if(const Obj_p until = this->inst_->inst_arg(1); !until->is_noobj() && until->apply(obj)->is_noobj()) {
+              if(const Obj_p until = this->inst_->inst_args()->arg(1); !until->is_noobj() && until->apply(obj)->is_noobj()) {
                 // repeat.until
                 const auto monad = make_shared<Monad>(obj, this->inst_);
                 monad->loops_ = this->loops_ + 1;
@@ -117,8 +117,8 @@ namespace fhatos {
       }
       if(!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
-      this->bcode_ = Rewriter({
-        /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+     // this->bcode_ = Rewriter({
+       // /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for(const Inst_p &inst: *this->bcode_->bcode_value()) {
         const Obj_p seed_copy = inst->inst_seed(inst);
         if(is_barrier_out(inst->itype())) {

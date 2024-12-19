@@ -137,7 +137,7 @@ namespace fhatos {
                      InstBuilder::build(*INST_FURI)
                      ->type_args(x(0, "thread", ___))
                      ->inst_f([scheduler](const Obj_p &, const InstArgs &args) {
-                       const Obj_p &proc = args.at(0);
+                       const Obj_p &proc = args->arg(0);
                        if(!proc->vid())
                          throw fError("value id required to spawn %s", proc->toString().c_str());
                        if(proc->tid()->has_path("thread"))
@@ -157,15 +157,15 @@ namespace fhatos {
           ///// OBJECTS
           ->this_add("/lib/process", Obj::to_rec())
           ->this_add("/lib/thread",
-                     Obj::to_rec()
-                     /*->this_add("::stop",
-                                InstBuilder::build(*INST_FURI)
-                                ->inst_f([](const Obj_p &, const InstArgs &args) {
-                                  static_cast<Thread *>(args.at(0).get())->stop();
-                                  return _noobj_;
-                                })
-                                ->itype_and_seed(IType::ONE_TO_ZERO)
-                                ->create())*/)
+                     Obj::to_rec())
+          /*->this_add("::stop",
+                     InstBuilder::build(*INST_FURI)
+                     ->inst_f([](const Obj_p &, const InstArgs &args) {
+                       static_cast<Thread *>(args->arg(0).get())->stop();
+                       return _noobj_;
+                     })
+                     ->itype_and_seed(IType::ONE_TO_ZERO)
+                     ->create()))*/
           ->save();
       return nullptr;
     }

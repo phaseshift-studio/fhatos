@@ -47,23 +47,23 @@ namespace fhatos {
           {"structure", to_lst()},
           {"resolve", to_rec({
             {"namespace", to_rec({{":", vri("/mmadt/")}, {"fos:", vri("/fos/")}, {"math:", vri("/mmadt/ext/math")}})},
-            {"auto_prefix", to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})},
-          {":stop", to_inst(
+            {"auto_prefix", to_lst({vri(""), vri("/mmadt/"), vri("/fos/"), vri("/sys/")})}})}}),
+          /*{":stop", to_inst(
             [this](const Obj_p &, const InstArgs &) {
               this->write(this->vid_, _noobj_);
               this->stop();
               return noobj();
-            }, NO_ARGS, INST_FURI,
+            }, {}, INST_FURI,
             make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))},
           {":attach", to_inst(
             [this](const Obj_p &obj, const InstArgs &args) {
-              if(args.at(0)->tid()->name() == "heap")
+              if(args->arg(0)->tid()->name() == "heap")
                 this->attach(make_shared<Heap<>>(obj));
-              else if(args.at(0)->tid()->name() == "mqtt")
+              else if(args->arg(0)->tid()->name() == "mqtt")
                 this->attach(make_shared<Mqtt>(obj));
               return noobj();
             }, {x(0, ___)}, INST_FURI,
-            make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}),
+            make_shared<ID>(StringHelper::cxx_f_metadata(__FILE__, __LINE__)))}}*/
         OType::REC, REC_FURI, id_p(id)),
       namespace_prefix_(id_p(namespace_prefix)) {
       ROUTER_ID = this->vid_;

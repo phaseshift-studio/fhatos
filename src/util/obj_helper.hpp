@@ -31,105 +31,105 @@ namespace fhatos {
   public:
     ObjHelper() = delete;
 
-    static Lst_p make_lhs_args(const Obj_p &lhs, const List<Obj_p> &args) {
-      return lst({lhs, lst(make_shared<List<Obj_p>>(args))});
-    }
+    /* static Lst_p make_lhs_args(const Obj_p &lhs, const List<Obj_p> &args) {
+       return lst({lhs, lst(make_shared<List<Obj_p>>(args))});
+     }
 
-    static LHSArgs_p parse_lhs_args(const Obj_p &maybe_lhs_pairs) {
-      if(maybe_lhs_pairs->is_noobj())
-        return make_shared<LHSArgs>(make_pair<Obj_p, List_p<Obj_p>>(noobj(), make_shared<List<Obj_p>>()));
-      if(!maybe_lhs_pairs->is_lst())
-        return make_shared<LHSArgs>(Pair<Obj_p, List_p<Obj_p>>(maybe_lhs_pairs, make_shared<List<Obj_p>>()));
-      return make_shared<LHSArgs>(
-        make_pair<Obj_p, List_p<Obj_p>>(maybe_lhs_pairs->lst_get(0), maybe_lhs_pairs->lst_get(1)->lst_value()));
-    }
+     static LHSArgs_p parse_lhs_args(const Obj_p &maybe_lhs_pairs) {
+       if(maybe_lhs_pairs->is_noobj())
+         return make_shared<LHSArgs>(make_pair<Obj_p, List_p<Obj_p>>(noobj(), make_shared<List<Obj_p>>()));
+       if(!maybe_lhs_pairs->is_lst())
+         return make_shared<LHSArgs>(Pair<Obj_p, List_p<Obj_p>>(maybe_lhs_pairs, make_shared<List<Obj_p>>()));
+       return make_shared<LHSArgs>(
+         make_pair<Obj_p, List_p<Obj_p>>(maybe_lhs_pairs->lst_get(0), maybe_lhs_pairs->lst_get(1)->lst_value()));
+     }
 
-    static Obj_p apply_lhs_args(const Obj_p &old_obj, const Lst_p &lhs_args, const Obj_p &lhs = noobj()) {
-      if(old_obj->is_noobj())
-        throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b%s!!", old_obj->toString().c_str());
-      LOG(DEBUG, "apply_lhs_args: %s => %s\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
-      if(!lhs_args->is_lst())
-        return old_obj->apply(lhs_args);
-      if(lhs_args->is_lst() && lhs_args->lst_size()->int_value() == 1)
-        return old_obj->apply(lhs_args->lst_get(0));
-      if(lhs_args->is_lst() && lhs_args->lst_size()->int_value() > 1) {
-        const Obj_p new_obj = ObjHelper::replace_from_obj(old_obj, *lhs_args->lst_get(1)->lst_value(), lhs);
-        LOG(DEBUG, "structure read() transformed bcode: %s => %s\n", old_obj->toString().c_str(),
-            new_obj->toString().c_str());
-        return new_obj->apply(lhs_args->lst_get(0));
-      }
-      return old_obj;
-    }
+     static Obj_p apply_lhs_args(const Obj_p &old_obj, const Lst_p &lhs_args, const Obj_p &lhs = noobj()) {
+       if(old_obj->is_noobj())
+         throw fError("id doesn't not reference !ybcode!! or !yinst!!: !b%s!!", old_obj->toString().c_str());
+       LOG(DEBUG, "apply_lhs_args: %s => %s\n", old_obj->toString().c_str(), lhs_args->toString().c_str());
+       if(!lhs_args->is_lst())
+         return old_obj->apply(lhs_args);
+       if(lhs_args->is_lst() && lhs_args->lst_size()->int_value() == 1)
+         return old_obj->apply(lhs_args->lst_get(0));
+       if(lhs_args->is_lst() && lhs_args->lst_size()->int_value() > 1) {
+         const Obj_p new_obj = ObjHelper::replace_from_obj(old_obj, *lhs_args->lst_get(1)->lst_value(), lhs);
+         LOG(DEBUG, "structure read() transformed bcode: %s => %s\n", old_obj->toString().c_str(),
+             new_obj->toString().c_str());
+         return new_obj->apply(lhs_args->lst_get(0));
+       }
+       return old_obj;
+     }
 
-    static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = noobj()) {
-      const bool is_from = old_inst->inst_op() == "from";
-      if(is_from && old_inst->inst_arg(0)->is_uri() && old_inst->inst_arg(0)->uri_value().toString()[0] == '_') {
-        const uint8_t index = stoi(old_inst->inst_arg(0)->uri_value().name().substr(1));
-        if(index < args.size())
-          return args.at(index);
-        if(old_inst->inst_args().size() == 2)
-          return old_inst->inst_args().at(1); // default argument
-        throw fError("%s requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
-                     old_inst->inst_args().size(), args.size());
-      } else if(is_from && old_inst->inst_arg(0)->toString() == "_") {
-        return lhs;
-      } else {
-        InstArgs new_args;
-        for(const Obj_p &old_arg: old_inst->inst_args()) {
-          new_args.push_back(replace_from_obj(old_arg, args, lhs));
-        }
-        return Obj::to_inst(old_inst->inst_op(), new_args, old_inst->inst_f(), old_inst->itype(),
-                            old_inst->inst_seed_supplier(), old_inst->tid());
-      }
-    }
+     static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = noobj()) {
+       const bool is_from = old_inst->inst_op() == "from";
+       if(is_from && old_inst->inst_arg(0)->is_uri() && old_inst->inst_arg(0)->uri_value().toString()[0] == '_') {
+         const uint8_t index = stoi(old_inst->inst_arg(0)->uri_value().name().substr(1));
+         if(index < args.size())
+           return args.at(index);
+         if(old_inst->inst_args().size() == 2)
+           return old_inst->inst_args().at(1); // default argument
+         throw fError("%s requires !y%i!! arguments and !y%i!! were provided", old_inst->toString().c_str(),
+                      old_inst->inst_args().size(), args.size());
+       } else if(is_from && old_inst->inst_arg(0)->toString() == "_") {
+         return lhs;
+       } else {
+         InstArgs new_args;
+         for(const Obj_p &old_arg: old_inst->inst_args()) {
+           new_args.push_back(replace_from_obj(old_arg, args, lhs));
+         }
+         return Obj::to_inst(old_inst->inst_op(), new_args, old_inst->inst_f(), old_inst->itype(),
+                             old_inst->inst_seed_supplier(), old_inst->tid());
+       }
+     }
 
-    static Obj_p replace_from_obj(const Obj_p &old_obj, const InstArgs &args, const Obj_p &lhs = noobj()) {
-      if(old_obj->is_inst())
-        return replace_from_inst(old_obj, args, lhs);
-      else if(old_obj->is_bcode())
-        return replace_from_bcode(old_obj, args, lhs);
-      else if(old_obj->is_rec())
-        return replace_from_rec(old_obj, args, lhs);
-      else if(old_obj->is_lst())
-        return replace_from_lst(old_obj, args, lhs);
-      else
-        return old_obj;
-    }
+     static Obj_p replace_from_obj(const Obj_p &old_obj, const InstArgs &args, const Obj_p &lhs = noobj()) {
+       if(old_obj->is_inst())
+         return replace_from_inst(old_obj, args, lhs);
+       else if(old_obj->is_bcode())
+         return replace_from_bcode(old_obj, args, lhs);
+       else if(old_obj->is_rec())
+         return replace_from_rec(old_obj, args, lhs);
+       else if(old_obj->is_lst())
+         return replace_from_lst(old_obj, args, lhs);
+       else
+         return old_obj;
+     }
 
-    /*static Function<InstArgs, BCode_p> proto_bcode(const Obj_p &old_bcode) {
-      return [old_bcode](const InstArgs &args) {
-        return ObjHelper::replace_from_bcode(old_bcode, args);
-      };
-    }*/
+     /*static Function<InstArgs, BCode_p> proto_bcode(const Obj_p &old_bcode) {
+       return [old_bcode](const InstArgs &args) {
+         return ObjHelper::replace_from_bcode(old_bcode, args);
+       };
+     }
 
-    static BCode_p replace_from_bcode(const Obj_p &old_bcode, const InstArgs &args, const Obj_p &lhs = noobj()) {
-      BCode_p new_bcode = Obj::to_bcode(make_shared<List<Obj_p>>(), old_bcode->tid());
-      LOG(TRACE, "old bcode: %s\n", old_bcode->toString().c_str());
-      for(const Inst_p &old_inst: *old_bcode->bcode_value()) {
-        LOG(TRACE, "replacing old bcode inst: %s\n", old_inst->toString().c_str());
-        const Inst_p new_inst = replace_from_inst(old_inst, args, lhs);
-        new_bcode = new_bcode->add_inst(new_inst);
-      }
-      LOG(TRACE, "new bcode: %s\n", new_bcode->toString().c_str());
-      return new_bcode;
-    }
+     static BCode_p replace_from_bcode(const Obj_p &old_bcode, const InstArgs &args, const Obj_p &lhs = noobj()) {
+       BCode_p new_bcode = Obj::to_bcode(make_shared<List<Obj_p>>(), old_bcode->tid());
+       LOG(TRACE, "old bcode: %s\n", old_bcode->toString().c_str());
+       for(const Inst_p &old_inst: *old_bcode->bcode_value()) {
+         LOG(TRACE, "replacing old bcode inst: %s\n", old_inst->toString().c_str());
+         const Inst_p new_inst = replace_from_inst(old_inst, args, lhs);
+         new_bcode = new_bcode->add_inst(new_inst);
+       }
+       LOG(TRACE, "new bcode: %s\n", new_bcode->toString().c_str());
+       return new_bcode;
+     }
 
-    static Rec_p replace_from_rec(const Obj_p &old_rec, const InstArgs &args, const Obj_p &lhs = noobj()) {
-      Rec_p new_rec = rec();
-      for(const auto &[key, value]: *old_rec->rec_value()) {
-        new_rec->rec_set(replace_from_obj(key, args, lhs), replace_from_obj(value, args, lhs));
-      }
-      return new_rec;
-    }
+     static Rec_p replace_from_rec(const Obj_p &old_rec, const InstArgs &args, const Obj_p &lhs = noobj()) {
+       Rec_p new_rec = rec();
+       for(const auto &[key, value]: *old_rec->rec_value()) {
+         new_rec->rec_set(replace_from_obj(key, args, lhs), replace_from_obj(value, args, lhs));
+       }
+       return new_rec;
+     }
 
-    static Lst_p replace_from_lst(const Obj_p &old_lst, const InstArgs &args, const Obj_p &lhs = noobj()) {
-      Lst_p new_lst = lst();
-      for(const auto &element: *old_lst->lst_value()) {
-        new_lst->lst_add(replace_from_obj(element, args, lhs));
-      }
-      return new_lst;
-    }
-
+     static Lst_p replace_from_lst(const Obj_p &old_lst, const InstArgs &args, const Obj_p &lhs = noobj()) {
+       Lst_p new_lst = lst();
+       for(const auto &element: *old_lst->lst_value()) {
+         new_lst->lst_add(replace_from_obj(element, args, lhs));
+       }
+       return new_lst;
+     }
+ */
     ////////////////////////////////////////////////
 
     static Rec_p encode_lst(const fURI &base_furi, const List<Obj_p> &list) {
@@ -180,8 +180,8 @@ namespace fhatos {
 
   protected:
     ID_p type_;
-    InstArgs args_{};
-    InstF function_supplier_ = nullptr;
+    InstArgs args_{Obj::to_inst_args()};
+    ptr<InstF> function_supplier_ = nullptr;
     IType itype_{IType::ONE_TO_ONE};
     Obj_p seed_;
     string doc_{};
@@ -193,15 +193,15 @@ namespace fhatos {
 
     InstBuilder *type_args(const Obj_p &arg0, const Obj_p &arg1 = nullptr, const Obj_p &arg2 = nullptr,
                            const Obj_p &arg3 = nullptr, const Obj_p &arg4 = nullptr) {
-      this->args_.push_back(arg0);
+      this->args_->rec_set("_0", arg0);
       if(arg1)
-        this->args_.push_back(arg1);
+        this->args_->rec_set("_1", arg1);
       if(arg2)
-        this->args_.push_back(arg2);
+        this->args_->rec_set("_2", arg2);
       if(arg3)
-        this->args_.push_back(arg3);
+        this->args_->rec_set("_3", arg3);
       if(arg4)
-        this->args_.push_back(arg4);
+        this->args_->rec_set("_4", arg4);
       return this;
     }
 
@@ -232,7 +232,12 @@ namespace fhatos {
     }
 
     InstBuilder *inst_f(const InstF &inst_f) {
-      this->function_supplier_ = inst_f;
+      this->function_supplier_ = make_shared<InstF>(inst_f);
+      return this;
+    }
+
+    InstBuilder *inst_f(const List_p<Inst_p>& code) {
+      this->function_supplier_ = Obj::to_bcode(code);
       return this;
     }
 
@@ -242,8 +247,10 @@ namespace fhatos {
           return maybe;
       }
       const Inst_p inst = Inst::create(make_tuple(
-                                         InstArgs(this->args_), InstF(this->function_supplier_),
-                                         static_cast<IType>(this->itype_), this->seed_ ? this->seed_ : _noobj_),
+                                         this->args_,
+                                         this->function_supplier_,
+                                         static_cast<IType>(this->itype_),
+                                         this->seed_ ? this->seed_ : _noobj_),
                                        OType::INST, this->type_,
                                        root ? id_p(root->vid()->extend(*value_id)) : value_id);
       if(!this->doc_.empty())

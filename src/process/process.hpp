@@ -132,11 +132,13 @@ namespace fhatos {
 
     virtual void setup() {
       this_process = this;
-      ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"), Obj::to_bcode(
-                                              [this](const Obj_p &lhs) {
-                                                this->rec_set(":loop", lhs);
-                                                return noobj();
-                                              }, StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+      ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend(":loop"),
+                                            InstBuilder::build(this->vid_->extend(":loop"))
+                                            ->inst_f([this](const Obj_p &lhs, const InstArgs &args) {
+                                              this->rec_set(":loop", lhs);
+                                              return noobj();
+                                            })
+                                            ->create()));
       const BCode_p setup_bcode = ROUTER_READ(id_p(this->vid()->extend(":setup")));
       if(setup_bcode->is_noobj())
         LOG_PROCESS(DEBUG, this, "setup !ybcode!! undefined\n");

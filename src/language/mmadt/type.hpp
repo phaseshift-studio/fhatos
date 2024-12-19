@@ -31,17 +31,6 @@ namespace mmadt {
 
   class mmADT {
   public:
-    static Inst_p map(const Obj_p arg) {
-      return
-          InstBuilder::build(MMADT_SCHEME "/map")
-          ->type_args(arg)
-          ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return args.at(0);
-          })
-          ->itype_and_seed(IType::ZERO_TO_ONE)
-          ->create();
-    }
-
     static void import_base_types() {
       Type::singleton()->start_progress_bar(16);
       const Obj_p OBJ_TYPE = Obj::create(Any(), OType::OBJ, OBJ_FURI);
@@ -71,7 +60,7 @@ namespace mmadt {
                  ->domain_range(NOOBJ_FURI, OBJS_FURI)
                  ->type_args(x(0, "starts"))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   return args.at(0)->is_objs() ? args.at(0) : Obj::to_objs(make_shared<List<Obj_p>>(args));
+                   return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs(args->rec_values());
                  })
                  ->itype_and_seed(IType::ZERO_TO_MANY)
                  ->create());
@@ -79,14 +68,14 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/as")
                  ->type_args(x(0, "type"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return lhs->as(id_p(args.at(0)->uri_value()));;
+                   return lhs->as(id_p(args->arg(0)->uri_value()));;
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/at"),
                  InstBuilder::build(MMADT_SCHEME "/at")
                  ->type_args(x(0, "var"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const ID_p at_id = id_p(args.at(0)->uri_value());
+                   const ID_p at_id = id_p(args->arg(0)->uri_value());
                    const Obj_p new_lhs = lhs->is_noobj() ? ROUTER_READ(at_id) : lhs;
                    return new_lhs->is_noobj() ? noobj() : new_lhs->at(at_id);
                  })->create());
@@ -95,7 +84,7 @@ namespace mmadt {
                  // TODO: currently a "special" instruction (see inst->apply() for logic)
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   return args.at(0);
+                   return args->arg(0);
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/count"),
@@ -111,7 +100,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/delay")
                  ->type_args(x(0, "millis", ___))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   Process::current_process()->delay(args.at(0)->int_value());
+                   Process::current_process()->delay(args->arg(0)->int_value());
                    return lhs;
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/each"),
@@ -124,11 +113,11 @@ namespace mmadt {
                  ->domain_range(LST_FURI, LST_FURI)
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    const Lst_p ret = Obj::to_lst();
-                   for(uint8_t i = 0; i < args.at(0)->lst_value()->size(); i++) {
+                   for(uint8_t i = 0; i < args->arg(0)->lst_value()->size(); i++) {
                      if(i < lhs->lst_value()->size()) {
-                       ret->lst_add(args.at(0)->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
+                       ret->lst_add(args->arg(0)->lst_value()->at(i)->apply(lhs->lst_value()->at(i)));
                      } else {
-                       ret->lst_add(args.at(0)->lst_value()->at(i)->apply(Obj::to_noobj()));
+                       ret->lst_add(args->arg(0)->lst_value()->at(i)->apply(Obj::to_noobj()));
                      }
                    }
                    return ret;
@@ -147,15 +136,15 @@ namespace mmadt {
                  ->domain_range(OBJ_FURI, BOOL_FURI)
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return Obj::to_bool(lhs->equals(*args.at(0)));
+                   return Obj::to_bool(lhs->equals(*args->arg(0)));
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/from"),
                  InstBuilder::build(MMADT_SCHEME "/from")
                  ->domain_range(URI_FURI, OBJ_FURI)
                  ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()));
-                   return result->is_noobj() ? args.at(1) : result;
+                   const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
+                   return result->is_noobj() ? args->arg(1) : result;
                  })
                  ->itype_and_seed(IType::ZERO_TO_MANY)
                  ->create());
@@ -164,14 +153,14 @@ namespace mmadt {
                  //->domain_range(OBJ_FURI, OBJ_FURI)
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return args.at(0)->bool_value() ? lhs : _noobj_;
+                   return args->arg(0)->bool_value() ? lhs : _noobj_;
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/map"),
                  InstBuilder::build(MMADT_SCHEME "/map")
                  ->type_args(x(0, "mapping"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return args.at(0);
+                   return args->arg(0);
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/merge"),
@@ -184,7 +173,7 @@ namespace mmadt {
                  ->domain_range(LST_FURI, OBJS_FURI)
                  ->type_args(x(0, "count", jnt(INT32_MAX)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const int max = args.at(0)->int_value();
+                   const int max = args->arg(0)->int_value();
                    const Objs_p objs = Obj::to_objs();
                    int counter = 0;
                    for(const auto &element: *lhs->lst_value()) {
@@ -204,7 +193,7 @@ namespace mmadt {
                  ->domain_range(REC_FURI, OBJS_FURI)
                  ->type_args(x(0, "count", jnt(INT32_MAX)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const int max = args.at(0)->int_value();
+                   const int max = args->arg(0)->int_value();
                    const Objs_p objs = Obj::to_objs();
                    int counter = 0;
                    for(const auto &[key, value]: *lhs->rec_value()) {
@@ -224,13 +213,13 @@ namespace mmadt {
                  ->domain_range(OBJ_FURI, BOOL_FURI)
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return Obj::to_bool(!lhs->equals(*args.at(0)));
+                   return Obj::to_bool(!lhs->equals(*args->arg(0)));
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/repeat"),
                  InstBuilder::build(MMADT_SCHEME "/repeat")
                  ->type_args(x(0, "code"), x(1, "until", dool(true)), x(2, "emit", dool(false)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   Objs_p r = BCODE_PROCESSOR(args.at(0)->bcode_starts({lhs}));
+                   Objs_p r = BCODE_PROCESSOR(args->arg(0)->bcode_starts({lhs}));
                    return r;
                  })
                  ->itype_and_seed(IType::ONE_TO_MANY)
@@ -239,22 +228,22 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/split")
                  ->type_args(x(0, "poly"))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   return args.at(0);
+                   return args->arg(0);
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/to"),
                  InstBuilder::build(MMADT_SCHEME "/to")
                  ->type_args(x(0, "uri"), x(1, "retain", dool(true)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   ROUTER_WRITE(furi_p(args.at(0)->uri_value()), lhs, args.at(1)->bool_value());
+                   ROUTER_WRITE(furi_p(args->arg(0)->uri_value()), lhs, args->arg(1)->bool_value());
                    return lhs;
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/to_inv"),
                  InstBuilder::build(MMADT_SCHEME "/to_inv")
                  ->type_args(x(0, "value_id"), x(1, "retain", dool(true)))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const Obj_p ret = args.at(0);
-                   ROUTER_WRITE(furi_p(lhs->uri_value()), ret, args.at(1)->bool_value());
+                   const Obj_p ret = args->arg(0);
+                   ROUTER_WRITE(furi_p(lhs->uri_value()), ret, args->arg(1)->bool_value());
                    return ret;
                  })
                  ->create());
@@ -263,7 +252,7 @@ namespace mmadt {
                  ->domain_range(OBJ_FURI, URI_FURI)
                  ->type_args(x(0, "obj", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   return Obj::to_uri(*args.at(0)->tid());
+                   return Obj::to_uri(*args->arg(0)->tid());
                  })
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/within"),
@@ -279,7 +268,7 @@ namespace mmadt {
                    for(uint8_t i = 0; i < xstr.length(); i++) {
                      chars->push_back(str(xstr.substr(i, 1)));
                    }
-                   const Objs_p strs = BCODE_PROCESSOR(/*Obj::to_objs(chars), */args.at(0));
+                   const Objs_p strs = BCODE_PROCESSOR(/*Obj::to_objs(chars), */args->arg(0));
                    string ret;
                    for(const Str_p &s: *strs->objs_value()) {
                      ret += s->str_value();
@@ -291,7 +280,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/within")
                  ->type_args(x(0, "code"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   const BCode_p starts_bcode = args.at(0)->bcode_starts(Obj::to_objs(lhs->lst_value()));
+                   const BCode_p starts_bcode = args->arg(0)->bcode_starts(Obj::to_objs(lhs->lst_value()));
                    return Obj::to_lst(BCODE_PROCESSOR(starts_bcode)->objs_value());
                  })
                  ->create());
@@ -303,7 +292,8 @@ namespace mmadt {
                    for(const auto &pair: *lhs->rec_value()) {
                      pairs->add_obj(Obj::to_lst({pair.first, pair.second}));
                    }
-                   const Objs_p results = Obj::to_lst(BCODE_PROCESSOR(args.at(0)->bcode_starts({pairs}))->objs_value());
+                   const Objs_p results = Obj::to_lst(
+                     BCODE_PROCESSOR(args->arg(0)->bcode_starts({pairs}))->objs_value());
                    const Obj::RecMap_p<> rec = make_shared<Obj::RecMap<>>();
                    for(const auto &result: *results->objs_value()) {
                      rec->insert({result->lst_value()->at(0), result->lst_value()->at(1)});
@@ -325,19 +315,19 @@ namespace mmadt {
               ->type_args(x(0, "rhs"));
           if(i == "gt") {
             builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-              return Obj::to_bool(*lhs > *args.at(0));
+              return Obj::to_bool(*lhs > *args->arg(0));
             });
           } else if(i == "gte") {
             builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-              return Obj::to_bool(*lhs >= *args.at(0));
+              return Obj::to_bool(*lhs >= *args->arg(0));
             });
           } else if(i == "lt") {
             builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-              return Obj::to_bool(*lhs < *args.at(0));
+              return Obj::to_bool(*lhs < *args->arg(0));
             });
           } else if(i == "lte") {
             builder->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-              return Obj::to_bool(*lhs <= *args.at(0));
+              return Obj::to_bool(*lhs <= *args->arg(0));
             });
           }
           TYPE_SAVER(id_p(t->resolve(string(MMADT_INST_SCHEME).append("/").append(i))), builder->create());
@@ -354,8 +344,8 @@ namespace mmadt {
                  ->domain_range(BOOL_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   rec->rec_set("value", dool(args.at(0)->bool_value()));
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   rec->rec_set("value", dool(args->arg(0)->bool_value()));
                    return rec;
                  })->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/int/" MMADT_INST_SCHEME "/inspect"),
@@ -363,8 +353,8 @@ namespace mmadt {
                  ->domain_range(INT_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   rec->rec_set("value/obj", jnt(args.at(0)->int_value()));
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   rec->rec_set("value/obj", jnt(args->arg(0)->int_value()));
                    rec->rec_set("value/encoding", vri(STR(FOS_INT_TYPE)));
                    return rec;
                  })->create());
@@ -373,8 +363,8 @@ namespace mmadt {
                  ->domain_range(REAL_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   rec->rec_set("value", real(args.at(0)->real_value()));
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   rec->rec_set("value", real(args->arg(0)->real_value()));
                    rec->rec_set("encoding", vri(STR(FOS_REAL_TYPE)));
                    return rec;
                  })->create());
@@ -383,9 +373,9 @@ namespace mmadt {
                  ->domain_range(STR_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   rec->rec_set("value", str(args.at(0)->str_value()));
-                   rec->rec_set("length", jnt(args.at(0)->str_value().size()));
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   rec->rec_set("value", str(args->arg(0)->str_value()));
+                   rec->rec_set("length", jnt(args->arg(0)->str_value().size()));
                    rec->rec_set("encoding", vri(string("UTF") + to_string(8 * sizeof(char))));
                    return rec;
                  })->create());
@@ -394,8 +384,8 @@ namespace mmadt {
                  ->domain_range(URI_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   const fURI furi = args.at(0)->uri_value();
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   const fURI furi = args->arg(0)->uri_value();
                    if(furi.has_scheme())
                      rec->rec_set("scheme", vri(furi.scheme()));
                    if(furi.has_user())
@@ -434,10 +424,10 @@ namespace mmadt {
                  ->domain_range(REC_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   rec->rec_set("size", args.at(0)->rec_size());
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   rec->rec_set("size", args->arg(0)->rec_size());
                    bool embeddable = true;
-                   for(const auto &[k,v]: *args.at(0)->rec_value()) {
+                   for(const auto &[k,v]: *args->arg(0)->rec_value()) {
                      if(!k->is_uri()) {
                        embeddable = false;
                        break;
@@ -451,13 +441,9 @@ namespace mmadt {
                  ->domain_range(INST_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
-                   rec->rec_set("op", str(args.at(0)->inst_op()));
-                   const Lst_p &args_list = lst();
-                   for(const Obj_p &o: args.at(0)->inst_args()) {
-                     args_list->lst_add(o);
-                   }
-                   rec->rec_set("args", args_list);
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
+                   rec->rec_set("op", str(args->arg(0)->inst_op()));
+                   rec->rec_set("args", args->arg(0)->inst_args());
                    //rec->rec_set("f",lhs->inst_f());
                    return rec;
                  })->create());
@@ -466,9 +452,9 @@ namespace mmadt {
                  ->domain_range(BCODE_FURI, REC_FURI)
                  ->type_args(x(0, "inspected", ___))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Rec_p rec = build_inspect_rec(args.at(0));
+                   const Rec_p rec = build_inspect_rec(args->arg(0));
                    const Lst_p l = lst();
-                   for(const Inst_p &i: *args.at(0)->bcode_value()) {
+                   for(const Inst_p &i: *args->arg(0)->bcode_value()) {
                      l->lst_add(i);
                    }
                    rec->rec_set("value", l);
@@ -483,7 +469,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/mod")
                  ->type_args(x(0, "rhs"))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
-                   return jnt(lhs->int_value() % args.at(0)->int_value());
+                   return jnt(lhs->int_value() % args->arg(0)->int_value());
                  })
                  ->create());
       for(const auto &op: {"plus", "mult"}) {
@@ -499,9 +485,9 @@ namespace mmadt {
                    ->inst_f(
                      [op](const Obj_p &lhs, const InstArgs &args) {
                        if(strcmp(op, "plus") == 0)
-                         return jnt(lhs->int_value() + args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         return jnt(lhs->int_value() + args->arg(0)->int_value(), lhs->tid(), lhs->vid());
                        else if(strcmp(op, "mult") == 0)
-                         return jnt(lhs->int_value() * args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         return jnt(lhs->int_value() * args->arg(0)->int_value(), lhs->tid(), lhs->vid());
                        else
                          throw fError("unknown op %s\n", op);
                      })
@@ -513,9 +499,9 @@ namespace mmadt {
                    ->inst_f(
                      [op](const Obj_p &lhs, const InstArgs &args) {
                        if(strcmp(op, "plus") == 0)
-                         return jnt(lhs->real_value() + args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         return jnt(lhs->real_value() + args->arg(0)->int_value(), lhs->tid(), lhs->vid());
                        else if(strcmp(op, "mult") == 0)
-                         return jnt(lhs->real_value() * args.at(0)->int_value(), lhs->tid(), lhs->vid());
+                         return jnt(lhs->real_value() * args->arg(0)->int_value(), lhs->tid(), lhs->vid());
                        else
                          throw fError("unknown op %s\n", op);
                      })
@@ -527,12 +513,12 @@ namespace mmadt {
                    ->inst_f(
                      [op](const Obj_p &lhs, const InstArgs &args) {
                        if(strcmp(op, "plus") == 0)
-                         return str(lhs->str_value().append(args.at(0)->str_value()), lhs->tid()); // , lhs->vid()
+                         return str(lhs->str_value().append(args->arg(0)->str_value()), lhs->tid()); // , lhs->vid()
                        else if(strcmp(op, "mult") == 0) {
                          string temp;
                          for(const char c: lhs->str_value()) {
                            temp += c;
-                           temp.append(args.at(0)->str_value());
+                           temp.append(args->arg(0)->str_value());
                          }
                          return str(temp, lhs->tid()); // , lhs->vid()
                        } else
@@ -546,9 +532,9 @@ namespace mmadt {
                    ->inst_f(
                      [op](const Obj_p &lhs, const InstArgs &args) {
                        if(strcmp(op, "plus") == 0)
-                         return dool(lhs->bool_value() || args.at(0)->bool_value(), lhs->tid(), lhs->vid());
+                         return dool(lhs->bool_value() || args->arg(0)->bool_value(), lhs->tid(), lhs->vid());
                        else if(strcmp(op, "mult") == 0)
-                         return dool(lhs->bool_value() && args.at(0)->bool_value(), lhs->tid(), lhs->vid());
+                         return dool(lhs->bool_value() && args->arg(0)->bool_value(), lhs->tid(), lhs->vid());
                        else
                          throw fError("unknown op %s\n", op);
                      })
@@ -560,9 +546,9 @@ namespace mmadt {
                    ->inst_f(
                      [op](const Obj_p &lhs, const InstArgs &args) {
                        if(strcmp(op, "plus") == 0)
-                         return vri(lhs->uri_value().extend(args.at(0)->uri_value()), lhs->tid()); // , lhs->vid()
+                         return vri(lhs->uri_value().extend(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
                        else if(strcmp(op, "mult") == 0)
-                         return vri(lhs->uri_value().resolve(args.at(0)->uri_value()), lhs->tid()); // , lhs->vid()
+                         return vri(lhs->uri_value().resolve(args->arg(0)->uri_value()), lhs->tid()); // , lhs->vid()
                        else
                          throw fError("unknown op %s\n", op);
                      })
@@ -578,13 +564,13 @@ namespace mmadt {
                          for(const auto &v: *lhs->lst_value()) {
                            new_v->push_back(v);
                          }
-                         for(const auto &v: *args.at(0)->lst_value()) {
+                         for(const auto &v: *args->arg(0)->lst_value()) {
                            new_v->push_back(v);
                          }
                          return Obj::to_lst(new_v, LST_FURI);
                        } else if(strcmp(op, "mult") == 0) {
                          const Obj::LstList_p lhs_v = lhs->lst_value();
-                         const Obj::LstList_p rhs_v = args.at(0)->lst_value();
+                         const Obj::LstList_p rhs_v = args->arg(0)->lst_value();
                          const auto new_v = make_shared<Obj::LstList>();
                          for(int i = 0; i < lhs_v->size(); i++) {
                            for(int j = 0; j < rhs_v->size(); j++) {
@@ -592,7 +578,7 @@ namespace mmadt {
                                TYPE_INST_RESOLVER(
                                  lhs_v->at(i),
                                  Obj::to_inst({x(0, ___)}, id_p("mult")))
-                               ->apply(lhs_v->at(i), {rhs_v->at(j)}));
+                               ->apply(lhs_v->at(i))); // TODO: , Obj::to_inst_args{"rhs",rhs_v->at(j)}));
                            }
                          }
                          return Obj::to_lst(new_v, LST_FURI);
@@ -620,7 +606,7 @@ namespace mmadt {
                  ->type_args(x(0, "rhs"))
                  ->inst_f(
                      [](const Obj_p &lhs, const InstArgs &args) {
-                       return lhs->rec_merge(args.at(0)->rec_value());
+                       return lhs->rec_merge(args->arg(0)->rec_value());
                      })
                  ->create());*/
       /////////////////////////// PLUS INST ///////////////////////////

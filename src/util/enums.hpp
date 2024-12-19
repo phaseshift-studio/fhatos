@@ -28,6 +28,7 @@ namespace fhatos {
   using std::list;
   using std::initializer_list;
   using std::pair;
+
   template<typename ENUM>
   struct Enums {
     const list<pair<ENUM, string>> ENUM_TO_STR{};
@@ -35,33 +36,35 @@ namespace fhatos {
     explicit Enums(const initializer_list<pair<ENUM, string>> &enums) : ENUM_TO_STR(enums) {
     }
 
-   bool has_enum(const string &s) const {
-      for (const auto &pair: ENUM_TO_STR) {
-        if (s == pair.second)
+    bool has_enum(const string &s) const {
+      for(const auto &pair: ENUM_TO_STR) {
+        if(s == pair.second)
           return true;
       }
       return false;
     }
 
     string to_chars(const ENUM e) const {
-      for (const auto &pair: ENUM_TO_STR) {
-        if (pair.first == e)
+      for(const auto &pair: ENUM_TO_STR) {
+        if(pair.first == e)
           return pair.second;
       }
       throw fError("!ychars!! not found for enum !b%i!!", e);
     }
 
     ENUM to_enum(const string &s) const {
-      for (const auto &pair: ENUM_TO_STR) {
-        if (s == pair.second)
+      for(const auto &pair: ENUM_TO_STR) {
+        if(s == pair.second)
           return pair.first;
       }
       string enums_string;
-      for (const auto &pair: ENUM_TO_STR) {
+      for(const auto &pair: ENUM_TO_STR) {
         enums_string += (pair.second + " ");
       }
       StringHelper::trim(enums_string);
-      throw fError("!yenum!! not found for chars !y%s!! [!b%s!!]", s.c_str(), enums_string.c_str());
+      //LOG(ERROR,"!yenum!! not found for chars !y%s!! [!b%s!!]", s.c_str(), enums_string.c_str());
+      return ENUM_TO_STR.front().first;
+      //throw fError("!yenum!! not found for chars !y%s!! [!b%s!!]", s.c_str(), enums_string.c_str());
     }
   };
 } // namespace fhatos

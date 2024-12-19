@@ -175,7 +175,7 @@ namespace fhatos {
     }
 
     Obj_p process_message(const Message_p &message) const {
-      return this->on_recv()->apply(message->payload(),{message});//, {message});
+      return (*this->inst_f())(message->payload(),{message});//, {message});
     }
 
     static Subscription_p create(const ID &source, const Pattern &pattern, const BCode_p &on_recv) {

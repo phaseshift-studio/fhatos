@@ -25,28 +25,25 @@
 
 namespace fhatos {
   class Terminal final : public Rec {
-
   protected:
-    explicit Terminal(const ID &id) :
-      Rec(rmap({{":stdout", Obj::to_bcode(
-                     [](const Str_p &obj) {
-                       FEED_WATCDOG();
-                       STD_OUT_DIRECT(obj);
-                       return noobj();
-                     },
-                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))},
-                {":stdin", Obj::to_bcode(
-                     [](const NoObj_p &) {
-                       return STD_IN_DIRECT();
-                     },
-                     StringHelper::cxx_f_metadata(__FILE__, __LINE__))}}),
-          OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
+    explicit Terminal(const ID &id) : Rec(rmap({{":stdout", InstBuilder::build(":stdout")
+                                              ->type_args(x(0, ___))
+                                              ->inst_f([](const Str_p &obj, const InstArgs &args) {
+                                                FEED_WATCDOG();
+                                                STD_OUT_DIRECT(obj);
+                                                return noobj();
+                                              })->create()},
+                                            {":stdin", InstBuilder::build(":stdin")
+                                              ->inst_f([](const Str_p &, const InstArgs &) {
+                                                return STD_IN_DIRECT();
+                                              })->create()}}),
+                                          OType::REC, id_p(REC_FURI->extend("terminal")), id_p(id)) {
     }
 
   public:
     static ptr<Terminal> singleton(const ID &id = ID("/io/terminal")) {
       static bool setup = false;
-      if (!setup) {
+      if(!setup) {
         setup = true;
         Type::singleton()->save_type(id_p(REC_FURI->extend("terminal")),
                                      rec({{vri(":stdout"), Obj::to_bcode()}, {vri(":stdin"), Obj::to_bcode()}}));
@@ -63,7 +60,7 @@ namespace fhatos {
 
     static Int_p STD_IN_DIRECT() {
       int c;
-      while (-1 == (c = printer<>()->read())) {
+      while(-1 == (c = printer<>()->read())) {
         Process::current_process()->yield();
       }
       return jnt(c);

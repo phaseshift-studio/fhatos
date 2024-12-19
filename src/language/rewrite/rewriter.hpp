@@ -66,16 +66,18 @@ namespace fhatos {
                 p.printf("!b%s!!\t\t    %s\t\t\t\t\t\t  !b%s!!\n", inst->inst_op().c_str(),
                          (string(pad2) + inst->toString()).c_str(),
                          (string(pad) + inst->range()->toString() + "!m<=!b" + inst->domain()->toString()).c_str());
-                for(const auto &arg: inst->inst_args()) {
-                  if(arg->is_bcode()) {
-                    fun(arg, p, depth + 1);
+                for(const auto &[k,v]: *inst->inst_args()->rec_value()) {
+                  if(v->is_bcode()) {
+                    fun(v, p, depth + 1);
                   }
                 }
               }
             };
             fun(bcode, p, 0);
-            BCode_p rewrite = Obj::to_bcode([ex](const Obj_p &, const InstArgs &) { return Obj::to_str(ex); },
-                                            InstArgs());
+            BCode_p rewrite =
+                InstBuilder::build()
+                ->inst_f([ex](const Obj_p &, const InstArgs &) { return Obj::to_str(ex); })
+                ->create();
             LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
             return rewrite;
           }
@@ -93,23 +95,12 @@ namespace fhatos {
           for(const Inst_p &inst: *bcode->bcode_value()) {
             if(inst->tid()->equals(INST_FURI->extend("by")) && !prev->is_noobj()) {
               found = true;
-              // rewrite args
-              bool done = false;
-              List<Obj_p> newArgs;
-              for(const Obj_p &arg: prev->inst_args()) {
-                if(!done && arg->is_noobj()) {
-                  newArgs.push_back(inst->inst_arg(0));
-                  done = true;
-                } else {
-                  newArgs.push_back(arg);
-                }
-              }
-              if(!done)
-                throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
-                             prev->toString().c_str(), inst->toString().c_str());
+              //  if(!done)
+              //  throw fError("Previous inst could not be by()-modulated: %s !r<=/=!! %s",
+              //              prev->toString().c_str(), inst->toString().c_str());
               // rewrite inst
               newInsts.pop_back();
-              newInsts.push_back(Obj::to_inst(newArgs, prev->tid()));
+              newInsts.push_back(Obj::to_inst(prev->inst_args(), prev->tid()));
             } else {
               newInsts.push_back(inst);
             }
@@ -131,7 +122,7 @@ namespace fhatos {
                      [starts](const BCode_p &bcode) {
                        if(starts->is_noobj())
                          return bcode;
-                       List<Inst_p> new_insts = {Obj::to_inst({starts},id_p("map"))};
+                       List<Inst_p> new_insts = {Obj::to_inst({starts}, id_p("map"))};
                        for(const Inst_p &inst: *bcode->bcode_value()) {
                          new_insts.push_back(inst);
                        }

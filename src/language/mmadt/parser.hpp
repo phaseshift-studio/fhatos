@@ -38,7 +38,7 @@ namespace mmadt {
     Definition
         WS, ROOT, ARGS, CODE, COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
-        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ,
+        INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF,
         NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
         EMPTY_BCODE, DOM_RNG, INST_SUGAR;
 #ifndef FOS_SUGARLESS_MMADT
@@ -66,7 +66,10 @@ namespace mmadt {
       return result;
     }
 
-    explicit Parser(const ID &id = ID("/parser/")) : Obj(share(RecMap<>{}), OType::REC, REC_FURI, id_p(id)) {
+    explicit Parser(const ID &id = ID("/parser/")) : Obj(make_shared<RecMap<>>(),
+                                                         OType::REC,
+                                                         REC_FURI,
+                                                         id_p(id)) {
       static auto noobj_action = [](const SemanticValues &) -> Pair_p<Any, OType> {
         return make_shared<Pair<Any, OType>>(nullptr, OType::NOOBJ);
       };
@@ -112,33 +115,37 @@ namespace mmadt {
       static auto code_action = [](const SemanticValues &vs) -> BCode_p {
         //  CODE <= seq(DOM_RNG,chr('|'),opt(ARGS),chr('['),PROTO,chr(')')), code_action;
         const ID_p type_id = id_p(*any_cast<fURI_p>(vs[0]));
-        const Rec_p args = Rec::to_rec(any_cast<Obj::RecMap_p<>>(any_cast<Pair_p<Any, OType>>(vs[1])->first));
-        InstArgs args_less;
-        for(const auto &arg: *args->rec_value()) {
-          args_less.push_back(arg.second);
-        }
+        const InstArgs args = Rec::to_rec(any_cast<Obj::RecMap_p<>>(any_cast<Pair_p<Any, OType>>(vs[1])->first));
         const Pair_p<Any, OType> proto = any_cast<Pair_p<Any, OType>>(vs[2]);
         // Quad<InstArgs, InstF, IType, Obj_p>;
         const Obj_p body = Obj::create(proto->first, proto->second, BCODE_FURI);
-        Obj_p code = Inst::to_inst(InstValue(args_less, *body, IType::ONE_TO_ONE, noobj()), type_id, nullptr);
+        Obj_p code = Inst::to_inst(InstValue(args, body, IType::ONE_TO_ONE, noobj()), type_id, nullptr);
         LOG(INFO, "parsed code: %s\n", code->toString().c_str());
         return code;
       };
 
       static auto inst_action = [](const SemanticValues &vs) -> Inst_p {
-        InstArgs list;
+        List<Obj_p> args;
         const ID_p op = id_p(*any_cast<fURI_p>(vs[0]));
         for(int i = 1; i < vs.size(); i++) {
-          list.push_back(any_cast<Obj_p>(vs[i]));
+          args.push_back(any_cast<Obj_p>(vs[i]));
         }
-        return Obj::to_inst(list, id_p(*ROUTER_RESOLVE(fURI(*op))));
+        return Obj::to_inst(Obj::to_inst_args(args), id_p(*ROUTER_RESOLVE(fURI(*op))));
       };
 
       static auto furi_action = [](const SemanticValues &vs) {
         return furi_p(vs.token_to_string());
       };
 
+      static auto coeff_action = [](const SemanticValues &vs) -> string {
+        return vs.token_to_string();
+      };
+
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
+       /* LOG(TRACE, "!ydomain!! coefficient: %s\n",
+            (vs[4].has_value() ? any_cast<string>(vs[4]).c_str() : "<none>"));
+        LOG(TRACE, "!yrange!! coefficient: %s\n",
+            (vs[2].has_value() ? any_cast<string>(vs[2]).c_str() : "<none>"));*/
         return furi_p(any_cast<fURI_p>(vs[0])->query({
           {FOS_DOMAIN, any_cast<fURI_p>(vs[2])->toString()},
           {FOS_RANGE, any_cast<fURI_p>(vs[1])->toString()}}));
@@ -157,7 +164,8 @@ namespace mmadt {
               const Obj_p obj_or_inst = any_cast<Obj_p>(vs[i]);
               list->push_back(obj_or_inst->otype_ == OType::INST
                                 ? obj_or_inst
-                                : Obj::to_inst({obj_or_inst}, id_p(*ROUTER_RESOLVE(0 == i ? "start" : "map"))));
+                                : Obj::to_inst(Obj::to_inst_args({obj_or_inst}),
+                                               id_p(*ROUTER_RESOLVE(0 == i ? "start" : "map"))));
             }
             return make_shared<Pair<Any, OType>>(list, OType::BCODE);
           }
@@ -226,17 +234,19 @@ namespace mmadt {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("each")));
       };
       static auto end_action = [](const SemanticValues &) -> Inst_p {
-        return Obj::to_inst(InstArgs(), id_p(*ROUTER_RESOLVE("end")));
+        return Obj::to_inst(Obj::to_inst_args(), id_p(*ROUTER_RESOLVE("end")));
       };
       static auto merge_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst(vs.empty() ? InstArgs() : InstArgs{any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("merge")));
+        return Obj::to_inst(vs.empty() ? Obj::to_inst_args() : Obj::to_inst_args({any_cast<Obj_p>(vs[0])}),
+                            id_p(*ROUTER_RESOLVE("merge")));
       };
       static auto split_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("split")));
       };
 
       static auto pass_action = [](const SemanticValues &vs) -> Inst_p {
-        return Obj::to_inst({any_cast<Obj_p>(vs[0]), dool(false)}, id_p(*ROUTER_RESOLVE("to_inv")));
+        return Obj::to_inst(Obj::to_inst_args({any_cast<Obj_p>(vs[0]), dool(false)}),
+                            id_p(*ROUTER_RESOLVE("to_inv")));
       };
 
       static auto plus_action = [](const SemanticValues &vs) -> Inst_p {
@@ -279,7 +289,10 @@ namespace mmadt {
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);
       INST_ARG_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, BCODE_P, URI);
       PROTO <= cho(REAL, BCODE_P, NO_CODE_PROTO);
-      DOM_RNG <= seq(~WS, FURI_NO_Q, chr('?'), FURI_NO_Q, chr('<'), chr('='), FURI_NO_Q, ~WS), dom_rng_action;
+      COEF <= tok(seq(chr('{'), oom(cls("0-9")), opt(seq(chr(','), oom(cls("0-9#")))), chr('}'))), coeff_action;
+      // TODO: stream ring theory
+      DOM_RNG <= seq(~WS, FURI_NO_Q, chr('?'), FURI_NO_Q, /*opt(COEF),*/ chr('<'), chr('='), FURI_NO_Q, /*opt(COEF),*/
+                     ~WS), dom_rng_action;
       TYPE_ID <= cho(DOM_RNG, FURI), furi_action;
       NO_CODE_OBJ <= cho(
         TYPE, CODE, seq(~WS, TYPE_ID, ~WS, lit("["), NO_CODE_PROTO, lit("]"), opt(seq(chr('@'), FURI)), ~WS),
@@ -324,6 +337,7 @@ namespace mmadt {
       OBJ.enter = enter_y("obj");
       TYPE.enter = enter_y("type");
       PROTO.enter = enter_y("proto");
+      FROM.enter = enter_y("from");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
       ROOT.whitespaceOpe = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
       OBJ.whitespaceOpe = ROOT.whitespaceOpe;

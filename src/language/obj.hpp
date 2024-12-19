@@ -205,17 +205,10 @@ namespace fhatos {
   });
   //
 
-  using InstOpcode = string;
-  using InstArgs = List<Obj_p>;
-  static const InstArgs NO_ARGS = {}; // NOTE: esp compiler doesn't allow constexpr here
-  class Args;
+  using InstArgs = Rec_p;
   using InstF = BiFunction<Obj_p, InstArgs, Obj_p>;
-  using InstGenerator = Function<Inst_p, BiFunction<Obj_p, Args, Obj_p>>;
-
-  using InstFunctionSupplier = Function<InstArgs, Function<Obj_p, Obj_p>>;
-  using InstSeedSupplier = Function<Obj_p, Obj_p>;
-  using InstSeed = Obj_p;
-  using InstValue = Quad<InstArgs, InstF, IType, Obj_p>;
+  using InstF_p = ptr<BiFunction<Obj_p, InstArgs, Obj_p>>;
+  using InstValue = Quad<InstArgs, InstF_p, IType, Obj_p>;
   using InstList = List<Inst_p>;
   using InstList_p = ptr<InstList>;
   static const auto MMADT_ID = make_shared<ID>(MMADT_SCHEME);
@@ -474,9 +467,11 @@ namespace fhatos {
       return make_shared<Obj>(value, otype, type_id, value_id);
     }
 
-    static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int lineNumber = __LINE__) {
-      return fError("%s !yaccessed!! as !b%s!!", obj->toString().c_str(),
-                    string(function).replace(string(function).find("_value"), 6, "").c_str());
+    static fError TYPE_ERROR(const Obj *obj, const char *function, [[maybe_unused]] const int line_number = __LINE__) {
+      return fError(FURI_WRAP " %s !yaccessed!! as !b%s!! L%i", obj->vid_or_tid()->toString().c_str(),
+                    obj->toString().c_str(),
+                    string(function).replace(string(function).find("_value"), 6, "").c_str(),
+                    line_number);
     }
 
     //////////////////////////////////////////////////////////////
@@ -608,7 +603,7 @@ namespace fhatos {
         const int i = StringHelper::is_integer(segment)
                         ? std::stoi(segment)
                         : (StringHelper::has_wildcards(segment) ? -1 : -100);
-        if(i == -100)
+        if(-100 == i)
           throw fError("segment !b%s!! of !b%s!! !ris not!! an !yint!! or wildcard", segment.c_str(),
                        index->uri_value().toString().c_str());
         if(i >= this->lst_value()->size())
@@ -643,6 +638,28 @@ namespace fhatos {
       if(!this->is_rec())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return this->value<RecMap_p<>>();
+    }
+
+    [[nodiscard]] List_p<Obj_p> rec_values() const {
+      const auto list = make_shared<List<Obj_p>>();
+      for(const auto &[k,v]: *this->rec_value()) {
+        list->push_back(v);
+      }
+      return list;
+    }
+
+    [[nodiscard]] Obj_p arg(const size_t index) const {
+      size_t counter = 0;
+      for(const auto &[k,v]: *this->rec_value()) {
+        if(index == counter)
+          return v;
+        counter++;
+      }
+      return Obj::to_noobj();
+    }
+
+    [[nodiscard]] Obj_p arg(const Obj_p &key) const {
+      return this->rec_value()->count(key) ? this->rec_value()->at(key) : Obj::to_noobj();
     }
 
     [[nodiscard]] Obj_p rec_get(const Obj_p &key, const Runnable &on_error = nullptr) const {
@@ -761,11 +778,17 @@ namespace fhatos {
       return this->tid_->name();
     }
 
-    [[nodiscard]] InstArgs inst_args() const { return std::get<0>(this->inst_value()); }
+    [[nodiscard]] InstArgs inst_args() const {
+      if(!this->is_inst())
+        throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
+      return std::get<0>(this->inst_value());
+    }
 
-    [[nodiscard]] Obj_p inst_arg(const uint8_t index) const { return std::get<0>(this->inst_value()).at(index); }
+    [[nodiscard]] bool has_arg(const Obj_p &key) {
+      return this->inst_args()->rec_value()->count(key) != 0;
+    }
 
-    [[nodiscard]] InstF inst_f() const {
+    [[nodiscard]] InstF_p inst_f() const {
       if(!this->is_inst())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       return std::get<1>(this->inst_value());
@@ -832,7 +855,7 @@ namespace fhatos {
       if(!this->is_bcode())
         throw TYPE_ERROR(this, __FUNCTION__, __LINE__);
       const auto new_code = make_shared<List<Inst_p>>();
-      new_code->push_back(Obj::to_inst({starts}, id_p("start")));
+      new_code->push_back(Obj::to_inst(Obj::to_inst_args({starts}), id_p("start")));
       for(const auto &inst: *this->bcode_value()) {
         new_code->push_back(inst);
       }
@@ -968,13 +991,17 @@ namespace fhatos {
           }
           case OType::INST: {
             bool first = true;
-            for(const auto &arg: this->inst_args()) {
+            for(const auto &[k,v]: *this->inst_args()->rec_value()) {
               if(first) {
                 first = false;
               } else {
                 obj_string += "!m,!!";
               }
-              obj_string += arg->toString(obj_printer->next());
+              if(!k->is_indexed_arg()) {
+                obj_string += k->toString(obj_printer->next());
+                obj_string += "=>";
+              }
+              obj_string += v->toString();
             }
             break;
           }
@@ -1278,11 +1305,18 @@ namespace fhatos {
 
     [[nodiscard]] bool is_noop_bcode() const { return this->is_bcode() && this->bcode_value()->empty(); }
 
+    [[no_discard]] bool is_indexed_arg() const {
+      if(!this->is_uri())
+        return false;
+      const string s = this->uri_value().toString();
+      return s[0] == '_' && StringHelper::is_integer(s.substr(1));
+    }
+
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
-    static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
+    /*static Inst_p replace_from_inst(const Obj_p &old_inst, const InstArgs &args, const Obj_p &lhs = Obj::to_noobj()) {
       if(old_inst->inst_op() == "lambda") {
         return Obj::to_inst(old_inst->inst_op(), args, old_inst->inst_f(), old_inst->itype(),
                             old_inst->inst_seed_supplier());
@@ -1348,13 +1382,16 @@ namespace fhatos {
         new_lst->lst_add(replace_from_obj(element, args, lhs));
       }
       return new_lst;
-    }
+    }*/
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     Obj_p apply(const Obj_p &lhs, const InstArgs &args) {
-      return replace_from_obj(this->shared_from_this(), args, lhs)->apply(lhs);
+      ROUTER_PUSH_FRAME("+", args);
+      const Obj_p result = this->apply(lhs);
+      ROUTER_POP_FRAME();
+      return result;
     }
 
     Obj_p apply() {
@@ -1405,35 +1442,29 @@ namespace fhatos {
              this->inst_op() == "each" ||
              this->inst_op() == "within") {
             //// don't evaluate args for block()-inst -- TODO: don't have these be a 'special inst'
-            remake = this->inst_args();
+            remake = inst->inst_args()->clone();
           } else {
+            remake = Obj::to_inst_args();
             //// apply lhs to args
-            for(const Obj_p &arg: inst->inst_args()) {
-              remake.push_back(arg->apply(lhs));
+            for(const auto &[k,v]: *inst->inst_args()->rec_value()) {
+              remake->rec_value()->insert({k, v->apply(lhs)});
             }
           }
-          const Rec_p frame = Obj::to_rec();
-          for(int i = 0; i < remake.size(); i++) {
-            frame->rec_set(Obj::to_uri(StringHelper::format("_%i", i)), remake.at(i));
-          }
-          ROUTER_PUSH_FRAME("+", frame);
+          ROUTER_PUSH_FRAME("+", remake);
           //// TODO: type check lhs-based on inst type_id domain
           //// TODO: don't evaluate inst for type objs for purpose of compilation
-          //// evaluate inst
-          //final_inst = Obj::replace_from_obj(final_inst, remake, lhs);
           try {
             if(nullptr == inst->inst_f())
               throw fError("!runable to resolve!! %s relative to !b%s!g[!!%s!g]!!", inst->toString().c_str(),
                            lhs->tid_->name().c_str(),
                            lhs->toString().c_str());
-            const Obj_p result = inst->inst_f()(lhs, remake);
+            const Obj_p result = (*inst->inst_f())(lhs, remake);
             if(!result->is_code())
               TYPE_CHECKER(result.get(), inst->range(), true);
-            // TODO: delete args in frame
             ROUTER_POP_FRAME();
             return result;
           } catch(std::exception &e) {
-            ROUTER_POP_FRAME(); // TODO: does this clear all frames automatically through recurssion?
+            ROUTER_POP_FRAME(); // TODO: does this clear all frames automatically through exception recurssion?
             throw fError("%s\n\t\t!rthrown at !yinst!!  %s !g=>!! %s", e.what(),
                          lhs->toString().c_str(),
                          this->toString().c_str());
@@ -1532,16 +1563,10 @@ namespace fhatos {
         }
         case OType::INST: {
           const auto args_a = this->inst_args();
-          auto args_b = type_obj->inst_args();
-          if(args_a.size() != args_b.size())
+          if(const auto args_b = type_obj->inst_args(); !args_a->match(args_b))
             return false;
           if(this->itype() != type_obj->itype())
             return false;
-          const auto b = args_b.begin();
-          for(const auto &a: args_a) {
-            if(!a->match(*b))
-              return false;
-          }
           return true;
         }
         case OType::BCODE: {
@@ -1685,14 +1710,33 @@ namespace fhatos {
     }
 
     static Inst_p to_inst(const InstValue &value, const ID_p &type_id = INST_FURI, const ID_p &value_id = nullptr) {
+      if(!std::get<0>(value)->is_rec())
+        TYPE_ERROR(std::get<0>(value).get(),__FILE__,__LINE__);
       return Obj::create(value, OType::INST, type_id, value_id);
+    }
+
+    static InstArgs to_inst_args() {
+      return Obj::to_rec();
+    }
+
+    static InstArgs to_inst_args(const List<Obj_p> &args) {
+      const Rec_p inst_args = Obj::to_rec();
+      for(size_t i = 0; i < args.size(); i++) {
+        inst_args->rec_value()->insert({Obj::to_uri(string("_").append(to_string(i))), args.at(i)});
+      }
+      return inst_args;
+    }
+
+    static Inst_p to_inst(const std::initializer_list<Obj_p> &args, const ID_p &type_id) {
+      return to_inst(type_id->name(), Obj::to_inst_args(args), nullptr, IType::ONE_TO_ONE, to_noobj(), type_id,
+                     nullptr);
     }
 
     static Inst_p to_inst(const InstArgs &args, const ID_p &type_id) {
       return to_inst(type_id->name(), args, nullptr, IType::ONE_TO_ONE, to_noobj(), type_id, nullptr);
     }
 
-    static Inst_p to_inst(const string &opcode, const List<Obj_p> &args, const InstF &function,
+    static Inst_p to_inst(const string &opcode, const InstArgs &args, const InstF_p &function,
                           const IType itype, const Obj_p &seed = Obj::to_noobj(), const ID_p &type_id = nullptr,
                           const ID_p &value_id = nullptr) {
       const ID_p fix = type_id != nullptr ? type_id : id_p(*ROUTER_RESOLVE(fURI(opcode)));
@@ -1709,40 +1753,6 @@ namespace fhatos {
 
     static BCode_p to_bcode(const ID_p &furi = BCODE_FURI) { return Obj::to_bcode(share<InstList>({}), furi); }
 
-    static BCode_p to_bcode(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const InstArgs &args,
-                            const ID &opcode = ID("cxx:bifunc")) {
-      return Obj::to_bcode({Obj::lambda(
-        [function](const Obj_p &obj, const InstArgs &args2) { return function(obj, args2); }, args, opcode)});
-    }
-
-    static BCode_p to_bcode(const Function<Obj_p, Obj_p> &function, const ID &opcode = ID("cxx:func")) {
-      return Obj::to_bcode(
-        {Obj::lambda([function](const Obj_p &obj, const InstArgs &) { return function(obj); }, {}, opcode)});
-    }
-
-    static Obj_p to_inst(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const InstArgs &args, const ID_p &type_id,
-                         const ID_p &value_id) {
-      Obj_p type = ROUTER_READ(value_id);
-      if(type && !type->is_noobj())
-        return type;
-      const Inst_p inst = Obj::to_inst(
-        value_id->name(), args,
-        function,
-        IType::ONE_TO_ONE, Obj::to_noobj(), type_id, value_id);
-      TYPE_SAVER(value_id, inst);
-      return inst;
-    }
-
-    static Obj_p lambda(const BiFunction<Obj_p, InstArgs, Obj_p> &function, const InstArgs &args, const ID &opcode) {
-      const ID_p inst_id = id_p(INST_FURI->extend(opcode));
-      const Inst_p inst = Obj::to_inst(
-        inst_id->name(), args,
-        function,
-        IType::ONE_TO_ONE, Obj::to_noobj(), inst_id);
-      // TYPE_SAVER(inst_id, inst);
-      return inst;
-    }
-
     static Objs_p to_objs(const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
       return to_objs(make_shared<List<Obj_p>>(), type_id);
@@ -1751,10 +1761,6 @@ namespace fhatos {
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
       return Obj::create(objs, OType::OBJS, type_id);
-    }
-
-    static Objs_p to_objs(const List<Obj> &objs, const ID_p &type_id = OBJS_FURI) {
-      return Obj::to_objs(make_shared<List<Obj_p>>(PtrHelper::clone<Obj>(objs)), type_id);
     }
 
     static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &type_id = ERROR_FURI) {
@@ -1786,11 +1792,8 @@ namespace fhatos {
       }
       if(this->is_inst()) {
         // INST
-        InstArgs new_args;
-        for(const auto &arg: this->inst_args()) {
-          new_args.push_back(arg->clone());
-        }
-        Inst_p r = to_inst(string(this->inst_op()), new_args, this->inst_f(), this->itype(), this->inst_seed_supplier(),
+        Inst_p r = to_inst(string(this->inst_op()), this->inst_args()->clone(), this->inst_f(), this->itype(),
+                           this->inst_seed_supplier(),
                            this->tid());
         //r->vid_ = this->vid_;
         return r;
@@ -1898,10 +1901,6 @@ namespace fhatos {
 
   [[maybe_unused]] static BCode_p bcode() { return Obj::to_bcode(); }
 
-  [[maybe_unused]] static InstFunctionSupplier noobj_func() {
-    return [](const InstArgs &) { return [](const Obj_p &) { return noobj(); }; };
-  }
-
   static Obj::RecMap_p<> rmap(const initializer_list<Pair<fURI, Obj_p>> &pairs) {
     auto m = make_shared<Obj::RecMap<>>();
     for(const auto &[id, obj]: pairs) {
@@ -1920,18 +1919,14 @@ namespace fhatos {
 
   static Obj_p from(const Uri_p &uri, const Obj_p &default_arg = noobj()) {
     return Obj::to_inst(
-      "from", {uri, default_arg},
-      [](const Uri_p &lhs, const InstArgs &args) {
-        Obj_p result = ROUTER_READ(furi_p(args.at(0)->uri_value()));
-        return result->is_noobj() ? args.at(1) : result;
-      },
+      "from", Obj::to_inst_args({uri, default_arg}),
+      make_shared<InstF>([](const Uri_p &, const InstArgs &args) {
+        const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
+        return result->is_noobj() ? args->arg(1) : result;
+      }),
       (uri->is_uri() && uri->uri_value().is_pattern()) ? IType::ONE_TO_MANY : IType::ONE_TO_ONE);
   }
 
-
-  [[maybe_unused]] static Inst_p x() {
-    return from(Obj::to_uri(string("_") + to_string(0)), Obj::to_bcode());
-  }
 
   [[maybe_unused]] static Inst_p x(const uint8_t arg_num, const Obj_p &default_arg = noobj()) {
     return from(Obj::to_uri(string("_") + to_string(arg_num)), default_arg);

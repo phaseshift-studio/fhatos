@@ -205,13 +205,13 @@ namespace fhatos {
             }
           }
           if(final_inst->is_inst()) {
-            auto merged_args = InstArgs();
-            for(int i = 0; i < final_inst->inst_args().size(); i++) {
-              if(i < inst->inst_args().size()) {
-                merged_args.push_back(inst->inst_args().at(i));
-              } else {
-                merged_args.push_back(final_inst->inst_args().at(i)->inst_args().at(1)); // default arg
-              }
+            LOG(TRACE, "merging default args into inst\n\t\t%s => %s\n",
+                final_inst->toString().c_str(),
+                inst->toString().c_str());
+            const auto merged_args = Obj::to_inst_args();
+            for(const auto &[k,v]: *final_inst->inst_args()->rec_value()) {
+              merged_args->rec_value()->insert({k,
+                inst->has_arg(k) ? inst->inst_args()->arg(k) : v->inst_args()->arg(1)}); // default arg
             }
             final_inst = Obj::to_inst(
               final_inst->inst_op(),
@@ -219,14 +219,15 @@ namespace fhatos {
               final_inst->inst_f(),
               final_inst->itype(),
               final_inst->inst_seed_supplier(),
-              final_inst->tid(), inst->vid());
+              final_inst->tid(),
+              inst->vid());
           } else {
             final_inst = Obj::to_inst(
               inst->inst_op(),
               inst->inst_args(),
-              [x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) {
-                return replace_from_bcode(x, args, lhs)->apply(lhs);
-              },
+              make_shared<InstF>([x = final_inst->clone()](const Obj_p &lhs, const InstArgs &args) {
+                return x->apply(lhs, args);
+              }),
               inst->itype(),
               inst->inst_seed_supplier(),
               inst->tid(), inst->vid());

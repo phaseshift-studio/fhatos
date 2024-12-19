@@ -46,23 +46,21 @@ namespace fhatos {
 
       explicit Settings(const string &client = STR(FOS_MACHINE_NAME), const string &broker = STR(FOS_MQTT_BROKER),
                         const Message_p &will = nullptr, const uint16_t read_ms_wait = 500,
-                        const bool connected = true) :
-        client_(client), broker_(broker), will_(will),
-        read_ms_wait_(read_ms_wait), connected_(connected) {
+                        const bool connected = true) : client_(client), broker_(broker), will_(will),
+                                                       read_ms_wait_(read_ms_wait), connected_(connected) {
       }
     };
 
   protected:
     Settings settings_;
 
-    explicit BaseMqtt(const Rec_p &rec) :
-      Structure(rec) {
+    explicit BaseMqtt(const Rec_p &rec) : Structure(rec) {
     }
 
     // +[scheme]//+[authority]/#[path]
-    explicit BaseMqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) :
-      BaseMqtt(Obj::to_rec({{"pattern", vri(pattern)}, {"broker", vri(settings.broker_)},
-                            {"client", vri(settings.client_)}}, MQTT_FURI)) {
+    explicit BaseMqtt(const Pattern &pattern, const Settings &settings, const ID &value_id) : BaseMqtt(Obj::to_rec(
+      {{"pattern", vri(pattern)}, {"broker", vri(settings.broker_)},
+        {"client", vri(settings.client_)}}, MQTT_FURI)) {
       this->vid_ = id_p(value_id);
     }
 
@@ -101,7 +99,7 @@ namespace fhatos {
       check_availability("subscription");
       const bool mqtt_sub = !this->has_equal_subscription_pattern(furi_p(subscription->pattern()));
       Structure::recv_subscription(subscription);
-      if (mqtt_sub) {
+      if(mqtt_sub) {
         LOG_STRUCTURE(TRACE, this, "subscribing as no existing subscription found: %s\n",
                       subscription->toString().c_str());
         native_mqtt_subscribe(subscription);
@@ -112,7 +110,7 @@ namespace fhatos {
       check_availability("unsubscribe");
       const bool mqtt_sub = this->has_equal_subscription_pattern(target);
       Structure::recv_unsubscribe(source, target);
-      if (mqtt_sub && !this->has_equal_subscription_pattern(target)) {
+      if(mqtt_sub && !this->has_equal_subscription_pattern(target)) {
         LOG_STRUCTURE(TRACE, this, "unsubscribing from mqtt broker as no existing subscription pattern found: %s\n",
                       target->toString().c_str());
         native_mqtt_unsubscribe(target);
@@ -132,23 +130,25 @@ namespace fhatos {
       auto thing = new std::atomic<List<Pair<ID_p, Obj_p>> *>(new List<Pair<ID_p, Obj_p>>());
       const auto source_id = ID(this->settings_.client_.c_str());
       this->recv_subscription(
-          Subscription::create(source_id, temp, Obj::to_bcode(
-                                   [this, furi, thing](const Obj_p &, const InstArgs &args) {
-                                     const Message_p message = make_shared<Message>(args.at(0));
-                                     LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
-                                                   furi->toString().c_str(),
-                                                   message->toString().c_str());
-                                     ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
-                                     thing->load()->push_back({id_p(message->rec_get(vri("target"))->uri_value()),
-                                                               message->rec_get(vri("payload"))});
-                                     return noobj();
-                                   }, {x(0, "msg", noobj())},
-                                   StringHelper::cxx_f_metadata(__FILE__,__LINE__))));
+        Subscription::create(source_id, temp,
+                             InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))
+                             ->type_args(x(0))
+                             ->inst_f(
+                               [this, furi, thing](const Obj_p &lhs, const InstArgs &args) {
+                                 const auto message = make_shared<Message>(lhs);
+                                 LOG_STRUCTURE(DEBUG, this, "subscription pattern %s matched: %s\n",
+                                               furi->toString().c_str(),
+                                               message->toString().c_str());
+                                 ///Options::singleton()->scheduler<Scheduler>()->feed_local_watchdog();
+                                 thing->load()->push_back({id_p(message->rec_get(vri("target"))->uri_value()),
+                                   message->rec_get(vri("payload"))});
+                                 return noobj();
+                               })->create()));
       ///////////////////////////////////////////////
       const milliseconds start_timestamp = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-      while ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
-             milliseconds(this->settings_.read_ms_wait_)) {
-        if (!pattern_or_branch && !thing->load()->empty())
+      while((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - start_timestamp) <
+            milliseconds(this->settings_.read_ms_wait_)) {
+        if(!pattern_or_branch && !thing->load()->empty())
           break;
         this->loop();
       }
