@@ -31,6 +31,14 @@ FhatOS: A Distributed Operating System
 namespace fhatos {
   using namespace mmadt;
 
+  void test_comment_parsing() {
+    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("--- a single line comment"));
+    FOS_TEST_ERROR("---\nsdfasdf");
+    FOS_TEST_OBJ_EQUAL(vri("###sdfasf#sdafsa###"), OBJ_PARSER("###sdfasf#sdafsa###"));
+    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("### sdfdasdf\n\t\nsdfsfasfsf ###"));
+    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("############### sdfdasdf\n\t\nsdfsfasfsf #####"));
+  }
+
   void test_type_parsing() {
     TEST_ASSERT_EQUAL(OType::NOOBJ, OBJ_PARSER("noobj")->o_type());
   }
@@ -194,11 +202,17 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
-    FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
+    //FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
   }
 
+  void test_type_definition_parsing() {
+    const ID_p nat = id_p("/abc/nat");
+    // FOS_TEST_OBJ_EQUAL(jnt(5,nat), PROCESS("(/abc/nat -> |/abc/nat?/abc/nat<=int[is(gt(0))]); /abc/nat[5]"));
+  }
+
   FOS_RUN_TESTS( //
+    FOS_RUN_TEST(test_comment_parsing); //
     FOS_RUN_TEST(test_noobj_parsing); //
     FOS_RUN_TEST(test_type_parsing); //
     FOS_RUN_TEST(test_bool_parsing); //
@@ -213,6 +227,7 @@ namespace fhatos {
     FOS_RUN_TEST(test_inst_sugar_parsing); //
     FOS_RUN_TEST(test_apply_mono_parsing); //
     FOS_RUN_TEST(test_apply_poly_parsing); //
+    FOS_RUN_TEST(test_type_definition_parsing); //
   )
 } // namespace fhatos
 

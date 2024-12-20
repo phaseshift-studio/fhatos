@@ -23,6 +23,9 @@
 #include <furi.hpp>
 #include <language/fluent.hpp>
 #include <util/string_helper.hpp>
+
+#include "language/mmadt/parser.hpp"
+
 #include FOS_PROCESS(thread.hpp)
 
 namespace fhatos {
@@ -48,6 +51,7 @@ namespace fhatos {
     ID_p stdout_id;
     bool direct_stdin_out = true;
     Settings settings_;
+    mmadt::Tracker tracker_;
     ///// printers
     void write_stdout(const Str_p &s) const {
       if(this->direct_stdin_out)
@@ -157,70 +161,65 @@ namespace fhatos {
     bool first = true;
 
     explicit Console(const ID &value_id, const ID &terminal, const Settings &settings) : Thread(Obj::to_rec(rmap({
-        {
-          "loop", InstBuilder::build(value_id.extend(":loop"))
-          ->inst_f([this](const Obj_p &, const InstArgs &) -> Obj_p {
-            if(this->first) {
-              this->first = false;
-              this->delay(500);
-            }
-            if(FOS_IS_DOC_BUILD)
+          {
+            "loop", InstBuilder::build(value_id.extend(":loop"))
+            ->inst_f([this](const Obj_p &, const InstArgs &) -> Obj_p {
+              if(this->first) {
+                this->first = false;
+                this->delay(500);
+              }
+              if(FOS_IS_DOC_BUILD)
+                return noobj();
+              if(this->new_input_)
+                this->print_prompt(!this->line_.empty());
+              this->new_input_ = false;
+              //// READ CHAR INPUT ONE-BY-ONE
+              int x;
+              if((x = this->tracker_.track(this->read_stdin()->int_value())) == EOF)
+                return noobj();
+              if('\n' == static_cast<char>(x)) {
+                this->new_input_ = true;
+                this->line_ += static_cast<char>(x);
+              } else {
+                this->line_ += static_cast<char>(x);
+                return noobj();
+              }
+              StringHelper::trim(this->line_);
+              if(this->line_.empty() || !this->tracker_.closed()) {
+                ///////// DO NOTHING ON EMPTY LINE
+                ///////// /r/n ON OPEN EXPRESSION (i.e. multi-line expressions)
+                return noobj();
+              }
+              this->tracker_.clear();
+              StringHelper::trim(this->line_);
+              this->process_line(this->line_);
+              this->line_.clear();
               return noobj();
-            if(this->new_input_)
-              this->print_prompt(!this->line_.empty());
-            this->new_input_ = false;
-            //// READ CHAR INPUT ONE-BY-ONE
-            int x;
-            if((x = this->read_stdin()->int_value()) == EOF)
+            })
+            ->create()},
+          {":prompt", InstBuilder::build(value_id.extend(":prompt"))
+            ->domain_range(STR_FURI, NOOBJ_FURI)
+            ->itype_and_seed(IType::ONE_TO_ZERO)
+            ->type_args(x(0, "code", Obj::to_type(STR_FURI)))
+            ->inst_f([this](const Obj_p &, const InstArgs &args) {
+              this->print_prompt();
+              Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", args->arg(0)->str_value().c_str())));
+              string code = args->arg(0)->str_value();
+              if(FOS_IS_DOC_BUILD)
+                StringHelper::replace(code, "\\|", "|");
+              this->process_line(code);
               return noobj();
-            if('\n' == static_cast<char>(x)) {
-              this->new_input_ = true;
-              this->line_ += static_cast<char>(x);
-            } else {
-              this->line_ += static_cast<char>(x);
-              return noobj();
-            }
-            StringHelper::trim(this->line_);
-            if(this->line_.empty()) {
-              ///////// DO NOTHING ON EMPTY LINE
-              return noobj();
-            }
-            // if(!Parser::closed_expression(this->line_))
-            //  return noobj();
-            ///////// PARSE MULTI-LINE MONOIDS
-            size_t pos = this->line_.find("###");
-            while(pos != string::npos) {
-              this->line_.replace(pos, 3, "");
-              pos = this->line_.find("###", pos);
-            }
-            this->process_line(this->line_);
-            this->line_.clear();
-            return noobj();
-          })
-          ->create()},
-        {":prompt", InstBuilder::build(value_id.extend(":prompt"))
-          ->domain_range(STR_FURI, NOOBJ_FURI)
-          ->itype_and_seed(IType::ONE_TO_ZERO)
-          ->type_args(x(0, "code", Obj::to_type(STR_FURI)))
-          ->inst_f([this](const Obj_p &, const InstArgs &args) {
-            this->print_prompt();
-            Terminal::STD_OUT_DIRECT(str(StringHelper::format("%s\n", args->arg(0)->str_value().c_str())));
-            string code = args->arg(0)->str_value();
-            if(FOS_IS_DOC_BUILD)
-              StringHelper::replace(code, "\\|", "|");
-            this->process_line(code);
-            return noobj();
-          })
-          ->create()},
-        {"config", rec({{vri("nest"), jnt(settings.nest_)},
-          {vri("strict"), dool(settings.strict_)},
-          {vri("ansi"), dool(settings.ansi_)},
-          {vri("prompt"), str(settings.prompt_)},
-          {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
-        })}
-        /*{"terminal", rec({
-             {vri("stdin"), vri(terminal.extend(":stdin"))},
-             {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(value_id))),
+            })
+            ->create()},
+          {"config", rec({{vri("nest"), jnt(settings.nest_)},
+            {vri("strict"), dool(settings.strict_)},
+            {vri("ansi"), dool(settings.ansi_)},
+            {vri("prompt"), str(settings.prompt_)},
+            {vri("log"), vri(LOG_TYPES.to_chars(settings.log_))}
+          })}
+          /*{"terminal", rec({
+               {vri("stdin"), vri(terminal.extend(":stdin"))},
+               {vri("stdout"), vri(terminal.extend(":stdout"))}})}*/}), THREAD_FURI, id_p(value_id))),
       stdin_id(id_p(terminal.extend(":stdin"))), stdout_id(id_p(terminal.extend(":stdout"))), settings_(settings) {
       /*ROUTER_SUBSCRIBE(Subscription::create(*this->vid_, this->vid_->extend("config/#"),
                                             InstBuilder::build(StringHelper::cxx_f_metadata(__FILE__,__LINE__))->inst_f(

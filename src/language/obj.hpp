@@ -1401,8 +1401,12 @@ namespace fhatos {
     Obj_p apply(const Obj_p &lhs) {
       if(lhs->is_error())
         return lhs;
-      if(lhs->is_bcode() && !this->is_bcode()) {
-        return shared_from_this()->apply(lhs->apply(shared_from_this()));
+      //  if(!lhs->is_bcode() || !this->is_bcode()) {
+      //   return shared_from_this()->apply(lhs->apply(shared_from_this()));
+      //}
+      if(lhs->is_type() && this->is_code()) {
+        TYPE_CHECKER(this, lhs->tid(), true);
+        return this->range() == OBJ_FURI ? lhs : make_shared<Obj>(Any(), OType::OBJ, this->range());
       }
       switch(this->o_type()) {
         case OType::OBJ: // type token
@@ -1431,6 +1435,9 @@ namespace fhatos {
           }
           return Obj::to_rec(new_pairs, this->tid_);
         }
+        //case OType::BCODE: {
+        //  return lhs->is_bcode() ? this->shared_from_this() : this->apply(lhs);
+        //}
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());

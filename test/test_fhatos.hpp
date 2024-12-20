@@ -185,6 +185,10 @@ void tearDown() {
 
 using namespace fhatos;
 
+#define PROCESS_ALL(bcode_string) \
+  BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))
+
+
 #define PROCESS(bcode_string) \
   BCODE_PROCESSOR(OBJ_PARSER((bcode_string)))->objs_value()->front()
 

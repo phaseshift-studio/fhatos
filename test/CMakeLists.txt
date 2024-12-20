@@ -128,7 +128,7 @@
             MAKE_TESTS(play "play" , true)
         ELSE()
             #  MAKE_TESTS(language "test_fluent;test_obj;test_parser;test_insts" true)
-            MAKE_TESTS(language/mmadt "test_mmadt_parser" true)
+            MAKE_TESTS(language/mmadt "test_mmadt_parser;test_mmadt_inst" true)
             #  MAKE_TESTS(process "test_scheduler;test_process" true)
             #  MAKE_TESTS(structure/router "test_router" true)
             #  MAKE_TESTS(structure/stype/key_value "test_heap" , true)

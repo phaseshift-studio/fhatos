@@ -145,6 +145,8 @@ namespace fhatos {
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       TYPE_INST_RESOLVER = [](const Obj_p &lhs, const Inst_p &inst) -> Inst_p {
         LOG_OBJ(DEBUG, lhs, " !yresolving!! !yinst!! %s [!gSTART!!]\n", inst->toString().c_str());
+        if(inst->is_noobj())
+          return inst;
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
           Obj_p current_obj = lhs;
           const ID_p inst_type_id = id_p(ID(*ROUTER_RESOLVE(fURI(*inst->tid()))));
@@ -220,7 +222,8 @@ namespace fhatos {
               final_inst->itype(),
               final_inst->inst_seed_supplier(),
               final_inst->tid(),
-              inst->vid());
+              final_inst->vid());
+            /// TODO ^--- inst->vid());
           } else {
             final_inst = Obj::to_inst(
               inst->inst_op(),

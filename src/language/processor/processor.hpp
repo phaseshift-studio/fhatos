@@ -42,33 +42,46 @@ namespace fhatos {
       // TODO: figure out how to not require a clone()
     }
 
+    static Monad_p M(const Obj_p &obj, const Inst_p &inst) {
+      return make_shared<Monad>(obj, inst);
+    }
+
     void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
       const Obj_p next_obj = this->inst_->apply(this->obj_);
       const Inst_p next_inst = bcode->next_inst(this->inst_);
-      if(!next_obj->is_noobj()) {
-        LOG(DEBUG, FOS_TAB_2 "!mProcessing!! monad(s): %s\n", next_obj->toString().c_str());
+      if(next_obj->is_noobj()) {
+        if(const Inst_p resolved = TYPE_INST_RESOLVER(next_obj, next_inst);
+          resolved->is_inst() && is_initial(resolved->itype())) {
+          const Monad_p monad = M(resolved->inst_seed(next_inst), next_inst);
+          LOG(DEBUG, FOS_TAB_2 "!mre-initializing monad(s): %s\n", monad->toString().c_str());
+          running->push_back(monad);
+        }
+      } else {
+        LOG(DEBUG, FOS_TAB_2 "!mprocessing!! monad(s): %s\n", next_obj->toString().c_str());
         const List<Obj_p> objs = next_obj->is_objs() ? *next_obj->objs_value() : List<Obj_p>{next_obj};
         for(const auto &obj: objs) {
           if(!obj->is_noobj()) {
             if(this->inst_->inst_op() == "repeat") {
-              if(const Obj_p emit = this->inst_->inst_args()->arg(2); !emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
+              if(const Obj_p emit = this->inst_->inst_args()->arg(2);
+                !emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
                 // repeat.emit
-                const auto monad = make_shared<Monad>(obj, next_inst);
+                const auto monad = M(obj, next_inst);
                 running->push_back(monad);
-                LOG(DEBUG, FOS_TAB_4 "!mEmitting!! monad: %s\n", monad->toString().c_str());
+                LOG(DEBUG, FOS_TAB_4 "!memitting!! monad: %s\n", monad->toString().c_str());
               }
-              if(const Obj_p until = this->inst_->inst_args()->arg(1); !until->is_noobj() && until->apply(obj)->is_noobj()) {
+              if(const Obj_p until = this->inst_->inst_args()->arg(1);
+                !until->is_noobj() && until->apply(obj)->is_noobj()) {
                 // repeat.until
-                const auto monad = make_shared<Monad>(obj, this->inst_);
+                const auto monad = M(obj, this->inst_);
                 monad->loops_ = this->loops_ + 1;
                 running->push_back(monad);
-                LOG(DEBUG, FOS_TAB_4 "!mLooping!! monad: %s\n", monad->toString().c_str());
+                LOG(DEBUG, FOS_TAB_4 "!mlooping!! monad: %s\n", monad->toString().c_str());
                 continue;
               }
             }
-            const auto monad = make_shared<Monad>(obj, next_inst);
+            const auto monad = M(obj, next_inst);
             running->push_back(monad);
-            LOG(DEBUG, FOS_TAB_4 "!mGenerating!! monad: %s\n", monad->toString().c_str());
+            LOG(DEBUG, FOS_TAB_4 "!mgenerating!! monad: %s\n", monad->toString().c_str());
           }
         }
       }
@@ -88,10 +101,6 @@ namespace fhatos {
 
     [[nodiscard]] string toString() const {
       return string("!MM!y[!!") + this->obj_->toString() + "!g@!!" + this->inst_->toString() + "!y]!!";
-    }
-
-    static Monad_p create(const Obj_p &obj, const Inst_p &inst) {
-      return make_shared<Monad>(obj, inst);
     }
   };
 
@@ -117,26 +126,27 @@ namespace fhatos {
       }
       if(!this->bcode_->is_bcode())
         throw fError("Processor requires a !bbcode!! obj to execute: %s", bcode_->toString().c_str());
-     // this->bcode_ = Rewriter({
-       // /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
+      // this->bcode_ = Rewriter({
+      // /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for(const Inst_p &inst: *this->bcode_->bcode_value()) {
-        const Obj_p seed_copy = inst->inst_seed(inst);
-        if(is_barrier_out(inst->itype())) {
-          const Monad_p m = Monad::create(seed_copy, inst);
+        const Inst_p resolved = TYPE_INST_RESOLVER(Obj::create(Any(), OType::OBJ, OBJ_FURI), inst);
+        const Obj_p seed_copy = resolved->inst_seed(resolved);
+        if(is_barrier_out(resolved->itype())) {
+          const Monad_p m = Monad::M(seed_copy, inst);
           this->barriers_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!ybarrier!! monad: %s\n", m->toString().c_str());
-        } else if(is_initial(inst->itype())) {
-          const Monad_p m = Monad::create(seed_copy, inst);
+        } else if(is_initial(resolved->itype())) {
+          const Monad_p m = Monad::M(seed_copy, inst);
           this->running_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!mstarting!! monad: %s\n", m->toString().c_str());
         }
       }
-      // start inst forced initial
+      // start inst forced initial TODO: remove this as it's not sound
       if(this->running_->empty()) {
         //const Obj_p seed_copy = Objs::to_objs();
         const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
         this->running_->push_back(
-          Monad::create(seed_copy, this->bcode_->bcode_value()->front()));
+          Monad::M(seed_copy, this->bcode_->bcode_value()->front()));
       }
     }
 
@@ -171,16 +181,18 @@ namespace fhatos {
         if(this->running_->empty() && !this->barriers_->empty()) {
           const Monad_p barrier = this->barriers_->front();
           this->barriers_->pop_front();
-          LOG(DEBUG, "Processing barrier: %s\n", barrier->toString().c_str());
+          LOG(DEBUG, "processing barrier: %s\n", barrier->toString().c_str());
           barrier->split(this->bcode_, this->running_);
         } else {
           const Monad_p m = this->running_->front();
           this->running_->pop_front();
           if(m->halted()) {
-            LOG(TRACE, FOS_TAB_5 "!gHalting!! monad: %s\n", m->toString().c_str());
+            LOG(TRACE, FOS_TAB_5 "!ghalting!! monad: %s\n", m->toString().c_str());
             this->halted_->push_back(m->obj());
           } else {
-            if(is_barrier_out(m->inst()->itype())) {
+            if(const Inst_p resolved = TYPE_INST_RESOLVER(m->obj(), m->inst());
+              resolved->is_inst() &&
+              is_barrier_out(resolved->itype())) {
               /// MANY-TO-? BARRIER PROCESSING
               LOG(TRACE, "Adding to barrier: %s => %s\n", m->toString().c_str(), m->inst()->toString().c_str());
               this->barriers_->front()->obj()->objs_value()->push_back(m->obj());

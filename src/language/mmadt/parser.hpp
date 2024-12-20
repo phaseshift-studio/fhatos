@@ -27,6 +27,88 @@ using namespace peg;
 using namespace std;
 
 namespace mmadt {
+  class Tracker {
+    int8_t parens = 0;
+    int8_t brackets = 0;
+    int8_t angles = 0;
+    int8_t braces = 0;
+    int8_t within = 0;
+    int8_t multi_comment = 0;
+    bool quotes = false;
+    char last[3] = {'\0', '\0', '\0'};
+
+  public:
+    Tracker() = default;
+
+    void track(const string &line) {
+      for(const auto &c: line) {
+        track(c);
+      }
+    }
+
+
+    [[nodiscard]] bool closed() const {
+      return multi_comment == 0 && parens == 0 && brackets == 0 && angles == 0 && braces == 0 && within == 0 && !quotes;
+    }
+
+    void clear() {
+      multi_comment = 0;
+      parens = 0;
+      brackets = 0;
+      angles = 0;
+      braces = 0;
+      within = 0;
+      quotes = false;
+      last[0] = last[1] = last[2] = '\0';
+    }
+
+
+    char track(const char c) {
+      if(c != '\'' && quotes) {
+        // do nothing
+      } else if(c == '\'') {
+        quotes = !quotes;
+      } else if((c == '=' || c == '-')) {
+        if(last[0] == '<') // <- <=
+          angles--;
+        else if(last[0] == '>') // >- >=
+          angles++;
+      } else if(c == '(')
+        parens++;
+      else if(c == ')')
+        parens--;
+      else if(c == '[')
+        brackets++;
+      else if(c == ']')
+        brackets--;
+      else if(c == '<') {
+        if(last[0] != '-' && last[0] != '=') // -< =<
+          angles++;
+      } else if(c == '>') {
+        if(last[0] != '-' && last[0] != '=') // -> =>
+          angles--;
+      } else if(c == '{')
+        braces++;
+      else if(c == '}')
+        braces--;
+      else if(c == '/' && last[0] == '_') // _/
+        within++;
+      else if(c == '_' && last[0] == '\\') // \_
+        within--;
+      else if(c == '#' && last[0] == '#' && last[1] == '#' && last[2] != '#') {
+        if(multi_comment == -1)
+          multi_comment++;
+        else
+          multi_comment = -1;
+      }
+      //////////////////////////
+      last[2] = last[1];
+      last[1] = last[0];
+      last[0] = c;
+      return c;
+    }
+  };
+
   class Parser final : public Obj {
   public:
     static ptr<Parser> singleton(const ID &id = ID("/parser/")) {
@@ -36,7 +118,7 @@ namespace mmadt {
 
   private:
     Definition
-        WS, ROOT, ARGS, CODE, COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
+        WS, ROOT, ARGS, CODE, COMMENT, MULTI_COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
         INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF,
         NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
@@ -57,7 +139,7 @@ namespace mmadt {
     Obj_p parse(const string &mmadt) const {
       Obj_p result;
       LOG_OBJ(TRACE, this, "!yparsing!! %s\n", mmadt.c_str());
-      if(Definition::Result ret = OBJ.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
+      if(Definition::Result ret = ROOT.parse_and_get_value<Obj_p>(mmadt.c_str(), result, nullptr, PARSER_LOGGER);
         ret.ret) {
         LOG_OBJ(TRACE, this, "!gsuccessful!! parse of %s\n", mmadt.c_str());
       } else {
@@ -142,10 +224,10 @@ namespace mmadt {
       };
 
       static auto dom_rng_action = [](const SemanticValues &vs) -> fURI_p {
-       /* LOG(TRACE, "!ydomain!! coefficient: %s\n",
-            (vs[4].has_value() ? any_cast<string>(vs[4]).c_str() : "<none>"));
-        LOG(TRACE, "!yrange!! coefficient: %s\n",
-            (vs[2].has_value() ? any_cast<string>(vs[2]).c_str() : "<none>"));*/
+        /* LOG(TRACE, "!ydomain!! coefficient: %s\n",
+             (vs[4].has_value() ? any_cast<string>(vs[4]).c_str() : "<none>"));
+         LOG(TRACE, "!yrange!! coefficient: %s\n",
+             (vs[2].has_value() ? any_cast<string>(vs[2]).c_str() : "<none>"));*/
         return furi_p(any_cast<fURI_p>(vs[0])->query({
           {FOS_DOMAIN, any_cast<fURI_p>(vs[2])->toString()},
           {FOS_RANGE, any_cast<fURI_p>(vs[1])->toString()}}));
@@ -162,10 +244,11 @@ namespace mmadt {
           case 1: {
             for(uint16_t i = 0; i < vs.size(); i++) {
               const Obj_p obj_or_inst = any_cast<Obj_p>(vs[i]);
+              const IType prev_itype = list->empty() ? IType::ZERO_TO_ZERO : list->back()->itype();
               list->push_back(obj_or_inst->otype_ == OType::INST
                                 ? obj_or_inst
                                 : Obj::to_inst(Obj::to_inst_args({obj_or_inst}),
-                                               id_p(*ROUTER_RESOLVE(0 == i ? "start" : "map"))));
+                                               id_p(*ROUTER_RESOLVE(is_terminal(prev_itype) ? "start" : "map"))));
             }
             return make_shared<Pair<Any, OType>>(list, OType::BCODE);
           }
@@ -175,10 +258,6 @@ namespace mmadt {
 
       static auto type_action = [](const SemanticValues &vs) -> Obj_p {
         return Obj::create(Any(), OType::OBJ, id_p(*ROUTER_RESOLVE(*any_cast<fURI_p>(vs[0]))));
-      };
-
-      static auto comment_action = [](const SemanticValues &vs) -> Obj_p {
-        return Obj::to_objs();
       };
 
       static auto obj_action = [this](const SemanticValues &vs) -> Obj_p {
@@ -201,6 +280,7 @@ namespace mmadt {
           default: throw fError("unknown obj parse branch");
         }
       };
+      static auto comment_action = [](const SemanticValues &vs) { return noobj(); };
       //////////////////////////////////////////////////////////////////////////
       static auto enter_y = [](const string &rule) {
         return [rule](const Context &c, const char *s, size_t n, any &dt) {
@@ -256,10 +336,14 @@ namespace mmadt {
       static auto mult_action = [](const SemanticValues &vs) -> Inst_p {
         return Obj::to_inst({any_cast<Obj_p>(vs[0])}, id_p(*ROUTER_RESOLVE("mult")));
       };
+
 #endif
       WS <= zom(cls(" \t"));
-      ROOT <= cho(OBJ, COMMENT);
+      ROOT <= cho(COMMENT, MULTI_COMMENT, OBJ);
       COMMENT <= seq(lit("---"), zom(ncls("\n"))), comment_action;
+      // '###' (!'#'.)* '###'
+      MULTI_COMMENT <= seq(lit("###"), zom(chr('#')), ~WS, zom(ncls("#")), ~WS, lit("###"), zom(chr('#'))),
+          comment_action;
       TYPE <= seq(~WS, TYPE_ID, lit("[]"), ~WS), type_action;
       NOOBJ <= lit("noobj"), noobj_action;
       BOOL <= cho(lit("true"), lit("false")), bool_action;
@@ -283,7 +367,7 @@ namespace mmadt {
       CODE <= seq(DOM_RNG, lit("|"), opt(ARGS), lit("["), PROTO, lit("]")), code_action;
       EMPTY_BCODE <= lit("_"), empty_bcode_action;
       BCODE <= cho(EMPTY_BCODE,
-                   seq(INST_P, zom(cho(seq(END, opt(lit(".")), ~WS), INST_SUGAR, seq(lit("."), INST_P))))),
+                   seq(INST_P, zom(cho(END, seq(opt(lit(".")), INST_SUGAR), seq(lit("."), INST_P))))),
           bcode_action;
       BCODE_P <= cho(seq(lit("("), BCODE, lit(")")), BCODE);
       NO_CODE_PROTO <= cho(NOOBJ, BOOL, REAL, INT, STR, LST, REC, OBJS, URI);

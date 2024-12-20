@@ -19,6 +19,8 @@
 #ifndef mmadt_types_hpp
 #define mmadt_types_hpp
 
+#include <assert.h>
+
 #include "../../fhatos.hpp"
 #include "../../language/obj.hpp"
 #include "../../language/type.hpp"
@@ -92,6 +94,7 @@ namespace mmadt {
                  ->domain_range(OBJS_FURI, INT_FURI)
                  //->type_args(x(0, "obj", ___))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &) {
+                   assert(lhs->is_objs());
                    return !lhs->is_objs() ? jnt(1) : Obj::to_int(lhs->objs_value()->size());
                  })
                  ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
@@ -126,10 +129,11 @@ namespace mmadt {
       TYPE_SAVER(id_p(MMADT_SCHEME "/end"),
                  InstBuilder::build(MMADT_SCHEME "/end")
                  ->domain_range(OBJ_FURI, NOOBJ_FURI)
-                 ->inst_f([](const Obj_p &, const InstArgs &) {
-                   return Obj::create(Any(), OType::OBJ, OBJ_FURI);
+                 ->inst_f([](const Obj_p &lhs, const InstArgs &) {
+                   //assert(lhs->is_objs());
+                   return noobj();
                  })
-                 ->itype_and_seed(IType::MANY_TO_ONE)
+                 ->itype_and_seed(IType::MANY_TO_ZERO)
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/eq"),
                  InstBuilder::build(MMADT_SCHEME "/eq")
