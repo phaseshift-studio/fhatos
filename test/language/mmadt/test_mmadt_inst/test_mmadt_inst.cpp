@@ -39,6 +39,8 @@ namespace fhatos {
   void test_count_inst() {
     FOS_TEST_OBJ_EQUAL(jnt(4), PROCESS("{1,2,2,67}.count()"));
     FOS_TEST_OBJ_EQUAL(jnt(1), PROCESS("35.count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("35.is(gt(40)).count()"));
+    FOS_TEST_OBJ_EQUAL(jnt(2), PROCESS("{67,35,2465}.is(gt(40)).count()"));
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("1-<[_,_,_,_,_]>-.count()"));
   }
 
