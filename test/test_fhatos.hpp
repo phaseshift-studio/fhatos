@@ -300,10 +300,10 @@ static ptr<List<Obj_p>> FOS_TEST_RESULT(const BCode_p &bcode, const bool print_r
 #ifdef FOS_DEPLOY_PARSER
 [[maybe_unused]] static void FOS_TEST_ERROR(const string &monoid) {
   try {
-    Fluent(OBJ_PARSER(monoid)).iterate();
-    TEST_ASSERT_TRUE_MESSAGE(false, ("No exception thrown in " + monoid).c_str());
+    PROCESS(monoid)->objs_value();
+    TEST_ASSERT_TRUE_MESSAGE(false, ("no exception thrown in " + monoid).c_str());
   } catch(const fError &error) {
-    LOG(INFO, "Expected !rexception thrown!!: %s\n", error.what());
+    LOG(INFO, "expected !rexception thrown!!: %s\n", error.what());
     TEST_ASSERT_TRUE(true);
   }
 }

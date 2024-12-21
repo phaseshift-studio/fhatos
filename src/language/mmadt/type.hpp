@@ -147,8 +147,14 @@ namespace mmadt {
                  ->domain_range(URI_FURI, OBJ_FURI)
                  ->type_args(x(0, "rhs", ___), x(1, "default", _noobj_))
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
-                   const Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value()));
-                   return result->is_noobj() ? args->arg(1) : result;
+                   if(Obj_p result = ROUTER_READ(furi_p(args->arg(0)->uri_value())); result->is_objs())
+                     return result;
+                   else {
+                     const Objs_p objs = Objs::to_objs();
+                     const Obj_p result2 = result->is_noobj() ? args->arg(1) : result;
+                     objs->add_obj(result2);
+                     return objs;
+                   }
                  })
                  ->itype_and_seed(IType::ZERO_TO_MANY)
                  ->create());
@@ -159,6 +165,7 @@ namespace mmadt {
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return args->arg(0)->bool_value() ? lhs : _noobj_;
                  })
+                 ->itype_and_seed(IType::ONE_TO_MAYBE)
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/map"),
                  InstBuilder::build(MMADT_SCHEME "/map")
@@ -171,6 +178,7 @@ namespace mmadt {
                  InstBuilder::build(MMADT_SCHEME "/merge")
                  ->domain_range(LST_FURI, OBJS_FURI)
                  ->type_args(x(0, "count", jnt(INT32_MAX)))
+                 ->itype_and_seed(IType::ONE_TO_MANY)
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/lst" MMADT_INST_SCHEME "/merge"),
                  InstBuilder::build(MMADT_SCHEME "/merge")

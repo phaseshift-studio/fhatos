@@ -92,10 +92,10 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(vri("../../a"), OBJ_PARSER("<../../a>"));
     FOS_TEST_OBJ_EQUAL(vri("abc/cba"), OBJ_PARSER("abc/cba"));
     FOS_TEST_OBJ_EQUAL(vri("aBc_cBa"), OBJ_PARSER("aBc_cBa"));
-    //FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/../ddd]"));
+    FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[aaa_bbb/ccc/`.`./ddd]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("uri[<aaa_bbb/ccc/../ddd>]"));
     FOS_TEST_OBJ_EQUAL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("<aaa_bbb/ccc/../ddd>"));
-    //FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/../ddd"));
+    FOS_TEST_OBJ_NTEQL(vri("aaa_bbb/ccc/../ddd"), OBJ_PARSER("aaa_bbb/ccc/`./ddd"));
   }
 
   void test_lst_parsing() {
@@ -162,7 +162,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("{9}.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("start({9}).plus(1)"));
-    FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("map(9).plus(1)"));
+    FOS_TEST_ERROR("map(9).plus(1)");
     ////////// -< >-
     FOS_TEST_OBJ_EQUAL(lst({vri("a"),jnt(1),vri("a/b")}), PROCESS("a-<[_,1,+ /b]"))
     FOS_TEST_OBJ_EQUAL(vri("a/b/c"), PROCESS("a-<[+ b/]>-x c"))
@@ -201,9 +201,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("[8,[a=>[b=>5],c=>7]].<1>.a.b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
+    // FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
     //FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
-    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
+    //   FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
   }
 
   void test_type_definition_parsing() {

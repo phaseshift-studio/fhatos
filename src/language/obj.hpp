@@ -138,12 +138,19 @@ namespace fhatos {
     ZERO_TO_ZERO,
     ZERO_TO_ONE,
     ZERO_TO_MANY,
+    ZERO_TO_MAYBE,
     ONE_TO_ZERO,
-    MANY_TO_ZERO,
     ONE_TO_ONE,
     ONE_TO_MANY,
+    ONE_TO_MAYBE,
     MANY_TO_ONE,
     MANY_TO_MANY,
+    MANY_TO_MAYBE,
+    MANY_TO_ZERO,
+    MAYBE_TO_ONE,
+    MAYBE_TO_MANY,
+    MAYBE_TO_ZERO,
+    MAYBE_TO_MAYBE,
   }; // TYPE
   [[maybe_unused]] static bool is_initial(const IType itype) {
     return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO;
@@ -165,43 +172,74 @@ namespace fhatos {
     free(bobj->second);
     delete bobj;
   };
-  static const auto ITypeDomains = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
+  static const auto ITypeDomains = Enums<IType>({
+    {IType::ZERO_TO_ZERO, "."},
     {IType::ZERO_TO_ONE, "."},
     {IType::ZERO_TO_MANY, "."},
     {IType::ONE_TO_ZERO, "o"},
     {IType::MANY_TO_ZERO, "O"},
     {IType::ONE_TO_ONE, "o"},
     {IType::ONE_TO_MANY, "o"},
+    {IType::MAYBE_TO_MANY, "?"},
+    {IType::MAYBE_TO_ONE, "?"},
+    {IType::MAYBE_TO_ZERO, "?"},
+    {IType::MAYBE_TO_MAYBE, "?"},
+    {IType::ONE_TO_MAYBE, "o"},
+    {IType::ZERO_TO_MAYBE, "."},
+    {IType::MANY_TO_MAYBE, "O"},
     {IType::MANY_TO_ONE, "O"},
     {IType::MANY_TO_MANY, "O"}});
-  static const auto ITypeRanges = Enums<IType>({{IType::ZERO_TO_ZERO, "."},
+  static const auto ITypeRanges = Enums<IType>({
+    {IType::ZERO_TO_ZERO, "."},
     {IType::ZERO_TO_ONE, "o"},
     {IType::ZERO_TO_MANY, "O"},
     {IType::ONE_TO_ZERO, "."},
     {IType::MANY_TO_ZERO, "."},
     {IType::ONE_TO_ONE, "o"},
     {IType::ONE_TO_MANY, "O"},
+    {IType::MAYBE_TO_MANY, "?"},
+    {IType::MAYBE_TO_ONE, "o"},
+    {IType::MAYBE_TO_ZERO, "."},
+    {IType::MAYBE_TO_MAYBE, "?"},
+    {IType::ONE_TO_MAYBE, "?"},
+    {IType::ZERO_TO_MAYBE, "?"},
+    {IType::MANY_TO_MAYBE, "?"},
     {IType::MANY_TO_ONE, "o"},
     {IType::MANY_TO_MANY, "O"}});
-  static const auto ITypeSignatures = Enums<IType>({{IType::ZERO_TO_ZERO, ".->."},
+  static const auto ITypeSignatures = Enums<IType>({
+    {IType::ZERO_TO_ZERO, ".->."},
     {IType::ZERO_TO_ONE, ".->o"},
     {IType::ZERO_TO_MANY, ".->O"},
     {IType::ONE_TO_ZERO, "o->."},
     {IType::MANY_TO_ZERO, "O->."},
     {IType::ONE_TO_ONE, "o->o"},
     {IType::ONE_TO_MANY, "o->O"},
+    {IType::MAYBE_TO_MANY, "?"},
+    {IType::MAYBE_TO_ONE, "o"},
+    {IType::MAYBE_TO_ZERO, "."},
+    {IType::MAYBE_TO_MAYBE, "?"},
+    {IType::MANY_TO_MAYBE, "?"},
+    {IType::ONE_TO_MAYBE, "o"},
+    {IType::ZERO_TO_MAYBE, "."},
     {IType::MANY_TO_ONE, "O->o"},
     {IType::MANY_TO_MANY, "O->O"}});
   static const auto ITypeDescriptions = Enums<IType>({
-    {IType::ZERO_TO_ZERO, "Ø->Ø (transient)"},
-    {IType::ZERO_TO_ONE, "Ø->o (supplier)"},
-    {IType::ZERO_TO_MANY, "Ø->Œ (source)"},
-    {IType::ONE_TO_ZERO, "o->Ø (consumer)"},
-    {IType::MANY_TO_ZERO, "Œ->Ø (terminal)"},
+    {IType::ZERO_TO_ZERO, ".->. (transient)"},
+    {IType::ZERO_TO_ONE, ".->o (supplier)"},
+    {IType::ZERO_TO_MANY, ".->O (initial)"},
+    {IType::ONE_TO_ZERO, "o->. (consumer)"},
+    {IType::MANY_TO_ZERO, "O->. (terminal)"},
     {IType::ONE_TO_ONE, "o->o (map)"},
-    {IType::ONE_TO_MANY, "o->Œ (flatmap)"},
-    {IType::MANY_TO_ONE, "Œ->o (reduce)"},
-    {IType::MANY_TO_MANY, "Œ->Œ (barrier)"},
+    {IType::ONE_TO_MANY, "o->O (flatmap)"},
+    {IType::MAYBE_TO_MANY, "?->O (potential)"},
+    {IType::MAYBE_TO_ONE, "?->o (flip)"},
+    {IType::MAYBE_TO_ZERO, "?->. (spasm)"},
+    {IType::MAYBE_TO_MAYBE, "?->? (hope)"},
+    {IType::ONE_TO_MAYBE, "o->? (filter)"},
+    {IType::ZERO_TO_MAYBE, "o->? (check)"},
+    {IType::MANY_TO_MAYBE, "?-? (strain)"},
+    {IType::MANY_TO_ONE, "O->o (reduce)"},
+    {IType::MANY_TO_MANY, "O->O (barrier)"},
   });
   //
 
@@ -1768,6 +1806,14 @@ namespace fhatos {
     static Objs_p to_objs(const List_p<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
       // fError::OTYPE_CHECK(furi->path(FOS_BASE_TYPE_INDEX), OTypes.to_chars(OType::OBJS));
       return Obj::create(objs, OType::OBJS, type_id);
+    }
+
+    static Objs_p to_objs(const std::initializer_list<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
+      auto objs_p = Obj::to_objs();
+      for(const auto &obj: objs) {
+        objs_p->add_obj(obj);
+      }
+      return Obj::create(objs_p, OType::OBJS, type_id);
     }
 
     static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &type_id = ERROR_FURI) {

@@ -216,7 +216,9 @@ namespace mmadt {
       };
 
       static auto furi_action = [](const SemanticValues &vs) {
-        return furi_p(vs.token_to_string());
+        string s = vs.token_to_string();
+        StringHelper::replace(&s, "`.", ".");
+        return furi_p(s);
       };
 
       static auto coeff_action = [](const SemanticValues &vs) -> string {
@@ -351,7 +353,9 @@ namespace mmadt {
       REAL <= seq(~WS, opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9")), ~WS), real_action;
       STR <= seq(~WS, chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\''), ~WS), str_action;
       FURI <= seq(~WS, tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), ~WS), furi_action;
-      FURI_INLINE <= seq(~WS, tok(seq(oom(cls("a-zA-Z:/?_#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&#+"))))),
+      FURI_INLINE <= seq(~WS, tok(seq(
+                           oom(cho(cls("a-zA-Z:/?_#+"), seq(lit("`.")))),
+                           zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/?_=&#+")))))),
                          ~WS), furi_action;
       FURI_NO_Q <= seq(~WS, tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
                        ~WS), furi_action;

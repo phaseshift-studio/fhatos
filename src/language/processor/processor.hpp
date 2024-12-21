@@ -19,92 +19,22 @@
 #ifndef fhatos_processor_hpp
 #define fhatos_processor_hpp
 
+#include <utility>
+
 #include "../../fhatos.hpp"
 #include "../../language/obj.hpp"
 #include "../../language/rewrite/rewriter.hpp"
 
 namespace fhatos {
-  class Monad;
+  ///////////////////////////////////////////////////////////////////////////
+  /////////////////////////////// PROCESSOR /////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////
 
-  using Monad_p = ptr<Monad>;
-
-  class Monad {
-  protected:
-    const Obj_p obj_;
-    const Inst_p inst_;
-    const long bulk_ = 1;
-    uint16_t loops_ = 0;
-
-  public:
-    Monad() = delete;
-
-    explicit Monad(const Obj_p &obj, const Inst_p &inst) : obj_(obj), inst_(inst) {
-      // TODO: figure out how to not require a clone()
-    }
-
-    static Monad_p M(const Obj_p &obj, const Inst_p &inst) {
-      return make_shared<Monad>(obj, inst);
-    }
-
-    void split(const BCode_p &bcode, Deque<Monad_p> *running) const {
-      const Obj_p next_obj = this->inst_->apply(this->obj_);
-      const Inst_p next_inst = bcode->next_inst(this->inst_);
-      if(next_obj->is_noobj()) {
-        if(const Inst_p resolved = TYPE_INST_RESOLVER(next_obj, next_inst);
-          resolved->is_inst() && is_initial(resolved->itype())) {
-          const Monad_p monad = M(resolved->inst_seed(next_inst), next_inst);
-          LOG(DEBUG, FOS_TAB_2 "!mre-initializing monad(s): %s\n", monad->toString().c_str());
-          running->push_back(monad);
-        }
-      } else {
-        LOG(DEBUG, FOS_TAB_2 "!mprocessing!! monad(s): %s\n", next_obj->toString().c_str());
-        const List<Obj_p> objs = next_obj->is_objs() ? *next_obj->objs_value() : List<Obj_p>{next_obj};
-        for(const auto &obj: objs) {
-          if(!obj->is_noobj()) {
-            if(this->inst_->inst_op() == "repeat") {
-              if(const Obj_p emit = this->inst_->inst_args()->arg(2);
-                !emit->is_noobj() && !emit->apply(obj)->is_noobj()) {
-                // repeat.emit
-                const auto monad = M(obj, next_inst);
-                running->push_back(monad);
-                LOG(DEBUG, FOS_TAB_4 "!memitting!! monad: %s\n", monad->toString().c_str());
-              }
-              if(const Obj_p until = this->inst_->inst_args()->arg(1);
-                !until->is_noobj() && until->apply(obj)->is_noobj()) {
-                // repeat.until
-                const auto monad = M(obj, this->inst_);
-                monad->loops_ = this->loops_ + 1;
-                running->push_back(monad);
-                LOG(DEBUG, FOS_TAB_4 "!mlooping!! monad: %s\n", monad->toString().c_str());
-                continue;
-              }
-            }
-            const auto monad = M(obj, next_inst);
-            running->push_back(monad);
-            LOG(DEBUG, FOS_TAB_4 "!mgenerating!! monad: %s\n", monad->toString().c_str());
-          }
-        }
-      }
-    }
-
-    [[nodiscard]] Obj_p obj() const { return this->obj_; }
-
-    [[nodiscard]] Inst_p inst() const { return this->inst_; }
-
-    [[nodiscard]] long bulk() const { return this->bulk_; }
-
-    [[nodiscard]] uint16_t loops() const { return this->loops_; }
-
-    [[nodiscard]] bool halted() const { return this->inst_->is_noobj(); }
-
-    [[nodiscard]] bool dead() const { return this->obj_->is_noobj(); }
-
-    [[nodiscard]] string toString() const {
-      return string("!MM!y[!!") + this->obj_->toString() + "!g@!!" + this->inst_->toString() + "!y]!!";
-    }
-  };
 
   class Processor {
+    class Monad;
+    using Monad_p = ptr<Processor::Monad>;
+
   protected:
     BCode_p bcode_;
     Deque<Monad_p> *running_;
@@ -132,11 +62,11 @@ namespace fhatos {
         const Inst_p resolved = TYPE_INST_RESOLVER(Obj::create(Any(), OType::OBJ, OBJ_FURI), inst);
         const Obj_p seed_copy = resolved->inst_seed(resolved);
         if(is_barrier_out(resolved->itype())) {
-          const Monad_p m = Monad::M(seed_copy, inst);
+          const Monad_p m = M(seed_copy, inst);
           this->barriers_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!ybarrier!! monad: %s\n", m->toString().c_str());
         } else if(is_initial(resolved->itype())) {
-          const Monad_p m = Monad::M(seed_copy, inst);
+          const Monad_p m = M(noobj(), inst);
           this->running_->push_back(m);
           LOG(DEBUG, FOS_TAB_2 "!mstarting!! monad: %s\n", m->toString().c_str());
         }
@@ -146,11 +76,16 @@ namespace fhatos {
         //const Obj_p seed_copy = Objs::to_objs();
         const Obj_p seed_copy = this->bcode_->bcode_value()->front()->inst_seed(this->bcode_->bcode_value()->front());
         this->running_->push_back(
-          Monad::M(seed_copy, this->bcode_->bcode_value()->front()));
+          M(seed_copy, this->bcode_->bcode_value()->front()));
       }
     }
 
-    Obj_p next(const int steps = -1) const {
+    [[nodiscard]] Monad_p M(const Obj_p &obj, const Inst_p &inst) const {
+      return make_shared<Processor::Monad>(this, obj, inst);
+    }
+
+
+    [[nodiscard]] Obj_p next(const int steps = -1) const {
       while(true) {
         // Process::current_process()->feed_watchdog_via_counter();
         if(this->halted_->empty()) {
@@ -166,7 +101,7 @@ namespace fhatos {
       }
     }
 
-    Objs_p to_objs() const {
+    [[nodiscard]] Objs_p to_objs() const {
       Objs_p objs = Obj::to_objs();
       Obj_p end;
       while(nullptr != (end = this->next())) {
@@ -178,14 +113,20 @@ namespace fhatos {
     [[nodiscard]] int execute(const int steps = -1) const {
       uint16_t counter = 0;
       while((!this->running_->empty() || !this->barriers_->empty()) && (counter++ < steps || steps == -1)) {
-        if(this->running_->empty() && !this->barriers_->empty()) {
+        if(!this->running_->empty()) {
+          const Monad_p m = this->running_->front();
+          this->running_->pop_front();
+          m->loop();
+        } else if(!this->barriers_->empty()) {
           const Monad_p barrier = this->barriers_->front();
           this->barriers_->pop_front();
           LOG(DEBUG, "processing barrier: %s\n", barrier->toString().c_str());
-          barrier->split(this->bcode_, this->running_);
-        } else {
+          barrier->loop();
+        }
+        /*else {
           const Monad_p m = this->running_->front();
           this->running_->pop_front();
+          m->loop();
           if(m->halted()) {
             LOG(TRACE, FOS_TAB_5 "!ghalting!! monad: %s\n", m->toString().c_str());
             this->halted_->push_back(m->obj());
@@ -198,10 +139,10 @@ namespace fhatos {
               this->barriers_->front()->obj()->objs_value()->push_back(m->obj());
             } else {
               LOG(TRACE, FOS_TAB_5 "!gSplitting!! monad: %s\n", m->toString().c_str());
-              m->split(this->bcode_, this->running_);
+              m->loop();
             }
           }
-        }
+        }*/
       }
 
       LOG(TRACE, FOS_TAB_2 "exiting current run with [!ghalted!!:%i] [!yrunning!!:%i]: %s\n", this->running_->size(),
@@ -209,23 +150,191 @@ namespace fhatos {
       return this->halted_->size();
     }
 
-    void for_each(const Consumer<const Obj_p> &consumer, const int steps = -1) {
-      while(true) {
-        const Obj_p end = this->next(steps);
-        if(!end)
-          break;
-        if(!end->is_noobj())
-          consumer(end);
-      }
-    }
-
   public:
     static Objs_p compute(const BCode_p &bcode) {
-      ROUTER_PUSH_FRAME("+", Obj::to_rec());
+      //ROUTER_PUSH_FRAME("+", Obj::to_rec());
       const Objs_p results = Processor(bcode).to_objs();
-      ROUTER_POP_FRAME();
+      //ROUTER_POP_FRAME();
       return results;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////// MONAD ///////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+  private:
+    class Monad : public enable_shared_from_this<Processor::Monad> {
+    protected:
+      const Processor *processor_;
+      const Obj_p obj_;
+      const Inst_p inst_;
+      const long bulk_ = 1;
+      uint16_t loops_ = 0;
+
+    public:
+      Monad() = delete;
+
+      explicit Monad(const Processor *processor, const Obj_p &obj, const Inst_p &inst) : processor_(processor),
+        obj_(obj->clone()), inst_(inst) {
+      };
+
+      void loop() {
+        const Inst_p current_inst_resolved = TYPE_INST_RESOLVER(this->obj_, this->inst_);
+        LOG(TRACE, "monad looping %s !m=>!! %s [%s]\n",
+            this->toString().c_str(),
+            current_inst_resolved->toString().c_str(),
+            ITypeSignatures.to_chars(this->inst_->itype()).c_str());
+        if(this->inst_->is_noobj()) {
+          if(!this->obj_->is_noobj()) {
+            this->processor_->halted_->push_back(this->obj_);
+          }
+        } else
+          this->incoming(current_inst_resolved);
+      }
+
+      ///////////////////////////////////////////////////////////////////////////
+
+      void incoming(const Inst_p &current_inst_resolved) {
+        LOG(TRACE, FOS_TAB_2 "monad incoming to %s !m=>!! %s [%s]\n",
+            this->toString().c_str(),
+            current_inst_resolved->toString().c_str(),
+            ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+        switch(current_inst_resolved->itype()) {
+          case IType::ZERO_TO_MAYBE:
+          case IType::ZERO_TO_ZERO:
+          case IType::ZERO_TO_ONE:
+          case IType::ZERO_TO_MANY: {
+            if(!this->obj_->is_noobj()) {
+              throw fError("%s [%s] !m<=!! %s did not receive a noobj",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str(),
+                           this->obj_->toString().c_str());
+            }
+            outgoing(current_inst_resolved->apply(this->obj_), current_inst_resolved);
+            break;
+          }
+          case IType::ONE_TO_MAYBE:
+          case IType::ONE_TO_ZERO:
+          case IType::ONE_TO_MANY:
+          case IType::ONE_TO_ONE: {
+            if(this->obj_->is_objs() || this->obj_->is_noobj()) {
+              throw fError("%s [%s] !m<=!! %s did not receive an obj",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str(),
+                           this->obj_->toString().c_str());
+            }
+            outgoing(current_inst_resolved->apply(this->obj_), current_inst_resolved);
+            break;
+          }
+          case IType::MANY_TO_MAYBE:
+          case IType::MANY_TO_ZERO:
+          case IType::MANY_TO_ONE:
+          case IType::MANY_TO_MANY: {
+            if(this->obj_->is_objs())
+              outgoing(current_inst_resolved->apply(this->obj_), current_inst_resolved);
+            else
+              this->processor_->barriers_->front()->obj_->add_obj(this->obj_);
+            break;
+          }
+          case IType::MAYBE_TO_MAYBE:
+          case IType::MAYBE_TO_ZERO:
+          case IType::MAYBE_TO_ONE:
+          case IType::MAYBE_TO_MANY: {
+            if(this->obj_->is_objs()) {
+              throw fError("%s [%s] !m<=!! %s did not receive an obj or noobj",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str(),
+                           this->obj_->toString().c_str());
+            }
+            outgoing(current_inst_resolved->apply(this->obj_), current_inst_resolved);
+            break;
+          }
+          default: throw fError("");
+        }
+      }
+
+      ///////////////////////////////////////////////////////////////////////////
+
+      void outgoing(const Obj_p &next_obj, const Inst_p &current_inst_resolved) {
+        LOG(TRACE, FOS_TAB_2 "monad outgoing to %s !m=>!! %s [%s]\n",
+            this->processor_->M(next_obj,this->inst_)->toString().c_str(),
+            current_inst_resolved->toString().c_str(),
+            ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+        switch(current_inst_resolved->itype()) {
+          ////////////////////////////////////////////////////////////
+          case IType::MAYBE_TO_ZERO:
+          case IType::MANY_TO_ZERO:
+          case IType::ZERO_TO_ZERO:
+          case IType::ONE_TO_ZERO: {
+            if(!next_obj->is_noobj()) {
+              throw fError("%s [%s] did not yield noobj",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+            }
+            break;
+          }
+          ////////////////////////////////////////////////////////////
+          case IType::MAYBE_TO_MANY:
+          case IType::MANY_TO_MANY:
+          case IType::ONE_TO_MANY:
+          case IType::ZERO_TO_MANY: {
+            if(!next_obj->is_objs()) {
+              throw fError("%s [%s] did not yield objs",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+            }
+            for(const Obj_p &obj: *next_obj->objs_value()) {
+              const Monad_p m = this->processor_->M(obj, this->processor_->bcode_->next_inst(this->inst_));
+              this->processor_->running_->push_back(m);
+            }
+            break;
+          }
+          ////////////////////////////////////////////////////////////
+          case IType::MAYBE_TO_ONE:
+          case IType::MANY_TO_ONE:
+          case IType::ZERO_TO_ONE:
+          case IType::ONE_TO_ONE: {
+            if(next_obj->is_objs() || next_obj->is_noobj()) {
+              throw fError("%s [%s] did not yield obj",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+            }
+            const Monad_p m = this->processor_->M(next_obj, this->processor_->bcode_->next_inst(this->inst_));
+            this->processor_->running_->push_back(m);
+            break;
+          }
+          case IType::ONE_TO_MAYBE:
+          case IType::ZERO_TO_MAYBE:
+          case IType::MANY_TO_MAYBE:
+          case IType::MAYBE_TO_MAYBE: {
+            if(next_obj->is_objs()) {
+              throw fError("%s [%s] did not yield obj or noobj",
+                           current_inst_resolved->toString().c_str(),
+                           ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
+            }
+            const Monad_p m = this->processor_->M(next_obj, this->processor_->bcode_->next_inst(this->inst_));
+            this->processor_->running_->push_back(m);
+            break;
+          }
+          default: throw fError("unknown branch");
+        }
+      }
+
+      [[nodiscard]] Obj_p obj() const { return this->obj_; }
+
+      [[nodiscard]] Inst_p inst() const { return this->inst_; }
+
+      [[nodiscard]] long bulk() const { return this->bulk_; }
+
+      [[nodiscard]] uint16_t loops() const { return this->loops_; }
+
+      [[nodiscard]] bool halted() const { return this->inst_->is_noobj(); }
+
+      [[nodiscard]] bool dead() const { return this->obj_->is_noobj(); }
+
+      [[nodiscard]] string toString() const {
+        return string("!MM!y[!!") + this->obj_->toString() + "!g@!!" + this->inst_->toString() + "!y]!!";
+      }
+    };
   };
 
   [[maybe_unused]] static void load_processor() {

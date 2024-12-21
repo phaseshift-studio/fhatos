@@ -48,7 +48,7 @@ namespace fhatos {
     static string bytes_to_hex(const std::vector<fbyte> &bytes) {
       const size_t size = bytes.size();
       auto hex_string = string(size * 2, ' ');
-      for (size_t i = 0; i < size; i++) {
+      for(size_t i = 0; i < size; i++) {
         hex_string[i * 2] = hexmap[(bytes[i] & 0xF0) >> 4];
         hex_string[i * 2 + 1] = hexmap[bytes[i] & 0x0F];
       }
@@ -69,7 +69,7 @@ namespace fhatos {
 
     static std::vector<fbyte> hex_to_bytes(const std::string &hex) {
       std::vector<fbyte> bytes;
-      for (unsigned int i = 0; i < hex.length(); i += 2) {
+      for(unsigned int i = 0; i < hex.length(); i += 2) {
         std::string byteString = hex.substr(i, 2);
         const char byte = static_cast<fbyte>(strtol(byteString.c_str(), nullptr, 16));
         bytes.push_back(byte);
@@ -90,13 +90,15 @@ namespace fhatos {
     }
 
     static void trim(const std::string &s) {
+      if(s.empty())
+        return;
       ltrim(const_cast<string &>(s));
       rtrim(const_cast<string &>(s));
     }
 
     static string repeat(const uint8_t amount, const string &repeater = " ") {
       string temp;
-      for (int i = 0; i < amount; i++) {
+      for(int i = 0; i < amount; i++) {
         temp += repeater;
       }
       return temp;
@@ -108,7 +110,7 @@ namespace fhatos {
       char *message;
       const size_t length = vasprintf(&message, format, arg);
       va_end(arg);
-      if (format[strlen(format) - 1] == '\n')
+      if(format[strlen(format) - 1] == '\n')
         message[length - 1] = '\n';
       message[length] = '\0';
       va_end(arg);
@@ -135,10 +137,10 @@ namespace fhatos {
     }
 
     static uint8_t count_substring(const string &str, const string &sub) {
-      if (sub.empty())
+      if(sub.empty())
         return 0;
       int count = 0;
-      for (size_t offset = str.find(sub); offset != std::string::npos; offset = str.find(sub, offset + sub.length())) {
+      for(size_t offset = str.find(sub); offset != std::string::npos; offset = str.find(sub, offset + sub.length())) {
         ++count;
       }
       return count;
@@ -146,14 +148,14 @@ namespace fhatos {
 
     static string substring(const char split, const string &parent) {
       const size_t index = parent.find(split);
-      if (index == string::npos)
+      if(index == string::npos)
         return parent;
       return parent.substr(index + 1);
     }
 
     static string pad(const uint8_t total, const string &text) {
       auto text2 = string(text);
-      for (size_t i = 0; i < (total - text.length()); i++) {
+      for(size_t i = 0; i < (total - text.length()); i++) {
         text2 += ' ';
       }
       return text2;
@@ -162,12 +164,12 @@ namespace fhatos {
     static int no_ansi_length(const string &s) {
       int count = 0;
       bool last = false;
-      for (size_t i = 0; i < s.length(); i++) {
-        if (s[i] != '!' && !last)
+      for(size_t i = 0; i < s.length(); i++) {
+        if(s[i] != '!' && !last)
           count++;
-        if (last)
+        if(last)
           last = false;
-        if (s[i] == '!')
+        if(s[i] == '!')
           last = true;
       }
       return count;
@@ -175,23 +177,23 @@ namespace fhatos {
 
     static bool look_ahead(const string &token, std::stringstream *ss, const bool consume = true) {
       const std::stringstream::pos_type start = ss->tellg();
-      for (const char i: token) {
-        if (i != ss->peek()) {
+      for(const char i: token) {
+        if(i != ss->peek()) {
           ss->seekg(start);
           return false;
         }
         ss->get();
       }
-      if (!consume)
+      if(!consume)
         ss->seekg(start);
       return true;
     }
 
     static string next_token(const char &split, std::stringstream *ss) {
       string token;
-      while (!ss->eof()) {
+      while(!ss->eof()) {
         const char c = ss->get();
-        if (c == split && !token.empty())
+        if(c == split && !token.empty())
           break;
         token += c;
       }
@@ -199,28 +201,28 @@ namespace fhatos {
     }
 
     static bool is_integer(const string &xstring) {
-      for (uint8_t i = 0; i < xstring.length(); i++) {
-        if (!isdigit(xstring[i]))
+      for(uint8_t i = 0; i < xstring.length(); i++) {
+        if(!isdigit(xstring[i]))
           return false;
       }
       return true;
     }
 
-    static void replace(string &s, const string &search, const string &replace) {
-      for (size_t pos = 0;; pos += replace.length()) {
+    static void replace(string *s, const string &search, const string &replace) {
+      for(size_t pos = 0;; pos += replace.length()) {
         // Locate the substring to replace
-        pos = s.find(search, pos);
-        if (pos == string::npos)
+        pos = s->find(search, pos);
+        if(pos == string::npos)
           break;
         // Replace by erasing and inserting
-        s.erase(pos, search.length());
-        s.insert(pos, replace);
+        s->erase(pos, search.length());
+        s->insert(pos, replace);
       }
     }
 
     static std::stringstream *eat_space(std::stringstream *ss) {
-      while (!ss->eof()) {
-        if (char c = (char) ss->peek(); !isspace(c))
+      while(!ss->eof()) {
+        if(char c = (char) ss->peek(); !isspace(c))
           return ss;
         else
           ss->get();
@@ -228,7 +230,6 @@ namespace fhatos {
       return ss;
     }
   };
-
 } // namespace fhatos
 
 #endif

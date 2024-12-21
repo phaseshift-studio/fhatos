@@ -34,6 +34,7 @@ namespace fhatos {
   void test_plus_inst() {
     FOS_TEST_OBJ_EQUAL(objs({jnt(11),jnt(12),jnt(12),jnt(77)}), PROCESS_ALL("{1,2,2,67}.plus(10)"));
     FOS_TEST_OBJ_EQUAL(jnt(246), PROCESS("1.plus(245)"));
+    FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("1.plus(plus(plus(plus(plus(_)))))"));
   }
 
   void test_count_inst() {
