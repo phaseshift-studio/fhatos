@@ -236,9 +236,14 @@ namespace fhatos {
       return this;
     }
 
-    InstBuilder *inst_f(const List_p<Inst_p>& code) {
+    InstBuilder *inst_f(const List_p<Inst_p> &code) {
       this->function_supplier_ = Obj::to_bcode(code);
       return this;
+    }
+
+    void save(const Obj_p &root = nullptr) const {
+      const Inst_p inst = this->create(nullptr, root);
+      TYPE_SAVER(id_p(inst->vid_or_tid()->query("")), inst);
     }
 
     [[nodiscard]] Inst_p create(const ID_p &value_id = nullptr, const Obj_p &root = nullptr) const {

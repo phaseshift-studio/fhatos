@@ -59,7 +59,7 @@ namespace fhatos {
       // this->bcode_ = Rewriter({
       // /*Rewriter::starts(starts), */Rewriter::by(), Rewriter::explain()}).apply(this->bcode_);
       for(const Inst_p &inst: *this->bcode_->bcode_value()) {
-        const Inst_p resolved = TYPE_INST_RESOLVER(Obj::create(Any(), OType::OBJ, OBJ_FURI), inst);
+        const Inst_p resolved = TYPE_INST_RESOLVER(Obj::to_type(OBJ_FURI), inst);
         const Obj_p seed_copy = resolved->inst_seed(resolved);
         if(is_gather(resolved->itype())) {
           const Monad_p m = M(seed_copy, inst);
@@ -110,7 +110,7 @@ namespace fhatos {
       return objs;
     }
 
-    [[nodiscard]] int execute(const int steps = -1) const {
+    int execute(const int steps = -1) const {
       uint16_t counter = 0;
       while((!this->running_->empty() || !this->barriers_->empty()) && (counter++ < steps || steps == -1)) {
         if(!this->running_->empty()) {
@@ -139,8 +139,8 @@ namespace fhatos {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////// MONAD ///////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////// MONAD ///////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////
   private:
     class Monad : public enable_shared_from_this<Processor::Monad> {
     protected:
@@ -184,7 +184,7 @@ namespace fhatos {
           else
             this->processor_->barriers_->front()->obj_->add_obj(this->obj_);
         } else {
-          this->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved);
+          this->obj_->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, true);
           range_loop(current_inst_resolved->apply(this->obj_), current_inst_resolved);
         }
       }
@@ -196,7 +196,7 @@ namespace fhatos {
             this->processor_->M(next_obj,this->inst_)->toString().c_str(),
             current_inst_resolved->toString().c_str(),
             ITypeSignatures.to_chars(current_inst_resolved->itype()).c_str());
-        this->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, next_obj);
+        next_obj->CHECK_OBJ_TO_INST_SIGNATURE(current_inst_resolved, false);
         if(is_scatter(current_inst_resolved->itype())) {
           for(const Obj_p &obj: *next_obj->objs_value()) {
             const Monad_p m = this->processor_->M(obj, this->processor_->bcode_->next_inst(this->inst_));
@@ -222,53 +222,6 @@ namespace fhatos {
 
       [[nodiscard]] string toString() const {
         return string("!MM!y[!!") + this->obj_->toString() + "!g@!!" + this->inst_->toString() + "!y]!!";
-      }
-
-    private:
-      void CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const Obj_p &outgoing = nullptr) const {
-        if(!outgoing) {
-          if(is_initial(resolved->itype()) && !this->obj_->is_noobj())
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!rnoobj!!",
-                         this->obj_->toString().c_str());
-          if(is_gather(resolved->itype()) && !this->obj_->is_objs())
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!yobjs!!",
-                         this->obj_->toString().c_str());
-          if(is_map(resolved->itype()) && (this->obj_->is_noobj() || this->obj_->is_objs()))
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!gobj!!",
-                         this->obj_->toString().c_str());
-          if(is_filter(resolved->itype()) && this->obj_->is_objs())
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!rnoobj!! or !gobj!!",
-                         this->obj_->toString().c_str());
-        } else {
-          if(is_terminal(resolved->itype()) && !outgoing->is_noobj())
-            throw fError("%s [%s] yields %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!rnoobj!!",
-                         outgoing->toString().c_str());
-          if(is_scatter(resolved->itype()) && !outgoing->is_objs())
-            throw fError("%s [%s] yields %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!yobjs!!",
-                         outgoing->toString().c_str());
-          if(is_map(resolved->itype()) && (outgoing->is_noobj() || outgoing->is_objs()))
-            throw fError("%s [%s] yields %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!gobj!!",
-                         outgoing->toString().c_str());
-          if(is_filter(resolved->itype()) && outgoing->is_objs())
-            throw fError("%s [%s] yields %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         "!rnoobj!! or !gobj!!",
-                         outgoing->toString().c_str());
-        }
       }
     };
   };

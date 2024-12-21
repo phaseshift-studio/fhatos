@@ -133,27 +133,44 @@ namespace fhatos {
   using BObj = Pair<uint32_t, fbyte *>;
   using BObj_p = ptr<Pair<uint32_t, fbyte *>>;
 
-  enum class IType : uint8_t {
-    ZERO_TO_ZERO,
-    ZERO_TO_ONE,
-    ZERO_TO_MANY,
-    ZERO_TO_MAYBE,
-    ONE_TO_ZERO,
-    ONE_TO_ONE,
-    ONE_TO_MANY,
-    ONE_TO_MAYBE,
-    MANY_TO_ONE,
-    MANY_TO_MANY,
-    MANY_TO_MAYBE,
-    MANY_TO_ZERO,
-    MAYBE_TO_ONE,
-    MAYBE_TO_MANY,
-    MAYBE_TO_ZERO,
-    MAYBE_TO_MAYBE,
+  enum class IType : uint16_t {
+    ZERO_TO_ZERO = (1 << 0),
+    ZERO_TO_ONE = (1 << 1),
+    ZERO_TO_MANY = (1 << 2),
+    ZERO_TO_MAYBE = (1 << 3),
+    ONE_TO_ZERO = (1 << 4),
+    ONE_TO_ONE = (1 << 5),
+    ONE_TO_MANY = (1 << 6),
+    ONE_TO_MAYBE = (1 << 7),
+    MANY_TO_ONE = (1 << 8),
+    MANY_TO_MANY = (1 << 9),
+    MANY_TO_MAYBE = (1 << 10),
+    MANY_TO_ZERO = (1 << 11),
+    MAYBE_TO_ONE = (1 << 12),
+    MAYBE_TO_MANY = (1 << 13),
+    MAYBE_TO_ZERO = (1 << 14),
+    MAYBE_TO_MAYBE = (1 << 15),
   }; // TYPE
+
+  inline bool operator&(IType a, IType b) {
+    // Implement bitwise OR logic
+    return (bool) (IType) (static_cast<std::underlying_type_t<IType>>(a) & static_cast<std::underlying_type_t<IType>>(
+                             b));
+  }
+
+  inline IType operator|(IType a, IType b) {
+    // Implement bitwise OR logic
+    return (IType) (static_cast<std::underlying_type_t<IType>>(a) | static_cast<std::underlying_type_t<IType>>(b));
+  }
+
+
+  inline bool contains_itype(IType check, IType check_set) {
+    return (static_cast<uint8_t>(check) & static_cast<uint8_t>(check_set)) == static_cast<uint8_t>(check_set);
+  }
+
   [[maybe_unused]] static bool is_initial(const IType itype) {
     return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO || itype ==
-           IType::ZERO_TO_MAYBE;
+           IType::ZERO_TO_MAYBE || itype == IType::MAYBE_TO_ONE;
   }
 
   [[maybe_unused]] static bool is_scatter(const IType itype) {
@@ -889,6 +906,74 @@ namespace fhatos {
       return IType::ONE_TO_ONE;
     }
 
+    bool CHECK_OBJ_TO_INST_SIGNATURE(const Inst_p &resolved, const bool domain_or_range,
+                                     const bool throw_exception = true) const {
+      if(domain_or_range) {
+        if(this->is_noobj()) {
+          if(!(resolved->itype() & (IType::ZERO_TO_ONE | IType::ZERO_TO_MANY | IType::ZERO_TO_ZERO |
+                                    IType::ZERO_TO_MAYBE | IType::MAYBE_TO_ONE | IType::MAYBE_TO_MANY |
+                                    IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
+            if(!throw_exception) return false;
+            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                         this->toString().c_str());
+          }
+        } else if(this->is_objs()) {
+          if(!(resolved->itype() & (IType::MANY_TO_ONE | IType::MANY_TO_MANY | IType::MANY_TO_ZERO |
+                                    IType::MANY_TO_MAYBE))) {
+            if(!throw_exception) return false;
+            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+                         Obj::to_type(OBJS_FURI)->toString().c_str(),
+                         this->toString().c_str());
+          }
+        } else {
+          if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::ONE_TO_MANY | IType::ONE_TO_ZERO |
+                                    IType::ONE_TO_MAYBE | IType::MAYBE_TO_ONE | IType::MAYBE_TO_MANY |
+                                    IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
+            if(!throw_exception) return false;
+            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+                         Obj::to_type(OBJ_FURI)->toString().c_str(),
+                         this->toString().c_str());
+          }
+        }
+      } else {
+        if(this->is_noobj()) {
+          if(!(resolved->itype() & (IType::ONE_TO_ZERO | IType::MANY_TO_ZERO | IType::ZERO_TO_ZERO |
+                                    IType::MAYBE_TO_ZERO | IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
+                                    IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
+            if(!throw_exception) return false;
+            throw fError("%s [%s] yields on %s: %s", resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                         this->toString().c_str());
+          }
+        } else if(this->is_objs()) {
+          if(!(resolved->itype() & (IType::ONE_TO_MANY | IType::MANY_TO_MANY | IType::ZERO_TO_MANY |
+                                    IType::MAYBE_TO_MANY))) {
+            if(!throw_exception) return false;
+            throw fError("%s [%s] yields on %s: %s", resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+                         Obj::to_type(OBJS_FURI)->toString().c_str(),
+                         this->toString().c_str());
+          }
+        } else {
+          if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::MANY_TO_ONE | IType::ZERO_TO_ONE |
+                                    IType::MAYBE_TO_ONE | IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
+                                    IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
+            if(!throw_exception) return false;
+            throw fError("%s [%s] yields on %s: %s", resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+                         Obj::to_type(OBJ_FURI)->toString().c_str(),
+                         this->toString().c_str());
+          }
+        }
+      }
+      return true;
+    }
+
     [[nodiscard]] InstList_p bcode_value() const {
       if(this->is_noobj())
         return {};
@@ -1379,7 +1464,7 @@ namespace fhatos {
       //}
       if(lhs->is_type() && this->is_code()) {
         TYPE_CHECKER(this, lhs->tid(), true);
-        return this->range() == OBJ_FURI ? lhs : make_shared<Obj>(Any(), OType::OBJ, this->range());
+        return this->range() == OBJ_FURI ? lhs : Obj::to_type(this->range());
       }
       switch(this->o_type()) {
         case OType::OBJ: // type token
@@ -1414,7 +1499,7 @@ namespace fhatos {
         case OType::INST: {
           //// dynamically fetch inst implementation if no function body exists (stub inst)
           const Inst_p inst = TYPE_INST_RESOLVER(lhs, this->shared_from_this());
-          if(!lhs->is_code() && !is_initial(inst->itype()))
+          if(!lhs->is_code())
             TYPE_CHECKER(lhs.get(), inst->domain(), true);
           // compute args
           InstArgs remake;

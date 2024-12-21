@@ -149,7 +149,7 @@ namespace fhatos {
           return inst;
         const static auto TEMP = [](const Obj_p &lhs, const Inst_p &inst, List<ID> *derivation_tree) {
           Obj_p current_obj = lhs;
-          const ID_p inst_type_id = id_p(ID(*ROUTER_RESOLVE(fURI(*inst->tid()))));
+          const ID_p inst_type_id = id_p(*ROUTER_RESOLVE(fURI(*inst->tid())));
           while(true) {
             // check for inst on obj value
             Inst_p maybe;
