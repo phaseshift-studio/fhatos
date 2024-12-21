@@ -94,8 +94,7 @@ namespace mmadt {
                  ->domain_range(OBJS_FURI, INT_FURI)
                  //->type_args(x(0, "obj", ___))
                  ->inst_f([](const Obj_p &lhs, const InstArgs &) {
-                   assert(lhs->is_objs());
-                   return !lhs->is_objs() ? jnt(1) : Obj::to_int(lhs->objs_value()->size());
+                   return Obj::to_int(lhs->objs_value()->size());
                  })
                  ->itype_and_seed(IType::MANY_TO_ONE, Obj::to_objs())
                  ->create());

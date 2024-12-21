@@ -218,7 +218,7 @@ namespace fhatos {
       if(seed)
         this->seed_ = seed;
       else {
-        this->seed_ = is_barrier_out(this->itype_)
+        this->seed_ = is_gather(this->itype_)
                         ? Obj::to_objs()
                         : _noobj_;
       }

@@ -153,19 +153,31 @@ namespace fhatos {
     MAYBE_TO_MAYBE,
   }; // TYPE
   [[maybe_unused]] static bool is_initial(const IType itype) {
-    return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO;
+    return itype == IType::ZERO_TO_ONE || itype == IType::ZERO_TO_MANY || itype == IType::ZERO_TO_ZERO || itype ==
+           IType::ZERO_TO_MAYBE;
   }
 
-  [[maybe_unused]] static bool is_barrier_in(const IType itype) {
-    return itype == IType::ONE_TO_MANY || itype == IType::MANY_TO_MANY || itype == IType::ZERO_TO_MANY;
+  [[maybe_unused]] static bool is_scatter(const IType itype) {
+    return itype == IType::ONE_TO_MANY || itype == IType::MANY_TO_MANY || itype == IType::ZERO_TO_MANY || itype ==
+           IType::MAYBE_TO_MANY;
   }
 
-  [[maybe_unused]] static bool is_barrier_out(const IType itype) {
-    return itype == IType::MANY_TO_ONE || itype == IType::MANY_TO_MANY || itype == IType::MANY_TO_ZERO;
+  [[maybe_unused]] static bool is_gather(const IType itype) {
+    return itype == IType::MANY_TO_ONE || itype == IType::MANY_TO_MANY || itype == IType::MANY_TO_ZERO || itype ==
+           IType::MANY_TO_MAYBE;
   }
 
   [[maybe_unused]] static bool is_terminal(const IType itype) {
-    return itype == IType::ONE_TO_ZERO || itype == IType::MANY_TO_ZERO || itype == IType::ZERO_TO_ZERO;
+    return itype == IType::ONE_TO_ZERO || itype == IType::MANY_TO_ZERO || itype == IType::ZERO_TO_ZERO || itype ==
+           IType::MAYBE_TO_ZERO;
+  }
+
+  [[maybe_unused]] static bool is_map(const IType itype) {
+    return itype == IType::ONE_TO_ONE || itype == IType::MAYBE_TO_ONE;
+  }
+
+  [[maybe_unused]] static bool is_filter(const IType itype) {
+    return itype == IType::ONE_TO_MAYBE || itype == IType::MAYBE_TO_MAYBE;
   }
 
   static Consumer<BObj *> bobj_deleter = [](const BObj *bobj) {
@@ -233,10 +245,10 @@ namespace fhatos {
     {IType::ONE_TO_MANY, "o->O (flatmap)"},
     {IType::MAYBE_TO_MANY, "?->O (potential)"},
     {IType::MAYBE_TO_ONE, "?->o (flip)"},
-    {IType::MAYBE_TO_ZERO, "?->. (spasm)"},
-    {IType::MAYBE_TO_MAYBE, "?->? (hope)"},
+    {IType::MAYBE_TO_ZERO, "?->. (spark)"},
+    {IType::MAYBE_TO_MAYBE, "?->? (flux)"},
     {IType::ONE_TO_MAYBE, "o->? (filter)"},
-    {IType::ZERO_TO_MAYBE, "o->? (check)"},
+    {IType::ZERO_TO_MAYBE, ".->? (check)"},
     {IType::MANY_TO_MAYBE, "?-? (strain)"},
     {IType::MANY_TO_ONE, "O->o (reduce)"},
     {IType::MANY_TO_MANY, "O->O (barrier)"},
@@ -1525,7 +1537,7 @@ namespace fhatos {
               current_obj = current_inst->apply(
                 current_obj->is_objs() &&
                 !current_obj->objs_value()->empty() &&
-                !is_barrier_in(current_inst->itype())
+                !is_scatter(current_inst->itype())
                   ? current_obj->objs_value()->front()
                   : current_obj);
             } catch(fError &e) {
@@ -1534,7 +1546,7 @@ namespace fhatos {
                            current_inst->toString().c_str());
             }
           }
-          return current_obj->is_objs() && !current_obj->objs_value()->empty() && !is_barrier_out(this->itype())
+          return current_obj->is_objs() && !current_obj->objs_value()->empty() && !is_gather(this->itype())
                    ? current_obj->objs_value()->front()
                    : current_obj;
         }
