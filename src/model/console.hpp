@@ -163,6 +163,7 @@ namespace fhatos {
     explicit Console(const ID &value_id, const ID &terminal, const Settings &settings) : Thread(Obj::to_rec(rmap({
           {
             "loop", InstBuilder::build(value_id.extend(":loop"))
+            ->itype_and_seed(IType::ZERO_TO_ZERO)
             ->inst_f([this](const Obj_p &, const InstArgs &) -> Obj_p {
               if(this->first) {
                 this->first = false;

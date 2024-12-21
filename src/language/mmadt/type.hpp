@@ -88,6 +88,7 @@ namespace mmadt {
                  ->inst_f([](const Obj_p &, const InstArgs &args) {
                    return args->arg(0);
                  })
+                 ->itype_and_seed(IType::MAYBE_TO_ONE)
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/count"),
                  InstBuilder::build(MMADT_SCHEME "/count")
@@ -172,6 +173,7 @@ namespace mmadt {
                  ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
                    return args->arg(0);
                  })
+                 ->itype_and_seed(IType::ONE_TO_ONE)
                  ->create());
       TYPE_SAVER(id_p(MMADT_SCHEME "/merge"),
                  InstBuilder::build(MMADT_SCHEME "/merge")
