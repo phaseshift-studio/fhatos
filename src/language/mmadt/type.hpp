@@ -60,7 +60,7 @@ namespace mmadt {
           ->domain_range(NOOBJ_FURI, OBJS_FURI)
           ->type_args(x(0, "starts"))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs(args->rec_values());
+            return Obj::to_objs(args->rec_values());
           })
           ->itype_and_seed(IType::ZERO_TO_MANY)
           ->save();
@@ -139,6 +139,11 @@ namespace mmadt {
           ->type_args(x(0, "rhs"))
           ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
             return Obj::to_bool(lhs->equals(*args->arg(0)));
+          })->save();
+
+      InstBuilder::build(MMADT_SCHEME "/explain")
+          ->inst_f([](const Obj_p &lhs, const InstArgs &args) {
+            return lhs;
           })->save();
 
       InstBuilder::build(MMADT_SCHEME "/from")

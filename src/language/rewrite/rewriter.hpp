@@ -75,8 +75,8 @@ namespace fhatos {
             };
             fun(bcode, p, 0);
             BCode_p rewrite =
-                InstBuilder::build()
-                ->inst_f([ex](const Obj_p &, const InstArgs &) { return Obj::to_str(ex); })
+                InstBuilder::build("start")
+                ->type_args(Obj::to_str(ex))
                 ->create();
             LOG_REWRITE(ID("/lang/rewrite/by"), bcode, rewrite);
             return rewrite;

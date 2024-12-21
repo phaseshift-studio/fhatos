@@ -914,29 +914,32 @@ namespace fhatos {
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_ONE | IType::MAYBE_TO_MANY |
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                         this->toString().c_str());
+            throw fError("%s [%s] not in domain of %s [!y%s!!]",
+                   this->toString().c_str(),
+                   Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                   resolved->toString().c_str(),
+                   ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else if(this->is_objs()) {
           if(!(resolved->itype() & (IType::MANY_TO_ONE | IType::MANY_TO_MANY | IType::MANY_TO_ZERO |
                                     IType::MANY_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         Obj::to_type(OBJS_FURI)->toString().c_str(),
-                         this->toString().c_str());
+            throw fError("%s [%s] not in domain of %s [!y%s!!]",
+                      this->toString().c_str(),
+                      Obj::to_type(OBJS_FURI)->toString().c_str(),
+                      resolved->toString().c_str(),
+                      ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else {
           if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::ONE_TO_MANY | IType::ONE_TO_ZERO |
                                     IType::ONE_TO_MAYBE | IType::MAYBE_TO_ONE | IType::MAYBE_TO_MANY |
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] operates on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         Obj::to_type(OBJ_FURI)->toString().c_str(),
-                         this->toString().c_str());
+            throw fError("%s [%s] not in domain of %s [!y%s!!]",
+                              this->toString().c_str(),
+                              Obj::to_type(OBJ_FURI)->toString().c_str(),
+                              resolved->toString().c_str(),
+                              ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         }
       } else {
@@ -945,29 +948,32 @@ namespace fhatos {
                                     IType::MAYBE_TO_ZERO | IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] yields on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
-                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                         this->toString().c_str());
+            throw fError("%s [%s] not in range of %s [!y%s!!]",
+                          this->toString().c_str(),
+                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                          resolved->toString().c_str(),
+                          ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else if(this->is_objs()) {
           if(!(resolved->itype() & (IType::ONE_TO_MANY | IType::MANY_TO_MANY | IType::ZERO_TO_MANY |
                                     IType::MAYBE_TO_MANY))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] yields on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+            throw fError("%s [%s] not in range of %s [!y%s!!]",
+                         this->toString().c_str(),
                          Obj::to_type(OBJS_FURI)->toString().c_str(),
-                         this->toString().c_str());
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else {
           if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::MANY_TO_ONE | IType::ZERO_TO_ONE |
                                     IType::MAYBE_TO_ONE | IType::ONE_TO_MAYBE | IType::MANY_TO_MAYBE |
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
-            throw fError("%s [%s] yields on %s: %s", resolved->toString().c_str(),
-                         ITypeDescriptions.to_chars(resolved->itype()).c_str(),
+            throw fError("%s [%s] not in range of %s [!y%s!!]",
+                         this->toString().c_str(),
                          Obj::to_type(OBJ_FURI)->toString().c_str(),
-                         this->toString().c_str());
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         }
       }
