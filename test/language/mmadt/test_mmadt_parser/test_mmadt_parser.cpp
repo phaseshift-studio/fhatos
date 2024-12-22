@@ -79,7 +79,7 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(str("negatIVE te  N"), OBJ_PARSER("'negatIVE te  N'"));
     FOS_TEST_OBJ_EQUAL(str(""), OBJ_PARSER("str['']"));
     FOS_TEST_OBJ_EQUAL(str("abc"), OBJ_PARSER("str['abc']"));
-    TEST_ASSERT_EQUAL_STRING("b\\'c", OBJ_PARSER("'a\\''.'b\\'c'")->apply()->str_value().c_str());
+    TEST_ASSERT_EQUAL_STRING("b\\'c", PROCESS("'a\\''.'b\\'c'")->str_value().c_str());
     TEST_ASSERT_EQUAL_STRING("a\"b\"c", OBJ_PARSER("'a\"b\"c'")->str_value().c_str());
     TEST_ASSERT_EQUAL_STRING("a\\'b\\'c", OBJ_PARSER("'a\\'b\\'c'")->str_value().c_str());
   }
@@ -146,6 +146,9 @@ namespace fhatos {
   }
 
   void test_inst_sugar_parsing() {
+    ////////// start{}
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).is(gt(2))"));
+    FOS_TEST_OBJ_EQUAL(jnt(3), PROCESS("{0,1,2}.plus(1).count()"));
     ////////// x
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("3 x 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(6), OBJ_PARSER("3x2")->apply());

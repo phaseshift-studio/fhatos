@@ -60,7 +60,7 @@ namespace mmadt {
           ->domain_range(NOOBJ_FURI, OBJS_FURI)
           ->type_args(x(0, "starts"))
           ->inst_f([](const Obj_p &, const InstArgs &args) {
-            return Obj::to_objs(args->rec_values());
+            return args->arg(0)->is_objs() ? args->arg(0) : Obj::to_objs({args->arg(0)});
           })
           ->itype_and_seed(IType::ZERO_TO_MANY)
           ->save();

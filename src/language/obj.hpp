@@ -647,7 +647,7 @@ namespace fhatos {
         for(const auto &o: *this->objs_value()) {
           transform->add_obj(o->deref(uri));
         }
-        return transform->none_one_all();
+        return transform;
       }
       return uri;
     }
@@ -915,20 +915,20 @@ namespace fhatos {
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                   this->toString().c_str(),
-                   Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                   resolved->toString().c_str(),
-                   ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else if(this->is_objs()) {
           if(!(resolved->itype() & (IType::MANY_TO_ONE | IType::MANY_TO_MANY | IType::MANY_TO_ZERO |
                                     IType::MANY_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                      this->toString().c_str(),
-                      Obj::to_type(OBJS_FURI)->toString().c_str(),
-                      resolved->toString().c_str(),
-                      ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(OBJS_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else {
           if(!(resolved->itype() & (IType::ONE_TO_ONE | IType::ONE_TO_MANY | IType::ONE_TO_ZERO |
@@ -936,10 +936,10 @@ namespace fhatos {
                                     IType::MAYBE_TO_ZERO | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in domain of %s [!y%s!!]",
-                              this->toString().c_str(),
-                              Obj::to_type(OBJ_FURI)->toString().c_str(),
-                              resolved->toString().c_str(),
-                              ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(OBJ_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         }
       } else {
@@ -949,10 +949,10 @@ namespace fhatos {
                                     IType::ZERO_TO_MAYBE | IType::MAYBE_TO_MAYBE))) {
             if(!throw_exception) return false;
             throw fError("%s [%s] not in range of %s [!y%s!!]",
-                          this->toString().c_str(),
-                          Obj::to_type(NOOBJ_FURI)->toString().c_str(),
-                          resolved->toString().c_str(),
-                          ITypeDescriptions.to_chars(resolved->itype()).c_str());
+                         this->toString().c_str(),
+                         Obj::to_type(NOOBJ_FURI)->toString().c_str(),
+                         resolved->toString().c_str(),
+                         ITypeDescriptions.to_chars(resolved->itype()).c_str());
           }
         } else if(this->is_objs()) {
           if(!(resolved->itype() & (IType::ONE_TO_MANY | IType::MANY_TO_MANY | IType::ZERO_TO_MANY |
@@ -1834,11 +1834,11 @@ namespace fhatos {
     }
 
     static Objs_p to_objs(const std::initializer_list<Obj_p> &objs, const ID_p &type_id = OBJS_FURI) {
-      auto objs_p = Obj::to_objs();
+      const auto list = make_shared<List<Obj_p>>();
       for(const auto &obj: objs) {
-        objs_p->add_obj(obj);
+        list->push_back(obj);
       }
-      return Obj::create(objs_p, OType::OBJS, type_id);
+      return Obj::create(list, OType::OBJS, type_id);
     }
 
     static Error_p to_error(const Obj_p &obj, const Inst_p &inst, const ID_p &type_id = ERROR_FURI) {
