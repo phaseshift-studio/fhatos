@@ -45,6 +45,8 @@ namespace fhatos {
 
   void test_noobj_parsing() {
     FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("noobj"));
+    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("noobj[noobj]"));
+    // FOS_TEST_OBJ_EQUAL(vri(NOOBJ_FURI), PROCESS("noobj.type()"));
   }
 
   void test_bool_parsing() {
@@ -163,7 +165,7 @@ namespace fhatos {
     //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3+2")->apply());
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("3+ 2"));
     //FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("3 +2")->apply());
-    // TODO FOS_TEST_OBJ_NTEQL(jnt(5), OBJ_PARSER("  map(3) + 2 x 2 .plus(-5) ")->apply());
+    //FOS_TEST_OBJ_NTEQL(jnt(5), PROCESS("  start(3) + 2 x 2 .plus(-5) "));
     ////////// proto.map
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("9.plus(1)"));
     FOS_TEST_OBJ_EQUAL(jnt(10), PROCESS("{9}.plus(1)"));
@@ -207,9 +209,9 @@ namespace fhatos {
     FOS_TEST_OBJ_EQUAL(jnt(5), PROCESS("[8,[a=>[b=>5],c=>7]].<1>.a.b"));
     FOS_TEST_OBJ_EQUAL(jnt(6), PROCESS("[8,[a=>[b=>6],c=>7]].<1>.a/b"));
     FOS_TEST_OBJ_EQUAL(jnt(7), PROCESS("[  8  ,[   a=>[ b => 7],c   =>   7]   ].<1>.a/b"));
-    // FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
-    //FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
-    //   FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
+    FOS_TEST_OBJ_EQUAL(jnt(8), PROCESS("/abc -> [8,[a=>[b=>8],c=>7]];.*</abc/1/a/b>"));
+    FOS_TEST_OBJ_EQUAL(jnt(9), PROCESS("/abc -> [8,[a=>[b=>9],c=>7]]; */abc/1/a/b"));
+    FOS_TEST_OBJ_EQUAL(jnt(0), PROCESS("/abc -> [8,[a=>[b=>6],c=>7]]; */abc/1/a.b.to(/abc/x); */abc/x + -6"));
   }
 
   void test_type_definition_parsing() {
