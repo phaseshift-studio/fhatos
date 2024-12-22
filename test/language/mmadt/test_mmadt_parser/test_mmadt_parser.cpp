@@ -34,9 +34,9 @@ namespace fhatos {
   void test_comment_parsing() {
     FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("--- a single line comment"));
     FOS_TEST_ERROR("---\nsdfasdf");
-    FOS_TEST_OBJ_EQUAL(vri("###sdfasf#sdafsa###"), OBJ_PARSER("###sdfasf#sdafsa###"));
     FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("### sdfdasdf\n\t\nsdfsfasfsf ###"));
-    FOS_TEST_OBJ_EQUAL(noobj(), OBJ_PARSER("############### sdfdasdf\n\t\nsdfsfasfsf #####"));
+    FOS_TEST_OBJ_EQUAL(jnt(1), OBJ_PARSER("### start ###\nint[1]\n### end ###"));
+    FOS_TEST_OBJ_EQUAL(str("abc"), OBJ_PARSER("\n\n### \n\nstart ###\n\nstr['abc']\n\n--- a comment\n### end\n\n ###"));
   }
 
   void test_type_parsing() {

@@ -56,12 +56,13 @@ if [[ "${2}" == "help" || "${2}" == "--help" || "${2}" == "-h" ]]; then
 else
   working_directory=$(pwd)
   if [ -z "$FHATOS_HOME" ]; then
-    echo -e " ${LB}fhatos ${RED}FHATOS_HOME=<not set>${NC}${RB}"
-    exit 1
-  else
-    echo -e " ${LB}fhatos ${GREEN}FHATOS_HOME=${FHATOS_HOME}${NC}${RB}";
-    cd "${FHATOS_HOME}" || exit 1
+    echo -e " ${LB}fhatos ${RED}FHATOS_HOME=<not set> ${GREEN}(setting to current directory)${NC}${RB}"
+    FHATOS_HOME=$(pwd)
+
   fi
+     echo -e " ${LB}fhatos ${GREEN}FHATOS_HOME=${FHATOS_HOME}${NC}${RB}";
+    cd "${FHATOS_HOME}" || exit 1
+
 
   echo -e " ${LB}working directory ${GREEN}$working_directory${NC}${RB}"
 

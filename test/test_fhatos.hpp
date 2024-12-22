@@ -122,7 +122,7 @@ using namespace fhatos;
     try {                                                                                                              \
       RUN_TEST(x);                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
-      LOG(ERROR, "Failed test due to %s: %s\n", e.what(), STR(x));                                                     \
+      LOG(ERROR, "failed test due to %s\n", e.what());                                                     \
       throw;                                                                                                           \
     }                                                                                                                  \
   }
@@ -144,8 +144,7 @@ using namespace fhatos;
       x;                                                                                                               \
       UNITY_END();                                                                                                     \
     } catch (const std::exception &e) {                                                                                \
-      LOG(ERROR, "Failed test suite due to %s: %s\n", e.what(), STR(x));                                               \
-      TEST_FAIL();                                                                                                     \
+      TEST_FAIL_MESSAGE(e.what());                                                                                             \
     }                                                                                                                  \
   }
 
@@ -230,7 +229,7 @@ using namespace fhatos;
     (x);                                                                                                               \
     TEST_ASSERT(false);                                                                                                \
   } catch (const fError &e) {                                                                                          \
-    FOS_TEST_MESSAGE("!rAn expected error occurred!!: %s", e.what());                                                  \
+    FOS_TEST_MESSAGE("!gexpected error occurred!!: %s", e.what());                                                  \
     TEST_ASSERT(true);                                                                                                 \
   }
 

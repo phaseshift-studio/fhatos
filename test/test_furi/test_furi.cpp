@@ -466,7 +466,7 @@ namespace fhatos {
     TEST_ASSERT_FALSE(fURI("/abc/cd").is_relative());
     TEST_ASSERT_FALSE(fURI("fos://localhost/./abc").is_relative());
     TEST_ASSERT_FALSE(fURI("fos:./").is_relative());
-    TEST_ASSERT_FALSE(fURI("//localhost:8080/.").is_relative());
+   	FOS_TEST_EXCEPTION_CXX(fURI("//localhost:8080/."));
   }
 
   void test_uri_branch_node() {

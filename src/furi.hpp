@@ -810,10 +810,18 @@ namespace fhatos {
           // this->_fragment = strdup(token.c_str());
           // }
         }
-        for(uint8_t i = 0; i < this->path_length_; i++) {
-          if(this->path_[i][0] == '#' && i != this->path_length_ - 1) {
-            throw fError("Only the last path segment can contain the recurssive !b#!! wildcard: %s",
-                         this->path().c_str());
+        if(this->path_) {
+          for(uint8_t i = 0; i < this->path_length_; i++) {
+            if(this->path_[i][0] == '#' && i != this->path_length_ - 1) {
+              throw fError("only the last path segment can contain the recursive !b#!! wildcard: %s",
+                           this->path().c_str());
+            }
+            if(!this->spostfix_) {
+              if(char last = this->path_[this->path_length_ - 1][strlen(this->path_[this->path_length_ - 1]) - 1];
+                last == '.' || last == '_' || last == '=') {
+                throw fError("furis can not end with chars !g[!r.!y_!c=!g]!!: %s", this->name().c_str());
+              }
+            }
           }
         }
       } catch(const std::exception &) {

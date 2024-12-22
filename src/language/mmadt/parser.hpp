@@ -118,7 +118,7 @@ namespace mmadt {
 
   private:
     Definition
-        WS, ROOT, ARGS, CODE, COMMENT, MULTI_COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
+        WS, ROOT, ARGS, CODE, COMMENT, SINGLE_COMMENT, MULTI_COMMENT, FURI, FURI_INLINE, FURI_NO_Q,
         NOOBJ, BOOL, INT, REAL, STR, LST, REC, URI, INST, INST_P,
         INST_ARG_OBJ, OBJS, OBJ, TYPE, TYPE_ID, NO_CODE_OBJ, COEF,
         NO_CODE_PROTO, INST_ARG_PROTO, BCODE, BCODE_P, PROTO,
@@ -340,24 +340,35 @@ namespace mmadt {
       };
 
 #endif
+      static auto root_action = [](const SemanticValues &vs) -> Obj_p {
+        const size_t matches = vs.size();
+        if(matches > 1)
+          throw fError("only one obj is allowed (logic error)");
+        return 0 == matches ? noobj() : any_cast<Obj_p>(vs[0]);
+      };
+
       WS <= zom(cls(" \t"));
-      ROOT <= cho(COMMENT, MULTI_COMMENT, OBJ);
-      COMMENT <= seq(lit("---"), zom(ncls("\n"))), comment_action;
+      ROOT <= seq(zom(~COMMENT), opt(OBJ), zom(~COMMENT)), root_action;
+      ////////////////////////////////////////////////////////////
+      COMMENT <= cho(SINGLE_COMMENT, MULTI_COMMENT);
+      SINGLE_COMMENT <= seq(zom(cls("\n")), lit("---"), zom(ncls("\n")));
+      // "/*" (!"*/" .)* "*/"
+      MULTI_COMMENT <= seq(zom(cls("\n")), lit("###"), zom(ncls("#")), lit("###"), zom(cls("\n")));
       // '###' (!'#'.)* '###'
-      MULTI_COMMENT <= seq(lit("###"), zom(chr('#')), ~WS, zom(ncls("#")), ~WS, lit("###"), zom(chr('#'))),
-          comment_action;
+      ////////////////////////////////////////////////////////////
       TYPE <= seq(~WS, TYPE_ID, lit("[]"), ~WS), type_action;
       NOOBJ <= lit("noobj"), noobj_action;
       BOOL <= cho(lit("true"), lit("false")), bool_action;
       INT <= seq(~WS, opt(chr('-')), oom(cls("0-9")), ~WS), int_action;
       REAL <= seq(~WS, opt(chr('-')), oom(cls("0-9")), chr('.'), oom(cls("0-9")), ~WS), real_action;
       STR <= seq(~WS, chr('\''), tok(zom(cho(lit("\\'"), ncls("\'")))), chr('\''), ~WS), str_action;
-      FURI <= seq(~WS, tok(oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+")))), ~WS), furi_action;
-      FURI_INLINE <= seq(~WS, tok(seq(
-                           oom(cho(cls("a-zA-Z:/?_#+"), seq(lit("`.")))),
-                           zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/?_=&#+")))))),
+      FURI <= seq(~WS, tok(seq(npd(chr('_')), oom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/?_=&@.#+"))))), ~WS), furi_action;
+      FURI_INLINE <= seq(~WS, tok(seq(npd(chr('_')),
+                                      oom(cho(cls("a-zA-Z:/?_#+"), seq(lit("`.")))),
+                                      zom(seq(npd(lit("=>")), cho(seq(lit("`.")), cls("a-zA-Z0-9:/?_=&#+")))))),
                          ~WS), furi_action;
-      FURI_NO_Q <= seq(~WS, tok(seq(oom(cls("a-zA-Z:/_.#+")), zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
+      FURI_NO_Q <= seq(~WS, tok(seq(npd(chr('_')), oom(cls("a-zA-Z:/_.#+")),
+                                    zom(seq(npd(lit("=>")), cls("a-zA-Z0-9:/_=&@.#+"))))),
                        ~WS), furi_action;
       URI <= cho(lit("<>"), seq(chr('<'), FURI, chr('>')), FURI_INLINE, FURI), uri_action;
       REC <= cho(lit("[=>]"), seq(lit("["), opt(seq(OBJ, lit("=>"), OBJ)),
@@ -417,9 +428,13 @@ namespace mmadt {
         return vs.size() != 1 || any_cast<Obj_p>(vs[0])->is_code();
       };
       FURI.predicate = [](const SemanticValues &vs, const std::any &, std::string &msg) {
-        const char last = vs.token_to_string()[vs.token_to_string().length() - 1];
-        msg = "furis can not end with . nor _ nor =";
-        return last != '.' && last != '_' && last != '=';
+        try {
+          fURI(vs.token_to_string());
+        } catch(const std::exception &e) {
+          //msg = e.what();
+          return false;
+        }
+        return true;
       };
       ///////////////////////// DEBUG UTILITIES //////////////////////////////////////////
       OBJ.enter = enter_y("obj");
@@ -428,6 +443,7 @@ namespace mmadt {
       FROM.enter = enter_y("from");
       //////////////////////// WHITESPACE IGNORING ///////////////////////////////////////
       ROOT.whitespaceOpe = make_shared<Whitespace>(Whitespace(zom(cls(" \t"))));
+      COMMENT.whitespaceOpe = ROOT.whitespaceOpe;
       OBJ.whitespaceOpe = ROOT.whitespaceOpe;
       NO_CODE_OBJ.whitespaceOpe = ROOT.whitespaceOpe;
       INST_ARG_OBJ.whitespaceOpe = ROOT.whitespaceOpe;
